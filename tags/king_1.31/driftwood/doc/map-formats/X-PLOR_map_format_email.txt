@@ -1,0 +1,38 @@
+From: Ian W. Davis <ian.davis@duke.edu>
+Date: February 6, 2004 5:09:18 PM EST
+To: Dave & Jane Richardson <dcrjsr@kinemage.biochem.duke.edu>
+Subject: X-PLOR map format
+
+OK, here's the format. It's all plain Unix text. There may be zero or more blank lines at the start of the file, followed by a line that starts with a number. That number is the number of comment lines (not counting this one). The next line has 9 numbers, column-aligned and right justified. Call them aSteps, aMin, aMax, bSteps, bMin, bMax, cSteps, cMin, cMax. More on these in a moment. Then we have a line with the unit cell dimensions (a, b, c) and angles (alpha, beta, gamma). Then we have a line that says "ZYX".
+
+At this point I should explain the 9 mystery numbers. The density values are samples taken on a regular grid inside the unit cell. aSteps tells you how many grid points lie along the 'a' axis of the unit cell. In the case below, there are 72 grid points along a 40.7 Angstrom 'a' axis. Thus a=0 lies at one edge of the cell, and a=72 lies on the far edge. Each grid point is 40.7 / 72 = 0.56 Angstroms apart (along the 'a' axis, anyway). Doing the same calculation, grid points are spaced every 49.4 / 90 = 0.55 A along the 'b' axis and every 141.0 / 250 = 0.56 A along the 'c' axis.
+
+The trick is, we don't necessarily NEED to sample all the grid points in a unit cell, because some of them are related to others by crystal symmetry. So aMin and aMax define a subset of the grid points along 'a' that we've actually recorded, in this case grid points -22 through 74 (*inclusive*, and yes, this is more than a whole unit cell width in this case!). So now we know that the 3-D array of samples in this file has (aMax-aMin)+1 = (74--22)+1 = 97 samples along the 'a' axis. For the files you write, I expect that (aMax-aMin)+1 should equal aSteps -- one full "unit cell", no more, no less.
+
+Now we start on the data. These occasionally have "ksect" lines (no, I don't know what they meant by that) that consist of an integer alone on a line. I don't know what they're for, and I just ignore them, so feel free to leave them out.  ;)  The data are written out with the A (aka X) index varying most quickly, the B (Y) varying next most quickly, and the C (Z) index varying most slowly -- hence the ZYX line in the file. In other words:
+for(z = cMin to cMax)
+	for(y = bMin to bMax)
+		for(x = aMin to aMax)
+			write_density_at (x, y, z)
+Density values are written out 6 to a line, column aligned in the scientific notation format you see below.
+
+Hope this helps,
+Ian
+
+
+       4 !NTITLE
+ REMARKS FILENAME="ref.BS.rd0.1sbp_2fofc.map"
+ REMARKS  sigmaa 2fofc map
+ REMARKS DATE:11-May-2002  08:57:47       created by user: arendall
+ REMARKS VERSION:1.0
+      72     -22      74      90     -62      64     250      45     144
+ 0.40770E+02 0.49370E+02 0.14103E+03 0.90000E+02 0.90000E+02 0.90000E+02
+ZYX
+       0
+-0.72761E+00-0.10453E+01-0.66123E+00-0.38609E+00-0.57277E+00-0.63342E+00
+-0.42916E+00-0.39512E+00-0.44940E+00-0.21210E+00 0.17193E+00 0.27653E+00
+ 0.69048E-01-0.81871E-04 0.26171E+00 0.26755E+00-0.26789E+00-0.53939E+00
+-0.18435E+00-0.43868E-01-0.36829E+00-0.31965E+00 0.32192E+00 0.80753E+00
+ 0.61394E+00-0.16243E-01-0.46674E+00-0.55313E+00-0.57885E+00-0.40399E+00
+ 0.13093E+00 0.19359E+00-0.40480E+00-0.88013E-01 0.16997E+01 0.33157E+01
+

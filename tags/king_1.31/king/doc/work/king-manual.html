@@ -1,0 +1,2264 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 2002 (1.62)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>The KING manual</TITLE>
+<META NAME="description" CONTENT="The KING manual">
+<META NAME="keywords" CONTENT="king-manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2002">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="king-manual.css">
+
+</HEAD>
+
+<BODY >
+
+<P>
+
+
+
+
+<P>
+
+<P>
+<H1 ALIGN="CENTER">The K<SMALL>I</SMALL>NG manual</H1>
+<P ALIGN="CENTER"><STRONG>Ian W. Davis</STRONG></P>
+
+<H3>Abstract:</H3>
+<DIV>
+K<SMALL>I</SMALL>NG (Kinemage, Next Generation) is an interactive system
+for three-dimensional vector graphics. It supports a set of graphics
+primitives that make it suitable for many types of graphs, plots,
+and other illustrations; although its first use was to display macromolecular
+structures for biophysical research. K<SMALL>I</SMALL>NG builds on M<SMALL>AGE</SMALL>,
+J<SMALL>AVA</SMALL>M<SMALL>AGE</SMALL>, and the ``kinemage'' (kinetic image) concept
+to deliver a full-featured Java application with a user-friendly interface
+and integrated editing features. It also operates as a Java applet
+to promote easy access to kinemages from a web browser.
+</DIV>
+<P>
+<BR>
+
+<H2><A NAME="SECTION00100000000000000000">
+Contents</A>
+</H2>
+<!--Table of Contents-->
+
+<UL>
+<LI><A NAME="tex2html92"
+  HREF="king-manual.html">1. Getting started</A>
+<UL>
+<LI><A NAME="tex2html93"
+  HREF="king-manual.html#SECTION00210000000000000000">1.1 What is a kinemage?</A>
+<LI><A NAME="tex2html94"
+  HREF="king-manual.html#SECTION00220000000000000000">1.2 Starting the KiNG program</A>
+<UL>
+<LI><A NAME="tex2html95"
+  HREF="king-manual.html#SECTION00221000000000000000">1.2.1 Download KiNG</A>
+<LI><A NAME="tex2html96"
+  HREF="king-manual.html#SECTION00222000000000000000">1.2.2 Make sure you have Java</A>
+<LI><A NAME="tex2html97"
+  HREF="king-manual.html#SECTION00223000000000000000">1.2.3 Launch KiNG</A>
+</UL>
+<LI><A NAME="tex2html98"
+  HREF="king-manual.html#SECTION00230000000000000000">1.3 Opening a kinemage</A>
+<LI><A NAME="tex2html99"
+  HREF="king-manual.html#SECTION00240000000000000000">1.4 Basic kinemage reading: Using KiNG to view a kinemage</A>
+<UL>
+<LI><A NAME="tex2html100"
+  HREF="king-manual.html#SECTION00241000000000000000">1.4.1 Basic interaction</A>
+<LI><A NAME="tex2html101"
+  HREF="king-manual.html#SECTION00242000000000000000">1.4.2 Reading the kinemage text</A>
+<LI><A NAME="tex2html102"
+  HREF="king-manual.html#SECTION00243000000000000000">1.4.3 Using different viewpoints</A>
+<LI><A NAME="tex2html103"
+  HREF="king-manual.html#SECTION00244000000000000000">1.4.4 Other features</A>
+</UL>
+</UL>
+<BR>
+<LI><A NAME="tex2html104"
+  HREF="king-manual.html#SECTION00300000000000000000">2. Input &amp; Output</A>
+<UL>
+<LI><A NAME="tex2html105"
+  HREF="king-manual.html#SECTION00310000000000000000">2.1 Opening a kinemage</A>
+<LI><A NAME="tex2html106"
+  HREF="king-manual.html#SECTION00320000000000000000">2.2 Working with multiple kinemages</A>
+<LI><A NAME="tex2html107"
+  HREF="king-manual.html#SECTION00330000000000000000">2.3 Appending a kinemage</A>
+<LI><A NAME="tex2html108"
+  HREF="king-manual.html#SECTION00340000000000000000">2.4 Saving kinemages</A>
+<LI><A NAME="tex2html109"
+  HREF="king-manual.html#SECTION00350000000000000000">2.5 Printing kinemages</A>
+<LI><A NAME="tex2html110"
+  HREF="king-manual.html#SECTION00360000000000000000">2.6 Exporting kinemages in other formats</A>
+<UL>
+<LI><A NAME="tex2html111"
+  HREF="king-manual.html#SECTION00361000000000000000">2.6.1 Exporting bitmapped images (JPEG, PNG)</A>
+<LI><A NAME="tex2html112"
+  HREF="king-manual.html#SECTION00362000000000000000">2.6.2 Exporting vector graphics (PDF, PostScript, etc.)</A>
+<LI><A NAME="tex2html113"
+  HREF="king-manual.html#SECTION00363000000000000000">2.6.3 Exporting as XML</A>
+<LI><A NAME="tex2html114"
+  HREF="king-manual.html#SECTION00364000000000000000">2.6.4 Exporting as VRML</A>
+</UL>
+</UL>
+<BR>
+<LI><A NAME="tex2html115"
+  HREF="king-manual.html#SECTION00400000000000000000">3. Advanced kinemage reading</A>
+<UL>
+<LI><A NAME="tex2html116"
+  HREF="king-manual.html#SECTION00410000000000000000">3.1 Finding points by name</A>
+<UL>
+<LI><A NAME="tex2html117"
+  HREF="king-manual.html#SECTION00411000000000000000">3.1.1 Whole word searches</A>
+<LI><A NAME="tex2html118"
+  HREF="king-manual.html#SECTION00412000000000000000">3.1.2 Substring searches</A>
+<LI><A NAME="tex2html119"
+  HREF="king-manual.html#SECTION00413000000000000000">3.1.3 Glob (simple regex) searches</A>
+<LI><A NAME="tex2html120"
+  HREF="king-manual.html#SECTION00414000000000000000">3.1.4 Perl5 regex searches</A>
+<LI><A NAME="tex2html121"
+  HREF="king-manual.html#SECTION00415000000000000000">3.1.5 Tips for faster searches</A>
+</UL>
+<LI><A NAME="tex2html122"
+  HREF="king-manual.html#SECTION00420000000000000000">3.2 Viewing animations</A>
+<LI><A NAME="tex2html123"
+  HREF="king-manual.html#SECTION00430000000000000000">3.3 Controlling presentation: The Display menu</A>
+<UL>
+<LI><A NAME="tex2html124"
+  HREF="king-manual.html#SECTION00431000000000000000">3.3.1 Stereo</A>
+<LI><A NAME="tex2html125"
+  HREF="king-manual.html#SECTION00432000000000000000">3.3.2 OpenGL</A>
+</UL>
+<LI><A NAME="tex2html126"
+  HREF="king-manual.html#SECTION00440000000000000000">3.4 Master buttons</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html127"
+  HREF="king-manual.html#SECTION00500000000000000000">4. Kinemage authoring: Using KiNG to edit a kinemage</A>
+<UL>
+<LI><A NAME="tex2html128"
+  HREF="king-manual.html#SECTION00510000000000000000">4.1 Merging kinemages together</A>
+<LI><A NAME="tex2html129"
+  HREF="king-manual.html#SECTION00520000000000000000">4.2 Editing text</A>
+<LI><A NAME="tex2html130"
+  HREF="king-manual.html#SECTION00530000000000000000">4.3 Editing views</A>
+<LI><A NAME="tex2html131"
+  HREF="king-manual.html#SECTION00540000000000000000">4.4 The hierarchy editor</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html132"
+  HREF="king-manual.html#SECTION00600000000000000000">5. The Tools</A>
+<UL>
+<LI><A NAME="tex2html133"
+  HREF="king-manual.html#SECTION00610000000000000000">5.1 Understanding the Tools and Plug-ins</A>
+<UL>
+<LI><A NAME="tex2html134"
+  HREF="king-manual.html#SECTION00611000000000000000">5.1.1 Extra measurements</A>
+<LI><A NAME="tex2html135"
+  HREF="king-manual.html#SECTION00612000000000000000">5.1.2 XYZ coordinates</A>
+<LI><A NAME="tex2html136"
+  HREF="king-manual.html#SECTION00613000000000000000">5.1.3 Pick objects</A>
+</UL>
+<LI><A NAME="tex2html137"
+  HREF="king-manual.html#SECTION00620000000000000000">5.2 Using KiNG with a multi-button mouse</A>
+<LI><A NAME="tex2html138"
+  HREF="king-manual.html#SECTION00630000000000000000">5.3 Navigate: Exploring in 3-D</A>
+<UL>
+<LI><A NAME="tex2html139"
+  HREF="king-manual.html#SECTION00631000000000000000">5.3.1 Z-rotation (``pinwheel'')</A>
+<LI><A NAME="tex2html140"
+  HREF="king-manual.html#SECTION00632000000000000000">5.3.2 Translation (``flatland'')</A>
+<LI><A NAME="tex2html141"
+  HREF="king-manual.html#SECTION00633000000000000000">5.3.3 Command reference</A>
+</UL>
+<LI><A NAME="tex2html142"
+  HREF="king-manual.html#SECTION00640000000000000000">5.4 Move Points: Remaking the kinemage</A>
+<UL>
+<LI><A NAME="tex2html143"
+  HREF="king-manual.html#SECTION00641000000000000000">5.4.1 Command reference</A>
+</UL>
+<LI><A NAME="tex2html144"
+  HREF="king-manual.html#SECTION00650000000000000000">5.5 Edit Properties: Changing colors and more</A>
+<UL>
+<LI><A NAME="tex2html145"
+  HREF="king-manual.html#SECTION00651000000000000000">5.5.1 Command reference</A>
+</UL>
+<LI><A NAME="tex2html146"
+  HREF="king-manual.html#SECTION00660000000000000000">5.6 Draw New: Reworking the kinemage</A>
+<LI><A NAME="tex2html147"
+  HREF="king-manual.html#SECTION00670000000000000000">5.7 Dock 3-on-3: Geometric construction</A>
+<LI><A NAME="tex2html148"
+  HREF="king-manual.html#SECTION00680000000000000000">5.8 Least-Squares Docking: Getting the best fit</A>
+<LI><A NAME="tex2html149"
+  HREF="king-manual.html#SECTION00690000000000000000">5.9 Electron Density: Visualizing maps</A>
+<LI><A NAME="tex2html150"
+  HREF="king-manual.html#SECTION006100000000000000000">5.10 RNA Maps: Finding the phosphates</A>
+<UL>
+<LI><A NAME="tex2html151"
+  HREF="king-manual.html#SECTION006101000000000000000">5.10.1 Current Issues</A>
+</UL>
+<LI><A NAME="tex2html152"
+  HREF="king-manual.html#SECTION006110000000000000000">5.11 90 Degree Rotations: Seeing precisely</A>
+<LI><A NAME="tex2html153"
+  HREF="king-manual.html#SECTION006120000000000000000">5.12 Solid Object Drawing: Just for fun</A>
+<UL>
+<LI><A NAME="tex2html154"
+  HREF="king-manual.html#SECTION006121000000000000000">5.12.1 ``Lathe'' tool</A>
+</UL>
+<LI><A NAME="tex2html155"
+  HREF="king-manual.html#SECTION006130000000000000000">5.13 Update KiNG: Upgrading without the hassle</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html156"
+  HREF="king-manual.html#SECTION00700000000000000000">6. Configuring KiNG</A>
+<LI><A NAME="tex2html157"
+  HREF="king-manual.html#SECTION00800000000000000000">7. Launching KiNG</A>
+<UL>
+<LI><A NAME="tex2html158"
+  HREF="king-manual.html#SECTION00810000000000000000">7.1 Running KiNG as an application</A>
+<LI><A NAME="tex2html159"
+  HREF="king-manual.html#SECTION00820000000000000000">7.2 Making KiNG an applet in a web page</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html160"
+  HREF="king-manual.html#SECTION00900000000000000000">8. Additional resources</A>
+<UL>
+<LI><A NAME="tex2html161"
+  HREF="king-manual.html#SECTION00910000000000000000">8.1 Included manuals</A>
+<LI><A NAME="tex2html162"
+  HREF="king-manual.html#SECTION00920000000000000000">8.2 Included kinemages</A>
+<LI><A NAME="tex2html163"
+  HREF="king-manual.html#SECTION00930000000000000000">8.3 External documentation</A>
+<LI><A NAME="tex2html164"
+  HREF="king-manual.html#SECTION00940000000000000000">8.4 Bug reporting and contact info</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html165"
+  HREF="king-manual.html#SECTION001000000000000000000">9. Copyright &amp; acknowledgments</A>
+<UL>
+<LI><A NAME="tex2html166"
+  HREF="king-manual.html#SECTION001010000000000000000">9.1 Copyright</A>
+<LI><A NAME="tex2html167"
+  HREF="king-manual.html#SECTION001020000000000000000">9.2 Licenses</A>
+<LI><A NAME="tex2html168"
+  HREF="king-manual.html#SECTION001030000000000000000">9.3 Acknowledgments</A>
+<LI><A NAME="tex2html169"
+  HREF="king-manual.html#SECTION001040000000000000000">9.4 Revision status</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html170"
+  HREF="king-manual.html#SECTION001100000000000000000">A. KiNG License</A>
+<UL>
+<LI><A NAME="tex2html171"
+  HREF="king-manual.html#SECTION001110000000000000000">A.1 What this license applies to</A>
+<LI><A NAME="tex2html172"
+  HREF="king-manual.html#SECTION001120000000000000000">A.2 The KiNG License</A>
+<LI><A NAME="tex2html173"
+  HREF="king-manual.html#SECTION001130000000000000000">A.3 Where this license came from</A>
+</UL></UL>
+<!--End of Table of Contents-->
+
+<P>
+
+<H1><A NAME="SECTION00200000000000000000">
+1. Getting started</A>
+</H1>
+
+<P>
+
+<H1><A NAME="SECTION00210000000000000000">
+1.1 What is a kinemage?</A>
+</H1>
+
+<P>
+A kinemage is a ``kinetic image,'' an interactive, three-dimensional
+illustration. Because kinemages contain simple geometric objects --
+points, lines, spheres, <I>etc.</I> -- they are suited to a great
+variety of subjects, from simple sketches to sophisticated plots to
+detailed schematics of 3-D objects. Their strength is in <I>selective</I>
+presentation of information -- they were originally intended as an
+alternative to flat, static illustrations in scientific journals.
+
+<P>
+In fact, kinemages were first created as a way of visualizing macromolecular
+structures, particularly x-ray crystal structures of proteins. However,
+such a kinemage is a <I>drawing</I> of a molecule, albeit a 3-D drawing,
+and not the molecule itself. Thus, the kinemage lacks most of the
+information in a PDB file, and kinemage display program cannot read
+PDB files directly. Since their creation, kinemages have been extended
+to a variety of other fields, from the social sciences to ecology
+to education.
+
+<P>
+The kinemage concept is the brainchild of Drs. David and Jane Richardson
+at Duke University in Durham, North Carolina, USA. Their website is
+at http://kinemage.biochem.duke.edu.
+
+<P>
+
+<H1><A NAME="SECTION00220000000000000000">
+1.2 Starting the KiNG program</A>
+</H1>
+
+<P>
+If you're reading this, you may already have KiNG running. In that
+case, feel free to skip this section. If not, we'll guide you through
+getting KiNG up and running on your system.
+
+<P>
+
+<H2><A NAME="SECTION00221000000000000000">
+1.2.1 Download KiNG</A>
+</H2>
+
+<P>
+If you don't already have a copy of KiNG, you can download it from
+http://kinemage.biochem.duke.edu. Even if you have a copy already,
+you might check periodically for new version that add features and
+fix bugs. If you run on a Windows or Linux machine and aren't already
+knowledgeable about Java techonology, we recommend downloading the
+package that includes a Java Virtual Machine in the bundle. (This
+isn't an issue for Macintosh owners.)
+
+<P>
+If you just want to run KiNG as an applet on MolProbity or some other
+web page, you can skip this step. You can always download a copy later
+if you want to run it off-line.
+
+<P>
+
+<H2><A NAME="SECTION00222000000000000000">
+1.2.2 Make sure you have Java</A>
+</H2>
+
+<P>
+KiNG is written in the Java programming language, and so requires
+that the Java libraries (version 1.3 or later) be present on your
+computer in order for it to run. Newer Apple computers (those running
+Mac OS X) come with Java. Most PCs do not, though recently several
+manufacturers have agreed to pre-install Java on their new computers.
+Look for the coffee-cup icon in your Windows task bar or in the Control
+Panel.
+
+<P>
+If you don't have Java, you may have downloaded a copy of KiNG that
+was bundled with its own installation of Java. If you ran the InstallAnywhere
+installation program, this is the copy you have; don't worry about
+downloading and installing another copy of Java.
+
+<P>
+If you don't have Java and you didn't download the bundled version
+of KiNG, point your web browser to http://java.sun.com/getjava/index.html.
+The software is free and available for Windows, Linux, and Solaris
+computers. We recommend getting the newest version that is available
+(1.4.2 as of this writing).
+
+<P>
+
+<H2><A NAME="SECTION00223000000000000000">
+1.2.3 Launch KiNG</A>
+</H2>
+
+<P>
+Launching KiNG is as simple as double clicking on the ``KiNG''
+icon. If you didn't download a package with an installer, <I>etc.</I>
+you may need to click on <TT>king.jar</TT> instead.
+
+<P>
+For Unix types who want a shell script, we recommend something like
+this:
+
+<P>
+
+<DL COMPACT>
+<DT>
+<DD>#!/bin/sh
+
+<P>
+exec&nbsp;java&nbsp;-Xms32m&nbsp;-Xmx128m&nbsp;-jar&nbsp;/home/ian/bin/jars/king.jar&nbsp;&#34;$@&#34;
+</DD>
+</DL>The <TT>-Xms</TT> and <TT>-Xmx</TT> switches control the amount of
+memory initially allocated to the Java program and the maximum memory
+it can consume. The default maximum of 64 MB should be enough for
+almost any kinemage, but a few of the largest require more (hence
+the <TT>-Xmx128m</TT> recommendation).
+
+<P>
+If you just want to run KiNG as an applet from a web page, you can
+just visit that web page now. If you don't see the ``Kinglet''
+logo after a minute or two, make sure your browser is properly configured
+to work with Java. How you do this depends on which browser you have;
+consult its documentation for details.
+
+<P>
+
+<H1><A NAME="SECTION00230000000000000000">
+1.3 Opening a kinemage</A>
+</H1>
+
+<P>
+If you already have a kinemage you want to look at, this step is simple:
+just choose <TT>Open</TT> from the <TT>File</TT> menu, and select
+the kinemage you'd like to view. If you don't have anything to look
+at right now, don't worry! Choose <TT>Help | Built-in kinemages</TT>,
+and select one of the provided files to explore. See additional-resources
+for more places to get kinemages from.
+
+<P>
+
+<H1><A NAME="SECTION00240000000000000000">
+1.4 Basic kinemage reading: Using KiNG to view a kinemage</A>
+</H1>
+
+<P>
+
+<H2><A NAME="SECTION00241000000000000000"></A><A NAME="basic-interaction"></A>
+<BR>
+1.4.1 Basic interaction
+</H2>
+
+<P>
+
+<H3><A NAME="SECTION00241100000000000000">
+1.4.1.1 Moving the kinemage around</A>
+</H3>
+
+<P>
+A kinemage is a dynamic, 3-D illustration. The best way to take advantage
+of that is by rotating it and twisting it around. Just click the mouse
+near the center of the graphics window and slowly drag right or left,
+up or down. If you have multiple buttons on your mouse, use the left
+button or button 1. You can also use the left and right arrow keys
+for small rotations. If you get lost or disoriented, use the <TT>Views</TT>
+menu to get back on familiar ground.
+
+<P>
+
+<H3><A NAME="SECTION00241200000000000000">
+1.4.1.2 Identifying points</A>
+</H3>
+
+<P>
+By clicking on points with the mouse (left button again), you'll be
+able to identify them. The label associated with each point will appear
+in the bottom right of the graphics area. Furthermore, the distance
+from this point to the last one you clicked will also be displayed.
+
+<P>
+
+<H3><A NAME="SECTION00241300000000000000">
+1.4.1.3 Markers</A>
+</H3>
+
+<P>
+For keeping track of which point is selected, markers can be displayed.
+Two markers are displayed normally. The checkbox for markers is just
+below the graphics area, with the pickcenter checkbox.
+
+<P>
+
+<H3><A NAME="SECTION00241400000000000000">
+1.4.1.4 Turning groups on &amp; off</A>
+</H3>
+
+<P>
+Most kinemages have many different components to them, grouped together
+in logical ways. A protein might have one group for each subunit;
+or one group for mainchain, another for side chains, and yet another
+for hydrogens. Groups and subgroups are given names and can be made
+visible or hidden by the viewer -- you might want to see only one
+subunit, or only the backbone (without sidechains and hydrogens cluttering
+up the view).
+
+<P>
+The groups and subgroups appear in the button pane, to the right of
+the graphics area. Each one has a button to turn it on or off. Groups
+that are on (visible) usually have a check mark or an X in there box;
+a blank button means the group is hidden. Many kinemages start off
+with some information hidden, to avoid overwhelming the reader. Always
+check to see if there's more information available than is being displayed!
+
+<P>
+
+<H3><A NAME="SECTION00241500000000000000">
+1.4.1.5 Re-centering</A>
+</H3>
+
+<P>
+You can make any point in the kinemage be the center. The center point
+will be in the middle of the graphics area, and the kinemage will
+rotate about that point. There are several ways to set the center:
+you can hold the Shift key while you click the point, or use the right
+mouse button if you have one. You can also press the <TT>Pick
+center</TT> button below the graphics area and then click on the desired
+point.
+
+<P>
+Since re-centering brings a point to the center of the screen, using
+this repeatedly allows one to ``walk'' through a large structure.
+
+<P>
+
+<H3><A NAME="SECTION00241600000000000000">
+1.4.1.6 Zooming in and out</A>
+</H3>
+
+<P>
+KiNG allows you to zoom in to see small details in a kinemage. Use
+the <TT>Zoom</TT> slider, below the graphics area, to control how
+far you zoom in. You can click the mouse right or left of the knob
+for small movements or click the knob and drag it for larger ones.
+A small motion is usually all that's needed.
+
+<P>
+For easier access, one can hold Shift and drag (or drag using the
+right mouse button) in the graphics window. Dragging down zooms in;
+up zooms out. The up/down arrow keys and mouse wheel (Java 1.4 and
+later only) also control zooming.
+
+<P>
+
+<H3><A NAME="SECTION00241700000000000000">
+1.4.1.7 Clipping</A>
+</H3>
+
+<P>
+Objects that are too near the viewer, or too far away, are not displayed;
+otherwise, zooming in would result in a useless superposition. The
+depth of the clipping ``slab'' can be adjusted using the slider
+along the bottom, or by dragging side-to-side with the right mouse
+button (or with the Shift key held down).
+
+<P>
+
+<H3><A NAME="SECTION00241800000000000000">
+1.4.1.8 More modes of interation</A>
+</H3>
+
+<P>
+For more ways to explore the kinemage and interact with it, be sure
+to read about the <TT>Navigate</TT> tool (see navigate-tool).
+
+<P>
+
+<H2><A NAME="SECTION00242000000000000000">
+1.4.2 Reading the kinemage text</A>
+</H2>
+
+<P>
+Exploring on your own is great, but the best guide to a kinemage is
+its author. Often, he or she includes a short text of a few paragraphs
+or pages that explains what the kinemage depicts. You can access this
+text using the <TT>Show text</TT> button, located just below the graphics
+area. An equivalent command is also available in the <TT>Edit</TT>
+menu.
+
+<P>
+
+<H2><A NAME="SECTION00243000000000000000">
+1.4.3 Using different viewpoints</A>
+</H2>
+
+<P>
+Most kinemages have one or more ``views'' that were selected by
+the author to highlight some significant feature. These views are
+accessible from the <TT>Views</TT> menu. Just click on one of the
+named views and the kinemage will ``jump'' to that view. You can
+then rotate it, zoom in or out, <I>etc.</I> to explore further. You
+can always return to the original view by selecting it again from
+the menu.
+
+<P>
+Kinemages without any predefined views still get an automatic ``overview''
+view. This is a useful way to return to a known starting point if
+you get lost in a complicated structure.
+
+<P>
+
+<H2><A NAME="SECTION00244000000000000000">
+1.4.4 Other features</A>
+</H2>
+
+<P>
+The kinemage format also allows for flip-book style animations, automatic
+searching for points based on their name (the label that appears in
+the lower left when the point is clicked), and much more. There is
+also a rich selection of features to control exactly how the graphics
+are rendered. See advanced-kinemage-reading to learn more.
+
+<P>
+
+<H1><A NAME="SECTION00300000000000000000">
+2. Input &amp; Output</A>
+</H1>
+
+<P>
+
+<H1><A NAME="SECTION00310000000000000000">
+2.1 Opening a kinemage</A>
+</H1>
+
+<P>
+To open a new kinemage, go the the <TT>File</TT> menu and choose <TT>Open</TT>.
+Browse through your file system and find a kinemage file. These files
+typically end in .<TT>kin</TT>. The new version-control convention
+is to name modified files <TT>.1.kin</TT>, <TT>.2.kin</TT>, <I>etc</I>.,
+though older kinemages that have been edited may have revisions named
+.<TT>kip</TT>, <TT>kip1</TT>, <TT>kip2</TT>, <I>etc</I>. Click the
+button marked OK and KiNG will begin loading the file. You'll see
+a progress bar as KiNG loads the contents of the file, and then the
+first kinemage in that file will be displayed in the graphics area
+(where the logo used to be).
+
+<P>
+You can also drag and drop kinemages into the KiNG graphics window
+in order to open them, but this feature is not supported for Java
+versions prior to 1.4. On Mac OS X machines, you can also double-click
+<TT>.kin</TT> files in the Finder or drag kinemage files onto the
+KiNG Dock icon to launch KiNG and open the file.
+
+<P>
+Additionally, files can be specified on the command line, as in <TT>king&nbsp;-s&nbsp;foo.kin&nbsp;bar.kin</TT>,
+which will load all the kinemages in those two files upon startup.
+The <TT>-s</TT> (or <TT>-single</TT>) flag is required so that KiNG
+knows not to merge the two files together.
+
+<P>
+
+<H1><A NAME="SECTION00320000000000000000">
+2.2 Working with multiple kinemages</A>
+</H1>
+
+<P>
+If your file has more than one kinemage, you can choose which one
+you want to look at from the drop box on the right, just above the
+buttons. You can also use <TT>File</TT> | <TT>Open</TT> to load additional
+files; those kinemages will also appear in the drop box. When you're
+done, use <TT>File</TT> | <TT>Close</TT> to get rid of the current
+kinemage, or use <TT>File</TT> | <TT>Close all</TT> to get rid of
+all the open kinemages.
+
+<P>
+If you save your file when more than one kinemage is open, they will
+<I>all</I> be written out to that file, in the order they currently
+appear in. This is an easy way to create multi-kinemage files, but
+be careful that you don't save <I>more</I> than you intended to!
+
+<P>
+
+<H1><A NAME="SECTION00330000000000000000"></A><A NAME="appending-a-kinemage"></A>
+<BR>
+2.3 Appending a kinemage
+</H1>
+
+<P>
+Sometimes you want to combine the contents of multiple kinemages.
+You might want to combine a graph of your latest sales data with some
+nicely formated and labeled axes you prepared last month. Or maybe
+you want to combine a ribbon drawing of your favorite protein with
+a representation of the atomic detail at its active site. In either
+case, using <TT>File | Append</TT> will combine the contents of a
+new file with the contents of the currently displayed kinemage. Be
+careful -- if the new file contains multiple kinemages, they'll <I>all</I>
+be merged into the current one!
+
+<P>
+This behavior can be achieved on the command line by specifying multiple
+files, as in <TT>king&nbsp;-m&nbsp;foo.kin&nbsp;bar.kip1</TT>, which will merge
+all the kinemages in those two files upon startup. The <TT>-m</TT>
+(or <TT>-merge</TT>) flag is optional; merging multiple files is the
+default behavior.
+
+<P>
+
+<H1><A NAME="SECTION00340000000000000000">
+2.4 Saving kinemages</A>
+</H1>
+
+<P>
+You can save kinemages using the <TT>File | Save as</TT> menu; these
+files are typically given the extension <TT>.kin</TT>. KiNG will try
+to help you by automatically appending a number to the filename so
+that your changes don't overwrite your original. The resulting kinemage
+file will be plain text that you can view and even edit by hand using
+any text editor (though of course you don't have to!). If you choose
+to do this and want use a word processor (like Microsoft Word), make
+sure that you load and save the file in plain text format.
+
+<P>
+Note that due to the security restrictions that web browsers place
+on Java applets, saving will never be possible when KiNG is running
+inside a web browser.
+
+<P>
+
+<H1><A NAME="SECTION00350000000000000000">
+2.5 Printing kinemages</A>
+</H1>
+
+<P>
+You can use <TT>File | Print</TT> to send the image in the graphics
+area to your printer. The image will fill as much of the page as possible
+without distorting it. The relative size of the elements will be exactly
+the same as on screen. Among the consequences of this are that an
+image printed from a small graphics window will have thicker lines
+when printed than will the image when printed from a larger graphics
+window. Don't worry about this too much; just remember printing is
+WYSIWYG (what-you-see-is-what-you-get). If it looks right on the screen,
+it should look right on the paper! Some images will fit better in
+landscape mode than portrait mode; this decision is left up to the
+user.
+
+<P>
+Printing should work even when KiNG is running in a web browser, although
+the user will generally be asked for permission first.
+
+<P>
+
+<H1><A NAME="SECTION00360000000000000000">
+2.6 Exporting kinemages in other formats</A>
+</H1>
+
+<P>
+Several facilities are provided that can help get data out of kinemage
+format and into other forms, either for making figures for publication
+or for further processing. Due to security restrictions placed on
+applets, the export features are unavailable when KiNG is running
+in a web browser.
+
+<P>
+
+<H2><A NAME="SECTION00361000000000000000">
+2.6.1 Exporting bitmapped images (JPEG, PNG)</A>
+</H2>
+
+<P>
+The <TT>File | Export</TT> menu allows one to save the current graphics
+image as a standard image file. Image export requires that you have
+Java 1.4 or newer; otherwise, an error message will appear. Several
+image formats are supported, including JPEG and PNG; the format can
+be selected from the export dialog box. These images are very useful
+for creating web pages, PowerPoint-style presentations, <I>etc</I>.
+For high-quality publication graphics, however, you'll want to use
+a vector-based format like PDF.
+
+<P>
+
+<H2><A NAME="SECTION00362000000000000000">
+2.6.2 Exporting vector graphics (PDF, PostScript, <I>etc.</I>)</A>
+</H2>
+
+<P>
+Rather than sending the image to the printer, it can be captured for
+inclusion in a publication or later manipulation in a graphics program
+like Adobe Illustrator. Note that there are several relevant options
+under the <TT>Display</TT> menu, particularly <TT>White background</TT>
+and <TT>Monochrome</TT>.
+
+<P>
+All platforms can generate PDF files using the <TT>File | Export</TT>
+menu. This is the simplest and best option for almost any use. ``PDF''
+stands for Portable Document Format, the successor to PostScript as
+the standard for vector graphics. You can learn more about PDFs at
+http://www.adobe.com. It does require the (free) iText PDF
+library from http://www.lowagie.com/iText/, which is distributed
+with KiNG.
+
+<P>
+If for some reason you don't want to use PDF export, it is also often
+possible to hijack the print output into a file. For instance, with
+Macintosh OS X, both PostScript and PDF output are supported directly
+from the Print dialog. Under Linux, choosing <TT>Print to file</TT>
+from the Print dialog will generate a PostScript file, which can be
+converted many other formats using <I>e.g.</I> Ghostscript tools like
+<TT>ps2pdf</TT> (PDF) and <TT>ps2epsi</TT> (EPS, Encapsulated PostScript).
+Under Microsoft Windows, things don't seem to be as straightforward,
+but one possiblity is to install the generic PostScript printer drivers
+from Adobe and then direct this ``virtual printer'' to FILE (rather
+than, <I>e.g.</I>, LPT1). Your mileage may vary; I'd be interested
+in hearing about better ways to do this from any Windows experts out
+there.
+
+<P>
+
+<H2><A NAME="SECTION00363000000000000000">
+2.6.3 Exporting as XML</A>
+</H2>
+
+<P>
+<I>This feature now lags far behind the rest of the program in
+functionality; it may not work at all. If you need this capability,
+you are encouraged to contact the author and encourage on-going development.</I>
+
+<P>
+You can export kinemages in XML format using the Kinetic Image Markup
+Language by choosing <TT>Kin-XML</TT> from the <TT>File | Export</TT>
+menu. We recommend giving these files the extension <TT>.xkn</TT>
+or <TT>.xml</TT>. At this time, KiNG does not read these files, nor
+do other kinemage viewers. Also, they may not include all of the information
+that would be present in a traditional kinemage file. However, for
+people who would like to operate on the data from a kinemage without
+having to write a parser for the kinemage format, we expect this will
+be useful and convenient. Translation from the modified XML back to
+kinemage format is left as an exercise to the reader ;)
+
+<P>
+
+<H2><A NAME="SECTION00364000000000000000">
+2.6.4 Exporting as VRML</A>
+</H2>
+
+<P>
+KiNG has rudimentary abilities to export its 3-D primitives in VRML97
+(a.k.a. VRML 2.0) format. At present, only dots and balls are exported,
+and they are both rendered as spheres. This feature was intended to
+facilitate the creation of models for rapid prototyping systems. As
+with XML export, contact the author if further development of this
+feature would be useful to you.
+
+<P>
+
+<H1><A NAME="SECTION00400000000000000000"></A><A NAME="advanced-kinemage-reading"></A>
+<BR>
+3. Advanced kinemage reading
+</H1>
+
+<P>
+
+<H1><A NAME="SECTION00410000000000000000">
+3.1 Finding points by name</A>
+</H1>
+
+<P>
+Every point in a kinemage has an associated identifying label, which
+appears in the graphics area when the point is clicked on. You can
+find one or more points by searching through those labels for a word
+or phrase using the <TT>Edit</TT> | <TT>Find point</TT> dialog. When
+you press <TT>Search</TT>, KiNG will center the view on the first
+point that matches your criteria (you may need to zoom in/out to see
+it appropriately). <TT>Edit | Find next</TT> will then jump to the
+next matching point, until all matches are exhausted.
+
+<P>
+
+<H2><A NAME="SECTION00411000000000000000">
+3.1.1 Whole word searches</A>
+</H2>
+
+<P>
+This is the easiest-to-use of the search options, and usually produces
+the desired results. You can enter one or more words or numbers in
+the search field (separated by spaces), and KiNG will find all the
+points that contain <I>all</I> of those words, in any order. A search
+for ``val 17'' would find ``17 A val cb'' but not ``valine
+117''.
+
+<P>
+
+<H2><A NAME="SECTION00412000000000000000">
+3.1.2 Substring searches</A>
+</H2>
+
+<P>
+This works like whole word searches, but will even find points that
+have the search terms embedded in a larger word or number. In this
+case, a search for ``val 17'' <I>would</I> find ``valine 117''.
+This often produces extraneous results but may occasionally be useful.
+
+<P>
+
+<H2><A NAME="SECTION00413000000000000000">
+3.1.3 Glob (simple regex) searches</A>
+</H2>
+
+<P>
+This search is done with a simple ``regular expression'', as is
+often used for specifying file names on the command line. A star (*)
+matches any group of zero or more characters, and a question mark
+(?) matches any single character. Notice that the search is treated
+as a single term, rather than multiple words -- the pieces must be
+in the correct order. Thus a search for ``val*17'' would find
+``val17'', ``val 17'', and ``valine 117'', among others;
+but would <I>not</I> find ``17 val''.
+
+<P>
+
+<H2><A NAME="SECTION00414000000000000000">
+3.1.4 Perl5 regex searches</A>
+</H2>
+
+<P>
+This search is like the simple regex search but uses the full syntax
+of Perl 5 regular expressions, as implemented by the <TT>gnu.regexp</TT>
+library. (I'm no expert, but it seems to be a very complete and official
+implementation. All but the most esoteric features are available.)
+Regular expressions are a very involved subject, and many books and
+on-line references are available for the interested reader.
+
+<P>
+
+<H2><A NAME="SECTION00415000000000000000">
+3.1.5 Tips for faster searches</A>
+</H2>
+
+<P>
+Remember that KiNG searches through <I>all</I> visible points to find
+ones matching your criteria. Turning off (<I>i.e.</I>, making invisible,
+hiding, unchecking) large groups that you're not interested in will
+skip searching those groups. Since all the varieties of search are
+implemented internally with regular expressions, they are relatively
+computationally expensive. A search through a large kinemage may take
+several seconds.
+
+<P>
+
+<H1><A NAME="SECTION00420000000000000000">
+3.2 Viewing animations</A>
+</H1>
+
+<P>
+Kinemages often include animations. An animation in this sense is
+not a movie, but more like a flip-book, where similar images are aligned
+and displayed one at a time, in a series of discrete frames. If a
+kinemage contains animation(s), there will be forward and reverse
+buttons for the animation located below the checkboxes for groups
+and masters.
+
+<P>
+
+<H1><A NAME="SECTION00430000000000000000">
+3.3 Controlling presentation: The Display menu</A>
+</H1>
+
+<P>
+The <TT>Display</TT> menu offers several options for controlling how
+the kinemage is rendered. Of particular interest is the <TT>Perspective</TT>
+option. By default, KiNG renders objects with orthographic perspective;
+objects near the viewer are no larger than those far away. This is
+the preferred mode for viewing macromolecular structures and many
+2-D graphs and figures. However, for geometrical objects and other
+cases where the eye expects perspective, enabling this option will
+result in a much more natural-looking image.
+
+<P>
+There are also several ways of controlling the coloring of the points.
+Each point may have its own color, and several ``aspects'' as
+well. For example, a map might be colored by the aspects of temperature,
+elevation, and annual rainfall; one could then choose which of these
+colorings to apply.
+
+<P>
+The first level of grouping above the individual point is the list;
+every point belongs to a list. Points that don't have a color specified
+take their color from the list, but there are times when one might
+want to suppress the individual colors and color points by the color
+of the list they belong to. This option is available as well.
+
+<P>
+
+<H2><A NAME="SECTION00431000000000000000"></A><A NAME="using_stereo"></A>
+<BR>
+3.3.1 Stereo
+</H2>
+
+<P>
+Upon request, KiNG will render the kinemage as a stereoscopic pair
+of images. The two views are very nearly the same, except that one
+is slightly rotated with respect to the other. If you can get one
+eye to look at each image, you can fool yourself into seeing additional
+depth information. Stereo can be either ``cross-eye'' or ``wall-eye'';
+the former is somewhat easier to learn, but the later is more comfortable
+for long periods of time.
+
+<P>
+To see cross-eye stereo, cross your eyes and then look at the screen
+without refocusing. You should see 4 identical (though blurry) images.
+Relax your eyes slightly, and the center two will overlap. If you
+can focus on this phantom central image, you'll be seeing in stereo.
+It may help bring the image into sharp focus to rotate the kinemage
+slighly using the mouse.
+
+<P>
+If you've got KiNG set for wall-eye stereo and your eyes set for cross-eye
+(or vice versa), you will see a stereoscopic image, but the parts
+that should be in back will be in front, and it will rotate the wrong
+direction when you move the mouse. Change one or the other to get
+a more reasonable image.
+
+<P>
+Incidentally, although KiNG doesn't support multiple simultaneous
+views of the same kinemage, you can simulate a pair of orthogonal
+views by setting the stereo separation to 90 degrees in <TT>Edit
+| Configure KiNG</TT>. Of course, the views no longer forms a stero image,
+but they're useful in another way. Particularly applicable for ``info-vis''
+kinemages, you can examine (for instance) the x-y plane and the y-z
+plane at the same time using this trick. It pairs well with the 90-degree
+rotations plugin (<A HREF="king-manual.html#rot90-plugin">5.11</A>).
+
+<P>
+
+<H2><A NAME="SECTION00432000000000000000">
+3.3.2 OpenGL</A>
+</H2>
+
+<P>
+KiNG is capable of using OpenGL rendering commands to take advantage
+of your graphics hardware and get (hopefully) accelerated graphics
+performance. You'll need to have an up-to-date version of Java installed,
+along with the JOGL libraries (https://jogl.dev.java.net/).
+Make sure you get both <TT>jogl.jar</TT> and the native library or
+libraries (they end in <TT>.dll</TT>, <TT>.so</TT>, or <TT>.jnilib</TT>).
+As of summer 2004, the JOGL folks were distributing their native libraries
+packaged in a JAR file, too; they'll need to be extracted with a <TT>jar
+xvf NATIVE-LIBS.JAR</TT> command. You can remove the <TT>META-INF</TT>
+directory; it doesn't serve any purpose. The JOGL libraries go in
+<TT>jre/lib/ext</TT> (JAR file) and <TT>jre/bin</TT> (native libs)
+of your Java installation, or in <TT>/Library/Java/Extensions</TT>
+on Mac OS X (both files). If you're on a Unix-style system (including
+Mac OS X), be sure to check your permissions as well. If you downloaded
+a platform-specific version of KiNG, the necessary libraries may already
+be included (but don't count on it - for obscure reasons, the technical
+obstacles to this are very large).
+
+<P>
+Note that due to limitations of Java's interaction with the native
+windowing system, OpenGL graphics have to have their own window. You
+can make it easier to work with by collapsing away the normal graphics
+area and shrinking down the main KiNG window; it will then tile nicely
+beside the graphics window.
+
+<P>
+This feature has been tested with Java 1.4.2 and JOGL 1.1.0. JOGL
+is still under development, as is this feature, and interacting so
+directly with the hardware is always risky, so it's possible that
+OpenGL rendering may hang KiNG on your computer. You've been warned.
+
+<P>
+Hopefully, a future version of Java (possibly the 1.5.x series) will
+use OpenGL behind the scenes for all graphics operations, making KiNG
+much faster and making this feature obsolete. Until then, this is
+a work-around for large kinemages where performance is an issue.
+
+<P>
+
+<H1><A NAME="SECTION00440000000000000000">
+3.4 Master buttons</A>
+</H1>
+
+<P>
+Not all the buttons to the right of the graphics control groups and
+subgroups of points; some are ``masters.'' The master buttons
+sit below the others, separated by a spacer. When activated, a master
+turns on all the groups it controls; when deactivated, it turns them
+all off. The effects are only momentary; the group can be turned on
+or off directly regardless of the state of the master(s) that control
+it.
+
+<P>
+A single group can be controlled by multiple masters. Note that the
+``off'' state of a master is dominant in this case: a master will
+always turn off the groups it controls, but will turn them on only
+if they are not also controlled by another master that is already
+off. Since the buttons of the individual groups, subgroups, and lists
+are sometimes hidden, one can generate a variety of patterns by turning
+the masters on and off in specific patterns.
+
+<P>
+
+<H1><A NAME="SECTION00500000000000000000">
+4. Kinemage authoring: Using KiNG to edit a kinemage</A>
+</H1>
+
+<P>
+Kinemage files are stored as human-readable, plain-text files. They're
+also designed to be easily edited by human beings, using a text editor
+like Notepad (Windows), TextEdit (Mac), or vi (Unix). You can also
+use a word processor like Microsoft Word, but you have to be careful
+to save as plain text (.txt) rather than formatted text (.doc and
+others). A description of the kinemage file format is distributed
+with KiNG as a separate document from this manual.
+
+<P>
+
+<H1><A NAME="SECTION00510000000000000000">
+4.1 Merging kinemages together</A>
+</H1>
+
+<P>
+The most basic sort of editing is to combine two kinemages into one.
+For this, simply use the <TT>File | Append</TT> command (see appending-a-kinemage).
+
+<P>
+
+<H1><A NAME="SECTION00520000000000000000">
+4.2 Editing text</A>
+</H1>
+
+<P>
+The text of a kinemage is often critical for clarifying and amplifying
+its meaning. It's analogous to the caption that accompanies a printed
+figure. You can edit the kinemage text in the same window that you
+use for reading it (just press the <TT>Show text</TT> button).
+
+<P>
+
+<H1><A NAME="SECTION00530000000000000000">
+4.3 Editing views</A>
+</H1>
+
+<P>
+A simple editing tool is <TT>Views | Save current view</TT>, which
+records the current orientation and position of the kinemage as a
+new view in the <TT>Views</TT> menu. Creating a series of meaningful,
+clearly labeled views is a great way to make a kinemage more informative.
+You can delete, rename, and rearrange views using <TT>Views |
+Edit saved views</TT>.
+
+<P>
+
+<H1><A NAME="SECTION00540000000000000000">
+4.4 The hierarchy editor</A>
+</H1>
+
+<P>
+One of the goals of KiNG is to enable simple, visual editing of most
+parts of a kinemage. Many of the editing commands are activated using
+a tree-like display of the hierarchical kinemage structure, which
+will resemble the layout of buttons.
+
+<P>
+The structure of the kinemage can be rearranged by cutting, copying,
+and pasting elements; creating new elements and deleting unneeded
+ones; and reordering elements (using the <TT>Up</TT> and <TT>Down</TT>
+commands). Play with these commands, and their operation will soon
+become obvious. Elements can even be cut out of one kinemage and pasted
+into another!
+
+<P>
+Also, the properties of individual elements can be adjusted, which
+allows them to be renamed. What other properties are available depends
+on the level of the hierarchy (kinemage, group, subgroup, or list).
+Each element can also be toggled on and off, even if it doesn't have
+a button visible in the button pane.
+
+<P>
+Using the hierarchy editor effectively depends on a decent understanding
+of the kinemage format. If you're unfamiliar with kinemages, reading
+the kinemage format reference may be very helpful to you.
+
+<P>
+
+<H1><A NAME="SECTION00600000000000000000">
+5. The Tools</A>
+</H1>
+
+<P>
+
+<H1><A NAME="SECTION00610000000000000000">
+5.1 Understanding the Tools and Plug-ins</A>
+</H1>
+
+<P>
+The <TT>Tools</TT> menu has a variety of tools and plug-ins for interacting
+with the kinemage. Many of these are highly domain-specific -- tailored
+to doing structural biology, for example. Each tool ``takes over''
+the mouse, assigning specific meanings to the various kinds of clicks
+and drags. Normally, the familiar Navigate tool is active, so mouse
+motions result in the sort of rotations, pans, and zooms that most
+users are accustomed to.
+
+<P>
+Plug-ins, on the other hand, just offer additional functionality that
+doesn't change what the mouse does. Because of this, you can have
+several plug-ins active at once, but only one tool.
+
+<P>
+Some special-purpose tools and plugins have been developed by other
+people and ship separately from KiNG. Installing these additional
+tools and plugins for KiNG is easy, though. Just take all plugin files
+that end with <TT>.jar</TT> (<I>e.g.</I>, <TT>chiropraxis.jar</TT>,
+<TT>pyking.jar</TT>) and put them in the <TT>plugins/</TT> folder
+that's part of your KiNG distribution. There will probably be a few
+JAR files in there already. Then just close KiNG and restart it to
+load the new tools and plugins. Note that these will <I>not</I> be
+available when running KiNG as an applet.
+
+<P>
+The tools menu also has some other options that are related to how
+mouse clicks and drags are interpretted, which are discussed below.
+The tools and plugins listed in the menu can be rearranged, grouped
+into submenus, or hidden entirely by using the <TT>Tools | Customize</TT>
+dialog box, which is also accessible from <TT>Edit | Configure
+KiNG</TT>.
+
+<P>
+
+<H2><A NAME="SECTION00611000000000000000">
+5.1.1 Extra measurements</A>
+</H2>
+
+<P>
+In addition to tracking the distance between the last two points,
+clicking on points to identify them can track the angle between the
+last three points and the dihedral angle between the last four. When
+these measurements are active, the <TT>Markers</TT> option will display
+four markers instead of two.
+
+<P>
+
+<H2><A NAME="SECTION00612000000000000000">
+5.1.2 XYZ coordinates</A>
+</H2>
+
+<P>
+Likewise, KiNG can display the original, unrotated coordinates of
+the point. This is sometimes helpful when the kinemage is a graph
+or plot of some data, and the position has some absolute meaning.
+The display of this information can be enabled in the <TT>Tools</TT>
+menu.
+
+<P>
+
+<H2><A NAME="SECTION00613000000000000000">
+5.1.3 Pick objects</A>
+</H2>
+
+<P>
+Traditionally, one can only ``pick'' points in a kinemage. Enabling
+this option allows KiNG to recognize mouse clicks that hit the text
+of labels, the surfaces of balls and triangles, and the lines drawn
+between points. In each case, the result is equivalent to clicking
+on the actual point nearest the mouse click.
+
+<P>
+
+<H1><A NAME="SECTION00620000000000000000">
+5.2 Using KiNG with a multi-button mouse</A>
+</H1>
+
+<P>
+In KiNG, even a one-button mouse is sufficient to access all of the
+available functions. However, it has also been designed to take full
+advantage of a three-button wheel mouse. The primary function of every
+tool is accessed by clicking or dragging with the left (or only) mouse
+button. This button is referred to as ``Normal'' in the command
+reference charts.
+
+<P>
+Other functions can be accessed either by holding down keyboard keys
+at the same time, or by using one of the other mouse buttons. Holding
+the Shift key is equivalent to using the right mouse button, and holding
+the Control key (often written Ctrl) is equivalent to using the middle
+mouse button. A few tools assign some function to a mouse action with
+both the Shift and Control keys held down. In this case, you can get
+the same effect when dragging by depressing both the left and right
+mouse button. Because of the difficulty of clicking two buttons at
+once, however, this shortcut does not apply to Shift+Ctrl+Click.
+
+<P>
+Some tools also use the up &amp; down arrow keys on the keyboard; these
+have the same effect as using the scroll wheel of a wheel mouse. Once
+again, these may be combined with the Shift and/or Control keys to
+give access to more functions. Note that the mouse wheel is never
+active when running in a Java 1.3.x virtual machine; Java 1.4 or later
+is needed to take advantage of this control.
+
+<P>
+
+<H1><A NAME="SECTION00630000000000000000"></A><A NAME="navigate-tool"></A>
+<BR>
+5.3 Navigate: Exploring in 3-D
+</H1>
+
+<P>
+The Navigate tool encompasses all the usual modes of interacting with
+a kinemage. This is the tool that is active when KiNG is launched,
+and is probably the only tool many people will ever use. See basic-interaction
+for an introduction to using the Navigate tool to get around a kinemage.
+There are also a few more advanced modes of movement which are described
+below.
+
+<P>
+
+<H2><A NAME="SECTION00631000000000000000">
+5.3.1 Z-rotation (``pinwheel'')</A>
+</H2>
+
+<P>
+Clicking and dragging (with the left mouse button) near the top of
+the graphics area will cause the kinemage to spin around the Z axis
+like a pinwheel, rather than the more conventional sort of rotation.
+This is sometimes useful for putting something right side up.
+
+<P>
+
+<H2><A NAME="SECTION00632000000000000000">
+5.3.2 Translation (``flatland'')</A>
+</H2>
+
+<P>
+Holding Control while dragging (or dragging with the middle mouse
+button) allows one to slide the kinemage around in the plane of the
+screen. Dragging at the top of the screen, as for z-rotation, slides
+the kinemage in and out of the plane of the screen. (Note: enabling
+perspective in the <TT>Diplay</TT> menu is <I>very</I> helpful when
+translating in and out of the plane of the screen.) This sort of motion
+is sometimes called ``panning'' or ``flatland,'' and can be
+made the default mode of movement by selecting <TT>Tools | Flatland</TT>.
+
+<P>
+
+<H2><A NAME="SECTION00633000000000000000">
+5.3.3 Command reference</A>
+</H2>
+
+<P>
+<DIV ALIGN="CENTER">
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER" COLSPAN=2>Mouse clicks</TD>
+</TR>
+<TR><TD ALIGN="CENTER">Normal</TD>
+<TD ALIGN="CENTER">Mark and identify point; make measurement (pick)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift</TD>
+<TD ALIGN="CENTER">Center on selected point (pickcenter)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Ctrl</TD>
+<TD ALIGN="CENTER">-</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift+Ctrl</TD>
+<TD ALIGN="CENTER">-</TD>
+</TR>
+</TABLE>
+</DIV>
+
+<P>
+<DIV ALIGN="CENTER">
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER" COLSPAN=2>Mouse drags</TD>
+</TR>
+<TR><TD ALIGN="CENTER">Normal</TD>
+<TD ALIGN="CENTER">Rotate around X and Y axes; Z-rotate (pinwheel) near top of screen</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift</TD>
+<TD ALIGN="CENTER">Adjust zoom (up/down); Adjust clipping (left/right)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Ctrl</TD>
+<TD ALIGN="CENTER">Translate in X-Y plane (flatland); Z-translate near top of screen</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift+Ctrl</TD>
+<TD ALIGN="CENTER">Rotate around Y axis only</TD>
+</TR>
+</TABLE>
+</DIV>
+
+<P>
+<DIV ALIGN="CENTER">
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER" COLSPAN=2>Mouse wheel / Up &amp; Down arrow keys</TD>
+</TR>
+<TR><TD ALIGN="CENTER">Normal</TD>
+<TD ALIGN="CENTER">Adjust zoom</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift</TD>
+<TD ALIGN="CENTER">Adjust clipping</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Ctrl</TD>
+<TD ALIGN="CENTER">-</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift+Ctrl</TD>
+<TD ALIGN="CENTER">-</TD>
+</TR>
+</TABLE>
+</DIV>
+
+<P>
+
+<H1><A NAME="SECTION00640000000000000000"></A><A NAME="movept-tool"></A>
+<BR>
+5.4 Move Points: Remaking the kinemage
+</H1>
+
+<P>
+This tool allows you to click on individual points and drag them around
+to new positions. Dragging them with the mouse moves them in the plane
+of the screen. Using the mouse wheel or up &amp; down arrow keys moves
+them in and out (this is easier to see with Perspective enabled and
+Stereo on). A kinemage may have several ``points'' at the same
+location in 3-D. Under normal conditions, this tool will move them
+all together, so that lines stay connected and everything behaves
+just as you would expect. However, you can also use Ctrl+Drag to pick
+apart overlapped points and separate them from each other. You will
+need to activate the <TT>Tools | Superpick</TT> option to edit unpickable
+points.
+
+<P>
+
+<H2><A NAME="SECTION00641000000000000000">
+5.4.1 Command reference</A>
+</H2>
+
+<P>
+<DIV ALIGN="CENTER">
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER" COLSPAN=2>Mouse clicks</TD>
+</TR>
+<TR><TD ALIGN="CENTER">Normal</TD>
+<TD ALIGN="CENTER">Mark and identify point; make measurement (pick)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift</TD>
+<TD ALIGN="CENTER">Center on selected point (pickcenter)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Ctrl</TD>
+<TD ALIGN="CENTER">-</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift+Ctrl</TD>
+<TD ALIGN="CENTER">-</TD>
+</TR>
+</TABLE>
+</DIV>
+
+<P>
+<DIV ALIGN="CENTER">
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER" COLSPAN=2>Mouse drags</TD>
+</TR>
+<TR><TD ALIGN="CENTER">Normal</TD>
+<TD ALIGN="CENTER">Move all overlapped points together in X-Y (on a point); X-Y and Z-rotation
+(otherwise)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift</TD>
+<TD ALIGN="CENTER">Adjust zoom (up/down); Adjust clipping (left/right)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Ctrl</TD>
+<TD ALIGN="CENTER">Move top-most point only in X-Y (on a point); X-Y and Z-translate
+(otherwise)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift+Ctrl</TD>
+<TD ALIGN="CENTER">Rotate around Y axis only</TD>
+</TR>
+</TABLE>
+</DIV>
+
+<P>
+<DIV ALIGN="CENTER">
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER" COLSPAN=2>Mouse wheel / Up &amp; Down arrow keys</TD>
+</TR>
+<TR><TD ALIGN="CENTER">Normal</TD>
+<TD ALIGN="CENTER">Move all overlapped points together in Z</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift</TD>
+<TD ALIGN="CENTER">Adjust clipping</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Ctrl</TD>
+<TD ALIGN="CENTER">Move top-most point only in Z</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift+Ctrl</TD>
+<TD ALIGN="CENTER">-</TD>
+</TR>
+</TABLE>
+</DIV>
+
+<P>
+
+<H1><A NAME="SECTION00650000000000000000"></A><A NAME="editprop-tool"></A>
+<BR>
+5.5 Edit Properties: Changing colors and more
+</H1>
+
+<P>
+This tool is just like Navigate, except that picking a point opens
+the editing window for that point (or that point's list for Ctrl+Click).
+You will need to activate the <TT>Tools | Superpick</TT> option to
+edit unpickable points.
+
+<P>
+
+<H2><A NAME="SECTION00651000000000000000">
+5.5.1 Command reference</A>
+</H2>
+
+<P>
+<DIV ALIGN="CENTER">
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER" COLSPAN=2>Mouse clicks</TD>
+</TR>
+<TR><TD ALIGN="CENTER">Normal</TD>
+<TD ALIGN="CENTER">Pick point and edit its properties</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift</TD>
+<TD ALIGN="CENTER">Center on selected point (pickcenter)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Ctrl</TD>
+<TD ALIGN="CENTER">Pick point and edit list properties</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift+Ctrl</TD>
+<TD ALIGN="CENTER">-</TD>
+</TR>
+</TABLE>
+</DIV>
+
+<P>
+<DIV ALIGN="CENTER">
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER" COLSPAN=2>Mouse drags</TD>
+</TR>
+<TR><TD ALIGN="CENTER">Normal</TD>
+<TD ALIGN="CENTER">Rotate around X and Y axes; Z-rotate (pinwheel) near top of screen</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift</TD>
+<TD ALIGN="CENTER">Adjust zoom (up/down); Adjust clipping (left/right)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Ctrl</TD>
+<TD ALIGN="CENTER">Translate in X-Y plane (flatland); Z-translate near top of screen</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift+Ctrl</TD>
+<TD ALIGN="CENTER">Rotate around Y axis only</TD>
+</TR>
+</TABLE>
+</DIV>
+
+<P>
+<DIV ALIGN="CENTER">
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER" COLSPAN=2>Mouse wheel / Up &amp; Down arrow keys</TD>
+</TR>
+<TR><TD ALIGN="CENTER">Normal</TD>
+<TD ALIGN="CENTER">Adjust zoom</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift</TD>
+<TD ALIGN="CENTER">Adjust clipping</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Ctrl</TD>
+<TD ALIGN="CENTER">-</TD>
+</TR>
+<TR><TD ALIGN="CENTER">With Shift+Ctrl</TD>
+<TD ALIGN="CENTER">-</TD>
+</TR>
+</TABLE>
+</DIV>
+
+<P>
+
+<H1><A NAME="SECTION00660000000000000000"></A><A NAME="drawnew-tool"></A>
+<BR>
+5.6 Draw New: Reworking the kinemage
+</H1>
+
+<P>
+The Draw New tool provides a variety of simple tools for creating
+new objects in the kinemage or removing existing ones on a point-by-point
+basis. Remember that you can use the Edit Properties (<A HREF="king-manual.html#editprop-tool">5.5</A>)
+and Move Points (<A HREF="king-manual.html#movept-tool">5.4</A>) tools to further customize your
+creations in terms of color, width / radius, point ID, position, <I>etc</I>.
+
+<P>
+<DL>
+<DT><STRONG>Draw&nbsp;line&nbsp;segments</STRONG></DT>
+<DD>Simply draws a line between the first point
+picked and the second. Every pair of picks forms a new line. Lines
+can be shortened from their natural length (or lengthened, using negative
+numbers), which is sometimes useful for making illustrations.
+</DD>
+<DT><STRONG>Draw&nbsp;balls</STRONG></DT>
+<DD>Places a small ball at each point picked with the mouse.
+</DD>
+<DT><STRONG>Draw&nbsp;labels</STRONG></DT>
+<DD>Creates a label at the picked point, with its text
+taken from the picked point's ID. The label text can be changed using
+Edit Properties.
+</DD>
+<DT><STRONG>Draw&nbsp;dots</STRONG></DT>
+<DD>Creates a dot at each point picked with the mouse.
+</DD>
+<DT><STRONG>Draw&nbsp;dotted&nbsp;lines</STRONG></DT>
+<DD>Like drawing ordinary lines, except a string
+of dots is created instead of a single line. The number of dots is
+configurable. This can serve as a ``template'' for constructing
+more complex dot-dash patterns when used with line drawing and prune.
+</DD>
+<DT><STRONG>Draw&nbsp;curved&nbsp;arc</STRONG></DT>
+<DD>Draws an arc from the second point picked to the
+third one, with the arc curving toward the first point picked. The
+user specifies how many degrees out of a circle will be used to create
+the arc, so small numbers give flat arcs and large numbers give exagerated
+ones. The arc can also be shortened by a few degrees so it doesn't
+quite touch its endpoints, and a four-pronged arrowhead can be added.
+</DD>
+<DT><STRONG>Draw&nbsp;triangles</STRONG></DT>
+<DD>Draws a triangle for each set of three points picked.
+Triangles can also be shrunk (values between 0 and 1) or grown (values
+greater than 1). A value of zero will make an infinitely small triangle;
+a value of one will give a triangle that just touches the three points.
+</DD>
+<DT><STRONG>Prune&nbsp;one&nbsp;point</STRONG></DT>
+<DD>Removes the single point picked with the mouse.
+In the case of polylines and triangle strips, it will stop things
+from being drawn that depend on the removed point. That is, lines
+drawn to and from the point will be removed, and all triangles involving
+the point will be removed. Sometimes kinemages have multiple points
+that overlap in the same spatial location, so it may take multiple
+clicks to remove all the objects at a particular point in space.
+</DD>
+<DT><STRONG>Punch&nbsp;a&nbsp;polyline</STRONG></DT>
+<DD>Removes all the line segments in a particular
+<I>polyline</I> (a series of lines drawn head to tail). This is sometimes
+useful with vectors and triangles; for other things, it behaves like
+prune.
+</DD>
+<DT><STRONG>Auger&nbsp;a&nbsp;region</STRONG></DT>
+<DD>Removes all points that fall under the giant eraser.
+The eraser is drawn as a large circle that follows the mouse around
+the graphics area. Auger operations cannot be undone, so save your
+file first and click carefully.
+</DD>
+<DT><STRONG>Spherical&nbsp;crop</STRONG></DT>
+<DD>Removes all points that fall more than a specified
+distance away from the picked point. Only visible points are cropped.
+Crop operations cannot be undone, so save your file first and click
+carefully.
+</DD>
+<DT><STRONG>New&nbsp;subgroup</STRONG></DT>
+<DD>Kinemage elements created by each drawing option are
+placed into their own list, and all of those lists are placed in one
+subgroup under the ``New group'' group created by this tool. Creating
+a new subgroup starts a fresh list for each option above. This is
+a good way to separate out the different objects you're drawing. New
+subgroup can't be undone, but it's pretty harmless.
+</DD>
+<DT><STRONG>Undo</STRONG></DT>
+<DD>The Undo button undoes the last drawing action, with a few
+exceptions (mentioned above). Undo depth is unlimited, subject to
+memory constraints. Thus, for kinemages that aren't too large you
+can often undo all the drawing operations you've performed since loading
+the kinemage.
+</DD>
+</DL>
+
+<P>
+
+<H1><A NAME="SECTION00670000000000000000"></A><A NAME="dock3-tool"></A>
+<BR>
+5.7 Dock 3-on-3: Geometric construction
+</H1>
+
+<P>
+The three-point docking tool is useful for constructing geometric
+shapes and figures out of existing pieces in kinemage format. As you
+start picking points with the mouse, they will be labeled with numbers:
+first three points in the reference frame, then three in the mobile
+frame. When you're ready to apply the docking transformation, turn
+off groups that should remain in place and leave visible those that
+should move. Then press the <TT>Dock</TT> button. The first points
+will be superimposed exactly, the 1-2 axes will be aligned (so that
+the mobile ``points in the direction of'' the reference) and the
+final points are used to determine rotational position (dihedral angle)
+about the 1-2 axis.
+
+<P>
+If you'd like to dock several of the same object with respect to each
+other, remember you can use the copy and paste commands in the hierarchy
+editor to create duplicate objects.
+
+<P>
+
+<H1><A NAME="SECTION00680000000000000000"></A><A NAME="lsqdock-tool"></A>
+<BR>
+5.8 Least-Squares Docking: Getting the best fit
+</H1>
+
+<P>
+The least-squares docking tool is useful for matching up two objects
+that are similar but not quite the same. As you start picking points
+with the mouse, they will be labeled with numbers, defining the Reference
+frame. Once you've selected something to dock onto, you should choose
+the Mobile frame and add an equal number of points to it. The order
+matters: 1 will match with 1, 2 with 2, and so on. When you're ready
+to apply the docking transformation, turn off groups that should remain
+in place and leave visible those that should move. Then press the
+<TT>Dock</TT> button. The matched points will be positioned so as
+to minimize the sum of the squares of their separation (thus the phrase
+``least sqaures'').
+
+<P>
+If you'd like to dock several of the same object with respect to each
+other, remember you can use the copy and paste commands in the hierarchy
+editor to create duplicate objects.
+
+<P>
+
+<H1><A NAME="SECTION00690000000000000000"></A><A NAME="edmap-plugin"></A>
+<BR>
+5.9 Electron Density: Visualizing maps
+</H1>
+
+<P>
+This plug-in is for viewing electron density maps while exploring
+kinemages of crystal structures. (If that doesn't mean anything to
+you, then you probably don't need this plugin.)
+
+<P>
+Choose <TT>Open</TT> from the <TT>Tools</TT> menu in order to open
+a map file. Supported formats include X-PLOR (ASCII, not binary),
+O (DSN6 or Brix), and CCP4 (mode 2, the only one in common use).
+
+<P>
+Each map opens a new control window, which allows adjustment of its
+extent, color, and level. The segment of map that is visible at any
+given time is centered in the current view; when the view changes,
+the portion that is visible will automatically be updated.
+
+<P>
+Any dynamic segment of map can be &#34;captured&#34; as
+part of a static kinemage; just use the <TT>Export</TT> button to
+make the currently visible map segment part of the current kinemage.
+When you've finished with a map, be sure to <TT>Discard</TT> it to
+free up the memory it consumed.
+
+<P>
+If you don't have an electron density map for the structure you're
+interested in, you can try looking at the Uppsala Electron Density
+Server (http://fsrv1.bmc.uu.se/eds/). They offer standard maps
+for many of the structures deposited in the Protein Data Bank.
+
+<P>
+Maps can't be loaded from the local filesystem when KiNG is running
+as an applet due to security restrictions. However, you can use the
+<TT>XMAP</TT> or <TT>OMAP</TT> parameter along with the <TT>&lt;PARAM&gt;</TT>
+tag to load a (single) map from a URL. For example:
+
+<P>
+
+<DL COMPACT>
+<DT>
+<DD>&lt;PARAM&nbsp;name=&#34;omap&#34;&nbsp;value=&#34;http://example.com/electron/density/my-protein.dsn6.gz&#34;&gt;
+</DD>
+</DL>You can also use the <TT>EDMAPBASE</TT> and <TT>EDMAPLIST</TT> parameters
+to allow the user to select and load a map. <TT>EDMAPBASE</TT> specifies
+a path to the maps relative to the current document base URL. <TT>EDMAPLIST</TT>
+is a space-separated list of filenames that can be loaded from that
+path. Users can also enter and modify URLs directly, though obviously
+this isn't very convenient.
+
+<P>
+
+<H1><A NAME="SECTION006100000000000000000"></A><A NAME="rnamap-tool"></A>
+<BR>
+5.10 RNA Maps: Finding the phosphates
+</H1>
+
+<P>
+<I>Authored by Vincent Chen (vbc3@duke.edu)</I>
+
+<P>
+This tool (still under development) was designed to aid users in locating
+potential phosphate positions in the electron density maps of nucleic
+acids. Similar to the existing electron density viewing plug-in, this
+tool asks the user to open a map file, and opens a control window
+containing many of the same controls as the electron density plug-in.
+In addition to these controls, it has a toggle button to activate/deactivate
+the &#34;poly picking&#34; feature and a color selection
+list. When active, if the user left-clicks on a point in the kinemage,
+the polyhedron containing that point will be highlighted in the color
+selected. Next, the tool searches through the map to find the highest
+electron density value within that selected polyhedron, and places
+a marker point on that spot, showing an approximate position for the
+phosphorous.
+
+<P>
+
+<H2><A NAME="SECTION006101000000000000000">
+5.10.1 Current Issues</A>
+</H2>
+
+<P>
+This tool does not differentiate between a point in the electron density
+and a point on the actual structure. Clicking on the structure with
+the poly picking tool active can result in the program searching through
+the whole structure, which can take a very long time. Be sure to click
+carefully, and to limit the polyhedra to be selected to a reasonable
+size (i.e. have the sigma level set high enough that the polyhedra
+are about the size of a phosphate). Also, once the first polyhedron
+has been selected, moving the electron density around and selecting
+a polyhedron may result in an error. If this happens, the program
+will have to be restarted in order to selected a polyhedron not in
+the inital set.
+
+<P>
+
+<H1><A NAME="SECTION006110000000000000000"></A><A NAME="rot90-plugin"></A>
+<BR>
+5.11 90 Degree Rotations: Seeing precisely
+</H1>
+
+<P>
+The 90 Degree Rotations plugin provides a simple way to turn your
+model by 90 degrees around any of the three Cartesian axes. It also
+provides a shortcut back to the standard kinemage orientation: looking
+straight down the Z axis from the positive end toward the negative
+one, with positive X to the right and positive Y at the top of the
+screen.
+
+<P>
+This plugin is particularly useful in combination with a trick for
+setting up simultaneous orthogonal views of a kinemage. Read about
+it in the section on stereo graphics (<A HREF="king-manual.html#using_stereo">3.3.1</A>).
+
+<P>
+
+<H1><A NAME="SECTION006120000000000000000"></A><A NAME="solidobj-plugin"></A>
+<BR>
+5.12 Solid Object Drawing: Just for fun
+</H1>
+
+<P>
+The solid objects plugin is a fun helper that shows what a wide variety
+of shapes and forms can be constructed from a clever combination of
+kinemage primitives.
+
+<P>
+
+<H2><A NAME="SECTION006121000000000000000">
+5.12.1 ``Lathe'' tool</A>
+</H2>
+
+<P>
+The lathe tool takes a single polyline and sweeps it out around an
+axis to create a polygonal object. One strip of 64 triangles is created
+for every line segment. This tool is ideal for creating anything with
+an axis of symmetry: bottles, vases, lamps, simple cylinders, and
+so on. The standard axis of rotation is the Y-axis, with rotation
+centered at the origin, so keep this in mind when drawing a half-profile
+to use with this tool.
+
+<P>
+
+<H1><A NAME="SECTION006130000000000000000"></A><A NAME="update-plugin"></A>
+<BR>
+5.13 Update KiNG: Upgrading without the hassle
+</H1>
+
+<P>
+The Update KiNG plugin allows you to quickly and easily update KiNG
+to the latest version published on the Kinemage website (kinemage.biochem.duke.edu).
+After you confirm your intentions, KiNG will begin downloading the
+new version. If the download proceeds too slowly, you can cancel with
+no changes to KiNG. Once complete, the downloaded version will be
+unpacked in the same place as your current installed version of KiNG,
+and the existing version will be overwritten. You can then quit KiNG
+and restart to take advantage of new features and capabilities.
+
+<P>
+The Update plugin has been tested on a variety of platforms under
+a variety of conditions, but there is always a chance that it won't
+work quite right on <I>your</I> computer. The chance is greater if
+you created a non-standard custom installation from the JAR files
+rather than using the pre-packaged platform-specific installer. If
+KiNG fails to start after the update, you may have to remove it and
+then download and install a clean copy by hand.
+
+<P>
+There are certain things the automatic updater <I>can't</I> update,
+like the bundled binary programs (<TT>probe</TT>, <I>etc</I>.) or
+the displayed version number of the Mac application bundle. For this
+reason, you may want to periodically remove the existing installation
+completely and reinstall from scratch.
+
+<P>
+
+<H1><A NAME="SECTION00700000000000000000">
+6. Configuring KiNG</A>
+</H1>
+
+<P>
+By choosing <TT>Edit | Configure KiNG</TT>, one can adjust several
+aspects of KiNG's behavior and appearance, such as font sizes, stereo
+settings, and whether or not certain warnings are issued. The configuration
+dialog also allows for reorganizing the <TT>Tools</TT> menu to suit
+your own work habits. Preferrences may be saved to disk, where they
+are stored in a simple text file named <TT>.king_prefs</TT> in the
+user's home directory. There may be some settings accessible only
+through this file; that is, they cannot be edited from the graphical
+interface. Nonetheless, pressing <TT>Reset to defaults</TT> will restore
+them to their standard values.
+
+<P>
+Note that due to security restrictions, configurations cannot be saved
+when KiNG is running as an applet. However, the web page creator may
+provide a custom configuration file in the same format as the one
+saved by KiNG the application, thereby altering the default behavior
+for all visitors to the website. If you create a preferences file
+named <TT>MyKingPrefs.txt</TT> and place it in the same directory
+as <TT>king.jar</TT> and your HTML file, add something like this to
+the <TT>APPLET</TT> tag of your webpage:
+
+<P>
+
+<DL COMPACT>
+<DT>
+<DD>&lt;param&nbsp;name=''king_prefs''&nbsp;value=''MyKingPrefs.txt''>
+</DD>
+</DL>
+<P>
+
+<H1><A NAME="SECTION00800000000000000000">
+7. Launching KiNG</A>
+</H1>
+
+<P>
+KiNG runs both as a stand-alone application, and as an applet that
+can be included in web pages. In any case, KiNG requires a Java Virtual
+Machine (JVM), version 1.3 or higher. You can get Java from http://java.sun.com.
+
+<P>
+
+<H1><A NAME="SECTION00810000000000000000">
+7.1 Running KiNG as an application</A>
+</H1>
+
+<P>
+How you launch the KiNG application will depend on what operating
+system (Windows, Mac OS X, Linux, <I>etc</I>.) you're using. With
+Windows and the Mac, you can usually just double-click on the <TT>king.jar</TT>
+file to start KiNG.
+
+<P>
+On all operating systems, you can type
+
+<P>
+
+<DL COMPACT>
+<DT>
+<DD>java&nbsp;-jar&nbsp;king.jar&nbsp;[-merge&nbsp;|&nbsp;-single]&nbsp;[file1&nbsp;file2&nbsp;...]
+</DD>
+</DL>All the files listed on the command line will be merged together into
+one kinemage,, unless the <TT>-s</TT> flag is included, in which case
+all the files will be opened as separate kinemages.
+
+<P>
+
+<H1><A NAME="SECTION00820000000000000000">
+7.2 Making KiNG an applet in a web page</A>
+</H1>
+
+<P>
+KiNG can also be included as a web page applet. The following HTML
+code is a simple example that uses the &lt;APPLET&gt; tag, which will work
+with browsers using a recent JVM. Older browsers may need &lt;OBJECT&gt;
+or &lt;EMBED&gt; tags; more information on this is available from Sun Microsystems,
+Inc.
+
+<P>
+
+<DL COMPACT>
+<DT>
+<DD>&lt;applet&nbsp;code=''king/Kinglet.class''&nbsp;archive=''king.jar''&nbsp;width=300&nbsp;height=150&gt;
+
+<P>
+&lt;param&nbsp;name=''kinSource''&nbsp;value=''some_file_name.kin''>
+
+<P>
+&lt;/applet&gt;
+</DD>
+</DL>Just put all the jar files, including king.jar, in the same directory
+as the HTML file. Users who visit the page will see a 300x150 KiNG
+logo in the web page, along with a floating KiNG window that looks
+very much like the stand-alone application. However, due to security
+restrictions imposed by the browser environment, some functions (<I>e.g.</I>,
+saving files) will be disabled.
+
+<P>
+Note that the <TT>code</TT> property really must have the value <TT>king/Kinglet.class</TT>,
+<I>even though</I> <TT><I>king.jar</I></TT> <I>is not in a sub-directory
+called</I> <TT><I>king/</I></TT>. This is the most common problem that
+people have when trying to run KiNG as an applet. If you did place
+<TT>king.jar</TT> somewhere else, that path should precede the jar
+file name in the <TT>archive</TT> property instead.
+
+<P>
+It is possible to run KiNG in two other applet modes to achieve a
+slightly different effect. First, the large KiNG logo can be replaced
+with a small one that serves as a launcher button. Thus, loading the
+main window is defered until the user clicks the button, at which
+time the main window appears and the kinemage is loaded. Below is
+sample HTML for this effect. Note the smaller width and height, to
+account for the small size of the button.
+
+<P>
+
+<DL COMPACT>
+<DT>
+<DD>&lt;applet&nbsp;code=''king/Kinglet.class''&nbsp;archive=''king.jar''&nbsp;width=60&nbsp;height=21&gt;
+
+<P>
+&lt;param&nbsp;name=''mode''&nbsp;value=''launcher''>
+
+<P>
+&lt;param&nbsp;name=''kinSource''&nbsp;value=''some_file_name.kin''>
+
+<P>
+&lt;/applet&gt;
+</DD>
+</DL>Second, the applet can be embedded in the web page (rather than floating
+in its own window), by placing this line inside the &lt;applet&gt; tags
+instead:
+
+<P>
+
+<DL COMPACT>
+<DT>
+<DD>&lt;param&nbsp;name=''mode''&nbsp;value=''flat''>
+</DD>
+</DL>One also probably wants to specify a larger width and/or height, possibly
+as a fraction of the page size (<I>e.g.</I> 95%). Be warned that
+using KiNG this way may not work well in some browsers; test your
+pages thoroughly.
+
+<P>
+Some Tools and Plugins may define their own &lt;PARAM&gt; tags, which will
+be described in their documentation.
+
+<P>
+
+<H1><A NAME="SECTION00900000000000000000"></A><A NAME="additional-resources"></A>
+<BR>
+8. Additional resources
+</H1>
+
+<P>
+
+<H1><A NAME="SECTION00910000000000000000">
+8.1 Included manuals</A>
+</H1>
+
+<P>
+In addition to this User's Guide, KiNG may be accompanied by a guide
+to the kinemage file format. Kinemage files are simple text files,
+so that anyone can create kinemage illustrations by hand. This is
+especially important to fields where no automated tools for kinemage
+creation yet exist.
+
+<P>
+
+<H1><A NAME="SECTION00920000000000000000">
+8.2 Included kinemages</A>
+</H1>
+
+<P>
+Under the <TT>Help</TT> menu, KiNG has several built-in kinemages
+that demonstrate various capabilities of the graphics system. The
+palette is particularly useful to kinemage authors when they are designing
+color schemes.
+
+<P>
+
+<H1><A NAME="SECTION00930000000000000000">
+8.3 External documentation</A>
+</H1>
+
+<P>
+The best resource for learning more about kinemages is the Richardson
+lab website, http://kinemage.biochem.duke.edu. Many other resources
+exist; hopefully, they will be documented here in the future.
+
+<P>
+
+<H1><A NAME="SECTION00940000000000000000">
+8.4 Bug reporting and contact info</A>
+</H1>
+
+<P>
+Ian Davis, the author of KiNG, may be reached via email at mailto:ian.davis@duke.edu.
+<I>Please</I>, do not hesistate to report bugs and problems with KiNG
+-- your input can only improve the program.
+
+<P>
+
+<H1><A NAME="SECTION001000000000000000000">
+9. Copyright &amp; acknowledgments</A>
+</H1>
+
+<P>
+
+<H1><A NAME="SECTION001010000000000000000">
+9.1 Copyright</A>
+</H1>
+
+<P>
+The KiNG program and all its associated original resources and documentation
+are copyright (C) 2002-2004 by Ian W. Davis. KiNG makes use of the
+gnu.regexp library, which is copyright (C) by Wes Biggs, and of icons
+copyright (C) by Sun Microsystems provided for use with Java programs.
+It is also capable of using the iText library for generating PDF files,
+and the JOGL library for OpenGL rendering.
+
+<P>
+
+<H1><A NAME="SECTION001020000000000000000">
+9.2 Licenses</A>
+</H1>
+
+<P>
+KiNG is free software available under the terms of its own BSD-style
+license (see KiNG-License). The source code and new versions
+can be downloaded from the Richardson lab website, http://kinemage.biochem.duke.edu.
+The gnu.regexp library is covered by the GNU Lesser General Public
+License (LGPL). In accordance with that license, the full source of
+the gnu.regexp library is available from its website at http://www.cacas.org/java/gnu/regexp/.
+The iText library is dual-licensed under the LGPL and the Mozilla
+Public License (MPL). iText is available from http://www.lowagie.com/iText/.
+JOGL is available under a BSD-style license from https://jogl.dev.java.net/.
+Many of the icons are the property of Sun Microsystems and have their
+own license; they are available from http://developer.java.sun.com/developer/techDocs/hi/repository/.
+
+<P>
+All license documents are provided in the downloaded KiNG bundles
+and are found in the <TT>doc/</TT> directory. Additionally, the KiNG
+license appears in the Appendix (see KiNG-License).
+
+<P>
+
+<H1><A NAME="SECTION001030000000000000000">
+9.3 Acknowledgments</A>
+</H1>
+
+<P>
+I owe an enormous debt of gratitude to many, many people for making
+this program possible. First and foremost, I thank David and Jane
+Richardson, who are my bosses and mentors, and who developed the kinemage
+concept, the file format, and most of the features found in KiNG --
+my contribution was only the Java implementation. Second, I am grateful
+to the other members of the Richardson lab, who have supported and
+encouraged me in developing KiNG, providing invaluable insight into
+how to improve the program.
+
+<P>
+KiNG is free software built on free software. I can't hope to acknowledge
+all the authors of all the software that has been used to create KiNG,
+but I can mention a few of the most prominent: Sun Microsystems, the
+creators of the Java language and libraries; the gnu.regexp project,
+which provides regular expression support to KiNG; the LYX document
+processor, used for writing the documentation; jEdit, a fantastic
+programmer's text editor written entirely in Java; and of course RedHat
+and the entire Linux movement, for providing what is arguably the
+best OS available today.
+
+<P>
+
+<H1><A NAME="SECTION001040000000000000000">
+9.4 Revision status</A>
+</H1>
+
+<P>
+This manual was last updated 6 June 2004 by IWD for KiNG version 1.28.
+
+<P>
+
+<P>
+
+<H1><A NAME="SECTION001100000000000000000"></A><A NAME="KiNG-License"></A>
+<BR>
+A. KiNG License
+</H1>
+
+<P>
+
+<H1><A NAME="SECTION001110000000000000000">
+A.1 What this license applies to</A>
+</H1>
+
+<P>
+<I>This license applies to everything in this project that is the
+original work of the copyright holder(s) and contributor(s), including
+but not limited to the source code, binary executables, artwork, and
+documentation. This distribution includes certain third-party libraries
+and resources which are not covered by this license, and which are
+governed by their own license terms. See documentation for more details.</I>
+
+<P>
+
+<H1><A NAME="SECTION001120000000000000000">
+A.2 The KiNG License</A>
+</H1>
+
+<P>
+Copyright (C) 2002-2004 Ian W. Davis. All rights reserved.
+
+<P>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+<P>
+
+<OL>
+<LI>Redistributions of source code must retain the above copyright notice,
+this list of conditions and the following disclaimer.
+</LI>
+<LI>Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+</LI>
+<LI>The end-user documentation included with the redistribution, if any,
+must include the following acknowledgment:
+
+<P>
+<I>&#34;This product includes software developed in the Richardon
+lab at Duke University (http://kinemage.biochem.duke.edu).&#34;</I>
+
+<P>
+Alternately, this acknowledgment may appear in the software itself,
+if and wherever such third-party acknowledgments normally appear.
+
+<P>
+</LI>
+<LI>The name of the copyright holder, the names of the contributors, and
+the names &#34;KiNG&#34;, &#34;Kinemage, Next Generation&#34;,
+and &#34;Mage&#34; must not be used to endorse or promote
+products derived from this software without prior written permission.
+</LI>
+<LI>Products derived from this software may not be called &#34;KiNG&#34;,
+nor may &#34;KiNG&#34; appear in their name, without prior
+written permission.
+</LI>
+</OL>
+THIS SOFTWARE IS PROVIDED &#34;AS IS&#34; AND ANY EXPRESSED
+OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS
+BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+<P>
+
+<H1><A NAME="SECTION001130000000000000000">
+A.3 Where this license came from</A>
+</H1>
+
+<P>
+This license is based on the BSD and Apache licenses. See http://www.opensource.org/
+for more details on these and other licenses.
+<BR><HR>
+<ADDRESS>
+Ian W. Davis
+2004-06-22
+</ADDRESS>
+</BODY>
+</HTML>

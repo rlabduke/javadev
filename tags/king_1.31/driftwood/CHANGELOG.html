@@ -1,0 +1,454 @@
+<html><head><title>CHANGELOG</title></head><body><!-- (jEdit options) :folding=explicit:collapseFolds=1: --><pre>
+==============================================================================
+===  TO DO  ==================================================================
+==============================================================================
+    Create driftwood.signal for publish/subscribe message passing
+
+DATA: {{{
+    Add CheapMap and CheapSet, which use a single array? CheapSet extends ArrayList?
+}}}
+GUI: {{{
+    Create an enabler that traverses a Container syncing the enable state
+    WeakButtonModel would hold only weak references to GUI listeners
+    Make a DialogButtonBar from Box:  Btn1--Btn2--Btn3------------BtnLast
+    Make a list with checkboxes for selecting a set of things?
+    TreeFoldSlider controls tree expansion like TOC in LyX
+}}}
+ISOSURFACE: {{{
+    Calc surface normals for triangles, write to POV-Ray? (see MC paper)
+}}}
+MOLDB2: {{{
+    Write PdbUpdater that reads new coords/state into an old model
+}}}
+MOLDB3: {{{
+    All custom exceptions should be checked exceptions
+    ModelGroup should carry the states instead of models carrying them
+}}}
+R3: {{{
+}}}
+STAR: {{{
+    Add a class that can load StarFile objects into moldb2 data structures
+    Add StarWriter
+    Add a class that can write moldb2 data into a StarFile DOM
+}}}
+UTIL: {{{
+}}}
+
+==============================================================================
+===  CHANGE LOG  =============================================================
+==============================================================================
+
+### 0.62 ###
+### 0.62 ###
+- fixed PdbWriter so it can't output two atoms with the same name.
+- added [+] and [-] buttons to AngleDial for fine control w/out right drag
+- modified PdbWriter so it hopefully won't create duplicated ATOMs when
+  working with refit models containing alternate conformations.
+
+### 0.61 ###
+- started CifReader; realized changes to moldb2 are required
+- modified gui.SuffixFileFilter to also implement java.io.FilenameFilter
+- moved NullNaturalComparator to driftwood.data b/c it makes more sense there
+
+### 0.60 ###
+- added CrystalVertexSource.getValueForPoint()
+- finished r3.PrincipleAxes so data is available from the API
+- fixed prototype on getValueForPoint()
+- getValueForPoint (evaluateAtPoint) should call evaluateVertex(), not getValue()
+- fixed a typo in the interpolation of evaluateAtPoint()
+- fixed a bug in SuffixFileFilter that was unconditionally accepting filenames without extensions
+
+### 0.59 ###
+- StarReader now allows stop_ tokens to end loop_ constructs
+- modified Transform.transform to use setXYZ instead of individual set funcs
+
+### 0.58 ###
+- added checkTriangle() and signedArea2() to r3.Builder (for lack of a better place)
+  Thanks to Andrew Ban for the code!
+- fixed handling of literal quotes within quoted strings in StarTokenizer
+  Thanks to John Westbrook for clarifying this issue!
+
+### 0.57 ###
+- fixed a potential bug in data.UberMap from calling putBefore(key, key, value)
+- added UberMap.replace() as a complement to put()
+- moved unused classes in data into old/
+- added data.FinalArrayList to wrap arrays in an unmodifiable way
+- finished writing StarFile class
+- added StarReader
+
+### 0.56 ###
+- added Props.minimizeDifferences()
+- added gui.TablePane2, which uses memorize() instead of save()/restore()
+  It hasn't been tested much yet and so may still be quite buggy!
+- made TablePane2.startSubtable() automatically do insets(0), hfill/vfill
+- moved PDFs I shouldn't be distributing into doc/nodist
+- added package driftwood.star
+- added star.StarTokenizer
+
+### 0.55 ###
+- added r3.SpatialBin for doing rapid spatial lookups of point neighbors
+- added moldb2.AminoAcid.isAminoAcid()
+- added Triple.format(DecimalFormat df, String sep)
+- made Builder.construct4() take Tuple3s instead of Triples
+- commentted out PdbReader.extractSheetDefinitions()
++ added the Jama classes to the driftwood package (~20kb compiled)
+  These will now be used by the r3 subpackage
+- for ATOM numbers greater than 99,999 the PDB uses multiple files
+- added LsqPlane to driftwood.r3
+- added data.Order for permutations, sorting, etc.
+  However, I don't think I should really do it this way -- the better answer
+  is to use standard sort functions on aggregate objects...
+- added r3.PrincipleAxes to compute viewpoints for point clouds
+- migrated to using version.props AND buildnum.props to simplify version control
+
+### 0.54 ###
+- parsing mmCIF files is way too involved to be practical for moldb2
+  Besides, they have a different data model than the PDB's chain/segment system.
+- moldb2 correctly handles the case-sensitive chain IDs found in 1S5L
+- added moldb2.Residue.getCNIT()
+- changed Model.getResidue() to use the CNIT code
+- removed the restriction that all residues in the Model have unique names
+- added PdbReader.extractSheetDefinitions()
+- added filename and ID code fields to moldb2.ModelGroup
+
+### 0.53 ###
+- Model.clone() was not deep enough b/c contents of chainMap and segmentMap
+  were not deep copied. This broke the mutate/unmutate/mutate cycle in KiNG.
+
+### 0.52 ###
+- rewrite of MeshMarchingCubes as MarchingCubes
+- it can now make *either* wireframe meshes *or* solid triangle strip surfaces.
+- added getMode() to MarchingCubes
+- triangle strip mode of MarchingCubes does sometimes leave holes in the surface;
+  this is a known issue arising from the simplified approach to surface topology.
+  All the alternatives are prohibitively difficult to implement, however.
+- changed default build target to "dist"
+
+### 0.51 ###
+- started on data.UberMap, which will eventually replace the gnutil package
+- UberMap is complete and passes its unit tests.
+- added UberSet, a simple wrapper around UberMap
+- removed package driftwood.gnutil; rewrote dependents to use UberMap/UberSet
+- created a LICENSE file for the Driftwood distribution
+- added ModelState.hasState()
+- added AminoAcid.isBackbone()
+- created AttentiveComboBox, which is like AttentiveTextField
+- added a form of Strings.expandVariables that works with text labels instead of ints
+
+### 0.50 ###
+- created AttentiveTextField, which sends ActionEvents when it loses the keyboard focus.
+- ModelState can now eliminate AtomStates that are not relevant to a particular model
+- removed unmodRes from moldb2.Model because it gave a stale cache after mutations (actually not)
+- extended Model.restoreOrder() to also sort chains and segments
+- created a special header section USER_MOD for ModelGroup, to place headers at the top of the file
+- added FatJList to gui; stolen/refactored from king.EDMapPlugin
+
+### 0.49 ###
+- moldb2.Model can now be cloned(). This makes non-destructive mutations much easier.
+- added contains(Residue) to Model.
+
+### 0.48 ###
+- THIS RELEASE FEATURES MAJOR CHANGES TO THE INTRA-HIERARCHY CONTRACTS OF MOLDB2!!!
+- Residues no longer track a parent model; they can belong to any number of models.
+- Thus, getNext() and getPrev() now have to be fed a model, as do some methods in AminoAcid.
+  This actually triggered some substantial changes in other packages.
+  It's a really unfortunate cost to pay, but I think it's probably worth it in the end.
+- Model now has to query all residues for a mod count.
+- Atoms now have UIDs that are used to test equality. Thus, they can be cloned.
+- Residues can also be "cloned", but the clone is not equal to the original.
+- A serious issue: AtomStates know which atoms they belong to!
+  This causes havoc when you clone Atoms but use the same States.
+  Thus, Atoms return to strict equality only, and AtomStates have to be cloned.
+- AtomState.cloneFor() and Residue.cloneStates() should make this fairly painless.
+
+
+- Eliminated these goals because missing atoms would be filled in in a fairly arbitrary way:
+    Stack alt confs: C on B on A on ' ' etc. ???
+- Eliminated these goals because PDBCNS is too complex to emulate without a lot of effort:
+    Auto repair CD1 ILE issue as files are read in
+    Auto repair HD12 type atoms? (but what to do about HG = mercury?)
+        set fixCnsNames flag on encountering _HA# (Gly), _HB#, HN, etc.
+        Note: _HB# becomes #HB_, but HB12 becomes 2HB1
+    Auto rename HN, OT1, OT2; HN# or HT# to #H
+
+### 0.47 ###
+- added compareVersions to util.Strings
+- in moldb2.PdbReader.readAtom(), added protection against PDB files that
+  duplicate an entry (i.e., same atom AND same state re-defined).
+
+### 0.46 ###
+- copied html pages on ED map formats from web to make sure they're safe
+
+### 0.45 ###
+- added bindWindow() to gui.ReflectiveAction
+- also set up a default CommandKey based on the given name
+- removed the original moldb package!
+
+### 0.44 ###
+- did some work to moldb2.PdbReader to make it handle segIDs a little better.
+- added moldb2.ModelGroup.replace()
+
+### 0.43 ###
+- added EPSGraphics, based on org.jibble.epsgraphics but with support for
+  Paints and FontMetrics.
+
+### 0.42 ###
+- added likeOrthogonal() to r3.Triple
+- modified r3.Triple.angle() and dihedral() to distinguish between
+  very near to 0 and very near to 180.
+- fixed bug in likeOrthogonal and added test case to Triple
+- added test for colinearity to Triple.likeNormal()
+- replaced normal calc in Builder.construct4() with likeNormal() for robustness
+- undid change: a/b/c colinear leaves dihedral undefined anyway.
+- made gui.SuffixFileFilter more robust to null parameters
+
+### 0.41 ###
+- for xmaps and omaps in isosurface: if mean, sigma are ~= (0,1) then
+  assume they are exactly 0 and 1 respectively. For Brix maps, use the
+  sigma from the file in this case.
+
+### 0.40 ###
+- added util.Strings.expandVariables()
+- added "Select All" to TextCCPMenu
+- implemented LogViewer.onSave()
+- added gui.ExpSlider.setLabels()
+
+### 0.39 ###
+- created new classes in util to support SoftLog (wanted by KiNG).
+- added SoftLog.clear()
+- added gui.LogViewer to visualize SoftLogs quickly
+- added util.OdHash: a hashtable mapping Objects to doubles
+- modified r3.Triple.hashCode() to reduce collisions
+
+### 0.38 ###
+- added get(i,j) and set(i,j,val) to r3.Transform
+- added mag2() to r3.Triple
+- created r3.SuperPoser to do general least-squares fitting of point clouds in 3-D.
+- merged driftwood.string into driftwood.util
+
+### 0.37 ###
+- added string.Strings.jarUrlToFile()
+
+### 0.36 ###
+- modified moldb2 to handle seg IDs more robustly (and are now never null)
+- PdbReader now does better if lines are of different lengths,
+  even if seg ID field is cut short to less than 4 characters.
+  This was necessary because of a bug in Reduce (v2.15?).
+
+### 0.35 ###
+- imported MagnifiedTheme from king
+
+### 0.34 ###
+- marked gui.SuffixFileFilter as implementing java.io.FileFilter
+- removed r3.Triple.like(double, double, double) b/c it was a duplicate
+- improved some JavaDocs
+
+### 0.33 ###
+- added support for CCP4 maps in isosurface
+
+### 0.32 ###
+- made most methods in Triple take a Tuple3 instead of a Triple
+  This may slow things down; I don't know.
+- added r3.Builder.dock3on3() to support Mage-like docking and
+  sidechain mutations.
+- fixed Model to use 'A' as the default conformation when present
+- ModelStates can now be collapsed() to single (new) objects.
+- added toString() and isNaN() to r3.Transform
+- added isNaN() to r3.Triple
+- fixed an irritation where (0,0,0).unit() --> (NaN,NaN,NaN)
+- finally got r3.Builder.dock3on3() to work correctly!!
+
+### 0.31 ###
+- added '_debug' property to gui.TablePane
+- fixed an oversight in r3.Triple where angle() and dihedral() could,
+  under certain conditions, return NaN for an angle very close to 0.
+- added gui.TextCutCopyPasteMenu
+- made AngleDial pay attention to setEnabled()
+
+### 0.30 ###
+- create gui.ExpSlider to support future development of a tau minimizer in KiNG
+- allowed PdbWriter to recreate a whole PDB file from a ModelGroup
+- wrote PdbMunger to test how badly my reader and writer mess things up.
+  It looks like they do pretty good, actually, except for things that have
+  anisotropic B's, etc. which I'm not prepared to handle.
+- fixed a logical bug in gui.TablePane.skip() which affected subtables only.
+
+### 0.29 ###
+- continued work on moldb2
+- added modification counting to the model
+- wrote first draft of PdbReader
+- added util.NullNaturalComparator to overcome a deficiency in TreeMap:
+  null is not an allowed key when using the natural order of objects.
+- PdbReader seems to perform perfectly well for several of my usual test PDBs.
+- created ModelTreeViewer as a toy for exploring PDB naming structure
+- renamed Model.xxxConformation() to xxxState() in accord w/ original plan
+- added PdbWriter with writeAtoms() and writeResidues()
+- moldb (original) refit to use GnuLinkedHashMap/Set for 1.3.1 compat.
+- removed mouse wheel functionality from gui.AngleDial for 1.3.1 compat.
+- removed resolution info from moldb.PDBFile b/c it used java.util.regexp from 1.4.x
+- made AlignBox the parent of SwapBox
+
+### 0.28 ###
+- started package gnutil to import java.util.LinkedHashMap/Set and ancestors
+  from GNU Classpath and extend them to support some additional operations.
+- finished adding getBefore/After and moveBefore/After to GnuLinkedHashMap/Set.
+- started work on moldb2 which uses gnutil. This separates stateful and stateless
+  model information (i.e. naming hierarchy vs. coordinates)
+
+### 0.27 ###
+- moved AngleDial from king to driftwood.gui
+- enlarged AngleDial, added optional read-out of original value
+- improved AngleDial graphics and coloring
+- gave AngleDial *much* friendlier mouse interface
+- modified MenuList to not require an ordered Set (use Collection instead)
+
+### 0.26 ###
+- fixed a major pair of bugs in TablePane:
+- wasn't marking cells as occupied
+- gridx and gridy were saved and restored
+
+### 0.25 ###
+- added gui.MenuList
+- added accept(String) to gui.SuffixFileFilter. Useful for checking e.g. URLs.
+- squashed an inheritance bug in gui.FoldingBox where an overridden function
+  assumed that its constructor had initialized a variable when it was called
+  by the *superclass* constructor. Manifest in recessiveon kinemage groups.
+
+### 0.24 ###
+- created OrderedSet (really just to prove it can be done)
+- created StreamTank and ProcessTank, for decreasing latency in I/O thru
+  stdout and stderr with external processes!
+- added process killer timeout to ProcessTank
+
+### 0.23 ###
+- added IndentBox and FoldingBox to gui
+- added moldb.Residue.getAtomMap()
+- added moldb.AminoAcid.atomMap; modified constructor and clone()
+- added gui.SwapBox as the parent to IndentBox
+
+### 0.22 ###
+- added explode() to string.Strings
+- added bind() to gui.ReflectiveAction for binding accelerator to components
+
+### 0.21 ###
+- duplicated moldb.AABackbone as AminoAcid; added a field for the side chain
+- added tokenizeCommandLine() to string.Strings
+
+### 0.20 ###
+- added gui.ReflectiveAction
+
+### 0.19 ###
+- updated gui.TablePane so more methods returned this
+- added addCell() methods since we can't change add()'s return type
+
+### 0.18 ###
+- introduced r3.MutableTuple3 and updated Triple, Rotation to use it
+- made Transform a full 4x4 matrix to allow calculation of perspective too
+- moldb.AABackbone relaxed distance constraint for getPhi(), getPsi()
+
+### 0.17 ###
+- added likeMatrix and likeScale to r3.Transform
+
+### 0.16 ###
+- rewrote Triple.dihedral and Triple.angle is response to profiling data,
+  but the desired speed-up was not really observed...
+- changed Residue.getAtom() to take advantage of ArrayList.get()
+- started work on PDBFile.writeAtoms()
+- added a Map of Atoms to Residue
+- fixed bug in PDBFile.read(): B and Q were mixed up
+
+### 0.15 ###
+- added string.Strings with some functions from the old util.Str class
+- created r3.Builder to do Construct4-like operations
+- added toString() to Triple
+- *** MAJOR BUG FOUND AND FIXED IN Triple.cross() !!! ***
+  This was causing all sorts of geometrical calculations to fail,
+  and was the result of a simple typo.
+- fixed a bug in PDBFile that was not supporting multiple models
+
+### 0.14 ###
+- started moldb, a molecular database library for dealing with PDB files
+- REQUIRES JAVA 1.4 or later because of LinkedHashMap
+- created library with Atom, Residue, Segment, Model, PDBFile
+- added AABackbone for doing Chiropraxis-like things
+- made use of Seg ID optional for PDBFile
+- fixed logical bug in Transform.likeRotation(Triple, Triple, double)
+- consolidated build-*.xml files to simplify dependencies, etc.
+
+### 0.13 ###
+- started R3, which supports vector math with Triple and Transform
+- imported Triple and refined the interface
+- defined Tuple3
+- started building Transform
+- Transform is now mostly complete
+- found and squashed a fencepost bug in CrystalVertexSource.evaluateVertex()
+  that caused ArrayIndexOutOfBoundsExceptions in CVS.getValue()
+- added get/setDefaults() to Props
+
+### 0.12 ###
+- migrated to building with Apache Ant (ant.apache.org)
+- merged subpackages of driftwood under common control
+- imported Props and added hasProperty() method
+
+### 0.11 ###
+- moved from util.isosurface to driftwood.isosurface
+- made most fields in CrystalVertexSource public
+- watch for OutOfMemoryError in OMap b/c no way to recognize DSN6 format
+
+### 0.10 ###
+- renamed DSN6VertexSource to OMapVertexSource
+- resolved how cell edges are handled in O maps (padded to 8x8x8)
+- added support for Brix maps from O
+- added another BufferedInputStream to constructor to fix the broken
+  mark() method in GZIPInputStream. (submitted to Sun)
+
+### 0.09 ###
+- added findVertexForPoint() to VertexLocator
+- modified MMC.march() to deal with NaN from VertexEvaluators
+- implemented findVertexForPoint() for CrystalVertexSource
+- added auto-detect/auto-gunzip to XplorVertexSource for gzipped map files
+- fixed problem reading O maps -- every byte pair is transposed
+- added auto-gzip to DSN6VertexSource
+
+### 0.08 ###
+- O maps work but are of low quality with many artifacts
+- Try supports color, map format switches
+- I've tried many variations on the O format, but it's still not right
+  I don't know what to do at this point...
+- Using MapMan to convert DSN6 to XPLOR and then rendering gives
+  perfect results, which are different from the source O-map.
+  I must still not understand the format completely.
+
+### 0.07 ###
+- it looks like non-orthogonal unit cell axes are now supported properly.
+  YAY!!!
+- reorganized code somewhat to combine (hopefully) common functions in
+  CrystalVertexSource
+- began work on DSN6VertexSource to support O maps
+  
+### 0.06 ###
+- support for non-orthogonal axes (in progress)
+
+### 0.05 ###
+- fixed bugs in XplorVertexSource.nextValue()
+- added bin wrapping to XplorVertexSource.{evaluate,locate}Vertex()
+- realized locateVertex() shouldn't do wrapping after all. (D'oh!)
+
+### 0.04 ###
+- wrote KinfileEdgePlotter
+- started XplorVertexSource
+- fixed fencepost bug in MMC.march()
+- fixed cube cases #23 and #108; regenerated kin files
+
+### 0.03 ###
+- wrote MeshMarchingCubes
+- added SuffixFileFilter
+
+### 0.02 ###
+- TablePane: replaced awkward earlier method of tracking which cells were
+  occupied with a sparse array based on HashMap and java.awt.Point.
+- TablePane: removed the replace() method until we can code it properly.
+
+### 0.01 ###
+- added TablePane
+</pre></body></html>

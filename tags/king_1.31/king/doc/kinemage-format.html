@@ -1,0 +1,566 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<!--help output written by mage-->
+  <title>Mage Internal Help</title>
+  <x-sas-window top="66" bottom="528" left="8" right="462"></x-sas-window>
+  <style type="text/css">
+   body {font-family: Verdana, Helvetica, sans-serif }
+  </style>
+</head>
+<body>
+<table style="width: 100%; text-align: left;" border="0" cellspacing="2"
+ cellpadding="2">
+  <tbody>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 204, 153);">This
+description of the kinemage format, which is taken from Mage's internal
+help, is very terse and may be incomplete
+in places. A more complete treatment in included in the KiNG
+documentation as <span
+ style="font-family: monospace; font-weight: bold;">format-kinemage.pdf</span>,
+which covers all of the core functionality that Mage and KiNG share.
+For more information on the format,
+email Dr. David Richardson (<span style="font-family: monospace;">dcr@kinemage.biochem.duke.edu</span>)
+or Ian Davis
+(<span style="font-family: monospace;">iwd@duke.edu</span>).<br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<hr style="width: 100%; height: 2px;">
+<h1><a name="pt0">Kinemage format from Mage's help:</a></h1>
+<h1></h1>
+<h3><a href="#pt50">Kinemage format keywords</a><br>
+<a href="#pt60">Group,Subgroup,List parameters</a><br>
+<a href="#pt80">Hypertext help</a><br>
+</h3>
+<hr style="width: 100%; height: 2px;">
+<h3></h3>
+<h1><a name="pt50">keywords</a>
+<a href="#pt0">^TOP^</a></h1>
+<p> <br>
+keywords start with @ <br>
+alternates sometimes shown, but preferred form is listed first <br>
+@keyword {text characters} are those enclosed in {} <br>
+See 'Properties' listing for object keyword parameters and point
+attributes <br>
+--------text section------ <br>
+@ of a real keyword must be first character of a new line <br>
+keywords here are set in by a space so this text can be read in Mage <br>
+@text starts text section <br>
+@mage #.## MAGE version (can come before @text), <br>
+only keyword recognized WITHIN text section <br>
+@kinemage # ESSENTIAL keyword to end text and start kinemage input <br>
+-------------------------- <br>
+--------kinemage input---- <br>
+# indicates an integer needed, #.## a floating point number. <br>
+@start control for reading from a sustained active pipe: start a frame <br>
+recognized by pipe handler code <br>
+@frame # frame number of image from a sustained active pipe, override <br>
+@finish control for reading from a sustained active pipe: finish a
+frame <br>
+@done control for reading from a sustained active pipe, close pipe <br>
+<br>
+@mage #.## <br>
+@prekin #.## <br>
+@caption ---&gt;chars to caption until next recognized keyword--- <br>
+@text ---&gt;any text appended until next recognized keyword (5_75+) <br>
+<br>
+---MAGE object hierarchy: group, subgroup, list, (sets of points)
+points <br>
+points can be in connected line sets, or specify triangles, spheres,
+etc. <br>
+@group {name} [parameters... all on one line...] <br>
+@subgroup {name} [parameters... all on one line...] (@set) <br>
+@____list {name} [parameters... all on one line...] <br>
+some type of list is ESSENTIAL for a kinemage <br>
+@vectorlist (@vector) <br>
+@labellist (@label) <br>
+@wordlist (@word) <br>
+@dotlist (@dot) <br>
+@balllist (@ball) <br>
+@spherelist (@sphere) <br>
+@trianglelist (@triangle) <br>
+@ribbonlist (@ribbon) <br>
+@arrowlist (@arrow) <br>
+@marklist (@mark) <br>
+@ringlist (@ring) <br>
+@fanlist (@fan) <br>
+<br>
+---MAGE points---follow @____list line on the next line <br>
+{pointID} [attributes... separated by spaces, commas, new-lines, etc.]
+x y z <br>
+--trailing triple: x,y,z defines scope of a point, x,y,z only required
+thing <br>
+----table cells only: 'tablecell' or 'noxyz' can stand for triple <br>
+Generally, list type determines meaning of all its points, <br>
+but point attributes can force different meanings within a list <br>
+for advanced, special purpose, complicated kinemages. <br>
+<br>
+@kinemage # ends this kinemage input <br>
+@noscale <br>
+@scale #.## <br>
+@compare side-by-side of sequential animate groups, overrides stereo <br>
+stereo is reader's choice: menu and keyboard s key <br>
+@stereoangle #.## + for wall-eye, - for cross-eye, also under menu
+control <br>
++ vs - toggled by keyboard c key <br>
+@onewidth default is multiwidth, also menu control <br>
+@thinline <br>
+@perspective <br>
+@plotonly <br>
+@flat @xytranslation <br>
+@pickcenter <br>
+@zclipoff <br>
+@whitebackground (@whiteback) (@whitebkg) <br>
+@viewid {string} @1viewid {string} <br>
+@2viewid {string} <br>
+... <br>
+@##viewid {string} <br>
+@zoom #.## @1zoom #.## <br>
+@2zoom #.## <br>
+... <br>
+@##zoom #.## <br>
+@span #.## @1span #.## <br>
+@2span #.## <br>
+... <br>
+@##span #.## <br>
+@center #.## #.## #.## @1center #.## #.## #.## <br>
+@2center #.## #.## #.## <br>
+... <br>
+@##center #.## #.## #.## <br>
+@matrix #.## #.## #.## #.## #.## #.## #.## #.## #.## @1matrix ... <br>
+@2matrix #.## #.## #.## #.## #.## #.## #.## #.## #.## <br>
+... <br>
+@##matrix #.## #.## #.## #.## #.## #.## #.## #.## #.## <br>
+@zslab # @1zslab # @zclip # @1zclip # <br>
+@2zslab # @2zclip # <br>
+... ... <br>
+@##zslab # @##zclip # <br>
+@ztran # @1ztran # <br>
+@2ztran # <br>
+... <br>
+@##ztran # <br>
+<br>
+@localrotation #.## #.## #.## #.## #.## #.## #.## #.## #.## <br>
+a.k.a: @localrotat ... @localmatrix ... <br>
+@endlocalrotation @endlocalrot @endlocalmatrix <br>
+@localprecenter #.## #.## #.## @localcenter ... applied before matrix <br>
+@localpostcenter #.## #.## #.## applied after matrix <br>
+@endlocalcenter @endlocalcen @endlocalprecen @endlocalpostcen <br>
+<br>
+@gnomon #.## #.## #.## #.## #.## #.## #.## #.## #.## #.## #.## #.## <br>
+place after the @group... line: to belong to that group <br>
+points on 3 axes and center (ok if each on separate line) <br>
+used by Docking routines to track change to a mobile group <br>
+MAGE will add to existing gnomon info or create anew if needed <br>
+<br>
+@fontsizeinfo # @fontsizeinfo # <br>
+@fontsizelabels # @fontsizelabel # <br>
+@fontsizewords # @fontsizeword # <br>
+@tablefontsize # @fontsizetable # <br>
+@tableblackbkg black background (and blk bkg palette) for table <br>
+@tablewrap # number of columns across before wrap line below <br>
+@tablewrap auto-wrap first implemented in Java Mage <br>
+@tablewrapdecades auto-wrap # columns rounded down to 10's <br>
+@tablecolscale #.## scale calculated column width <br>
+@tablemarkradius #.## square marker radius for table selected graphics
+points <br>
+@tablefancore #.## inner radius of table value fan on graphics point <br>
+@tablefanradius #.## outer radius of table fan at a graphics point, <br>
+this is multiplied by point radius to represent the cell value <br>
+<br>
+@beginselect keyword starts selection range, re: bondrot selection <br>
+@endselect keyword ends selection range, re: bondrot selection <br>
+<br>
+(@beginemphasis prototype use only: starts selected range of emphasis) <br>
+(@endemphasis prototype use only: ends selected range of emphasis) <br>
+<br>
+@listcolordominant @listcolordom usually point color is dominant: key
+'l' <br>
+@lens #.## parameter of lens radius for lists marked "lens": key 'e' <br>
+<br>
+@minutes #.## timed test of #.## minutes, results automatically
+written. <br>
+@drawline enables draw new function only for lines between points <br>
+@drawlabel enables draw new function only for labels (=pointID) at
+points <br>
+@drawball enables draw new function only for balls at points <br>
+(lines, labels, balls are inclusive! See list params answer &amp;
+result: ) <br>
+(scoring done only on answerlist type: limited to one type as of Sept
+02) <br>
+@drawnew enables all draw new functions, useful for practice, etc. <br>
+(answer list without @minutes allows user to see scored result) <br>
+KINEMAGE menu items enabled to allow users to score and proceed in
+tests <br>
+@nosavealert NOT warn user about new drawings before doing next
+kinemage <br>
+@bigfonts sets toggle (w key) ON <br>
+@shortline #.## absolute amount to shorten each end of a new draw line <br>
+<br>
+@comment {xxx yy z} character string just transfered unused to output <br>
+@command {xxx yy z} character string to be used for remote update cmd <br>
+@control creates a control button Lcontrol, which toggles Lcontrolon <br>
+@title {arbitrary kinemage title} <br>
+@copyright {date and author(s) } <br>
+@mapfile {filename.xmap} optional actual name to use for kin3Dcont <br>
+must be before any @group... line to apply to whole kinemage <br>
+@pdbfile {filename.pdb} optional actual name to use for prekin or probe
+<br>
+must be before any @group... line to apply to whole kinemage <br>
+@grouppdbfile {filename.pdb} specific group pdb to use for prekin or
+probe <br>
+must follow @group... line to apply to that group <br>
+<br>
+--- masters --- <br>
+@colorset {name} color unique name and standard color as char strings <br>
+usage: @____list {listname} color= {name} ... anywhere in kinemage <br>
+<br>
+@master {name} * forces named master buttons in inputed order <br>
+where * is one or more attributes optionally following {name} <br>
+"indent" "space" "on" "off" on off particular for pointmaster <br>
+@pointmaster 'C' {name} character 'C' associated with master= {name} <br>
+usage: {ptID} 'C' #.## #.## #.## <br>
+<br>
+--- aspects --- <br>
+@1aspect {name-of-1st} (necessary to define for point aspect colors) <br>
+@2aspect {name-of-2nd} <br>
+... <br>
+@26aspect {name-of-26th} <br>
+points can have up to 16 color-codes in parentheses (ABC...) <br>
+positions invoked as the order of the numbers # of @#aspect {name} <br>
+but each position can have any one of the 26 capital letter color codes
+<br>
+codes in MAGE-HELP/Make kinemage: Internally generated palette
+kinemage.
+, Use "]" and "[" keys to cycle through aspects. <br>
+<br>
+@nowfind {string} invokes FIND, input on the fly from an appended file <br>
+e.g.append 3 lines to search for string: @start @nowfind {string}
+@finish <br>
+as outputed by File/Save Special/pointID to file <br>
+<br>
+@parameter #.## get up to 10 parameters to play with, e.g.
+diffractometer <br>
+<br>
+@fullrgbpalette <br>
+{ #} #, #, #, {comment} matches: File/Save Special/palette to file <br>
+... <br>
+first # is 0-255 index of entry, then R,G,B 0-255, (comment ignored) <br>
+arbitrary number of entries, 251-254 ignored, entry color name NOT
+changed <br>
+<br>
+-----obselete or violating reader's prerogatives---------- <br>
+(@float #.##) <br>
+(@integer #) <br>
+(@ignore) allowed kinemage file to also be a, e.g., PS300 CHAOS display
+file <br>
+(@keepstereo) valid reader's choice but over-ridden by author's compare
+<br>
+(@keepthinline) artifact as author's choice, reader can use keyboard
+'t' <br>
+(@keepperspective) (@keepperspec) artifact as author's choice, keyboard
+'p' <br>
+(@specialps) obselete: PostScript output now on menu <br>
+(@projection) construct line length * 1/cos(angle): now menu choice <br>
+(@constructdot) construct line puts dot instead of a line: now menu
+choice <br>
+(@multibin (#)) obselete, no effect <br>
+(@zoomonly) obselete, no effect <br>
+(@sideclip) obselete, no effect <br>
+<br>
+END <br>
+</p>
+<h1><a name="pt60">parameters</a>
+<a href="#pt0">^TOP^</a></h1>
+<p> <br>
+--------mage group parameters------ <br>
+@group {name} [param...] <br>
+animate (*prefix) <br>
+2animate (%prefix) <br>
+off <br>
+dominant (no buttons for member subgroups and lists) <br>
+nobutton (for this group) <br>
+recessiveon (dominant if off, recessive if on) <br>
+collapsable collapsible synonyms for recessiveon <br>
+master= {name} (common master name) (see NOTES) <br>
+instance= {name} (name of a proceeding group) (see NOTES) <br>
+clone= {name} (name of a proceeding group) (see NOTES) <br>
+moview # (number of a Menu VIEW) <br>
+lens (applied to member points) <br>
+float (obselete now always do floating point perspective calc: <br>
+--- parameters for table groups --- <br>
+table (members put into table, invokes Mage to make a table window) <br>
+header (members are column headers of table: use labellist or wordlist)
+<br>
+(each table row is a group, uses labellist,wordlist,fanlist) <br>
+(point coords meaningless in a table: use "tablecell" for "x,y,z") <br>
+table pick picks graphics point with same pointID <br>
+<br>
+--------mage subgroup parameters------ <br>
+@subgroup {name} [param...] <br>
+off <br>
+dominant (no buttons for member lists) <br>
+nobutton (for this subgroup) <br>
+recessiveon (dominant if off, recessive if on) <br>
+collapsable collapsible synonyms for recessiveon <br>
+master= {name} (common master name) (see NOTES) <br>
+instance= {name} (name of a proceeding subgroup) (see NOTES) <br>
+clone= {name} (name of a proceeding subgroup) (see NOTES) <br>
+lens (applied to member points) <br>
+<br>
+--------mage list types------ <br>
+vectorlist (Point x,y,z --&gt;Line x,y,z --&gt;Line x,y,z ...) <br>
+labellist (pointID displayed at x,y,z) <br>
+wordlist (<comment> ,inc. new lines, displayed at x,y,z) <br>
+dotlist (line width # pixels at x,y,z <br>
+balllist( (disk [highlight] [shortened lines], center at x,y,z) <br>
+spherelist (stacked disks [highlight] [shortened lines] at x,y,z) <br>
+trianglelist (filled-in triangle) <br>
+ribbonlist (sets of 2 filled-in triangles have same normal) <br>
+arrowlist (Tail point x,y,z --&gt;Head x,y,z with 4 tines ...) <br>
+marklist (screen-oriented squares around x,y,z) <br>
+ringlist (screen-oriented annulus around x,y,z) <br>
+fanlist (table member: screen-oriented, weighted feathers) <br>
+(weighted feathers radiate from x,y,z of asociated graphics point) <br>
+(@tablefancore #.## inner radius of table value fan on graphics point <br>
+(@tablefanradius #.## outer radius of table fan at a graphics point, <br>
+<br>
+--------mage list parameters------ <br>
+@_____list {name} [param...] <br>
+off <br>
+nobutton (for this list) <br>
+<br>
+answer (list used as answer key with @minutes timed test) <br>
+(answer dominant nobutton off (hide answer key from user)) <br>
+(answer must have point types of lines, labels, balls as test asks) <br>
+(answer list can be made with drawnew function in Mage.) <br>
+(see @minutes, @drawline, @drawlabel, @drawball ... ) <br>
+result (list from drawnew of an earlier mage run to be scored vs.
+answer) <br>
+<br>
+color= name colour= name (mage palette named colors) <br>
+master= {name} (common master name) (see NOTES) <br>
+instance= {name} (name of a proceeding list) (see NOTES) <br>
+clone= {name} (name of a proceeding list) (see NOTES) <br>
+lens (applied to member points) <br>
+detail <br>
+radius= # (ball, sphere, mark, ring, arrow-head vane length) <br>
+angle= # (arrow-head tine angle) <br>
+width= # (pixel width of lines) <br>
+static (dynamic rotations not applied to members of this list) <br>
+nozclip (applied to points in this list) <br>
+nohi nohighlight <br>
+face (for characters in wordlist) <br>
+font (for characters in wordlist) <br>
+size (for characters in wordlist) <br>
+<br>
+--------list parameters for bond rotations-------- <br>
+see @beginselect and @endselect for artificial scope <br>
+otherwise scope of bondrot is from first point of list to last point <br>
+before bondrot of equal or lower number, or end of file <br>
+Starting angle is arbitrary as far as MAGE is concerned, <br>
+should be actual dihedral <br>
+Ganged rotations distinguished by listname <br>
+(phirotation) obselete March 2002 (flags a ganged rotation) <br>
+bondrot #.# (starting angle, one of ganged rotations) <br>
+0bondrot #.# (starting angle, trunk) <br>
+1bondrot #.# (starting angle, first branch) <br>
+2bondrot #.# (starting angle, later branch) <br>
+3bondrot #.# (starting angle, ...) <br>
+4bondrot #.# (starting angle) <br>
+5bondrot #.# (starting angle) <br>
+6bondrot #.# (starting angle) <br>
+7bondrot #.# (starting angle) <br>
+8bondrot #.# (starting angle) <br>
+9bondrot #.# (starting angle) <br>
+March 2002: recognize up to 20bondrot levels, accept up to 100 bondrots
+<br>
+(99bondrot prototype for monotonically continuing branch from last n) <br>
+parameter (Lbrotoption 1) <br>
+precession (Lbrotoption 2) <br>
+selection (Lbrotoption 3) <br>
+xrotation (Lbrotoption 4) <br>
+yrotation (Lbrotoption 5) <br>
+zrotation (Lbrotoption 6) <br>
+xtranslation (Lbrotoption 7) <br>
+ytranslation (Lbrotoption 8) <br>
+ztranslation (Lbrotoption 9) <br>
+samescope2 (2 bondrots have the same scope as first of 2) <br>
+samescopt3 (3 bondrots have the same scope as first of 3) <br>
+samescope4 (4 bondrots have the same scope as first of 4) <br>
+hplot (bondrot value plotted horizontally) <br>
+vplot (bondrot value plotted vertically) <br>
+zplot (bondrot value plotted in&amp;out, perpendicular to screen) <br>
+pattern c... (MAXBONDPATT==37 characters== 0...A or R,Y,G on UNIX
+slider) <br>
+phirotation (Lbrotoption 10 ganged rotation of same-named bondrot
+lists) <br>
+<br>
+--------mage point attributes------ <br>
+point attributes are usually separated by white space <br>
+as a matter of style and ease of editing, do separate all by white
+space <br>
+but sometimes worth maximal compression to use storage, transmission,
+etc. <br>
+thus whitespace as separator and as field delineator a bit tricky. <br>
+----------points---follow @____list line on the next line: <br>
+{pointID} [attributes...separated by spaces, commas, new-lines, etc.] x
+y z <br>
+{ final } does not require white space before next attribute. <br>
+--trailing triple: x,y,z defines scope of a point, x,y,z only required
+item <br>
+x y z fields delineated by non-numeric whitespace blank , ; : cr lf tab
+<br>
+----table cells only: 'tablecell' or 'noxyz' can stand for triple <br>
+<comment> saved and outputted for all point types <br>
+written to screen for wordlists, written in cell in table groups <br>
+if present, written in lower left screen when label is picked <br>
+--------single character flags, all except P need trailing white space <br>
+P defines new beginning of Point--&gt;Line--&gt;Line--&gt;...polyline
+in vectorlist <br>
+P synonyms are p M m i.e. in Move--&gt;Draw, exception: P ends itself <br>
+presumed for first point of a vectorlist. L for 'Line' not essential. <br>
+L synonyms are l D d <br>
+U (or u) flags point as unpickable, see menu superpick item <br>
+B (or b) ball at this point in a vectorlist <br>
+S (or s) sphere at this point in a vectorlist <br>
+R (or r) screen oriented ring at this point in a vectorlist <br>
+Q (or q) screen oriented square at this point in a vectorlist <br>
+A (or a) arrow on this point of a vectorlist <br>
+T (or t) point is to be interpreted as part of a triangle in a
+vectorlist <br>
+<br>
+'C' single quotes around character(s) identifying pointmaster(s), <br>
+case sensitive, declare before use earlier in kinemage <br>
+to avoid single char master name or master-name conflict: <br>
+@pointmaster 'C' {name} character 'C' associated with master= {name} <br>
+<br>
+--------multiple character attributes------- need surrounding white
+space <br>
+colorname any of mage palette color names; <br>
+colorname! (exclaimation point) forces use of point color. <br>
+<br>
+width1 (or thin) for forced one pixel wide lines <br>
+width2 (width#, where #= 1...7) forced # pixel wide lines <br>
+Effective pen width = line width specified by point width or list width
+<br>
+where point width is dominant over list width setting. <br>
+When not specified, multi-width mode uses pen width for depth cueing <br>
+but some display objects (rings and marks) default to a const. <br>
+<br>
+r= f point radius for points that are balls, spheres, rings, etc, <br>
+also used for arrow vane length (vane angle is list angle). <br>
+<br>
+dummy (or DUMMY) point is NOT used for setting min,max x,y,z extents <br>
+tablecell (or noxyz or NOXYZ) substitutes for x, y, z triple <br>
+ghost (or GHOST) point is seen but not in special output (like PDB) <br>
+<br>
+NOTES: <br>
+master: <br>
+The same master can refer to groups,subgroups,lists, each of which can <br>
+have multiple masters, but only 32 unique masters total. <br>
+Multiple masters are restrictive: all have to be ON for object to be ON
+<br>
+instance: <br>
+Object merely redisplayed at original coordinates, color can be
+different <br>
+but inherits masters, etc. <br>
+clone: <br>
+Object actually copied, can have changed coords, etc. new object in
+output. <br>
+<br>
+mage commandline options: <br>
+COMMANDLINE, NO GUI, postscript output of each animation view: <br>
+mage filename.kin -postscript <br>
+produces: filename.kin.1.eps , filename.kin.2.eps , ... for n animate
+views <br>
+<br>
+COMMANDLINE, NO GUI, meager help to standard out: <br>
+mage -help <br>
+<br>
+COMMANDLINE, NO GUI, chronological list of changes to standard out: <br>
+mage -changes <br>
+<br>
+COMMANDLINE options along with GUI: <br>
+-fontinfo dumps font possibilities to UNIX console <br>
+-medium forces use of meduim font for menus, dialogs, text: OK 1024x768
+<br>
+-large forces use of largest font: TOO BIG FOR &lt;= 1024x768 SCREEN! <br>
+-macular == -jeremy chooses medium or large font based on screen size <br>
+-small forces use of small font, the old default (before 031127) <br>
+<br>
+<br>
+Capture the foo (besides game mode) <br>
+menu:Tools/Kludges/foo in cavity <br>
+Pick point for initial foo, grow in cavity, surface the foo. <br>
+Foo will coat a surface, and not puff out into the void. <br>
+Note: use Show Object Properties: group ignorable (by the foo). <br>
+For proper VdW size use: prekin -atomradii ... <br>
+<br>
+END <br>
+</comment></comment></p>
+<h1><a name="pt80">hypertext</a>
+<a href="#pt0">^TOP^</a></h1>
+<p> <br>
+--------mage hypertext help------ <br>
+The hypertext capabilities of MAGE text has two interrelated functions.
+<br>
+One is for a system of questions presented to the reader that are each <br>
+answered in a dialog box that gives the reader access to information
+from <br>
+the most recently picked points. <br>
+The other is facility to instruct MAGE to move around in the kinemage <br>
+by jumps to specific kinemages and views, find pointID text strings,
+turn <br>
+on and off masters, and reset bond rotations. Of course, these moves
+can <br>
+be part of a scheme of questions. However, they confer an enormous
+power <br>
+to the reader, particularly because the text, including the hypertext,
+can <br>
+be edited during the session! <br>
+For Questions, kinemage number and View number are carried forward from
+<br>
+the last time they were set during the linear input of the TEXT window <br>
+material. Thus kinemage and view can be presumed for the go-to-graphics
+<br>
+option of a new question. However, if these are to re-defined for the <br>
+current question, this must be done before any master-button or FIND <br>
+controls are specified. This dependence on the order of controls is <br>
+NOT hypertext-like and might frustrate the reader/lecturer if they try
+to <br>
+jump around in the text. The author must balance readability and flow <br>
+of the text with robustness. <br>
+<br>
+Format: starts with '*{' includes [options] ends with '}*' <br>
+Questions start with Q: but Mage keeps track of the question number. <br>
+*{Q: text of question... }* <br>
+Thus, if the second question in the kinemage is: <br>
+*{Q: Which is the active Ser?}* <br>
+Mage shows this in the text, with room for the answer in the underlined
+space <br>
+*{Q: 2 Which is the active Ser?}*___________________________ <br>
+<br>
+Change instructions to Mage include: <br>
+*{kinemage #, view #, alloff, master={name} on, find {string} }* <br>
+abreviations: kinemage kin k, view v, master m, find f <br>
+'alloff' turns all masters off, masters are individually set 'on' or
+'off' <br>
+<br>
+Bond rotations can be set (and edited and reset!): <br>
+*{rot={name 1} #.#, rot={name 2} #.# ...}* abr: 'rot=','rot ','r ' <br>
+where 'name 1' == the bondrot identifier string seen on the slider bar <br>
+and #.# is the new value for that rotation angle <br>
+If Update by PROBE active, hypertext 'rot' triggers an update. <br>
+PREKIN after version 5.74 makes hypertext commands <br>
+for rot/mutated residues <br>
+<br>
+END <br>
+</p>
+</body>
+</html>

@@ -1,0 +1,2812 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\begin_preamble
+\pagenumbering{arabic}
+\lhead{\nouppercase{\rightmark}}
+\chead{}
+\rhead{\thepage}
+\lfoot{}
+\cfoot{}
+\rfoot{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\sectionmark}[1]{\markboth{}{[\thesection]\ #1}}
+\renewcommand{\subsectionmark}[1]{\markboth{}{[\thesubsection]\ #1}}
+\fancypagestyle{plain}{%
+\fancyhf{}%
+\renewcommand{\headrulewidth}{0pt}%
+\renewcommand{\footrulewidth}{0pt}%
+}
+\end_preamble
+\language english
+\inputencoding auto
+\fontscheme pslatex
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize Default
+\paperpackage a4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle fancy
+
+\layout Title
+
+The Kinemage File Format, v1.0
+\layout Author
+
+Ian W.
+ Davis, Jane S.
+ Richardson, David C.
+ Richardson
+\layout Abstract
+
+This document describes the syntax and semantics of the core feature-set
+ of the kinemage file format.
+ Since even the core features are extensive, the description has been broken
+ into two logical halves.
+ The first section describes the semantics and high-level syntax of kinemage
+ files---all the information typically needed to author a new kinemage file
+ from scratch.
+ The second section formally describes the low-level syntax that underlies
+ the entire format, which is important for programmers writing kinemage
+ parsers.
+\layout Abstract
+
+This document does not cover the philosophy, rationale, or history of the
+ kinemage format, nor is it a tutorial in using or creating kinemages.
+ It assumes the user has some experience viewing and interacting with existing
+ kinemages and now wants either (1) to create a new kinemage file by hand
+ or programmatically, starting from scratch, or (2) modify an existing kinemage
+ file by hand at the plain-text level.
+\layout Standard
+
+
+\begin_inset LatexCommand \tableofcontents{}
+
+\end_inset 
+
+
+\layout Part
+
+Semantics
+\layout Standard
+
+This first part of the document describes the semantics and high-level syntax
+ of kinemage files, giving descriptions of the most commonly used keywords
+ and the various options and parameters that accompany them.
+ This level of detail is important both to kinemage authors and to programmers
+ who want to use the kinemage format.
+ While the core features described here are fairly stable and will remain
+ so, additional features may be added with some frequency.
+ Except as noted, all the features described here work in both Mage and
+ KiNG, which are the two primary kinemage viewers as of this writing.
+\layout Standard
+
+A note about syntax: the full description of kinemage syntax appears in
+ the second part of this document, but it's more information than most authors
+ will need.
+ The kinemage format is a fairly intuitive, mostly free-form language that
+ should be easy to pick up.
+ That said, here are three 
+\begin_inset Quotes eld
+\end_inset 
+
+gotchas
+\begin_inset Quotes erd
+\end_inset 
+
+ that new authors should be aware of:
+\layout Itemize
+
+Keywords (words starting with the @ symbol) 
+\emph on 
+must
+\emph default 
+ appear at the very beginning of a line in order to be recognized.
+ Nothing can come before them, not even spaces.
+\layout Itemize
+
+Properties (words that end with an = sign) cannot have a space (or anything
+ else) between the word and the = sign.
+ Space after the = is optional, but it is not permitted before.
+ Thus, we can write 
+\family typewriter 
+color=\SpecialChar ~
+red
+\family default 
+ or 
+\family typewriter 
+color=red
+\family default 
+, but not 
+\family typewriter 
+color\SpecialChar ~
+=\SpecialChar ~
+red
+\family default 
+.
+ This looks a little awkward at first, but you'll soon get used to it.
+\layout Itemize
+
+List definitions must appear all on one line.
+ This is a good rule of thumb for the whole file (though not a requirement):
+ each keyword must start a new line, and all its relevant options and parameters
+ should probably appear on that same line.
+ Regardless, the next keyword must start another line.
+ When defining a list, one point is typically listed per line.
+\layout Section
+
+Overview of a kinemage file
+\layout Standard
+
+The kinemage file format is a plain-text, human-readable, human-editable
+ format for three-dimensional vector graphics.
+ The overall structure is an optional 
+\family typewriter 
+@tex
+\family default 
+t block describing the contents of the file, followed by one or more kinemages.
+ The kinemages themselves encode a hierarchical organization of 3-D graphics
+ primitives like lines, balls, and triangles that have been optimized to
+ convey the most possible information about the ideas underlying the visualizati
+on.
+ Each of these kinemages begins with a 
+\family typewriter 
+@kinemage
+\family default 
+ statement, followed by display options, view and master definitions, 
+\emph on 
+etc.
+
+\emph default 
+ (the header), and then followed by a series of group, subgroup, list, and
+ point definitions (the body).
+\layout Section
+
+Lists
+\layout Standard
+
+Depending on how you look at it, either the list or the point could be considere
+d the fundamental unit of a kinemage.
+ Points specify particular locations in three-dimensional space by listing
+ an X, Y, and Z coordinate.
+ Lists bring together collections of points to describe 3-D 
+\emph on 
+primitives
+\emph default 
+.
+ Some primitives are defined by only one point (for instance, a ball is
+ specified by it's center), but others need more -- a line segment needs
+ two endpoints, and a triangle needs three corners.
+ Each list has enough points in it to describe one or more primitives, and
+ all the primitives in a list are of the same type
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+In some instances, Mage can accomodate various point types within one list.
+\end_inset 
+
+ -- all balls, say, or all triangles.
+ For example, a list might contain all the line segments that form the outline
+ of a cube, or all the dots representing one particular data set on a graph.
+ Where it makes logical sense to group a bunch primitives into a single
+ list, it's a good idea, because it will more efficient than creating a
+ separate list for each one.
+\layout Standard
+
+There are seven basic types of list, corresponding to seven different types
+ of primitive:
+\layout Description
+
+Ball lists specify spheres of some finite size.
+ They're typically drawn as flat, filled circles plus a little white highlight,
+ which looks quite convincing as a 
+\begin_inset Quotes eld
+\end_inset 
+
+real
+\begin_inset Quotes erd
+\end_inset 
+
+ rendered sphere.
+ However, they may not look right if they intersect other objects, with
+ one exception: line segements that start or end 
+\emph on 
+exactly
+\emph default 
+ at the ball's center are rendered correctly.
+\layout Description
+
+Sphere lists are very similar to ball lists, but hint to the display program
+ that the ball is large and may intersect other objects in a complex way.
+ Depending on the kinemage viewer you're using, the spheres may look more
+ realistic, at the expense of taking more time to render.
+\layout Description
+
+Dot lists specify small points in space, like a ball or sphere that's just
+ big enough to see.
+ They're a good alternative to very small balls or spheres, because they're
+ faster to draw.
+\layout Description
+
+Label lists specify short text labels anchored to a particular point in
+ space.
+ The label swings around as the kinemage is rotated so it's always facing
+ forward and is right side up.
+\layout Description
+
+Vector lists specify a set of line segments, which are often connected head-to-t
+ail in a 
+\emph on 
+polyline
+\emph default 
+.
+ However, a vector list can contain any number of separate line segments,
+ too.
+\layout Description
+
+Triangle lists specify filled triangles.
+ Like vectors are often chained together into polylines, triangles are chained
+ into 
+\emph on 
+triangle strips
+\emph default 
+.
+ Points 1, 2, and 3 make up the first triangle; then points 2 and 3 are
+ reused together with point 4 for a second triangle.
+ On it goes, with a 3, 4, and 5 making the third triangle; 4, 5 and 6 making
+ the fourth, and so on.
+ Traditionally, all the triangles in one list have to be part of a single
+ connected strip.
+\layout Description
+
+Ribbon lists are very similar to triangle lists, except that pairs of consecutiv
+e triangles are assumed to lie in the same plane.
+ In fact, the lighting effects are manipulated so that the four points look
+ like they form a flat, four-sided polygon even if they really don't.
+ As the name implies, this is used for ribbons that curl through space but
+ need to look smooth.
+\layout Standard
+
+In the kinemage file, lists are specified by an @ symbol followed by the
+ list type and the word 
+\begin_inset Quotes eld
+\end_inset 
+
+list
+\begin_inset Quotes erd
+\end_inset 
+
+, all lower case and without any spaces in between.
+ The entire list definition must be on a single line; it cannot be split
+ across multiple lines.
+ The first item after the @list keyword is the name of the list, enclosed
+ in curly braces.
+ The options listed below then follow in any order, as desired:
+\layout Itemize
+
+The word 
+\family typewriter 
+off
+\family default 
+ requests that the list not be initially visible when the kinemage is loaded.
+ If it has an on/off button in the button panel, the user may turn it on
+ manually, or it may be turned on by a master button.
+\layout Itemize
+
+The word 
+\family typewriter 
+nobutton
+\family default 
+ requests that the list not have an on/off button even if it would have
+ otherwise.
+ Note that many lists will not have an on/off button anyway because their
+ subgroup or group is 
+\family typewriter 
+dominant
+\family default 
+.
+\layout Itemize
+
+
+\family typewriter 
+radius= #.#
+\family default 
+ and 
+\family typewriter 
+width= #
+\family default 
+ are used to specify the size of balls/spheres and vectors/dots, respectively.
+ Radius may be a decimal number, but width refers to a number of pixels
+ on the screen and must be an integer between 1 and 7.
+ Lines and dots default to a width of 2.
+ You should always specify a radius for balls and spheres explicitly.
+\layout Itemize
+
+Ball or sphere lists marked with 
+\family typewriter 
+nohighlight
+\family default 
+ will be drawn as flat colored disks and will not have a white highlight
+ drawn to make them look 3-D.
+\layout Itemize
+
+
+\family typewriter 
+color= colorname
+\family default 
+ specifies the base color for objects in the list; however, the list color
+ interacts with the colors of individual points (if any).
+ By default, lists are white.
+ See section 
+\begin_inset LatexCommand \ref{sec:Aspects-and-colors}
+
+\end_inset 
+
+ for more information about colors.
+\layout Itemize
+
+
+\family typewriter 
+alpha= #.#
+\family default 
+ specifies the opacity of objects from 1.0 (fully opaque) to 0.0 (invisible).
+ Alpha is currently supported only by KiNG and only for triangle, ribbon,
+ ball, and sphere lists.
+\layout Itemize
+
+
+\family typewriter 
+master= {mastername}
+\family default 
+ specifies that this list is controlled by the named master.
+ A given list may have multiple 
+\family typewriter 
+master=
+\family default 
+ statements, but you should read section 
+\begin_inset LatexCommand \ref{sec:Masters}
+
+\end_inset 
+
+ to see how multiple masters interact.
+\layout Itemize
+
+
+\family typewriter 
+clone= {listname}
+\family default 
+ and 
+\family typewriter 
+instance= {listname}
+\family default 
+ specify that this list has the same points in it as the named list, which
+ must be of the same type and must have been declared before the current
+ list.
+ This list, however, may have different properties (color, radius, 
+\emph on 
+etc.
+\emph default 
+) than the other one.
+ Clone is purely a convenience for kinemage authors; the current list will
+ be a totally independent copy of the cloned list that just happens to have
+ the same contents.
+ When the kinemage is saved, both lists will be written out in full without
+ using 
+\family typewriter 
+clone=
+\family default 
+.
+ Instance, on the other hand, actually re-uses the same point data, so editing
+ the points of one list will affect all its instances too.
+ The 
+\family typewriter 
+instance=
+\family default 
+ property 
+\emph on 
+will
+\emph default 
+ appear in the saved kinemage.
+ Instance is a good way to make more efficient use of memory in certain
+ cases, such as when an identical object needs to appear in multiple frames
+ of an animation.
+\layout Standard
+
+A few sample list declarations are shown below.
+\layout LyX-Code
+
+@balllist {Circles} radius= 3.5 nohighlight off
+\layout LyX-Code
+
+@spherelist {Mars look-alikes} radius= 10000 color= red master= {planets}
+\layout LyX-Code
+
+@vectorlist {tiger's tail} color= orange width= 5 nobutton
+\layout LyX-Code
+
+@trianglelist {veil} color= yellowtint alpha= 0.25
+\layout LyX-Code
+
+@trianglelist {a newer veil} color= white alpha= 0.3 clone= {veil}
+\layout Section
+
+Points
+\begin_inset LatexCommand \label{sec:Points}
+
+\end_inset 
+
+
+\layout Standard
+
+Points determine the actual geometry of the objects in a kinemage file.
+ At a minimum, each point must specify an X, Y, and Z coordinate.
+ Coordinates are given in a right handed Cartesian system.
+ The 
+\begin_inset Quotes eld
+\end_inset 
+
+Cartesian
+\begin_inset Quotes erd
+\end_inset 
+
+ part just means that the X, Y, and Z axes are all at right angles to each
+ other.
+ The 
+\begin_inset Quotes eld
+\end_inset 
+
+right handed
+\begin_inset Quotes erd
+\end_inset 
+
+ part means that if you're looking down the positive Z axis toward the origin,
+ the positive Y axis goes up and the positive X axis goes to the right.
+ Coordinates can be any possible decimal number, but it's a good idea to
+ not make them all really large (say, all in the millions) or really small
+ (thousandths and less), because you may lose accuracy in some kinemage
+ viewers.
+\layout Comment
+
+Is really this true of Mage?
+\layout Standard
+
+In addition to coordinates, it's a very good idea to give every point an
+ ID, even though this is not strictly required.
+ The ID appears when the user picks the point with the mouse, and for points
+ in a label list the ID is actually the text that will be displayed for
+ the label.
+ IDs are allowed to be empty (just a pair of curly braces), and this is
+ preferrable to no ID at all
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+KiNG interprets a missing point ID as the empty string, while Mage displays
+ the X,Y,Z coordinates of the point as its ID in this case.
+\end_inset 
+
+.
+ The special ID 
+\family typewriter 
+{
+\begin_inset Quotes erd
+\end_inset 
+
+}
+\family default 
+ means that the point will have the same ID as the point that preceded it;
+ if all the points in a list have the same ID, all but the first can have
+ 
+\family typewriter 
+{
+\begin_inset Quotes erd
+\end_inset 
+
+}
+\family default 
+ for their ID.
+\layout Standard
+
+Points are typically writen one to a line, though they can span multiple
+ lines or more than one point can appear on the same line.
+ The ID must come first, enclosed in curly braces, and the coordinates must
+ come last.
+ In between, there are a lot of per-point options that can be employed in
+ any order:
+\layout Itemize
+
+The 
+\family typewriter 
+P
+\family default 
+ flag marks a point in a vectorlist as starting a new polyline.
+ The first point in the list is automatically 
+\family typewriter 
+P
+\family default 
+, but after that line segements are drawn from one point to another until
+ a 
+\family typewriter 
+P
+\family default 
+ point is encountered.
+ To draw a series of disconnected single line segments, every other point
+ should be marked 
+\family typewriter 
+P
+\family default 
+ (starting with the first one).
+ The 
+\family typewriter 
+P
+\family default 
+ flag does not affect triangle lists.
+\layout Itemize
+
+Points marked with the 
+\family typewriter 
+U
+\family default 
+ flag are 
+\begin_inset Quotes eld
+\end_inset 
+
+unpickable
+\begin_inset Quotes erd
+\end_inset 
+
+ under normal circumstances, meaning that clicking on them with the mouse
+ will not do anything.
+\layout Itemize
+
+In KiNG, the 
+\family typewriter 
+X
+\family default 
+ flag can be used to break one triangle list into multiple triangle strips,
+ analogous to the 
+\family typewriter 
+P
+\family default 
+ flag for vector lists.
+\layout Itemize
+
+Points can be given their own color just by writing the color name.
+ They can also be assigned alternative colors for different coloring schemes
+ through the use of aspects (see section 
+\begin_inset LatexCommand \ref{sec:Aspects-and-colors}
+
+\end_inset 
+
+).
+ Aspects are lists of single uppercase letters A - Z enclosed in parentheses.
+ If aspects are used in a file, every point should have the same number
+ of aspects specified.
+ The color of a line segment is the color of its second point, not its first;
+ likewise, the color of a triangle is the color of its third point.
+\layout Itemize
+
+Width and radius can also be specified on a point-by-point basis.
+ Widths are specified as 
+\family typewriter 
+width1
+\family default 
+, 
+\family typewriter 
+width2
+\family default 
+, ...
+ 
+\family typewriter 
+width7
+\family default 
+; radii are specified as 
+\family typewriter 
+r= #.#
+\family default 
+.
+\layout Itemize
+
+The visibility of points can also be controlled by pointmasters, which are
+ analogous to the masters that control lists, subgroups, and groups.
+ Pointmasters are identified by single character codes (the lowercase letters
+ a - z and the numbers 1 - 6) enclosed in single quote marks.
+ Multiple point masters interact differently than multiple masters do; see
+ section 
+\begin_inset LatexCommand \ref{sec:Masters}
+
+\end_inset 
+
+ for more information.
+\layout Itemize
+
+Each point can have an additional text 
+\begin_inset Quotes eld
+\end_inset 
+
+comment
+\begin_inset Quotes erd
+\end_inset 
+
+ associated with it, which should be enclosed in angle brackets.
+ Some kinemage viewers use these for special purposes, while others may
+ ignore them altogether.
+\layout Standard
+
+Some example point definitions are shown below; these points are not intended
+ to all belong to the same list!
+\layout LyX-Code
+
+{clown nose} red r= 2.4 1.0 2.0 3.0
+\layout LyX-Code
+
+{x-axis}P U 0 0 0
+\layout LyX-Code
+
+{
+\begin_inset Quotes erd
+\end_inset 
+
+} <other end of X axis> U width1 10 0 0
+\layout LyX-Code
+
+{really complicated} 'aeg' (HZTU) 8.31 19.78 42.13
+\layout Section
+
+Kinemages, groups, and subgroups
+\layout Standard
+
+Complicated kinemages may have hundreds of lists in them, which would quickly
+ become unmanagable for the user.
+ Groups and subgroups allow us to organize lists hierarchically, so that
+ sets of related objects can be shown or hidden as a unit, and unneccessary
+ detail can be supressed.
+ There are also cases where several kinemages deal with different aspects
+ of the same visualization problem, and the kinemage format provides for
+ collecting these multiple kinemages into a single file.
+\layout Standard
+
+Only the start of each kinemage, group, subgroup, or list is marked, and
+ not the end.
+ A kinemage declaration must appear at the start of the file, and everything
+ else in that file is considered part of the kinemage until another kinemage
+ declaration is found.
+ In the same way, a group includes all the subgroups and lists that follow
+ it, until another group is declared or the end of the file is reached.
+ Likewise, subgroups contain all the lists that follow them, until another
+ group or subgroup declaration is encountered.
+ Lists contain all the points that follow them, until another list, subgroup,
+ or group declaration is encountered.
+ In this way, a hierarchical organization is built up with points gathered
+ into lists, lists gathered into subgroups, subgroups gathered into groups,
+ and groups gathered into kinemages.
+\layout Standard
+
+Kinemage declarations are very simple: the 
+\family typewriter 
+@kinemage
+\family default 
+ keyword, followed by an identifying number.
+ The first kinemage in a file should be number 1, the second should be number
+ 2, and so on
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+Generally, you're OK as long as the numbers are all different and are monotonica
+lly increasing.
+\end_inset 
+
+.
+ Thus, every kinemage file starts like this, with nothing preceding it except
+ possibly a 
+\family typewriter 
+@text
+\family default 
+ block (see section 
+\begin_inset LatexCommand \ref{sec:Metadata}
+
+\end_inset 
+
+):
+\layout LyX-Code
+
+@kinemage 1
+\layout Standard
+
+Group and subgroup declarations are only slightly more complicated.
+ They start with 
+\family typewriter 
+@group
+\family default 
+ or 
+\family typewriter 
+@subgroup
+\family default 
+, respectively, followed by the (sub)group name in curly braces, possibly
+ followed by some of the following flags.
+ As with lists, group and subgroup declarations may not span multiple lines.
+\layout Itemize
+
+The word 
+\family typewriter 
+off
+\family default 
+ requests that the (sub)group not be initially visible when the kinemage
+ is loaded.
+ If it has an on/off button in the button panel, the user may turn it on
+ manually, or it may be turned on by a master button.
+\layout Itemize
+
+The word 
+\family typewriter 
+nobutton
+\family default 
+ requests that the (sub)group not have an on/off button even if it would
+ have otherwise.
+ Note that some subgroups will not have an on/off button anyway because
+ their group is 
+\family typewriter 
+dominant
+\family default 
+.
+\layout Itemize
+
+The word 
+\family typewriter 
+dominant
+\family default 
+ requests that the buttons of objects below this (sub)group in the hierarchy
+ not be shown.
+ Dominant subgroups hide the buttons of their lists; dominant groups hide
+ the buttons of their subgroups and their lists.
+\layout Itemize
+
+The word 
+\family typewriter 
+collapsable
+\family default 
+ is similar to dominant.
+ When a collapsable group is on, the buttons of its subgroups and groups
+ are visible as usual.
+ When the collapsable group is off, however, those buttons are supressed,
+ as though it were 
+\family typewriter 
+dominant
+\family default 
+.
+ The situation is analogous for collapsable subgroups and the lists under
+ them.
+\layout Itemize
+
+
+\family typewriter 
+master= {mastername}
+\family default 
+ specifies that this (sub)group is controlled by the named master.
+ A given (sub)group may have multiple 
+\family typewriter 
+master=
+\family default 
+ statements, but you should read section 
+\begin_inset LatexCommand \ref{sec:Masters}
+
+\end_inset 
+
+ to see how multiple masters interact.
+\layout Itemize
+
+The words 
+\family typewriter 
+animate
+\family default 
+ and 
+\family typewriter 
+2animate
+\family default 
+ can only be used with groups.
+ Groups so marked become part of the first or second animation, respectively.
+ When the kinemage is loaded, all animate groups except the first one are
+ turned off, regardless of any 
+\family typewriter 
+off
+\family default 
+ flags.
+ The user can the cycle the animation forward/backward so that the next/previous
+ group is on and all the others are off.
+ Animate groups can be turned on or off by the user without any restrictions,
+ but stepping forward or backward in the animation will again ensure that
+ only one of them is on at a particular time.
+ The 
+\family typewriter 
+2animate
+\family default 
+ flag lets authors establish a second, unrelated animation that behaves
+ in exactly the same way.
+ In general, no group should be marked with both 
+\family typewriter 
+animate
+\family default 
+ and 
+\family typewriter 
+2animate
+\family default 
+.
+\layout Standard
+
+The following are typical group and subgroup declarations:
+\layout LyX-Code
+
+@group {first frame} dominant animate
+\layout LyX-Code
+
+@group {not visible} dominant nobutton master= {use this instead}
+\layout LyX-Code
+
+@group {lots of stuff} collapsable
+\layout LyX-Code
+
+@subgroup {not very important} off master= {optional stuff}
+\layout Section
+
+Masters
+\begin_inset LatexCommand \label{sec:Masters}
+
+\end_inset 
+
+
+\layout Standard
+
+The so-called 
+\begin_inset Quotes eld
+\end_inset 
+
+master
+\begin_inset Quotes erd
+\end_inset 
+
+ buttons provide an important facility for complex kinemages: the ability
+ to group and organize the elements by a secondary scheme that may be very
+ different from the primary, hierarchical organization.
+ For example, if you were making an interactive map of the world, you might
+ decide to make one group for each continent, and one subgroup for each
+ country.
+ However, it might also be nice to turn on and off all the rivers together,
+ or all the cities.
+ There might be a 
+\family typewriter 
+{rivers}
+\family default 
+ lists in each country, but without masters all of them would have to be
+ toggled individually.
+ With masters, you can have all of the rivers toggled by a single button
+ that lives outside the ordinary hierarchy of groups, subgroups, and lists.
+\layout Standard
+
+Masters are automatically created whenever they're mentioned the 
+\family typewriter 
+master=
+\family default 
+ part of a list, subgroup, or group declaration.
+ Their buttons appear in the same button panel as group/subgroup/list buttons,
+ but after all of those and somewhat separated from them.
+ You can control the order and presentation of masters a little bit better
+ by using the 
+\family typewriter 
+@master
+\family default 
+ keyword, which usually appears in the kinemage 
+\begin_inset Quotes eld
+\end_inset 
+
+header
+\begin_inset Quotes erd
+\end_inset 
+
+ -- after 
+\family typewriter 
+@kinemage
+\family default 
+ but before the group, subgroup, and list declarations.
+ 
+\family typewriter 
+@master
+\family default 
+ is followed by the master name in curly braces, which must exactly match
+ the name used in 
+\family typewriter 
+master=
+\family default 
+ statements.
+ The name may be followed by the 
+\family typewriter 
+indent
+\family default 
+ flag, which hints that its button should be indented relative to the other
+ master buttons so as to imply the same sort of hierarchy that occurs in
+ the regular buttons.
+ (However, for the masters this is purely cosmetic.)
+\layout Standard
+
+The effect of a master on a list, subgroup, or group is transient -- turning
+ something on or off with a master does not prevent the user from turning
+ that item on or off manually.
+ However, for items marked with more than one master, the masters do interact
+ with each other.
+ Consider the following list:
+\layout LyX-Code
+
+@dotlist {demo list} master= {A} master= {B} master={C}
+\layout Standard
+
+If 
+\emph on 
+any
+\emph default 
+ one of the master buttons is toggled from on to off, our list will be turned
+ off.
+ However, if one of the masters is toggled from off to on, our list will
+ be toggled on if and only if 
+\emph on 
+all
+\emph default 
+ of the other masters that control it are also currently on.
+ (Of course, if the list was already on, it will remain so.) If, for example,
+ masters B and C are off and master A is on, then turning B on will 
+\emph on 
+not
+\emph default 
+ turn the list on (because C is off).
+ Subsequently turning C on 
+\emph on 
+will
+\emph default 
+, however, turn the list on (because both A and B are also on).
+\layout Standard
+
+Individual points can also be controlled by a master-like mechanism, called
+ 
+\emph on 
+pointmasters
+\emph default 
+.
+ Due to memory limits, there are only 32 possible pointmasters that can
+ be used in a particular kinemage.
+ They are identified by the lowercase letters 
+\emph on 
+a
+\emph default 
+ - 
+\emph on 
+z
+\emph default 
+ and the digits 1 - 6.
+ One or more of these single-character codes are listed inside of single
+ quote marks for some or all of the points in a kinemage
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+Mage does not (yet) support multiple pointmasters for a single point, so
+ it will only accept a single character in single quotes.
+\end_inset 
+
+.
+ Each pointmaster code is associated with a named master button by a line
+ that starts with 
+\family typewriter 
+@pointmaster
+\family default 
+, then one (or rarely, more than one) single-character code between single
+ quotes, then the master name in curly braces.
+ If the name matches with the name of an ordinary master, then that button
+ will control both the list/subgroup/group master and the pointmaster.
+\layout Standard
+
+Unlike masters, pointmasters do not interact with each other.
+ Turning a pointmaster on turns on all of the points under its control,
+ regardless of which other pointmasters they are controlled by.
+ The same goes for turning a pointmaster off.
+\layout Standard
+
+Shown below are some typical master and pointmaster declarations:
+\layout LyX-Code
+
+@master {rivers}
+\layout LyX-Code
+
+@pointmaster 'a' {large cities}
+\layout LyX-Code
+
+@pointmaster 'b' {small cities}
+\layout LyX-Code
+
+@pointmaster 'ab' {all cities}
+\layout LyX-Code
+
+@master {dual purpose} indent
+\layout LyX-Code
+
+@pointmaster 'c' {dual purpose}
+\layout Section
+
+Colors and aspects
+\begin_inset LatexCommand \label{sec:Aspects-and-colors}
+
+\end_inset 
+
+
+\layout Standard
+
+Color-coding is one of the most-used feature in any visualization system,
+ so the kinemage format provides lots of options related to coloring.
+ We've already seen how to assign a color to a whole list or a single point
+ in their respective sections, and we've seen that point colors, when present,
+ generally override the color specified for the list.
+ Below are all 28 of the color names that can be used with lists and points:
+\layout Standard
+
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="14" columns="4">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0sp">
+<column alignment="center" valignment="top" leftline="true" width="0sp">
+<column alignment="center" valignment="top" leftline="true" width="0sp">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0sp">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\emph on 
+Saturated colors
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\emph on 
+Semi-sat.
+ colors
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\emph on 
+Pastel colors
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\emph on 
+Neutrals
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+red (A)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+pink (N)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+pinktint (V)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+orange (B)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+peach (P)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+peachtint (Q)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+gold (C)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+yellow (D)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+yellow (D)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+yellowtint (R)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+lime (E)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+green (F)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+sea (G)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+greentint (S)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+sea (G)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+white (W)
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+cyan (H)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+gray (X)
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+sky (I)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+brown (Y)
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+blue (J)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+sky (I)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+bluetint (T)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+purple (K)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+lilac (O)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+lilactint (U)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+invisible (Z)
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+magenta (L)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+deadwhite
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+hotpink (M)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+deadblack
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\layout Standard
+
+The letters listed in parentheses are the aspect codes for each color, which
+ will be discussed below.
+ Colors are organized so that the columns form progressions of hue, and
+ the rows form progressions of saturation, although the relationships are
+ somewhat different on a white background.
+ Some colors appear in two different places in the chart because they serve
+ two different 
+\begin_inset Quotes eld
+\end_inset 
+
+purposes
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ See the palette kinemage built into KiNG for more details on how to use
+ color effectively.
+\layout Standard
+
+Sometimes you might develop a kinemage in which tens or hundreds of different
+ lists should all be the same color -- but you aren't sure 
+\emph on 
+which
+\emph default 
+ color.
+ Instead of using the find-and-replace feature of a text editor to test
+ out different options, you can define a symbol to stand in for the color,
+ and then change only the definition of the symbol.
+ This symbolic or 
+\begin_inset Quotes eld
+\end_inset 
+
+variable
+\begin_inset Quotes erd
+\end_inset 
+
+ color name is called a 
+\emph on 
+colorset
+\emph default 
+, and is declared with the 
+\family typewriter 
+@colorset
+\family default 
+ keyword, followed by the symbolic name in curly braces and then the name
+ of a normal kinemage color.
+ Later on, you can assign the symbolic color name to lists (but not individual
+ points).
+ For example,
+\layout LyX-Code
+
+@colorset {water color} sky
+\layout LyX-Code
+
+@vectorlist {river} color= {water color}
+\layout LyX-Code
+
+@balllist {ponds} color= {water color}
+\layout Standard
+
+Since color schemes are so important to visualization, it is sometimes useful
+ to have multiple color schemes within one kinemage.
+ For example, a map might be colored by elevation, by rainfall, or by population
+ density, depending on its intended use.
+ 
+\emph on 
+Aspects
+\emph default 
+ provide a mechanism for specifying more than one possible point color for
+ each point, only one of which is active at a particular time.
+\layout Standard
+
+Aspects must be declared with the 
+\family typewriter 
+@aspect
+\family default 
+ keywords in the kinemage header; the declaration is not optional as it
+ is 
+\emph on 
+e.g.
+
+\emph default 
+ for masters.
+ Each point that has aspect coloring (not all points in a kinemage have
+ to) should have the same number of aspect codes as there are 
+\family typewriter 
+@aspect
+\family default 
+ definitions in the kinemage.
+ As explained in the section on points, the single-letter aspects codes
+ for a point appear inside parentheses as part of the point definition (see
+ section 
+\begin_inset LatexCommand \ref{sec:Points}
+
+\end_inset 
+
+).
+ For example:
+\layout LyX-Code
+
+@1aspect {Population density}
+\layout LyX-Code
+
+@2aspect {Quality of universities}
+\layout LyX-Code
+
+@3aspect {Number of bars}
+\layout LyX-Code
+
+@balllist {Cities in the Triangle} color= white radius= 2
+\layout LyX-Code
+
+{Durham} (ABC) 0 1 0
+\layout LyX-Code
+
+{Raleigh} (DEF) 1 0 0
+\layout LyX-Code
+
+{Chapel Hill} (GHI) -1 0 0
+\layout LyX-Code
+
+{Cary} (JKL) 0.5 -0.5 0
+\layout Section
+
+Views and display options
+\layout Standard
+
+There are a number of keywords that control the default presentation of
+ a kinemage to the user.
+ Choosing the right options is an important guide to the user, although
+ s/he can override them later.
+\layout Standard
+
+All of the following keywords are used to define a pre-set view of the kinemage.
+ The keywords are given a leading number that defines 
+\emph on 
+which
+\emph default 
+ view they belong with (show below for view 1, but 2, 3, 
+\emph on 
+etc.
+
+\emph default 
+ can be substitued to define additional views).
+ View 1 is the default that will be shown when the kinemage is first opened.
+ Although a view definition may legally omit any of these components, it's
+ best to define all of them explicitly to ensure the desired behavior.
+ In the definitions below, the symbol # stands for any number, decimal or
+ integer.
+\layout Description
+
+@1viewid\SpecialChar ~
+{VIEW\SpecialChar ~
+NAME} gives a label that will identify this view to the user.
+ It should be unique, but is not required to be.
+\layout Description
+
+@1center\SpecialChar ~
+#\SpecialChar ~
+#\SpecialChar ~
+# gives the coordinates of the center of the view.
+ The model will rotate around this point, which will be centered.
+ 
+\layout Description
+
+@1matrix\SpecialChar ~
+#\SpecialChar ~
+#\SpecialChar ~
+#\SpecialChar ~
+#\SpecialChar ~
+#\SpecialChar ~
+#\SpecialChar ~
+#\SpecialChar ~
+#\SpecialChar ~
+# gives an orthonormal rotation matrix that defines the
+ orientation of the model.
+ (
+\emph on 
+Orthonormal
+\emph default 
+ meaning all the row vectors are orthogonal to each other, all the column
+ vectors are orthogonal to each other, and all these vectors have length
+ 1.) If you intend to multiple this matrix by your coordinates (as a column
+ vector), you should read the numbers as going down the first column, then
+ down the second, and so on.
+ If you intend the multiply your coordinates (as a row vector) by the matrix,
+ then you should read the series of numbers as going across the first row,
+ then across the second, 
+\emph on 
+etc.
+
+\emph default 
+ That is, one version of the matrix is the transpose of the other.
+\layout Description
+
+@1span\SpecialChar ~
+# defines how much of the kinemage is visible---whether you're zoomed
+ in close or zoomed way out.
+ Specifically, the given distance in model coordinates will just fill the
+ graphics area either horizontally or vertically (whichever is smaller).
+ Thus, larger spans show more of the model, and smaller spans show less
+ (but in greater detail).
+\layout Description
+
+@1zoom\SpecialChar ~
+# is an alternative specification for span; it controls how much of
+ the kinemage is visible.
+ A zoom of 1.0 ensures the whole kinemage just fits within the graphics area,
+ and larger zooms cause the view to zoom in closer.
+ It's better to give a span than a zoom, because zoom depends on the space
+ the kinemage occupies.
+ If later add (or remove) something to the kinemage that changes its 
+\begin_inset Quotes eld
+\end_inset 
+
+envelope
+\begin_inset Quotes erd
+\end_inset 
+
+, then your predefined views will shift to show something other than you
+ had originally intended.
+ Span, on the other hand, is independent of the content of the kinemage.
+\layout Description
+
+@1zslab\SpecialChar ~
+# is the complement of span or zoom---it defines how thick a slice
+ of the model you can see.
+ Obviously, if the full model was displayed in-focus when you were zoomed
+ in very close, all the extra detail in the far background could be extremely
+ distracting.
+ Ditto for things right in front of your nose that could blot out the area
+ of interest.
+ Thus, everything that's more than a certain distance in front of or behind
+ the center of rotation is not shown.
+ (Computer graphics folks call this a 
+\begin_inset Quotes eld
+\end_inset 
+
+slab
+\begin_inset Quotes erd
+\end_inset 
+
+ or a pair of 
+\begin_inset Quotes eld
+\end_inset 
+
+clipping planes.
+\begin_inset Quotes erd
+\end_inset 
+
+) The units here are arbitrary: a value of 200 means that the front-to-back
+ distance between clipping planes is equal to (the lesser of) the width
+ or height of the graphics area.
+ Other values mean the slab will be #/200 times this wide, so smaller values
+ give a thinner slab and larger values, a thicker one.
+\layout Standard
+
+There are a number of other useful keywords that correspond to display settings
+ common in most kinemage viewers.
+ As note above, these are only hints: the user can always choose to override
+ them, and the kinemage viewer is not even guaranteed to pay attention to
+ them.
+\layout Description
+
+@perspective suggests that the kinemage been shown with simulated perspective
+ projection.
+ This is often desirable for geometric objects, so that parallel lines actually
+ converge in the distance, cubes really look like cubes, and so on.
+ By default, kinemages are shown with orthographic projection.
+\layout Description
+
+@flat hints that there is no useful depth (Z-coordinate) information in
+ the kinemage, and that the default mode of interaction should be translation
+ (sliding the kinemage around in the X-Y plane) rather than rotation.
+ This is helpful for things like 2-D charts and graphs.
+\layout Description
+
+@onewidth asks that lines be drawn in a consistent width regardless of their
+ location.
+ By default, lines in the front of the view are thicker and lines in the
+ back are thinner, to aid in giving a feeling of depth and three-dimensionality.
+\layout Description
+
+@thinline suggests the default line width be as thin as possible, rather
+ than the standard 2 pixels.
+\layout Description
+
+@whitebackground hints that the kinemage would look best on a white background,
+ with its associated color palette.
+ By default, the black background and palette are used.
+\layout Description
+
+@listcolordominant asks that the individually specified colors of points
+ be ignored in favor of the base color of their list.
+\layout Section
+
+Metadata
+\begin_inset LatexCommand \label{sec:Metadata}
+
+\end_inset 
+
+
+\layout Standard
+
+In addition to describing a geometrical object or scene, the kinemage language
+ allows authors to describe the 
+\emph on 
+meaning
+\emph default 
+ of the graphical objects.
+ This sort of information is thus data about the (primary) data, a.k.a.
+ 
+\emph on 
+metadata
+\emph default 
+.
+ The following keywords are supported:
+\layout Description
+
+@text marks the beginning of a block of free-form, plain-text information
+ that should be made available to users of the kinemage.
+ The text continues until the next keyword is encountered; thus, the only
+ restriction on the content of text block is that it not contain any @ symbols
+ at the very beginning of a line.
+ Indenting the @ with a space is a perfectly acceptable as a way of getting
+ around this limitation.
+ Text is specified for the kinemage 
+\emph on 
+file
+\emph default 
+ as a whole.
+ Thus, it will probably pertain to all the kinemages in that file, whether
+ by describing them sequentially or discussing the relationships among them.
+ Some kinemage viewers support special hypertext links in the text, which
+ are delimited by 
+\family typewriter 
+*{
+\family default 
+ and 
+\family typewriter 
+}*
+\family default 
+.
+ The specific syntax is described elsewhere.
+ Multiple 
+\family typewriter 
+@text
+\family default 
+ blocks in the same file will be concatenated together in the order they
+ appear.
+\layout Description
+
+@caption works much like 
+\family typewriter 
+@text
+\family default 
+, but is generally shorter (a few lines at most) and pertains to a single
+ kinemage.
+ Thus, 
+\family typewriter 
+@caption
+\family default 
+ must appear somewhere after a 
+\family typewriter 
+@kinemage
+\family default 
+ statement, while 
+\family typewriter 
+@text
+\family default 
+ can be the first thing in a file.
+\layout Description
+
+@title\SpecialChar ~
+{KIN\SpecialChar ~
+TITLE} gives a brief title that identifies this kinemage, as a
+ more user-friendly label than its index number.
+\layout Description
+
+@copyright\SpecialChar ~
+{COPYRIGHT\SpecialChar ~
+INFO\SpecialChar ~
+2004} notifies users of who owns the copyright to
+ this kinemage file.
+\layout Description
+
+@pdbfile\SpecialChar ~
+{FILENAME} lists a Protein DataBank file that corresponds to the
+ model shown in this kinemage.
+ Used only for kinemages showing macromolecular structures.
+\layout Description
+
+@mapfile\SpecialChar ~
+{FILENAME} lists an electron density map that corresponds to the
+ model shown in this kinemage.
+ Used only for kinemages showing macromolecular structures.
+\layout Description
+
+@command\SpecialChar ~
+{UNIX\SpecialChar ~
+CMD} suggests a command that the user or the kinemage viewer
+ could run to generate additional kinemage data, which could then be merged
+ into the current file.
+\layout Section
+
+Alternative spellings
+\layout Standard
+
+Some of the keywords in kinemage files may take alternate forms, some of
+ which are historical artifacts and some of which are attempts to accomodate
+ both American and British spelling.
+ The forms given above are the preferred ones; the alternatives listed below
+ may not be supported by all kinemage viewers.
+\layout Description
+
+@balllist @ball
+\layout Description
+
+collapsable collapsible recessiveon
+\layout Description
+
+color= colour=
+\layout Description
+
+deadblack black
+\layout Description
+
+@dotlist @dot
+\layout Description
+
+@flat @flatland @xytranslation
+\layout Description
+
+gray grey
+\layout Description
+
+L l D d 
+\emph on 
+(the unneccessary point flag: L for Line-to, D for Draw-to)
+\layout Description
+
+@labellist @label
+\layout Description
+
+@listcolordominant @listcolordom
+\layout Description
+
+nohighlight nohilite nohi
+\layout Description
+
+orange rust
+\layout Description
+
+P p M m 
+\emph on 
+(the point flag: P for Point, M for Move-to)
+\layout Description
+
+@ribbonlist @ribbon
+\layout Description
+
+sea seagreen
+\layout Description
+
+sky skyblue
+\layout Description
+
+@spherelist @sphere
+\layout Description
+
+@subgroup @set
+\layout Description
+
+@trianglelist @triangle
+\layout Description
+
+U u 
+\emph on 
+(the point flag)
+\layout Description
+
+@vectorlist @vector
+\layout Description
+
+@whitebackground @whiteback @whitebkg
+\layout Description
+
+X x 
+\emph on 
+(the point flag)
+\layout Description
+
+yellowtint paleyellow
+\layout Description
+
+@zslab @zclip
+\layout Part
+
+Syntax
+\layout Standard
+
+This part of the document describes the low-level syntax that is common
+ to all kinemage formats, regardless of how many additional functionalities
+ (semantics) they incorporate.
+ The descriptions are very precise, at the cost of being somewhat long and
+ tedious.
+ However, this level of detail is necessary for programmers who wish to
+ interpret kinemage files reliably, and may be helpful to authors as well.
+ This level is expected to be extremely stable and change very slowly.
+\layout Standard
+
+The descriptions in the two parts of this document assume a similar division
+ of labor in the implementation of computer programs that process kinemages:
+ the low-level syntax (this part) is handled by a tokenizer, which can separate
+ a stream of characters into meaningful atomic units.
+ The semantics and high-level syntax (the preceding part) are handled by
+ a parser, which is responsible for understanding, 
+\emph on 
+e.g.
+\emph default 
+, the relationships among graphics objects and their implied hierarchical
+ organization.
+\layout Section
+
+Characters in kinemage files
+\layout Standard
+
+Kinemage files are plain text files encoded according to the ASCII standard
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+See 
+\begin_inset LatexCommand \htmlurl{http://www.asciitable.com/}
+
+\end_inset 
+
+ for details.
+\end_inset 
+
+, which defines 128 characters.
+ Each character is stored in the lower 7 bits of a single byte.
+ Only ASCII characters between 32 and 126 inclusive, plus 9 (horizontal
+ tab), 10 (newline), 12 (formfeed), and 13 (carriage return) are legal character
+s in a kinemage file (numbers given are in decimal).
+ 
+\layout Standard
+
+A kinemage tokenizer may check for and report illegal characters, but is
+ not required to.
+ If the tokenizer does find illegal characters, they should not cause a
+ fatal error, but should instead be treated as alphanumerics (see section
+ 
+\begin_inset LatexCommand \ref{sub:Alphanumerics}
+
+\end_inset 
+
+).
+\layout Subsection
+
+Whitespace
+\layout Standard
+
+Whitespace characters are the space (32), horizontal tab (9), newline (10),
+ formfeed (12), carriage return (13), and the comma (44).
+ Commas are defined as whitespace to simplify treatment of a sequence of
+ numbers, which is often writen out with commas as separators.
+\layout Standard
+
+The kinemage format is whitespace insensitive: these characters carry no
+ meaning and may be discarded at the tokenizer level.
+ Where whitespace is called for, one or more whitespace characters may be
+ used, and any sequence of continguous whitespace characters is treated
+ as a single occurance of whitespace.
+ However, there is one important semantic attribute conveyed by whitespace:
+ the newline and carriage return characters impart the beginning-of-line
+ (BOL) property to any token immediately following them.
+ See section 
+\begin_inset LatexCommand \ref{sub:Beginning-of-line}
+
+\end_inset 
+
+ for details.
+\layout Standard
+
+When using whitespace, keep in mind that kinemage files should be human-readable
+ and human-editable.
+ Line length should not exceed 80 characters, but superfluous line breaks
+ should be avoided.
+ Single spaces are the preferred form of whitespace within a line.
+ These suggestions are merely matters of style, and a kinemage tokenizer
+ must not rely on them being followed.
+\layout Subsection
+
+Alphanumerics
+\begin_inset LatexCommand \label{sub:Alphanumerics}
+
+\end_inset 
+
+
+\layout Standard
+
+Alphanumeric characters are the uppercase letters A-Z, the lowercase letters
+ a-z, and the digits 0-9.
+ Note that kinemage files are case sensitive.
+ Kinemage tokenizers must not convert or mangle the case of any tokens in
+ a kinemage file, and tokens that differ only by case must still be considered
+ distinct from one another.
+\layout Subsection
+
+Punctuation
+\layout Standard
+
+All legal characters that are neither classified as whitespace nor as alphanumer
+ics are regarded as punctuation.
+ These characters have a variety of functions in the kinemage format.
+ The following characters already have well-defined function and syntax
+ associated with them:
+\layout LyX-Code
+
+@ ( ) - = + { } 
+\begin_inset Quotes eld
+\end_inset 
+
+ ' < .
+ >
+\layout Standard
+
+At the moment, no special significance has been attached to the following
+ characters:
+\layout LyX-Code
+
+` ~ ! # $ % ^ & * _ [ ] 
+\backslash 
+ | : ; / ?
+\layout Standard
+
+However, a future version of the format may define meanings for them.
+\layout Section
+
+Tokens in kinemage files
+\layout Standard
+
+Files in kinemage format can be thought of a sequences of tokens (meaningful),
+ each separated from the others by zero or more whitespace characters (meaningle
+ss).
+ Tokens are divided into two classes, quoted and unquoted.
+ Quoted tokens have clear start and end signals, so they can occur with
+ no intervening whitespace and still be separable.
+ Unquoted tokens lack clear start and/or end signals.
+ Thus, at least one whitespace character is 
+\emph on 
+required
+\emph default 
+ between two unquoted tokens in order to separate them from one another.
+\layout Standard
+
+Theoretically, each token may be of any length, from one character (even
+ zero characters, for quoted tokens) up to the largest string that will
+ fit in memory.
+ In practice, however, tokens should be fairly short; 20 characters or less
+ is a reasonable guideline.
+ No token should exceed 256 characters in length, and more stringent restriction
+s on length may be imposed on some tokens by the higher-level syntax.
+\layout Standard
+
+The names given to token types below reflect their usual function in a kinemage
+ file, but they are not restricted to that function.
+ For example, an identifier usually names some object, but it can also enclose
+ a command line, a file name, and so on.
+\layout Subsection
+
+Beginning-of-line
+\begin_inset LatexCommand \label{sub:Beginning-of-line}
+
+\end_inset 
+
+
+\layout Standard
+
+Beginning-of-line (BOL) is a property of certain tokens that may influence
+ their interpretation by the parser.
+ For instance, for a token to be recognized as a keyword (see section 
+\begin_inset LatexCommand \ref{sub:Keywords}
+
+\end_inset 
+
+), it must occur at the beginning of a line.
+ A token is considered BOL under any of the following conditions:
+\layout Itemize
+
+The first character of the token is the first character in the file
+\layout Itemize
+
+The first character of the token is immediately preceded by a newline
+\layout Itemize
+
+The first character of the token is immediately preceded by a carriage return
+\layout Subsection
+
+Quoted tokens
+\layout Standard
+
+Quoted tokens all have explicit markers for the beginning and end of the
+ token.
+ This simplifies the parsing of these tokens, and enables one to classify
+ the type of token present after parsing the first character of it.
+ However, care must be taken to close every token that is opened.
+ To aid authors in discovering such errors in their kinemages, it is recommended
+ that kinemage tokenizers report a non-fatal error when they encounter the
+ end of the file before closing an open quoted token.
+\layout Subsubsection
+
+Identifiers
+\layout Standard
+
+Identifiers are strings quoted by curly braces, like this:
+\layout LyX-Code
+
+{an identifier}
+\layout Standard
+
+An identifier token begins when an opening curly brace is encountered outside
+ of any other quoted token (but possibly 
+\begin_inset Quotes eld
+\end_inset 
+
+inside
+\begin_inset Quotes erd
+\end_inset 
+
+, 
+\emph on 
+i.e.
+\emph default 
+, immediately following, an unquoted token).
+ It terminates as soon as the number of closing curly braces encountered
+ in the course of parsing this token equals the number of opening curly
+ braces encountered.
+ That is, curly braces may be nested within an identifier, but only as long
+ as they are balanced.
+ Otherwise, an identifier may contain any legal character for a kinemage
+ file.
+\layout Subsubsection
+
+Comments
+\layout Standard
+
+Comments are strings quoted by angle brackets, like this:
+\layout LyX-Code
+
+<a comment>
+\layout Standard
+
+A comment token begins when an opening angle bracket is encountered outside
+ of any other quoted token (but possibly 
+\begin_inset Quotes eld
+\end_inset 
+
+inside
+\begin_inset Quotes erd
+\end_inset 
+
+, 
+\emph on 
+i.e.
+\emph default 
+, immediately following, an unquoted token).
+ It terminates as soon as the number of closing angle brackets encountered
+ in the course of parsing this token equals the number of opening angle
+ brackets encountered.
+ That is, angle brackets may be nested within a comment, but only as long
+ as they are balanced.
+ Otherwise, a comment may contain any legal character for a kinemage file.
+\layout Subsubsection
+
+Aspects
+\layout Standard
+
+Aspects are strings quoted by parentheses, like this:
+\layout LyX-Code
+
+(an aspect)
+\layout Standard
+
+An aspect token begins when an opening parenthesis is encountered outside
+ of any other quoted token (but possibly 
+\begin_inset Quotes eld
+\end_inset 
+
+inside
+\begin_inset Quotes erd
+\end_inset 
+
+, 
+\emph on 
+i.e.
+\emph default 
+, immediately following, an unquoted token).
+ It terminates as soon as the number of closing parentheses encountered
+ in the course of parsing this token equals the number of opening parentheses
+ encountered.
+ That is, parentheses may be nested within an aspect, but only as long as
+ they are balanced.
+ Otherwise, an aspect may contain any legal character for a kinemage file.
+\layout Subsubsection
+
+Single quoted strings (pointmasters)
+\layout Standard
+
+Pointmasters are represented as strings deliminted by single quote marks,
+ like this:
+\layout LyX-Code
+
+'abc'
+\layout Standard
+
+A single quoted token begins when a single quote mark is encountered outside
+ of any other quoted token (but possibly 
+\begin_inset Quotes eld
+\end_inset 
+
+inside
+\begin_inset Quotes erd
+\end_inset 
+
+, 
+\emph on 
+i.e.
+\emph default 
+, immediately following, an unquoted token).
+ It terminates as soon another single quote mark is encountered.
+ That is, single quoted strings may not contain embedded single quotes,
+ and no mechanism exists to escape this limitation.
+ Otherwise, a single quoted string may contain any legal character for a
+ kinemage file.
+\layout Subsubsection
+
+Double quoted strings
+\layout Standard
+
+Double quoted strings are defined analogously to single quoted strings,
+ like this:
+\layout LyX-Code
+
+
+\begin_inset Quotes eld
+\end_inset 
+
+abc
+\begin_inset Quotes erd
+\end_inset 
+
+
+\layout Standard
+
+A double quoted token begins when a double quote mark is encountered outside
+ of any other quoted token (but possibly 
+\begin_inset Quotes eld
+\end_inset 
+
+inside
+\begin_inset Quotes erd
+\end_inset 
+
+, 
+\emph on 
+i.e.
+\emph default 
+, immediately following, an unquoted token).
+ It terminates as soon another double quote mark is encountered.
+ That is, double quoted strings may not contain embedded double quotes,
+ and no mechanism exists to escape this limitation.
+ Otherwise, a double quoted string may contain any legal character for a
+ kinemage file.
+\layout Standard
+
+At the moment, no function has been ascribed to double quoted strings in
+ kinemage files.
+ Until a meaning is defined, parsers should ignore them.
+\layout Subsection
+
+Unquoted tokens
+\layout Standard
+
+Unquoted tokens are somewhat harder to parse than quoted tokens, because
+ their start and end signals are less obvious.
+ Also, the entire token may need to be parsed before one is able to decide
+ what kind of token it is.
+ However, rules for parsing these tokens are well-defined.
+ An unquoted token may begin in any of the following positions:
+\layout Itemize
+
+At the beginning of the file
+\layout Itemize
+
+Immediately following the end of a quoted token
+\layout Itemize
+
+Following one or more whitespace characters, outside of all quoted tokens
+\layout Standard
+
+An unquoted token may begin with any non-whitespace character that does
+ not begin a quoted token.
+ An unquoted token is then terminated by the first of these encountered
+ after the initiating character:
+\layout Itemize
+
+The end of the file
+\layout Itemize
+
+Any whitespace character
+\layout Itemize
+
+The equals sign (ASCII 61)
+\layout Itemize
+
+Any character that begins a quoted token: 
+\family typewriter 
+{ < ( ' 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\layout Standard
+
+While the initiating character is considered part of the token, the terminating
+ character may or may not be considered part of the token.
+ Whitespace will be discarded, and quoted token initiators will be part
+ of the next (quoted) token.
+ The equals sign will be kept as part of this token.
+ Note that this means tokens ending in the equals sign (called 
+\begin_inset Quotes eld
+\end_inset 
+
+Properties
+\begin_inset Quotes erd
+\end_inset 
+
+; see section 
+\begin_inset LatexCommand \ref{sub:Properties}
+
+\end_inset 
+
+) are effectively half-quoted: there need not be whitespace after the equals
+ sign to separate this token from the next (unquoted) token.
+\layout Standard
+
+The following sections present rules for categorizing unquoted tokens.
+ The rules are in order of precedence---that is, a token must be classified
+ according to the 
+\emph on 
+first
+\emph default 
+ rule it matches from this list.
+ This resolves the ambiguity that would arise if, 
+\emph on 
+e.g.
+\emph default 
+, a token began with an 
+\begin_inset Quotes eld
+\end_inset 
+
+at
+\begin_inset Quotes erd
+\end_inset 
+
+ sign (like a keyword) and ended with an equals sign (like a property).
+\layout Subsubsection
+
+Keywords
+\begin_inset LatexCommand \label{sub:Keywords}
+
+\end_inset 
+
+
+\layout Standard
+
+Keywords define the major sections of a kinemage.
+ Each keyword begins with the 
+\begin_inset Quotes eld
+\end_inset 
+
+at
+\begin_inset Quotes erd
+\end_inset 
+
+ sign (64).
+ For example, all of the following are keywords:
+\layout LyX-Code
+
+@kinemage @master @vectorlist
+\layout Standard
+
+Furthermore, in order to be recognized as a keyword, the 
+\begin_inset Quotes eld
+\end_inset 
+
+at
+\begin_inset Quotes erd
+\end_inset 
+
+ sign must occur at the beginning-of-line (BOL; see section 
+\begin_inset LatexCommand \ref{sub:Beginning-of-line}
+
+\end_inset 
+
+).
+ In addition to enforcing good style, this streamlines the processing of
+ plain text segments (see section 
+\begin_inset LatexCommand \ref{sub:Plain-text-blocks}
+
+\end_inset 
+
+).
+\layout Subsubsection
+
+Properties
+\begin_inset LatexCommand \label{sub:Properties}
+
+\end_inset 
+
+
+\layout Standard
+
+Properties are generally used for labeling the meaning of the next token
+ in the file.
+ Each property ends with an equals sign (61).
+ The following are all properties:
+\layout LyX-Code
+
+color= master= radius=
+\layout Standard
+
+Note that, by definition of an unquoted token, whitespace is forbidden before
+ the equal sign.
+ Although some old kinemages may allow this syntax, it requires the tokenizer
+ to read ahead through an arbitrary amount of whitespace following every
+ unquoted token in order to determine if it is a property or not.
+ This behavior could be undesirable if the kinemage contains sections of
+ plain text (see section 
+\begin_inset LatexCommand \ref{sub:Plain-text-blocks}
+
+\end_inset 
+
+) or is embedded within some other data format.
+\layout Standard
+
+As described above, there may be whitespace after the equals sign, but it
+ is not required, even if the next token is unquoted.
+ This semi-quoted (quoted at the end, but not the beginning) behavior of
+ property tokens is a historical feature of the kinemage format that has
+ been retained for backward compatibility.
+ The preferred format for new kinemages is to have a space following the
+ equals sign.
+\layout Standard
+
+There are no low-level syntactic restrictions on the positioning of properties;
+ however, at a higher level, syntax generally requires that each property
+ be followed by a non-keyword, non-property token.
+ For example:
+\layout LyX-Code
+
+color= red
+\layout LyX-Code
+
+width= 7
+\layout LyX-Code
+
+master={backbone}
+\layout LyX-Code
+
+radius=2.5
+\layout Subsubsection
+
+Integers
+\layout Standard
+
+Integers are exactly that: text representations of integer numbers.
+ Legal integers are either the single digit zero, or a non-zero digit followed
+ by zero or more additional digits and optionally preceded by a plus or
+ minus sign.
+ The following are legal integers:
+\layout LyX-Code
+
+0 +1 7 -365 2020
+\layout Standard
+
+The following are 
+\emph on 
+not
+\emph default 
+ legal integers:
+\layout LyX-Code
+
+-0 007 5+2
+\layout Standard
+
+Tokens that are not legal integers but consist only of digits 0-9 and the
+ plus and minus signs (
+\emph on 
+e.g.
+\emph default 
+, the above) may be interpretted as integers or as literals on a case-by-case
+ basis, at the discretion of the tokenizer.
+ It is recommended that a warning be issued if such a token is encountered.
+\layout Subsubsection
+
+Numbers
+\begin_inset LatexCommand \label{sub:Numbers}
+
+\end_inset 
+
+
+\layout Standard
+
+Numbers are a superset of the integers: text representations of real numbers
+ in decimal or scientific notation.
+ Legal numbers follow the pattern
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+See 
+\begin_inset LatexCommand \htmlurl{http://www.garshol.priv.no/download/text/bnf.html}
+
+\end_inset 
+
+ for an introduction to Extended Backus-Naur Form.
+\end_inset 
+
+ below:
+\layout LyX-Code
+
+number ::= integer fraction? exponent?
+\layout LyX-Code
+
+fraction ::= '.' digit+
+\layout LyX-Code
+
+exponent ::= ('e' | 'E') integer
+\layout Standard
+
+Basically, there must be something before the decimal point, even if it's
+ a zero; there must be something after the decimal point, if there is one;
+ and the exponential part (if present) may be indicated with either a capital
+ or a lowercase E.
+ The following are legal numbers:
+\layout LyX-Code
+
+-0.42 1e5 3.14 6.022E+23
+\layout Standard
+
+Tokens that are not legal numbers but consist only of digits 0-9, the letters
+ 
+\family sans 
+\series bold 
+e
+\family default 
+\series default 
+ and 
+\family sans 
+\series bold 
+E
+\family default 
+\series default 
+, the decimal point, and the plus and minus signs may be interpretted as
+ numbers or as literals on a case-by-case basis, at the discretion of the
+ tokenizer.
+ It is recommended that a warning be issued if such a token is encountered.
+\layout Subsubsection
+
+Literals
+\begin_inset LatexCommand \label{sub:Literals}
+
+\end_inset 
+
+
+\layout Comment
+
+TODO: find a better name for this token class?
+\layout Standard
+
+Legal unquoted tokens that cannot be otherwise classified are lumped together
+ as literals.
+ Note that, by the definitions provided for unquoted tokens, a literal may
+ begin with a numeric digit.
+ This is in contrast to many programming languages.
+ Those defining new semantics for kinemages are strongly advised against
+ defining literals that are not numbers but use only characters allowed
+ in numbers; the interpretation of such tokens is poorly defined (see section
+ 
+\begin_inset LatexCommand \ref{sub:Numbers}
+
+\end_inset 
+
+).
+ In fact, it is recommended that literals contain only alphanumeric characters
+ and that they start with a letter rather than a number.
+ The following are all legal literals:
+\layout LyX-Code
+
+animate 2animate red blue green big_long_literal
+\layout Subsection
+
+Plain text blocks
+\begin_inset LatexCommand \label{sub:Plain-text-blocks}
+
+\end_inset 
+
+
+\layout Standard
+
+In addition to the ordinary, tokenizable parts of a kinemage file, sections
+ of text data that do not conform to the rules for tokens may be embedded.
+ This data cannot be processed as usual by the tokenizer for two reasons:
+\layout Enumerate
+
+The data is in an unknown format, and whitespace may be significant.
+\layout Enumerate
+
+The data may 
+\begin_inset Quotes eld
+\end_inset 
+
+open
+\begin_inset Quotes erd
+\end_inset 
+
+ a quoted string but never close it, thereby hiding the remaining content
+ of the file.
+\layout Comment
+
+TODO: We need a mechanism for identifying these plain text blocks.
+\layout Standard
+
+An example of this is the plain text write-ups that follow the 
+\family typewriter 
+@text
+\family default 
+ keyword; however, future kinemages could conceivably contain embedded HTML,
+ base-64 encoded binary resources, 
+\emph on 
+etc.
+
+\emph default 
+ At the moment, there is no purely syntactic means for identifying such
+ regions.
+ However, upon the request of the parser, the tokenizer must be able to
+ deliver the unaltered text content of the file from the current position
+ until reaching a kinemage-format keyword (
+\emph on 
+i.e.
+\emph default 
+, a new line or carriage return followed by an 
+\begin_inset Quotes eld
+\end_inset 
+
+at
+\begin_inset Quotes erd
+\end_inset 
+
+ symbol).
+\the_end

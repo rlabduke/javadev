@@ -1,0 +1,1306 @@
+<html><head><title>CHANGELOG</title></head><body><!-- (jEdit options) :folding=explicit:collapseFolds=1: --><pre>
+==============================================================================
+===  TO DO  ==================================================================
+==============================================================================
+<!-- Postponed TO DO items {{{ -->
+    Separate checkboxes, tree nodes from AGEs
+    Include demo/tutorial kinemage ?
+    Add paintHighQuality to MarkerPoint
+    Add ability to edit alpha; add alpha to other primitives
+    Implement the 'moview= #' feature of Mage?
+    Implement "screen" keyword for lists
+    Add ability to create/edit colors
+    Allow editing of all points below a given group/subgroup/list.
+        eg: wipe out all point colors, move all pt colors to aspects
+    Add "don't ask me again" boxes to warning messages
+    Auto-create unnamed @aspects
+    Make Find ignore points that have the invisible aspect (Z) active
+    Kinemage title doesn't get updated in the kin list immediately
+    @pdbfile should be interpretted relative to the kinemage file location!
+    Develop "xkn" file specification / DTD / Schema
+    Export as VRML 2.0 (VRML97) / VRML 1.0
+    Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
+    Implement EM_SHUTDOWN signal in KingMain, goes to Tools also (?)
+    Make hierarchy editor drag-and-drop
+    Tau minimizer over a range (rebuild peptides too?)
+    Do NOEs within d of x,y,z when nothing is mobile (same for Probe?)
+    Support wordlists (and point comments!)
+    Hyperlinks/URLs in point comments?
+    Add matrix-based deformatation option to Hierarchy:Transform
+    Show CB deviation in Hinge when not idealizing sc positions
+    Draw: construct 4 and 5, polylines, triangle strips, true sphere, cylinder
+    For Views tool: Center Visible command (use r3.PrincipleAxes)
+    Allow user to set focal length for perspective "lens"?
+    New shades of gray: smoke (light), charcoal (dark) ?
+    Think about free-form docking tools
+    Add choice of experiments to expected NOEs
+    Distribute noe-display in packaged KiNG versions?
+    Text editor should notice edits to text and mark kin(s) as modified
+    Create a java.net or Sourceforge project for KiNG to encourage plugin devel?
+    Create HTML+applet mini-tutorials: kin editing, refitting, views, etc. etc.
+    Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
+    Make refitting tools able to set up alternate confs (as an option)
+    Mutated residues should retain B factors where possible (?)
+<!-- Postponed TO DO items }}} -->
+    Add ability to edit masters
+    Add some kind of transformation hook (listeners, priorities, etc)
+    Add pluginStartup() method to plugins that's called after everything is running?
+    Open PDB in model manager without opening kinemage first?
+    Optional 2 column button layout?
+    Support "on" and "off" for pointmasters in parser? (Flipkin)
+    "URL filesystem" like maps to support open/append, etc. from applet
+    use "around x,y,z" for Probe runs
+    Document mouse keys: use Meta and Alt on Mac, not Shift and Ctrl
+    Look at Pro geometry with Jane
+
+==============================================================================
+===  CHANGE LOG  =============================================================
+==============================================================================
+
+### 1.31 ###
+### 1.31 ###
+- Ant script now creates javadocs as part of "dist" target
+  This makes the source code bundle larger, but nicer for other users
+- created a sample_plugins distro with A. Mantler's code, pyking, and beanking
+- changed KinfileTokenzier.main() to produce HTML output with the -css switch
+- r63 introduced Shuren's changes to the model manager...
+- added line numbers to IllegalStateExceptions in KinfileTokenizer
+- fixed bug: JSR: KiNG writes two copies of refit atoms, moved and original
+- marking these bugs as CANNOT REPRODUCE:
+    JSR: measures+xyz+superpick switch themselves off
+    JSR: sc rot / ca hinge and the ca hinge dialog disappears
+    JSR: rotamers don't always update angle settings (another typo?)
+- changed Hierarchy Editor so Paste operations append at the end, not beginning
+- modifiers for mouse wheel seem fine (Shift, Ctrl)
+- modifiers for clicks are seriously screwed up on the Mac:
+  Right and Meta are indistinguishable; Middle and Alt are indistinguishable
+  Ctrl-click generates a mousePressed() but not a mouseClicked()
+  There are finally better methods to query this in Java 1.4, but we use 1.3.
+  Only feasible solution at this point is to document the work-arounds.
+- released to cluster only
+
+### 1.30 ###
+- modified KPaint.getPaint() to use a cached Color object when possible
+- BallPoints now can use tranlucency (alpha)
+- elaborated on JOGL install instructions
+- changed labeling drawing tool to ask what label text should be, w/ ID as def.
+- label drawing tool can now either ask or use default, controlled by checkbox
+- added mechanism for tracking whether a kin has been modified to Kinemage
+- added checking for modification and prompting for save before exiting KiNG
+- saving kinemages through KinfileIO clears their modification flag (if set)
+- GroupEditor sets the modified flag on kinemages now
+- KinTree and PointEditor cmds now set the modified flag
+- ViewsEditor sets the kin-modified flag
+- DrawingTool and SolidObjPlugin set the modified flag
+- MovePointTool sets the modified flag
+- both docking tools set the modified flag
+- EDMapWindow now sets modified flag when map pieces are exported
+- added mouse-listener hooks to support hypertext in UIText
+- View | Save updates the kin-modified flag
+- Vincent added bond-rotation support to parser, Kinemage
+- removed PyKiNG plugin b/c it's slowing down load times
+- modified build.xml:deploy-local to use MacApp jars instead of 2nd copy
+- text window now accepts listeners for hypertext events
+- added kinemage format doc to KiNG's doc/ folder
+- added custom icons to the Hierarchy editor that show on/off state of things
+- added kinemage format doc to installers
+- swapped pyking out for beanking in installers
+
+### 1.29 ###
+- used getValueIsAdjusting() to make ED sliders smooth
+- fixed menu configuration system that I broke earlier...
+- changed auto-rock to use a sin() function for smooth pauses at either end
+- tried to fix file extensions, but they're still broken...
+- JPG, PNG, and PDF files now are checked for proper extension at save time
+- kept the text window from scolling when new text is added
+- revised menus layout for Tools menu
+- You can't change java.library.path from within the program. This is a well-
+  known-but-poorly-documented deliberate "feature" of Java. I'm not sure why.
+  This, at least for the moment, pretty much destroys my hopes of bundling
+  the JOGL libraries with KiNG in a convenient way.
+- JOGL window now closes when it's KiNG is shut down in multi-window mode.
+- changed 'recessiveon' to 'collapsable' in GroupEditor
+- added warning about saving with multiple kinemages open
+- fixed annoyance that closing one kin would leave nothing selected
+- deployed to the world on 16 June 2004
+
+### 1.28 ###
+- added the "accumulate" animation function from Mage
+- changed the meaning of KPoint.get/setX/Y/Z to refer to the untransformed (original)
+  coordinates, and deprecated get/setOrigX/Y/Z(). Added get/setDrawX/Y/Z().
+- added note to user manual about installing plugins (but didn't update)
+- moved documentation for Chiropraxis tools out of the KiNG manual proper
+- ToolBox now loads king_prefs for other tools into the defaults object of
+  KingPrefs. This keeps those menu names from appearing in ~/.king_prefs.
+- moved all references to the Graphics object out of Points into the Painters
+- KinCanvas now creates and manages the painters based on rendering quality
+- created clear, clip/viewport, and font methods for Painters
+- implemented JoglFrame and JoglPainter;
+  JoglPainter does not support markers, labels, or ToolBox overpainting yet.
+- replaced calls to KinCanvas.getSize() with getCanvasSize() for OpenGL.
+- implemented ToolBox overpainting using images, but it's very, very slow
+  if something is actually drawn. Not too bad if nothing drawn (~30ms).
+- changed to an alternative scheme that's much faster (30 / 50 ms)
+- added "Installed in ..." line to About box and SelfUpdatePlugin
+- implemented lazy loading of JOGL libraries in KinCanvas
+- fixed stereo offset problem for JOGL; fixed stereo clipping issue in Engine
+- implemented label painting using the bitmapped font functions in GLUT
+- replaced overpaintCanvas(Graphics2D) with overpaintCanvas(Painter);
+  this eliminates JOGL performance problems previously caused by overpainting.
+- implemented marker painting for JOGL (not all markers have been tested)
+- documented the SelfUpdatePlugin
+- documented the OpenGL acceleration feature
+- documented new king/chiropraxis dependency structure, new painting in HACKING
+- deployed to Rlab on 7 June 2004
+
+### 1.27 ###
+- modified Engine and KPoint.isPickedBy() to account for object picking
+- implemented object picking for triangles
+- added "Pick objects" item to Tools menu
+- implemented object picking for balls and spheres
+- in picking functions, now pass radius instead of radius^2 (for lines)
+- implemented object picking for line segments
+- updated the section on Tools and Plugins in HACKING to reflect the dynamic
+  service-provider loading model that was implemented in 1.24 / 1.25
+- updated documentation (Tools | Pick objects)
+- added Mage-like "count" function to the writeFPS output for Jeremy
+- moved all the drawing functions into StandardPainter and HighQualityPainter
+- king can now find all plugins in the plugins/ folder where king.jar is
+- started SelfUpdatePlugin to simplify the task of upgrading to a new KiNG
+- machinery works, now all it needs is a UI!
+- finished UI for SelfUpdatePlugin, tested it on Windows. Looks ready to go!
+- migrated to building with Ant 1.6.1; replaced "antscp" task with now-std "scp"
+- moved all the KiNG remodelling tools into chiropraxis
+- fixed ToolBox to find menu preferences for JARs that are in plugins/
+- deployed to Rlab 25 May 2004
+- Oops! migrated tool resources too.
+
+### 1.26 ###
+- added Mage's HTML description of the kinemage format
+- updated manual intro to make it more clear that kinemages are *illustrations*
+- mentioned kinemage format doc in user manual Ch. 4
+- updated manual section on viewing animations
+- made a note about configuring Tools menu in the manual
+- put a "Don't warn me again" control on the stereo-pick warning dialog
+- protected against showing warning for pick with no kinemage open
+- stopped model manager dialog from jumping around when switching tools
+- added the machinery to Engine to allow efficient instance= impl
+  Doesn't seem to have broken anything (yet!)
+- modified KList to be able to do instance=
+- modified KinfileParser and KinWriter to handle instance=
+  Groups and subgroups marked as instance= are still handled wrong
+- modified clone() for lists/subgroups/groups and KinfileParser
+  to correctly support instance= {xxx} for groups and subgroups
+  (deep copy of group/subgroup/list, instance= copy of points)
+
+### 1.25 ###
+- tools and plugins can be placed in submenus based on the .king_prefs file
+- KingPrefs now searches all jars for default settings in king/king_prefs
+- multi-jar approach to tool distribution works beautifully
+- PrefsEditor now wipes all keys before doing a reset -- truly clean
+- now we only store changes from defaults prefs, with a note to look at the
+  complete version of king_prefs for more ideas.
+- created a GUI for determining which tools are in which menus
+- UIMenus now rebuilds the tools menu when preferences are changed
+- added EDMapPlugin.toString()
+- removed ellipsis from menu items for a few plugins (for uniformity)
+- added menu configuration to the bottom of the Tools menu
+- ripped out the old AnimationGroup and replaced it with a simpler scheme
+- removed Animations menu and AnimationGroup class
+- placed animate, 2animate buttons as needed in button pane
+- added A, B keyboard shortcuts for animations to ContentPane (+ docs)
+- fixed a view-calculation bug for kins with only one point
+
+### 1.24 ###
+- factored "fade-out" multipliers into constants in KPaint so they can be tuned.
+  With current structure, not practical to configure at runtime, but can be set
+  at compile time. Not much benefit for full fade-to-white with kinemage graphics...
+- brushed metal look in partly missing for button panel in Safari, but putting
+  in an extra JPanel results in unpredictable mixtures of metal and Apple pinstripes.
+- updated Hacking KiNG with notes about Jama in the driftwood section
+- began erasing the distinction between Tools and Plugins by
+  making BasicTool a subclass of Plugin.
+- rotamer window now asks Yes/No/Cancel when user tries to close it
+- making movies should be done from the POV-Ray exported data, not in KiNG
+- fixed chiropraxis bug that left Ala H's oriented randomly upon "idealization"
+- migrated to using version.props AND buildnum.props to simplify version control
+- merged tool/plugin loading and menu items into a single process in ToolBox
+- removed the now-useless getToolsRBMI() from BasicTool
+  Theoretically breaks backward compatibility for tools, but not often in practice
+- added getDependencies() and isAppletSafe() to Plugin
+- filled in the correct values for tools and plugins that needed them
+- converted ToolBox to use a service-provider model for discovering plugin names
+  and loading them.
+
+### 1.23 ###
+- added arc drawing tool
+- decided that Aqua LnF still isn't mature -- random NullPointerExceptions
+  and problems with file-chooser dialogs (setting selection/name).
+- KiNG runs correctly with Java 1.3.1_11, 1.4.2, and 1.5.0_beta1.
+  Jane's problem with 1.3.1 must have been Mozilla-specific.
+- added setOrigXYZ() to KPoint
+- added arrowheads to arc-drawing tool
+- added shortening to arc-drawing tool and fixed bug at 180 degrees
+- made BgKinRunner timeout configurable in king_prefs
+- documented arc tool
+- changed Views menu to wrap into multiple menu lists for a LOT of views
+- changed the JList in ViewEditor to display lots of views gracefully
+- apparently using full-app antialiasing with Metal on the Mac leads
+  to that annoying JLabel/JCheckBox ellipsis (...) bug, regardless of layout.
+  Bug report has been submitted to Apple but I don't expect a fix anytime soon.
+- updated build.xml to copy manual to kinemage website
+- changed Mac app bundle to not use full-app antialiasing but keep using Metal.
+- KiNG now allows breaks in a ribbon- or trianglelist using the X flag
+- added presets to EDMapWindow for 2Fo-Fc and Fo-Fc maps
+- added Remove Last button to LSQ docking
+- added angle between two vectors to the measures tool
+- in point editor, setting point radius/width to "" is now equivalent to "0"
+
+### 1.22 ###
+- showHelperOutput was broken for background jobs like Probe;
+  it dumped stderr again instead of stdout.
+- added PDF export based on the iText PDF library
+- integrated iText libraries into my distribution
+- removed EPS export
+- updated README, BUILDME, and User Manual to reflect replacing EPS with PDF
+- current king_prefs is now copied to doc/ folder on every build
+- sidechains are now fully idealized by Hinge.
+  They were already full optimized upon rotation or (of course) mutation.
+- fixed flaw in Kinemage where an empty kin would create a view centered at NaN
+- Show XYZ Point now also writes the coordinates to standard error
+- in the text window when using Metal, cut/copy/paste uses Ctrl key.
+  This is correct behavior b/c it's a cross-platform look AND FEEL.
+- added itext.jar to the InstallAnywhere installers
+- deployed to the world on 24 Mar 2004
+  
+### 1.21 ###
+- edited KinTree.onDelete() and DrawingTool.getDrawingGroup/Subgroup/List()
+  to ensure that it's safe to delete drawing groups and then keep drawing!
+- added "clean-all" Ant target to clean all .class files out at once
+- it's now possible to not idealize CBs when using Hinge, but only for the ends
+- tokenizer now tolerates spaces before equals, so "color = red" is now OK (but discouraged)
+- added Jane's explanatory material on colors to my palette kinemage
+- JPEG exports are now done at highest available quality setting
+- fixed bug in driftwood.moldb2.Model.clone() that was breaking sidechain mutation tool
+- modified KPalette.widthScale to make multi-width depth-cueing for lines more like Mage's
+- made groups, subgroups, lists, and point cloneable
+- added Copy to the hierarchy editor
+- added support for the clone= {x} property of groups, subgroups, and lists
+- implemented instance= {x} to be the same as clone=, even though it's supposed to be lightweight
+- documented the new Copy feature / fixed old refs to it not existing
+- documented image export facility
+- deployed to Rlab on 3 Mar 2004
+
+### 1.20 ###
+- added Drag-n-Drop kinemage opening on the main graphics window, doc'd it
+- started king.tool.draw.DrawingTool for Bob Bateman
+- fixed stupid NullPointerException that was introduced in "New King Window"
+  between 1.13 and now, probably in reorganization of KingMain for applet modes.
+- fixed Trp rotamer typo in chiropraxis
+- added line segments to drawing tool
+- added undo function to drawing tool
+- added labels, balls to drawing tool
+- added prune to drawing tool
+- made KPoints cloneable to try getting around my Prune problem
+- made Prune undoable by storing more info in the UndoStep objects
+- added punch to drawing tool
+- made the undo cache memory sensitive for the drawing tool
+- added line shortening for line segments
+- added dots and dotted lines to drawing tool
+- added multiple subgroups to the drawing tool
+- added triangles to the drawing tool
+- added auger to drawing tool
+- added spherical cropping to drawing tool
+- added documentation for drawing tool
+- added "collapsable" and "collapsible" as synonyms for "recessiveon"
+- deployed to the world 1 Mar 2004
+
+### 1.19 ###
+- repaired ED classes to deal with new MarchingCubes code in driftwood
+- tested the visual effect of transparent ED (alpha= 0.25)
+- translucent mesh is now an option in ED viewer
+- ModelManager now tries to guess NOE file format based on extension
+- confirmed: cmd line parser handles empty elements ('') correctly
+- now NoePanel also has a selection dropbox; and both include "all" as a choice
+- fixed a ribbon lighting bug in KPaint where an array was accidentally overwritten
+- fixed a logical bug in ribbon lighting + depth-cueing on a white background
+- finally allowed for masters to have the 'indent' flag
+- converted measures to look more like Mage
+- KiNG was failing to write @colorset when it came from a merged file
+- updated copyright dates in About | Help
+- changed default build target to "dist"
+- documented the need for gnu.regexp and org.jibble.epsgraphics
+- fixed src ZIP creation so those packages end up in the right path (lib/...)
+- Trp rotamers: m110 chi2 doesn't change; W179 in cabenol? False alarm (works for me)
+- added "viol" to NOE dropboxes
+- updated manual to include JNB's 90* stereo offset trick for orthogonal views
+- distributed to the world on 26 Feb 2004
+
+### 1.18 ###
+- reworked KPaint to store fewer objects and calculate all lighting-shaded,
+  semi-transparent Colors on-the-fly (only used by TrianglePoint right now).
+  This causes a minimal performance hit, as far as I can tell.
+- added the 'alpha' (transparency) property to all KLists.
+- TrianglePoints now use their parent KList's alpha when painting.
+- KinfileParser and KinWriter now recognize 'alpha= #.#' in lists (0.0 to 1.0)
+- using BEST rendering qualilty produces zig-zags on semi-transparent ribbons;
+  width 0 pen gives gaps, and width 0.5 or 1.0 gives overlaps (zig-zags).
+- modified ImageExport so PNGs would reflect any transparency in the ribbons
+- deployed to cluster 11 Feb 2004
+
+### 1.17 ###
+- changed several classes to use driftwood.data.UberMap/Set
+  instead of driftwood.gnutil.GnuLinkedHashMap/Set
+- expected NOE radius now limited to [1.0, 20.0] and defaults to 4.5
+- fixed bug in chiropraxis.* that kept a residue mutated to MSE from being rotated
+- Connected the "more options" box in NoePanel to the cmd line
+- added config file switches to control extra debug output from background jobs
+- added -a (ambiguous) checkbox to NoePanel
+- added user mod records for residues that have been moved
+- MSE would not rotate properly due to a bug in chiropraxis.sc.SidechainAngles2
+- tool.model.ModelPlotter now gives atoms names in Prekin format
+- expected NOEs is now available for all models, whether or not you have data loaded
+- replaced {1}, {2}, etc. with {pdbfile}, {molten}, {center}, etc.
+- updated documentation to reflect new placeholders
+- distributed to Rlab on 6 Feb 2004
+
+### 1.16 ###
+- changed NoePanel to reside in a collapsing area of the ModelManager
+- text boxes in NoePanel no longer need ENTER to update
+- ModelState is now cleaned up after a mutation is made, to avoid crashes
+- added display of expected NOEs to the ModelManager
+- updated docs to reflect Vincent's RNA tool
+- fixed bug in moldb2.Model.restoreOrder() that caused new residues to appear
+  at the end of the output PDB file.
+- mutations that are made now create a USER MOD record.
+  This IS NOT rolled back by Undo, but seems to be good enough for now.
+- added GUI support for Aria NOE format (*.list files)
+- added a symbol for kinemage center to NOEs/dots: {3}
+- documented the symbols for NOE, Probe in the manual
+- moved EDMapPlugin.FatJList to driftwood.gui
+- Probe cmd line is now part of the dialog, instead of a menu item
+  In the future, we could make this more elaborate
+- something weird is happening with ED map radius for 3AL1: not true
+  This is just a weird-shaped molecule, which produces unexpected illusions
+- deployed to the world on 2 Feb 2004
+
+### 1.15 ###
+- imported king.tool.RNA* -- Vincent Chen's ED peak picker.
+  Remaining issues: only parses ED visible when FIRST pick takes place
+    doesn't know which lists are ED and which are e.g. molecule
+- created a package hierarchy under king.tool to contain growing number of tools.
+- ported most of the code in Kinglet over to KingMain. This facilitates
+  having a dual purpose (logo/launcher) Kinglet, and would allow us to 
+  use reflection in the future (to defer class loading and speed up start-up).
+- updated king logo to reflect (C) 2004
+- changed Kinglet to optionally act as a launcher button
+- LSQ docking resets to Reference radio btn after doing dock
+- LSQ docking erases markers when "Clear" is pressed
+- Kinglet now offers three modes: normal, launcher, and flat (embedded in page)
+- create MainWindow earlier on in KingMain.Main(), b/c ModelManager dlg depends on it
+  This was causing the MM dlg to disappear when a file picker was invoked. Weird.
+- documented new applet modes
+- documented measure of deviation from Karplus' expected tau
+- updated HTML and PDF versions of the manual
+- really long pointIDs are now bumped up one line to not cover up measurements
+- improved algorithm for deciding if mouse drag is primarily verical or horizontal
+- removing minimum, preferred size of KinCanvas for embedded applet make layout behave
+
+### 1.14 ###
+- made changes to ModelManager2, ModelPlotter, and HingeTool
+  to re-establish compatibility with driftwood.moldb2 changes in ver. 0.48
+- HingeTool now displays tau deviation from f,y average (Karplus data)
+- added sidechain mutation tool (doesn't do anything, yet)
+- ModelPlotter now understands MSEs, too
+- ModelManager2.replaceModelAndState() is now undoable
+- refactored sidechain mutation code into chiropraxis.sc.SidechainIdealizer
+- can now select a protonation state for histidine when making mutations
+- deployed to Rlab on 13 Jan 2004
+
+### 1.13 ###
+- added cross-window picking for things with identical point IDs
+- deployed to Rlab
+
+### 1.12 ###
+- can now animate through aspects with [, ]
+- fixed Edit Props bug where middle click did both point and list
+- lathe tool now offers to act only on lists that are currently displayed
+- added auto-version check via kinemage.biochem.duke.edu; displayed on splash screen
+- added public version update to the deploy-world task
+- documented non-std config file URL (name=king_prefs)
+- documented tools: LSQ docking, changes to edit props, move points, sidechain, viewpoints
+- now do version check in background thread; ignore it if it takes more than 2 sec.
+- extended ViewpointPlugin to include "virtual calipers" per Bob I.'s request
+- tested and verified the non-std config for Kinglet; it works
+- made version check user configurable; supressed stack trace on failure
+- deployed to the world on 20 Nov 2003
+
+### 1.11 ###
+- moved king_prefs out of config/ subdirectory
+- added option to make color swatches larger (accessibility for Jeremy)
+- made picking radius user-configurable (accessibility for Jeremy, kids)
+- lathe now picks up point colors
+- updated lathe to avoid problems with second point on axis of rotation
+- fixed KinWriter so it actually writes {"} when point IDs are repeated
+- built in (and then commented out) a half-bonds coloring mode
+  There are additional clipping problems to be worked out, and
+  it really adds unneccessary complexity to a kinemage viewer.
+- incorporated chiropraxis and EpsGraphics2D into the src code bundle
+- made a Mac application bundle that's updated with new jars on every deploy-local
+- enabled custom preferences for kinglets with &lt;PARAM name="king_prefs" value="http://..."&gt;
+- added support for Drag &amp; Drop in the Mac application bundle
+- fixed picking of labels, which was broken when configurable picking radius was added
+- moving points has been split off from Edit properties, which now does point/list editing.
+- can now move point in Z with mouse wheel or up/down arrow keys
+- default mode for move points tool moves ALL kinemage points very near the picked point.
+  This resuls in much more intuitive behavior for those unfamiliar with kinemage format.
+- deployed to Rlab 7 Nov 2003
+
+### 1.10 ###
+- fixed perspective cues on balls
+- added thickness cues to balls (exagerated, like for vectors)
+- revisited line thickness cueing math to match true perspective more
+- working with kinemages from Dezymer has revealed (at least) two issues:
+      Parser is case sensitive: won't recognize @vectorList
+      Parser: @balllist {points} color = cyan radius = 0.05
+      (no space allowed before =)     ^             ^
+  These are delibrate "features" of the parser and jive with
+  the formal kinemage syntax document.
+  I wrote an AWK script to correct these problems in the Dezymer kins.
+- added try/catch to searching b/c Find Next would complain if kin had been edited.
+- replaced iterator() with an array in search; should speed up searching.
+- if Find Next fails, we now re-open the search dialog box.
+- fixed that longstanding "view creep" bug
+  Error was using "(int)(x+0.5)" instead of Math.round()
+- added Edit | Kinemage options...; links to dialog from hierarchy view
+- ESC now closes the Find dialog box. Code was as follows:
+    closeAction.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0));
+    closeAction.bindWindow(btnClose);
+  We should add this to other dialogs as appropriate.
+- using new EpsGraphics2D libraries, I could eliminate my custom subclass.
+- fixed automatic file naming in ImageExport (Java bug; submit failed)
+- PointEditor was introducing empty aspects into edited points
+- added the +/- 90 degree rotations as ViewpointPlugin (make these menu driven?)
+- added least-squares docking tool
+- did some cleanup in driftwood and chiropraxis (removed original moldb)
+- deployed to the world 4 Nov 2003
+
+### 1.09 ###
+- KiNG now defaults to "better" graphics if we're running OS X.
+  This saves the user from having to enable antialiasing, but
+  it doesn't make the dials and other custom components any prettier.
+- mention Mac-specific switches in the new README.
+- added color-by and calculation options to NoePanel
+- removed setDominant(true) from BgKinRunner -- it was good for Probe but not noe-display
+- fixed bug in chiropraxis resources that broke Met rotamers ttt and mmt
+- improved handling of seg IDs in driftwood.moldb2.PdbReader
+- rewrote ModelManager save function to include all headers, etc.
+  This is fairly serious and could have broken model saving for some cases.
+  Needs thorough testing before Cold Spring Harbor.
+- also set the default state to ignore seg IDs for identifying residues
+- deployed to world
+
+### 1.08 ###
+- re-implemented VectorPoint.drawFast() to use KPoint.fastLine()
+- I can't find anything in OS X that will really draw a thin single line --
+  horizontals and verticals are OK, but other things are too thick!
+  Polygons with width reduced by 1 works for 2px lines but not 1px.
+  Documented as a known problem for drawLine Radar #3308134
+- parser no longer treats size= # as an unrecognized token
+- apple.awt.antialiasing=on cannot be set from within the program
+- Hierarchy | Transform | Scale now also adjusts ball radii at list level
+- unclear why redraw after second pt pick in Ca Hinges sometimes fails on Mac
+- refactored KinCanvas.paint() to take a quality setting
+- image export now always uses the best quality setting for output
+- used java.awt.Toolkit to get platform specific menu accel key (Cmd on Mac)
+- fixed bug: Canceling File | Append results in an empty kinemage...
+- added EPS export using the www.jibble.org EPS Graphics2D class.
+- added read/preserve/write support for the 'ghost' attribute of points.
+  We don't use this, but Mage does...
+- added read/preserve/write support for the 'lens' attribute of lists and (sub)groups.
+  We don't use this, but Mage does...
+  Also added support for @lens. Again, we don't use it in drawing, but we preserve it.
+- made tool close btn == select default tool (Navigate)
+- made NoePanel a tab in the Model Manager
+- turn off dots and NOEs groups when functions are deactivated
+- deployed to Rlab
+
+### 1.07 ###
+- Sidechain rotations now idealize the sc first. This has to be undone
+  as a separate step from the rotations, but oh well.
+- removed Backrub tool from the ToolBox and put it's files in old/
+- tried to fix command quoting issues for Probe, Noe-display on
+  Windows/Mac/Linux. It's not easy to find something everyone likes...
+- Never mind! My parser discards all quotes anyhow... Singles are fine.
+- made Noe interface a little nicer, with selection for rescaling
+- weirdness for initial rendering of ED maps appears to be related to
+  the view and clipping. Other view bugs also exist...
+  pick/(identify, measure) cause map to resize correctly
+  mark only has effect when markers are on
+  All that's necessary is to call kCanvas.repaint(), actually.
+  And in fact, that's the fix: call kCanvas.repaint() after loading each map.
+  The problem appears to be that Java requests a partial redraw -- the area
+  under the dialog box. KiNG wants to redraw everything with the new map,
+  but apparently bounds are set such that only the smaller area is updated.
+  Another call to repaint() ensures the whole screen is redrawn and the full
+  extent of the map is visible right away. This makes the UI more polished.
+- added documentation for some tools and plugins.
+- fixed a bug in help system caused by package reorganization.
+- Allow groups/lists to span multiple lines or not?
+  No. Looking for first number as start of points will fail on the syntax for
+  bond rotations, which follows a "bondrot" word with unprotected numbers.
+- moved sc idealization step into the rotations. Not too slow.
+- added image export for PNG, JPEG
+- deployed to Rlab
+
+### 1.06 ###
+- created the SolidObjPlugin to do lathes, etc.
+- Probe, NOEs: quotes around exe name and tmp file name to quote spaces for Windows
+- changed '-f rcsb' to '-f' for noe-display
+- restored rotamer evaluation for sidechain manip.
+- allow higher contour levels for ED (~30 sigma) for anomalous diff. maps
+  A better fix would be to sync with the min/max for that map...
+- swapped in Bryan's new, better icon (gold on black)
+- [MM2:143:setCurrentDirectory()] causes exception *only* when Brian runs
+  KiNG remotely using ssh -X from his Windows box. Works everywhere else.
+  For the moment, this bug has to be classified as not reproducible.
+
+### 1.05 ###
+- moved data structures, reader, writer, and Engine into king.core
+- king.core is entirely independent of the rest of the code and could
+  thus be used in other projects that need to read and write kinemages.
+- fixed bug in KinfileParser that didn't recognize @#aspect tags
+- fixed another bug (copy-paste mistake) that discarded too many tokens
+- moved most tools into king.tool; all other code is independent of
+  the king.tool package, so these can change more easily or be left out.
+- new KiNG package hierarchy:
+  + driftwood.**    Things I anticipate are recyclable: widgets, helpers, etc.
+  + king.*          All GUI elements, user interaction, essential tools, etc.
+  + king.core.*     Data structures, reader/writer, rendering code
+  + king.tool.*     Tools loaded by reflection that are non-essential
+- refactored Remodeler out of ModelingTool
+- moved SidechainTwister to SidechainRotator; made ScRotTool.
+  These allow sidechains to be modified under the new model manager regime.
+- "original" is now a rotamer choice for refitting sidechains
+- deployed to Rlab
+
+### 1.04 ###
+- increased depth-cueing from 5 levels to 16 (!). Much nicer pictures.
+  Can change # by editing COLOR_LEVELS in KPaint, then [clean] then [build].
+- deployed to Rlab
+
+### 1.03 ###
+- started work on ModelManager2, which will allow multiple tools at once,
+  multiple visualizations, and the ability to undo changes to the model.
+- added abstract class ModelingTool, which is the parent of the new HingeTool
+- added a C-alpha trace to ModelPlotter
+- added Undo to ModelManager
+- introduced editing of Probe command line
+- allowed user to choose model#, alt conf at load time from ModelManager
+- bug fix: Cairo end marker goes on kinemage C-alpha, not modified C-alpha
+- apparent divergence of color in ribbon lists is due to depth cueing
+- removed old ModelPlotter, CairoTool, ModelManager, etc
+- added NOE control panel; need Coggins' help to get correct cmd line
+
+### 1.02 ###
+- accounted for merger of driftwood.string into driftwood.util
+- error messages are now piped through driftwood.util.SoftLog.err
+- stack traces are now piped through driftwood.util.SoftLog.err
+- slightly increased number of visible kins to 4
+- printing DOES use highest quality drawing. Maybe Bryan had an old version.
+- added error log viewer under Help.
+  This should help novice/GUI users to diagnose problems.
+- fixed a subtle bug in Kinemage.appendKinemage() where masters that are
+  ONLY pointmasters were lost in any kinemage that got appended to an open one.
+- mergers with pointmasters can still cause problems if there's overlap in bits used.
+- line shortening was slow in some cases with lots of balls, not because of
+  object creation for the HashMap(KPoint, Double) but because the KPoint.hashCode()
+  function was causing many collisions when coordinates were (smallish) integers.
+- added link to manual in auto-installer packages
+
+### 1.01 ###
+- fixed copyright date in license to be 02-03, not 00-03
+- Kinemage:90: replaced getStandardMap() with getFullMap()
+  This should fix problems with interpretting e.g. 'skyblue'
+  and 'default' as legal colors.
+- changed build.xml so that deploy-local doesn't change MolProbity
+- fixed bug in KinfileParser that would create an extra point at 0,0,0
+  if the end of a list was followed by one or more kinemage comments.
+- fixed error reporting to give line numbers from 1 instead of 0
+- KList: changed default ball radius to 0.2 (seems like Mage)
+
+### 1.00 ###
+- updated all version numbers to 1.00 in the documents.
+- fixed minor layout bug that could affect sliders in EDWindow
+- deployed to World on 15 Aug 2003
+
+### 0.99 ###
+- this is release candidate 2
+- fixed bug in chiropraxis where only the last peptide twist was being kept
+- moved MagnifiedTheme to driftwood.gui
+- fixed problem with moldb2's handling of seg IDs that broke on certain Reduce'd PDBs
+- added KingPrefs.jarFileDirectory, which is used to locate the Probe exe.
+- updated ProbePlotter and BackrubTool to use probe or probe.exe as found,
+  or if nothing is found then assume probe is on the path.
+- cannot set -Xmx switch in InstallAnywhere binaries (apparently)
+
+### 0.98 ###
+- preparing for 1.00 release (this is release candidate 1)
+- deployed to Rlab
+
+### 0.58 ###
+- started Dock3On3Tool to test my 3-point docking, which will feed into sc mutations.
+- verified that the Probe commands do use -drop correctly
+- put scollpane around large groups of peptide-twist dials in CairoTool/PeptideTwister
+- ED map tool now supports CCP4 maps too
+
+### 0.57 ###
+- updated manual format (one huge page)
+- changed Tools and Plugins to link to anchors within the main help file
+  Now all documentation appears in the PDF too (except licenses and kbd bindings).
+- removed 2 unused classes (EmphasisTool, PositionReader)
+- replaced Rotation with driftwood.r3.Transform
+- help menus have been tested; they all still work
+- distributed to the World
+
+### 0.56 ###
+- Backrub does better with stuff now, but not double modifications...
+- Backrub should now handle even double modifications with dots
+- fixed bug in ProbePlotter where group was not properly inserted (?)
+- masters now have correct, off-is-dominant behavior
+- Emphasize tool has been deprecated and removed from menus
+- ModelManager and ProbePlotter were updated so that a temporary PDB file
+  from MM reflects previous changes to the model.
+- peptide twisting now is available by hand
+- found and fixed bug in r3.Triple that caused sc to disappear sometimes
+- added cut/copy/paste popup menu for text editing window (thanks to R. Bateman)
+- made peptide twisting an optional part of Hinge
+
+### 0.55 ###
+- patched a bug in KPoint.getColor() that returned 255 to mean invisible
+- documented CairoTool and removed 10-residue limit
+- measures now turns on/off markers, too, and clears list of marks
+- wrote KPaint and KPalette to pave the way for a new colors architecture
+- added installer/king_Build_Output to [clean] target
+- finished with new color model; now to test it
+- seems to work just fine (needs to be tested with @colorset's)
+- created a graphical color picker for use in list and point editors
+- redesigned the list editing box to accomodate the color picker
+- gave ModelManager the ability to write out entire PDB files
+- made ColorPicker support the colors in Kinemage.getNewPaintMap()
+- clicking empty part of color picker now deselects all colors
+- double click on hierarchy tree now does Edit Properties instead of expand/collapse
+- actually, in addition to. I'm not sure how to disable expand/collapse.
+- color picker now works with point editor too
+- fixed bug where ribbonlists were read as trianglelists
+- normals are still not quite right but I can't figure out why
+- deployed to Rlab
+
+### 0.54 ###
+- created ProbePlotter, which does Remote Update-style dots in a
+  worker thread in the background. This ensures that the interactive portion
+  remains responsive. It gives a MUCH nicer UI experience.
+  Should retrofit Backrub.
+- Backrub refit to use GnuLinkedHashMap/Set for 1.3 compat.
+- Everything should now be entirely 1.3 safe!!
+- Hah! Found a 1.4 JComponent function called on a Box in AGE
+- deployed to World
+  
+### 0.53 ###
+- copied BackrubPlotter to ModelPlotter and simplified it to work with moldb2
+- modified ModelManager to use MolDB2
+- modified CairoTool to use MolDB2 (primitive version now works!)
+- started work on export to VRML (dots, spheres, manual color)
+- set ModelManager to select @pdbfile automatically
+- other improvements to ModelManager UI
+- started building UI for CairoTool to make it nicer
+- made ModelPlotter turn on/off H's and use std masters
+- made monochrome mode MUCH more sophisticated, with colors
+  now distinct and based on POV-Ray grayscale algorithm.
+- added tau dev and Rama analysis to CairoTool
+- model manager can write basic PDB file of changed residues
+- CairoTool is fairly useful now; needs dots
+
+### 0.52 ###
+- added clear() to KList
+- reworked BackrubPlotter to draw into a fixed set of lists
+- reworked BackrubTool to place those lists directly into the kinemage
+- added 'not water' option to Backrub's Probe dots command
+- deployed to Rlab
+
+### 0.51 ###
+- started on CairoTool to allow Ca-Ca rotations (hinges)
+- moved AngleDial to driftwood.gui; gave it an upgrade
+- removed minimize-on-middle-click "feature" of Backrub
+- fixed dial layout issue (SidechainTwister needed to be stretched)
+- removed a LinkedHashMap from UIDisplayMenu (caused JVM 1.3 to crash)
+- moved Configure from File menu to Edit menu (also noted in manual)
+- deployed to Rlab
+
+### 0.50 ###
+- added "Go To" button to view editor for Jane
+- fixed bug in high-qual sphere renderer that misplaced highlights
+- started on a model manager plugin that will be the basis of
+  C-alpha hinges (working name: Cairo) and sidechain twists
+- model manager is finished (at least the first draft!)
+- Edit Properties tool now allows click-drag relocation of points
+  Should be especially useful for labels!
+- fixed logic bug in label-picking code (y-axis sign issue)
+- fixed KinfileTokenizer.advanceToKeyword() so it reports EOF correctly
+- combined with limit to number of errors reported in parser, this
+  should make I/O more robust to being fed absolute crap :)
+- changed Backrub rotamer selection to only alter chi angles
+- allow lysine tips to rotate
+- deployed to cluster
+
+### 0.49 ###
+- fixed picking bug for 'P' points in a polyline
+- moved all Display menu choices into their own class
+- allowed selection of 4 levels of rendering quality from Display menu
+- can show frame rate in terminal using preferences file
+- allowed SidechainTwister to set new rotamer without multiple Probe runs
+- allowed EDMapPlugin to load maps over the web using applet parameters
+
+### 0.48 ###
+- added ".mbk" as an O map file extension (the default from CCP4)
+- added display of rotamer quality to Backrub
+- added tooltips to Backrub's info readouts
+- deployed to world for Mid-Atlantic Cryst. conference
+
+### 0.47 ###
+- enabled display of rotamer frequency by using chiropraxis.sc.RotamerDef
+- may have decreased number of Probe deadlocks by creating all input ahead of time
+  and buffering all output before interpretting it.
+- if not, driftwood.util.ProcessTank has a timeout counter that should be able
+  to kill rogue Probe runs that never produce any output.
+- eliminated allocation of new Shape objects during high-quality rendering
+- changed AngleDial to use Java2D function calls for painting (draw(Shape), etc)
+  This has no effect on the appearance under Mac OS X -- their AWT drawing
+  functions are genuinely broken...
+- runaway Probe catcher does actually work -- this is a real boon
+- deployed to Rlab
+
+### 0.46 ###
+- created IndentBox and FoldingBox in driftwood.gui to enable recessiveon behavior
+- can read, write the 'recessiveon' property
+- can edit the 'recessiveon' property from within KiNG
+- added SidechainTwister to enable mobile sidechains, esp. for Backrub
+- fixed drawing of 3HG2 in ILE
+- added controls for moving sidechain of central residue to Backrub
+- added (duplicate) Help menu to Backrub's palette
+- added list box for choosing rotamers (now just have to type them all in!)
+- chiropraxis.sc now knows all rotamers (still can't assess quality)
+- distributed to Rlab
+
+### 0.45 ###
+- started work on AngleDial, which will be used in future versions of Backrub
+- replaced sliders in BackrubTool with AngleDials
+- changed Backrub to minimize on RMS tau deviation
+- added code to drain input and error streams from Probe job;
+  hopefully, this totally avoids all lockups and hangs
+- fixed AngleDial layout bug
+- moved Backrub's buttons into menus
+- added nice visual cues to AngleDial to show which one's active
+- background kinemage loader now catches all Throwables.
+  This should ensure the thread can exit (ab)normally, hide the dialog box,
+  and return control to the user after a wacky file crashes my parser.
+  This should also deal with an OutOfMemory condition...
+- hierarchy tree now responds to keyboard shortcuts other than alt-(letter)
+- added to Backrub documentation
+- deployed to Rlab
+
+### 0.44 ###
+- the previous version crashed pretty regularly, though arbitrarily, when
+  using Probe dots. The cause seemed to be that sometimes the stderr buffer
+  (4096 bytes) would fill up with the progress messages about what was being
+  processed. This would cause Probe to block on I/O, and would hang the program
+  once KiNGs kinemage loader blocked on Probe's stdout...
+- the solution: use -quiet in the Probe command line!
+- deployed to Rlab
+
+### 0.43 ###
+- removed extraneous view functions from Kinemage
+- created a function that appends one kinemage to another
+- fixed Append bug: can't initialize an empty kinemage or else you get a nonsense view
+- set up the new File | Save system, with auto-versioning and command line awareness
+- enabled support for @listcolordominant
+- cleaned up marker point handling so we can use them in @marklists
+- modified TrianglePoint.paintHighQuality to try to eliminate lines...
+- fixed a bug in PrefsEditor (Boolean.toString()) that broke Java 1.3
+- updated BackrubPlotter to handle moldb.AminoAcids and their sidechains
+- Backrub now carries static sidechains along for the ride when backbone is moved
+- fixed BasicTool so user can't close tool dialog manually
+- added Probe dots to Backrub
+- deployed to Rlab
+
+### 0.42 ###
+- started KinfileParser to do cleaner interprettation of kinemage files
+- set up functions for reading the primary data: hierarchy + points
+- new parser needs too much memory to do its job (>100Mb)
+- fixed part of the problem: StringBuffers were wasting space
+- fixed the other part: point IDs of {"} were not being handled correctly
+- added @title and @command to KinWriter
+- added ability to write @colorsets from KinWriter
+- finished adding support for all core features to KinfileReader
+- implemented reading and writing of @aspect entries
+- after much hassle, got the background file loading system up and running
+
+### 0.41 ###
+- stoped EDMapPlugin from being loaded when KiNG runs as a applet
+- relabeled properties in the Edit Group/Subgroup/List boxes
+- added cut, paste, new icons to KingPrefs
+- merged HierarchyWindow into KinTree
+- created popup menu for the KinTree
+- moved ReflectiveAction to driftwood.gui
+- added tooltips and mnemonics to hierarchy window
+- documented "xmap" and "omap" applet params
+- wrote a new tokenizer (KinfileTokenizer) based on the explicit
+  kinemage file format v1.0 document I'm developing.
+- changed central angle to steps of 0.2 deg in BackrubTool
+- fixed a minor bug in KinTree.onDelete handling of kinemages
+- deployed to world
+
+### 0.40 ###
+- changed kinemage picker into a JList instead of a JComboBox
+- renamed Explore menu to Edit
+- moved mouse options from Edit to Tools
+- removed tree view from main window; removed Modify menu
+- made the Modify tree and menu into a floating "Hierarchy window"
+- updated user manual
+- deployed to Rlab
+
+### 0.39 ###
+- made KiNG recognize @marklist, @ringlist, @fanlist
+- rings and fans won't look right until we handle marker styles better
+- introduced the Plugin abstract class
+- added Tools menu to the menu bar to contain Tools and Plugins
+- transformed EDMapTool into EDMapPlugin
+- added Tools and Help items for EDMapPlugin
+- added a PARAM tag to Kinglet ("xmap" or "omap") that allows Applets
+  to load (from a URL) and display electron density.
+- relocated tools to the Tools menu and removed the ToolBox dialog
+
+### 0.38 ###
+- fixed perspective
+- fixed ball-triggered line shortening (but it needs more!)
+- restored Tools to working order (they now use TransformSignals too)
+- added more colors to the ColorManager so we can shade ribbons better
+- updated drawing code in TrianglePoint to use new lighting model
+- changed Backrub mouse interface to use middle button for selecting a C-alpha
+- changed to using a HashMap in Engine to do shortening of lines by balls.
+  This is much more robust, though somewhat slower for lots of balls.
+- updated Backrub to display all taus, phis, and psis, all of the time
+- added *.ki{n,p,p1,p2,p3,...} file mask to File | Open and File | Save as
+- deployed to Rlab
+
+### 0.37 ###
+- introduced TransformSignal and TransformSignalSubscriber
+- introduced PaintRegion and Paintable...
+- then decided to remove them again. However, render system will still be
+  updated to use TransformSignals and to occur in one pass.
+- heavy modification to Engine, all of the KPoint subclasses
+- updated transform and drawing in DotPoint, BallPoint, LabelPoint,
+  MarkerPoint, TrianglePoint, VectorPoint
+- fixed stereo and printing
+
+### 0.36 ###
+- added explicit setSelectedDirectory() to Backrub.onOpenPDB()
+- removed useless interface chiropraxis.backrub.BackbonePlotter
+- improved rendering of multiple backbone modifications
+- added buttons to Backrub to keep and discard current changes
+
+### 0.35 ###
+- all Tools are now created using the Reflection API,
+  so they can reside in external JARs
+- added support for @pdbfile in Reader, Writer, Kinemage, and BackrubTool
+- distributed to Rlab
+
+### 0.34 ###
+- BackrubTool now uses Ramachandran criteria too...
+- enabled mouse wheel for moving peptides
+- various changes to library classes to improve optimization speed
+- even so, I had to settle for two choices -- local and full optimization
+- in-memory molecular model updated when done with each residue (choice)
+
+### 0.33 ###
+- cleared markers when changing kinemages
+- ED Map tool now tries to open a map as soon as it's selected
+- made slight change to initial position of ToolBox to prevent it from
+  appearing off-screen if the main window is maximized.
+  This only seems to be a possibility under Windows, not Linux
+- renamed KingEdgePlotter to EDMapPlotter
+- created BackrubTool and BackrubPlotter
+
+### 0.32 ###
+- fixed fencepost bug in driftwood.isosurface that was causing ArrayIndexOOBEx
+- fixed RecursivePointIterator.nextImpl() to skip over points/lists/groups that
+  are turned off, or in the case of points, unpickable
+- fixed bug that wrote version and buildnum to ~/.king_prefs
+- changed README, LICENSE, and BUILDME to HTML
+  This avoid translation among LF, CR, and CRLF line endings and provides a
+  "friendlier" user experience.
+- updated manual (PDF and HTML)
+- updated main logo to reflect URL, (C) 2003, bigger (400x400)
+- modification to whole words to make word break more stringent
+  break is now on space, comma, semi-colon, or colon ONLY
+- Find Next now checks to make sure the points it finds are totally visible
+- migrated this file (CHANGELOG) to HTML format
+
+### 0.31 ###
+- improved map file selection process with better filters
+- migrated to building with Apache Ant (ant.apache.org)
+- initial window size now depends on screen resolution
+- added "Smooth graphics" (anti-aliasing) as a graphics option
+- fixed a bug where exported map lists didn't know their owners
+- made ReflectiveAction report source of InvocationTargetException rather than ITEx itself
+- commented out an error message from KinParser (displayed when it hits 2animate, etc)
+- FIRST PUBLIC DISTRIBUTION!!!
+
+### 0.30 ###
+- moved TablePane to driftwood.gui and fixed multi-row problems with it
+- created File | Export menu and moved XML to it
+- registered up/down arrow keys as equivalent to mouse wheel
+- all mouse drags can now make vertical/horizontal distinction like zoom/clip
+- restored HighlighterTool (now named EmphasisTool)
+- started work on ED Map tool
+- wrote KingEdgePlotter to create isosurfaces directly from MeshMarchingCubes
+- wrote EDMapWindow to display each loaded map
+- completed EDMapTool
+- bugfix: Engine reported out-of-bounds pick on empty window
+
+### 0.29 ###
+- massive refactoring of tool archtecture that should result in much
+  cleaner behavior by tools.
+- at the moment, only basic tool is available
+  (no highlighter or contact map tool)
+- text window open at startup is now a preference
+- using Explore | Find point is now just like picking the point
+- changed Marker rendering and choose new markers for measures
+- added HTML help for each tool
+- now using radio buttons for tool selection in Toolbox
+- bundled gnu.regexp into king.jar -- eliminated dependence on lib/*
+- flatland is now a kinemage property
+- toolbox opens at startup by default (configurable)
+- rotate/scale now done either around object centroid or (0,0,0)
+- writing points now writes {"} when appropriate
+- added Edit Props tool and "unpickable" in point editor
+- added falling bear to internal kinemages
+
+### 0.28 ###
+- started working on parser: 26.5 sec
+- using my own char buffer instead of StringBuffer: 25.4 sec
+- using my parseDouble instead of Double.parseDouble: 27.4 sec (!)
+- creating Strings takes about 40% of the total time,
+  parsing doubles takes about 30% of the total time.
+- numeric tokens (doubles) are about 60% of all tokens
+- therefore, there's a potential for parsing in about half the time
+  Mage loads this file in less than 15 sec
+- my rewritten parser for better doubles: 79 sec (!)
+  how am I making this so much worse?
+- some logic errors caused lots of exceptions being raised
+  now time is down to 19.6 sec
+- found one leak in UIMenus.rebuildAnimationsMenu()
+- found another in KinReader.install() (kinList was preserved!)
+- found another in JComboBox.removeAllItems() (reported to Sun)
+- replaced two pane text edit window with the simpler, text-only version
+- merge (-m) is default command line behavior when two or more files are specified
+- can use (-s, -single) to open kinemages individually
+- fixed a bug in KinReader I introduced when hunting memory leaks;
+  it caused open-merge to fail on the second kinemage
+- updated documentation to reflect changes in 0.28
+
+### 0.27 ###
+- enabled File | Configure for applet
+- updated documentation (minimal coverage of new features)
+- fixed fwd-back-fwd-back bug in HTML help
+- added HSV color cone to list of internal kinemages
+- changed mnemonic for Modify menu from T (Tree) to M
+- made some changes to KinParser to eliminate some NumberFormatExceptions
+- added auto-detection and decompression of gzipped kinemage files
+
+### 0.26 ###
+- added ability to edit points; splits lists at a point;
+  and edit the list, subgroup, and group a point belongs to.
+- added ability to merge lists (simpleminded)
+- made delete Kinemage have same effect as File | Close current
+- added stereo, including menu options and config option
+- added ability to transform groups, subgroups, lists, etc.
+  Operations are rotate, translate, and scale.
+- fixed minor bug in saving views: matrix would sometimes write sci. not.
+- created TablePane and used it to re-write the layout of PointEditor
+- kinemage-specified display properties are now always set,
+  except for cueThickness, which defaults to false for all kinemages in KiNG.
+- changed Find functionality to operate like Mage, with Find/Find next
+
+### 0.25 ###
+- this version is for stabilization before release...
+- changed big markers key to W (Jane)
+- changed green and lime color defs slightly
+- updated palette kinemage
+- put gray background behind explore/modify tabs
+- changed pinwheel hotzone to top 1/6 of screen;
+  (unused) zone at bottom is also now 1/6 of screen.
+- fixed bug in whitebg color creation (bad coefficients)
+- adjusted colors extensively, esp. on white background
+- removed configuration of some things (buttons, etc)
+- text window no longer jumps to center, unless it's been closed
+- font magnification is a bitch to set after we've created a GUI
+- created GUI for changing preferences and saving them
+- made "Big markers" and "Big labels" separate controls
+- markers can't depth-cue b/c they use multiple colors as it is
+- added HTML documentation of keyboard shortcuts
+
+### 0.24 ###
+- improved handling of animate/2animate while still maintaining the
+  general purpose facility for animations. Groups were also labeled
+  with * and/or % as appropriate.
+- rearranged layout of controls, added tooltips to a few
+- changed Move & Measure right mouse button to always
+  zoom AND slab, but only one or the other per click-n-drag session.
+- removed label box; all drawing is now done directly on graphics area.
+- added implementation of aspects
+- did minor updates for user guide
+- added dialog to edit views (rename, delete, reorder)
+- upgraded KingPrefs to be descended from Props
+- added a tip of the day to the controls panel (optional)
+- added Auto-animate feature (configurable timing)
+- added font-size preferences
+- added Home and Back buttons to the Help browser
+- added Auto-rock to Display menu (variable timing, in .king_prefs)
+- made text window open automagically by default (configurable)
+- made GridBagPanel easier to use (?)
+- added ability to edit list width and radius
+- added hooks for arrow keys and mouse wheel into tool archetecture
+- changed references to XknWriter to be reflective, so XML libraries
+  won't be loaded across the network for applets.
+
+### 0.23 ###
+- finally solved the JTree Ctrl-X, Ctrl-V mystery -- those keys
+  were bound in a parent map of the JTree InputMap.
+- added "merge (sub)groups" behavior to paste command
+- masters are now properties of groups, subgroups, lists.
+  This will facilitate cut-and-paste between kinemages.
+- added quoting of < > & in kinemage text for proper HTML display
+- masters now start on/off based on whether they have any targets that are on.
+  This includes pointmasters, a feature Dave has been requesting.
+- added support for @whiteback, @onewidth, @thinline, @perspective
+- put clipping on a linear scale 0-800, like in Mage
+- reworked views to be span-based, so that views are stable
+  even through kinemage merges, etc.
+- added ability to edit kinemage properties (@onewidth, etc.)
+- renamed Edit menu to Explore; Tree menu to Modify
+
+### 0.22 ###
+- restored the ability to write XML, with class XknWriter
+- replaced Enumerator with Collections.enumeration()
+- improved the highlighter tool
+- increased default size of graphics area
+- rearranged some elements of the UI to suit Jane
+
+### 0.21 ###
+- came up with good formulas for colors on a white background
+- replaced Colorset class with functions in ColorManager
+- use HSV color palette all the time, for all kinemages
+- added point color to output kinemages
+- made left/right arrow keys do rotation about Y-axis for Bryan (KinCanvas)
+- added Highlighter tool for use with Chiropraxis solutions
+- added ability to set font magnification in .king_prefs
+- fixed bug with monochrome option that caused invisble things to be shown
+- fixed markers in MMTool
+
+### 0.20 ###
+- began re-organizing kin/group/subgroup/list/point class hierarchy --
+  groups and subgroups are now distinct classes that can't be nested
+  arbitrarily
+- began creating sub-packages
+- decided to organize files into directories but not use additional packages
+- made search, kin writing work as external iterators
+- improved color/palette system
+- added internal palette kinemage to Help menu (like Mage)
+- added ability to edit groups/subgroups/lists (including list color)
+
+### 0.18 ###
+- made balls write out their individual radii
+
+### 0.17 ###
+- added nohilite (nohighlight) tag to balllists
+- tried to make point ID the contents of the <t> tag (undid it -- no good)
+- created Palette to replace MagePaints
+- added keyword @hsvcolor {name} hue_0-360 [saturation_0-100 [value_0.0-1.0]]
+- removed jump-to-letter from kinemage tree display
+- added Properties to tree edit menu
+- added cut/paste to tree menu
+- added up/down to tree menu
+- added ability to create new groups from the tree
+
+### 0.16 ###
+- made KiNG start in current directory instead of home directory
+- created ContactMapTool and adapted it to MolProbity
+- fixed sign/handedness problem for dihedral measures in MMTool
+- restored "Set Center" to "Pick Center" in KinCanvas, KingPrefs
+- decided to keep XML and keep/adapt ContactMapTool
+- changed <p> tags to <t> tags in KingPoint.emitXML
+- other small XML changes to more closely match kinemage format
+- added ability to rename groups from the tree
+- can write out @animations but XML will crash with old-style 'animate' group flag
+- made masters the only legal target for AnimateGroups;
+  custom masters are now created on input to control 'animate' groups.
+
+### 0.15 ###
+- started adding ability to write XML
+- KiNG can now write out its entire data structure (except animations!) as XML
+- KiNG can also write out its entire data structure in kinemage format, except animations
+- improved ability to read old kins without point IDs (WorldMap.kin) -- still not perfect
+- fixed printing to match resolution of graphics area -- now more WYSIWYG
+- added pretty printing to VectorPoint and DotPoint
+- fixed bugs in kinemage writing code
+- added ability for groups to write animate/2animate attribute to kinemage
+- added warning before overwriting existing files
+- reworked the tool architechture, with dynamic loading and @kingtool keyword
+- added @flat[land] keyword and tool
+- fixed text propagation, so re-writes get saved to disk
+- added ability to open multiple windows
+- fixed bug in KinTree.onDelete that caused reloading of model
+- added ability to configure via .king_prefs file in home directory,
+  including ability to create this file for the user.
+- added ability to save views to the Views menu
+
+### 0.14 ###
+- changed EM_ON_OFF to EM_EDIT_GROSS in KinTree.onDelete()
+- made printing visible to applets (asks user for permission)
+- distinguished b/t "Close" and "Close All" -- this will matter for authorship (maybe?)
+- added reference to host applet in KingMain, to enable future interaction w/ browser
+- updated user manual with Saving & Printing
+
+### 0.13 ###
+- wrote a reasonable first draft of the user manual
+- elaborated on File | Merge to handle multi-kinemage files when there is no current kinemage
+- reworked the tree mechanism so I can start adding functionality
+- added 'Toggle visibility' as a tree command
+- added 'Delete' as a tree command (buggy)
+- changed AbstractGroup and all descendents to *contain* an ArrayList called children,
+  rather than be directly descended from ArrayList. This allows us to implement MutableTreeNode
+  without naming conflicts.
+- ironed (most) bugs out of 'Delete' tree command
+- added GridBagPanel for future construction of dialog boxes
+- added printing (and thereby, PostScript export). java.awt.print makes this *so* easy -- 10 minutes!
+- set minimum size for balls (so they can't disappear when zoomed way out)
+
+### 0.12 ###
+- added 'unpickable' property to points and KinReader
+- added colorsets: @colorset {colorset_name} mage_color
+- added z-translation to default tool and decided 'Alt' and 'Meta' are not viable modifiers
+- changed KinReader to allow list name to come anywhere in list line (but a name is REQUIRED before points will be parsed)
+- updated icon to a purple 'K'
+- added label lists (with 'center' or 'right' options per point)
+- added marker lists (with s= style_code per point)
+- added triangle lists (shading on ribbonlists remains to be done)
+- added shading on ribbon lists for P-L type ribbons but not PT-T type ribbons
+- fixed shading to work with PT-T type ribbons in most cases
+
+### 0.11 ###
+- Reworked file opening to handle multiple files at once, and files from command line.
+- added more info to Help About (Java version, home; gnu.regexp version)
+- added icon to MainWindow
+- added KingPrefs, which will be expanded in the future
+- made balls look more like Mage balls
+- added ToolBox and a DefaultTool which has old functions, plus angle & dihedral
+- added translation (flatland scroll)
+- *finally* added line shortening by balls/spheres to rendering system
+  also eliminated drawing of zero-length lines
+  performance takes a slight (3-5% ?) hit, but not too bad
+- created MarkerPoint and added ability to mark points to the DefaultTool
+
+### 0.10 ###
+- improved handling of plain text from kinemages
+- added @_span support to KinReader, fixed centering bug
+- added most Mage keyboard shortcuts
+- added System.exit() call to try and force shutdown in application
+- improved quality of line rendering for VectorPoint, etc. at some cost to speed
+- added @animation keyword: @animation {anim_name} {master1} {master2} ...
+- added 'nobutton' to @master
+- fixed a bug in KinReader's handling of r= and w= point parameters
+- added Edit | Find point... dialogs using dynamic regexp library
+- made Views and Animations menus use radio button symbols
+- made search only apply to live points
+
+### 0.09 ###
+- altered depth cueing by thickness scheme
+- moved file loading to background thread and implemented progress meter
+- began Kinglet, the KiNG loader applet
+- began text display-and-edit dialog (UIText)
+- added shutdown handlers
+- began adding pointmasters -- complete. Supports multiple independent masters a-z and 1-6
+- added ReflectiveRunnable and reworked thread-handling in KinReader
+- added support for animate and 2animate
+
+### 0.08a ###
+- restructured KinReader for easier incorporation of new features
+- added masters
+- added picking of saved views from the menus
+- fixed preTransform() to only go if button is on -- this is noticable for kinemages with e.g. 100,000 points.
+- increased level of control of rendering -- added Display menu
+- updated UI, including 4 new text fields for info display and an edit menu to the tree
+- added pickcenter button, for old times' sake ;)
+
+### 0.07a ###
+- resumed development work in my spare time
+- made transform() traverse the data structure
+- made time-critical rendering & transform use get() instead of iterator() -- did this really help?
+- started installKinemage() in KingMain -- we're almost ready to use File | Open...
+- File | Open works (primitive, but it works)
+- rebuilt interface
+- more work on File | open/append/close
+- added ability to switch among loaded kinemages
+
+### 0.06a ###
+- Data model can have its root set and will calculate the size of the object, but this needs some work to be clean.
+- Reworked drawing model a bit, storing attribs in the Engine and adding list colors.
+- Added partial drawing of lines. It slows us down a measurable amount, but the effect is probably worth it. (?)
+- We can work with a full CA trace of the ribosome though at about 10 frames/sec, though we get funny orange specs... what are those, waters?
+- Added balllists and dotlists to Kinemage IO. Orange specs are actually pink lines to nowhere that Prekin builds for het groups, like ions.
+- Added "point picking" with display of point ID in a label above the kinemage, and simple distance measuring.
+- Extended capabilities of KinemageIO. Can now read and display -cass, -cbetadev, -aasc, and (probably) more
+- Eliminated what appeared to be a memory leak in KinemageParser relating to StringBuffer.delete()
+- Replaced hashCode() in KingList to provide acceptable performance for the tree display...
+
+### 0.05a ###
+- enabled data tree to build list of currently visible lists
+- added experimental normalization of matrix... causes very odd effects!
+- finally got REAL matrix normalization going -- it's basically a matter of normalizing the length
+  of each row vector to one, and taking the cross products to insure the row vectors are mutually orthogonal.
+- added on/off buttons like Mage has
+- added menus, which so far control white background and antialiasing
+- coordinated the two 'show markers' commands
+- started work on .kin file decoder -- can read in thumbnail.kin (1UBQ from MolProbity)
+
+### 0.04a ###
+- added tree display and implemented TreeNode in KingGroup and KingList
+- wrote KinemageParser to simplify picking apart kinemages
+- added popup menus to tree display
+- I missed something, somewhere -- using the original Graphics drawLine() and fillOval() methods
+  WITH NO STROKES AND NO ANTIALIASING cut rendering time by a whopping 90%!
+- took steps toward unifying the data model, so that events can propagate up and down the tree
+- added picking and centering via right mouse pick
+
+### 0.03a ###
+- display works and mouse moves the model
+- restructured data system for self-drawing points and table models.
+- added VectorPoint, DotPoint, and BallPoint
+- made depth cueing work
+- fixed clipping and zooming to be relative to (1) object size and (2) screen size
+
+### 0.02a ###
+- started constructing a real GUI framework, which so far supports zooming the test figure.
+- 'turned on' z-buffering (previous logical error)
+- fixed one problem with the coordinate system (sign of y), but others still seem to exist...
+
+### 0.01a ###
+- made 'shells' of many important classes for data storage and manipulation
+- implemented rotation and showed that it works
+- implemented z-buffering
+- did first rendering test, of a 5 line figure. 10^6 frames in 5.4 sec! 
+- un-did threading -- too complicated to coordinate large shared data structures 
+- did rendering test w/ Graphics2D and 3 px pen -- as fast or faster (!)
+- unbelievably, turning on antialiasing actually seems to SPEED THINGS UP by ~20%
+</pre></body></html>

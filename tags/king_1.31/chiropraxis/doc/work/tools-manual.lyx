@@ -1,0 +1,661 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass report
+\language english
+\inputencoding auto
+\fontscheme pslatex
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize Default
+\paperpackage a4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+\added_space_top vfill \added_space_bottom vfill 
+The Chiropraxis tools manual
+\layout Author
+
+Ian W.
+ Davis
+\layout Chapter
+
+The Tools
+\layout Section
+
+C-alpha Hinges: Protein chiropraxis
+\begin_inset LatexCommand \label{hinges-tool}
+
+\end_inset 
+
+
+\layout Standard
+
+The Hinges tool is used to adjust segments of protein backbone without disturbin
+g the surrounding structure.
+ It allows you to select a region of backbone that joins two alpha carbons,
+ and then rotate that segment of backbone around an axis drawn between those
+ C-alphas.
+ Using Hinges requires that 
+\family typewriter 
+chiropraxis.jar
+\family default 
+ be present in the 
+\family typewriter 
+plugins/
+\family default 
+ folder.
+\layout Standard
+
+Create a hinge by control-clicking the alpha carbons that act as its endpoints
+ or anchors.
+ To use the dial control, click and drag the pointer to the desired value.
+ For finer control you can shift-drag along an imaginary slider (this behavior
+ is somewhat like the virtual dials in O).
+ To reset the dial to its starting value, double click the dial face.
+ The dial can also be adjusted from the graphics window using the mouse
+ wheel or arrow keys; see below.
+\layout Standard
+
+The Hinges panel provides feedback on the geometric quality of the current
+ model, displaying residues names, deviation of the tau angle (N-CA-C) from
+ ideality, and the position of the residue on the Ramachandran plot (phi,
+ psi, and favored/allowed/outlier).
+ Deviant geometry is highlighted in red.
+\layout Standard
+
+The 
+\begin_inset Quotes eld
+\end_inset 
+
+Karplus
+\begin_inset Quotes erd
+\end_inset 
+
+ field is an alternative measure of deviation in the tau angle, based on
+ data in P.
+ A.
+ Karplus' 1996 
+\begin_inset Quotes eld
+\end_inset 
+
+Hidden Strain
+\begin_inset Quotes erd
+\end_inset 
+
+ paper (Protein Science 5:1406).
+ There he calls the angle tau3, and claims that its average value varies
+ substantially depending on the value of backbone angles phi and psi.
+ The meaning and usefulness of a deviation from this number is still under
+ investigation.
+\layout Standard
+
+
+\emph on 
+Hinges has not yet been published.
+ When it is, a citation will appear here.
+\layout Subsection
+
+Command reference
+\layout Standard
+\noindent \align center 
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="5" columns="2">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0sp">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0sp">
+<row topline="true" bottomline="true">
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Mouse clicks
+\end_inset 
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Normal
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Mark and identify point; make measurement (pick)
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+With Shift
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Center on selected point (pickcenter)
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+With Ctrl
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\family roman 
+\series medium 
+\shape up 
+\size normal 
+\emph off 
+\bar no 
+\noun off 
+\color none
+Select 
+\family default 
+\series default 
+\shape default 
+\size default 
+\emph default 
+\bar default 
+\noun default 
+\color default
+anchor for hinge 
+\family roman 
+\series medium 
+\shape up 
+\size normal 
+\emph off 
+\bar no 
+\noun off 
+\color none
+(
+\family default 
+\series default 
+\shape default 
+\size default 
+\emph default 
+\bar default 
+\noun default 
+\color default
+o
+\family roman 
+\series medium 
+\shape up 
+\size normal 
+\emph off 
+\bar no 
+\noun off 
+\color none
+n a C-alpha)
+\family default 
+\series default 
+\shape default 
+\size default 
+\emph default 
+\bar default 
+\noun default 
+\color default
+; clear current selection (elsewhere)
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+With Shift+Ctrl
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+-
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\layout Standard
+\noindent \align center 
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="5" columns="2">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0sp">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0sp">
+<row topline="true" bottomline="true">
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Mouse drags
+\end_inset 
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Normal
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Rotate around X and Y axes; Z-rotate (pinwheel) near top of screen
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+With Shift
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Adjust zoom (up/down); Adjust clipping (left/right) 
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+With Ctrl
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Translate in X-Y plane (flatland); Z-translate near top of screen
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+With Shift+Ctrl
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Rotate around Y axis only
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\layout Standard
+\noindent \align center 
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="5" columns="2">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0sp">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0sp">
+<row topline="true" bottomline="true">
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Mouse wheel / Up & Down arrow keys
+\end_inset 
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Normal
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Adjust dial (angle of rotation)
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+With Shift
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Adjust clipping
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+With Ctrl
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Adjust zoom
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+With Shift+Ctrl
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+-
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\layout Section
+
+Sidechain Rotator: Refitting protein models
+\begin_inset LatexCommand \label{scrot-tool}
+
+\end_inset 
+
+
+\layout Standard
+
+The Sidchain Rotation tool is useful for doing interactive refitting of
+ protein models in conjunction with the Hinges tool and the model manager.
+ Use Ctrl+Click (a.k.a.
+ middle-click) to select a sidechain to rotate, then pick from a list of
+ predefined rotamers or set the angles by hand using the dials.
+ The rotamericity of the current sidechain is monitored in the bottom right
+ corner; it indicates how frequently (if ever!) the current conformation
+ is found in well-determined structures.
+\layout Standard
+
+To use the dial control, click and drag the pointer to the desired value.
+ For finer control you can shift-drag along an imaginary slider (this behavior
+ is somewhat like the virtual dials in O).
+ To reset the dial to its starting value, double click the dial face.
+\layout Standard
+
+Sidechain Rotator and the Hinges tool play well together: you can use both
+ on the same residue(s) at the same time.
+ It's often easiest to establish which sidechains will be rotatable before
+ beginning to move the backbone, but it's possible to establish the moving
+ parts in any order.
+\layout Section
+
+Sidechain Mutator: Redesigning protein models
+\begin_inset LatexCommand \label{scmut-tool}
+
+\end_inset 
+
+
+\layout Standard
+
+The Sidchain Mutation tool is useful for doing interactive refitting of
+ protein models in conjunction with the Hinges and Rotator tools and the
+ model manager.
+ Use Ctrl+Click (a.k.a.
+ middle-click) to select a sidechain to mutate, then pick from a list of
+ known amino acid types.
+ If you select histidine, you will also be prompted to choose a protonation
+ state.
+\layout Standard
+
+Sidechain Mutator plays well with the other tools, but you cannot mutate
+ the model while any part of it is mobile (
+\begin_inset Quotes eld
+\end_inset 
+
+molten
+\begin_inset Quotes erd
+\end_inset 
+
+).
+ Thus, it's often easiest to make mutations first, and then refit the new
+ sequence.
+\layout Section
+
+Model Manager: Editing a macromolecular model
+\begin_inset LatexCommand \label{modelman-plugin}
+
+\end_inset 
+
+
+\layout Standard
+
+This facility is for doing molecular modeling based on some starting model,
+ usually a PDB file.
+ The Model Manager handles opening and saving these files, and is required
+ for the operation of the following tools:
+\layout Itemize
+
+C-alpha hinges
+\layout Itemize
+
+Sidechain rotator
+\layout Itemize
+
+Sidechain mutator
+\layout Standard
+
+The model manager also tracks the changes made to the model and allows near-unli
+mited undo.
+ In addition, it provides access to dynamic visualizations, like Probe dots
+ and NOE constraints.
+ Using this feature requires that your OS can find Probe -- 
+\emph on 
+i.e.
+\emph default 
+, that either Probe resides in the same directory as 
+\family typewriter 
+king.jar
+\family default 
+ and is named either 
+\family typewriter 
+probe
+\family default 
+ or 
+\family typewriter 
+probe.exe
+\family default 
+; or that Probe is somewhere on your PATH and is named 
+\family typewriter 
+probe
+\family default 
+ or 
+\family typewriter 
+probe.exe
+\family default 
+.
+ The same is true of 
+\family typewriter 
+noe-display
+\family default 
+.
+\layout Standard
+
+There are several special symbols that can be inserted into the Probe and
+ NOE command lines.
+ Their meanings are as follows:
+\layout Description
+
+{pdbfile} The fully-qualified name of the 
+\begin_inset Quotes eld
+\end_inset 
+
+base
+\begin_inset Quotes erd
+\end_inset 
+
+ PDB file; 
+\emph on 
+i.e.
+ 
+\emph default 
+the one with all changes except the currently molten ones.
+ (Those are piped in via standard input.)
+\layout Description
+
+{molten} The list of molten residues, separated by commas: 1, 2, 3, ...
+\layout Description
+
+{center} The coordinates of the current center of view, in real space: x,
+ y, z.
+ This can be used for the 
+\family typewriter 
+within
+\family default 
+ 
+\emph on 
+distance
+\emph default 
+ 
+\family typewriter 
+of
+\family default 
+ 
+\emph on 
+x, y, z
+\emph default 
+ selection statement.
+ Note that visualizations aren't automatically updated when the center of
+ view changes.
+\layout Chapter
+
+Copyright & acknowledgments
+\layout Section
+
+Copyright
+\layout Standard
+
+The Chiropraxis code and all its associated original resources and documentation
+ are copyright (C) 2002-2004 by Ian W.
+ Davis.
+\layout Section
+
+Revision status
+\layout Standard
+
+This manual was last updated 27 May 2004 by IWD for Chiropraxis version
+ 0.36.
+\the_end

@@ -1,0 +1,5 @@
+10 million native calls take about 500 ms on SEEK,
+and about 950 ms on COBALT.
+
+This CANNOT be the explanation for why Mac Java graphics are so slow.
+

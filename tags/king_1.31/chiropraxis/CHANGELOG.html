@@ -1,0 +1,273 @@
+<html><head><title>CHANGELOG</title></head><body><!-- (jEdit options) :folding=explicit:collapseFolds=1: --><pre>
+==============================================================================
+===  TO DO  ==================================================================
+==============================================================================
+    Add outline to Rama PDF instead of thumbs
+    Add kinemage, raw, and stat-summary output to Ramalyze
+    Summary info can be preformatted, data should be parsable
+    Provide both 4-in-1  PDF and 4 separate jpegs
+    Allow "slop" around rota and Rama contours
+    Simplified tool for just doing backrubs
+    Make ModelManager support loading from/saving to URLs
+
+==============================================================================
+===  CHANGE LOG  =============================================================
+==============================================================================
+
+### 0.40 ###
+### 0.40 ###
+- recompiled to incorporate with changes to driftwood.moldb2.PdbWriter
+- changed B-factor on ideal sidechains / residues to 30 instead of zero
+- checked on Shuren's repairs to the ModelManager: only one menu was broken.
+  Several unused variables were also removed.
+
+### 0.39 ###
+- added translucent balls to the output of SequenceSpacer
+- found missing-comma bug in BLOSUM code of SequenceSpacer
+- added a scaling factor to the BLOSUM code so ball radii come out right
+- wrote minimize.SequenceTree to do another analysis of Dezymer sequences
+- added "Fast model open" to ModelManager. Some layout issues still remain.
+- created some pieces of a MM force field in chiropraxis.forcefield
+- stupid bug in AngleTerm was assigning to gradient instead of adding to it
+- fixed a bug in Brent's method of GradientMinimizer (wrong endpoint b)
+- fixed confusion between search path and gradient in GradientMinimizer
+- changed (now correct) Fletcher-Reeves algorithm to Polak-Ribiere; works better
+- added RubberBand tool for KiNG
+- implemented both simple (all-against-all) and fancy (hash table / 3-D bins)
+  approaches to neighbor detection for nonbonded terms. Fancy is preferrable.
+- made some changes to line-min in GradMin to keep things from getting stuck
+- made separate categories with separate weightings for energy terms in StateMan
+  The weightings do make gradient calculation somewhat less efficient, so we may
+  want to remove them later if there's no real benefit or use.
+- added some GUI controls to the rubber band tool to make it more fun
+
+### 0.38 ###
+- wrote AnisoOxygenSearch
+- modified build.xml to include all of driftwood including Jama
+
+### 0.37 ###
+- created a LyX document for the tools
+- updated ModellingTool to use help URL from this JAR
+- recompiled kingtools b/c BasicTool.overpaintCanvas() changed signature
+
+### 0.36 ###
+- moved all the KiNG remodelling tools into the kingtools package
+
+### 0.35 ###
+- added SidechainAngles2.getAllRotamers(String)
+- added sc.RotamersForTerwilliger to produce rotamer files from Penultimate Lib.
+
+### 0.34 ###
+- SidechainAngles.setAllAngles() now ignores the NaN's that can be produced
+  by measureAllAngles().
+- SidechainIdealizer.idealizeSidechain() now uses all angles instead of chis.
+  Hopefully, this will remove some of the remaining bugs (e.g. for prolines)
+- fixing the proline idealization bug also required redefining pchi3 using 1HD.
+
+### 0.33 ###
+- started H-bond network analysis in beta sheet
+- allowed peptides to be incomplete
+- connected up peptides into beta-sheet network
+- calculated planes, sheet normals, and local coordinate systems
+- added visualization of planes in addition to their normal vectors
+- added parallel/antiparallel flags to Peptide
+- fixed build.xml to clean up itext.jar and jama.jar
+- added "deploy-local-mp" target to deploy to MolProbity3
+- Ramalyze now reads PDB filename from cmd line params
+- moved LsqPlane to driftwood and removed explicit Jama dependency
+- added mc.AltConfBackrubFinder to speed the search for alt-conf examples
+- fixed SidechainIdealizer.idealizeSidechain() so it doesn't leave
+  Ala's hydrogens oriented randomly.
+- migrated to using version.props AND buildnum.props to simplify version control
+
+### 0.32 ###
+- started working on RamaPdfWriter to test out how we could create multi-page
+  PDF Ramachandran plots for multiple-model NMR structures.
+- added rotarama.Ramalyze and hooked it up to RamaPdfWriter
+- changed mc.CaRotation to idealize whole sidechains instead of just C-betas.
+- added jama.jar to the build process
+- gave Rama plots more sensible residues names (chain, seg ID only if needed)
+- PDF writer now collects and reuses templates for each model
+- missing hashCode() in Ramalyze.RamaEval led to duplications with alt confs
+- added summary statistics and outlier list for all models and model-by-model
+- stats are now 1 column or 2
+- model numbers appear in residue labels
+- model number and file name are now printed on each page
+- basic command line switches and help information added to Ramalyze
+- added itext.jar and jama.jar to the Manifest
+  
+### 0.31 ###
+- made CB idealization optional for CaRotation.makeConformation()
+- did the same for CaRotation.twistPeptides()
+
+### 0.30 ###
+- fixed typo for Trp m95 rotamer (+/- problem)
+
+### 0.29 ###
+- changed build.xml so the default target is "dist"
+
+### 0.28 ###
+- modified sc.SidechainAngles2 to use driftwood.data instead of driftwood.gnutil
+- fixed MSE SE naming incompatibility between angle-naming code and ideal geom residues
+- fixed bug in sc.SidechainAngles2.areParentAndChild()
+  It was recognized that MSE SE did not have a remoteness indicator, BUT
+  there was a logical error in the code because it had never been tested.
+
+### 0.27 ###
+- created TauByPhiPsi to evaluate tau by Ramachandran position,
+  using initial data from P. A. Karplus' 1996 "Hidden Strain" paper.
+- added facilities for constructing mutations into SidechainIdealizer
+  
+### 0.26 ###
+- Changes to Ramachandran, CaRotation, and Suppose
+  to accomodate changes in driftwood.moldb2 ver. 0.48
+- RotamerSampler can now create copies of the template residue and re-index them.
+  A small benefit here, but it lays the foundation for mutations, etc. in KiNG.
+- bug fix: removed the mysterious N-epsilon from definitions of Pro rotamers
+- added a chi-angles/all-angles distinction to RotamerSampler
+- changed the scheme for weights in Q to make best use of the space available
+- bug-fix: using all angles read the weight from the wrong field
+
+### 0.25 ###
+- added NdftToPgm for converting NDFTs to Portable Gray Map files.
+  Can use the UNIX utility 'pnmtopng' to get a PNG file from this.
+- fixed NDFloatTable bug that zeros out realcount when reading from a NDFT file.
+- created sc.RotamerSampler for generating PDB models of sampled conformers
+
+### 0.24 ###
+- added sequence-distance scoring based on the BLOSUM 62 matrix (-blosum)
+- added mc.HingeFit, which searches for a series of Backrub-like hinges
+  that reduce RMSD between two related loops.
+- I was frustrated that I couldn't seem to find the minimum
+  around the axis of rotation in an analytic way.
+- made sc.SidechainAngles2.measure{All,Chi}Angles() return Double.NaN
+  for ill-defined angles instead of throwing AtomException.
+
+### 0.23 ###
+- started minimize package to do Cartesian-space minimizations
+- built a simple harmonic potential to put "springs" between points
+- built a steepest-descent minimizer with arbitrary step length
+- optimizations (caching) in the potential function gave better than 2x speed improvement.
+  This is good for dense networks (force b/t every pair) but not for sparse.
+- built a dual-purpose steepest-descent/conjugate gradient minimizer.
+  It still takes arbitrary steps though, so there's less advantage from CG.
+- improved the visualization kinemage
+- added line-search option to find true minimum along each gradient/search path
+- renamed to GradientMinimizer
+- added code to check for numerical instabilities (NaN)
+- determined that box size for initial placement has no effect on outcome
+=== MAJOR REORGANIZATION OF PACKAGE STRUCTURES ===
+- removed the backrub package! (no longer used by anything...)
+- removed the failed 'nmr' package; not needed since Coggins' noe-display
+- merged the cairo package into the mc package
+
+### 0.22 ###
+- fixed typos in defining Met/Sme rotamers ttt and mmt
+
+### 0.21 ###
+- added idealizeSidechain() to SidechainIdealizer.
+- fixed a problem in CaRotation.transformAtoms() where an AtomException
+  could cause the transform to fail for all atoms.
+
+### 0.20 ###
+- modified rotarama.Rotamer to also work with moldb2
+
+### 0.19 ###
+- converted SidechainAngles to SidechainAngles2 (moldb to moldb2)
+
+### 0.18 ###
+- made Lesk sieve into a sorting procedure
+- dropped correlation/dot product kinemages
+- renamed VectorDiffDist to Suppose
+- wrote help file for Suppose
+- added switches to select size of superpositioned subset
+- calculated RMSDs in-line and added IWUSDD to Lesk plot for comparison
+
+### 0.17 ###
+- wrote VectorDiffDist
+- discovered iteration (using prev values as weights) improves signal-to-noise
+- unsigned sum of diff dists seems to work better than vectors (but no 3-D info)
+- I think all the vectors get biased towards the center-of-mass of the structure.
+  So far, plots of dot products haven't been helpful in confirming this.
+- implemented Lesk's least-squares "sieving" procedure using driftwood.r3.SuperPoser
+- added Lesk plot to VectorDiffDist
+
+### 0.16 ###
+- Fixed a bug in CaRotation.twistPeptides() that only kept the last twist
+- Checked SidechainIdealizer for the same bug; it's clean
+
+### 0.15 ###
+- added nmr package with NoeConstraints and DyanaReader
+- started trying to test it out, but the names are all screwed up!
+
+### 0.14 ###
+- added ability to rotate lots of peptides to CaRotation
+
+### 0.13 ###
+- removed artificial ceiling on residue separation in CaRotation
+
+### 0.12 ###
+- migrates Cairo over to using MolDB2
+- created sc.SidechainIdealizer to idealize C-betas in MolDB2
+- made Cairo fix the C-betas
+- changed sc.SidechainAngle to use GnuLinkedHashMap/Set classes
+
+### 0.11 ###
+- updated Rotamer and angles.props to treat MSE (seleno-Met)
+- sc.SidechainAngles.areParentAndChild() would fail on MSE b/c SE
+  has no remoteness indicator; workaround added.
+  Not tested yet b/c Reduce doesn't add all the appropriate H.
+- created package 'cairo' to handle Ca-Ca rotations
+- wrote (first draft of) CaRotation for use by KiNG
+
+### 0.10 ###
+- made Ramachandran follow the Singleton pattern (with optional workaround)
+  to conserve memory without requiring explicit caching by the programmer.
+- added means to assess rotamer quality (rotarama.Rotamer)
+
+### 0.09 ###
+- created sc.RotamerDef to simplify rotamer management
+- added frequency data to angles.props
+
+### 0.08 ###
+- renamed packages
+- added sc.SidechainAngles for dealing with rotatable sidechains,
+  and for measuring chi angles for future rotamer analysis.
+- finished describing all DoF for each side chain
+- started listing canonical rotamers from Lovell et al.
+- finished listing all rotamers
+
+### 0.07 ###
+- changed Backrub to optimize conformations based on RMSD(tau) rather than
+  worst tau. Using the worst causes insensitivity to the other taus, leading
+  to random (and usually worse) conformations there!
+
+### 0.06 ###
+- major rotation now also swings side chain of central atom (Backrub)
+- IdealSidechain now corrects the whole sidechain position when idealizing the C-beta
+- made Backrub update ("liken") sidechain atoms too
+
+### 0.05 ###
+- added rama.Ramachandran and rama.NDFloatTable
+  I think this is better than trying to build a general-purpose Ramachandran
+  library function, at least for the moment.
+- rewrote NDFloatTable.valueAt() to eliminate extra memory allocations
+
+### 0.04 ###
+- created IdealSidechain. This may belong in a different top-level package,
+  but better to move it later on...
+- made some changes to the API of Backrub
+
+### 0.03 ###
+- started in on the real Backrub class that will be used in production
+- wrote peptide-orientation optimizing routines for Backrub
+- modified TryTrio to use Backrub, got nice improvements in tau (!)
+
+### 0.02 ###
+- created backrub.TryTrio as proof of concept
+
+### 0.01 ###
+- started with chiropraxis.backrub.* to do simple two-peptide motion
+  using three degrees of freedom in the azimuthal C-alpha trace
+
+</pre></body></html>

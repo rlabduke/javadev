@@ -1,0 +1,251 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <TITLE>BRIX HOWTO: Introduction</TITLE>
+
+ <LINK HREF="brix.html#toc1" REL=contents>
+</HEAD>
+<BODY>
+Next
+Previous
+<A HREF="brix.html#toc1">Contents</A>
+<HR>
+<H2><A NAME="s1">1.</A> <A HREF="brix.html#toc1">Introduction</A></H2>
+
+
+<P><CODE>BRIX</CODE> is a program (Still Another!) to convert different formats of
+electron density maps to O format. <CODE>BRIX</CODE> was written to circumvent the
+problems of fixed array boundaries, and allocates the memory it needs
+on the fly.  Thus, you are only limited by the virtual memory of the
+computer.</P>
+<P><CODE>BRIX</CODE> writes a new un-swapped version of the DSN6 file, independent of
+endianism issues. Thus, you can use a bricked density file which has
+been calculated on an ALPHA machine on a SGI. Also, the new format
+contains more information in the header, most notably the SIGMA value
+of the map. Thus, in your map macros, you will be able to put a ';'
+where you normally specify the contouring level, to get a 1 sigma
+contouring.</P>
+<P>The new bricked electron density format is understood by O versions
+later than 5.10.</P>
+<P>However, <CODE>BRIX</CODE> will still calculate the old, unportable, DSN6 format,
+if the program is invoked under the name <CODE>'mappage'</CODE> (uh, actually,
+it only needs to <EM>contain</EM> the word mappage, so 4d_mappage is OK). In
+other words, you can install a symbolic link (or normal link):</P>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+      % ln -s brix mappage
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>and then run the <CODE>mappage</CODE> version.</P>
+<P><CODE>BRIX</CODE> understands the following map formats: <B>X-PLOR</B>
+(formatted), <B>CCP4</B>, <B>TNT</B> and <B>EZD</B>, and will automagically
+determine which format the map is. It will also automatically slice
+the map correctly.</P>
+
+<H2><A NAME="ss1.1">1.1</A> <A HREF="brix.html#toc1.1">An example session</A>
+</H2>
+
+<P>Here is a sample session of <CODE>BRIX</CODE>. The only input needed is the names
+of the input map and the output brick file; these can be given on the
+command line:</P>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+kaktus 395% brix /xtal/morten/xplor/type3/m10.xmap   m10.omap
+ brix> Convert ED maps to O format
+ brix> Version 1.1, Nov 1993
+ brix>
+ brix> Mapfile: /xtal/morten/xplor/type3/m10.xmap
+ brix> O brick file: m10.omap
+ brix> ...file is formatted
+ brix>
+ brix> Map type is X-PLOR
+ brix>
+ brix> Parameters as read from the map file:
+ brix> Grid .................        80        80       192
+ brix> Origin ...............         6       -21        24
+ brix> Extent ...............        75       105        76
+ brix> Fast, medium, slow....         1         2         3
+ brix> Cell axes ............     69.90     69.90    161.80
+ brix> Cell angles ..........     90.00     90.00     90.00
+ brix>
+ brix> Reslicing XYZ --> YXZ
+ brix> Fast, medium, slow....         2         1         3
+ brix> Min, max, sigma ......  -4.53080   7.12510   0.98377
+ brix> Scale ................     1.000
+ brix>
+ brix> Prod .................  21.87733
+ brix> Plus .................        99
+ brix> Bricks along x,y,z ...        10        14        10
+kaktus 396%
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P><CODE>BRIX</CODE> binaries are available from 
+<A HREF="ftp://kaktus.imsb.au.dk/pub/o/brix">ftp://kaktus.imsb.au.dk/pub/o/brix</A>. There are versions for HP, ESV
+and 4D.</P>
+
+<H2><A NAME="ss1.2">1.2</A> <A HREF="brix.html#toc1.2">The BRIX map format</A>
+</H2>
+
+<P> </P>
+<P>The format of the bricked files made by <CODE>BRIX</CODE> is <EM>almost</EM> the
+same as the old <CODE>MAPPAGE</CODE> (DNS6) format, except that no byte
+swapping is required.</P>
+
+
+<H3>The header record</H3>
+
+<P>The first 512 bytes of the file is the header information, containing
+the following information</P>
+<P>
+<DL>
+<DT><B>Origin:</B><DD><P>the origin of the map in grid units, along X, Y, Z.</P>
+<DT><B>Extent:</B><DD><P>the extent (size) of the map, along X, Y, Z, in grid units</P>
+<DT><B>Grid:</B><DD><P>number of grid points along the whole unit cell, along X, Y, Z.</P>
+<DT><B>Cell:</B><DD><P>Unit cell parameters</P>
+<DT><B>Prod, plus:</B><DD><P>Constants that bring the electron density from byte to
+normal scale. They are calculated like this:
+prod = 255.0/(rhomax-rhomin), plus = -rhomin*prod.</P>
+<DT><B>Sigma:</B><DD><P>Rms deviation of electron density map.</P>
+</DL>
+</P>
+<P>In the original DSN6 format, this information was stored in the first
+elements of an INTEGER*2 array with 256 elements.  The problem with
+that is that such an array is stored differently in big endian (for
+example SGI) and small endian (for example ALPHA) machines. <CODE>BRIX</CODE>
+overcomes this problem by storing the header as a character string.
+The first few bytes of the character string is a signature (a
+"smiley") that enables O and other programs to recognize the format of
+the file. Then comes a keyworded sequence giving the origin, extent,
+unit cell parameters etc.</P>
+<P>On a UNIX system, you can use <CODE>'more'</CODE> to look at the header of the
+file, because it ends with a formfeed character:</P>
+<P>
+<PRE>
+kaktus 810% more test.omap
+:-) origin 49 -25 -12 extent 77 51 88 grid 180 108 144 cell 208.280 122.300 151.
+800 90.000 126.700 90.000 prod 22.55819 plus 118 sigma 1.07519 ^L               
+--More--(0%)
+</PRE>
+</P>
+
+
+<H3>The map data</H3>
+
+<P> 
+The input map is divided into cubes of 8 x 8 x 8 = 512 gridpoints. The
+density value at each of these gridpoints is then scaled to fit into a
+single byte, that is, to values between 0 and 255. Each of these 512
+cubes (bricks) is written to a single record of the file. In the DSN6
+format, the 512 bytes where equivalenced to an INTEGER*2 array with
+256 elements, which was then written out.  This presents a problem as
+described in the section above. <CODE>BRIX</CODE> overcomes this by storing
+the 512 bytes in a <EM>character</EM> array.</P>
+
+<H2><A NAME="ss1.3">1.3</A> <A HREF="brix.html#toc1.3">Writing a BRIX file</A>
+</H2>
+
+
+<P>The following describes the use of a piece of FORTRAN code that you
+can use in your own programs when writing a BRIX file. It can be found
+at 
+<A HREF="http://imsb.au.dk/~mok/brix/paged_export.F">http://imsb.au.dk/~mok/brix/paged_export.F</A>.</P>
+<P>This file contains two subroutines, paged, and pagedhdr. They are
+intended for outputting a paged electron density file for input into
+"O".  The format of the paged electron density file does not depend on
+the byte-endedness of the computer.</P>
+<P>To use the subroutines, you must first set up the values of these
+variables:</P>
+<P>
+<UL>
+<LI>Origin: the origin of the map in grid units, along X, Y, Z.</LI>
+<LI>Extent: the extent (size) of the map, along X, Y, Z, in grid units</LI>
+<LI>Grid: number of grid points along the whole unit cell, 
+along X, Y, Z.</LI>
+<LI>Cell: Unit cell parameters</LI>
+<LI>Prod, plus: Constants that bring the electron density from byte to
+normal scale. They are calculated like this:
+prod = 255.0/(rhomax-rhomin), plus = -rhomin*prod.</LI>
+<LI>Sigma:  Rms deviation of electron density map.</LI>
+</UL>
+</P>
+<P>Your program must open a file, direct access 512 byte records:</P>
+<P>
+<HR>
+<PRE>
+      open (unit=olun, file=filenm, status='new',access='direct',
+     $        recl=128, form='unformatted')
+</PRE>
+<HR>
+</P>
+<P>The recl number is sometimes given in longwords, sometimes in bytes, 
+depending on the computer. Now you can write the header. <CODE>Str</CODE> is a
+<CODE>character*512</CODE> variable:</P>
+<P>
+<HR>
+<PRE>
+     write (str, 10) origin, extent, grid, cell, prod, plus, sigma
+10   format (":-) Origin", 3i5," Extent", 3i5, " Grid", 3i5,
+    $        " Cell ", 6f10.3, " Prod", f12.5, " Plus",i8, 
+    $        " Sigma ", f12.5)
+
+
+     write (olun, rec=1, iostat=errcod) str
+</PRE>
+<HR>
+</P>
+<P>Next, the program must calculate the number of 8 grid pages along X, Y, Z:</P>
+<P>
+<HR>
+<PRE>
+     do i=1,3
+        xyzbrix(i) = extent(i)/8
+        if (mod(extent(i),8) .ge. 1) xyzbrix(i) = xyzbrix(i) + 1
+     enddo
+</PRE>
+<HR>
+</P>
+<P>The paged routine can now be called. The map must be sectioned so that
+fast, medium, slow is Y, X, Z. Call the paged routine with one section
+at a time. <CODE>Rho</CODE> is the array that holds the (prod/plus scaled)
+density, <CODE>rhosec</CODE> is an array large enough to hold one section,
+<CODE>slices</CODE> is an array large enough to hold 8 sections of
+density. In the following example a user-supplied routine
+<CODE>map_getsection</CODE> gets the next slice. Of course you can do this
+any way you like.</P>
+<P>
+<HR>
+<PRE>
+     do isec = 1, extent(3)
+        call map_getsection (rho, rhosec, isec, extent, errcod)
+        call paged (olun, rhosec, slices, 
+    $        extent(1), extent(2), xyzbrix(1), xyzbrix(2), isec, errcod)
+        if (errcod .ne. 0) then
+           call prompt ("Error writing brick")
+           stop
+        endif
+     enddo
+</PRE>
+<HR>
+</P>
+<P>Finally, call the paged routine with a value of 0 in <CODE>'isec'</CODE>:</P>
+<P>
+<HR>
+<PRE>
+        call paged (olun, rhosec, slices, 
+    $        extent(1), extent(2), xyzbrix(1), xyzbrix(2), 0, errcod)
+</PRE>
+<HR>
+</P>
+<P>This flushes the <CODE>slices</CODE> array.</P>
+
+<HR>
+Next
+Previous
+<A HREF="brix.html#toc1">Contents</A>
+</BODY>
+</HTML>

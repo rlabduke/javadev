@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<!--Converted with LaTeX2HTML 96.1 (Feb 5, 1996) by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds -->
+<HTML>
+<HEAD>
+<TITLE>Alwyn Jones' DSN6 Map Format Files</TITLE>
+<META NAME="description" CONTENT="Alwyn Jones' DSN6 Map Format Files">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<LINK REL=STYLESHEET HREF="manual.css">
+</HEAD>
+<BODY LANG="EN">
+ <A NAME="tex2html1822" HREF="node105.html"><IMG WIDTH=37 HEIGHT=24 ALIGN=BOTTOM ALT="next" SRC="../icons/next_motif.gif"></A> <A NAME="tex2html1820" HREF="node98.html"><IMG WIDTH=26 HEIGHT=24 ALIGN=BOTTOM ALT="up" SRC="../icons/up_motif.gif"></A> <A NAME="tex2html1816" HREF="node103.html"><IMG WIDTH=63 HEIGHT=24 ALIGN=BOTTOM ALT="previous" SRC="../icons/previous_motif.gif"></A> <A NAME="tex2html1824" HREF="node1.html"><IMG WIDTH=65 HEIGHT=24 ALIGN=BOTTOM ALT="contents" SRC="../icons/contents_motif.gif"></A> <A NAME="tex2html1825" HREF="node112.html"><IMG WIDTH=43 HEIGHT=24 ALIGN=BOTTOM ALT="index" SRC="../icons/index_motif.gif"></A> <BR>
+<B> Next:</B> <A NAME="tex2html1823" HREF="node105.html">Generating REFI Geometry Files </A>
+<B>Up:</B> <A NAME="tex2html1821" HREF="node98.html">File Formats</A>
+<B> Previous:</B> <A NAME="tex2html1817" HREF="node103.html">Ten Eyck MAP Format </A>
+<BR> <P>
+<H1><A NAME="SECTION001260000000000000000">Alwyn Jones' DSN6 Map Format Files</A></H1>
+<P>
+<A NAME="1257"></A>
+<P>
+The DSN6 map format is designed to allow the rapid location of blocks
+(called bricks in this context) of density for display on a graphics
+system.  The file in binary with a fairly simple structure.
+<P>
+It is composed of a series of records which are all 512
+bytes long.  The first is a header which contains all the information
+required to interpret the rest of the file.  The subsequent bricks contain
+blocks of electron density.  Each density sample is one byte in size.  The
+parameters for mapping real numbers to bytes is stored in the header.  The
+order of the samples within a brick is ``x fast, y medium, and z slow&quot;.
+This means that for the first value of y and z all values of x are written.
+Then y is incremented and all the x values for the new (y,z) pair are
+written.
+<P>
+The order of bricks within the file is the same.  For the first values of
+y and z all the x bricks are written out in order.
+<P>
+The data in the header is composed of 256 integer*2 values, most of which
+are never used.  Those which are are
+<P> <IMG WIDTH=356 HEIGHT=435 ALIGN=BOTTOM ALT="tabular1259" SRC="img97.gif"  > <P>
+<P>
+Any density value is really equal to the value of the byte times 
+<P> <IMG WIDTH=411 HEIGHT=20 ALIGN=BOTTOM ALT="displaymath2005" SRC="img98.gif"  > <P>
+<P>
+The biggest problem with DSN6 files is confusion about byte swapping 
+differences between big and little endian computers. The bytes of the bricks
+present no problem but the header record does.
+<P>
+In the old style of DSN6 file (Frodo days) one would write the bytes
+in the bricks as though they were integer*2.  This would cause them
+to be swapped in the same way as the header record and allowed the general Unix
+command <B>dd</B>, to convert the file from one byte swap to another.
+<P>
+In the new style (O days) the header record is written as though the
+computer is big endian, reguardless of its true endianisity.
+<P>
+<HR><A NAME="tex2html1822" HREF="node105.html"><IMG WIDTH=37 HEIGHT=24 ALIGN=BOTTOM ALT="next" SRC="../icons/next_motif.gif"></A> <A NAME="tex2html1820" HREF="node98.html"><IMG WIDTH=26 HEIGHT=24 ALIGN=BOTTOM ALT="up" SRC="../icons/up_motif.gif"></A> <A NAME="tex2html1816" HREF="node103.html"><IMG WIDTH=63 HEIGHT=24 ALIGN=BOTTOM ALT="previous" SRC="../icons/previous_motif.gif"></A> <A NAME="tex2html1824" HREF="node1.html"><IMG WIDTH=65 HEIGHT=24 ALIGN=BOTTOM ALT="contents" SRC="../icons/contents_motif.gif"></A> <A NAME="tex2html1825" HREF="node112.html"><IMG WIDTH=43 HEIGHT=24 ALIGN=BOTTOM ALT="index" SRC="../icons/index_motif.gif"></A> <BR>
+<B> Next:</B> <A NAME="tex2html1823" HREF="node105.html">Generating REFI Geometry Files </A>
+<B>Up:</B> <A NAME="tex2html1821" HREF="node98.html">File Formats</A>
+<B> Previous:</B> <A NAME="tex2html1817" HREF="node103.html">Ten Eyck MAP Format </A>
+<P><ADDRESS>
+<I>Dale Edwin Tronrud <BR>
+Thu Jul  6 23:24:57 PDT 2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

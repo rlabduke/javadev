@@ -1,0 +1,123 @@
+# InstallAnywhere Localization Information and Mapping File
+#
+# This file provides information for the mappings of localization properties
+#     to the action for which the localization is provided.  This file is meant
+#     to be used in conjunction with the custom_xx files found in the same
+#     directory.
+#
+# Notes on the conventions used in this file:
+#     '+--'  denotes a data object that belongs to another given object (it
+#            defines some portion of the properties of its owner object).  This
+#            data object possesses one or more properties that are localizable
+#     '|--'  denotes a parent-child relationship between two objects (typically,
+#            this relationship is represented visually as a hierarchy or nesting
+#            in the Install task of InstallAnywhere's Advanced Designer)
+#     'NoEP' denotes an object that exists in the tree, but does not possess any
+#            externalizable/localizable properties
+#
+#     The relationships described above can be used to help identify the correct
+#     property to configure an object when working with the custom_xx files.
+#
+# Product Name: KiNG
+# Project File: /Users/ian/javadev/king/installer/king/king.iap_xml
+# Generated:    Thu Jul 29 16:37:22 EDT 2004
+
+
+---- PRE-INSTALL ACTIONS ----
+-- IntroAction.5351b98aa760
+   +-- Help.5351b98ba760
+-- InstallDirAction.5351b991a760
+   +-- Help.5351b992a760
+-- ShortcutLocAction.5351b996a760
+   +-- Help.5351b997a760
+-- InstallSummary.5351b9a4a760
+   +-- Help.5351b9a5a760
+
+
+---- POST-INSTALL ACTIONS ----
+-- InstallFinishAction.5351b9a9a760
+   +-- Help.5351b9aaa760
+-- RebootAction.5351b9aea760 (NoEP)
+
+
+---- EXTERNAL ID TREE ----
+-- Installer.5351b8a1a760
+   +-- Help.5351b8b6a760
+   +-- InstallFrameConfigurator.5351b8e6a760
+   +-- InstallerInfoData.5351b8bfa760
+   |-- InstallSet.5351b976a760
+   |-- InstallBundle.5351b977a760
+   |-- GhostDirectory.5351b966a760 (NoEP)
+   |   |-- InstallDirectory.5351b9b8a760 (NoEP)
+   |   |   |-- InstallUninstaller.5351ba0ca760
+   |   |-- MakeExecutable.5351d34da762
+   |-- GhostDirectory.5351d369a765 (NoEP)
+   |   |-- CreateShortcut.5351d368a765
+   |   |-- CreateShortcut.4186f7408536
+   |-- Billboard.5351b96ea760
+
+
+---- LEGEND ----
+ASCIIFileManipulator                    ==>      Modify Text File - Single File
+ASCIIFileManipulatorZip                 ==>      Modify Text File - In Archive
+Billboard                               ==>      Billboard
+ChooseFile                              ==>      Panel: Choose File
+ChooseFolder                            ==>      Panel: Choose Folder
+ChooseInstallSetAction                  ==>      Panel: Choose Install Sets
+ChooseInstallSetActionConsole           ==>      Console: Choose Install Sets
+ChooseJavaVMAction                      ==>      Panel: Choose Java VM
+ChooseJavaVMActionConsole               ==>      Console: Choose Java VM
+CompareRegExpression                    ==>      Match Regular Expression
+CompareVariable                         ==>      Compare InstallAnywhere Variables
+CreateDialog                            ==>      Panel: Get User Input - Simple
+CreateShortcut                          ==>      Create Alias, Link, Shortcut
+CustomizeBundles                        ==>      Panel: Choose Product Components
+DisplayMessage                          ==>      Panel: Display Message
+DisplayMessageConsole                   ==>      Console: Display Message
+DisplayScrollingMessage                 ==>      Panel: Scrolling Message
+EditEnvironment                         ==>      Set System Environment Variable
+Exec                                    ==>      Execute Command
+FindFileOrFolder                        ==>      Panel: Find File/Folder
+GetPassword                             ==>      Panel: Get Password
+GetPasswordConsole                      ==>      Console: Get Password
+GetUserInput                            ==>      Panel: Get User Input - Advanced
+GetUserInputConsole                     ==>      Console: Get User Input
+ImportantNoteAction                     ==>      Panel: Important Note
+ImportantNoteActionConsole              ==>      Console: Important Note
+InstallBundle                           ==>      Product Feature
+InstallCompleteAction                   ==>      Panel: Install Complete
+InstallCompleteActionConsole            ==>      Console: Install Complete
+InstallDirAction                        ==>      Panel: Choose Install Folder
+InstallDirActionConsole                 ==>      Console: Choose Install Folder
+InstallFailedAction                     ==>      Panel: Install Failed
+InstallFailedActionConsole              ==>      Console: Install Failed
+InstallFinishAction                     ==>      Panel: Install Complete
+InstallPanelAction                      ==>      Panel: Custom Code
+InstallProgressAction                   ==>      Install Progress
+InstallSet                              ==>      Install Set
+InstallSummary                          ==>      Panel: Pre-Install Summary
+InstallSummaryConsole                   ==>      Console: Pre-Install Summary
+InstallUninstaller                      ==>      Create Uninstaller
+IntroAction                             ==>      Panel: Introduction
+IntroActionConsole                      ==>      Console: Introduction
+LaunchDefaultBrowser                    ==>      Launch Default Browser
+LicenseAgrAction                        ==>      Panel: License Agreement
+LicenseAgrActionConsole                 ==>      Console: License Agreement
+MakeExecutable                          ==>      Create LaunchAnywhere for Java Application
+MakeRegEntry                            ==>      Set Windows Registry - Single Entry
+NTServiceController                     ==>      Start, Stop, Pause Windows Service
+PrintToConsole                          ==>      Output Text to Console
+PromptUserConsole                       ==>      Console: Show Message Console 'Dialog'
+ReadyToInstallActionConsole             ==>      Console: Ready To Install
+SetSerialNumber                         ==>      Panel: Get Serial Number
+SetSerialNumberConsole                  ==>      Console: Get Serial Number
+ShortcutLocAction                       ==>      Panel: Choose Alias, Link, Shortcut Folder
+ShortcutLocActionConsole                ==>      Console: Choose Link Folder
+ShowDialogAction                        ==>      Show Message Dialog
+SpeedASCIIFileManipulator               ==>      Modify Text File - Multiple Files
+UninstallAllOrFeaturesAction            ==>      Panel: Uninstall All or Specific Features
+UninstallCompleteAction                 ==>      UninstallCompleteAction
+UninstallCompleteActionConsole          ==>      UninstallCompleteActionConsole
+UninstallIntroAction                    ==>      UninstallIntroAction
+UninstallIntroActionConsole             ==>      Console: Uninstall Introduction
+UninstallProgressAction                 ==>      Uninstall Progress

@@ -1,0 +1,114 @@
+#
+# Sample .king_prefs file
+#
+# This file contains all the settings used by KiNG, and all
+# the parameters are set to their default values. Edit this
+# file as necessary to customize the program's behavior.
+#
+# Any personalized version of this file should live
+# in your home directory, as follows:
+#   Windows         C:\Documents and Settings\USERNAME\.king_prefs
+#   Mac OS X        /Users/USERNAME/.king_prefs
+#   Linux           /home/USERNAME/.king_prefs
+#
+# KiNG stores your preferences in this file when you update
+# them with the Edit | Configure KiNG menu item; however,
+# many parameters can be set in this file that are not configureable
+# from the graphical interface inside of KiNG.
+#
+# KiNG must be restarted for changes to take effect, and only
+# applications (NOT applets in web pages) will be affected.
+#
+# Lines that start with a hash (#) are comments and will be ignored.
+# Comments are NOT preserved by Java when saving preferences.
+#
+
+######################################################################
+### LOOK & FEEL OPTIONS ##############################################
+######################################################################
+
+# Make this larger to increase the size of the fonts in the menus, etc.
+fontMagnification = 1.0
+# Make this larger to decrease picking precision
+pickingRadius = 5
+# Make this larger to increase the size of swatches in the color picker
+colorSwatchSize = 20
+
+# Change these to affect the size of point IDs, labels in the kinemage,
+# XYZ coords, etc. Big/small refers to Display | Big labels.
+# Sizes are in points.
+fontSizeSmall = 12
+fontSizeBig   = 24
+
+# Open the text window behind the main window on startup?
+textOpenOnStart = true
+# Size of the graphics window at startup; 0 means auto-determine
+graphicsWidth  = 0
+graphicsHeight = 0
+
+######################################################################
+### DISPLAY OPTIONS ##################################################
+######################################################################
+
+# Show frame rate in stderr?
+writeFPS = false
+
+# The angle for stereo separation, in degrees.
+# Positive values are wall-eye, negative values are cross-eye.
+stereoAngle = 6.0
+
+# How long to delay between frames when auto-animating, in msec.
+autoAnimateDelay    = 1500
+
+# These parameters control the auto-rock function. Cycle time in msec.
+autoRockDegrees     = 5
+autoRockCycleTime   = 2000
+autoRockCycleSteps  = 20
+
+######################################################################
+### TOOL OPTIONS #####################################################
+######################################################################
+
+# Show the command line every time a remote update runs?
+showHelperCommand   = false
+# Dump standard error from *successful* background runs?
+# (Errors from failed runs are always shown.)
+showHelperErrors    = false
+# Dump standard output from *failed* background runs too?
+showHelperOutput    = false
+# How long can a background job run before being killed? In seconds.
+helperTimeout       = 5
+
+######################################################################
+### TOOL MENU PLACEMENT ##############################################
+######################################################################
+
+king.BasicTool.menuName = <main menu>
+king.EDMapPlugin.menuName = Structural biology
+king.tool.draw.DrawingTool.menuName = Kin editing
+king.tool.draw.SolidObjPlugin.menuName = Kin editing
+king.tool.util.CrossWindowPickTool.menuName = Specialty
+king.tool.util.Dock3On3Tool.menuName = Kin editing
+king.tool.util.DockLsqTool.menuName = Kin editing
+king.tool.util.EditPropertiesTool.menuName = Kin editing
+king.tool.util.MovePointTool.menuName = Kin editing
+king.tool.util.RibbonTool.menuName = Kin editing
+king.tool.util.ViewpointPlugin.menuName = <main menu>
+king.tool.util.SelfUpdatePlugin.menuName = <main menu>
+king.tool.xtal.RNAMapTool.menuName = Specialty
+king.tool.xtal.GuilloTool.menuName = Specialty
+king.tool.xtal.SuiteRotationTool.menuName = Specialty
+king.tool.util.FastaTool.menuName = Specialty
+king.tool.util.RecolorTool.menuName = Kin editing
+
+######################################################################
+### PROTECTION AND CONFIRMATION ######################################
+######################################################################
+
+# Should we check for a new version at kinemage.biochem.duke.edu?
+checkNewVersion = true
+# Should we ask before deleting groups, etc. in the Modify pane?
+treeConfirmDelete = true
+# Should we ask before merging groups, etc. in the Modify pane?
+treeConfirmMerge = true
+

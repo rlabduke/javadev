@@ -1,0 +1,21 @@
+<project name="driftwood.gui" default="main" basedir=".">
+<description>Driftwood GUI libraries</description>
+
+<property name="src"        location="src"/>
+<property name="build"      location="build"/>
+
+<target name="main"  description="Build class files" depends="build"/>
+<target name="build" description="Build class files" depends="init,compile"/>
+
+<target name="init">
+    <mkdir dir="${build}"/>
+</target>
+
+<target name="compile" depends="init">
+    <javac srcdir="${src}"
+           destdir="${build}"
+           includes="driftwood/gui/**/*.java"
+           excludes="**/old/"
+           debug="on" debuglevel="lines,source"/>
+</target>
+</project>
