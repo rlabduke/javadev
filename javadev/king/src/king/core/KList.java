@@ -47,6 +47,7 @@ public class KList extends AGE implements Cloneable
     public float    radius  = 0.2f;     // seems to be default in Mage
     public int      width   = 2;
     public int      flags   = 0;        // nohighlight for balls, style for markers, etc
+    Object          clipMode = null;    // null for default, else some object key
 //}}}
 
 //{{{ Constructor(s)
@@ -141,7 +142,7 @@ public class KList extends AGE implements Cloneable
     { return this.instance; }
 //}}}
 
-//{{{ get/set{Type, Color, Width, Radius, Style}
+//{{{ get/set{Type, Color, Width, Radius, Style, ClipMode}
 //##################################################################################################
     /** Determines the type of points held by this list */
     public String getType()
@@ -180,6 +181,13 @@ public class KList extends AGE implements Cloneable
     { return flags; }
     public void setStyle(int s)
     { flags = s; }
+    
+    /** Gets the clipping mode key for this list. Usually null. See Engine.chooseClipMode(). */
+    public Object getClipMode()
+    { return clipMode; }
+    /** Sets the clipping mode for this list. */
+    public void setClipMode(Object key)
+    { this.clipMode = key; }
 //}}}
 
 //{{{ add, clear
@@ -224,6 +232,8 @@ public class KList extends AGE implements Cloneable
         if(!isOn()) return;
         
         int i, end_i;
+        
+        if(this.clipMode != null) engine.chooseClipMode(this.clipMode); // set alt clipping
 
         // If we're an instance of someone else, transform those points too
         if(instance != null)
@@ -237,6 +247,8 @@ public class KList extends AGE implements Cloneable
         engine.setActingParent(null);
         end_i = children.size();
         for(i = 0; i < end_i; i++) ((KPoint)children.get(i)).signalTransform(engine, xform, engine.zoom3D);
+
+        if(this.clipMode != null) engine.chooseClipMode(null); // reset to default
     }
 //}}}
 

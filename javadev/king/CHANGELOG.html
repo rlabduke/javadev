@@ -3,6 +3,7 @@
 ===  TO DO  ==================================================================
 ==============================================================================
 <!-- Postponed TO DO items {{{ -->
+    Extra clipping planes don't support line shortening
     Separate checkboxes, tree nodes from AGEs
     Include demo/tutorial kinemage ?
     Add paintHighQuality to MarkerPoint
@@ -49,16 +50,18 @@
     use "around x,y,z" for Probe runs
     Look at Pro geometry with Jane
     'space' with (point)masters - what does it mean?
-    Write help HTML for BeanKing
-    Allow editing of nohighlight flag for lists
     Allow multiple clipping planes, indep. front and back?
-    BeanKing: movieUndo (stack; redo movWrFr); movSpin should take +/- degrees
-        Check to make sure movie has been started?
-    kCanvas.getCanvasSize() might not work (first time)
+    Put clip tool in some menu
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 1.37 ###
+- added undo stack to BeanKing movie commands
+- added editing of "nohighlight" flag for lists to GroupEditor
+- added support for multiple, front/back-independent, clipping planes in Engine
+- added variable for clipping mode to KList
 
 ### 1.36 ###
 - masters now have 3 states in kin file: default (auto detect starting state),

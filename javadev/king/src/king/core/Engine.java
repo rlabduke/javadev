@@ -73,6 +73,10 @@ public class Engine //extends ... implements ...
     KList               actingParent    = null; // KList that is parent for each pt as added; null = no change
     // See setActingParent() for a description of the stupid hijinks we're pulling here.
     
+    // Things needed to support multiple clipping planes:
+    double viewClipBack = -1, viewClipFront = 1, viewClipScaling = 1;
+    Map frontClipMap = new HashMap(), backClipMap = new HashMap();
+    
     Font                bigFont, smallFont;
     Rectangle           pickingRect = new Rectangle();
     Rectangle           canvasRect = new Rectangle();
@@ -190,6 +194,7 @@ public class Engine //extends ... implements ...
         // Transform the paintables
         xform3D = create3DTransform(view, bounds);
         xform2D = create2DTransform(bounds);
+        this.chooseClipMode(null); // default to std clipping planes
         subscriber.signalTransform(this, xform3D);
         pickingRect.setBounds(bounds); // save these bounds as the picking region
         
@@ -242,6 +247,7 @@ public class Engine //extends ... implements ...
         size    = Math.min(width, height);
         xOff    = bounds.getX() + width/2.0;
         yOff    = bounds.getY() + height/2.0;
+        this.viewClipScaling = size/2.0;
         
         // Get information from the current view
         double cx, cy, cz, R11, R12, R13, R21, R22, R23, R31, R32, R33;
@@ -261,9 +267,8 @@ public class Engine //extends ... implements ...
             R31         = view.R31;
             R32         = view.R32;
             R33         = view.R33;
-            clipFront   = view.getClip() * size/2.0;
-            clipBack    = -clipFront;
-            clipDepth   = clipFront - clipBack;
+            viewClipFront = view.getClip();
+            viewClipBack = -viewClipFront;
         }
         
         // Build our transform
@@ -279,13 +284,6 @@ public class Engine //extends ... implements ...
             perspDist = 5.0 * size;
             work.likePerspective(perspDist);
                 ret.append(work);
-            // We also have to move clipping planes
-            // because this alters z coords too.
-            // See driftwood.r3.Transform.likePerspective()
-            // for more detailed explanation.
-            clipFront = perspDist*clipFront / (perspDist - clipFront);
-            clipBack  = perspDist*clipBack  / (perspDist - clipBack);
-            clipDepth = clipFront - clipBack;
         }
         work.likeScale(1, -1, 1);                                           // invert Y axis
             ret.append(work);
@@ -345,6 +343,57 @@ public class Engine //extends ... implements ...
     public void setActingParent(KList pnt)
     {
         this.actingParent = pnt;
+    }
+//}}}
+
+//{{{ chooseClipMode, putClipMode
+//##################################################################################################
+    /**
+    * Enables an arbitrary number of clipping planes (all normal to the line of sight)
+    * to be used for clipping various parts of the kinemage.
+    * @param key    a unique identifier for this set of planes (e.g. new Object())
+    * @param front  the front clipping plane, in view units (positive)
+    * @param back   the back clipping plane, in view units (negative)
+    */
+    public void putClipMode(Object key, double front, double back)
+    {
+        if(key == null) return;
+        frontClipMap.put(key, new Double(front));
+        backClipMap.put(key, new Double(back));
+    }
+    
+    /**
+    * Selects a clipping mode based on the key used for putClipMode().
+    * A null key selects the default (KingView) clipping planes.
+    */
+    public void chooseClipMode(Object key)
+    {
+        this.clipFront  = this.viewClipFront;
+        this.clipBack   = this.viewClipBack;
+        
+        if(key != null)
+        {
+            Double d = (Double) frontClipMap.get(key);
+            if(d != null) this.clipFront = d.doubleValue();
+            d = (Double) backClipMap.get(key);
+            if(d != null) this.clipBack = d.doubleValue();
+        }
+        
+        // Convert from KingView units to pixel units
+        this.clipFront  *= viewClipScaling;
+        this.clipBack   *= viewClipScaling;
+        
+        if(usePerspective)
+        {
+            // We also have to move clipping planes
+            // because this alters z coords too.
+            // See driftwood.r3.Transform.likePerspective()
+            // for more detailed explanation.
+            clipFront = perspDist*clipFront / (perspDist - clipFront);
+            clipBack  = perspDist*clipBack  / (perspDist - clipBack);
+        }
+        
+        this.clipDepth  = clipFront - clipBack;
     }
 //}}}
 
