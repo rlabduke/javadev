@@ -8,7 +8,7 @@ import driftwood.isosurface.*;
 import driftwood.r3.*;
 //}}}
 /**
- * <code>RNAPolygonTracker</code> takes in a KList of points and
+ * <code>PolygonFinder</code> takes in a KList of points and
  * sorts the KList into polyhedra, based on the connectedness 
  * of the points.  It stores the polyhedra in a hashset, allowing the
  * polyhedra to be efficiently retrieved and used (e.g. for highlighting a 
@@ -18,7 +18,7 @@ import driftwood.r3.*;
  * 
  **/
 
-public class RNAPolygonTracker {
+public class PolygonFinder {
 
 //{{{ Variable Definitions
 //################################################
@@ -34,7 +34,7 @@ public class RNAPolygonTracker {
      * Constructor
      **/
 
-    public RNAPolygonTracker() {
+    public PolygonFinder() {
 	hMap = new HashMap();
 	polyMap = new HashMap();
     }
@@ -150,6 +150,7 @@ public class RNAPolygonTracker {
 	pointClone.setOrigZ((float) pointOrg.getOrigZ());
 	return pointClone;
     }
+//}}}
 
 //((( finishMap
 //###############################################################
@@ -162,7 +163,7 @@ public class RNAPolygonTracker {
  * 
  * @param trackedList   the KList to be sorted.
  **/
-    public void finishMap(KList trackedList) {
+    private void finishMap(KList trackedList) {
 	HashSet shapeSet = new HashSet();
 	KList shapeList = new KList();
 	VectorPoint listPoint;
@@ -189,6 +190,7 @@ public class RNAPolygonTracker {
 	    shapeSet = (HashSet) hMap.get(listPoint); // Use point to get the Hashset it's in.
 	    shapeList = (KList) polyMap.get(shapeSet); // Use Hashset to look up KList for the point.
 	    shapeList.add(listPoint); // Add point to KList.
+	    listPoint.setOwner(shapeList);
 	}
 	initialized = true;
 	System.out.println("Polyhedra stored");
@@ -209,6 +211,7 @@ public class RNAPolygonTracker {
 	VectorPoint changePoint;
 	HashSet shapeSet = (HashSet) hMap.get((VectorPoint) listPoint);
 	KList polyList = (KList) polyMap.get(shapeSet);
+	System.out.println("Polyhedra gotten");
 	return polyList;
     }
 //}}}
