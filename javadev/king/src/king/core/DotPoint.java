@@ -20,7 +20,7 @@ import java.util.*;
 * <p>Copyright (C) 2002-2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Oct  2 12:57:57 EDT 2002
 */
-public class DotPoint extends KPoint // implements ...
+public class DotPoint extends AbstractPoint // implements ...
 {
 //{{{ Constants
 //}}}

@@ -243,7 +243,7 @@ public class KinWriter //extends ... implements ...
         if(pointID.equals(lastPointID)) out.print("{\"}");
         else                            out.print("{"+pointID+"}");
         
-        if(point.pm_mask != 0)          out.print("'"+kin.fromPmBitmask(point.pm_mask)+"' ");
+        if(point.getPmMask() != 0)      out.print("'"+kin.fromPmBitmask(point.getPmMask())+"' ");
         if(point.getAspects() != null)  out.print("("+point.getAspects()+") ");
         if(point.isBreak())             out.print("P ");
         if(point.isUnpickable())        out.print("U ");

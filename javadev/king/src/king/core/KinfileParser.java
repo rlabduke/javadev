@@ -584,9 +584,9 @@ public class KinfileParser //extends ... implements ...
             }
             else if(token.isNumber())
             {
-                     if(coordsFound == 0)   point.x0 = token.getFloat();
-                else if(coordsFound == 1)   point.y0 = token.getFloat();
-                else if(coordsFound == 2)   point.z0 = token.getFloat();
+                     if(coordsFound == 0)   point.setX(token.getFloat());
+                else if(coordsFound == 1)   point.setY(token.getFloat());
+                else if(coordsFound == 2)   point.setZ(token.getFloat());
                 coordsFound++;
             }
             else if(token.isAspect())       point.setAspects(token.getString());

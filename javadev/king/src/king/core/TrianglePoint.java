@@ -17,7 +17,7 @@ import driftwood.r3.*;
 * <p>Begun on Mon Jun 24 21:09:57 EDT 2002
 * <br>Copyright (C) 2002-2003 by Ian W. Davis. All rights reserved.
 */
-public class TrianglePoint extends KPoint // implements ...
+public class TrianglePoint extends AbstractPoint // implements ...
 {
 //{{{ Static fields
     /** This bit is set if the point is followed by an 'L' or a 'D'; this triangle takes its normal from previous one */

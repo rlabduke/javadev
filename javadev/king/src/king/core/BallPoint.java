@@ -20,7 +20,7 @@ import driftwood.r3.*;
 * <p>Begun on Sat Apr 27 11:02:02 EDT 2002
 * <br>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
 */
-public class BallPoint extends KPoint // implements ...
+public class BallPoint extends AbstractPoint // implements ...
 {
 //{{{ Constants
 //}}}

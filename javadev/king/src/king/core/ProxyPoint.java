@@ -2,109 +2,113 @@
 //{{{ Package, imports
 package king.core;
 
-import java.awt.*;
+//import java.awt.*;
 //import java.awt.event.*;
 import java.io.*;
-//import java.net.*;
-//import java.text.*;
+import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
-import javax.swing.*;
+//import javax.swing.*;
 import driftwood.r3.*;
 //}}}
 /**
-* <code>KPoint</code> is a generic, non-instantiable representation of a 'point' in a kinemage.
-* This class and its subclasses contain the code for drawing all the different graphics primitives in Mage.
+* <code>ProxyPoint</code> implements all the functions of KPoint by delegating
+* them to another KPoint.
 *
-* <p>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
-* <br>Begun on Wed Oct  2 12:57:57 EDT 2002
+* <p>Copyright (C) 2004 by Ian W. Davis. All rights reserved.
+* <br>Begun on Mon Oct 18 09:33:32 EDT 2004
 */
-public interface KPoint extends AHE, Cloneable, MutableTuple3
+public class ProxyPoint implements KPoint
 {
 //{{{ Constants
-    // Bit allocation for 'multi':
-    //   kngpt  points  future  color (no longer used)
-    // skkkkkkkppppppppffffffffcccccccc
-    
-    /** A mask for isolating the color bits using AND */
-    //public static final int COLOR_MASK      = 0x000000ff;
-    /** If this bit is set, the point is 'live' and should be painted */
-    public static final int ON_BIT          = 0x40000000;
-    /** If this bit is set, the point will not be picked by a mouse click */
-    public static final int UNPICKABLE      = 0x20000000;
-    /** Used by e.g. TrianglePoints to tell whose normal to in lighting effects */
-    public static final int SEQ_EVEN_BIT    = 0x10000000;
-    /** A flag used by Mage only; point is visible but not written to PDB output. */
-    public static final int GHOST_BIT       = 0x08000000;
+//}}}
+
+//{{{ Variable definitions
+//##############################################################################
+    KPoint      proxyFor;
+//}}}
+
+//{{{ Constructor(s)
+//##############################################################################
+    public ProxyPoint(KPoint proxyFor)
+    {
+        super();
+        this.proxyFor   = proxyFor;
+    }
+//}}}
+
+//{{{ empty_code_segment
+//##############################################################################
 //}}}
 
 //{{{ clone
 //##################################################################################################
-    public Object clone();
+    public Object clone() { return proxyFor.clone(); }
 //}}}
 
 //{{{ get/setOrigX/Y/Z
 //##################################################################################################
     /** Returns the untransformed coordinate for this point.
     * @deprecated In favor of getX(). */
-    public float getOrigX();
+    public float getOrigX() { return proxyFor.getOrigX(); }
     /** Returns the untransformed coordinate for this point.
     * @deprecated In favor of getY(). */
-    public float getOrigY();
+    public float getOrigY() { return proxyFor.getOrigY(); }
     /** Returns the untransformed coordinate for this point.
     * @deprecated In favor of getZ). */
-    public float getOrigZ();
+    public float getOrigZ() { return proxyFor.getOrigZ(); }
 
     /** Assigns a value to the untransformed coordinate for this point.
     * @deprecated In favor of setX(). */
-    public void setOrigX(double xx);
+    public void setOrigX(double xx) { proxyFor.setOrigX(xx); }
     /** Assigns a value to the untransformed coordinate for this point.
     * @deprecated In favor of setY(). */
-    public void setOrigY(double yy);
+    public void setOrigY(double yy) { proxyFor.setOrigY(yy); }
     /** Assigns a value to the untransformed coordinate for this point.
     * @deprecated In favor of setZ(). */
-    public void setOrigZ(double zz);
+    public void setOrigZ(double zz) { proxyFor.setOrigZ(zz); }
     /** Assigns a value to the untransformed coordinates for this point.
     * @deprecated In favor of setXYZ(). */
-    public void setOrigXYZ(Tuple3 t);
+    public void setOrigXYZ(Tuple3 t) { proxyFor.setOrigXYZ(t); }
 //}}}
 
 //{{{ get/setX/Y/Z
 //##################################################################################################
     /** Returns the untransformed coordinate for this point */
-    public double getX();
+    public double getX() { return proxyFor.getX(); }
     /** Returns the untransformed coordinate for this point */
-    public double getY();
+    public double getY() { return proxyFor.getY(); }
     /** Returns the untransformed coordinate for this point */
-    public double getZ();
+    public double getZ() { return proxyFor.getZ(); }
 
     /** Assigns a value to the untransformed coordinate for this point */
-    public void setX(double xx);
+    public void setX(double xx) { proxyFor.setX(xx); }
     /** Assigns a value to the untransformed coordinate for this point */
-    public void setY(double yy);
+    public void setY(double yy) { proxyFor.setY(yy); }
     /** Assigns a value to the untransformed coordinate for this point */
-    public void setZ(double zz);
+    public void setZ(double zz) { proxyFor.setZ(zz); }
     /** Assigns a value to the untransformed coordinates for this point */
-    public void setXYZ(double xx, double yy, double zz);
+    public void setXYZ(double xx, double yy, double zz) { proxyFor.setXYZ(xx, yy, zz); }
 //}}}
 
 //{{{ get/setDrawX/Y/Z
 //##################################################################################################
     /** Returns the fully transformed (drawing) coordinate for this point */
-    public float getDrawX();
+    public float getDrawX() { return proxyFor.getDrawX(); }
     /** Returns the fully transformed (drawing) coordinate for this point */
-    public float getDrawY();
+    public float getDrawY() { return proxyFor.getDrawY(); }
     /** Returns the fully transformed (drawing) coordinate for this point */
-    public float getDrawZ();
+    public float getDrawZ() { return proxyFor.getDrawZ(); }
 
     /** Assigns a value to the fully transformed (drawing) coordinate for this point */
-    public void setDrawX(double xx);
+    public void setDrawX(double xx) { proxyFor.setDrawX(xx); }
     /** Assigns a value to the fully transformed (drawing) coordinate for this point */
-    public void setDrawY(double yy);
+    public void setDrawY(double yy) { proxyFor.setDrawY(yy); }
     /** Assigns a value to the fully transformed (drawing) coordinate for this point */
-    public void setDrawZ(double zz);
+    public void setDrawZ(double zz) { proxyFor.setDrawZ(zz); }
     /** Assigns a value to the fully transformed (drawing) coordinates for this point */
-    public void setDrawXYZ(Tuple3 t);
+    public void setDrawXYZ(Tuple3 t) { proxyFor.setDrawXYZ(t); }
 //}}}
 
 //{{{ get/setPrev, isBreak
@@ -115,56 +119,61 @@ public interface KPoint extends AHE, Cloneable, MutableTuple3
     * For other points, it does nothing.
     * @param pt the point preceding this one in seqence
     */
-    public void setPrev(KPoint pt);
+    public void setPrev(KPoint pt) { proxyFor.setPrev(pt); }
     
     /**
     * Gets the point preceding this one in the chain.
     * @return the preceding point, or null if (a) this is a break in the chain or (b) this is not a chainable point type.
     */
-    public KPoint getPrev();
+    public KPoint getPrev() { return proxyFor.getPrev(); }
     
     /**
     * True iff this is a chainable point type (e.g. vector, triangle) AND there is a chain break.
     */
-    public boolean isBreak();
+    public boolean isBreak() { return proxyFor.isBreak(); }
 //}}}
 
 //{{{ is/get/set{On, Unpickable, Ghost, Color, Aspects, Width}
 //##################################################################################################
+    /** Indicates whether this element will paint itself, given the chance */
+    public boolean isOn() { return proxyFor.isOn(); }
+    /** Sets the painting status of this element */
+    public void setOn(boolean paint) { proxyFor.setOn(paint); }
+    
     /** Indicates whether this point can be picked with the mouse */
-    public boolean isUnpickable();
+    public boolean isUnpickable() { return proxyFor.isUnpickable(); }
     /** Sets the picking status of this point */
-    public void setUnpickable(boolean b);
+    public void setUnpickable(boolean b) { proxyFor.setUnpickable(b); }
 
     /** Indicates whether this point is a "ghost" for Mage */
-    public boolean isGhost();
+    public boolean isGhost() { return proxyFor.isGhost(); }
     /** Sets the ghost status of this point */
-    public void setGhost(boolean b);
+    public void setGhost(boolean b) { proxyFor.setGhost(b); }
 
     /** Returns the color of this point, or null if it inherits from its list */
-    public KPaint getColor();
+    public KPaint getColor() { return proxyFor.getColor(); }
     /** Sets the color of this point. */
-    public void setColor(KPaint c);
+    public void setColor(KPaint c) { proxyFor.setColor(c); }
     /** Gets the aspect string of this point */
-    public String getAspects();
+    public String getAspects() { return proxyFor.getAspects(); }
     /** Sets the aspect string of this point */
-    public void setAspects(String a);
+    public void setAspects(String a) { proxyFor.setAspects(a); }
     
     /** Gets the line width of this point, if applicable */
-    public int getWidth();
+    public int getWidth() { return proxyFor.getWidth(); }
     /** Sets the line width of this point, if applicable */
-    public void setWidth(int w);
+    public void setWidth(int w) { proxyFor.setWidth(w); }
     /** Sets the radius of this point, if applicable */
-    public void setRadius(float radius);
+    public void setRadius(float radius) { proxyFor.setRadius(radius); }
 //}}}
 
 //{{{ getDrawingColor
 //##################################################################################################
     /** Returns the color that will be used to draw this point (ignoring aspects). Never null. */
-    public KPaint getDrawingColor();
+    public KPaint getDrawingColor() { return proxyFor.getDrawingColor(); }
 
     /** Returns the color that will be used to draw this point, taking aspects into account. Never null. */
-    public KPaint getDrawingColor(Engine engine);
+    public KPaint getDrawingColor(Engine engine) { return proxyFor.getDrawingColor(engine); }
 //}}}
 
 //{{{ pmHit, pmWouldHit, get/setPmMask
@@ -176,19 +185,36 @@ public interface KPoint extends AHE, Cloneable, MutableTuple3
     * @param turnon <code>true</code> if affected points are to be turned on,
     *               <code>false</code> if affected points are to be turned off.
     */
-    public void pmHit(int mask, int offmask, boolean turnon);
+    public void pmHit(int mask, int offmask, boolean turnon) { proxyFor.pmHit(mask, offmask, turnon); }
     
     /** Indicates whether or not the given pointmaster set would affect this point. */
-    public boolean pmWouldHit(int mask);
+    public boolean pmWouldHit(int mask) { return proxyFor.pmWouldHit(mask); }
     
-    public int getPmMask();
+    public int getPmMask() { return proxyFor.getPmMask(); }
     
-    public void setPmMask(int mask);
+    public void setPmMask(int mask) { proxyFor.setPmMask(mask); }
+//}}}
+    
+//{{{ calcBoundingBox, calcRadiusSq
+//##################################################################################################
+    /**
+    * Gets a bounding box for the current model.
+    * @param bound the first 6 elements get set to { minX, minY, minZ, maxX, maxY, maxZ }.
+    * Should be called with { +inf, +inf, +inf, -inf, -inf, -inf }
+    */
+    public void calcBoundingBox(float[] bound) { proxyFor.calcBoundingBox(bound); }
+
+    /**
+    * Gets the square of the radius of this model from the specified center.
+    * @param center an array with the x, y,  and z coordinates of the center
+    * @return the square of the radius of this element, centered at center
+    */
+    public float calcRadiusSq(float[] center) { return proxyFor.calcRadiusSq(center); }
 //}}}
     
 //{{{ signalTransform
 //##################################################################################################
-    public void signalTransform(Engine engine, Transform xform);
+    public void signalTransform(Engine engine, Transform xform) { proxyFor.signalTransform(engine, xform); }
 
     /**
     * A call to this method indicates the subscriber
@@ -207,7 +233,7 @@ public interface KPoint extends AHE, Cloneable, MutableTuple3
     * @param zoom       the zoom factor encoded by the Transform,
     *   as a convenience for resizing things.
     */
-    public void signalTransform(Engine engine, Transform xform, double zoom);
+    public void signalTransform(Engine engine, Transform xform, double zoom) { proxyFor.signalTransform(engine, xform, zoom); }
 //}}}
 
 //{{{ paintStandard, isPickedBy
@@ -216,7 +242,7 @@ public interface KPoint extends AHE, Cloneable, MutableTuple3
     * Renders this Paintable to the specified graphics surface,
     * using the display settings from engine.
     */
-    public void paintStandard(Engine engine);
+    public void paintStandard(Engine engine) { proxyFor.paintStandard(engine); }
 
     /**
     * Returns true if the specified pick hits this point, else returns false
@@ -226,11 +252,37 @@ public interface KPoint extends AHE, Cloneable, MutableTuple3
     * @return the KPoint that should be counted as being picked, or null for none.
     *   Usually <code>this</code>, but maybe not for object picking.
     */
-    public KPoint isPickedBy(float xx, float yy, float radius, boolean objPick);
+    public KPoint isPickedBy(float xx, float yy, float radius, boolean objPick) { return proxyFor.isPickedBy(xx, yy, radius, objPick); }
 //}}}
 
-//{{{ empty_code_segment
+//{{{ get/setName, get/setOwner, toString
 //##################################################################################################
+    /** Gets the name of this element */
+    public String getName() { return proxyFor.getName(); }
+    /** Sets the name of this element */
+    public void setName(String nm) { proxyFor.setName(nm); }
+
+    /** Determines the owner (parent) of this element */
+    public AGE getOwner() { return proxyFor.getOwner(); }
+    /** Establishes the owner (parent) of this element */
+    public void setOwner(AGE owner) { proxyFor.setOwner(owner); }
+    
+    /** Gets the name of this element (same as <code>getName()</code>*/
+    public String toString() { return proxyFor.toString(); }
+//}}}
+
+//{{{ getKinemage
+//##################################################################################################
+    /** Retrieves the Kinemage object holding this element, or null if none. */
+    public Kinemage getKinemage() { return proxyFor.getKinemage(); }
+//}}}
+
+//{{{ isVisible, isTotallyOn
+//##################################################################################################
+    /** Indicates whether this element will actually be painted (i.e., is it and all its parents on?) */
+    public boolean isVisible() { return proxyFor.isVisible(); }
+    /** Returns true iff this element is On, it's owner is On, it's owner's owner is On, and so on */
+    public boolean isTotallyOn() { return proxyFor.isTotallyOn(); }
 //}}}
 }//class
 
