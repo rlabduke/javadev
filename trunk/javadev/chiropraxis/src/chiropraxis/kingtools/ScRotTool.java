@@ -71,7 +71,7 @@ public class ScRotTool extends ModelingTool
             targetRes = this.getResidueNearest(modelman.getModel(), state,
                 p.getOrigX(), p.getOrigY(), p.getOrigZ());
             try {
-                new SidechainRotator(kMain.getTopWindow(), targetRes, modelman);
+                new SidechainRotator(kMain, targetRes, modelman);
             } catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
         }
     }
