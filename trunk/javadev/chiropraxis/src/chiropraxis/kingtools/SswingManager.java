@@ -23,15 +23,15 @@ import driftwood.r3.*;
 import driftwood.util.SoftLog;
 //}}}
 /**
-* <code>ModelManager2</code> is a plugin that manages a macromolecular
+* <code>SswingManager</code> is a plugin that manages a macromolecular
 * model for use by other tools that would like to update it.
 * It takes care of drawing the new model to the graphics, controlling
 * updates, and writing out the modified portions.
 *
-* <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
-* <br>Begun on Thu Mar 20 16:12:43 EST 2003
+* <p>Copyright (C) 2004 by Shuren Wang. All rights reserved.
+* <br>Begun on Thu July 20 16:12:43 EST 2004
 */
-public class ModelManager2 extends Plugin
+public class SswingManager extends Plugin
 {
 //{{{ Constants
 //}}}
@@ -45,20 +45,20 @@ public class ModelManager2 extends Plugin
         ModelState  state;
         /** A cache for a PDB representation of state */
         File        asPDB;
-        
+
         public ModelStatePair(Model m, ModelState s)
         {
             model = m;
             state = s;
             asPDB = null;
         }
-        
+
         public Model getModel()
         { return model; }
-        
+
         public ModelState getState()
         { return state; }
-        
+
         public File getPDB()
         {
             if(asPDB == null)
@@ -84,32 +84,34 @@ public class ModelManager2 extends Plugin
     Model                   srcmodel    = null;
     ModelState              srcstate    = null;
     FastModelOpen           fastModelOpen;
-    
+
     LinkedList              stateList   = null; // Stack<ModelStatePair>
     ModelState              moltenState = null;
     File                    moltenPDB   = null;
-    
+
     Collection              registeredTools;
     Map                     moltenRes;          // Map<Tool, Collection<Residue>>
     Set                     allMoltenRes;
-    
-    BgKinRunner             probePlotter    = null;
 
-    File                    noeFile         = null;
-    String                  noeFormat       = "xplor";
-    NoePanel                noePanel;
-    ExpectedNoePanel        expNoePanel;
-    
-    SuffixFileFilter        pdbFilter, mapFilter, rotFilter, noeFilter;
-    JFileChooser            openChooser, mapChooser, saveChooser, noeChooser;
+    BgKinRunner             probePlotter    = null;
+    SswingRunner            sswingPlotter   = null;
+
+    SuffixFileFilter        pdbFilter, mapFilter, rotFilter;
+    JFileChooser            openChooser, mapChooser, saveChooser;
     JCheckBox               cbUseSegID;
     boolean                 changedSinceSave = false;
     JDialog                 dialog;
     JLabel                  lblFileName;
     JLabel                  lblNumMolten;
     JMenuItem               miUndo;
-    JCheckBox               cbShowProbe, cbShowNOEs, cbShowExpNOEs;
-    AttentiveTextField      tfProbeCmd;
+    JCheckBox               cbShowProbe, cbShowSswing;
+    AttentiveTextField      tfProbeCmd, tfSswingCmd;
+
+    String                  pdbFileName="";
+    String                  densityFileName="";
+    boolean                 sswingRunning= true;
+
+
 //}}}
 
 //{{{ Constructor(s)
@@ -117,15 +119,15 @@ public class ModelManager2 extends Plugin
     /**
     * Constructor
     */
-    public ModelManager2(ToolBox tb)
+    public SswingManager(ToolBox tb)
     {
         super(tb);
-        
+
         stateList       = new LinkedList();
         registeredTools = new ArrayList();
         moltenRes       = new HashMap();
         allMoltenRes    = new HashSet();
-        
+
         buildFileChoosers();
         buildDialog();
     }
@@ -142,12 +144,7 @@ public class ModelManager2 extends Plugin
         mapFilter.addSuffix(".ccp4");
         rotFilter = new SuffixFileFilter("Rotated-coordinate files");
         rotFilter.addSuffix(".rot");
-        noeFilter = new SuffixFileFilter("NOE files");
-        noeFilter.addSuffix(".noe");
-        noeFilter.addSuffix(".tbl");    // xplor
-        noeFilter.addSuffix(".list");   // aria
-        noeFilter.addSuffix(".upl");    // dyana
-        
+
         String currdir = System.getProperty("user.dir");
 
         openChooser = new JFileChooser();
@@ -166,11 +163,6 @@ public class ModelManager2 extends Plugin
         saveChooser = new JFileChooser();
         //XXX-??? saveChooser.addChoosableFileFilter(rotFilter);
         saveChooser.setFileFilter(rotFilter);
-        
-        noeChooser = new JFileChooser();
-        noeChooser.addChoosableFileFilter(noeFilter);
-        noeChooser.setFileFilter(noeFilter);
-        if(currdir != null) noeChooser.setCurrentDirectory(new File(currdir));
     }
 //}}}
 
@@ -181,7 +173,7 @@ public class ModelManager2 extends Plugin
         lblFileName         = new JLabel();
         lblNumMolten        = new JLabel();
         Action visUpdate = new ReflectiveAction("Update visualizations", null, this, "onUpdateVis");
-        
+
         cbShowProbe = new JCheckBox("Probe dots", false);
         cbShowProbe.addActionListener(visUpdate);
         tfProbeCmd = new AttentiveTextField("", 25);
@@ -190,55 +182,36 @@ public class ModelManager2 extends Plugin
         probeBox.setAutoPack(true);
         probeBox.setIndent(10);
 
-        cbShowNOEs = new JCheckBox("NOEs", false);
-        cbShowNOEs.addActionListener(visUpdate);
-        noePanel = new NoePanel(kMain, this);
-        FoldingBox noeBox = new FoldingBox(cbShowNOEs, noePanel);
-        noeBox.setAutoPack(true);
-        noeBox.setIndent(10);
+        cbShowSswing = new JCheckBox("Sswing", false);
+        cbShowSswing.addActionListener(visUpdate);
+        tfSswingCmd = new AttentiveTextField("", 25);
+        tfSswingCmd.addActionListener(new ReflectiveAction("edit-sswing-cmd", null, this, "onEditSswingCmd"));
+        FoldingBox sswingBox = new FoldingBox(cbShowSswing, tfSswingCmd);
+        sswingBox.setAutoPack(true);
+        sswingBox.setIndent(10);
 
-        cbShowExpNOEs = new JCheckBox("Expected NOEs", false);
-        cbShowExpNOEs.addActionListener(visUpdate);
-        expNoePanel = new ExpectedNoePanel(kMain, this);
-        FoldingBox expNoeBox = new FoldingBox(cbShowExpNOEs, expNoePanel);
-        expNoeBox.setAutoPack(true);
-        expNoeBox.setIndent(10);
-        
-        JCheckBox cbFastOpen = new JCheckBox("Fast model open", false);
-        fastModelOpen = new FastModelOpen(this);
-        //fastModelOpen.list.setVisibleRowCount(-1);
-        //fastModelOpen.list.setLayoutOrientation(JList.VERTICAL_WRAP);
-        FoldingBox fbFastOpen = new FoldingBox(cbFastOpen, new JScrollPane(fastModelOpen.list));
-        fbFastOpen.setAutoPack(true);
-        fbFastOpen.setIndent(10);
-        
         TablePane cp = new TablePane();
         cp.insets(2).weights(1,0.1);
         cp.addCell(lblFileName);
         cp.newRow();
         cp.addCell(lblNumMolten);
         cp.newRow();
-        cp.addCell(cbFastOpen);
-        cp.newRow();
-        cp.save().hfill(true).vfill(true).weights(1,1).addCell(fbFastOpen).restore();
         cp.newRow().addCell(cp.strut(0,2)).newRow(); //spacer
         cp.addCell(cbShowProbe);
         cp.newRow();
         cp.save().hfill(true).vfill(true).addCell(probeBox).restore();
         cp.newRow();
-        cp.addCell(cbShowNOEs);
+
+        cp.addCell(cbShowSswing);
         cp.newRow();
-        cp.save().hfill(true).vfill(true).addCell(noeBox).restore();
+        cp.addCell(sswingBox);
         cp.newRow();
-        cp.addCell(cbShowExpNOEs);
-        cp.newRow();
-        cp.save().hfill(true).vfill(true).addCell(expNoeBox).restore();
-        
+
         dialog = new JDialog(kMain.getTopWindow(), this.toString(), false); // not modal
         dialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
         dialog.setContentPane(cp);
         dialog.setJMenuBar(buildMenus());
-        
+
         refreshGUI();
     }
 //}}}
@@ -250,7 +223,7 @@ public class ModelManager2 extends Plugin
         JMenuBar menubar = new JMenuBar();
         JMenu menu, submenu;
         JMenuItem item;
-        
+
         menu = new JMenu("File");
         menu.setMnemonic(KeyEvent.VK_F);
         menubar.add(menu);
@@ -258,15 +231,14 @@ public class ModelManager2 extends Plugin
         item.setMnemonic(KeyEvent.VK_O);
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, UIMenus.MENU_ACCEL_MASK));
         menubar.add(menu);
-        item = new JMenuItem(new ReflectiveAction("Open NOE file...", null, this, "onOpenNOE"));
-        item.setMnemonic(KeyEvent.VK_N);
-        //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, UIMenus.MENU_ACCEL_MASK));
+        item = new JMenuItem(new ReflectiveAction("Open Map file...", null, this, "onOpenMap"));
+        item.setMnemonic(KeyEvent.VK_M);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, UIMenus.MENU_ACCEL_MASK));
         menu.add(item);
         item = new JMenuItem(new ReflectiveAction("Save PDB file...", null, this, "onSaveFullPDB"));
         item.setMnemonic(KeyEvent.VK_S);
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, UIMenus.MENU_ACCEL_MASK));
         menu.add(item);
-        
         menu = new JMenu("Edit");
         menu.setMnemonic(KeyEvent.VK_E);
         menubar.add(menu);
@@ -274,12 +246,11 @@ public class ModelManager2 extends Plugin
         item.setMnemonic(KeyEvent.VK_U);
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, UIMenus.MENU_ACCEL_MASK));
         menu.add(item);
-
         menu = new JMenu("Help");
         menu.setMnemonic(KeyEvent.VK_H);
         menubar.add(menu);
         menu.add(this.getHelpMenuItem());
-        
+
         return menubar;
     }
 //}}}
@@ -293,18 +264,14 @@ public class ModelManager2 extends Plugin
         else                lblFileName.setText("File not loaded");
         lblNumMolten.setText("Residues checked out: "+allMoltenRes.size());
         miUndo.setEnabled( stateList.size() > 1 );
-        
-        cbShowNOEs.setEnabled( noeFile != null );
-        //cbShowExpNOEs.setEnabled( noeFile != null );
-        expNoePanel.refreshGUI();
-        
+
         dialog.pack();
     }
-    
+
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onUpdateVis(ActionEvent ev)
     {
-        
+
         if(ev != null)
         {
             // If dots were just turned on/off, turn them on/off in the display, too.
@@ -313,24 +280,46 @@ public class ModelManager2 extends Plugin
                 this.getProbePlotter().setLastGroupOn(cbShowProbe.isSelected());
                 kCanvas.repaint();
             }
-            // If NOEs were just turned on/off, turn them on/off in the display, too.
-            if(ev.getSource() == cbShowNOEs)
+            // If sswing
+            if(ev.getSource() == cbShowSswing)
             {
-                noePanel.getNoePlotter().setLastGroupOn(cbShowNOEs.isSelected());
-                kCanvas.repaint();
+//               this.getSswingPlotter().setLastGroupOn(cbShowSswing.isSelected());
+//               kCanvas.repaint();
             }
-            // If expected NOEs were just turned on/off, turn them on/off in the display, too.
-            if(ev.getSource() == cbShowExpNOEs)
-            {
-                expNoePanel.getNoePlotter().setLastGroupOn(cbShowExpNOEs.isSelected());
-                kCanvas.repaint();
-            }
-        }
-        
+         }
+
         refreshGUI();
         requestStateRefresh();
     }
 //}}}
+
+//{{{ onOpenMap
+//##################################################################################################
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onOpenMap(ActionEvent ev)
+    {
+
+        // Open the new file
+        if(JFileChooser.APPROVE_OPTION == mapChooser.showOpenDialog(kMain.getTopWindow()))
+        {
+//            try
+//            {
+                File f = mapChooser.getSelectedFile();
+                if(f != null && f.exists()){
+                    densityFileName=f.getName();
+                }
+//            }
+//            catch(IOException ex)
+//            {
+//                JOptionPane.showMessageDialog(kMain.getTopWindow(),
+//                    "An I/O error occurred while loading the file:\n"+ex.getMessage(),
+//                    "Sorry!", JOptionPane.ERROR_MESSAGE);
+//                ex.printStackTrace(SoftLog.err);
+//            }
+        }
+    }
+//}}}
+
 
 //{{{ onOpenPDB
 //##################################################################################################
@@ -345,10 +334,10 @@ public class ModelManager2 extends Plugin
                 "Sorry!", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         // Ask about saving the old one (if it's been modified)
         askSavePDB();
-        
+
         // If a @pdbfile was specified, try to pre-select that
         // TODO-XXX: this assumes kin was opened from current dir!
         Kinemage kin = kMain.getKinemage();
@@ -357,16 +346,18 @@ public class ModelManager2 extends Plugin
             // Done once, at create time
             //String currdir = System.getProperty("user.dir");
             //if(currdir != null) openChooser.setCurrentDirectory(new File(currdir));
-            
+
             File f = new File(kin.atPdbfile);
             if(f.exists())
             {
                 // setSelectedFile() doesn't do this prior to 1.4.1
                 openChooser.setCurrentDirectory(f);
                 openChooser.setSelectedFile(f);
+                // get pdbfile name for sswing command line
+                pdbFileName=f.getName();
             }
         }
-        
+
         // Open the new file
         if(JFileChooser.APPROVE_OPTION == openChooser.showOpenDialog(kMain.getTopWindow()))
         {
@@ -375,6 +366,7 @@ public class ModelManager2 extends Plugin
                 File f = openChooser.getSelectedFile();
                 if(f != null && f.exists()){
                     openPDB(f);
+                    pdbFileName=f.getName();
                 }
             }
             catch(IOException ex)
@@ -397,7 +389,7 @@ public class ModelManager2 extends Plugin
         pdbr.setUseSegID(cbUseSegID.isSelected());
         srcmodgrp               = pdbr.read(srcfile);
         changedSinceSave        = false;
-        
+
         // Let user select model
         Model m;
         ModelState s;
@@ -414,7 +406,7 @@ public class ModelManager2 extends Plugin
             if(m == null)
                 m = srcmodgrp.getFirstModel();
         }
-        
+
         // Let user select alt conf
         Collection states = new ArrayList(m.getStateIDs());
         if(states.size() == 1)
@@ -432,16 +424,16 @@ public class ModelManager2 extends Plugin
             else
                 s = m.getState( c.charValue() );
         }
-        
+
         // so we know when we go to save the file
         srcmodel = m;
         srcstate = s;
-        
+
         //stateList.clear(); // can't undo loading a new file (?)
         replaceModelAndState(m, s);
-        
-        fastModelOpen.updateList(srcfile.getParentFile(), pdbFilter);
-        
+
+////        fastModelOpen.updateList(srcfile.getParentFile(), pdbFilter);
+
         refreshGUI();
     }
 //}}}
@@ -457,7 +449,7 @@ public class ModelManager2 extends Plugin
         && JOptionPane.NO_OPTION == JOptionPane.showConfirmDialog(kMain.getTopWindow(),
         "Some changes have not been committed and won't be saved. Save anyway?",
         "Save model?", JOptionPane.YES_NO_OPTION)) return;
-        
+
         if( changedSinceSave
         && JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(kMain.getTopWindow(),
         "Save any changes made to the current model?",
@@ -469,7 +461,7 @@ public class ModelManager2 extends Plugin
     {
         saveChooser.resetChoosableFileFilters();
         saveChooser.setFileFilter(pdbFilter);
-        
+
         // Ganked auto-versioning code from KinfileIO
         File f = srcfile;
         String name = f.getName();
@@ -491,7 +483,7 @@ public class ModelManager2 extends Plugin
             }
         }
         saveChooser.setSelectedFile(new File(openChooser.getCurrentDirectory(), name));
-        
+
         savePDB(true);
     }
 //}}}
@@ -517,12 +509,12 @@ public class ModelManager2 extends Plugin
                         /* Dumb, simple version * /
                         pdbWriter.writeResidues(
                             this.getModel().getResidues(), this.getFrozenState() );
-                            
+
                         srcfile = f;
                         changedSinceSave = false;
                         refreshGUI();
                         /* Dumb, simple version */
-                        
+
                         // Use modified state for modified model,
                         // default (original) for all other models.
                         Set states = new UberSet(this.getModel().getStates());
@@ -532,16 +524,16 @@ public class ModelManager2 extends Plugin
                         newStates.addAll(states);
                         Map stateMap = new HashMap();
                         stateMap.put(this.getModel(), newStates);
-                        
+
                         // Create a record of what was changed
                         Collection moves = detectMovedResidues(this.getModel(), srcstate, this.getFrozenState());
                         for(Iterator iter = moves.iterator(); iter.hasNext(); )
                             srcmodgrp.addHeader(ModelGroup.SECTION_USER_MOD, iter.next().toString());
-                        
+
                         // this won't do anything unless e.g. we made a mutation
                         srcmodgrp.replace(srcmodel, this.getModel());
                         pdbWriter.writeModelGroup(srcmodgrp, stateMap);
-                        
+
                         srcfile             = f;
                         srcmodel            = this.getModel();
                         changedSinceSave    = false;
@@ -600,8 +592,8 @@ public class ModelManager2 extends Plugin
             if(mcMoved || scMoved)
             {
                 headers.add("USER  MOD Residue moved: "+r
-                    +(mcMoved ? " [backbone]" : "") 
-                    +(scMoved ? " [sidechain]" : "")); 
+                    +(mcMoved ? " [backbone]" : "")
+                    +(scMoved ? " [sidechain]" : ""));
             }
             if(created > 0) headers.add("USER  MOD "+created+" atom(s) created/destroyed in "+r);
         }
@@ -639,7 +631,7 @@ public class ModelManager2 extends Plugin
     */
     public File getFrozenPDB()
     { return getMSP().getPDB(); }
-    
+
     protected ModelStatePair getMSP()
     {
         if(stateList.size() < 1)
@@ -667,7 +659,7 @@ public class ModelManager2 extends Plugin
             requestStateRefresh();
         return moltenState;
     }
-    
+
     /** Returns a FRAGMENT of a PDB file representing molten changes only. */
     public File getMoltenPDB()
     {
@@ -705,16 +697,23 @@ public class ModelManager2 extends Plugin
             moltenState = ((Remodeler)iter.next()).updateModelState(moltenState);
         }
         moltenState = moltenState.createCollapsed(frozen);
-        
+
         // Update visualizations
         visualizeMoltenModel();
         if(cbShowProbe.isSelected())    visualizeProbeDots();
-        if(cbShowNOEs.isSelected())     visualizeNOEs();
-        if(cbShowExpNOEs.isSelected())  visualizeExpectedNOEs();
+        if(cbShowSswing.isSelected())
+        {
+              if(densityFileName.length()==0) onOpenMap(null);
+              if(sswingRunning){
+                   visualizeSswing();
+                   sswingRunning=false;
+              }
+        }
+
         kCanvas.repaint();
 
     }
-    
+
     /**
     * Causes the state changes from the named tool to be
     * incorporated into the static ("frozen") state
@@ -728,7 +727,7 @@ public class ModelManager2 extends Plugin
         ModelStatePair msp = new ModelStatePair( getModel(), s );
         stateList.addLast(msp);
         changedSinceSave = true;
-        
+
         visualizeFrozenModel(); // not done for every refresh
         unregisterTool(tool);
         // -> requestStateRefresh();
@@ -745,6 +744,7 @@ public class ModelManager2 extends Plugin
     */
     public void unregisterTool(Remodeler tool)
     {
+        sswingRunning= false;
         registeredTools.remove(tool);
         moltenRes.remove(tool);
 
@@ -756,8 +756,10 @@ public class ModelManager2 extends Plugin
         refreshGUI();
 
         requestStateRefresh();
+        sswingRunning= true;
+
     }
-    
+
     /**
     * Adds the tool to the list of active tools,
     * marking it as working on the residues in targetRes.
@@ -782,7 +784,7 @@ public class ModelManager2 extends Plugin
             JOptionPane.showMessageDialog(kMain.getTopWindow(),
                 "No changes to undo.", "Sorry!", JOptionPane.ERROR_MESSAGE);
     }
-    
+
     /**
     * Undoes the last change committed to the model, if possible.
     * The model and visualizations are updated automatically.
@@ -791,14 +793,14 @@ public class ModelManager2 extends Plugin
     public boolean undoChange()
     {
         if(stateList.size() < 2) return false;
-        
+
         stateList.removeLast();
         visualizeFrozenModel(); // not done for every refresh
         requestStateRefresh();
         refreshGUI(); // make sure Undo item is up-to-date
         return true;
     }
-    
+
     /**
     * Installs a new Model and ModelState.
     * This change can be undone, provided that you had
@@ -812,19 +814,19 @@ public class ModelManager2 extends Plugin
     {
         if(isMolten())
             throw new IllegalStateException("Cannot install new model while old model is molten");
-        
+
         // no undo possible if our current model object has been altered
         if(stateList.size() >= 1 && m == this.getModel())
             stateList.clear();
-        
+
         ModelStatePair msp = new ModelStatePair(m, s);
         stateList.addLast(msp);
-        
+
         visualizeFrozenModel(); // not done for every refresh
         requestStateRefresh();
         refreshGUI(); // make sure Undo item is up-to-date
     }
-    
+
     public boolean isMolten()
     { return allMoltenRes.size() > 0; }
 //}}}
@@ -844,9 +846,9 @@ public class ModelManager2 extends Plugin
     {
         Kinemage kin = kMain.getKinemage();
         if(kin == null) return new ModelPlotter(); // dummy object
-        
-        String key = "king.ModelManager2."+name;
-        
+
+        String key = "king.SswingManager."+name;
+
         ModelPlotter plotter = (ModelPlotter)kin.metadata.get(key);
         if(plotter == null)
         {
@@ -855,14 +857,14 @@ public class ModelManager2 extends Plugin
             plotter.sideColor       = scColor;
             plotter.hyColor         = KPalette.gray;
             plotter.modelWidth      = width;
-            
+
             KGroup group = plotter.createGroup(name);
             group.setOwner(kin);
             kin.add(group);
             kin.metadata.put(key, plotter);
             kMain.notifyChange(KingMain.EM_EDIT_GROSS);
         }
-        
+
         return plotter;
     }
 //}}}
@@ -873,7 +875,7 @@ public class ModelManager2 extends Plugin
     {
         ModelState      state   = getMoltenState();
         ModelPlotter    plotter = getPlotter("molten model", KPalette.peachtint, KPalette.orange, 5);
-        
+
         plotter.plotAminoAcids(getModel(), allMoltenRes, state);
     }
 
@@ -882,7 +884,7 @@ public class ModelManager2 extends Plugin
         Collection      allRes  = getModel().getResidues();
         ModelState      state   = getFrozenState();
         ModelPlotter    plotter = getPlotter("frozen model", KPalette.yellowtint, KPalette.sky, 2);
-        
+
         plotter.plotAminoAcids(getModel(), allRes, state);
     }
 //}}}
@@ -896,11 +898,11 @@ public class ModelManager2 extends Plugin
         if(kin != null && (probePlotter == null || !probePlotter.getKinemage().equals(kin)))
         {
             if(probePlotter != null) probePlotter.terminate(); // clean up the old one
-            
+
             // -drop is very important, or else the unselected atoms from file1
             // (waters, the residues we're excluding because they're in file2)
             // will interfere with (obstruct) the dots between file1 and file2 atoms.
-            
+
             // Incomplete, will be completed in a moment
             String probeCmd = " -quiet -kin -drop -mc -both -stdbonds '(file1 "
                 +"not water not({molten})),file2' 'file2' '{pdbfile}' -";
@@ -911,13 +913,13 @@ public class ModelManager2 extends Plugin
         }
         return probePlotter;
     }
-    
+
     void visualizeProbeDots()
     {
         BgKinRunner pp = getProbePlotter();
         pp.requestRun(allMoltenRes, getMoltenState(), getFrozenPDB());
     }
-    
+
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onEditProbeCmd(ActionEvent ev)
     {
@@ -929,45 +931,78 @@ public class ModelManager2 extends Plugin
     }
 //}}}
 
-//{{{ onOpenNOE, visualizeNOEs, visualizeExpectedNOEs
+
+//{{{ getSswingPlotter, visualizeSswing, onEditSswingCmd
 //##################################################################################################
-    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onOpenNOE(ActionEvent ev)
+    SswingRunner getSswingPlotter()
     {
-        // Open the new file
-        if(JFileChooser.APPROVE_OPTION == noeChooser.showOpenDialog(kMain.getTopWindow()))
+        // Set up Sswing
+        Kinemage kin = kMain.getKinemage();
+        if(kin != null && (sswingPlotter == null || !sswingPlotter.getKinemage().equals(kin)))
         {
-            File f = noeChooser.getSelectedFile();
-            if(f != null && f.exists())
-            {
-                Object[] choices = {"xplor", "dyana", "aria"};
-                String defaultChoice = "xplor";
-                String filename = f.getName().toLowerCase();
-                if(filename.endsWith(".upl")) defaultChoice = "dyana";
-                else if(filename.endsWith(".list")) defaultChoice = "aria";
-                
-                String choice = (String)JOptionPane.showInputDialog(kMain.getTopWindow(),
-                    "What format are these NOEs in?",
-                    "Choose format", JOptionPane.PLAIN_MESSAGE,
-                    null, choices, defaultChoice);
-                if(choice != null)
-                    noeFormat = choice;
-                noeFile = f;
-                refreshGUI();
-            }
+            if(sswingPlotter != null) sswingPlotter.terminate(); // clean up the old one
+
+            //
+            //
+            //
+
+            // Incomplete, will be completed in a moment
+             for(Iterator iter = allMoltenRes.iterator(); iter.hasNext(); )
+             {
+               String sswingCmd =pdbFileName;
+               sswingPlotter = new SswingRunner(kMain, kin, sswingCmd);
+               String sswingExe = sswingPlotter.findProgram("sswing ");
+               String sswingOption="-f -s ";
+               Residue re = (Residue) iter.next();
+               if (re.getChain()!=' ')
+                  sswingOption=sswingOption+"-c "+re.getChain();
+               sswingPlotter.setCommand(sswingExe+" "+
+                                       sswingOption+" "+
+                                       sswingCmd+" "+
+                                       re.getSequenceNumber()+" "+
+                                       re.getName()+" "+densityFileName); // now complete cmd line
+               tfSswingCmd.setText(sswingPlotter.getCommand());
+             }
+       }
+            return sswingPlotter;
+    }
+
+    void visualizeSswing()
+    {
+
+          SswingRunner sswingPlotter = getSswingPlotter();
+          for(Iterator iter = allMoltenRes.iterator(); iter.hasNext(); )
+          {
+
+              String sswingCmd =pdbFileName;
+//            sswingPlotter = new BgKinRunner(kMain, kin, sswingCmd);
+              String sswingExe = sswingPlotter.findProgram("sswing ");
+              String sswingOption="-f -s ";
+              Residue re = (Residue) iter.next();
+              if (re.getChain()!=' ')
+                 sswingOption=sswingOption+"-c "+re.getChain();
+              sswingPlotter.setCommand(sswingExe+" "+
+                                       sswingOption+" "+
+                                       sswingCmd+" "+
+                                       re.getSequenceNumber()+" "+
+                                       re.getName()+" "+densityFileName); // now complete cmd line
+              tfSswingCmd.setText(sswingPlotter.getCommand());
         }
+        System.out.println(sswingPlotter.getCommand()+" ....\n");
+        sswingPlotter.setCommand(tfSswingCmd.getText());
+
+        sswingPlotter.requestRun(allMoltenRes, getMoltenState(), getFrozenPDB());
     }
-    
-    void visualizeNOEs()
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onEditSswingCmd(ActionEvent ev)
     {
-        noePanel.visualizeNOEs(allMoltenRes, noeFile, noeFormat);
-    }
-    
-    void visualizeExpectedNOEs()
-    {
-        expNoePanel.visualizeNOEs(allMoltenRes, noeFile, noeFormat);
+
+        this.getSswingPlotter().setCommand(tfSswingCmd.getText());
+        requestStateRefresh();
     }
 //}}}
+
 
 //{{{ empty_code_segment
 //##################################################################################################
@@ -994,7 +1029,7 @@ public class ModelManager2 extends Plugin
     {
         return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onShowDialog"));
     }
-    
+
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onShowDialog(ActionEvent ev)
     {
@@ -1008,7 +1043,9 @@ public class ModelManager2 extends Plugin
             dialog.setLocation(loc);
             dialog.setVisible(true);
         }
-        if(stateList == null || stateList.size() < 1) onOpenPDB(null);        
+        if(stateList == null || stateList.size() < 1) onOpenPDB(null);
+//        if(cbShowSswing.isSelected())   onOpenMap(null);
+
     }
 //}}}
 
@@ -1017,7 +1054,7 @@ public class ModelManager2 extends Plugin
     public String getHelpAnchor()
     { return "#modelman-plugin"; }
     
-    public String toString() { return "Model manager"; }
+    public String toString() { return "Sidechain Fitting Manager"; }
 
     /** This plugin is not applet-safe because it invokes other processes and loads files. */
     static public boolean isAppletSafe()

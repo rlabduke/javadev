@@ -20,10 +20,10 @@ import driftwood.util.SoftLog;
 /**
 * <code>SswingTool</code> has not yet been documented.
 *
-* <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
-* <br>Begun on Wed Sep 24 13:29:16 EDT 2003
+* <p>Copyright (C) 2004 by Shuren Wang. All rights reserved.
+* <br>Begun on July 20 13:29:16 EDT 2004
 */
-public class SswingTool extends ModelingTool
+public class SswingTool extends SswingModelingTool
 {
 //{{{ Constants
 //}}}
@@ -98,7 +98,7 @@ public class SswingTool extends ModelingTool
     * @return for example, "#navigate-tool" (or null)
     */
     public String getHelpAnchor()
-    { return "#scrot-tool"; }
+    { return "#sswing-tool"; }
     
     public String toString() { return "Sswing"; }
 //}}}

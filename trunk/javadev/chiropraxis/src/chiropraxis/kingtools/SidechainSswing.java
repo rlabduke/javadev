@@ -21,8 +21,8 @@ import driftwood.util.SoftLog;
 * <code>SidechainSswing</code> is a GUI for repositioning a sidechain
 * based on its dihedral angles (chi1, chi2, etc).
 *
-* <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
-* <br>Begun on Thu May  8 15:36:11 EDT 2003
+* <p>Copyright (C) 2004 by Shuren Wang. All rights reserved.
+* <br>Begun on Thu May  8 15:36:11 EDT 2004
 */
 public class SidechainSswing implements Remodeler, ChangeListener, ListSelectionListener, WindowListener
 {
@@ -33,7 +33,7 @@ public class SidechainSswing implements Remodeler, ChangeListener, ListSelection
 //{{{ Variable definitions
 //##################################################################################################
     Residue             targetRes;
-    ModelManager2       modelman;
+    SswingManager       modelman;
     SidechainAngles2    scAngles;
     Rotamer             rotamer;
     SidechainIdealizer  scIdealizer     = null;
@@ -56,7 +56,7 @@ public class SidechainSswing implements Remodeler, ChangeListener, ListSelection
     * @throws IOException if the needed resource(s) can't be loaded from the JAR file
     * @throws NoSuchElementException if the resource is missing a required entry
     */
-    public SidechainSswing(Frame frame, Residue target, ModelManager2 mm) throws IOException
+    public SidechainSswing(Frame frame, Residue target, SswingManager mm) throws IOException
     {
         this.targetRes  = target;
         this.modelman   = mm;

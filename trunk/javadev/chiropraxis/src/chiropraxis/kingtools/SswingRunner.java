@@ -46,8 +46,8 @@ import driftwood.data.*;
 * <p>Be careful -- stray instances of this class will prevent
 * garbage collection of their target kinemages!
 *
-* <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
-* <br>Begun on Mon Jun 23 12:16:40 EDT 2003
+* <p>Copyright (C) 2004 by SHuren Wang. All rights reserved.
+* <br>Begun on Mon Jun 23 12:16:40 EDT 2004
 */
 public class SswingRunner implements Runnable
 {
@@ -92,7 +92,7 @@ public class SswingRunner implements Runnable
     final int               helperTimeout;
 
     /* sidechain chi angles   */
-    double               angles[]=new double[4];
+    double               angles[]=new double[5];
     Process              proc=null;
 
     
@@ -205,8 +205,8 @@ public class SswingRunner implements Runnable
         String[] cmdTokens = Strings.tokenizeCommandLine(cmdLine);
 
          // initialize the chi angles
-         for (int i=0; i<4; i++) {
-           angles[i] = 0.0;
+         for (int i=0; i<5; i++) {
+           angles[i] = 180.0;
          }
          // waiting for sswing process to finish
 			   try {
@@ -242,6 +242,7 @@ public class SswingRunner implements Runnable
             catch(IndexOutOfBoundsException ex)
             {  }
          }//while more lines
+         br.close();
          SswingTool.MODEL_SSWING.setAllAngles(angles);
 
          /* show sswing output file (detail) */
