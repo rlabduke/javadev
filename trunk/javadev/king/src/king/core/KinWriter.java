@@ -239,6 +239,7 @@ public class KinWriter //extends ... implements ...
     void writePoint(KPoint point, KList list, Kinemage kin)
     {
         Iterator iter;
+        if(point.getComment() != null)  out.print("<"+point.getComment()+">");
         String pointID = point.getName();
         if(pointID.equals(lastPointID)) out.print("{\"}");
         else                            out.print("{"+pointID+"}");

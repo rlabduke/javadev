@@ -133,7 +133,7 @@ public class ProxyPoint implements KPoint
     public boolean isBreak() { return proxyFor.isBreak(); }
 //}}}
 
-//{{{ is/get/set{On, Unpickable, Ghost, Color, Aspects, Width, Radius}
+//{{{ is/get/set{On, Unpickable, Ghost, Color, Aspects, Width, Radius, Comment}
 //##################################################################################################
     /** Indicates whether this element will paint itself, given the chance */
     public boolean isOn() { return proxyFor.isOn(); }
@@ -167,6 +167,11 @@ public class ProxyPoint implements KPoint
     public float getRadius() { return proxyFor.getRadius(); }
     /** Sets the radius of this point, if applicable */
     public void setRadius(float radius) { proxyFor.setRadius(radius); }
+    
+    /** Sets the point comment for this point. */
+    public void setComment(String cmt) { proxyFor.setComment(cmt); }
+    /** Gets the comment for this point, which defaults to null. */
+    public String getComment() { return proxyFor.getComment(); }
 //}}}
 
 //{{{ getDrawingColor

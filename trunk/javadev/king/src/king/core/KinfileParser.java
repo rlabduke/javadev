@@ -536,12 +536,6 @@ public class KinfileParser //extends ... implements ...
         while(!token.isEOF() && !token.isKeyword())
         {
             prevPoint = doPoint(kListType, prevPoint);
-            // Skip trailing comments without triggering creation of a point
-            while(token.isComment())
-            {
-                //SoftLog.err.println("    Discarded comment '"+token.getString()+"' at "+(input.getLineNumber()+1));
-                token.advance();
-            }
         }
 
         // only stores list as bondRot if bondRot mode is on.
@@ -570,7 +564,6 @@ public class KinfileParser //extends ... implements ...
         else if(kListType.equals(KList.BALL))       point = new BallPoint(list, defaultPointID);
         else if(kListType.equals(KList.SPHERE))     point = new SpherePoint(list, defaultPointID);
         else throw new IllegalArgumentException("Unrecognized list type '"+kListType+"'");
-        list.add(point);
 
         boolean pointIdFound    = false;
         int     coordsFound     = 0;
@@ -622,11 +615,25 @@ public class KinfileParser //extends ... implements ...
                 }
                 else error("Unrecognized property '"+s+" "+token.getString()+"' will be ignored");
             }
+            else if(token.isComment())
+            {
+                point.setComment(token.getString());
+            }
             else error("Unrecognized token '"+token.getString()+"' will be ignored");
             token.advance();
         }
         
-        return point;
+        // Avoid creating bogus points from trailing junk, like empty comments.
+        if(pointIdFound || coordsFound > 0)
+        {
+            list.add(point);
+            return point;
+        }
+        else
+        {
+            error("Junk point will be ignored (no ID, no coordinates)");
+            return null; // point not added to list, so it's GC'd
+        }
     }
 //}}}
 

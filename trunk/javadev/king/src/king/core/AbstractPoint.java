@@ -45,6 +45,7 @@ abstract public class AbstractPoint extends AHEImpl implements KPoint
 
     KList   parent  = null;         // list that contains this point
     String  aspects = null;         // aspects (multiple point colors)
+    String  comment = null;         // the <point comment> associated with this point
     int     pm_mask = 0;            // bit flags for pointmasters 
     
     /** Color this point is drawn in; null means take from list */
@@ -214,7 +215,7 @@ abstract public class AbstractPoint extends AHEImpl implements KPoint
     { return false; }
 //}}}
 
-//{{{ is/get/set{On, Unpickable, Ghost, Color, Aspects, Width, Radius}
+//{{{ is/get/set{On, Unpickable, Ghost, Color, Aspects, Width, Radius, Comment}
 //##################################################################################################
     /** Indicates whether this element will paint itself, given the chance */
     public boolean isOn()
@@ -268,6 +269,13 @@ abstract public class AbstractPoint extends AHEImpl implements KPoint
     /** Sets the radius of this point, if applicable */
     public void setRadius(float radius)
     {}
+    
+    /** Sets the point comment for this point. */
+    public void setComment(String cmt)
+    { this.comment = cmt; }
+    /** Gets the comment for this point, which defaults to null. */
+    public String getComment()
+    { return this.comment; }
 //}}}
 
 //{{{ getDrawingColor
