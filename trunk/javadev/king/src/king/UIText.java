@@ -17,7 +17,7 @@ import driftwood.gui.*;
 * <p>Copyright (C) 2002-2004 by Ian W. Davis. All rights reserved.
 * <br>Begun on Sun Jun  9 19:06:25 EDT 2002
 */
-public class UIText implements ChangeListener, MouseListener
+public class UIText implements MouseListener
 {
 //{{{ Static fields
 //}}}
@@ -26,7 +26,6 @@ public class UIText implements ChangeListener, MouseListener
 //##################################################################################################
     KingMain kMain;
     JFrame frame;
-    //JEditorPane editpane;
     JTextArea textarea;
     
     JButton popupButton;
@@ -48,11 +47,6 @@ public class UIText implements ChangeListener, MouseListener
         frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         frame.setIconImage(kMain.getPrefs().windowIcon);
         
-        //editpane = new JEditorPane("text/html", "");
-        //editpane.setEditable(false);
-        //JScrollPane editScroll = new JScrollPane(editpane);
-        //editScroll.setPreferredSize(new Dimension(500,400));
-        
         textarea = new JTextArea();
         textarea.setEditable(true);
         textarea.setLineWrap(true);
@@ -61,17 +55,8 @@ public class UIText implements ChangeListener, MouseListener
         JScrollPane textScroll = new JScrollPane(textarea);
         textScroll.setPreferredSize(new Dimension(500,400));
         new TextCutCopyPasteMenu(textarea);
-
-	this.addHypertextListener(new MageHypertexter(kMain));
+        this.addHypertextListener(new MageHypertexter(kMain));
         
-        //JTabbedPane tabPane = new JTabbedPane();
-        //tabPane.addTab("Read", null, editScroll, "Read the text that accompanies this kinemage");
-        //tabPane.addTab("Revise", null, textScroll, "Edit the text that accompanies this kinemage");
-        //tabPane.setSelectedIndex(0);
-        //tabPane.addChangeListener(this);
-        
-        //frame.getContentPane().add(tabPane, BorderLayout.CENTER);
-        //frame.getContentPane().setBackground(new Color(0.5f, 0.5f, 0.5f));
         frame.getContentPane().add(textScroll, BorderLayout.CENTER);
     }
 //}}}
@@ -85,7 +70,6 @@ public class UIText implements ChangeListener, MouseListener
     {
         textarea.setText(txt);
         textarea.setCaretPosition(0); // at the top
-        //editpane.setText(text2html(txt));
     }
 
     public void appendText(String txt)
@@ -148,14 +132,6 @@ public class UIText implements ChangeListener, MouseListener
     public JButton getButton() { return popupButton; }
 //}}}
 
-//{{{ stateChanged -- called when tabs are switched
-//##################################################################################################
-    public void stateChanged(ChangeEvent ev)
-    {
-        //editpane.setText(text2html(textarea.getText()));
-    }
-//}}}
-
 //{{{ Mouse listeners (for hypertext)
 //##################################################################################################
     public void mouseClicked(MouseEvent ev)
@@ -169,14 +145,13 @@ public class UIText implements ChangeListener, MouseListener
         prevClose = text.lastIndexOf("}*", where);
         nextOpen = text.indexOf("*{", where);
         nextClose = text.indexOf("}*", where);
-
-	//System.out.println("prevs:" + prevOpen + "," + prevClose + "; nexts:" + nextOpen + "," + nextClose);
+        //System.err.println("prevs:" + prevOpen + "," + prevClose + "; nexts:" + nextOpen + "," + nextClose);
         
-        if((prevOpen != -1 && prevOpen > prevClose && nextClose != -1 && nextClose < nextOpen)||(nextOpen == -1 && nextClose != -1))  // to try to fix bug where last hyperlink in text doesn't work.
+        //                   Still works if prevClose == -1             Might not be a next hyperlink...
+        if(prevOpen != -1 && prevOpen > prevClose && nextClose != -1 && (nextClose < nextOpen || nextOpen == -1))
         {
             String link = text.substring(prevOpen+2, nextClose);
             textarea.select(prevOpen, nextClose+2);
-	    //System.out.println("hypertext hit");
             //System.err.println("Hit hypertext: '"+link+"'");
             for(Iterator iter = mageHypertextListeners.iterator(); iter.hasNext(); )
             {

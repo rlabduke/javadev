@@ -51,9 +51,11 @@ public class ViewEditor //extends ... implements ...
         JScrollPane listScroll = new JScrollPane(list);
         
         JButton close   = new JButton(new ReflectiveAction("Close", null, this, "onClose"));
-        JButton up      = new JButton(new ReflectiveAction(null, kMain.prefs.moveUpIcon, this, "onMoveUp"));
-        JButton down    = new JButton(new ReflectiveAction(null, kMain.prefs.moveDownIcon, this, "onMoveDown"));
+        JButton up      = new JButton(new ReflectiveAction("Move up", kMain.prefs.moveUpIcon, this, "onMoveUp"));
+        JButton down    = new JButton(new ReflectiveAction("Move down", kMain.prefs.moveDownIcon, this, "onMoveDown"));
         JButton go      = new JButton(new ReflectiveAction("Go to", null, this, "onGoTo"));
+        JButton gonext  = new JButton(new ReflectiveAction("Go Next", kMain.prefs.stepForwardIcon, this, "onGoNext"));
+        JButton goprev  = new JButton(new ReflectiveAction("Go Prev", kMain.prefs.stepBackIcon, this, "onGoPrev"));
         JButton rename  = new JButton(new ReflectiveAction("Rename", null, this, "onRename"));
         JButton delete  = new JButton(new ReflectiveAction("Delete", kMain.prefs.deleteIcon, this, "onDelete"));
 
@@ -64,14 +66,16 @@ public class ViewEditor //extends ... implements ...
         close.setMnemonic(KeyEvent.VK_C);
         
         TablePane cp = new TablePane();
-        cp.insets(4).hfill(true).weights(0,0);
-        cp.save().weights(1,1).vfill(true).hfill(true).addCell(listScroll, 1, 7).restore();
-        cp.addCell(up).newRow();
-        cp.save().weights(0,1).insets(0).addCell(Box.createVerticalGlue()).restore().newRow();
+        cp.insets(2).hfill(true).weights(0,0);
+        cp.save().weights(1,1).vfill(true).hfill(true).addCell(listScroll, 1, 9).restore();
         cp.addCell(go).newRow();
+        cp.addCell(gonext).newRow();
+        cp.addCell(goprev).newRow();
+        cp.save().weights(0,1).insets(0).addCell(Box.createVerticalStrut(10)).restore().newRow();
         cp.addCell(rename).newRow();
         cp.addCell(delete).newRow();
-        cp.save().weights(0,1).insets(0).addCell(Box.createVerticalGlue()).restore().newRow();
+        cp.save().weights(0,1).insets(0).addCell(Box.createVerticalStrut(10)).restore().newRow();
+        cp.addCell(up).newRow();
         cp.addCell(down).newRow();
         cp.center().hfill(false).addCell(close, 2, 1);
         dialog.setContentPane(cp);
@@ -80,7 +84,7 @@ public class ViewEditor //extends ... implements ...
     }
 //}}}
 
-//{{{ onClose, onMoveUp, onMoveDown, onGoTo, onRename, onDelete
+//{{{ onClose, onMoveUp, onMoveDown
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onClose(ActionEvent ev)
@@ -143,7 +147,10 @@ public class ViewEditor //extends ... implements ...
         list.setListData( viewList.toArray() );
         list.setSelectedValue(view, true);
     }
-    
+//}}}
+
+//{{{ onGoTo, onRename, onDelete
+//##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onGoTo(ActionEvent ev)
     {
@@ -193,6 +200,31 @@ public class ViewEditor //extends ... implements ...
         list.setListData( viewList.toArray() );
     }
     
+//}}}
+
+//{{{ onGoNext, onGoPrev
+//##################################################################################################
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onGoNext(ActionEvent ev)
+    {
+        int index = list.getSelectedIndex()+1;
+        if(index >= 0 && index < list.getModel().getSize())
+        {
+            list.setSelectedIndex(index);
+            onGoTo(null);
+        }
+    }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onGoPrev(ActionEvent ev)
+    {
+        int index = list.getSelectedIndex()-1;
+        if(index >= 0 && index < list.getModel().getSize())
+        {
+            list.setSelectedIndex(index);
+            onGoTo(null);
+        }
+    }
 //}}}
 
 //{{{ editViews
