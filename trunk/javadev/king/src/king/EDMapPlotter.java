@@ -71,7 +71,8 @@ public class EDMapPlotter implements EdgePlotter
         list.setName("ED map @ "+level);
         list.setType((mode == MarchingCubes.MODE_MESH ? KList.VECTOR : KList.TRIANGLE));
         list.setWidth(1);
-        list.alpha = (int)(0.25 * 255);
+        if(mode == MarchingCubes.MODE_TRIANGLE)
+            list.alpha = (int)(0.25 * 255);
     }
 //}}}
 

@@ -89,6 +89,39 @@ public class Strings //extends ... implements ...
     }
 //}}}
 
+//{{{ force{Left, Right}
+//##################################################################################################
+    /**
+    * Pads a string with spaces and left-justifies it.
+    * If the string exceeds the specified length to start with, the
+    * left-most <i>len</i> characters are returned.
+    * @param s the string to justify
+    * @param len the desired length
+    */
+    public static String forceLeft(String s, int len)
+    {
+        int l = s.length();
+        if(l > len)         return s.substring(0, len);
+        else if(l == len)   return s;
+        else                return justifyLeft(s, len);
+    }
+
+    /**
+    * Pads a string with spaces and right-justifies it.
+    * If the string exceeds the specified length to start with, the
+    * right-most <i>len</i> characters are returned.
+    * @param s the string to justify
+    * @param len the desired length
+    */
+    public static String forceRight(String s, int len)
+    {
+        int l = s.length();
+        if(l > len)         return s.substring(l-len, l);
+        else if(l == len)   return s;
+        else                return justifyRight(s, len);
+    }
+//}}}
+
 //{{{ formatMemory
 //##################################################################################################
     /** Formats a long in terms of memory (kb, Mb, etc) */
