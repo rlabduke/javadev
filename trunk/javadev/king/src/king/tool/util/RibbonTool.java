@@ -11,6 +11,16 @@ import java.util.*;
 import driftwood.gui.*;
 import javax.swing.*;
 import javax.swing.event.*;
+//}}}
+/**
+ * <code>RibbonTool</code> was created in response to numerous requests for the ability to color individual ribbons 
+ * of a kinemage quickly and easily.  It supports coloring single ribbons, multiple ribbons of a type, and 
+ * regions of ribbons in a Prekin-created ribbon kinemage.  
+ *
+ * <p>Copyright (C) 2004 by Vincent B. Chen. All rights reserved.
+ * <br>Begun on Apr 21 2004
+ **/
+
 
 public class RibbonTool extends BasicTool implements ActionListener {
 
@@ -92,8 +102,6 @@ public class RibbonTool extends BasicTool implements ActionListener {
 	pane.add(lowNumField);
 	pane.add(highNumField);
 
-
-
     }
 //}}}
 
@@ -114,7 +122,7 @@ public class RibbonTool extends BasicTool implements ActionListener {
 	    if (colorAll.isSelected()) {
 		highlightAll(p);
 	    } else if (checkSort.isSelected()) {
-		selectRibbon(p);
+		checkSort(p);
 	    } else if (colorRegion.isSelected()) {
 		highlightRange(p);
 	    } else if (hippieMode.isSelected()) {
@@ -124,7 +132,28 @@ public class RibbonTool extends BasicTool implements ActionListener {
 	    }
 	}
     }
+//})}
 
+// event functions
+//###############################################################################################
+    /**
+     * Event handler for when action performed.
+     */
+    public void actionPerformed(ActionEvent ev) {
+
+        kCanvas.repaint();
+    }
+
+    /**
+     * Event handler for when tool window closed.
+     */
+    public void windowClosing(WindowEvent ev) {
+	newGroup();
+	parent.activateDefaultTool(); 
+    }
+
+//{{{ sortStructure
+//##################################################################################################
     public void sortStructure(KPoint p) {
 
 	String pointID = p.getName().trim();
@@ -163,7 +192,14 @@ public class RibbonTool extends BasicTool implements ActionListener {
 	//kin.add(group);
 	//initiated = true;
     }
+//}}}
 
+//{{{ sortbyNumber
+//####################################################################################################
+    /**
+     * Helper function to sort p's parent by residue number. Stores in Hashmap with residue number as key, and
+     * arraylist of KLists as value.
+     **/
     private void sortbyNumber(KPoint p) {
 	String pointID = p.getName().trim();
 	KList parentList = (KList) p.getOwner();
@@ -185,8 +221,14 @@ public class RibbonTool extends BasicTool implements ActionListener {
 	    }
 	}
     }
-	    
+//}}}    
 
+//{{{ splitStructure
+//###################################################################################################
+    /**
+     * Helper function to sort srcLists into separate ribbons.  Stores in Hashmap with KList as key, and an 
+     * arraylist of KLists (all of one ribbon) as values.
+     **/
     private void splitStructure(ArrayList srcLists) {
 
 	Iterator iter = srcLists.iterator();
@@ -211,18 +253,35 @@ public class RibbonTool extends BasicTool implements ActionListener {
 	    }
 	}
     }
+//}}}
 
+//{{{ getResNumber
+//###################################################################################################
+    /**
+     * Helper function to get the residue number of parentList.  It gets the first KPoint in the KList, 
+     * and extracts the residue number from the name.  EXTREMELY dependent on the format of the name of the KPoint.
+     **/
     private Integer getResNumber(KList parentList) {
 	Iterator pointIter = parentList.iterator();
 	KPoint firstPoint = (KPoint) pointIter.next();
 	String pointID = firstPoint.getName().trim();
 	return Integer.valueOf(pointID.substring(pointID.lastIndexOf(" ") + 1));
     }
+//}}}
 
     //public boolean initiated() {
     //	return initiated;
     //}
 
+
+//{{{ highlightRange
+//###################################################################################################
+    /**
+     * For highlighting a range of a ribbon kinemage. The first time this function is called, it stores p
+     * as the starting point, and the second time it's called, it colors the region between the stored p
+     * and the current p.  
+     *
+     **/
     public void highlightRange(KPoint p) {
 	if (!highNumField.getText().equals("")) {
 	    lowNumField.setText("");
@@ -258,7 +317,13 @@ public class RibbonTool extends BasicTool implements ActionListener {
 	    //highNumField.setText("");
 	}
     }
+//}}}
 
+//{{{ highlightAll
+//#######################################################################################################
+    /**
+     * For coloring all ribbons of a certain type (alpha, beta, coil).  
+     **/
     public void highlightAll(KPoint p) {
 	KList parentList = (KList) p.getOwner();
 	String master = getOldMaster(parentList);
@@ -269,7 +334,13 @@ public class RibbonTool extends BasicTool implements ActionListener {
 	    list.setColor((KPaint) color1.getSelectedItem());
 	}
     }
+//}}}
 
+//{{{ highlight
+//#######################################################################################################
+    /**
+     * For coloring one particular ribbon (one stretch of alpha, beta, or coil ribbon).
+     **/
     public void highlight(KPoint p) {
 	KList parentList = (KList) p.getOwner();
 	ArrayList listofLists = (ArrayList) ribbonMap.get(parentList);
@@ -279,8 +350,13 @@ public class RibbonTool extends BasicTool implements ActionListener {
 	    list.setColor((KPaint) color1.getSelectedItem());
 	}
     }
-    
+//}}}    
 
+//{{{ highlightHippie
+//#######################################################################################################
+    /**
+     * For coloring one particular ribbon (one stretch of alpha, beta, or coil ribbon) with "hippie" colors.
+     **/
     public void highlightHippie(KPoint p) {
 	KList parentList = (KList) p.getOwner();
 	ArrayList listofLists = (ArrayList) ribbonMap.get(parentList);
@@ -296,60 +372,17 @@ public class RibbonTool extends BasicTool implements ActionListener {
 	    index++;
 	}
     }
+//}}}
 
-
-    private String getOldMaster(KList list) {
-	Iterator masIter = list.masterIterator();
-	String oldMaster = (String) masIter.next();
-	//while (masIter.hasNext()) {
-
-	//if (oldMaster == "ribbon") {
-
-	    oldMaster = (String) masIter.next();
-
-	    //}
-
-	return oldMaster;
-    }
-
-    public void debug() {
-	Set keys = sortedKin.keySet();
-	Iterator iter = keys.iterator();
-	while (iter.hasNext()) {
-	    String master = (String) iter.next();
-	    ArrayList listofLists = (ArrayList) sortedKin.get(master);
-	    System.out.print(master + ": ");
-	    System.out.print(listofLists.size() + "; ");
-	}
-	System.out.println("");
-    }
-
-    public String toString() { return "Ribbons"; }
-
-    public void actionPerformed(ActionEvent ev) {
-
-        kCanvas.repaint();
-    }
-
-    /** Returns a component with controls and options for this tool */
-    protected Container getToolPanel()
-    { return pane; }
-
-    public void windowClosing(WindowEvent ev)     {
-	newGroup();
-	parent.activateDefaultTool(); }
-
-    public void newGroup() {
-	//System.out.println("new group");
-	sortedKin = new HashMap();
-	ribbonMap = new HashMap();
-	sortbyNum = new HashMap();
-	//initiated = false;
-    }
-
-
-    // old stuff
-    public void selectRibbon(KPoint p) {
+// checkSort
+//################################################################################################
+    /**
+     * For checking the natural sorting of a kinemage.  It colors each section of ribbon with a different color.
+     * If the kinemage is sorted nicely, the colors will correspond to each section of ribbon exactly.  If not
+     * sorted nicely, then each section of ribbon will have multiple different colors.  
+     * Currently this function has nice patriotic (if you're american) colors.
+     **/
+    public void checkSort(KPoint p) {
 	String pointID = p.getName().trim();
 	KList parentList = (KList) p.getOwner();
 	KSubgroup parentGroup = (KSubgroup) parentList.getOwner();
@@ -360,9 +393,6 @@ public class RibbonTool extends BasicTool implements ActionListener {
 	KList list;
 	String oldMaster = "nothing";
 	Kinemage kin = kMain.getKinemage();
-	//KGroup group = new KGroup(kin, "splits");
-	//group.setRecessiveOn(true);
-	//KSubgroup sub= null;
 
 	while (iter.hasNext()) {
 	    list = (KList) iter.next();
@@ -393,19 +423,77 @@ public class RibbonTool extends BasicTool implements ActionListener {
 		} else {
 		    list.setColor(KPalette.white);
 		}
-		
-		//sub.addMaster(oldMaster + Integer.toString(i));
-		//list.addMaster(oldMaster + Integer.toString(i));
-		//list.setColor(KPalette.red);
-		//sub.add(list);
+
 	    }
 	}
-	//kin.add(group);
-	//kin.signal.signalKinemage(kin, KinemageSignal.APPEARANCE);
-	//updateMesh(); // regenerate the meshes we just exported
-        
-        //kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
-    }
 
-}
+    }
+//}}}
+
+//{{{ getOldMaster
+//######################################################################################################
+    /**
+     * Helper function that (hopefully) gets the "ribbon master" (alpha, beta, coil) from list.  Depends on
+     * prekin giving the ribbon master as the second master of the list.
+     **/
+    private String getOldMaster(KList list) {
+	Iterator masIter = list.masterIterator();
+	String oldMaster = (String) masIter.next();
+	//while (masIter.hasNext()) {
+
+	//if (oldMaster == "ribbon") {
+
+	    oldMaster = (String) masIter.next();
+
+	    //}
+
+	return oldMaster;
+    }
+//}}}
+
+//{{{ newGroup
+//######################################################################################################
+    /**
+     * Resets the ribbon tool by creating new hashmaps for the various list storing maps. This is for coloring
+     * ribbons in different KGroups, or in new kinemages.
+     **/
+    public void newGroup() {
+	//System.out.println("new group");
+	sortedKin = new HashMap();
+	ribbonMap = new HashMap();
+	sortbyNum = new HashMap();
+	//initiated = false;
+    }
+//}}}
+
+//{{{ debug
+//######################################################################################################
+    /**
+     * debugger function.
+     **/
+    public void debug() {
+	Set keys = sortedKin.keySet();
+	Iterator iter = keys.iterator();
+	while (iter.hasNext()) {
+	    String master = (String) iter.next();
+	    ArrayList listofLists = (ArrayList) sortedKin.get(master);
+	    System.out.print(master + ": ");
+	    System.out.print(listofLists.size() + "; ");
+	}
+	System.out.println("");
+    }
+//}}}
+
+//{{{ getToolPanel, getHelpAnchor, toString
+//##################################################################################################
+    /** Returns a component with controls and options for this tool */
+    protected Container getToolPanel()
+    { return pane; }
+
+    public String getHelpAnchor()
+    { return "#ribbon-tool"; }
+
+    public String toString() { return "Ribbons"; }
+//}}}
+}//class
 
