@@ -61,6 +61,8 @@ public class UIText implements ChangeListener, MouseListener
         JScrollPane textScroll = new JScrollPane(textarea);
         textScroll.setPreferredSize(new Dimension(500,400));
         new TextCutCopyPasteMenu(textarea);
+
+	this.addHypertextListener(new MageHypertexter(kMain));
         
         //JTabbedPane tabPane = new JTabbedPane();
         //tabPane.addTab("Read", null, editScroll, "Read the text that accompanies this kinemage");
@@ -167,11 +169,14 @@ public class UIText implements ChangeListener, MouseListener
         prevClose = text.lastIndexOf("}*", where);
         nextOpen = text.indexOf("*{", where);
         nextClose = text.indexOf("}*", where);
+
+	//System.out.println("prevs:" + prevOpen + "," + prevClose + "; nexts:" + nextOpen + "," + nextClose);
         
-        if(prevOpen != -1 && prevOpen > prevClose && nextClose != -1 && nextClose < nextOpen)
+        if((prevOpen != -1 && prevOpen > prevClose && nextClose != -1 && nextClose < nextOpen)||(nextOpen == -1 && nextClose != -1))  // to try to fix bug where last hyperlink in text doesn't work.
         {
             String link = text.substring(prevOpen+2, nextClose);
             textarea.select(prevOpen, nextClose+2);
+	    //System.out.println("hypertext hit");
             //System.err.println("Hit hypertext: '"+link+"'");
             for(Iterator iter = mageHypertextListeners.iterator(); iter.hasNext(); )
             {

@@ -193,4 +193,15 @@ public class KinStable implements ListSelectionListener
     /** Returns a JList that lists all the loaded kinemages. */
     public Component getChooser() { return kinChooser; }
 //}}}
+
+    public void changeCurrentKinemage(String kinNum) {
+	//System.out.println("Kin Num" + kinNum);
+	Iterator iter = this.iterator();
+	while (iter.hasNext()) {
+	    Kinemage kin = (Kinemage) iter.next();
+	    if (kin.getName().equals("Kinemage #" + kinNum)) {
+		kinChooser.setSelectedValue(kin, true);
+	    }
+	}
+    }
 }//class
