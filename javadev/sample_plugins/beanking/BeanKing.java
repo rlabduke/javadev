@@ -30,11 +30,43 @@ public class BeanKing extends Plugin
 //{{{ Constants
 //}}}
 
+//{{{ CLASS: TextAreaOutputStream
+//##############################################################################
+    /** For directing output to the JTextArea */
+    static class TextAreaOutputStream extends OutputStream
+    {
+        JTextArea       textarea;
+        StringBuffer    buf;
+        
+        public TextAreaOutputStream(JTextArea textarea)
+        {
+            this.textarea = textarea;
+            this.buf        = new StringBuffer();
+        }
+        
+        public void write(int b)
+        {
+            buf.append((char)b);
+        }
+        
+        public void flush()
+        {
+            textarea.append(buf.toString());
+            textarea.setCaretPosition(textarea.getText().length());
+            buf = new StringBuffer();
+        }
+    }
+//}}}
+
 //{{{ Variable definitions
 //##############################################################################
-    Interpreter        interp;
-    JConsole            console;
+    Interpreter         interp;
     JFrame              frame;
+    JTextArea           outText;
+    JTextField          cmdLine;
+    LinkedList          cmdHistory;
+    ListIterator        historyIter = null;
+    PrintStream         outerr;
 //}}}
 
 //{{{ Constructor(s)
@@ -42,18 +74,13 @@ public class BeanKing extends Plugin
     public BeanKing(ToolBox tb)
     {
         super(tb);
+        this.cmdHistory = new LinkedList();
         
-        console = new JConsole();
-        console.setPreferredSize(new Dimension(400, 300));
-
-        frame = new JFrame(this.toString());
-        frame.getContentPane().add(console);
-        frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        frame.pack();
-
-        interp = new Interpreter(console);
-        new Thread(interp).start();
+        // JConsole + Interpretter.run() is not safe for Swing b/c of threads
+        buildGUI();
+        outerr = new PrintStream(new TextAreaOutputStream(outText), true);
         
+        interp = new Interpreter(new StringReader(""), outerr, outerr, false);
         try
         {
             interp.set("parent", parent);
@@ -65,7 +92,83 @@ public class BeanKing extends Plugin
             interp.eval(cmds);
         }
         catch(EvalError e)
-        { e.printStackTrace(SoftLog.err); }
+        { e.printStackTrace(outerr); }
+    }
+//}}}
+
+//{{{ buildGUI
+//##############################################################################
+    void buildGUI()
+    {
+        outText = new JTextArea(25, 60);
+        outText.setLineWrap(false);
+        outText.setEditable(false);
+        outText.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        new TextCutCopyPasteMenu(outText);
+        JScrollPane outScroll = new JScrollPane(outText);
+        
+        cmdLine = new JTextField(50);
+        cmdLine.addActionListener(new ReflectiveAction("doCmd", null, this, "onDoCmd"));
+        new TextCutCopyPasteMenu(cmdLine);
+        
+        // Up and down arrows for command history
+        ActionMap am = cmdLine.getActionMap();
+        InputMap  im = cmdLine.getInputMap(JComponent.WHEN_FOCUSED);
+        Action arrowUp    = new ReflectiveAction("", null, this, "onArrowUp" );
+        Action arrowDown  = new ReflectiveAction("", null, this, "onArrowDown" );
+        am.put("arrow-up",  arrowUp );
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP , 0), "arrow-up" );
+        am.put("arrow-down",  arrowDown );
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN , 0), "arrow-down" );
+        
+        TablePane2 cp = new TablePane2();
+        cp.hfill(true).vfill(true).addCell(outScroll,2,1);
+        cp.newRow();
+        cp.weights(0,0).addCell(new JLabel("bsh %"));
+        cp.hfill(true).weights(1,0).addCell(cmdLine);
+        
+        frame = new JFrame(this.toString());
+        frame.setContentPane(cp);
+        frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        frame.pack();
+    }
+//}}}
+
+//{{{ onDoCmd, onArrowUp/Down
+//##############################################################################
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onDoCmd(ActionEvent ev)
+    {
+        try
+        {
+            long time = System.currentTimeMillis();
+            interp.eval(cmdLine.getText());
+            cmdHistory.addFirst(cmdLine.getText());
+            historyIter = null;
+            cmdLine.setText("");
+            time = System.currentTimeMillis() - time;
+            if(time > 4000) Toolkit.getDefaultToolkit().beep();
+        }
+        catch(EvalError e)
+        { e.printStackTrace(this.outerr); }
+    }
+    
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onArrowUp(ActionEvent ev)
+    {
+        if(historyIter == null)
+            historyIter = cmdHistory.listIterator();
+        if(historyIter.hasNext())
+            cmdLine.setText((String) historyIter.next());
+    }
+    
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onArrowDown(ActionEvent ev)
+    {
+        if(historyIter != null && historyIter.hasPrevious())
+            cmdLine.setText((String) historyIter.previous());
+        else
+            cmdLine.setText("");
     }
 //}}}
 
@@ -83,6 +186,7 @@ public class BeanKing extends Plugin
     public void onShow(ActionEvent ev)
     {
         frame.setVisible(true);
+        cmdLine.requestFocus();
     }
 //}}}
 
@@ -96,14 +200,6 @@ public class BeanKing extends Plugin
         catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
         return url;
     }
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
 //}}}
 
 //{{{ empty_code_segment

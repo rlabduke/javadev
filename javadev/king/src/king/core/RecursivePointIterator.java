@@ -33,63 +33,69 @@ public class RecursivePointIterator //extends ... implements ...
     LinkedList  iterStack;
     Iterator    iter;
     KPoint      next;
-    boolean     findTurnedOff   = false; // ignore points/AGEs that are not ON
-    boolean     findUnpickable  = false; // ignore points that are unpickable
+    boolean     findTurnedOff; // ignore points/AGEs that are not ON
+    boolean     findUnpickable; // ignore points that are unpickable
 //}}}
 
 //{{{ Constructor(s)
 //##################################################################################################
-    /**
-    * Constructor
-    */
-    public RecursivePointIterator(AGE top)
+    public RecursivePointIterator(AGE top, boolean findTurnedOff, boolean findUnpickable)
     {
         iterStack   = new LinkedList();
         iter        = top.iterator();
         next        = null;
+        this.findTurnedOff = findTurnedOff;
+        this.findUnpickable = findUnpickable;
     }
+
+    public RecursivePointIterator(AGE top)
+    { this(top, false, false); }
 //}}}
 
 //{{{ nextImpl
 //##################################################################################################
     /**
-    * Recursive function that searches the tree for the next KPoint
+    * Function that searches the tree for the next KPoint
     * and places it into the variable next.
     * If there are no more points, next == null.
     */
     private void nextImpl()
     {
-        if(iter.hasNext())
+        // True tail-recursion has been replaced by a while-loop pseudo-recursion
+        // because otherwise we tend to get StackOverflowErrors.
+        // If Java was smarter it would perform this optimization for us... ;)
+        while(true)
         {
-            Object o = iter.next();
-            if(o instanceof KPoint
-            && (findTurnedOff || ((KPoint)o).isOn())
-            && (findUnpickable || !((KPoint)o).isUnpickable()) )
+            if(iter.hasNext())
             {
-                next = (KPoint)o;
-                return; // recursion bottoms out here (success)
+                Object o = iter.next();
+                if(o instanceof KPoint
+                && (findTurnedOff || ((KPoint)o).isOn())
+                && (findUnpickable || !((KPoint)o).isUnpickable()) )
+                {
+                    next = (KPoint)o;
+                    return; // recursion bottoms out here (success)
+                }
+                else if(o instanceof AGE
+                && (findTurnedOff || ((AGE)o).isOn()) )
+                {
+                    iterStack.addLast(iter);
+                    iter = ((AGE)o).iterator();
+                    // recurses
+                }
+                // else recurses: we can ignore it and move on 
             }
-            else if(o instanceof AGE
-            && (findTurnedOff || ((AGE)o).isOn()) )
+            else if(!iterStack.isEmpty())
             {
-                iterStack.addLast(iter);
-                iter = ((AGE)o).iterator();
+                iter = (Iterator)iterStack.removeLast();
                 // recurses
             }
-            // else recurses: we can ignore it and move on 
+            else
+            {
+                next = null;
+                return; // recursion bottoms out here (failure)
+            }
         }
-        else if(!iterStack.isEmpty())
-        {
-            iter = (Iterator)iterStack.removeLast();
-            // recurses
-        }
-        else
-        {
-            next = null;
-            return; // recursion bottoms out here (failure)
-        }
-        
-        nextImpl();
     }
 //}}}
 

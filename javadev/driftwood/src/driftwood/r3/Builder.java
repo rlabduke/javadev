@@ -305,7 +305,7 @@ I have a tendency to make things too complicated on the first pass. :)
     * @return a Collection of Triples representing dots on the sphere surface,
     *   with the sphere centered on the origin.
     */
-    public Collection makeDotSphere(double radius, double density) 
+    static public Collection makeDotSphere(double radius, double density) 
     {
         // overestimate of the number of dots
         final double sizefact = 1.0;
@@ -347,6 +347,30 @@ I have a tendency to make things too complicated on the first pass. :)
         }
         
         return points;
+    }
+//}}}
+
+//{{{ makeBoundingBox
+//##################################################################################################
+    /**
+    * Calculates the bounding box along X, Y, and Z for a set of Tuple3's.
+    * @return an array containing the minimum point in [0] and the maximum in [1]
+    */
+    static public Triple[] makeBoundingBox(Collection tuples)
+    {
+        Triple min = new Triple(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+        Triple max = new Triple(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
+        for(Iterator iter = tuples.iterator(); iter.hasNext(); )
+        {
+            Tuple3 t = (Tuple3) iter.next();
+            min.setX( Math.min(min.getX(), t.getX()) );
+            min.setY( Math.min(min.getY(), t.getY()) );
+            min.setZ( Math.min(min.getZ(), t.getZ()) );
+            max.setX( Math.max(max.getX(), t.getX()) );
+            max.setY( Math.max(max.getY(), t.getY()) );
+            max.setZ( Math.max(max.getZ(), t.getZ()) );
+        }
+        return new Triple[] { min, max };
     }
 //}}}
 

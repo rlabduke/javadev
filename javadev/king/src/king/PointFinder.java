@@ -118,6 +118,7 @@ public class PointFinder implements WindowListener
         dialog.pack();
         dialog.setLocationRelativeTo(kMain.getTopWindow());
         searchField.selectAll();
+        searchField.requestFocus(); // may not take effect since dlg isn't visible?
         dialog.setVisible(true);
         // remember, execution of this thread stops here until dialog is closed
     }
@@ -195,7 +196,8 @@ public class PointFinder implements WindowListener
         }
         else {return;}
 
-        dialog.setVisible(false);
+        // Using dispose() instead of setVisible(false) prevents redraw and focus problems
+        dialog.dispose();
         
         query   = newQuery;
         ptIter  = new RecursivePointIterator(kin);
@@ -205,7 +207,8 @@ public class PointFinder implements WindowListener
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onClose(ActionEvent ev)
     {
-        dialog.setVisible(false);
+        // Using dispose() instead of setVisible(false) prevents redraw and focus problems
+        dialog.dispose();
     }
 //}}}
 

@@ -807,7 +807,7 @@ public class DrawingTool extends BasicTool
 
         // Find all the points THAT ARE CURRENTLY VISIBLE
         // and outside the cropping sphere.
-        RecursivePointIterator rpi = new RecursivePointIterator(kin);
+        RecursivePointIterator rpi = new RecursivePointIterator(kin, false, true); // inc. unpickables
         ArrayList toRemove = new ArrayList();
         while(rpi.hasNext())
         {

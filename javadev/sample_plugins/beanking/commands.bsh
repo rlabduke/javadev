@@ -22,7 +22,10 @@ help() {
     print("importSubgroups(file?)   imports GROUP/FILE subgroups for each group");
     print("makeMaster(name?)        creates master for named group/subgroup/list");
     print("");
+    print("source(getResource(\"/movies.bsh\"));");
+    print("");
 }
+help(); // display this message on startup!
 
 bleach() {
     kin = kMain.getKinemage();

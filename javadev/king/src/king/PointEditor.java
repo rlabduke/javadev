@@ -257,7 +257,7 @@ public class PointEditor implements ChangeListener
             }
         } catch(NumberFormatException ex) {}
         
-        ptDialog.setVisible(false);
+        ptDialog.dispose();
         thePoint = null; // avoid memory leaks
 
         if(kin != null) kin.setModified(true);
@@ -268,7 +268,7 @@ public class PointEditor implements ChangeListener
     public void onPointCancel(ActionEvent ev)
     {
         thePoint.setColor(ptOrigColor);
-        ptDialog.setVisible(false);
+        ptDialog.dispose();
         thePoint = null; // avoid memory leaks
     }
 
