@@ -167,7 +167,7 @@ public class StandardPainter implements Painter
         double x2, double y2, double z2)
     {
         g.setPaint(paint);
-        if(REALLY_PAINT) prettyLine((int)x1, (int)y1, (int)x2, (int)y2, width);
+        if(REALLY_PAINT) prettyLine((int)x1, (int)y1, (int)x2, (int)y2, KPalette.lineWidths[width-1][widthCue]);
     }
 //}}}
 
