@@ -38,7 +38,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
     HashMap structMap;
     HashSet clickedLists;
 
-    JRadioButton chooseColor, colorAll;
+    JRadioButton chooseColor, colorAll, colorAA;
     JRadioButton colorRegion, hippieMode, spectralMode;
     JButton colorButton;
     TablePane pane;
@@ -46,6 +46,10 @@ public class RecolorTool extends BasicTool implements ActionListener {
     JTextField lowNumField;
     JTextField highNumField;
     Integer lowResNum, highResNum;
+
+    String[] aaNames = {"gly", "ala", "ser", "thr", "cys", "val", "leu", "ile", "met", "pro", "phe", "tyr", "trp", "asp", "glu", "asn", "gln", "his", "lys", "arg"};
+    JComboBox  aaBox;
+    JCheckBox  colorPrior;
 
 //}}}
 
@@ -72,16 +76,26 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	color1.setSelectedItem(KPalette.blue);
         color1.addActionListener(this);
 
+	aaBox = new JComboBox(aaNames);
+	aaBox.setSelectedItem("pro");
+	aaBox.addActionListener(this);
+
 	//colorOne = new JRadioButton("Color One", false);
 	colorRegion = new JRadioButton("Color Region", true);
 	colorAll = new JRadioButton("Color All", false);
+	colorAA = new JRadioButton("Color AAs", false);
+
+	colorPrior = new JCheckBox("Color prior aa", false);
+	colorPrior.setEnabled(false);
 	//colorOne.addActionListener(this);
 	colorRegion.addActionListener(this);
 	colorAll.addActionListener(this);
+	colorAA.addActionListener(this);
 	ButtonGroup colorRange = new ButtonGroup();
 	//colorRange.add(colorOne);
 	colorRange.add(colorRegion);
 	colorRange.add(colorAll);
+	colorRange.add(colorAA);
 
 	chooseColor = new JRadioButton("Choose Color", true);
 	//checkSort = new JRadioButton("Check Sort", false);
@@ -120,11 +134,14 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	//pane.add(colorOne);
 	pane.add(colorRegion);
 	pane.add(colorAll);
+	pane.add(colorAA);
+	pane.add(aaBox);
 
 	pane.newRow();
 	pane.add(lowNumField);
 	pane.add(highNumField);
 	pane.add(colorButton);
+	pane.add(colorPrior);
 
     }
 //}}}
@@ -149,6 +166,8 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    //}
 	    if (colorAll.isSelected()) {
 		highlightAll(p);
+	    } else if (colorAA.isSelected()) {
+		highlightAA(p);
 	    } else {
 		highlightRange(p);
 	    }
@@ -177,6 +196,12 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	} else {
 	    //colorRegion.setEnabled(true);
 	    //colorAll.setEnabled(true);
+	}
+	if (colorAA.isSelected()) {
+	    colorPrior.setEnabled(true);
+	} else {
+	    colorPrior.setEnabled(false);
+	    colorPrior.setSelected(false);
 	}
 	if ("color".equals(ev.getActionCommand())) {
 	    if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))) {
@@ -428,6 +453,37 @@ public class RecolorTool extends BasicTool implements ActionListener {
     }
     
 //}}}
+
+    public void highlightAA(KPoint p) {
+	KList parentList = (KList) p.getOwner();
+	Iterator iter = parentList.iterator();
+	HashSet aaNums = new HashSet();
+	while (iter.hasNext()) {
+	    KPoint point = (KPoint) iter.next();
+	    String name = point.getName();
+	    if (name.indexOf((String)aaBox.getSelectedItem()) != -1) {
+		point.setColor((KPaint) color1.getSelectedItem());
+		Integer resNum = new Integer(getResNumber(point));
+		aaNums.add(resNum);
+	    }
+	}
+	if (colorPrior.isSelected()) {
+	    iter = aaNums.iterator();
+	    while (iter.hasNext()) {
+		int priorResNum = ((Integer) iter.next()).intValue() - 1;
+		ArrayList listofPoints = (ArrayList) structMap.get(new Integer(priorResNum));
+		if (listofPoints != null) {
+		    Iterator listIter = listofPoints.iterator();
+		    while (listIter.hasNext()) {
+			KPoint point = (KPoint) listIter.next();
+			if (point != null) {
+			    point.setColor(KPalette.green);
+			}
+		    }
+		}
+	    }
+	}
+    }
 
 //{{{ highlight
 //#######################################################################################################
