@@ -437,7 +437,7 @@ public class KinTree //extends ... implements ...
                 Kinemage kin = (Kinemage)node;
                 if(clipboard instanceof KGroup)
                 {
-                    model.insertNodeInto(clipboard, kin, 0);
+                    model.insertNodeInto(clipboard, kin, kin.getChildCount());
                     clipboard.setParent(kin);
                     tree.setSelectionPath(path.pathByAddingChild(clipboard));
                     clipboard = null;
@@ -445,10 +445,10 @@ public class KinTree //extends ... implements ...
                 else if(clipboard instanceof KSubgroup)
                 {
                     KGroup group = new KGroup(kin, "New group");
-                    model.insertNodeInto(group, node, 0);
+                    model.insertNodeInto(group, node, node.getChildCount());
                     path = path.pathByAddingChild(group);
                     
-                    model.insertNodeInto(clipboard, group, 0);
+                    model.insertNodeInto(clipboard, group, group.getChildCount());
                     clipboard.setParent(group);
                     tree.setSelectionPath(path.pathByAddingChild(clipboard));
                     clipboard = null;
@@ -456,14 +456,14 @@ public class KinTree //extends ... implements ...
                 else if(clipboard instanceof KList)
                 {
                     KGroup group = new KGroup(kin, "New group");
-                    model.insertNodeInto(group, node, 0);
+                    model.insertNodeInto(group, node, node.getChildCount());
                     path = path.pathByAddingChild(group);
                     
                     KSubgroup subgroup = new KSubgroup(group, "New subgroup");
-                    model.insertNodeInto(subgroup, group, 0);
+                    model.insertNodeInto(subgroup, group, group.getChildCount());
                     path = path.pathByAddingChild(subgroup);
                     
-                    model.insertNodeInto(clipboard, subgroup, 0);
+                    model.insertNodeInto(clipboard, subgroup, subgroup.getChildCount());
                     clipboard.setParent(subgroup);
                     tree.setSelectionPath(path.pathByAddingChild(clipboard));
                     clipboard = null;
@@ -483,7 +483,7 @@ public class KinTree //extends ... implements ...
                     for(Iterator iter = ((AGE)clipboard).iterator(); iter.hasNext(); )
                     {
                         toInsert = (KSubgroup)iter.next();
-                        model.insertNodeInto(toInsert, group, 0);
+                        model.insertNodeInto(toInsert, group, group.getChildCount());
                         toInsert.setParent(group);
                     }
                     tree.setSelectionPath(path);
@@ -491,7 +491,7 @@ public class KinTree //extends ... implements ...
                 }
                 else if(clipboard instanceof KSubgroup)
                 {
-                    model.insertNodeInto(clipboard, group, 0);
+                    model.insertNodeInto(clipboard, group, group.getChildCount());
                     clipboard.setParent(group);
                     tree.setSelectionPath(path.pathByAddingChild(clipboard));
                     clipboard = null;
@@ -499,10 +499,10 @@ public class KinTree //extends ... implements ...
                 else if(clipboard instanceof KList)
                 {
                     KSubgroup subgroup = new KSubgroup(group, "New subgroup");
-                    model.insertNodeInto(subgroup, group, 0);
+                    model.insertNodeInto(subgroup, group, group.getChildCount());
                     path = path.pathByAddingChild(subgroup);
                     
-                    model.insertNodeInto(clipboard, subgroup, 0);
+                    model.insertNodeInto(clipboard, subgroup, subgroup.getChildCount());
                     clipboard.setParent(subgroup);
                     tree.setSelectionPath(path.pathByAddingChild(clipboard));
                     clipboard = null;
@@ -522,7 +522,7 @@ public class KinTree //extends ... implements ...
                     for(Iterator iter = ((AGE)clipboard).iterator(); iter.hasNext(); )
                     {
                         toInsert = (KList)iter.next();
-                        model.insertNodeInto(toInsert, subgroup, 0);
+                        model.insertNodeInto(toInsert, subgroup, subgroup.getChildCount());
                         toInsert.setParent(subgroup);
                     }
                     tree.setSelectionPath(path);
@@ -530,7 +530,7 @@ public class KinTree //extends ... implements ...
                 }
                 else if(clipboard instanceof KList)
                 {
-                    model.insertNodeInto(clipboard, subgroup, 0);
+                    model.insertNodeInto(clipboard, subgroup, subgroup.getChildCount());
                     clipboard.setParent(subgroup);
                     tree.setSelectionPath(path.pathByAddingChild(clipboard));
                     clipboard = null;

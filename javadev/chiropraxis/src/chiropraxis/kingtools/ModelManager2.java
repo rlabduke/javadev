@@ -94,14 +94,13 @@ public class ModelManager2 extends Plugin
     Set                     allMoltenRes;
     
     BgKinRunner             probePlotter    = null;
-
     File                    noeFile         = null;
     String                  noeFormat       = "xplor";
     NoePanel                noePanel;
     ExpectedNoePanel        expNoePanel;
     
-    SuffixFileFilter        pdbFilter, mapFilter, rotFilter, noeFilter;
-    JFileChooser            openChooser, mapChooser, saveChooser, noeChooser;
+    SuffixFileFilter        pdbFilter, rotFilter, noeFilter;
+    JFileChooser            openChooser, saveChooser, noeChooser;
     JCheckBox               cbUseSegID;
     boolean                 changedSinceSave = false;
     JDialog                 dialog;
@@ -138,8 +137,6 @@ public class ModelManager2 extends Plugin
     {
         pdbFilter = new SuffixFileFilter("Protein Data Bank (PDB) files");
         pdbFilter.addSuffix(".pdb");
-        mapFilter = new SuffixFileFilter("CCP4 Map files");
-        mapFilter.addSuffix(".ccp4");
         rotFilter = new SuffixFileFilter("Rotated-coordinate files");
         rotFilter.addSuffix(".rot");
         noeFilter = new SuffixFileFilter("NOE files");
@@ -157,11 +154,6 @@ public class ModelManager2 extends Plugin
         cbUseSegID = new JCheckBox("Use SegID to define chains", false);
         openChooser.setAccessory(cbUseSegID);
         // can't set PDB file yet b/c kinemage not loaded
-
-        mapChooser = new JFileChooser();
-        mapChooser.addChoosableFileFilter(mapFilter);
-        mapChooser.setFileFilter(mapFilter);
-        if(currdir != null) mapChooser.setCurrentDirectory(new File(currdir));
 
         saveChooser = new JFileChooser();
         //XXX-??? saveChooser.addChoosableFileFilter(rotFilter);
@@ -257,7 +249,7 @@ public class ModelManager2 extends Plugin
         item = new JMenuItem(new ReflectiveAction("Open PDB file...", null, this, "onOpenPDB"));
         item.setMnemonic(KeyEvent.VK_O);
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, UIMenus.MENU_ACCEL_MASK));
-        menubar.add(menu);
+        menu.add(item);
         item = new JMenuItem(new ReflectiveAction("Open NOE file...", null, this, "onOpenNOE"));
         item.setMnemonic(KeyEvent.VK_N);
         //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, UIMenus.MENU_ACCEL_MASK));
@@ -373,9 +365,8 @@ public class ModelManager2 extends Plugin
             try
             {
                 File f = openChooser.getSelectedFile();
-                if(f != null && f.exists()){
+                if(f != null && f.exists())
                     openPDB(f);
-                }
             }
             catch(IOException ex)
             {
@@ -712,7 +703,6 @@ public class ModelManager2 extends Plugin
         if(cbShowNOEs.isSelected())     visualizeNOEs();
         if(cbShowExpNOEs.isSelected())  visualizeExpectedNOEs();
         kCanvas.repaint();
-
     }
     
     /**
@@ -747,14 +737,14 @@ public class ModelManager2 extends Plugin
     {
         registeredTools.remove(tool);
         moltenRes.remove(tool);
-
+        
         allMoltenRes.clear();
         for(Iterator iter = moltenRes.values().iterator(); iter.hasNext(); )
         {
             allMoltenRes.addAll( (Collection)iter.next() );
         }
         refreshGUI();
-
+        
         requestStateRefresh();
     }
     
@@ -1008,7 +998,7 @@ public class ModelManager2 extends Plugin
             dialog.setLocation(loc);
             dialog.setVisible(true);
         }
-        if(stateList == null || stateList.size() < 1) onOpenPDB(null);        
+        if(stateList == null || stateList.size() < 1) onOpenPDB(null);
     }
 //}}}
 

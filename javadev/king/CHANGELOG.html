@@ -38,30 +38,26 @@
     Text editor should notice edits to text and mark kin(s) as modified
     Create a java.net or Sourceforge project for KiNG to encourage plugin devel?
     Create HTML+applet mini-tutorials: kin editing, refitting, views, etc. etc.
-<!-- Postponed TO DO items }}} -->
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
     Make refitting tools able to set up alternate confs (as an option)
+    Mutated residues should retain B factors where possible (?)
+<!-- Postponed TO DO items }}} -->
     Add ability to edit masters
     Add some kind of transformation hook (listeners, priorities, etc)
+    Add pluginStartup() method to plugins that's called after everything is running?
     Open PDB in model manager without opening kinemage first?
     Optional 2 column button layout?
     Support "on" and "off" for pointmasters in parser? (Flipkin)
-  * "URL filesystem" like maps to support open/append, etc. from applet
- ** use "around x,y,z" for Probe runs
-    why does tree paste add at start of list instead of end?
-    Look at mouse wheel modifiers (e.g. Shift)
-    Key/mouse modifiers need to be checked from Safari (applet) - middle = right
-  * Look at Pro geometry with Jane
-    Add init() method to plugins that's called after everything is running?
-    JSR: measures+xyz+superpick switch themselves off
-    JSR: sc rot / ca hinge and the ca hinge dialog disappears
-    JSR: rotamers don't always update angle settings (another typo?)
-    Mutated residues should retain B factors or set to 30 (?)
+    "URL filesystem" like maps to support open/append, etc. from applet
+    use "around x,y,z" for Probe runs
+    Document mouse keys: use Meta and Alt on Mac, not Shift and Ctrl
+    Look at Pro geometry with Jane
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 1.31 ###
 ### 1.31 ###
 - Ant script now creates javadocs as part of "dist" target
   This makes the source code bundle larger, but nicer for other users
@@ -70,6 +66,18 @@
 - r63 introduced Shuren's changes to the model manager...
 - added line numbers to IllegalStateExceptions in KinfileTokenizer
 - fixed bug: JSR: KiNG writes two copies of refit atoms, moved and original
+- marking these bugs as CANNOT REPRODUCE:
+    JSR: measures+xyz+superpick switch themselves off
+    JSR: sc rot / ca hinge and the ca hinge dialog disappears
+    JSR: rotamers don't always update angle settings (another typo?)
+- changed Hierarchy Editor so Paste operations append at the end, not beginning
+- modifiers for mouse wheel seem fine (Shift, Ctrl)
+- modifiers for clicks are seriously screwed up on the Mac:
+  Right and Meta are indistinguishable; Middle and Alt are indistinguishable
+  Ctrl-click generates a mousePressed() but not a mouseClicked()
+  There are finally better methods to query this in Java 1.4, but we use 1.3.
+  Only feasible solution at this point is to document the work-arounds.
+- released to cluster only
 
 ### 1.30 ###
 - modified KPaint.getPaint() to use a cached Color object when possible
