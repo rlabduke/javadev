@@ -48,7 +48,7 @@ public class BondRotHandler {
 	    listIter = bonds.iterator();
 	    while (listIter.hasNext()) {
 		KList bondList = (KList) listIter.next();
-		bondList.setColor(KPalette.white);
+		//bondList.setColor(KPalette.white);
 		storeCoords(bondList, ptsList, origList);
 	    }
 	    //origSet.clear();

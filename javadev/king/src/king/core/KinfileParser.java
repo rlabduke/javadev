@@ -192,8 +192,9 @@ public class KinfileParser //extends ... implements ...
                 token.advanceToKeyword();
             }
         }//while not EOF
-	closeBondRots();
-	kinemage.setBondRots(closedBondRots);
+	//closeBondRots();
+	kinemage.setBondRots(closeBondRots());
+	closedBondRots = new ArrayList();
     }
 //}}}
 
@@ -202,8 +203,10 @@ public class KinfileParser //extends ... implements ...
     void doKinemage() throws IOException
     {
 	if (kinemage != null) {
-	    closeBondRots();
-	    kinemage.setBondRots(closedBondRots);
+	    //closeBondRots();
+	    kinemage.setBondRots(closeBondRots());
+	    
+	    closedBondRots = new ArrayList();
 	}
         kinemage = new Kinemage(DEFAULT_KINEMAGE_NAME+(kinemages.size()+1));
         kinemages.add(kinemage);
@@ -993,7 +996,7 @@ public class KinfileParser //extends ... implements ...
 
 //}}}
 
-    private void closeBondRots() {
+    private ArrayList closeBondRots() {
 	//need to close all open bondrots
 	if (bondRots != null) {
 	    Collection closingRots = bondRots.values();
@@ -1005,6 +1008,7 @@ public class KinfileParser //extends ... implements ...
 	    }
 	    bondRots = null;
 	}
+	return closedBondRots;
     }
 
 //{{{ rotModeIsOn
