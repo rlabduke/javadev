@@ -28,7 +28,7 @@ import driftwood.util.SoftLog;
 * It takes care of drawing the new model to the graphics, controlling
 * updates, and writing out the modified portions.
 *
-* <p>Copyright (C) 2004 by Shuren Wang. All rights reserved.
+* <p>Copyright (C) 2004 by XXX. All rights reserved.
 * <br>Begun on Thu July 20 16:12:43 EST 2004
 */
 public class SswingManager extends Plugin
@@ -304,9 +304,18 @@ public class SswingManager extends Plugin
         {
 //            try
 //            {
+                String dirAndName="";
                 File f = mapChooser.getSelectedFile();
+
+                try {
+                   dirAndName=f.getCanonicalPath();
+                }
+                catch(Exception e) {
+                   e.printStackTrace();
+                }
+
                 if(f != null && f.exists()){
-                    densityFileName=f.getName();
+                    densityFileName=dirAndName;//+f.getName();
                 }
 //            }
 //            catch(IOException ex)
