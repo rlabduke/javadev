@@ -97,6 +97,8 @@ king.tool.util.EditPropertiesTool.menuName = <main menu>
 king.tool.util.MovePointTool.menuName = Kin editing
 king.tool.util.ViewpointPlugin.menuName = <main menu>
 king.tool.xtal.RNAMapTool.menuName = Specialty
+king.tool.xtal.GuilloTool.menuName = Specialty
+king.tool.xtal.SuiteRotationTool.menuName = Specialty
 
 ######################################################################
 ### PROTECTION AND CONFIRMATION ######################################

@@ -120,7 +120,7 @@ public class RNAPhosphateFinder {
  * This method steps through every index combination within the limits
  * of the polyhedra to find the max value point.
  **/
-    public void findMax() {
+    public void findMapMax() {
 	int[] totalxyz = new int[3];
 	double value;
 	
@@ -147,12 +147,26 @@ public class RNAPhosphateFinder {
     } 
 //}}}
 
+    public RNATriple findCentroid(KList trackedList) {
+	Iterator iter = trackedList.iterator();
+	//ArrayList dataPoints = new ArrayList();
+	RNATriple centroid = new RNATriple();
+	int size = 0;
+	while (iter.hasNext()) {
+	    KPoint t = (KPoint) iter.next();
+	    centroid.add(t);
+	    size++;
+	}
+	centroid.mult(1.0 / size);
+	return centroid;
+    }
+
 //{{{ highPoint
 //###################################################
 /**
  * Returns a clone of the double containing the high point.
  **/
-    public double[] highPoint() {
+    public double[] highMapPoint() {
 	double[] hpClone = new double[3];
 	hpClone[0] = highPointXYZ[0];
 	hpClone[1] = highPointXYZ[1];

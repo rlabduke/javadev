@@ -212,19 +212,13 @@ public class RNAMapTool extends BasicTool implements PropertyChangeListener, Lis
     }
 //}}}
 
-//{{{ getHelpAnchor, toString, isAppletSafe
+//{{{ getHelpAnchor, toString
 //##################################################################################################
     public String getHelpAnchor()
     { return "#rnamap-tool"; }
     
     public String toString()
     { return "Analyze RNA Maps"; }
-    
-    /** This plugin is not applet-safe loads files. */
-    static public boolean isAppletSafe()
-    {
-        return false;
-    }
 //}}}
 
 //{{{ start
@@ -381,10 +375,13 @@ public class RNAMapTool extends BasicTool implements PropertyChangeListener, Lis
     public void click(int x, int y, KPoint p, MouseEvent ev)
     {
         super.click(x, y, p, ev);
-        if((p instanceof VectorPoint)&&(win.pickIsSelected()))
-        {
-            win.polyTrack((VectorPoint) p);
-        }
+	if (win != null) {
+	    if((p instanceof VectorPoint)&&(win.polyIsSelected())) {
+		win.polyTrack((VectorPoint) p);
+	    } else if ((p != null)&&(win.planeIsSelected())) {
+		win.planeTrack(p);
+	    }
+	}
     }
 //}}}
 

@@ -27,7 +27,8 @@ public class RNAPolyPlotter
 //##################################################################################################
     KList       list;
     CrystalVertexSource map;
-    RNAPolygonTracker  polyTracker;
+    PolygonFinder  polyTracker;
+    MarkerPoint phPoint;
 //}}}
 
 //{{{ Constructor(s)
@@ -44,7 +45,7 @@ public class RNAPolyPlotter
 
 	this.map = map;
 	
-	polyTracker = new RNAPolygonTracker();
+	polyTracker = new PolygonFinder();
 
     }
 //}}}
@@ -88,15 +89,20 @@ public class RNAPolyPlotter
  **/
     public MarkerPoint polyAnalyze(KList polyList) {
 	RNAPhosphateFinder phinder = new RNAPhosphateFinder(map);
-	phinder.findLimits(polyList);
-	phinder.findIndexLimits();
-	phinder.findMax();
-	System.out.println(phinder);
-	double[] xyz = phinder.highPoint();
-	MarkerPoint phPoint = new MarkerPoint(polyList, "phosphate");
-	phPoint.setOrigX(xyz[0]);
-	phPoint.setOrigY(xyz[1]);
-	phPoint.setOrigZ(xyz[2]);
+	//old find map max code
+	//phinder.findLimits(polyList);
+	//phinder.findIndexLimits();
+	//phinder.findMax();
+	//System.out.println(phinder);
+	//double[] xyz = phinder.highPoint();
+	RNATriple centroid = phinder.findCentroid(polyList);
+	phPoint = new MarkerPoint(polyList, "phosphate");
+	//phPoint.setOrigX(xyz[0]);
+	//phPoint.setOrigY(xyz[1]);
+	//phPoint.setOrigZ(xyz[2]);
+	phPoint.setOrigX(centroid.getX());
+	phPoint.setOrigY(centroid.getY());
+	phPoint.setOrigZ(centroid.getZ());
 	phPoint.setStyle(MarkerPoint.BOX_L);
 	phPoint.setColor(KPalette.green);
 	phPoint.setWidth(5);
@@ -110,6 +116,26 @@ public class RNAPolyPlotter
     public KList getList()
     { return list; }
 //}}}
+
+    public VectorPoint getPhosphate() {
+	VectorPoint phos = new VectorPoint(list, "phosphate", null);
+	phos.setOrigX(phPoint.getOrigX());
+	phos.setOrigY(phPoint.getOrigY());
+	phos.setOrigZ(phPoint.getOrigZ());
+	return phos;
+    }
+
+    public void addPoint(RNATriple p) {
+	VectorPoint phos = getPhosphate();
+	list.add(phos);
+	VectorPoint intersect = new VectorPoint(list, "intersect", phos);
+	intersect.setOrigX(p.getX());
+	intersect.setOrigY(p.getY());
+	intersect.setOrigZ(p.getZ());
+	intersect.setColor(KPalette.purple);
+	System.out.println("Intersect: " + intersect.getOrigX() + ", " + intersect.getOrigY() + ", " + intersect.getOrigZ());
+	list.add(intersect);
+    }
 
 // addAll
 //###################################################
