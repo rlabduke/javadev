@@ -45,6 +45,7 @@
         <fileset dir="${resource}"/>
         <fileset dir="../driftwood/build/">
             <include name="driftwood/"/>
+            <include name="Jama/"/>
             <exclude name="driftwood/moldb*/"/>
         </fileset>
         <fileset dir="../driftwood/resource/">

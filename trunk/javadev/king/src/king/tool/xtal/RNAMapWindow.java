@@ -52,11 +52,12 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
     JSlider     extent, slider1, slider2;
     JCheckBox   label1, label2;
     JComboBox   color1, color2;
-    JButton     discard, export;
+    JButton     draw, discard, export;
 
-    JCheckBox   polyPicker;
+    JCheckBox   planePicker, polyPicker;
     //RNAPolygonTracker   polyTracker;
     RNAPolyPlotter  polyPlotter;
+    RNAPlanePlotter planePlotter;
     JComboBox  polyColor;
 
     float       ctrX, ctrY, ctrZ;
@@ -83,6 +84,7 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
         plotter2 = new RNAMapPlotter(false);
 	//polyTracker = new RNAPolygonTracker();
 	polyPlotter = new RNAPolyPlotter(map);
+	planePlotter = new RNAPlanePlotter();
         mc1 = new MarchingCubes(map, map, plotter1, MarchingCubes.MODE_MESH);
         mc2 = new MarchingCubes(map, map, plotter2, MarchingCubes.MODE_MESH);
         
@@ -108,6 +110,7 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
         label2 = new JCheckBox("3.0 sigma", true);
 
 	polyPicker = new JCheckBox("Poly Picker", true);
+	planePicker = new JCheckBox("Plane Picker", false);
         
         color1 = new JComboBox(kMain.getKinemage().getAllPaintMap().values().toArray());
         color1.setSelectedItem(KPalette.gray);
@@ -117,7 +120,7 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
 	polyColor = new JComboBox(kMain.getKinemage().getAllPaintMap().values().toArray());
 	polyColor.setSelectedItem(KPalette.gold);
         
-        extent = new JSlider(0, 80, 10);
+        extent = new JSlider(0, 40, 10);
         extent.setMajorTickSpacing(10);
         extent.setMinorTickSpacing(2);
         extent.setPaintTicks(true);
@@ -135,10 +138,12 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
         
         discard = new JButton(new ReflectiveAction("Discard this map", null, this, "onMapDiscard"));
         export  = new JButton(new ReflectiveAction("Export to kinemage", null, this, "onMapExport"));
+	draw = new JButton(new ReflectiveAction("Draw perpendicular", null, this, "onDraw"));
         
         label1.addActionListener(this);
         label2.addActionListener(this);
 	polyPicker.addActionListener(this);
+	planePicker.addActionListener(this);
         color1.addActionListener(this);
         color2.addActionListener(this);
 	polyColor.addActionListener(this);
@@ -168,7 +173,11 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
 	pane.add(polyPicker);
 	pane.add(polyColor);
         pane.newRow();
+	pane.add(planePicker);
+	pane.newRow();
         pane.center().hfill(true);
+	pane.add(draw, 2, 1);
+	pane.newRow();
         pane.add(export, 2, 1);
         pane.newRow();
         pane.add(discard, 2, 1);
@@ -187,7 +196,9 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
         val = calcSliderValue(slider2);
         label2.setText(df1.format(val)+" sigma");
         
-        updateMesh();
+	if(!(extent.getValueIsAdjusting())) {
+	    updateMesh();
+	}
         kCanvas.repaint();
     }
     
@@ -295,6 +306,12 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
 	    list.setColor((KPaint)polyColor.getSelectedItem());
 	    list.signalTransform(engine, xform);
 	}
+
+	list = planePlotter.getList();
+	if (list != null && planePicker.isSelected()) {
+	    //list.setColor((KPaint)polyColor.getSelectedItem());
+	    list.signalTransform(engine, xform);
+	}
         
         //SoftLog.err.println("Painted maps.");
     }
@@ -302,11 +319,21 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
     
 //{{{ onMapDiscard, onMapExport
 //##################################################################################################
+
+    public void onDraw(ActionEvent ev) {
+	VectorPoint phos = polyPlotter.getPhosphate();
+	RNATriple intersect = planePlotter.getPointPlaneIntersect(phos);
+	polyPlotter.addPoint(intersect);
+	//updateMesh();
+	kCanvas.repaint();
+    }
+    
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onMapDiscard(ActionEvent ev)
     {
         dialog.dispose();
         parent.sigTransform.unsubscribe(this);
+	parent.activateDefaultTool();
         kCanvas.repaint();
     }
     
@@ -323,10 +350,11 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
         subgroup.setHasButton(false);
         group.add(subgroup);
         
-        KList list1, list2, polyList;
+        KList list1, list2, polyList, planeList;
         list1 = plotter1.getList(); plotter1.freeList();
         list2 = plotter2.getList(); plotter2.freeList();
 	polyList = polyPlotter.getList();
+	planeList = planePlotter.getList();
         if(list1 != null && label1.isSelected())
         {
             list1.setOwner(subgroup);
@@ -341,19 +369,31 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
 	    polyList.setOwner(subgroup);
 	    subgroup.add(polyList);
 	}
+	if (planeList != null && planePicker.isSelected()) {
+	    planeList.setOwner(subgroup);
+	    subgroup.add(planeList);
+	}	
         updateMesh(); // regenerate the meshes we just exported
         
         kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
     }
 //}}}
 
-    public boolean pickIsSelected() {
+    public boolean polyIsSelected() {
 	return polyPicker.isSelected();
+    }
+
+    public boolean planeIsSelected() {
+	return planePicker.isSelected();
     }
 
     
     public void polyTrack(VectorPoint p) {
 	polyPlotter.polyTrack(p);
+    }
+
+    public void planeTrack(KPoint p) {
+	planePlotter.getPlane(p);
     }
 
     /*****
