@@ -71,6 +71,7 @@ public class KPaint //extends ... implements ...
     String          name;
     KPaint          aliasOf;
     Paint[][]       paints;
+    Paint[][]       paintsBackup; // Usually == to paints. See setContrast().
     boolean         isInvisible;
 //}}}
 
@@ -99,6 +100,7 @@ public class KPaint //extends ... implements ...
         p.name          = name;
         p.aliasOf       = null;
         p.paints        = new Paint[N_BACKGROUNDS][];
+        p.paintsBackup  = p.paints;
         p.isInvisible   = false;
         
         hue         /= 360f;
@@ -155,6 +157,7 @@ public class KPaint //extends ... implements ...
         p.name          = name;
         p.aliasOf       = null;
         p.paints        = new Paint[N_BACKGROUNDS][COLOR_LEVELS];
+        p.paintsBackup  = p.paints;
         p.isInvisible   = false;
         
         for(int i = 0; i < N_BACKGROUNDS; i++)
@@ -181,6 +184,7 @@ public class KPaint //extends ... implements ...
         p.name          = name;
         p.aliasOf       = target;
         p.paints        = target.paints;
+        p.paintsBackup  = p.paints;
         p.isInvisible   = target.isInvisible;
         
         return p;
@@ -359,6 +363,47 @@ public class KPaint //extends ... implements ...
     /** Returns the name this KPaint was created with. Will never be null. */
     public String toString()
     { return name; }
+//}}}
+
+//{{{ setContrast
+//##################################################################################################
+    /**
+    * Set the relative contrast of the color palette.
+    * A contrast of less than 1.0 is flat, and greater than 1.0 is exagerated.
+    * <p>Adjustment is done as linear interpolation/extrapolation to a mid-level gray.
+    * See http://www.sgi.com/misc/grafica/interp/ or
+    * P. Haeberli and D. Voorhies. Image Processing by Linear Interpolation and
+    * Extrapolation. IRIS Universe Magazine No. 28, Silicon Graphics, Aug, 1994.
+    */
+    public void setContrast(double alpha)
+    {
+        this.paints = new Paint[N_BACKGROUNDS][COLOR_LEVELS];
+        final double midgray = 0.5;
+        final double one_minus_alpha = 1.0 - alpha;
+        
+        for(int i = 0; i < N_BACKGROUNDS; i++)
+        {
+            for(int j = 0; j < COLOR_LEVELS; j++)
+            {
+                Paint p = (Paint) paintsBackup[i][j];
+                if(p instanceof Color)
+                {
+                    Color c = (Color) p;
+                    float r = (float)(alpha * c.getRed()/255.0   + one_minus_alpha * midgray);
+                    r = Math.max(Math.min(1, r), 0);
+                    float g = (float)(alpha * c.getGreen()/255.0 + one_minus_alpha * midgray);
+                    g = Math.max(Math.min(1, g), 0);
+                    float b = (float)(alpha * c.getBlue()/255.0  + one_minus_alpha * midgray);
+                    b = Math.max(Math.min(1, b), 0);
+                    paints[i][j] = new Color(r, g, b);
+                }
+                else
+                {
+                    paints[i][j] = p;
+                }
+            }
+        }
+    }
 //}}}
 
 //{{{ empty_code_segment

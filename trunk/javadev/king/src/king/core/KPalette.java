@@ -273,6 +273,22 @@ public class KPalette //extends ... implements ...
     { return fullColorMap; }
 //}}}
 
+//{{{ setContrast
+//##################################################################################################
+    /**
+    * Adjusts the contrast for the entire palette.
+    * A contrast of less than 1.0 is flat, and greater than 1.0 is exagerated.
+    */
+    static public void setContrast(double alpha)
+    {
+        for(Iterator iter = getFullMap().values().iterator(); iter.hasNext(); )
+        {
+            KPaint p = (KPaint) iter.next();
+            p.setContrast(alpha);
+        }
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##################################################################################################
 //}}}

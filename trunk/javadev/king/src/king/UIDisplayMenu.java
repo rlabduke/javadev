@@ -146,6 +146,10 @@ public class UIDisplayMenu //extends ... implements ...
         menu.add(submenu);
         menu.addSeparator();
         
+        JMenuItem item = new JMenuItem(new ReflectiveAction("Set contrast...", null, this, "onDispContrast"));
+        item.setMnemonic(KeyEvent.VK_O);
+        //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, 0)); // 0 => no modifiers
+        menu.add(item);
         cbIntensity = new JCheckBoxMenuItem(new ReflectiveAction("Cue by intensity", null, this, "onDispIntensity"));
         cbIntensity.setMnemonic(KeyEvent.VK_I);
         cbIntensity.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, 0)); // 0 => no modifiers
@@ -359,7 +363,7 @@ public class UIDisplayMenu //extends ... implements ...
     }
 //}}}
 
-//{{{ onDisplay{Persp, Stereo, Crosseye}
+//{{{ onDisp{Persp, Stereo, Crosseye}
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onDispPersp(ActionEvent ev)
@@ -400,7 +404,7 @@ public class UIDisplayMenu //extends ... implements ...
     }
 //}}}
 
-//{{{ onDisplay{BigMarkers, BigLabels, Thickness, Thin}
+//{{{ onDisp{BigMarkers, BigLabels, Thickness, Thin}
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onDispBigMarkers(ActionEvent ev)
@@ -455,7 +459,7 @@ public class UIDisplayMenu //extends ... implements ...
     }
 //}}}
 
-//{{{ onDisplay{Intensity, Background, Monochrome, ColorByList}
+//{{{ onDisp{Intensity, Background, Monochrome, ColorByList}
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onDispIntensity(ActionEvent ev)
@@ -560,8 +564,24 @@ public class UIDisplayMenu //extends ... implements ...
     }
 //}}}
 
-//{{{ empty_code_segment
+//{{{ onDispContrast
 //##################################################################################################
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onDispContrast(ActionEvent ev)
+    {
+        JSlider slider = new JSlider(0, 100, 50);
+        
+        int response = JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+            slider, "Set display contrast",
+            JOptionPane.OK_CANCEL_OPTION , JOptionPane.PLAIN_MESSAGE);
+        
+        if(response == JOptionPane.OK_OPTION)
+        {
+            int contrast = slider.getValue() - 50;
+            KPalette.setContrast(1.0 + contrast/50.0);
+            kMain.notifyChange(kMain.EM_DISPLAY);                
+        }
+    }
 //}}}
 
 //{{{ empty_code_segment
