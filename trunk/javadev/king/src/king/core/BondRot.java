@@ -126,5 +126,16 @@ public class BondRot {
 	return name;
     }
 
+    public boolean equals(Object obj) {
+	if (obj == null || !(obj instanceof BondRot)) return false;
+	BondRot rot = (BondRot) obj;
+	if (name.equals(rot.getName())) return true;
+	else return false;
+    }
+
+    public int hashCode() {
+	return name.hashCode();
+    }
+
     
 }
