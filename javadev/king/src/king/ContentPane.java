@@ -24,6 +24,7 @@ public class ContentPane extends JPanel // implements ...
 //##################################################################################################
     KingMain kMain = null;
     JScrollPane buttonScroll = null;
+    JSplitPane minorSplit = null; // hold buttons and graphics area
 //}}}
 
 //{{{ Constructor
@@ -87,7 +88,7 @@ public class ContentPane extends JPanel // implements ...
     {
         Container content = this;
         Component graphicsArea, buttonArea, bottomArea;
-        JSplitPane majorSplit, minorSplit;
+        JSplitPane majorSplit;
         
         // Build major sub-components
         graphicsArea = buildGraphicsArea();
@@ -107,12 +108,23 @@ public class ContentPane extends JPanel // implements ...
     }
 //}}}
 
-//{{{ buildGraphicsArea()
+//{{{ buildGraphicsArea, get/setGraphicsComponent
 //##################################################################################################
     // Assembles the area in which graphics are drawn.
     Component buildGraphicsArea()
     {
         return kMain.getCanvas();
+    }
+    
+    /** Sets the component that will occupy KinCanvas's usual space */
+    public void setGraphicsComponent(Component c)
+    {
+        minorSplit.setLeftComponent(c);
+    }
+    /** Gets the component currently acting as the drawing surface */
+    public Component getGraphicsComponent()
+    {
+        return minorSplit.getLeftComponent();
     }
 //}}}
     

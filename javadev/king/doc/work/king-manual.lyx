@@ -1370,13 +1370,6 @@ jre/bin
  the technical obstacles to this are very large).
 \layout Standard
 
-Note that due to limitations of Java's interaction with the native windowing
- system, OpenGL graphics have to have their own window.
- You can make it easier to work with by collapsing away the normal graphics
- area and shrinking down the main KiNG window; it will then tile nicely
- beside the graphics window.
-\layout Standard
-
 This feature has been tested with Java 1.4.2 and JOGL 1.1.0.
  JOGL is still under development, as is this feature, and interacting so
  directly with the hardware is always risky, so it's possible that OpenGL

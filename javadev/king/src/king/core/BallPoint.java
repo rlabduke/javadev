@@ -15,7 +15,7 @@ import driftwood.r3.*;
 //}}}
 /**
 * <code>BallPoint</code> represents a 3-D sphere.
-* It implements both Mage balllists and Mage spherelists.
+* It implements Mage balllists.
 *
 * <p>Begun on Sat Apr 27 11:02:02 EDT 2002
 * <br>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
@@ -99,7 +99,8 @@ public class BallPoint extends AbstractPoint // implements ...
         // b/c engine.widthCue isn't set yet.
         
         engine.addPaintable(this, z);
-        engine.addShortener(this, r);
+        // Otherwise we create gaps around lines when our pointmaster is off:
+        if(this.isOn()) engine.addShortener(this, r);
     }
 //}}}
 

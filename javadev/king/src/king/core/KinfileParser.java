@@ -888,9 +888,16 @@ public class KinfileParser //extends ... implements ...
         {
             MasterGroup master = kinemage.getMasterByName(token.getString());
             token.advance();
-            if(token.isLiteral() && token.getString().equals("indent"))
+            while(!token.isEOF() && !token.isKeyword())
             {
-                master.indent = true;
+                if(token.isLiteral())
+                {
+                    if(token.getString().equals("indent"))      master.indent = true;
+                    else if(token.getString().equals("on"))     master.setOn(true); // affects previously-declared objects only (now)
+                    else if(token.getString().equals("off"))    master.setOnLimited(false); // will turn off ALL target groups during sync
+                    else error("Unrecognized literal '"+token.getString()+"' will be ignored");
+                }
+                else error("Unrecognized token '"+token.getString()+"' will be ignored");
                 token.advance();
             }
         }
@@ -916,9 +923,17 @@ public class KinfileParser //extends ... implements ...
             
             MasterGroup master = kinemage.getMasterByName(masterName);
             master.setPmMask(charFlags);
-            if(token.isLiteral() && token.getString().equals("indent"))
+            
+            while(!token.isEOF() && !token.isKeyword())
             {
-                master.indent = true;
+                if(token.isLiteral())
+                {
+                    if(token.getString().equals("indent"))      master.indent = true;
+                    else if(token.getString().equals("on"))     master.setOnLimited(true); // no real effect
+                    else if(token.getString().equals("off"))    master.setOnLimited(false); // will turn off all target groups
+                    else error("Unrecognized literal '"+token.getString()+"' will be ignored");
+                }
+                else error("Unrecognized token '"+token.getString()+"' will be ignored");
                 token.advance();
             }
         }
