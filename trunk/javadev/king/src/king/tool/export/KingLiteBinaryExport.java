@@ -185,67 +185,96 @@ public class KingLiteBinaryExport extends Plugin
     public void save(DataOutputStream out, Kinemage kin) throws IOException
     {
         if(kin == null) return;
-        RecursivePointIterator iter = new RecursivePointIterator(kin);
-        while(iter.hasNext())
+        
+        int animCount = 0;
+        for(Iterator gi = kin.iterator(); gi.hasNext(); )
         {
-            KPoint p = iter.next();
-            KList list = (KList) p.getOwner();
-            if(!p.isTotallyOn() || list == null) continue;
-            
-            int multi = 0;
-            if(p instanceof DotPoint)
+            KGroup group = (KGroup) gi.next();
+            if(!group.isOn()) continue;
+            int animFrame = (group.isAnimate() ? ++animCount : 0);
+            for(Iterator si = group.iterator(); si.hasNext(); )
             {
-                int width = list.getWidth();
-                if(width <= 2)                  multi |= TYPE_DOT_SMALL;
-                else if(width <= 4)             multi |= TYPE_DOT_MEDIUM;
-                else                            multi |= TYPE_DOT_LARGE;
-            }
-            else if(p instanceof BallPoint)
-            {
-                multi |= TYPE_BALL;
-                float radius = p.getRadius();
-                if(radius == 0) radius = list.getRadius();
-                int r = (int) Math.round((radius * 1000.0) / 8.0);
-                multi |= (r << 8);
-            }
-            else if(p instanceof VectorPoint)
-            {
-                int w = p.getWidth();
-                if(w == 0) w = list.getWidth();
-                
-                if(p.isBreak())                 multi |= TYPE_VECTOR_NODRAW;
-                else if(w <= 3)                 multi |= TYPE_VECTOR_DRAW1;
-                else                            multi |= TYPE_VECTOR_DRAW2;
-            }
-            else if(p instanceof LabelPoint)   multi |= TYPE_LABEL;
-            else continue;
-            
-            String color = p.getDrawingColor(kCanvas.getEngine()).toString();
-            int colorIndex = 31;
-            for(int i = 0; i < colors.length; i++)
-            {
-                if(colors[i].equals(color)) colorIndex = i;
-            }
-            multi |= (colorIndex << 3);
-            
-            // Values b/t +/- 0.001 and +/- 1,000,000
-            int x = (int)Math.round(p.getX() * 1000);
-            int y = (int)Math.round(p.getY() * 1000);
-            int z = (int)Math.round(p.getZ() * 1000);
-            
-            out.writeInt(x);
-            out.writeInt(y);
-            out.writeInt(z);
-            out.writeInt(multi);
-            
-            if(p instanceof LabelPoint)
-            {
-                String s = p.getName();
-                out.writeInt(s.length());
-                out.writeChars(s);
+                KSubgroup subgroup = (KSubgroup) si.next();
+                if(!subgroup.isOn()) continue;
+                for(Iterator li = subgroup.iterator(); li.hasNext(); )
+                {
+                    KList list = (KList) li.next();
+                    if(!list.isOn()) continue;
+                    for(Iterator pi = list.iterator(); pi.hasNext(); )
+                    {
+                        KPoint pt = (KPoint) pi.next();
+                        if(!pt.isOn()) continue;
+                        savePoint(out, pt);
+                    }
+                }
             }
         }
         out.flush();
+    }
+//}}}
+
+//{{{ savePoint
+//##############################################################################
+    public void savePoint(DataOutputStream out, KPoint p) throws IOException
+    {
+        KList list = (KList) p.getOwner();
+        if(list == null) return;
+        
+        int multi = 0;
+        if(p instanceof DotPoint)
+        {
+            int width = list.getWidth();
+            if(width <= 2)                  multi |= TYPE_DOT_SMALL;
+            else if(width <= 4)             multi |= TYPE_DOT_MEDIUM;
+            else                            multi |= TYPE_DOT_LARGE;
+        }
+        else if(p instanceof BallPoint)
+        {
+            multi |= TYPE_BALL;
+            float radius = p.getRadius();
+            if(radius == 0) radius = list.getRadius();
+            int r = (int) Math.round((radius * 1000.0) / 8.0);
+            multi |= ((r & 0xffff) << 8);
+        }
+        else if(p instanceof VectorPoint)
+        {
+            int w = p.getWidth();
+            if(w == 0) w = list.getWidth();
+            
+            if(p.isBreak())                 multi |= TYPE_VECTOR_NODRAW;
+            else if(w <= 3)                 multi |= TYPE_VECTOR_DRAW1;
+            else                            multi |= TYPE_VECTOR_DRAW2;
+        }
+        else if(p instanceof LabelPoint)   multi |= TYPE_LABEL;
+        else return;
+        
+        // Without this step, @colorset renders as 31 (white)
+        KPaint paint = p.getDrawingColor(kCanvas.getEngine());
+        while(paint.isAlias()) paint = paint.getAlias();
+        String color = paint.toString();
+        int colorIndex = 31;
+        for(int i = 0; i < colors.length; i++)
+        {
+            if(colors[i].equals(color)) colorIndex = i;
+        }
+        multi |= (colorIndex << 3);
+        
+        // Values b/t +/- 0.001 and +/- 1,000,000
+        int x = (int)Math.round(p.getX() * 1000);
+        int y = (int)Math.round(p.getY() * 1000);
+        int z = (int)Math.round(p.getZ() * 1000);
+        
+        out.writeInt(x);
+        out.writeInt(y);
+        out.writeInt(z);
+        out.writeInt(multi);
+        
+        if(p instanceof LabelPoint)
+        {
+            String s = p.getName();
+            out.writeInt(s.length());
+            out.writeChars(s);
+        }
     }
 //}}}
 

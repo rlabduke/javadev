@@ -44,26 +44,28 @@
     'space' with (point)masters - what does it mean?
     Create a MagnifiedOceanTheme and load it using reflection
     Create a splash-screen loader for KiNG
-    Redraw problems with Tree
     Depth cueing by width is too much for balls?
     Add some kind of transformation hook (listeners, priorities, etc)
     Optional 2 column button layout?
+    Start points of invisible lines are still pickable
+    Printing broken? on OS X only, apparently...
+    Redraw problems with Tree (OS X only?)
 <!-- Postponed TO DO items }}} -->
     Add ability to edit masters/pointmasters
     Open PDB in model manager without opening kinemage first?
     Open/save PDB from/to network
     use "around x,y,z" for Probe runs
     Look at Pro geometry with Jane
-    1n55 Arg refitting alt B won't move (H only in A)
-    Start points of invisible lines are still pickable
-    Printing broken? on OS X only, apparently...
- ** Should any point on ball face always be pickable? Labels? Triangles?
-        Maybe a separate list type for pickable vectors
-  * Get NPEx when loading a 0-byte file
+    Expand KLBE to do views, groups/subgroups/lists
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 1.39 ###
+- modified VectorPoint and TrianglePoint so object picking always returns the
+  last point -- this makes changing colors, etc. much easier and more natural.
+- updated manual re: object picking; king_prefs text was OK as-is.
 
 ### 1.38 ###
 - updated copyright dates in license, manual, About box, logo
@@ -89,6 +91,11 @@
 - fixed bug in Palm header output (misunderstood meaning of field)
 - changed Longs in DataTool to longs
 - set -source and -target flags in build.xml
+- added bitmask for ball radius in KingLiteBinaryExport
+- fixed KLBE to deal with @colorset colors correctly
+- fixed NPEx caused by bond rot code in parser when loading 0-byte file
+- reordered items in Draw palette to avoid dot/dotted line confusion
+- balls and labels are always "object pickable" now
 
 ### 1.37 ###
 - added undo stack to BeanKing movie commands

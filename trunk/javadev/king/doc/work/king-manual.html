@@ -1246,10 +1246,10 @@ menu.
 
 <P>
 Traditionally, one can only ``pick'' points in a kinemage. Enabling
-this option allows KiNG to recognize mouse clicks that hit the text
-of labels, the surfaces of balls and triangles, and the lines drawn
-between points. In each case, the result is equivalent to clicking
-on the actual point nearest the mouse click.
+this option allows KiNG to recognize mouse clicks that hit the actual
+lines drawn between points and the surfaces of triangles. In each
+case, the result is equivalent to clicking on the point that determines
+the attributes (color, line width, etc.) of that graphics object.
 
 <P>
 
@@ -1591,17 +1591,6 @@ picked and the second. Every pair of picks forms a new line. Lines
 can be shortened from their natural length (or lengthened, using negative
 numbers), which is sometimes useful for making illustrations.
 </DD>
-<DT><STRONG>Draw&nbsp;balls</STRONG></DT>
-<DD>Places a small ball at each point picked with the mouse.
-</DD>
-<DT><STRONG>Draw&nbsp;labels</STRONG></DT>
-<DD>Creates a label at the picked point, with its text
-taken from the picked point's ID. The label text can be changed using
-Edit Properties.
-</DD>
-<DT><STRONG>Draw&nbsp;dots</STRONG></DT>
-<DD>Creates a dot at each point picked with the mouse.
-</DD>
 <DT><STRONG>Draw&nbsp;dotted&nbsp;lines</STRONG></DT>
 <DD>Like drawing ordinary lines, except a string
 of dots is created instead of a single line. The number of dots is
@@ -1615,6 +1604,17 @@ user specifies how many degrees out of a circle will be used to create
 the arc, so small numbers give flat arcs and large numbers give exagerated
 ones. The arc can also be shortened by a few degrees so it doesn't
 quite touch its endpoints, and a four-pronged arrowhead can be added.
+</DD>
+<DT><STRONG>Draw&nbsp;balls</STRONG></DT>
+<DD>Places a small ball at each point picked with the mouse.
+</DD>
+<DT><STRONG>Draw&nbsp;labels</STRONG></DT>
+<DD>Creates a label at the picked point, with its text
+taken from the picked point's ID. The label text can be changed using
+Edit Properties.
+</DD>
+<DT><STRONG>Draw&nbsp;dots</STRONG></DT>
+<DD>Creates a dot at each point picked with the mouse.
 </DD>
 <DT><STRONG>Draw&nbsp;triangles</STRONG></DT>
 <DD>Draws a triangle for each set of three points picked.
@@ -2296,7 +2296,7 @@ for more details on these and other licenses.
 <BR><HR>
 <ADDRESS>
 Ian W. Davis
-2005-01-04
+2005-02-21
 </ADDRESS>
 </BODY>
 </HTML>

@@ -1,0 +1,10 @@
+#!/bin/bash
+MIDP_HOME=/Users/ian/palmdev/midp
+rm -r build verify
+mkdir build verify
+javac -bootclasspath $MIDP_HOME/classes -target 1.1 -g:none -d build src/*.java
+#javac -bootclasspath $MIDP_HOME/classes -target 1.1 -g -d build src/*.java
+$MIDP_HOME/bin/preverify -classpath $MIDP_HOME/classes -d verify -cldc -nofinalize -nonative -nofp build
+jar cv0mf kinglite.jad kinglite.jar -C verify . -C res .
+ls -l kinglite.jar
+

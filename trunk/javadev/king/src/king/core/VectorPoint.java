@@ -160,14 +160,15 @@ public class VectorPoint extends AbstractPoint // implements ...
                 //System.err.println("y = "+yy+" : "+Math.min(A.y,B.y)+" - "+Math.max(A.y,B.y));
                 //System.err.println("a = "+a+"; b = "+b+"; d = "+(-(a*A.x + b*A.y)));
                 //System.err.println("D^2 = "+d2);
-                if(d2 < radius*radius)
-                {
+                // Always return the "line to" point, so that color changes work as expected
+                if(d2 < radius*radius) return this;
+                /*{
                     float dx, dy, dA, dB;
                     dx = xx - A.x; dy = yy - A.y; dA = dx*dx + dy*dy;
                     dx = xx - B.x; dy = yy - B.y; dB = dx*dx + dy*dy;
                     if(dA <= dB)    return A;
                     else            return B;
-                }
+                }*/
             }
         }
         
