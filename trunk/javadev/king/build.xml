@@ -41,10 +41,10 @@
         <fileset dir="${build}"/>
         <fileset dir="${resource}"/>
         <fileset dir="../driftwood/build/">
-            <exclude name="driftwood/moldb*/"/>
+           <!--<exclude name="driftwood/moldb*/"/>-->
         </fileset>
         <fileset dir="../driftwood/resource/">
-            <exclude name="driftwood/moldb*/"/>
+           <!--<exclude name="driftwood/moldb*/"/>-->
         </fileset>
         <fileset dir="../lib/" includes="gnu/regexp/"/>
         <!-- iText library is in a separate JAR -->

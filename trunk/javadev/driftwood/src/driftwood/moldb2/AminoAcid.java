@@ -40,6 +40,57 @@ public class AminoAcid //extends ... implements ...
         BACKBONE_ATOM_NAMES.add(" O  ");
         BACKBONE_ATOM_NAMES.add(" OXT");
     }
+
+    private static final Map threeToOneLetter;
+    private static final Map oneToThreeLetter;
+
+    static {
+	Map map = new HashMap();
+	map.put("gly", "G");
+	map.put("ala", "A");
+	map.put("val", "V");
+	map.put("leu", "L");
+	map.put("ile", "I");
+	map.put("met", "M");
+	map.put("pro", "P");
+	map.put("phe", "F");
+	map.put("trp", "W");
+	map.put("ser", "S");
+	map.put("thr", "T");
+	map.put("asn", "N");
+	map.put("gln", "Q");
+	map.put("tyr", "Y");
+	map.put("cys", "C");
+	map.put("lys", "K");
+	map.put("arg", "R");
+	map.put("his", "H");
+	map.put("asp", "D");
+	map.put("glu", "E");
+	threeToOneLetter = Collections.unmodifiableMap(map);
+
+	map = new HashMap();
+	map.put("G", "gly");
+	map.put("A", "ala");
+	map.put("V", "val");
+	map.put("L", "leu");
+	map.put("I", "ile");
+	map.put("M", "met");
+	map.put("P", "pro");
+	map.put("F", "phe");
+	map.put("W", "trp");
+	map.put("S", "ser");
+	map.put("T", "thr");
+	map.put("N", "asn");
+	map.put("Q", "gln");
+	map.put("Y", "tyr");
+	map.put("C", "cys");
+	map.put("K", "lys");
+	map.put("R", "arg");
+	map.put("H", "his");
+	map.put("D", "asp");
+	map.put("E", "glu");
+	oneToThreeLetter = Collections.unmodifiableMap(map);
+    }
 //}}}
 
 //{{{ Variable definitions
@@ -56,6 +107,31 @@ public class AminoAcid //extends ... implements ...
         super();
     }
 //}}}
+
+//{{{ translate
+//##################################################################################################
+/**
+ * Returns the translation of the amino acid name, either from one letter to 
+ * three letters, or vice versa.  Returns "X" if three letter code is unknown, 
+ * or "unk" if one letter code is unknown.
+ **/
+    static public String translate(String code) {
+	String trans = "";
+	if (code.length()==3) {
+	    if (threeToOneLetter.containsKey(code)) {
+		trans = (String) threeToOneLetter.get(code);
+	    } else {
+		trans = "X";
+	    } 
+	} else {
+	    if (oneToThreeLetter.containsKey(code)) {
+		trans = (String) oneToThreeLetter.get(code);
+	    } else {
+		trans = "unk";
+	    }
+	}
+	return trans;
+    }
 
 //{{{ getTau, getTauDeviation
 //##################################################################################################

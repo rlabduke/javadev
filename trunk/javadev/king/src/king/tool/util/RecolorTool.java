@@ -8,7 +8,9 @@ import king.core.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import javax.swing.text.*;
 import driftwood.gui.*;
+import driftwood.moldb2.AminoAcid;
 import javax.swing.*;
 import javax.swing.event.*;
 //}}}
@@ -23,6 +25,30 @@ import javax.swing.event.*;
 public class RecolorTool extends BasicTool implements ActionListener {
 
 //{{{ Constants
+    /*
+    static final Map AA_ABREV = new HashMap();
+    static {
+	AA_ABREV.put("gly", "G");
+	AA_ABREV.put("ala", "A");
+	AA_ABREV.put("val", "V");
+	AA_ABREV.put("leu", "L");
+	AA_ABREV.put("ile", "I");
+	AA_ABREV.put("met", "M");
+	AA_ABREV.put("pro", "P");
+	AA_ABREV.put("phe", "F");
+	AA_ABREV.put("trp", "W");
+	AA_ABREV.put("ser", "S");
+	AA_ABREV.put("thr", "T");
+	AA_ABREV.put("asn", "N");
+	AA_ABREV.put("gln", "Q");
+	AA_ABREV.put("tyr", "Y");
+	AA_ABREV.put("cys", "C");
+	AA_ABREV.put("lys", "K");
+	AA_ABREV.put("arg", "R");
+	AA_ABREV.put("his", "H");
+	AA_ABREV.put("asp", "D");
+	AA_ABREV.put("glu", "E");
+	}*/
 
 //}}}
 
@@ -51,6 +77,9 @@ public class RecolorTool extends BasicTool implements ActionListener {
     JComboBox  aaBox;
     JCheckBox  colorPrior;
 
+    JTextPane textPane = null;
+    SimpleAttributeSet sas;
+
 //}}}
 
 //{{{ Constructor(s)
@@ -62,7 +91,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	clickedLists = new HashSet();
 
         //undoStack = new LinkedList();
-	buildGUI();
+	//buildGUI();
     }
 //}}}
 
@@ -71,7 +100,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
     private void buildGUI()
     {
         
-        //dialog = new JDialog(kMain.getTopWindow(),"Ribbons", false);
+        dialog = new JDialog(kMain.getTopWindow(),"Recolor", false);
 	color1 = new JComboBox(KPalette.getStandardMap().values().toArray());
 	color1.setSelectedItem(KPalette.blue);
         color1.addActionListener(this);
@@ -142,9 +171,28 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	pane.add(highNumField);
 	pane.add(colorButton);
 	pane.add(colorPrior);
+	
+	dialog.setContentPane(pane);
+
+	JMenuBar menubar = new JMenuBar();
+	JMenu menu;
+	JMenuItem item;
+
+	menu = new JMenu("Options");
+	menubar.add(menu);
+	item = new JMenuItem(new ReflectiveAction("Create Table", null, this, "onTable"));
+	menu.add(item);
+
+	dialog.setJMenuBar(menubar);
 
     }
 //}}}
+
+    public void start() {
+	if (kMain.getKinemage() == null) return;
+	buildGUI();
+	show();
+    }
 
 //{{{ xx_click() functions
 //##################################################################################################
@@ -169,7 +217,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    } else if (colorAA.isSelected()) {
 		highlightAA(p);
 	    } else {
-		highlightRange(p);
+		//highlightRange(p);
 	    }
 	}
     }
@@ -214,6 +262,21 @@ public class RecolorTool extends BasicTool implements ActionListener {
 		}
 
 		highlightRange(firstNum, secondNum);
+	    } else if (textPane != null) {
+		if (textPane.getSelectionEnd()>0) {
+		    int firstNum = textPane.getSelectionStart();
+		    firstNum = firstNum - Math.round(firstNum/6) + 1;
+		    //int firstNum = textPane.getSelectionStart()+1;
+		    int secondNum = textPane.getSelectionEnd();
+		    secondNum = secondNum - Math.round(secondNum/6);
+		    StyledDocument doc = textPane.getStyledDocument();
+		    //StyledEditorKit.ForegroundAction act = new StyledEditorKit.ForegroundAction("new color", (Color) ((KPaint)color1.getSelectedItem()).getWhiteExemplar());
+		    StyleConstants.setForeground(sas, (Color) ((KPaint)color1.getSelectedItem()).getWhiteExemplar());
+		    doc.setCharacterAttributes(textPane.getSelectionStart(), textPane.getSelectionEnd()-textPane.getSelectionStart(),sas, true);
+		    //textPane.setSelectedTextColor((Color) ((KPaint)color1.getSelectedItem()).getWhiteExemplar());
+		    //act.setCharacterAttributes(textPane, sas, true);
+		    highlightRange(firstNum, secondNum);
+		}
 	    } else {
 		JOptionPane.showMessageDialog(pane, "You have to put numbers in the text boxes!", "Error",
                                     JOptionPane.ERROR_MESSAGE);
@@ -229,6 +292,58 @@ public class RecolorTool extends BasicTool implements ActionListener {
     public void windowClosing(WindowEvent ev) {
 	newGroup();
 	parent.activateDefaultTool(); 
+    }
+
+    public void onTable(ActionEvent ev) {
+	TreeSet keys = new TreeSet(structMap.keySet());
+	Integer lowNum = (Integer) keys.first();
+	Integer highNum = (Integer) keys.last();
+	String aaText = "";
+	textPane = new JTextPane();
+	Font monospaced = new Font("monospaced", Font.PLAIN, 12);
+	//textPane.setFont(new Font("monospaced", Font.PLAIN, 12));
+	StyledDocument doc = textPane.getStyledDocument();
+	JScrollPane scrollPane = new JScrollPane(textPane);
+	scrollPane.setPreferredSize(new Dimension(500, 200));
+	//textPane.setLineWrap(true);
+	pane.newRow();
+	pane.add(scrollPane, 4, 1);
+	dialog.pack();
+	int j = 0;
+	for (int i = 1; i <= highNum.intValue(); i++) {
+	    if (j == 5) {
+		aaText = aaText.concat(" ");
+		j = 0;
+	    }
+	    j++;
+	    if (keys.contains(new Integer(i))) {
+		ArrayList list = (ArrayList) structMap.get(new Integer(i));
+		KPoint point = (KPoint) list.get(0);
+		String pointID = point.getName().trim();
+		String aa = pointID.substring(4, 7);
+		/*
+		if (this.AA_ABREV.containsKey(aa)) {
+		    aaText = aaText.concat((String) this.AA_ABREV.get(aa));
+		    //System.out.print(this.AA_ABREV.get(aa));
+		} else {
+		    aaText = aaText.concat((String) this.AA_ABREV.get(aa));
+		    //System.out.print("X");
+		}
+		*/
+		aaText = aaText.concat(AminoAcid.translate(aa));
+	    } else {
+		aaText = aaText.concat("-");
+		//System.out.print("-");
+	    }
+	}
+	sas = new SimpleAttributeSet();
+	StyleConstants.setFontFamily(sas, "monospaced");
+	StyleConstants.setFontSize(sas, 14);
+	//System.out.println(aaText);
+	try {
+	    doc.insertString(doc.getLength(), aaText, sas);
+	} catch (BadLocationException ble) {
+	}
     }
 
 //{{{ splitStructure
@@ -541,7 +656,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 //##################################################################################################
     /** Returns a component with controls and options for this tool */
     protected Container getToolPanel()
-    { return pane; }
+    { return dialog; }
 
     public String getHelpAnchor()
     { return "#recolor-tool"; }
