@@ -56,6 +56,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 
     JComboBox  aaBox;
     JCheckBox  colorPrior;
+    JCheckBoxMenuItem clickMode;
 
     JTextPane textPane = null;
     SimpleAttributeSet sas;
@@ -161,11 +162,14 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	JMenuBar menubar = new JMenuBar();
 	JMenu menu;
 	JMenuItem item;
+	
 
 	menu = new JMenu("Options");
 	menubar.add(menu);
 	item = new JMenuItem(new ReflectiveAction("Create Table", null, this, "onTable"));
 	menu.add(item);
+	clickMode = new JCheckBoxMenuItem("Click Mode On", true);
+	menu.add(clickMode);
 
 	dialog.setJMenuBar(menubar);
 
@@ -186,7 +190,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
     public void click(int x, int y, KPoint p, MouseEvent ev)
     {
         super.click(x, y, p, ev);
-	if (p != null) {
+	if ((p != null)&&(clickMode.getState())) {
 	    //colorator = new RecolorNonRibbon();
 	    AGE coloratorKey = (KList) p.getOwner();
 	    //KList parentList = (KList) p.getOwner();
@@ -211,9 +215,33 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    if(k != null) k.setModified(true);
 	    if (colorAll.isSelected()) {
 		int numRes = colorator.numofResidues();
+		//String tableText = textPane.getText();
 		colorator.highlightAll(p, createColorArray(numRes));
+		if (textPane != null) {
+		    String tableText = textPane.getText();
+		    recolorTable(0, tableText.length(), createColorArray(numRes));
+		}
 	    } else if (colorAA.isSelected()) {
 		colorator.highlightAA(p, (String)aaBox.getSelectedItem(), (KPaint) color1.getSelectedItem(), colorPrior.isSelected());
+		if (textPane != null) {
+		    String aa = (String) aaBox.getSelectedItem();
+		    aa = AminoAcid.translate(aa);
+		    String tableText = textPane.getText();
+		    //System.out.println(tableText);
+		    //int i = 0;
+		    int aaIndex = 0;
+		    while (aaIndex >= 0) {
+			aaIndex = tableText.indexOf(aa, aaIndex + 1);
+			if (aaIndex >=0) {
+			    //System.out.println(aaIndex);
+			    //System.out.println(aaIndex + (int)Math.floor(aaIndex/5));
+			    //i = aaIndex + 1;
+			    recolorTable(aaIndex, 1, (KPaint) color1.getSelectedItem());
+			}
+		    }
+		
+
+		}
 	    } else {
 		numberHandler(p);
 		if (!highNumField.getText().equals("")) {
@@ -224,34 +252,18 @@ public class RecolorTool extends BasicTool implements ActionListener {
 			secondNum = firstNum;
 			firstNum = temp;
 		    }
-		    colorator.highlightRange(firstNum, secondNum, createColorArray(secondNum-firstNum+1));
+		    KPaint[] colors = createColorArray(secondNum-firstNum+1);
+		    colorator.highlightRange(firstNum, secondNum, colors);
+		    if (textPane != null) {
+			int correctedFirst = firstNum + (int)Math.floor(firstNum/5) - 1;
+			int correctedSec = secondNum + (int)Math.floor(secondNum/5);
+			//recolorTable(correctedFirst, correctedSec - correctedFirst, createColorArray(correctedSec-correctedFirst));
+			recolorTable(correctedFirst, correctedSec - correctedFirst, colors);
+		    }
 		}
 		
 	    }
-	    
-		//highlightRange(firstNum, secondNum);
-	
-	    //colorator.clickHandler(p);
-	    /*
-	    KList parentList = (KList) p.getOwner();
-	    Integer resNumber = new Integer(getResNumber(p));
-	    if (!structMap.containsKey(resNumber)||!clickedLists.contains(parentList)) {
-		newGroup();
-		splitStructure(p);
-	    }
-
-	    Kinemage k = kMain.getKinemage();
-	    if(k != null) k.setModified(true);
-	    //}
-	    //}
-	    if (colorAll.isSelected()) {
-		highlightAll(p);
-	    } else if (colorAA.isSelected()) {
-		highlightAA(p);
-	    } else {
-		//highlightRange(p);
-	    }
-	    */
+	   
 	}
     }
 //})}
@@ -311,7 +323,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    colorPrior.setSelected(false);
 	}
 	if ("color".equals(ev.getActionCommand())) {
-	    if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))) {
+	    if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))&&(textPane == null)) {
 		int firstNum = Integer.parseInt(lowNumField.getText());
 		int secondNum = Integer.parseInt(highNumField.getText());
 		if (firstNum > secondNum) {
@@ -324,13 +336,15 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    } else if (textPane != null) {
 		if (textPane.getSelectionEnd()>0) {
 		    int firstNum = textPane.getSelectionStart();
-		    firstNum = firstNum - Math.round(firstNum/6) + 1;
+		    int adjFirstNum = firstNum - Math.round(firstNum/6) + 1;
 		    int secondNum = textPane.getSelectionEnd();
-		    secondNum = secondNum - Math.round(secondNum/6);
-		    StyledDocument doc = textPane.getStyledDocument();
-		    StyleConstants.setForeground(sas, (Color) ((KPaint)color1.getSelectedItem()).getWhiteExemplar());
-		    doc.setCharacterAttributes(textPane.getSelectionStart(), textPane.getSelectionEnd()-textPane.getSelectionStart(),sas, true);
-		    colorator.highlightRange(firstNum, secondNum, createColorArray(secondNum-firstNum+1));
+		    int adjSecondNum = secondNum - Math.round(secondNum/6);
+		    //StyledDocument doc = textPane.getStyledDocument();
+		    //StyleConstants.setForeground(sas, (Color) ((KPaint)color1.getSelectedItem()).getWhiteExemplar());
+		    //doc.setCharacterAttributes(textPane.getSelectionStart(), textPane.getSelectionEnd()-textPane.getSelectionStart(),sas, true);
+		    //recolorTable(firstNum, secondNum-firstNum, (KPaint)color1.getSelectedItem());
+		    recolorTable(firstNum, secondNum-firstNum, createColorArray(secondNum-firstNum+1));
+		    colorator.highlightRange(adjFirstNum, adjSecondNum, createColorArray(secondNum-firstNum+1));
 		}
 	    } else {
 		JOptionPane.showMessageDialog(pane, "You have to put numbers in the text boxes!", "Error",
@@ -341,6 +355,31 @@ public class RecolorTool extends BasicTool implements ActionListener {
         kCanvas.repaint();
     }
 
+    public void recolorTable(int offset, int length, KPaint[] colors) {
+	int index = 0;
+	String tableText = textPane.getText();
+	for (int i = offset; i < length + offset; i++) {
+	    if (index >= colors.length) {
+		index = 0;
+	    }
+	    //Integer hashKey = new Integer(i);
+	    if ((tableText.charAt(i)!='-')&&(tableText.charAt(i)!=' ')) {
+		recolorTable(i, 1, colors[index]);
+		index++;
+	    }
+	    //index++;
+	}
+	    
+    }
+
+    public void recolorTable(int offset, int length, KPaint color) {
+	StyledDocument doc = textPane.getStyledDocument();
+	StyleConstants.setForeground(sas, (Color) color.getWhiteExemplar());
+	doc.setCharacterAttributes(offset, length, sas, true);
+
+    }
+	
+
     /**
      * Event handler for when tool window closed.
      */
@@ -350,12 +389,6 @@ public class RecolorTool extends BasicTool implements ActionListener {
     }
 
     public void onTable(ActionEvent ev) {
-	//colorator.onTable(ev);
-	
-	//TreeSet keys = new TreeSet(structMap.keySet());
-	//Integer lowNum = (Integer) keys.first();
-	//Integer highNum = (Integer) keys.last();
-	//String aaText = "";
 	textPane = new JTextPane();
 	Font monospaced = new Font("monospaced", Font.PLAIN, 12);
 	StyledDocument doc = textPane.getStyledDocument();
@@ -364,24 +397,6 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	pane.newRow();
 	pane.add(scrollPane, 4, 1);
 	dialog.pack();
-	/*
-	int j = 0;
-	for (int i = 1; i <= highNum.intValue(); i++) {
-	    if (j == 5) {
-		aaText = aaText.concat(" ");
-		j = 0;
-	    }
-	    j++;
-	    if (keys.contains(new Integer(i))) {
-		ArrayList list = (ArrayList) structMap.get(new Integer(i));
-		KPoint point = (KPoint) list.get(0);
-		String pointID = point.getName().trim();
-		String aa = pointID.substring(4, 7);
-		aaText = aaText.concat(AminoAcid.translate(aa));
-	    } else {
-		aaText = aaText.concat("-");
-	    }
-	    }*/
 	sas = new SimpleAttributeSet();
 	StyleConstants.setFontFamily(sas, "monospaced");
 	StyleConstants.setFontSize(sas, 14);
@@ -439,6 +454,6 @@ public class RecolorTool extends BasicTool implements ActionListener {
     public String getHelpAnchor()
     { return "#recolor-tool"; }
 
-    public String toString() { return "Recolor Tool"; }
+    public String toString() { return "Recolor Kins"; }
 //}}}
 }//class
