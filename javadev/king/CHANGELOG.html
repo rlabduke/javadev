@@ -44,14 +44,18 @@
     Add some kind of transformation hook (listeners, priorities, etc)
     Distribute pyking from KiNG page
     Write Java and Python guides to creating a plugin, listing all the basic steps
- ** Add kinemage format doc to installers
     Open PDB in model manager without opening kinemage first?
   * Optional 2 column button layout?
-    Support "on" and "off" for pointmasters? (Flipkin)
+    Support "on" and "off" for pointmasters in parser? (Flipkin)
+  * "URL filesystem" like maps to support open/append, etc. from applet?
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 1.31 ###
+- Ant script now creates javadocs as part of "dist" target
+  This makes the source code bundle larger, but nicer for other users
 
 ### 1.30 ###
 - modified KPaint.getPaint() to use a cached Color object when possible
@@ -77,6 +81,8 @@
 - text window now accepts listeners for hypertext events
 - added kinemage format doc to KiNG's doc/ folder
 - added custom icons to the Hierarchy editor that show on/off state of things
+- added kinemage format doc to installers
+- swapped pyking out for beanking in installers
 
 ### 1.29 ###
 - used getValueIsAdjusting() to make ED sliders smooth

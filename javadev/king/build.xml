@@ -100,6 +100,7 @@
 <target name="dist" description="Generate the distributions" depends="init,clean,build,dist-src,dist-exe">
     <zip destfile="${dist}/${ant.project.name}-${version}-src.zip">
         <zipfileset dir="${dist}" includes="${ant.project.name}-${version}-src/"/>
+        <zipfileset dir="${dist}" includes="javadocs/"/>
         <zipfileset dir="../driftwood/dist/" includes="driftwood-*-src/"/>
         <zipfileset dir="../chiropraxis/dist/" includes="chiropraxis-*-src/"/>
         <zipfileset dir="../lib/" prefix="lib/">
@@ -128,6 +129,16 @@
             <exclude name="**/old/"/>
         </fileset>
     </copy>
+    <mkdir dir="${dist}/javadocs"/>
+    <javadoc packagenames="driftwood.*,Jama.*,king.*"
+        sourcepath="src:../driftwood/src"
+        classpath="../lib:../lib/iText/itext-1.02b.jar"
+        destdir="${dist}/javadocs" access="protected" source="1.4"
+        breakiterator="true" noqualifier="all"
+        version="true" use="true" author="true"
+        windowtitle="IWD's JavaDocs"
+        link="http://java.sun.com/j2se/1.4.2/docs/api/">
+    </javadoc>
 </target>
 
 <!-- Makes the end-user distribution -->
