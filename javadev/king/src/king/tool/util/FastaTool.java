@@ -4,8 +4,8 @@ package king.tool.util;
 import king.*;
 import king.core.*;
 
-//import java.awt.*;
-//import java.awt.event.*;
+import java.awt.*;
+import java.awt.event.*;
 //import java.beans.*;
 import java.io.*;
 //import java.net.*;
@@ -21,7 +21,7 @@ import driftwood.util.*;
 /**
 
 */
-public class FastaTool extends BasicTool //implements PropertyChangeListener
+public class FastaTool extends BasicTool //implements ActionListener
 {
 //{{{ Constants
 //}}}
@@ -38,6 +38,9 @@ public class FastaTool extends BasicTool //implements PropertyChangeListener
     SuffixFileFilter fastaFilter;
     HashMap nameMap = null;
     KPaint[] colors = null;
+
+    JDialog dialog;
+    JButton colorStructure, colorProbe;
     //RNAMapWindow win;
 //}}}
 
@@ -66,6 +69,21 @@ public class FastaTool extends BasicTool //implements PropertyChangeListener
     }
 //}}}
 
+    private void buildGUI() {
+
+	dialog = new JDialog(kMain.getTopWindow(), "Fasta Tool", false);
+	
+	colorStructure = new JButton(new ReflectiveAction("Color Structure", null, this, "onColorStructure"));
+	colorProbe = new JButton(new ReflectiveAction("Color Probe Dots", null, this, "onColorProbe"));
+	
+	TablePane pane = new TablePane();
+	pane.add(colorStructure);
+	pane.newRow();
+	pane.add(colorProbe);
+
+	dialog.setContentPane(pane);
+    }
+
 //{{{ makeFileChooser
 //##################################################################################################
     void makeFileChooser()
@@ -73,25 +91,6 @@ public class FastaTool extends BasicTool //implements PropertyChangeListener
 	
         // Make accessory for file chooser
         TablePane acc = new TablePane();
-        /*
-	acc.weights(0,0);
-        acc.add(new JLabel("Map type?"));
-        acc.newRow();
-        btnOType = new JRadioButton("O");
-        acc.add(btnOType);
-        acc.newRow();
-        btnXplorType = new JRadioButton("XPLOR");
-        acc.add(btnXplorType);
-        acc.newRow();
-        btnCcp4Type = new JRadioButton("CCP4");
-        acc.add(btnCcp4Type);
-        
-        // Make buttons mutually exclusive
-        ButtonGroup btnGroup = new ButtonGroup();
-        btnGroup.add(btnOType);
-        btnGroup.add(btnXplorType);
-        btnGroup.add(btnCcp4Type);
-        */
 
         // Make actual file chooser -- will throw an exception if we're running as an Applet
         filechooser = new JFileChooser();
@@ -104,80 +103,14 @@ public class FastaTool extends BasicTool //implements PropertyChangeListener
         filechooser.setFileFilter(fastaFilter);
     }
 //}}}
-/*
-//{{{ makeURLChooser
-//##################################################################################################
-    void makeURLChooser()
-    {
-        // Make accessory for URL chooser
-        TablePane acc = new TablePane();
-        acc.weights(0,0);
-        acc.add(new JLabel("Map type?"));
-        acc.newRow();
-        btnOType = new JRadioButton("O");
-        acc.add(btnOType);
-        acc.newRow();
-        btnXplorType = new JRadioButton("XPLOR");
-        acc.add(btnXplorType);
-        acc.newRow();
-        btnCcp4Type = new JRadioButton("CCP4");
-        acc.add(btnCcp4Type);
-        
-        // Make buttons mutually exclusive
-        ButtonGroup btnGroup = new ButtonGroup();
-        btnGroup.add(btnOType);
-        btnGroup.add(btnXplorType);
-        btnGroup.add(btnCcp4Type);
-        
-        // Make actual URL chooser
-        urlList = new FatJList(150, 12);
-        JApplet applet = kMain.getApplet();
-        if(applet != null)
-        {
-            String maps = applet.getParameter("edmapList");
-            if(maps != null)
-            {
-                String[] maplist = Strings.explode(maps, ' ');
-                urlList.setListData(maplist);
-            }
-        }
-        urlList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        urlList.addListSelectionListener(this);
-        JScrollPane listScroll = new JScrollPane(urlList);
-        
-        // Make an (editable) URL line
-        urlField = new JTextField();
-        
-        // Make the command buttons
-        JButton btnOK       = new JButton(new ReflectiveAction("OK", null, this, "onUrlOk"));
-        JButton btnCancel   = new JButton(new ReflectiveAction("Cancel", null, this, "onUrlCancel"));
-        TablePane btnPane = new TablePane();
-        btnPane.center().insets(1,4,1,4);
-        btnPane.add(btnOK);
-        btnPane.add(btnCancel);
-        
-        // Put it all together in a content pane
-        TablePane cp = new TablePane();
-        cp.center().middle().insets(6);
-        cp.add(listScroll);
-        cp.add(acc);
-        cp.newRow();
-        cp.save().hfill(true).addCell(urlField, 2, 1).restore();
-        cp.newRow();
-        cp.add(btnPane, 2, 1);
-        
-        urlchooser = new JDialog(kMain.getTopWindow(), "ED Map URLs", true);
-        urlchooser.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        urlchooser.setContentPane(cp);
-        urlchooser.pack();
-        urlchooser.setLocationRelativeTo(kMain.getTopWindow());
-    }
-//}}}
-*/
+
 //{{{ getHelpAnchor, toString
 //##################################################################################################
     public String getHelpAnchor()
     { return "#fasta-tool"; }
+
+    public Container getToolPanel()
+    { return dialog; }
     
     public String toString()
     { return "Read Fasta"; }
@@ -194,6 +127,7 @@ public class FastaTool extends BasicTool //implements PropertyChangeListener
             //if(kMain.getApplet() != null)   openMapURL();
             //else                            openMapFile();
 	    openMapFile();
+
         }
         catch(IOException ex) // includes MalformedURLException
         {
@@ -209,6 +143,11 @@ public class FastaTool extends BasicTool //implements PropertyChangeListener
                 "Sorry!", JOptionPane.ERROR_MESSAGE);
             //ex.printStackTrace(SoftLog.err);
         }
+	buildGUI();
+	//show();
+	dialog.pack();
+	dialog.setLocationRelativeTo(kMain.getTopWindow());
+        dialog.setVisible(true);
     }
 //}}}
 
@@ -226,31 +165,13 @@ public class FastaTool extends BasicTool //implements PropertyChangeListener
             {
 		FileReader reader = new FileReader(f);
 		scanFile(reader);
-		/*
-                CrystalVertexSource map;
-                
-                if(btnOType.isSelected())
-                {
-                    map = new OMapVertexSource(new FileInputStream(f));
-                }
-                else if(btnXplorType.isSelected())
-                {
-                    map = new XplorVertexSource(new FileInputStream(f));
-                }
-                else if(btnCcp4Type.isSelected())
-                {
-                    map = new Ccp4VertexSource(new FileInputStream(f));
-                }
-                else throw new IllegalArgumentException("Map type not specified");
-                
-                win = new RNAMapWindow(parent, map, f.getName());
-		*/
                 kCanvas.repaint(); // otherwise we get partial-redraw artifacts
             }
         }
     }
 //}}}
 
+    // scans the fasta file.
     private void scanFile(FileReader reader) {
 	//StringBuffer name = null;
 	StringBuffer buffer = null;
@@ -274,27 +195,17 @@ public class FastaTool extends BasicTool //implements PropertyChangeListener
 		} else {
 		    buffer.append((char)readInt);
 		}
-
-		//if (readInt == '-') {
-		//    System.out.print("F");
-		//} else {
-		//    System.out.print("T");
-		//}
-		//System.out.println('>');
-		//System.out.println(new Character(readInt));
-		//System.out.println(readInt);
-		//System.out.println(readInt=='>');
-		
 	    }
 	} catch(IOException ex) {
 	    System.out.println("IOException thrown");
 	}
 	prepColorArray();
-	recolor();
+	//recolor();
 	//System.out.println(kMain.getKinemage().toString());
 	//System.out.println(buffer);
     }
 
+    // preps KPaint array with colors depending on alignments from fasta file
     private void prepColorArray() {
 	Collection aligns = nameMap.values();
 	Iterator iter = aligns.iterator();
@@ -309,29 +220,60 @@ public class FastaTool extends BasicTool //implements PropertyChangeListener
 		colors[i] = KPalette.green;
 	    } else if (secChar == '-') {
 		colors[i] = KPalette.red;
+	    } else if (firstChar == '-') {
+		firstSeq.deleteCharAt(i);
+		secSeq.deleteCharAt(i);
+		i--;
 	    } else {
 		colors[i] = KPalette.blue;
 	    }
 	}
     }
 
-    private void recolor() {
+    // recolors all points in kinemage.
+    private void recolorNoDots() {
 	Kinemage kin = kMain.getKinemage();
 	Iterator kinIter = kin.iterator();
 	while (kinIter.hasNext()) {
 	    KGroup group = (KGroup) kinIter.next();
-	    Iterator groupIter = group.iterator();
-	    while (groupIter.hasNext()) {
-		AGE sub = (AGE) groupIter.next();
-		if (sub instanceof KSubgroup) {
-		    Iterator subIter = sub.iterator();
-		    while (subIter.hasNext()) {
-			KList list = (KList) subIter.next();
+	    if (!((group.getName()).equals("dots"))) {
+		Iterator groupIter = group.iterator();
+		while (groupIter.hasNext()) {
+		    AGE sub = (AGE) groupIter.next();
+		    if (sub instanceof KSubgroup) {
+			Iterator subIter = sub.iterator();
+			while (subIter.hasNext()) {
+			    KList list = (KList) subIter.next();
+			    recolor(list);
+			}
+		    } else if (sub instanceof KList) {
+			KList list = (KList) sub;
 			recolor(list);
 		    }
-		} else if (sub instanceof KList) {
-		    KList list = (KList) sub;
-		    recolor(list);
+		}
+	    }
+	}
+    }
+
+    private void recolorDots() {
+	Kinemage kin = kMain.getKinemage();
+	Iterator kinIter = kin.iterator();
+	while (kinIter.hasNext()) {
+	    KGroup group = (KGroup) kinIter.next();
+	    if ((group.getName()).equals("dots")) {
+		Iterator groupIter = group.iterator();
+		while (groupIter.hasNext()) {
+		    AGE sub = (AGE) groupIter.next();
+		    if (sub instanceof KSubgroup) {
+			Iterator subIter = sub.iterator();
+			while (subIter.hasNext()) {
+			    KList list = (KList) subIter.next();
+			    recolor(list);
+			}
+		    } else if (sub instanceof KList) {
+			KList list = (KList) sub;
+			recolor(list);
+		    }
 		}
 	    }
 	}
@@ -391,7 +333,16 @@ public class FastaTool extends BasicTool //implements PropertyChangeListener
 	return -1;
     }
 
-	     
+
+    public void onColorStructure(ActionEvent ev) {
+	recolorNoDots();
+	kCanvas.repaint();
+    }
+
+    public void onColorProbe(ActionEvent ev) {
+	recolorDots();
+	kCanvas.repaint();
+    }
 
 /*
 //{{{ openMapURL, onUrlCancel, onUrlOk
