@@ -117,6 +117,11 @@ public class RNATriple implements MutableTuple3 {
         }
     }
 
+    public boolean equalCoords(Tuple3 tup) {
+	if (x == tup.getX() && y ==  tup.getY() && z == tup.getZ()) return true;
+	else return false;
+    }
+
     /**
     * Obeys the general contract of Object.hashCode().
     * Based on Colt's HashFunctions.java.
