@@ -14,6 +14,7 @@ import javax.microedition.lcdui.*;
 public class KGroup //extends ... implements ...
 {
 //{{{ Constants
+    static final int ANIMATE_BIT = 1;
 //}}}
 
 //{{{ Variable definitions
@@ -31,6 +32,7 @@ public class KGroup //extends ... implements ...
     boolean isOn = true;
     // The "depth" of this grouping: 1 for groups, 2 for subgroups, 3 for lists.
     int depth;
+    // Bit  0       if on, this group is animate-able
     int flags;
 //}}}
 
@@ -42,6 +44,7 @@ public class KGroup //extends ... implements ...
         this.depth = depth;
         this.flags = flags;
         // Indent name using spaces
+        if(isAnimate()) name = "*"+name;
         for(int i = 1; i < depth; i++) name = "  "+name;
         this.name = name;
     }
@@ -118,6 +121,47 @@ public class KGroup //extends ... implements ...
         List list = new List(title, List.MULTIPLE, names, null);
         KGroup.toChoice(groupList, list);
         return list;
+    }
+//}}}
+
+//{{{ isAnimate, animate
+//##############################################################################
+    public boolean isAnimate()
+    { return (this.flags & ANIMATE_BIT) != 0; }
+    
+    /**
+    * Drives the animation forward (+1), backward (-1), or to having just one
+    * group on (0) for all groups marked 'animate'.
+    */
+    static public void animate(Vector groupList, int incr)
+    {
+        Vector animateGroups = new Vector();
+        for(int i = 0; i < groupList.size(); i++)
+        {
+            KGroup group = (KGroup) groupList.elementAt(i);
+            if(group.isAnimate()) animateGroups.addElement(group);
+        }
+        doAnimation(animateGroups, incr);
+    }
+    
+    static void doAnimation(Vector ages, int incr)
+    {
+        int firstOn = -1;
+        for(int i = 0; i < ages.size(); i++)
+        {
+            if(((KGroup)ages.elementAt(i)).isOn)
+            {
+                firstOn = i;
+                break;
+            }
+        }
+        
+        int turnOn = (firstOn == -1 ? 0 : firstOn+incr);
+        if(turnOn < 0) turnOn = ages.size()-1;
+        else if(turnOn >= ages.size()) turnOn = 0;
+        
+        for(int i = 0; i < ages.size(); i++)
+            ((KGroup)ages.elementAt(i)).isOn = (i == turnOn);
     }
 //}}}
 

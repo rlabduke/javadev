@@ -32,11 +32,11 @@ public class KingMain extends MIDlet implements CommandListener
         kLoader = new KinLoader(this);
         
         // Common commands
-        cmdExit = new Command("Exit", Command.EXIT, 10);
+        cmdExit = new Command("Exit", Command.EXIT, 100);
         kCanvas.addCommand(cmdExit);
         kLoader.addCommand(cmdExit);
 
-        cmdMemInfo = new Command("Mem. info", Command.HELP, 9);
+        cmdMemInfo = new Command("Mem. info", Command.HELP, 99);
         kCanvas.addCommand(cmdMemInfo);
         kLoader.addCommand(cmdMemInfo);
     }

@@ -231,21 +231,21 @@ static final int MIN_COORD = -MAX_COORD;
 
 //{{{ translate
 //##############################################################################
-    /** Translates the view center by a certain dx, dy. */
-    public void translate(int dx, int dy)
+    /** Translates the view center by a certain dx, dy, dz. */
+    public void translate(int dx, int dy, int dz)
     {
         // rotate, rescale, add to center
         if(ROT_BITS > scale)
         {
-            cx -= (r11*dx + r21*dy) >> (ROT_BITS - scale);
-            cy -= (r12*dx + r22*dy) >> (ROT_BITS - scale);
-            cz -= (r13*dx + r23*dy) >> (ROT_BITS - scale);
+            cx -= (r11*dx + r21*dy + r31*dz) >> (ROT_BITS - scale);
+            cy -= (r12*dx + r22*dy + r32*dz) >> (ROT_BITS - scale);
+            cz -= (r13*dx + r23*dy + r33*dz) >> (ROT_BITS - scale);
         }
         else
         {
-            cx -= (r11*dx + r21*dy) << (scale - ROT_BITS);
-            cy -= (r12*dx + r22*dy) << (scale - ROT_BITS);
-            cz -= (r13*dx + r23*dy) << (scale - ROT_BITS);
+            cx -= (r11*dx + r21*dy + r31*dz) << (scale - ROT_BITS);
+            cy -= (r12*dx + r22*dy + r32*dz) << (scale - ROT_BITS);
+            cz -= (r13*dx + r23*dy + r33*dz) << (scale - ROT_BITS);
         }
     }
 //}}}
