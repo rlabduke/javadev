@@ -27,16 +27,10 @@
     Ask to save modified kinemages before closing
         Hashing approach: recursive, x' = x*31 + next
     Make hierarchy editor drag-and-drop
-  * Think about more advanced animations
-    ...or remove complicated animation scheme; stick to animate and 2animate
     Tau minimizer over a range (rebuild peptides too?)
     Look at mouse wheel modifiers (e.g. Shift)
-    Allow for Tools and Plugins to organize themselves in catagories?
-    Provide interface to enable/disable (show/hide) tools and plugins?
-    Split up UIMenus (esp Tools and Help) to facilitate rebuilding
     Do NOEs within d of x,y,z when nothing is mobile (same for Probe?)
     Allow user to type contour level into ED control?
-    Replace all ED sliders with text boxes?
     Support wordlists (and point comments!)
     Hyperlinks/URLs in point comments?
     Add matrix-based deformatation option to Hierarchy:Transform
@@ -55,12 +49,14 @@
     Add a Mage-like "count" function
   * Rewrite HACKING section on Tools vs. Plugins
   * Add notes to user manual about configuring tools menu
-  * idealize sidechains fails on Pro due to last angle or two... (e.g. 1GCA 153)
+  * Rewrite manual sections on animations
+    Efficient point representations for Andrew Ban
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 1.25 ###
 ### 1.25 ###
 - tools and plugins can be placed in submenus based on the .king_prefs file
 - KingPrefs now searches all jars for default settings in king/king_prefs
@@ -70,6 +66,14 @@
   complete version of king_prefs for more ideas.
 - created a GUI for determining which tools are in which menus
 - UIMenus now rebuilds the tools menu when preferences are changed
+- added EDMapPlugin.toString()
+- removed ellipsis from menu items for a few plugins (for uniformity)
+- added menu configuration to the bottom of the Tools menu
+- ripped out the old AnimationGroup and replaced it with a simpler scheme
+- removed Animations menu and AnimationGroup class
+- placed animate, 2animate buttons as needed in button pane
+- added A, B keyboard shortcuts for animations to ContentPane (+ docs)
+- fixed a view-calculation bug for kins with only one point
 
 ### 1.24 ###
 - factored "fade-out" multipliers into constants in KPaint so they can be tuned.

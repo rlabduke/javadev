@@ -115,7 +115,7 @@ public class ViewpointPlugin extends Plugin implements MouseMotionListener
     */
     public JMenuItem getToolsMenuItem()
     {
-        JMenuItem item = new JMenuItem(new ReflectiveAction(this.toString()+"...", null, this, "onShowDialog"));
+        JMenuItem item = new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onShowDialog"));
         return item;
     }
     

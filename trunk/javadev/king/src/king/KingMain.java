@@ -339,6 +339,9 @@ public class KingMain implements WindowListener, KinemageSignalSubscriber
     /** Returns the object holding our content: either a JFrame or a JApplet. Never null. */
     public Container getContentContainer() { return (mainWin == null ? (Container)theApplet : (Container)mainWin); }
     
+    /** Returns the ContentPane object that holds all the GUI elements. Never null. */
+    public ContentPane getContentPane() { return contentPane; }
+    
     /** Returns the top-level window, if there is one; null otherwise. */
     public Frame getTopWindow() { return mainWin; }
     
@@ -348,7 +351,7 @@ public class KingMain implements WindowListener, KinemageSignalSubscriber
     /** Returns the kinemage reader/writer (never null) */
     public KinfileIO getKinIO() { return kinIO; }
     
-    /** Returns the active drawing canvas (may be null) */
+    /** Returns the active drawing canvas (never null) */
     public KinCanvas getCanvas() { return kinCanvas; }
     
     /** Returns the applet this was spawned from (may be null) */

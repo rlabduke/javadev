@@ -66,12 +66,6 @@ public class Kinemage extends AGE // implements ...
     java.util.List mastersList = new ArrayList();
     Component masterSpacer = Box.createRigidArea(new Dimension(0,15));
     
-    AnimationGroup currAnim = null;
-    // For looking up animations by name (including "ANIMATE" and "2ANIMATE")
-    Map animMap = new HashMap();
-    // For iterating thru the animations in order of creation
-    java.util.List animList = new ArrayList();
-    
     // Each kinemage has its own TreeModel
     DefaultTreeModel treeModel;
 //}}}
@@ -110,7 +104,6 @@ public class Kinemage extends AGE // implements ...
         
         viewList.addAll(    that.viewList);
         aspectList.addAll(  that.aspectList);
-        animList.addAll(    that.animList);
         
         // Merge the colorsets
         for(Iterator iter = that.getNewPaintMap().values().iterator(); iter.hasNext(); )
@@ -216,7 +209,7 @@ public class Kinemage extends AGE // implements ...
     *<li>ensureAllMastersExist() -- creates any missing masters</li>
     *<li>syncAllMasters() -- set masters' states appropriately</li>
     *<li>initAllViews() -- converts zooms to spans as necessary</li>
-    *<li>rebuildAnimations() -- reconstructs ANIMATE and 2ANIMATE</li>
+    *<li>animate(0) and animate2(0) -- initializes animations</li>
     *</ol>
     */
     public void initAll()
@@ -225,7 +218,9 @@ public class Kinemage extends AGE // implements ...
         ensureAllMastersExist();
         syncAllMasters();
         initAllViews();
-        rebuildAnimations(true);
+        animate(0);
+        animate2(0);
+        //rebuildAnimations(true);
     }
 
     public DefaultTreeModel getTreeModel() { return treeModel; }
@@ -297,6 +292,7 @@ public class Kinemage extends AGE // implements ...
         center[2] = (boundingBox[5] + boundingBox[2])/2f;
         
         span = 2f * (float)Math.sqrt(calcRadiusSq(center));
+        if(span == 0) span = 1; // in case there's only one point in the kin
     }
 
     /**
@@ -465,71 +461,82 @@ public class Kinemage extends AGE // implements ...
     }
 //}}}
 
-//{{{ Animation functions
+//{{{ animate, animate2, doAnimation
 //##################################################################################################
     /**
-    * Reconstructs ANIMATE and 2ANIMATE animations from scratch.
-    * This allows new animatable groups to be introduced while
-    * still preserving the generic animation function.
-    * @param reset      if true, reset the animations to their first frame.
+    * Drives the animation forward (+1), backward (-1), or to having just one
+    * group on (0) for all groups marked 'animate'.
     */
-    public void rebuildAnimations(boolean reset)
+    public void animate(int incr)
     {
-        Iterator        iter;
-        AnimationGroup  anim;
-        KGroup          group;
-        
-        anim = getAnimationByName("ANIMATE");
-        anim.clear();
-        for(iter = this.iterator(); iter.hasNext(); )
+        ArrayList animateGroups = new ArrayList();
+        for(Iterator iter = children.iterator(); iter.hasNext(); )
         {
-            group = (KGroup)iter.next();
-            if(group.isAnimate()) anim.add(group);
+            KGroup group = (KGroup) iter.next();
+            if(group.isAnimate()) animateGroups.add(group);
         }
-        if(reset) anim.reset();
+        KGroup[] groups = (KGroup[]) animateGroups.toArray(new KGroup[animateGroups.size()]);
+        doAnimation(groups, incr);
+    }
 
-        anim = getAnimationByName("2ANIMATE");
-        anim.clear();
-        for(iter = this.iterator(); iter.hasNext(); )
+    /**
+    * Drives the animation forward (+1), backward (-1), or to having just one
+    * group on (0) for all groups marked '2animate'.
+    */
+    public void animate2(int incr)
+    {
+        ArrayList animateGroups = new ArrayList();
+        for(Iterator iter = children.iterator(); iter.hasNext(); )
         {
-            group = (KGroup)iter.next();
-            if(group.is2Animate()) anim.add(group);
+            KGroup group = (KGroup) iter.next();
+            if(group.is2Animate()) animateGroups.add(group);
         }
-        if(reset) anim.reset();
+        KGroup[] groups = (KGroup[]) animateGroups.toArray(new KGroup[animateGroups.size()]);
+        doAnimation(groups, incr);
     }
     
-    /** Gets the current animation for this kinemage */
-    public AnimationGroup getCurrentAnimation()
+    void doAnimation(AGE[] ages, int incr)
     {
-        return currAnim;
+        int firstOn = -1;
+        for(int i = 0; i < ages.length; i++)
+        {
+            if(ages[i].isOn())
+            {
+                firstOn = i;
+                break;
+            }
+        }
+        
+        int turnOn = (firstOn == -1 ? 0 : firstOn+incr);
+        if(turnOn < 0) turnOn = ages.length-1;
+        else if(turnOn >= ages.length) turnOn = 0;
+        
+        for(int i = 0; i < ages.length; i++)
+            ages[i].setOn(i == turnOn);
     }
-    
-    /** Returns an animation with the given name */
-    public AnimationGroup getAnimationByName(String name)
+//}}}
+
+//{{{ has(2)AnimateGroups
+//##################################################################################################
+    public boolean hasAnimateGroups()
     {
-        if(animMap.containsKey(name)) return (AnimationGroup)animMap.get(name);
-        else return createAnimation(name);
+        for(Iterator iter = children.iterator(); iter.hasNext(); )
+        {
+            KGroup group = (KGroup) iter.next();
+            if(group.isAnimate()) return true;
+        }
+        return false;
     }
     
-    AnimationGroup createAnimation(String name)
+    public boolean has2AnimateGroups()
     {
-        AnimationGroup a = new AnimationGroup(this, name);
-        animMap.put(name, a);
-        animList.add(a);
-        if(currAnim == null) currAnim = a;
-        return a;
+        for(Iterator iter = children.iterator(); iter.hasNext(); )
+        {
+            KGroup group = (KGroup) iter.next();
+            if(group.is2Animate()) return true;
+        }
+        return false;
     }
-    
-    /** Returns an iterator over all the animation sequences of this kinemage. */
-    public Iterator getAnimationIterator() { return animList.iterator(); }
-    
-    /** Called by an animation when it is picked from a menu */
-    public void notifyAnimationSelected(AnimationGroup newanim)
-    {
-        currAnim = newanim;
-        //kMain.notifyChange(kMain.EM_NEWANIM);
-    }
-    
 //}}}
 
 //{{{ addPaint, getPaintForName, getAll/NewPaintMap
@@ -595,5 +602,9 @@ public class Kinemage extends AGE // implements ...
         //kMain.notifyChange(kMain.EM_DISPLAY);
         signal.signalKinemage(this, signal.APPEARANCE);
     }
+//}}}
+
+//{{{ empty_code_segment
+//##################################################################################################
 //}}}
 }//class

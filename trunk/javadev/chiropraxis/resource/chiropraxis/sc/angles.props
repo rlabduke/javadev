@@ -50,11 +50,11 @@ pro.angles = "chi1,pchi2,pchi3"
 pro.chis = 1
 pro.chi1 = " N  , CA , CB , CG "
 pro.pchi2 = " CA , CB , CG , CD "
-pro.pchi3 = " CB , CG , CD , N  "
+pro.pchi3 = " CB , CG , CD ,1HD "
 pro.rotamers = "endo,exo"
 pro.frequencies = "44%,43%"
-pro.endo = 27 -35 29
-pro.exo = -27 39 -34
+pro.endo = 28 -36 149
+pro.exo = -28 39 86
 
 phe.angles = "chi1,chi2"
 phe.chis = 2

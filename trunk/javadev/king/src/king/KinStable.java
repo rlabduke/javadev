@@ -94,13 +94,6 @@ public class KinStable implements ListSelectionListener
             if(menus != null) menus.displayMenu.syncCheckboxes();
             // canvas will redraw itself in a moment, anyway...
         }
-        
-        // Update animations to include new animate/2animate groups
-        if((event_mask & KingMain.EM_EDIT_GROSS) != 0
-            && kin != null)
-        {
-            kin.rebuildAnimations(false);
-        }
     }
 //}}}
 

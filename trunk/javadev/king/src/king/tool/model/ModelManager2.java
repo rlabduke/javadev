@@ -967,7 +967,7 @@ public class ModelManager2 extends Plugin
     */
     public JMenuItem getToolsMenuItem()
     {
-        return new JMenuItem(new ReflectiveAction(this.toString()+"...", null, this, "onShowDialog"));
+        return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onShowDialog"));
     }
     
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME

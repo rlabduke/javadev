@@ -101,6 +101,9 @@ public class TablePane2 extends JPanel // implements ...
     * Calls to this table will "pass through" to the subtable
     * until <code>endSubtable</code> is called. Subtables may
     * be nested arbitrarily deep.
+    * By default, the subtable is inserted with no insets and
+    * horizontal and vertical fill. Other layout params are unchanged.
+    * Use startSubtableRaw() to avoid these auto-layout features.
     * @return <code>this</code> (for chaining)
     */
     public TablePane2 startSubtable()
@@ -111,6 +114,19 @@ public class TablePane2 extends JPanel // implements ...
     public TablePane2 startSubtable(int gridwidth, int gridheight)
     {
         if(subtable != null) subtable.startSubtable(gridwidth, gridheight);
+        else
+        {
+            TablePane2 tp = new TablePane2();
+            this.insets(0).hfill(true).vfill(true).add(tp, gridwidth, gridheight);
+            subtable = tp;
+        }
+        return this;
+    }
+
+    /** Starts a subtable without modifying any layout parameters. */
+    public TablePane2 startSubtableRaw(int gridwidth, int gridheight)
+    {
+        if(subtable != null) subtable.startSubtableRaw(gridwidth, gridheight);
         else
         {
             TablePane2 tp = new TablePane2();
