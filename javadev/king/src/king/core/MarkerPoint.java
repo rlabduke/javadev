@@ -90,7 +90,7 @@ public class MarkerPoint extends KPoint // implements ...
     * Renders this Paintable to the specified graphics surface,
     * using the display settings from engine.
     */
-    public void paintStandard(Graphics2D g, Engine engine)
+    public void paintStandard(Engine engine)
     {
         KPaint maincolor = getDrawingColor(engine);
         if(maincolor.isInvisible()) return;
@@ -101,7 +101,7 @@ public class MarkerPoint extends KPoint // implements ...
         if(this.getStyle() != 0)                            paintStyle = this.getStyle();
         else if(parent != null && parent.getStyle() != 0)   paintStyle = parent.getStyle();
         
-        engine.painter.paintMarker(g, paint, x, y, z, width, paintStyle);
+        engine.painter.paintMarker(paint, x, y, z, width, paintStyle);
     }
 //}}}
 }//class

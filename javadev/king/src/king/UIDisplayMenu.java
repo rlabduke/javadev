@@ -133,13 +133,12 @@ public class UIDisplayMenu //extends ... implements ...
         menu.add(cbThin);
         
         Map map = new HashMap();
-        //map.put("Fast", new Integer(Engine.QUALITY_FAIR));
-        map.put("Standard", new Integer(Engine.QUALITY_GOOD));
-        map.put("Better", new Integer(Engine.QUALITY_BETTER));
-        map.put("Best", new Integer(Engine.QUALITY_BEST));
+        map.put("Standard", new Integer(KinCanvas.QUALITY_GOOD));
+        map.put("Better", new Integer(KinCanvas.QUALITY_BETTER));
+        map.put("Best", new Integer(KinCanvas.QUALITY_BEST));
         Collection list = Arrays.asList(new String[] {"Standard", "Better", "Best"});
         String defQual = "Standard";
-        if(kMain.getCanvas().renderQuality == Engine.QUALITY_BETTER)
+        if(kMain.getCanvas().renderQuality == KinCanvas.QUALITY_BETTER)
             defQual = "Better"; // for OS X
         JMenuItem submenu = new DispQualityList(map, list, defQual).getMenu();
         submenu.setText("Rendering quality");

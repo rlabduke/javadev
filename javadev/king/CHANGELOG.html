@@ -50,10 +50,8 @@
     Write a quick and dirty HTML guide to creating a plugin, listing all the basic steps
         Java and Python versions
     Enable OpenGL painting via JOGL
-        Get Graphics out of points and into the painters
         Add clear and clip methods to Painter
         Get Graphics out of Engine
-        Get canvas to set the Painter in Engine
         Delegation and JOGL canvas calls the engine
     Add some kind of transformation hook (listeners, priorities, etc)
     Warn about saving with multiple kins open
@@ -71,6 +69,8 @@
 - moved documentation for Chiropraxis tools out of the KiNG manual proper
 - ToolBox now loads king_prefs for other tools into the defaults object of
   KingPrefs. This keeps those menu names from appearing in ~/.king_prefs.
+- moved all references to the Graphics object out of Points into the Painters
+- KinCanvas now creates and manages the painters based on rendering quality
 
 ### 1.27 ###
 - modified Engine and KPoint.isPickedBy() to account for object picking

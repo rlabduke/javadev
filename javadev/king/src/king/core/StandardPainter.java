@@ -14,7 +14,8 @@ import java.util.*;
 //}}}
 /**
 * <code>StandardPainter</code> paints kinemage graphics using standard calls
-* on a java.awt.Graphics object.
+* on a java.awt.Graphics object. Must be initialized with setGraphics()
+* before use!
 *
 * <p>Copyright (C) 2004 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri May 21 19:11:16 EDT 2004
@@ -34,21 +35,32 @@ public class StandardPainter implements Painter
 
 //{{{ Variable definitions
 //##############################################################################
+    boolean         forceAA;
+    Graphics2D      g           = null;
     int[]           xPoints     = new int[6];
     int[]           yPoints     = new int[6];
 //}}}
 
-//{{{ Constructor(s)
+//{{{ Constructor(s), setGraphics
 //##############################################################################
-    public StandardPainter()
+    public StandardPainter(boolean forceAntialiasing)
     {
         super();
+        this.forceAA = forceAntialiasing;
+    }
+    
+    /** Sets the Graphics object this painter will use for painting. */
+    public void setGraphics(Graphics2D g2)
+    {
+        this.g = g2;
+        if(forceAA)
+            this.g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     }
 //}}}
 
 //{{{ paintBall
 //##################################################################################################
-    public void paintBall(Graphics2D g, Paint paint, double x, double y, double z, double r, boolean showHighlight)
+    public void paintBall(Paint paint, double x, double y, double z, double r, boolean showHighlight)
     {
         int d = (int)(2.0*r + 0.5);
         if(d < 2) d = 2; // make sure balls don't disappear
@@ -70,7 +82,7 @@ public class StandardPainter implements Painter
 
 //{{{ paintDot
 //##################################################################################################
-    public void paintDot(Graphics2D g, Paint paint, double x, double y, double z, int width)
+    public void paintDot(Paint paint, double x, double y, double z, int width)
     {
         int off = width/2;
         g.setPaint(paint);
@@ -80,7 +92,7 @@ public class StandardPainter implements Painter
 
 //{{{ paintLabel
 //##################################################################################################
-    public void paintLabel(Graphics2D g, Paint paint, Font font, FontMetrics metrics,
+    public void paintLabel(Paint paint, Font font, FontMetrics metrics,
         String label, double x, double y, double z)
     {
         g.setPaint(paint);
@@ -91,7 +103,7 @@ public class StandardPainter implements Painter
 
 //{{{ paintMarker
 //##################################################################################################
-    public void paintMarker(Graphics2D g, Paint paint, double x, double y, double z, int width, int paintStyle)
+    public void paintMarker(Paint paint, double x, double y, double z, int width, int paintStyle)
     {
         int cx = (int)x, cy = (int)y;
         int one = width, two = 2*width, three = 3*width, four = 4*width, five = 5*width,
@@ -141,7 +153,7 @@ public class StandardPainter implements Painter
 
 //{{{ paintTriangle
 //##################################################################################################
-    public void paintTriangle(Graphics2D g, Paint paint,
+    public void paintTriangle(Paint paint,
         double x1, double y1, double z1,
         double x2, double y2, double z2,
         double x3, double y3, double z3)
@@ -156,19 +168,19 @@ public class StandardPainter implements Painter
 
 //{{{ paintVector
 //##################################################################################################
-    public void paintVector(Graphics2D g, Paint paint, int width, int widthCue,
+    public void paintVector(Paint paint, int width, int widthCue,
         double x1, double y1, double z1,
         double x2, double y2, double z2)
     {
         g.setPaint(paint);
-        if(REALLY_PAINT) prettyLine(g, (int)x1, (int)y1, (int)x2, (int)y2, width);
+        if(REALLY_PAINT) prettyLine((int)x1, (int)y1, (int)x2, (int)y2, width);
     }
 //}}}
 
 //{{{ prettyLine
 //##################################################################################################
     /** Draws a thick line with nice ends, using fillPolygon(). Slightly slower (30-35%) than fastLine(). */
-    public void prettyLine(Graphics2D g, int x1, int y1, int x2, int y2, int width)
+    void prettyLine(int x1, int y1, int x2, int y2, int width)
     {
         int s, e, abs_x2_x1, abs_y2_y1;
         s = -width / 2; // Start offset
@@ -216,7 +228,7 @@ public class StandardPainter implements Painter
 //{{{ fastLine
 //##################################################################################################
     /** Draws a thick line using multiple calls to drawLine(). Not as robust as prettyLine(), but slightly faster. */
-    static public void fastLine(Graphics2D g, int x1, int y1, int x2, int y2, int width)
+    void fastLine(int x1, int y1, int x2, int y2, int width)
     {
         g.drawLine(x1, y1, x2, y2);
         

@@ -34,15 +34,15 @@ public class HighQualityPainter extends StandardPainter
 
 //{{{ Constructor(s)
 //##############################################################################
-    public HighQualityPainter()
+    public HighQualityPainter(boolean forceAntialiasing)
     {
-        super();
+        super(forceAntialiasing);
     }
 //}}}
 
 //{{{ paintBall
 //##################################################################################################
-    public void paintBall(Graphics2D g, Paint paint, double x, double y, double z, double r, boolean showHighlight)
+    public void paintBall(Paint paint, double x, double y, double z, double r, boolean showHighlight)
     {
         int d = (int)(2.0*r + 0.5);
         if(d < 2) d = 2; // make sure balls don't disappear
@@ -68,7 +68,7 @@ public class HighQualityPainter extends StandardPainter
 
 //{{{ paintDot
 //##################################################################################################
-    public void paintDot(Graphics2D g, Paint paint, double x, double y, double z, int width)
+    public void paintDot(Paint paint, double x, double y, double z, int width)
     {
         int off = width/2;
         g.setPaint(paint);
@@ -80,7 +80,7 @@ public class HighQualityPainter extends StandardPainter
 
 //{{{ paintTriangle
 //##################################################################################################
-    public void paintTriangle(Graphics2D g, Paint paint,
+    public void paintTriangle(Paint paint,
         double x1, double y1, double z1,
         double x2, double y2, double z2,
         double x3, double y3, double z3)
@@ -100,7 +100,7 @@ public class HighQualityPainter extends StandardPainter
 
 //{{{ paintVector
 //##################################################################################################
-    public void paintVector(Graphics2D g, Paint paint, int width, int widthCue,
+    public void paintVector(Paint paint, int width, int widthCue,
         double x1, double y1, double z1,
         double x2, double y2, double z2)
     {

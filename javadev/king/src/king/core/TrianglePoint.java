@@ -122,7 +122,7 @@ public class TrianglePoint extends KPoint // implements ...
     * Renders this Paintable to the specified graphics surface,
     * using the display settings from engine.
     */
-    public void paintStandard(Graphics2D g, Engine engine)
+    public void paintStandard(Engine engine)
     {
         KPaint maincolor = getDrawingColor(engine);
         if(from == null || from.from == null || maincolor.isInvisible()) return;
@@ -159,7 +159,7 @@ public class TrianglePoint extends KPoint // implements ...
         double dotprod = engine.work1.dot(engine.lightingVector);
         Paint paint = maincolor.getPaint(engine.backgroundMode, dotprod, engine.colorCue, parent.alpha);
         
-        engine.painter.paintTriangle(g, paint,
+        engine.painter.paintTriangle(paint,
             x, y, z,
             from.x, from.y, from.z,
             from.from.x, from.from.y, from.from.z

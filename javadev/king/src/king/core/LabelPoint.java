@@ -48,7 +48,7 @@ public class LabelPoint extends KPoint // implements ...
     * Renders this Paintable to the specified graphics surface,
     * using the display settings from engine.
     */
-    public void paintStandard(Graphics2D g, Engine engine)
+    public void paintStandard(Engine engine)
     {
         KPaint maincolor = getDrawingColor(engine);
         if(maincolor.isInvisible()) return;
@@ -67,7 +67,7 @@ public class LabelPoint extends KPoint // implements ...
         else                           { minx = (int)x;           }
         maxx = minx + width;
         
-        engine.painter.paintLabel(g, paint, engine.labelFont, engine.labelFontMetrics,
+        engine.painter.paintLabel(paint, engine.labelFont, engine.labelFontMetrics,
             this.toString(), minx, y, z);
     }
 //}}}

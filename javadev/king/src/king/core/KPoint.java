@@ -394,7 +394,7 @@ abstract public class KPoint extends AHE implements Cloneable, MutableTuple3
     * Renders this Paintable to the specified graphics surface,
     * using the display settings from engine.
     */
-    abstract public void paintStandard(Graphics2D g, Engine engine);
+    abstract public void paintStandard(Engine engine);
 
     /**
     * Returns true if the specified pick hits this point, else returns false

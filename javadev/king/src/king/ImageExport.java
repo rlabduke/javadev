@@ -84,7 +84,7 @@ public class ImageExport implements PropertyChangeListener, Runnable
             BufferedImage.TYPE_INT_BGR); // this avoids color problems with JPEG and gives smaller files (?)
         Graphics2D      g2  = img.createGraphics();
         
-        kCanvas.paintCanvas(g2, Engine.QUALITY_BEST);
+        kCanvas.paintCanvas(g2, KinCanvas.QUALITY_BEST);
         
         // This ensures we get high-quality JPEGs
         if(format.equals("jpg"))

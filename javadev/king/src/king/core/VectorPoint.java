@@ -181,7 +181,7 @@ public class VectorPoint extends KPoint // implements ...
     * Renders this Paintable to the specified graphics surface,
     * using the display settings from engine.
     */
-    public void paintStandard(Graphics2D g, Engine engine)
+    public void paintStandard(Engine engine)
     {
         if(from == null || equals(from)) return;
         
@@ -280,7 +280,7 @@ public class VectorPoint extends KPoint // implements ...
         }
         //}}} Shorten to fit in clipping plane, outside of balls
     
-        engine.painter.paintVector(g, paint, calcLineWidth(engine), engine.widthCue,
+        engine.painter.paintVector(paint, calcLineWidth(engine), engine.widthCue,
             xb, yb, zb, xf, yf, zf);
     }
 //}}}
