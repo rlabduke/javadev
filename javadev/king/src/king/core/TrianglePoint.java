@@ -157,7 +157,8 @@ public class TrianglePoint extends AbstractPoint // implements ...
         engine.work2.setXYZ( C.getDrawX()-B.getDrawX(), C.getDrawY()-B.getDrawY(), C.getDrawZ()-B.getDrawZ() );
         engine.work1.cross(engine.work2).unit();
         double dotprod = engine.work1.dot(engine.lightingVector);
-        Paint paint = maincolor.getPaint(engine.backgroundMode, dotprod, engine.colorCue, parent.alpha);
+        int alpha = (parent == null ? 255 : parent.alpha);
+        Paint paint = maincolor.getPaint(engine.backgroundMode, dotprod, engine.colorCue, alpha);
         
         engine.painter.paintTriangle(paint,
             x, y, z,

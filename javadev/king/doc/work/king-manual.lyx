@@ -3537,6 +3537,55 @@ e.g.
  test your pages thoroughly.
 \layout Standard
 
+Normally, a KiNG applet displays only the kinemage specified in its 
+\family typewriter 
+kinSource
+\family default 
+ parameter.
+ However, you can also use the 
+\family typewriter 
+kinfileBase
+\family default 
+ and 
+\family typewriter 
+kinfileList
+\family default 
+ parameters to allow the user to open and/or append additional kinemages
+ from a pre-specified set.
+ 
+\family typewriter 
+kinfileBase
+\family default 
+ specifies a path to the maps relative to the current document base URL.
+ 
+\family typewriter 
+kinfileList
+\family default 
+ is a space-separated list of filenames that can be loaded from that path.
+ Users can also enter and modify URLs directly, though obviously this isn't
+ very convenient.
+\layout Standard
+
+The KiNG applet also supports a 
+\family typewriter 
+kinfileSaveHandler
+\family default 
+ parameter, which is the URL of a CGI script that can accept HTTP POST kinemage
+ output.
+ On a properly configured webserver, this allows users of the KiNG applet
+ to save their modified kinemages directly to the server! However, this
+ is definitely a custom programming job on the server side and so is not
+ an option for most 
+\begin_inset Quotes eld
+\end_inset 
+
+normal
+\begin_inset Quotes erd
+\end_inset 
+
+ uses of the KiNG applet.
+\layout Standard
+
 Some Tools and Plugins may define their own <PARAM> tags, which will be
  described in their documentation.
 \layout Chapter
