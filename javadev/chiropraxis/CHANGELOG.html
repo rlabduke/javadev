@@ -2,25 +2,14 @@
 ==============================================================================
 ===  TO DO  ==================================================================
 ==============================================================================
-    There *may* be a bug in Cys rotations: {{{
-        driftwood.moldb2.AtomException: null has no state specified
-            at driftwood.moldb2.ModelState.get(ModelState.java:97)
-            at chiropraxis.sc.SidechainAngles2.measureAngle(SidechainAngles2.java:205)
-            at chiropraxis.sc.SidechainAngles2.measureAllAngles(SidechainAngles2.java:291)
-            at king.tool.SidechainRotator.buildGUI(SidechainRotator.java:84)
-            at king.tool.SidechainRotator.<init>(SidechainRotator.java:69)
-            at king.tool.ScRotTool.c_click(ScRotTool.java:70)}}}
-    Condense stats listing on pg 1? e.g. 50 PRO [mdls 1, 2, ..., 21]
     Add outline to Rama PDF instead of thumbs
     Add kinemage, raw, and stat-summary output to Ramalyze
-  * Need a better H-bond potential, 'cause this one sucks!
- ** For cross-strand neighbors, along and across numbers don't correlate b/c
-    the parallel / antiparallel relationship should affect the sign of the angle!
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 0.33 ###
 ### 0.33 ###
 - started H-bond network analysis in beta sheet
 - allowed peptides to be incomplete
@@ -32,6 +21,10 @@
 - added "deploy-local-mp" target to deploy to MolProbity3
 - Ramalyze now reads PDB filename from cmd line params
 - moved LsqPlane to driftwood and removed explicit Jama dependency
+- added mc.AltConfBackrubFinder to speed the search for alt-conf examples
+- fixed SidechainIdealizer.idealizeSidechain() so it doesn't leave
+  Ala's hydrogens oriented randomly.
+- migrated to using version.props AND buildnum.props to simplify version control
 
 ### 0.32 ###
 - started working on RamaPdfWriter to test out how we could create multi-page

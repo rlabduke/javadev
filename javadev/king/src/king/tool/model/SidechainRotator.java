@@ -24,7 +24,7 @@ import driftwood.util.SoftLog;
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Thu May  8 15:36:11 EDT 2003
 */
-public class SidechainRotator implements Remodeler, ChangeListener, ListSelectionListener
+public class SidechainRotator implements Remodeler, ChangeListener, ListSelectionListener, WindowListener
 {
 //{{{ Constants
     static final DecimalFormat df1 = new DecimalFormat("0.0");
@@ -133,6 +133,7 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
         // Assemble the dialog
         dialog = new JDialog(frame, targetRes.toString(), false);
         dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        dialog.addWindowListener(this);
         dialog.setContentPane(twistPane);
         dialog.pack();
         dialog.setVisible(true);
@@ -314,6 +315,17 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
         ret = scAngles.setAllAngles(targetRes, ret, this.getAllAngles());
         return ret;            
     }
+//}}}
+
+//{{{ Dialog window listeners
+//##################################################################################################
+    public void windowActivated(WindowEvent ev)   {}
+    public void windowClosed(WindowEvent ev)      {}
+    public void windowClosing(WindowEvent ev)     { onReleaseResidue(null); }
+    public void windowDeactivated(WindowEvent ev) {}
+    public void windowDeiconified(WindowEvent ev) {}
+    public void windowIconified(WindowEvent ev)   {}
+    public void windowOpened(WindowEvent ev)      {}
 //}}}
 
 //{{{ empty_code_segment

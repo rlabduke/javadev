@@ -294,7 +294,7 @@ perpendicular to the N Ca C plane and NOT along the Ca---Cb vector.
 */
 //}}}
 
-//{{{ idealizeSidechain
+//{{{ [BROKEN] idealizeSidechain
 //##################################################################################################
     /**
     * Idealizes all aspects of sidechain geometry (bond lengths and angles).
@@ -302,7 +302,9 @@ perpendicular to the N Ca C plane and NOT along the Ca---Cb vector.
     * All heavy atoms must be present, but H's are optional.
     * This method will not create missing atoms, only move existing ones.
     * It returns <code>start</code> if the residue is of unknown type.
-    */
+    *
+    * <p>Doesn't work right for Ala Hs -- randomly oriented.
+    * /
     public ModelState idealizeSidechain(Residue res, ModelState start)
     {
         Map atomMap = (Map)idealSidechainMap.get(res.getName());
@@ -337,6 +339,66 @@ perpendicular to the N Ca C plane and NOT along the Ca---Cb vector.
         end = scAngles.setChiAngles(res, end, chis);
         
         return end;
+    }*/
+//}}}
+
+//{{{ idealizeSidechain
+//##################################################################################################
+    /**
+    * Idealizes all aspects of sidechain geometry (bond lengths and angles).
+    * Dihedrals are preserved from the original model.
+    * All heavy atoms must be present, but H's are optional.
+    * This method will not create missing atoms, only move existing ones.
+    * It returns <code>start</code> if the residue is of unknown type.
+    */
+    public ModelState idealizeSidechain(Residue res, ModelState start)
+    {
+        Residue idealRes = (Residue) idealResMap.get(res.getName());
+        if(idealRes == null) // a residue we don't recognize
+            return start;
+        
+        // Save initial conformation. Chis only b/c we might lack H's.
+        double[] chis = scAngles.measureChiAngles(res, start);
+        //DEBUG: for(int i = 0; i < chis.length; i++) SoftLog.err.println("chi"+(i+1)+"="+chis[i]);
+        
+        try
+        {
+            ModelState  end = new ModelState(start);
+            AtomState   ca1 = start.get( res.getAtom(" CA ") );
+            AtomState   n1  = start.get( res.getAtom(" N  ") );
+            AtomState   c1  = start.get( res.getAtom(" C  ") );
+            AtomState   ca2 = idealResState.get( idealRes.getAtom(" CA ") );
+            AtomState   n2  = idealResState.get( idealRes.getAtom(" N  ") );
+            AtomState   c2  = idealResState.get( idealRes.getAtom(" C  ") );
+            Transform xform = builder.dock3on3(ca1, n1, c1, ca2, n2, c2);
+            for(Iterator iter = res.getAtoms().iterator(); iter.hasNext(); )
+            {
+                try 
+                {
+                    Atom    a1  = (Atom)iter.next();
+                    String  nm  = a1.getName();
+                    Atom    a2  = idealRes.getAtom(nm);
+                    if(!(nm.equals(" N  ") || nm.equals(" H  ") || nm.equals(" C  ") || nm.equals(" O  ")))
+                    {
+                        AtomState   s1  = start.get(a1);
+                        AtomState   s2  = idealResState.get(a2);
+                        AtomState   s3  = (AtomState)s1.clone();
+                        xform.transform(s2, s3); // transforms it into position
+                        end.add(s3);
+                    }
+                }
+                catch(AtomException ex) {} // no action
+            }
+            
+            // Correct for non-ideal tau angle
+            end = idealizeCB(res, end);
+            
+            // Restore original orientation (chi angles)
+            end = scAngles.setChiAngles(res, end, chis);
+            
+            return end;
+        }
+        catch(AtomException ex) { return start; }
     }
 //}}}
 

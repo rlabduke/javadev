@@ -23,7 +23,7 @@ import driftwood.util.SoftLog;
  * <p>Begun on Fri Jun 21 09:30:40 EDT 2002
  * <br>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
 */
-public class BasicTool implements MouseListener, MouseMotionListener, TransformSignalSubscriber, WindowListener
+public class BasicTool extends Plugin implements MouseListener, MouseMotionListener, TransformSignalSubscriber, WindowListener
 {
 //{{{ Static fields
     static final Object MODE_UNDECIDED  = new Object();
@@ -33,14 +33,6 @@ public class BasicTool implements MouseListener, MouseMotionListener, TransformS
 
 //{{{ Variable definitions
 //##################################################################################################
-    // These are protected so that the Tool can be subclassed
-    // outside of the "king" package.
-    protected ToolBox       parent;
-
-    protected KingMain      kMain;
-    protected KinCanvas     kCanvas;
-    protected ToolServices  services;
-    
     protected int lastXCoord = 0, lastYCoord = 0;
     protected int pressXCoord = 0, pressYCoord = 0;
     protected boolean isNearTop = false, isNearBottom = false;
@@ -57,11 +49,7 @@ public class BasicTool implements MouseListener, MouseMotionListener, TransformS
     */
     public BasicTool(ToolBox tb)
     {
-        parent = tb;
-        
-        kMain       = tb.kMain;
-        kCanvas     = tb.kCanvas;
-        services    = tb.services;
+        super(tb);
     }
 //}}}
 
@@ -408,7 +396,7 @@ public class BasicTool implements MouseListener, MouseMotionListener, TransformS
     }
 //}}}
 
-//{{{ getToolsRBMI, getHelpMenuItem, onHelp
+//{{{ getToolsRBMI/MenuItem, onToolActivate, getToolPanel, getHelpAnchor, toString
 //##################################################################################################
     /**
     * Creates a new JRadioButtonMenuItem to be displayed in the Tools menu,
@@ -425,67 +413,18 @@ public class BasicTool implements MouseListener, MouseMotionListener, TransformS
         return btn;
     }
     
+    /** In order to comply with the Plugin requirements. Returns <code>getToolsRBMI()</code>. */
+    public JMenuItem getToolsMenuItem() { return this.getToolsRBMI(); }
+    
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onToolActivate(ActionEvent ev)
     {
         parent.toolActivated(this);
     }
 
-    /**
-    * Creates a new JMenuItem to be displayed in the Help menu,
-    * which will allow the user to access help information associated
-    * with this Tool.
-    *
-    * Only one JMenuItem may be returned, but it could be a JMenu
-    * that contained several items under it. However,
-    * Tools are encouraged to consolidate all documentation
-    * into one location. The king.HTMLHelp class may be of use here.
-    *
-    * The Tool may return null to indicate that it has no
-    * associated menu item.
-    */
-    public JMenuItem getHelpMenuItem()
-    {
-        return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onHelp"));
-    }
-
-    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onHelp(ActionEvent ev)
-    {
-        URL start = this.getHelpURL();
-        if(start != null) new HTMLHelp(kMain, start).show();
-        else
-        {
-            JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                "Unable to find documentation for this tool.", "Sorry!",
-                JOptionPane.ERROR_MESSAGE);
-        }
-    }
-//}}}
-
-//{{{ getToolPanel, getHelpURL/Anchor, toString
-//##################################################################################################
     /** Returns a component with controls and options for this tool */
     protected Container getToolPanel()
     { return null; }
-    
-    /** Returns the URL of a web page explaining use of this tool */
-    public URL getHelpURL()
-    {
-        URL     url     = getClass().getResource("/king/html/king-manual.html");
-        String  anchor  = getHelpAnchor();
-        if(url != null && anchor != null)
-        {
-            try { url = new URL(url, anchor); }
-            catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
-            return url;
-        }
-        else
-        {
-            SoftLog.err.println("url="+url+"; anchor="+anchor);
-            return null;
-        }
-    }
     
     /**
     * Returns an anchor marking a place within <code>king-manual.html</code>
