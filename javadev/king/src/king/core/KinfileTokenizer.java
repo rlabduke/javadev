@@ -400,7 +400,7 @@ public class KinfileTokenizer //extends ... implements ...
     public int getInt()
     {
         if(!isInteger() || Double.isNaN(doubleValue) || doubleValue != Math.rint(doubleValue))
-            throw new IllegalStateException("Token is not an integer");
+            throw new IllegalStateException("[line "+(in.getLineNumber()+1)+"] Token is not an integer");
         return (int)doubleValue;
     }
     
@@ -411,7 +411,7 @@ public class KinfileTokenizer //extends ... implements ...
     public float getFloat()
     {
         if(!isNumber() || Double.isNaN(doubleValue))
-            throw new IllegalStateException("Token is not a number");
+            throw new IllegalStateException("[line "+(in.getLineNumber()+1)+"] Token is not a number");
         return (float)doubleValue;
     }
 
@@ -422,7 +422,7 @@ public class KinfileTokenizer //extends ... implements ...
     public double getDouble()
     {
         if(!isNumber() || Double.isNaN(doubleValue))
-            throw new IllegalStateException("Token is not a number");
+            throw new IllegalStateException("[line "+(in.getLineNumber()+1)+"] Token is not a number");
         return doubleValue;
     }
 //}}}

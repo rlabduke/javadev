@@ -40,6 +40,7 @@
     Create HTML+applet mini-tutorials: kin editing, refitting, views, etc. etc.
 <!-- Postponed TO DO items }}} -->
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
+    Make refitting tools able to set up alternate confs (as an option)
     Add ability to edit masters
     Add some kind of transformation hook (listeners, priorities, etc)
     Open PDB in model manager without opening kinemage first?
@@ -55,9 +56,7 @@
     JSR: measures+xyz+superpick switch themselves off
     JSR: sc rot / ca hinge and the ca hinge dialog disappears
     JSR: rotamers don't always update angle settings (another typo?)
-    JSR: KiNG writes two copies of refit atoms, moved and original
     Mutated residues should retain B factors or set to 30 (?)
-    Make refitting tools able to set up alternate confs (as an option)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -69,6 +68,8 @@
 - created a sample_plugins distro with A. Mantler's code, pyking, and beanking
 - changed KinfileTokenzier.main() to produce HTML output with the -css switch
 - r63 introduced Shuren's changes to the model manager...
+- added line numbers to IllegalStateExceptions in KinfileTokenizer
+- fixed bug: JSR: KiNG writes two copies of refit atoms, moved and original
 
 ### 1.30 ###
 - modified KPaint.getPaint() to use a cached Color object when possible

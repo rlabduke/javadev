@@ -244,9 +244,17 @@ public class PdbWriter //extends ... implements ...
                         try
                         {
                             AtomState as = states[i].get(atom);
-                            if(!outputStates.contains(as))
+                            // We want to make sure every atom output has a unique PDB name.
+                            // We're not worried so much about duplicating coordinates (old code).
+                            // Name requirement is important for dealing with alt confs,
+                            // where a single atom (' ') may move in A but not B --
+                            // this led to two ATOM entries with different coords but the same name.
+                            String aName = as.getAtom().toString()+as.getAltConf();
+                            //if(!outputStates.contains(as))
+                            if(!outputStates.contains(aName))
                             {
-                                outputStates.add(as);
+                                //outputStates.add(as);
+                                outputStates.add(aName);
                                 writeAtom(as);
                             }
                         }
