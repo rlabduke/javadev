@@ -17,7 +17,13 @@ import driftwood.util.SoftLog;
 * allowed by the STAR (Self-defining Text Archive and Retrival) file format
 * as of the 1994 paper by Hall and Spadaccini (J Chem Inf Comput Sci, 34:505).
 *
-* It takes in a stream of characters and outputs discrete tokens,
+* <p>One part of the syntax <i>not</i> documented is that within quoted strings,
+* a doubling of the quote character should be interpretted as one of that
+* character (literally).
+* The final quote character must be followed by white space or EOF to really
+* terminate the quoted string.
+*
+* <p>This class takes in a stream of characters and outputs discrete tokens,
 * stripped of whitespace and quoting characters. Comments are discarded.
 * Data and save block names are returned stripped of their leading "data_" or "save_".
 * Data names are NOT stripped of their leading underscore.
@@ -215,7 +221,7 @@ public class StarTokenizer //extends ... implements ...
     }
 //}}}
 
-//{{{ readQuoted, readLongQuoted
+//{{{ readQuoted
 //##################################################################################################
     /** Sets stringValue and appends characters to buffer */
     void readQuoted(char close) throws IOException
@@ -226,13 +232,34 @@ public class StarTokenizer //extends ... implements ...
             c = in_read();
             if(c == -1)         { depth = 0; error("Quoted token terminated by EOF; type = "+close+""+close); }
             else if(c == '\n')  { depth = 0; error("Quoted token terminated by newline; type = "+close+""+close); }
-            else if(c == close) depth--;
+            //else if(c == close) depth--;
+            else if(c == close)
+            {
+                int c2 = in_read();
+                if(c2 == close)
+                    bufferAppend((char)c2); // doubling up means one literal quote
+                else if(c2 == -1 || c2 == ' ' || c2 == '\n' || c2 == '\t' || c2 == '\f')
+                {
+                    depth--; // real end of quoted string
+                    firstChar = c2; // save this char for the next token
+                }
+                else // don't know what to do here -- a syntax error
+                {
+                    depth = 0;
+                    firstChar = c2;
+                    error("Quoted token terminated without trailing whitespace/EOF; type = "+close+""+close); 
+                }
+                    
+            }
             else bufferAppend((char)c);
         }
         
         stringValue = bufferToString();
     }
+//}}}
 
+//{{{ readLongQuoted
+//##################################################################################################
     /** Sets stringValue and appends characters to buffer */
     void readLongQuoted(char close) throws IOException
     {
@@ -338,7 +365,7 @@ public class StarTokenizer //extends ... implements ...
 //##################################################################################################
     /**
     * Main() function for running as an application.
-    * Takes a kinemage on stdin and writes tokens to stdout
+    * Takes a STAR file on stdin and writes tokens to stdout
     */
     public void Main() throws IOException
     {

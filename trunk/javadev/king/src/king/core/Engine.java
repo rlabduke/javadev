@@ -70,8 +70,10 @@ public class Engine //extends ... implements ...
     
     // FOR USE BY ENGINE ONLY
     ArrayList[]         zbuffer;
-    HashMap             ballmap;        // Map<KPoint, Double> for line shortening
-    //OdHash              ballmap;        // Map<KPoint, double> for line shortening
+    HashMap             ballmap;                // Map<KPoint, Double> for line shortening
+    ArrayList[]         parents;                // KList that is acting parent for each pt in zbuffer; default is null
+    KList               actingParent    = null; // KList that is parent for each pt as added; null = no change
+    // See setActingParent() for a description of the stupid hijinks we're pulling here.
     
     Font                bigFont, smallFont;
     Rectangle           pickingRect = new Rectangle();
@@ -181,11 +183,13 @@ public class Engine //extends ... implements ...
     {
         int i, j, end_j;    // loop over z-buffer, thru z-buffer
         ArrayList zb;       // == zbuffer[i], saves array lookups
+        ArrayList pnt;      // == parents[i], saves array lookups
         
         // Clear the cache of old paintables
         for(i = 0; i <= TOP_LAYER; i++)
         {
             zbuffer[i].clear();
+            parents[i].clear();
         }
         ballmap.clear();
         
@@ -208,8 +212,22 @@ public class Engine //extends ... implements ...
                 
                 // Render all points at this level (faster to not use iterators)
                 zb      = zbuffer[i];
+                pnt     = parents[i];
                 end_j   = zb.size();
-                for(j = 0; j < end_j; j++) ((KPoint)zb.get(j)).paintFast(g, this);
+                for(j = 0; j < end_j; j++)
+                {
+                    KPoint  pt  = (KPoint) zb.get(j);
+                    KList   l   = (KList) pnt.get(j);
+                    if(l == null)
+                        pt.paintFast(g, this);
+                    else // see setActingParent() for an explanation
+                    {
+                        AGE oldPnt = pt.getOwner();
+                        pt.setOwner(l);
+                        pt.paintFast(g, this);
+                        pt.setOwner(oldPnt);
+                    }
+                }
             }
         }
         else if(quality == QUALITY_BEST)// || quality == QUALITY_BETTER)
@@ -225,8 +243,22 @@ public class Engine //extends ... implements ...
                 
                 // Render all points at this level (faster to not use iterators)
                 zb      = zbuffer[i];
+                pnt     = parents[i];
                 end_j   = zb.size();
-                for(j = 0; j < end_j; j++) ((KPoint)zb.get(j)).paintHighQuality(g, this);
+                for(j = 0; j < end_j; j++)
+                {
+                    KPoint  pt  = (KPoint) zb.get(j);
+                    KList   l   = (KList) pnt.get(j);
+                    if(l == null)
+                        pt.paintHighQuality(g, this);
+                    else // see setActingParent() for an explanation
+                    {
+                        AGE oldPnt = pt.getOwner();
+                        pt.setOwner(l);
+                        pt.paintHighQuality(g, this);
+                        pt.setOwner(oldPnt);
+                    }
+                }
             }
         }
         else//quality == QUALITY_GOOD or QUALITY_BETTER
@@ -245,8 +277,22 @@ public class Engine //extends ... implements ...
                 
                 // Render all points at this level (faster to not use iterators)
                 zb      = zbuffer[i];
+                pnt     = parents[i];
                 end_j   = zb.size();
-                for(j = 0; j < end_j; j++) ((KPoint)zb.get(j)).paintStandard(g, this);
+                for(j = 0; j < end_j; j++)
+                {
+                    KPoint  pt  = (KPoint) zb.get(j);
+                    KList   l   = (KList) pnt.get(j);
+                    if(l == null)
+                        pt.paintStandard(g, this);
+                    else // see setActingParent() for an explanation
+                    {
+                        AGE oldPnt = pt.getOwner();
+                        pt.setOwner(l);
+                        pt.paintStandard(g, this);
+                        pt.setOwner(oldPnt);
+                    }
+                }
             }
         }
     }    
@@ -349,7 +395,30 @@ public class Engine //extends ... implements ...
     }
 //}}}
 
-//{{{ addPaintable, flushZBuffer
+//{{{ setActingParent
+//##################################################################################################
+    /**
+    * This is a *really* dumb hack that allows us to implement Mage's instance=
+    * feature fairly cheaply in terms of both time and space.
+    * The idea is that each point in the zbuffer will be associated with a KList
+    * object that *should* own it for drawing purposes.
+    * For most KPoints, this should be the one KList they belong to,
+    * but we choose to record <code>null</code> instead to save a few operations.
+    * If something else is stored, we set the point's owner to the specified list
+    * just for the duration of the drawing operation, to ensure it appears in the
+    * correct color, width, radius, etc.
+    * <p>Most normal lists should call this function with the parameter <code>null</code>
+    * before beginning to transform their points.
+    * Lists that are "instances" of other lists will instead pass in <code>this</code>
+    * (but should remember to reset to null after transforming all their points).
+    */
+    public void setActingParent(KList pnt)
+    {
+        this.actingParent = pnt;
+    }
+//}}}
+
+//{{{ addPaintable, addPaintableToLayer, flushZBuffer
 //##################################################################################################
     /**
     * Registers a paintable to be drawn to the screen.
@@ -374,6 +443,7 @@ public class Engine //extends ... implements ...
     {
         if(layer < 0 || layer > TOP_LAYER || p == null) return;
         zbuffer[layer].add(p);
+        parents[layer].add(actingParent);
     }
     
     /**
@@ -386,6 +456,13 @@ public class Engine //extends ... implements ...
         for(int i = 0; i <= TOP_LAYER; i++)
         {
             zbuffer[i] = new ArrayList(10);
+        }
+        
+        parents = null;
+        parents = new ArrayList[TOP_LAYER+1];
+        for(int i = 0; i <= TOP_LAYER; i++)
+        {
+            parents[i] = new ArrayList(10);
         }
         
         ballmap = null;
@@ -450,13 +527,16 @@ public class Engine //extends ... implements ...
         {
             if(!warnedPickingRegion)
             {
+                JCheckBox dontWarn = new JCheckBox("Don't warn me again", false);
                 JOptionPane.showMessageDialog(null,
-                    "When using stereo, only the right-hand half\n"+
-                    "of the screen is active for picking.\n\n"+
-                    "This message will not be displayed again.",
+                    new Object[] {
+                        "When using stereo, only the right-hand half\n"+
+                        "of the screen is active for picking.",
+                        dontWarn
+                    },
                     "Out-of-bounds pick",
                     JOptionPane.WARNING_MESSAGE);
-                warnedPickingRegion = true;
+                warnedPickingRegion = dontWarn.isSelected();
             }
             return null;
         }
