@@ -156,6 +156,15 @@ public class KinStable implements ListSelectionListener
             k.signal.subscribe(kMain);
             model.addElement(k);
         }
+	/** 
+	 * This if statement corrects for a bug(?) in java 1.5
+	 * which was causing king to not select a kinemage if one
+	 * was opened using the menu and there were no prior open
+	 * kins.
+	 **/
+	if(kinChooser.getSelectedIndex()==-1){
+	    kinChooser.setSelectedIndex(0);
+	}
 
         kMain.notifyChange(kMain.EM_SWITCH);
     }
