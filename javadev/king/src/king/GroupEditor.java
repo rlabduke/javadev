@@ -148,7 +148,7 @@ public class GroupEditor implements ChangeListener
         grIsOff         = new JCheckBox("off (Hide this and all children)");
         grNoButton      = new JCheckBox("nobutton (Don't provide on/off button)");
         grDominant      = new JCheckBox("dominant (Supress all children's buttons)");
-        grRecessiveOn   = new JCheckBox("recessiveon (Dominant only when off)");
+        grRecessiveOn   = new JCheckBox("collapsable (Dominant only when off)");
         grAnimate       = new JCheckBox("animate (Include in ANIMATE animation)");
         gr2Animate      = new JCheckBox("2animate (Include in 2ANIMATE animation)");
         
@@ -185,7 +185,7 @@ public class GroupEditor implements ChangeListener
         suIsOff         = new JCheckBox("off (Hide this and all children)");
         suNoButton      = new JCheckBox("nobutton (Don't provide on/off button)");
         suDominant      = new JCheckBox("dominant (Supress all children's buttons)");
-        suRecessiveOn   = new JCheckBox("recessiveon (Dominant only when off)");
+        suRecessiveOn   = new JCheckBox("collapsable (Dominant only when off)");
         
         suOK = new JButton(new ReflectiveAction("OK", null, this, "onSubgroupOK"));
         suCancel = new JButton(new ReflectiveAction("Cancel", null, this, "onSubgroupCancel"));

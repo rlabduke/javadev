@@ -1283,15 +1283,7 @@ KiNG is capable of using OpenGL rendering commands to take advantage of
 \end_inset 
 
 ).
- The JOGL libraries go in 
-\family typewriter 
-jre/lib/ext
-\family default 
- of your Java installation or 
-\family typewriter 
-/Library/Java/Extensions
-\family default 
-, depending on your system; make sure you get both 
+ Make sure you get both 
 \family typewriter 
 jogl.jar
 \family default 
@@ -1308,6 +1300,19 @@ jogl.jar
 .jnilib
 \family default 
 ).
+ The JOGL libraries go in 
+\family typewriter 
+jre/lib/ext
+\family default 
+ (JAR file) and 
+\family typewriter 
+jre/bin
+\family default 
+ (native libs) of your Java installation, or in 
+\family typewriter 
+/Library/Java/Extensions
+\family default 
+ on Mac OS X (both files).
  If you downloaded a platform-specific version of KiNG, the necessary libraries
  may already be included.
 \layout Standard

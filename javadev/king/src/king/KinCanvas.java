@@ -142,7 +142,7 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
     }
 //}}}
     
-//{{{ notifyChange
+//{{{ notifyChange, shutdown
 //##################################################################################################
     // Called by KingMain when something happens.
     // Shouldn't be called directly under normal circumstances.
@@ -170,6 +170,11 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
             zoommodel.setValue((int)Math.round((double)SLIDER_SCALE * Math.log(kinspan/viewspan) / LOG_2));
             clipmodel.setValue((int)(view.getClip() * 200.0));
         }
+    }
+    
+    void shutdown()
+    {
+        if(joglFrame != null) joglFrame.dispose();
     }
 //}}}
 

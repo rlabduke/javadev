@@ -1017,12 +1017,12 @@ KiNG is capable of using OpenGL rendering commands to take advantage
 of your graphics hardware and get (hopefully) accelerated graphics
 performance. You'll need to have an up-to-date version of Java installed,
 along with the JOGL libraries (https://jogl.dev.java.net/).
-The JOGL libraries go in <TT>jre/lib/ext</TT> of your Java installation
-or <TT>/Library/Java/Extensions</TT>, depending on your system; make
-sure you get both <TT>jogl.jar</TT> and the native library or libraries
-(they end in <TT>.dll</TT>, <TT>.so</TT>, or <TT>.jnilib</TT>). If
-you downloaded a platform-specific version of KiNG, the necessary
-libraries may already be included.
+Make sure you get both <TT>jogl.jar</TT> and the native library or
+libraries (they end in <TT>.dll</TT>, <TT>.so</TT>, or <TT>.jnilib</TT>).
+The JOGL libraries go in <TT>jre/lib/ext</TT> (JAR file) and <TT>jre/bin</TT>
+(native libs) of your Java installation, or in <TT>/Library/Java/Extensions</TT>
+on Mac OS X (both files). If you downloaded a platform-specific version
+of KiNG, the necessary libraries may already be included.
 
 <P>
 Note that due to limitations of Java's interaction with the native
@@ -2251,7 +2251,7 @@ for more details on these and other licenses.
 <BR><HR>
 <ADDRESS>
 Ian W. Davis
-2004-06-06
+2004-06-16
 </ADDRESS>
 </BODY>
 </HTML>
