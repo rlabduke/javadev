@@ -25,6 +25,17 @@ public class KPaint //extends ... implements ...
     /** The number of different depth-cueing levels available */
     public static final int COLOR_LEVELS = 16;
     
+    /**
+    * The minimum value multiplier on a black background.
+    * Smaller numbers mean we fade closer to black before clipping.
+    */
+    static final float      BVAL            = 0.36f;
+    
+    /** The minimum value multiplier on a white background. */
+    static final float      WVAL            = 0.40f;
+    /** The minimum saturation multiplier on a white background. */
+    static final float      WSAT            = 0.36f;
+    
     /** Shading parameters for ribbons / triangles */
     static final double     AMBIENT_COEFF   = 0.4;
     static final double     DIFFUSE_COEFF   = 0.6;
@@ -49,8 +60,7 @@ public class KPaint //extends ... implements ...
         // toward black depthcued on a white background:
         background = new Color[COLOR_LEVELS];
         for(int i = 0; i < COLOR_LEVELS; i++)
-            //background[i] = new Color(Color.HSBtoRGB(0f, 0f, 0.60f*i / (COLOR_LEVELS-1)));
-            background[i] = new Color(Color.HSBtoRGB(0f, 0f, 0.60f*(COLOR_LEVELS-1-i) / (COLOR_LEVELS-1)));
+            background[i] = new Color(Color.HSBtoRGB(0f, 0f, (1-WVAL)*(COLOR_LEVELS-1-i) / (COLOR_LEVELS-1)));
         SHADE_BACKGROUNDS[WHITE_COLOR]  = background;
         SHADE_BACKGROUNDS[WHITE_MONO]   = background;
     }
@@ -102,7 +112,8 @@ public class KPaint //extends ... implements ...
         for(int i = 0; i < COLOR_LEVELS; i++)
         {
             bcolors[i] = getHSB(hue, blackSat,
-                ( 0.36f + 0.64f*i/(COLOR_LEVELS-1) )*blackVal );
+                //( 0.36f + 0.64f*i/(COLOR_LEVELS-1) )*blackVal );
+                ( BVAL + (1-BVAL)*i/(COLOR_LEVELS-1) )*blackVal );
         }
         
         // value increases, saturation decreases going back
@@ -110,8 +121,10 @@ public class KPaint //extends ... implements ...
         for(int i = 0; i < COLOR_LEVELS; i++)
         {
             wcolors[i] = getHSB(hue,
-                ( 0.36f + 0.64f*i/(COLOR_LEVELS-1) )*whiteSat,
-                Math.min(1f, 1f + (whiteVal-1f)*( 0.40f + 0.60f*i/(COLOR_LEVELS-1) )) ); 
+                //( 0.36f + 0.64f*i/(COLOR_LEVELS-1) )*whiteSat,
+                //Math.min(1f, 1f + (whiteVal-1f)*( 0.40f + 0.60f*i/(COLOR_LEVELS-1) )) ); 
+                ( WSAT + (1-WSAT)*i/(COLOR_LEVELS-1) )*whiteSat,
+                Math.min(1f, 1f + (whiteVal-1f)*( WVAL + (1-WVAL)*i/(COLOR_LEVELS-1) )) ); 
         }
         
         p.paints[BLACK_COLOR]   = bcolors;

@@ -22,7 +22,8 @@ MOLDB2:
     Write PdbUpdater that reads new coords/state into an old model
     Allow setSerial() on AtomState()?
     Think about Model carrying ModelStates with it...maybe a bad idea?
-  * Find out what PDB does with ATOM numbers greater than 99,999
+
+R3: Write PrincipleAxes for driftwood.r3
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -34,6 +35,10 @@ MOLDB2:
 - added Triple.format(DecimalFormat df, String sep)
 - made Builder.construct4() take Tuple3s instead of Triples
 - commentted out PdbReader.extractSheetDefinitions()
++ added the Jama classes to the driftwood package (~20kb compiled)
+  These will now be used by the r3 subpackage
+- for ATOM numbers greater than 99,999 the PDB uses multiple files
+- added LsqPlane to driftwood.r3
 
 ### 0.54 ###
 - parsing mmCIF files is way too involved to be practical for moldb2
