@@ -79,6 +79,7 @@ public class DrawingTool extends BasicTool
     KPoint          triang1 = null, triang2 = null, triang3 = null;
     KPoint          arcseg1 = null, arcseg2 = null, arcseg3 = null;
     JTextField      tfShortenLine;
+    JCheckBox       cbLabelIsID;
     JTextField      tfNumDots;
     JTextField      tfArcDegrees, tfArcShorten;
     JCheckBox       cbArcArrowhead;
@@ -144,6 +145,13 @@ public class DrawingTool extends BasicTool
         fbLineSeg.setAutoPack(true);
         fbLineSeg.setIndent(10);
         
+        cbLabelIsID = new JCheckBox("Use ID of picked point for label", false);
+        TablePane tpLabels = new TablePane();
+        tpLabels.addCell(cbLabelIsID);
+        FoldingBox fbLabels = new FoldingBox(rbLabels, tpLabels);
+        fbLabels.setAutoPack(true);
+        fbLabels.setIndent(10);
+        
         tfNumDots = new JTextField("10", 6);
         TablePane tpDottedLine = new TablePane();
         tpDottedLine.addCell(new JLabel("Number of dots:"));
@@ -197,6 +205,7 @@ public class DrawingTool extends BasicTool
             ui.addCell(fbLineSeg).newRow();
         ui.addCell(rbBalls).newRow();
         ui.addCell(rbLabels).newRow();
+            ui.addCell(fbLabels).newRow();
         ui.addCell(rbDots).newRow();
         ui.addCell(rbDottedLine).newRow();
             ui.addCell(fbDottedLine).newRow();
@@ -410,9 +419,19 @@ public class DrawingTool extends BasicTool
         KList list = this.getDrawingList(KList.LABEL, "labels");
         if(list == null) return;
         
+        Object labelText = p.getName();
+        if(!cbLabelIsID.isSelected())
+        {
+            labelText = JOptionPane.showInputDialog(kMain.getTopWindow(),
+                "Enter label text", "Enter label text",
+                JOptionPane.QUESTION_MESSAGE,
+                null, null, labelText);
+            if(labelText == null) return;
+        }
+        
         undoStack.addLast(new SoftReference(new UndoStep(list)));
         
-        LabelPoint lbl = new LabelPoint(list, p.getName());
+        LabelPoint lbl = new LabelPoint(list, labelText.toString());
         lbl.setOrigX(p.getOrigX());
         lbl.setOrigY(p.getOrigY());
         lbl.setOrigZ(p.getOrigZ());

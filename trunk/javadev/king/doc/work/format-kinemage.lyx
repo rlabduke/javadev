@@ -57,37 +57,20 @@ This document describes the syntax and semantics of the core feature-set
  of the kinemage file format.
  Since even the core features are extensive, the description has been broken
  into two logical halves.
+ The first section describes the semantics and high-level syntax of kinemage
+ files---all the information typically needed to author a new kinemage file
+ from scratch.
+ The second section formally describes the low-level syntax that underlies
+ the entire format, which is important for programmers writing kinemage
+ parsers.
 \layout Abstract
 
-The first part of the document describes the semantics and high-level syntax
- of kinemage files, giving descriptions of the most commonly used keywords
- and the various options and parameters that accompany them.
- This level of detail is important to both and kinemage authors and programmers.
- While the core features are stable and will remain so, additional features
- may be added with some frequency.
-\layout Abstract
-
-The second part of the document describes the low-level syntax that is common
- to all kinemage formats, regardless of how many additional functionalities
- (semantics) they incorporate.
- The descriptions are very precise, at the cost of being somewhat long and
- tedious.
- However, this level of detail is necessary for programmers who wish to
- interpret kinemage files reliably, and may be helpful to authors as well.
- This level is expected to be extremely stable and change very slowly.
-\layout Abstract
-
-The descriptions assume a similar division of labor in the implementation
- of computer programs that process kinemages.
- The low-level syntax is handled by a tokenizer, which can separate a stream
- of characters into meaningful atomic units.
- The semantics and high-level syntax are handled by a parser, which is responsib
-le for understanding, 
-\emph on 
-e.g.
-\emph default 
-, the relationships among graphics objects and their implied hierarchical
- organization.
+This document does not cover the philosophy, rationale, or history of the
+ kinemage format, nor is it a tutorial in using or creating kinemages.
+ It assumes the user has some experience viewing and interacting with existing
+ kinemages and now wants either (1) to create a new kinemage file by hand
+ or programmatically, starting from scratch, or (2) modify an existing kinemage
+ file by hand at the plain-text level.
 \layout Standard
 
 
@@ -101,16 +84,96 @@ e.g.
 Semantics
 \layout Standard
 
-applies to both Mage and KiNG, except as noted
+This first part of the document describes the semantics and high-level syntax
+ of kinemage files, giving descriptions of the most commonly used keywords
+ and the various options and parameters that accompany them.
+ This level of detail is important both to kinemage authors and to programmers
+ who want to use the kinemage format.
+ While the core features described here are fairly stable and will remain
+ so, additional features may be added with some frequency.
+ Except as noted, all the features described here work in both Mage and
+ KiNG, which are the two primary kinemage viewers as of this writing.
 \layout Standard
 
-many options have multiple forms; only preferred form is documented
-\layout Standard
+A note about syntax: the full description of kinemage syntax appears in
+ the second part of this document, but it's more information than most authors
+ will need.
+ The kinemage format is a fairly intuitive, mostly free-form language that
+ should be easy to pick up.
+ That said, here are three 
+\begin_inset Quotes eld
+\end_inset 
 
-overview of tokens (@ at start of line, no space before =)
+gotchas
+\begin_inset Quotes erd
+\end_inset 
+
+ that new authors should be aware of:
+\layout Itemize
+
+Keywords (words starting with the @ symbol) 
+\emph on 
+must
+\emph default 
+ appear at the very beginning of a line in order to be recognized.
+ Nothing can come before them, not even spaces.
+\layout Itemize
+
+Properties (words that end with an = sign) cannot have a space (or anything
+ else) between the word and the = sign.
+ Space after the = is optional, but it is not permitted before.
+ Thus, we can write 
+\family typewriter 
+color=\SpecialChar ~
+red
+\family default 
+ or 
+\family typewriter 
+color=red
+\family default 
+, but not 
+\family typewriter 
+color\SpecialChar ~
+=\SpecialChar ~
+red
+\family default 
+.
+ This looks a little awkward at first, but you'll soon get used to it.
+\layout Itemize
+
+List definitions must appear all on one line.
+ This is a good rule of thumb for the whole file (though not a requirement):
+ each keyword starts a new line, and all its relevant options and parameters
+ appear on that same line.
+ The next keyword starts another line.
+ When defining a list, one point is listed per line.
 \layout Section
 
 Overview of a kinemage file
+\layout Standard
+
+The kinemage file format is a plain-text, human-readable, human-editable
+ format for three-dimensional vector graphics.
+ The overall structure is an optional 
+\family typewriter 
+@tex
+\family default 
+t block describing the contents of the file, followed by one or more kinemages.
+ The kinemages themselves encode a hierarchical organization of 3-D graphics
+ primitives like lines, balls, and triangles that have been optimized to
+ convey the most possible information about the ideas underlying the visualizati
+on.
+ Each of these kinemages begins with a 
+\family typewriter 
+@kinemage
+\family default 
+ statement, followed by display options, view and master definitions, 
+\emph on 
+etc.
+
+\emph default 
+ (the header), and then followed by a series of group, subgroup, list, and
+ point definitions (the body).
 \layout Section
 
 Lists
@@ -143,8 +206,8 @@ There are seven basic types of list, corresponding to seven different types
 \layout Description
 
 Ball lists specify spheres of some finite size.
- They're typically drawn as round disks with a little white spot, which
- looks very convincing as a 
+ They're typically drawn as flat, filled circles plus a little white highlight,
+ which looks quite convincing as a 
 \begin_inset Quotes eld
 \end_inset 
 
@@ -153,8 +216,8 @@ real
 \end_inset 
 
  rendered sphere.
- However, they may not look quite right if they intersect other objects,
- except for line segements with an end point at the ball's center.
+ However, they may not look right if they intersect other objects, except
+ for line segements with an end point at the ball's center.
 \layout Description
 
 Sphere lists are very similar to ball lists, but hint to the display program
@@ -373,6 +436,11 @@ A few sample list declarations are shown below.
 \layout Section
 
 Points
+\begin_inset LatexCommand \label{sec:Points}
+
+\end_inset 
+
+
 \layout Standard
 
 Points determine the actual geometry of the objects in a kinemage file.
@@ -1507,30 +1575,235 @@ Aspects
  each point, only one of which is active at a particular time.
 \layout Standard
 
-...more info on aspects...
+Aspects must be declared with the 
+\family typewriter 
+@aspect
+\family default 
+ keywords in the kinemage header; the declaration is not optional as it
+ is 
+\emph on 
+e.g.
+
+\emph default 
+ for masters.
+ Each point that has aspect coloring (not all points in a kinemage have
+ to) should have the same number of aspect codes as there are 
+\family typewriter 
+@aspect
+\family default 
+ definitions in the kinemage.
+ As explained in the section on points, the single-letter aspects codes
+ for a point appear inside parentheses as part of the point definition (see
+ 
+\begin_inset LatexCommand \ref{sec:Points}
+
+\end_inset 
+
+).
+ For example:
+\layout LyX-Code
+
+@1aspect {Population density}
+\layout LyX-Code
+
+@2aspect {Quality of universities}
+\layout LyX-Code
+
+@3aspect {Number of bars}
+\layout LyX-Code
+
+@balllist {Cities in the Triangle} color= white radius= 2
+\layout LyX-Code
+
+{Durham} (ABC) 0 1 0
+\layout LyX-Code
+
+{Raleigh} (DEF) 1 0 0
+\layout LyX-Code
+
+{Chapel Hill} (GHI) -1 0 0
+\layout LyX-Code
+
+{Cary} (JKL) 0.5 -0.5 0
 \layout Section
 
 Views and display options
 \layout Standard
 
-onewidth/thinline/perspective/flat etc.
+There are a number of keywords that control the default presentation of
+ a kinemage to the user.
+ Choosing the right options is an important guide to the user, although
+ s/he can override them later.
 \layout Standard
 
-whitebackground/listcolordominant
+All of the following keywords are used to define a pre-set view of the kinemage.
+ The keywords are given a leading number that defines 
+\emph on 
+which
+\emph default 
+ view they belong with (show below for view 1, but 2, 3, 
+\emph on 
+etc.
+
+\emph default 
+ can be substitued to define additional views).
+ View 1 is the default that will be shown when the kinemage is first opened.
+ Although a view definition may legally omit any of these components, it's
+ best to define all of them explicitly to ensure the desired behavior.
+ In the definitions below, the symbol # stands for any number, decimal or
+ integer.
+\layout Description
+
+@1viewid\SpecialChar ~
+{VIEW\SpecialChar ~
+NAME} gives a label that will identify this view to the user.
+ It should be unique, but is not required to be.
+\layout Description
+
+@1center\SpecialChar ~
+#\SpecialChar ~
+#\SpecialChar ~
+# gives the coordinates of the center of the view.
+ The model will rotate around this point, which will be centered.
+ 
+\layout Description
+
+@1matrix\SpecialChar ~
+#\SpecialChar ~
+#\SpecialChar ~
+#\SpecialChar ~
+#\SpecialChar ~
+#\SpecialChar ~
+#\SpecialChar ~
+#\SpecialChar ~
+#\SpecialChar ~
+# gives an orthonormal rotation matrix that defines the
+ orientation of the model.
+ (
+\emph on 
+Orthonormal
+\emph default 
+ meaning all the row vectors are orthogonal to each other, all the column
+ vectors are orthogonal to each other, and all these vectors have length
+ 1.) If you intend to multiple this matrix by your coordinates (as a column
+ vector), you should read the numbers as going down the first column, then
+ down the second, and so on.
+ If you intend the multiply your coordinates (as a row vector) by the matrix,
+ then you should read the series of numbers as going across the first row,
+ then across the second, 
+\emph on 
+etc.
+
+\emph default 
+ That is, one version of the matrix is the transpose of the other.
+\layout Description
+
+@1span\SpecialChar ~
+# defines how much of the kinemage is visible---whether you're zoomed
+ in close or zoomed way out.
+ Specifically, the given distance in model coordinates will just fill the
+ graphics area either horizontally or vertically (whichever is smaller).
+ Thus, larger spans show more of the model, and smaller spans show less
+ (but in greater detail).
+\layout Description
+
+@1zoom\SpecialChar ~
+# is an alternative specification for span; it controls how much of
+ the kinemage is visible.
+ A zoom of 1.0 ensures the whole kinemage just fits within the graphics area,
+ and larger zooms cause the view to zoom in closer.
+ It's better to give a span than a zoom, because zoom depends on the space
+ the kinemage occupies.
+ If later add (or remove) something to the kinemage that changes its 
+\begin_inset Quotes eld
+\end_inset 
+
+envelope
+\begin_inset Quotes erd
+\end_inset 
+
+, then your predefined views will shift to show something other than you
+ had originally intended.
+ Span, on the other hand, is independent of the content of the kinemage.
+\layout Description
+
+@1zslab\SpecialChar ~
+# is the complement of span or zoom---it defines how thick a slice
+ of the model you can see.
+ Obviously, if the full model was displayed in-focus when you were zoomed
+ in very close, all the extra detail in the far background could be extremely
+ distracting.
+ Ditto for things right in front of your nose that could blot out the area
+ of interest.
+ Thus, everything that's more than a certain distance in front of or behind
+ the center of rotation is not shown.
+ (Computer graphics folks call this a 
+\begin_inset Quotes eld
+\end_inset 
+
+slab
+\begin_inset Quotes erd
+\end_inset 
+
+ or a pair of 
+\begin_inset Quotes eld
+\end_inset 
+
+clipping planes.
+\begin_inset Quotes erd
+\end_inset 
+
+) The units here are arbitrary: a value of 200 means that the front-to-back
+ distance between clipping planes is equal to (the lesser of) the width
+ or height of the graphics area.
+ Other values mean the slab will be #/200 times this wide, so smaller values
+ give a thinner slab and larger values, a thicker one.
 \layout Standard
 
-viewid/zoom/span/center/matrix/zslab/ztran
-\layout Standard
+There are a number of other useful keywords that correspond to display settings
+ common in most kinemage viewers.
+ As note above, these are only hints: the user can always choose to override
+ them, and the kinemage viewer is not even guaranteed to pay attention to
+ them.
+\layout Description
 
-lens
+@perspective suggests that the kinemage been shown with simulated perspective
+ projection.
+ This is often desirable for geometric objects, so that parallel lines actually
+ converge in the distance, cubes really look like cubes, and so on.
+ By default, kinemages are shown with orthographic projection.
+\layout Description
+
+@flat hints that there is no useful depth (Z-coordinate) information in
+ the kinemage, and that the default mode of interaction should be translation
+ (sliding the kinemage around in the X-Y plane) rather than rotation.
+ This is helpful for things like 2-D charts and graphs.
+\layout Description
+
+@onewidth asks that lines be drawn in a consistent width regardless of their
+ location.
+ By default, lines in the front of the view are thicker and lines in the
+ back are thinner, to aid in giving a feeling of depth and three-dimensionality.
+\layout Description
+
+@thinline suggests all lines be drawn as thin as possible, regardless of
+ their specified 
+\family typewriter 
+width=
+\family default 
+.
+\layout Description
+
+@whitebackground hints that the kinemage would look best on a white background,
+ with its associated color palette.
+ By default, the black background and palette are used.
+\layout Description
+
+@listcolordominant asks that the individually specified colors of points
+ be ignored in favor of the base color of their list.
 \layout Section
 
 Metadata
-\begin_inset LatexCommand \ref{sec:Metadata}
-
-\end_inset 
-
-
 \begin_inset LatexCommand \label{sec:Metadata}
 
 \end_inset 
@@ -1538,19 +1811,224 @@ Metadata
 
 \layout Standard
 
-text/caption/title/copyright
-\layout Standard
+In addition to describing a geometrical object or scene, the kinemage language
+ allows authors to describe the 
+\emph on 
+meaning
+\emph default 
+ of the graphical objects.
+ This sort of information is thus data about the (primary) data, a.k.a.
+ 
+\emph on 
+metadata
+\emph default 
+.
+ The following keywords are supported:
+\layout Description
 
-pdbfile/mapfile?
-\layout Standard
+@text marks the beginning of a block of free-form, plain-text information
+ that should be made available to users of the kinemage.
+ The text continues until the next keyword is encountered; thus, the only
+ restriction on the content of text block is that it not contain any @ symbols
+ at the very beginning of a line.
+ Indenting the @ with a space is a perfectly acceptable as a way of getting
+ around this limitation.
+ Text is specified for the kinemage 
+\emph on 
+file
+\emph default 
+ as a whole.
+ Thus, it will probably pertain to all the kinemages in that file, whether
+ by describing them sequentially or discussing the relationships among them.
+ Some kinemage viewers support special hypertext links in the text, which
+ are delimited by 
+\family typewriter 
+*{
+\family default 
+ and 
+\family typewriter 
+}*
+\family default 
+.
+ The specific syntax is described elsewhere.
+ Multiple 
+\family typewriter 
+@text
+\family default 
+ blocks in the same file will be concatenated together in the order they
+ appear.
+\layout Description
 
-mage/prekin/command
+@caption works much like 
+\family typewriter 
+@text
+\family default 
+, but is generally shorter (a few lines at most) and pertains to a single
+ kinemage.
+ Thus, 
+\family typewriter 
+@caption
+\family default 
+ must appear somewhere after a 
+\family typewriter 
+@kinemage
+\family default 
+ statement, while 
+\family typewriter 
+@text
+\family default 
+ can be the first thing in a file.
+\layout Description
+
+@title\SpecialChar ~
+{KIN\SpecialChar ~
+TITLE} gives a brief title that identifies this kinemage, as a
+ more user-friendly label than its index number.
+\layout Description
+
+@copyright\SpecialChar ~
+{COPYRIGHT\SpecialChar ~
+INFO\SpecialChar ~
+2004} notifies users of who owns the copyright to
+ this kinemage file.
+\layout Description
+
+@pdbfile\SpecialChar ~
+{FILENAME} lists a Protein DataBank file that corresponds to the
+ model shown in this kinemage.
+ Used only for kinemages showing macromolecular structures.
+\layout Description
+
+@mapfile\SpecialChar ~
+{FILENAME} lists an electron density map that corresponds to the
+ model shown in this kinemage.
+ Used only for kinemages showing macromolecular structures.
+\layout Description
+
+@command\SpecialChar ~
+{UNIX\SpecialChar ~
+CMD} suggests a command that the user or the kinemage viewer
+ could run to generate additional kinemage data, which could then be merged
+ into the current file.
 \layout Section
 
 Alternative spellings
+\layout Standard
+
+Some of the keywords in kinemage files may take alternate forms, some of
+ which are historical artifacts and some of which are attempts to accomodate
+ both American and British spelling.
+ The forms given above are the preferred ones; the alternatives listed below
+ may not be supported by all kinemage viewers.
+\layout Description
+
+@balllist @ball
+\layout Description
+
+collapsable collapsible recessiveon
+\layout Description
+
+color= colour=
+\layout Description
+
+deadblack black
+\layout Description
+
+@dotlist @dot
+\layout Description
+
+@flat @flatland @xytranslation
+\layout Description
+
+gray grey
+\layout Description
+
+L l D d 
+\emph on 
+(the unneccessary point flag: L for Line-to, D for Draw-to)
+\layout Description
+
+@labellist @label
+\layout Description
+
+@listcolordominant @listcolordom
+\layout Description
+
+nohighlight nohilite nohi
+\layout Description
+
+orange rust
+\layout Description
+
+P p M m 
+\emph on 
+(the point flag: P for Point, M for Move-to)
+\layout Description
+
+@ribbonlist @ribbon
+\layout Description
+
+sea seagreen
+\layout Description
+
+sky skyblue
+\layout Description
+
+@spherelist @sphere
+\layout Description
+
+@subgroup @set
+\layout Description
+
+@trianglelist @triangle
+\layout Description
+
+U u 
+\emph on 
+(the point flag)
+\layout Description
+
+@vectorlist @vector
+\layout Description
+
+@whitebackground @whiteback @whitebkg
+\layout Description
+
+X x 
+\emph on 
+(the point flag)
+\layout Description
+
+yellowtint paleyellow
+\layout Description
+
+@zslab @zclip
 \layout Part
 
 Syntax
+\layout Standard
+
+This part of the document describes the low-level syntax that is common
+ to all kinemage formats, regardless of how many additional functionalities
+ (semantics) they incorporate.
+ The descriptions are very precise, at the cost of being somewhat long and
+ tedious.
+ However, this level of detail is necessary for programmers who wish to
+ interpret kinemage files reliably, and may be helpful to authors as well.
+ This level is expected to be extremely stable and change very slowly.
+\layout Standard
+
+The descriptions in the two parts of this document assume a similar division
+ of labor in the implementation of computer programs that process kinemages:
+ the low-level syntax (this part) is handled by a tokenizer, which can separate
+ a stream of characters into meaningful atomic units.
+ The semantics and high-level syntax (the preceding part) are handled by
+ a parser, which is responsible for understanding, 
+\emph on 
+e.g.
+\emph default 
+, the relationships among graphics objects and their implied hierarchical
+ organization.
 \layout Section
 
 Characters in kinemage files
@@ -2266,11 +2744,9 @@ TODO: We need a mechanism for identifying these plain text blocks.
 \layout Standard
 
 An example of this is the plain text write-ups that follow the 
-\family sans 
-\series bold 
+\family typewriter 
 @text
 \family default 
-\series default 
  keyword; however, future kinemages could conceivably contain embedded HTML,
  base-64 encoded binary resources, 
 \emph on 
