@@ -25,12 +25,9 @@
         </and>
     </condition>
 </target>
-<!-- Defines properties needed to use ANTSCP -->
+<!-- Defines properties needed to use SCP -->
 <target name="init-scp">
     <property file="../lib/scp.props"/>
-    <taskdef name="antscp"
-             classname="net.ericalexander.antscp.AntSCP"
-             classpath="../lib/ant-tasks/AntSCP.jar:../lib/ant-tasks/ISNetworksMindTermSCP.jar"/>
 </target>
 <!-- }}} -->
 
@@ -174,9 +171,9 @@
     <jar jarfile="${user.home}/ark/old-versions/${ant.project.name}/${ant.project.name}-${version}.${buildnum}.jar" index="true">
         <fileset dir="${basedir}"/>
     </jar>
-    <antscp remoteUserName="${scp.backup.username}" remoteHost="${scp.backup.hostname}" remotePassword="${scp.backup.password}"
-            localFile="${user.home}/ark/old-versions/${ant.project.name}/${ant.project.name}-${version}.${buildnum}.jar"
-            remoteFile="${scp.backup.path}/${ant.project.name}-${version}.${buildnum}.jar"/>
+    <scp file="${user.home}/ark/old-versions/${ant.project.name}/${ant.project.name}-${version}.${buildnum}.jar"
+        todir="${scp.backup.username}@${scp.backup.hostname}:${scp.backup.path}/${ant.project.name}-${version}.${buildnum}.jar"
+        password="${scp.backup.password}" failonerror="true"/>
 </target>
 <!-- }}} -->
 
@@ -186,9 +183,15 @@
     <copy file="${ant.project.name}.jar" todir="${user.home}/bin/jars/" overwrite="true" failonerror="false"/>
     <copy file="chiropraxis.jar" todir="${user.home}/bin/jars/" overwrite="true" failonerror="false"/>
     <copy file="itext.jar" todir="${user.home}/bin/jars/" overwrite="true" failonerror="false"/>
+    <copy todir="${user.home}/bin/jars/plugins/" overwrite="true" failonerror="false">
+        <fileset dir="plugins/"/>
+    </copy>
     <copy file="${ant.project.name}.jar" todir="/Applications/KiNG.app/Contents/Resources/Java/" overwrite="true" failonerror="false"/>
     <copy file="chiropraxis.jar" todir="/Applications/KiNG.app/Contents/Resources/Java/" overwrite="true" failonerror="false"/>
     <copy file="itext.jar" todir="/Applications/KiNG.app/Contents/Resources/Java/" overwrite="true" failonerror="false"/>
+    <copy todir="/Applications/KiNG.app/Contents/Resources/Java/plugins/" overwrite="true" failonerror="false">
+        <fileset dir="plugins/"/>
+    </copy>
 </target>
 
 <!-- Deploys the executable on the local MolProbity - applies to IWD's machine only  -->
@@ -200,41 +203,39 @@
 <!-- Deploys the executable for the whole lab - applies to IWD's machine only  -->
 <target name="deploy-rlab"  description="Deploy locally and to cluster" depends="dist,init-scp,deploy-local">
     <copy file="${dist}/${ant.project.name}-${version}-src.zip" todir="${user.home}/ark/old-versions/${ant.project.name}/" overwrite="false" failonerror="false"/>
-    <antscp remoteUserName="${scp.src.username}" remoteHost="${scp.src.hostname}" remotePassword="${scp.src.password}"
-            localFile="${basedir}/${ant.project.name}.jar"
-            remoteFile="${scp.src.jarpath}/${ant.project.name}.jar"/>
-    <antscp remoteUserName="${scp.src.username}" remoteHost="${scp.src.hostname}" remotePassword="${scp.src.password}"
-            localFile="${basedir}/chiropraxis.jar"
-            remoteFile="${scp.src.jarpath}/chiropraxis.jar"/>
-    <antscp remoteUserName="${scp.src.username}" remoteHost="${scp.src.hostname}" remotePassword="${scp.src.password}"
-            localFile="${basedir}/itext.jar"
-            remoteFile="${scp.src.jarpath}/itext.jar"/>
-    <antscp remoteUserName="${scp.src.username}" remoteHost="${scp.src.hostname}" remotePassword="${scp.src.password}"
-            localFile="${dist}/${ant.project.name}-${version}-src.zip"
-            remoteFile="${scp.src.srcpath}/${ant.project.name}-${version}-src.zip"/>
+    <scp todir="${scp.src.username}@${scp.src.hostname}:${scp.src.jarpath}/"
+        password="${scp.src.password}" failonerror="true">
+        <fileset dir="${basedir}">
+            <include name="*.jar" />
+            <include name="plugins/" />
+        </fileset>
+    </scp>
+    <scp file="${dist}/${ant.project.name}-${version}-src.zip"
+        todir="${scp.src.username}@${scp.src.hostname}:${scp.src.srcpath}/"
+        password="${scp.src.password}" failonerror="true"/>
 </target>
 
 <!-- Deploys the exe and src for the public at large - applies to IWD's machine only  -->
 <target name="deploy-world"  description="Deploy everywhere" depends="dist,init-scp,deploy-local,deploy-local-mp,deploy-rlab">
     <!-- Copy to FTP site for distribution -->
-    <antscp remoteUserName="${scp.ftp.username}" remoteHost="${scp.ftp.hostname}" remotePassword="${scp.ftp.password}"
-            localFile="${dist}/${ant.project.name}-${version}-src.zip"
-            remoteFile="${scp.ftp.path}/${ant.project.name}/${ant.project.name}.${version}.${DSTAMP_SIX}.src.zip"/>
-    <antscp remoteUserName="${scp.ftp.username}" remoteHost="${scp.ftp.hostname}" remotePassword="${scp.ftp.password}"
-            localFile="${dist}/${ant.project.name}-${version}.zip"
-            remoteFile="${scp.ftp.path}/${ant.project.name}/${ant.project.name}.${version}.${DSTAMP_SIX}.zip"/>
-    <!-- Update user manual on web site -->
-    <antscp remoteUserName="${scp.www.username}" remoteHost="${scp.www.hostname}" remotePassword="${scp.www.password}"
-            localFile="${resource}/${ant.project.name}/html/king-manual.html"
-            remoteFile="${scp.www.path}/kinemage/king-manual.html"/>
+    <scp file="${dist}/${ant.project.name}-${version}-src.zip"
+        todir="${scp.ftp.username}@${scp.ftp.hostname}:${scp.ftp.path}/${ant.project.name}/${ant.project.name}.${version}.${DSTAMP_SIX}.src.zip"
+        password="${scp.ftp.password}" failonerror="true"/>
+    <scp file="${dist}/${ant.project.name}-${version}.zip"
+        todir="${scp.ftp.username}@${scp.ftp.hostname}:${scp.ftp.path}/${ant.project.name}/${ant.project.name}.${version}.${DSTAMP_SIX}.zip"
+        password="${scp.ftp.password}" failonerror="true"/>
     <!-- Update marker for current version -->
-    <antscp remoteUserName="${scp.www.username}" remoteHost="${scp.www.hostname}" remotePassword="${scp.www.password}"
-            localFile="${resource}/${ant.project.name}/version.props"
-            remoteFile="${scp.www.path}/software/${ant.project.name}.version.props"/>
+    <scp file="${resource}/${ant.project.name}/version.props"
+        todir="${scp.www.username}@${scp.www.hostname}:${scp.www.path}/software/${ant.project.name}.version.props"
+        password="${scp.www.password}" failonerror="true"/>
+    <!-- Update user manual on web site -->
+    <scp file="${resource}/${ant.project.name}/html/king-manual.html"
+        todir="${scp.www.username}@${scp.www.hostname}:${scp.www.path}/kinemage/king-manual.html"
+        password="${scp.www.password}" failonerror="true"/>
     <!-- Copy to MolProbity, too -->
-    <antscp remoteUserName="${scp.molprobity.username}" remoteHost="${scp.molprobity.hostname}" remotePassword="${scp.molprobity.password}"
-            localFile="${basedir}/${ant.project.name}.jar"
-            remoteFile="${scp.molprobity.path}/${ant.project.name}.jar"/>
+    <scp file="${basedir}/${ant.project.name}.jar"
+        todir="${scp.molprobity.username}@${scp.molprobity.hostname}:${scp.molprobity.path}/"
+        password="${scp.molprobity.password}" failonerror="true"/>
     <echo>*** REMEMBER TO REBUILD THE INSTALL ANYWHERE DISTRIBUTIONS FOR LINUX AND WINDOWS ***</echo>
     <echo>*** REMEMBER TO MAKE A MAC DMG AND UPDATE THE VERSION IN INFO.PLIST ***</echo>
     <echo>*** REMEMBER TO UPDATE THE .current.___ SYMLINKS IN ${scp.ftp.path}/${ant.project.name} AS ${scp.ftp.username}@${scp.ftp.hostname} ***</echo>
