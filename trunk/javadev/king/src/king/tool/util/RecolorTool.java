@@ -433,14 +433,24 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    }
 	    return hippieColors;
 	} else {
-	    KPaint[] colors = {KPalette.red, KPalette.orange, KPalette.gold, KPalette.yellow, KPalette.lime, KPalette.green, KPalette.sea, KPalette.cyan, KPalette.blue, KPalette.lilac, KPalette.purple};
+	    // KPaint[] colors = {KPalette.red, KPalette.orange, KPalette.gold, KPalette.yellow, KPalette.lime, KPalette.green, KPalette.sea, KPalette.cyan, KPalette.blue, KPalette.lilac, KPalette.purple};
+	    //KPaint[] colors = {KPalette.purple, KPalette.lilac, KPalette.blue, KPalette.cyan, KPalette.sea, KPalette.green, KPalette.lime, KPalette.yellow, KPalette.gold, KPalette.orange, KPalette.red};
+	    KPaint[] colors = {KPalette.blue, KPalette.sky, KPalette.cyan, KPalette.sea, KPalette.green, KPalette.lime, KPalette.yellow, KPalette.gold, KPalette.orange, KPalette.red};
 	    KPaint[] spectralColors = new KPaint[numRes];
-	    if (numRes > 11) {
+	    double meanValue = (double)numRes/10;
+	    int floor = (int) Math.floor(meanValue);
+	    int colorIndex = 0;
+	    if (numRes > 10) {
 		for (int i = 0; i < numRes; i++) {
-		    int colorNum = (int) Math.round(i/((double)numRes/10));
+		    if (i > floor) {
+			colorIndex++;
+			floor = (int) Math.floor(((colorIndex + 1) * meanValue));
+		    }
+		    spectralColors[i] = colors[colorIndex];		    
+		    //int colorNum = (int) Math.round(i/((double)numRes/9));
 		    //if (colorNum == 10) colorNum = 0;
 		    //System.out.println((int) Math.round(i/((double)numRes/9)));
-		    spectralColors[i] = colors[colorNum];
+		    //spectralColors[i] = colors[colorNum];
 		}
 		return spectralColors;
 	    } else {
