@@ -31,14 +31,14 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     JTextField          urlField        = null;
     boolean             urlChooserOK    = false;
 
-    HashMap             dataMap; // probescore -> arraylist of BallPoints
+    //HashMap             dataMap; // probescore -> arraylist of BallPoints
     //TablePane           pane;
     //JDialog             dialog;
     JComboBox           color1;
     JTextField          lowNumField;
     JTextField          highNumField;
     JTextField          scalingField;
-    JButton             colorButton, setDefaultButton, setOnButton, setOffButton;
+    JButton             colorButton, setOnButton, setOffButton;
     JCheckBox           plotChangeBox;
 
     //double maxX, maxY, maxZ = -100000;
@@ -82,21 +82,17 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	highNumField = new JTextField("", 5);
 	scalingField = new JTextField("5", 5);
 
-	colorButton = new JButton("Color!");
-	colorButton.setActionCommand("color");
-	colorButton.addActionListener(this);
-	
-	setDefaultButton = new JButton("Restore Default");
-	setDefaultButton.setActionCommand("set defaults");
-	setDefaultButton.addActionListener(this);
+	colorButton = new JButton(new ReflectiveAction("Color!", null, this, "onHighlightRange"));
+	//colorButton.setActionCommand("color");
+	//colorButton.addActionListener(this);
 
-	setOnButton = new JButton("Turn On");
-	setOnButton.setActionCommand("setOn");
-	setOnButton.addActionListener(this);
+	setOnButton = new JButton(new ReflectiveAction("Turn On", null, this, "onTurnOn"));
+	//setOnButton.setActionCommand("setOn");
+	//setOnButton.addActionListener(this);
 
-	setOffButton = new JButton("Turn Off");
-	setOffButton.setActionCommand("setOff");
-	setOffButton.addActionListener(this);
+	setOffButton = new JButton(new ReflectiveAction("Turn Off", null, this, "onTurnOff"));
+	//setOffButton.setActionCommand("setOff");
+	//setOffButton.addActionListener(this);
 
 	plotChangeBox = new JCheckBox("Toggle plotting", true);
 	plotChangeBox.addActionListener(this);
@@ -107,7 +103,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	pane.add(lowNumField);
 	pane.add(highNumField);
 	pane.add(colorButton);
-	pane.add(setDefaultButton);
+	//pane.add(setDefaultButton);
 	pane.newRow();
 	pane.add(setOnButton);
 	pane.add(setOffButton);
@@ -120,9 +116,12 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	JMenu menu;
 	JMenuItem item;
 
+
 	menu = new JMenu("Options");
 	menubar.add(menu);
 	item = new JMenuItem(new ReflectiveAction("Score in Last Col", null, this, "onFixScore"));
+	menu.add(item);
+	item = new JMenuItem(new ReflectiveAction("Restore Default", null, this, "onSetDefault"));
 	menu.add(item);
 
 	dialog.setJMenuBar(menubar);
@@ -160,7 +159,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	    buildGUI();
             //if(kMain.getApplet() != null)   openMapURL();
             //else                            openMapFile();
-	    dataMap = new HashMap();
+	    //dataMap = new HashMap();
 	    listMap = new HashMap();
 	    offPoints = new HashSet();
 	    allPoints = new ArrayList();
@@ -286,9 +285,9 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		    if (!Double.isNaN(z)) {
 			sortByValue(z, point);
 		    } else {
-			sortByValue(y, point);
+			sortByValue(0, point);
 		    }
-		    makeDataMap(point, 1);
+		    //makeDataMap(point, 1);
 		    // for recoloring by clash value
 		    /*
 		    Integer clashInt = new Integer((int)Math.floor(clashValue));
@@ -320,7 +319,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
         }
     }
 //}}}
-
+/*
     private void makeDataMap(KPoint point, int multiplier) {
 	double clashValue = Double.parseDouble(point.getName()) * multiplier;
 	Integer clashInt = new Integer((int)Math.floor(clashValue));
@@ -333,7 +332,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	    dataMap.put(clashInt, clashPoints);
 	}
     }
-    /*
+    
     private void trackHighLows(int x, int y, int z) {
 	if (x > maxX) maxX = x;
 	if (x < minX) minX = x;
@@ -431,24 +430,22 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     /**
      * Colors all points with value between firstNum and secondNum
      */
-    public void highlightRange(int firstNum, int secondNum, KPaint color) {
+    public void highlightRange(double firstNum, double secondNum, KPaint color) {
 	if (firstNum > secondNum) {
-	    int temp = secondNum;
+	    double temp = secondNum;
 	    secondNum = firstNum;
 	    firstNum = temp;
 	}
-	for (int i = firstNum; i < secondNum; i++) {
-	    if (dataMap.containsKey(new Integer(i))) {
-		//System.out.println("coloring " + i);
-		ArrayList clashPoints = (ArrayList) dataMap.get(new Integer(i));
-		Iterator iter = clashPoints.iterator();
-		while (iter.hasNext()) {
-		    BallPoint point = (BallPoint) iter.next();
-		    //point.setColor((KPaint) color1.getSelectedItem());
-		    point.setColor(color);
-		}
+	Iterator iter = allPoints.iterator();
+	while (iter.hasNext()) {
+	    KPoint point = (KPoint) iter.next();
+	    double clashValue = Double.parseDouble(point.getName());
+	    if ((clashValue<= secondNum)&&(clashValue>= firstNum)) {
+		point.setColor(color);
 	    }
 	}
+	kCanvas.repaint();
+
     }
 
 //{{{ togglePointStatus
@@ -456,6 +453,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     /**
      * turns on/off all points with value between firstNum and secondNum
      **/
+    /*
     public void togglePointStatus(int firstNum, int secondNum, boolean status) {
 	if (firstNum > secondNum) {
 	    int temp = secondNum;
@@ -475,79 +473,101 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		}
 	    }
 	}
+
+	}*/
+
+    public void onSetDefault(ActionEvent ev) {
+	setDefaultColors();
     }
 
-    public void removePoints(int firstNum, int secondNum) {
-	if (firstNum > secondNum) {
-	    int temp = secondNum;
-	    secondNum = firstNum;
-	    firstNum = temp;
-	}
-	Collection lists = listMap.values();
-	Iterator iter = lists.iterator();
-	while (iter.hasNext()) {
-	    KList list = (KList) iter.next();
-	    list.clear();
-	    //onPoints.clear();
-	}
-	Set keys = dataMap.keySet();
-	iter = keys.iterator();
-	while (iter.hasNext()) {
-	    int key = ((Integer) iter.next()).intValue();
-	    if (dataMap.containsKey(new Integer(key))) {
-		ArrayList points = (ArrayList) dataMap.get(new Integer(key));
-		Iterator iter2 = points.iterator();
-		while (iter2.hasNext()) {
-		    BallPoint point = (BallPoint) iter2.next();
-		    if ((key<firstNum)||(key>secondNum)) {
-			if (!offPoints.contains(point)) {
-			    KList owner = (KList) point.getOwner();
-			    owner.add(point);
-			}
-		    } else {
-			offPoints.add(point);
+    //public void onTurnOff(double firstNum, double secondNum) {
+    public void onTurnOff(ActionEvent ev) {
+	if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))) {
+	    double firstNum = Double.parseDouble(lowNumField.getText());
+	    double secondNum = Double.parseDouble(highNumField.getText());
+	    if (firstNum > secondNum) {
+		double temp = secondNum;
+		secondNum = firstNum;
+		firstNum = temp;
+	    }
+	    Collection lists = listMap.values();
+	    Iterator iter = lists.iterator();
+	    while (iter.hasNext()) {
+		KList list = (KList) iter.next();
+		list.clear();
+		//onPoints.clear();
+	    }
+	    iter = allPoints.iterator();
+	    while (iter.hasNext()) {
+		KPoint point = (KPoint) iter.next();
+		double clashValue = Double.parseDouble(point.getName());
+		if ((clashValue<firstNum)||(clashValue>secondNum)) {
+		    if (!offPoints.contains(point)) {
+			KList owner = (KList) point.getOwner();
+			owner.add(point);
 		    }
+		} else {
+		    offPoints.add(point);
 		}
 	    }
+	} else {
+	    JOptionPane.showMessageDialog(kMain.getTopWindow(), "You have to put numbers in the text boxes!", "Error",
+					  JOptionPane.ERROR_MESSAGE);
 	}
+	kCanvas.repaint();
+
     }
 
-    public void addPoints(int firstNum, int secondNum) {
-	if (firstNum > secondNum) {
-	    int temp = secondNum;
-	    secondNum = firstNum;
-	    firstNum = temp;
-	} 
-	for (int i = firstNum; i <= secondNum; i++) {
-	    if (dataMap.containsKey(new Integer(i))) {
-		//System.out.println("coloring " + i);
-		ArrayList clashPoints = (ArrayList) dataMap.get(new Integer(i));
-		Iterator iter = clashPoints.iterator();
-		while (iter.hasNext()) {
-		    BallPoint point = (BallPoint) iter.next();
-		    //point.setColor((KPaint) color1.getSelectedItem());
-		    //point.setColor(color);
+    //public void onTurnOn(double firstNum, double secondNum) {
+    public void onTurnOn(ActionEvent ev) {
+	if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))) {
+	    double firstNum = Double.parseDouble(lowNumField.getText());
+	    double secondNum = Double.parseDouble(highNumField.getText());
+
+	    if (firstNum > secondNum) {
+		double temp = secondNum;
+		secondNum = firstNum;
+		firstNum = temp;
+	    } 
+	    
+	    Iterator iter = allPoints.iterator();
+	    while (iter.hasNext()) {
+		KPoint point = (KPoint) iter.next();
+		double clashValue = Double.parseDouble(point.getName());
+		if ((clashValue>=firstNum)&&(clashValue<=secondNum)) {
+		    //System.out.print("True");
 		    if (offPoints.contains(point)) {
+			//System.out.print("true");
 			KList owner = (KList) point.getOwner();
 			owner.add(point);
 			offPoints.remove(point);
 		    }
 		}
 	    }
+	} else {
+	    JOptionPane.showMessageDialog(kMain.getTopWindow(), "You have to put numbers in the text boxes!", "Error",
+					  JOptionPane.ERROR_MESSAGE);
 	}
+	kCanvas.repaint();
+	
     }
 
     private void plotByScore(boolean plotStat, double scaleFactor) {
 	if (plotStat) {
-	    Collection values = dataMap.values();
-	    Iterator iter = values.iterator();
+	    //Collection values = dataMap.values();
+	    Iterator iter = allPoints.iterator();
 	    while (iter.hasNext()) {
-		ArrayList value = (ArrayList) iter.next();
-		Iterator points = value.iterator();
-		while (points.hasNext()) {
-		    KPoint point = (KPoint) points.next();
-		    point.setOrigZ(Double.parseDouble(point.getName())*scaleFactor);
+		//ArrayList value = (ArrayList) iter.next();
+		//Iterator points = value.iterator();
+		//while (points.hasNext()) {
+		KPoint point = (KPoint) iter.next();
+		point.setOrigZ(Double.parseDouble(point.getName())*scaleFactor);
+		if (scaleFactor>=100) {
+		    point.setRadius((float)(Double.parseDouble(point.getName())*scaleFactor/40));
+		} else {
+		    point.setRadius((float)(Double.parseDouble(point.getName())*scaleFactor/10));
 		}
+		    //}
 	    }
 	} else {
 	    Set keys = listMap.keySet();
@@ -564,16 +584,25 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	}
     }
 
+    public void onHighlightRange(ActionEvent ev) {
+	if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))) {
+	    double firstNum = Double.parseDouble(lowNumField.getText());
+	    double secondNum = Double.parseDouble(highNumField.getText());
+	    highlightRange(firstNum, secondNum, (KPaint) color1.getSelectedItem());
+	} else {
+	    JOptionPane.showMessageDialog(kMain.getTopWindow(), "You have to put numbers in the text boxes!", "Error",
+					  JOptionPane.ERROR_MESSAGE);
+	}
+	kCanvas.repaint();
+    }
+
     public void onFixScore(ActionEvent ev) {
 	//Collection values = dataMap.values();
 	//Iterator iter = values.iterator();
 	
 	listMap.clear();
-	dataMap.clear();
+	//dataMap.clear();
 	Iterator iter = allPoints.iterator();
-	//while (iter.hasNext()) {
-	//    ArrayList value = (ArrayList) iter.next();
-	//    Iterator points = value.iterator();
 	while (iter.hasNext()) {
 	    KPoint point = (KPoint) iter.next();
 	    double temp = point.getX();
@@ -582,17 +611,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	    point.setName(Double.toString(clashValue));
 	    point.setY(temp);
 	    point.setRadius((float)clashValue);
-	    makeDataMap(point, 100);
-	    /*Integer clashInt = new Integer((int)Math.floor(clashValue));
-	      if (dataMap.containsKey(clashInt)) {
-	      ArrayList clashPoints = (ArrayList) dataMap.get(clashInt);
-	      clashPoints.add(point);
-	      } else {
-	      ArrayList clashPoints = new ArrayList();
-		    clashPoints.add(point);
-		    dataMap.put(clashInt, clashPoints);
-		    }
-	    */
+	    //makeDataMap(point, 100);
 	    sortByValue(0, point);
 	}
 	
@@ -608,62 +627,43 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
      * Event handler for when action performed.
      */
     public void actionPerformed(ActionEvent ev) {
-	if ("color".equals(ev.getActionCommand())) {
-	    if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))) {
-		/*
-		int firstNum = Integer.parseInt(lowNumField.getText());
-		int secondNum = Integer.parseInt(highNumField.getText());
+	/*
+	if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))) {
+	    if ("color".equals(ev.getActionCommand())) {
+		//if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))) {
+		
+		double firstNum = Double.parseDouble(lowNumField.getText());
+		double secondNum = Double.parseDouble(highNumField.getText());
 		//if (firstNum > secondNum) {
 		//    int temp = secondNum;
 		//    secondNum = firstNum;
 		//    firstNum = temp;
 		//}
-
+		
 		highlightRange(firstNum, secondNum, (KPaint) color1.getSelectedItem());
-		*/
+		
+		
+		//}
+	    } else if ("set defaults".equals(ev.getActionCommand())) {
+		setDefaultColors();
+	    } else if ("setOn".equals(ev.getActionCommand())) {
 
 		double firstNum = Double.parseDouble(lowNumField.getText());
 		double secondNum = Double.parseDouble(highNumField.getText());
-		if (firstNum > secondNum) {
-		    double temp = secondNum;
-		    secondNum = firstNum;
-		    firstNum = temp;
-		}
-		Iterator iter = allPoints.iterator();
-		while (iter.hasNext()) {
-		    KPoint point = (KPoint) iter.next();
-		    double clashValue = Double.parseDouble(point.getName());
-		    if ((clashValue<= secondNum)&&(clashValue>= firstNum)) {
-			point.setColor((KPaint) color1.getSelectedItem());
-		    }
-		}
-	    } else {
-		JOptionPane.showMessageDialog(kMain.getTopWindow(), "You have to put numbers in the text boxes!", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
-	    }
-	} else if ("set defaults".equals(ev.getActionCommand())) {
-	    setDefaultColors();
-	} else if ("setOn".equals(ev.getActionCommand())) {
-	    if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))) {
-		int firstNum = Integer.parseInt(lowNumField.getText());
-		int secondNum = Integer.parseInt(highNumField.getText());
 		//togglePointStatus(firstNum, secondNum, true);
 		addPoints(firstNum, secondNum);
-	    } else {
-		JOptionPane.showMessageDialog(kMain.getTopWindow(), "You have to put numbers in the text boxes!", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
-	    }
-	} else if ("setOff".equals(ev.getActionCommand())) {
-	    if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))) {
-		int firstNum = Integer.parseInt(lowNumField.getText());
-		int secondNum = Integer.parseInt(highNumField.getText());
+	    } else if ("setOff".equals(ev.getActionCommand())) {
+
+		double firstNum = Double.parseDouble(lowNumField.getText());
+		double secondNum = Double.parseDouble(highNumField.getText());
 		//togglePointStatus(firstNum, secondNum, false);
 		removePoints(firstNum, secondNum);
-	    } else {
-		JOptionPane.showMessageDialog(kMain.getTopWindow(), "You have to put numbers in the text boxes!", "Error",
-					      JOptionPane.ERROR_MESSAGE);
-	    }
-	}
+
+	    } 
+	} else {
+	    JOptionPane.showMessageDialog(kMain.getTopWindow(), "You have to put numbers in the text boxes!", "Error",
+					  JOptionPane.ERROR_MESSAGE);
+					  }*/
 	if (plotChangeBox.isSelected()) {
 	    plotByScore(true, Double.parseDouble(scalingField.getText()));
 	    //dataMap.clear();
