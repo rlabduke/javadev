@@ -324,11 +324,18 @@ public class BasicTool extends Plugin implements MouseListener, MouseMotionListe
         boolean isShift, isCtrl;
         isShift = SwingUtilities.isRightMouseButton(ev)  || ev.isShiftDown();
         isCtrl  = SwingUtilities.isMiddleMouseButton(ev) || ev.isControlDown();
-        
-        if(isShift && isCtrl)   sc_click(x, y, p, ev);
-        else if(isCtrl)         c_click(x, y, p, ev);
-        else if(isShift)        s_click(x, y, p, ev);
-        else                    click(x, y, p, ev);
+	/**
+	 * This "if" statement is to correct for a Java 1.5 issue where 
+         * pressing mouse and releasing counts as a click as well, so
+         * using the right mouse to zoom would also recenter if you released
+         * over a point.  See java bug # 5039416.
+	 **/
+	if (mouseDragMode.equals(MODE_UNDECIDED)) {
+	    if(isShift && isCtrl)   sc_click(x, y, p, ev);
+	    else if(isCtrl)         c_click(x, y, p, ev);
+	    else if(isShift)        s_click(x, y, p, ev);
+	    else                    click(x, y, p, ev);
+	}
     }
 
     public void mouseEntered(MouseEvent ev)
