@@ -39,7 +39,7 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
     BondRot oldRot = null;
     //BondRot hyperRot = null;
     boolean valueChanging = false;
-    
+    ArrayList highlightedLists = null;
 
 //}}}
 
@@ -76,30 +76,65 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
     }
 
     public void start() {
-
+	//buildGUI();
 	Collection brColl = kMain.getKinemage().getBondRots();
-	handler = new BondRotHandler(brColl);
-	//kMain.getTextWindow().addHypertextListener(this);
-	hyptyp = new HyperRotParser(kMain.getTextWindow().getText());
-	hypJList.setListData(hyptyp.getHypList());
+	if (brColl.size() > 0) {
+	    handler = new BondRotHandler(brColl);
+	    //kMain.getTextWindow().addHypertextListener(this);
+	    hyptyp = new HyperRotParser(kMain.getTextWindow().getText());
+	    //hypJList.setListData(hyptyp.getHypList());
+	    DefaultListModel hypModel = new DefaultListModel();
+	    String[] stringArray = hyptyp.getHypList();
+	    //System.out.println(stringArray.length);
+	    for (int i = 0; i<stringArray.length; i++) {
+		hypModel.addElement(stringArray[i]);
+	    }
+	    hypJList.setModel(hypModel);
+	    
+	    //rotJList.setListData(new BondRot[0]);
+	    //rotJList.setListData(handler.getBondRotArray());
+	    DefaultListModel rotModel = new DefaultListModel();
+	    BondRot[] bondRotArray = handler.getBondRotArray();
+	    //System.out.println(bondRotArray.length);
+	    for (int i = 0; i<bondRotArray.length; i++) {
+		rotModel.addElement(bondRotArray[i]);
+	    }
+	    rotJList.setModel(rotModel);
+	    rotJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	    
+	    highlightedLists = new ArrayList();
 
-	rotJList.setListData(handler.getBondRotArray());
-        rotJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	    //SET ROTATION
+	    show();
+	    rotDial.addChangeListener(this);
+	    rotJList.addListSelectionListener(this);
+	    hypJList.addListSelectionListener(this);
+	    kMain.getTextWindow().addHypertextListener(this);
+	} else {
+	    
+	}
 
-	//SET ROTATION
-	show();
-	rotDial.addChangeListener(this);
-        rotJList.addListSelectionListener(this);
-	hypJList.addListSelectionListener(this);
-	kMain.getTextWindow().addHypertextListener(this);
+
 	kCanvas.repaint();
 	//debug();
     }
 
+    public void reset() {
+	stop();
+	if (kMain.getKinemage()!=null) {
+	    start();
+	}
+    }
+
     public void stop() {
+	oldRot = null;
 	rotDial.removeChangeListener(this);
 	rotJList.removeListSelectionListener(this);
+	DefaultListModel model = (DefaultListModel) rotJList.getModel();
+	model.clear();
 	hypJList.removeListSelectionListener(this);
+	model = (DefaultListModel) hypJList.getModel();
+	model.clear();
 	kMain.getTextWindow().removeHypertextListener(this);
 	hide();
     }
@@ -129,7 +164,18 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
     public void valueChanged(ListSelectionEvent ev) {
 	valueChanging = true;
 	if (oldRot != null) {
-	    oldRot.setColor(KPalette.white);
+	    oldRot.restoreOrigColor();
+	    //oldRot.setColor(KPalette.white);
+	    /*
+	    Iterator iter = highlightedLists.iterator();
+	    while (iter.hasNext()) {
+		KList list = (KList) iter.next();
+		KSubgroup subgroup = (KSubgroup) list.getOwner();
+		//subgroup.remove(list);
+		list.setOwner(null);
+	    }
+	    */
+
 	    handler.updateCoords(oldRot);
 	    oldRot.setCurrentAngle(rotDial.getDegrees());
 	    //System.out.println("old rot: " + oldRot);
@@ -141,9 +187,30 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 	    
 	    oldRot = (BondRot) rotJList.getSelectedValue();
 	    if (oldRot != null) {
+		
 		oldRot.setColor(KPalette.green);
 		oldRot.setAxisColor(KPalette.red);
-
+		/*
+		Iterator iter = oldRot.iterator();
+		KList list = (KList) iter.next();
+		KList clonedList = (KList) list.clone(true);
+		clonedList.setWidth(5);
+		clonedList.setColor(KPalette.red);
+		KSubgroup subgroup = (KSubgroup) list.getOwner();
+		subgroup.add(clonedList);
+		clonedList.setOwner(subgroup);
+		highlightedLists.add(clonedList);
+		while (iter.hasNext()) {
+		    list = (KList) iter.next();
+		    clonedList = (KList) list.clone(true);
+		    clonedList.setWidth(5);
+		    clonedList.setColor(KPalette.green);
+		    subgroup = (KSubgroup) list.getOwner();
+		    subgroup.add(clonedList);
+		    clonedList.setOwner(subgroup);
+		    highlightedLists.add(clonedList);
+		}
+		*/
 		rotDial.setOrigDegrees(oldRot.getOrigAngle());
 		rotDial.setDegrees(oldRot.getCurrentAngle());
 		

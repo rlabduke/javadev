@@ -33,6 +33,7 @@ public class BondRot {
     String name = null;
     double origAng = 0;
     double currAng = 0;
+    HashMap colorMap = null;
 
 //}}}
 
@@ -45,6 +46,7 @@ public class BondRot {
 	bondLists = new ArrayList();
 	bondRotNum = rotNum;
 	isOpen = true;
+	colorMap = new HashMap();
     }
 //}}}
 
@@ -58,6 +60,7 @@ public class BondRot {
 	origAng = angle;
 	currAng = angle;
 	isOpen = true;
+	colorMap = new HashMap();
     }
 
 //{{{ Methods
@@ -70,6 +73,7 @@ public class BondRot {
      **/
     public void add(KList list) {
 	bondLists.add(list);
+	colorMap.put(list, list.getColor());
     }
 //{{{
 
@@ -95,7 +99,14 @@ public class BondRot {
 	currAng = ang;
     }
 
-
+    public void restoreOrigColor() {
+	Iterator iter = bondLists.iterator();
+	while (iter.hasNext()) {
+	    KList list = (KList) iter.next();
+	    KPaint color = (KPaint) colorMap.get(list);
+	    list.setColor(color);
+	}
+    }
 
     public Iterator iterator() {
 	return bondLists.iterator();
