@@ -371,6 +371,7 @@ public class EDMapWindow implements ChangeListener, ActionListener, TransformSig
         
         KGroup group = new KGroup(kin, "ED map");
         kin.add(group);
+        kin.setModified(true);
         
         KSubgroup subgroup = new KSubgroup(group, "ED map");
         subgroup.setHasButton(false);

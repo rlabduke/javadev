@@ -12,12 +12,12 @@ import javax.swing.event.*;
 import driftwood.gui.*;
 /**
 * <code>UIText</code> is the kinemage text manager.
-* It takes care of displaying and editing the text, though the text is stored in KinStable.
+* It takes care of displaying and editing the text.
 *
-* <p>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
+* <p>Copyright (C) 2002-2004 by Ian W. Davis. All rights reserved.
 * <br>Begun on Sun Jun  9 19:06:25 EDT 2002
 */
-public class UIText implements ChangeListener
+public class UIText implements ChangeListener, MouseListener
 {
 //{{{ Static fields
 //}}}
@@ -55,6 +55,7 @@ public class UIText implements ChangeListener
         textarea.setEditable(true);
         textarea.setLineWrap(true);
         textarea.setWrapStyleWord(true);
+        textarea.addMouseListener(this);
         JScrollPane textScroll = new JScrollPane(textarea);
         textScroll.setPreferredSize(new Dimension(500,400));
         new TextCutCopyPasteMenu(textarea);
@@ -149,5 +150,19 @@ public class UIText implements ChangeListener
     {
         //editpane.setText(text2html(textarea.getText()));
     }
+//}}}
+
+//{{{ Mouse listeners (for hypertext)
+//##################################################################################################
+    public void mouseClicked(MouseEvent ev)
+    {
+        int where = textarea.viewToModel(ev.getPoint());
+        //System.err.println("Click occurred at position "+where);
+    }
+
+    public void mouseEntered(MouseEvent ev)     {}
+    public void mouseExited(MouseEvent ev)      {}
+    public void mousePressed(MouseEvent ev)     {}
+    public void mouseReleased(MouseEvent ev)    {}
 //}}}
 }//class

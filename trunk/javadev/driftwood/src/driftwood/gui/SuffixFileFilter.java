@@ -19,7 +19,7 @@ import java.util.*;
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Tue Mar  4 13:00:39 EST 2003
 */
-public class SuffixFileFilter extends javax.swing.filechooser.FileFilter implements java.io.FileFilter
+public class SuffixFileFilter extends javax.swing.filechooser.FileFilter implements java.io.FileFilter, java.io.FilenameFilter
 {
 //{{{ Constants
 //}}}
@@ -100,6 +100,11 @@ public class SuffixFileFilter extends javax.swing.filechooser.FileFilter impleme
         }
         
         return ok;
+    }
+    
+    public boolean accept(File path, String filename)
+    {
+        return accept(filename);
     }
 //}}}
 
