@@ -34,7 +34,6 @@ public class Engine //extends ... implements ...
     public double       clipBack        = 0;
     public double       clipFront       = 1;
     public double       clipDepth       = 1;
-    public boolean      usePerspective  = false;
     public double       perspDist       = 2000;
     
     // READ ONLY: Parameters for painting points
@@ -44,20 +43,23 @@ public class Engine //extends ... implements ...
     public float        stereoRotation  = 0;
     public boolean      bigMarkers      = false;
     public boolean      bigLabels       = false;
-    public boolean      cueThickness    = false;
-    public boolean      thinLines       = false;
     public boolean      cueIntensity    = true;
-    public boolean      whiteBackground = false;
     public boolean      monochrome      = false;
-    public boolean      colorByList     = false;
     public int          widthCue        = 0;        // cue passed to point, between 0 and 4
     public int          colorCue        = 0;        // cue passed to point, between 0 and 4
     public int          activeAspect    = 0;        // 0 -> don't use aspects, x -> use aspect x if present
     public int          markerSize      = 1;
     public Font         labelFont       = null;
-    //public FontMetrics  labelFontMetrics = null;
     public int          backgroundMode  = -1;
     public Triple       lightingVector  = new Triple(-1, 1, 3).unit();
+    
+    // READ ONLY: These are set from Kinemage obj by KinCanvas on every drawing pass.
+    // Changing them here will have NO EFFECT because they'll be overwritten.
+    public boolean      usePerspective  = false;
+    public boolean      cueThickness    = false;
+    public boolean      thinLines       = false;
+    public boolean      whiteBackground = false;
+    public boolean      colorByList     = false;
     
     // READ/WRITE: Shared "scratch" objects that points can use
     public Triple           work1           = new Triple();

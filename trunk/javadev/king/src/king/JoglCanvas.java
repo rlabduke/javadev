@@ -13,16 +13,20 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
-//import javax.swing.*;
+import javax.swing.*;
 import driftwood.r3.*;
 import driftwood.util.*;
 
 import net.java.games.jogl.*;
 //}}}
 /**
-* <code>JoglFrame</code> is a wrapper for a Painter that uses
+* <code>JoglCanvas</code> is a wrapper for a Painter that uses
 * the OpenGL libraries for hardware-accelerated 2D rendering
 * via the JOGL Java library.
+*
+* <p>Despite dire warnings about mixing heavyweight and lightweight components,
+* it doesn't appear to be a problem unless a lightweight component were
+* supposed to paint over top of this one...
 *
 * <p>Painting with a Graphics2D *is* possible via a mostly-transparent
 * image with its own Graphics2D.
@@ -38,7 +42,7 @@ import net.java.games.jogl.*;
 * <p>Copyright (C) 2004 by Ian W. Davis. All rights reserved.
 * <br>Begun on Sat Jun  5 15:47:31 EDT 2004
 */
-public class JoglFrame extends Frame implements GLEventListener, TransformSignalSubscriber
+public class JoglCanvas extends JPanel implements GLEventListener, TransformSignalSubscriber
 {
 //{{{ Constants
 //}}}
@@ -49,7 +53,6 @@ public class JoglFrame extends Frame implements GLEventListener, TransformSignal
     Engine      engine;
     ToolBox     toolbox;
     GLCanvas    canvas;
-    Dimension   prefSize = new Dimension(200, 200);
     boolean     writeFPS;
     Dimension   glSize = new Dimension();
     
@@ -61,9 +64,9 @@ public class JoglFrame extends Frame implements GLEventListener, TransformSignal
 
 //{{{ Constructor(s)
 //##############################################################################
-    public JoglFrame(KingMain kMain, Engine engine, ToolBox toolbox)
+    public JoglCanvas(KingMain kMain, Engine engine, ToolBox toolbox)
     {
-        super("KiNG OpenGL (JOGL v"+Version.getVersion()+")");
+        super(new BorderLayout());
         
         this.kMain = kMain;
         this.engine = engine;
@@ -75,18 +78,6 @@ public class JoglFrame extends Frame implements GLEventListener, TransformSignal
         canvas.addGLEventListener(this); // calls display(), reshape(), etc.
         toolbox.listenTo(canvas);
         this.add(canvas, BorderLayout.CENTER);
-        
-        // Set preferred size of the canvas
-        Rectangle screenBounds =
-            GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().getBounds();
-        int screenSize = (3*Math.min(screenBounds.width, screenBounds.height)) / 4;
-        Props props = kMain.getPrefs();
-        prefSize = new Dimension(screenSize, screenSize);
-        if(props.hasProperty("graphicsWidth" ) && props.getInt("graphicsWidth")  >= 200)
-            prefSize.width  = props.getInt("graphicsWidth");
-        if(props.hasProperty("graphicsHeight") && props.getInt("graphicsHeight") >= 200)
-            prefSize.height = props.getInt("graphicsHeight");
-        writeFPS = props.getBoolean("writeFPS", false);
     }
 //}}}
 
@@ -153,11 +144,16 @@ public class JoglFrame extends Frame implements GLEventListener, TransformSignal
     {}
 //}}}
 
-//{{{ getPreferredSize, requestRepaint
+//{{{ getPreferred/MinimumSize, requestRepaint
 //##############################################################################
     public Dimension getPreferredSize()
     {
-        return prefSize;
+        return kMain.getCanvas().getPreferredSize();
+    }
+    
+    public Dimension getMinimumSize()
+    {
+        return kMain.getCanvas().getMinimumSize();
     }
     
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME

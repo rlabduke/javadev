@@ -53,7 +53,6 @@ public class MasterGroup extends AGE // implements ...
         children = new ArrayList(10);
         setOwner(owner);
         setName(label);
-        super.setOn(false);
     }
 //}}}
 
@@ -77,6 +76,16 @@ public class MasterGroup extends AGE // implements ...
         super.setOn(alive);
         touchMaster(alive);
         if(pm_mask != 0) pmHit(pm_mask, alive);
+    }
+    
+    /** 
+    * Has the effect of setOn(), but without triggering the master.
+    * That is, all groups/subgroups/lists/points that are under the control
+    * of this master WILL NOT be affected by this function call.
+    */
+    public void setOnLimited(boolean alive)
+    {
+        super.setOn(alive);
     }
     
     /** Builds a grouping of Mage-style on/off buttons in the specified container. */
@@ -162,46 +171,55 @@ public class MasterGroup extends AGE // implements ...
 //##################################################################################################
     /**
     * Traverses the kinemage, examining the states of its targets.
-    * If any target is on, this master should be on.
-    * Otherwise, it should be off.
+    * If the master is on, it will be turned off iff none of its targets are on.
+    * If the master is off, all targets will be turned off.
     * Assume that pointmastered points will be on.
     */
     public void syncState()
     {
         if(parent == null) return;
-        Iterator grIter, suIter, liIter, ptIter;
-        KGroup      group;
-        KSubgroup   subgroup;
-        KList       list;
-        KPoint      point;
-        String      masterName = this.getName();
-        boolean     state = false;
         
-        for(grIter = parent.iterator(); !state && grIter.hasNext(); )
+        if(this.isOn())
         {
-            group = (KGroup)grIter.next();
-            if(group.hasMaster(masterName)) state = state || group.isOn();
-            for(suIter = group.iterator(); !state && suIter.hasNext(); )
+            Iterator grIter, suIter, liIter, ptIter;
+            KGroup      group;
+            KSubgroup   subgroup;
+            KList       list;
+            KPoint      point;
+            String      masterName = this.getName();
+            boolean     state = false;
+            
+            for(grIter = parent.iterator(); !state && grIter.hasNext(); )
             {
-                subgroup = (KSubgroup)suIter.next();
-                if(subgroup.hasMaster(masterName)) state = state || subgroup.isOn();
-                for(liIter = subgroup.iterator(); !state && liIter.hasNext(); )
+                group = (KGroup)grIter.next();
+                if(group.hasMaster(masterName)) state = state || group.isOn();
+                for(suIter = group.iterator(); !state && suIter.hasNext(); )
                 {
-                    list = (KList)liIter.next();
-                    if(list.hasMaster(masterName)) state = state || list.isOn();
-                    if(pm_mask != 0) // only do this if we're a pointmaster
+                    subgroup = (KSubgroup)suIter.next();
+                    if(subgroup.hasMaster(masterName)) state = state || subgroup.isOn();
+                    for(liIter = subgroup.iterator(); !state && liIter.hasNext(); )
                     {
-                        for(ptIter = list.iterator(); !state && ptIter.hasNext(); )
+                        list = (KList)liIter.next();
+                        if(list.hasMaster(masterName)) state = state || list.isOn();
+                        if(pm_mask != 0) // only do this if we're a pointmaster
                         {
-                            point = (KPoint)ptIter.next();
-                            state = state || point.pmWouldHit(pm_mask);
-                        }//points
-                    }//if pointmaster
-                }//lists
-            }//subgroups
-        }//groups
-        
-        super.setOn(state);
+                            for(ptIter = list.iterator(); !state && ptIter.hasNext(); )
+                            {
+                                point = (KPoint)ptIter.next();
+                                state = state || point.pmWouldHit(pm_mask);
+                            }//points
+                        }//if pointmaster
+                    }//lists
+                }//subgroups
+            }//groups
+            // This won't trigger the master to turn on groups that are off
+            this.setOnLimited(state);
+        }//if this master was on to start with...
+        else
+        {
+            // This *WILL* trigger the master to turn things it controls OFF
+            this.setOn( this.isOn() ); // logically, this.isOn() == false here
+        }
     }
 //}}}
 

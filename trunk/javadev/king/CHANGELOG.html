@@ -48,12 +48,7 @@
     Optional 2 column button layout?
     use "around x,y,z" for Probe runs
     Look at Pro geometry with Jane
-    Track curr settings for perspective, etc. on a per-kin basis (+ kin defaults)
-    Develop a POV-Ray texture that looks like Jane's ribbon drawings
-    Try to put a GLCanvas inside the Swing UI
-    Support "on" and "off" for (point)masters in parser? (Flipkin)
-        Do it by modifying MasterGroup.syncState() and setting initial on/off in parser
-  * Using current renderer for image export means OpenGL leads to no image!
+    Document on/off for (point)masters; discuss 'on' behavior w/ Dave ('space'?)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -62,6 +57,16 @@
 ### 1.35 ###
 - fixed EDMapPlotter so mesh/vector ED won't be translucent, only triangle/poly
 - removed MasterGroup.pmLookup b/c it's no longer used by anything
+- replaced JoglFrame with JoglCanvas, which gets embedded in the usual space.
+- fixed sizing bug for JoglCanvas so it's usable in applet mode too!
+- fixed comment-actions to support http: vs. http:// correctly
+- bug fix: KinCanvas.paintCanvas() uses quality instead of renderQuality
+- that fixed the null-output-in-JOGL-mode bug for ImageExport
+- removed ref to extra window for JOGL in KiNG manual
+- moved 5 display settings to being stored on a per-kin basis: perspective,
+  background color, list color dom, thin lines, thickness depth cueing.
+- now support 'off' and 'on' for (point)masters, though 'on' has limited effect
+- pointmaster-off balls no longer cause line shortening
 
 ### 1.34 ###
 - changed triangle depth-cueing to the average of backmost two points.

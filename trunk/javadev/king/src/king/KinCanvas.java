@@ -44,7 +44,7 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
     StandardPainter     goodPainter     = new StandardPainter(false);
     StandardPainter     betterPainter   = new StandardPainter(true);
     HighQualityPainter  bestPainter     = new HighQualityPainter(true);
-    Frame               joglFrame       = null;
+    Component           joglCanvas      = null;
     ReflectiveAction    joglAction      = null;
 
     DefaultBoundedRangeModel zoommodel = null;
@@ -174,7 +174,6 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
     
     void shutdown()
     {
-        if(joglFrame != null) joglFrame.dispose();
     }
 //}}}
 
@@ -208,41 +207,39 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
             if(kMain.getPrefs().newerVersionAvailable())
                 announceNewVersion(g2);
         }
-        else if(renderQuality >= QUALITY_JOGL && joglAction != null)
+        else if(quality >= QUALITY_JOGL && joglAction != null)
         {
-            if(! joglFrame.isVisible())
-            {
-                joglFrame.pack();
-                joglFrame.setVisible(true);
-                // An ugly hack that may help prevent hanging?
-                try { Thread.sleep(2000); }
-                catch (InterruptedException ie) {}
-            }
             joglAction.actionPerformed(null);
         }
         else
         {
             Painter painter = null;
-            if(renderQuality == QUALITY_BETTER)
+            if(quality == QUALITY_BETTER)
             {
                 betterPainter.setGraphics(g2);
                 painter = betterPainter;
             }
-            else if(renderQuality == QUALITY_BEST)
+            else if(quality == QUALITY_BEST)
             {
                 bestPainter.setGraphics(g2);
                 painter = bestPainter;
             }
-            else //(renderQuality == QUALITY_GOOD)
+            else //(quality == QUALITY_GOOD)
             {
                 goodPainter.setGraphics(g2);
                 painter = goodPainter;
             }
             
-            KingView view = kin.getCurrentView();
-            Rectangle bounds = new Rectangle(dim);
             if(kin.currAspect == null) engine.activeAspect = 0;
             else engine.activeAspect = kin.currAspect.getIndex().intValue();
+            engine.usePerspective   = kin.atPerspective;
+            engine.cueThickness     = ! kin.atOnewidth;
+            engine.thinLines        = kin.atThinline;
+            engine.whiteBackground  = kin.atWhitebackground;
+            engine.colorByList      = kin.atListcolordominant;
+
+            KingView view = kin.getCurrentView();
+            Rectangle bounds = new Rectangle(dim);
             long timestamp = System.currentTimeMillis();
             engine.render(this, view, bounds, painter);
             timestamp = System.currentTimeMillis() - timestamp;
@@ -297,6 +294,11 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
             
             if(kin.currAspect == null) engine.activeAspect = 0;
             else engine.activeAspect = kin.currAspect.getIndex().intValue();
+            engine.usePerspective   = kin.atPerspective;
+            engine.cueThickness     = ! kin.atOnewidth;
+            engine.thinLines        = kin.atThinline;
+            engine.whiteBackground  = kin.atWhitebackground;
+            engine.colorByList      = kin.atListcolordominant;
             
             bestPainter.setGraphics(g2);
             engine.render(this, view, bounds, bestPainter);
@@ -361,14 +363,12 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
         renderQuality = q;
         
         // We can't re-use the JOGL window or else we get no drawing.
-        if(q < QUALITY_JOGL && joglFrame != null && joglFrame.isVisible())
-        {
-            joglFrame.setVisible(false);
-            joglFrame.dispose();
-            joglFrame = null;
-        }
-        else if(q == QUALITY_JOGL)
+        // JOGL canvas *is* reusable, but for some reason we have to set the
+        // graphics component here -- it doesn't work in paintComponent()!
+        if(q == QUALITY_JOGL && joglCanvas == null)
             loadJOGL();
+        else if(q < QUALITY_JOGL)
+            kMain.getContentPane().setGraphicsComponent(this);
     }
 //}}}
 
@@ -412,11 +412,10 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
         super.repaint();
         if(renderQuality >= QUALITY_JOGL && joglAction != null)
         {
-            if(! joglFrame.isVisible())
-            {
-                joglFrame.pack();
-                joglFrame.setVisible(true);
-            }
+            // Is this check really needed?
+            if(kMain.getContentPane().getGraphicsComponent() != joglCanvas)
+                kMain.getContentPane().setGraphicsComponent(joglCanvas);
+            
             joglAction.actionPerformed(null);
         }
     }
@@ -427,15 +426,15 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
         // Try to create a JOGL painter, via reflection
         try
         {
-            Class joglClass = Class.forName("king.JoglFrame");
+            Class joglClass = Class.forName("king.JoglCanvas");
             Constructor joglConstr = joglClass.getConstructor(new Class[] { KingMain.class, Engine.class, ToolBox.class });
-            joglFrame = (Frame)joglConstr.newInstance(new Object[] { kMain, engine, toolbox });
-            joglAction = new ReflectiveAction(null, null, joglFrame, "requestRepaint");
+            joglCanvas = (Component)joglConstr.newInstance(new Object[] { kMain, engine, toolbox });
+            joglAction = new ReflectiveAction(null, null, joglCanvas, "requestRepaint");
         }
         catch(Throwable t)
         {
             t.printStackTrace(SoftLog.err);
-            joglFrame = null;
+            joglCanvas = null;
             joglAction = null;
             JOptionPane.showMessageDialog(kMain.getTopWindow(),
                 "Unable to initialize OpenGL graphics.\nSee user manual for details on enabling this feature.",

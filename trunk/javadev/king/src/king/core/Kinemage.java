@@ -31,6 +31,7 @@ public class Kinemage extends AGE // implements ...
     public Map metadata         = new HashMap();
     
     // Variables that control the appearance of this kinemage
+    // These are updated by the user picking from the Display menu
     public boolean atWhitebackground   = false;
     public boolean atOnewidth          = false;
     public boolean atThinline          = false;

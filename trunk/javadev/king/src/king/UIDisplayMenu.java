@@ -356,11 +356,12 @@ public class UIDisplayMenu //extends ... implements ...
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onDispPersp(ActionEvent ev)
     {
-        if(kMain.getCanvas() != null)
+        Kinemage kin = kMain.getKinemage();
+        if(kin != null)
         {
-            Engine engine = kMain.getCanvas().getEngine();
-            if(engine != null) engine.usePerspective = cbPersp.isSelected();
-            kMain.notifyChange(kMain.EM_DISPLAY);
+            kin.atPerspective = cbPersp.isSelected();
+            // Deliberately don't mark kin as modified
+            kMain.notifyChange(KingMain.EM_DISPLAY);
         }
     }
 
@@ -418,32 +419,30 @@ public class UIDisplayMenu //extends ... implements ...
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onDispThickness(ActionEvent ev)
     {
-        if(kMain.getCanvas() != null)
+        Kinemage kin = kMain.getKinemage();
+        if(kin != null)
         {
-            Engine engine = kMain.getCanvas().getEngine();
-            if(engine != null) engine.cueThickness = cbThickness.isSelected();
-            kMain.notifyChange(kMain.EM_DISPLAY);
+            kin.atOnewidth = ! cbThickness.isSelected();
+            // Deliberately don't mark kin as modified
+            kMain.notifyChange(KingMain.EM_DISPLAY);
         }
     }
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onDispThin(ActionEvent ev)
     {
-        if(kMain.getCanvas() != null)
+        Kinemage kin = kMain.getKinemage();
+        if(kin != null)
         {
-            Engine engine = kMain.getCanvas().getEngine();
-            if(engine != null)
+            kin.atThinline = cbThin.isSelected();
+            // Deliberately don't mark kin as modified
+            // Assume we don't want width depth cues with thinline
+            if(cbThin.isSelected())
             {
-                boolean sel = cbThin.isSelected();
-                engine.thinLines = sel;
-                // assume we don't want multiwidth with thinline
-                if(sel == true)
-                {
-                    engine.cueThickness = false;
-                    cbThickness.setSelected(false);
-                }
+                kin.atOnewidth = true;
+                cbThickness.setSelected(false);
             }
-            kMain.notifyChange(kMain.EM_DISPLAY);                
+            kMain.notifyChange(KingMain.EM_DISPLAY);
         }
     }
 //}}}
@@ -464,11 +463,12 @@ public class UIDisplayMenu //extends ... implements ...
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onDispBackground(ActionEvent ev)
     {
-        if(kMain.getCanvas() != null)
+        Kinemage kin = kMain.getKinemage();
+        if(kin != null)
         {
-            Engine engine = kMain.getCanvas().getEngine();
-            if(engine != null) engine.whiteBackground = cbBackground.isSelected();
-            kMain.notifyChange(kMain.EM_DISPLAY);                
+            kin.atWhitebackground = cbBackground.isSelected();
+            // Deliberately don't mark kin as modified
+            kMain.notifyChange(KingMain.EM_DISPLAY);
         }
     }
 
@@ -496,11 +496,12 @@ public class UIDisplayMenu //extends ... implements ...
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onDispColorByList(ActionEvent ev)
     {
-        if(kMain.getCanvas() != null)
+        Kinemage kin = kMain.getKinemage();
+        if(kin != null)
         {
-            Engine engine = kMain.getCanvas().getEngine();
-            if(engine != null) engine.colorByList = cbColorByList.isSelected();
-            kMain.notifyChange(kMain.EM_DISPLAY);                
+            kin.atListcolordominant = cbColorByList.isSelected();
+            // Deliberately don't mark kin as modified
+            kMain.notifyChange(KingMain.EM_DISPLAY);
         }
     }
 //}}}

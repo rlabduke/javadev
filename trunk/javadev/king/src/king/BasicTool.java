@@ -221,8 +221,10 @@ public class BasicTool extends Plugin implements MouseListener, MouseMotionListe
             try
             {
                 URL url;
-                if(kMain.getApplet() == null) url = new URL(comment);
-                else url = new URL(kMain.getApplet().getDocumentBase(), comment);
+                // Saying "http:foo/bar.html" allows us to use relative URLs in applets
+                if(!comment.startsWith("http://") && kMain.getApplet() != null)
+                    url = new URL(kMain.getApplet().getDocumentBase(), comment.substring(5));
+                else url = new URL(comment);
                 new HTMLHelp(kMain, url).show();
                 return true;
             }
