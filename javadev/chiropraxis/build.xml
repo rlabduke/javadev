@@ -113,6 +113,8 @@
     <delete dir="${dist}"/>
     <delete dir="${build}"/>
     <delete file="${ant.project.name}.jar"/>
+    <delete file="itext.jar"/>
+    <delete file="jama.jar"/>
 </target>
 
 <!-- Bundles this code and saves it locally and remotely - simple version control -->
