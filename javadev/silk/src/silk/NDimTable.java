@@ -839,7 +839,7 @@ public class NDimTable //extends ... implements ...
     }
 //}}}
 
-//{{{ zero, scale, normalize, standardize, transformLog, fractionLessThan
+//{{{ zero, scale, normalize, standardize
 //##################################################################################################
     /**
     * Zeros out every bin. Good for starting over ;)
@@ -882,16 +882,30 @@ public class NDimTable //extends ... implements ...
     {
         scale( max / maxValue() );
     }
+//}}}
 
+//{{{ transformLog, transformTrueNaturalLog, fractionLessThan
+//##################################################################################################
     /**
     * Transforms every value <i>v</i> in the table on a log scale.
-    * The mapping <i>v</v> --&gt; <i>v'</i> is as follows:
+    * The mapping <i>v</i> --&gt; <i>v'</i> is as follows:
     * <p>v' = ln(v+1)
     * <p>The 'plus one' keeps values of zero equal to zero.
     */
     public void transformLog()
     {
         for(int i = 0; i < lookupTable.length; i++) lookupTable[i] = Math.log(lookupTable[i] + 1.0);
+    }
+    
+    /**
+    * Transforms every value <i>v</i> in the table on a log scale.
+    * The mapping <i>v</i> --&gt; <i>v'</i> is as follows:
+    * <p>v' = ln(v)
+    * <p>Note that if <i>v</i> is zero, <i>v'</i> will be negative infinity!
+    */
+    public void transformTrueNaturalLog()
+    {
+        for(int i = 0; i < lookupTable.length; i++) lookupTable[i] = Math.log(lookupTable[i]);
     }
     
     /**

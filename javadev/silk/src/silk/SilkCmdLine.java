@@ -310,6 +310,7 @@ public class SilkCmdLine //extends ... implements ...
         else if(flag.equals("-ln"))             opt.postop = SilkOptions.POSTOP_LN;
         else if(flag.equals("-0to1"))           opt.postop = SilkOptions.POSTOP_0TO1;
         else if(flag.equals("-fraction"))       opt.postop = SilkOptions.POSTOP_FRACTION;
+        else if(flag.equals("-energy"))         opt.postop = SilkOptions.POSTOP_ENERGY;
         else if(flag.equals("-scale"))          opt.scale = Double.parseDouble(param);
         else if(flag.equals("-title"))          opt.title = param;
         else if(flag.equals("-first"))          opt.outputMode = SilkOptions.OUTPUT_VALUE_FIRST;

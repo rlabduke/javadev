@@ -1339,7 +1339,7 @@ jogl.jar
 .jnilib
 \family default 
 ).
- As of summer 2004, the JOGL folks were distributing their native libraries
+ As of spring 2005, the JOGL folks were distributing their native libraries
  packaged in a JAR file, too; they'll need to be extracted with a 
 \family typewriter 
 jar xvf NATIVE-LIBS.JAR
@@ -1350,34 +1350,38 @@ jar xvf NATIVE-LIBS.JAR
 META-INF
 \family default 
  directory; it doesn't serve any purpose.
- The JOGL libraries go in 
+ The JOGL JAR file goes in 
 \family typewriter 
 jre/lib/ext
 \family default 
- (JAR file) and 
+ of your Java installation, and the native libraries go in 
 \family typewriter 
 jre/bin
 \family default 
- (native libs) of your Java installation, or in 
+ (Windows) or 
+\family typewriter 
+jre/lib/i386
+\family default 
+ (Linux).
+ On Mac OS X, all the files go in 
 \family typewriter 
 /Library/Java/Extensions
 \family default 
- on Mac OS X (both files).
+.
  If you're on a Unix-style system (including Mac OS X), be sure to check
  your permissions as well.
  If you downloaded a platform-specific version of KiNG, the necessary libraries
- may already be included (but don't count on it -- for obscure reasons,
- the technical obstacles to this are very large).
+ may already be included.
 \layout Standard
 
-This feature has been tested with Java 1.4.2 and JOGL 1.1.0.
+This feature has been tested with Java 1.4.2 and JOGL 1.1.
  JOGL is still under development, as is this feature, and interacting so
  directly with the hardware is always risky, so it's possible that OpenGL
  rendering may hang KiNG on your computer.
  You've been warned.
 \layout Standard
 
-Hopefully, a future version of Java (possibly the 1.5.x series) will use OpenGL
+Hopefully, a future version of Java (possibly the 1.6.x series) will use OpenGL
  behind the scenes for all graphics operations, making KiNG much faster
  and making this feature obsolete.
  Until then, this is a work-around for large kinemages where performance

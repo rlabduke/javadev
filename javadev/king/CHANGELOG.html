@@ -60,12 +60,20 @@
     Expand KingLiteBinaryExport to do views
     KingLiteBinaryExport should automatically rescale coords to fit in 30 bits.
     Move extra tools to their own package(s)
+    Add "Set Contrast" function for Display menu
+    Choose OpenGL (if avail) by default at startup?
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 1.39 ###
+### 1.40 ###
+- updated Mac app to JOGL 1.1b10
+- created VM packages for Win, Linux installers with 1.4.2_07 and JOGL 1.1b10
+- updated manual b/c install location for JOGL libs under Linux has moved
+- fixed MovePointsTool to not process SpherePoint disk proxies
+- created dedicated tool for BACKRUB in chiropraxis.kingtools
+
 ### 1.39 ###
 - modified VectorPoint and TrianglePoint so object picking always returns the
   last point -- this makes changing colors, etc. much easier and more natural.

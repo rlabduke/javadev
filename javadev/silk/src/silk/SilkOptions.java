@@ -32,13 +32,14 @@ public class SilkOptions //extends ... implements ...
     public static final String      POSTOP_LN           = "natural-log";
     public static final String      POSTOP_0TO1         = "zero-to-one";
     public static final String      POSTOP_FRACTION     = "convert-to-fraction";
+    public static final String      POSTOP_ENERGY       = "energy (-kT ln p_i @ 298K)";
     public static final String      OUTPUT_VALUE_LAST   = "text (value last)";
     public static final String      OUTPUT_VALUE_FIRST  = "text (value first)";
     public static final String      OUTPUT_KINEMAGE     = "kinemage";
     public static final String      OUTPUT_NDFT         = "binary (NDFT)";
     public static final int         V_STANDARD          = 0;
     public static final int         V_QUIET             = -10;
-    public static final int         V_VERBOSE          = 10;
+    public static final int         V_VERBOSE           = 10;
 //}}}
 
 //{{{ Variable definitions

@@ -54,6 +54,10 @@ public class MovePointTool extends BasicTool
             for(int k = 0; k < allPoints.length; k++)
             {
                 float[] offset = v.translateRotated(dx, -dy, 0, Math.min(dim.width, dim.height));
+                
+                // Check to make sure this isn't just a SpherePoint disk:
+                if(allPoints[k] instanceof ProxyPoint) continue;
+                
                 allPoints[k].setOrigX(allPoints[k].getOrigX() + offset[0]);
                 allPoints[k].setOrigY(allPoints[k].getOrigY() + offset[1]);
                 allPoints[k].setOrigZ(allPoints[k].getOrigZ() + offset[2]);

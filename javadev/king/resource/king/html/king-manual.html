@@ -1036,26 +1036,25 @@ performance. You'll need to have an up-to-date version of Java installed,
 along with the JOGL libraries (https://jogl.dev.java.net/).
 Make sure you get both <TT>jogl.jar</TT> and the native library or
 libraries (they end in <TT>.dll</TT>, <TT>.so</TT>, or <TT>.jnilib</TT>).
-As of summer 2004, the JOGL folks were distributing their native libraries
+As of spring 2005, the JOGL folks were distributing their native libraries
 packaged in a JAR file, too; they'll need to be extracted with a <TT>jar
 xvf NATIVE-LIBS.JAR</TT> command. You can remove the <TT>META-INF</TT>
-directory; it doesn't serve any purpose. The JOGL libraries go in
-<TT>jre/lib/ext</TT> (JAR file) and <TT>jre/bin</TT> (native libs)
-of your Java installation, or in <TT>/Library/Java/Extensions</TT>
-on Mac OS X (both files). If you're on a Unix-style system (including
-Mac OS X), be sure to check your permissions as well. If you downloaded
-a platform-specific version of KiNG, the necessary libraries may already
-be included (but don't count on it - for obscure reasons, the technical
-obstacles to this are very large).
+directory; it doesn't serve any purpose. The JOGL JAR file goes in
+<TT>jre/lib/ext</TT> of your Java installation, and the native libraries
+go in <TT>jre/bin</TT> (Windows) or <TT>jre/lib/i386</TT> (Linux).
+On Mac OS X, all the files go in <TT>/Library/Java/Extensions</TT>.
+If you're on a Unix-style system (including Mac OS X), be sure to
+check your permissions as well. If you downloaded a platform-specific
+version of KiNG, the necessary libraries may already be included.
 
 <P>
-This feature has been tested with Java 1.4.2 and JOGL 1.1.0. JOGL
-is still under development, as is this feature, and interacting so
-directly with the hardware is always risky, so it's possible that
-OpenGL rendering may hang KiNG on your computer. You've been warned.
+This feature has been tested with Java 1.4.2 and JOGL 1.1. JOGL is
+still under development, as is this feature, and interacting so directly
+with the hardware is always risky, so it's possible that OpenGL rendering
+may hang KiNG on your computer. You've been warned.
 
 <P>
-Hopefully, a future version of Java (possibly the 1.5.x series) will
+Hopefully, a future version of Java (possibly the 1.6.x series) will
 use OpenGL behind the scenes for all graphics operations, making KiNG
 much faster and making this feature obsolete. Until then, this is
 a work-around for large kinemages where performance is an issue.
@@ -2296,7 +2295,7 @@ for more details on these and other licenses.
 <BR><HR>
 <ADDRESS>
 Ian W. Davis
-2005-02-21
+2005-03-25
 </ADDRESS>
 </BODY>
 </HTML>
