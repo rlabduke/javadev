@@ -132,14 +132,18 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
 	
 	while (iter.hasNext()) {
 	    list = (KList) iter.next();
-	    Integer resNum = new Integer(getResNumber(list));
-	    if (structMap.containsKey(resNum)) {
-		listofLists = (ArrayList) structMap.get(resNum);
-		listofLists.add(list);
-	    } else {
-		listofLists = new ArrayList();
-		listofLists.add(list);
-		structMap.put(resNum, listofLists);
+	    Iterator listIter = list.iterator();
+	    KPoint point = (KPoint) listIter.next();
+	    if (!point.isUnpickable()) { //to not color over black outlines on ribbons
+		Integer resNum = new Integer(getResNumber(list));
+		if (structMap.containsKey(resNum)) {
+		    listofLists = (ArrayList) structMap.get(resNum);
+		    listofLists.add(list);
+		} else {
+		    listofLists = new ArrayList();
+		    listofLists.add(list);
+		    structMap.put(resNum, listofLists);
+		}
 	    }
 	}
 	TreeSet keys = new TreeSet(structMap.keySet());

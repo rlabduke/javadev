@@ -323,32 +323,37 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    colorPrior.setSelected(false);
 	}
 	if ("color".equals(ev.getActionCommand())) {
-	    if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))&&(textPane == null)) {
-		int firstNum = Integer.parseInt(lowNumField.getText());
-		int secondNum = Integer.parseInt(highNumField.getText());
-		if (firstNum > secondNum) {
-		    int temp = secondNum;
-		    secondNum = firstNum;
-		    firstNum = temp;
-		}
-		//int numRes = ((RecolorNonRibbon)colorator).numofResidues();
-		colorator.highlightRange(firstNum, secondNum, createColorArray(secondNum-firstNum+1));
-	    } else if (textPane != null) {
-		if (textPane.getSelectionEnd()>0) {
-		    int firstNum = textPane.getSelectionStart();
-		    int adjFirstNum = firstNum - Math.round(firstNum/6) + 1;
-		    int secondNum = textPane.getSelectionEnd();
-		    int adjSecondNum = secondNum - Math.round(secondNum/6);
-		    //StyledDocument doc = textPane.getStyledDocument();
-		    //StyleConstants.setForeground(sas, (Color) ((KPaint)color1.getSelectedItem()).getWhiteExemplar());
-		    //doc.setCharacterAttributes(textPane.getSelectionStart(), textPane.getSelectionEnd()-textPane.getSelectionStart(),sas, true);
-		    //recolorTable(firstNum, secondNum-firstNum, (KPaint)color1.getSelectedItem());
-		    recolorTable(firstNum, secondNum-firstNum, createColorArray(secondNum-firstNum+1));
-		    colorator.highlightRange(adjFirstNum, adjSecondNum, createColorArray(secondNum-firstNum+1));
-		}
+	    if (colorator == null) {
+		JOptionPane.showMessageDialog(pane, "Please click on a point in the structure you want to color before using the number boxes.", "Error",
+					      JOptionPane.ERROR_MESSAGE);
 	    } else {
-		JOptionPane.showMessageDialog(pane, "You have to put numbers in the text boxes!", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
+		if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))&&(textPane == null)) {
+		    int firstNum = Integer.parseInt(lowNumField.getText());
+		    int secondNum = Integer.parseInt(highNumField.getText());
+		    if (firstNum > secondNum) {
+			int temp = secondNum;
+			secondNum = firstNum;
+			firstNum = temp;
+		    }
+		    //int numRes = ((RecolorNonRibbon)colorator).numofResidues();
+		    colorator.highlightRange(firstNum, secondNum, createColorArray(secondNum-firstNum+1));
+		} else if (textPane != null) {
+		    if (textPane.getSelectionEnd()>0) {
+			int firstNum = textPane.getSelectionStart();
+			int adjFirstNum = firstNum - Math.round(firstNum/6) + 1;
+			int secondNum = textPane.getSelectionEnd();
+			int adjSecondNum = secondNum - Math.round(secondNum/6);
+			//StyledDocument doc = textPane.getStyledDocument();
+			//StyleConstants.setForeground(sas, (Color) ((KPaint)color1.getSelectedItem()).getWhiteExemplar());
+			//doc.setCharacterAttributes(textPane.getSelectionStart(), textPane.getSelectionEnd()-textPane.getSelectionStart(),sas, true);
+			//recolorTable(firstNum, secondNum-firstNum, (KPaint)color1.getSelectedItem());
+			recolorTable(firstNum, secondNum-firstNum, createColorArray(secondNum-firstNum+1));
+			colorator.highlightRange(adjFirstNum, adjSecondNum, createColorArray(secondNum-firstNum+1));
+		    }
+		} else {
+		    JOptionPane.showMessageDialog(pane, "You have to put numbers in the text boxes!", "Error",
+						  JOptionPane.ERROR_MESSAGE);
+		}
 	    }
 	}
 

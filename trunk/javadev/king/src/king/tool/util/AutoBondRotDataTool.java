@@ -46,7 +46,8 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     //double minX, minY, minZ = 100000;
     //double xspan, yspan, zspan, xInc, yInc, zInc;
     HashMap             listMap; // axisValue -> KList
-    HashSet             offPoints;
+    //HashSet             offPoints;
+    ArrayList offPoints;
     double minSpan = 100000000;
     double minSpanIncr, minSpanLow, minSpanHigh;
     ArrayList xKlists, yKlists, zKlists;
@@ -172,7 +173,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
             //else                            openMapFile();
 	    //dataMap = new HashMap();
 	    listMap = new HashMap();
-	    offPoints = new HashSet();
+	    offPoints = new ArrayList();
 	    allPoints = new ArrayList();
 	    //openFile();
 	    
@@ -234,16 +235,20 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	    try {
 		File f = filechooser.getSelectedFile();
 		if(f != null && f.exists()) {
+		    dialog.setTitle(f.getName());
 		    BufferedReader reader = new BufferedReader(new FileReader(f));
 		    String fileChoice = askFileFormat(f.getName());
+		    //System.out.println(fileChoice);
 		    String angleChoice = "none";
 		    if (fileChoice.equals("First")) {
 			angleChoice = askAngleFormat(f.getName());
 		    }
-		    listMap = new HashMap();
-		    offPoints = new HashSet();
-		    allPoints = new ArrayList();
-		    scanFile(reader, fileChoice, angleChoice);
+		    if ((!fileChoice.equals(null))&&(!angleChoice.equals(null))) {
+			listMap = new HashMap();
+			offPoints = new ArrayList();
+			allPoints = new ArrayList();
+			scanFile(reader, fileChoice, angleChoice);
+		    }
 		    //buildGUI();
 		    //show();
 		    //dialog.pack();
@@ -285,14 +290,18 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		} else {
 		    line.trim();
 		    StringTokenizer spaceToks = new StringTokenizer(line, " ");
+		    int numToks = spaceToks.countTokens();
 		    double x, y, clashValue;
-		    double temp1, temp2, temp3, temp4 = Double.NaN;
+		    double temp1 = 1000, temp2 = 1000, temp3 = 1000;
+		    double temp4 = Double.NaN;
 		    double z = Double.NaN;
-		    temp1 = Double.parseDouble(spaceToks.nextToken());
-		    temp2 = Double.parseDouble(spaceToks.nextToken());
-		    temp3 = Double.parseDouble(spaceToks.nextToken());
-		    if (spaceToks.hasMoreTokens()) {
-			temp4 = Double.parseDouble(spaceToks.nextToken());
+		    if (numToks > 2) {
+			temp1 = Double.parseDouble(spaceToks.nextToken());
+			temp2 = Double.parseDouble(spaceToks.nextToken());
+			temp3 = Double.parseDouble(spaceToks.nextToken());
+			if (spaceToks.hasMoreTokens()) {
+			    temp4 = Double.parseDouble(spaceToks.nextToken());
+			}
 		    }
 		    if (fileChoice.equals("Last")) {
 			x = temp1;
@@ -485,19 +494,25 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		list.clear();
 		//onPoints.clear();
 	    }
+	    // for fixing a bug where points that are .equals() are in different lists.
+	    HashSet offPointSet = new HashSet(offPoints); 
 	    iter = allPoints.iterator();
+	    int i = 0;
 	    while (iter.hasNext()) {
 		KPoint point = (KPoint) iter.next();
 		double clashValue = Double.parseDouble(point.getName());
 		if ((clashValue<firstNum)||(clashValue>secondNum)) {
-		    if (!offPoints.contains(point)) {
+		    if (!offPointSet.contains(point)) {
 			KList owner = (KList) point.getOwner();
 			owner.add(point);
 		    }
 		} else {
 		    offPoints.add(point);
+		    offPointSet.add(point);
+		    i++;
 		}
 	    }
+	    //System.out.println(offPoints.size()+", " + i);
 	} else {
 	    JOptionPane.showMessageDialog(kMain.getTopWindow(), "You have to put numbers in the text boxes!", "Error",
 					  JOptionPane.ERROR_MESSAGE);
@@ -517,7 +532,8 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		secondNum = firstNum;
 		firstNum = temp;
 	    } 
-	    
+	    //int i = 0;
+	    /*
 	    Iterator iter = allPoints.iterator();
 	    while (iter.hasNext()) {
 		KPoint point = (KPoint) iter.next();
@@ -529,9 +545,24 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 			KList owner = (KList) point.getOwner();
 			owner.add(point);
 			offPoints.remove(point);
+			i++;
 		    }
 		}
+		}
+	    */
+	    for (int i = offPoints.size() - 1; i > -1; i--) {
+		KPoint point = (KPoint) offPoints.get(i);
+		//Iterator iter = offPoints.iterator();
+		//while (iter.hasNext()) {
+		//KPoint point = (KPoint) iter.next();
+		double clashValue = Double.parseDouble(point.getName());
+		if ((clashValue>=firstNum)&&(clashValue<=secondNum)) {
+		    KList owner = (KList) point.getOwner();
+		    owner.add(point);
+		    offPoints.remove(i);
+		}
 	    }
+	    //System.out.println(offPoints.size() + ", " + i);
 	} else {
 	    JOptionPane.showMessageDialog(kMain.getTopWindow(), "You have to put numbers in the text boxes!", "Error",
 					  JOptionPane.ERROR_MESSAGE);
@@ -681,9 +712,10 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	Kinemage kin = kMain.getKinemage();
 	Iterator iter = kin.iterator();
 	long startTime = System.currentTimeMillis();
+	allPoints.clear();
 	while (iter.hasNext()) {
 	    KGroup group = (KGroup) iter.next();
-	    if (group.hasMaster("Data Points")) {
+	    if ((group.hasMaster("Data Points"))&&(group.isOn())) {
 		KSubgroup subgroup = (KSubgroup) group.getChildAt(0);
 		KList list = (KList) subgroup.getChildAt(0);
 		Iterator points = list.iterator();
