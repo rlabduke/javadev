@@ -41,26 +41,26 @@
     Allow user to set focal length for perspective "lens"?
     New shades of gray: smoke (light), charcoal (dark) ?
     Think about free-form docking tools
-<!-- Postponed TO DO items }}} -->
     Add choice of experiments to expected NOEs
     Distribute noe-display in packaged KiNG versions?
+    Key/mouse modifiers need to be checked from Safari (applet)
+<!-- Postponed TO DO items }}} -->
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
     Add ability to edit masters
     Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
-    Key/mouse modifiers need to be checked from Safari (applet)
-    Add a Mage-like "count" function
+    Add a Mage-like "count" function (transform time, draw time, num obj)
   * Rewrite HACKING section on Tools vs. Plugins
- ** Efficient point representations for Andrew Ban (instance=)
-        KList needs instance field, copy constructor, parser/writer, xform code
-    Triangle picking for Andrew Ban
+    Triangle picking for Andrew Ban (generalize to object picking)
   ? Redefine getX/Y/Z for KPoints to do the more obvious thing...
     Warn about saving with multiple kins open
     Warn about losing unsaved changes
+    Extract each set of painting objects into a Painter object with methods for each pt type
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 1.26 ###
 ### 1.26 ###
 - added Mage's HTML description of the kinemage format
 - updated manual intro to make it more clear that kinemages are *illustrations*
@@ -72,6 +72,12 @@
 - stopped model manager dialog from jumping around when switching tools
 - added the machinery to Engine to allow efficient instance= impl
   Doesn't seem to have broken anything (yet!)
+- modified KList to be able to do instance=
+- modified KinfileParser and KinWriter to handle instance=
+  Groups and subgroups marked as instance= are still handled wrong
+- modified clone() for lists/subgroups/groups and KinfileParser
+  to correctly support instance= {xxx} for groups and subgroups
+  (deep copy of group/subgroup/list, instance= copy of points)
 
 ### 1.25 ###
 - tools and plugins can be placed in submenus based on the .king_prefs file

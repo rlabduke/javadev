@@ -37,9 +37,10 @@ public class KList extends AGE implements Cloneable
 
 //{{{ Variable definitions
 //##################################################################################################
-    KSubgroup parent = null;
+    KSubgroup   parent      = null;
+    KList       instance    = null;     // the list that this one is an instance= {xxx} of, or null
 
-    public String type = UNKNOWN;      // type of object represented by this list
+    public String type = UNKNOWN;       // type of object represented by this list
     
     public KPaint   color   = KPalette.defaultColor;
     public int      alpha   = 255;      // 255 = opaque, 0 = fully transparent
@@ -69,31 +70,46 @@ public class KList extends AGE implements Cloneable
 //{{{ clone
 //##################################################################################################
     /**
-    * Creates a deep copy of this group and all its children.
+    * Creates a copy of this group and all its children.
+    * @param clonePoints whether to clone even the individual points,
+    *   or whether we should use instance= at the list level instead.
     */
-    public Object clone()
+    public Object clone(boolean clonePoints)
     {
         try
         {
-            KList x = (KList) super.clone();
+            KList x = (KList) super.clone(clonePoints);
             x.setName( x.getName() ); // tricks it into creating a new JCheckBox object
-            
-            // Deep copy of children
             x.children = new ArrayList();
-            KPoint prev = null;
-            for(Iterator iter = this.children.iterator(); iter.hasNext(); )
+            
+            if(clonePoints)
             {
-                KPoint child = (KPoint) iter.next();
-                KPoint clone = (KPoint) child.clone();
-                clone.setOwner(x);
-                x.add(clone);
+                // Deep copy of children from original source
+                KList orig = this;
+                while(orig.getInstance() != null) orig = orig.getInstance();
                 
-                // Everything has been deep copied; we just need
-                // to correct the linked-list pointers for
-                // VectorPoints and TrianglePoints.
-                if(clone.getPrev() != null)
-                    clone.setPrev(prev);
-                prev = clone;
+                KPoint prev = null;
+                for(Iterator iter = orig.children.iterator(); iter.hasNext(); )
+                {
+                    KPoint child = (KPoint) iter.next();
+                    KPoint clone = (KPoint) child.clone();
+                    clone.setOwner(x);
+                    x.add(clone);
+                    
+                    // Everything has been deep copied; we just need
+                    // to correct the linked-list pointers for
+                    // VectorPoints and TrianglePoints.
+                    if(clone.getPrev() != null)
+                        clone.setPrev(prev);
+                    prev = clone;
+                }
+            }
+            else // we'll use instance= to fake it!
+            {
+                if(this.getInstance() == null)
+                    x.setInstance(this);
+                else
+                    x.setInstance(this.getInstance());
             }
             
             // Semi-deep copy of masters, which just contains Strings
@@ -106,7 +122,7 @@ public class KList extends AGE implements Cloneable
     }
 //}}}
 
-//{{{ get/setOwner()
+//{{{ get/setOwner, get/setInstance
 //##################################################################################################
     /** Determines the owner (parent) of this element */
     public AGE getOwner()
@@ -116,6 +132,13 @@ public class KList extends AGE implements Cloneable
     {
         parent = (KSubgroup)owner;
     }
+    
+    /** Sets which list this one is an instance of, or null for none. */
+    public void setInstance(KList inst)
+    { this.instance = inst; }
+    /** Gets which list this one is an instance of, or null for none. */
+    public KList getInstance()
+    { return this.instance; }
 //}}}
 
 //{{{ get/set{Type, Color, Width, Radius, Style}
@@ -200,8 +223,18 @@ public class KList extends AGE implements Cloneable
         // If the button is off, this will never be rendered
         if(!isOn()) return;
         
-        // Not using iterators speeds this up by a few tens of ms
         int i, end_i;
+
+        // If we're an instance of someone else, transform those points too
+        if(instance != null)
+        {
+            engine.setActingParent(this);
+            end_i = instance.children.size();
+            for(i = 0; i < end_i; i++) ((KPoint)instance.children.get(i)).signalTransform(engine, xform, engine.zoom3D);
+        }
+        
+        // Not using iterators speeds this up by a few tens of ms
+        engine.setActingParent(null);
         end_i = children.size();
         for(i = 0; i < end_i; i++) ((KPoint)children.get(i)).signalTransform(engine, xform, engine.zoom3D);
     }
