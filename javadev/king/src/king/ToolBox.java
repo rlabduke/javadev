@@ -103,7 +103,8 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
         services    = new ToolServices(this);
         sigTransform = new TransformSignal();
         
-        pluginProps = new Props(kMain.getPrefs());
+        //pluginProps = new Props(kMain.getPrefs());
+        pluginProps = (Props) kMain.getPrefs().getDefaults();
         pluginClassLoader = this.makeClassLoader();
         
         plugins = new ArrayList();

@@ -83,6 +83,7 @@ helperTimeout       = 5
 ### TOOL MENU PLACEMENT ##############################################
 ######################################################################
 
+king.BasicTool.menuName = <main menu>
 king.EDMapPlugin.menuName = Struct. biol.
 king.tool.draw.DrawingTool.menuName = Kin editing
 king.tool.draw.SolidObjPlugin.menuName = Kin editing
@@ -91,7 +92,9 @@ king.tool.util.Dock3On3Tool.menuName = Kin editing
 king.tool.util.DockLsqTool.menuName = Kin editing
 king.tool.util.EditPropertiesTool.menuName = <main menu>
 king.tool.util.MovePointTool.menuName = Kin editing
+king.tool.util.RibbonTool.menuName = Kin editing
 king.tool.util.ViewpointPlugin.menuName = <main menu>
+king.tool.util.SelfUpdatePlugin.menuName = <main menu>
 king.tool.xtal.RNAMapTool.menuName = Specialty
 king.tool.xtal.GuilloTool.menuName = Specialty
 king.tool.xtal.SuiteRotationTool.menuName = Specialty

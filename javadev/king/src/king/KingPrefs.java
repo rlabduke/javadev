@@ -96,6 +96,8 @@ public class KingPrefs extends Props // implements ...
         // User settings
         loadFromFile();
         
+        //this.list(SoftLog.err);
+        
         // Resources
         // Icon that's displayed in the corner of the main window
         windowIcon          = new ImageIcon(getClass().getResource("images/kingicon20.png")).getImage();
