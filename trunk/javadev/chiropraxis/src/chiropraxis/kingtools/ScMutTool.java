@@ -69,6 +69,10 @@ public class ScMutTool  extends ModelingTool
             
         // Bring up model manager
         modelman.onShowDialog(null);
+        
+        // Helpful hint for users:
+        this.services.setID("Ctrl-click, option-click, or middle-click a residue to mutate it");
+        kCanvas.repaint(); // to make it show up!
     }
 //}}}
 

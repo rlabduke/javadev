@@ -53,6 +53,10 @@ public class ScRotTool extends ModelingTool
         
         // Bring up model manager
         modelman.onShowDialog(null);
+        
+        // Helpful hint for users:
+        this.services.setID("Ctrl-click, option-click, or middle-click a residue to rotate it");
+        kCanvas.repaint(); // to make it show up!
     }
 //}}}
 

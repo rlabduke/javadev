@@ -168,6 +168,10 @@ public class HingeTool extends ModelingTool implements Remodeler, ChangeListener
         
         // Bring up model manager
         modelman.onShowDialog(null);
+        
+        // Helpful hint for users:
+        this.services.setID("Ctrl-click, option-click, or middle-click the two hinge endpoints");
+        kCanvas.repaint(); // to make it show up!
     }
 //}}}
 

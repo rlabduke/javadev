@@ -82,8 +82,9 @@ public class ExpectedNoePanel extends TablePane implements ActionListener, Chang
         cp.save().weights(0,1).addCell(new JLabel("Max length:")).restore();
         cp.save().hfill(true).addCell(tfMaxLength).restore();
         cp.newRow();
-        cp.save().hfill(true).addCell(bnSimulate,2,1).restore();
-        cp.newRow();
+        // Not implemented yet...
+        //cp.save().hfill(true).addCell(bnSimulate,2,1).restore();
+        //cp.newRow();
         cp.addCell(cbShowAll,2,1);
         
         refreshGUI();
