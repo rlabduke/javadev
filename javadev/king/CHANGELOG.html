@@ -70,6 +70,8 @@
 - added Painter.paintSphereDisk()
 - fixed bug: parser was making @spherelists into @balllists
 - finalized math for SpherePoints; checked in (r82)
+- fixed bug where KinCanvas.print() didn't bestPainter.setGraphics(), resulting
+  in either a NullPointerEx or a stale graphics object.
 
 ### 1.32 ###
 - changed EDMapPlugin so that it asks for map format after you choose a file

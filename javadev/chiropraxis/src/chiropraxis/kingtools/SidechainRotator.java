@@ -111,6 +111,7 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
         rotamers2[0] = origRotamer;
         rotamerList = new JList(rotamers2);
         rotamerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        rotamerList.setSelectionModel(new ReclickListSelectionModel(rotamerList));
         rotamerList.addListSelectionListener(this);
         
         // Rotamer quality readout
@@ -196,10 +197,8 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
     public void valueChanged(ListSelectionEvent ev)
     {
         RotamerDef def = (RotamerDef)rotamerList.getSelectedValue();
-        if(def == null)
-            SoftLog.err.println("Couldn't retrieve angles for '"+targetRes.getName()+"."+rotamerList.getSelectedValue()+"'");
-        else
-            initSomeAngles(def.chiAngles);
+        if(def != null) initSomeAngles(def.chiAngles);
+        // else there is no current selection
     }
 
     /** Returns true if any of the dials is currently being updated */
