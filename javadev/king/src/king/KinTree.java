@@ -63,6 +63,8 @@ public class KinTree //extends ... implements ...
         // This will eliminate the annoying menu/tree interactions
         // where Alt-X also selects an item beginning with 'X'
         tree.setUI(new NullTreeUI());
+        // Provides feedback on whether things are on or off
+        tree.setCellRenderer(new OnOffRenderer());
         
         initActions();
         buildMenu();
@@ -727,6 +729,30 @@ public class KinTree //extends ... implements ...
 
 //{{{ empty_code_segment
 //##################################################################################################
+//}}}
+
+//{{{ INNER CLASS: OnOffRenderer
+//##################################################################################################
+    class OnOffRenderer extends DefaultTreeCellRenderer
+    {
+        public Component getTreeCellRendererComponent(JTree tree, Object value,
+            boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus)
+        {
+            Component renderer = super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+            TreePath path = tree.getPathForRow(row);
+            if(path != null)
+            {
+                TreeNode node = (TreeNode) path.getLastPathComponent();
+                if(node != null && node instanceof AGE)
+                {
+                    AGE age = (AGE) node;
+                    if(age.isOn())  this.setIcon(kMain.getPrefs().treeOnIcon);
+                    else            this.setIcon(kMain.getPrefs().treeOffIcon);
+                }
+            }
+            return renderer;
+        }
+    }
 //}}}
 
 //{{{ INNER CLASS: NullTreeUI

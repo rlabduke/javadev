@@ -1,6 +1,6 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
-package driftwood.util;
+package driftwood.data;
 
 //import java.awt.*;
 //import java.awt.event.*;

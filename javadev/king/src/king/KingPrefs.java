@@ -71,6 +71,10 @@ public class KingPrefs extends Props // implements ...
     public Icon htmlBackIcon;
     /** The icon for returning to the initial HTML page */
     public Icon htmlHomeIcon;
+    /** The icon for groups, etc. in the tree that are on */
+    public Icon treeOnIcon;
+    /** The icon for groups, etc. in the tree that are off */
+    public Icon treeOffIcon;
     
     /** Icons for rotations, coded by Axis and Plus/Minus */
     public Icon rotXpIcon, rotXmIcon, rotYpIcon, rotYmIcon, rotZpIcon, rotZmIcon;
@@ -114,6 +118,8 @@ public class KingPrefs extends Props // implements ...
         helpIcon            = new ImageIcon(getClass().getResource("images/Help16.gif"));
         htmlBackIcon        = new ImageIcon(getClass().getResource("images/Back24.gif"));
         htmlHomeIcon        = new ImageIcon(getClass().getResource("images/Home24.gif"));
+        treeOnIcon          = new ImageIcon(getClass().getResource("images/tree-on.png"));
+        treeOffIcon         = new ImageIcon(getClass().getResource("images/tree-off.png"));
 
         rotXpIcon           = new ImageIcon(getClass().getResource("images/rotxp.png"));
         rotXmIcon           = new ImageIcon(getClass().getResource("images/rotxm.png"));
