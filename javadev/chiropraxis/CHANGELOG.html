@@ -14,7 +14,13 @@
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 0.40 ###
+### 0.41 ###
+- did a lot of work on r71 to improve the SSWING tool
+- removed unneeded GUI code, improved background thread mgmt
+- these (massive) changes became r73
+- had to edit sswing line 80 to remove $dir."/".
+  This breaks compatibility with absolute file paths.
+
 ### 0.40 ###
 - recompiled to incorporate with changes to driftwood.moldb2.PdbWriter
 - changed B-factor on ideal sidechains / residues to 30 instead of zero
