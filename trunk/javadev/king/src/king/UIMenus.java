@@ -144,6 +144,10 @@ public class UIMenus //extends ... implements ...
                 item.setMnemonic(KeyEvent.VK_P);
                 //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_ACCEL_MASK));
                 submenu.add(item);
+                item = new JMenuItem(new ReflectiveAction("As POV-Ray scene...", null, this, "onFileWritePovray"));
+                item.setMnemonic(KeyEvent.VK_P);
+                //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_ACCEL_MASK));
+                submenu.add(item);
                 item = new JMenuItem(new ReflectiveAction("As Kin-XML...", null, this, "onFileWriteXML"));
                 item.setMnemonic(KeyEvent.VK_X);
                 //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_ACCEL_MASK));
@@ -604,6 +608,12 @@ public class UIMenus //extends ... implements ...
                 "Sorry!", JOptionPane.ERROR_MESSAGE);
             t.printStackTrace(SoftLog.err);
         }
+    }
+    
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onFileWritePovray(ActionEvent ev)
+    {
+        new PovrayExport().askExport(kMain);
     }
     
     // This might throw a SecurityException, if the user denies us permission...

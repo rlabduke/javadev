@@ -22,9 +22,9 @@
     Make hierarchy editor drag-and-drop
     Tau minimizer over a range (rebuild peptides too?)
     Do NOEs within d of x,y,z when nothing is mobile (same for Probe?)
-    Support wordlists (and point comments!)
-    Hyperlinks/URLs in point comments?
+    Support wordlists
     Add matrix-based deformatation option to Hierarchy:Transform
+        Assymetic scaling of axes
     Show CB deviation in Hinge when not idealizing sc positions
     Draw: construct 4 and 5, polylines, triangle strips, true sphere, cylinder
     For Views tool: Center Visible command (use r3.PrincipleAxes)
@@ -41,8 +41,6 @@
     Mutated residues should retain B factors where possible (?)
     Support "on" and "off" for pointmasters in parser? (Flipkin)
 <!-- Postponed TO DO items }}} -->
-    Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
-        Add POV-Movie tool to facilitate making POV movies w/ common animations
     Add ability to edit masters/pointmasters
     Add some kind of transformation hook (listeners, priorities, etc)
     Add pluginStartup() method to plugins that's called after everything is running?
@@ -64,6 +62,9 @@
 - now allow editing of point comments from king.PointEditor
 - point comments are already documented in the kinemage format doc
 - point comments starting with "http:" now open a Java browser for that URL
+- started work on POV-Ray export function
+- POV export works competently now
+- POV export supports smooth triangles and usually gets the normals right
 
 ### 1.33 ###
 - Made AHE into an interface and moved the functionality into AHEImpl
