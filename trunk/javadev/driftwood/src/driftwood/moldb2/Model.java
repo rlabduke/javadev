@@ -11,7 +11,7 @@ import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
 import driftwood.data.*;
-import driftwood.util.NullNaturalComparator;
+//import driftwood.util.NullNaturalComparator;
 //}}}
 /**
 * <code>Model</code> is the head of a logical (naming) description
