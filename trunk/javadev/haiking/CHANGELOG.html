@@ -2,18 +2,12 @@
 ==============================================================================
 ===  TO DO  ==================================================================
 ==============================================================================
-    I think we could eliminate x2/y2/z2 to save memory (ditto for x0/y0/z0, by reloading)
-        need 2's for line depth sort/drawing; reload is how slow?
-    Alternative input without stylus? (Canvas.hasPointerMotionEvents())
-    Add polyline breaker to separate really long lines into chunks
-    Support views?
-    Move to block architecture or file format version numbers? Use real kin fmt?
+    Add polyline breaker to separate really long lines into chunks?
+    Support views (at least one)
     Move clipping into the View class
-  * Support animations (via groups, or not?)
- ** Fire button toggles input mode (2 or 4, dep. on pointer events or not)
+    Support animations (via groups)
+    Fire button toggles input mode (2 or 4, dep. on pointer events or not)
     Add basic help text
-    Document binary format
-    Redo colors with good rounding
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -25,6 +19,16 @@
 - changed "Hide" to "Show" rhetoric; sync show/hide list with view state
 - made clipping steps coarser
 - moved KingLite/Hai-KiNG into Java Subversion repository
+- redid color palette with rounding to 5 bits per color only
+- started documentation of binary format
+- crucial change in file format: multi now comes first, and may be an "entity".
+  Old files are no longer compatible with the new program.
+- official program name will be KingLite; dir. still "haiking" for ease of nav.
+- parser skips unrecognized entities
+- added KGroup for groups/subgroups/lists, added support in parser
+- added is/setOn() to KPoint for supporting on/off by groups
+- made View check points to see if they're on or off during centerAndScale()
+- removed hiding by point type and replaced it with group/etc. mechanisms
 
 ### 1.04 ###
 - back buffer now notices screen size changes and adjusts

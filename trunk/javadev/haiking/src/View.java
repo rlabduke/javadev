@@ -38,8 +38,6 @@ static final int MIN_COORD = -MAX_COORD;
     int cx = 0, cy = 0, cz = 0;
     // Scale: number of bits to right-shift orig coords (0 to SCALE_MAX)
     private int scale = SCALE_MAX;
-    // Hide: bits from KPoint.MASK_XXX set to hide point types
-    private int hideMask = 0;
 //}}}
 
 //{{{ Constructor(s)
@@ -75,7 +73,7 @@ static final int MIN_COORD = -MAX_COORD;
             // we'll never be visible no matter how we're rotated.
             // Lines are judged by their midpoint.
             int type = p.getType();
-            if((hideMask & (1<<type)) != 0)
+            if(!p.isOn()) // line will always be off if line is, b/c of list structure
             {
                 transformThis = transformNext = false;
             }
@@ -252,7 +250,7 @@ static final int MIN_COORD = -MAX_COORD;
     }
 //}}}
 
-//{{{ get/setScale, get/setHideMask
+//{{{ get/setScale
 //##############################################################################
     public int getScale()
     { return this.scale; }
@@ -264,16 +262,6 @@ static final int MIN_COORD = -MAX_COORD;
         else if(s > SCALE_MAX)  scale = SCALE_MAX;
         else                    scale = s;
     }
-    
-    public int getHideMask()
-    { return this.hideMask; }
-    /** Zero for no hiding, otherwise combine KPoint.MASK_XXX flags. */
-    public void setHideMask(int m)
-    { this.hideMask = m; }
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
 //}}}
 
 //{{{ empty_code_segment

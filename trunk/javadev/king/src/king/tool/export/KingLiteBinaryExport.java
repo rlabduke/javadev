@@ -36,6 +36,19 @@ public class KingLiteBinaryExport extends Plugin
     static final int TYPE_DOT_LARGE     = 5;
     static final int TYPE_BALL          = 6;
     static final int TYPE_LABEL         = 7;
+
+    // Bit that marks entries as kinemage "entities" (NEVER set for points)
+    static final int ENTITY_BIT         = 1<<31;
+    static final int ENTITY_TYPE_SHIFT  = 16;
+    static final int ENTITY_TYPE_MASK   = 0x7fff;
+    static final int ENTITY_LEN_SHIFT   = 0;
+    static final int ENTITY_LEN_MASK    = 0xffff;
+    
+    // Types of entities
+    static final int ENT_NULL           = 0;
+    static final int ENT_GROUP          = 1;
+    static final int ENT_SUBGROUP       = 2;
+    static final int ENT_LIST           = 3;
 //}}}
 
 //{{{ Variable definitions
@@ -186,20 +199,21 @@ public class KingLiteBinaryExport extends Plugin
     {
         if(kin == null) return;
         
-        int animCount = 0;
         for(Iterator gi = kin.iterator(); gi.hasNext(); )
         {
             KGroup group = (KGroup) gi.next();
             if(!group.isOn()) continue;
-            int animFrame = (group.isAnimate() ? ++animCount : 0);
+            if(group.hasButton()) saveGroup(out, group);
             for(Iterator si = group.iterator(); si.hasNext(); )
             {
                 KSubgroup subgroup = (KSubgroup) si.next();
                 if(!subgroup.isOn()) continue;
+                if(subgroup.hasButton() && !group.isDominant()) saveGroup(out, subgroup);
                 for(Iterator li = subgroup.iterator(); li.hasNext(); )
                 {
                     KList list = (KList) li.next();
                     if(!list.isOn()) continue;
+                    if(list.hasButton() && !subgroup.isDominant() && !group.isDominant()) saveGroup(out, list);
                     for(Iterator pi = list.iterator(); pi.hasNext(); )
                     {
                         KPoint pt = (KPoint) pi.next();
@@ -210,6 +224,37 @@ public class KingLiteBinaryExport extends Plugin
             }
         }
         out.flush();
+    }
+//}}}
+
+//{{{ saveGroup
+//##############################################################################
+    void saveGroup(DataOutputStream out, AGE age) throws IOException
+    {
+        int entityType = 0;
+        int flags = 0;
+        
+        if(age instanceof KGroup)
+        {
+            entityType = ENT_GROUP;
+        }
+        else if(age instanceof KSubgroup)
+        {
+            entityType = ENT_SUBGROUP;
+        }
+        else if(age instanceof KList)
+        {
+            entityType = ENT_LIST;
+        }
+        
+        String name = age.getName();
+        int len = 4 + 4+ 2*name.length(); // length in bytes
+        int ent = ENTITY_BIT | (entityType<<ENTITY_TYPE_SHIFT) | (len<<ENTITY_LEN_SHIFT);
+        
+        out.writeInt(ent);
+        out.writeInt(flags);
+        out.writeInt(name.length());
+        out.writeChars(name);
     }
 //}}}
 
@@ -264,10 +309,10 @@ public class KingLiteBinaryExport extends Plugin
         int y = (int)Math.round(p.getY() * 1000);
         int z = (int)Math.round(p.getZ() * 1000);
         
+        out.writeInt(multi);
         out.writeInt(x);
         out.writeInt(y);
         out.writeInt(z);
-        out.writeInt(multi);
         
         if(p instanceof LabelPoint)
         {

@@ -3,6 +3,7 @@
 package kinglite;
 
 import java.io.*;
+import java.util.*;
 import javax.microedition.io.*;
 import javax.microedition.lcdui.*;
 import javax.microedition.rms.*;
@@ -16,6 +17,18 @@ import javax.microedition.rms.*;
 public class KinLoader extends List implements CommandListener
 {
 //{{{ Constants
+    // Bit that marks entries as kinemage "entities" (NEVER set for points)
+    static final int ENTITY_BIT         = 1<<31;
+    static final int ENTITY_TYPE_SHIFT  = 16;
+    static final int ENTITY_TYPE_MASK   = 0x7fff;
+    static final int ENTITY_LEN_SHIFT   = 0;
+    static final int ENTITY_LEN_MASK    = 0xffff;
+    
+    // Types of entities
+    static final int ENT_NULL           = 0;
+    static final int ENT_GROUP          = 1;
+    static final int ENT_SUBGROUP       = 2;
+    static final int ENT_LIST           = 3;
 //}}}
 
 //{{{ Variable definitions
@@ -99,53 +112,6 @@ public class KinLoader extends List implements CommandListener
     }
 //}}}
 
-//{{{ loadKinemage
-//##############################################################################
-    public void loadKinemage(InputStream is)
-    {
-        DataInputStream in = new DataInputStream(is);
-        kMain.kCanvas.clearKinemage(); // discarding the old kin
-        KPoint tailPt = null;
-        int nPointsRead = 0;
-        try 
-        {
-            while(true)
-            {
-                KPoint newPt = new KPoint(in.readInt(), in.readInt(), in.readInt(), in.readInt());
-                if(newPt.getType() == KPoint.TYPE_LABEL)
-                {
-                    int strlen = in.readInt();
-                    StringBuffer buf = new StringBuffer(strlen);
-                    for(int i = 0; i < strlen; i++) buf.append( in.readChar() );
-                    newPt.setPointID( buf.toString() );
-                }
-                newPt.prev = tailPt;
-                tailPt = newPt;
-                nPointsRead++;
-            }
-        }
-        catch(IOException ex) {} // this is also how we find EOF
-        try { in.close(); } catch(IOException ex) {}
-        
-        if(tailPt == null)
-        {
-            error("Kinemage had no points!");
-            return;
-        }
-        
-        View view = makeStartingView(tailPt);
-        
-        /*System.err.println("view: "+view.cx+"  "+view.cy+"  "+view.cz+"  scale "+view.getScale());
-        int cnt = 0;
-        KPoint p = tailPt;
-        for( ; p != null; cnt++) p = p.prev;
-        System.err.println(cnt+" points in kinemage; "+nPointsRead+" were read in");*/
-        
-        kMain.kCanvas.loadKinemage(tailPt, view);
-        Display.getDisplay(kMain).setCurrent(kMain.kCanvas);
-    }
-//}}}
-
 //{{{ storeKinemage
 //##############################################################################
     public void storeKinemage(String name, String about, InputStream in)
@@ -186,6 +152,109 @@ public class KinLoader extends List implements CommandListener
         catch(InvalidRecordIDException ex) { error("Bad ID: "+ex.getMessage()); }
         catch(RecordStoreFullException ex) { error("Full: "+ex.getMessage()); }
         catch(RecordStoreException ex) { error("General: "+ex.getMessage()); }
+    }
+//}}}
+
+//{{{ loadKinemage
+//##############################################################################
+    public void loadKinemage(InputStream is)
+    {
+        DataInputStream in = new DataInputStream(is);
+        kMain.kCanvas.clearKinemage(); // discarding the old kin
+        KPoint tailPt = null;
+        View view = null;
+        Vector groupList = new Vector();
+        int nPointsRead = 0;
+        
+        try 
+        {
+            while(true)
+            {
+                int multi = in.readInt();
+                if((multi & ENTITY_BIT) == 0) // POINTS
+                {
+                    KPoint newPt = new KPoint(in.readInt(), in.readInt(), in.readInt(), multi);
+                    if(newPt.getType() == KPoint.TYPE_LABEL)
+                        newPt.setPointID( readUnicodeString(in) );
+                    newPt.prev = tailPt;
+                    tailPt = newPt;
+                    nPointsRead++;
+                }
+                else // ENTITIES (anything that's not a point)
+                {
+                    int entityType = (multi>>ENTITY_TYPE_SHIFT) & ENTITY_TYPE_MASK;
+                    int entityLen = (multi>>ENTITY_LEN_SHIFT) & ENTITY_LEN_MASK;
+                    switch(entityType)
+                    {
+                        case ENT_GROUP:
+                        case ENT_SUBGROUP:
+                        case ENT_LIST:
+                            loadGroup(in, groupList, entityType, tailPt);
+                            break;
+                        default: // just discard the bytes for this entity
+                            for(int i = 0; i < entityLen; i++) in.readUnsignedByte();
+                            break;
+                    }
+                }
+            }
+        }
+        catch(IOException ex) {} // this is also how we find EOF
+        try { in.close(); } catch(IOException ex) {}
+        
+        if(tailPt == null)
+        {
+            error("Kinemage had no points!");
+            return;
+        }
+        
+        if(view == null) view = makeStartingView(tailPt);
+        
+        // Terminate open groups if needed.
+        for(int i = 0; i < groupList.size(); i++)
+        {
+            KGroup g = (KGroup) groupList.elementAt(i);
+            if(g.startPoint == null) g.startPoint = tailPt;
+        }
+        
+        kMain.kCanvas.loadKinemage(tailPt, view, groupList);
+        Display.getDisplay(kMain).setCurrent(kMain.kCanvas);
+    }
+//}}}
+
+//{{{ loadGroup
+//##############################################################################
+    void loadGroup(DataInput in, Vector groupList, int groupDepth, KPoint lastPointRead) throws IOException
+    {
+        //int groupDepth = in.readInt();
+        int groupFlags = in.readInt();
+        String groupName = readUnicodeString(in);
+        
+        // Terminate open groups if needed.
+        for(int i = 0; i < groupList.size(); i++)
+        {
+            KGroup g = (KGroup) groupList.elementAt(i);
+            if(g.depth <= groupDepth && g.startPoint == null)
+                g.startPoint = lastPointRead;
+        }
+        
+        KGroup group = new KGroup(groupName, groupDepth, groupFlags);
+        group.stopPoint = lastPointRead;
+        groupList.addElement(group);
+    }
+//}}}
+
+//{{{ readUnicodeString
+//##############################################################################
+    /**
+    * Reads a string stored as a number of characters (4-byte int)
+    * followed by those characters as two-byte Unicode chars.
+    */
+    String readUnicodeString(DataInput in) throws IOException
+    {
+        int strlen = in.readInt();
+        StringBuffer buf = new StringBuffer(strlen);
+        for(int i = 0; i < strlen; i++) buf.append( in.readChar() );
+        return buf.toString();
     }
 //}}}
 

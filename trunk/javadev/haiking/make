@@ -5,6 +5,8 @@ mkdir build verify
 javac -bootclasspath $MIDP_HOME/classes -target 1.1 -g:none -d build src/*.java
 #javac -bootclasspath $MIDP_HOME/classes -target 1.1 -g -d build src/*.java
 $MIDP_HOME/bin/preverify -classpath $MIDP_HOME/classes -d verify -cldc -nofinalize -nonative -nofp build
-jar cv0mf kinglite.jad kinglite.jar -C verify . -C res .
+# We do this (vs "-C res .") to avoid getting the .svn/* files in res:
+cp -R res/* verify
+jar cv0mf kinglite.jad kinglite.jar -C verify .
 ls -l kinglite.jar
 
