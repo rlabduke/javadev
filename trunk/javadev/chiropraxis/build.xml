@@ -12,9 +12,10 @@
     <tstamp>
         <format property="DSTAMP_SIX" pattern="yyMMdd"/>
     </tstamp>
-    <propertyfile file="${resource}/${ant.project.name}/version.props">
+    <propertyfile file="${resource}/${ant.project.name}/buildnum.props">
         <entry key="buildnum" value="${DSTAMP}.${TSTAMP}"/>
     </propertyfile>
+    <property file="${resource}/${ant.project.name}/buildnum.props"/>
     <property file="${resource}/${ant.project.name}/version.props"/>
 </target>
 <!-- Defines properties needed to use ANTSCP -->

@@ -51,8 +51,14 @@
     Distribute noe-display in packaged KiNG versions?
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
     Add ability to edit masters
-    Export movies (auto-rock) from KiNG - how to assemble PNGs/etc. ?
   * Think with Vincent about how to better organize/hide/group the tools
+        combo box layout stored in prefs; tools know their dependencies
+        make sure preferences are cleared out on user reset
+        implement SPI tool loading scheme
+    Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
+    Key/mouse modifiers need to be checked from Safari (applet)
+    Add a Mage-like "count" function
+    Rewrite HACKING section on Tools vs. Plugins
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -65,6 +71,12 @@
 - brushed metal look in partly missing for button panel in Safari, but putting
   in an extra JPanel results in unpredictable mixtures of metal and Apple pinstripes.
 - updated Hacking KiNG with notes about Jama in the driftwood section
+- began erasing the distinction between Tools and Plugins by
+  making BasicTool a subclass of Plugin.
+- rotamer window now asks Yes/No/Cancel when user tries to close it
+- making movies should be done from the POV-Ray exported data, not in KiNG
+- fixed chiropraxis bug that left Ala H's oriented randomly upon "idealization"
+- migrated to using version.props AND buildnum.props to simplify version control
 
 ### 1.23 ###
 - added arc drawing tool

@@ -17,6 +17,13 @@ import driftwood.r3.*;
 * (residue specific) Cartesian coordinate system on a beta sheet,
 * relative to the strand direction and sheet normal vectors.
 *
+* <p>Known bugs/problems:
+* <ul>
+* <li>Need a better H-bond potential: this one lets the C and N interact well</li>
+* <li>For cross-strand neighbors, along and across numbers don't correlate b/c
+*   the parallel / antiparallel relationship should affect the sign of the angle!</li>
+* </ul>
+*
 * <p>Copyright (C) 2004 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Mar 31 17:38:10 EST 2004
 */

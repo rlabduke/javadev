@@ -31,7 +31,7 @@ public class Model implements Cloneable
 
 //{{{ Variable definitions
 //##################################################################################################
-    /** The name of this model (may be null, not recommended) */
+    /** The name of this model (never null) */
     String              name;
 
     /** The set of Residues belonging to this Model */
@@ -60,6 +60,7 @@ public class Model implements Cloneable
 //##################################################################################################
     /**
     * Constructor
+    * @param name an identifier for this model. May not be null.
     */
     public Model(String name)
     {
@@ -126,6 +127,7 @@ public class Model implements Cloneable
     public String getName()
     { return name; }
 
+    /** Returns the identifier the model was created with (never null). */
     public String toString()
     { return name; }
 //}}}

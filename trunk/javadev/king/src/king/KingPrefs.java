@@ -157,8 +157,11 @@ public class KingPrefs extends Props // implements ...
             is.close();
             
             // Defaults that shouldn't be written to ~/.king_prefs (!!!)
-            is = this.getClass().getResourceAsStream("version.props");
             Props p = new Props();
+            is = this.getClass().getResourceAsStream("version.props");
+            p.load(is);
+            is.close();
+            is = this.getClass().getResourceAsStream("buildnum.props");
             p.load(is);
             is.close();
             this.setDefaults(p);
