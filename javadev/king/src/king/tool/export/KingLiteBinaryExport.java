@@ -12,7 +12,7 @@ import java.util.*;
 //import java.util.regex.*;
 import javax.swing.*;
 import driftwood.gui.*;
-import driftwood.util.SoftLog;
+import driftwood.util.*;
 //}}}
 /**
 * <code>KingLiteBinaryExport</code> writes binary "kinemage" files for the
@@ -41,7 +41,7 @@ public class KingLiteBinaryExport extends Plugin
 //{{{ Variable definitions
 //##############################################################################
     JFileChooser        chooser = null;
-    SuffixFileFilter    kltFilter;
+    SuffixFileFilter    kltFilter, pdbFilter;
 //}}}
 
 //{{{ Constructor(s)
@@ -58,11 +58,14 @@ public class KingLiteBinaryExport extends Plugin
     {
         kltFilter = new SuffixFileFilter("KingLite binary kinemage");
         kltFilter.addSuffix(".klt");
+        pdbFilter = new SuffixFileFilter("Palm database for IBM WebSphere/J9 VM");
+        pdbFilter.addSuffix(".pdb");
         
         String currdir = System.getProperty("user.dir");
         chooser = new JFileChooser();
+        chooser.addChoosableFileFilter(pdbFilter);
         chooser.addChoosableFileFilter(kltFilter);
-        chooser.setFileFilter(kltFilter);
+        chooser.setFileFilter(pdbFilter);
         if(currdir != null) chooser.setCurrentDirectory(new File(currdir));
     }
 //}}}
@@ -77,12 +80,22 @@ public class KingLiteBinaryExport extends Plugin
         if(JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(kMain.getTopWindow()))
         {
             File f = chooser.getSelectedFile();
-            if(!kltFilter.accept(f) &&
-            JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(kMain.getTopWindow(),
-            "This file has the wrong extension. Append '.klt' to the name?",
-            "Fix extension?", JOptionPane.YES_NO_OPTION))
+            boolean doPalmHeader = (chooser.getFileFilter() == pdbFilter);
+            if(doPalmHeader)
             {
-                f = new File(f+".klt");
+                if(!pdbFilter.accept(f) &&
+                JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+                "This file has the wrong extension. Append '.pdb' to the name?",
+                "Fix extension?", JOptionPane.YES_NO_OPTION))
+                    f = new File(f+".pdb");
+            }
+            else
+            {
+                if(!kltFilter.accept(f) &&
+                JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+                "This file has the wrong extension. Append '.klt' to the name?",
+                "Fix extension?", JOptionPane.YES_NO_OPTION))
+                    f = new File(f+".klt");
             }
 
                 
@@ -94,6 +107,7 @@ public class KingLiteBinaryExport extends Plugin
                 try
                 {
                     DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(f)));
+                    if(doPalmHeader) writePalmHeader(out, f.getName(), "Created by KiNG "+kMain.getPrefs().getString("version"));
                     save(out, kMain.getKinemage());
                     out.close();
                 }
@@ -106,6 +120,62 @@ public class KingLiteBinaryExport extends Plugin
                 }
             }
         }
+    }
+//}}}
+
+//{{{ writePalmHeader
+//##############################################################################
+    public void writePalmHeader(DataOutputStream out, String kinName, String aboutText) throws IOException
+    {
+        // Palm DataBase (PDB) file based on http://www.palmos.com/dev/support/docs/fileformats/Intro.html
+        // 32 bytes: Database name
+        String dbname = "J9RMS "+System.currentTimeMillis();
+        out.writeBytes(dbname);
+        for(int i = dbname.length(); i < 32; i++) out.writeByte(0);
+        // Data I don't care about: flags and date stamps
+        int[] hdr1 = {
+            // attributes/version   creation date           modification date       last backup date
+            0x00, 0x08, 0x00, 0x00, 0x42, 0x05, 0xdc, 0x5c, 0x42, 0x05, 0xdc, 0x9a, 0x42, 0x05, 0xdc, 0x9a,
+            // modification #       appInfoID               sortInfoID              type ("j9rs")
+            0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x68, 0x00, 0x00, 0x00, 0x00, 0x6a, 0x39, 0x72, 0x73,
+            // creator ("KngL")     unique ID seed          nextRecordList ID       # records 
+            0x4b, 0x6e, 0x67, 0x4c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03
+        };
+        for(int i = 0; i < hdr1.length; i++) out.writeByte(hdr1[i]);
+        // Now three record entries. We need to know size of data items 1 and 2 first...
+        int baseOffset = 0x00000100; 
+        out.writeInt(baseOffset);                                       // offset to start of first record
+        out.writeInt(0x00000001);                                       // UID for this record
+        out.writeInt(baseOffset+kinName.length());                      // offset to start of second record
+        out.writeInt(0x00000002);                                       // UID for this record
+        out.writeInt(baseOffset+kinName.length()+aboutText.length());   // offset to start of third record
+        out.writeInt(0x00000003);                                       // UID for this record
+        // More data I don't care about: the app info block
+        int[] hdr2 = {
+            //                                  empty?       "KingLite" followed by nulls (32b total)   
+                                                0x00, 0x00,  0x4b, 0x69, 0x6e, 0x67, 0x4c, 0x69, 0x74, 0x65,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            //                                               unknown...
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  0x01, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00,
+            // unknown        4b date stamp variant?        len    database name (32 x 16bit chars, null padded)
+            0x00, 0x01, 0x01, 0xe7, 0xf7, 0x71, 0x0c
+        };
+        for(int i = 0; i < hdr2.length; i++) out.writeByte(hdr2[i]);
+        // Now the length of the (Java) database name, followed by the name and some nulls, for 32 chars
+        String storename = Long.toString(System.currentTimeMillis(), 16)+kinName;
+        if(storename.length() > 32) storename = storename.substring(0, 32);
+        out.writeByte(storename.length());
+        out.writeChars(storename);
+        for(int i = storename.length(); i < 32; i++) out.writeChar( (char)0 );
+        int[] hdr3 = { //application name, etc.
+                                                             0x00, 0x00, 0x00, 0x24, 0x00, 0x4b, 0x00, 0x69,
+            0x00, 0x6e, 0x00, 0x67, 0x00, 0x4c, 0x00, 0x69,  0x00, 0x74, 0x00, 0x65, 0x00, 0x2d, 0x00, 0x49,
+            0x00, 0x61, 0x00, 0x6e, 0x00, 0x20, 0x00, 0x44,  0x00, 0x61, 0x00, 0x76, 0x00, 0x69, 0x00, 0x73
+        };
+        for(int i = 0; i < hdr3.length; i++) out.writeByte(hdr3[i]);
+        // Raw data:
+        out.writeBytes(kinName);
+        out.writeBytes(aboutText);
     }
 //}}}
 
@@ -149,7 +219,7 @@ public class KingLiteBinaryExport extends Plugin
             else if(p instanceof LabelPoint)   multi |= TYPE_LABEL;
             else continue;
             
-            String color = p.getDrawingColor().toString();
+            String color = p.getDrawingColor(kCanvas.getEngine()).toString();
             int colorIndex = 31;
             for(int i = 0; i < colors.length; i++)
             {
