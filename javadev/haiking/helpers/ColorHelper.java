@@ -88,6 +88,13 @@ public class ColorHelper //extends ... implements ...
             bcolors[i] = getHSB(hue, blackSat,
                 //( 0.36f + 0.64f*i/(COLOR_LEVELS-1) )*blackVal );
                 ( BVAL + (1-BVAL)*i/(COLOR_LEVELS-1) )*blackVal );
+            
+            // We only get five bits in RGB on most current PDAs.
+            // Rounding rather than just bit-shifting should give better results...
+            int red = Math.min(0xff, 8 * (int) Math.round(((bcolors[i]>>16) & 0xff) / 8.0));
+            int grn = Math.min(0xff, 8 * (int) Math.round(((bcolors[i]>> 8) & 0xff) / 8.0));
+            int blu = Math.min(0xff, 8 * (int) Math.round(((bcolors[i]>> 0) & 0xff) / 8.0));
+            bcolors[i] = (red<<16) | (grn<<8) | blu;
         }
         
         // value increases, saturation decreases going back

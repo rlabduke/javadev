@@ -14,7 +14,7 @@ public class KPoint //extends ... implements ...
 //{{{ Constants
     // All point IDs are stored here (labels only)
     public static final Hashtable pointIDs = new Hashtable();
-
+    
     // Parameters for bit-packing info into this.multi
     static final int TYPE_SHIFT         = 0;
     static final int TYPE_MASK          = (1<<3) - 1;
@@ -32,6 +32,8 @@ public class KPoint //extends ... implements ...
     static final int TYPE_DOT_LARGE     = 5;
     static final int TYPE_BALL          = 6;
     static final int TYPE_LABEL         = 7;
+    
+    static final int OFF_BIT            = (1<<24);
     
     // Masks for hiding certain point types
     static final int MASK_VECTOR_NODRAW = 1 << TYPE_VECTOR_NODRAW;
@@ -54,9 +56,12 @@ public class KPoint //extends ... implements ...
     KPoint zchain = null;           // for linked list in z-buffer
     
     // Used for various things:
-    // Bits 0-2:    point type
-    // Bits 3-7:    color
-    // Bits 8-23:   radius (mult by 8 to get same scale as pt coords)
+    // Bits 0-2     point type
+    // Bits 3-7     color
+    // Bits 8-23    radius (mult by 8 to get same scale as pt coords)
+    // Bit  24      off (when set, don't display point)
+    //
+    // Bit  31      entity marker (NEVER set / not used in points)
     private int multi = 0;
 //}}}
 
@@ -78,7 +83,7 @@ public class KPoint //extends ... implements ...
     }
 //}}}
 
-//{{{ getType/Color/Radius
+//{{{ getType/Color/Radius, is/setOn
 //##############################################################################
     public int getType()
     { return (multi >> TYPE_SHIFT) & TYPE_MASK; }
@@ -88,6 +93,15 @@ public class KPoint //extends ... implements ...
     
     public int getRadius()
     { return (multi >> RAD_SHIFT) & RAD_MASK; }
+    
+    public boolean isOn()
+    { return (multi & OFF_BIT) == 0; }
+    
+    public void setOn(boolean on)
+    {
+        if(on)  multi &= ~OFF_BIT;
+        else    multi |= OFF_BIT;
+    }
 //}}}
 
 //{{{ getDrawingZ, get/setPointID

@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>Binary file format</title>
+</head>
+<body>
+<h1>The KingLite binary file format</h1>
+<h3>Definitions</h3>
+All data is read/stored according to the conventions of the
+java.io.DataInput/Output interfaces, namely:<br>
+<ul>
+  <li>Multi-byte values are writen high byte first, low byte last
+(i.e., big endian)</li>
+  <li>Bytes are one byte (eight bits), unsigned. They are usually ASCII
+characters.</li>
+  <li>Chars are two bytes, unsigned. They are Unicode characters.</li>
+  <li>Ints are four bytes, signed. The high bit is the sign bit.</li>
+</ul>
+<h3>General format overview</h3>
+The format consists of a linear series of data blocks, terminated by
+end-of-file. Each data block is at least four bytes (read as one int).<br>
+<br>
+If the high bit of that int is clear (0), the entry is a point. That
+int is the "multi" entry for the point, and is followed by three more
+ints for the x, y, and z coordinates of the point. Points that are
+indicated to have a point ID are then followed by an int giving the
+length of the point ID as a Unicode string, and then the string itself
+(note that the length is the number of chars; that is, twice the number
+of bytes). Otherwise, all point entries are exactly 16 bytes (multi +
+x, y, z). For more details on the meaning of bit fields within multi,
+see the KPoint code.<br>
+<br>
+If the high bit of the int is set (1), the entry is an "entity" -- any
+other type of data that might be found in a kinemage file. The upper 16
+bits, except the sign bit (bits 16-30, but not bit 31) indicate what
+type of entity this is. The lower 16 bits (bits 0-15) as an unsigned
+short integer give the number of remaining bytes consumed by this
+entity data block. The total length of the block is thus 4 bytes for
+the intial int plus zero or more additional bytes, as indicated by this
+field. In this way, programs can skip block types they don't understand
+when reading newer files. <br>
+<h3>General format vs. Palm DataBase (PDB) format</h3>
+Palm OS uses a special binary format for storing its data, which is
+(partially) documented at <a
+ href="http://www.palmos.com/dev/support/docs/fileformats/Intro.html">http://www.palmos.com/dev/support/docs/fileformats/Intro.html</a>.
+When the file contents conform to both that format and the expectations
+of the IBM "J9" Java Virtual Machine, the data can be accessed via the
+javax.microedition.rms API.<br>
+<br>
+The first record will be the human-readable name of the kinemage. (As
+distinguished from the name of the record store, which contains a
+timestamp to help ensure uniqueness.) The second record has a poorly
+defined purpose at the present time, but might indicate the origin or
+copyright for the kinemage. The third and any subsequent records
+contain the binary kinemage format data as described in the rest of
+this document. Multiple data records are allowed to aid in conserving
+memory while the kinemage is loaded. They may be of any length, and
+when concatenated in order they should be indentical to the kinemage
+data if it were stored as a single record.<br>
+<h3>Entity definitions</h3>
+<span style="font-weight: bold; font-family: monospace;">ENT_GROUP,
+ENT_SUBGROUP, ENT_LIST</span>:
+A kinemage group, subgroup, or list. Its data consists of an
+integer (bitflags for various attributes), and then the length of its
+name (int, measured in chars) and the Unicode characters
+for its name. Note that the length of this string could also be derived
+from
+the total length of the data block.<br>
+</body>
+</html>
