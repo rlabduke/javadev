@@ -160,7 +160,7 @@ public class PointEditor implements ChangeListener
         // Write values to GUI
         ptID.setText(p.getName());
         ptAspects.setText(p.getAspects());
-        ptMasters.setText(MasterGroup.fromPmBitmask(p.getPmMask()));
+        ptMasters.setText(kin.fromPmBitmask(p.getPmMask()));
         ptX.setText(Float.toString(p.getOrigX()));
         ptY.setText(Float.toString(p.getOrigY()));
         ptZ.setText(Float.toString(p.getOrigZ()));
@@ -214,11 +214,13 @@ public class PointEditor implements ChangeListener
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onPointOK(ActionEvent ev)
     {
+        Kinemage kin = kMain.getKinemage();
+
         thePoint.setName(ptID.getText());
         String aspects = ptAspects.getText().trim().toUpperCase();
         if(aspects.length() > 0)    thePoint.setAspects(aspects);
         else                        thePoint.setAspects(null);
-        thePoint.setPmMask(MasterGroup.toPmBitmask(ptMasters.getText().trim().toLowerCase()));
+        if(kin != null) thePoint.setPmMask(kin.toPmBitmask(ptMasters.getText().trim(), true, true));
         thePoint.setUnpickable(ptUnpickable.isSelected());
         
         try { thePoint.setOrigX(Float.parseFloat(ptX.getText().trim())); }
@@ -248,8 +250,7 @@ public class PointEditor implements ChangeListener
         ptDialog.setVisible(false);
         thePoint = null; // avoid memory leaks
 
-        Kinemage k = kMain.getKinemage();
-        if(k != null) k.setModified(true);
+        if(kin != null) kin.setModified(true);
         kMain.notifyChange(KingMain.EM_EDIT_FINE);
     }
 

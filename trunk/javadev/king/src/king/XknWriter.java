@@ -144,7 +144,7 @@ public class XknWriter implements XMLReader
         
         for(iter = kin.masterList().iterator(); iter.hasNext(); )
         {
-            writeMaster((MasterGroup)iter.next());
+            writeMaster((MasterGroup)iter.next(), kin);
         }
         
         // etc.
@@ -306,7 +306,7 @@ public class XknWriter implements XMLReader
         AttributesImpl atts = new AttributesImpl();
         if(point.isBreak())             atts.addAttribute(nsu, "lineto", "lineto", "CDATA", "false");
         atts.addAttribute(nsu, "name", "name", "CDATA", point.getName());
-        if(point.getPmMask() != 0)      atts.addAttribute(nsu, "masters", "masters", "CDATA", MasterGroup.fromPmBitmask(point.getPmMask()));
+        if(point.getPmMask() != 0)      atts.addAttribute(nsu, "masters", "masters", "CDATA", kin.fromPmBitmask(point.getPmMask()));
         if(point.getAspects() != null)  atts.addAttribute(nsu, "aspects", "aspects", "CDATA", point.getAspects());
         if(point.isUnpickable())        atts.addAttribute(nsu, "pickable", "pickable", "CDATA", "false");
         if(point instanceof VectorPoint)
@@ -372,13 +372,13 @@ public class XknWriter implements XMLReader
 
 //{{{ writeMaster(Reference)()
 //##################################################################################################
-    void writeMaster(MasterGroup master) throws SAXException
+    void writeMaster(MasterGroup master, Kinemage kin) throws SAXException
     {
         String elName = "master";
         AttributesImpl atts = new AttributesImpl();
         atts.addAttribute(nsu, "name", "name", "CDATA", master.getName());
         if(master.pm_mask != 0)
-        { atts.addAttribute(nsu, "pointmaster", "pointmaster", "CDATA", MasterGroup.fromPmBitmask(master.pm_mask)); }
+        { atts.addAttribute(nsu, "pointmaster", "pointmaster", "CDATA", kin.fromPmBitmask(master.pm_mask)); }
         if(! master.isOn())         atts.addAttribute(nsu, "off", "off", "CDATA", "true");
         if(! master.hasButton())    atts.addAttribute(nsu, "nobutton", "nobutton", "CDATA", "true");
         
