@@ -1,0 +1,18 @@
+# Standard plugins
+king.tool.export.PovrayExport
+king.tool.export.KingLiteBinaryExport
+king.tool.export.Vrml97Writer
+king.tool.export.XknWriter
+king.tool.views.ViewpointPlugin
+king.tool.views.ClipPlanesPlugin
+king.tool.draw.LathePlugin
+
+# Tools
+king.tool.docking.Dock3On3Tool
+king.tool.docking.DockLsqTool
+king.tool.rnaxtal.RNAMapTool
+king.tool.rnaxtal.GuilloTool
+king.tool.postkin.RecolorTool
+king.tool.sequence.FastaTool
+king.tool.data_analysis.CrossWindowPickTool
+king.tool.data_analysis.AutoBondRotDataTool

@@ -1,0 +1,17 @@
+king.tool.export.PovrayExport.menuName = <export>
+king.tool.export.KingLiteBinaryExport.menuName = <export>
+# VRML and XML export are not maintained or complete...
+king.tool.export.Vrml97Writer.menuName = <not shown>
+king.tool.export.XknWriter.menuName = <not shown>
+king.tool.draw.LathePlugin.menuName = Kin editing
+king.tool.data_analysis.CrossWindowPickTool.menuName = Specialty
+king.tool.data_analysis.AutoBondRotDataTool.menuName = Specialty
+king.tool.docking.Dock3On3Tool.menuName = Kin editing
+king.tool.docking.DockLsqTool.menuName = Kin editing
+king.tool.views.ViewpointPlugin.menuName = <main menu>
+king.tool.views.ClipPlanesPlugin.menuName = Specialty
+king.tool.rnaxtal.RNAMapTool.menuName = Specialty
+king.tool.rnaxtal.GuilloTool.menuName = Specialty
+king.tool.sequence.FastaTool.menuName = Specialty
+king.tool.postkin.RecolorTool.menuName = Kin editing
+

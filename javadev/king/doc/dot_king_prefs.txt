@@ -92,28 +92,11 @@ king.BasicTool.menuName = <main menu>
 king.EDMapPlugin.menuName = Structural biology
 king.tool.export.ImageExport.menuName = <export>
 king.tool.export.PdfExport.menuName = <export>
-king.tool.export.PovrayExport.menuName = <export>
-king.tool.export.KingLiteBinaryExport.menuName = <export>
-# VRML and XML export are not maintained or complete...
-king.tool.export.Vrml97Writer.menuName = <not shown>
-king.tool.export.XknWriter.menuName = <not shown>
 king.tool.draw.DrawingTool.menuName = Kin editing
-king.tool.draw.SolidObjPlugin.menuName = Kin editing
-king.tool.util.CrossWindowPickTool.menuName = Specialty
-king.tool.util.Dock3On3Tool.menuName = Kin editing
-king.tool.util.DockLsqTool.menuName = Kin editing
-king.tool.util.EditPropertiesTool.menuName = Kin editing
-king.tool.util.MovePointTool.menuName = Kin editing
-# king.tool.util.RibbonTool.menuName = Kin editing
-king.tool.util.ViewpointPlugin.menuName = <main menu>
+king.tool.draw.EditPropertiesTool.menuName = Kin editing
+king.tool.draw.MovePointTool.menuName = Kin editing
 king.tool.util.SelfUpdatePlugin.menuName = <main menu>
-king.tool.xtal.RNAMapTool.menuName = Specialty
-king.tool.xtal.GuilloTool.menuName = Specialty
-king.tool.xtal.SuiteRotationTool.menuName = Specialty
-king.tool.util.FastaTool.menuName = Specialty
-king.tool.util.RecolorTool.menuName = Kin editing
-king.tool.util.ClipPlanesPlugin.menuName = Specialty
-king.tool.util.AutoBondRotDataTool.menuName = Specialty
+king.tool.bondrot.SuiteRotationTool.menuName = Specialty
 
 ######################################################################
 ### PROTECTION AND CONFIRMATION ######################################
