@@ -1651,6 +1651,16 @@ Other functions can be accessed either by holding down keyboard keys at
  shortcut does not apply to Shift+Ctrl+Click.
 \layout Standard
 
+At the present time, the Shift and Control keys do not work properly in
+ Java on Mac OS X.
+ When using a one-button mouse with OS X, you should use the Command key
+ (a.k.a.
+ Open Apple) instead of Shift to get the same effect as the right mouse
+ button, and you should use the Option key (a.k.a.
+ Alt) instead of Control to get the same effect as the middle mouse button.
+ Hopefully this will be fixed in OS X 10.4 / Java 1.5.
+\layout Standard
+
 Some tools also use the up & down arrow keys on the keyboard; these have
  the same effect as using the scroll wheel of a wheel mouse.
  Once again, these may be combined with the Shift and/or Control keys to

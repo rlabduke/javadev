@@ -225,7 +225,7 @@ public class KingMain implements WindowListener, KinemageSignalSubscriber
     }
 //}}}
 
-//{{{ appletLoadFiles
+//{{{ appletLoadFiles, getAppletKinURL
 //##################################################################################################
     /**
     * File loading in event dispatch thread
@@ -237,24 +237,13 @@ public class KingMain implements WindowListener, KinemageSignalSubscriber
         if(kCanvas == null) toolbox = null;
         else toolbox = kCanvas.getToolBox();
 
-
-        // Try multiple names for this parameter
-        String kinsrc = theApplet.getParameter("kinSource");
-        if(kinsrc == null) kinsrc = theApplet.getParameter("kinFile");
-        if(kinsrc == null) kinsrc = theApplet.getParameter("kinURL");
-        if(kinsrc == null) kinsrc = theApplet.getParameter("kinemage");
-        if(kinsrc == null) kinsrc = theApplet.getParameter("kin");
-        
-        if(kinsrc != null)
+        try
         {
-            try
-            {
-                URL kinURL = new URL(theApplet.getDocumentBase(), kinsrc);
-                this.getKinIO().loadURL(kinURL, null);
-            }
-            catch(MalformedURLException ex)
-            { SoftLog.err.println("<PARAM> kinSource specified an unresolvable URL."); }
+            URL kinURL = getAppletKinURL();
+            if(kinURL != null) this.getKinIO().loadURL(kinURL, null);
         }
+        catch(MalformedURLException ex)
+        { SoftLog.err.println("<PARAM> kinSource specified an unresolvable URL."); }
 
         // Try multiple names for this parameter
         boolean isOmap = false;
@@ -292,6 +281,20 @@ public class KingMain implements WindowListener, KinemageSignalSubscriber
                 ex.printStackTrace(SoftLog.err);
             }
         }
+    }
+    
+    /** Returns the URL of the primary kinemage this applet was invoked to show, or null for none. */
+    public URL getAppletKinURL() throws MalformedURLException
+    {
+        // Try multiple names for this parameter
+        String kinsrc = theApplet.getParameter("kinSource");
+        if(kinsrc == null) kinsrc = theApplet.getParameter("kinFile");
+        if(kinsrc == null) kinsrc = theApplet.getParameter("kinURL");
+        if(kinsrc == null) kinsrc = theApplet.getParameter("kinemage");
+        if(kinsrc == null) kinsrc = theApplet.getParameter("kin");
+        
+        if(kinsrc != null) return new URL(theApplet.getDocumentBase(), kinsrc);
+        else return null;
     }
 //}}}
 
