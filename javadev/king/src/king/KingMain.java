@@ -434,7 +434,11 @@ public class KingMain implements WindowListener, KinemageSignalSubscriber
 //##################################################################################################
     public void windowActivated(WindowEvent ev)   {}
     public void windowClosed(WindowEvent ev)      {}
-    public void windowClosing(WindowEvent ev)     { shutdown(); }
+    public void windowClosing(WindowEvent ev)
+    {
+        if(uiMenus != null)     uiMenus.onFileExit(null);
+        else                    shutdown();
+    }
     public void windowDeactivated(WindowEvent ev) {}
     public void windowDeiconified(WindowEvent ev) {}
     public void windowIconified(WindowEvent ev)   {}

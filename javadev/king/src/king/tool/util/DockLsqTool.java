@@ -194,6 +194,7 @@ public class DockLsqTool extends BasicTool
         if(!t.isNaN() && kin != null)
         {
             transformAllVisible(kin, t);
+            kin.setModified(true);
         }
         
         // Swap which button is selected

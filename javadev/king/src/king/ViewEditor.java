@@ -111,6 +111,7 @@ public class ViewEditor //extends ... implements ...
             iter.previous(); //back to swap...
             iter.set(view);
         }
+        kin.setModified(true);
 
         // Re-fill the list so names are updated
         list.setListData( viewList.toArray() );
@@ -136,6 +137,7 @@ public class ViewEditor //extends ... implements ...
             iter.previous(); //back to view...
             iter.set(swap);
         }
+        kin.setModified(true);
 
         // Re-fill the list so names are updated
         list.setListData( viewList.toArray() );
@@ -170,6 +172,7 @@ public class ViewEditor //extends ... implements ...
         // Re-fill the list so names are updated
         Kinemage kin = kMain.getKinemage();
         if(kin == null) return;
+        kin.setModified(true);
         list.setListData( kin.getViewList().toArray() );
         list.setSelectedValue(view, true);
     }
@@ -184,6 +187,7 @@ public class ViewEditor //extends ... implements ...
         
         java.util.List viewList = kin.getViewList();
         viewList.remove(view);
+        kin.setModified(true);
 
         // Re-fill the list so names are updated
         list.setListData( viewList.toArray() );

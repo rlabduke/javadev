@@ -247,6 +247,9 @@ public class PointEditor implements ChangeListener
         
         ptDialog.setVisible(false);
         thePoint = null; // avoid memory leaks
+
+        Kinemage k = kMain.getKinemage();
+        if(k != null) k.setModified(true);
         kMain.notifyChange(KingMain.EM_EDIT_FINE);
     }
 
@@ -337,6 +340,8 @@ public class PointEditor implements ChangeListener
             }
         }
         
+        Kinemage k = kMain.getKinemage();
+        if(k != null) k.setModified(true);
         kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_EDIT_FINE);
     }
 //}}}

@@ -240,6 +240,9 @@ public class DrawingTool extends BasicTool
         else if(rbPunch.isSelected())           doPunch(x, y, p, ev);
         else if(rbAuger.isSelected())           doAuger(x, y, p, ev);
         else if(rbSphereCrop.isSelected())      doSphereCrop(x, y, p, ev);
+        
+        Kinemage k = kMain.getKinemage();
+        if(k != null) k.setModified(true);
     }
     
     /** Override this function for middle-button/control clicks */

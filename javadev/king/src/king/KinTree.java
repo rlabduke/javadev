@@ -375,7 +375,11 @@ public class KinTree //extends ... implements ...
             if(!kMain.prefs.getBoolean("treeConfirmDelete") ||
                JOptionPane.showConfirmDialog(frame, "Really delete the selected item, '"+node.toString()+"'?",
                "Confirm delete", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION)
-            { model.removeNodeFromParent(node); }
+            {
+                model.removeNodeFromParent(node);
+                Kinemage k = kMain.getKinemage();
+                if(k != null) k.setModified(true);
+            }
         }
         
         didEdit = true;
@@ -404,6 +408,8 @@ public class KinTree //extends ... implements ...
             {
                 clipboard = node;
                 model.removeNodeFromParent(node);
+                Kinemage k = kMain.getKinemage();
+                if(k != null) k.setModified(true);
             }
         }
         
@@ -558,6 +564,9 @@ public class KinTree //extends ... implements ...
                 else failPaste();
             }//node is KList
             else failPaste();
+            
+            Kinemage k = kMain.getKinemage();
+            if(k != null) k.setModified(true);
         }
         
         didEdit = true;
@@ -594,6 +603,8 @@ public class KinTree //extends ... implements ...
                 try
                 {
                     clipboard = (MutableTreeNode) ((AGE)node).clone();
+                    Kinemage k = kMain.getKinemage();
+                    if(k != null) k.setModified(true);
                 }
                 catch(CloneNotSupportedException ex)    { ex.printStackTrace(SoftLog.err); }
                 catch(ClassCastException ex)            { ex.printStackTrace(SoftLog.err); }
@@ -629,6 +640,8 @@ public class KinTree //extends ... implements ...
                 model.removeNodeFromParent(childnode);
                 model.insertNodeInto(childnode, parentnode, index-1);
                 tree.setSelectionPath(path);
+                Kinemage k = kMain.getKinemage();
+                if(k != null) k.setModified(true);
             }            
         }
         
@@ -658,6 +671,8 @@ public class KinTree //extends ... implements ...
                 model.removeNodeFromParent(childnode);
                 model.insertNodeInto(childnode, parentnode, index+1);
                 tree.setSelectionPath(path);
+                Kinemage k = kMain.getKinemage();
+                if(k != null) k.setModified(true);
             }            
         }
         
@@ -686,6 +701,8 @@ public class KinTree //extends ... implements ...
             KGroup group = new KGroup((Kinemage)node, "New group");
             model.insertNodeInto(group, node, 0);
             tree.setSelectionPath(path.pathByAddingChild(group));
+            Kinemage k = kMain.getKinemage();
+            if(k != null) k.setModified(true);
             didEdit = true;
             kMain.notifyChange(KingMain.EM_EDIT_GROSS);
         }
@@ -694,6 +711,8 @@ public class KinTree //extends ... implements ...
             KSubgroup subgroup = new KSubgroup((KGroup)node, "New subgroup");
             model.insertNodeInto(subgroup, node, 0);
             tree.setSelectionPath(path.pathByAddingChild(subgroup));
+            Kinemage k = kMain.getKinemage();
+            if(k != null) k.setModified(true);
             didEdit = true;
             kMain.notifyChange(KingMain.EM_EDIT_GROSS);
         }

@@ -369,6 +369,7 @@ public class GroupEditor implements ChangeListener
             kinemage.atPerspective          = kiPerspec.isSelected();
             kinemage.atFlat                 = kiFlat.isSelected();
             kinemage.atListcolordominant    = kiListcolor.isSelected();
+            markKinModified(kinemage);
         }
         
         return acceptChanges;
@@ -407,6 +408,7 @@ public class GroupEditor implements ChangeListener
             group.setRecessiveOn(   grRecessiveOn.isSelected());
             group.setAnimate(       grAnimate.isSelected());
             group.set2Animate(      gr2Animate.isSelected());
+            markKinModified(group);
         }
         
         return acceptChanges;
@@ -441,6 +443,7 @@ public class GroupEditor implements ChangeListener
             subgroup.setHasButton(  !suNoButton.isSelected());
             subgroup.setDominant(   suDominant.isSelected());
             subgroup.setRecessiveOn(suRecessiveOn.isSelected());
+            markKinModified(subgroup);
         }
         
         return acceptChanges;
@@ -486,6 +489,7 @@ public class GroupEditor implements ChangeListener
             catch(NumberFormatException ex) {}
             // Color is handled as soon as the choice is registered,
             // so we don't need to deal with it here.
+            markKinModified(list);
         }
         else
         {
@@ -573,6 +577,7 @@ public class GroupEditor implements ChangeListener
             z = Float.parseFloat(trTransZ.getText().trim());
             
             translate(trTarget, x, y, z);
+            markKinModified(trTarget);
         }
         catch(NumberFormatException ex) {}
         
@@ -620,6 +625,7 @@ public class GroupEditor implements ChangeListener
             rot.append(tmp);
             
             rotate(trTarget, rot);
+            markKinModified(trTarget);
         }
         catch(NumberFormatException ex) {}
         
@@ -651,6 +657,7 @@ public class GroupEditor implements ChangeListener
             float s;
             s = Float.parseFloat(trScale.getText().trim());
             scale(trTarget, x, y, z, s);
+            markKinModified(trTarget);
         }
         catch(NumberFormatException ex) {}
         
@@ -753,12 +760,18 @@ public class GroupEditor implements ChangeListener
     }
 //}}}
 
-//{{{ stateChanged
+//{{{ stateChanged, markKinModified
 //##################################################################################################
     public void stateChanged(ChangeEvent ev)
     {
         theKList.setColor( liPicker.getSelection() );
         kMain.notifyChange(KingMain.EM_DISPLAY);
+    }
+    
+    void markKinModified(AGE age)
+    {
+        Kinemage k = age.getKinemage();
+        if(k != null) k.setModified(true);
     }
 //}}}
 

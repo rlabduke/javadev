@@ -7,23 +7,20 @@
     Include demo/tutorial kinemage ?
     Add paintHighQuality to MarkerPoint
     Add ability to edit alpha; add alpha to other primitives
-    Make pointmasters dominant-off like normal masters
     Implement the 'moview= #' feature of Mage?
     Implement "screen" keyword for lists
     Add ability to create/edit colors
-    Add notes on color usage to palette(s)
     Allow editing of all points below a given group/subgroup/list.
         eg: wipe out all point colors, move all pt colors to aspects
     Add "don't ask me again" boxes to warning messages
     Auto-create unnamed @aspects
     Make Find ignore points that have the invisible aspect (Z) active
-    Develop "xkn" file specification / DTD / Schema
     Kinemage title doesn't get updated in the kin list immediately
     @pdbfile should be interpretted relative to the kinemage file location!
-    Export as VRML 2.0 (VRML97) / VRML 1.0 / POV-Ray
+    Develop "xkn" file specification / DTD / Schema
+    Export as VRML 2.0 (VRML97) / VRML 1.0
+    Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
     Implement EM_SHUTDOWN signal in KingMain, goes to Tools also (?)
-    Ask to save modified kinemages before closing
-        Hashing approach: recursive, x' = x*31 + next
     Make hierarchy editor drag-and-drop
     Tau minimizer over a range (rebuild peptides too?)
     Look at mouse wheel modifiers (e.g. Shift)
@@ -43,11 +40,10 @@
 <!-- Postponed TO DO items }}} -->
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
     Add ability to edit masters
-    Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
-    Write Java and Python guides to creating a plugin, listing all the basic steps
     Add some kind of transformation hook (listeners, priorities, etc)
-    Warn about losing unsaved changes
+    Text editor should notice edits to text and mark kin(s) as modified
     Add pyking to KiNG source distro?
+    Write Java and Python guides to creating a plugin, listing all the basic steps
     Add kinemage format doc (once edited) to distro doc/ folder (installers too)
 
 ==============================================================================
@@ -60,6 +56,15 @@
 - elaborated on JOGL install instructions
 - changed labeling drawing tool to ask what label text should be, w/ ID as def.
 - label drawing tool can now either ask or use default, controlled by checkbox
+- added mechanism for tracking whether a kin has been modified to Kinemage
+- added checking for modification and prompting for save before exiting KiNG
+- saving kinemages through KinfileIO clears their modification flag (if set)
+- GroupEditor sets the modified flag on kinemages now
+- KinTree and PointEditor cmds now set the modified flag
+- ViewsEditor sets the kin-modified flag
+- DrawingTool and SolidObjPlugin set the modified flag
+- MovePointTool sets the modified flag
+- both docking tools set the modified flag
 
 ### 1.29 ###
 - used getValueIsAdjusting() to make ED sliders smooth
