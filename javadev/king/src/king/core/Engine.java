@@ -285,6 +285,7 @@ public class Engine //extends ... implements ...
             // for more detailed explanation.
             clipFront = perspDist*clipFront / (perspDist - clipFront);
             clipBack  = perspDist*clipBack  / (perspDist - clipBack);
+            clipDepth = clipFront - clipBack;
         }
         work.likeScale(1, -1, 1);                                           // invert Y axis
             ret.append(work);

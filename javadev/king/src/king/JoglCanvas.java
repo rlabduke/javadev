@@ -53,7 +53,6 @@ public class JoglCanvas extends JPanel implements GLEventListener, TransformSign
     Engine      engine;
     ToolBox     toolbox;
     GLCanvas    canvas;
-    boolean     writeFPS;
     Dimension   glSize = new Dimension();
     
     // Variables for doing text with a Graphics2D then overlaying it
@@ -109,7 +108,7 @@ public class JoglCanvas extends JPanel implements GLEventListener, TransformSign
             engine.render(this, view, bounds, painter);
             if(toolbox != null) toolbox.overpaintCanvas(painter);
             timestamp = System.currentTimeMillis() - timestamp;
-            if(writeFPS)
+            if(kMain.getCanvas().writeFPS)
                 SoftLog.err.println(timestamp+" ms ("+(timestamp > 0 ? Long.toString(1000/timestamp) : ">1000")
                     +" FPS) - "+engine.getNumberPainted()+" objects painted");
             

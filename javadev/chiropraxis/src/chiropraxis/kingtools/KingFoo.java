@@ -31,9 +31,10 @@ public class KingFoo //extends ... implements ...
     Collection atomStates;
     double fooRadius, touchDist;
     
-    // All foos go in fooBin, foos to be surfaced go in liveFoos also
+    // Only foos that don't hit protein but are "close" go in fooBin, liveFoos
+    // Foos in contact with solvent may later be removed from liveFoos but not fooBin
     SpatialBin atomBin, fooBin;
-    Collection liveFoos = new ArrayList();
+    Collection liveFoos = new LinkedList();
 //}}}
 
 //{{{ Constructor(s)
@@ -51,9 +52,11 @@ public class KingFoo //extends ... implements ...
         this.fooRadius = fooRadius;
         this.touchDist = touchDist;
         
-        // Optimum bin width is twice the typical search distance
-        this.atomBin = new SpatialBin(2 * (MAX_ATOM_RADIUS+fooRadius+touchDist));
-        this.fooBin = new SpatialBin(2 * (fooRadius));
+        // Optimum bin width is ___ times the typical search distance
+        // Empirically, 1x and 2x are about the same (more bins vs. more points)
+        // 1.5x seems to be a bit faster than either one (only ~10%, though)
+        this.atomBin = new SpatialBin(1.5 * (MAX_ATOM_RADIUS+fooRadius+touchDist));
+        this.fooBin = new SpatialBin(1.5 * (fooRadius));
         
         this.atomBin.addAll(this.atomStates);
     }
@@ -65,11 +68,13 @@ public class KingFoo //extends ... implements ...
     * Places foo balls randomly in the described bounding box, discarding those
     * that intersect the protein atoms. This should be called before trying to
     * generate a dot surface.
+    * <p>This function can be called repeatedly to cumulatively place additional foos.
     * @param numTrials      the number of random trials to conduct
     * @param center         the center of the bounding box
     * @param halfwidth      the halfwidth of the bounding box
+    * @return the number of foos successfully placed (CUMULATIVELY)
     */
-    public void placeFoos(int numTrials, Triple center, double halfwidth)
+    public int placeFoos(int numTrials, Triple center, double halfwidth)
     {
         double width = 2 * (halfwidth - fooRadius);
         ArrayList hits = new ArrayList();
@@ -100,12 +105,84 @@ public class KingFoo //extends ... implements ...
             }
             
             // Storage of successfully placed foos
-            if(!isDead)
+            if(!isDead && isTouching)
             {
                 fooBin.add(foo);
-                if(isTouching) liveFoos.add(foo);
+                liveFoos.add(foo);
             }
         }
+        return liveFoos.size();
+    }
+//}}}
+
+//{{{ removeWetFoos
+//##############################################################################
+    /**
+    * Removes any foos that are solvent accessible to water (hence "wet").
+    * If a 1.4A radius ball can be placed at any point on the foo surface and
+    * not contact a protein atom, that foo is considered "wet" and will be removed.
+    * Here's how to test that:
+<p><pre>
+                        . &lt;== potential water site 
+     R_foo  R_water=1.4  .
+    +-----+--------------&gt;
+                         .
+                        .
+</pre>
+    * <p>That is, create a dot ball centered on the foo with a radius of
+    * (R_foo + R_water). Check each of those for protein atom centers within
+    * (R_water + R_atom_VDW).
+    * @return the number of placed foos REMAINING after removing wet ones.
+    */
+    public int removeWetFoos()
+    {
+        final double waterRadius = 1.4;
+        double totalRadius = fooRadius+waterRadius;
+        // Dots projected onto foo surface will be at least 16/A^2
+        // b/c surface grows as square of radius
+        double density = 3;//Math.max(4, 16 * (fooRadius/totalRadius) * (fooRadius/totalRadius));
+        Collection dotSphere = new Builder().makeDotSphere(totalRadius, density);
+        
+        Triple dot = new Triple(); // avoid creating and discarding Triples
+        ArrayList hits = new ArrayList();
+        for(Iterator fi = liveFoos.iterator(); fi.hasNext(); )
+        {
+            Triple foo = (Triple) fi.next();
+            for(Iterator di = dotSphere.iterator(); di.hasNext(); )
+            {
+                // Position dot on sphere surface
+                Triple stdDot = (Triple) di.next();
+                dot.likeSum(foo, stdDot);
+                
+                // We don't care if we intersect other foos or not.
+                
+                // Coarse test to find nearby atoms
+                hits.clear();
+                atomBin.findSphere(dot, MAX_ATOM_RADIUS+waterRadius, hits);
+                
+                // Fine test to distinguish overlaps from contacts
+                boolean hitAtom = false;
+                for(int j = 0; j < hits.size(); j++)
+                {
+                    AtomState as = (AtomState) hits.get(j);
+                    String rName = as.getResidue().getName();
+                    if(rName.equals("HOH") || rName.equals("H2O") || rName.equals("WAT"))
+                        continue; // don't count hits to water!
+                    double realDist = dot.sqDistance(as);
+                    double deadDist = getVdwRadius(as) + waterRadius;
+                    deadDist = deadDist * deadDist; // less than this is collision
+                    if(realDist < deadDist) { hitAtom = true; break; }
+                }
+                
+                // If we didn't hit any atoms, this is a solvent-accessible dot.
+                if(!hitAtom)
+                {
+                    fi.remove();
+                    break; // go on to next foo, skip remaining dots
+                }
+            }
+        }
+        return liveFoos.size();
     }
 //}}}
 
@@ -238,10 +315,15 @@ public class KingFoo //extends ... implements ...
         time = System.currentTimeMillis() - time;
         System.err.println(kf.liveFoos.size()+"/"+fooTrials+" foos were placed successfully in "+time+" ms");
         
+        time = System.currentTimeMillis();
+        kf.removeWetFoos();
+        time = System.currentTimeMillis() - time;
+        System.err.println(kf.liveFoos.size()+" dry foos remaining after "+time+" ms");
+        
         System.out.println("@kinemage 1");
         System.out.println("@group {foo cavities}");
         System.out.println("@subgroup {foo cavities}");
-        System.out.println("@balllist {foo balls} radius= "+df.format(fooRadius)+" color= sea nohighlight alpha= 0.04");
+        System.out.println("@balllist {foo balls} radius= "+df.format(fooRadius)+" color= sea nohighlight");
         for(Iterator iter = kf.liveFoos.iterator(); iter.hasNext(); )
             System.out.println("{x} "+((Triple)iter.next()).format(df));
         
@@ -250,10 +332,9 @@ public class KingFoo //extends ... implements ...
         time = System.currentTimeMillis() - time;
         System.err.println(dotSurface.size()+" dots placed in "+time+" ms");
         
-        System.out.println("@dotlist {foo dots} color= purple width= 1 off");
+        System.out.println("@dotlist {foo dots} color= purple off");
         for(Iterator iter = dotSurface.iterator(); iter.hasNext(); )
             System.out.println("{x} "+((Triple)iter.next()).format(df));
-        
     }
 //}}}
 }//class

@@ -155,6 +155,22 @@ public class JoglPainter implements Painter
         setPaint(paint);
         fillOval(x-r, y-r, d, d);
 
+        // Black rim, causes ~10% speed penalty but useful for visualization!
+        try
+        {
+            Color c = (Color) paint;
+            if(d >= 10 && c.getAlpha() == 255)
+            {
+                setPaint(Color.black);
+                drawOval(x-r, y-r, d, d);
+            }
+        }
+        catch(ClassCastException ex)
+        {
+            ex.printStackTrace();
+            System.err.println("JoglPainter: tried painting with non-Color type of Paint");
+        }
+        
         // highlight
         if(showHighlight)
         {

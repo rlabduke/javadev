@@ -15,6 +15,7 @@ help() {
     print("==== PREDEFINED FUNCTIONS ====");
     print("help()                   this help text");
     print("editor()                 GUI for writing short scripts");
+    print("setAccessibility(true)   allow access to non-public fields and methods");
     print("");
     print("bleach()                 removes point colors for all visible");
     print("delete(name?)            deletes all groups/subgroups/lists with given name");

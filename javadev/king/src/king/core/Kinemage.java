@@ -112,9 +112,22 @@ public class Kinemage extends AGE // implements ...
         if(this.atPdbfile == null) atPdbfile = that.atPdbfile;
         if(this.atCommand == null) atCommand = that.atCommand;
         
-        viewList.addAll(    that.viewList);
-        aspectList.addAll(  that.aspectList);
+        //viewList.addAll(    that.viewList);
+        for(Iterator iter = that.viewList.iterator(); iter.hasNext(); )
+        {
+            KingView view = (KingView) iter.next();
+            view.parent = this;
+            this.viewList.add(view);
+        }
         
+        //aspectList.addAll(  that.aspectList);
+        for(Iterator iter = that.aspectList.iterator(); iter.hasNext(); )
+        {
+            Aspect aspect = (Aspect) iter.next();
+            aspect.parent = this;
+            this.aspectList.add(aspect);
+        }
+
         // Merge the colorsets
         for(Iterator iter = that.getNewPaintMap().values().iterator(); iter.hasNext(); )
             this.addPaint((KPaint)iter.next());

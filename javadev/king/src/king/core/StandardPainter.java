@@ -64,6 +64,22 @@ public class StandardPainter implements Painter
         g.setPaint(paint);
         if(REALLY_PAINT) g.fillOval((int)(x-r), (int)(y-r), d, d);
 
+        // Black rim, causes ~10% speed penalty but useful for visualization!
+        try
+        {
+            Color c = (Color) paint;
+            if(d >= 10 && c.getAlpha() == 255)
+            {
+                g.setPaint(Color.black);
+                if(REALLY_PAINT) g.drawOval((int)(x-r), (int)(y-r), d, d);
+            }
+        }
+        catch(ClassCastException ex)
+        {
+            ex.printStackTrace();
+            System.err.println("JoglPainter: tried painting with non-Color type of Paint");
+        }
+        
         // highlight
         if(showHighlight)
         {
