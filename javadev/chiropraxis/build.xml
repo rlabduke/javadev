@@ -46,6 +46,9 @@
     <ant antfile="../driftwood/build.xml" inheritAll="false" target="compile">
         <!-- inherited properties go here -->
     </ant>
+    <ant antfile="../king/build.xml" inheritAll="false" target="compile">
+        <!-- inherited properties go here -->
+    </ant>
     <copy file="../lib/iText/itext-1.02b.jar" tofile="${basedir}/itext.jar" failonerror="false"/>
     <mkdir dir="${build}"/>
     <javac srcdir="${src}"
@@ -55,6 +58,7 @@
            debug="on" debuglevel="lines,source">
          <classpath>
             <pathelement location="../driftwood/build"/>
+            <pathelement location="../king/build"/>
             <pathelement location="itext.jar"/>             <!-- Required for PDF export -->
          </classpath>
     </javac>
@@ -125,27 +129,19 @@
 </target>
 <!-- }}} -->
 
-<!-- deploy-local, deploy-rlab {{{ -->
+<!-- deploy-local, deploy-local-mp {{{ -->
 <!-- Deploys the executable on the local system - applies to IWD's machine only -->
-<target name="deploy-local"  description="Build class files and copy to ~/bin" depends="build">
-    <copy file="${ant.project.name}.jar" todir="${user.home}/bin/jars/" overwrite="true" failonerror="false"/>
-    <copy file="${ant.project.name}.jar" todir="${user.home}/Sites/molprobity/" overwrite="true" failonerror="false"/>
+<target name="deploy-local"  description="Build class files and copy to plugins/" depends="build">
+    <copy file="${ant.project.name}.jar" todir="../king/plugins/" overwrite="true" failonerror="true"/>
+    <copy file="${ant.project.name}.jar" todir="${user.home}/bin/jars/plugins/" overwrite="true" failonerror="false"/>
+    <copy file="${ant.project.name}.jar" todir="/Applications/KiNG.app/Contents/Resources/Java/plugins/" overwrite="true" failonerror="false"/>
 </target>
 
 <!-- Deploys the executable on the local MolProbity - applies to IWD's machine only  -->
-<target name="deploy-local-mp"  description="Deploy to local MolProbity 3" depends="build">
+<target name="deploy-local-mp"  description="Deploy to local MolProbity" depends="build">
+    <copy file="${ant.project.name}.jar" todir="${user.home}/Sites/molprobity/" overwrite="true" failonerror="false"/>
     <copy file="${ant.project.name}.jar" todir="${user.home}/Sites/molprobity3/lib/" overwrite="true" failonerror="false"/>
     <copy file="itext.jar" todir="${user.home}/Sites/molprobity3/lib/" overwrite="true" failonerror="false"/>
-</target>
-
-<!-- Deploys the executable for the whole lab - applies to IWD's machine only -->
-<target name="deploy-rlab"  description="Deploy locally and to cluster" depends="dist,init-scp,deploy-local">
-    <scp file="${basedir}/${ant.project.name}.jar" 
-        todir="${scp.src.username}@${scp.src.hostname}:${scp.src.jarpath}/"
-        password="${scp.src.password}" failonerror="true"/>
-    <scp file="${dist}/${ant.project.name}-${version}-src.tgz" 
-        todir="${scp.src.username}@${scp.src.hostname}:${scp.src.srcpath}/"
-        password="${scp.src.password}" failonerror="true"/>
 </target>
 <!-- }}} -->
 </project>

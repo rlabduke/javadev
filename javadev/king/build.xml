@@ -50,7 +50,6 @@
             <exclude name="driftwood/moldb*/"/>
         </fileset>
         <fileset dir="../lib/" includes="gnu/regexp/"/>
-        <!-- Chiropraxis classes & resources are in a separate JAR -->
         <!-- iText library is in a separate JAR -->
     </jar>
     <copy file="resource/king/king_prefs" tofile="${basedir}/doc/dot_king_prefs.txt" overwrite="true"/>
@@ -61,10 +60,6 @@
     <ant antfile="../driftwood/build.xml" inheritAll="false" target="compile">
         <!-- inherited properties go here -->
     </ant>
-    <ant antfile="../chiropraxis/build.xml" inheritAll="false" target="build">
-        <!-- inherited properties go here -->
-    </ant>
-    <copy file="../chiropraxis/chiropraxis.jar" todir="${basedir}" overwrite="true"/>
     <copy file="../lib/iText/itext-1.02b.jar" tofile="${basedir}/itext.jar" failonerror="false"/>
     <mkdir dir="${build}"/>
     <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source">
@@ -74,7 +69,6 @@
          <classpath>
             <pathelement location="../driftwood/build"/>
             <pathelement location="../lib"/>
-            <pathelement location="chiropraxis.jar"/>
             <pathelement location="itext.jar"/>             <!-- Required for PDF export -->
          </classpath>
     </javac>
@@ -150,7 +144,6 @@
     <delete dir="${build}"/>
     <delete dir="${basedir}/installer/king/king_Build_Output"/>
     <delete file="${ant.project.name}.jar"/>
-    <delete file="chiropraxis.jar"/>
     <delete file="itext.jar"/>
 </target>
 
@@ -181,13 +174,11 @@
 <!-- Deploys the executable on the local system - applies to IWD's machine only  -->
 <target name="deploy-local"  description="Deploy to ~/bin" depends="build">
     <copy file="${ant.project.name}.jar" todir="${user.home}/bin/jars/" overwrite="true" failonerror="false"/>
-    <copy file="chiropraxis.jar" todir="${user.home}/bin/jars/" overwrite="true" failonerror="false"/>
     <copy file="itext.jar" todir="${user.home}/bin/jars/" overwrite="true" failonerror="false"/>
     <copy todir="${user.home}/bin/jars/plugins/" overwrite="true" failonerror="false">
         <fileset dir="plugins/"/>
     </copy>
     <copy file="${ant.project.name}.jar" todir="/Applications/KiNG.app/Contents/Resources/Java/" overwrite="true" failonerror="false"/>
-    <copy file="chiropraxis.jar" todir="/Applications/KiNG.app/Contents/Resources/Java/" overwrite="true" failonerror="false"/>
     <copy file="itext.jar" todir="/Applications/KiNG.app/Contents/Resources/Java/" overwrite="true" failonerror="false"/>
     <copy todir="/Applications/KiNG.app/Contents/Resources/Java/plugins/" overwrite="true" failonerror="false">
         <fileset dir="plugins/"/>

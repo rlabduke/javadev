@@ -155,6 +155,7 @@ public class KingPrefs extends Props // implements ...
     {
         try
         {
+            /* Plugins aren't usually on the real classpath, so this isn't needed. * /
             // Defaults from JAR file:
             ClassLoader loader = this.getClass().getClassLoader();
             Enumeration urls = loader.getResources("king/king_prefs"); // no leading slash
@@ -169,13 +170,14 @@ public class KingPrefs extends Props // implements ...
                 catch(IOException ex)
                 { SoftLog.err.println("Preferences loading error: "+ex.getMessage()); }
             }
+            /* Plugins aren't usually on the real classpath, so this isn't needed. */
             
-            // Old, single file code:
-            //InputStream is = this.getClass().getResourceAsStream("king_prefs");
-            //loadInto.load(is);
-            //is.close();
+            // Single file code:
+            InputStream is = this.getClass().getResourceAsStream("king_prefs");
+            loadInto.load(is);
+            is.close();
             
-            InputStream is = this.getClass().getResourceAsStream("version.props");
+            is = this.getClass().getResourceAsStream("version.props");
             loadInto.load(is);
             is.close();
             is = this.getClass().getResourceAsStream("buildnum.props");
