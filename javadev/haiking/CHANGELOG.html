@@ -3,15 +3,23 @@
 ===  TO DO  ==================================================================
 ==============================================================================
     Add polyline breaker to separate really long lines into chunks?
+    Put a reasonable URL in KinLoader
     Support views (at least one)
     Move clipping into the View class
-    Support animations (via groups)
-    Fire button toggles input mode (2 or 4, dep. on pointer events or not)
     Add basic help text
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 1.06 ###
+- removed command that disables/enables double buffering (too useless)
+- improved logic of pen events and enabled Z-translation
+- changed menu choice names in KinLoader and KinCanvas
+- changed event processing framework in KinCanvas to accomodate different modes.
+  Toggling modes is driven by the FIRE button.
+- added support for animations
+- finished animation support by fixing a bug in KinLoader's group depth calc.
 
 ### 1.05 ###
 - implemented thick lines

@@ -50,14 +50,14 @@ public class KinLoader extends List implements CommandListener
         this.kMain = kMain;
         this.setCommandListener(this);
         
-        cmdChoose = new Command("Open local", Command.SCREEN, 1);
+        cmdChoose = new Command("Open kin", Command.SCREEN, 1);
         this.addCommand(cmdChoose);
-        cmdEnterURL = new Command("Open URL", Command.SCREEN, 2);
+        cmdEnterURL = new Command("Get from Web", Command.SCREEN, 2);
         this.addCommand(cmdEnterURL);
         cmdDelete = new Command("Delete", Command.SCREEN, 3);
         this.addCommand(cmdDelete);
         
-        urlField = new TextField("URL", "http://kinemage.biochem.duke.edu/", 256, TextField.URL);
+        urlField = new TextField("URL", "http://localhost/~ian/haikins/", 256, TextField.URL);
         urlForm = new Form("Kin URL", new Item[] { urlField });
         urlForm.setCommandListener(this);
         urlOK = new Command("OK", Command.OK, 1);
@@ -233,7 +233,7 @@ public class KinLoader extends List implements CommandListener
         for(int i = 0; i < groupList.size(); i++)
         {
             KGroup g = (KGroup) groupList.elementAt(i);
-            if(g.depth <= groupDepth && g.startPoint == null)
+            if(g.depth >= groupDepth && g.startPoint == null)
                 g.startPoint = lastPointRead;
         }
         

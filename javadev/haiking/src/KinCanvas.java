@@ -14,7 +14,7 @@ import javax.microedition.midlet.*;
 */
 public class KinCanvas extends Canvas implements CommandListener
 {
-//{{{ Constants
+//{{{ Drawing constants
     static final int ZBUF_BITS = 7;
     static final int ZBUF_SIZE = 1<<ZBUF_BITS;
     static final int TEXT_ANCHOR = Graphics.BASELINE | Graphics.LEFT;
@@ -56,18 +56,34 @@ public class KinCanvas extends Canvas implements CommandListener
         white, white, white, white, white, white, white };
 //}}}
 
+//{{{ Other constants
+//##############################################################################
+    static final int PEN_MASK       = 0xff;
+    static final int PEN_ROTATE     = 0x01;
+    static final int PEN_TRANSLATE  = 0x02;
+    
+    static final int PAD_MASK       = 0xff00;
+    static final int PAD_ROTATE     = 0x0100;
+    static final int PAD_TRANSLATE  = 0x0200;
+    static final int PAD_ZOOM_CLIP  = 0x0400;
+    static final int PAD_ZOOM_ANIM  = 0x0800;
+//}}}
+
 //{{{ Variable definitions
 //##############################################################################
     KingMain        kMain;
-    Command         cmdToggleFlatland;
+    Command         cmdToggleMode;
     Command         cmdPickcenter;
     Command         cmdChooseKin;
     Command         cmdShowHide;
     Command         cmdTogglePersp;
-    Command         cmdDoubleBuffer;
-    // For tracking pointer motion
+    // For tracking pointer motion and handling interaction
     int             ptrX = 0, ptrY = 0, dragTotal = 0;
-    boolean         nearTop = false, doPickcenter = false, doFlatland = false;
+    boolean         nearTop = false, doPickcenter = false;
+    int             modeIndex = 0;
+    boolean         modeHasBeenUsed = false;
+    int[]           modeList = { PEN_ROTATE|PAD_ZOOM_ANIM, PEN_TRANSLATE|PAD_TRANSLATE, PEN_ROTATE|PAD_ZOOM_CLIP };
+    String[]        modeNames = { "rotate (animate)", "translate", "rotate (clip)" };
     // For drawing
     Font            labelFont;
     Image           backBuffer = null;
@@ -100,18 +116,16 @@ public class KinCanvas extends Canvas implements CommandListener
         this.clipStep = Math.max(5, clip/8);
         this.setCommandListener(this);
         
-        cmdToggleFlatland = new Command("Translt", Command.SCREEN, 1);
-        this.addCommand(cmdToggleFlatland);
-        cmdPickcenter = new Command("Pickctr", Command.SCREEN, 2);
+        cmdPickcenter = new Command("Ctr", Command.SCREEN, 1);
         this.addCommand(cmdPickcenter);
-        cmdChooseKin = new Command("Choose kin", Command.SCREEN, 3);
+        cmdChooseKin = new Command("Kin", Command.SCREEN, 2);
         this.addCommand(cmdChooseKin);
-        cmdShowHide = new Command("Show/hide pts", Command.SCREEN, 3);
+        cmdShowHide = new Command("Btns", Command.SCREEN, 3);
         this.addCommand(cmdShowHide);
-        cmdTogglePersp = new Command("Perspective", Command.SCREEN, 3);
+        cmdToggleMode = new Command("Change mode", Command.SCREEN, 4);
+        this.addCommand(cmdToggleMode);
+        cmdTogglePersp = new Command("Perspective", Command.SCREEN, 5);
         this.addCommand(cmdTogglePersp);
-        cmdDoubleBuffer = new Command("Dbl buffer", Command.SCREEN, 3);
-        this.addCommand(cmdDoubleBuffer);
         
         this.clearKinemage();
     }
@@ -129,6 +143,7 @@ public class KinCanvas extends Canvas implements CommandListener
         
         this.zbuf = new KPoint[ZBUF_SIZE];
         
+        KGroup.animate(groupList, 0); // init. animation state
         KGroup.processGroups(groupList, tailPt);
 
         this.hideList = KGroup.makeList(this.groupList, "Show/hide");
@@ -348,28 +363,30 @@ public class KinCanvas extends Canvas implements CommandListener
     public void pointerDragged(int x, int y)
     {
         int dx = x-ptrX, dy = y-ptrY;
-        if(doFlatland)
+        if(dx == 0 && dy == 0) return;
+        
+        modeHasBeenUsed = true;
+        switch(modeList[modeIndex % modeList.length] & PEN_MASK)
         {
-            if(dx != 0 || dy != 0)
+        case PEN_TRANSLATE:
+            if(nearTop) view.translate(0, 0, dx);
+            else        view.translate(dx, -dy, 0);
+            scalingIsDirty = true;
+            break;
+        case PEN_ROTATE:
+            if(nearTop) view.rotate(3, -2*dx);
+            else
             {
-                view.translate(dx, -dy);
-                scalingIsDirty = true;
+                view.rotate(2, 2*dx);
+                view.rotate(1, 2*dy);
             }
-        }
-        else if(nearTop)
-        {
-            if(dx != 0) view.rotate(3, -2*dx);
-        }
-        else
-        {
-            if(dx != 0) view.rotate(2, 2*dx);
-            if(dy != 0) view.rotate(1, 2*dy);
+            break;
         }
 
         this.ptrX = x;
         this.ptrY = y;
         this.dragTotal += Math.abs(dx) + Math.abs(dy);
-        if(dx != 0 || dy != 0) this.repaint();
+        this.repaint();
     }
 //}}}
 
@@ -378,35 +395,26 @@ public class KinCanvas extends Canvas implements CommandListener
     public void keyPressed(int keyCode)
     {
         int gameAction = getGameAction(keyCode);
-        switch(gameAction)
+        int index = modeIndex % modeList.length;
+        if(gameAction == FIRE)
         {
-        case DOWN:
-            view.setScale(view.getScale()-1);
-            this.scalingIsDirty = true;
-            repaint();
-            break;
-        case UP:
-            view.setScale(view.getScale()+1);
-            this.scalingIsDirty = true;
-            repaint();
-            break;
-        case LEFT:
-            this.clip = Math.max(clipStep, clip - clipStep);
-            repaint();
-            break;
-        case RIGHT:
-            this.clip += clipStep;
-            repaint();
-            break;
-        case FIRE:
-            this.commandAction(cmdToggleFlatland, this);
-            break;
-        case GAME_A:
-            this.commandAction(cmdPickcenter, this);
-            break;
-        case GAME_B:
-            this.commandAction(cmdChooseKin, this);
-            break;
+            if(modeHasBeenUsed && index != 0)   modeIndex = 0;
+            else                                modeIndex += 1;
+            index = modeIndex % modeList.length;
+            modeHasBeenUsed = false;
+            setMessage(modeNames[index], System.currentTimeMillis()+3000);
+            this.repaint();
+        }
+        else
+        {
+            modeHasBeenUsed = true;
+            switch(modeList[index] & PAD_MASK)
+            {
+                case PAD_ROTATE:    keypadRotate(gameAction);       break;
+                case PAD_TRANSLATE: keypadTranslate(gameAction);    break;
+                case PAD_ZOOM_ANIM: keypadZoomAnimate(gameAction);  break;
+                case PAD_ZOOM_CLIP: keypadZoomClip(gameAction);     break;
+            }
         }
     }
     
@@ -414,16 +422,112 @@ public class KinCanvas extends Canvas implements CommandListener
     { keyPressed(keyCode); }
 //}}}
 
+//{{{ keypadRotate
+//##############################################################################
+    public void keypadRotate(int gameAction)
+    {
+        switch(gameAction)
+        {
+        case DOWN:
+            view.rotate(1, 18);
+            break;
+        case UP:
+            view.rotate(1, -18);
+            break;
+        case LEFT:
+            view.rotate(2, -18);
+            break;
+        case RIGHT:
+            view.rotate(2, 18);
+            break;
+        }
+        repaint();
+    }
+//}}}
+
+//{{{ keypadTranslate
+//##############################################################################
+    public void keypadTranslate(int gameAction)
+    {
+        switch(gameAction)
+        {
+        case DOWN:
+            view.translate(0, -clipStep, 0);
+            break;
+        case UP:
+            view.translate(0, clipStep, 0);
+            break;
+        case LEFT:
+            view.translate(-clipStep, 0, 0);
+            break;
+        case RIGHT:
+            view.translate(clipStep, 0, 0);
+            break;
+        }
+        this.scalingIsDirty = true;
+        repaint();
+    }
+//}}}
+
+//{{{ keypadZoomAnimate
+//##############################################################################
+    public void keypadZoomAnimate(int gameAction)
+    {
+        switch(gameAction)
+        {
+        case DOWN:
+            view.setScale(view.getScale()-1);
+            break;
+        case UP:
+            view.setScale(view.getScale()+1);
+            break;
+        case LEFT:
+            KGroup.animate(groupList, -1);
+            KGroup.processGroups(groupList, tailPt);
+            break;
+        case RIGHT:
+            KGroup.animate(groupList, 1);
+            KGroup.processGroups(groupList, tailPt);
+            break;
+        }
+        this.scalingIsDirty = true;
+        repaint();
+    }
+//}}}
+
+//{{{ keypadZoomClip
+//##############################################################################
+    public void keypadZoomClip(int gameAction)
+    {
+        switch(gameAction)
+        {
+        case DOWN:
+            view.setScale(view.getScale()-1);
+            this.scalingIsDirty = true;
+            break;
+        case UP:
+            view.setScale(view.getScale()+1);
+            this.scalingIsDirty = true;
+            break;
+        case LEFT:
+            this.clip = Math.max(clipStep, clip - clipStep);
+            break;
+        case RIGHT:
+            this.clip += clipStep;
+            break;
+        }
+        repaint();
+    }
+//}}}
+
 //{{{ commandAction
 //##############################################################################
     public void commandAction(Command c, Displayable s)
     {
         if(c == cmdChooseKin)
-        {
             Display.getDisplay(kMain).setCurrent(kMain.kLoader);
-        }
-        else if(c == cmdToggleFlatland)
-            this.doFlatland = !this.doFlatland;
+        else if(c == cmdToggleMode)
+            this.keyPressed( this.getKeyCode(FIRE) );
         else if(c == cmdPickcenter)
             this.doPickcenter = true;
         else if(c == cmdTogglePersp)
@@ -431,8 +535,6 @@ public class KinCanvas extends Canvas implements CommandListener
             this.usePersp = !this.usePersp;
             repaint();
         }
-        else if(c == cmdDoubleBuffer)
-            this.useDblBuf = !this.useDblBuf && !this.isDoubleBuffered();
         else if(c == cmdShowHide)
         {
             KGroup.toChoice(groupList, hideList);

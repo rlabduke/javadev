@@ -49,6 +49,9 @@ public class KingLiteBinaryExport extends Plugin
     static final int ENT_GROUP          = 1;
     static final int ENT_SUBGROUP       = 2;
     static final int ENT_LIST           = 3;
+    
+    // Group properties
+    static final int ANIMATE_BIT        = 1;
 //}}}
 
 //{{{ Variable definitions
@@ -237,6 +240,7 @@ public class KingLiteBinaryExport extends Plugin
         if(age instanceof KGroup)
         {
             entityType = ENT_GROUP;
+            if(((KGroup)age).isAnimate()) flags |= ANIMATE_BIT;
         }
         else if(age instanceof KSubgroup)
         {
