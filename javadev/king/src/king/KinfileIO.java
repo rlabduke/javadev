@@ -45,7 +45,6 @@ public class KinfileIO implements KinLoadListener
     // but we have to be very careful of memory leaks!
     String              fName               = null;
     Kinemage            mergeTarget         = null;
-    Iterator bondRotIter = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -279,19 +278,9 @@ public class KinfileIO implements KinLoadListener
 
         // Last step: close the dialog and let execution continue in the calling thread
         progDialog.setVisible(false);
-	if (parser.rotModeIsOn()) {
-	    bondRotIter = parser.getBondRots();
-	    Iterator iter = parser.getBondRots();
-	    while (iter.hasNext()) {
-		System.out.println(iter.next());
-	    }
-	}
+
     }
 //}}}
-
-    public Iterator getBondRotIterator() {
-	return bondRotIter;
-    }
 
 //{{{ askSaveFile, saveFile
 //##################################################################################################

@@ -53,6 +53,7 @@ public class KinfileParser //extends ... implements ...
     Map                     subgroupsByName = null; // created when kinemage is
     Map                     listsByName     = null; // created when kinemage is
 
+    // Used for storing bondrots
     TreeMap bondRots = null;
     ArrayList closedBondRots = null;
 //}}}
@@ -190,6 +191,8 @@ public class KinfileParser //extends ... implements ...
                 token.advanceToKeyword();
             }
         }//while not EOF
+	closeBondRots();
+	kinemage.setBondRots(closedBondRots);
     }
 //}}}
 
@@ -197,6 +200,10 @@ public class KinfileParser //extends ... implements ...
 //##################################################################################################
     void doKinemage() throws IOException
     {
+	if (kinemage != null) {
+	    closeBondRots();
+	    kinemage.setBondRots(closedBondRots);
+	}
         kinemage = new Kinemage(DEFAULT_KINEMAGE_NAME+(kinemages.size()+1));
         kinemages.add(kinemage);
         group       = null;
@@ -421,6 +428,7 @@ public class KinfileParser //extends ... implements ...
                 else if(s.equals("nobutton"))   list.setHasButton(false);
                 else if(s.equals("lens"))       list.setLens(true);
                 else if(s.startsWith("nohi"))   list.flags |= KList.NOHILITE;
+		// for doing bondrots
 		else if(s.endsWith("bondrot")) {
 		    double angle = 0;
 		    int bondNum = Integer.parseInt(s.substring(0,1));
@@ -524,6 +532,8 @@ public class KinfileParser //extends ... implements ...
                 token.advance();
             }
         }
+
+	// only stores list as bondRot if bondRot mode is on.
 	if (rotModeIsOn()) {
 	    storeRotList(list);
 	}
@@ -928,26 +938,17 @@ public class KinfileParser //extends ... implements ...
     }
 //}}}
 
-//{{{ empty_code_segment
+//{{{ storeBondRot, storeRotList
 //##################################################################################################
-//}}}
-
-    public boolean rotModeIsOn() {
-	//System.out.println(!(openBondRots.isEmpty()&closedBondRots.isEmpty()));
-	//return !(openBondRots.isEmpty()&closedBondRots.isEmpty());
-	return !(bondRots.isEmpty());
-    }
-
+    /** 
+     * Private functions used to store bondrots.  Numbered BondRots work by creating a new bond rot
+     * everytime a #bondrot is encountered in the kinemage.  A bondrot is closed whenever a new #bondrot
+     * is encountered with a # less than or equal to the bondrot.  
+     **/
     private void storeBondRot(int bondNum, String nm, double angle) {
 	Integer bondInt = new Integer(bondNum);
 	Map higherRots = bondRots.tailMap(bondInt);
-	//if (bondRots.containsKey(bondInt)) {
-	//    BondRot toBeClosed = (BondRot) bondRots.get(bondInt);
-	//    toBeClosed.setOpen(false);
-	//    closedBondRots.add(toBeClosed);
-	//    bondRots.remove(bondInt);
-	//    System.out.println("bond rot " + bondInt + " closed");
-	//}
+
 	if (!(higherRots.isEmpty())) {
 	    Collection closingRots = higherRots.values();
 	    Iterator iter = closingRots.iterator();
@@ -955,15 +956,13 @@ public class KinfileParser //extends ... implements ...
 		BondRot toBeClosed = (BondRot) iter.next();
 		toBeClosed.setOpen(false);
 		closedBondRots.add(toBeClosed);
-		System.out.println("Bond rots less than or equal to " + bondInt + " closed");
+		//System.out.println("Bond rots less than or equal to " + bondInt + " closed");
 	    }
 	}
 	bondRots = new TreeMap(bondRots.headMap(bondInt)); //to clear map of all bondrots with higher numbers
 	    
 	BondRot newRot = new BondRot(bondNum, nm, angle);
 	bondRots.put(bondInt, newRot);
-	
-	//bondRotMode = true;
     }
     
     // for putting a klist into all currently open bondrots.
@@ -979,9 +978,9 @@ public class KinfileParser //extends ... implements ...
 	}
     }
 
-    public Iterator getBondRots() {
-	//closedBondRots.putAll(openBondRots);
-	//closedBondRots.addAll(bondRots.values());
+//}}}
+
+    private void closeBondRots() {
 	//need to close all open bondrots
 	if (bondRots != null) {
 	    Collection closingRots = bondRots.values();
@@ -990,22 +989,25 @@ public class KinfileParser //extends ... implements ...
 		BondRot toBeClosed = (BondRot) closeIter.next();
 		toBeClosed.setOpen(false);
 		closedBondRots.add(toBeClosed);
-		System.out.println("All open bondrots closing");
 	    }
 	    bondRots = null;
 	}
-
-	//Iterator iter = closedBondRots.iterator();
-	//Collection bondRotColl = bondRots.values();
-	// I do this stuff to avoid a concurrentmodificationexception...if you know of a better way to fix it, feel free.
-	Iterator iter = closedBondRots.iterator();
-	ArrayList bondRotColl = new ArrayList();
-	while (iter.hasNext()) {
-	    Object obj = iter.next();
-	    bondRotColl.add(obj);
-	}
-	return bondRotColl.iterator();
     }
+
+//{{{ rotModeIsOn
+//##################################################################################################
+    /**
+     * Returns whether bondRots have been encountered in the kinemage.
+     **/
+    public boolean rotModeIsOn() {
+
+	return !(bondRots.isEmpty());
+    }
+//}}}
+
+//{{{ empty_code_segment
+//##################################################################################################
+//}}}
 
 //{{{ Main() and main()
 //##################################################################################################

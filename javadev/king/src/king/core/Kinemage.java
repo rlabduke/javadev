@@ -71,6 +71,9 @@ public class Kinemage extends AGE // implements ...
     
     // For tracking whether edits have been saved
     boolean modified = false;
+
+    // For storing bondRots
+    Collection bondRots = null;
 //}}}
 
 //{{{ Constructors
@@ -676,6 +679,17 @@ public class Kinemage extends AGE // implements ...
     public void setModified(boolean b)
     { modified = b; }
 //}}}
+
+    /**
+     * Functions for setting and getting bondrots.
+     **/
+    public void setBondRots(Collection br) {
+	bondRots = br;
+    }
+
+    public Collection getBondRots() {
+	return bondRots;
+    }
 
 //{{{ empty_code_segment
 //##################################################################################################
