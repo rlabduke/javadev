@@ -46,13 +46,15 @@ public class KSubgroup extends AGE implements Cloneable
 //{{{ clone
 //##################################################################################################
     /**
-    * Creates a deep copy of this group and all its children.
+    * Creates a copy of this group and all its children.
+    * @param clonePoints whether to clone even the individual points,
+    *   or whether we should use instance= at the list level instead.
     */
-    public Object clone()
+    public Object clone(boolean clonePoints)
     {
         try
         {
-            KSubgroup x = (KSubgroup) super.clone();
+            KSubgroup x = (KSubgroup) super.clone(clonePoints);
             x.setName( x.getName() ); // tricks it into creating a new JCheckBox object
             
             // Deep copy of children
@@ -60,7 +62,7 @@ public class KSubgroup extends AGE implements Cloneable
             for(Iterator iter = this.children.iterator(); iter.hasNext(); )
             {
                 KList child = (KList) iter.next();
-                KList clone = (KList) child.clone();
+                KList clone = (KList) child.clone(clonePoints);
                 clone.setOwner(x);
                 x.add(clone);
             }

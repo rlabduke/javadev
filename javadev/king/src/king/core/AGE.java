@@ -41,13 +41,21 @@ abstract public class AGE extends AHE implements MutableTreeNode
 //{{{ clone
 //##################################################################################################
     /**
-    * Creates a deep copy of this AGE and all its children.
+    * Creates a deep copy of this AGE and all its children,
+    * including make full copies of all the points.
     * Not all AGEs implement Cloneable, so this operation could fail.
     */
     public Object clone() throws CloneNotSupportedException
-    {
-        return super.clone();
-    }
+    { return clone(true); }
+    
+    /**
+    * Creates a copy of this AGE and all its children.
+    * Not all AGEs implement Cloneable, so this operation could fail.
+    * @param clonePoints whether to clone even the individual points,
+    *   or whether we should use instance= at the list level instead.
+    */
+    public Object clone(boolean clonePoints) throws CloneNotSupportedException
+    { return super.clone(); }
 //}}}
 
 //{{{ setName, iterator

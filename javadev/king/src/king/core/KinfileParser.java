@@ -275,15 +275,16 @@ public class KinfileParser //extends ... implements ...
                     }
                     else error("master= was not followed by an identifier");
                 }
-                // Not technically correct: instance should be a lightweight copy
+                // Clone is a full or "deep" copy of the original
+                // Instance is a lightweight copy that uses the same underlying point data
                 else if(s.equals("clone=") || s.equals("instance="))
                 {
                     if(token.isIdentifier())
                     {
                         KGroup template = (KGroup) groupsByName.get(token.getString());
-                        if(template != null) group.children = ((KGroup)template.clone()).children;
+                        if(template != null) group.children = ((KGroup)template.clone(s.equals("clone="))).children;
                     }
-                    else error("clone= was not followed by an identifier");
+                    else error(s+" was not followed by an identifier");
                 }
                 else error("Unrecognized property '"+s+" "+token.getString()+"' will be ignored");
                 token.advance(); // past value
@@ -348,15 +349,16 @@ public class KinfileParser //extends ... implements ...
                     }
                     else error("master= was not followed by an identifier");
                 }
-                // Not technically correct: instance should be a lightweight copy
+                // Clone is a full or "deep" copy of the original
+                // Instance is a lightweight copy that uses the same underlying point data
                 else if(s.equals("clone=") || s.equals("instance="))
                 {
                     if(token.isIdentifier())
                     {
                         KSubgroup template = (KSubgroup) subgroupsByName.get(token.getString());
-                        if(template != null) subgroup.children = ((KSubgroup)template.clone()).children;
+                        if(template != null) subgroup.children = ((KSubgroup)template.clone(s.equals("clone="))).children;
                     }
-                    else error("clone= was not followed by an identifier");
+                    else error(s+" was not followed by an identifier");
                 }
                 else error("Unrecognized property '"+s+" "+token.getString()+"' will be ignored");
                 token.advance(); // past value
@@ -435,15 +437,25 @@ public class KinfileParser //extends ... implements ...
                     }
                     else error("master= was not followed by an identifier");
                 }
-                // Not technically correct: instance should be a lightweight copy
-                else if(s.equals("clone=") || s.equals("instance="))
+                // Clone is a full or "deep" copy of the original
+                else if(s.equals("clone="))
                 {
                     if(token.isIdentifier())
                     {
                         KList template = (KList) listsByName.get(token.getString());
-                        if(template != null) list.children = ((KList)template.clone()).children;
+                        if(template != null) list.children = ((KList)template.clone(true)).children;
                     }
                     else error("clone= was not followed by an identifier");
+                }
+                // Instance is a lightweight copy that uses the same underlying point data
+                else if(s.equals("instance="))
+                {
+                    if(token.isIdentifier())
+                    {
+                        KList template = (KList) listsByName.get(token.getString());
+                        if(template != null) list.setInstance(template);
+                    }
+                    else error("instance= was not followed by an identifier");
                 }
                 else if(s.equals("radius="))
                 {

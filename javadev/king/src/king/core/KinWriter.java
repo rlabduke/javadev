@@ -193,6 +193,10 @@ public class KinWriter //extends ... implements ...
     {
         Iterator iter;
         out.print("@"+list.getType()+"list {"+list.getName()+"}");
+
+        if(list.getInstance() != null)
+            out.print(" instance= {"+list.getInstance().getName()+"}");
+        
         if(! list.isOn())           out.print(" off");
         if(! list.hasButton())      out.print(" nobutton");
         if(  list.isLens())         out.print(" lens");
@@ -213,17 +217,10 @@ public class KinWriter //extends ... implements ...
         }
         
         if(list.alpha != 255) out.print(" alpha= "+df.format(list.alpha/255.0));
-        
-        /*MasterGroup master;
-        for(iter = kin.masterIter(); iter.hasNext(); )
-        {
-            master = (MasterGroup)iter.next();
-            if(master.isTarget(list)) out.print(" master= {"+master.getName()+"}");
-        }*/
         for(iter = list.masterIterator(); iter != null && iter.hasNext(); )
         {
             out.print(" master= {"+iter.next().toString()+"}");
-        }        
+        }
         out.println();
 
         KPoint point;
