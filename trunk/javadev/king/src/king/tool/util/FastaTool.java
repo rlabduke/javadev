@@ -126,7 +126,7 @@ public class FastaTool extends BasicTool //implements ActionListener
         {
             //if(kMain.getApplet() != null)   openMapURL();
             //else                            openMapFile();
-	    openMapFile();
+	    openFastaFile();
 
         }
         catch(IOException ex) // includes MalformedURLException
@@ -153,7 +153,7 @@ public class FastaTool extends BasicTool //implements ActionListener
 
 //{{{ openMapFile
 //##################################################################################################
-    void openMapFile() throws IOException
+    void openFastaFile() throws IOException
     {
         // Create file chooser on demand
         if(filechooser == null) makeFileChooser();
@@ -236,7 +236,7 @@ public class FastaTool extends BasicTool //implements ActionListener
 	Iterator kinIter = kin.iterator();
 	while (kinIter.hasNext()) {
 	    KGroup group = (KGroup) kinIter.next();
-	    if (!((group.getName()).equals("dots"))) {
+	    if ((group.getName()).indexOf("dots") == -1) {
 		Iterator groupIter = group.iterator();
 		while (groupIter.hasNext()) {
 		    AGE sub = (AGE) groupIter.next();
@@ -244,11 +244,11 @@ public class FastaTool extends BasicTool //implements ActionListener
 			Iterator subIter = sub.iterator();
 			while (subIter.hasNext()) {
 			    KList list = (KList) subIter.next();
-			    recolor(list);
+			    recolorStructure(list);
 			}
 		    } else if (sub instanceof KList) {
 			KList list = (KList) sub;
-			recolor(list);
+			recolorStructure(list);
 		    }
 		}
 	    }
@@ -260,7 +260,7 @@ public class FastaTool extends BasicTool //implements ActionListener
 	Iterator kinIter = kin.iterator();
 	while (kinIter.hasNext()) {
 	    KGroup group = (KGroup) kinIter.next();
-	    if ((group.getName()).equals("dots")) {
+	    if ((group.getName()).indexOf("dots") > -1) {
 		Iterator groupIter = group.iterator();
 		while (groupIter.hasNext()) {
 		    AGE sub = (AGE) groupIter.next();
@@ -284,12 +284,33 @@ public class FastaTool extends BasicTool //implements ActionListener
 	while (iter.hasNext()) {
 	    KPoint point = (KPoint) iter.next();
 	    String pName = point.getName();
-	    if (getResidueNumber(pName) > 0) {
-		point.setColor(colors[getResidueNumber(pName)-1]);
+	    int resNum = getResidueNumber(pName);
+	    if (resNum > 0) {
+		point.setColor(colors[resNum-1]);
 	    }
 
 	}
     }
+
+    private void recolorStructure(KList list) {
+	Iterator iter = list.iterator();
+	while (iter.hasNext()) {
+	    KPoint point = (KPoint) iter.next();
+	    String pName = point.getName();
+	    int resNum = getResidueNumber(pName);
+	    if (resNum > 0) {
+		KPaint color = colors[resNum-1];
+		if (color.equals(KPalette.blue)) {
+		    point.setColor(KPalette.bluetint);
+		} else if (color.equals(KPalette.red)) {
+		    point.setColor(KPalette.pinktint);
+		} else if (color.equals(KPalette.green)) {
+		    point.setColor(KPalette.greentint);
+		}
+	    }
+
+	}
+    } 
 
     public boolean isNumeric(String s) {
 	try {
@@ -299,12 +320,39 @@ public class FastaTool extends BasicTool //implements ActionListener
 	    return false;
 	}
     }
-
-    private int getResidueNumber(String name) {
+    /*
+    private int getResNumberDots(String name) {
 	String[] uncleanParsed = name.split(" ");
 	String[] parsed = new String[uncleanParsed.length];
         int i2 = 0;
 	// To clean out the empty strings from the split name.
+	
+	for (int i = 0; i < uncleanParsed.length; i++) {
+	    String unclean = uncleanParsed[i];
+	    if ((!unclean.equals(""))&&(!unclean.equals(" "))) {
+		parsed[i2] = unclean;
+		i2++;
+	    }
+	}
+	
+	// another pass to see if there are any AAName + int in name.
+	if (parsed[1].length() > 3) {
+	    String parseValue = parsed[1].substring(3);
+	    if (isNumeric(parseValue)) {
+		//System.out.print(parseValue + " ");
+		return Integer.parseInt(parseValue);
+	    }
+	}
+
+	return -1;
+    }
+
+    private int getResNumberStructure(String name) {
+	String[] uncleanParsed = name.split(" ");
+	String[] parsed = new String[uncleanParsed.length];
+        int i2 = 0;
+	// To clean out the empty strings from the split name.
+	
 	for (int i = 0; i < uncleanParsed.length; i++) {
 	    String unclean = uncleanParsed[i];
 	    if ((!unclean.equals(""))&&(!unclean.equals(" "))) {
@@ -315,11 +363,29 @@ public class FastaTool extends BasicTool //implements ActionListener
 	// one pass to see if there are any straight up ints in the name
 	for (int i = 0; i < parsed.length; i++) {
 	    String parseValue = parsed[i];
+	    //System.out.println(parseValue + ", " + i);
 	    if (isNumeric(parseValue)) {
 		return Integer.parseInt(parseValue);
 	    }
 	}
 
+	return -1;
+    }
+    */
+    private int getResidueNumber(String name) {
+	String[] uncleanParsed = name.split(" ");
+	String[] parsed = new String[uncleanParsed.length];
+        int i2 = 0;
+	// To clean out the empty strings from the split name.
+	
+	for (int i = 0; i < uncleanParsed.length; i++) {
+	    String unclean = uncleanParsed[i];
+	    if ((!unclean.equals(""))&&(!unclean.equals(" "))) {
+		parsed[i2] = unclean;
+		i2++;
+	    }
+	}
+	
 	// another pass to see if there are any AAName + int in name.
 	if (parsed[1].length() > 3) {
 	    String parseValue = parsed[1].substring(3);
@@ -328,8 +394,16 @@ public class FastaTool extends BasicTool //implements ActionListener
 		return Integer.parseInt(parseValue);
 	    }
 	}
-	System.out.print(parsed[1] + ":");
-	//System.out.print(":");
+
+	// one pass to see if there are any straight up ints in the name
+	for (int i = 0; i < parsed.length; i++) {
+	    String parseValue = parsed[i];
+	    //System.out.println(parseValue + ", " + i);
+	    if (isNumeric(parseValue)) {
+		return Integer.parseInt(parseValue);
+	    }
+	}
+
 	return -1;
     }
 
