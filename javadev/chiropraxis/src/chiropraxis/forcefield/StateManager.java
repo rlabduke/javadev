@@ -91,12 +91,18 @@ public class StateManager //extends ... implements ...
     }
 //}}}
 
-//{{{ setEnergyTerms
+//{{{ get/setEnergyTerms
 //##############################################################################
     /** Sets the energy terms that will be evaluated for this state. */
     public void setEnergyTerms(EnergyTerm[] terms)
     {
         this.energyFunc = (EnergyTerm[]) terms.clone();
+    }
+    
+    /** Returns a copy of the array of terms that are being evaluated for this state. Read only, please. */
+    public EnergyTerm[] getEnergyTerms()
+    {
+        return (EnergyTerm[]) energyFunc.clone();
     }
 //}}}
 
@@ -176,6 +182,7 @@ public class StateManager //extends ... implements ...
 //##############################################################################
 //}}}
 
+/*
 //{{{ main (for testing)
 //##############################################################################
     public static void main(String[] args)
@@ -187,20 +194,22 @@ public class StateManager //extends ... implements ...
         points[points.length-1] = new Triple(10,10,10);
         
         ArrayList terms = new ArrayList();
-        for(int i = 0; i < points.length-2; i++)
+        for(int i = 0; i < points.length-3; i++)
             terms.add(new BondTerm(i, i+1, 1, 1));
-        terms.add(new BondTerm(0, points.length-1, 1, 1));
-        for(int i = 0; i < points.length-4; i++)
-            terms.add(new BondTerm(i, i+2, 1.5, 1));
+        terms.add(new BondTerm(points.length-3, points.length-1, 0, 1));
+        terms.add(new BondTerm(0,               points.length-2, 0, 1));
+        // For faking angle restraints with distances:
         //for(int i = 0; i < points.length-4; i++)
-        //    terms.add(new AngleTerm(i, i+1, i+2, 120, 1));
+        //    terms.add(new BondTerm(i, i+2, 1.5, 1));
+        for(int i = 0; i < points.length-4; i++)
+            terms.add(new AngleTerm(i, i+1, i+2, 120, 1));
         
         StateManager stateman = new StateManager(points, points.length-2);
         stateman.setEnergyTerms((EnergyTerm[])terms.toArray(new EnergyTerm[terms.size()]));
         GradientMinimizer min = new GradientMinimizer(stateman);
         
         PrintStream out = System.out;
-        DecimalFormat df = new DecimalFormat("0.0####");
+        DecimalFormat df = new DecimalFormat("0.0###");
         out.println("@kinemage 1");
         int j, netEvals = 0;
         for(j = 0; j < 100; j++)
@@ -211,12 +220,22 @@ public class StateManager //extends ... implements ...
                 out.println("{} "+points[i].format(df));
             
             if(! min.step()) break;
-            System.err.println("step "+j+": "+min.getFuncEvals()+" evals; dEnergy = "+df.format(min.getDeltaEnergy())+"; |Gradient| = "+df.format(min.getGradMag()));
+            System.err.println(j+": "+min.getFuncEvals()+" evals; dE = "+df.format(100*min.getFracDeltaEnergy())
+                +"% ("+df.format(min.getDeltaEnergy())+"); |G| = "+df.format(min.getGradMag()));
             netEvals += min.getFuncEvals();
             stateman.writeState();
         }
         System.err.println("Average "+(netEvals / (j+1))+" evals per step");
+        
+        // long time = System.currentTimeMillis();
+        // for(int j = 0; j < 100000; j++)
+        // {
+            // if(! min.step()) break;
+        // }
+        // time = System.currentTimeMillis() - time;
+        // System.err.println(time+" millis to do 100,000 CG minimization steps.");
     }
 //}}}
+*/
 }//class
 

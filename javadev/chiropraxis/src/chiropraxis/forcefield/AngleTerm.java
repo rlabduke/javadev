@@ -106,15 +106,15 @@ public class AngleTerm implements EnergyTerm
         
         double scale = 2 * k * dcos_t / denom;
         double uvx = (ux+vx), uvy = (uy+vy), uvz = (uz+vz);
-        gradient[a  ] = scale * (vx - numer*ux/denom2);
-        gradient[a+1] = scale * (vy - numer*uy/denom2);
-        gradient[a+2] = scale * (vz - numer*uz/denom2);
-        gradient[c  ] = scale * (ux - numer*vx/denom2);
-        gradient[c+1] = scale * (uy - numer*vy/denom2);
-        gradient[c+2] = scale * (uz - numer*vz/denom2);
-        gradient[b  ] = scale * (numer*uvx/denom2 - uvx);
-        gradient[b+1] = scale * (numer*uvy/denom2 - uvy);
-        gradient[b+2] = scale * (numer*uvz/denom2 - uvz);
+        gradient[a  ] += scale * (vx - numer*ux/denom2);
+        gradient[a+1] += scale * (vy - numer*uy/denom2);
+        gradient[a+2] += scale * (vz - numer*uz/denom2);
+        gradient[c  ] += scale * (ux - numer*vx/denom2);
+        gradient[c+1] += scale * (uy - numer*vy/denom2);
+        gradient[c+2] += scale * (uz - numer*vz/denom2);
+        gradient[b  ] += scale * (numer*uvx/denom2 - uvx);
+        gradient[b+1] += scale * (numer*uvy/denom2 - uvy);
+        gradient[b+2] += scale * (numer*uvz/denom2 - uvz);
         
         return E;
         

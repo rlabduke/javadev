@@ -685,6 +685,7 @@ public class UIMenus //extends ... implements ...
         Kinemage kin = kMain.getKinemage();
         if(kin == null) return;
         kin.addView(view);
+        kin.setModified(true);
         rebuildViewsMenu(kin.getViewIterator());
     }
 

@@ -17,11 +17,12 @@ import java.util.*;
 * conjugate directions (aka conjugate gradient) minimization
 * on a StateManager.
 *
-* <b>WARNING! This code is by no means exemplary.
-* It does usually work, but it's probably inefficient
-* and definitely doesn't use the "best practices" algorithms.
-* See one of the Numerical Recipes books or perhaps the
-* GNU Scientific Library for production-quality code.</b>
+* <p>This code tries to be a production-quality conjugate gradient minimizer,
+* but I have limited experience with scientific-numeric computing.
+* If you want something really bulletproof, the GNU Scientific Library may be better.
+*
+* <p>This code is based on ideas from "Molecular Modelling" by Andrew R. Leach
+* and "Numerical Recipes in C", Ch 10 (http://www.library.cornell.edu/nr/bookcpdf.html).
 *
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Tue Oct 28 07:59:57 EST 2003
@@ -43,18 +44,22 @@ public class GradientMinimizer //extends ... implements ...
     /** The gradient or search vector from the previous step. */
     double[]            prevGrad;
     double              prevGMag;
+    double[]            prevPath;
+    double              prevPMag;
     /** The energy at the end of the current step. */
     double              currEnergy;
     /** The gradient or search vector from the current step. */
     double[]            currGrad;
     double              currGMag;
+    double[]            currPath;
+    double              currPMag;
     
     /** Number of steps executed. */
     int                 nSteps      = 0;
     /** Whether we've hit the minimum */
     boolean             hitBottom   = false;
     
-    /** The current step length. */
+    /** The current step length, as multiplied by a unit path vector. */
     double              stepLen     = 1e-2;
     /** Number of times the function has been evaluated for the last step. */
     int                 eval        = 0;
@@ -70,8 +75,10 @@ public class GradientMinimizer //extends ... implements ...
         // Initialize the gradient and energy
         currEnergy = prevEnergy = system.accept();
         prevGrad = (double[]) system.gradient.clone();
+        prevPath = (double[]) system.gradient.clone();
         currGrad = (double[]) system.gradient.clone();
-        currGMag = prevGMag = getGradientMagnitude(system.gradient);
+        currPath = (double[]) system.gradient.clone();
+        currGMag = currPMag = prevGMag = prevPMag = getMagnitude(system.gradient);
     }
 //}}}
 
@@ -88,20 +95,20 @@ public class GradientMinimizer //extends ... implements ...
         if(hitBottom) return false;
 
         // Save results from previous run for this step()
+        double[] swap;
         prevEnergy = currEnergy;
-        prevGMag = currGMag;
-        double[] swap = prevGrad;
-        prevGrad = currGrad;
-        currGrad = swap;
+        prevGMag = currGMag; prevPMag = currPMag;
+        swap = prevGrad; prevGrad = currGrad; currGrad = swap;
+        swap = prevPath; prevPath = currPath; currPath = swap;
         
         // Calculate the search vector for conjugate directions.
-        makeSearchVector(); // sets currGrad and currGMag
+        makeSearchVector(); // sets currGrad, currGMag, currPath, currPMag
 
         // Take a step against the search vector to reduce the energy.
-        if(currGMag > 0)
-            doLineMinimization(currGMag, currGrad); 
+        if(currGMag > 0 && currPMag > 0)
+            doLineMinimization(currPMag, currPath); 
         else // currGMag is 0 or NaN
-            hitBottom   = true;
+            hitBottom = true;
         
         if(hitBottom) currGMag = 0;
         
@@ -110,40 +117,51 @@ public class GradientMinimizer //extends ... implements ...
     }
 //}}}
 
-//{{{ getGradientMagnitude, makeSearchVector
+//{{{ makeSearchVector, getMagnitude
 //##############################################################################
-    /** Returns the magnitude of grad */
-    double getGradientMagnitude(double[] grad)
-    {
-        double gMag = 0.0;
-        for(int i = 0, end_i = grad.length; i < end_i; i++)
-            gMag += grad[i] * grad[i];
-        gMag = Math.sqrt(gMag);
-        return gMag;
-    }
-    
     /**
     * Transforms grad into a conjugate direction if appropriate,
     * and returns its new magnitude.
     */
     void makeSearchVector()
     {
-        double[] grad = system.gradient;
-        currGMag = getGradientMagnitude(grad);
+        int len = system.gradient.length;
+        System.arraycopy(system.gradient, 0, currGrad, 0, len);
+        currGMag = getMagnitude(currGrad);
         
-        if(nSteps % grad.length != 0)
+        if(nSteps % len != 0)
         {
+            /* The Fletcher-Reeves version * /
             double gamma = (currGMag/prevGMag);
             gamma = gamma*gamma;
-            for(int i = 0; i < grad.length; i++)
-                currGrad[i] = grad[i] + gamma*prevGrad[i];
-            currGMag = getGradientMagnitude(currGrad);
+            /* The Fletcher-Reeves version */
+            
+            /* The Polak-Ribiere version */
+            double gamma = 0;
+            for(int i = 0; i < len; i++)
+                gamma += (currGrad[i] - prevGrad[i]) * currGrad[i];
+            gamma = gamma / (prevGMag * prevGMag);
+            /* The Polak-Ribiere version */
+            
+            for(int i = 0; i < len; i++)
+                currPath[i] = currGrad[i] + gamma*prevPath[i];
+            currPMag = getMagnitude(currPath);
         }
-        else
+        else // steepest descent
         {
-            for(int i = 0; i < grad.length; i++)
-                currGrad[i] = grad[i];
+            System.arraycopy(currGrad, 0, currPath, 0, len);
+            currPMag = currGMag;
         }
+    }
+    
+    /** Returns the magnitude of grad */
+    double getMagnitude(double[] grad)
+    {
+        double gMag = 0.0;
+        for(int i = 0, end_i = grad.length; i < end_i; i++)
+            gMag += grad[i] * grad[i];
+        gMag = Math.sqrt(gMag);
+        return gMag;
     }
 //}}}
 
@@ -168,13 +186,13 @@ public class GradientMinimizer //extends ... implements ...
                 return;
             }
             fb = system.test(-b, path); eval++;
-            if(fb < fa)             break;          // good -- we found a smaller point
-            else if(stepLen > 0)    stepLen *= 0.5; // failure - try a smaller step
-            else                                    // can't take a small enough step
+            if(fb < fa) break;      // good -- we found a smaller point
+            else if(stepLen == 0)
             {
-                hitBottom = true;
+                hitBottom = true;   // step size is too small
                 return;
             }
+            else stepLen /= 8.0;    // failure - try a smaller step
         }
         
         // Initial guess for c:
@@ -191,21 +209,26 @@ public class GradientMinimizer //extends ... implements ...
         stepLen = b * gMag; // how far we stepped this time from a==0 to reach bracket center
         //System.err.print("Bracketed on "+a+" "+b+" "+c+" in "+eval+" evals.");
 
-        // Brent's method. Adapted from Numerical Recipes; I don't know how it works.
-        double d = 0, e = 0, eTemp, u, v, w, xm, fu, fv, fw, p, q, r, tol1, tol2;
+        // Brent's method.
+        double d = 0, e = 0, u, v, w, xm, fu, fv, fw, p, q, r, tol1, tol2;
         x = w = v       = b;
         fx = fw = fv    = fb;
+        b = c; // change in nomenclature: min now bracketed in (a,b)
         for(int i = 0; i < 100; i++)
         {
             xm = (a + b) / 2.0;
+            // a and b started off > 0, so x will always be > 0.
+            // This saves us some calls to Math.abs(tol1) below.
             tol1 = tol*x + 1e-10;
             tol2 = 2.0 * tol1;
+            // If bracketing interval is smaller than twice the fractional tolerance, end.
             if(Math.abs(x-xm) <= (tol2 - (b-a)/2.0))
             {
                 currEnergy = system.accept(-x, path); eval++;
                 //System.err.println("Solved to "+tol+" as "+b+" in "+eval+" evals.");
                 return;
             }
+            // Try a parabolic fit if ... ?
             if(Math.abs(e) > tol1)
             {
                 r = (x-w) * (fx-fv);
@@ -214,27 +237,31 @@ public class GradientMinimizer //extends ... implements ...
                 q = 2.0 * (q-r);
                 if(q > 0.0) p = -p;
                 else        q = -q;
-                eTemp = e;
-                if(Math.abs(p) >= Math.abs(0.5*q*eTemp) || p <= q*(a-x) || p >= q*(b-x))
+                // Parabolic fit is not OK; do golden sections instead.
+                if(Math.abs(p) >= Math.abs(0.5*q*e) || p <= q*(a-x) || p >= q*(b-x))
                 {
                     e = (x >= xm ? a-x : b-x);
                     d = GOLD * e;
                 }
+                // Parabolic fit *is* OK, use that instead of golden sections.
                 else
                 {
                     e = d;
                     d = p/q;
                     u = x+d;
                     if(u-a < tol2 || b-u < tol2)
-                        d = (xm-x >= 0 ? Math.abs(tol1) : -Math.abs(tol1));
+                        d = (xm-x >= 0 ? tol1 : -tol1);//(xm-x >= 0 ? Math.abs(tol1) : -Math.abs(tol1));
                 }
             }
+            // Skip parabolic fitting; search by golden sections.
             else
             {
                 e = (x >= xm ? a-x : b-x);
                 d = GOLD * e;
             }
-            u = (Math.abs(d) >= tol1 ? x+d : x+(d >= 0 ? Math.abs(tol1) : -Math.abs(tol1)));
+            //u = (Math.abs(d) >= tol1 ? x+d : x+(d >= 0 ? Math.abs(tol1) : -Math.abs(tol1)));
+            // Make sure we don't take any steps smaller than our tolerance.
+            u = (Math.abs(d) >= tol1 ? x+d : x+(d >= 0 ? tol1 : -tol1));
             fu = system.test(-u, path); eval++;
             if(fu <= fx)
             {
@@ -276,6 +303,10 @@ public class GradientMinimizer //extends ... implements ...
     public double getDeltaEnergy()
     { return currEnergy - prevEnergy; }
     
+    /** Returns the fractional change in energy after the last step. */
+    public double getFracDeltaEnergy()
+    { return (currEnergy - prevEnergy) / prevEnergy; }
+    
     /** Returns the gradient magnitude after the last step. */
     public double getGradMag()
     { return currGMag; }
@@ -287,10 +318,6 @@ public class GradientMinimizer //extends ... implements ...
     /** Returns the number of times the function was evaluated in the last step. */
     public int getFuncEvals()
     { return eval; }
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
 //}}}
 
 //{{{ empty_code_segment

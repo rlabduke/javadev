@@ -60,7 +60,8 @@ public class BondTerm implements EnergyTerm
         dx = state[a  ] - state[b  ]; // sign is correct for a, opposite for b
         dy = state[a+1] - state[b+1];
         dz = state[a+2] - state[b+2];
-        r = Math.max( Math.sqrt(dx*dx + dy*dy + dz*dz), MIN_R );
+        r = Math.sqrt(dx*dx + dy*dy + dz*dz);
+        if(r < MIN_R) r = MIN_R;
         dr = r - r0;
         E = k * (dr*dr);
         
@@ -86,7 +87,8 @@ public class BondTerm implements EnergyTerm
         dx = state[a  ] - state[b  ];
         dy = state[a+1] - state[b+1];
         dz = state[a+2] - state[b+2];
-        r = Math.max( Math.sqrt(dx*dx + dy*dy + dz*dz), MIN_R );
+        r = Math.sqrt(dx*dx + dy*dy + dz*dz);
+        if(r < MIN_R) r = MIN_R;
         dr = r - r0;
         return k * (dr*dr);
     }

@@ -19,6 +19,11 @@
 - wrote minimize.SequenceTree to do another analysis of Dezymer sequences
 - added "Fast model open" to ModelManager. Some layout issues still remain.
 - created some pieces of a MM force field in chiropraxis.forcefield
+- stupid bug in AngleTerm was assigning to gradient instead of adding to it
+- fixed a bug in Brent's method of GradientMinimizer (wrong endpoint b)
+- fixed confusion between search path and gradient in GradientMinimizer
+- changed (now correct) Fletcher-Reeves algorithm to Polak-Ribiere; works better
+- added RubberBand tool for KiNG
 
 ### 0.38 ###
 - wrote AnisoOxygenSearch
