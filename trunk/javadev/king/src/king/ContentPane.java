@@ -49,6 +49,11 @@ public class ContentPane extends JPanel // implements ...
         am.put("anim2fwd", new ReflectiveAction(null, null, this, "onAnim2Forward" ) );
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_B , KeyEvent.SHIFT_MASK), "anim2back" );
         am.put("anim2back", new ReflectiveAction(null, null, this, "onAnim2Backward" ) );
+        
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS , 0), "accum1" );
+        am.put("accum1", new ReflectiveAction(null, null, this, "onAccumulate" ) );
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS , KeyEvent.SHIFT_MASK), "accum2" );
+        am.put("accum2", new ReflectiveAction(null, null, this, "onAccumulate2" ) );
     }
 //}}}
 
@@ -259,6 +264,25 @@ public class ContentPane extends JPanel // implements ...
     {
         KinTree win = kMain.getKinTree();
         if(win != null) win.show();
+    }
+//}}}
+
+//{{{ onAccumulate, onAccumulate2
+//##################################################################################################
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onAccumulate(ActionEvent ev)
+    {
+        Kinemage k = kMain.getKinemage();
+        if(k != null) k.accumulate();
+        kMain.getCanvas().repaint();
+    }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onAccumulate2(ActionEvent ev)
+    {
+        Kinemage k = kMain.getKinemage();
+        if(k != null) k.accumulate2();
+        kMain.getCanvas().repaint();
     }
 //}}}
 }//class

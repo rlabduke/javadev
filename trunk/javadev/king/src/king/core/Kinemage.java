@@ -516,6 +516,61 @@ public class Kinemage extends AGE // implements ...
     }
 //}}}
 
+//{{{ accumulate, accumulate2, doAccumulate
+//##################################################################################################
+    /** Turns on the next 'animate' group. */
+    public void accumulate()
+    {
+        ArrayList animateGroups = new ArrayList();
+        for(Iterator iter = children.iterator(); iter.hasNext(); )
+        {
+            KGroup group = (KGroup) iter.next();
+            if(group.isAnimate()) animateGroups.add(group);
+        }
+        KGroup[] groups = (KGroup[]) animateGroups.toArray(new KGroup[animateGroups.size()]);
+        doAccumulate(groups);
+    }
+    
+    /** Turns on the next '2animate' group. */
+    public void accumulate2()
+    {
+        ArrayList animateGroups = new ArrayList();
+        for(Iterator iter = children.iterator(); iter.hasNext(); )
+        {
+            KGroup group = (KGroup) iter.next();
+            if(group.is2Animate()) animateGroups.add(group);
+        }
+        KGroup[] groups = (KGroup[]) animateGroups.toArray(new KGroup[animateGroups.size()]);
+        doAccumulate(groups);
+    }
+    
+    /**
+    * In order for this to work as expected, we want to turn on the first off group
+    * that we encounter AFTER the first on group, in a circular way.
+    */
+    void doAccumulate(AGE[] ages)
+    {
+        int firstOn = -1;
+        for(int i = 0; i < ages.length; i++)
+        {
+            if(ages[i].isOn())
+            {
+                firstOn = i;
+                break;
+            }
+        }
+        
+        for(int i = firstOn+1; i < firstOn+ages.length; i++)
+        {
+            if( !ages[i % ages.length].isOn() )
+            {
+                ages[i % ages.length].setOn(true);
+                break;
+            }
+        }
+    }
+//}}}
+
 //{{{ has(2)AnimateGroups
 //##################################################################################################
     public boolean hasAnimateGroups()
