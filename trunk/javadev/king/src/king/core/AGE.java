@@ -21,7 +21,7 @@ import driftwood.r3.*;
  * <p>Copyright (C) 2002-2004 by Ian W. Davis. All rights reserved.
  * <br>Begun on Wed Oct  2 10:50:36 EDT 2002
 */
-abstract public class AGE extends AHE implements MutableTreeNode
+abstract public class AGE extends AHEImpl implements MutableTreeNode
 {
 //{{{ Variable definitions
 //##################################################################################################

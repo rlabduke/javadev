@@ -41,22 +41,31 @@
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
     Make refitting tools able to set up alternate confs (as an option)
     Mutated residues should retain B factors where possible (?)
+    Support "on" and "off" for pointmasters in parser? (Flipkin)
 <!-- Postponed TO DO items }}} -->
-    Add ability to edit masters
+    Add ability to edit masters/pointmasters
     Add some kind of transformation hook (listeners, priorities, etc)
     Add pluginStartup() method to plugins that's called after everything is running?
     Open PDB in model manager without opening kinemage first?
     Open/save PDB from/to network
     Optional 2 column button layout?
-    Support "on" and "off" for pointmasters in parser? (Flipkin)
     use "around x,y,z" for Probe runs
     Look at Pro geometry with Jane
     Document kinfileBase, kinfileList, kinfileSaveHandler
     Track curr settings for perspective, etc. on a per-kin basis (+ kin defaults)
+  * Implement true SpherePoints (1.33)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 1.33 ###
+- Made AHE into an interface and moved the functionality into AHEImpl
+  This will allow us to make KPoint into an interface, leading ultimately
+  to lightweight KPoints like the ones we need to do a SpherePoint class.
+- converted KPoint into an interface, and moved impl into AbstractPoint
+- removed unused function preTransform() and viewTransform() from AHE
+- added ProxyPoint as the future basis for SpherePoint disks
 
 ### 1.32 ###
 - changed EDMapPlugin so that it asks for map format after you choose a file
@@ -68,16 +77,17 @@
 - added JOGL libs to src code distro, so downloaders can compile it too
 - add JOGL native libs to the Mac Application Bundle
 - AIOOBEx in HiQualPainter line 111 arises when depth cueing by line width is on
-- VectorPoint was multiplying in widthCue prematurely in setting line width
+- VectorPoint was multiplying by widthCue prematurely in setting line width
 - fixed naming swap with "Prune" and "Punch" in Draw New tool
 - added "do nothing" button to the draw new tool (can also just ctrl-click)
-- reformatted tabs in Kinemage and KinfileParser
+- reformatted tabs in Kinemage and KinfileParser source code
 - moved pointmasters into Kinemage so that 1) each kin can choose 32 different
   chars to be pointmasters and 2) unknown pointmasters are auto-created.
   Tested and debugged on- and off-line using Cb kins and multikins.
 - updated pointmaster section in kinemage format document
 - made pointmasters behave like masters and like Mage: dominant-off
 - updated pointmaster docs again
+- distributed to the world on 15 Oct 2004 (r80)
 
 ### 1.31 ###
 - Ant script now creates javadocs as part of "dist" target

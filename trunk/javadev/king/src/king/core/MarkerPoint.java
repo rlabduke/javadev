@@ -15,7 +15,7 @@ import java.awt.*;
 * <p>Begun on Sun Jun 23 15:33:28 EDT 2002
 * <br>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
 */
-public class MarkerPoint extends KPoint // implements ...
+public class MarkerPoint extends AbstractPoint // implements ...
 {
 //{{{ Static fields
     public static final int CROSS_S  = 0x00000001;
@@ -70,9 +70,9 @@ public class MarkerPoint extends KPoint // implements ...
         setColor(color);
         setStyle(style_mask);
         setUnpickable(true);
-        x0 = p.x0;
-        y0 = p.y0;
-        z0 = p.z0;
+        x0 = (float)p.getX();
+        y0 = (float)p.getY();
+        z0 = (float)p.getZ();
     }
 //}}}
 

@@ -14,7 +14,7 @@ import java.awt.*;
 * <p>Begun on Mon Jun 24 21:09:57 EDT 2002
 * <br>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
 */
-public class LabelPoint extends KPoint // implements ...
+public class LabelPoint extends AbstractPoint // implements ...
 {
 //{{{ Static fields
     public static final int LEFT   = 0;

@@ -20,7 +20,7 @@
 #
 # Product Name: KiNG
 # Project File: /Users/ian/javadev/king/installer/king/king.iap_xml
-# Generated:    Thu Jul 29 16:37:22 EDT 2004
+# Generated:    Fri Oct 15 13:28:36 EDT 2004
 
 
 ---- PRE-INSTALL ACTIONS ----

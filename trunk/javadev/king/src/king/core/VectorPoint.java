@@ -19,7 +19,7 @@ import driftwood.r3.*;
 * <p>Copyright (C) 2002-2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri Apr 26 16:46:09 EDT 2002
 */
-public class VectorPoint extends KPoint // implements ...
+public class VectorPoint extends AbstractPoint // implements ...
 {
 //{{{ Constants
 //}}}
