@@ -106,6 +106,7 @@ king.tool.xtal.GuilloTool.menuName = Specialty
 king.tool.xtal.SuiteRotationTool.menuName = Specialty
 king.tool.util.FastaTool.menuName = Specialty
 king.tool.util.RecolorTool.menuName = Kin editing
+king.tool.util.ClipPlanesPlugin.menuName = Specialty
 
 ######################################################################
 ### PROTECTION AND CONFIRMATION ######################################

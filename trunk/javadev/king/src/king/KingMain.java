@@ -13,6 +13,7 @@ import java.net.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.tree.*;
+import javax.swing.plaf.metal.MetalLookAndFeel;
 import driftwood.util.*;
 import driftwood.isosurface.*;
 import driftwood.gui.*;
@@ -142,10 +143,20 @@ public class KingMain implements WindowListener, KinemageSignalSubscriber
         //catch(SecurityException ex) { SoftLog.err.println("Not allowed to activate antialiasing."); }
         // No effect -- must be done using -D from Java cmd line
         
+        // This allows JMenus to overlap the JOGL canvas, which stopped
+        // happening automatically with the release of Java 1.5.
+        JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+        
         // It's just too hard to change this after we've already started up!
         float magnification = prefs.getFloat("fontMagnification");
         if(magnification != 1)
-            javax.swing.plaf.metal.MetalLookAndFeel.setCurrentTheme(new MagnifiedTheme(magnification));
+        {
+            MetalLookAndFeel.setCurrentTheme(new MagnifiedTheme(magnification));
+            // This forces initialization of the LAF, which keeps Java 1.5
+            // from replacing our theme with their "Ocean" theme.
+            try { UIManager.setLookAndFeel( UIManager.getLookAndFeel() ); }
+            catch(Exception ex) { ex.printStackTrace(); }
+        }
         
         if(!SoftLog.replaceSystemStreams())
             SoftLog.err.println("Unable to subvert System.err; some exception traces may be lost.");
