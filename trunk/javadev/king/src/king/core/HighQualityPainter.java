@@ -53,6 +53,23 @@ public class HighQualityPainter extends StandardPainter
         ellipse1.setFrame((x-r), (y-r), d, d);
         if(REALLY_PAINT) g.fill(ellipse1);
 
+        // Black rim, causes ~10% speed penalty but useful for visualization!
+        try
+        {
+            Color c = (Color) paint;
+            if(d >= 10 && c.getAlpha() == 255)
+            {
+                g.setPaint(Color.black);
+                g.setStroke(KPalette.pen1);
+                if(REALLY_PAINT) g.draw(ellipse1);
+            }
+        }
+        catch(ClassCastException ex)
+        {
+            ex.printStackTrace();
+            System.err.println("JoglPainter: tried painting with non-Color type of Paint");
+        }
+        
         // highlight
         if(showHighlight)
         {

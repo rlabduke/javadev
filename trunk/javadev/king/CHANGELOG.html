@@ -51,7 +51,6 @@
     'space' with (point)masters - what does it mean?
     Write help HTML for BeanKing
     Allow editing of nohighlight flag for lists
-    Add black rims on balls like Mage does?
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -69,6 +68,12 @@
 - second fix for depth cues, thinline, etc.; in KinCanvas.paintCanvas()
 - third time's the charm: created Engine.syncToKin() function to be called
 - fixed kinemage property editor to sync Display menu checkboxes
+- now write out width= for dot lists too
+- tried adding black edges to balls for non-translucent balls only
+- fixed bug in Engine: clipDepth not calc'd after perspective correction
+- fixed bug: writeFPS now works with JoglPainter
+- added black rims on balls to all painters (ala Mage)
+- fixed bug that broke Views menu after kinemage merge from cmd line (merge bug)
 
 ### 1.35 ###
 - fixed EDMapPlotter so mesh/vector ED won't be translucent, only triangle/poly

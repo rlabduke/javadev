@@ -206,7 +206,7 @@ public class KinWriter //extends ... implements ...
         if(paint.isAlias()) out.print(" color= {"+paint+"}");
         else                out.print(" color= "+paint);
         
-        if(list.getType() == KList.VECTOR)
+        if(list.getType() == KList.VECTOR || list.getType() == KList.DOT)
         {
             if(list.width != 2) out.print(" width= "+list.width);
         }

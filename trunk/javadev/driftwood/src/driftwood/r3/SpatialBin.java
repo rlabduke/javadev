@@ -79,7 +79,7 @@ public class SpatialBin //extends ... implements ...
     }
 //}}}
 
-//{{{ add, addAll
+//{{{ add, addAll, clear
 //##############################################################################
     /** Adds the given point to the appropriate bin. */
     public void add(Tuple3 pt)
@@ -102,6 +102,12 @@ public class SpatialBin //extends ... implements ...
             Tuple3 pt = (Tuple3) iter.next();
             add(pt);
         }
+    }
+    
+    /** Removes all Tuple3s in the spatial bin */
+    public void clear()
+    {
+        this.grid.clear();
     }
 //}}}
 
