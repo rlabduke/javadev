@@ -20,7 +20,7 @@ import driftwood.gui.*;
  **/
 public class AutoBondRotDataTool extends BasicTool implements ActionListener
 {
-//{{{ Constants
+//{{{ Constants    
 //}}}
 
 //{{{ Variable definitions
@@ -32,10 +32,12 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     boolean             urlChooserOK    = false;
 
     HashMap             dataMap; // probescore -> arraylist of BallPoints
-    TablePane           pane;
+    //TablePane           pane;
+    //JDialog             dialog;
     JComboBox           color1;
     JTextField          lowNumField;
     JTextField          highNumField;
+    JTextField          scalingField;
     JButton             colorButton, setDefaultButton, setOnButton, setOffButton;
     JCheckBox           plotChangeBox;
 
@@ -47,6 +49,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     double minSpan = 100000000;
     double minSpanIncr, minSpanLow, minSpanHigh;
     ArrayList xKlists, yKlists, zKlists;
+    ArrayList allPoints;
 
 //}}}
 
@@ -59,7 +62,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     {
         super(tb);
         
-	buildGUI();
+	//buildGUI();
         //makeFileFilters();
 	
     }
@@ -69,13 +72,16 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 //##############################################################################
     private void buildGUI() {
 
+	dialog = new JDialog(kMain.getTopWindow(), "Data Tool", false);
+
 	color1 = new JComboBox(KPalette.getStandardMap().values().toArray());
 	color1.setSelectedItem(KPalette.red);
         color1.addActionListener(this);
 
 	lowNumField = new JTextField("", 5);
 	highNumField = new JTextField("", 5);
-	
+	scalingField = new JTextField("5", 5);
+
 	colorButton = new JButton("Color!");
 	colorButton.setActionCommand("color");
 	colorButton.addActionListener(this);
@@ -95,17 +101,32 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	plotChangeBox = new JCheckBox("Toggle plotting", true);
 	plotChangeBox.addActionListener(this);
 
-	pane = new TablePane();
+	TablePane pane = new TablePane();
 	pane.newRow();
 	pane.add(color1);
 	pane.add(lowNumField);
 	pane.add(highNumField);
 	pane.add(colorButton);
-	pane.newRow();
 	pane.add(setDefaultButton);
+	pane.newRow();
 	pane.add(setOnButton);
 	pane.add(setOffButton);
 	pane.add(plotChangeBox);
+	pane.add(scalingField);
+
+	dialog.setContentPane(pane);
+	
+	JMenuBar menubar = new JMenuBar();
+	JMenu menu;
+	JMenuItem item;
+
+	menu = new JMenu("Options");
+	menubar.add(menu);
+	item = new JMenuItem(new ReflectiveAction("Score in Last Col", null, this, "onFixScore"));
+	menu.add(item);
+
+	dialog.setJMenuBar(menubar);
+	
     }
 
 //{{{ makeFileChooser
@@ -136,12 +157,17 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 
         try
         {
+	    buildGUI();
             //if(kMain.getApplet() != null)   openMapURL();
             //else                            openMapFile();
 	    dataMap = new HashMap();
 	    listMap = new HashMap();
 	    offPoints = new HashSet();
+	    allPoints = new ArrayList();
 	    openFile();
+	    
+	    
+	    
 	    show();
         }
         catch(IOException ex) // includes MalformedURLException
@@ -167,6 +193,15 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     }
 //}}}
 
+    private String askFileFormat(String f) {
+	Object[] choices = {"First", "Last"};
+	String choice = (String) JOptionPane.showInputDialog(kMain.getTopWindow(), 
+		  "Is the data in the first or last column?", 
+							     "Choose", JOptionPane.PLAIN_MESSAGE, 
+							     null, choices, "First");
+	return choice;
+    }
+
 
 //{{{ openMapFile
 //##################################################################################################
@@ -181,7 +216,8 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
             if(f != null && f.exists())
             {
 		BufferedReader reader = new BufferedReader(new FileReader(f));
-		scanFile(reader);
+		String choice = askFileFormat(f.getName());
+		scanFile(reader, choice);
 		//buildGUI();
 		//show();
 		//dialog.pack();
@@ -198,7 +234,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     /**
      * Does most of the work reading and analyzing the data files.
      **/
-    private void scanFile(BufferedReader reader) {
+    private void scanFile(BufferedReader reader, String choice) {
 	String line;
 	try {
 	    while((line = reader.readLine())!=null){
@@ -209,20 +245,34 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		} else {
 		    line.trim();
 		    StringTokenizer spaceToks = new StringTokenizer(line, " ");
-		    //double x = Double.parseDouble(spaceToks.nextToken());
-		    //double y = Double.parseDouble(spaceToks.nextToken());
-		    double clashValue = Double.parseDouble(spaceToks.nextToken());
-		    //float clashFloat = clashValue.floatValue();
-		    double x = Double.parseDouble(spaceToks.nextToken());
-		    double y = Double.parseDouble(spaceToks.nextToken());
+		    double x, y, clashValue;
 		    double z = Double.NaN;
-		    if (spaceToks.hasMoreTokens()) {
-			// Temporarily switching y and z stupidly.
-			z = y;
+		    if (choice.equals("Last")) {
+			x = Double.parseDouble(spaceToks.nextToken());
 			y = Double.parseDouble(spaceToks.nextToken());
+			clashValue = Double.parseDouble(spaceToks.nextToken());
+			if (spaceToks.hasMoreTokens()) {
+			    z = clashValue;
+			    clashValue = Double.parseDouble(spaceToks.nextToken());
+			}
+		    } else {
+			clashValue = Double.parseDouble(spaceToks.nextToken());
+		    //float clashFloat = clashValue.floatValue();
+			x = Double.parseDouble(spaceToks.nextToken());
+			y = Double.parseDouble(spaceToks.nextToken());
+			//z = Double.NaN;
+			if (spaceToks.hasMoreTokens()) {
+			    // Temporarily switching y and z stupidly.
+			    z = y;
+			    y = Double.parseDouble(spaceToks.nextToken());
+			}
 		    }
 		    //trackHighLows(x, y, z); // for determining what planes to split into different lists.
 		    BallPoint point = new BallPoint(null, Double.toString(clashValue));
+		    allPoints.add(point);
+
+
+		    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 		    if (clashValue>0) {
 			point.setRadius((float)clashValue);
 			//point.setColor(KPalette.green);
@@ -238,8 +288,9 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		    } else {
 			sortByValue(y, point);
 		    }
-
+		    makeDataMap(point, 1);
 		    // for recoloring by clash value
+		    /*
 		    Integer clashInt = new Integer((int)Math.floor(clashValue));
 		    if (dataMap.containsKey(clashInt)) {
 			ArrayList clashPoints = (ArrayList) dataMap.get(clashInt);
@@ -249,13 +300,17 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 			clashPoints.add(point);
 			dataMap.put(clashInt, clashPoints);
 		    }
+		    */
 		    //reSortKlists();
 
 		}
 	    }
-	    plotByScore(true);
+	    //fixScoreInLastCol();
+	    plotByScore(true, 5);
 	    setDefaultColors();
+	    //fixScoreInLastCol();
 	    reSortKlists();
+	    //fixScoreInLastCol();
 	    //kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
 	} catch (IOException ex) {
 	    JOptionPane.showMessageDialog(kMain.getTopWindow(),
@@ -266,6 +321,18 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     }
 //}}}
 
+    private void makeDataMap(KPoint point, int multiplier) {
+	double clashValue = Double.parseDouble(point.getName()) * multiplier;
+	Integer clashInt = new Integer((int)Math.floor(clashValue));
+	if (dataMap.containsKey(clashInt)) {
+	    ArrayList clashPoints = (ArrayList) dataMap.get(clashInt);
+	    clashPoints.add(point);
+	} else {
+	    ArrayList clashPoints = new ArrayList();
+	    clashPoints.add(point);
+	    dataMap.put(clashInt, clashPoints);
+	}
+    }
     /*
     private void trackHighLows(int x, int y, int z) {
 	if (x > maxX) maxX = x;
@@ -470,7 +537,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	}
     }
 
-    private void plotByScore(boolean plotStat) {
+    private void plotByScore(boolean plotStat, double scaleFactor) {
 	if (plotStat) {
 	    Collection values = dataMap.values();
 	    Iterator iter = values.iterator();
@@ -479,7 +546,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		Iterator points = value.iterator();
 		while (points.hasNext()) {
 		    KPoint point = (KPoint) points.next();
-		    point.setOrigZ(Double.parseDouble(point.getName())*5);
+		    point.setOrigZ(Double.parseDouble(point.getName())*scaleFactor);
 		}
 	    }
 	} else {
@@ -497,6 +564,44 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	}
     }
 
+    public void onFixScore(ActionEvent ev) {
+	//Collection values = dataMap.values();
+	//Iterator iter = values.iterator();
+	
+	listMap.clear();
+	dataMap.clear();
+	Iterator iter = allPoints.iterator();
+	//while (iter.hasNext()) {
+	//    ArrayList value = (ArrayList) iter.next();
+	//    Iterator points = value.iterator();
+	while (iter.hasNext()) {
+	    KPoint point = (KPoint) iter.next();
+	    double temp = point.getX();
+	    double clashValue = point.getY();
+	    point.setX(Double.parseDouble(point.getName()));
+	    point.setName(Double.toString(clashValue));
+	    point.setY(temp);
+	    point.setRadius((float)clashValue);
+	    makeDataMap(point, 100);
+	    /*Integer clashInt = new Integer((int)Math.floor(clashValue));
+	      if (dataMap.containsKey(clashInt)) {
+	      ArrayList clashPoints = (ArrayList) dataMap.get(clashInt);
+	      clashPoints.add(point);
+	      } else {
+	      ArrayList clashPoints = new ArrayList();
+		    clashPoints.add(point);
+		    dataMap.put(clashInt, clashPoints);
+		    }
+	    */
+	    sortByValue(0, point);
+	}
+	
+	plotByScore(true, 5);
+	setDefaultColors();
+	reSortKlists();
+	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+    }
+
 // event functions
 //###############################################################################################
     /**
@@ -505,6 +610,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     public void actionPerformed(ActionEvent ev) {
 	if ("color".equals(ev.getActionCommand())) {
 	    if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))) {
+		/*
 		int firstNum = Integer.parseInt(lowNumField.getText());
 		int secondNum = Integer.parseInt(highNumField.getText());
 		//if (firstNum > secondNum) {
@@ -514,8 +620,25 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		//}
 
 		highlightRange(firstNum, secondNum, (KPaint) color1.getSelectedItem());
+		*/
+
+		double firstNum = Double.parseDouble(lowNumField.getText());
+		double secondNum = Double.parseDouble(highNumField.getText());
+		if (firstNum > secondNum) {
+		    double temp = secondNum;
+		    secondNum = firstNum;
+		    firstNum = temp;
+		}
+		Iterator iter = allPoints.iterator();
+		while (iter.hasNext()) {
+		    KPoint point = (KPoint) iter.next();
+		    double clashValue = Double.parseDouble(point.getName());
+		    if ((clashValue<= secondNum)&&(clashValue>= firstNum)) {
+			point.setColor((KPaint) color1.getSelectedItem());
+		    }
+		}
 	    } else {
-		JOptionPane.showMessageDialog(pane, "You have to put numbers in the text boxes!", "Error",
+		JOptionPane.showMessageDialog(kMain.getTopWindow(), "You have to put numbers in the text boxes!", "Error",
                                     JOptionPane.ERROR_MESSAGE);
 	    }
 	} else if ("set defaults".equals(ev.getActionCommand())) {
@@ -527,7 +650,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		//togglePointStatus(firstNum, secondNum, true);
 		addPoints(firstNum, secondNum);
 	    } else {
-		JOptionPane.showMessageDialog(pane, "You have to put numbers in the text boxes!", "Error",
+		JOptionPane.showMessageDialog(kMain.getTopWindow(), "You have to put numbers in the text boxes!", "Error",
                                     JOptionPane.ERROR_MESSAGE);
 	    }
 	} else if ("setOff".equals(ev.getActionCommand())) {
@@ -537,15 +660,17 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		//togglePointStatus(firstNum, secondNum, false);
 		removePoints(firstNum, secondNum);
 	    } else {
-		JOptionPane.showMessageDialog(pane, "You have to put numbers in the text boxes!", "Error",
+		JOptionPane.showMessageDialog(kMain.getTopWindow(), "You have to put numbers in the text boxes!", "Error",
 					      JOptionPane.ERROR_MESSAGE);
 	    }
 	}
 	if (plotChangeBox.isSelected()) {
-	    plotByScore(true);
+	    plotByScore(true, Double.parseDouble(scalingField.getText()));
+	    //dataMap.clear();
+	    
 	    //System.out.println("selected");
 	} else {
-	    plotByScore(false);
+	    plotByScore(false, 5);
 	    //System.out.println("not selected");
 	}
 	kCanvas.repaint();
@@ -553,7 +678,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 
     public boolean isNumeric(String s) {
 	try {
-	    Integer.parseInt(s);
+	    Double.parseDouble(s);
 	    return true;
 	} catch (NumberFormatException e) {
 	    return false;
@@ -566,7 +691,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     { return "#draw-tool"; }
 
     public Container getToolPanel()
-    { return pane; }
+    { return dialog; }
     
     public String toString()
     { return "AutoBondRot Data"; }
