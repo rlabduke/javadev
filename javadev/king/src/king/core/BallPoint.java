@@ -120,8 +120,10 @@ public class BallPoint extends AbstractPoint // implements ...
     */
     public KPoint isPickedBy(float xx, float yy, float radius, boolean objPick)
     {
-        if(objPick) return super.isPickedBy(xx, yy, Math.max(radius, r), objPick);
-        else        return super.isPickedBy(xx, yy, radius, objPick);
+        // Balls should always act in "object pick" mode
+        return super.isPickedBy(xx, yy, Math.max(radius, r), objPick);
+        //if(objPick) return super.isPickedBy(xx, yy, Math.max(radius, r), objPick);
+        //else        return super.isPickedBy(xx, yy, radius, objPick);
     }
 //}}}
 

@@ -1,0 +1,4 @@
+#!/bin/bash
+MIDP_HOME=/Users/ian/palmdev/midp
+$MIDP_HOME/bin/midp -classpath kinglite.jar kinglite.KingMain
+

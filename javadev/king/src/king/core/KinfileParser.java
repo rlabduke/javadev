@@ -192,8 +192,7 @@ public class KinfileParser //extends ... implements ...
                 token.advanceToKeyword();
             }
         }//while not EOF
-        //closeBondRots();
-        kinemage.setBondRots(closeBondRots());
+        if(kinemage != null) kinemage.setBondRots(closeBondRots());
         closedBondRots = new ArrayList();
     }
 //}}}
@@ -203,9 +202,7 @@ public class KinfileParser //extends ... implements ...
     void doKinemage() throws IOException
     {
         if (kinemage != null) {
-            //closeBondRots();
             kinemage.setBondRots(closeBondRots());
-            
             closedBondRots = new ArrayList();
         }
         kinemage = new Kinemage(DEFAULT_KINEMAGE_NAME+(kinemages.size()+1));

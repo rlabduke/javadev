@@ -1,0 +1,61 @@
+<html><head><title>CHANGELOG</title></head><body><!-- (jEdit options) :folding=explicit:collapseFolds=1: --><pre>
+==============================================================================
+===  TO DO  ==================================================================
+==============================================================================
+    I think we could eliminate x2/y2/z2 to save memory (ditto for x0/y0/z0, by reloading)
+        need 2's for line depth sort/drawing; reload is how slow?
+    Alternative input without stylus? (Canvas.hasPointerMotionEvents())
+    Add polyline breaker to separate really long lines into chunks
+    Support views?
+    Move to block architecture or file format version numbers? Use real kin fmt?
+    Move clipping into the View class
+  * Support animations (via groups, or not?)
+ ** Fire button toggles input mode (2 or 4, dep. on pointer events or not)
+    Add basic help text
+    Document binary format
+    Redo colors with good rounding
+
+==============================================================================
+===  CHANGE LOG  =============================================================
+==============================================================================
+
+### 1.05 ###
+- implemented thick lines
+- changed manual double buffering to check for automatic dbl buf first
+- changed "Hide" to "Show" rhetoric; sync show/hide list with view state
+- made clipping steps coarser
+- moved KingLite/Hai-KiNG into Java Subversion repository
+
+### 1.04 ###
+- back buffer now notices screen size changes and adjusts
+- old kin is discarded to free memory before new one is loaded
+- kins can be loaded from URLs
+- kins from URLs are stored locally
+- loads can be done from multiple blocks to limit memory needed for buffers
+- now allow user to hide points by type (lines/dots/labels/balls)
+
+### 1.03 ###
+- load all from PalmDataBase / RecordStore
+- added double buffering (optional) to drawing engine
+- allow deletion of RecordStores
+
+### 1.02 ###
+- experimented with loading from RecordStores and Palm DataBases
+
+### 1.01 ###
+- fixed flatland bug (include cz, shift-shift loss of precision)
+- fixed (most) wild lines created by zooming in on polylines
+
+### 1.00 ###
+- created KingMain, KinCanvas, KPoint, and View
+- basic rotation, zoom, clip of vectors and dots works
+- added pickcenter function
+- scale func now eliminates pts/vectors that won't be drawn in ANY orientation
+- added loader for binary kinemage files
+- created binary kin export for KiNG
+- added new graphics types: thick lines and dots, balls, and labels
+- moved pointIDs to a hashtable so must points don't allocate space for them
+- added flatland translation
+- added perspective rendering
+
+</pre></body></html>

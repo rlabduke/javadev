@@ -117,7 +117,8 @@ public class TrianglePoint extends AbstractPoint // implements ...
             {
                 // then, do Andrew Ban's nifty intersection test
                 if(Builder.checkTriangle(xx, yy, A.x, A.y, B.x, B.y, C.x, C.y))
-                {
+                    return this; // always this, so changing colors works as expected
+                /*{
                     float dx, dy, dA, dB, dC;
                     dx = xx - A.x; dy = yy - A.y; dA = dx*dx + dy*dy;
                     dx = xx - B.x; dy = yy - B.y; dB = dx*dx + dy*dy;
@@ -125,7 +126,7 @@ public class TrianglePoint extends AbstractPoint // implements ...
                     if(dA <= dB && dA <= dC)    return A;
                     else if(dB <= dC)           return B;
                     else                        return C;
-                }
+                }*/
             }
         }
         

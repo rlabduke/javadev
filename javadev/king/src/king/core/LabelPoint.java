@@ -84,7 +84,9 @@ public class LabelPoint extends AbstractPoint // implements ...
     /** Returns this if the specified pick hits it, else returns null. */
     public KPoint isPickedBy(float xx, float yy, float radius, boolean objPick)
     {
-        if(objPick && minx <= xx && xx <= maxx && miny <= yy && yy <= maxy)
+        // Labels should always act in "object pick" mode
+        //if(objPick && minx <= xx && xx <= maxx && miny <= yy && yy <= maxy)
+        if(minx <= xx && xx <= maxx && miny <= yy && yy <= maxy)
             return this;
         else
             return super.isPickedBy(xx, yy, radius, objPick);        

@@ -1644,10 +1644,9 @@ pick
 
  points in a kinemage.
  Enabling this option allows KiNG to recognize mouse clicks that hit the
- text of labels, the surfaces of balls and triangles, and the lines drawn
- between points.
- In each case, the result is equivalent to clicking on the actual point
- nearest the mouse click.
+ actual lines drawn between points and the surfaces of triangles.
+ In each case, the result is equivalent to clicking on the point that determines
+ the attributes (color, line width, etc.) of that graphics object.
 \layout Section
 
 Using KiNG with a multi-button mouse
@@ -2803,20 +2802,6 @@ segments Simply draws a line between the first point picked and
 \layout Description
 
 Draw\SpecialChar ~
-balls Places a small ball at each point picked with the mouse.
-\layout Description
-
-Draw\SpecialChar ~
-labels Creates a label at the picked point, with its text taken from
- the picked point's ID.
- The label text can be changed using Edit Properties.
-\layout Description
-
-Draw\SpecialChar ~
-dots Creates a dot at each point picked with the mouse.
-\layout Description
-
-Draw\SpecialChar ~
 dotted\SpecialChar ~
 lines Like drawing ordinary lines, except a string of dots is
  created instead of a single line.
@@ -2842,6 +2827,20 @@ arc Draws an arc from the second point picked to the third one,
  ones.
  The arc can also be shortened by a few degrees so it doesn't quite touch
  its endpoints, and a four-pronged arrowhead can be added.
+\layout Description
+
+Draw\SpecialChar ~
+balls Places a small ball at each point picked with the mouse.
+\layout Description
+
+Draw\SpecialChar ~
+labels Creates a label at the picked point, with its text taken from
+ the picked point's ID.
+ The label text can be changed using Edit Properties.
+\layout Description
+
+Draw\SpecialChar ~
+dots Creates a dot at each point picked with the mouse.
 \layout Description
 
 Draw\SpecialChar ~

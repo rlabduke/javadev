@@ -70,8 +70,8 @@ public class DrawingTool extends BasicTool
 //{{{ Variable definitions
 //##############################################################################
     TablePane       ui;
-    JRadioButton    rbDoNothing, rbLineSegment, rbBalls, rbLabels, rbDots,
-                    rbDottedLine, rbArcSegment, rbTriangle;
+    JRadioButton    rbDoNothing, rbLineSegment, rbDottedLine, rbArcSegment,
+                    rbBalls, rbLabels, rbDots, rbTriangle;
     JRadioButton    rbPunch, rbPrune, rbAuger, rbSphereCrop;
     
     Builder         builder = new Builder();
@@ -116,16 +116,16 @@ public class DrawingTool extends BasicTool
         buttonGroup.add(rbDoNothing);
         rbLineSegment = new JRadioButton("Draw line segments");
         buttonGroup.add(rbLineSegment);
+        rbDottedLine = new JRadioButton("Draw dotted lines");
+        buttonGroup.add(rbDottedLine);
+        rbArcSegment = new JRadioButton("Draw curved arc");
+        buttonGroup.add(rbArcSegment);
         rbBalls = new JRadioButton("Draw balls");
         buttonGroup.add(rbBalls);
         rbLabels = new JRadioButton("Draw labels");
         buttonGroup.add(rbLabels);
         rbDots = new JRadioButton("Draw dots");
         buttonGroup.add(rbDots);
-        rbDottedLine = new JRadioButton("Draw dotted lines");
-        buttonGroup.add(rbDottedLine);
-        rbArcSegment = new JRadioButton("Draw curved arc");
-        buttonGroup.add(rbArcSegment);
         rbTriangle = new JRadioButton("Draw triangles");
         buttonGroup.add(rbTriangle);
 
@@ -146,13 +146,6 @@ public class DrawingTool extends BasicTool
         FoldingBox fbLineSeg = new FoldingBox(rbLineSegment, tpLineSeg);
         fbLineSeg.setAutoPack(true);
         fbLineSeg.setIndent(10);
-        
-        cbLabelIsID = new JCheckBox("Use ID of picked point for label", false);
-        TablePane tpLabels = new TablePane();
-        tpLabels.addCell(cbLabelIsID);
-        FoldingBox fbLabels = new FoldingBox(rbLabels, tpLabels);
-        fbLabels.setAutoPack(true);
-        fbLabels.setIndent(10);
         
         tfNumDots = new JTextField("10", 6);
         TablePane tpDottedLine = new TablePane();
@@ -176,6 +169,13 @@ public class DrawingTool extends BasicTool
         FoldingBox fbArcSegment = new FoldingBox(rbArcSegment, tpArcSegment);
         fbArcSegment.setAutoPack(true);
         fbArcSegment.setIndent(10);
+        
+        cbLabelIsID = new JCheckBox("Use ID of picked point for label", false);
+        TablePane tpLabels = new TablePane();
+        tpLabels.addCell(cbLabelIsID);
+        FoldingBox fbLabels = new FoldingBox(rbLabels, tpLabels);
+        fbLabels.setAutoPack(true);
+        fbLabels.setIndent(10);
         
         tfTriangleSize = new JTextField("1.0", 6);
         TablePane tpTriangle = new TablePane();
@@ -206,14 +206,14 @@ public class DrawingTool extends BasicTool
         ui.addCell(rbDoNothing).newRow();
         ui.addCell(rbLineSegment).newRow();
             ui.addCell(fbLineSeg).newRow();
-        ui.addCell(rbBalls).newRow();
-        ui.addCell(rbLabels).newRow();
-            ui.addCell(fbLabels).newRow();
-        ui.addCell(rbDots).newRow();
         ui.addCell(rbDottedLine).newRow();
             ui.addCell(fbDottedLine).newRow();
         ui.addCell(rbArcSegment).newRow();
             ui.addCell(fbArcSegment).newRow();
+        ui.addCell(rbBalls).newRow();
+        ui.addCell(rbLabels).newRow();
+            ui.addCell(fbLabels).newRow();
+        ui.addCell(rbDots).newRow();
         ui.addCell(rbTriangle).newRow();
             ui.addCell(fbTriangle).newRow();
         ui.addCell(rbPunch).newRow();
@@ -234,11 +234,11 @@ public class DrawingTool extends BasicTool
         super.click(x, y, p, ev);
         if(rbDoNothing.isSelected())            return; // don't mark kin as modified
         else if(rbLineSegment.isSelected())     doLineSegment(x, y, p, ev);
+        else if(rbDottedLine.isSelected())      doDottedLine(x, y, p, ev);
+        else if(rbArcSegment.isSelected())      doArcSegment(x, y, p, ev);
         else if(rbBalls.isSelected())           doBalls(x, y, p, ev);
         else if(rbLabels.isSelected())          doLabels(x, y, p, ev);
         else if(rbDots.isSelected())            doDots(x, y, p, ev);
-        else if(rbDottedLine.isSelected())      doDottedLine(x, y, p, ev);
-        else if(rbArcSegment.isSelected())      doArcSegment(x, y, p, ev);
         else if(rbTriangle.isSelected())        doTriangle(x, y, p, ev);
         else if(rbPunch.isSelected())           doPunch(x, y, p, ev);
         else if(rbPrune.isSelected())           doPrune(x, y, p, ev);
