@@ -3,7 +3,7 @@
 package king;
 import king.core.*;
 
-//import java.awt.*;
+import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 //import java.net.*;
@@ -38,6 +38,16 @@ public class ToolBoxMW extends ToolBox implements MouseWheelListener
     public ToolBoxMW(KingMain kmain, KinCanvas kcanv)
     {
         super(kmain, kcanv);
+    }
+//}}}
+
+//{{{ listenTo
+//##################################################################################################
+    /** Does all the work to make the ToolBox listen to the specified component. */
+    public void listenTo(Component c)
+    {
+        super.listenTo(c);
+        c.addMouseWheelListener(this);
     }
 //}}}
 

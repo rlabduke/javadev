@@ -19,10 +19,6 @@ import driftwood.util.*;;
 public class Engine //extends ... implements ...
 {
 //{{{ Constants
-    //public static final int QUALITY_FAIR        = -1;
-    public static final int QUALITY_GOOD        = 0;
-    public static final int QUALITY_BETTER      = 1;
-    public static final int QUALITY_BEST        = 2;
 //}}}
 
 //{{{ Variables
@@ -42,7 +38,7 @@ public class Engine //extends ... implements ...
     public double       perspDist       = 2000;
     
     // READ ONLY: Parameters for painting points
-    public Painter      painter         = new StandardPainter();
+    public Painter      painter         = null;
     public boolean      useObjPicking   = true;     // should we pick triangles, lines, balls as solid objects?
     public boolean      useStereo       = false;
     public float        stereoRotation  = 0;
@@ -105,9 +101,9 @@ public class Engine //extends ... implements ...
     * @param view           a KingView representing the current rotation/zoom/clip
     * @param bounds         the bounds of the area to render to
     * @param g              the graphics context of a Swing component or an offscreen buffer
-    * @param quality        one of the QUALITY_* constants
+    * @param painter        the Painter that should be used for rendering stuff this pass
     */
-    public void render(TransformSignalSubscriber subscriber, KingView view, Rectangle bounds, Graphics2D g, int quality)
+    public void render(TransformSignalSubscriber subscriber, KingView view, Rectangle bounds, Graphics2D g, Painter painter)
     {
         // The game plan:
         // 1. Paint background
@@ -132,11 +128,7 @@ public class Engine //extends ... implements ...
         }
         g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
         
-        if(quality >= QUALITY_BETTER)
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        // This is sort of inefficient, but the cost is pretty small overall.
-        if(quality >= QUALITY_BEST)     painter = new HighQualityPainter();
-        else                            painter = new StandardPainter();
+        this.painter = painter;
         
         // Set some last-minute drawing variables
         markerSize          = (bigMarkers   ? 2         : 1);
@@ -155,17 +147,17 @@ public class Engine //extends ... implements ...
             
             clipRgn.setBounds(bounds.x, bounds.y, halfwidth, bounds.height);
             g.setClip(clipRgn);
-            renderLoop(subscriber, altview, clipRgn, g, quality);
+            renderLoop(subscriber, altview, clipRgn);
             
             clipRgn.setBounds((bounds.x + bounds.width - halfwidth), bounds.y, halfwidth, bounds.height);
             g.setClip(clipRgn);
-            renderLoop(subscriber,    view, clipRgn, g, quality);
+            renderLoop(subscriber,    view, clipRgn);
             
             g.setClip(oldClipRgn);
         }
         else//!useStereo
         {
-            renderLoop(subscriber, view, bounds, g, quality);
+            renderLoop(subscriber, view, bounds);
         }
     }
 //}}}
@@ -178,10 +170,8 @@ public class Engine //extends ... implements ...
     * @param view           a KingView representing the current rotation/zoom/clip
     * @param bounds         the bounds of the area to render to.
     *   Note that this function does not clip g to ensure that it only paints within these bounds!
-    * @param g              the graphics context of a Swing component or an offscreen buffer
-    * @param quality        one of the QUALITY_* constants
     */
-    void renderLoop(TransformSignalSubscriber subscriber, KingView view, Rectangle bounds, Graphics2D g, int quality)
+    void renderLoop(TransformSignalSubscriber subscriber, KingView view, Rectangle bounds)
     {
         int i, j, end_j;    // loop over z-buffer, thru z-buffer
         ArrayList zb;       // == zbuffer[i], saves array lookups
@@ -222,12 +212,12 @@ public class Engine //extends ... implements ...
                 KPoint  pt  = (KPoint) zb.get(j);
                 KList   l   = (KList) pnt.get(j);
                 if(l == null)
-                    pt.paintStandard(g, this);
+                    pt.paintStandard(this);
                 else // see setActingParent() for an explanation
                 {
                     AGE oldPnt = pt.getOwner();
                     pt.setOwner(l);
-                    pt.paintStandard(g, this);
+                    pt.paintStandard(this);
                     pt.setOwner(oldPnt);
                 }
             }

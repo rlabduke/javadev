@@ -12,7 +12,7 @@ import java.lang.reflect.*;
 import java.util.*;
 import javax.swing.*;
 
-import driftwood.gui.TablePane;
+import driftwood.gui.*;
 import driftwood.r3.*;
 import driftwood.util.*;
 //}}}
@@ -441,6 +441,54 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
         {
             services.clearEverything();
             activeTool.reset();
+        }
+    }
+//}}}
+
+//{{{ listenTo
+//##################################################################################################
+    /** Does all the work to make the ToolBox listen to the specified component. */
+    public void listenTo(Component c)
+    {
+        c.addMouseListener(this);
+        c.addMouseMotionListener(this);
+        
+        if(c instanceof JComponent)
+        {
+            JComponent jc = (JComponent) c;
+        
+            ActionMap am = jc.getActionMap();
+            InputMap  im = jc.getInputMap(JComponent.WHEN_FOCUSED);
+            // This version doesn't work, for unknown reasons.
+            //JComponent contentPane = kMain.getContentPane();
+            //ActionMap am = contentPane.getActionMap();
+            //InputMap im = contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+            Action arrowUp    = new ReflectiveAction("", null, this, "onArrowUp" );
+            Action arrowDown  = new ReflectiveAction("", null, this, "onArrowDown" );
+            Action arrowLeft  = new ReflectiveAction("", null, this, "onArrowLeft" );
+            Action arrowRight = new ReflectiveAction("", null, this, "onArrowRight");
+            
+            // Register listeners for arrows with all combinations of Shift and Ctrl
+            am.put("arrow-up",  arrowUp );
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP , 0), "arrow-up" );
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP , KeyEvent.SHIFT_MASK), "arrow-up" );
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP , KeyEvent.CTRL_MASK), "arrow-up" );
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP , KeyEvent.SHIFT_MASK|KeyEvent.CTRL_MASK), "arrow-up" );
+            am.put("arrow-down",  arrowDown );
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN , 0), "arrow-down" );
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN , KeyEvent.SHIFT_MASK), "arrow-down" );
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN , KeyEvent.CTRL_MASK), "arrow-down" );
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN , KeyEvent.SHIFT_MASK|KeyEvent.CTRL_MASK), "arrow-down" );
+            am.put("arrow-left",  arrowLeft );
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT , 0), "arrow-left" );
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT , KeyEvent.SHIFT_MASK), "arrow-left" );
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT , KeyEvent.CTRL_MASK), "arrow-left" );
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT , KeyEvent.SHIFT_MASK|KeyEvent.CTRL_MASK), "arrow-left" );
+            am.put("arrow-right",  arrowRight );
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT , 0), "arrow-right" );
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT , KeyEvent.SHIFT_MASK), "arrow-right" );
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT , KeyEvent.CTRL_MASK), "arrow-right" );
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT , KeyEvent.SHIFT_MASK|KeyEvent.CTRL_MASK), "arrow-right" );
         }
     }
 //}}}

@@ -126,7 +126,7 @@ public class BallPoint extends KPoint // implements ...
     * Renders this Paintable to the specified graphics surface,
     * using the display settings from engine.
     */
-    public void paintStandard(Graphics2D g, Engine engine)
+    public void paintStandard(Engine engine)
     {
         KPaint maincolor = getDrawingColor(engine);
         if(maincolor.isInvisible()) return;
@@ -138,7 +138,7 @@ public class BallPoint extends KPoint // implements ...
         int d = (int)(2.0*r + 0.5);
         if(d < 2) d = 2; // make sure balls don't disappear
         
-        engine.painter.paintBall(g, paint, x, y, z, r, ((parent.flags & KList.NOHILITE) == 0));
+        engine.painter.paintBall(paint, x, y, z, r, ((parent.flags & KList.NOHILITE) == 0));
     }
 //}}}
 }//class

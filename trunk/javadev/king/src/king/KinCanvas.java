@@ -28,6 +28,10 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
 //{{{ Static fields
     static final double LOG_2 = Math.log(2.0);
     static final int SLIDER_SCALE = 16;
+    
+    public static final int QUALITY_GOOD        = 0;
+    public static final int QUALITY_BETTER      = 1;
+    public static final int QUALITY_BEST        = 2;
 //}}}
 
 //{{{ Variables
@@ -35,12 +39,16 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
     KingMain kMain = null;
     Engine engine = null;
     ToolBox toolbox = null;
+    
+    StandardPainter     goodPainter     = new StandardPainter(false);
+    StandardPainter     betterPainter   = new StandardPainter(true);
+    HighQualityPainter  bestPainter     = new HighQualityPainter(true);
 
     DefaultBoundedRangeModel zoommodel = null;
     DefaultBoundedRangeModel clipmodel = null;
     Image logo = null;
     
-    int renderQuality = Engine.QUALITY_GOOD;
+    int renderQuality = QUALITY_GOOD;
     boolean writeFPS;
 //}}}
     
@@ -63,7 +71,7 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
         {
             String os = System.getProperty("os.name").toLowerCase();
             if(os.indexOf("mac") != -1 || os.indexOf("apple") != -1)
-                renderQuality = Engine.QUALITY_BETTER;
+                renderQuality = QUALITY_BETTER;
         }
         catch(SecurityException ex) { SoftLog.err.println(ex.getMessage()); }
         
@@ -115,12 +123,6 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
                 Class mwClass = Class.forName("king.ToolBoxMW");
                 Constructor mwConstr = mwClass.getConstructor(new Class[] { KingMain.class, KinCanvas.class });
                 toolbox = (ToolBox)mwConstr.newInstance(new Object[] { kMain, this });
-                
-                // Call addMouseWheelListener on this KinCanvas.
-                Class kcClass = this.getClass();
-                Method addWheelListener = kcClass.getMethod("addMouseWheelListener",
-                    new Class[] { Class.forName("java.awt.event.MouseWheelListener") });
-                addWheelListener.invoke(this, new Object[] {toolbox});
             }
             catch(Throwable t)
             {
@@ -132,42 +134,8 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
         {
             toolbox = new ToolBox(kMain, this);
         }
-        addMouseListener(toolbox);
-        addMouseMotionListener(toolbox);
         
-        // Arrow keys do Y-rotation (for Bryan)
-        ActionMap am = this.getActionMap();
-        InputMap  im = this.getInputMap(JComponent.WHEN_FOCUSED);
-        // This version doesn't work, for unknown reasons.
-        //JComponent contentPane = kMain.getContentPane();
-        //ActionMap am = contentPane.getActionMap();
-        //InputMap im = contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        Action arrowUp    = new ReflectiveAction("", null, toolbox, "onArrowUp" );
-        Action arrowDown  = new ReflectiveAction("", null, toolbox, "onArrowDown" );
-        Action arrowLeft  = new ReflectiveAction("", null, toolbox, "onArrowLeft" );
-        Action arrowRight = new ReflectiveAction("", null, toolbox, "onArrowRight");
-        
-        // Register listeners for arrows with all combinations of Shift and Ctrl
-        am.put("arrow-up",  arrowUp );
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP , 0), "arrow-up" );
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP , KeyEvent.SHIFT_MASK), "arrow-up" );
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP , KeyEvent.CTRL_MASK), "arrow-up" );
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP , KeyEvent.SHIFT_MASK|KeyEvent.CTRL_MASK), "arrow-up" );
-        am.put("arrow-down",  arrowDown );
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN , 0), "arrow-down" );
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN , KeyEvent.SHIFT_MASK), "arrow-down" );
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN , KeyEvent.CTRL_MASK), "arrow-down" );
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN , KeyEvent.SHIFT_MASK|KeyEvent.CTRL_MASK), "arrow-down" );
-        am.put("arrow-left",  arrowLeft );
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT , 0), "arrow-left" );
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT , KeyEvent.SHIFT_MASK), "arrow-left" );
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT , KeyEvent.CTRL_MASK), "arrow-left" );
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT , KeyEvent.SHIFT_MASK|KeyEvent.CTRL_MASK), "arrow-left" );
-        am.put("arrow-right",  arrowRight );
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT , 0), "arrow-right" );
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT , KeyEvent.SHIFT_MASK), "arrow-right" );
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT , KeyEvent.CTRL_MASK), "arrow-right" );
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT , KeyEvent.SHIFT_MASK|KeyEvent.CTRL_MASK), "arrow-right" );
+        toolbox.listenTo(this);
     }
 //}}}
     
@@ -234,12 +202,29 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
         }
         else
         {
+            Painter painter = null;
+            if(renderQuality == QUALITY_BETTER)
+            {
+                betterPainter.setGraphics(g2);
+                painter = betterPainter;
+            }
+            else if(renderQuality == QUALITY_BEST)
+            {
+                bestPainter.setGraphics(g2);
+                painter = bestPainter;
+            }
+            else //(renderQuality == QUALITY_GOOD)
+            {
+                goodPainter.setGraphics(g2);
+                painter = goodPainter;
+            }
+            
             KingView view = kin.getCurrentView();
             Rectangle bounds = new Rectangle(dim);
             if(kin.currAspect == null) engine.activeAspect = 0;
             else engine.activeAspect = kin.currAspect.getIndex().intValue();
             long timestamp = System.currentTimeMillis();
-            engine.render(this, view, bounds, g2, quality);
+            engine.render(this, view, bounds, g2, painter);
             timestamp = System.currentTimeMillis() - timestamp;
             if(writeFPS)
                 SoftLog.err.println(timestamp+" ms ("+(timestamp > 0 ? Long.toString(1000/timestamp) : ">1000")
@@ -293,7 +278,7 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
             if(kin.currAspect == null) engine.activeAspect = 0;
             else engine.activeAspect = kin.currAspect.getIndex().intValue();
             
-            engine.render(this, view, bounds, g2, Engine.QUALITY_BEST);
+            engine.render(this, view, bounds, g2, bestPainter);
             if(toolbox != null) toolbox.overpaintCanvas(g2);
             
             return PAGE_EXISTS;
@@ -345,7 +330,7 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
     /** Returns the toolbox used for interacting with this canvas. */
     public ToolBox getToolBox() { return toolbox; }
     
-    /** Sets the rendering quality to one of the Engine.QUALITY_XXX constants */
+    /** Sets the rendering quality to one of the QUALITY_XXX constants */
     public void setQuality(int q)
     { renderQuality = q; }
 //}}}

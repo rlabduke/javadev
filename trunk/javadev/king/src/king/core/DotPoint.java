@@ -49,14 +49,14 @@ public class DotPoint extends KPoint // implements ...
     * Renders this Paintable to the specified graphics surface,
     * using the display settings from engine.
     */
-    public void paintStandard(Graphics2D g, Engine engine)
+    public void paintStandard(Engine engine)
     {
         KPaint maincolor = getDrawingColor(engine);
         if(maincolor.isInvisible()) return;
         Paint paint = maincolor.getPaint(engine.backgroundMode, engine.colorCue);
         
         int width = calcLineWidth(engine);
-        engine.painter.paintDot(g, paint, x, y, z, width);
+        engine.painter.paintDot(paint, x, y, z, width);
     }
 //}}}
 
