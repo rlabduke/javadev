@@ -56,6 +56,7 @@ public class KinfileParser //extends ... implements ...
     // Used for storing bondrots
     TreeMap bondRots = null;
     ArrayList closedBondRots = null;
+    int nonIntCount = 1;
 //}}}
 
 //{{{ Constructor(s), parse
@@ -431,7 +432,14 @@ public class KinfileParser //extends ... implements ...
 		// for doing bondrots
 		else if(s.endsWith("bondrot")) {
 		    double angle = 0;
-		    int bondNum = Integer.parseInt(s.substring(0,1));
+		    char firstChar = s.charAt(0);
+		    int bondNum = -1;
+		    if (Character.isDigit(firstChar)) {
+			bondNum = Character.getNumericValue(firstChar);
+		    } else {
+			bondNum = nonIntCount;
+			nonIntCount++;
+		    }
 		    token.advance();
 		    if(token.isNumber()) {
 			angle = token.getFloat();
@@ -947,7 +955,10 @@ public class KinfileParser //extends ... implements ...
      **/
     private void storeBondRot(int bondNum, String nm, double angle) {
 	Integer bondInt = new Integer(bondNum);
-	Map higherRots = bondRots.tailMap(bondInt);
+	Map higherRots = new TreeMap();
+	if (bondNum != -1) {
+	    higherRots = bondRots.tailMap(bondInt);
+	}
 
 	if (!(higherRots.isEmpty())) {
 	    Collection closingRots = higherRots.values();
@@ -959,8 +970,10 @@ public class KinfileParser //extends ... implements ...
 		//System.out.println("Bond rots less than or equal to " + bondInt + " closed");
 	    }
 	}
-	bondRots = new TreeMap(bondRots.headMap(bondInt)); //to clear map of all bondrots with higher numbers
-	    
+	if (bondNum != -1) {
+	    bondRots = new TreeMap(bondRots.headMap(bondInt)); //to clear map of all bondrots with higher numbers
+	}
+
 	BondRot newRot = new BondRot(bondNum, nm, angle);
 	bondRots.put(bondInt, newRot);
     }
