@@ -33,7 +33,7 @@ public class PointEditor implements ChangeListener
     GroupEditor groupEditor;
     
     JDialog ptDialog;
-    JTextField ptID, ptAspects, ptMasters, ptWidthRadius, ptX, ptY, ptZ;
+    JTextField ptID, ptComment, ptAspects, ptMasters, ptWidthRadius, ptX, ptY, ptZ;
     ColorPicker ptPicker;
     JCheckBox ptUnpickable;
     JLabel ptIndex;
@@ -65,6 +65,7 @@ public class PointEditor implements ChangeListener
         ptDialog = new JDialog(kMain.getTopWindow(), "Edit point", true);
         ptDialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
         ptID = new JTextField(20);
+        ptComment = new JTextField(20);
         ptAspects = new JTextField(8);
         ptMasters = new JTextField(8);
         ptWidthRadius = new JTextField(8);
@@ -93,6 +94,9 @@ public class PointEditor implements ChangeListener
         tp.startSubtable();
         tp.add(new JLabel("Point ID"));
         tp.add(ptID, 3, 1);
+        tp.newRow();//----------
+        tp.add(new JLabel("Comment"));
+        tp.add(ptComment, 3, 1);
         tp.newRow();//----------
         tp.skip();
         tp.add(ptUnpickable);
@@ -159,6 +163,9 @@ public class PointEditor implements ChangeListener
         
         // Write values to GUI
         ptID.setText(p.getName());
+        String comment = p.getComment();
+        if(comment == null) ptComment.setText("");
+        else                ptComment.setText(comment);
         ptAspects.setText(p.getAspects());
         ptMasters.setText(kin.fromPmBitmask(p.getPmMask()));
         ptX.setText(Float.toString(p.getOrigX()));
@@ -217,6 +224,9 @@ public class PointEditor implements ChangeListener
         Kinemage kin = kMain.getKinemage();
 
         thePoint.setName(ptID.getText());
+        String comment = ptComment.getText().trim();
+        if(comment.length() == 0)   thePoint.setComment(null);
+        else                        thePoint.setComment(comment);
         String aspects = ptAspects.getText().trim().toUpperCase();
         if(aspects.length() > 0)    thePoint.setAspects(aspects);
         else                        thePoint.setAspects(null);

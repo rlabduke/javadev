@@ -124,6 +124,9 @@ public class BasicTool extends Plugin implements MouseListener, MouseMotionListe
     public void click(int x, int y, KPoint p, MouseEvent ev)
     {
         services.pick(p);
+        
+        if(p != null && p.getComment() != null)
+            clickActionHandler(p.getComment());
     }
     
     /** Override this function for right-button/shift clicks */
@@ -198,6 +201,39 @@ public class BasicTool extends Plugin implements MouseListener, MouseMotionListe
     /** Override this function for mouse wheel motion with shift AND control down */
     public void sc_wheel(int rotation, MouseEvent ev)
     { s_wheel(rotation, ev); }
+//}}}
+
+//{{{ clickActionHandler
+//##################################################################################################
+    /**
+    * This function gets called by BasicTool.click() iff the currently selected
+    * point has a point comment associated with it. Subclasses that wish to
+    * implement custom actions (which match <code>/^[a-zA-Z]+:.+/</code> )
+    * stored in point comments can override this method.
+    * @param comment    the point comment for the picked point
+    * @return true if the action was handled, false if not
+    * @since 1.34
+    */
+    protected boolean clickActionHandler(String comment)
+    {
+        if(comment.startsWith("http:"))
+        {
+            try
+            {
+                URL url;
+                if(kMain.getApplet() == null) url = new URL(comment);
+                else url = new URL(kMain.getApplet().getDocumentBase(), comment);
+                new HTMLHelp(kMain, url).show();
+                return true;
+            }
+            catch(MalformedURLException ex)
+            {
+                SoftLog.err.println("Bad HTTP URL in point comment: "+comment);
+                return false;
+            }
+        }
+        else return false;
+    }
 //}}}
 
 //{{{ Mouse motion listeners
@@ -438,5 +474,9 @@ public class BasicTool extends Plugin implements MouseListener, MouseMotionListe
     { return "#navigate-tool"; }
     
     public String toString() { return "Navigate"; }
+//}}}
+
+//{{{ empty_code_segment
+//##################################################################################################
 //}}}
 }//class
