@@ -1,0 +1,25 @@
+<html>
+<body>
+<center><h1>The Electron Density Map plugin</h1></center>
+This tool is for viewing electron density maps while exploring kinemages of crystal structures.
+(If that doesn't mean anything to you, then you probably don't need this plugin.)
+<p>Choose "Open" from the Tools menu in order to open a map file.
+Both X-PLOR (ASCII, not binary) and O (DSN6 or Brix) maps are supported.
+<p>Each map opens a new control window, which allows adjustment of its extent, color, and level.
+The segment of map that is visible at any given time is centered in the current view;
+when the view changes, the portion that is visible will automatically be updated.
+<p>Any dynamic segment of map can be "captured" as part of a static kinemage;
+just use the Export button to make the currently visible map segment part of the current kinemage.
+When you've finished with a map, be sure to Discard it to free up the memory it consumed.
+<p>If you don't have an electron density map for the structure you're interested in, you can try
+looking at the Uppsala Electron Density Server (http://fsrv1.bmc.uu.se/eds/). They offer standard
+maps for many of the structures deposited in the Protein Data Bank (http://www.rcsb.org/pdb/).
+<p>Maps can't be loaded from the local filesystem when KiNG is running as an applet due to security restrictions.
+However, you can use the XMAP or OMAP parameter along with the &lt;PARAM&gt; tag to load a (single) map from a URL.
+For example: <code>&lt;PARAM name="omap" value="http://example.com/electron/density/my-protein.dsn6.gz"&gt;</code>
+<p>You can also use the EDMAPBASE and EDMAPLIST parameters to allow the user to select and load a map.
+EDMAPBASE specifies a path to the maps relative to the current document base URL.
+EDMAPLIST is a space-separated list of filenames that can be loaded from that path.
+Users can also enter and modify URLs directly, though obviously this isn't very convenient.
+</body>
+</html>

@@ -1,0 +1,1395 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass linuxdoc
+\language english
+\inputencoding auto
+\fontscheme pslatex
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize Default
+\paperpackage a4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+\added_space_top vfill \added_space_bottom vfill 
+The 
+\noun on 
+KiNG
+\noun default 
+ manual
+\layout Author
+
+Ian W.
+ Davis
+\layout Abstract
+
+
+\noun on 
+KiNG
+\noun default 
+ (Kinemage, Next Generation) is an interactive system for three-dimensional
+ vector graphics.
+ It supports a set of graphics primitives that make it suitable for many
+ types of graphs, plots, and other illustrations; although its first use
+ was to display macromolecular structures for biophysical research.
+ 
+\noun on 
+KiNG
+\noun default 
+ builds on 
+\noun on 
+Mage
+\noun default 
+, 
+\noun on 
+JavaMage
+\noun default 
+, and the 
+\begin_inset Quotes eld
+\end_inset 
+
+kinemage
+\begin_inset Quotes erd
+\end_inset 
+
+ (kinetic image) concept to deliver a full-featured Java application with
+ a user-friendly interface and integrated editing features.
+ It also operates as a Java applet to promote easy access to kinemages from
+ a web browser.
+\layout Standard
+
+
+\begin_inset LatexCommand \tableofcontents{}
+
+\end_inset 
+
+
+\layout Section
+
+What is a kinemage?
+\layout Standard
+
+A kinemage is a 
+\begin_inset Quotes eld
+\end_inset 
+
+kinetic image,
+\begin_inset Quotes erd
+\end_inset 
+
+ a three-dimensional illustration that lends itself to a variety of subjects.
+ Kinemages were first created as a way of visualizing macromolecular structures,
+ particularly x-ray crystal structures of proteins.
+ Their strength is in 
+\emph on 
+selective
+\emph default 
+ presentation of information --- they are intended as an alternative to
+ flat, static journal illustrations.
+ Since their creation, kinemages have been extended to a variety of other
+ fields, from the social sciences to education.
+\layout Standard
+
+The kinemage concept is the brainchild of Drs.
+ David and Jane Richardson at Duke University in Durham, North Carolina,
+ USA.
+ Their website is at 
+\begin_inset LatexCommand \htmlurl[http://kinemage.biochem.duke.edu]{http://kinemage.biochem.duke.edu}
+
+\end_inset 
+
+.
+\layout Section
+
+Loading files and kinemages
+\layout Subsection
+
+Opening a file
+\layout Standard
+
+To open a new kinemage, go the the 
+\family typewriter 
+File
+\family default 
+ menu and choose 
+\family typewriter 
+Open
+\family default 
+.
+ Browse through your file system and find a kinemage file.
+ These files typically end in .
+\family typewriter 
+kin
+\family default 
+, though ones that have been edited extensively may have revisions named
+ .
+\family typewriter 
+kip
+\family default 
+, 
+\family typewriter 
+kip1
+\family default 
+, 
+\family typewriter 
+kip2
+\family default 
+, 
+\emph on 
+etc
+\emph default 
+.
+ Click the button marked OK and KiNG will begin loading the file.
+ You'll see a progress bar as KiNG loads the contents of the file, and then
+ the first kinemage in that file will be displayed in the graphics area
+ (where the logo used to be).
+\layout Standard
+
+Files can also be specified on the command line, as in 
+\family typewriter 
+king\SpecialChar ~
+-s\SpecialChar ~
+foo.kin\SpecialChar ~
+bar.kip1
+\family default 
+, which will load all the kinemages in those two files upon startup.
+ The 
+\family typewriter 
+-s
+\family default 
+ (or 
+\family typewriter 
+-single
+\family default 
+) flag is required so that KiNG knows not to merge the two files together.
+\layout Subsection
+
+Working with multiple kinemages
+\layout Standard
+
+If your file has more than one kinemage, you can choose which one you want
+ to look at from the drop box on the right, just above the buttons.
+ You can also use 
+\family typewriter 
+File
+\family default 
+ | 
+\family typewriter 
+Open
+\family default 
+ to load additional files; those kinemages will also appear in the drop
+ box.
+ When you're done, use 
+\family typewriter 
+File
+\family default 
+ | 
+\family typewriter 
+Close
+\family default 
+ to get rid of the current kinemage, or use 
+\family typewriter 
+File
+\family default 
+ | 
+\family typewriter 
+Close all
+\family default 
+ to get rid of all the open kinemages.
+\layout Standard
+
+Sometimes you want to combine the contents of multiple kinemages.
+ You might want to combine a graph of your latest sales data with some nicely
+ formated and labeled axes you prepared last month.
+ Or maybe you want to combine a ribbon drawing of your favorite protein
+ with a representation of the atomic detail at its active site.
+ In either case, using 
+\family typewriter 
+File
+\family default 
+ | 
+\family typewriter 
+Merge
+\family default 
+ will combine the contents of a new file with the contents of the currently
+ displayed kinemage.
+ Be careful --- if the new file contains multiple kinemages, they'll 
+\emph on 
+all
+\emph default 
+ be merged into the current one!
+\layout Standard
+
+This behavior can be achieved on the command line by specifying multiple
+ files, as in 
+\family typewriter 
+king\SpecialChar ~
+-m\SpecialChar ~
+foo.kin\SpecialChar ~
+bar.kip1
+\family default 
+, which will merge all the kinemages in those two files upon startup.
+ The 
+\family typewriter 
+-m
+\family default 
+ (or 
+\family typewriter 
+-merge
+\family default 
+) flag is optional; merging multiple files is the default behavior.
+\layout Section
+
+Using KiNG to view a kinemage
+\layout Subsection
+
+Basic interaction
+\layout Subsubsection
+
+Moving the kinemage around
+\layout Standard
+
+A kinemage is a dynamic, 3-D illustration.
+ The best way to take advantage of that is by rotating it and twisting it
+ around.
+ Just click the mouse near the center of the graphics window and slowly
+ drag right or left, up or down.
+ If you have multiple buttons on your mouse, use the left button or button
+ 1.
+ You can also use the left and right arrow keys for small rotations.
+ If you get lost or disoriented, use the 
+\family typewriter 
+Views
+\family default 
+ menu to get back on familiar ground.
+\layout Subsubsection
+
+Identifying points
+\layout Standard
+
+By clicking on points with the mouse (left button again), you'll be able
+ to identify them.
+ The label associated with each point will appear in the bottom right of
+ the graphics area.
+ Furthermore, the distance from this point to the last one you clicked will
+ also be displayed.
+\layout Subsubsection
+
+Turning groups on & off
+\layout Standard
+
+Most kinemages have many different components to them, grouped together
+ in logical ways.
+ A protein might have one group for each subunit; or one group for mainchain,
+ another for side chains, and yet another for hydrogens.
+ Groups and subgroups are given names and can be made visible or hidden
+ by the viewer --- you might want to see only one subunit, or only the backbone
+ (without sidechains and hydrogens cluttering up the view).
+\layout Standard
+
+The groups and subgroups appear in the button pane, to the right of the
+ graphics area.
+ Each one has a button to turn it on or off.
+ Groups that are on (visible) usually have a check mark or an X in there
+ box; a blank button means the group is hidden.
+ Many kinemages start off with some information hidden, to avoid overwhelming
+ the reader.
+ Always check to see if there's more information available than is being
+ displayed!
+\layout Subsubsection
+
+Re-centering
+\layout Standard
+
+You can make any point in the kinemage be the center.
+ The center point will be in the middle of the graphics area, and the kinemage
+ will rotate about that point.
+ There are several ways to set the center: you can hold the Shift key while
+ you click the point, or use the right mouse button if you have one.
+ You can also press the 
+\family typewriter 
+Pick center
+\family default 
+ button below the graphics area and then click on the desired point.
+\layout Standard
+
+Since re-centering brings a point to the center of the screen, using this
+ repeatedly allows one to 
+\begin_inset Quotes eld
+\end_inset 
+
+walk
+\begin_inset Quotes erd
+\end_inset 
+
+ through a large structure.
+\layout Subsubsection
+
+Zooming in and out
+\layout Standard
+
+KiNG allows you to zoom in to see small details in a kinemage.
+ Use the 
+\family typewriter 
+Zoom
+\family default 
+ slider, below the graphics area, to control how far you zoom in.
+ You can click the mouse right or left of the knob for small movements or
+ click the knob and drag it for larger ones.
+ A small motion is usually all that's needed.
+\layout Standard
+
+For easier access, one can hold Shift and drag (or drag using the right
+ mouse button) in the graphics window.
+ Dragging down zooms in; up zooms out.
+ The up/down arrow keys and mouse wheel (Java 1.4 and later only) also control
+ zooming.
+\layout Subsubsection
+
+Clipping
+\layout Standard
+
+Objects that are too near the viewer, or too far away, are not displayed;
+ otherwise, zooming in would result in a useless superposition.
+ The depth of the clipping 
+\begin_inset Quotes eld
+\end_inset 
+
+slab
+\begin_inset Quotes erd
+\end_inset 
+
+ can be adjusted using the slider along the bottom, or by dragging side-to-side
+ with the right mouse button (or with the Shift key held down).
+\layout Subsection
+
+Reading the kinemage text
+\layout Standard
+
+Exploring on your own is great, but the best guide to a kinemage is its
+ author.
+ Often, he or she includes a short text of a few paragraphs or pages that
+ explains what the kinemage depicts.
+ You can access this text using the 
+\family typewriter 
+Show text
+\family default 
+ button, located just below the graphics area.
+ An equivalent command is also available in the 
+\family typewriter 
+Edit
+\family default 
+ menu.
+\layout Subsection
+
+Using different viewpoints
+\layout Standard
+
+Most kinemages have one or more 
+\begin_inset Quotes eld
+\end_inset 
+
+views
+\begin_inset Quotes erd
+\end_inset 
+
+ that were selected by the author to highlight some significant feature.
+ These views are accessible from the 
+\family typewriter 
+Views
+\family default 
+ menu.
+ Just click on one of the named views and the kinemage will 
+\begin_inset Quotes eld
+\end_inset 
+
+jump
+\begin_inset Quotes erd
+\end_inset 
+
+ to that view.
+ You can then rotate it, zoom in or out, 
+\emph on 
+etc.
+
+\emph default 
+ to explore further.
+ You can always return to the original view by selecting it again from the
+ menu.
+\layout Standard
+
+Kinemages without any predefined views still get an automatic 
+\begin_inset Quotes eld
+\end_inset 
+
+overview
+\begin_inset Quotes erd
+\end_inset 
+
+ view.
+ This is a useful way to return to a known starting point if you get lost
+ in a complicated structure.
+\layout Subsection
+
+Finding points by name
+\layout Standard
+
+Every point in a kinemage has an associated identifying label, which appears
+ in the graphics area when the point is clicked on.
+ You can find one or more points by searching through those labels for a
+ word or phrase using the 
+\family typewriter 
+Edit
+\family default 
+ | 
+\family typewriter 
+Find point
+\family default 
+ dialog.
+ When you press 
+\family typewriter 
+Search
+\family default 
+, KiNG will center the view on the first point that matches your criteria
+ (you may need to zoom in/out to see it appropriately).
+ 
+\family typewriter 
+Edit | Find next
+\family default 
+ will then jump to the next matching point, until all matches are exhausted.
+\layout Subsubsection
+
+Whole word searches
+\layout Standard
+
+This is the easiest-to-use of the search options, and usually produces the
+ desired results.
+ You can enter one or more words or numbers in the search field (separated
+ by spaces), and KiNG will find all the points that contain 
+\emph on 
+all
+\emph default 
+ of those words, in any order.
+ A search for 
+\begin_inset Quotes eld
+\end_inset 
+
+val 17
+\begin_inset Quotes erd
+\end_inset 
+
+ would find 
+\begin_inset Quotes eld
+\end_inset 
+
+17 A val cb
+\begin_inset Quotes erd
+\end_inset 
+
+ but not 
+\begin_inset Quotes eld
+\end_inset 
+
+valine 117
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Subsubsection
+
+Substring searches
+\layout Standard
+
+This works like whole word searches, but will even find points that have
+ the search terms embedded in a larger word or number.
+ In this case, a search for 
+\begin_inset Quotes eld
+\end_inset 
+
+val 17
+\begin_inset Quotes erd
+\end_inset 
+
+ 
+\emph on 
+would
+\emph default 
+ find 
+\begin_inset Quotes eld
+\end_inset 
+
+valine 117
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ This often produces extraneous results but may occasionally be useful.
+\layout Subsubsection
+
+Glob (simple regex) searches
+\layout Standard
+
+This search is done with a simple 
+\begin_inset Quotes eld
+\end_inset 
+
+regular expression
+\begin_inset Quotes erd
+\end_inset 
+
+, as is often used for specifying file names on the command line.
+ A star (*) matches any group of zero or more characters, and a question
+ mark (?) matches any single character.
+ Notice that the search is treated as a single term, rather than multiple
+ words --- the pieces must be in the correct order.
+ Thus a search for 
+\begin_inset Quotes eld
+\end_inset 
+
+val*17
+\begin_inset Quotes erd
+\end_inset 
+
+ would find 
+\begin_inset Quotes eld
+\end_inset 
+
+val17
+\begin_inset Quotes erd
+\end_inset 
+
+, 
+\begin_inset Quotes eld
+\end_inset 
+
+val 17
+\begin_inset Quotes erd
+\end_inset 
+
+, and 
+\begin_inset Quotes eld
+\end_inset 
+
+valine 117
+\begin_inset Quotes erd
+\end_inset 
+
+, among others; but would 
+\emph on 
+not
+\emph default 
+ find 
+\begin_inset Quotes eld
+\end_inset 
+
+17 val
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Subsubsection
+
+Perl5 regex searches
+\layout Standard
+
+This search is like the simple regex search but uses the full syntax of
+ Perl 5 regular expressions, as implemented by the 
+\family typewriter 
+gnu.regexp
+\family default 
+ library.
+ (I'm no expert, but it seems to be a very complete and official implementation.
+ All but the most esoteric features are available.) Regular expressions are
+ a very involved subject, and many books and on-line references are available
+ for the interested reader.
+\layout Subsubsection
+
+Tips for faster searches
+\layout Standard
+
+Remember that KiNG searches through 
+\emph on 
+all
+\emph default 
+ visible points to find ones matching your criteria.
+ Turning off (
+\emph on 
+i.e.
+\emph default 
+, making invisible, hiding, unchecking) large groups that you're not interested
+ in will skip searching those groups.
+ Since all the varieties of search are implemented internally with regular
+ expressions, they are relatively computationally expensive.
+ A search through a large kinemage may take several seconds.
+\layout Subsection
+
+Playing animations
+\layout Standard
+
+Kinemages often include animations.
+ An animation in this sense is not a movie, but more like a flip-book, where
+ similar images are aligned and displayed one at a time, in a series of
+ discrete frames.
+ Animations can be selected from the 
+\family typewriter 
+Animations
+\family default 
+ menu, where one can also step forward or backward one frame.
+ There are also forward and reverse buttons below the graphics area.
+\layout Subsection
+
+Controlling how the kinemage is displayed
+\layout Standard
+
+The 
+\family typewriter 
+Display
+\family default 
+ menu offers several options for controlling how the kinemage is rendered.
+ Of particular interest is the 
+\family typewriter 
+Perspective
+\family default 
+ option.
+ By default, KiNG renders objects with orthographic perspective; objects
+ near the viewer are no larger than those far away.
+ This is the preferred mode for viewing macromolecular structures and many
+ 2-D graphs and figures.
+ However, for geometrical objects and other cases where the eye expects
+ perspective, enabling this option will result in a much more natural-looking
+ image.
+\layout Standard
+
+There are also several ways of controlling the coloring of the points.
+ Each point may have its own color, and several 
+\begin_inset Quotes eld
+\end_inset 
+
+aspects
+\begin_inset Quotes erd
+\end_inset 
+
+ as well.
+ For example, a map might be colored by the aspects of temperature, elevation,
+ and annual rainfall; one could then choose which of these colorings to
+ apply.
+\layout Standard
+
+The first level of grouping above the individual point is the list; every
+ point belongs to a list.
+ Points that don't have a color specified take their color from the list,
+ but there are times when one might want to suppress the individual colors
+ and color points by the color of the list they belong to.
+ This option is available as well.
+\layout Subsubsection
+
+Stereo
+\layout Standard
+
+Upon request, KiNG will render the kinemage as a stereoscopic pair of images.
+ The two views are very nearly the same, except that one is slightly rotated
+ with respect to the other.
+ If you can get one eye to look at each image, you can fool yourself into
+ seeing additional depth information.
+ Stereo can be either 
+\begin_inset Quotes eld
+\end_inset 
+
+cross-eye
+\begin_inset Quotes erd
+\end_inset 
+
+ or 
+\begin_inset Quotes eld
+\end_inset 
+
+wall-eye
+\begin_inset Quotes erd
+\end_inset 
+
+; the former is somewhat easier to learn, but the later is more comfortable
+ for long periods of time.
+\layout Standard
+
+To see cross-eye stereo, cross your eyes and then look at the screen without
+ refocusing.
+ You should see 4 identical (though blurry) images.
+ Relax your eyes slightly, and the center two will overlap.
+ If you can focus on this phantom central image, you'll be seeing in stereo.
+ It may help bring the image into sharp focus to rotate the kinemage slighly
+ using the mouse.
+\layout Standard
+
+If you've got KiNG set for wall-eye stereo and your eyes set for cross-eye
+ (or vice versa), you will see a stereoscopic image, but the parts that
+ should be in back will be in front, and it will rotate the wrong direction
+ when you move the mouse.
+ Change one or the other to get a more reasonable image.
+\layout Subsection
+
+Advanced interaction and the Tools
+\layout Standard
+
+The 
+\family typewriter 
+Tools
+\family default 
+ menu has a variety of tools and plug-ins for interacting with the kinemage.
+ Many of these are highly domain-specific --- tailored to doing structural
+ biology, for example.
+ Several tools have been created, but only one is commonly used: the 
+\begin_inset Quotes eld
+\end_inset 
+
+Navigate
+\begin_inset Quotes erd
+\end_inset 
+
+ tool.
+ The rest of this section describes the options for that tool.
+ Selecting a different tool may change the actions that are performed by
+ some or all of the mouse actions (clicks and drags).
+ Detailed information on the various tools is provided under 
+\family typewriter 
+Help | Tools
+\family default 
+.
+\layout Subsubsection
+
+Z-rotation (
+\begin_inset Quotes eld
+\end_inset 
+
+pinwheel
+\begin_inset Quotes erd
+\end_inset 
+
+)
+\layout Standard
+
+Clicking and dragging (with the left mouse button) near the top of the graphics
+ area will cause the kinemage to spin around the Z axis like a pinwheel,
+ rather than the more conventional sort of rotation.
+ This is sometimes useful for putting something right side up.
+\layout Subsubsection
+
+Translation
+\layout Standard
+
+Holding Control while dragging (or dragging with the middle mouse button)
+ allows one to slide the kinemage around in the plane of the screen.
+ Dragging at the top of the screen, as for z-rotation, slides the kinemage
+ in and out of the plane of the screen.
+ (Note: enabling perspective in the 
+\family typewriter 
+Diplay
+\family default 
+ menu is 
+\emph on 
+very
+\emph default 
+ helpful when translating in and out of the plane of the screen.) This sort
+ of motion is sometimes called 
+\begin_inset Quotes eld
+\end_inset 
+
+flatland,
+\begin_inset Quotes erd
+\end_inset 
+
+ and can be made the default mode of movement by selecting 
+\family typewriter 
+Tools | Flatland
+\family default 
+.
+\layout Subsubsection
+
+Extra measurements and XYZ coordinates
+\layout Standard
+
+In addition to tracking the distance between the last two points, clicking
+ on points to identify them can track the angle between the last three points
+ and the dihedral angle between the last four.
+ Likewise, it can display the original, unrotated coordinates of the point.
+ This is sometimes helpful when the kinemage is a graph or plot of some
+ data, and the position has some absolute meaning.
+ The display of this information can be enabled in the 
+\family typewriter 
+Tools
+\family default 
+ menu.
+\layout Subsubsection
+
+Markers
+\layout Standard
+
+For keeping track of which point is selected, markers can be displayed.
+ Two markers are displayed normally; four are displayed if the angle and
+ dihedral are being displayed.
+ The checkbox for markers is just below the graphics area, with the pickcenter
+ checkbox.
+\layout Subsection
+
+Advanced interaction and the master buttons
+\layout Standard
+
+Not all the buttons to the right of the graphics control groups and subgroups
+ of points; some are 
+\begin_inset Quotes eld
+\end_inset 
+
+masters.
+\begin_inset Quotes erd
+\end_inset 
+
+ The master buttons sit below the others, separated by a spacer.
+ When activated, a master turns on all the groups it controls; when deactivated,
+ it turns them all off.
+ The effects are only momentary; the group can be turned on or off directly
+ regardless of the state of the master(s) that control it.
+ This behavior is slightly different than that of Mage, but the controls
+ should still be perfectly useful.
+\layout Standard
+
+A single group can be controlled by multiple masters.
+ Since the buttons of the individual groups, subgroups, and lists are sometimes
+ hidden, one can generate a variety of patterns by turning the masters on
+ and off in specific sequences.
+\layout Section
+
+Using KiNG to edit a kinemage
+\layout Subsection
+
+Editing text
+\layout Standard
+
+The text of a kinemage is often critical for clarifying and amplifying its
+ meaning.
+ It's analogous to the caption that accompanies a printed figure.
+ You can edit the kinemage text in the same window that you use for reading
+ it (just press the 
+\family typewriter 
+Show text
+\family default 
+ button).
+\layout Subsection
+
+Editing views
+\layout Standard
+
+One simple editing tool is 
+\family typewriter 
+Views | Save current view
+\family default 
+, which records the current orientation and position of the kinemage as
+ a new view in the 
+\family typewriter 
+Views
+\family default 
+ menu.
+ Creating a series of meaningful, clearly labeled views is a great way to
+ make a kinemage more informative.
+ You can delete, rename, and rearrange views using 
+\family typewriter 
+Views | Edit saved views
+\family default 
+.
+\layout Subsection
+
+The hierarchy editor
+\layout Standard
+
+One of the goals of KiNG is to enable simple, visual editing of most parts
+ of a kinemage.
+ Many of the editing commands are activated using a tree-like display of
+ the hierarchical kinemage structure, which will resemble the layout of
+ buttons.
+\layout Standard
+
+The structure of the kinemage can be rearranged by cutting and pasting elements,
+ creating new elements and deleting unneeded ones, and reordering elements
+ (using the 
+\family typewriter 
+Up
+\family default 
+ and 
+\family typewriter 
+Down
+\family default 
+ commands).
+ Play with these commands, and their operation will soon become obvious.
+ Elements can even be cut out of one kinemage and pasted into another!
+\layout Standard
+
+Also, the properties of individual elements can be adjusted, which allows
+ them to be renamed.
+ What other properties are available depends on the level of the hierarchy
+ (kinemage, group, subgroup, or list).
+ Each element can also be toggled on and off, even if it doesn't have a
+ button visible in the button pane.
+\layout Subsection
+
+Other editing commands
+\layout Standard
+
+More editing features are planned for a future version of KiNG, including
+ editing of masters and colors.
+\layout Section
+
+Saving and printing
+\layout Subsection
+
+Saving kinemages
+\layout Standard
+
+You can save traditional kinemages using the 
+\family typewriter 
+File | Save as
+\family default 
+ menu; these files are typically given the extension 
+\family typewriter 
+.kin
+\family default 
+.
+ The resulting kinemage file will be plain text that you can view and even
+ edit by hand using any text editor (though of course you don't have to!).
+ If you choose to do this and want use a word processor (like Microsoft
+ Word), make sure that you load and save the file in plain text format.
+\layout Standard
+
+Note that due to the security restrictions that web browsers place on Java
+ applets, saving will never be possible when KiNG is running inside a web
+ browser.
+\layout Subsection
+
+Printing kinemages
+\layout Standard
+
+You can use 
+\family typewriter 
+File | Print
+\family default 
+ to send the image in the graphics area to your printer.
+ The image will fill as much of the page as possible without distorting
+ it.
+ The relative size of the elements will be exactly the same as on screen.
+ Among the consequences of this are that an image printed from a small graphics
+ window will have thicker lines when printed than will the image when printed
+ from a larger graphics window.
+ Don't worry about this too much; just remember printing is WYSIWYG (what-you-se
+e-is-what-you-get).
+ If it looks right on the screen, it should look right on the paper! Some
+ images will fit better in landscape mode than portrait mode; this decision
+ is left up to the user.
+\layout Standard
+
+Printing should work even when KiNG is running in a web browser, although
+ the user will generally be asked for permission first.
+\layout Subsection
+
+Exporting as PostScript, PDF, 
+\emph on 
+etc.
+\layout Standard
+
+Rather than sending the image to the printer, it can be captured for inclusion
+ in a publication or later manipulation in a graphics program like Adobe
+ Illustrator.
+ The method of doing this is somewhat dependent on your system.
+\layout Standard
+
+Under Linux, choosing 
+\family typewriter 
+Print to file
+\family default 
+ from the Print dialog will generate a PostScript file, which can be converted
+ many other formats using 
+\emph on 
+e.g.
+
+\emph default 
+ Ghostscript tools like 
+\family typewriter 
+ps2pdf
+\family default 
+ (PDF, Portable Document Format) and 
+\family typewriter 
+ps2epsi
+\family default 
+ (EPS, Encapsulated PostScript).
+ Printing to a file may not be possible when KiNG is running as an applet
+ in a web page.
+\layout Standard
+
+With Macintosh OS X, both PostScript and PDF output are supported directly
+ from the Print dialog.
+ Nice and easy!
+\layout Standard
+
+Under Microsoft Windows, things don't seem to be as straightforward.
+ One possiblity is to install the generic PostScript printer drivers from
+ Adobe, 
+\begin_inset LatexCommand \htmlurl[http://www.adobe.com]{http://www.adobe.com}
+
+\end_inset 
+
+, and then direct this 
+\begin_inset Quotes eld
+\end_inset 
+
+virtual printer
+\begin_inset Quotes erd
+\end_inset 
+
+ to FILE (rather than, 
+\emph on 
+e.g.
+\emph default 
+, LPT1).
+ This should allow you to generate PostScript output.
+ Adobe's Acrobat program (the full version, the one you have to pay for)
+ may provide a similar virtual printer for creating PDF files.
+ Your mileage may vary; I'd be interested in hearing about better ways to
+ do this from any Windows experts out there.
+\layout Subsection
+
+Exporting as XML
+\layout Standard
+
+You can export kinemages in XML format using the Kinetic Image Markup Language
+ by choosing 
+\family typewriter 
+Kin-XML
+\family default 
+ from the 
+\family typewriter 
+File | Export
+\family default 
+ menu.
+ We recommend giving these files the extension 
+\family typewriter 
+.xkn
+\family default 
+ or 
+\family typewriter 
+.xml
+\family default 
+.
+ At this time, KiNG does not read these files, nor do other kinemage viewers.
+ Also, they may not include all of the information that would be present
+ in a traditional kinemage file.
+ However, for people who would like to operate on the data from a kinemage
+ without having to write a parser for the kinemage format, we expect this
+ will be useful and convenient.
+ Translation from the modified XML back to kinemage format is left as an
+ exercise to the reader ;)
+\layout Section
+
+Configuring KiNG
+\layout Standard
+
+By choosing 
+\family typewriter 
+Edit | Configure KiNG
+\family default 
+, one can adjust several aspects of KiNG's behavior and appearance, such
+ as font sizes, stereo settings, and whether or not certain warnings are
+ issued.
+ Preferrences may be saved to disk, where they are stored in a simple text
+ file named 
+\family typewriter 
+.king_prefs
+\family default 
+ in the user's home directory.
+ There may be some settings accessible only through this file; that is,
+ they cannot be edited from the graphical interface.
+ Nonetheless, pressing Reset to defaults will restore them to their standard
+ values.
+\layout Standard
+
+Note that due to security restrictions, configurations cannot be saved when
+ KiNG is running as an applet.
+\layout Section
+
+Launching KiNG
+\layout Standard
+
+KiNG runs both as a stand-alone application, and as an applet that can be
+ included in web pages.
+ In any case, KiNG requires a Java Virtual Machine (JVM), version 1.3 or
+ higher.
+ You can get Java from 
+\begin_inset LatexCommand \htmlurl[http://java.sun.com]{http://java.sun.com}
+
+\end_inset 
+
+.
+\layout Subsection
+
+Running KiNG as an application
+\layout Standard
+
+How you launch the KiNG application will depend on what operating system
+ (Windows, Mac OS X, Linux, 
+\emph on 
+etc
+\emph default 
+.) you're using.
+ With Windows and the Mac, you can usually just double-click on the 
+\family typewriter 
+king.jar
+\family default 
+ file to start KiNG.
+ For Linux, there is a shell script called 
+\family typewriter 
+king
+\family default 
+ that will launch the program; put it on your path and then edit it to enter
+ the full path to 
+\family typewriter 
+king.jar
+\family default 
+.
+\layout Standard
+
+On all operating systems, you can type
+\layout Verbatim
+
+java -jar king.jar [-merge | -single] [file1 file2 ...]
+\layout Standard
+
+All the files listed on the command line will be merged together into one
+ kinemage,, unless the 
+\family typewriter 
+-s
+\family default 
+ flag is included, in which case all the files will be opened as separate
+ kinemages.
+\layout Subsection
+
+Making KiNG an applet in a web page
+\layout Standard
+
+KiNG can also be included as a web page applet.
+ The following HTML code is a simple example that uses the <APPLET> tag,
+ which will work with browsers using a recent JVM.
+ Older browsers may need <OBJECT> or <EMBED> tags; more information on this
+ is available from Sun.
+\layout Verbatim
+
+<applet code=
+\begin_inset Quotes erd
+\end_inset 
+
+king/Kinglet.class
+\begin_inset Quotes erd
+\end_inset 
+
+ archive=
+\begin_inset Quotes erd
+\end_inset 
+
+king.jar
+\begin_inset Quotes erd
+\end_inset 
+
+ width=300 height=150>
+\layout Verbatim
+
+<param name=
+\begin_inset Quotes erd
+\end_inset 
+
+kinSource
+\begin_inset Quotes erd
+\end_inset 
+
+ value=
+\begin_inset Quotes erd
+\end_inset 
+
+some_file_name.kin
+\begin_inset Quotes erd
+\end_inset 
+
+>
+\layout Verbatim
+
+</applet>
+\layout Standard
+
+Just put all the jar files, including king.jar, in the same directory as
+ the HTML file.
+ Users who visit the page will see a 300x150 KiNG logo in the web page,
+ along with a floating KiNG window that looks very much like the stand-alone
+ application.
+ However, due to security restrictions imposed by the browser environment,
+ some functions (
+\emph on 
+e.g.
+\emph default 
+, saving files) will be disabled.
+\layout Standard
+
+Some Tools and Plugins may define their own <PARAM> tags, which will be
+ described in their documentation.
+\layout Section
+
+Additional resources
+\layout Subsection
+
+Included manuals
+\layout Standard
+
+In addition to this User's Guide, KiNG is accompanied by a guide to the
+ kinemage file format.
+ Kinemage files are simple text files, so that anyone can create kinemage
+ illustrations by hand.
+ This is especially important to fields where no automated tools for kinemage
+ creation yet exist.
+\layout Subsection
+
+Included kinemages
+\layout Standard
+
+Under the 
+\family typewriter 
+Help
+\family default 
+ menu, KiNG has several built-in kinemages that demonstrate various capabilities
+ of the graphics system.
+ The palette is particularly useful to kinemage authors when they are designing
+ color schemes.
+\layout Subsection
+
+External documentation
+\layout Standard
+
+The best resource for learning more about kinemages is the Richardson lab
+ website, 
+\begin_inset LatexCommand \htmlurl[http://kinemage.biochem.duke.edu]{http://kinemage.biochem.duke.edu}
+
+\end_inset 
+
+.
+ Many other resources exist; hopefully, they will be documented here in
+ the future.
+\layout Subsection
+
+Bug reporting and contact info
+\layout Standard
+
+Ian Davis, the author of KiNG, may be reached via email at 
+\begin_inset LatexCommand \htmlurl[ian.davis@duke.edu]{mailto:ian.davis@duke.edu}
+
+\end_inset 
+
+.
+
+\emph on 
+ Please
+\emph default 
+, do not hesistate to report bugs and problems with KiNG --- your input
+ can only improve the program.
+\layout Section
+
+Copyright & acknowledgments
+\layout Subsection
+
+Copyright
+\layout Standard
+
+The KiNG program and all its associated original resources and documentation
+ are copyright (C) 2002-2003 by Ian W.
+ Davis.
+ KiNG makes use of the gnu.regexp library, which is copyright (C) by Wes
+ Biggs, and of icons copyright (C) by Sun Microsystems provided for use
+ with Java programs.
+\layout Subsection
+
+Licenses
+\layout Standard
+
+KiNG is free software available under the terms of 
+\begin_inset LatexCommand \htmlurl[its own BSD-style license]{LICENSE-KING.html}
+
+\end_inset 
+
+.
+ The source code and new versions can be downloaded from the Richardson
+ lab website, 
+\begin_inset LatexCommand \htmlurl[http://kinemage.biochem.duke.edu]{http://kinemage.biochem.duke.edu}
+
+\end_inset 
+
+.
+ The gnu.regexp library is covered by 
+\begin_inset LatexCommand \htmlurl[the GNU Lesser GPL]{http://www.gnu.org/licenses/lgpl.html}
+
+\end_inset 
+
+.
+ In accordance with that license, the full source of the gnu.regexp library
+ is available from its website at 
+\begin_inset LatexCommand \htmlurl[http://www.cacas.org/java/gnu/regexp/]{http://www.cacas.org/java/gnu/regexp/}
+
+\end_inset 
+
+.
+ The license for the Sun icons is provided 
+\begin_inset LatexCommand \htmlurl[here]{LICENSE-SUN}
+
+\end_inset 
+
+; they are available from 
+\begin_inset LatexCommand \htmlurl[http://developer.java.sun.com/developer/techDocs/hi/repository/]{http://developer.java.sun.com/developer/techDocs/hi/repository/}
+
+\end_inset 
+
+.
+\layout Subsection
+
+Acknowledgments
+\layout Standard
+
+I owe an enormous debt of gratitude to many, many people for making this
+ program possible.
+ First and foremost, I thank David and Jane Richardson, who are my bosses
+ and mentors, and who developed the kinemage concept, the file format, and
+ most of the features found in KiNG --- my contribution was only the Java
+ implementation.
+ Second, I am grateful to the other members of the Richardson lab, who have
+ supported and encouraged me in developing KiNG, providing invaluable insight
+ into how to improve the program.
+\layout Standard
+
+KiNG is free software built on free software.
+ I can't hope to acknowledge all the authors of all the software that has
+ been used to create KiNG, but I can mention a few of the most prominent:
+ Sun Microsystems, the creators of the Java language and libraries; the
+ gnu.regexp project, which provides regular expression support to KiNG; the
+ LyX document processor, used for writing the documentation; jEdit, a fantastic
+ programmer's text editor written entirely in Java; and of course RedHat
+ and the entire Linux movement, for providing what is arguably the best
+ OS available today.
+\layout Subsection
+
+Revision status
+\layout Standard
+
+This manual was last updated 7 Apr 2003 by IWD for KiNG version 0.41.
+\the_end

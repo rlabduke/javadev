@@ -1,0 +1,24 @@
+
+USAGE
+    ramalyze [mode] [infile [outfile]]
+    
+MODE defaults to '-pdf' but can be any one of the following:
+
+    -pdf    Creates a PDF document that shows all four Ramachandran plots on one
+            page, with outliers labeled and with summary statistics.
+
+            For x-ray files with alternate conformations, any residue with
+            alternate backbone conformers is analyzed multiple times and counts
+            multiple times in the statistics. All others are analyzed once.
+
+            For NMR files, the first page will show all model superimposed,
+            and subsequent pages show individual models.
+
+    [other MODEs will be available in the future]
+    
+INFILE is a PDB-format file containing one or more models. If it is omitted,
+a PDB file will be read from standard input.
+
+OUTFILE is a destination file for the output. It will be overwritten if it
+already exists. If OUTFILE is omitted, results will be sent to standard output.
+

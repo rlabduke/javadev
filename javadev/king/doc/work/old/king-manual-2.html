@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <TITLE>The KiNG manual: Loading files and kinemages</TITLE>
+ <LINK HREF="king-manual-3.html" REL=next>
+ <LINK HREF="king-manual-1.html" REL=previous>
+ <LINK HREF="king-manual.html#toc2" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="king-manual-3.html">Next</A>
+<A HREF="king-manual-1.html">Previous</A>
+<A HREF="king-manual.html#toc2">Contents</A>
+<HR>
+<H2><A NAME="s2">2.</A> <A HREF="king-manual.html#toc2">Loading files and kinemages</A></H2>
+
+<H2><A NAME="ss2.1">2.1</A> <A HREF="king-manual.html#toc2.1">Opening a file</A>
+</H2>
+
+<P>To open a new kinemage, go the the <CODE>File</CODE> menu and choose <CODE>Open</CODE>.
+Browse through your file system and find a kinemage file. These files
+typically end in .<CODE>kin</CODE>, though ones that have been edited extensively
+may have revisions named .<CODE>kip</CODE>, <CODE>kip1</CODE>, <CODE>kip2</CODE>, <EM>etc</EM>. Click the button
+marked OK and KiNG will begin loading the file. You'll see a progress
+bar as KiNG loads the contents of the file, and then the first kinemage
+in that file will be displayed in the graphics area (where the logo
+used to be).</P>
+
+<P>Files can also be specified on the command line, as in <CODE>king&nbsp;-s&nbsp;foo.kin&nbsp;bar.kip1</CODE>,
+which will load all the kinemages in those two files upon startup.
+The <CODE>-s</CODE> (or <CODE>-single</CODE>) flag is required so that KiNG knows not to merge
+the two files together.</P>
+
+<H2><A NAME="ss2.2">2.2</A> <A HREF="king-manual.html#toc2.2">Working with multiple kinemages</A>
+</H2>
+
+<P>If your file has more than one kinemage, you can choose which
+one you want to look at from the drop box on the right, just above
+the buttons. You can also use <CODE>File</CODE> | <CODE>Open</CODE> to load additional files;
+those kinemages will also appear in the drop box. When you're done,
+use <CODE>File</CODE> | <CODE>Close</CODE> to get rid of the current kinemage, or use <CODE>File</CODE>
+| <CODE>Close all</CODE> to get rid of all the open kinemages.</P>
+
+<P>Sometimes you want to combine the contents of multiple kinemages.
+You might want to combine a graph of your latest sales data with
+some nicely formated and labeled axes you prepared last month. Or
+maybe you want to combine a ribbon drawing of your favorite protein
+with a representation of the atomic detail at its active site. In
+either case, using <CODE>File</CODE> | <CODE>Merge</CODE> will combine the contents of a new
+file with the contents of the currently displayed kinemage. Be careful
+--- if the new file contains multiple kinemages, they'll <EM>all</EM> be merged
+into the current one!</P>
+
+<P>This behavior can be achieved on the command line by specifying
+multiple files, as in <CODE>king&nbsp;-m&nbsp;foo.kin&nbsp;bar.kip1</CODE>, which will merge all
+the kinemages in those two files upon startup. The <CODE>-m</CODE> (or <CODE>-merge</CODE>)
+flag is optional; merging multiple files is the default behavior.</P>
+
+<HR>
+<A HREF="king-manual-3.html">Next</A>
+<A HREF="king-manual-1.html">Previous</A>
+<A HREF="king-manual.html#toc2">Contents</A>
+</BODY>
+</HTML>

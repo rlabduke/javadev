@@ -1,0 +1,219 @@
+<!-- (jEdit options) :folding=explicit:collapseFolds=1: -->
+<project name="king" default="dist" basedir=".">
+<description>KiNG kinemage viewer</description>
+
+<!-- global properties that we always want defined {{{ -->
+<property name="src"        location="src"/>
+<property name="resource"   location="resource"/>
+<property name="build"      location="build"/>
+<property name="dist"       location="dist"/>
+<!-- Version control: creates timestamp, updates ${buildnum}, loads ${version} -->
+<target name="init">
+    <tstamp>
+        <format property="DSTAMP_SIX" pattern="yyMMdd"/>
+    </tstamp>
+    <propertyfile file="${resource}/${ant.project.name}/version.props">
+        <entry key="buildnum" value="${DSTAMP}.${TSTAMP}"/>
+    </propertyfile>
+    <property file="${resource}/${ant.project.name}/version.props"/>
+</target>
+<!-- Defines properties needed to use ANTSCP -->
+<target name="init-scp">
+    <property file="../lib/scp.props"/>
+    <taskdef name="antscp"
+             classname="net.ericalexander.antscp.AntSCP"
+             classpath="../lib/ant-tasks/AntSCP.jar:../lib/ant-tasks/ISNetworksMindTermSCP.jar"/>
+</target>
+<!-- }}} -->
+
+<!-- build, compile {{{ -->
+<!-- Bundles up all needed class and resource files into a JAR -->
+<target name="build" description="Build class files" depends="init,compile">
+    <echo message="Version ${version}"/>
+    <echo message="Build # ${buildnum}"/>
+    <!-- As of 1.5.2, Ant screws up the INDEX by not considering Class-Path -->
+    <jar jarfile="${ant.project.name}.jar" manifest="Manifest.mf" index="false">
+        <fileset dir="${build}"/>
+        <fileset dir="${resource}"/>
+        <fileset dir="../driftwood/build/">
+            <include name="driftwood/"/>
+            <exclude name="driftwood/moldb*/"/>
+        </fileset>
+        <fileset dir="../driftwood/resource/">
+            <include name="driftwood/"/>
+            <exclude name="driftwood/moldb*/"/>
+        </fileset>
+        <fileset dir="../lib/" includes="gnu/regexp/"/>
+        <!-- Chiropraxis classes & resources are in a separate JAR -->
+        <!-- iText library is in a separate JAR -->
+    </jar>
+    <copy file="resource/king/king_prefs" tofile="${basedir}/doc/dot_king_prefs.txt" overwrite="true"/>
+</target>
+
+<!-- Compiles all .java files for this package -->
+<target name="compile" depends="init">
+    <ant antfile="../driftwood/build.xml" inheritAll="false" target="compile">
+        <!-- inherited properties go here -->
+    </ant>
+    <ant antfile="../chiropraxis/build.xml" inheritAll="false" target="build">
+        <!-- inherited properties go here -->
+    </ant>
+    <copy file="../chiropraxis/chiropraxis.jar" todir="${basedir}" overwrite="true"/>
+    <copy file="../lib/iText/itext-1.02b.jar" tofile="${basedir}/itext.jar" failonerror="false"/>
+    <mkdir dir="${build}"/>
+    <javac srcdir="${src}"
+           destdir="${build}"
+           includes="**/*.java"
+           excludes="**/old/"
+           debug="on" debuglevel="lines,source">
+         <classpath>
+            <pathelement location="../driftwood/build"/>
+            <pathelement location="../lib"/>
+            <pathelement location="chiropraxis.jar"/>
+            <pathelement location="itext.jar"/>             <!-- Required for PDF export -->
+         </classpath>
+    </javac>
+</target>
+<!-- }}} -->
+
+<!-- dist, dist-src, dist-exe {{{ -->
+<!-- Makes .zip files from the ${dist} directory -->
+<target name="dist" description="Generate the distributions" depends="init,clean,build,dist-src,dist-exe">
+    <zip destfile="${dist}/${ant.project.name}-${version}-src.zip">
+        <zipfileset dir="${dist}" includes="${ant.project.name}-${version}-src/"/>
+        <zipfileset dir="../driftwood/dist/" includes="driftwood-*-src/"/>
+        <zipfileset dir="../chiropraxis/dist/" includes="chiropraxis-*-src/"/>
+        <zipfileset dir="../lib/" prefix="lib/">
+            <include name="gnu/regexp/"/>
+            <include name="iText/*.jar"/>
+        </zipfileset>
+    </zip>
+    <zip basedir="${dist}"
+         destfile="${dist}/${ant.project.name}-${version}.zip"
+         includes="${ant.project.name}-${version}/"/>
+</target>
+
+<!-- Makes the source code distribution -->
+<target name="dist-src" depends="init">
+    <ant antfile="../driftwood/build.xml" inheritAll="false" target="dist-src">
+        <!-- inherited properties go here -->
+    </ant>
+    <ant antfile="../chiropraxis/build.xml" inheritAll="false" target="dist-src">
+        <!-- inherited properties go here -->
+    </ant>
+    <mkdir dir="${dist}/${ant.project.name}-${version}-src"/>
+    <copy todir="${dist}/${ant.project.name}-${version}-src" preservelastmodified="true">
+        <fileset dir="${basedir}">
+            <exclude name="build/"/>
+            <exclude name="dist/"/>
+            <exclude name="**/old/"/>
+        </fileset>
+    </copy>
+</target>
+
+<!-- Makes the end-user distribution -->
+<target name="dist-exe" depends="init,build">
+    <mkdir dir="${dist}/${ant.project.name}-${version}"/>
+    <copy todir="${dist}/${ant.project.name}-${version}" preservelastmodified="true">
+        <fileset dir="${basedir}">
+            <include name="*.jar"/>
+            <include name="README*"/>
+            <include name="LICENSE*"/>
+            <include name="doc/"/>
+            <exclude name="doc/work/"/>
+        </fileset>
+    </copy>
+</target>
+<!-- }}} -->
+
+<!-- clean, backup {{{ -->
+<!-- Removes products of compilation -->
+<target name="clean" description="Clean up build/ and dist/">
+    <delete dir="${dist}"/>
+    <delete dir="${build}"/>
+    <delete dir="${basedir}/installer/king/king_Build_Output"/>
+    <delete file="${ant.project.name}.jar"/>
+    <delete file="chiropraxis.jar"/>
+    <delete file="itext.jar"/>
+</target>
+
+<!-- Also cleans chiropraxis and driftwood -->
+<target name="clean-all" depends="clean" description="Clean up king, chiropraxis, and driftwood">
+    <ant antfile="../driftwood/build.xml" inheritAll="false" target="clean">
+        <!-- inherited properties go here -->
+    </ant>
+    <ant antfile="../chiropraxis/build.xml" inheritAll="false" target="clean">
+        <!-- inherited properties go here -->
+    </ant>
+</target>
+
+<!-- Bundles this code and saves it locally and remotely - simple version control -->
+<target name="backup" depends="init,clean,init-scp" description="Backs up this project on IWD's machine">
+    <tstamp/>
+    <mkdir dir="${user.home}/ark/old-versions/${ant.project.name}"/>
+    <jar jarfile="${user.home}/ark/old-versions/${ant.project.name}/${ant.project.name}-${version}.${buildnum}.jar" index="true">
+        <fileset dir="${basedir}"/>
+    </jar>
+    <antscp remoteUserName="${scp.backup.username}" remoteHost="${scp.backup.hostname}" remotePassword="${scp.backup.password}"
+            localFile="${user.home}/ark/old-versions/${ant.project.name}/${ant.project.name}-${version}.${buildnum}.jar"
+            remoteFile="${scp.backup.path}/${ant.project.name}-${version}.${buildnum}.jar"/>
+</target>
+<!-- }}} -->
+
+<!-- deploy-local, deploy-rlab, deploy-world {{{ -->
+<!-- Deploys the executable on the local system - applies to IWD's machine only  -->
+<target name="deploy-local"  description="Deploy to ~/bin" depends="build">
+    <copy file="${ant.project.name}.jar" todir="${user.home}/bin/jars/" overwrite="true" failonerror="false"/>
+    <copy file="chiropraxis.jar" todir="${user.home}/bin/jars/" overwrite="true" failonerror="false"/>
+    <copy file="itext.jar" todir="${user.home}/bin/jars/" overwrite="true" failonerror="false"/>
+    <copy file="${ant.project.name}.jar" todir="/Applications/KiNG.app/Contents/Resources/Java/" overwrite="true" failonerror="false"/>
+    <copy file="chiropraxis.jar" todir="/Applications/KiNG.app/Contents/Resources/Java/" overwrite="true" failonerror="false"/>
+    <copy file="itext.jar" todir="/Applications/KiNG.app/Contents/Resources/Java/" overwrite="true" failonerror="false"/>
+</target>
+
+<!-- Deploys the executable on the local MolProbity - applies to IWD's machine only  -->
+<target name="deploy-local-mp"  description="Deploy to local MolProbity 2 and 3" depends="build">
+    <copy file="${ant.project.name}.jar" todir="${user.home}/Sites/molprobity/" overwrite="true" failonerror="false"/>
+    <copy file="${ant.project.name}.jar" todir="${user.home}/Sites/molprobity3/public_html/" overwrite="true" failonerror="false"/>
+</target>
+
+<!-- Deploys the executable for the whole lab - applies to IWD's machine only  -->
+<target name="deploy-rlab"  description="Deploy locally and to cluster" depends="dist,init-scp,deploy-local">
+    <copy file="${dist}/${ant.project.name}-${version}-src.zip" todir="${user.home}/ark/old-versions/${ant.project.name}/" overwrite="false" failonerror="false"/>
+    <antscp remoteUserName="${scp.src.username}" remoteHost="${scp.src.hostname}" remotePassword="${scp.src.password}"
+            localFile="${basedir}/${ant.project.name}.jar"
+            remoteFile="${scp.src.jarpath}/${ant.project.name}.jar"/>
+    <antscp remoteUserName="${scp.src.username}" remoteHost="${scp.src.hostname}" remotePassword="${scp.src.password}"
+            localFile="${basedir}/chiropraxis.jar"
+            remoteFile="${scp.src.jarpath}/chiropraxis.jar"/>
+    <antscp remoteUserName="${scp.src.username}" remoteHost="${scp.src.hostname}" remotePassword="${scp.src.password}"
+            localFile="${basedir}/itext.jar"
+            remoteFile="${scp.src.jarpath}/itext.jar"/>
+    <antscp remoteUserName="${scp.src.username}" remoteHost="${scp.src.hostname}" remotePassword="${scp.src.password}"
+            localFile="${dist}/${ant.project.name}-${version}-src.zip"
+            remoteFile="${scp.src.srcpath}/${ant.project.name}-${version}-src.zip"/>
+</target>
+
+<!-- Deploys the exe and src for the public at large - applies to IWD's machine only  -->
+<target name="deploy-world"  description="Deploy everywhere" depends="dist,init-scp,deploy-local,deploy-local-mp,deploy-rlab">
+    <!-- Copy to FTP site for distribution -->
+    <antscp remoteUserName="${scp.ftp.username}" remoteHost="${scp.ftp.hostname}" remotePassword="${scp.ftp.password}"
+            localFile="${dist}/${ant.project.name}-${version}-src.zip"
+            remoteFile="${scp.ftp.path}/${ant.project.name}/${ant.project.name}.${version}.${DSTAMP_SIX}.src.zip"/>
+    <antscp remoteUserName="${scp.ftp.username}" remoteHost="${scp.ftp.hostname}" remotePassword="${scp.ftp.password}"
+            localFile="${dist}/${ant.project.name}-${version}.zip"
+            remoteFile="${scp.ftp.path}/${ant.project.name}/${ant.project.name}.${version}.${DSTAMP_SIX}.zip"/>
+    <!-- Update marker for current version -->
+    <antscp remoteUserName="${scp.www.username}" remoteHost="${scp.www.hostname}" remotePassword="${scp.www.password}"
+            localFile="${resource}/${ant.project.name}/version.props"
+            remoteFile="${scp.www.path}/${ant.project.name}.version.props"/>
+    <!-- Copy to MolProbity, too -->
+    <antscp remoteUserName="${scp.molprobity.username}" remoteHost="${scp.molprobity.hostname}" remotePassword="${scp.molprobity.password}"
+            localFile="${basedir}/${ant.project.name}.jar"
+            remoteFile="${scp.molprobity.path}/${ant.project.name}.jar"/>
+    <echo>*** REMEMBER TO REBUILD THE INSTALL ANYWHERE DISTRIBUTIONS FOR LINUX AND WINDOWS ***</echo>
+    <echo>*** REMEMBER TO MAKE A MAC DMG AND UPDATE THE VERSION IN INFO.PLIST ***</echo>
+    <echo>*** REMEMBER TO UPDATE THE .current.___ SYMLINKS IN ${scp.ftp.path}/${ant.project.name} AS ${scp.ftp.username}@${scp.ftp.hostname} ***</echo>
+</target>
+<!-- }}} -->
+</project>

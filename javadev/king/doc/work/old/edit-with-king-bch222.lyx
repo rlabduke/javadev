@@ -1,0 +1,256 @@
+#LyX 1.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 220
+\textclass article
+\language english
+\inputencoding auto
+\fontscheme pslatex
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize Default
+\paperpackage a4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+Editing kinemages with KiNG
+\layout Section*
+
+What is KiNG?
+\layout Standard
+
+KiNG is a new kinemage viewer / editor that has many of Mage's core features
+ and a few additional capabilities that have not yet made it into Mage.
+ KiNG is the preferred online viewer for MolProbity, so you may have already
+ used KiNG.
+\layout Section*
+
+Neat things to do with KiNG
+\layout Standard
+
+KiNG allows you to edit your kinemage in certain ways that would otherwise
+ require hand modification with a text editor.
+ A sampling of the available tools:
+\layout Itemize
+
+View electron density...
+\layout Itemize
+
+...and write out blocks of it in kinemage format!
+\layout Itemize
+
+Merge existing (sub)groups
+\layout Itemize
+
+Move lists from one (sub)group to another
+\layout Itemize
+
+Move subgroups from one group to another
+\layout Itemize
+
+Create new (empty) groups and subgroups
+\layout Itemize
+
+Move groups/subgroups/lists from one kinemage to another
+\layout Itemize
+
+Rearrange the order in which groups and subgroups appear
+\layout Itemize
+
+Translate, rotate, and scale entire groups/subgroups/lists
+\layout Itemize
+
+Change the widths of lines and the radii of balls and spheres
+\layout Itemize
+
+Create a single file that contains multiple kinemages
+\layout Standard
+
+Most of these tools can be accessed by loading your file into KiNG and selecting
+ the Modify tab (above the list of on/off buttons).
+ KiNG will then display a hierchical view of the contents of your kinemage.
+ Navigate to the part to be modified, and choose an appropriate command
+ from the 
+\family typewriter 
+Modify
+\family default 
+ menu.
+ In particular, many different options can be altered using the 
+\family typewriter 
+Edit properties
+\family default 
+ command.
+ Use 
+\family typewriter 
+Cut
+\family default 
+ and 
+\family typewriter 
+Paste
+\family default 
+ to relocate and merge things, and use 
+\family typewriter 
+Move up
+\family default 
+ and 
+\family typewriter 
+Move down
+\family default 
+ to change the order they appear in.
+ To edit the properties of single points, select 
+\family typewriter 
+Edit properties
+\family default 
+ from the Toolbox and click on the point to be edited.
+\layout Standard
+
+To view electron density, open the Toolbox and choose the ED Map tool.
+ Click the 
+\begin_inset Quotes eld
+\end_inset 
+
+Open map
+\begin_inset Quotes erd
+\end_inset 
+
+ button that appears and select an electron density map file.
+ A new window will appear that allows you to control the extent, levels,
+ and colors of the map.
+ The map follows you as you recenter the view on different parts of the
+ model; to record part of the map permanently, press 
+\begin_inset Quotes eld
+\end_inset 
+
+Export to kinemage.
+\begin_inset Quotes erd
+\end_inset 
+
+
+\layout Standard
+
+To create one file that contains multiple kinemages, start KiNG and use
+ the 
+\family typewriter 
+File | Open
+\family default 
+ command to open each individual kinemage, in the order in which you wish
+ for them to appear in the final file.
+ If you look in the drop box in the upper-righthand corner of the KiNG window,
+ you should get a list of kinemages (Kinemage 1, Kinemage 2, 
+\emph on 
+etc.
+\emph default 
+) to choose from.
+ If you made a mistake, select the kinemage to get rid of and choose 
+\family typewriter 
+File | Close\SpecialChar ~
+
+\family default 
+ (don't use 
+\family typewriter 
+File | Close all
+\family default 
+!).
+ When only the desired kinemages remain open, choose 
+\family typewriter 
+File | Save as
+\family default 
+ to write all of them to disk.
+ Make sure to give the file a new name --- KiNG is still under development
+ and could write out a 
+\begin_inset Quotes eld
+\end_inset 
+
+damaged
+\begin_inset Quotes erd
+\end_inset 
+
+ kinemage, so you don't want to overwrite your originals!
+\layout Standard
+
+There are a few other things that are possible in Mage, but may be easier
+ in KiNG:
+\layout Itemize
+
+Rename and rearrange views (
+\family typewriter 
+Views | Edit saved views
+\family default 
+)
+\layout Itemize
+
+Make your kinemage display a white background, use realistic perspective,
+ or draw all lines as thin by default (select the kinemage in the Modify
+ pane and choose 
+\family typewriter 
+Edit properties
+\family default 
+).
+\layout Section*
+
+How to access KiNG
+\layout Standard
+
+Log in to one of the Linux machines in the Richardson lab (as user 
+\family typewriter 
+bch222
+\family default 
+).
+ Either type 
+\begin_inset Quotes eld
+\end_inset 
+
+king
+\begin_inset Quotes erd
+\end_inset 
+
+ from the command prompt or click the big purple K on the button bar at
+ the bottom of the screen.
+ While you can test out these editing features using the online version
+ of KiNG in MolProbity, you won't be able to save your modified file.
+ This is due to a security restriction that web browsers place on Java applets,
+ and there's no good way to get around it.
+\layout Section*
+
+Getting help with KiNG (and reporting bugs)
+\layout Standard
+
+Come see Ian Davis (my office is 208B Nanaline Duke, in the Richardson lab)
+ or send me email at 
+\bar under 
+ian.davis@duke.edu
+\bar default 
+.
+ Also, KiNG has a fairly comprehensive manual and tutorial that can be accessed
+ from the 
+\family typewriter 
+Help
+\family default 
+ menu.
+ Please, please, please report any problems you have in using KiNG.
+ Even if the problem you describe isn't actually due to the software malfunction
+ing, it gives me a clue that things could be redesigned and made easier
+ to use!
+\layout Section*
+
+Getting KiNG for your own computer
+\layout Standard
+
+At the present time, we don't distribute KiNG publicly.
+ However, it's written in Java and can run under Windows, Mac OS X, and
+ Linux.
+ If you'd like your own copy of KiNG, talk to Ian.
+\the_end

@@ -1,0 +1,47 @@
+<html><head><title>CHANGELOG</title></head><body><!-- (jEdit options) :folding=explicit:collapseFolds=1: --><pre>
+==============================================================================
+===  TO DO  ==================================================================
+==============================================================================
+    Suport -sigdig flag
+    Write command line help
+    Write README, instructions, etc.
+    Create SilkGui
+    Add a NDimTable.writeText() with default parameters
+    
+==============================================================================
+===  CHANGE LOG  =============================================================
+==============================================================================
+
+### 0.84 ###
+- created KarplusTableToNDFT
+
+### 0.83 ###
+- fixed bug in NDFT reading that zeroed out realcount for no reason.
+- added ability to read back in the text data files that are written out.
+- tested text read/write: output is identical to input
+- created the silk.util package for task-specific helper programs
+- created util.RotamerSampling for Homme's rotamer sampling task
+
+### 0.82 ###
+- accounted for merger of driftwood.string into driftwood.util
+
+### 0.81 ###
+- made TabDataLoader ignore lines starting with hash (#)
+- fixed bug in SilkEngine where halfwidth and weight parameters to
+  tallyGaussian and tallyCosine were reversed.
+- same bug in SilkEngine.processDensityDependent
+- started KinfilePlotter
+- added wrapData() to SilkEngine
+- made SilkEngine actually obey the -scale switch
+- bundled with Top500-Angles package
+
+### 0.80 ###
+- created most classes
+- started reworking NDFloatTable ==> NDimTable
+- added recursiveCount to NDimTable
+- wrote SilkOptions
+- wrote DataSample
+- wrote TabDataLoader
+- wrote SilkCmdLine
+- wrote SilkEngine
+</pre></body></html>

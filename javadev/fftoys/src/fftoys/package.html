@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+  <title>FFToys overview</title>
+</head>
+<body>
+This applet demonstrates the use of <a
+ href="http://math.nist.gov/%7EBMiller/java/">Bruce Miller's jnt.FFT</a>
+Fast Fourier Transform library, and thus by analogy, the FFT libraries
+from the <a href="http://www.gnu.org/software/gsl/">GNU Scientific
+Libraries</a> collection. The particular interest is <span
+ style="font-style: italic;">how</span> exactly to get 3-dimensional
+x-ray crystallographic data into and out of these functions.<br>
+<br>
+There are two directions for the transform, forward and backward, which
+differ by only a sign -- the same sign difference between e<sup>-i2pi(hx+ky+lz)</sup>
+and e<sup>+i2pi(hx+ky+lz)</sup> in the standard crystallography
+equations. Just don't ask me which is which, because I'm not sure.
+Actually, I know that these libraries call the one with the minus sign
+the forward direction, but I'm not sure how this relates to
+crystallography or whether it even matters.<br>
+<br>
+What I <span style="font-style: italic;">have</span> figured out is
+that real space corresponds to the time domain, and reciprocal space
+corresponds to the frequency domain. This impacts the data storage
+format. I'm going to discuss the 1-D case first, where everything is
+stored in a simple array. Real space data (electron density) is a
+series of sample points along an axis of the unit cell, indexed as real
+numbers from 0 to 1. These are stored in order, as you would expect.
+For example:<br>
+&nbsp;&nbsp;&nbsp; [r<sub>0.00</sub>, r<sub>0.01</sub>, r<sub>0.02</sub>,
+... , r<sub>0.49</sub>, r<sub>0.50</sub>, r<sub>0.51</sub>, ..., r<sub>0.98</sub>,
+r<sub>0.99</sub>, r<sub>1.00</sub>]<br>
+where r<sub>x</sub> is the electron density (usually rho, here r) at
+position x (representing the fraction of the way across the unit cell).<br>
+<br>
+The frequency domain is stored in "wrap-around" order, where the
+negative-indexed F's are stored <span style="font-style: italic;">after</span>
+all the rest, and the most negative precedes the least negative. Thus:<br>
+&nbsp;&nbsp;&nbsp; [F<sub>0</sub>, F<sub>+1</sub>, F<sub>+2</sub>, ...
+, F<sub>+(N-1)</sub>, F<sub>+N</sub>, F<sub>-N</sub>, F<sub>-(N-1)</sub>,
+... , F<sub>-3</sub>, F<sub>-2</sub>, F<sub>-1</sub>]<br>
+where the F's are the crystallographic structure factors, which would
+usually have three indices instead of one: F<sub>hkl</sub>. As you can
+see, it's as though the expected order (-N ... -1 0 +1 ... +N) has been
+"rotated" right by half the length of the array (round down). This
+brings up the point that my examples have had an odd number of entries.
+There is no change to the real space data for an even number of
+entries, but for reciprocal space, it apparently turns out that F<sub>+N</sub>
+= F<sub>-N</sub>, so the two center entries "collapse" to one entry in
+the array.<br>
+<br>
+To get the sort of diffraction pattern you expect in crystallography,
+you have to rearrange the data so that zero is in the middle:<br>
+&nbsp;&nbsp;&nbsp; [F<sub>-N</sub>, F<sub>-(N-1)</sub>, ... , F<sub>-3</sub>,
+F<sub>-2</sub>, F<sub>-1</sub>, F<sub>0</sub>, F<sub>+1</sub>, F<sub>+2</sub>,
+... , F<sub>+(N-1)</sub>, F<sub>+N</sub>]<br>
+Again, this is just a "rotation" of the data.<br>
+<br>
+One last complication. All Fourier transforms deal with complex numbers
+on both sides. If you want to pretend that the input is real-valued (<span
+ style="font-style: italic;">i.e.</span>, that all the imaginary
+components are zero), as is sometimes the case for crystallography,
+some optimizations are possible, but in my opinion it's not worth the
+complications it introduces in the data format. However, we do have to
+have somewhere to store these complex numbers. Thus, each entry in the
+arrays above is really a pair of numbers, real component followed by
+imaginary component. Thus the arrays are allocated twice as long as the
+logical number of entries, because each entry uses two floating-point
+values.<br>
+<br>
+Remember that these real and imaginary components are to structure
+factors and phases as Cartesian coordinates are to polar ones. Thus:<br>
+&nbsp;&nbsp;&nbsp; F = sqrt(Re*Re + Im*Im)<br>
+&nbsp;&nbsp;&nbsp; phi = atan2(Im, Re)<br>
+Or equivalently:<br>
+&nbsp;&nbsp;&nbsp; Re = F cos(phi)<br>
+&nbsp;&nbsp;&nbsp; Im = F sin(phi)<br>
+<br>
+For multi-dimensional cases, all the values are stored in one array. If
+x is considered the "rows" index, y is "columns", and z is "slices"
+(for lack of a better term), then the array indexes of the real and
+imaginary components are as follows:<br>
+&nbsp;&nbsp;&nbsp; Re(x, y, z) = data[ x*numColumns*numSlices +
+y*numSlices + z ]<br>
+&nbsp;&nbsp;&nbsp; Im(x, y, z) = data[ x*numColumns*numSlices +
+y*numSlices + z + 1]<br>
+<br>
+Because this code uses libraries that descend from a GNU product, this
+project is hereby released under the GNU Public License, as required.<br>
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <TITLE>The KiNG manual: Using KiNG to view a kinemage</TITLE>
+ <LINK HREF="king-manual-4.html" REL=next>
+ <LINK HREF="king-manual-2.html" REL=previous>
+ <LINK HREF="king-manual.html#toc3" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="king-manual-4.html">Next</A>
+<A HREF="king-manual-2.html">Previous</A>
+<A HREF="king-manual.html#toc3">Contents</A>
+<HR>
+<H2><A NAME="s3">3.</A> <A HREF="king-manual.html#toc3">Using KiNG to view a kinemage</A></H2>
+
+<H2><A NAME="ss3.1">3.1</A> <A HREF="king-manual.html#toc3.1">Basic interaction</A>
+</H2>
+
+<H3>Moving the kinemage around</H3>
+
+<P>A kinemage is a dynamic, 3-D illustration. The best way to take
+advantage of that is by rotating it and twisting it around. Just
+click the mouse near the center of the graphics window and slowly
+drag right or left, up or down. If you have multiple buttons on your
+mouse, use the left button or button 1. You can also use the left
+and right arrow keys for small rotations. If you get lost or disoriented,
+use the <CODE>Views</CODE> menu to get back on familiar ground.</P>
+
+<H3>Identifying points</H3>
+
+<P>By clicking on points with the mouse (left button again), you'll
+be able to identify them. The label associated with each point will
+appear in the bottom right of the graphics area. Furthermore, the
+distance from this point to the last one you clicked will also be
+displayed.</P>
+
+<H3>Turning groups on &amp; off</H3>
+
+<P>Most kinemages have many different components to them, grouped
+together in logical ways. A protein might have one group for each
+subunit; or one group for mainchain, another for side chains, and
+yet another for hydrogens. Groups and subgroups are given names and
+can be made visible or hidden by the viewer --- you might want to
+see only one subunit, or only the backbone (without sidechains and
+hydrogens cluttering up the view).</P>
+
+<P>The groups and subgroups appear in the button pane, to the right
+of the graphics area. Each one has a button to turn it on or off.
+Groups that are on (visible) usually have a check mark or an X in
+there box; a blank button means the group is hidden. Many kinemages
+start off with some information hidden, to avoid overwhelming the
+reader. Always check to see if there's more information available
+than is being displayed!</P>
+
+<H3>Re-centering</H3>
+
+<P>You can make any point in the kinemage be the center. The center
+point will be in the middle of the graphics area, and the kinemage
+will rotate about that point. There are several ways to set the center:
+you can hold the Shift key while you click the point, or use the
+right mouse button if you have one. You can also press the <CODE>Pick center</CODE>
+button below the graphics area and then click on the desired point.</P>
+
+<P>Since re-centering brings a point to the center of the screen,
+using this repeatedly allows one to "walk" through a large structure.</P>
+
+<H3>Zooming in and out</H3>
+
+<P>KiNG allows you to zoom in to see small details in a kinemage.
+Use the <CODE>Zoom</CODE> slider, below the graphics area, to control how far
+you zoom in. You can click the mouse right or left of the knob for
+small movements or click the knob and drag it for larger ones. A
+small motion is usually all that's needed.</P>
+
+<P>For easier access, one can hold Shift and drag (or drag using
+the right mouse button) in the graphics window. Dragging down zooms
+in; up zooms out. The up/down arrow keys and mouse wheel (Java 1.4
+and later only) also control zooming.</P>
+
+<H3>Clipping</H3>
+
+<P>Objects that are too near the viewer, or too far away, are not
+displayed; otherwise, zooming in would result in a useless superposition.
+The depth of the clipping "slab" can be adjusted using the slider along
+the bottom, or by dragging side-to-side with the right mouse button
+(or with the Shift key held down).</P>
+
+<H2><A NAME="ss3.2">3.2</A> <A HREF="king-manual.html#toc3.2">Reading the kinemage text</A>
+</H2>
+
+<P>Exploring on your own is great, but the best guide to a kinemage
+is its author. Often, he or she includes a short text of a few paragraphs
+or pages that explains what the kinemage depicts. You can access
+this text using the <CODE>Show text</CODE> button, located just below the graphics
+area. An equivalent command is also available in the <CODE>Edit</CODE> menu.</P>
+
+<H2><A NAME="ss3.3">3.3</A> <A HREF="king-manual.html#toc3.3">Using different viewpoints</A>
+</H2>
+
+<P>Most kinemages have one or more "views" that were selected by the
+author to highlight some significant feature. These views are accessible
+from the <CODE>Views</CODE> menu. Just click on one of the named views and the
+kinemage will "jump" to that view. You can then rotate it, zoom in
+or out, <EM>etc.</EM> to explore further. You can always return to the original
+view by selecting it again from the menu.</P>
+
+<P>Kinemages without any predefined views still get an automatic
+"overview" view. This is a useful way to return to a known starting
+point if you get lost in a complicated structure.</P>
+
+<H2><A NAME="ss3.4">3.4</A> <A HREF="king-manual.html#toc3.4">Finding points by name</A>
+</H2>
+
+<P>Every point in a kinemage has an associated identifying label,
+which appears in the graphics area when the point is clicked on.
+You can find one or more points by searching through those labels
+for a word or phrase using the <CODE>Edit</CODE> | <CODE>Find point</CODE> dialog. When you
+press <CODE>Search</CODE>, KiNG will center the view on the first point that matches
+your criteria (you may need to zoom in/out to see it appropriately).
+<CODE>Edit | Find next</CODE> will then jump to the next matching point, until
+all matches are exhausted.</P>
+
+<H3>Whole word searches</H3>
+
+<P>This is the easiest-to-use of the search options, and usually
+produces the desired results. You can enter one or more words or
+numbers in the search field (separated by spaces), and KiNG will
+find all the points that contain <EM>all</EM> of those words, in any order.
+A search for "val 17" would find "17 A val cb" but not "valine 117".</P>
+
+<H3>Substring searches</H3>
+
+<P>This works like whole word searches, but will even find points
+that have the search terms embedded in a larger word or number. In
+this case, a search for "val 17" <EM>would</EM> find "valine 117". This often
+produces extraneous results but may occasionally be useful.</P>
+
+<H3>Glob (simple regex) searches</H3>
+
+<P>This search is done with a simple "regular expression", as is often
+used for specifying file names on the command line. A star (*) matches
+any group of zero or more characters, and a question mark (?) matches
+any single character. Notice that the search is treated as a single
+term, rather than multiple words --- the pieces must be in the correct
+order. Thus a search for "val*17" would find "val17", "val 17", and "valine
+117", among others; but would <EM>not</EM> find "17 val".</P>
+
+<H3>Perl5 regex searches</H3>
+
+<P>This search is like the simple regex search but uses the full
+syntax of Perl 5 regular expressions, as implemented by the <CODE>gnu.regexp</CODE>
+library. (I'm no expert, but it seems to be a very complete and official
+implementation. All but the most esoteric features are available.)
+Regular expressions are a very involved subject, and many books and
+on-line references are available for the interested reader.</P>
+
+<H3>Tips for faster searches</H3>
+
+<P>Remember that KiNG searches through <EM>all</EM> visible points to find
+ones matching your criteria. Turning off (<EM>i.e.</EM>, making invisible,
+hiding, unchecking) large groups that you're not interested in will
+skip searching those groups. Since all the varieties of search are
+implemented internally with regular expressions, they are relatively
+computationally expensive. A search through a large kinemage may
+take several seconds.</P>
+
+<H2><A NAME="ss3.5">3.5</A> <A HREF="king-manual.html#toc3.5">Playing animations</A>
+</H2>
+
+<P>Kinemages often include animations. An animation in this sense
+is not a movie, but more like a flip-book, where similar images are
+aligned and displayed one at a time, in a series of discrete frames.
+Animations can be selected from the <CODE>Animations</CODE> menu, where one can
+also step forward or backward one frame. There are also forward and
+reverse buttons below the graphics area.</P>
+
+<H2><A NAME="ss3.6">3.6</A> <A HREF="king-manual.html#toc3.6">Controlling how the kinemage is displayed</A>
+</H2>
+
+<P>The <CODE>Display</CODE> menu offers several options for controlling how the
+kinemage is rendered. Of particular interest is the <CODE>Perspective</CODE> option.
+By default, KiNG renders objects with orthographic perspective; objects
+near the viewer are no larger than those far away. This is the preferred
+mode for viewing macromolecular structures and many 2-D graphs and
+figures. However, for geometrical objects and other cases where the
+eye expects perspective, enabling this option will result in a much
+more natural-looking image.</P>
+
+<P>There are also several ways of controlling the coloring of the
+points. Each point may have its own color, and several "aspects" as
+well. For example, a map might be colored by the aspects of temperature,
+elevation, and annual rainfall; one could then choose which of these
+colorings to apply.</P>
+
+<P>The first level of grouping above the individual point is the
+list; every point belongs to a list. Points that don't have a color
+specified take their color from the list, but there are times when
+one might want to suppress the individual colors and color points
+by the color of the list they belong to. This option is available
+as well.</P>
+
+<H3>Stereo</H3>
+
+<P>Upon request, KiNG will render the kinemage as a stereoscopic
+pair of images. The two views are very nearly the same, except that
+one is slightly rotated with respect to the other. If you can get
+one eye to look at each image, you can fool yourself into seeing
+additional depth information. Stereo can be either "cross-eye" or "wall-eye";
+the former is somewhat easier to learn, but the later is more comfortable
+for long periods of time.</P>
+
+<P>To see cross-eye stereo, cross your eyes and then look at the
+screen without refocusing. You should see 4 identical (though blurry)
+images. Relax your eyes slightly, and the center two will overlap.
+If you can focus on this phantom central image, you'll be seeing
+in stereo. It may help bring the image into sharp focus to rotate
+the kinemage slighly using the mouse.</P>
+
+<P>If you've got KiNG set for wall-eye stereo and your eyes set
+for cross-eye (or vice versa), you will see a stereoscopic image,
+but the parts that should be in back will be in front, and it will
+rotate the wrong direction when you move the mouse. Change one or
+the other to get a more reasonable image.</P>
+
+<H2><A NAME="ss3.7">3.7</A> <A HREF="king-manual.html#toc3.7">Advanced interaction and the Tools</A>
+</H2>
+
+<P>The <CODE>Tools</CODE> menu has a variety of tools and plug-ins for interacting
+with the kinemage. Many of these are highly domain-specific --- tailored
+to doing structural biology, for example. Several tools have been
+created, but only one is commonly used: the "Navigate" tool. The rest
+of this section describes the options for that tool. Selecting a
+different tool may change the actions that are performed by some
+or all of the mouse actions (clicks and drags). Detailed information
+on the various tools is provided under <CODE>Help | Tools</CODE>.</P>
+
+<H3>Z-rotation ("pinwheel")</H3>
+
+<P>Clicking and dragging (with the left mouse button) near the top
+of the graphics area will cause the kinemage to spin around the Z
+axis like a pinwheel, rather than the more conventional sort of rotation.
+This is sometimes useful for putting something right side up.</P>
+
+<H3>Translation</H3>
+
+<P>Holding Control while dragging (or dragging with the middle mouse
+button) allows one to slide the kinemage around in the plane of the
+screen. Dragging at the top of the screen, as for z-rotation, slides
+the kinemage in and out of the plane of the screen. (Note: enabling
+perspective in the <CODE>Diplay</CODE> menu is <EM>very</EM> helpful when translating in
+and out of the plane of the screen.) This sort of motion is sometimes
+called "flatland," and can be made the default mode of movement by
+selecting <CODE>Tools | Flatland</CODE>.</P>
+
+<H3>Extra measurements and XYZ coordinates</H3>
+
+<P>In addition to tracking the distance between the last two points,
+clicking on points to identify them can track the angle between the
+last three points and the dihedral angle between the last four. Likewise,
+it can display the original, unrotated coordinates of the point.
+This is sometimes helpful when the kinemage is a graph or plot of
+some data, and the position has some absolute meaning. The display
+of this information can be enabled in the <CODE>Tools</CODE> menu.</P>
+
+<H3>Markers</H3>
+
+<P>For keeping track of which point is selected, markers can be
+displayed. Two markers are displayed normally; four are displayed
+if the angle and dihedral are being displayed. The checkbox for markers
+is just below the graphics area, with the pickcenter checkbox.</P>
+
+<H2><A NAME="ss3.8">3.8</A> <A HREF="king-manual.html#toc3.8">Advanced interaction and the master buttons</A>
+</H2>
+
+<P>Not all the buttons to the right of the graphics control groups
+and subgroups of points; some are "masters." The master buttons sit
+below the others, separated by a spacer. When activated, a master
+turns on all the groups it controls; when deactivated, it turns them
+all off. The effects are only momentary; the group can be turned
+on or off directly regardless of the state of the master(s) that
+control it. This behavior is slightly different than that of Mage,
+but the controls should still be perfectly useful.</P>
+
+<P>A single group can be controlled by multiple masters. Since the
+buttons of the individual groups, subgroups, and lists are sometimes
+hidden, one can generate a variety of patterns by turning the masters
+on and off in specific sequences.</P>
+
+<HR>
+<A HREF="king-manual-4.html">Next</A>
+<A HREF="king-manual-2.html">Previous</A>
+<A HREF="king-manual.html#toc3">Contents</A>
+</BODY>
+</HTML>

@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+  <title>BUILDME for KiNG</title>
+  <meta name="author" content="Ian W. Davis">
+</head>
+<body>
+<h1>BUILDME file for KiNG</h1>
+<br>
+KiNG is built using Apache Ant, which stores its configuration in <tt>build.xml</tt>.
+Ant is the standard build tool for Java projects, like 'make' is for
+C/C++. It is written in Java and works cross-platform, anywhere that
+Java does. You can obtain Ant for free at <a
+ href="http://ant.apache.org">http://ant.apache.org</a>. These build
+files were written to work with Ant 1.5.2; if you have a newer version,
+there may have been some changes to the file structure.<br>
+<br>
+To build the JAR and all the classfiles, rename the <tt>king-xxxx-src</tt>,
+<tt>chiropraxis-xxxx-src</tt>,
+and <tt>driftwood-xxxx-src</tt> directories to <span
+ style="font-family: monospace;">king</span>, <span
+ style="font-family: monospace;">chiropraxis</span>,
+and <span style="font-family: monospace;">driftwood</span>,
+respectively. Then enter the <span style="font-family: monospace;">king</span>
+directory and type <span style="font-family: monospace;">ant dist</span>.
+The
+necessary Driftwood and Chiropraxis libraries will be built
+automatically, followed by
+compilation of the KiNG code, followed by the creation of <tt>king.jar</tt>
+(which contains class files and resources from all three trees of code,
+as
+well as from the libraries included in the <span
+ style="font-family: monospace;">lib</span> directory). The full KiNG
+distribution package ZIP files will be generated in <span
+ style="font-family: monospace;">king/dist</span>. If you'd prefer to
+just compile the code and build the JAR files (and stop there), use the
+command <span style="font-family: monospace;">ant build</span>
+instead. The <span style="font-family: monospace;">build.xml</span>
+files also contain several other targets (<span
+ style="font-family: monospace;">deploy-<span
+ style="font-style: italic;">xxx</span></span><span
+ style="font-style: italic;"> </span>and <span
+ style="font-family: monospace;">backup</span>, for instance) that are
+intended only for the use of the primary developer(s). Feel free to
+modify these so they do something useful on your machine.<br>
+<br>
+KiNG uses some other open-source
+libraries, which are included in the <span
+ style="font-family: monospace;">lib</span> directory for your
+convenience. Note that their licensing terms may differ substantially
+from KiNG's; see those distributions for details. If you would like to
+obtain updated versions of these libraries or simply get more
+information about them, you can visit their websites. The GNU regular
+expressions package
+<span style="font-family: monospace;">gnu.regexp</span> is available
+from <a href="http://www.cacas.org/java/gnu/regexp/">http://www.cacas.org/java/gnu/regexp/</a>,
+and the iText PDF-creation library is available from <a
+ href="http://www.lowagie.com/iText/">http://www.lowagie.com/iText/</a>.<br>
+<br>
+<hr width="100%" size="2"><small><i>Last updated 4 Mar 2004 by IWD for
+KiNG version 1.22</i></small>
+</body>
+</html>

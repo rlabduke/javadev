@@ -1,0 +1,22 @@
+
+Usage:
+    suppose [-n=# |-f=#] model1.pdb model2.pdb [output.kin]
+
+SUPPOSE is an aid for least-squares superpositioning of two protein structures.
+Given two PDB files, it will produce a kinemage with several plots based on
+C-alpha positions, difference-distances between them, and RMSDs for fitting
+on various subsets of those C-alphas. It can also generate a script for the
+Uppsala program LSQMAN that will effect a superposition on a specific subset.
+Thus, the program is usually run twice: once to examine the criteria and choose
+a subset to work with, and again to generate the script for fitting in LSQMAN.
+
+Options:
+    -n=#
+        Selects the best subset that contains the specified number of residues.
+        Two algorithms are each allowed to choose a subset: Lesk's RMSD "sieve"
+        and IWD's iterative, weighted, unsigned-sum difference distance. The
+        resulting LSQMAN script appears in the kinemage text.
+    -f=#
+        Like -n, except the subset size is specified as a fraction on (0,1] or
+        a percentage on (1,100].
+

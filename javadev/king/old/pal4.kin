@@ -1,0 +1,275 @@
+@kinemage 1
+@viewid {Full screen KiNG}
+@span 115
+@zslab 200.0
+@center 45.5 -50.0 0.0
+@matrix 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0
+@master {saturated}
+@master {semi-sat}
+@master {tints}
+@master {neutrals}
+@master {color bars}
+@master {labels}
+@animation {desaturate} {saturated} {semi-sat} {tints} {neutrals}
+@group {palette} dominant
+@subgroup {red} dominant master= {saturated}
+@labellist {x} color= gray master= {labels}
+{red} -4 1 0
+@vectorlist {x} color= red width= 4 master= {color bars}
+{}P 0 0  40 {} 20 0  40
+{}P 0 -1  20 {} 20 -1  20
+{}P 0 -2   0 {} 20 -2   0
+{}P 0 -3 -20 {} 20 -3 -20
+{}P 0 -4 -40 {} 20 -4 -40
+@subgroup {orange} dominant master= {saturated}
+@labellist {x} color= gray master= {labels}
+{orange} -4 -7 0
+@vectorlist {x} color= orange width= 4 master= {color bars}
+{}P 0 -8  40 {} 20 -8  40
+{}P 0 -9  20 {} 20 -9  20
+{}P 0 -10   0 {} 20 -10   0
+{}P 0 -11 -20 {} 20 -11 -20
+{}P 0 -12 -40 {} 20 -12 -40
+@subgroup {gold} dominant master= {saturated}
+@labellist {x} color= gray master= {labels}
+{gold} -4 -15 0
+@vectorlist {x} color= gold width= 4 master= {color bars}
+{}P 0 -16  40 {} 20 -16  40
+{}P 0 -17  20 {} 20 -17  20
+{}P 0 -18   0 {} 20 -18   0
+{}P 0 -19 -20 {} 20 -19 -20
+{}P 0 -20 -40 {} 20 -20 -40
+@subgroup {yellow} dominant master= {saturated}
+@labellist {x} color= gray master= {labels}
+{yellow} -4 -23 0
+@vectorlist {x} color= yellow width= 4 master= {color bars}
+{}P 0 -24  40 {} 20 -24  40
+{}P 0 -25  20 {} 20 -25  20
+{}P 0 -26   0 {} 20 -26   0
+{}P 0 -27 -20 {} 20 -27 -20
+{}P 0 -28 -40 {} 20 -28 -40
+@subgroup {lime} dominant master= {saturated}
+@labellist {x} color= gray master= {labels}
+{lime} -4 -31 0
+@vectorlist {x} color= lime width= 4 master= {color bars}
+{}P 0 -32  40 {} 20 -32  40
+{}P 0 -33  20 {} 20 -33  20
+{}P 0 -34   0 {} 20 -34   0
+{}P 0 -35 -20 {} 20 -35 -20
+{}P 0 -36 -40 {} 20 -36 -40
+@subgroup {green} dominant master= {saturated}
+@labellist {x} color= gray master= {labels}
+{green} -4 -39 0
+@vectorlist {x} color= green width= 4 master= {color bars}
+{}P 0 -40  40 {} 20 -40  40
+{}P 0 -41  20 {} 20 -41  20
+{}P 0 -42   0 {} 20 -42   0
+{}P 0 -43 -20 {} 20 -43 -20
+{}P 0 -44 -40 {} 20 -44 -40
+@subgroup {sea} dominant master= {saturated}
+@labellist {x} color= gray master= {labels}
+{sea} -4 -47 0
+@vectorlist {x} color= sea width= 4 master= {color bars}
+{}P 0 -48  40 {} 20 -48  40
+{}P 0 -49  20 {} 20 -49  20
+{}P 0 -50   0 {} 20 -50   0
+{}P 0 -51 -20 {} 20 -51 -20
+{}P 0 -52 -40 {} 20 -52 -40
+@subgroup {cyan} dominant master= {saturated}
+@labellist {x} color= gray master= {labels}
+{cyan} -4 -55 0
+@vectorlist {x} color= cyan width= 4 master= {color bars}
+{}P 0 -56  40 {} 20 -56  40
+{}P 0 -57  20 {} 20 -57  20
+{}P 0 -58   0 {} 20 -58   0
+{}P 0 -59 -20 {} 20 -59 -20
+{}P 0 -60 -40 {} 20 -60 -40
+@subgroup {sky} dominant master= {saturated}
+@labellist {x} color= gray master= {labels}
+{sky} -4 -63 0
+@vectorlist {x} color= sky width= 4 master= {color bars}
+{}P 0 -64  40 {} 20 -64  40
+{}P 0 -65  20 {} 20 -65  20
+{}P 0 -66   0 {} 20 -66   0
+{}P 0 -67 -20 {} 20 -67 -20
+{}P 0 -68 -40 {} 20 -68 -40
+@subgroup {blue} dominant master= {saturated}
+@labellist {x} color= gray master= {labels}
+{blue} -4 -71 0
+@vectorlist {x} color= blue width= 4 master= {color bars}
+{}P 0 -72  40 {} 20 -72  40
+{}P 0 -73  20 {} 20 -73  20
+{}P 0 -74   0 {} 20 -74   0
+{}P 0 -75 -20 {} 20 -75 -20
+{}P 0 -76 -40 {} 20 -76 -40
+@subgroup {purple} dominant master= {saturated}
+@labellist {x} color= gray master= {labels}
+{purple} -4 -79 0
+@vectorlist {x} color= purple width= 4 master= {color bars}
+{}P 0 -80  40 {} 20 -80  40
+{}P 0 -81  20 {} 20 -81  20
+{}P 0 -82   0 {} 20 -82   0
+{}P 0 -83 -20 {} 20 -83 -20
+{}P 0 -84 -40 {} 20 -84 -40
+@subgroup {magenta} dominant master= {saturated}
+@labellist {x} color= gray master= {labels}
+{magenta} -4 -87 0
+@vectorlist {x} color= magenta width= 4 master= {color bars}
+{}P 0 -88  40 {} 20 -88  40
+{}P 0 -89  20 {} 20 -89  20
+{}P 0 -90   0 {} 20 -90   0
+{}P 0 -91 -20 {} 20 -91 -20
+{}P 0 -92 -40 {} 20 -92 -40
+@subgroup {hotpink} dominant master= {saturated}
+@labellist {x} color= gray master= {labels}
+{hotpink} -4 -95 0
+@vectorlist {x} color= hotpink width= 4 master= {color bars}
+{}P 0 -96  40 {} 20 -96  40
+{}P 0 -97  20 {} 20 -97  20
+{}P 0 -98   0 {} 20 -98   0
+{}P 0 -99 -20 {} 20 -99 -20
+{}P 0 -100 -40 {} 20 -100 -40
+@subgroup {pink} dominant master= {semi-sat}
+@labellist {x} color= gray master= {labels}
+{pink} 21 1 0
+@vectorlist {x} color= pink width= 4 master= {color bars}
+{}P 25 0  40 {} 45 0  40
+{}P 25 -1  20 {} 45 -1  20
+{}P 25 -2   0 {} 45 -2   0
+{}P 25 -3 -20 {} 45 -3 -20
+{}P 25 -4 -40 {} 45 -4 -40
+@subgroup {peach} dominant master= {semi-sat}
+@labellist {x} color= gray master= {labels}
+{peach} 21 -7 0
+@vectorlist {x} color= peach width= 4 master= {color bars}
+{}P 25 -8  40 {} 45 -8  40
+{}P 25 -9  20 {} 45 -9  20
+{}P 25 -10   0 {} 45 -10   0
+{}P 25 -11 -20 {} 45 -11 -20
+{}P 25 -12 -40 {} 45 -12 -40
+@subgroup {yellow} dominant master= {semi-sat}
+@labellist {x} color= gray master= {labels}
+{yellow} 21 -23 0
+@vectorlist {x} color= yellow width= 4 master= {color bars}
+{}P 25 -24  40 {} 45 -24  40
+{}P 25 -25  20 {} 45 -25  20
+{}P 25 -26   0 {} 45 -26   0
+{}P 25 -27 -20 {} 45 -27 -20
+{}P 25 -28 -40 {} 45 -28 -40
+@subgroup {sea} dominant master= {semi-sat}
+@labellist {x} color= gray master= {labels}
+{sea} 21 -39 0
+@vectorlist {x} color= sea width= 4 master= {color bars}
+{}P 25 -40  40 {} 45 -40  40
+{}P 25 -41  20 {} 45 -41  20
+{}P 25 -42   0 {} 45 -42   0
+{}P 25 -43 -20 {} 45 -43 -20
+{}P 25 -44 -40 {} 45 -44 -40
+@subgroup {cyan} dominant master= {semi-sat}
+@labellist {x} color= gray master= {labels}
+{cyan} 21 -55 0
+@vectorlist {x} color= cyan width= 4 master= {color bars}
+{}P 25 -56  40 {} 45 -56  40
+{}P 25 -57  20 {} 45 -57  20
+{}P 25 -58   0 {} 45 -58   0
+{}P 25 -59 -20 {} 45 -59 -20
+{}P 25 -60 -40 {} 45 -60 -40
+@subgroup {sky} dominant master= {semi-sat}
+@labellist {x} color= gray master= {labels}
+{sky} 21 -71 0
+@vectorlist {x} color= sky width= 4 master= {color bars}
+{}P 25 -72  40 {} 45 -72  40
+{}P 25 -73  20 {} 45 -73  20
+{}P 25 -74   0 {} 45 -74   0
+{}P 25 -75 -20 {} 45 -75 -20
+{}P 25 -76 -40 {} 45 -76 -40
+@subgroup {lilac} dominant master= {semi-sat}
+@labellist {x} color= gray master= {labels}
+{lilac} 21 -79 0
+@vectorlist {x} color= lilac width= 4 master= {color bars}
+{}P 25 -80  40 {} 45 -80  40
+{}P 25 -81  20 {} 45 -81  20
+{}P 25 -82   0 {} 45 -82   0
+{}P 25 -83 -20 {} 45 -83 -20
+{}P 25 -84 -40 {} 45 -84 -40
+@subgroup {pinktint} dominant master= {tints}
+@labellist {x} color= gray master= {labels}
+{pinktint} 46 1 0
+@vectorlist {x} color= pinktint width= 4 master= {color bars}
+{}P 50 0  40 {} 70 0  40
+{}P 50 -1  20 {} 70 -1  20
+{}P 50 -2   0 {} 70 -2   0
+{}P 50 -3 -20 {} 70 -3 -20
+{}P 50 -4 -40 {} 70 -4 -40
+@subgroup {peachtint} dominant master= {tints}
+@labellist {x} color= gray master= {labels}
+{peachtint} 46 -7 0
+@vectorlist {x} color= peachtint width= 4 master= {color bars}
+{}P 50 -8  40 {} 70 -8  40
+{}P 50 -9  20 {} 70 -9  20
+{}P 50 -10   0 {} 70 -10   0
+{}P 50 -11 -20 {} 70 -11 -20
+{}P 50 -12 -40 {} 70 -12 -40
+@subgroup {yellowtint} dominant master= {tints}
+@labellist {x} color= gray master= {labels}
+{yellowtint} 46 -23 0
+@vectorlist {x} color= yellowtint width= 4 master= {color bars}
+{}P 50 -24  40 {} 70 -24  40
+{}P 50 -25  20 {} 70 -25  20
+{}P 50 -26   0 {} 70 -26   0
+{}P 50 -27 -20 {} 70 -27 -20
+{}P 50 -28 -40 {} 70 -28 -40
+@subgroup {greentint} dominant master= {tints}
+@labellist {x} color= gray master= {labels}
+{greentint} 46 -39 0
+@vectorlist {x} color= greentint width= 4 master= {color bars}
+{}P 50 -40  40 {} 70 -40  40
+{}P 50 -41  20 {} 70 -41  20
+{}P 50 -42   0 {} 70 -42   0
+{}P 50 -43 -20 {} 70 -43 -20
+{}P 50 -44 -40 {} 70 -44 -40
+@subgroup {bluetint} dominant master= {tints}
+@labellist {x} color= gray master= {labels}
+{bluetint} 46 -71 0
+@vectorlist {x} color= bluetint width= 4 master= {color bars}
+{}P 50 -72  40 {} 70 -72  40
+{}P 50 -73  20 {} 70 -73  20
+{}P 50 -74   0 {} 70 -74   0
+{}P 50 -75 -20 {} 70 -75 -20
+{}P 50 -76 -40 {} 70 -76 -40
+@subgroup {lilactint} dominant master= {tints}
+@labellist {x} color= gray master= {labels}
+{lilactint} 46 -79 0
+@vectorlist {x} color= lilactint width= 4 master= {color bars}
+{}P 50 -80  40 {} 70 -80  40
+{}P 50 -81  20 {} 70 -81  20
+{}P 50 -82   0 {} 70 -82   0
+{}P 50 -83 -20 {} 70 -83 -20
+{}P 50 -84 -40 {} 70 -84 -40
+@subgroup {white} dominant master= {neutrals}
+@labellist {x} color= gray master= {labels}
+{white} 71 -47 0
+@vectorlist {x} color= white width= 4 master= {color bars}
+{}P 75 -48  40 {} 95 -48  40
+{}P 75 -49  20 {} 95 -49  20
+{}P 75 -50   0 {} 95 -50   0
+{}P 75 -51 -20 {} 95 -51 -20
+{}P 75 -52 -40 {} 95 -52 -40
+@subgroup {gray} dominant master= {neutrals}
+@labellist {x} color= gray master= {labels}
+{gray} 71 -55 0
+@vectorlist {x} color= gray width= 4 master= {color bars}
+{}P 75 -56  40 {} 95 -56  40
+{}P 75 -57  20 {} 95 -57  20
+{}P 75 -58   0 {} 95 -58   0
+{}P 75 -59 -20 {} 95 -59 -20
+{}P 75 -60 -40 {} 95 -60 -40
+@subgroup {brown} dominant master= {neutrals}
+@labellist {x} color= gray master= {labels}
+{brown} 71 -63 0
+@vectorlist {x} color= brown width= 4 master= {color bars}
+{}P 75 -64  40 {} 95 -64  40
+{}P 75 -65  20 {} 95 -65  20
+{}P 75 -66   0 {} 95 -66   0
+{}P 75 -67 -20 {} 95 -67 -20
+{}P 75 -68 -40 {} 95 -68 -40
