@@ -83,11 +83,13 @@ public class LabelPoint extends KPoint // implements ...
 
 //{{{ isPickedBy()
 //##################################################################################################
-    /** Returns true if the specified pick hits it, else returns false. */
-    public boolean isPickedBy(float xx, float yy, float radius2)
+    /** Returns this if the specified pick hits it, else returns null. */
+    public KPoint isPickedBy(float xx, float yy, float radius2, boolean objPick)
     {
-        if(minx <= xx && xx <= maxx && miny <= yy && yy <= maxy) return true;
-        else return false;        
+        if(objPick && minx <= xx && xx <= maxx && miny <= yy && yy <= maxy)
+            return this;
+        else
+            return super.isPickedBy(xx, yy, radius2, objPick);        
     }
 //}}}
 }//class
