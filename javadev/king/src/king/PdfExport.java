@@ -28,7 +28,7 @@ import com.lowagie.text.pdf.*;
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Mon Sep 29 09:33:14 EDT 2003
 */
-public class PdfExport implements PropertyChangeListener, Runnable
+public class PdfExport extends Plugin implements PropertyChangeListener, Runnable
 {
 //{{{ Constants
 //}}}
@@ -41,9 +41,9 @@ public class PdfExport implements PropertyChangeListener, Runnable
 
 //{{{ Constructor(s)
 //##############################################################################
-    public PdfExport()
+    public PdfExport(ToolBox tb)
     {
-        super();
+        super(tb);
         buildChooser();
     }
 //}}}
@@ -104,7 +104,7 @@ public class PdfExport implements PropertyChangeListener, Runnable
 
 //{{{ askExport
 //##############################################################################
-    public void askExport(KingMain kMain)
+    public void askExport()
     {
         // Auto-generate a file name
         propertyChange(null);
@@ -171,6 +171,27 @@ public class PdfExport implements PropertyChangeListener, Runnable
             }
         }
     }
+//}}}
+
+//{{{ getToolsMenuItem, getHelpMenuItem, toString, onExport, isAppletSafe
+//##################################################################################################
+    public JMenuItem getToolsMenuItem()
+    {
+        return new JMenuItem(new ReflectiveAction(this.toString()+"...", null, this, "onExport"));
+    }
+
+    public JMenuItem getHelpMenuItem()
+    { return null; }
+    
+    public String toString()
+    { return "PDF document"; }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onExport(ActionEvent ev)
+    { this.askExport(); }
+
+    static public boolean isAppletSafe()
+    { return false; }
 //}}}
 
 //{{{ empty_code_segment

@@ -85,6 +85,11 @@ helperTimeout       = 5
 
 king.BasicTool.menuName = <main menu>
 king.EDMapPlugin.menuName = Structural biology
+king.ImageExport.menuName = <export>
+king.PdfExport.menuName = <export>
+king.PovrayExport.menuName = <export>
+king.Vrml97Writer.menuName = <export>
+king.XknWriter.menuName = <export>
 king.tool.draw.DrawingTool.menuName = Kin editing
 king.tool.draw.SolidObjPlugin.menuName = Kin editing
 king.tool.util.CrossWindowPickTool.menuName = Specialty

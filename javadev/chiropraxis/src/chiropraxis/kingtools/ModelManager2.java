@@ -412,16 +412,16 @@ public class ModelManager2 extends Plugin
             s = m.getState();
         else
         {
-            states.remove(new Character(' ')); // all letters treat this as parent
+            states.remove(" "); // all letters treat this as parent
             Object[] choices = states.toArray();
-            Character c = (Character)JOptionPane.showInputDialog(kMain.getTopWindow(),
+            String c = (String)JOptionPane.showInputDialog(kMain.getTopWindow(),
                 "This file has alternate conformations. Please choose one:",
                 "Choose alt. conf.", JOptionPane.PLAIN_MESSAGE,
                 null, choices, choices[0]);
             if(c == null)
                 s = m.getState();
             else
-                s = m.getState( c.charValue() );
+                s = m.getState( c );
         }
         
         // so we know when we go to save the file

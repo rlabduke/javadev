@@ -133,6 +133,8 @@ public class PrefsEditor //extends ... implements ...
         UberSet menuNames = new UberSet();
         menuNames.add(ToolBox.MENU_NONE);
         menuNames.add(ToolBox.MENU_MAIN);
+        menuNames.add(ToolBox.MENU_IMPORT);
+        menuNames.add(ToolBox.MENU_EXPORT);
         for(Iterator iter = plugins.iterator(); iter.hasNext(); )
             menuNames.add(toolbox.getPluginMenuName((Plugin)iter.next()));
         Object[] items = menuNames.toArray();

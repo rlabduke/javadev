@@ -41,7 +41,7 @@ public class UIMenus //extends ... implements ...
     
     // Elements of menus that get rebuilt frequently
     JMenu oldViewMenu = null;
-    JMenu toolsMenu;
+    JMenu fileMenu, toolsMenu;
 //}}}
     
 //{{{ Constructor, getMenuBar()
@@ -94,80 +94,12 @@ public class UIMenus //extends ... implements ...
         JMenuItem item;
         JCheckBoxMenuItem cbitem;
         KinCanvas kCanvas;
-        JApplet applet = kMain.getApplet();
         
-        //{{{ File menu
-        menu = new JMenu("File");
+        // File menu
+        fileMenu = menu = new JMenu("File");
         menu.setMnemonic(KeyEvent.VK_F);
         menubar.add(menu);
-        if(applet == null) // => not in an applet
-        {
-            item = new JMenuItem(new ReflectiveAction("New KiNG window", null, this, "onFileNewKing"));
-            item.setMnemonic(KeyEvent.VK_N);
-            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, MENU_ACCEL_MASK));
-            menu.add(item);
-            menu.addSeparator();
-        }
-        item = new JMenuItem(new ReflectiveAction("Open...", null, this, "onFileOpen"));
-        item.setMnemonic(KeyEvent.VK_O);
-        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, MENU_ACCEL_MASK));
-        menu.add(item);
-        item = new JMenuItem(new ReflectiveAction("Append...", null, this, "onFileMerge"));
-        item.setMnemonic(KeyEvent.VK_A);
-        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, MENU_ACCEL_MASK));
-        menu.add(item);
-        item = new JMenuItem(new ReflectiveAction("Close", null, this, "onFileClose"));
-        item.setMnemonic(KeyEvent.VK_C);
-        menu.add(item);
-        item = new JMenuItem(new ReflectiveAction("Close all", null, this, "onFileCloseAll"));
-        item.setMnemonic(KeyEvent.VK_L);
-        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, MENU_ACCEL_MASK));
-        menu.add(item);
-        menu.addSeparator();
-        if(applet == null || applet.getParameter("kinfileSaveHandler") != null)
-        {
-            item = new JMenuItem(new ReflectiveAction("Save as...", null, this, "onFileSaveAs"));
-            item.setMnemonic(KeyEvent.VK_S);
-            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_ACCEL_MASK));
-            menu.add(item);
-        }
-        if(applet == null) // => not in an applet
-        {
-            submenu = new JMenu("Export");
-            submenu.setMnemonic(KeyEvent.VK_E);
-            menu.add(submenu);
-                item = new JMenuItem(new ReflectiveAction("As JPEG or PNG...", null, this, "onFileWriteImage"));
-                item.setMnemonic(KeyEvent.VK_J);
-                //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_ACCEL_MASK));
-                submenu.add(item);
-                item = new JMenuItem(new ReflectiveAction("As PDF document...", null, this, "onFileWritePDF"));
-                item.setMnemonic(KeyEvent.VK_P);
-                //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_ACCEL_MASK));
-                submenu.add(item);
-                item = new JMenuItem(new ReflectiveAction("As POV-Ray scene...", null, this, "onFileWritePovray"));
-                item.setMnemonic(KeyEvent.VK_P);
-                //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_ACCEL_MASK));
-                submenu.add(item);
-                item = new JMenuItem(new ReflectiveAction("As Kin-XML...", null, this, "onFileWriteXML"));
-                item.setMnemonic(KeyEvent.VK_X);
-                //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_ACCEL_MASK));
-                submenu.add(item);
-                item = new JMenuItem(new ReflectiveAction("As shown to VRML 2...", null, this, "onFileWriteVRML"));
-                item.setMnemonic(KeyEvent.VK_V);
-                //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_ACCEL_MASK));
-                submenu.add(item);
-        }
-        // This might throw a SecurityException, if the user denies us permission...
-        item = new JMenuItem(new ReflectiveAction("Print...", null, this, "onFilePrint"));
-        item.setMnemonic(KeyEvent.VK_P);
-        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, MENU_ACCEL_MASK));
-        menu.add(item);
-        menu.addSeparator();
-        item = new JMenuItem(new ReflectiveAction("Exit", null, this, "onFileExit"));
-        item.setMnemonic(KeyEvent.VK_X);
-        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, MENU_ACCEL_MASK));
-        menu.add(item);
-        //}}}
+        rebuildFileMenu();
         
         //{{{ Edit menu
         menu = new JMenu("Edit");
@@ -256,6 +188,95 @@ public class UIMenus //extends ... implements ...
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_K, MENU_ACCEL_MASK)); // 0 => no modifiers
         menu.add(item);
         //}}}
+    }
+//}}}
+
+//{{{ rebuildFileMenu
+//##################################################################################################
+    public void rebuildFileMenu()
+    {
+        JMenuItem item;
+        JMenu menu = fileMenu;
+        menu.removeAll();
+        
+        JApplet applet = kMain.getApplet();
+        if(applet == null) // => not in an applet
+        {
+            item = new JMenuItem(new ReflectiveAction("New KiNG window", null, this, "onFileNewKing"));
+            item.setMnemonic(KeyEvent.VK_N);
+            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, MENU_ACCEL_MASK));
+            menu.add(item);
+            menu.addSeparator();
+        }
+        item = new JMenuItem(new ReflectiveAction("Open...", null, this, "onFileOpen"));
+        item.setMnemonic(KeyEvent.VK_O);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, MENU_ACCEL_MASK));
+        menu.add(item);
+        item = new JMenuItem(new ReflectiveAction("Append...", null, this, "onFileMerge"));
+        item.setMnemonic(KeyEvent.VK_A);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, MENU_ACCEL_MASK));
+        menu.add(item);
+        if(applet == null) // not in an applet
+        {
+            KinCanvas kCanvas = kMain.getCanvas();
+            if(kCanvas != null)
+            {
+                ToolBox tb = kCanvas.getToolBox();
+                if(tb != null)
+                {
+                    JMenu importMenu = new JMenu("Import");
+                    importMenu.setMnemonic(KeyEvent.VK_I);
+                    tb.addPluginsToSpecialMenu(ToolBox.MENU_IMPORT, importMenu);
+                    if(importMenu.getItemCount() > 0)
+                    {
+                        menu.add(importMenu);
+                    }
+                }
+            }
+        }
+        item = new JMenuItem(new ReflectiveAction("Close", null, this, "onFileClose"));
+        item.setMnemonic(KeyEvent.VK_C);
+        menu.add(item);
+        item = new JMenuItem(new ReflectiveAction("Close all", null, this, "onFileCloseAll"));
+        item.setMnemonic(KeyEvent.VK_L);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, MENU_ACCEL_MASK));
+        menu.add(item);
+        menu.addSeparator();
+        if(applet == null || applet.getParameter("kinfileSaveHandler") != null)
+        {
+            item = new JMenuItem(new ReflectiveAction("Save as...", null, this, "onFileSaveAs"));
+            item.setMnemonic(KeyEvent.VK_S);
+            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_ACCEL_MASK));
+            menu.add(item);
+        }
+        if(applet == null) // => not in an applet
+        {
+            KinCanvas kCanvas = kMain.getCanvas();
+            if(kCanvas != null)
+            {
+                ToolBox tb = kCanvas.getToolBox();
+                if(tb != null)
+                {
+                    JMenu exportMenu = new JMenu("Export");
+                    exportMenu.setMnemonic(KeyEvent.VK_E);
+                    tb.addPluginsToSpecialMenu(ToolBox.MENU_EXPORT, exportMenu);
+                    if(exportMenu.getItemCount() > 0)
+                    {
+                        menu.add(exportMenu);
+                    }
+                }
+            }
+        }
+        // This might throw a SecurityException, if the user denies us permission...
+        item = new JMenuItem(new ReflectiveAction("Print...", null, this, "onFilePrint"));
+        item.setMnemonic(KeyEvent.VK_P);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, MENU_ACCEL_MASK));
+        menu.add(item);
+        menu.addSeparator();
+        item = new JMenuItem(new ReflectiveAction("Exit", null, this, "onFileExit"));
+        item.setMnemonic(KeyEvent.VK_X);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, MENU_ACCEL_MASK));
+        menu.add(item);
     }
 //}}}
 
@@ -477,145 +498,6 @@ public class UIMenus //extends ... implements ...
         else                            io.askSaveFile();
     }
 
-    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onFileWriteXML(ActionEvent ev)
-    {
-        //reporter(ev);
-        if(fileChooser.showSaveDialog(kMain.getTopWindow()) == fileChooser.APPROVE_OPTION)
-        {
-            File f = fileChooser.getSelectedFile();
-            if( !f.exists() ||
-                JOptionPane.showConfirmDialog(kMain.getTopWindow(),
-                    "This file exists -- do you want to overwrite it?",
-                    "Overwrite file?", JOptionPane.YES_NO_OPTION)
-                == JOptionPane.YES_OPTION )
-            {
-                try
-                {
-                    // We don't want any hard references to XML stuff so we
-                    // can load those JARs lazily, especially for applets
-                    // over the network...
-                    //==> XknWriter xw = new XknWriter(kMain);
-                    Class xknClass = Class.forName("king.XknWriter");
-                    Constructor xknConstr = xknClass.getConstructor(new Class[] {KingMain.class});
-                    Object xw = xknConstr.newInstance(new Object[] {kMain});
-                    
-                    OutputStream os = new BufferedOutputStream(new FileOutputStream(f));
-                    
-                    //==> xw.save(os);
-                    Method xknSave = xknClass.getMethod("save", new Class[] {OutputStream.class});
-                    xknSave.invoke(xw, new Object[] {os});
-                    
-                    os.close();
-                }
-                catch(IOException ex)
-                {
-                    JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                        "An error occurred while saving the file.",
-                        "Sorry!",
-                        JOptionPane.ERROR_MESSAGE);
-                    ex.printStackTrace(SoftLog.err);
-                }
-                catch(Throwable t)
-                {
-                    JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                        "Your version of Java appears to be missing the needed XML libraries. File was not written.",
-                        "Sorry!",
-                        JOptionPane.ERROR_MESSAGE);
-                    t.printStackTrace(SoftLog.err);
-                }
-            }
-        }
-    }
-
-    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onFileWriteVRML(ActionEvent ev)
-    {
-        if(fileChooser.showSaveDialog(kMain.getTopWindow()) == fileChooser.APPROVE_OPTION)
-        {
-            File f = fileChooser.getSelectedFile();
-            if( !f.exists() ||
-                JOptionPane.showConfirmDialog(kMain.getTopWindow(),
-                    "This file exists -- do you want to overwrite it?",
-                    "Overwrite file?", JOptionPane.YES_NO_OPTION)
-                == JOptionPane.YES_OPTION )
-            {
-                try
-                {
-                    Writer w = new BufferedWriter(new FileWriter(f));
-                    Vrml97Writer vrml = new Vrml97Writer(kMain);
-                    
-                    vrml.save(w);
-                    w.close();
-                }
-                catch(IOException ex)
-                {
-                    JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                        "An error occurred while saving the file.",
-                        "Sorry!",
-                        JOptionPane.ERROR_MESSAGE);
-                    ex.printStackTrace(SoftLog.err);
-                }
-            }
-        }
-    }
-
-    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onFileWriteImage(ActionEvent ev)
-    {
-        // This needs to be done via reflection because
-        // image writing is only supported in Java 1.4+
-        //      ImageExport imgex = new ImageExport();
-        //      imgex.askExport(kMain);
-        try
-        {
-            Class       imgexClass  = Class.forName("king.ImageExport");
-            Constructor imgexConstr = imgexClass.getConstructor(new Class[] {});
-            Object      imgex       = imgexConstr.newInstance(new Object[] {});
-            
-            Method      imgexExport = imgexClass.getMethod("askExport", new Class[] {KingMain.class});
-            imgexExport.invoke(imgex, new Object[] {kMain});
-        }
-        catch(Throwable t)
-        {
-            JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                "Writing images requires a newer version of Java (1.4 or later).",
-                "Sorry!", JOptionPane.ERROR_MESSAGE);
-            t.printStackTrace(SoftLog.err);
-        }
-    }
-    
-    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onFileWritePDF(ActionEvent ev)
-    {
-        // This needs to be done via reflection because
-        // PDF writing resides in an optional external library.
-        try
-        {
-            Class       pdfexClass  = Class.forName("king.PdfExport");
-            Constructor pdfexConstr = pdfexClass.getConstructor(new Class[] {});
-            Object      pdfex       = pdfexConstr.newInstance(new Object[] {});
-            
-            Method      pdfexExport = pdfexClass.getMethod("askExport", new Class[] {KingMain.class});
-            pdfexExport.invoke(pdfex, new Object[] {kMain});
-        }
-        catch(Throwable t)
-        {
-            JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                "Writing images requires the iText library.\n"
-                +"Download it from http://www.lowagie.com/iText/.\n"
-                +"Call it itext.jar and place it with king.jar.",
-                "Sorry!", JOptionPane.ERROR_MESSAGE);
-            t.printStackTrace(SoftLog.err);
-        }
-    }
-    
-    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onFileWritePovray(ActionEvent ev)
-    {
-        new PovrayExport().askExport(kMain);
-    }
-    
     // This might throw a SecurityException, if the user denies us permission...
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onFilePrint(ActionEvent ev)
@@ -878,6 +760,7 @@ public class UIMenus //extends ... implements ...
         if((event_mask & KingMain.EM_PREFS) != 0)
         {
             // Plugin placement may have changed
+            rebuildFileMenu();
             rebuildToolsMenu();
         }
         // Notify children

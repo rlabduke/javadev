@@ -405,7 +405,8 @@ public class Suppose //extends ... implements ...
         {
             Residue r = (Residue)iter.next();
             Atom a = r.getAtom(" CA ");
-            if(a != null) atoms.add(state.get(a));
+            try { if(a != null) atoms.add(state.get(a)); }
+            catch(AtomException ex) { ex.printStackTrace(); }
         }
         
         // Make them into an array
@@ -463,9 +464,9 @@ public class Suppose //extends ... implements ...
     static public String printRes(Residue r, boolean useChainID)
     {
         StringBuffer sb = new StringBuffer();
-        if(useChainID && r.getChain() != ' ') sb.append(r.getChain());
+        if(useChainID && !" ".equals(r.getChain())) sb.append(r.getChain());
         sb.append(r.getSequenceNumber());
-        if(r.getInsertionCode() != ' ') sb.append(r.getInsertionCode());
+        if(! " ".equals(r.getInsertionCode())) sb.append(r.getInsertionCode());
         return sb.toString();
     }
 //}}}

@@ -107,22 +107,26 @@ public class RotamerSampler //extends ... implements ...
         int i = 1;
         for(Iterator iter = data.iterator(); iter.hasNext(); i++)
         {
-            double[] vals = (double[])iter.next();
-            Residue tempRes = new Residue(res, ' ', "", i, ' ', res.getName());
-            ModelState tempState = tempRes.cloneStates(res, modelState, new ModelState(modelState));
-            if(allAngles)
-                tempState = angles.setAllAngles(tempRes, tempState, vals);
-            else
-                tempState = angles.setChiAngles(tempRes, tempState, vals);
-            for(Iterator ai = tempRes.getAtoms().iterator(); ai.hasNext(); )
+            try
             {
-                Atom a = (Atom)ai.next();
-                // Makes all weights make best use of the 6.2 formatted field available to them
-                double occ = 999.0 * vals[nAngles]/maxWeight;
-                if(occ >= 1000.0) throw new Error("Logical error in occupancy weighting scheme");
-                tempState.get(a).setOccupancy(occ);
+                double[] vals = (double[])iter.next();
+                Residue tempRes = new Residue(res, " ", "", Integer.toString(i), " ", res.getName());
+                ModelState tempState = tempRes.cloneStates(res, modelState, new ModelState(modelState));
+                if(allAngles)
+                    tempState = angles.setAllAngles(tempRes, tempState, vals);
+                else
+                    tempState = angles.setChiAngles(tempRes, tempState, vals);
+                for(Iterator ai = tempRes.getAtoms().iterator(); ai.hasNext(); )
+                {
+                    Atom a = (Atom)ai.next();
+                    // Makes all weights make best use of the 6.2 formatted field available to them
+                    double occ = 999.0 * vals[nAngles]/maxWeight;
+                    if(occ >= 1000.0) throw new Error("Logical error in occupancy weighting scheme");
+                    tempState.get(a).setOccupancy(occ);
+                }
+                pdbWriter.writeResidues(Collections.singletonList(tempRes), tempState);
             }
-            pdbWriter.writeResidues(Collections.singletonList(tempRes), tempState);
+            catch(AtomException ex) { ex.printStackTrace(); }
         }
         System.out.flush();
         pdbWriter.close();

@@ -140,7 +140,12 @@ public class PeptideTwister2 extends JPanel implements ActionListener
             if(!parent.cbIdealizeSC.isSelected())
                 idealizeSC[0] = idealizeSC[idealizeSC.length-1] = false;
             
-            return CaRotation.twistPeptides(residues, startState, angles, idealizeSC);
+            try { return CaRotation.twistPeptides(residues, startState, angles, idealizeSC); }
+            catch(AtomException ex)
+            {
+                ex.printStackTrace();
+                return startState;
+            }
         }
         else return startState;
     }

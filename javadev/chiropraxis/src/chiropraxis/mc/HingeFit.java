@@ -92,7 +92,8 @@ public class HingeFit //extends ... implements ...
         {
             Residue r = (Residue)iter.next();
             Atom a = r.getAtom(" CA ");
-            if(a != null) atoms.add(state.get(a));
+            try { if(a != null) atoms.add(state.get(a)); }
+            catch(AtomException ex) { ex.printStackTrace(); } // should never happen
         }
         
         // Make them into an array

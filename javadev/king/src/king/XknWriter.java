@@ -3,14 +3,15 @@
 package king;
 import king.core.*;
 
-//import java.awt.*;
-//import java.awt.event.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.io.*;
 //import java.net.*;
 import java.text.*;
 import java.util.*;
 //import java.util.regex.*;
-//import javax.swing.*;
+import javax.swing.*;
+import driftwood.gui.*;
 import driftwood.util.SoftLog;
 
 // XML stuff -- not 1.3 compatible unless JAXP is provided as a JAR.
@@ -27,7 +28,7 @@ import org.xml.sax.helpers.*;
  * <p>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
  * <br>Begun on Thu Oct  3 09:51:11 EDT 2002
 */
-public class XknWriter implements XMLReader
+public class XknWriter extends Plugin implements XMLReader
 {
 //{{{ Constants
     static final DecimalFormat df = new DecimalFormat("0.####");
@@ -36,11 +37,12 @@ public class XknWriter implements XMLReader
 
 //{{{ Variable definitions
 //##################################################################################################
-    KingMain kMain;
     ContentHandler cnHandler = null;
     LexicalHandler lxHandler = null;
     ErrorHandler errHandler = null;
     String nsu = "";
+    
+    JFileChooser fileChooser;
 //}}}
 
 //{{{ Constructor(s)
@@ -48,9 +50,12 @@ public class XknWriter implements XMLReader
     /**
     * Constructor
     */
-    public XknWriter(KingMain kmain)
+    public XknWriter(ToolBox tb)
     {
-        kMain = kmain;
+        super(tb);
+        fileChooser = new JFileChooser();
+        String currdir = System.getProperty("user.dir");
+        if(currdir != null) fileChooser.setCurrentDirectory(new File(currdir));
     }
 //}}}
 
@@ -470,6 +475,61 @@ public class XknWriter implements XMLReader
     { return false; }
     public void setFeature(String name, boolean value)
     {}
+//}}}
+
+//{{{ getToolsMenuItem, getHelpMenuItem, toString, onExport, isAppletSafe
+//##################################################################################################
+    public JMenuItem getToolsMenuItem()
+    {
+        return new JMenuItem(new ReflectiveAction(this.toString()+"...", null, this, "onExport"));
+    }
+
+    public JMenuItem getHelpMenuItem()
+    { return null; }
+    
+    public String toString()
+    { return "XML"; }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onExport(ActionEvent ev)
+    {
+        if(fileChooser.showSaveDialog(kMain.getTopWindow()) == fileChooser.APPROVE_OPTION)
+        {
+            File f = fileChooser.getSelectedFile();
+            if( !f.exists() ||
+                JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+                    "This file exists -- do you want to overwrite it?",
+                    "Overwrite file?", JOptionPane.YES_NO_OPTION)
+                == JOptionPane.YES_OPTION )
+            {
+                try
+                {
+                    OutputStream os = new BufferedOutputStream(new FileOutputStream(f));
+                    this.save(os);
+                    os.close();
+                }
+                catch(IOException ex)
+                {
+                    JOptionPane.showMessageDialog(kMain.getTopWindow(),
+                        "An error occurred while saving the file.",
+                        "Sorry!",
+                        JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace(SoftLog.err);
+                }
+                catch(Throwable t)
+                {
+                    JOptionPane.showMessageDialog(kMain.getTopWindow(),
+                        "Your version of Java appears to be missing the needed XML libraries. File was not written.",
+                        "Sorry!",
+                        JOptionPane.ERROR_MESSAGE);
+                    t.printStackTrace(SoftLog.err);
+                }
+            }
+        }
+    }
+
+    static public boolean isAppletSafe()
+    { return false; }
 //}}}
 
 //{{{ empty_code_segment

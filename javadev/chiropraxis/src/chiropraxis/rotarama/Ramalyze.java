@@ -112,7 +112,7 @@ public class Ramalyze //extends ... implements ...
         {
             RamaEval eval = (RamaEval) iter.next();
             segIDs.add( eval.res.getSegment() );
-            chainIDs.add( new Character(eval.res.getChain()) );
+            chainIDs.add(eval.res.getChain());
         }
         
         boolean useSegs = (segIDs.size() > 1);
@@ -125,12 +125,12 @@ public class Ramalyze //extends ... implements ...
             if(useModelNames)           name.append("[").append(eval.modelName).append("] ");
             if(useChains)
             {
-                if(r.getChain() == ' ') name.append("_ ");
-                else                    name.append(r.getChain()).append(' ');
+                if(" ".equals(r.getChain()))    name.append("_ ");
+                else                            name.append(r.getChain()).append(' ');
             }
             if(useSegs)                 name.append(r.getSegment().trim()).append(' ');
             name.append(r.getSequenceNumber());
-            if(r.getInsertionCode() != ' ') name.append(r.getInsertionCode());
+            if(!" ".equals(r.getInsertionCode())) name.append(r.getInsertionCode());
             name.append(' ');
             name.append(r.getName());
             eval.name = name.toString();

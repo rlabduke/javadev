@@ -90,7 +90,7 @@ public class ModelState //extends ... implements ...
     * @throws AtomException if no state is known for the Atom,
     *   including the case where key is null.
     */
-    public AtomState get(Atom key)
+    public AtomState get(Atom key) throws AtomException
     {
         AtomState s = getImpl(key);
         if(s == null)
@@ -130,7 +130,7 @@ public class ModelState //extends ... implements ...
     *   explicitly using addOverwrite().
     * @throws NullPointerException if state is null
     */
-    public void add(AtomState state)
+    public void add(AtomState state) throws AtomException
     {
         Atom key = state.getAtom();
         if(stateMap.containsKey(key))
@@ -223,8 +223,16 @@ public class ModelState //extends ... implements ...
             for(Iterator iter = src.getLocalStateMap().keySet().iterator(); iter.hasNext(); )
             {
                 Atom a = (Atom)iter.next();
-                if(collapsed.getLocal(a) == null)
-                    collapsed.add(src.getLocal(a));
+                try
+                {
+                    if(collapsed.getLocal(a) == null)
+                        collapsed.add(src.getLocal(a));
+                }
+                catch(AtomException ex)
+                {
+                    System.err.println("Logical error!");
+                    ex.printStackTrace();
+                }
             }
             src = src.getParent();
         }
@@ -256,8 +264,16 @@ public class ModelState //extends ... implements ...
             {
                 Atom a = (Atom) ai.next();
                 AtomState s = this.getImpl(a);
-                if(s != null)
-                    m.add(s);
+                try
+                {
+                    if(s != null)
+                        m.add(s);
+                }
+                catch(AtomException ex)
+                {
+                    System.err.println("Logical error!");
+                    ex.printStackTrace();
+                }
             }
         }
         return m;

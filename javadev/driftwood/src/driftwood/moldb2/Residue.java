@@ -41,7 +41,7 @@ public class Residue implements Comparable
 //{{{ Variable definitions
 //##################################################################################################
     /** The chain and segment that this Residue belongs to (may not be zero/null) */
-    char            chain           = ' ';
+    String          chain           = " ";
     String          segment         = "";
     
     /** The set of atoms belonging to this Residue: Map&lt:String, Atom&gt; */
@@ -49,10 +49,10 @@ public class Residue implements Comparable
     Collection      unmodAtoms      = null;
     
     /** The index of this residue in its chain; may be zero or negative */
-    int             seqNum;
+    String          seqNum;
     
     /** The insertion code for this residue */
-    char            insCode;
+    String          insCode;
     
     /** The name for this residue (recommended: 3 letters, uppercase) */
     String          resName;
@@ -68,20 +68,22 @@ public class Residue implements Comparable
 //##################################################################################################
     /**
     * Creates a new residue without any atoms in it.
-    * @param chain      the chain ID. Not zero. Space (' ') is a good default.
+    * @param chain      the chain ID. Not null. Space (" ") is a good default.
     * @param segment    the seg ID. Not null. Empty string ("") is a good default.
     * @param seqNum     the number in sequence. May have any value.
-    * @param insCode    the insertion code. Not zero. Space (' ') is a good default.
+    * @param insCode    the insertion code. Not null. Space (" ") is a good default.
     * @param resName    the residue name. Not null. Empty string ("") is a good default.
     */
-    public Residue(char chain, String segment, int seqNum, char insCode, String resName)
+    public Residue(String chain, String segment, String seqNum, String insCode, String resName)
     {
-        if(chain == '\0')
-            throw new IllegalArgumentException("Must provide a non-zero chain ID");
+        if(chain == null)
+            throw new IllegalArgumentException("Must provide a non-null chain ID");
         if(segment == null)
             throw new IllegalArgumentException("Must provide a non-null segment ID");
-        if(insCode == '\0')
-            throw new IllegalArgumentException("Must provide a non-zero insertion code");
+        if(seqNum == null)
+            throw new IllegalArgumentException("Must provide a non-null sequence number/ID");
+        if(insCode == null)
+            throw new IllegalArgumentException("Must provide a non-null insertion code");
         if(resName == null)
             throw new IllegalArgumentException("Must provide a non-null residue name");
         
@@ -101,12 +103,20 @@ public class Residue implements Comparable
     * copy constructor directly to populate a new Residue.
     * This copy WILL NOT be equal to template, as each Residue object is considered unique.
     */
-    public Residue(Residue template, char chain, String segment, int seqNum, char insCode, String resName)
+    public Residue(Residue template, String chain, String segment, String seqNum, String insCode, String resName)
     {
         this(chain, segment, seqNum, insCode, resName);
         
-        for(Iterator iter = template.getAtoms().iterator(); iter.hasNext(); )
-            add( new Atom((Atom)iter.next()) );
+        try
+        {
+            for(Iterator iter = template.getAtoms().iterator(); iter.hasNext(); )
+                add( new Atom((Atom)iter.next()) );
+        }
+        catch(AtomException ex)
+        {
+            System.err.println("Unable to duplicate residue?");
+            ex.printStackTrace();
+        }
     }
 
     /** Creates a new residue just like template, with (copies of) all the same Atoms. */
@@ -131,7 +141,7 @@ public class Residue implements Comparable
     * one of the relevant atoms in this.
     * @return to
     */
-    public ModelState cloneStates(Residue fromRes, ModelState from, ModelState to)
+    public ModelState cloneStates(Residue fromRes, ModelState from, ModelState to) throws AtomException
     {
         for(Iterator iter = this.getAtoms().iterator(); iter.hasNext(); )
         {
@@ -146,8 +156,8 @@ public class Residue implements Comparable
 
 //{{{ get{Chain, Segment, Atoms, Atom}
 //##################################################################################################
-    /** Never zero, defaults to space (' '). */
-    public char getChain()
+    /** Never null, defaults to space (" "). */
+    public String getChain()
     { return chain; }
     
     /** Never null, defaults to empty (""), any number of characters. */
@@ -177,15 +187,15 @@ public class Residue implements Comparable
 //{{{ get{SequenceNumber, InsertionCode, Name, CNIT}
 //##################################################################################################
     /**
-    * Returns the sequence number of this residue as an integer.
+    * Returns the sequence number of this residue as a non-null String.
     * Note that insertion codes function to give a sort order
     * within residues that share the same sequence number.
     */
-    public int getSequenceNumber()
+    public String getSequenceNumber()
     { return seqNum; }
     
-    /** The default insertion code if none was specified is space (' '). */
-    public char getInsertionCode()
+    /** The default insertion code if none was specified is space (" "). */
+    public String getInsertionCode()
     { return insCode; }
     
     /**
@@ -205,9 +215,9 @@ public class Residue implements Comparable
     public String getCNIT()
     {
         StringBuffer sb = new StringBuffer(9);
-        sb.append(getChain());
-        sb.append(Strings.justifyRight(Integer.toString(getSequenceNumber()), 4));
-        sb.append(getInsertionCode());
+        sb.append(getChain().length() > 0 ? getChain().substring(0, 1) : " ");
+        sb.append(Strings.justifyRight(getSequenceNumber(), 4));
+        sb.append(getInsertionCode().length() > 0 ? getInsertionCode().substring(0, 1) : " ");
         sb.append(Strings.justifyLeft(getName(), 3));
         return sb.toString();
     }
@@ -233,7 +243,7 @@ public class Residue implements Comparable
         {
             Residue next = (Residue)parent.residues.itemAfter(this);
             
-            if(next.getChain() != this.getChain())
+            if(!next.getChain().equals(this.getChain()))
                 return null;
             
             return next;
@@ -260,7 +270,7 @@ public class Residue implements Comparable
         {
             Residue prev = (Residue)parent.residues.itemBefore(this);
             
-            if(prev.getChain() != this.getChain())
+            if(!prev.getChain().equals(this.getChain()))
                 return null;
             
             return prev;
@@ -279,7 +289,7 @@ public class Residue implements Comparable
     * @throws AtomException if an atom with the same name
     *   is already part of this residue.
     */
-    public void add(Atom a)
+    public void add(Atom a) throws AtomException
     {
         String name = a.getName();
         if(atoms.containsKey(name))
@@ -299,7 +309,7 @@ public class Residue implements Comparable
     * @throws AtomException if the Atom
     *   wasn't part of this Residue already.
     */
-    public void remove(Atom a)
+    public void remove(Atom a) throws AtomException
     {
         String name = a.getName();
         Atom old = (Atom)atoms.get(name);
@@ -343,14 +353,14 @@ public class Residue implements Comparable
         Residue r1 = this;
         Residue r2 = (Residue)o;
         
-        int comp = r1.chain - r2.chain;
+        int comp = r1.chain.compareTo(r2.chain);
         if(comp != 0) return comp;
         comp = r1.segment.compareTo(r2.segment);
         if(comp != 0) return comp;
         
-        comp = r1.seqNum - r2.seqNum;
+        comp = r1.seqNum.compareTo(r2.seqNum);
         if(comp != 0) return comp;
-        comp = r1.insCode - r2.insCode;
+        comp = r1.insCode.compareTo(r2.insCode);
         if(comp != 0) return comp;
         comp = r1.resName.compareTo(r2.resName);
         if(comp != 0) return comp;
@@ -367,13 +377,14 @@ public class Residue implements Comparable
         if(qnameCache == null)
         {
             StringBuffer s = new StringBuffer();
+            String chtrim = chain.trim();
             String segtrim = segment.trim();
-            if(chain == ' ')            s.append('_').append(' ');
-            else                        s.append(chain).append(' ');
+            if(chtrim.length() > 0)     s.append(chtrim).append(' ');
             if(segtrim.length() > 0)    s.append(segtrim).append(' ');
             
             s.append(seqNum);
-            if(insCode != ' ')  s.append(insCode);
+            String instrim = insCode.trim();
+            if(instrim.length() > 0)  s.append(instrim);
             s.append(' ');
             s.append(resName);
             qnameCache = s.toString();

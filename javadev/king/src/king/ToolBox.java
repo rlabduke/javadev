@@ -45,6 +45,10 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
     static final String MENU_MAIN = "<main menu>";
     /** The menu name that will keep a Plugin out of the Tools menu entirely. */
     static final String MENU_NONE = "<not shown>";
+    /** The menu under File for importing non-kin files */
+    static final String MENU_IMPORT = "<import>";
+    /** The menu under File for exporting non-kin files */
+    static final String MENU_EXPORT = "<export>";
 //}}}
 
 //{{{ CLASS: PluginComparator, MenuComparator
@@ -364,7 +368,9 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
             {
                 String menuName = getPluginMenuName(p);
                 if(MENU_MAIN.equals(menuName))      menu.add(item);
-                else if(MENU_NONE.equals(menuName)) {}  // don't add to any menu
+                else if(MENU_NONE.equals(menuName)) {}      // don't add to any menu
+                else if(MENU_IMPORT.equals(menuName)) {}    // don't add to any menu
+                else if(MENU_EXPORT.equals(menuName)) {}    // don't add to any menu
                 else // add to the named submenu
                 {
                     JMenu submenu = (JMenu) submenus.get(menuName);
@@ -408,6 +414,26 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
             p = (Plugin)iter.next();
             item = p.getHelpMenuItem();
             if(item != null) menu.add(item);
+        }
+    }
+//}}}
+
+//{{{ addPluginsToSpecialMenu
+//##################################################################################################
+    /** Appends menu items for using the loaded plugins */
+    public void addPluginsToSpecialMenu(String whichMenu, JMenu menu)
+    {
+        Plugin p;
+        JMenuItem item;
+        for(Iterator iter = plugins.iterator(); iter.hasNext(); )
+        {
+            p = (Plugin)iter.next();
+            String menuName = getPluginMenuName(p);
+            if(whichMenu.equals(menuName))
+            {
+                item = p.getToolsMenuItem();
+                if(item != null) menu.add(item);
+            }
         }
     }
 //}}}

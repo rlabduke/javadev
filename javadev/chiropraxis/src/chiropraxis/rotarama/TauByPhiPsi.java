@@ -110,7 +110,7 @@ public class TauByPhiPsi //extends ... implements ...
     * @throws ResidueException if no angle can be calculated
     *   for this residue.
     */
-    public double getExpectedTau(Model model, Residue res, ModelState state)
+    public double getExpectedTau(Model model, Residue res, ModelState state) throws ResidueException
     {
         double phi, psi, angle;
         try {
@@ -144,11 +144,15 @@ public class TauByPhiPsi //extends ... implements ...
     * @throws ResidueException if no angle can be calculated
     *   for this residue.
     */
-    public double getTauDeviation(Model model, Residue res, ModelState state)
+    public double getTauDeviation(Model model, Residue res, ModelState state) throws ResidueException
     {
-        double expected = getExpectedTau(model, res, state);
-        double actual   = AminoAcid.getTau(res, state);
-        return actual - expected;
+        try
+        {
+            double expected = getExpectedTau(model, res, state);
+            double actual   = AminoAcid.getTau(res, state);
+            return actual - expected;
+        }
+        catch(AtomException ex) { throw new ResidueException("Couldn't calculate tau: "+ex.getMessage()); }
     }
 //}}}
 

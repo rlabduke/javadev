@@ -19,10 +19,7 @@ ISOSURFACE: {{{
 }}}
 MOLDB2: {{{
     Write PdbUpdater that reads new coords/state into an old model
-}}}
-MOLDB3: {{{
-    All custom exceptions should be checked exceptions
-    ModelGroup should carry the states instead of models carrying them
+    ModelGroup should carry the states instead of models carrying them?
 }}}
 R3: {{{
 }}}
@@ -38,7 +35,14 @@ UTIL: {{{
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 0.64 ###
+### 0.65 ###
+- made moldb2.ResidueException a checked exception
+- made moldb2.AtomException a checked exception
+- changed AtomState's serial and altconf to Strings (for mmCIF compatibility)
+- changed Residue chain and insCode to Strings (CIF)
+- converted Residue sequence number to a String (CIF)
+- changed PdbWriter to not depend on order of residues in *chain*, just order
+
 ### 0.64 ###
 - added gui.ReclickListSelectionListener
 

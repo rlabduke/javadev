@@ -3,14 +3,16 @@
 package king;
 import king.core.*;
 
-//import java.awt.*;
-//import java.awt.event.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.io.*;
 //import java.net.*;
 import java.text.*;
 import java.util.*;
 //import java.util.regex.*;
-//import javax.swing.*;
+import javax.swing.*;
+import driftwood.gui.*;
+import driftwood.util.SoftLog;
 //}}}
 /**
 * <code>Vrml97Writer</code> writes the currently visible kinemage
@@ -19,7 +21,7 @@ import java.util.*;
 * <p>Copyright (C) 2002-2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Thu Oct  3 09:51:11 EDT 2002
 */
-public class Vrml97Writer //extends ... implements ...
+public class Vrml97Writer extends Plugin
 {
 //{{{ Constants
     static final DecimalFormat df = new DecimalFormat("0.####");
@@ -27,9 +29,9 @@ public class Vrml97Writer //extends ... implements ...
 
 //{{{ Variable definitions
 //##################################################################################################
-    KingMain kMain;
     PrintWriter out = null;
     String lastPointID = null;
+    JFileChooser fileChooser;
 //}}}
 
 //{{{ Constructor(s)
@@ -37,9 +39,12 @@ public class Vrml97Writer //extends ... implements ...
     /**
     * Constructor
     */
-    public Vrml97Writer(KingMain kmain)
+    public Vrml97Writer(ToolBox tb)
     {
-        kMain = kmain;
+        super(tb);
+        fileChooser = new JFileChooser();
+        String currdir = System.getProperty("user.dir");
+        if(currdir != null) fileChooser.setCurrentDirectory(new File(currdir));
     }
 //}}}
 
@@ -223,6 +228,53 @@ public class Vrml97Writer //extends ... implements ...
         out.println("# Definitions of standard colors");
         out.println("DEF kc_red Appearance { material Material { diffuseColor 1 0 0 } }");
     }
+//}}}
+
+//{{{ getToolsMenuItem, getHelpMenuItem, toString, onExport, isAppletSafe
+//##################################################################################################
+    public JMenuItem getToolsMenuItem()
+    {
+        return new JMenuItem(new ReflectiveAction(this.toString()+"...", null, this, "onExport"));
+    }
+
+    public JMenuItem getHelpMenuItem()
+    { return null; }
+    
+    public String toString()
+    { return "VRML 2.0 (97)"; }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onExport(ActionEvent ev)
+    {
+        if(fileChooser.showSaveDialog(kMain.getTopWindow()) == fileChooser.APPROVE_OPTION)
+        {
+            File f = fileChooser.getSelectedFile();
+            if( !f.exists() ||
+                JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+                    "This file exists -- do you want to overwrite it?",
+                    "Overwrite file?", JOptionPane.YES_NO_OPTION)
+                == JOptionPane.YES_OPTION )
+            {
+                try
+                {
+                    Writer w = new BufferedWriter(new FileWriter(f));
+                    this.save(w);
+                    w.close();
+                }
+                catch(IOException ex)
+                {
+                    JOptionPane.showMessageDialog(kMain.getTopWindow(),
+                        "An error occurred while saving the file.",
+                        "Sorry!",
+                        JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace(SoftLog.err);
+                }
+            }
+        }
+    }
+
+    static public boolean isAppletSafe()
+    { return false; }
 //}}}
 
 //{{{ empty_code_segment

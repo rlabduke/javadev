@@ -48,7 +48,7 @@ public class Peptide //extends ... implements ...
     /**
     * @throws AtomException if cRes or nRes is not null and missing a C-alpha
     */
-    public Peptide(Residue cRes, Residue nRes, ModelState state)
+    public Peptide(Residue cRes, Residue nRes, ModelState state) throws AtomException
     {
         super();
         this.nRes = nRes;

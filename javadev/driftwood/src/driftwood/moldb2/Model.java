@@ -43,13 +43,13 @@ public class Model implements Cloneable
     // because of the difficulting synchronizing residue membership
     // to Model, Chain, *and* Segment during add() and remove() ops. 
     
-    /** The chains: a lookup table based on names: Map&lt;Character, Set&lt;Residue&gt;&gt;*/
+    /** The chains: a lookup table based on names: Map&lt;String, Set&lt;Residue&gt;&gt;*/
     Map                 chainMap;
     
     /** The segments: a lookup table based on names: Map&lt;String, Set&lt;Residue&gt;&gt;*/
     Map                 segmentMap;
     
-    /** The conformations: a lookup table based on names: Map&lt;Character, ModelState&gt;*/
+    /** The conformations: a lookup table based on names: Map&lt;String, ModelState&gt;*/
     Map                 stateMap;
     
     /** Number of times this model has been modified */
@@ -75,10 +75,10 @@ public class Model implements Cloneable
         
         // Use TreeMap because it keeps the identifiers in order
         // (Is this always what we want?)
-        chainMap    = new TreeMap(); // all keys should be legal Characters
+        chainMap    = new TreeMap(); // all keys should be non-empty Strings
         //segmentMap  = new TreeMap(new NullNaturalComparator());
         segmentMap  = new TreeMap(); // all keys are non-null
-        stateMap    = new TreeMap(); // all keys should be legal Characters
+        stateMap    = new TreeMap(); // all keys should be non-empty Strings
     }
 //}}}
 
@@ -158,7 +158,7 @@ public class Model implements Cloneable
     }
 //}}}
 
-//{{{ add, remove, restoreOrder
+//{{{ add, remove, replace
 //##################################################################################################
     /**
     * Adds the given Residue to this Model.
@@ -169,7 +169,7 @@ public class Model implements Cloneable
     * @throws ResidueException if a residue with the same fully-
     *   qualified name is already part of this model.
     */
-    public void add(Residue r)
+    public void add(Residue r) throws ResidueException
     {
         if(residues.contains(r))
             throw new ResidueException("A residue named "+r+" is already part of model "+this);
@@ -185,9 +185,9 @@ public class Model implements Cloneable
     /**
     * Removes the given Residue from this Model.
     * @throws ResidueException if the Residue
-    *   wasn't part of this Residue already.
+    *   wasn't part of this Model already.
     */
-    public void remove(Residue r)
+    public void remove(Residue r) throws ResidueException
     {
         if(!residues.contains(r))
             throw new ResidueException(r+" is not part of model "+this);
@@ -201,34 +201,30 @@ public class Model implements Cloneable
     }
 
     /**
-    * Re-sorts the list of residues according to their natural order
-    * (first chain, then segment, then index, then insertion code, then name).
-    * This is a O(N ln N) operation in general, though if only a few changes
-    * have been made (i.e., the list is nearly sorted) it approaches O(N).
+    * Replaces one residue with another, maintaining the order of residues.
+    * At the moment, however, the new residue goes at the end of the chain
+    * and segment lists, so they will probably no longer be in order.
+    * @throws ResidueException if the Residue
+    *   wasn't part of this Model already.
     */
-    public void restoreOrder()
+    public void replace(Residue oldRes, Residue newRes) throws ResidueException
     {
-        // Sort main list of residues
-        sortResidueSet(residues);
+        if(residues.contains(newRes))
+            throw new ResidueException("A residue named "+newRes+" is already part of model "+this);
+        if(!residues.contains(oldRes))
+            throw new ResidueException(oldRes+" is not part of model "+this);
         
-        // Sort each chain
-        for(Iterator iter = chainMap.values().iterator(); iter.hasNext(); )
-            sortResidueSet((Set)iter.next());
-        
-        // Sort each segment
-        for(Iterator iter = segmentMap.values().iterator(); iter.hasNext(); )
-            sortResidueSet((Set)iter.next());
-        
+        resCNIT.remove(oldRes.getCNIT());
+        removeFromChain(oldRes, oldRes.getChain());
+        removeFromSegment(oldRes, oldRes.getSegment());
+
+        resCNIT.put(newRes.getCNIT(), newRes);
+        addToChain(newRes, newRes.getChain());
+        addToSegment(newRes, newRes.getSegment());
+
+        residues.addBefore(oldRes, newRes);
+        residues.remove(oldRes);
         this.modified();
-    }
-    
-    private void sortResidueSet(Set rSet)
-    {
-        Object[] res = rSet.toArray();
-        Arrays.sort(res);
-        rSet.clear();
-        for(int i = 0; i < res.length; i++)
-            rSet.add(res[i]);
     }
 //}}}
 
@@ -265,7 +261,7 @@ public class Model implements Cloneable
 
 //{{{ getChain(IDs), addTo/removeFromChain
 //##################################################################################################
-    /** Returns an unmodifiable Set&lt;Character&gt; of all the populated chains in this model */
+    /** Returns an unmodifiable Set&lt;String&gt; of all the populated chains in this model */
     public Set getChainIDs()
     {
         return Collections.unmodifiableSet(chainMap.keySet());
@@ -282,21 +278,20 @@ public class Model implements Cloneable
     * in the form of an unmodifiable Set&lt;Residue&gt;;
     * or null if there is no such chain in this model.
     */
-    public Set getChain(char chainID)
+    public Set getChain(String chainID)
     {
-        Set chain = (Set)chainMap.get(new Character(chainID));
+        Set chain = (Set)chainMap.get(chainID);
         return Collections.unmodifiableSet(chain);
     }
     
     /** Registers the given Residue with the named chain; for use by this and Residue */
-    void addToChain(Residue r, char chainID)
+    void addToChain(Residue r, String chainID)
     {
-        Character cid = new Character(chainID);
-        Set chain = (Set)chainMap.get(cid);
+        Set chain = (Set)chainMap.get(chainID);
         if(chain == null)
         {
             chain = new UberSet();
-            chainMap.put(cid, chain);
+            chainMap.put(chainID, chain);
         }
         
         chain.add(r);
@@ -307,10 +302,9 @@ public class Model implements Cloneable
     * Removes the given Residue from the chain if it was a part of it.
     * @throws ResidueException if the residue was not part of the chain.
     */
-    void removeFromChain(Residue r, char chainID)
+    void removeFromChain(Residue r, String chainID) throws ResidueException
     {
-        Character cid = new Character(chainID);
-        Set chain = (Set)chainMap.get(cid);
+        Set chain = (Set)chainMap.get(chainID);
         if(chain == null)
             throw new ResidueException(r+" is not a part of non-existant chain "+chainID);
         
@@ -318,7 +312,7 @@ public class Model implements Cloneable
             throw new ResidueException(r+" is not a part of chain "+chainID);
         
         // Eliminate empty chains
-        if(chain.isEmpty()) chainMap.remove(cid);
+        if(chain.isEmpty()) chainMap.remove(chainID);
         
         this.modified();
     }
@@ -361,7 +355,7 @@ public class Model implements Cloneable
     * Removes the given Residue from the segment if it was a part of it.
     * @throws ResidueException if the residue was not part of the segment.
     */
-    void removeFromSegment(Residue r, String segmentID)
+    void removeFromSegment(Residue r, String segmentID) throws ResidueException
     {
         Set segment = (Set)segmentMap.get(segmentID);
         if(segment == null)
@@ -379,7 +373,7 @@ public class Model implements Cloneable
 
 //{{{ getState(IDs), makeState
 //##################################################################################################
-    /** Returns an unmodifiable Set&lt;Character&gt; of all the populated conformations in this model */
+    /** Returns an unmodifiable Set&lt;String&gt; of all the populated conformations in this model */
     public Set getStateIDs()
     { return Collections.unmodifiableSet(stateMap.keySet()); }
     
@@ -392,10 +386,9 @@ public class Model implements Cloneable
     * in the form of a ModelState;
     * or null if there is no such conformation in this model.
     */
-    public ModelState getState(char stateID)
+    public ModelState getState(String stateID)
     {
-        Character sid = new Character(stateID);
-        ModelState state = (ModelState)stateMap.get(sid);
+        ModelState state = (ModelState)stateMap.get(stateID);
         return state;
     }
     
@@ -406,9 +399,8 @@ public class Model implements Cloneable
     */
     public ModelState getState()
     {
-        ModelState          state = getState('A');
-        //if(state == null)   state = getState('a');
-        if(state == null)   state = getState(' ');
+        ModelState          state = getState("A");
+        if(state == null)   state = getState(" ");
         return state;
     }
     
@@ -421,20 +413,19 @@ public class Model implements Cloneable
     * as its parent. If a default conformation does not exist
     * yet, it will also be created.
     */
-    public ModelState makeState(char stateID)
+    public ModelState makeState(String stateID)
     {
-        Character sid = new Character(stateID);
-        ModelState state = (ModelState)stateMap.get(sid);
+        ModelState state = (ModelState)stateMap.get(stateID);
         if(state == null)
         {
             state = new ModelState();
-            stateMap.put(sid, state);
+            stateMap.put(stateID, state);
             // This counts as a logical change because the
             // results of getStates() is altered.
             this.modified();
             
-            if(stateID != ' ')
-                state.setParent(this.makeState(' '));
+            if(! " ".equals(stateID))
+                state.setParent(this.makeState(" "));
         }
         
         return state;
