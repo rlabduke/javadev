@@ -53,38 +53,10 @@ public class DotPoint extends KPoint // implements ...
     {
         KPaint maincolor = getDrawingColor(engine);
         if(maincolor.isInvisible()) return;
-        
-        int width, off;
-        width = calcLineWidth(engine);
-        off = width/2;
-        
         Paint paint = maincolor.getPaint(engine.backgroundMode, engine.colorCue);
-        g.setPaint(paint);
-        g.fillRect((int)(x-off), (int)(y-off), width, width);
-    }
-//}}}
-
-//{{{ paintHighQuality
-//##################################################################################################
-    /**
-    * Produces a higher-quality, lower-speed rendering of
-    * this paintable. If no such rendering is possible,
-    * it should produce the same results as paintStandard()
-    */
-    public void paintHighQuality(Graphics2D g, Engine engine)
-    {
-        KPaint maincolor = getDrawingColor(engine);
-        if(maincolor.isInvisible()) return;
         
-        int width, off;
-        width = calcLineWidth(engine);
-        off = width/2;
-        
-        Paint paint = maincolor.getPaint(engine.backgroundMode, engine.colorCue);
-        g.setPaint(paint);
-        g.setStroke(KPalette.pen0);
-        engine.ellipse1.setFrame((x-off), (y-off), width, width);
-        g.fill(engine.ellipse1);
+        int width = calcLineWidth(engine);
+        engine.painter.paintDot(g, paint, x, y, z, width);
     }
 //}}}
 

@@ -1483,6 +1483,25 @@ Likewise, KiNG can display the original, unrotated coordinates of the point.
 Tools
 \family default 
  menu.
+\layout Subsection
+
+Pick objects
+\layout Standard
+
+Traditionally, one can only 
+\begin_inset Quotes eld
+\end_inset 
+
+pick
+\begin_inset Quotes erd
+\end_inset 
+
+ points in a kinemage.
+ Enabling this option allows KiNG to recognize mouse clicks that hit the
+ text of labels, the surfaces of balls and triangles, and the lines drawn
+ between points.
+ In each case, the result is equivalent to clicking on the actual point
+ nearest the mouse click.
 \layout Section
 
 Using KiNG with a multi-button mouse

@@ -30,9 +30,9 @@ R3: {{{
     Incorporate this into a "center visible" function in KiNG 90 deg rotations
 }}}
 STAR: {{
- ** quoted tokens can contain quote character escaped by being repeated!?
-    Add StarWriter
     Add a class that can load StarFile objects into moldb2 data structures
+    Add StarWriter
+    Add a class that can write moldb2 data into a StarFile DOM
 }}}
 UTIL: {{{
 }}}
@@ -44,6 +44,8 @@ UTIL: {{{
 ### 0.58 ###
 - added checkTriangle() and signedArea2() to r3.Builder (for lack of a better place)
   Thanks to Andrew Ban for the code!
+- fixed handling of literal quotes within quoted strings in StarTokenizer
+  Thanks to John Westbrook for clarifying this issue!
 
 ### 0.57 ###
 - fixed a potential bug in data.UberMap from calling putBefore(key, key, value)

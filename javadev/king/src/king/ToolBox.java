@@ -6,7 +6,7 @@ import king.core.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.net.URL;
+import java.net.*;
 import java.lang.reflect.*;
 //import java.text.*;
 import java.util.*;
@@ -21,6 +21,8 @@ import driftwood.util.SoftLog;
 * using the Reflection API and a service provider (SPI) model,
 * like the one in javax.imageio.ImageIO.scanForPlugins().
 * We scan all jar files on the classpath for lists of Plugins that could be loaded by KiNG.
+* We also scan all jar files in the folder named "plugins" that lives in the same
+* place as king.jar, if such a folder exists.
 * Plugins are listed in a plain text file <code>META-INF/services/king.Plugin</code>
 * that's part of one or more JARs on the classpath.
 * One fully-qualified class name is given per line, and nothing else.
@@ -83,6 +85,8 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
     BasicTool               activeTool;
     final BasicTool         defaultTool;
     JMenuItem               activeToolMI = null, defaultToolMI = null;
+    
+    ClassLoader             pluginClassLoader;
 //}}}
 
 //{{{ Constructors
@@ -98,11 +102,54 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
         services    = new ToolServices(this);
         sigTransform = new TransformSignal();
         
+        pluginClassLoader = this.makeClassLoader();
+        
         plugins = new ArrayList();
         defaultTool = activeTool = new BasicTool(this);
         plugins.add(activeTool);
         loadPlugins();
         activeTool.start();
+    }
+//}}}
+
+//{{{ makeClassLoader
+//##################################################################################################
+    /**
+    * Creates a special class loader for loading plugins.
+    * If the named class cannot be found, it also searches the plugins/
+    * directory where king.jar is found.
+    */
+    protected ClassLoader makeClassLoader()
+    {
+        ClassLoader defaultLoader = this.getClass().getClassLoader();
+        if(kMain.getApplet() != null) return defaultLoader;
+        
+        try
+        {
+            File pluginFolder = new File(kMain.getPrefs().jarFileDirectory, "plugins");
+            if(!pluginFolder.exists() || !pluginFolder.canRead() || !pluginFolder.isDirectory())
+                return defaultLoader;
+            
+            File[] files = pluginFolder.listFiles();
+            ArrayList urls = new ArrayList();
+            for(int i = 0; i < files.length; i++)
+            {
+                if(files[i].exists() && files[i].canRead() && files[i].isFile()
+                && files[i].getName().toLowerCase().endsWith(".jar"))
+                {
+                    try { urls.add(files[i].toURL()); }
+                    catch(MalformedURLException ex) { SoftLog.err.println(ex.getMessage()); }
+                }
+            }
+            
+            URLClassLoader jarLoader = new URLClassLoader(
+                (URL[]) urls.toArray(new URL[urls.size()]), defaultLoader);
+            return jarLoader;
+        }
+        catch(Exception ex) //IO, Security, MalformedURL, etc. etc.
+        { ex.printStackTrace(SoftLog.err); }
+
+        return defaultLoader;
     }
 //}}}
 
@@ -152,9 +199,8 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
         Collection pluginNames = new ArrayList();
         try
         {
-            ClassLoader loader = this.getClass().getClassLoader();
             // No leading slashes when using this method
-            Enumeration urls = loader.getResources("META-INF/services/king.Plugin");
+            Enumeration urls = pluginClassLoader.getResources("META-INF/services/king.Plugin");
             while(urls.hasMoreElements())
             {
                 URL url = (URL) urls.nextElement();
@@ -197,7 +243,7 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
         
         try
         {
-            Class pluginClass = Class.forName(className);
+            Class pluginClass = Class.forName(className, true, pluginClassLoader);
             Method appletSafe = pluginClass.getMethod("isAppletSafe", new Class[] {});
             Boolean safe = (Boolean) appletSafe.invoke(null, new Object[] {});
             if(kMain.getApplet() != null && safe.booleanValue() == false)
@@ -260,7 +306,7 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
             Class[] constargs = { ToolBox.class };
             Object[] initargs = { this };
             
-            Class pluginclass = Class.forName(name);
+            Class pluginclass = Class.forName(name, true, pluginClassLoader);
             Constructor pluginconst = pluginclass.getConstructor(constargs);
             theplugin = (Plugin)pluginconst.newInstance(initargs);
             plugins.add(theplugin);

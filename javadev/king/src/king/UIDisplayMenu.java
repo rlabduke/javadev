@@ -133,11 +133,11 @@ public class UIDisplayMenu //extends ... implements ...
         menu.add(cbThin);
         
         Map map = new HashMap();
-        map.put("Fast", new Integer(Engine.QUALITY_FAIR));
+        //map.put("Fast", new Integer(Engine.QUALITY_FAIR));
         map.put("Standard", new Integer(Engine.QUALITY_GOOD));
         map.put("Better", new Integer(Engine.QUALITY_BETTER));
         map.put("Best", new Integer(Engine.QUALITY_BEST));
-        Collection list = Arrays.asList(new String[] {"Fast", "Standard", "Better", "Best"});
+        Collection list = Arrays.asList(new String[] {"Standard", "Better", "Best"});
         String defQual = "Standard";
         if(kMain.getCanvas().renderQuality == Engine.QUALITY_BETTER)
             defQual = "Better"; // for OS X

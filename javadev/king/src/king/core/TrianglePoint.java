@@ -141,42 +141,14 @@ public class TrianglePoint extends KPoint // implements ...
             B = from;
             C = from.from;
         }
-
-        // Do dot product of surface normal with lighting vector
-        // to determine diffuse lighting.
-        engine.work1.likeVector(B, A);
-        engine.work2.likeVector(B, C);
-        engine.work1.cross(engine.work2).unit();
-        double dotprod = engine.work1.dot(engine.lightingVector);
-        Paint paint = maincolor.getPaint(engine.backgroundMode, dotprod, engine.colorCue, parent.alpha);
-        g.setPaint(paint);
-        
-        xPoints[0] = (int)x;           yPoints[0] = (int)y;
-        xPoints[1] = (int)from.x;      yPoints[1] = (int)from.y;
-        xPoints[2] = (int)from.from.x; yPoints[2] = (int)from.from.y;
-        g.fillPolygon(xPoints, yPoints, 3);
-    }
-//}}}
-
-//{{{ paintHighQuality
-//##################################################################################################
-    /**
-    * Produces a higher-quality, lower-speed rendering of
-    * this paintable. If no such rendering is possible,
-    * it should produce the same results as paintStandard()
-    */
-    public void paintHighQuality(Graphics2D g, Engine engine)
-    {
-        KPaint maincolor = getDrawingColor(engine);
-        if(from == null || from.from == null || maincolor.isInvisible()) return;
-        
+        /* Older formulation?
         TrianglePoint A, B, C = null;
         A = from;
         B = from.from;
         // If this is a ribbon list, color the triangles in pairs
         if((multi & SEQ_EVEN_BIT) != 0 && parent != null && parent.getType() == KList.RIBBON) C = from.from.from;
-        if(C == null) C = this;
-        
+        if(C == null) C = this;*/
+
         // Do dot product of surface normal with lighting vector
         // to determine diffuse lighting.
         engine.work1.likeVector(B, A);
@@ -184,17 +156,12 @@ public class TrianglePoint extends KPoint // implements ...
         engine.work1.cross(engine.work2).unit();
         double dotprod = engine.work1.dot(engine.lightingVector);
         Paint paint = maincolor.getPaint(engine.backgroundMode, dotprod, engine.colorCue, parent.alpha);
-        g.setPaint(paint);
-        g.setStroke(KPalette.pen1);
-
-        GeneralPath path = engine.path1;
-        path.reset();
-        path.moveTo(x,              y);
-        path.lineTo(from.x,         from.y);
-        path.lineTo(from.from.x,    from.from.y);
-        path.closePath();
-        g.fill(path);
-        g.draw(path);   // closes up the hairline cracks between triangles (?)
+        
+        engine.painter.paintTriangle(g, paint,
+            x, y, z,
+            from.x, from.y, from.z,
+            from.from.x, from.from.y, from.from.z
+        );
     }
 //}}}
 

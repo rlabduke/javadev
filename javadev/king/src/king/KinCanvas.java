@@ -242,7 +242,8 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
             engine.render(this, view, bounds, g2, quality);
             timestamp = System.currentTimeMillis() - timestamp;
             if(writeFPS)
-                SoftLog.err.println(timestamp+" ms ("+(timestamp > 0 ? Long.toString(1000/timestamp) : ">1000")+" FPS)");
+                SoftLog.err.println(timestamp+" ms ("+(timestamp > 0 ? Long.toString(1000/timestamp) : ">1000")
+                    +" FPS) - "+engine.getNumberPainted()+" objects painted");
             if(toolbox != null) toolbox.overpaintCanvas(g2);
         }
     }

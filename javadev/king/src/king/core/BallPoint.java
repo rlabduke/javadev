@@ -130,6 +130,7 @@ public class BallPoint extends KPoint // implements ...
     {
         KPaint maincolor = getDrawingColor(engine);
         if(maincolor.isInvisible()) return;
+        Paint paint = maincolor.getPaint(engine.backgroundMode, engine.colorCue);
 
         // We have to do this here b/c now widthCue is set
         if(engine.cueThickness) r *= KPalette.widthScale[ engine.widthCue ];
@@ -137,57 +138,7 @@ public class BallPoint extends KPoint // implements ...
         int d = (int)(2.0*r + 0.5);
         if(d < 2) d = 2; // make sure balls don't disappear
         
-        // one disk
-        Paint paint = maincolor.getPaint(engine.backgroundMode, engine.colorCue);
-        g.setPaint(paint);
-        g.fillOval((int)(x-r), (int)(y-r), d, d);
-
-        // highlight
-        if((parent.flags & KList.NOHILITE) == 0)
-        {
-            double off = 0.5 * r;
-            d = (int)(0.3*r)+1;
-            g.setPaint(Color.white);
-            g.fillOval((int)(x-off), (int)(y-off), d, d);
-        }
-    }
-//}}}
-
-//{{{ paintHighQuality
-//##################################################################################################
-    /**
-    * Produces a higher-quality, lower-speed rendering of
-    * this paintable. If no such rendering is possible,
-    * it should produce the same results as paintStandard()
-    */
-    public void paintHighQuality(Graphics2D g, Engine engine)
-    {
-        KPaint maincolor = getDrawingColor(engine);
-        if(maincolor.isInvisible()) return;
-
-        // We have to do this here b/c now widthCue is set
-        if(engine.cueThickness) r *= KPalette.widthScale[ engine.widthCue ];
-        
-        double d = 2.0*r;
-        if(d < 2) d = 2; // make sure balls don't disappear
-        
-        // one disk
-        Paint paint = maincolor.getPaint(engine.backgroundMode, engine.colorCue);
-        g.setPaint(paint);
-        g.setStroke(KPalette.pen0);
-        engine.ellipse1.setFrame((x-r), (y-r), d, d);
-        g.fill(engine.ellipse1);
-
-        // highlight
-        if((parent.flags & KList.NOHILITE) == 0)
-        {
-            double off = 0.5 * r;
-            d = 0.3*r + 1;
-            g.setPaint(Color.white);
-            g.setStroke(KPalette.pen0);
-            engine.ellipse1.setFrame((x-off), (y-off), d, d);
-            g.fill(engine.ellipse1);
-        }
+        engine.painter.paintBall(g, paint, x, y, z, r, ((parent.flags & KList.NOHILITE) == 0));
     }
 //}}}
 }//class
