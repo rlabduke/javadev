@@ -31,6 +31,8 @@
 fontMagnification = 1.0
 # Make this larger to decrease picking precision
 pickingRadius = 5
+# Can user can pick lines and triangles directly instead of just pts?
+pickObjects = false
 # Make this larger to increase the size of swatches in the color picker
 colorSwatchSize = 20
 

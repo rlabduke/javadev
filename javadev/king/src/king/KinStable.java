@@ -46,7 +46,7 @@ public class KinStable implements ListSelectionListener
     }
 //}}}
 
-//{{{ iterator
+//{{{ iterator, getKins
 //##################################################################################################
     /** Returns an iterator over the children of this element. All children will be Kinemages. */
     public ListIterator iterator()

@@ -38,7 +38,7 @@ public class Engine //extends ... implements ...
     
     // READ ONLY: Parameters for painting points
     public Painter      painter         = null;
-    public boolean      useObjPicking   = true;     // should we pick triangles, lines, balls as solid objects?
+    public boolean      useObjPicking   = false;    // should we pick triangles, lines, balls as solid objects?
     public boolean      useStereo       = false;
     public float        stereoRotation  = 0;
     public boolean      bigMarkers      = false;
@@ -488,6 +488,7 @@ public class Engine //extends ... implements ...
         bigFont         = new Font("SansSerif", Font.PLAIN, prefs.getInt("fontSizeBig"));
         smallFont       = new Font("SansSerif", Font.PLAIN, prefs.getInt("fontSizeSmall"));
         this.setPickingRadius( prefs.getDouble("pickingRadius") );
+        useObjPicking   = prefs.getBoolean("pickObjects");
     }
     
     /** Takes needed display settings from the kinemage */
@@ -546,9 +547,12 @@ public class Engine //extends ... implements ...
             for(j = 0; j < end_j && theone == null; j++)
             {
                 p = (KPoint)zb.get(j);
-                q = p.isPickedBy(xcoord, ycoord, pickingRadius, useObjPicking);
                 // q will usually be p or null, but sometimes not for object picking
-                if( q != null && (!q.isUnpickable() || superpick))
+                q = p.isPickedBy(xcoord, ycoord, pickingRadius, useObjPicking);
+                // Off points have to be transformed anyway in case they're used by
+                // other ends of lines or triangles, so we have to check it here.
+                // Using getDrawingColor() checks for invisible, aspect-invisible, *and* off points
+                if( q != null && (!q.isUnpickable() || superpick) && !q.getDrawingColor(this).isInvisible())
                     theone = q;
             }
         }
@@ -592,7 +596,8 @@ public class Engine //extends ... implements ...
                 double dx = p.getDrawX() - xcoord;
                 double dy = p.getDrawY() - ycoord;
                 double dz = p.getDrawZ() - zcoord;
-                if((dx*dx + dy*dy + dz*dz) <= r2 && (!p.isUnpickable() || superpick))
+                // Using getDrawingColor() checks for invisible, aspect-invisible, *and* off points
+                if((dx*dx + dy*dy + dz*dz) <= r2 && (!p.isUnpickable() || superpick) && !p.getDrawingColor(this).isInvisible())
                     found.add(p);
             }
         }
@@ -630,7 +635,8 @@ public class Engine //extends ... implements ...
                 p = (KPoint)zb.get(j);
                 double dx = p.getDrawX() - xcoord;
                 double dy = p.getDrawY() - ycoord;
-                if((dx*dx + dy*dy) <= r2 && (!p.isUnpickable() || superpick))
+                // Using getDrawingColor() checks for invisible, aspect-invisible, *and* off points
+                if((dx*dx + dy*dy) <= r2 && (!p.isUnpickable() || superpick) && !p.getDrawingColor(this).isInvisible())
                     found.add(p);
             }
         }

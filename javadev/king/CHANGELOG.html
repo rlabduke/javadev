@@ -41,18 +41,24 @@
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
     Make refitting tools able to set up alternate confs (as an option)
     Mutated residues should retain B factors where possible (?)
-<!-- Postponed TO DO items }}} -->
-    Add ability to edit masters/pointmasters
-    Add some kind of transformation hook (listeners, priorities, etc)
-    Open PDB in model manager without opening kinemage first?
-    Open/save PDB from/to network
-    Optional 2 column button layout?
-    use "around x,y,z" for Probe runs
-    Look at Pro geometry with Jane
     'space' with (point)masters - what does it mean?
     Create a MagnifiedOceanTheme and load it using reflection
     Create a splash-screen loader for KiNG
-  * add mouse cursor reset to JOGLCanvas
+    Redraw problems with Tree
+    Depth cueing by width is too much for balls?
+    Add some kind of transformation hook (listeners, priorities, etc)
+    Optional 2 column button layout?
+<!-- Postponed TO DO items }}} -->
+    Add ability to edit masters/pointmasters
+    Open PDB in model manager without opening kinemage first?
+    Open/save PDB from/to network
+    use "around x,y,z" for Probe runs
+    Look at Pro geometry with Jane
+    1n55 Arg refitting alt B won't move (H only in A)
+    Start points of invisible lines are still pickable
+    Printing broken? on OS X only, apparently...
+    Should any point on ball face always be pickable? Labels? Triangles?
+        Maybe a separate list type for pickable vectors
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -63,6 +69,18 @@
 - clarified antialiasing code in JoglPainter
 - experimented with JOGL antialiasing via the accumulation buffer, but too slow.
 - discovered calls to enable full-scene antialiasing in GLCapabilities. Yay!
+- BallPoint.signalTransform(): mostly translucent balls no longer shorten lines
+- eliminated lingering resize cursor over GL canvas
+- Save on Exit is now yes/no/cancel
+- removed duplicate constant definitions from KPoint
+- fixed picking so invisible, aspect-invisible, and pointmaster off points
+  will no longer be picked when they're not visible!
+- BallPoint now checks drawing color instead of isOn (similar to above)
+- added engine.syncToKin() to printing function, but it still doesn't work...
+- object picking is now disabled by default, like in Mage
+- removed dot prod angle from measures display
+- relabeled drawing tool to reflect presence of auger, prune, etc.
+- deployed to Rlab's new server on 27 Jan 2005
 
 ### 1.37 ###
 - added undo stack to BeanKing movie commands

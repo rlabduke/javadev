@@ -99,8 +99,9 @@ public class BallPoint extends AbstractPoint // implements ...
         // b/c engine.widthCue isn't set yet.
         
         engine.addPaintable(this, z);
-        // Otherwise we create gaps around lines when our pointmaster is off:
-        if(this.isOn()) engine.addShortener(this, r);
+        // Otherwise we create gaps around lines when our pointmaster is off.
+        // If ball is translucent, we should see line going to its center (?)
+        if(!this.getDrawingColor(engine).isInvisible() && (parent == null || parent.alpha > 192)) engine.addShortener(this, r);
     }
 //}}}
 

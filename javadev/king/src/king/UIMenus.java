@@ -445,15 +445,15 @@ public class UIMenus //extends ... implements ...
     public void onFileClose(ActionEvent ev)
     {
         Kinemage k = kMain.getKinemage();
-        if(k != null && k.isModified() && JOptionPane.YES_OPTION ==
-        JOptionPane.showConfirmDialog(kMain.getTopWindow(),
-            "This kinemage has been modified.\nDo you want to save it before closing?",
-            "Save before closing?", JOptionPane.YES_NO_OPTION)
-        )
+        if(k != null && k.isModified())
         {
-            onFileSaveAs(ev);
+            int confirm = JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+                "This kinemage has been modified.\nDo you want to save it before closing?",
+                "Save before closing?", JOptionPane.YES_NO_CANCEL_OPTION);
+            if(confirm == JOptionPane.CANCEL_OPTION) return;
+            else if(confirm == JOptionPane.YES_OPTION) onFileSaveAs(ev);
         }
-
+        
         kMain.getStable().closeCurrent();
     }
 
@@ -467,13 +467,13 @@ public class UIMenus //extends ... implements ...
             if(k.isModified()) modified = true;
         }
 
-        if(modified && JOptionPane.YES_OPTION ==
-        JOptionPane.showConfirmDialog(kMain.getTopWindow(),
-            "One or more open kinemages have been modified.\nDo you want to save them before closing?",
-            "Save before closing?", JOptionPane.YES_NO_OPTION)
-        )
+        if(modified)
         {
-            onFileSaveAs(ev);
+            int confirm = JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+                "One or more open kinemages have been modified.\nDo you want to save them before closing?",
+                "Save before closing?", JOptionPane.YES_NO_CANCEL_OPTION);
+            if(confirm == JOptionPane.CANCEL_OPTION) return;
+            else if(confirm == JOptionPane.YES_OPTION) onFileSaveAs(ev);
         }
 
         kMain.getStable().closeAll();
@@ -515,7 +515,8 @@ public class UIMenus //extends ... implements ...
     public void onFileExit(ActionEvent ev)
     {
         onFileCloseAll(ev); // checks for modifications and prompts to save
-        kMain.shutdown();
+        if(kMain.getStable().getKins().size() == 0) kMain.shutdown();
+        // else we must have pressed Cancel
     }
 //}}}
 

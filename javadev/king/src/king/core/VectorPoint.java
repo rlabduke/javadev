@@ -171,6 +171,7 @@ public class VectorPoint extends AbstractPoint // implements ...
             }
         }
         
+        // Not else {...} b/c this can be true for line ends even outside the bounding box:        
         return super.isPickedBy(xx, yy, radius, objPick);
     }
 //}}}

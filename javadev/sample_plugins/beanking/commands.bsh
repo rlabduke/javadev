@@ -20,6 +20,7 @@ help() {
     print("bleach()                 removes point colors for all visible");
     print("delete(name?)            deletes all groups/subgroups/lists with given name");
     print("importSubgroups(file?)   imports GROUP/FILE subgroups for each group");
+    print("labelAnimateGroups(xyz?) adds label with group name at last picked point");
     print("makeMaster(name?)        creates master for named group/subgroup/list");
     print("");
     print("source(getResource(\"/movies.bsh\"));");
@@ -83,6 +84,31 @@ importSubgroups(String fileName)
             group.add(subgroup);
             subgroup.setOwner(group);
         }
+    }
+    kMain.notifyChange(KingMain.EM_EDIT_GROSS);
+}
+
+labelAnimateGroups()
+{
+    pt = kMain.getCanvas().getToolBox().services.getLastPicked(0);
+    labelAnimateGroups(pt.getX(), pt.getY(), pt.getZ());
+}
+
+labelAnimateGroups(double x, double y, double z)
+{
+    for(group : kMain.getKinemage().children)
+    {
+        if(!group.isAnimate()) continue;
+        subgroup = new KSubgroup(group, "info");
+        group.add(subgroup);
+        subgroup.setDominant(true);
+        list = new KList(subgroup, "frame label");
+        subgroup.add(list);
+        list.setType(KList.LABEL);
+        lbl = new LabelPoint(list, group.getName());
+        list.add(lbl);
+        lbl.setHorizontalAlignment(LabelPoint.CENTER);
+        lbl.setXYZ(x, y, z);
     }
     kMain.notifyChange(KingMain.EM_EDIT_GROSS);
 }

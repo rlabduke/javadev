@@ -913,7 +913,7 @@ public class DrawingTool extends BasicTool
     public String getHelpAnchor()
     { return "#drawnew-tool"; }
     
-    public String toString() { return "Draw new"; }
+    public String toString() { return "Draw & delete"; }
 //}}}
 }//class
 

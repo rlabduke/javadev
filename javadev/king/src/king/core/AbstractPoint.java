@@ -408,6 +408,10 @@ abstract public class AbstractPoint extends AHEImpl implements KPoint
     */
     public void signalTransform(Engine engine, Transform xform, double zoom)
     {
+        // We have to transform whether we're on or not, because dependent points
+        // (vectors, triangles) may be on and expect our coords to be valid.
+        // Point-on is checked during drawing and picking by getDrawingColor.
+        
         xform.transform(this, engine.work1);
         setDrawXYZ(engine.work1);
         

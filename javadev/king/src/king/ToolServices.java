@@ -254,8 +254,8 @@ public class ToolServices implements TransformSignalSubscriber
                     // Angle between an axis (r-s) and a vector (q-p)
                     // Dot product: d . f = d f cos(a) = dxfx + dyfy + dzfz
                     // But notice 'f' has the wrong sign here for this to work right...
-                    angle = (float)Math.toDegrees(Math.acos((dx*fx + dy*fy + dz*fz) / (dmag * -fmag)));
-                    msg.append("   vect: ").append(df_1.format(angle));
+                    //angle = (float)Math.toDegrees(Math.acos((dx*fx + dy*fy + dz*fz) / (dmag * -fmag)));
+                    //msg.append("   vect: ").append(df_1.format(angle));
                 }//dihedral
             }//angle
             

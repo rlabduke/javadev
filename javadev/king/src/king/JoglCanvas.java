@@ -42,7 +42,7 @@ import net.java.games.jogl.*;
 * <p>Copyright (C) 2004 by Ian W. Davis. All rights reserved.
 * <br>Begun on Sat Jun  5 15:47:31 EDT 2004
 */
-public class JoglCanvas extends JPanel implements GLEventListener, TransformSignalSubscriber
+public class JoglCanvas extends JPanel implements GLEventListener, TransformSignalSubscriber, MouseListener
 {
 //{{{ Constants
 //}}}
@@ -81,8 +81,10 @@ public class JoglCanvas extends JPanel implements GLEventListener, TransformSign
 
         canvas = GLDrawableFactory.getFactory().createGLCanvas(capabilities);
         canvas.addGLEventListener(this); // calls display(), reshape(), etc.
+        canvas.addMouseListener(this); // cursor related; see this.mouseEntered().
         toolbox.listenTo(canvas);
         this.add(canvas, BorderLayout.CENTER);
+
     }
 //}}}
 
@@ -291,6 +293,22 @@ public class JoglCanvas extends JPanel implements GLEventListener, TransformSign
         return overlayData;
     }
     */
+//}}}
+
+//{{{ Mouse listeners (for cursor)
+//##################################################################################################
+    public void mouseEntered(MouseEvent ev)
+    {
+        // This is the only thing that removes the <-|-> cursor from the split pane.
+        // Forces update of cursor for top level native peer (i.e. window, not GL canvas):
+        this.setCursor( Cursor.getDefaultCursor() );
+        //canvas.setCursor( Cursor.getDefaultCursor() ); // not needed
+    }
+    
+    public void mouseExited(MouseEvent ev)      {}
+    public void mousePressed(MouseEvent ev)     {}
+    public void mouseReleased(MouseEvent ev)    {}
+    public void mouseClicked(MouseEvent ev)     {}
 //}}}
 
 //{{{ empty_code_segment
