@@ -32,8 +32,8 @@ public class EDMapWindow implements ChangeListener, ActionListener, TransformSig
 
 //{{{ Variable definitions
 //##################################################################################################
-    KingMain    kMain;
-    KinCanvas   kCanvas;
+    protected KingMain    kMain;
+    protected KinCanvas   kCanvas;
     ToolBox     parent;
     
     CrystalVertexSource     map;
@@ -41,7 +41,7 @@ public class EDMapWindow implements ChangeListener, ActionListener, TransformSig
     EDMapPlotter            plotter1, plotter2;
     String                  title;
     
-    JDialog     dialog;
+    protected JDialog     dialog;
     JSlider     extent, slider1, slider2;
     JCheckBox   label1, label2;
     JComboBox   color1, color2;
@@ -230,7 +230,7 @@ public class EDMapWindow implements ChangeListener, ActionListener, TransformSig
     * Reports on whether the viewing center has been changed.
     * Has the side effect of updating the internal center to match the current view.
     */
-    boolean centerChanged()
+    protected boolean centerChanged()
     {
         KingView v = kMain.getView();
         if(v == null) return false;
@@ -248,7 +248,7 @@ public class EDMapWindow implements ChangeListener, ActionListener, TransformSig
 
 //{{{ updateMesh
 //##################################################################################################
-    void updateMesh()
+    protected void updateMesh()
     {
         if(Float.isNaN(ctrX) || Float.isNaN(ctrY) || Float.isNaN(ctrZ)) return;
         

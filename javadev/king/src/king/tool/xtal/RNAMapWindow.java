@@ -31,21 +31,23 @@ import driftwood.util.SoftLog;
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Mar  5 09:00:11 EST 2003
 */
-public class RNAMapWindow implements ChangeListener, ActionListener, TransformSignalSubscriber
+public class RNAMapWindow extends EDMapWindow //implements ChangeListener, ActionListener, TransformSignalSubscriber
 {
 //{{{ Constants
-    DecimalFormat df1 = new DecimalFormat("0.0");
+    //DecimalFormat df1 = new DecimalFormat("0.0");
 //}}}
 
 //{{{ Variable definitions
 //##################################################################################################
+    /*
     KingMain    kMain;
     KinCanvas   kCanvas;
     ToolBox     parent;
     
     CrystalVertexSource     map;
     MarchingCubes           mc1, mc2;
-    RNAMapPlotter           plotter1, plotter2;
+    //RNAMapPlotter           plotter1, plotter2;
+    EDMapPlotter    plotter1, plotter2;
     String                  title;
     
     JDialog     dialog;
@@ -54,13 +56,16 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
     JComboBox   color1, color2;
     JButton     draw, discard, export;
 
+    float       ctrX, ctrY, ctrZ;
+
+    */
     JCheckBox   planePicker, polyPicker;
     //RNAPolygonTracker   polyTracker;
     RNAPolyPlotter  polyPlotter;
     RNAPlanePlotter planePlotter;
     JComboBox  polyColor;
+    JButton draw;
 
-    float       ctrX, ctrY, ctrZ;
 //}}}
 
 //{{{ Constructor(s)
@@ -70,29 +75,33 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
     */
     public RNAMapWindow(ToolBox parent, CrystalVertexSource map, String title)
     {
-        this.parent     = parent;
-        kMain           = parent.kMain;
-        kCanvas         = parent.kCanvas;
+	super(parent, map, title);
+
+        //this.parent     = parent;
+        //kMain           = parent.kMain;
+        //kCanvas         = parent.kCanvas;
         
-        parent.sigTransform.subscribe(this);
+        //parent.sigTransform.subscribe(this);
         
-        this.map        = map;
-        this.title      = title;
-        ctrX = ctrY = ctrZ = Float.NaN;
+        //this.map        = map;
+        //this.title      = title;
+        //ctrX = ctrY = ctrZ = Float.NaN;
         
-        plotter1 = new RNAMapPlotter(false);
-        plotter2 = new RNAMapPlotter(false);
+	//Object mode = MarchingCubes.MODE_TRIANGLE;
+        //plotter1 = new EDMapPlotter(false, mode);
+        //plotter2 = new EDMapPlotter(false, mode);
 	//polyTracker = new RNAPolygonTracker();
 	polyPlotter = new RNAPolyPlotter(map);
 	planePlotter = new RNAPlanePlotter();
-        mc1 = new MarchingCubes(map, map, plotter1, MarchingCubes.MODE_MESH);
-        mc2 = new MarchingCubes(map, map, plotter2, MarchingCubes.MODE_MESH);
+	addToGUI();
+        //mc1 = new MarchingCubes(map, map, plotter1, MarchingCubes.MODE_MESH);
+        //mc2 = new MarchingCubes(map, map, plotter2, MarchingCubes.MODE_MESH);
         
-        buildGUI();
+        //buildGUI();
         
-        dialog.pack();
-        dialog.setLocationRelativeTo(kMain.getTopWindow());
-        dialog.setVisible(true);
+        //dialog.pack();
+        //dialog.setLocationRelativeTo(kMain.getTopWindow());
+        //dialog.setVisible(true);
 
 	//System.out.println("value at 63, 56, 134 converted to ind: " + map.getValue(59, 17, 99));
 	
@@ -101,57 +110,58 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
 
 //{{{ buildGUI
 //##################################################################################################
-    void buildGUI()
+    void addToGUI()
     {
-        dialog = new JDialog(kMain.getTopWindow(), title+" - RNAMap", false);
-        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        //dialog = new JDialog(kMain.getTopWindow(), title+" - RNAMap", false);
+        //dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         
-        label1 = new JCheckBox("1.2 sigma", false);
-        label2 = new JCheckBox("3.0 sigma", true);
+        //label1 = new JCheckBox("1.2 sigma", false);
+        //label2 = new JCheckBox("3.0 sigma", true);
 
 	polyPicker = new JCheckBox("Poly Picker", true);
 	planePicker = new JCheckBox("Plane Picker", false);
         
-        color1 = new JComboBox(kMain.getKinemage().getAllPaintMap().values().toArray());
-        color1.setSelectedItem(KPalette.gray);
-        color2 = new JComboBox(kMain.getKinemage().getAllPaintMap().values().toArray());
-        color2.setSelectedItem(KPalette.purple);
+        //color1 = new JComboBox(kMain.getKinemage().getAllPaintMap().values().toArray());
+        //color1.setSelectedItem(KPalette.gray);
+        //color2 = new JComboBox(kMain.getKinemage().getAllPaintMap().values().toArray());
+        //color2.setSelectedItem(KPalette.purple);
 
 	polyColor = new JComboBox(kMain.getKinemage().getAllPaintMap().values().toArray());
 	polyColor.setSelectedItem(KPalette.gold);
         
-        extent = new JSlider(0, 40, 10);
-        extent.setMajorTickSpacing(10);
-        extent.setMinorTickSpacing(2);
-        extent.setPaintTicks(true);
-        extent.setPaintLabels(true);
+        //extent = new JSlider(0, 40, 10);
+        //extent.setMajorTickSpacing(10);
+        //extent.setMinorTickSpacing(2);
+        //extent.setPaintTicks(true);
+        //extent.setPaintLabels(true);
         
-        slider1 = new JSlider(-80, 80, 12);
-        slider1.setMajorTickSpacing(10);
-        slider1.setPaintTicks(true);
-        slider1.setPaintLabels(false);
+        //slider1 = new JSlider(-80, 80, 12);
+        //slider1.setMajorTickSpacing(10);
+        //slider1.setPaintTicks(true);
+        //slider1.setPaintLabels(false);
 
-        slider2 = new JSlider(-80, 80, 30);
-        slider2.setMajorTickSpacing(10);
-        slider2.setPaintTicks(true);
-        slider2.setPaintLabels(false);
+        //slider2 = new JSlider(-80, 80, 30);
+        //slider2.setMajorTickSpacing(10);
+        //slider2.setPaintTicks(true);
+        //slider2.setPaintLabels(false);
         
-        discard = new JButton(new ReflectiveAction("Discard this map", null, this, "onMapDiscard"));
-        export  = new JButton(new ReflectiveAction("Export to kinemage", null, this, "onMapExport"));
+        //discard = new JButton(new ReflectiveAction("Discard this map", null, this, "onMapDiscard"));
+        //export  = new JButton(new ReflectiveAction("Export to kinemage", null, this, "onMapExport"));
 	draw = new JButton(new ReflectiveAction("Draw perpendicular", null, this, "onDraw"));
         
-        label1.addActionListener(this);
-        label2.addActionListener(this);
+        //label1.addActionListener(this);
+        //label2.addActionListener(this);
 	polyPicker.addActionListener(this);
 	planePicker.addActionListener(this);
-        color1.addActionListener(this);
-        color2.addActionListener(this);
+        //color1.addActionListener(this);
+        //color2.addActionListener(this);
 	polyColor.addActionListener(this);
-        extent.addChangeListener(this);
-        slider1.addChangeListener(this);
-        slider2.addChangeListener(this);
+        //extent.addChangeListener(this);
+        //slider1.addChangeListener(this);
+        //slider2.addChangeListener(this);
         
-        TablePane pane = new TablePane();
+        TablePane pane = (TablePane) dialog.getContentPane();
+	/*
         pane.save().hfill(true).addCell(extent, 2, 1).restore();
         pane.newRow();
         pane.add(pane.strut(0,8));
@@ -181,13 +191,23 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
         pane.add(export, 2, 1);
         pane.newRow();
         pane.add(discard, 2, 1);
-        
+        */
+	pane.add(pane.strut(0,4));
+	pane.newRow();
+	pane.add(polyPicker);
+	pane.add(polyColor);
+        pane.newRow();
+	pane.add(planePicker);
+	pane.newRow();
+        pane.center().hfill(true);
+	pane.add(draw, 2, 1);
         dialog.setContentPane(pane);
     }
 //}}}
 
 //{{{ stateChanged, actionPerformed, calcSliderValue
 //##################################################################################################
+    /*
     public void stateChanged(ChangeEvent ev)
     {
         double val;
@@ -219,6 +239,7 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
         else
             throw new Error("assertion failure");
     }
+    */
 //}}}
 
 //{{{ centerChanged
@@ -227,6 +248,7 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
     * Reports on whether the viewing center has been changed.
     * Has the side effect of updating the internal center to match the current view.
     */
+    /*
     boolean centerChanged()
     {
         KingView v = kMain.getView();
@@ -241,10 +263,12 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
         
         return ret;
     }
+    */
 //}}}
 
 //{{{ updateMesh
 //##################################################################################################
+    /*
     void updateMesh()
     {
         if(Float.isNaN(ctrX) || Float.isNaN(ctrY) || Float.isNaN(ctrZ)) return;
@@ -263,6 +287,7 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
         
         //SoftLog.err.println("Updated mesh: "+corner1[0]+" "+corner1[1]+" "+corner1[2]+" / "+corner2[0]+" "+corner2[1]+" "+corner2[2]);
     }
+    */
 //}}}
 
 //{{{ signalTransform
@@ -284,9 +309,10 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
     */
     public void signalTransform(Engine engine, Transform xform)
     {
+	super.signalTransform(engine, xform);
         KList list;
         if(centerChanged()) updateMesh();
-        
+        /*
         list = plotter1.getList();
         if(list != null && label1.isSelected())
         {
@@ -300,7 +326,7 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
             list.setColor((KPaint)color2.getSelectedItem());
             list.signalTransform(engine, xform);
         }
-
+	*/
 	list = polyPlotter.getList();
 	if (list != null && polyPicker.isSelected()) {
 	    list.setColor((KPaint)polyColor.getSelectedItem());
@@ -329,6 +355,7 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
     }
     
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    /*
     public void onMapDiscard(ActionEvent ev)
     {
         dialog.dispose();
@@ -336,25 +363,35 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
 	parent.activateDefaultTool();
         kCanvas.repaint();
     }
-    
+    */
+
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onMapExport(ActionEvent ev)
     {
         // insert lists into kinemage
+	super.onMapExport(ev);
+
         Kinemage kin = kMain.getKinemage();
-        
-        KGroup group = new KGroup(kin, "RNA map");
-        kin.add(group);
-        
-        KSubgroup subgroup = new KSubgroup(group, "RNA map");
-        subgroup.setHasButton(false);
-        group.add(subgroup);
-        
-        KList list1, list2, polyList, planeList;
-        list1 = plotter1.getList(); plotter1.freeList();
-        list2 = plotter2.getList(); plotter2.freeList();
-	polyList = polyPlotter.getList();
-	planeList = planePlotter.getList();
+        KGroup group = null;
+	KSubgroup subgroup = null;
+        KList polyList = polyPlotter.getList();
+	KList planeList = planePlotter.getList();
+
+	if ((polyList != null)&&(planeList != null)) {
+	    group = new KGroup(kin, "RNA map");
+	    kin.add(group);
+	    
+	    subgroup = new KSubgroup(group, "RNA map");
+	    subgroup.setHasButton(false);
+	    group.add(subgroup);
+	}
+
+	
+        //list1 = plotter1.getList(); plotter1.freeList();
+        //list2 = plotter2.getList(); plotter2.freeList();
+	//polyList = polyPlotter.getList();
+	//planeList = planePlotter.getList();
+	/*
         if(list1 != null && label1.isSelected())
         {
             list1.setOwner(subgroup);
@@ -365,6 +402,7 @@ public class RNAMapWindow implements ChangeListener, ActionListener, TransformSi
             list2.setOwner(subgroup);
             subgroup.add(list2);
         }
+	*/
 	if (polyList != null && polyPicker.isSelected()) {
 	    polyList.setOwner(subgroup);
 	    subgroup.add(polyList);
