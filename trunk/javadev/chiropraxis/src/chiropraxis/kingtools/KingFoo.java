@@ -71,20 +71,22 @@ public class KingFoo //extends ... implements ...
     * <p>This function can be called repeatedly to cumulatively place additional foos.
     * @param numTrials      the number of random trials to conduct
     * @param center         the center of the bounding box
-    * @param halfwidth      the halfwidth of the bounding box
+    * @param halfwidths     the halfwidth of the bounding box in X, Y, and Z
     * @return the number of foos successfully placed (CUMULATIVELY)
     */
-    public int placeFoos(int numTrials, Triple center, double halfwidth)
+    public int placeFoos(int numTrials, Triple center, Triple halfwidths)
     {
-        double width = 2 * (halfwidth - fooRadius);
+        double widthX = 2 * (halfwidths.getX() - fooRadius);
+        double widthY = 2 * (halfwidths.getX() - fooRadius);
+        double widthZ = 2 * (halfwidths.getX() - fooRadius);
         ArrayList hits = new ArrayList();
         
         for(int i = 0; i < numTrials; i++)
         {
             // Create randomly positioned foo
-            Triple foo = new Triple(center.getX() + width*(Math.random()-0.5),
-                center.getY() + width*(Math.random()-0.5),
-                center.getZ() + width*(Math.random()-0.5));
+            Triple foo = new Triple(center.getX() + widthX*(Math.random()-0.5),
+                center.getY() + widthY*(Math.random()-0.5),
+                center.getZ() + widthZ*(Math.random()-0.5));
             
             // Coarse test to find nearby atoms
             hits.clear();
@@ -270,6 +272,18 @@ public class KingFoo //extends ... implements ...
     }
 //}}}
 
+//{{{ getFoos
+//##############################################################################
+    /**
+    * Returns an unmodifiable Collection of Triples marking the centers of all
+    * successfully placed foos (excluding any removed by removeWetFoos()).
+    */
+    public Collection getFoos()
+    {
+        return Collections.unmodifiableCollection(liveFoos);
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##############################################################################
 //}}}
@@ -303,15 +317,23 @@ public class KingFoo //extends ... implements ...
             System.out.println("{x} "+((Triple)iter.next()).format(df));
         }}}*/
         
-        final int fooTrials = 100000;
-        final double fooRadius = 0.5;
+        final double fooRadius = Double.parseDouble(args[0]);//0.5;
         Model m = new PdbReader().read(System.in).getFirstModel();
         Collection atoms = m.getState().createCollapsed().getLocalStateMap().values();
+        
+        // Get bounding box of atoms, convert to center and halfwidths
+        Triple[] bounds = Builder.makeBoundingBox(atoms);
+        bounds[0].likeMidpoint(bounds[0], bounds[1]);
+        bounds[1].sub(bounds[0]);
+        
+        // Number of trials is a multiple of the number of non-overlapping balls
+        // that could be placed in the bounding box on a cubic lattice.
+        //final int fooTrials = (int) Math.round(25 * (bounds[1].getX()/fooRadius) * (bounds[1].getY()/fooRadius) * (bounds[1].getZ()/fooRadius));
+        final int fooTrials = (int) Math.round(25 * 8 * bounds[1].getX() * bounds[1].getY() * bounds[1].getZ());
+        
         long time = System.currentTimeMillis();
         KingFoo kf = new KingFoo(atoms, fooRadius, fooRadius/1.0);
-        kf.placeFoos(fooTrials,
-            new Triple(Double.parseDouble(args[0]), Double.parseDouble(args[1]), Double.parseDouble(args[2])),
-            Double.parseDouble(args[3]));
+        kf.placeFoos(fooTrials, bounds[0], bounds[1]);
         time = System.currentTimeMillis() - time;
         System.err.println(kf.liveFoos.size()+"/"+fooTrials+" foos were placed successfully in "+time+" ms");
         

@@ -1,0 +1,101 @@
+import king.tool.export.ImageExport;
+String _movieFileName = null;
+int _movieFrameCounter = 0;
+
+movieHelp() {
+    print("==== PREDEFINED FUNCTIONS ====");
+    print("movieHelp()              this help text");
+    print("");
+    print("movieRock(frames,deg)    create movie of rocking around Y");
+    print("movieSetSize(w,h)        set canvas size for movie output");
+    print("movieSpin(frames)        create movie of spinning around Y");
+    print("movieStart(file)         set the filename prefix for a new movie");
+    print("movieWriteFrame(num?)    write the current view as 1+ frame(s)");
+    print("");
+    print("Don't use these functions with OpenGL rendering enabled.");
+    print("rock <-> roll: use same # frames and 60 deg, or half and 30 deg.");
+    print("QuickTime: Export QT Movie/LAN, change size and data rate.");
+    print("");
+}
+movieHelp(); // display this message on startup!
+
+void movieRock(int nFrames, double nDegrees)
+{
+    // This version is Swing-friendly, so you can see what's happening.
+    KingView startView = kMain.getView();
+    int i = 0;
+    
+    void run()
+    {
+        KingView nextView = (KingView) startView.clone();
+        nextView.rotateY((float)(Math.toRadians(nDegrees) * Math.sin(2*Math.PI*i / nFrames)));
+        nextView.selectedFromMenu(null);
+        kCanvas.repaint();
+        movieWriteFrame();
+        if(++i < nFrames) SwingUtilities.invokeLater(super);
+        else // cleanup code here:
+        {
+            startView.selectedFromMenu(null);
+            kCanvas.repaint();
+        }
+    }
+    
+    SwingUtilities.invokeLater(this);
+}
+
+void movieSetSize(int width, int height)
+{
+    kMain.getCanvas().setPreferredSize(new Dimension(width, height));
+    kMain.getTopWindow().pack();
+}
+
+void movieSpin(int nFrames)
+{
+    // This version is Swing-friendly, so you can see what's happening.
+    int sign = (nFrames > 0 ? 1 : -1);
+    if(nFrames < 0) nFrames = -nFrames;
+    int i = 0;
+    
+    void run()
+    {
+        movieWriteFrame();
+        KingView v = kMain.getView();
+        v.rotateY((float)(sign * 2.0*Math.PI / nFrames));
+        kCanvas.repaint();
+        if(++i < nFrames) SwingUtilities.invokeLater(super);
+    }
+    
+    SwingUtilities.invokeLater(this);
+}
+
+void movieStart(String fileName)
+{
+    _movieFileName = fileName;
+    _movieFrameCounter = 1;
+}
+
+void movieWriteFrame()
+{ movieWriteFrame(1); }
+
+void movieWriteFrame(int numCopies)
+{
+    String filenum = ""+(_movieFrameCounter++);
+    while(filenum.length() < 4) filenum = "0"+filenum;
+    File file = new File(_movieFileName+"_"+filenum+".png");
+    ImageExport.exportImage(kMain.getCanvas(), "png", file);
+    print("Wrote frame "+file);
+    for(int i = 1; i < numCopies; i++)
+    {
+        String filenum2 = ""+(_movieFrameCounter++);
+        while(filenum2.length() < 4) filenum2 = "0"+filenum2;
+        File file2 = new File(_movieFileName+"_"+filenum2+".png");
+        InputStream src = new BufferedInputStream(new FileInputStream(file));
+        OutputStream dst = new BufferedOutputStream(new FileOutputStream(file2));
+        byte[] buffer = new byte[2048];
+        int len;
+        while((len = src.read(buffer)) != -1) dst.write(buffer, 0, len);
+        dst.close();
+        src.close();
+        print("Wrote frame "+file2);
+    }
+}

@@ -252,7 +252,7 @@ public class KinTree //extends ... implements ...
     
     public void hide()
     {
-        frame.setVisible(false);
+        frame.dispose();
     }
 //}}}
 

@@ -518,52 +518,52 @@ public class GroupEditor implements ChangeListener
     public void onKinemageOK(ActionEvent ev)
     {
         acceptChanges = true;
-        kiDialog.setVisible(false);
+        kiDialog.dispose();
     }
     /** Event handler for Cancel button */
     public void onKinemageCancel(ActionEvent ev)
     {
         acceptChanges = false;
-        kiDialog.setVisible(false);
+        kiDialog.dispose();
     }
 
     /** Event handler for OK button */
     public void onGroupOK(ActionEvent ev)
     {
         acceptChanges = true;
-        grDialog.setVisible(false);
+        grDialog.dispose();
     }
     /** Event handler for Cancel button */
     public void onGroupCancel(ActionEvent ev)
     {
         acceptChanges = false;
-        grDialog.setVisible(false);
+        grDialog.dispose();
     }
 
     /** Event handler for OK button */
     public void onSubgroupOK(ActionEvent ev)
     {
         acceptChanges = true;
-        suDialog.setVisible(false);
+        suDialog.dispose();
     }
     /** Event handler for Cancel button */
     public void onSubgroupCancel(ActionEvent ev)
     {
         acceptChanges = false;
-        suDialog.setVisible(false);
+        suDialog.dispose();
     }
 
     /** Event handler for OK button */
     public void onListOK(ActionEvent ev)
     {
         acceptChanges = true;
-        liDialog.setVisible(false);
+        liDialog.dispose();
     }
     /** Event handler for Cancel button */
     public void onListCancel(ActionEvent ev)
     {
         acceptChanges = false;
-        liDialog.setVisible(false);
+        liDialog.dispose();
     }
 //}}}
 
@@ -572,7 +572,7 @@ public class GroupEditor implements ChangeListener
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onTransformClose(ActionEvent ev)
     {
-        trDialog.setVisible(false);
+        trDialog.dispose();
         trTarget = null; // to avoid memory leaks
     }
 

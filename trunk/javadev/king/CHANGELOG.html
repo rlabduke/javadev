@@ -51,6 +51,10 @@
     'space' with (point)masters - what does it mean?
     Write help HTML for BeanKing
     Allow editing of nohighlight flag for lists
+    Allow multiple clipping planes, indep. front and back?
+    BeanKing: movieUndo (stack; redo movWrFr); movSpin should take +/- degrees
+        Check to make sure movie has been started?
+    kCanvas.getCanvasSize() might not work (first time)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -74,6 +78,13 @@
 - fixed bug: writeFPS now works with JoglPainter
 - added black rims on balls to all painters (ala Mage)
 - fixed bug that broke Views menu after kinemage merge from cmd line (merge bug)
+- fixed bug in RecursivePointIterator.nextImpl() that caused StackOverflowErrors
+- created Swing thread-safe GUI for BeanKing along with movie-making functions
+- added up/down cmd history to BeanKing
+- substituting dispose() for setVisible(false) in PointFinder seems to fix
+  issues with focusing the search field on subsequent searches.
+- tried dispose() in PointEditor, GroupEditor, and KinTree (redraw problems)
+  seems somewhat slower, but solves a lot of the redrawing problems!
 
 ### 1.35 ###
 - fixed EDMapPlotter so mesh/vector ED won't be translucent, only triangle/poly

@@ -152,7 +152,7 @@ public class Triple implements MutableTuple3
     }
 //}}}
 
-//{{{ mag, mag2, unit, mult, likeProd
+//{{{ mag, mag2, unit
 //##################################################################################################
     /** Returns the maginitude of a vector from the origin to this point. */
     public double mag()
@@ -196,13 +196,25 @@ public class Triple implements MutableTuple3
         }
         return this;
     }
-    
+//}}}
+
+//{{{ mult, div, likeProd, likeQuot
+//##################################################################################################
     /** Multiplies (scales) this Triple by k. If k < 1, this vector is shortened; if k > 1, this vector is lengthened. */
     public Triple mult(double k)
     {
         x *= k;
         y *= k;
         z *= k;
+        return this;
+    }
+    
+    /** Divides this Triple by k. */
+    public Triple div(double k)
+    {
+        x /= k;
+        y /= k;
+        z /= k;
         return this;
     }
     
@@ -215,6 +227,18 @@ public class Triple implements MutableTuple3
         x = k*v.getX();
         y = k*v.getY();
         z = k*v.getZ();
+        return this;
+    }
+    
+    /**
+    * Makes this vector a scaled version of v: this = v/k = [vx/k, vy/k, vz/k].
+    * Safe to execute on <code>this</code>.
+    */
+    public Triple likeQuot(double k, Tuple3 v)
+    {
+        x = v.getX()/k;
+        y = v.getY()/k;
+        z = v.getZ()/k;
         return this;
     }
 //}}}
