@@ -83,6 +83,7 @@ public class ModelManager2 extends Plugin
     ModelGroup              srcmodgrp   = null;
     Model                   srcmodel    = null;
     ModelState              srcstate    = null;
+    FastModelOpen           fastModelOpen;
     
     LinkedList              stateList   = null; // Stack<ModelStatePair>
     ModelState              moltenState = null;
@@ -195,23 +196,35 @@ public class ModelManager2 extends Plugin
         expNoeBox.setAutoPack(true);
         expNoeBox.setIndent(10);
         
+        JCheckBox cbFastOpen = new JCheckBox("Fast model open", false);
+        fastModelOpen = new FastModelOpen(this);
+        //fastModelOpen.list.setVisibleRowCount(-1);
+        //fastModelOpen.list.setLayoutOrientation(JList.VERTICAL_WRAP);
+        FoldingBox fbFastOpen = new FoldingBox(cbFastOpen, new JScrollPane(fastModelOpen.list));
+        fbFastOpen.setAutoPack(true);
+        fbFastOpen.setIndent(10);
+        
         TablePane cp = new TablePane();
-        cp.insets(2);
+        cp.insets(2).weights(1,0.1);
         cp.addCell(lblFileName);
         cp.newRow();
         cp.addCell(lblNumMolten);
+        cp.newRow();
+        cp.addCell(cbFastOpen);
+        cp.newRow();
+        cp.save().hfill(true).vfill(true).weights(1,1).addCell(fbFastOpen).restore();
         cp.newRow().addCell(cp.strut(0,2)).newRow(); //spacer
         cp.addCell(cbShowProbe);
         cp.newRow();
-        cp.addCell(probeBox);
+        cp.save().hfill(true).vfill(true).addCell(probeBox).restore();
         cp.newRow();
         cp.addCell(cbShowNOEs);
         cp.newRow();
-        cp.addCell(noeBox);
+        cp.save().hfill(true).vfill(true).addCell(noeBox).restore();
         cp.newRow();
         cp.addCell(cbShowExpNOEs);
         cp.newRow();
-        cp.addCell(expNoeBox);
+        cp.save().hfill(true).vfill(true).addCell(expNoeBox).restore();
         
         dialog = new JDialog(kMain.getTopWindow(), this.toString(), false); // not modal
         dialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
@@ -417,6 +430,8 @@ public class ModelManager2 extends Plugin
         
         //stateList.clear(); // can't undo loading a new file (?)
         replaceModelAndState(m, s);
+        
+        fastModelOpen.updateList(srcfile.getParentFile(), pdbFilter);
         
         refreshGUI();
     }

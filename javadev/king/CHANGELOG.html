@@ -42,9 +42,12 @@
     Add ability to edit masters
     Add some kind of transformation hook (listeners, priorities, etc)
     Text editor should notice edits to text and mark kin(s) as modified
-    Add pyking to KiNG source distro?
+    Distribute pyking from KiNG page
     Write Java and Python guides to creating a plugin, listing all the basic steps
     Add kinemage format doc (once edited) to distro doc/ folder (installers too)
+    Open PDB in model manager without opening kinemage first?
+  * Optional 2 column button layout?
+    Tree move up/move down don't register as kinemage edits?
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -65,6 +68,8 @@
 - DrawingTool and SolidObjPlugin set the modified flag
 - MovePointTool sets the modified flag
 - both docking tools set the modified flag
+- EDMapWindow now sets modified flag when map pieces are exported
+- added mouse-listener hooks to support hypertext in UIText
 
 ### 1.29 ###
 - used getValueIsAdjusting() to make ED sliders smooth
