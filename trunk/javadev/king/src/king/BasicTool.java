@@ -220,7 +220,7 @@ public class BasicTool extends Plugin implements MouseListener, MouseMotionListe
     
     public void mouseDragged(MouseEvent ev)
     {
-        Dimension dim   = kCanvas.getSize();
+        Dimension dim   = kCanvas.getCanvasSize();
         Point where     = ev.getPoint();
         int dx, dy;
         dx = where.x - lastXCoord;
@@ -300,7 +300,7 @@ public class BasicTool extends Plugin implements MouseListener, MouseMotionListe
     
     public void mousePressed(MouseEvent ev)
     {
-        Dimension dim = kCanvas.getSize();
+        Dimension dim = kCanvas.getCanvasSize();
         
         isNearBottom = isNearTop = false;
         if(ev.getY() < (dim.height / 6)) isNearTop = true;
@@ -392,9 +392,9 @@ public class BasicTool extends Plugin implements MouseListener, MouseMotionListe
     * Called by KinCanvas after all kinemage painting is complete,
     * this gives the tools a chance to write additional info
     * (e.g., point IDs) to the graphics area.
-    * @param g2         the Graphics2D of the KinCanvas being painted
+    * @param painter    the Painter that can paint on the current canvas
     */
-    public void overpaintCanvas(Graphics2D g2)
+    public void overpaintCanvas(Painter painter)
     {
     }
 //}}}

@@ -33,11 +33,14 @@ public class SelfUpdatePlugin extends Plugin
         "\n"+
         "Do you still want to try updating KiNG?";
         
-    static final String ARE_YOU_SURE =
+    static final String ARE_YOU_SURE1 =
         "This plugin will download the latest version of KiNG\n"+
         "that is publicly available on the Kinemage website.\n"+
         "It will then be installed over top of your current KiNG\n"+
-        "version, completely replacing it.\n"+
+        "(";
+    static final String ARE_YOU_SURE2 =
+        "),\n"+
+        "completely replacing it.\n"+
         "\n"+
         "This action cannot be undone. Furthermore, there is always\n"+
         "a small chance it may not perform correctly, potentially\n"+
@@ -116,7 +119,7 @@ public class SelfUpdatePlugin extends Plugin
     }
     
     public String getHelpAnchor()
-    { return null; }
+    { return "#update-plugin"; }
 //}}}
 
 //{{{ onProgressTimer, onDownloadCancel
@@ -139,12 +142,17 @@ public class SelfUpdatePlugin extends Plugin
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onBeginUpdate(ActionEvent ev)
     {
+        KingPrefs prefs = kMain.getPrefs();
+        
         // Check with user before starting
-        if(! kMain.getPrefs().newerVersionAvailable()
+        if(! prefs.newerVersionAvailable()
         && JOptionPane.YES_OPTION != JOptionPane.showConfirmDialog(kMain.getTopWindow(), UPDATE_ANYWAY, "Update anyway?", JOptionPane.YES_NO_OPTION))
             return;
         
-        if(JOptionPane.YES_OPTION != JOptionPane.showConfirmDialog(kMain.getTopWindow(), ARE_YOU_SURE, "Update KiNG?", JOptionPane.YES_NO_OPTION))
+        String msg;
+        try { msg = ARE_YOU_SURE1 + prefs.jarFileDirectory.getCanonicalPath() + ARE_YOU_SURE2; }
+        catch(Exception ex) { msg = ARE_YOU_SURE1 + "unknown location" + ARE_YOU_SURE2; } // io, null ptr, security?
+        if(JOptionPane.YES_OPTION != JOptionPane.showConfirmDialog(kMain.getTopWindow(), msg, "Update KiNG?", JOptionPane.YES_NO_OPTION))
             return;
         
         this.downloadedSize     = 0;

@@ -51,7 +51,7 @@ public class HighQualityPainter extends StandardPainter
         g.setPaint(paint);
         g.setStroke(KPalette.pen0);
         ellipse1.setFrame((x-r), (y-r), d, d);
-        g.fill(ellipse1);
+        if(REALLY_PAINT) g.fill(ellipse1);
 
         // highlight
         if(showHighlight)
@@ -61,7 +61,7 @@ public class HighQualityPainter extends StandardPainter
             g.setPaint(Color.white);
             g.setStroke(KPalette.pen0);
             ellipse1.setFrame((x-off), (y-off), d, d);
-            g.fill(ellipse1);
+            if(REALLY_PAINT) g.fill(ellipse1);
         }
     }
 //}}}
@@ -74,7 +74,7 @@ public class HighQualityPainter extends StandardPainter
         g.setPaint(paint);
         g.setStroke(KPalette.pen0);
         ellipse1.setFrame((x-off), (y-off), width, width);
-        g.fill(ellipse1);
+        if(REALLY_PAINT) g.fill(ellipse1);
     }
 //}}}
 
@@ -93,8 +93,11 @@ public class HighQualityPainter extends StandardPainter
         path1.lineTo((float)x2, (float)y2);
         path1.lineTo((float)x3, (float)y3);
         path1.closePath();
-        g.fill(path1);
-        g.draw(path1);   // closes up the hairline cracks between triangles (?)
+        if(REALLY_PAINT)
+        {
+            g.fill(path1);
+            g.draw(path1);   // closes up the hairline cracks between triangles (?)
+        }
     }
 //}}}
 
@@ -107,7 +110,7 @@ public class HighQualityPainter extends StandardPainter
         g.setPaint(paint);
         g.setStroke(KPalette.pens[width-1][widthCue]);
         line1.setLine(x1, y1, x2, y2);
-        g.draw(line1);
+        if(REALLY_PAINT) g.draw(line1);
     }
 //}}}
 

@@ -136,7 +136,8 @@ public class UIDisplayMenu //extends ... implements ...
         map.put("Standard", new Integer(KinCanvas.QUALITY_GOOD));
         map.put("Better", new Integer(KinCanvas.QUALITY_BETTER));
         map.put("Best", new Integer(KinCanvas.QUALITY_BEST));
-        Collection list = Arrays.asList(new String[] {"Standard", "Better", "Best"});
+        map.put("OpenGL", new Integer(KinCanvas.QUALITY_JOGL));
+        Collection list = Arrays.asList(new String[] {"Standard", "Better", "Best", "OpenGL"});
         String defQual = "Standard";
         if(kMain.getCanvas().renderQuality == KinCanvas.QUALITY_BETTER)
             defQual = "Better"; // for OS X

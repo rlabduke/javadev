@@ -311,7 +311,7 @@ public class ToolServices implements TransformSignalSubscriber
         KingView v = kMain.getView();
         if(v == null) return;
         
-        Dimension dim = kCanvas.getSize();
+        Dimension dim = kCanvas.getCanvasSize();
         v.viewTranslateRotated(dx, -dy, 0, (dim.width < dim.height ? dim.width : dim.height));
         kCanvas.repaint();
     }
@@ -322,7 +322,7 @@ public class ToolServices implements TransformSignalSubscriber
         KingView v = kMain.getView();
         if(v == null) return;
         
-        Dimension dim = kCanvas.getSize();
+        Dimension dim = kCanvas.getCanvasSize();
         v.viewTranslateRotated(0, 0, d, (dim.width < dim.height ? dim.width : dim.height));
         kCanvas.repaint();
     }
@@ -545,45 +545,41 @@ public class ToolServices implements TransformSignalSubscriber
     * Called by KinCanvas after all kinemage painting is complete,
     * this gives the tools a chance to write additional info
     * (e.g., point IDs) to the graphics area.
-    * @param g2         the Graphics2D of the KinCanvas being painted
+    * @param painter    the Painter that can paint on the current canvas
     */
-    public void overpaintCanvas(Graphics2D g2)
+    public void overpaintCanvas(Painter painter)
     {
         Engine engine = kCanvas.getEngine();
         if(engine == null) return;
         
-        Font        font    = engine.labelFont;
-        FontMetrics metrics = engine.labelFontMetrics;
-        g2.setFont(font);
-        Dimension   size    = kCanvas.getSize();
+        Dimension size = kCanvas.getCanvasSize();
+        painter.setFont(engine.labelFont);
+        Color fontColor = (engine.whiteBackground ? Color.black : Color.white);
         
-        int ascent      = metrics.getMaxAscent();
-        int descent     = metrics.getMaxDescent();
+        int ascent      = painter.getLabelAscent("X");
+        int descent     = painter.getLabelDescent("X");
         int vOffset1    = ascent + 4;                           // just down from the top
         int vOffset2    = size.height - descent - 4;            // just up from the bottom
         int vOffset3    = vOffset2 - (ascent + descent + 4);    // just above that
         int hOffset1    = 4;                                    // left side
         int hOffset2    = size.width/2 + 4;                     // the middle
         
-        if(engine.whiteBackground)  g2.setColor(Color.black);
-        else                        g2.setColor(Color.white);
-        
         // Display aspect name
         Aspect a = kMain.getKinemage().getCurrentAspect();
         if(a != null)   setAspect(a.getName());
         else            setAspect(null);
         
-        if(aspect   != null)                        g2.drawString(aspect,   hOffset1, vOffset1);
-        if(coords   != null && doXYZ.isSelected())  g2.drawString(coords,   hOffset2, vOffset1);
+        if(aspect   != null)                        painter.paintLabel(fontColor, aspect, hOffset1, vOffset1, 0);
+        if(coords   != null && doXYZ.isSelected())  painter.paintLabel(fontColor, coords, hOffset2, vOffset1, 0);
         if(pointID  != null)
         {
             // pointID is bumped up one line if it's really long
-            if(hOffset1 + metrics.stringWidth(pointID) >= hOffset2)
-                g2.drawString(pointID,  hOffset1, vOffset3);
+            if(hOffset1 + painter.getLabelWidth(pointID) >= hOffset2)
+                painter.paintLabel(fontColor, pointID, hOffset1, vOffset3, 0);
             else
-                g2.drawString(pointID,  hOffset1, vOffset2);
+                painter.paintLabel(fontColor, pointID, hOffset1, vOffset2, 0);
         }
-        if(distance != null)                        g2.drawString(distance, hOffset2, vOffset2);
+        if(distance != null)                        painter.paintLabel(fontColor, distance, hOffset2, vOffset2, 0);
     }
 //}}}
 

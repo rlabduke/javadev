@@ -165,7 +165,7 @@ public class StarReader //extends ... implements ...
         for(int i = 0; i < values.length; i++) values[i] = new ArrayList();
         
         int row = 0, col = 0;
-        while(!token.isEOF() && token.isValue())
+        while(!token.isEOF() && !token.isLoopEnd() && token.isValue())
         {
             values[col].add(token.getString());
             token.advance();
@@ -176,6 +176,9 @@ public class StarReader //extends ... implements ...
                 row++;
             }
         }
+        
+        // Skip the meaningless stop_ token if any (NMR-STAR)
+        if(token.isLoopEnd()) token.advance();
         
         if(col != 0)
         {

@@ -183,7 +183,8 @@ public class VectorPoint extends KPoint // implements ...
     */
     public void paintStandard(Engine engine)
     {
-        if(from == null || equals(from)) return;
+        //if(from == null || equals(from)) return;
+        if(from == null || (x0 == from.x0 && y0 == from.y0 && z0 == from.z0)) return;
         
         KPaint maincolor = getDrawingColor(engine);
         if(maincolor.isInvisible()) return;

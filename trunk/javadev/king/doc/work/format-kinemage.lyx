@@ -59,22 +59,22 @@ This document describes the syntax and semantics of the core feature-set
  into two logical halves.
 \layout Abstract
 
-The first part of the document describes the low-level syntax that is common
+The first part of the document describes the semantics and high-level syntax
+ of kinemage files, giving descriptions of the most commonly used keywords
+ and the various options and parameters that accompany them.
+ This level of detail is important to both and kinemage authors and programmers.
+ While the core features are stable and will remain so, additional features
+ may be added with some frequency.
+\layout Abstract
+
+The second part of the document describes the low-level syntax that is common
  to all kinemage formats, regardless of how many additional functionalities
- they incorporate.
+ (semantics) they incorporate.
  The descriptions are very precise, at the cost of being somewhat long and
  tedious.
  However, this level of detail is necessary for programmers who wish to
  interpret kinemage files reliably, and may be helpful to authors as well.
  This level is expected to be extremely stable and change very slowly.
-\layout Abstract
-
-The second part of the document describes the semantics and high-level syntax
- of kinemage files, giving descriptions of the most commonly used keywords
- and the various options and parameters that accompany them.
- This level of detail is important to both programmers and kinemage authors.
- While the core features are stable and will remain so, additional features
- may be added with some frequency.
 \layout Abstract
 
 The descriptions assume a similar division of labor in the implementation
@@ -96,6 +96,102 @@ e.g.
 \end_inset 
 
 
+\layout Part
+
+Semantics
+\layout Standard
+
+applies to both Mage and KiNG, except as noted
+\layout Standard
+
+many options have multiple forms; only preferred form is documented
+\layout Standard
+
+overview of tokens (@ at start of line, no space before =)
+\layout Section
+
+Overview of a kinemage file
+\layout Section
+
+Lists
+\layout Standard
+
+vector/label/dot/ball/sphere/triangle/ribbon
+\layout Standard
+
+color/radius/width/nohighlight/alpha*
+\layout Standard
+
+master/instance/clone
+\layout Standard
+
+off/nobutton
+\layout Section
+
+Points
+\layout Standard
+
+pointID/flags/ghost/color/width/radius/ptmasters/aspects/coords
+\layout Section
+
+Groups and subgroups
+\layout Standard
+
+animate/2animate
+\layout Standard
+
+off/nobutton/dominant
+\layout Standard
+
+recessiveon/collapsable/collapsible
+\layout Standard
+
+master/instance/clone
+\layout Section
+
+Views and display options
+\layout Standard
+
+onewidth/thinline/perspective/flat etc.
+\layout Standard
+
+whitebackground/listcolordominant
+\layout Standard
+
+viewid/zoom/span/center/matrix/zslab/ztran
+\layout Standard
+
+lens
+\layout Section
+
+Masters, aspects, and colors
+\layout Standard
+
+master
+\layout Standard
+
+pointmaster
+\layout Standard
+
+aspect
+\layout Standard
+
+list of valid color names
+\layout Standard
+
+colorset
+\layout Section
+
+Meta-data
+\layout Standard
+
+text/caption/title/copyright
+\layout Standard
+
+pdbfile/mapfile?
+\layout Standard
+
+mage/prekin/command
 \layout Part
 
 Syntax
@@ -842,31 +938,4 @@ at
 \end_inset 
 
  symbol).
-\layout Part
-
-Semantics: core features
-\layout Section
-
-Overview of a kinemage file
-\layout Section
-
-Meta-data
-\layout Section
-
-Views and display options
-\layout Section
-
-Masters, aspects, and colors
-\layout Section
-
-Groups and subgroups
-\layout Section
-
-Lists
-\layout Section
-
-Points
-\layout Part
-
-Semantics: selected extensions
 \the_end

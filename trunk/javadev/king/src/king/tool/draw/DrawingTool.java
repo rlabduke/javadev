@@ -863,9 +863,9 @@ public class DrawingTool extends BasicTool
     * (e.g., point IDs) to the graphics area.
     * <p>We use it as an indication that the canvas has just been
     * redrawn, so the XOR'd marker for Auger won't need erasing.
-    * @param g2         the Graphics2D of the KinCanvas being painted
+    * @param painter    the Painter that can paint on the current canvas
     */
-    public void overpaintCanvas(Graphics2D g2)
+    public void overpaintCanvas(Painter painter)
     {
         isCanvasDirty = false;
     }

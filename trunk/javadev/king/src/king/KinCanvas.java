@@ -32,6 +32,7 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
     public static final int QUALITY_GOOD        = 0;
     public static final int QUALITY_BETTER      = 1;
     public static final int QUALITY_BEST        = 2;
+    public static final int QUALITY_JOGL        = 10;
 //}}}
 
 //{{{ Variables
@@ -43,6 +44,8 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
     StandardPainter     goodPainter     = new StandardPainter(false);
     StandardPainter     betterPainter   = new StandardPainter(true);
     HighQualityPainter  bestPainter     = new HighQualityPainter(true);
+    Frame               joglFrame       = null;
+    ReflectiveAction    joglAction      = null;
 
     DefaultBoundedRangeModel zoommodel = null;
     DefaultBoundedRangeModel clipmodel = null;
@@ -200,6 +203,18 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
             if(kMain.getPrefs().newerVersionAvailable())
                 announceNewVersion(g2);
         }
+        else if(renderQuality >= QUALITY_JOGL && joglAction != null)
+        {
+            if(! joglFrame.isVisible())
+            {
+                joglFrame.pack();
+                joglFrame.setVisible(true);
+                // An ugly hack that may help prevent hanging?
+                try { Thread.sleep(2000); }
+                catch (InterruptedException ie) {}
+            }
+            joglAction.actionPerformed(null);
+        }
         else
         {
             Painter painter = null;
@@ -224,12 +239,12 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
             if(kin.currAspect == null) engine.activeAspect = 0;
             else engine.activeAspect = kin.currAspect.getIndex().intValue();
             long timestamp = System.currentTimeMillis();
-            engine.render(this, view, bounds, g2, painter);
+            engine.render(this, view, bounds, painter);
             timestamp = System.currentTimeMillis() - timestamp;
             if(writeFPS)
                 SoftLog.err.println(timestamp+" ms ("+(timestamp > 0 ? Long.toString(1000/timestamp) : ">1000")
                     +" FPS) - "+engine.getNumberPainted()+" objects painted");
-            if(toolbox != null) toolbox.overpaintCanvas(g2);
+            if(toolbox != null) toolbox.overpaintCanvas(painter);
         }
     }
 //}}}
@@ -278,8 +293,8 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
             if(kin.currAspect == null) engine.activeAspect = 0;
             else engine.activeAspect = kin.currAspect.getIndex().intValue();
             
-            engine.render(this, view, bounds, g2, bestPainter);
-            if(toolbox != null) toolbox.overpaintCanvas(g2);
+            engine.render(this, view, bounds, bestPainter);
+            if(toolbox != null) toolbox.overpaintCanvas(bestPainter);
             
             return PAGE_EXISTS;
         }
@@ -324,6 +339,10 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
     /** Returns a button that shows markers */
     public Component getMarkersButton() { return toolbox.services.doMarkers; }
     
+    /** The size of the drawing surface (!= this.getSize() in OpenGL mode) */
+    public Dimension getCanvasSize()
+    { return engine.getCanvasSize(); };
+    
     /** Returns the drawing engine this canvas uses for rendering. */
     public Engine getEngine() { return engine; }
     
@@ -332,7 +351,19 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
     
     /** Sets the rendering quality to one of the QUALITY_XXX constants */
     public void setQuality(int q)
-    { renderQuality = q; }
+    {
+        renderQuality = q;
+        
+        // We can't re-use the JOGL window or else we get no drawing.
+        if(q < QUALITY_JOGL && joglFrame != null && joglFrame.isVisible())
+        {
+            joglFrame.setVisible(false);
+            joglFrame.dispose();
+            joglFrame = null;
+        }
+        else if(q == QUALITY_JOGL)
+            loadJOGL();
+    }
 //}}}
 
 //{{{ stateChanged
@@ -365,6 +396,46 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
     { return true; }
     public boolean isFocusable()
     { return true; }
+//}}}
+
+//{{{ repaint, loadJOGL
+//##################################################################################################
+    /** To ensure OpenGL painting is done even when the canvas is hidden. */
+    public void repaint()
+    {
+        super.repaint();
+        if(renderQuality >= QUALITY_JOGL && joglAction != null)
+        {
+            if(! joglFrame.isVisible())
+            {
+                joglFrame.pack();
+                joglFrame.setVisible(true);
+            }
+            joglAction.actionPerformed(null);
+        }
+    }
+    
+    // lazily loads the JOGL Painter just before we need it
+    private void loadJOGL()
+    {
+        // Try to create a JOGL painter, via reflection
+        try
+        {
+            Class joglClass = Class.forName("king.JoglFrame");
+            Constructor joglConstr = joglClass.getConstructor(new Class[] { KingMain.class, Engine.class, ToolBox.class });
+            joglFrame = (Frame)joglConstr.newInstance(new Object[] { kMain, engine, toolbox });
+            joglAction = new ReflectiveAction(null, null, joglFrame, "requestRepaint");
+        }
+        catch(Throwable t)
+        {
+            t.printStackTrace(SoftLog.err);
+            joglFrame = null;
+            joglAction = null;
+            JOptionPane.showMessageDialog(kMain.getTopWindow(),
+                "Unable to initialize OpenGL graphics.\nSee user manual for details on enabling this feature.",
+                "No OpenGL", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 //}}}
 
 //{{{ empty

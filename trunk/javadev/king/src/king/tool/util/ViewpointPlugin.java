@@ -219,7 +219,7 @@ public class ViewpointPlugin extends Plugin implements MouseMotionListener
         KingView v = kMain.getView();
         if(dialog.isVisible() && v != null)
         {
-            Dimension dim = kCanvas.getSize();
+            Dimension dim = kCanvas.getCanvasSize();
             float[] center = v.getCenter();
             float[] offset = v.translateRotated(ev.getX() - dim.width/2, dim.height/2 - ev.getY(), 0, Math.min(dim.width, dim.height));
             calipX.setText("X: "+df.format(center[0]+offset[0]));
