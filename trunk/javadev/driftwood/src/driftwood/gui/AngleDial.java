@@ -73,6 +73,8 @@ public class AngleDial extends JComponent implements MouseListener, MouseMotionL
     Ellipse2D.Double    ellipse2d   = new Ellipse2D.Double();
     BasicStroke         pen1        = new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
     BasicStroke         pen2        = new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+    Rectangle           plusBtn     = new Rectangle();
+    Rectangle           minusBtn    = new Rectangle();
     
     /** The optional element that formats angle values */
     Formatter   formatter = null;
@@ -212,6 +214,34 @@ public class AngleDial extends JComponent implements MouseListener, MouseMotionL
         if(isOff)   g.setColor(offFore);
         else        g.setColor(foreColor);
         g2.draw(ellipse2d);
+        
+        // Position the + and - buttons
+        int btnSize = (int)(0.146 * size) - 2;
+        plusBtn.setBounds(left, top+size-btnSize, btnSize, btnSize);
+        minusBtn.setBounds(left+size-btnSize, top+size-btnSize, btnSize, btnSize);
+        
+        // Paint the + and - buttons
+        g2.setStroke(pen1);
+        if(isOff)           g.setColor(offBack);
+        else                g.setColor(backColor);
+        g2.fill(plusBtn);
+        g2.fill(minusBtn);
+        
+        if(isOff)   g.setColor(offFore);
+        else        g.setColor(foreColor);
+        g2.draw(plusBtn);
+        g2.draw(minusBtn);
+        
+        g2.setStroke(pen2);
+        line2d.setLine(plusBtn.x+3, plusBtn.y+plusBtn.height/2.0,
+            plusBtn.x+plusBtn.width-3, plusBtn.y+plusBtn.height/2.0);
+        g2.draw(line2d);
+        line2d.setLine(plusBtn.x+plusBtn.width/2.0, plusBtn.y+3,
+            plusBtn.x+plusBtn.width/2.0, plusBtn.y+plusBtn.height-3);
+        g2.draw(line2d);
+        line2d.setLine(minusBtn.x+3, minusBtn.y+minusBtn.height/2.0,
+            minusBtn.x+minusBtn.width-3, minusBtn.y+minusBtn.height/2.0);
+        g2.draw(line2d);
     }
 //}}}
 
@@ -230,8 +260,17 @@ public class AngleDial extends JComponent implements MouseListener, MouseMotionL
 //##################################################################################################
     public void mouseClicked(MouseEvent ev)
     {
+        // Plus button
+        if(plusBtn.contains(ev.getPoint()))
+        {
+            setDegrees(getDegrees() + 360.0 / mouseSensitivity);
+        }
+        else if(minusBtn.contains(ev.getPoint()))
+        {
+            setDegrees(getDegrees() - 360.0 / mouseSensitivity);
+        }
         // Reset to original value on double click
-        if(this.isEnabled() && ev.getClickCount() == 2)
+        else if(this.isEnabled() && ev.getClickCount() == 2)
         {
             setRadians(getOrigRadians());
         }
