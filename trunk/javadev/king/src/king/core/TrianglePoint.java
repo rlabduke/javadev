@@ -73,7 +73,24 @@ public class TrianglePoint extends AbstractPoint // implements ...
 
         double triangleZ;
         if(from == null || from.from == null)   triangleZ = z;
-        else                                    triangleZ = (z + from.z + from.from.z)/3.0;
+        //else                                    triangleZ = (z + from.z + from.from.z)/3.0;
+        // Sort by average of two backmost vertices (midpoint of back edge).
+        // This helps for triangles "outlined" by vectors, because if the vectors will always
+        // sort in front of or equal to the triangle, so if they come after the triangles
+        // in the kinemage, they'll always be visible. Helps with e.g. protein ribbons.
+        else
+        {
+            if(z < from.z)
+            {
+                if(from.z < from.from.z)    triangleZ = (z + from.z)/2.0;
+                else                        triangleZ = (z + from.from.z)/2.0;
+            }
+            else
+            {
+                if(z < from.from.z)         triangleZ = (z + from.z)/2.0;
+                else                        triangleZ = (from.z + from.from.z)/2.0;
+            }
+        }
         engine.addPaintable(this, triangleZ);
     }
 //}}}

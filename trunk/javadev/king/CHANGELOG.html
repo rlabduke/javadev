@@ -18,7 +18,6 @@
     @pdbfile should be interpretted relative to the kinemage file location!
     Develop "xkn" file specification / DTD / Schema
     Export as VRML 2.0 (VRML97) / VRML 1.0
-    Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
     Implement EM_SHUTDOWN signal in KingMain, goes to Tools also (?)
     Make hierarchy editor drag-and-drop
     Tau minimizer over a range (rebuild peptides too?)
@@ -42,6 +41,8 @@
     Mutated residues should retain B factors where possible (?)
     Support "on" and "off" for pointmasters in parser? (Flipkin)
 <!-- Postponed TO DO items }}} -->
+    Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
+        Add POV-Movie tool to facilitate making POV movies w/ common animations
     Add ability to edit masters/pointmasters
     Add some kind of transformation hook (listeners, priorities, etc)
     Add pluginStartup() method to plugins that's called after everything is running?
@@ -55,6 +56,10 @@
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 1.34 ###
+- changed triangle depth-cueing to the average of backmost two points.
+  This is compatible with "outlining" triangles with vectors, e.g. for ribbons.
 
 ### 1.33 ###
 - Made AHE into an interface and moved the functionality into AHEImpl
@@ -74,6 +79,7 @@
 - made vectors use alpha
 - protect against parent==null in parent.alpha for Ball/Triangle/VectorPoint
 - documented kinfileBase, kinfileList, kinfileSaveHandler
+- released r85 to the world on 10.26.04
 
 ### 1.32 ###
 - changed EDMapPlugin so that it asks for map format after you choose a file
