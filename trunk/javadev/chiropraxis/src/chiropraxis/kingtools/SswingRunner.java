@@ -46,7 +46,7 @@ import driftwood.data.*;
 * <p>Be careful -- stray instances of this class will prevent
 * garbage collection of their target kinemages!
 *
-* <p>Copyright (C) 2004 by SHuren Wang. All rights reserved.
+* <p>Copyright (C) 2004 by XXX. All rights reserved.
 * <br>Begun on Mon Jun 23 12:16:40 EDT 2004
 */
 public class SswingRunner implements Runnable

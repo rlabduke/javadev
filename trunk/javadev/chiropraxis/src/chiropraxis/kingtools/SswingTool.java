@@ -20,7 +20,7 @@ import driftwood.util.SoftLog;
 /**
 * <code>SswingTool</code> has not yet been documented.
 *
-* <p>Copyright (C) 2004 by Shuren Wang. All rights reserved.
+* <p>Copyright (C) 2004 by XXX. All rights reserved.
 * <br>Begun on July 20 13:29:16 EDT 2004
 */
 public class SswingTool extends SswingModelingTool

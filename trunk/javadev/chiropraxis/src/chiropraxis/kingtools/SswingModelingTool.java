@@ -20,7 +20,7 @@ import driftwood.util.SoftLog;
 * <code>SswingModelingTool</code> provides a few small conveniences
 * for tools that work with the model manager.
 *
-* <p>Copyright (C) 2004 by Shuren Wang. All rights reserved.
+* <p>Copyright (C) 2004 by XXX. All rights reserved.
 * <br>Begun on Fri Sep 19 15:27:08 EDT 2004
 */
 abstract public class SswingModelingTool extends BasicTool
