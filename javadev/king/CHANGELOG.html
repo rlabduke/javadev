@@ -57,10 +57,9 @@
     1n55 Arg refitting alt B won't move (H only in A)
     Start points of invisible lines are still pickable
     Printing broken? on OS X only, apparently...
-    Should any point on ball face always be pickable? Labels? Triangles?
+ ** Should any point on ball face always be pickable? Labels? Triangles?
         Maybe a separate list type for pickable vectors
   * Get NPEx when loading a 0-byte file
-    Ask for text info to go in PalmDB file
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -87,6 +86,9 @@
 - added KingLiteBinaryExport for writing data to KingLite
 - added PalmDB format to exporter
 - support list/point color as displayed for KingLite export
+- fixed bug in Palm header output (misunderstood meaning of field)
+- changed Longs in DataTool to longs
+- set -source and -target flags in build.xml
 
 ### 1.37 ###
 - added undo stack to BeanKing movie commands

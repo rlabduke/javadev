@@ -43,7 +43,8 @@
            includes="**/*.java"
            excludes="**/old/"
            deprecation="off"
-           debug="on" debuglevel="lines,source">
+           debug="on" debuglevel="lines,source"
+           target="1.3" source="1.3">
     </javac>
 </target>
 <!-- }}} -->
