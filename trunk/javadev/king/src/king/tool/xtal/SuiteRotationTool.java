@@ -80,10 +80,15 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 
     private void buildGUI() {
 	rotDial = new AngleDial();
-	rotDial.addChangeListener(this);
+	//rotDial.addChangeListener(this);
+	rotList = new JList();
+        //rotList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        rotList.addListSelectionListener(this);
 	//label1 = new JLabel();
 
 	pane = new TablePane();
+	pane.addCell(rotList);
+	pane.addCell(rotDial);
 	//pane.addCell(rotDial);
        	//pane.newRow();
 	//pane.addCell(label1);
@@ -108,9 +113,6 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 
 	    listIter = bonds.iterator();
 	    KList axis = (KList) listIter.next();
-	    //calcRotation(axis);
-	    //axisMap.put(dial, axis);
-	    //axis.setColor(KPalette.red);
 	    storeCoords(axis, ptsList, origList);
 	    while (listIter.hasNext()) {
 		KList bondList = (KList) listIter.next();
@@ -127,32 +129,37 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 	for (int i = 0; i < bondRotList.size(); i++) {
 	    bondRots[i] = (BondRot) iter.next();
 	}
-	rotList = new JList(bondRots);
-        rotList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        rotList.addListSelectionListener(this);
+	rotList.setListData(bondRots);
+        //rotList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        //rotList.addListSelectionListener(this);
 	//debug();
-	pane.addCell(rotList);
-	pane.addCell(rotDial);
-	
-	kCanvas.repaint();
+	//pane.addCell(rotList);
+	//pane.addCell(rotDial);
+
 	//SET ROTATION
 	show();
+	rotDial.addChangeListener(this);
+        rotList.addListSelectionListener(this);
+	kCanvas.repaint();
     }
 
-    private void calcRotation(KList axis) {
-	//rotate = new Transform();
+    public void stop() {
+	rotDial.removeChangeListener(this);
+	rotList.removeListSelectionListener(this);
+	hide();
+    }
+
+    private void setAxisVars(KList axis) {
 	Iterator iter = axis.iterator();
 	firstTrip = new RNATriple((KPoint) iter.next());
-	//System.out.println(firstPoint);
 	secondTrip = new RNATriple((KPoint) iter.next());
-	//System.out.println(secondPoint);
-	//rotate = rotate.likeRotation(firstTrip, secondTrip, rotDial.getDegrees());
+
     }
 
     private void doRotation(BondRot rot) {
-	calcRotation(rot.getAxisList());
+	setAxisVars(rot.getAxisList());
 	Transform rotate = new Transform();
-	rotate = rotate.likeRotation(firstTrip, secondTrip, rotDial.getDegrees() - rotDial.getOrigDegrees());
+	rotate = rotate.likeRotation(firstTrip, secondTrip, rotDial.getDegrees() - rot.getCurrentAngle());
 	Iterator origIter = ((ArrayList) origMap.get(rot)).iterator();
 	Iterator pointIter = ((ArrayList) pointMap.get(rot)).iterator();
 	while (origIter.hasNext()) {
@@ -183,7 +190,7 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 	    //RNATriple trip = new RNATriple(p);
 	    //origList.add(trip);
 	}
-	
+	//System.out.println("updating coords");
     }
     
 
@@ -246,6 +253,7 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 	    updateCoords(oldRot);
 	    oldRot.setCurrentAngle(rotDial.getDegrees());
 	}
+	//System.out.println("Value Changed");
 	oldRot = (BondRot) rotList.getSelectedValue();
 	oldRot.setColor(KPalette.green);
 	oldRot.setAxisColor(KPalette.red);
