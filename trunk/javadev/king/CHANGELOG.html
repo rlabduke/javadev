@@ -3,8 +3,6 @@
 ===  TO DO  ==================================================================
 ==============================================================================
 <!-- Postponed TO DO items {{{ -->
-    Engine interface; all drawing code to Java2DEngine
-    Separate points from their transformed coordinates
     Separate checkboxes, tree nodes from AGEs
     Include demo/tutorial kinemage ?
     Add paintHighQuality to MarkerPoint
@@ -35,7 +33,6 @@
     Hyperlinks/URLs in point comments?
     Add matrix-based deformatation option to Hierarchy:Transform
     Show CB deviation in Hinge when not idealizing sc positions
-    Make KiNG application capable of auto-detecting new versions and updating?
     Draw: construct 4 and 5, polylines, triangle strips, true sphere, cylinder
     For Views tool: Center Visible command ?
     Allow user to set focal length for perspective "lens"?
@@ -44,16 +41,17 @@
     Add choice of experiments to expected NOEs
     Distribute noe-display in packaged KiNG versions?
     Key/mouse modifiers need to be checked from Safari (applet)
-    New list type: @meshlist (triangles or squares)
-    Extract each set of painting objects into a Painter object with methods for each pt type
+    New list type: @meshlist (triangles or squares) ?
 <!-- Postponed TO DO items }}} -->
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
     Add ability to edit masters
     Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
-    Add a Mage-like "count" function (transform time, draw time, num obj)
-  * Rewrite HACKING section on Tools vs. Plugins
-    Document Tools | Pick objects in user manual
-  ? Redefine getX/Y/Z for KPoints to do the more obvious thing...
+ ** Work the special plugins/ folder into the distros
+        Note in user manual about installing plugins
+  * Write a quick and dirty HTML guide to creating a plugin, listing all the basic steps
+        Java and Python versions
+    Move all modelling tools into chiropraxis package (inversion of dependency)
+    Redefine getX/Y/Z for KPoints to do the more obvious thing...?
     Warn about saving with multiple kins open
     Warn about losing unsaved changes
 
@@ -68,6 +66,15 @@
 - implemented object picking for balls and spheres
 - in picking functions, now pass radius instead of radius^2 (for lines)
 - implemented object picking for line segments
+- updated the section on Tools and Plugins in HACKING to reflect the dynamic
+  service-provider loading model that was implemented in 1.24 / 1.25
+- updated documentation (Tools | Pick objects)
+- added Mage-like "count" function to the writeFPS output for Jeremy
+- moved all the drawing functions into StandardPainter and HighQualityPainter
+- king can now find all plugins in the plugins/ folder where king.jar is
+- started SelfUpdatePlugin to simplify the task of upgrading to a new KiNG
+- machinery works, now all it needs is a UI!
+- finished UI for SelfUpdatePlugin, tested it on Windows. Looks ready to go!
 
 ### 1.26 ###
 - added Mage's HTML description of the kinemage format

@@ -36,10 +36,6 @@ abstract public class KPoint extends AHE implements Cloneable, MutableTuple3
     public static final int SEQ_EVEN_BIT    = 0x10000000;
     /** A flag used by Mage only; point is visible but not written to PDB output. */
     public static final int GHOST_BIT       = 0x08000000;
-
-    // For internal use -- not thread safe!
-    static int[] xPoints = new int[6];
-    static int[] yPoints = new int[6];
 //}}}
 
 //{{{ Variable definitions
@@ -353,107 +349,14 @@ abstract public class KPoint extends AHE implements Cloneable, MutableTuple3
     }
 //}}}
 
-//{{{ paint{Fast, HighQuality, Standard}
+//{{{ paintStandard, isPickedBy
 //##################################################################################################
-    /**
-    * Produces a lower-quality, higher-speed rendering of
-    * this paintable. If no such rendering is possible,
-    * it should produce the same results as paintStandard()
-    */
-    public void paintFast(Graphics2D g, Engine engine)
-    { paintStandard(g, engine); }
-    
-    /**
-    * Produces a higher-quality, lower-speed rendering of
-    * this paintable. If no such rendering is possible,
-    * it should produce the same results as paintStandard()
-    */
-    public void paintHighQuality(Graphics2D g, Engine engine)
-    { paintStandard(g, engine); }
-    
     /**
     * Renders this Paintable to the specified graphics surface,
     * using the display settings from engine.
     */
     abstract public void paintStandard(Graphics2D g, Engine engine);
-//}}}
 
-//{{{ prettyLine(), fastLine()
-//##################################################################################################
-    /** Draws a thick line with nice ends, using fillPolygon(). Slightly slower (30-35%) than fastLine(). */
-    static public void prettyLine(Graphics2D g, int x1, int y1, int x2, int y2, int width)
-    {
-        int s, e, abs_x2_x1, abs_y2_y1;
-        s = -width / 2; // Start offset
-        e = s + width;  // End offset
-        abs_x2_x1 = Math.abs(x2 - x1);
-        abs_y2_y1 = Math.abs(y2 - y1);
-        
-        // horizontal --
-        if( abs_x2_x1 > abs_y2_y1 )
-        {
-            // left to right
-            if( x1 < x2 )
-            {
-                xPoints[0] = x1  ; xPoints[1] = x1+s; xPoints[2] = x1;   xPoints[3] = x2;   xPoints[4] = x2-s; xPoints[5] = x2;
-                yPoints[0] = y1+s; yPoints[1] = y1;   yPoints[2] = y1+e; yPoints[3] = y2+e; yPoints[4] = y2;   yPoints[5] = y2+s;
-            }
-            // right to left
-            else
-            {
-                xPoints[0] = x1  ; xPoints[1] = x1-s; xPoints[2] = x1;   xPoints[3] = x2;   xPoints[4] = x2+s; xPoints[5] = x2;
-                yPoints[0] = y1+s; yPoints[1] = y1;   yPoints[2] = y1+e; yPoints[3] = y2+e; yPoints[4] = y2;   yPoints[5] = y2+s;
-            }
-        }
-        // vertical |
-        else
-        {
-            // top to bottom
-            if( y1 < y2 )
-            {
-                xPoints[0] = x1+s; xPoints[1] = x1;   xPoints[2] = x1+e; xPoints[3] = x2+e; xPoints[4] = x2;   xPoints[5] = x2+s;
-                yPoints[0] = y1  ; yPoints[1] = y1+s; yPoints[2] = y1;   yPoints[3] = y2;   yPoints[4] = y2-s; yPoints[5] = y2;
-            }
-            // bottom to top
-            else
-            {
-                xPoints[0] = x1+s; xPoints[1] = x1;   xPoints[2] = x1+e; xPoints[3] = x2+e; xPoints[4] = x2;   xPoints[5] = x2+s;
-                yPoints[0] = y1  ; yPoints[1] = y1-s; yPoints[2] = y1;   yPoints[3] = y2;   yPoints[4] = y2+s; yPoints[5] = y2;
-            }
-        }
-        
-        g.fillPolygon(xPoints, yPoints, 6);
-    }
-    
-    /** Draws a thick line using multiple calls to drawLine(). Not as robust as prettyLine(), but slightly faster. */
-    static public void fastLine(Graphics2D g, int x1, int y1, int x2, int y2, int width)
-    {
-        g.drawLine(x1, y1, x2, y2);
-        
-        // Then, draw more lines until we get to the approximate thickness.
-        // This idea is borrowed from JavaMage, and possibly regular Mage, too.
-        // The plan is to step along x if it's a mostly vertical line, along y if it's mostly horizontal
-        int start, end, i;
-        start = -width/2;
-        end = start + width;
-        
-        // step along y
-        if( Math.abs(x2-x1) > Math.abs(y2-y1) )
-        {
-            for(i = start; i < 0; i++) g.drawLine(x1, y1+i, x2, y2+i); 
-            for(i = 1; i < end; i++)   g.drawLine(x1, y1+i, x2, y2+i); 
-        }
-        // step along x
-        else
-        {
-            for(i = start; i < 0; i++) g.drawLine(x1+i, y1, x2+i, y2); 
-            for(i = 1; i < end; i++)   g.drawLine(x1+i, y1, x2+i, y2); 
-        }
-    }
-//}}}
-
-//{{{ isPickedBy
-//##################################################################################################
     /**
     * Returns true if the specified pick hits this point, else returns false
     * Pays no attention to whether this point is marked as unpickable.

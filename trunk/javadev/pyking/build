@@ -1,4 +1,4 @@
 #!/bin/sh
 env CLASSPATH=../king/king.jar jythonc -a -d -A org.python.util -p pyking -j pyking.jar *.py
 jar uvf pyking.jar META-INF/ king/
-cp -v pyking.jar ../king/
+cp -v pyking.jar ../king/plugins/

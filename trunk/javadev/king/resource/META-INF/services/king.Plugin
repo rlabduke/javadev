@@ -3,6 +3,7 @@ king.tool.model.ModelManager2
 king.EDMapPlugin
 king.tool.util.ViewpointPlugin
 king.tool.draw.SolidObjPlugin
+king.tool.util.SelfUpdatePlugin
 
 # Tools
 king.tool.util.MovePointTool

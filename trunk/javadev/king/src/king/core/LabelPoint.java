@@ -53,8 +53,6 @@ public class LabelPoint extends KPoint // implements ...
         KPaint maincolor = getDrawingColor(engine);
         if(maincolor.isInvisible()) return;
         Paint paint = maincolor.getPaint(engine.backgroundMode, engine.colorCue);
-        g.setPaint(paint);
-        g.setFont(engine.labelFont);
         
         int width, ascent, descent;
         width   = engine.labelFontMetrics.stringWidth(toString());
@@ -69,7 +67,8 @@ public class LabelPoint extends KPoint // implements ...
         else                           { minx = (int)x;           }
         maxx = minx + width;
         
-        g.drawString(toString(), minx, (int)y);
+        engine.painter.paintLabel(g, paint, engine.labelFont, engine.labelFontMetrics,
+            this.toString(), minx, y, z);
     }
 //}}}
 
