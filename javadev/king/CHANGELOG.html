@@ -47,11 +47,12 @@
     Add ability to edit masters
     Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
   * Note in user manual about installing plugins
-  * Fix documentation for chiropraxis plugins!
+ ** Fix documentation for chiropraxis plugins!
   * Document new king/chiropraxis dependency structure in HACKING
-  * Write a quick and dirty HTML guide to creating a plugin, listing all the basic steps
+    Write a quick and dirty HTML guide to creating a plugin, listing all the basic steps
         Java and Python versions
     Redefine getX/Y/Z for KPoints to do the more obvious thing...?
+    Add some kind of transformation hook (listeners, priorities, etc)
     Warn about saving with multiple kins open
     Warn about losing unsaved changes
 
@@ -59,7 +60,9 @@
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 1.27 ###
+### 1.28 ###
+- added the "accumulate" animation function from Mage
+
 ### 1.27 ###
 - modified Engine and KPoint.isPickedBy() to account for object picking
 - implemented object picking for triangles
