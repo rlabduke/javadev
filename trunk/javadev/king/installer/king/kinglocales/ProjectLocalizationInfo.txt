@@ -19,8 +19,8 @@
 #     property to configure an object when working with the custom_xx files.
 #
 # Product Name: KiNG
-# Project File: /Users/ian/jdev/king/installer/king/king.iap_xml
-# Generated:    Wed Mar 24 08:58:34 EST 2004
+# Project File: /Users/ian/javadev/king/installer/king/king.iap_xml
+# Generated:    Wed Jun 16 11:16:55 EDT 2004
 
 
 ---- PRE-INSTALL ACTIONS ----
@@ -53,7 +53,7 @@
    |   |-- MakeExecutable.5351d34da762
    |-- GhostDirectory.5351d369a765 (NoEP)
    |   |-- CreateShortcut.5351d368a765
-   |   |-- CreateShortcut.535afb16a766
+   |   |-- CreateShortcut.4186f7408536
    |-- Billboard.5351b96ea760
 
 
