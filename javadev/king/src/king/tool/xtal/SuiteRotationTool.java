@@ -28,14 +28,14 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
     AngleDial rotDial;
     TablePane pane;
 
-    RNATriple firstTrip = null;
-    RNATriple secondTrip = null;
+    //RNATriple firstTrip = null;
+    //RNATriple secondTrip = null;
 
-    HashMap origMap;
-    HashSet origSet;
-    HashMap pointMap;
+    //HashMap origMap;
+    //HashSet origSet;
+    //HashMap pointMap;
 
-    HashMap rotMap;
+    //HashMap rotMap;
 
     JList rotJList;
     JList hypJList;
@@ -43,9 +43,10 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
     JTextField angField;
 
     HyperRotParser hyptyp;
+    BondRotHandler handler;
 
     BondRot oldRot = null;
-    BondRot hyperRot = null;
+    //BondRot hyperRot = null;
     boolean valueChanging = false;
     
 
@@ -89,15 +90,17 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 
     public void start() {
 
-	origMap = new HashMap();
-	origSet = new HashSet();
-	pointMap = new HashMap();
-	rotMap = new HashMap();
+	//origMap = new HashMap();
+	//origSet = new HashSet();
+	//pointMap = new HashMap();
+	//rotMap = new HashMap();
 
 	Collection brColl = kMain.getKinemage().getBondRots();
+	handler = new BondRotHandler(brColl);
 	kMain.getTextWindow().addHypertextListener(this);
 	hyptyp = new HyperRotParser(kMain.getTextWindow().getText());
 	hypJList.setListData(hyptyp.getHypList());
+	/*
 	Iterator bondRotIter = brColl.iterator();
 	Iterator listIter;
 	ArrayList bondRotList = new ArrayList();
@@ -125,14 +128,15 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 
 	}
 	debugSet();
+	*/
 	// at this point i have 2 hashmaps: 1 with original coordinates of points in an RNATriple,
 	// and 1 with "current" coordinates of points in a KPoint.  
-	BondRot[] bondRots = new BondRot[bondRotList.size()];
-	Iterator iter = bondRotList.iterator();
-	for (int i = 0; i < bondRotList.size(); i++) {
-	    bondRots[i] = (BondRot) iter.next();
-	}
-	rotJList.setListData(bondRots);
+	//BondRot[] bondRots = new BondRot[brColl.size()];
+	//Iterator iter = bondRotList.iterator();
+	//for (int i = 0; i < bondRotList.size(); i++) {
+	//    bondRots[i] = (BondRot) iter.next();
+	//	}
+	rotJList.setListData(handler.getBondRotArray());
         rotJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         //rotJList.addListSelectionListener(this);
 	//debug();
@@ -154,7 +158,7 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 	kMain.getTextWindow().removeHypertextListener(this);
 	hide();
     }
-
+    /*
     private void setAxisVars(KList axis) {
 	Iterator iter = axis.iterator();
 	firstTrip = new RNATriple((KPoint) iter.next());
@@ -274,7 +278,7 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 	//System.out.print("points size: " + ptsList.size());
 	//System.out.println(" origCoords size: " + origList.size());
     }
-
+*/
 
 //{{{ getToolPanel, getHelpAnchor, toString
 //##################################################################################################
@@ -292,7 +296,7 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 
 	if (!valueChanging) {
 	    //BondRot rot = (BondRot) rotJList.getSelectedValue();
-	    doRotation(oldRot);
+	    handler.doRotation(oldRot, rotDial.getDegrees());
 	    //System.out.println("State Changed");
 	    //}
 	    kCanvas.repaint();
@@ -303,40 +307,41 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 	valueChanging = true;
 	if (oldRot != null) {
 	    oldRot.setColor(KPalette.white);
-	    updateCoords(oldRot);
+	    handler.updateCoords(oldRot);
 	    oldRot.setCurrentAngle(rotDial.getDegrees());
 	    //System.out.println("old rot: " + oldRot);
-	    oldRot = null;
+	    //oldRot = null;
 	}
 	JList hitList = (JList) ev.getSource();
 	//System.out.println("Value Changed");
 	if (hitList.equals(rotJList)) {
-	    //if (oldRot != null) {
-	    //	oldRot.setColor(KPalette.white);
-	    //	updateCoords(oldRot);
-	    //	oldRot.setCurrentAngle(rotDial.getDegrees());
-	    //}
+	    
 	    oldRot = (BondRot) rotJList.getSelectedValue();
-	    oldRot.setColor(KPalette.green);
-	    oldRot.setAxisColor(KPalette.red);
-	    //System.out.println(oldRot);
-	    //System.out.println("oldRot orig " + oldRot.getOrigAngle());
-	    //System.out.println("oldRot current " + oldRot.getCurrentAngle());
-	    rotDial.setOrigDegrees(oldRot.getOrigAngle());
-	    rotDial.setDegrees(oldRot.getCurrentAngle());
-	    //oldRot.setColor(KPalette.white);
-	    System.out.println("RotList hit");
-	    kCanvas.repaint();
+	    if (oldRot != null) {
+		oldRot.setColor(KPalette.green);
+		oldRot.setAxisColor(KPalette.red);
+
+		rotDial.setOrigDegrees(oldRot.getOrigAngle());
+		rotDial.setDegrees(oldRot.getCurrentAngle());
+		
+		//System.out.println("RotList hit");
+		kCanvas.repaint();
+	    }
 	} else if (hitList.equals(hypJList)) {
-	    //rotJList.clearSelection();
+	    rotJList.clearSelection();
 	    String hypName = (String) hypJList.getSelectedValue();
 	    ArrayList rots = hyptyp.getRotList(hypName);
 	    Iterator iter = rots.iterator();
 	    while (iter.hasNext()) {
-		BondRot bRot = (BondRot) iter.next();
+		BondRot bRot = (BondRot) iter.next();		
+		if (handler.getBondRot(bRot.getName())!= null) {
+		    handler.doRotation(handler.getBondRot(bRot.getName()), bRot.getCurrentAngle());
+		    handler.updateCoords(handler.getBondRot(bRot.getName()));
+		    handler.getBondRot(bRot.getName()).setCurrentAngle(bRot.getCurrentAngle());
+		}
 		//System.out.println("hyp bondRot: " + bRot + ", " + bRot.getCurrentAngle());
 		//rotJList.setSelectedValue(rotMap.get(bRot.getName()), false);
-		setAngle(bRot.getName(), bRot.getCurrentAngle());
+		//setAngle(bRot.getName(), bRot.getCurrentAngle());
 		//kCanvas.repaint();
 		//pause();
 	    }
@@ -348,9 +353,16 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 
     public void actionPerformed(ActionEvent ev) {
 	//System.out.println("Hello");
+	valueChanging = true;
 	double ang = Double.parseDouble(angField.getText());
-	setAngle(((BondRot) rotJList.getSelectedValue()).getName(), ang);
+	handler.doRotation(oldRot, ang);
+	handler.updateCoords(oldRot);
+	oldRot.setCurrentAngle(ang);
+	rotDial.setDegrees(oldRot.getCurrentAngle());
+	//setAngle(((BondRot) rotJList.getSelectedValue()).getName(), ang);
 	angField.setText("");
+	valueChanging = false;
+	kCanvas.repaint();
     }
 
     public void mageHypertextHit(String link) {
@@ -358,10 +370,14 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 	Iterator iter = list.iterator();
 	while (iter.hasNext()) {
 	    BondRot bRot = (BondRot) iter.next();
+	    handler.doRotation(handler.getBondRot(bRot.getName()), bRot.getCurrentAngle());
+	    handler.updateCoords(handler.getBondRot(bRot.getName()));
+	    
+
 	    //System.out.println("hyp bondRot: " + bRot + ", " + bRot.getCurrentAngle());
 	    //rotJList.setSelectedValue(rotMap.get(bRot.getName()), false);
-	    setAngle(bRot.getName(), bRot.getCurrentAngle());
-	    //kCanvas.repaint();
+	    //setAngle(bRot.getName(), bRot.getCurrentAngle());
+	    kCanvas.repaint();
 	    //pause();
 	}
     }
@@ -378,15 +394,15 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
     }
 
     public void debugSet() {
-	Iterator iter = origSet.iterator();
-	while (iter.hasNext()) {
-	    RNATriple temp = (RNATriple) iter.next();
-	    System.out.println(temp);
-	}
+	//Iterator iter = origSet.iterator();
+	//while (iter.hasNext()) {
+	//    RNATriple temp = (RNATriple) iter.next();
+	//    System.out.println(temp);
+	//}
     }
 
     public void debug() {
-
+	/*
 	setAngle("-1 delta", 147.0);
 	//doRotation();
 	setAngle("-1 c-c4*-o4*-c", -2.25);
@@ -411,7 +427,7 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 	//doRotation();
 	setAngle("c-c2*-c1*-o", -26.2);
 	//doRotation();
-
+	*/
 	/*
 	BondRot[] bondRots = new BondRot[dialMap.size()];
 	Iterator iter = (dialMap.values()).iterator();
