@@ -206,7 +206,7 @@ public class EDMapPlugin extends Plugin implements PropertyChangeListener, ListS
     }
 //}}}
 
-//{{{ getToolsMenuItem
+//{{{ getToolsMenuItem, toString
 //##################################################################################################
     /**
     * Creates a new JMenuItem to be displayed in the Tools menu,
@@ -221,8 +221,11 @@ public class EDMapPlugin extends Plugin implements PropertyChangeListener, ListS
     */
     public JMenuItem getToolsMenuItem()
     {
-        return new JMenuItem(new ReflectiveAction("Open electron density maps...", null, this, "onOpenMap"));
+        return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onOpenMap"));
     }
+    
+    public String toString()
+    { return "Electron density maps"; }
 //}}}
 
 //{{{ getHelpMenuItem, getHelpAnchor
@@ -242,7 +245,7 @@ public class EDMapPlugin extends Plugin implements PropertyChangeListener, ListS
     */
     public JMenuItem getHelpMenuItem()
     {
-        return new JMenuItem(new ReflectiveAction("Electron density maps", null, this, "onHelp"));
+        return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onHelp"));
     }
     
     public String getHelpAnchor()

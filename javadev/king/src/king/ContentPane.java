@@ -37,6 +37,18 @@ public class ContentPane extends JPanel // implements ...
     {
         super(new BorderLayout());
         kMain = kmain;
+        
+        // Set up keystrokes for animations
+        ActionMap am = this.getActionMap();
+        InputMap im = this.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_A , 0), "anim1fwd" );
+        am.put("anim1fwd", new ReflectiveAction(null, null, this, "onAnimForward" ) );
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_A , KeyEvent.SHIFT_MASK), "anim1back" );
+        am.put("anim1back", new ReflectiveAction(null, null, this, "onAnimBackward" ) );
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_B , 0), "anim2fwd" );
+        am.put("anim2fwd", new ReflectiveAction(null, null, this, "onAnim2Forward" ) );
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_B , KeyEvent.SHIFT_MASK), "anim2back" );
+        am.put("anim2back", new ReflectiveAction(null, null, this, "onAnim2Backward" ) );
     }
 //}}}
 
@@ -129,11 +141,6 @@ public class ContentPane extends JPanel // implements ...
         JLabel clipLabel = new JLabel("Clipping"); 
         JSlider clipSlider = new JSlider(kMain.getCanvas().getClipModel());
         
-        JButton backButton = new JButton(new ReflectiveAction(null, kMain.prefs.stepBackIcon, this, "onAnimBackward"));
-        backButton.setToolTipText("Step backward one frame in the current animation");
-        JButton fwdButton = new JButton(new ReflectiveAction(null, kMain.prefs.stepForwardIcon, this, "onAnimForward"));
-        fwdButton.setToolTipText("Step forward one frame in the current animation");
-        
         JButton hierarchyButton = new JButton(new ReflectiveAction("Show hierarchy", null, this, "onShowHierarchy"));
         hierarchyButton.setToolTipText("Show an editable tree view of the kinemage");
         
@@ -146,13 +153,6 @@ public class ContentPane extends JPanel // implements ...
         bottomPane.gbc.insets = new Insets(0, 1, 0, 3); //TLBR
         bottomPane.add(zoomSlider, 1, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, 1.0, 0.0);
         bottomPane.add(clipSlider, 1, 1, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, 1.0, 0.0);
-        // animate buttons
-        bottomPane.gbc.insets = new Insets(1, 3, 1, 3); //TLBR
-        bottomPane.add(new JLabel("Animate"), 5, 1, 2, 1);
-        bottomPane.gbc.insets = new Insets(0, 3, 0, 1); //TLBR
-        bottomPane.add(backButton, 5, 0);
-        bottomPane.gbc.insets = new Insets(0, 1, 0, 3); //TLBR
-        bottomPane.add(fwdButton, 6, 0);
         // pickcenter and markers
         bottomPane.gbc.insets = new Insets(0, 3, 0, 3); //TLBR
         bottomPane.gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -176,7 +176,39 @@ public class ContentPane extends JPanel // implements ...
 //##################################################################################################
     public void setButtons(Component c)
     {
-        buttonScroll.setViewportView(c);
+        KingPrefs prefs = kMain.getPrefs();
+        Kinemage kin = kMain.getKinemage();
+        if(kin == null || prefs == null)
+        {
+            buttonScroll.setViewportView(c);
+            return;
+        }
+        
+        TablePane2 cp = new TablePane2();
+        cp.hfill(true).vfill(true).insets(0).addCell(c,2,1).newRow();
+        cp.weights(1,0).insets(1).memorize();
+        if(kin.hasAnimateGroups())
+        {
+            JButton backButton = new JButton(new ReflectiveAction(null, prefs.stepBackIcon, this, "onAnimBackward"));
+            backButton.setToolTipText("Step backward one frame in the main animation");
+            JButton fwdButton = new JButton(new ReflectiveAction(null, prefs.stepForwardIcon, this, "onAnimForward"));
+            fwdButton.setToolTipText("Step forward one frame in the main animation");
+            cp.addCell(cp.strut(0,8),2,1).newRow();
+            cp.center().addCell(new JLabel("Animate"),2,1).newRow();
+            cp.right().addCell(backButton).left().addCell(fwdButton).newRow();
+        }
+        if(kin.has2AnimateGroups())
+        {
+            JButton backButton = new JButton(new ReflectiveAction(null, prefs.stepBackIcon, this, "onAnim2Backward"));
+            backButton.setToolTipText("Step backward one frame in the secondary animation");
+            JButton fwdButton = new JButton(new ReflectiveAction(null, prefs.stepForwardIcon, this, "onAnim2Forward"));
+            fwdButton.setToolTipText("Step forward one frame in the secondary animation");
+            cp.addCell(cp.strut(0,8),2,1).newRow();
+            cp.center().addCell(new JLabel("2-Animate"),2,1).newRow();
+            cp.right().addCell(backButton).left().addCell(fwdButton).newRow();
+        }
+        
+        buttonScroll.setViewportView(cp);
         
         // Makes sure that the brushed metal look appears on OS X.
         // java.swing.Boxes apparently don't draw their background correctly.
@@ -188,28 +220,38 @@ public class ContentPane extends JPanel // implements ...
     }
 //}}}
 
-//{{{ onAnimForward, onAnimBackward, onShowHierarchy
+//{{{ onAnim(2)Forward, onAnim(2)Backward, onShowHierarchy
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onAnimForward(ActionEvent ev)
     {
         Kinemage k = kMain.getKinemage();
-        if(k != null)
-        {
-            AnimationGroup a = k.getCurrentAnimation();
-            if(a != null) a.forward();
-        }
+        if(k != null) k.animate(1);
+        kMain.getCanvas().repaint();
     }
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onAnimBackward(ActionEvent ev)
     {
         Kinemage k = kMain.getKinemage();
-        if(k != null)
-        {
-            AnimationGroup a = k.getCurrentAnimation();
-            if(a != null) a.backward();
-        }
+        if(k != null) k.animate(-1);
+        kMain.getCanvas().repaint();
+    }
+    
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onAnim2Forward(ActionEvent ev)
+    {
+        Kinemage k = kMain.getKinemage();
+        if(k != null) k.animate2(1);
+        kMain.getCanvas().repaint();
+    }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onAnim2Backward(ActionEvent ev)
+    {
+        Kinemage k = kMain.getKinemage();
+        if(k != null) k.animate2(-1);
+        kMain.getCanvas().repaint();
     }
     
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME

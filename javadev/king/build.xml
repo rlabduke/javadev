@@ -108,6 +108,7 @@
             <exclude name="build/"/>
             <exclude name="dist/"/>
             <exclude name="**/old/"/>
+            <exclude name="doc/nodist/"/>
         </fileset>
     </copy>
 </target>
@@ -122,6 +123,7 @@
             <include name="LICENSE*"/>
             <include name="doc/"/>
             <exclude name="doc/work/"/>
+            <exclude name="doc/nodist/"/>
         </fileset>
     </copy>
 </target>

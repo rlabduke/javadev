@@ -39,14 +39,9 @@ public class UIMenus //extends ... implements ...
     PointFinder finder;
     ViewEditor viewEditor;
     
-    // Timers, etc for auto-xxx functions
-    javax.swing.Timer autoAnimTimer = null;
-    
     // Elements of menus that get rebuilt frequently
     JMenu oldViewMenu = null;
-    JMenu oldAnimMenu = null;
     JMenu toolsMenu;
-    JCheckBoxMenuItem autoAnimMenuItem = null;
 //}}}
     
 //{{{ Constructor, getMenuBar()
@@ -81,10 +76,6 @@ public class UIMenus //extends ... implements ...
 
         finder = new PointFinder(kMain);
         viewEditor = new ViewEditor(kMain);
-        
-        autoAnimTimer = new javax.swing.Timer(kMain.prefs.getInt("autoAnimateDelay"), new ReflectiveAction(null, null, this, "onAnimForward"));
-        autoAnimTimer.setRepeats(true);
-        autoAnimTimer.setCoalesce(true);
 
         buildMenus();
     }
@@ -200,9 +191,6 @@ public class UIMenus //extends ... implements ...
         
         // Views menu
         rebuildViewsMenu(null);
-        
-        // Animations menu
-        rebuildAnimationsMenu(null);
         
         // Display menu
         displayMenu = new UIDisplayMenu(kMain);
@@ -327,73 +315,6 @@ public class UIMenus //extends ... implements ...
     }
 //}}}
 
-//{{{ rebuildAnimationsMenu
-//##################################################################################################
-    /**
-    * Creates a new Animations menu from the specified iterator of AnimationGroup objects
-    * @param animiter Iterator of AnimationGroups, or null for an empty menu
-    */
-    public void rebuildAnimationsMenu(Iterator animiter)
-    {
-        JMenu menu = new JMenu("Animations");
-        menu.setMnemonic(KeyEvent.VK_A);
-        JMenuItem item;
-        JRadioButtonMenuItem ritem;
-        ButtonGroup rgroup = new ButtonGroup();
-
-        if(animiter != null)
-        {
-            item = new JMenuItem(new ReflectiveAction("Step forward", null, this, "onAnimForward"));
-            item.setMnemonic(KeyEvent.VK_F);
-            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0)); // 0 => no modifiers
-            menu.add(item);
-            item = new JMenuItem(new ReflectiveAction("Step backward", null, this, "onAnimBackward"));
-            item.setMnemonic(KeyEvent.VK_B);
-            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.SHIFT_MASK));
-            menu.add(item);
-            autoAnimMenuItem = new JCheckBoxMenuItem(new ReflectiveAction("Auto-animate", null, this, "onAnimAutoStartStop"));
-            autoAnimMenuItem.setMnemonic(KeyEvent.VK_A);
-            autoAnimMenuItem.setSelected(autoAnimTimer.isRunning());
-            menu.add(autoAnimMenuItem);
-            menu.addSeparator();
-            
-            for(int i = 1; animiter.hasNext(); i++)
-            {
-                AnimationGroup anim = (AnimationGroup)animiter.next();
-                ritem = new JRadioButtonMenuItem(new ReflectiveAction((i+" "+anim.toString()), null, anim, "selectedFromMenu"));
-                rgroup.add(ritem);
-                menu.add(ritem);
-            }
-        }
-        else
-        {
-            item = new JMenuItem("No animations available");
-            // do this or there's a big memory leak (why?)
-            // probably links back to parent menu, which
-            // linked to AnimationGroups in the kinemage
-            autoAnimMenuItem = null;
-            item.setEnabled(false);
-            menu.add(item);
-        }
-        
-        if(oldAnimMenu != null)
-        {
-            int animIndex = menubar.getComponentIndex(oldAnimMenu);
-            menubar.remove(oldAnimMenu);
-            menubar.add(menu, animIndex);
-        }
-        else
-        {
-            menubar.add(menu);
-        }
-        
-        // This step is ESSENTIAL for the menu to appear & keep working!
-        menubar.revalidate();
-        
-        oldAnimMenu = menu;
-    }
-//}}}
-
 //{{{ rebuildToolsMenu
 //##################################################################################################
     public void rebuildToolsMenu()
@@ -428,6 +349,10 @@ public class UIMenus //extends ... implements ...
                 tb.addPluginsToToolsMenu(menu);
             }
         }
+        menu.addSeparator();
+        item = new JMenuItem(new ReflectiveAction("Customize this menu...", null, this, "onEditConfigurePlugins"));
+        item.setMnemonic(KeyEvent.VK_C);
+        menu.add(item);
     }
 //}}}
 
@@ -691,6 +616,13 @@ public class UIMenus //extends ... implements ...
         PrefsEditor prefsEditor = new PrefsEditor(kMain);
         prefsEditor.edit();
     }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onEditConfigurePlugins(ActionEvent ev)
+    {
+        PrefsEditor prefsEditor = new PrefsEditor(kMain);
+        prefsEditor.editPlugins();
+    }
 //}}}
 
 //{{{ onViewXXX handlers
@@ -719,48 +651,6 @@ public class UIMenus //extends ... implements ...
     public void onViewEdit(ActionEvent ev)
     {
         viewEditor.editViews();
-    }
-//}}}
-
-//{{{ onAnimXXX handlers
-//##################################################################################################
-//### "Animation" functions ########################################################################
-//##################################################################################################
-    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onAnimForward(ActionEvent ev)
-    {
-        Kinemage k = kMain.getKinemage();
-        if(k != null)
-        {
-            AnimationGroup a = k.getCurrentAnimation();
-            if(a != null) a.forward();
-        }
-    }
-
-    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onAnimBackward(ActionEvent ev)
-    {
-        Kinemage k = kMain.getKinemage();
-        if(k != null)
-        {
-            AnimationGroup a = k.getCurrentAnimation();
-            if(a != null) a.backward();
-        }
-    }
-
-    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onAnimAutoStartStop(ActionEvent ev)
-    {
-        Kinemage k = kMain.getKinemage();
-        if(k != null)
-        {
-            AnimationGroup a = k.getCurrentAnimation();
-            if(a != null)
-            {
-                if(autoAnimMenuItem.isSelected())   autoAnimTimer.start();
-                else                                autoAnimTimer.stop();
-            }
-        }
     }
 //}}}
 
@@ -901,12 +791,10 @@ public class UIMenus //extends ... implements ...
             if(kin != null)
             {
                 rebuildViewsMenu(kin.getViewIterator());
-                rebuildAnimationsMenu(kin.getAnimationIterator());
             }
             else
             {
                 rebuildViewsMenu(null);
-                rebuildAnimationsMenu(null);
             }
             displayMenu.rebuildAspectsMenu();
             finder.clearSearch();

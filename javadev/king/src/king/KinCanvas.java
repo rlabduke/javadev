@@ -138,6 +138,10 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
         // Arrow keys do Y-rotation (for Bryan)
         ActionMap am = this.getActionMap();
         InputMap  im = this.getInputMap(JComponent.WHEN_FOCUSED);
+        // This version doesn't work, for unknown reasons.
+        //JComponent contentPane = kMain.getContentPane();
+        //ActionMap am = contentPane.getActionMap();
+        //InputMap im = contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         Action arrowUp    = new ReflectiveAction("", null, toolbox, "onArrowUp" );
         Action arrowDown  = new ReflectiveAction("", null, toolbox, "onArrowDown" );
         Action arrowLeft  = new ReflectiveAction("", null, toolbox, "onArrowLeft" );

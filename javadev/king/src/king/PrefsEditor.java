@@ -164,7 +164,7 @@ public class PrefsEditor //extends ... implements ...
     }
 //}}}
 
-//{{{ edit
+//{{{ edit, editPlugins
 //##################################################################################################
     public void edit()
     {
@@ -173,6 +173,14 @@ public class PrefsEditor //extends ... implements ...
         dialog.setLocationRelativeTo(kMain.getTopWindow());
         dialog.setVisible(true);
         // remember, execution of this thread stops here until dialog is closed
+    }
+    
+    public void editPlugins()
+    {
+        int index = tabPane.indexOfTab("Plugins");
+        if(index != -1)
+            tabPane.setSelectedIndex(index);
+        this.edit();
     }
 //}}}
 
