@@ -23,3 +23,4 @@ king.tool.xtal.GuilloTool
 king.tool.xtal.SuiteRotationTool
 king.tool.util.FastaTool
 king.tool.util.RecolorTool
+king.tool.util.AutoBondRotDataTool
