@@ -13,7 +13,7 @@ import javax.swing.*;
 import driftwood.util.SoftLog;
 //}}}
 /**
-* <code>TablePane</code> is a second-generation tool for
+* <code>TablePane2</code> is a second-generation tool for
 * simplifying the task of hand-coding a GUI.
 * It is closely modeled on HTML tables, which are a very
 * flexible tool, particularly when nested.
@@ -21,33 +21,33 @@ import driftwood.util.SoftLog;
 *
 * <p>Nesting is simplified by the <code>startSubtable</code> and
 * <code>endSubtable</code> functions.
-* When a subtable is started, a new TablePane object is created.
-* The current TablePane is then connected to the new TablePane,
+* When a subtable is started, a new TablePane2 object is created.
+* The current TablePane2 is then connected to the new TablePane2,
 * and its methods "pass through" to the subtable until
 * <code>endSubtable</code> is called.
 * Subtables do not inherit the layout properties of their parents.
 *
 * <p>Changes to the layout (e.g. weights(), insets(), center())
-* persist from component to component within the current table.
-* Use save() and restore() to make one-time changes.
+* apply only to the next component added to the current table!
+* Use memorize() to make persistent changes.
 *
 * <p>This class is geared toward relatively static layouts,
 * and may not be as useful in designing layouts that change frequently.
 *
-* <p>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
+* <p>Copyright (C) 2002-2004 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Dec 18 14:25:54 EST 2002
 */
-public class TablePane extends JPanel // implements ...
+public class TablePane2 extends JPanel // implements ...
 {
 //{{{ Constants
 //}}}
 
 //{{{ Variable definitions
 //##################################################################################################
-    TablePane           subtable;
+    TablePane2          subtable;
     GridBagLayout       layout;
-    GridBagConstraints  gbc;
-    LinkedList          gbcStack;
+    GridBagConstraints  gbc; // current settings
+    GridBagConstraints  gbcDefault;
     /** these are the real x,y coordinates, b/c we don't want them saved on the stack */
     int                 gridx, gridy;
     /** Map&lt;Point, Component&gt; used to determine if a given table cell is occupied. */
@@ -69,7 +69,7 @@ public class TablePane extends JPanel // implements ...
     * <li>Each cell has external padding (insets) of 2 pixels on all sides, and no internal padding</li>
     * </ul>
     */
-    public TablePane()
+    public TablePane2()
     {
         super();
         
@@ -85,11 +85,11 @@ public class TablePane extends JPanel // implements ...
         gbc.insets  = new Insets(2,2,2,2);
         gbc.ipadx   = 0;
         gbc.ipady   = 0;
+        this.memorize(); // makes these the defaults
         
         gridx   = 0;
         gridy   = 0;
         
-        gbcStack = new LinkedList();
         occupants = new HashMap();
     }
 //}}}
@@ -103,17 +103,17 @@ public class TablePane extends JPanel // implements ...
     * be nested arbitrarily deep.
     * @return <code>this</code> (for chaining)
     */
-    public TablePane startSubtable()
+    public TablePane2 startSubtable()
     {
         return startSubtable(1, 1);
     }
 
-    public TablePane startSubtable(int gridwidth, int gridheight)
+    public TablePane2 startSubtable(int gridwidth, int gridheight)
     {
         if(subtable != null) subtable.startSubtable(gridwidth, gridheight);
         else
         {
-            TablePane tp = new TablePane();
+            TablePane2 tp = new TablePane2();
             this.add(tp, gridwidth, gridheight);
             subtable = tp;
         }
@@ -125,7 +125,7 @@ public class TablePane extends JPanel // implements ...
     * @return <code>this</code> (for chaining)
     * @throws UnsupportedOperationException if there are no active subtables 
     */
-    public TablePane endSubtable()
+    public TablePane2 endSubtable()
     {
         if(subtable == null)                throw new UnsupportedOperationException("No subtable exists");
         else if(subtable.subtable == null)  subtable = null;
@@ -143,11 +143,11 @@ public class TablePane extends JPanel // implements ...
     { return (subtable != null); }
     
     /**
-    * Returns the current TablePane that will be affected
+    * Returns the current TablePane2 that will be affected
     * by function calls on this object (i.e., the active
     * subtable). If there are no subtables, returns <code>this</code>.
     */
-    public TablePane getCurrent()
+    public TablePane2 getCurrent()
     {
         if(subtable != null) return subtable.getCurrent();
         else return this;
@@ -160,7 +160,7 @@ public class TablePane extends JPanel // implements ...
     * Adds the specified component at the end of the current row.
     * @return <code>this</code> (for chaining)
     */
-    public TablePane addCell(Component c)
+    public TablePane2 addCell(Component c)
     {
         add(c);
         return this;
@@ -171,7 +171,7 @@ public class TablePane extends JPanel // implements ...
     * It will occupy gridwidth columns and gridheight rows.
     * @return <code>this</code> (for chaining)
     */
-    public TablePane addCell(Component c, int gridwidth, int gridheight)
+    public TablePane2 addCell(Component c, int gridwidth, int gridheight)
     {
         add(c, gridwidth, gridheight);
         return this;
@@ -208,6 +208,7 @@ public class TablePane extends JPanel // implements ...
             gbc.gridheight  = Math.max(1, gridheight);
             
             Component ret = addWithConstraints(c, gbc);
+            gbc = (GridBagConstraints) gbcDefault.clone();
             
             markCellsAsOccupied(c, gbc);
             gridx++;
@@ -264,7 +265,7 @@ public class TablePane extends JPanel // implements ...
     * Skips the current cell (leaves it empty).
     * @return <code>this</code> (for chaining)
     */
-    public TablePane skip()
+    public TablePane2 skip()
     {
         if(subtable != null) subtable.skip();
         else gridx++;
@@ -276,7 +277,7 @@ public class TablePane extends JPanel // implements ...
     * All subsequently added components will be on the new row.
     * @return <code>this</code> (for chaining)
     */
-    public TablePane newRow()
+    public TablePane2 newRow()
     {
         if(subtable != null) subtable.newRow();
         else
@@ -289,7 +290,7 @@ public class TablePane extends JPanel // implements ...
     
     /** CAN'T WORK TILL WE WRITE ADD & REMOVE!!
     * Replaces <code>oldComp</code> with <code>newComp</code>,
-    * assuming <code>oldComp</code> is found in a TablePane.
+    * assuming <code>oldComp</code> is found in a TablePane2.
     * Use <code>null</code> for <code>newComp</code> to
     * remove <code>oldComp</code>.
     *
@@ -300,9 +301,9 @@ public class TablePane extends JPanel // implements ...
         if(oldComp == null) return false;
         
         Container cont = oldComp.getParent();
-        if(cont == null | !(cont instanceof TablePane)) return false;
+        if(cont == null | !(cont instanceof TablePane2)) return false;
         
-        TablePane tp = (TablePane)cont;
+        TablePane2 tp = (TablePane2)cont;
         GridBagConstraints constr = tp.layout.getConstraints(oldComp);
         tp.remove(oldComp);
         
@@ -313,28 +314,16 @@ public class TablePane extends JPanel // implements ...
     }*/
 //}}}
 
-//{{{ save, restore
+//{{{ memorize
 //##################################################################################################
     /**
-    * Pushes the current alignment, insets, etc. onto a stack.
+    * Makes the current alignment, insets, etc. the new default for this table.
     * @return <code>this</code> (for chaining)
     */
-    public TablePane save()
+    public TablePane2 memorize()
     {
-        if(subtable != null) subtable.save();
-        else gbcStack.addLast(gbc.clone());
-        return this;
-    }
-    
-    /**
-    * Restores alignment, insets, etc. saved with <code>save()</code>.
-    * @return <code>this</code> (for chaining)
-    * @throws NoSuchElementException if nothing has been saved on the stack.
-    */
-    public TablePane restore()
-    {
-        if(subtable != null) subtable.restore();
-        else gbc = (GridBagConstraints)gbcStack.removeLast();
+        if(subtable != null) subtable.memorize();
+        else gbcDefault = (GridBagConstraints) gbc.clone();
         return this;
     }
 //}}}
@@ -347,7 +336,7 @@ public class TablePane extends JPanel // implements ...
     * during layout.
     * @return <code>this</code> (for chaining)
     */
-    public TablePane weights(double wx, double wy)
+    public TablePane2 weights(double wx, double wy)
     {
         if(subtable != null) subtable.weights(wx, wy);
         else
@@ -363,7 +352,7 @@ public class TablePane extends JPanel // implements ...
     * that surround components.
     * @return <code>this</code> (for chaining)
     */
-    public TablePane insets(int top, int left, int bottom, int right)
+    public TablePane2 insets(int top, int left, int bottom, int right)
     {
         if(subtable != null) subtable.insets(top, left, bottom, right);
         else
@@ -374,7 +363,7 @@ public class TablePane extends JPanel // implements ...
     }
     
     /** Sets the insets symmetrically. */
-    public TablePane insets(int tlbr)
+    public TablePane2 insets(int tlbr)
     {
         return insets(tlbr, tlbr, tlbr, tlbr);
     }
@@ -385,7 +374,7 @@ public class TablePane extends JPanel // implements ...
     * addition to its <code>minimumSize</code>.
     * @return <code>this</code> (for chaining)
     */
-    public TablePane pad(int px, int py)
+    public TablePane2 pad(int px, int py)
     {
         if(subtable != null) subtable.pad(px, py);
         else
@@ -397,7 +386,7 @@ public class TablePane extends JPanel // implements ...
     }
     
     /** Sets the padding symmetrically. */
-    public TablePane pad(int pxy)
+    public TablePane2 pad(int pxy)
     {
         return pad(pxy, pxy);
     }
@@ -410,7 +399,7 @@ public class TablePane extends JPanel // implements ...
     * the horizontal space allocated to them.
     * @return <code>this</code> (for chaining)
     */
-    public TablePane hfill(boolean h)
+    public TablePane2 hfill(boolean h)
     {
         if(subtable != null) subtable.hfill(h);
         else fill(h, isVfill());
@@ -422,7 +411,7 @@ public class TablePane extends JPanel // implements ...
     * the vertical space allocated to them.
     * @return <code>this</code> (for chaining)
     */
-    public TablePane vfill(boolean v)
+    public TablePane2 vfill(boolean v)
     {
         if(subtable != null) subtable.vfill(v);
         else fill(isHfill(), v);
@@ -457,7 +446,7 @@ public class TablePane extends JPanel // implements ...
 //{{{ left, center, right, top, middle, bottom, etc.
 //##################################################################################################
     /** Sets horizontal alignment to left. */
-    public TablePane left()
+    public TablePane2 left()
     {
         if(subtable != null) subtable.left();
         else align(0, getValignment());
@@ -465,7 +454,7 @@ public class TablePane extends JPanel // implements ...
     }
     
     /** Sets horizontal alignment to center. */
-    public TablePane center()
+    public TablePane2 center()
     {
         if(subtable != null) subtable.center();
         else align(1, getValignment());
@@ -473,7 +462,7 @@ public class TablePane extends JPanel // implements ...
     }
     
     /** Sets horizontal alignment to right. */
-    public TablePane right()
+    public TablePane2 right()
     {
         if(subtable != null) subtable.right();
         else align(2, getValignment());
@@ -481,7 +470,7 @@ public class TablePane extends JPanel // implements ...
     }
     
     /** Sets vertical alignment to top. */
-    public TablePane top()
+    public TablePane2 top()
     {
         if(subtable != null) subtable.top();
         else align(getHalignment(), 0);
@@ -489,7 +478,7 @@ public class TablePane extends JPanel // implements ...
     }
     
     /** Sets vertical alignment to middle. */
-    public TablePane middle()
+    public TablePane2 middle()
     {
         if(subtable != null) subtable.middle();
         else align(getHalignment(), 1);
@@ -497,7 +486,7 @@ public class TablePane extends JPanel // implements ...
     }
     
     /** Sets vertical alignment to bottom. */
-    public TablePane bottom()
+    public TablePane2 bottom()
     {
         if(subtable != null) subtable.bottom();
         else align(getHalignment(), 2);

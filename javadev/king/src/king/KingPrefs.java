@@ -15,9 +15,9 @@ import driftwood.util.*;
 /**
 * <code>KingPrefs</code> holds information about the preferrences of
 * the user running this instance of KiNG.
-* For documentation of the available options, see resource/king_prefs.
+* For documentation of the available options, see resource/king/king_prefs.
 *
-* <p>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
+* <p>Copyright (C) 2002-2004 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri Jun 21 09:10:40 EDT 2002
 */
 public class KingPrefs extends Props // implements ...
@@ -26,15 +26,15 @@ public class KingPrefs extends Props // implements ...
 //##################################################################################################
     static final String PROPS_HEADER =
         "#\n"+
-        "# This file contains all the settings used by KiNG, and all\n"+
-        "# the parameters are set to their default values. Edit this\n"+
-        "# file as necessary to customize the program's behavior.\n"+
+        "# This file contains your customized settings for running KiNG.\n"+
+        "# Place this in your home directory, or in an applet's\n"+
+        "# <PARAM name='king_prefs' value='url/path/to/king.prefs'> tag.\n"+
+        "# KiNG must be restarted for changes to take effect.\n"+
         "#\n"+
-        "# Place this in your home directory or the current directory.\n"+
-        "# A local file will override the one in the home directory.\n"+
-        "# KiNG must be restarted for changes to take effect, and only\n"+
-        "# applications (NOT applets in web pages) will be affected.\n"+
-        "#\n";
+        "# For more information on all the possible properties that can be set,\n"+
+        "# including some which cannot be accessed from the GUI,\n"+
+        "# see the sample .king_prefs in the doc/ folder of your KiNG distribution.\n"+
+        "#"; // store() adds a newline for us
 //}}}
 
 //{{{ Variable definitions
@@ -88,8 +88,12 @@ public class KingPrefs extends Props // implements ...
         // Self-awareness
         jarFileDirectory = locateJarFile();
         
-        // Settings
-        loadFromJar();
+        // Default settings
+        Props defaults = new Props();
+        loadFromJar(defaults);
+        this.setDefaults(defaults);
+        
+        // User settings
         loadFromFile();
         
         // Resources
@@ -147,24 +151,36 @@ public class KingPrefs extends Props // implements ...
 //{{{ loadFromJar, loadFromFile, loadFromURL
 //##################################################################################################
     /** Returns true on success, false on failure */
-    public boolean loadFromJar()
+    boolean loadFromJar(Properties loadInto)
     {
         try
         {
             // Defaults from JAR file:
-            InputStream is = this.getClass().getResourceAsStream("king_prefs");
-            this.load(is);
-            is.close();
+            ClassLoader loader = this.getClass().getClassLoader();
+            Enumeration urls = loader.getResources("king/king_prefs"); // no leading slash
+            while(urls.hasMoreElements())
+            {
+                try
+                {
+                    InputStream is = ((URL)urls.nextElement()).openStream();
+                    loadInto.load(is);
+                    is.close();
+                }
+                catch(IOException ex)
+                { SoftLog.err.println("Preferences loading error: "+ex.getMessage()); }
+            }
             
-            // Defaults that shouldn't be written to ~/.king_prefs (!!!)
-            Props p = new Props();
-            is = this.getClass().getResourceAsStream("version.props");
-            p.load(is);
+            // Old, single file code:
+            //InputStream is = this.getClass().getResourceAsStream("king_prefs");
+            //loadInto.load(is);
+            //is.close();
+            
+            InputStream is = this.getClass().getResourceAsStream("version.props");
+            loadInto.load(is);
             is.close();
             is = this.getClass().getResourceAsStream("buildnum.props");
-            p.load(is);
+            loadInto.load(is);
             is.close();
-            this.setDefaults(p);
         }
         catch(NullPointerException ex) { ex.printStackTrace(SoftLog.err); return false; }
         catch(IOException ex) { ex.printStackTrace(SoftLog.err); return false; }
@@ -218,6 +234,7 @@ public class KingPrefs extends Props // implements ...
     /** Returns true on success, false on failure */
     public boolean storeToFile()
     {
+        this.minimizeDifferences(); // store only changes from the defaults
         try
         {
             // Home directory: .king_prefs

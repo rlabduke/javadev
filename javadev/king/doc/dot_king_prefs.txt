@@ -80,6 +80,25 @@ showHelperOutput    = false
 helperTimeout       = 5
 
 ######################################################################
+### TOOL MENU PLACEMENT ##############################################
+######################################################################
+
+king.EDMapPlugin.menuName = Struct. biol.
+king.tool.draw.DrawingTool.menuName = Kin editing
+king.tool.draw.SolidObjPlugin.menuName = Kin editing
+king.tool.model.HingeTool.menuName = Struct. biol.
+king.tool.model.ModelManager2.menuName = Struct. biol.
+king.tool.model.ScRotTool.menuName = Struct. biol.
+king.tool.model.ScMutTool.menuName = Struct. biol.
+king.tool.util.CrossWindowPickTool.menuName = Specialty
+king.tool.util.Dock3On3Tool.menuName = Kin editing
+king.tool.util.DockLsqTool.menuName = Kin editing
+king.tool.util.EditPropertiesTool.menuName = <main menu>
+king.tool.util.MovePointTool.menuName = Kin editing
+king.tool.util.ViewpointPlugin.menuName = <main menu>
+king.tool.xtal.RNAMapTool.menuName = Specialty
+
+######################################################################
 ### PROTECTION AND CONFIRMATION ######################################
 ######################################################################
 

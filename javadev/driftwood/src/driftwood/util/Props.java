@@ -62,6 +62,32 @@ public class Props extends Properties // implements ...
     }
 //}}}
 
+//{{{ minimizeDifferences
+//##################################################################################################
+    /**
+    * Removes properties from this object that match with the values
+    * in its "defaults" delegate.
+    * Afterwards, this object contains only those properties that make
+    * it different from the defaults.
+    * If no defaults have been specified, no action is taken.
+    */
+    public void minimizeDifferences()
+    {
+        Properties def = getDefaults();
+        if(def == null) return;
+        
+        for(Iterator iter = keySet().iterator(); iter.hasNext(); )
+        {
+            String key = (String) iter.next();
+            String defVal = def.getProperty(key);
+            String curVal = this.getProperty(key);
+            if((curVal == null && defVal == null)
+            || (curVal != null && curVal.equals(defVal)))
+                iter.remove();
+        }
+    }
+//}}}
+
 //{{{ hasProperty()
 //##################################################################################################
     /**
