@@ -107,9 +107,9 @@ Contents</A>
 <LI><A NAME="tex2html112"
   HREF="king-manual.html#SECTION00362000000000000000">2.6.2 Exporting vector graphics (PDF, PostScript, etc.)</A>
 <LI><A NAME="tex2html113"
-  HREF="king-manual.html#SECTION00363000000000000000">2.6.3 Exporting as XML</A>
+  HREF="king-manual.html#SECTION00363000000000000000">2.6.3 Exporting for POV-Ray</A>
 <LI><A NAME="tex2html114"
-  HREF="king-manual.html#SECTION00364000000000000000">2.6.4 Exporting as VRML</A>
+  HREF="king-manual.html#SECTION00364000000000000000">2.6.4 Deprecated export formats</A>
 </UL>
 </UL>
 <BR>
@@ -793,13 +793,36 @@ there.
 <P>
 
 <H2><A NAME="SECTION00363000000000000000">
-2.6.3 Exporting as XML</A>
+2.6.3 Exporting for POV-Ray</A>
 </H2>
 
 <P>
-<I>This feature now lags far behind the rest of the program in
-functionality; it may not work at all. If you need this capability,
-you are encouraged to contact the author and encourage on-going development.</I>
+KiNG can produce output script files to be fed into the high-quality
+free raytracing program POV-Ray (www.povray.org). POV-Ray can generate
+all kinds of ``photo-realistic'' effects including different materials
+and lighting schemes, simulated depth of field, <I>etc.</I> It is
+also very useful for producing digital movies that may be more convenient
+to use during talks and presentations. (I recommend the inexpensive
+QuickTime Pro from Apple for stitching together all the output images
+into a movie.) The POV file is largely complete as written and includes
+terse hints for rendering, but if you use this feature much you'll
+probably want to learn something about POV-Ray and tweak the scripts
+before rendering them. Most of the things you'll want to change are
+either at the very top (colors, textures, and sizes of things) or
+at the very bottom (camera viewpoint, depth cueing, lighting).
+
+<P>
+
+<H2><A NAME="SECTION00364000000000000000">
+2.6.4 Deprecated export formats</A>
+</H2>
+
+<P>
+<I>These feature now lag far behind the rest of the program in
+functionality; they may not work at all. For this reason, they do
+not appear in the menus by default and must be ``enabled'' under
+the Tools menu. If you need any of these capabilities, you are encouraged
+to contact the author and encourage on-going development.</I>
 
 <P>
 You can export kinemages in XML format using the Kinetic Image Markup
@@ -814,18 +837,12 @@ be useful and convenient. Translation from the modified XML back to
 kinemage format is left as an exercise to the reader ;)
 
 <P>
-
-<H2><A NAME="SECTION00364000000000000000">
-2.6.4 Exporting as VRML</A>
-</H2>
-
-<P>
-KiNG has rudimentary abilities to export its 3-D primitives in VRML97
-(a.k.a. VRML 2.0) format. At present, only dots and balls are exported,
-and they are both rendered as spheres. This feature was intended to
-facilitate the creation of models for rapid prototyping systems. As
-with XML export, contact the author if further development of this
-feature would be useful to you.
+KiNG also has rudimentary abilities to export its 3-D primitives in
+VRML97 (a.k.a. VRML 2.0) format. At present, only dots and balls are
+exported, and they are both rendered as spheres. This feature was
+intended to facilitate the creation of models for rapid prototyping
+systems. As with XML export, contact the author if further development
+of this feature would be useful to you.
 
 <P>
 
@@ -2286,7 +2303,7 @@ for more details on these and other licenses.
 <BR><HR>
 <ADDRESS>
 Ian W. Davis
-2004-10-26
+2004-11-22
 </ADDRESS>
 </BODY>
 </HTML>

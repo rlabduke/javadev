@@ -85,11 +85,12 @@ helperTimeout       = 5
 
 king.BasicTool.menuName = <main menu>
 king.EDMapPlugin.menuName = Structural biology
-king.ImageExport.menuName = <export>
-king.PdfExport.menuName = <export>
-king.PovrayExport.menuName = <export>
-king.Vrml97Writer.menuName = <export>
-king.XknWriter.menuName = <export>
+king.tool.export.ImageExport.menuName = <export>
+king.tool.export.PdfExport.menuName = <export>
+king.tool.export.PovrayExport.menuName = <export>
+# VRML and XML export are not maintained or complete...
+king.tool.export.Vrml97Writer.menuName = <not shown>
+king.tool.export.XknWriter.menuName = <not shown>
 king.tool.draw.DrawingTool.menuName = Kin editing
 king.tool.draw.SolidObjPlugin.menuName = Kin editing
 king.tool.util.CrossWindowPickTool.menuName = Specialty
