@@ -217,7 +217,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	String choice = (String) JOptionPane.showInputDialog(kMain.getTopWindow(),
 							     "How is the data formatted?",
 							     "Choose", JOptionPane.PLAIN_MESSAGE,
-							     null, choices, "phi, psi, angle");
+							     null, choices, "phi, angle, psi");
 	return choice;
     }
 

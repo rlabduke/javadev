@@ -24,31 +24,8 @@ import javax.swing.event.*;
 
 public class RecolorTool extends BasicTool implements ActionListener {
 
-//{{{ Constants
-    /*
-    static final Map AA_ABREV = new HashMap();
-    static {
-	AA_ABREV.put("gly", "G");
-	AA_ABREV.put("ala", "A");
-	AA_ABREV.put("val", "V");
-	AA_ABREV.put("leu", "L");
-	AA_ABREV.put("ile", "I");
-	AA_ABREV.put("met", "M");
-	AA_ABREV.put("pro", "P");
-	AA_ABREV.put("phe", "F");
-	AA_ABREV.put("trp", "W");
-	AA_ABREV.put("ser", "S");
-	AA_ABREV.put("thr", "T");
-	AA_ABREV.put("asn", "N");
-	AA_ABREV.put("gln", "Q");
-	AA_ABREV.put("tyr", "Y");
-	AA_ABREV.put("cys", "C");
-	AA_ABREV.put("lys", "K");
-	AA_ABREV.put("arg", "R");
-	AA_ABREV.put("his", "H");
-	AA_ABREV.put("asp", "D");
-	AA_ABREV.put("glu", "E");
-	}*/
+
+    //{{{ Constants
 
 //}}}
 
@@ -61,8 +38,10 @@ public class RecolorTool extends BasicTool implements ActionListener {
     // sortbyNum is hashmap with Integer resNum as keys, arraylists as values
     //HashMap sortbyNum;
     //HashMap sortedKin;
-    HashMap structMap;
-    HashSet clickedLists;
+    //HashMap structMap;
+    //HashSet clickedLists;
+    HashMap coloratorMap;//AGE as key, colorator as value
+    Recolorator colorator;
 
     JRadioButton chooseColor, colorAll, colorAA;
     JRadioButton colorRegion, hippieMode, spectralMode;
@@ -74,6 +53,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
     Integer lowResNum, highResNum;
 
     String[] aaNames = {"gly", "ala", "ser", "thr", "cys", "val", "leu", "ile", "met", "pro", "phe", "tyr", "trp", "asp", "glu", "asn", "gln", "his", "lys", "arg"};
+
     JComboBox  aaBox;
     JCheckBox  colorPrior;
 
@@ -82,22 +62,26 @@ public class RecolorTool extends BasicTool implements ActionListener {
 
 //}}}
 
+
 //{{{ Constructor(s)
 //##############################################################################
     public RecolorTool(ToolBox tb)
     {
         super(tb);
-	newGroup();
-	clickedLists = new HashSet();
+	//coloratorMap = new HashMap();
+	//colorator = new RecolorNonRibbon();
+	//newGroup();
+	//clickedLists = new HashSet();
 
         //undoStack = new LinkedList();
 	//buildGUI();
     }
 //}}}
 
+
 //{{{ buildGUI
 //##############################################################################
-    private void buildGUI()
+    protected void buildGUI()
     {
         
         dialog = new JDialog(kMain.getTopWindow(),"Recolor", false);
@@ -191,6 +175,8 @@ public class RecolorTool extends BasicTool implements ActionListener {
     public void start() {
 	if (kMain.getKinemage() == null) return;
 	buildGUI();
+	coloratorMap = new HashMap();
+	//colorator = new RecolorNonRibbon();
 	show();
     }
 
@@ -201,6 +187,52 @@ public class RecolorTool extends BasicTool implements ActionListener {
     {
         super.click(x, y, p, ev);
 	if (p != null) {
+	    //colorator = new RecolorNonRibbon();
+	    AGE coloratorKey = (KList) p.getOwner();
+	    //KList parentList = (KList) p.getOwner();
+	    if (coloratorKey.hasMaster("ribbon")) {
+		coloratorKey = (AGE) coloratorKey.getOwner();
+	    }
+	    if (coloratorMap.containsKey(coloratorKey)) {
+		colorator = (Recolorator) coloratorMap.get(coloratorKey);
+	    } else {
+		if (coloratorKey instanceof KSubgroup) {
+		    colorator = new RecolorRibbon();
+		    coloratorMap.put(coloratorKey, colorator);
+		} else {
+		    colorator = new RecolorNonRibbon();
+		    coloratorMap.put(coloratorKey, colorator);
+		}
+	    }
+	    if (!colorator.contains(p)) {
+		colorator.preChangeAnalyses(p);
+	    }
+	    Kinemage k = kMain.getKinemage();
+	    if(k != null) k.setModified(true);
+	    if (colorAll.isSelected()) {
+		int numRes = colorator.numofResidues();
+		colorator.highlightAll(p, createColorArray(numRes));
+	    } else if (colorAA.isSelected()) {
+		colorator.highlightAA(p, (String)aaBox.getSelectedItem(), (KPaint) color1.getSelectedItem(), colorPrior.isSelected());
+	    } else {
+		numberHandler(p);
+		if (!highNumField.getText().equals("")) {
+		    int firstNum = Integer.parseInt(lowNumField.getText());
+		    int secondNum = Integer.parseInt(highNumField.getText());
+		    if (firstNum > secondNum) {
+			int temp = secondNum;
+			secondNum = firstNum;
+			firstNum = temp;
+		    }
+		    colorator.highlightRange(firstNum, secondNum, createColorArray(secondNum-firstNum+1));
+		}
+		
+	    }
+	    
+		//highlightRange(firstNum, secondNum);
+	
+	    //colorator.clickHandler(p);
+	    /*
 	    KList parentList = (KList) p.getOwner();
 	    Integer resNumber = new Integer(getResNumber(p));
 	    if (!structMap.containsKey(resNumber)||!clickedLists.contains(parentList)) {
@@ -219,9 +251,36 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    } else {
 		//highlightRange(p);
 	    }
+	    */
 	}
     }
 //})}
+
+    public void numberHandler(KPoint p) {
+	if (!highNumField.getText().equals("")) {
+	    lowNumField.setText("");
+	    highNumField.setText("");
+	}
+	//KList parentList = (KList) p.getOwner();
+	Integer resNum = new Integer(colorator.getResNumber(p));
+	if(lowNumField.getText().equals("")) {
+	    lowNumField.setText(resNum.toString());
+	} else if (highNumField.getText().equals("")) {
+	    highNumField.setText(resNum.toString());
+	}
+	if (!highNumField.getText().equals("")) {
+	    //System.out.println("coloring");
+	    int firstNum = Integer.parseInt(lowNumField.getText());
+	    int secondNum = Integer.parseInt(highNumField.getText());
+	    if (firstNum > secondNum) {
+		int temp = secondNum;
+		secondNum = firstNum;
+		firstNum = temp;
+	    }
+
+	    //highlightRange(firstNum, secondNum);
+	}
+    }
 
 // event functions
 //###############################################################################################
@@ -260,22 +319,18 @@ public class RecolorTool extends BasicTool implements ActionListener {
 		    secondNum = firstNum;
 		    firstNum = temp;
 		}
-
-		highlightRange(firstNum, secondNum);
+		//int numRes = ((RecolorNonRibbon)colorator).numofResidues();
+		colorator.highlightRange(firstNum, secondNum, createColorArray(secondNum-firstNum+1));
 	    } else if (textPane != null) {
 		if (textPane.getSelectionEnd()>0) {
 		    int firstNum = textPane.getSelectionStart();
 		    firstNum = firstNum - Math.round(firstNum/6) + 1;
-		    //int firstNum = textPane.getSelectionStart()+1;
 		    int secondNum = textPane.getSelectionEnd();
 		    secondNum = secondNum - Math.round(secondNum/6);
 		    StyledDocument doc = textPane.getStyledDocument();
-		    //StyledEditorKit.ForegroundAction act = new StyledEditorKit.ForegroundAction("new color", (Color) ((KPaint)color1.getSelectedItem()).getWhiteExemplar());
 		    StyleConstants.setForeground(sas, (Color) ((KPaint)color1.getSelectedItem()).getWhiteExemplar());
 		    doc.setCharacterAttributes(textPane.getSelectionStart(), textPane.getSelectionEnd()-textPane.getSelectionStart(),sas, true);
-		    //textPane.setSelectedTextColor((Color) ((KPaint)color1.getSelectedItem()).getWhiteExemplar());
-		    //act.setCharacterAttributes(textPane, sas, true);
-		    highlightRange(firstNum, secondNum);
+		    colorator.highlightRange(firstNum, secondNum, createColorArray(secondNum-firstNum+1));
 		}
 	    } else {
 		JOptionPane.showMessageDialog(pane, "You have to put numbers in the text boxes!", "Error",
@@ -290,25 +345,26 @@ public class RecolorTool extends BasicTool implements ActionListener {
      * Event handler for when tool window closed.
      */
     public void windowClosing(WindowEvent ev) {
-	newGroup();
+	//newGroup();
 	parent.activateDefaultTool(); 
     }
 
     public void onTable(ActionEvent ev) {
-	TreeSet keys = new TreeSet(structMap.keySet());
-	Integer lowNum = (Integer) keys.first();
-	Integer highNum = (Integer) keys.last();
-	String aaText = "";
+	//colorator.onTable(ev);
+	
+	//TreeSet keys = new TreeSet(structMap.keySet());
+	//Integer lowNum = (Integer) keys.first();
+	//Integer highNum = (Integer) keys.last();
+	//String aaText = "";
 	textPane = new JTextPane();
 	Font monospaced = new Font("monospaced", Font.PLAIN, 12);
-	//textPane.setFont(new Font("monospaced", Font.PLAIN, 12));
 	StyledDocument doc = textPane.getStyledDocument();
 	JScrollPane scrollPane = new JScrollPane(textPane);
-	scrollPane.setPreferredSize(new Dimension(500, 200));
-	//textPane.setLineWrap(true);
+	scrollPane.setPreferredSize(new Dimension(510, 200));
 	pane.newRow();
 	pane.add(scrollPane, 4, 1);
 	dialog.pack();
+	/*
 	int j = 0;
 	for (int i = 1; i <= highNum.intValue(); i++) {
 	    if (j == 5) {
@@ -321,111 +377,18 @@ public class RecolorTool extends BasicTool implements ActionListener {
 		KPoint point = (KPoint) list.get(0);
 		String pointID = point.getName().trim();
 		String aa = pointID.substring(4, 7);
-		/*
-		if (this.AA_ABREV.containsKey(aa)) {
-		    aaText = aaText.concat((String) this.AA_ABREV.get(aa));
-		    //System.out.print(this.AA_ABREV.get(aa));
-		} else {
-		    aaText = aaText.concat((String) this.AA_ABREV.get(aa));
-		    //System.out.print("X");
-		}
-		*/
 		aaText = aaText.concat(AminoAcid.translate(aa));
 	    } else {
 		aaText = aaText.concat("-");
-		//System.out.print("-");
 	    }
-	}
+	    }*/
 	sas = new SimpleAttributeSet();
 	StyleConstants.setFontFamily(sas, "monospaced");
 	StyleConstants.setFontSize(sas, 14);
-	//System.out.println(aaText);
 	try {
-	    doc.insertString(doc.getLength(), aaText, sas);
+	    doc.insertString(doc.getLength(), colorator.onTable(), sas);
 	} catch (BadLocationException ble) {
 	}
-    }
-
-//{{{ splitStructure
-//##################################################################################################
-    /**
-     * 
-     **/
-    
-    public void splitStructure(KPoint p) {
-
-	String pointID = p.getName().trim();
-	KList parentList = (KList) p.getOwner();
-	//KSubgroup parentGroup = (KSubgroup) parentList.getOwner();
-	Iterator iter = parentList.iterator();
-	KPoint point;
-	ArrayList listofLists = new ArrayList();
-
-	while (iter.hasNext()) {
-	    point = (KPoint) iter.next();
-	    //String master = getOldMaster(list);
-	    Integer resNumber = new Integer(getResNumber(point));
-	    listofLists = (ArrayList) structMap.get(resNumber);
-	    if (listofLists == null) {
-		listofLists = new ArrayList();
-	    } 
-	    listofLists.add(point);
-	    structMap.put(resNumber, listofLists);
-	}
-	//Set keySet = structMap.keySet();
-	TreeSet keys = new TreeSet(structMap.keySet());
-	lowResNum = (Integer) keys.first();
-	highResNum = (Integer) keys.last();
-    }
-//}}}
-
-//{{{ getResNumber
-//###################################################################################################
-    /**
-     * Helper function to get the residue number of parentList.  It gets the first KPoint in the KList, 
-     * and extracts the residue number from the name.  EXTREMELY dependent on the format of the name of the KPoint.
-     **/
-    
-    private int getResNumber(KPoint point) {
-	String name = point.getName().trim();
-	String[] uncleanParsed = name.split(" ");
-	String[] parsed = new String[uncleanParsed.length];
-        int i2 = 0;
-	// To clean out the empty strings from the split name.
-	
-	for (int i = 0; i < uncleanParsed.length; i++) {
-	    String unclean = uncleanParsed[i];
-	    if ((!unclean.equals(""))&&(!unclean.equals(" "))) {
-		parsed[i2] = unclean;
-		i2++;
-	    }
-	}
-	// another pass to see if there are any AAName + int in name.
-	if (parsed[1].length() > 3) {
-	    String parseValue = parsed[1].substring(3);
-	    if (isNumeric(parseValue)) {
-		//System.out.print(parseValue + " ");
-		return Integer.parseInt(parseValue);
-	    }
-	}
-	// one pass to see if there are any straight up ints in the name
-	for (int i = 0; i < parsed.length; i++) {
-	    String parseValue = parsed[i];
-	    //System.out.println(parseValue + ", " + i);
-	    if (isNumeric(parseValue)) {
-		if (Integer.parseInt(parseValue)>0) {
-		    return Integer.parseInt(parseValue);
-		}
-	    }
-	}
-
-	return -1;
-    }
-
-    private int getResNumber(KList parentList) {
-	Iterator pointIter = parentList.iterator();
-	KPoint firstPoint = (KPoint) pointIter.next();
-	return getResNumber(firstPoint);
     }
 
     public boolean isNumeric(String s) {
@@ -437,92 +400,21 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	}
     }
 
-
-//}}}
-
-//{{{ highlightRange
-//###################################################################################################
-    /**
-     * For highlighting a range of a kinemage. The first time this function is called, it stores p
-     * as the starting point, and the second time it's called, it colors the region between the stored p
-     * and the current p.  
-     *
-     **/
-    public void highlightRange(KPoint p) {
-	if (!highNumField.getText().equals("")) {
-	    lowNumField.setText("");
-	    highNumField.setText("");
-	}
-	//KList parentList = (KList) p.getOwner();
-	Integer resNum = new Integer(getResNumber(p));
-	if(lowNumField.getText().equals("")) {
-	    lowNumField.setText(resNum.toString());
-	} else if (highNumField.getText().equals("")) {
-	    highNumField.setText(resNum.toString());
-	}
-	if (!highNumField.getText().equals("")) {
-	    //System.out.println("coloring");
-	    int firstNum = Integer.parseInt(lowNumField.getText());
-	    int secondNum = Integer.parseInt(highNumField.getText());
-	    if (firstNum > secondNum) {
-		int temp = secondNum;
-		secondNum = firstNum;
-		firstNum = temp;
-	    }
-
-	    highlightRange(firstNum, secondNum);
-	}
-    }
-
-    public void highlightRange(int firstNum, int secondNum) {
-	int index = 0;
-	//Object colors[] = KPalette.getStandardMap().values().toArray();
-	Object colors[] = createColorArray(secondNum-firstNum+1);
-	for (int i = firstNum; i <= secondNum; i++) {
-	    //Object colors[] = createColorArray(secondNum-firstNum);
-	    if (index >= colors.length) {
-		index = 0;
-	    }
-	    Integer hashKey = new Integer(i);
-	    
-	    if (structMap.containsKey(hashKey)) {
-		ArrayList listofLists = (ArrayList) structMap.get(hashKey);
-		Iterator iter = listofLists.iterator();
-		
-		while (iter.hasNext()) {
-		    
-		    KPoint point = (KPoint) iter.next();
-		    //if (hippieMode.isSelected()) {
-		    //   point.setColor((KPaint) colors[index]);
-		    //} else {
-		    //    point.setColor((KPaint) color1.getSelectedItem());
-		    //}
-		    if (chooseColor.isSelected()) {
-			point.setColor((KPaint) color1.getSelectedItem());
-		    } else {
-			point.setColor((KPaint) colors[index]);
-		    }
-		}
-		index++;
-	    }
-	}
-	//lowNumField.setText("");
-	//highNumField.setText("");
-    }
-
-//}}}
-
-    private Object[] createColorArray(int numRes) {
-	if (hippieMode.isSelected()) {
+    private KPaint[] createColorArray(int numRes) {
+	if (chooseColor.isSelected()) {
+	    KPaint[] chosenColor = new KPaint[1];
+	    chosenColor[0] = (KPaint) color1.getSelectedItem();
+	    return chosenColor;
+	} else if (hippieMode.isSelected()) {
 	    Object[] allColors = KPalette.getStandardMap().values().toArray();
-	    Object[] hippieColors = new Object[allColors.length - 6];
+	    KPaint[] hippieColors = new KPaint[allColors.length - 6];
 	    for (int i = 0; i < hippieColors.length; i++) {
-		hippieColors[i] = allColors[i];
+		hippieColors[i] = (KPaint) allColors[i];
 	    }
 	    return hippieColors;
 	} else {
-	    Object[] colors = {KPalette.red, KPalette.orange, KPalette.gold, KPalette.yellow, KPalette.lime, KPalette.green, KPalette.sea, KPalette.cyan, KPalette.blue, KPalette.lilac, KPalette.purple};
-	    Object[] spectralColors = new Object[numRes];
+	    KPaint[] colors = {KPalette.red, KPalette.orange, KPalette.gold, KPalette.yellow, KPalette.lime, KPalette.green, KPalette.sea, KPalette.cyan, KPalette.blue, KPalette.lilac, KPalette.purple};
+	    KPaint[] spectralColors = new KPaint[numRes];
 	    if (numRes > 11) {
 		for (int i = 0; i < numRes; i++) {
 		    int colorNum = (int) Math.round(i/((double)numRes/10));
@@ -536,121 +428,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    }
 	}
     }
-	
 
-//{{{ highlightAll
-//#######################################################################################################
-    /**
-     * For coloring all of a KList.  
-     **/
-    
-    public void highlightAll(KPoint p) {
-	KList parentList = (KList) p.getOwner();
-	Iterator iter = parentList.iterator();
-	highlightRange(lowResNum.intValue(), highResNum.intValue());
-	//int index = 0;
-	//Object colors[] = KPalette.getStandardMap().values().toArray();
-	/*
-	while (iter.hasNext()) {
-	    //if (index > (colors.length - 6)) {
-	    //	index = 0;
-	    //}
-	    KPoint point = (KPoint) iter.next();
-	    //if (hippieMode.isSelected()) {
-	    //	point.setColor((KPaint) colors[index]);
-	    //	index++;
-	    //} else {
-		point.setColor((KPaint) color1.getSelectedItem());
-		//}
-	}
-	*/
-
-    }
-    
-//}}}
-
-    public void highlightAA(KPoint p) {
-	KList parentList = (KList) p.getOwner();
-	Iterator iter = parentList.iterator();
-	HashSet aaNums = new HashSet();
-	while (iter.hasNext()) {
-	    KPoint point = (KPoint) iter.next();
-	    String name = point.getName();
-	    if (name.indexOf((String)aaBox.getSelectedItem()) != -1) {
-		point.setColor((KPaint) color1.getSelectedItem());
-		Integer resNum = new Integer(getResNumber(point));
-		aaNums.add(resNum);
-	    }
-	}
-	if (colorPrior.isSelected()) {
-	    iter = aaNums.iterator();
-	    while (iter.hasNext()) {
-		int priorResNum = ((Integer) iter.next()).intValue() - 1;
-		ArrayList listofPoints = (ArrayList) structMap.get(new Integer(priorResNum));
-		if (listofPoints != null) {
-		    Iterator listIter = listofPoints.iterator();
-		    while (listIter.hasNext()) {
-			KPoint point = (KPoint) listIter.next();
-			if (point != null) {
-			    point.setColor(KPalette.green);
-			}
-		    }
-		}
-	    }
-	}
-    }
-
-//{{{ highlight
-//#######################################################################################################
-    /**
-     * For coloring one particular ribbon (one stretch of alpha, beta, or coil ribbon).
-     **/
-    /*
-    public void highlight(KPoint p) {
-	KList parentList = (KList) p.getOwner();
-	ArrayList listofLists = (ArrayList) ribbonMap.get(parentList);
-	Iterator iter = listofLists.iterator();
-	while (iter.hasNext()) {
-	    KList list = (KList) iter.next();
-	    list.setColor((KPaint) color1.getSelectedItem());
-	}
-    }
-    */
-//}}}    
-
-//{{{ newGroup
-//######################################################################################################
-    /**
-     * Resets the tool by creating new hashmaps for the various list storing maps. This is for coloring
-     * ribbons in different KGroups, or in new kinemages.
-     **/
-    public void newGroup() {
-	//System.out.println("new group");
-	//sortedKin = new HashMap();
-	//ribbonMap = new HashMap();
-	//sortbyNum = new HashMap();
-	//initiated = false;
-	structMap = new HashMap();
-    }
-//}}}
-
-//{{{ debug
-//######################################################################################################
-    /**
-     * debugger function.
-     **/
-    public void debug() {
-	Set keys = structMap.keySet();
-	Iterator iter = keys.iterator();
-	while (iter.hasNext()) {
-	    String master = (String) iter.next();
-	    ArrayList listofLists = (ArrayList) structMap.get(master);
-	    System.out.print(master + ": ");
-	    System.out.print(listofLists.size() + "; ");
-	}
-	System.out.println("");
-    }
-//}}}
 
 //{{{ getToolPanel, getHelpAnchor, toString
 //##################################################################################################
@@ -664,4 +442,3 @@ public class RecolorTool extends BasicTool implements ActionListener {
     public String toString() { return "Recolor Tool"; }
 //}}}
 }//class
-

@@ -19,7 +19,7 @@ king.tool.util.Dock3On3Tool
 king.tool.util.DockLsqTool
 king.tool.xtal.RNAMapTool
 king.tool.util.CrossWindowPickTool
-king.tool.util.RibbonTool
+# king.tool.util.RibbonTool
 king.tool.xtal.GuilloTool
 king.tool.xtal.SuiteRotationTool
 king.tool.util.FastaTool
