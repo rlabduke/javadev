@@ -539,9 +539,10 @@ public class KinfileParser //extends ... implements ...
                 String s = token.getString();
                 if(s.equals("P") || s.equals("p") || s.equals("M") || s.equals("m"))
                 {
-                    if(kListType.equals(KList.TRIANGLE) || kListType.equals(KList.RIBBON)) {}
+                    if(kListType.equals(KList.TRIANGLE) || kListType.equals(KList.RIBBON)) {} // see "X" flag, below
                     else point.setPrev(null);
                 }
+                else if(s.equals("X") || s.equals("x"))         point.setPrev(null); // P doesn't work for triangle, ribbon
                 else if(s.equals("L") || s.equals("l") || s.equals("D") || s.equals("d")) {}
                 else if(s.equals("U") || s.equals("u"))         point.setUnpickable(true);
                 else if(s.equals("ghost"))                      point.setGhost(true);

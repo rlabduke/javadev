@@ -252,7 +252,9 @@ public class KinWriter //extends ... implements ...
         if(point.isUnpickable())        out.print("U ");
         if(point.isGhost())             out.print("ghost ");
         
-        if(point instanceof VectorPoint)
+        if(point instanceof TrianglePoint && point.isBreak())
+            out.print("X "); // because triangle- and ribbonlists don't break for P
+        else if(point instanceof VectorPoint)
         {
             VectorPoint v = (VectorPoint)point;
             if(v.width > 0 && v.width != list.width) out.print("width"+v.width+" ");

@@ -203,10 +203,14 @@
     <antscp remoteUserName="${scp.ftp.username}" remoteHost="${scp.ftp.hostname}" remotePassword="${scp.ftp.password}"
             localFile="${dist}/${ant.project.name}-${version}.zip"
             remoteFile="${scp.ftp.path}/${ant.project.name}/${ant.project.name}.${version}.${DSTAMP_SIX}.zip"/>
+    <!-- Update user manual on web site -->
+    <antscp remoteUserName="${scp.www.username}" remoteHost="${scp.www.hostname}" remotePassword="${scp.www.password}"
+            localFile="${resource}/${ant.project.name}/html/king-manual.html"
+            remoteFile="${scp.www.path}/kinemage/king-manual.html"/>
     <!-- Update marker for current version -->
     <antscp remoteUserName="${scp.www.username}" remoteHost="${scp.www.hostname}" remotePassword="${scp.www.password}"
             localFile="${resource}/${ant.project.name}/version.props"
-            remoteFile="${scp.www.path}/${ant.project.name}.version.props"/>
+            remoteFile="${scp.www.path}/software/${ant.project.name}.version.props"/>
     <!-- Copy to MolProbity, too -->
     <antscp remoteUserName="${scp.molprobity.username}" remoteHost="${scp.molprobity.hostname}" remotePassword="${scp.molprobity.password}"
             localFile="${basedir}/${ant.project.name}.jar"
