@@ -1,5 +1,5 @@
 #External strings for en
-#Fri Oct 15 13:28:36 EDT 2004
+#Tue Oct 26 14:28:49 EDT 2004
 ShortcutLocAction.5351b996a760.macPrompt=Where would you like to create aliases?
 InstallBundle.5351b977a760.bundleName=Application
 Billboard.5351b96ea760.imageName=billboard_default.png
@@ -39,11 +39,11 @@ Installer.5351b8a1a760.rulesFailedMessage=The installer cannot run on your confi
 Billboard.5351b96ea760.imagePath=com/zerog/ia/installer/images/
 InstallDirAction.5351b991a760.stepTitle=Choose Install Folder
 InstallFinishAction.5351b9a9a760.windowTitle=Install Complete
-InstallFinishAction.5351b9a9a760.installWarningMessage=The installation of $PRODUCT_NAME$ is finished, but some warnings occurred during the install.  Please see the installation log for details.
 InstallSet.53607f1ca766.imageName=customIcon.png
+InstallFinishAction.5351b9a9a760.installWarningMessage=The installation of $PRODUCT_NAME$ is finished, but some warnings occurred during the install.  Please see the installation log for details.
 InstallSummary.5351b9a4a760.stepPrompt=Please Review the Following Before Continuing\:
-ShortcutLocAction.5351b996a760.macTitle=Choose Alias Folder
 InstallSet.53607f1ca766.description=Choose this option to customize the features to be installed.
+ShortcutLocAction.5351b996a760.macTitle=Choose Alias Folder
 InstallerInfoData.5351b8bfa760.supportURL=http\://kinemage.biochem.duke.edu
 IntroAction.5351b98aa760.message=InstallAnywhere will guide you through the installation of $PRODUCT_NAME$.\n\nIt is strongly recommended that you quit all programs before continuing with this installation.\n\nClick the 'Next' button to proceed to the next screen. If you want to change something on a previous screen, click the 'Previous' button.\n\nYou may cancel this installation at any time by clicking the 'Cancel' button.
 CreateShortcut.5351d368a765.args=
@@ -52,12 +52,12 @@ InstallerInfoData.5351b8bfa760.productDescription=
 InstallerInfoData.5351b8bfa760.email=ian.davis@duke.edu
 InstallerInfoData.5351b8bfa760.productName=KiNG
 InstallFinishAction.5351b9a9a760.rebootRecommendedMessage=You should restart the system to complete the installation.
-InstallSet.5351b976a760.imagePath=com/zerog/ia/installer/images/
 InstallBundle.5351b977a760.description=This installs the application feature.
+InstallSet.5351b976a760.imagePath=com/zerog/ia/installer/images/
 IntroAction.5351b98aa760.stepTitle=Introduction
 InstallerInfoData.5351b8bfa760.productURL=http\://kinemage.biochem.duke.edu
 ShortcutLocAction.5351b996a760.winPrompt=Where would you like to create product icons?
 InstallDirAction.5351b991a760.additionalText=
 InstallUninstaller.5351ba0ca760.destinationName=Uninstall king
-InstallerInfoData.5351b8bfa760.installerTitle=KiNG
 InstallSet.5351b976a760.installSetName=Full Install
+InstallerInfoData.5351b8bfa760.installerTitle=KiNG
