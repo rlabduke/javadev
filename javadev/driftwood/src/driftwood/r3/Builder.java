@@ -281,6 +281,75 @@ I have a tendency to make things too complicated on the first pass. :)
     }
 //}}}
 
+//{{{ makeDotSphere
+//##############################################################################
+// Ported to Java by Ian W. Davis, 2004-Dec-8
+/* from probe.2.8.011009 and hacked for mage.6.28.030402 by dcr  */
+/* author: J. Michael Word (port from dcr and mez fortran code)  */
+/* date written: 2/20/96                                         */
+/* purpose: generate points on a sphere                          */
+
+/* NOTICE: This is free software and the source code is freely   */
+/* available. You are free to redistribute or modify under the   */
+/* conditions that (1) this notice is not removed or modified    */
+/* in any way and (2) any modified versions of the program are   */
+/* also available for free.                                      */
+/*               ** Absolutely no Warranty **                    */
+/* Copyright (C) 1999 J. Michael Word                            */
+
+    /**
+    * Creates a set of ~evenly distributed points on the surface of a sphere.
+    * 
+    * @param radius     the radius of the sphere
+    * @param density    dot density in dots per square unit of sphere surface
+    * @return a Collection of Triples representing dots on the sphere surface,
+    *   with the sphere centered on the origin.
+    */
+    public Collection makeDotSphere(double radius, double density) 
+    {
+        // overestimate of the number of dots
+        final double sizefact = 1.0;
+        int estNumDots = (int)Math.floor(4.0 * Math.PI * density * sizefact * (radius * radius));
+        
+        Collection points = new ArrayList(estNumDots);
+        
+        // These are all just magic numbers to me...
+        final double offset = 0.2;
+        boolean odd = true;
+        double ang = 5.0 * Math.PI / 360.0; // 2.5 degrees as radians?
+        double cosang = Math.cos(ang);
+        double sinang = Math.sin(ang);
+        
+        // More interpretable: number of dots along latitude, longitude (?)
+        int nequator = (int)Math.floor(Math.sqrt(estNumDots * Math.PI));
+        int nvert = nequator / 2;
+        
+        for (int j = 0; j <= nvert; j++) 
+        {
+            double phi  = (Math.PI * j) / nvert;
+            double z0   = Math.cos(phi) * radius;
+            double xy0  = Math.sin(phi) * radius;
+            int nhoriz  = (int)Math.floor(nequator * Math.sin(phi));
+            if(nhoriz < 1) nhoriz = 1;
+            
+            for (int k = 0; k < nhoriz; k++) 
+            {
+                double theta;
+                if(odd) theta = (2.0 * Math.PI * k + offset)/nhoriz;
+                else    theta = (2.0 * Math.PI * k         )/nhoriz;
+                double x0 = Math.cos(theta) * xy0;
+                double y0 = Math.sin(theta) * xy0;
+                
+                Triple t = new Triple(x0, y0*cosang - z0*sinang, y0*sinang + z0*cosang);
+                points.add(t);
+            }
+            odd = !odd;
+        }
+        
+        return points;
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##################################################################################################
 //}}}

@@ -60,6 +60,9 @@ public class BeanKing extends Plugin
             interp.set("kMain", kMain);
             interp.set("kCanvas", kCanvas);
             interp.set("services", services);
+            
+            Reader cmds = new InputStreamReader(this.getClass().getResourceAsStream("/commands.bsh"));
+            interp.eval(cmds);
         }
         catch(EvalError e)
         { e.printStackTrace(SoftLog.err); }

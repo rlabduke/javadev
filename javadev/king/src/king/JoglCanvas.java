@@ -74,6 +74,8 @@ public class JoglCanvas extends JPanel implements GLEventListener, TransformSign
         
         // Create and listen to an OpenGL canvas
         GLCapabilities capabilities = new GLCapabilities();
+        //System.err.println("Double-buffering enabled by default? "+capabilities.getDoubleBuffered());
+        capabilities.setDoubleBuffered(true); // usually enabled by default, but to be safe...
         canvas = GLDrawableFactory.getFactory().createGLCanvas(capabilities);
         canvas.addGLEventListener(this); // calls display(), reshape(), etc.
         toolbox.listenTo(canvas);
@@ -100,18 +102,18 @@ public class JoglCanvas extends JPanel implements GLEventListener, TransformSign
         {
             JoglPainter painter = new JoglPainter(drawable);
             
+            long timestamp = System.currentTimeMillis();
             KingView view = kin.getCurrentView();
             Rectangle bounds = new Rectangle(this.glSize);
-            if(kin.currAspect == null) engine.activeAspect = 0;
-            else engine.activeAspect = kin.currAspect.getIndex().intValue();
-            long timestamp = System.currentTimeMillis();
+            engine.syncToKin(kin);
             engine.render(this, view, bounds, painter);
+            if(toolbox != null) toolbox.overpaintCanvas(painter);
             timestamp = System.currentTimeMillis() - timestamp;
             if(writeFPS)
                 SoftLog.err.println(timestamp+" ms ("+(timestamp > 0 ? Long.toString(1000/timestamp) : ">1000")
                     +" FPS) - "+engine.getNumberPainted()+" objects painted");
             
-            if(toolbox != null)
+            /*if(toolbox != null)
             {
                 //timestamp = System.currentTimeMillis();
                 //Graphics2D g2 = setupOverlay();
@@ -124,7 +126,7 @@ public class JoglCanvas extends JPanel implements GLEventListener, TransformSign
                 //timestamp = System.currentTimeMillis() - timestamp;
                 //if(writeFPS)
                 //    SoftLog.err.println(" + "+timestamp+" ms for overpainting");
-            }
+            }*/
         }
     }
     

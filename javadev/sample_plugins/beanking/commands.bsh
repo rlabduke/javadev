@@ -1,0 +1,107 @@
+import driftwood.data.*;
+import driftwood.gui.*;
+import driftwood.r3.*;
+import driftwood.util.*;
+import king.*;
+import king.core.*;
+
+help() {
+    print("==== PREDEFINED VARIABLES ====");
+    print("parent                   ToolBox containing the BeanKing plugin");
+    print("kMain                    KingMain for this application");
+    print("kCanvas                  KinCanvas for drawing operations");
+    print("services                 ToolServices for picking, etc.");
+    print("");
+    print("==== PREDEFINED FUNCTIONS ====");
+    print("help()                   this help text");
+    print("editor()                 GUI for writing short scripts");
+    print("");
+    print("bleach()                 removes point colors for all visible");
+    print("delete(name?)            deletes all groups/subgroups/lists with given name");
+    print("importSubgroups(file?)   imports GROUP/FILE subgroups for each group");
+    print("makeMaster(name?)        creates master for named group/subgroup/list");
+    print("");
+}
+
+bleach() {
+    kin = kMain.getKinemage();
+    if(kin == null) return;
+    rpi = new RecursivePointIterator(kin);
+    while(rpi.hasNext())
+    {
+        pt = rpi.next();
+        if(pt.isTotallyOn())
+            pt.setColor(null);
+    }
+    kCanvas.repaint();
+}
+
+delete()
+{ delete(JOptionPane.showInputDialog("Name to delete:")); }
+
+delete(String delName)
+{
+    if(delName == null) return;
+    kin = kMain.getKinemage();
+    if(kin == null) return;
+    for(gi = kin.children.iterator(); gi.hasNext(); )
+    {
+        group = gi.next();
+        if(delName.equals(group.getName())) gi.remove();
+        for(si = group.children.iterator(); si.hasNext(); )
+        {
+            subgroup = si.next();
+            if(delName.equals(subgroup.getName())) si.remove();
+            for(li = subgroup.children.iterator(); li.hasNext(); )
+            {
+                list = li.next();
+                if(delName.equals(list.getName())) li.remove();
+            }
+        }
+    }
+    kMain.notifyChange(KingMain.EM_EDIT_GROSS);
+}
+
+importSubgroups()
+{ importSubgroups(JOptionPane.showInputDialog("File name to load from group subdirs:")); }
+
+importSubgroups(String fileName)
+{
+    kinIO = kMain.getKinIO();
+    for(group : kMain.getKinemage().children)
+    {
+        file = new File(group.getName()+File.separator+fileName);
+        if(!file.exists()) continue;
+        kin = new Kinemage("dummy");
+        kinIO.loadFile(file, kin);
+        for(subgroup : kin.children.get(0).children)
+        {
+            group.add(subgroup);
+            subgroup.setOwner(group);
+        }
+    }
+    kMain.notifyChange(KingMain.EM_EDIT_GROSS);
+}
+
+makeMaster()
+{ makeMaster(JOptionPane.showInputDialog("Name to create master for:")); }
+
+makeMaster(String masterName)
+{
+    if(masterName == null) return;
+    kin = kMain.getKinemage();
+    if(kin == null) return;
+    for(group : kin.children)
+    {
+        if(masterName.equals(group.getName())) group.addMaster(masterName);
+        for(subgroup : group.children)
+        {
+            if(masterName.equals(subgroup.getName())) subgroup.addMaster(masterName);
+            for(list : subgroup.children)
+                if(masterName.equals(list.getName())) list.addMaster(masterName);
+        }
+    }
+    kin.ensureMasterExists(masterName);
+    kMain.notifyChange(KingMain.EM_EDIT_GROSS);
+}
+

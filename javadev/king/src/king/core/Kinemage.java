@@ -39,7 +39,7 @@ public class Kinemage extends AGE // implements ...
     public boolean atFlat              = false;
     public boolean atListcolordominant = false;
     public double  atLens              = 0.0;
-    
+
     // Other information fields often contained in a kinemage
     public String  atPdbfile           = null;
     public String  atCommand           = null;
@@ -120,9 +120,17 @@ public class Kinemage extends AGE // implements ...
             this.addPaint((KPaint)iter.next());
         
         // Merge the masters. This is a little tricky due to pointmasters.
+        boolean convertPointmasters = false;
         for(Iterator iter = that.mastersList.iterator(); iter.hasNext(); )
         {
             MasterGroup m2 = (MasterGroup)iter.next();
+            // Convert bitmasks from old kin to new kin correspondences
+            if(m2.pm_mask != 0)
+            {
+                m2.pm_mask = this.toPmBitmask(that.fromPmBitmask(m2.pm_mask), true, false);
+                convertPointmasters = true;
+            }
+            
             MasterGroup m1 = (MasterGroup)this.mastersMap.get(m2.getName());
             if(m1 == null)
             {
@@ -136,6 +144,18 @@ public class Kinemage extends AGE // implements ...
                 // in some other master belonging to this?
                 // But it's about the best we can do.
                 m1.pm_mask |= m2.pm_mask;
+            }
+        }
+        
+        // Finish merging the masters by converting point's pointmaster masks.
+        // Each point is visited just once b/c instance= lists have no children of their own.
+        if(convertPointmasters)
+        {
+            RecursivePointIterator iter = new RecursivePointIterator(that);
+            while(iter.hasNext())
+            {
+                KPoint p = iter.next();
+                p.setPmMask(this.toPmBitmask(that.fromPmBitmask(p.getPmMask())));
             }
         }
         
