@@ -14,7 +14,7 @@ import javax.swing.*;
 
 import driftwood.gui.TablePane;
 import driftwood.r3.*;
-import driftwood.util.SoftLog;
+import driftwood.util.*;
 //}}}
 /**
 * <code>ToolBox</code> instantiates and coordinates all the tools and plugins,
@@ -87,6 +87,7 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
     JMenuItem               activeToolMI = null, defaultToolMI = null;
     
     ClassLoader             pluginClassLoader;
+    Props                   pluginProps;
 //}}}
 
 //{{{ Constructors
@@ -102,6 +103,7 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
         services    = new ToolServices(this);
         sigTransform = new TransformSignal();
         
+        pluginProps = new Props(kMain.getPrefs());
         pluginClassLoader = this.makeClassLoader();
         
         plugins = new ArrayList();
@@ -196,6 +198,27 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
     */
     Collection scanForPlugins()
     {
+        // This is how we load menu preferences for external plugins
+        try
+        {
+            // No leading slashes when using this method
+            Enumeration urls = pluginClassLoader.getResources("king/king_prefs");
+            while(urls.hasMoreElements())
+            {
+                URL url = (URL) urls.nextElement();
+                try
+                {
+                    InputStream is = url.openStream();
+                    pluginProps.load(is);
+                    is.close();
+                }
+                catch(IOException ex)
+                { SoftLog.err.println("Plugin SPI error: "+ex.getMessage()); }
+            }
+        }
+        catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
+        
+        // Now load the actual list of plugins
         Collection pluginNames = new ArrayList();
         try
         {
@@ -274,8 +297,7 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
     /** Returns the name of the menu the given Plugin belongs in right now */
     public String getPluginMenuName(Plugin p)
     {
-        KingPrefs prefs = kMain.getPrefs();
-        String menuName = prefs.getString(p.getClass().getName()+".menuName", MENU_MAIN).trim();
+        String menuName = pluginProps.getString(p.getClass().getName()+".menuName", MENU_MAIN).trim();
         if(menuName.equals("")) menuName = MENU_MAIN;
         return menuName;
     }

@@ -46,11 +46,10 @@
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
     Add ability to edit masters
     Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
- ** Work the special plugins/ folder into the distros
-        Note in user manual about installing plugins
+  * Note in user manual about installing plugins
+  * Document new king/chiropraxis dependency structure in HACKING
   * Write a quick and dirty HTML guide to creating a plugin, listing all the basic steps
         Java and Python versions
-    Move all modelling tools into chiropraxis package (inversion of dependency)
     Redefine getX/Y/Z for KPoints to do the more obvious thing...?
     Warn about saving with multiple kins open
     Warn about losing unsaved changes
@@ -59,6 +58,7 @@
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 1.27 ###
 ### 1.27 ###
 - modified Engine and KPoint.isPickedBy() to account for object picking
 - implemented object picking for triangles
@@ -76,6 +76,9 @@
 - machinery works, now all it needs is a UI!
 - finished UI for SelfUpdatePlugin, tested it on Windows. Looks ready to go!
 - migrated to building with Ant 1.6.1; replaced "antscp" task with now-std "scp"
+- moved all the KiNG remodelling tools into chiropraxis
+- fixed ToolBox to find menu preferences for JARs that are in plugins/
+- deployed to Rlab 25 May 2004
 
 ### 1.26 ###
 - added Mage's HTML description of the kinemage format

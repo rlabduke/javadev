@@ -1,0 +1,9 @@
+######################################################################
+### TOOL MENU PLACEMENT ##############################################
+######################################################################
+
+chiropraxis.kingtools.HingeTool.menuName = Struct. biol.
+chiropraxis.kingtools.ModelManager2.menuName = Struct. biol.
+chiropraxis.kingtools.ScRotTool.menuName = Struct. biol.
+chiropraxis.kingtools.ScMutTool.menuName = Struct. biol.
+
