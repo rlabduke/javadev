@@ -10,19 +10,20 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
-import driftwood.r3.*;
+//import driftwood.r3.*;
 //}}}
 /**
-* <code>SequenceSpacer</code> uses pseudo-physical potentials and
-* numerical minimization to lay out a graph of sequence relatedness in 3-D.
+* <code>SequenceTree</code> uses a hierarchical clustering approach plus the
+* BLOSUM 62 scoring matrix to make a tree-like graph of sequence relatedness in 2-D.
 *
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Tue Oct 28 09:39:34 EST 2003
 */
-public class SequenceSpacer //extends ... implements ...
+public class SequenceTree //extends ... implements ...
 {
 //{{{ Constants
     static DecimalFormat df = new DecimalFormat("0.0####");
+    static final String COLOR_CODES = "ABCDEFGHIJKLM";
     
     static final String BLOSUM_INDICES = "CSTPAGNDEQHRKMILVFYW";
     static final int[][] BLOSUM_62 = 
@@ -50,41 +51,77 @@ public class SequenceSpacer //extends ... implements ...
 
 //{{{ CLASS: Sequence
 //##############################################################################
-    static class Sequence extends Triple
+    class Sequence
     {
-        String  seq;
-        BitSet  flags   = new BitSet();
+        Sequence child1 = null, child2 = null;
+        String  seq     = null;
+        // either seq is null or children are null, but not both
+
+        BitSet  flags   = new BitSet();     // for marking which files this came from
+        int     index   = -1;               // array index for tracking blosum scores
+        int     weight  = 1;                // number of sequences clustered into this node
+        int     height  = 0;                // max number of branches at or below this
+        double  minx = -1, maxx = -1;       // position on the 2-D chart
         
         public Sequence(String sequence)
         {
-            super(10*Math.random(), 10*Math.random(), 10*Math.random());
             seq = sequence;
         }
         
+        public Sequence(Sequence s1, Sequence s2)
+        {
+            child1 = s1;
+            child2 = s2;
+            weight = child1.weight + child2.weight;
+            height = currentHeight++;
+            
+            flags.clear();
+            flags.or(child1.flags);
+            flags.or(child2.flags);
+        }
+        
         public String toString()
-        { return seq; }
+        { return (seq == null ? weight+" sequences" : seq); }
+        
+        public void calculatePositions()
+        {
+            if(child1 == null || child2 == null)
+                minx = maxx = currentX++;
+            else
+            {
+                child1.calculatePositions();
+                child2.calculatePositions();
+                minx = child1.minx;
+                maxx = child2.maxx;
+            }
+        }
+        
+        public double getX()
+        {
+            if(child1 == null || child2 == null)
+                return (minx + maxx) / 2.0;
+            else
+                return (child1.maxx + child2.minx) / 2.0;
+        }
     }
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
     List    inputFiles  = new ArrayList();
-    int     numTries    = 5;
-    double  pow         = 1.0; // controls spring fall-off
-    boolean useConjDir  = true;
-    boolean useLineSrch = false;
-    boolean useBlosum   = false;
+    int     currentX = 0;
+    int     currentHeight = 1;
 //}}}
 
 //{{{ Constructor(s)
 //##############################################################################
-    public SequenceSpacer()
+    public SequenceTree()
     {
         super();
     }
 //}}}
 
-//{{{ loadSequences, seqDistance
+//{{{ loadSequences
 //##############################################################################
     Sequence[] loadSequences(InputStream[] inp) throws IOException
     {
@@ -108,46 +145,17 @@ public class SequenceSpacer //extends ... implements ...
             }
         }
         
-        return (Sequence[]) seqs.values().toArray(  new Sequence[seqs.size()]  );
-    }
-    
-    /** Returns the number of point mutations to convert seq1 to seq2 */
-    int seqDistance(Sequence seq1, Sequence seq2)
-    {
-        String s1 = seq1.toString();
-        String s2 = seq2.toString();
-        int result = 0, len = s1.length();
+        // Assign unique index for every unique sequence
+        Sequence[] retVal = (Sequence[]) seqs.values().toArray(  new Sequence[seqs.size()]  );
+        for(int i = 0; i < retVal.length; i++)
+            retVal[i].index = i;
         
-        for(int i = 0; i < len; i++)
-        {
-            if(s1.charAt(i) != s2.charAt(i))
-                result++;
-        }
-        
-        return result;
+        return retVal;
     }
 //}}}
 
-//{{{ blosumDistance, blosumScore
+//{{{ blosumScore
 //##############################################################################
-    /**
-    * Returns the difference between the average maximum BLOSUM score
-    * for 1 and 2 (i.e., the average of testing each against itself)
-    * and the actual BLOSUM score for 1 and 2, in log-odds units.
-    *
-    * <p>This meets the following criteria:<ol>
-    * <li>Symmetry: d(a,b) == d(b,a)</li>
-    * <li>Identity: d(a,a) == d(b,b) == 0</li>
-    * </ol>
-    */
-    double blosumDistance(Sequence seq1, Sequence seq2)
-    {
-        double mismatch     = blosumScore(seq1, seq2);
-        double identical    = (blosumScore(seq1, seq1) + blosumScore(seq2, seq2)) / 2.0;
-        
-        return (identical - mismatch) / 7; // scales so size of balls is still OK
-    }
-    
     /** Range is [-4, +11] per amino acid in the input. See Henikoff &amp; Henikoff (1992) PNAS 92:10915 */
     int blosumScore(Sequence seq1, Sequence seq2)
     {
@@ -176,54 +184,42 @@ public class SequenceSpacer //extends ... implements ...
     }
 //}}}
 
-//{{{ renderToKinemage, renderConnections
+//{{{ renderToKinemage
 //##############################################################################
-    void renderToKinemage(Sequence[] seqs, int[] mutationDist, PrintStream out)
+    void renderToKinemage(Sequence top, PrintStream out)
     {
-        final String COLOR_CODES = "MABCDEF";
+        double scaleY = (double)(top.maxx - top.minx) / (double)top.height;
         
         out.println("@kinemage");
         out.println("@onewidth");
+        out.println("@flat");
         int i = 0, k = 0;
         for(Iterator iter = inputFiles.iterator(); iter.hasNext(); )
             out.println("@"+(++i)+"aspect {"+((File)iter.next()).getName()+"}");
-        out.println("@group {sequences}");
-        out.println("@subgroup {sequences} nobutton");
-        
-        out.println("@labellist {labels} color= white off");
-        for(i = 0; i < seqs.length; i++)
-        {
-            out.print("{"+seqs[i].toString()+"} (");
-            for(k = 0; k < inputFiles.size(); k++)
-            {
-                if(seqs[i].flags.get(k))    out.print(COLOR_CODES.charAt( k % COLOR_CODES.length() ));
-                else                        out.print("X");
-            }
-            out.println(") "+df.format(seqs[i].getX())+" "+df.format(seqs[i].getY())+" "+df.format(seqs[i].getZ()));
-        }
-        
-        out.println("@balllist {balls} color= white radius= 0.1");
-        for(i = 0; i < seqs.length; i++)
-        {
-            out.print("{"+seqs[i].toString()+"} (");
-            for(k = 0; k < inputFiles.size(); k++)
-            {
-                if(seqs[i].flags.get(k))    out.print(COLOR_CODES.charAt( k % COLOR_CODES.length() ));
-                else                        out.print("X");
-            }
-            out.println(") "+df.format(seqs[i].getX())+" "+df.format(seqs[i].getY())+" "+df.format(seqs[i].getZ()));
-        }
         
         out.println("@group {connections}");
         out.println("@subgroup {connections} nobutton");
-        renderConnections(1, "white",       seqs, mutationDist, out);
-        renderConnections(2, "bluetint",    seqs, mutationDist, out);
-        renderConnections(3, "sky off",     seqs, mutationDist, out);
-        renderConnections(4, "blue off",    seqs, mutationDist, out);
-        renderConnections(5, "purple off",  seqs, mutationDist, out);
+        out.println("@vectorlist {links} color= gray");
+        renderConnections(top, scaleY, out);
+
+        out.println("@group {sequences}");
+        out.println("@subgroup {sequences} nobutton");
+        out.println("@balllist {balls} color= white radius= 0.8");
+        renderNodeBall(top, scaleY, out);
         
+        /*out.println("@labellist {labels} color= white off");
+        for(i = 0; i < seqs.length; i++)
+        {
+            out.print("{"+seqs[i].toString()+"} (");
+            for(k = 0; k < inputFiles.size(); k++)
+            {
+                if(seqs[i].flags.get(k))    out.print(COLOR_CODES.charAt( k % COLOR_CODES.length() ));
+                else                        out.print("X");
+            }
+            out.println(") "+df.format(seqs[i].getX())+" "+df.format(seqs[i].getY())+" "+df.format(seqs[i].getZ()));
+        }*/
         // Translucent balls, one group per file
-        String[] clearColors = {"hotpink", "red", "orange", "gold", "yellow", "lime", "green"};
+        /*String[] clearColors = {"hotpink", "red", "orange", "gold", "yellow", "lime", "green"};
         k = 0;
         for(Iterator iter = inputFiles.iterator(); iter.hasNext(); k++)
         {
@@ -235,37 +231,59 @@ public class SequenceSpacer //extends ... implements ...
                 if(seqs[i].flags.get(k))
                     out.println("{"+seqs[i].toString()+"} "+df.format(seqs[i].getX())+" "+df.format(seqs[i].getY())+" "+df.format(seqs[i].getZ()));
             }
-        }
+        }*/
     }
     
-    void renderConnections(int dist, String color, Sequence[] seqs, int[] mutationDist, PrintStream out)
+    void renderNodeBall(Sequence node, double scaleY, PrintStream out)
     {
-        out.println("@vectorlist {+"+dist+"} color= "+color);
-        for(int i = 0; i < seqs.length; i++)
-        {
-            for(int j = i; j < seqs.length; j++)
-            {
-                int d = mutationDist[seqs.length*i + j];
-                if(d == dist)
-                {
-                    out.println("{"+seqs[i].toString()+"} P "
-                        +df.format(seqs[i].getX())+" "+df.format(seqs[i].getY())+" "+df.format(seqs[i].getZ()));
-                    out.println("{"+seqs[j].toString()+"} "
-                        +df.format(seqs[j].getX())+" "+df.format(seqs[j].getY())+" "+df.format(seqs[j].getZ()));
-                }
-            }
-        }
-    }
-//}}}
+        double x = node.getX(), y = node.height * scaleY;
 
-//{{{ randomizePositions
-//##############################################################################
-    void randomizePositions(PotentialFunction func, double boxSize)
+        out.print("{"+node+"} (");
+        for(int k = 0; k < inputFiles.size(); k++)
+        {
+            if(node.flags.get(k))       out.print(COLOR_CODES.charAt( k % COLOR_CODES.length() ));
+            else                        out.print("Z");
+        }
+        out.println(") "+df.format(x)+" "+df.format(y)+" 0");
+        
+        if(node.child1 != null) renderNodeBall(node.child1, scaleY, out);
+        if(node.child2 != null) renderNodeBall(node.child2, scaleY, out);
+    }
+    
+    void renderConnections(Sequence node, double scaleY, PrintStream out)
     {
-        double[] state = func.getState(null);
-        for(int i = 0; i < state.length; i++)
-            state[i] = Math.random()*boxSize;
-        func.setState(state);
+        double x1 = node.getX(), y1 = node.height * scaleY;
+        
+        if(node.child1 != null)
+        {
+            double x2 = node.child1.getX(), y2 = node.child1.height * scaleY;
+            out.println("{"+node+"}P "+df.format(x1)+" "+df.format(y1)+" 0");
+            //out.println("{"+node.child1+"} "+df.format(x2)+" "+df.format(y2)+" 0");
+            out.print("{"+node.child1+"} (");
+            for(int k = 0; k < inputFiles.size(); k++)
+            {
+                if(node.child1.flags.get(k))    out.print(COLOR_CODES.charAt( k % COLOR_CODES.length() ));
+                else                            out.print("X");
+            }
+            out.println(") "+df.format(x2)+" "+df.format(y2)+" 0");
+        }
+
+        if(node.child2 != null)
+        {
+            double x2 = node.child2.getX(), y2 = node.child2.height * scaleY;
+            out.println("{"+node+"}P "+df.format(x1)+" "+df.format(y1)+" 0");
+            //out.println("{"+node.child2+"} "+df.format(x2)+" "+df.format(y2)+" 0");
+            out.print("{"+node.child2+"} (");
+            for(int k = 0; k < inputFiles.size(); k++)
+            {
+                if(node.child2.flags.get(k))    out.print(COLOR_CODES.charAt( k % COLOR_CODES.length() ));
+                else                            out.print("X");
+            }
+            out.println(") "+df.format(x2)+" "+df.format(y2)+" 0");
+        }
+
+        if(node.child1 != null) renderConnections(node.child1, scaleY, out);
+        if(node.child2 != null) renderConnections(node.child2, scaleY, out);
     }
 //}}}
 
@@ -280,6 +298,8 @@ public class SequenceSpacer //extends ... implements ...
     */
     public void Main() throws IOException
     {
+        int i, j;
+        
         // Load all the sequence objects from files or stdin
         Sequence[] seqs;
         if(inputFiles.isEmpty())
@@ -287,78 +307,76 @@ public class SequenceSpacer //extends ... implements ...
         else
         {
             InputStream[] in = new InputStream[ inputFiles.size() ];
-            for(int i = 0; i < in.length; i++)
+            for(i = 0; i < in.length; i++)
                 in[i] = new FileInputStream( (File)inputFiles.get(i) );
             seqs = loadSequences(in);
         }
         
         // TODO: check to make sure lengths all match!!
         
-        // Set up all of our harmonic restraints
-        SimpleHarmonicPotential harmpot = new SimpleHarmonicPotential(seqs);
-        int[] mutationDist = new int[ seqs.length*seqs.length ];
-        for(int i = 0; i < seqs.length; i++)
+        // Calculate all blosum distances - highest is closest
+        double[][] blosumDist = new double[seqs.length][seqs.length];
+        for(i = 0; i < seqs.length; i++)
         {
-            mutationDist[seqs.length*i + i] = 0;
-            for(int j = i+1; j < seqs.length; j++)
+            blosumDist[i][i] = -Double.MAX_VALUE; // so we never try merging i with itself!
+            for(j = i+1; j < seqs.length; j++)
+                blosumDist[i][j] = blosumDist[j][i] = blosumScore(seqs[i], seqs[j]);
+        }
+        
+        // Iterate through, merging the nearest sequences into a cluster
+        Sequence topNode = null;
+        this.currentHeight = 1;
+        while(true)
+        {
+            // Find closest pair
+            int bestI = -1, bestJ = -1;
+            double bestDist = -Double.MAX_VALUE;
+            for(i = 0; i < seqs.length; i++)
             {
-                int d = seqDistance(seqs[i], seqs[j]);
-                mutationDist[seqs.length*i + j] = d;
-                mutationDist[seqs.length*j + i] = d;
-                
-                if(useBlosum)
+                for(j = i+1; j < seqs.length; j++)
                 {
-                    double b = blosumDistance(seqs[i], seqs[j]);
-                    harmpot.addSpring(i, j, b, 1.0/Math.pow(b, pow));
+                    if(blosumDist[i][j] > bestDist)
+                    {
+                        bestDist = blosumDist[i][j];
+                        bestI = i;
+                        bestJ = j;
+                    }
                 }
-                else
-                    harmpot.addSpring(i, j, d, 1.0/Math.pow(d, pow));
+            }
+            if(bestDist == -Double.MAX_VALUE) break;
+            
+            // Merge the pair
+            Sequence child1 = seqs[bestI];
+            Sequence child2 = seqs[bestJ];
+            topNode = new Sequence(child1, child2);
+            seqs[bestI] = topNode;
+            topNode.index = bestI;
+            seqs[bestJ] = null;
+            
+            // Recalculate for bestI (weighted average)
+            for(i = 0; i < seqs.length; i++)
+            {
+                if(i != bestI)
+                {
+                    blosumDist[i][bestI] = blosumDist[bestI][i] =
+                        ((child1.weight * blosumDist[i][bestI]) + (child2.weight * blosumDist[i][bestJ])) / (child1.weight + child2.weight);
+                }
+                blosumDist[i][bestJ] = blosumDist[bestJ][i] = -Double.MAX_VALUE; // Wipe out info for bestJ
             }
         }
+        // seqs[] is now null everywhere except for topNode
+        // blosumDist[][] is now == -Double.MAX_VALUE everywhere
         
-        // Run the minimization to position the sequences in R3
-        DecimalFormat df = new DecimalFormat("0.0000E0");
-        double[]    bestState   = null;
-        double      bestEnergy  = Double.POSITIVE_INFINITY;
-        for(int k = 0; k < numTries; k++)
-        {
-            randomizePositions(harmpot, 10.0);
-            GradientMinimizer min = new GradientMinimizer(harmpot);
-            min.useConjugates(useConjDir);
-            min.useLineSearch(useLineSrch);
-            long time = System.currentTimeMillis();
-            for(int i = 1; i <= 100; i++)
-            {
-                double preEnergy    = harmpot.evaluate();
-                double magGradient  = min.step();
-                double postEnergy   = harmpot.evaluate();
-                double relDeltaE    = (postEnergy-preEnergy)/preEnergy;
-                /*System.err.println("STEP "+i+":    E = "+df.format(postEnergy)
-                    +"    % deltaE = "+df.format(100*relDeltaE)
-                    +"    |g| = "+df.format(magGradient));*/
-                if(relDeltaE > -1e-4) break;
-            }
-            time = System.currentTimeMillis() - time;
-            System.err.println(time+" ms; E = "+df.format(harmpot.evaluate()));
-            if(harmpot.evaluate() < bestEnergy)
-            {
-                bestEnergy  = harmpot.evaluate();
-                bestState   = harmpot.getState(bestState); // created iff it doesn't exist
-            }
-        }
-        harmpot.setState(bestState);
-        harmpot.exportState(seqs); // read out the new coordinates!!
-        
-        System.err.println();
-        System.err.println("Best energy:  "+df.format(bestEnergy));
+        this.currentX = 0;
+        topNode.calculatePositions();
         
         // Write a kinemage visualization
-        renderToKinemage(seqs, mutationDist, System.out);
+        renderToKinemage(topNode, System.out);
     }
 
     public static void main(String[] args)
     {
-        SequenceSpacer mainprog = new SequenceSpacer();
+        SequenceTree mainprog = new SequenceTree();
         try
         {
             mainprog.parseArguments(args);
@@ -437,16 +455,16 @@ public class SequenceSpacer //extends ... implements ...
     {
         if(showAll)
         {
-            InputStream is = getClass().getResourceAsStream("SequenceSpacer.help");
+            InputStream is = getClass().getResourceAsStream("SequenceTree.help");
             if(is == null)
-                System.err.println("\n*** Unable to locate help information in 'SequenceSpacer.help' ***\n");
+                System.err.println("\n*** Unable to locate help information in 'SequenceTree.help' ***\n");
             else
             {
                 try { streamcopy(is, System.out); }
                 catch(IOException ex) { ex.printStackTrace(); }
             }
         }
-        System.err.println("chiropraxis.minimize.SequenceSpacer");
+        System.err.println("chiropraxis.minimize.SequenceTree");
         System.err.println("Copyright (C) 2003 by Ian W. Davis. All rights reserved.");
     }
 
@@ -473,28 +491,6 @@ public class SequenceSpacer //extends ... implements ...
         {
             showHelp(true);
             System.exit(0);
-        }
-        else if(flag.equals("-tries"))
-        {
-            try { numTries = Integer.parseInt(param); }
-            catch(NumberFormatException ex) {}
-        }
-        else if(flag.equals("-power"))
-        {
-            try { pow = Double.parseDouble(param); }
-            catch(NumberFormatException ex) {}
-        }
-        else if(flag.equals("-sd"))
-        {
-            useConjDir = false;
-        }
-        else if(flag.equals("-ls"))
-        {
-            useLineSrch = true;
-        }
-        else if(flag.equals("-blosum"))
-        {
-            useBlosum = true;
         }
         else if(flag.equals("-dummy_option"))
         {
