@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3O//DTD W3 HTML 2.0//EN">
+<!Converted with LaTeX2HTML 95 (Thu Jan 19 1995) by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds >
+<HEAD>
+<TITLE> Electron Density Map File</TITLE>
+</HEAD>
+<BODY>
+<meta name="description" value=" Electron Density Map File">
+<meta name="keywords" value="htmlman">
+<meta name="resource-type" value="document">
+<meta name="distribution" value="global">
+<P>
+ <BR> <HR><A NAME=tex2html5634 HREF="node313.html"><IMG ALIGN=BOTTOM ALT="next" SRC="/images/icons/latex2html/next_motif.gif"></A> <A NAME=tex2html5632 HREF="node309.html"><IMG ALIGN=BOTTOM ALT="up" SRC="/images/icons/latex2html/up_motif.gif"></A> <A NAME=tex2html5626 HREF="node311.html"><IMG ALIGN=BOTTOM ALT="previous" SRC="/images/icons/latex2html/previous_motif.gif"></A> <A NAME=tex2html5636 HREF="node1.html"><IMG ALIGN=BOTTOM ALT="contents" SRC="/images/icons/latex2html/contents_motif.gif"></A> <A NAME=tex2html5637 HREF="node445.html"><IMG ALIGN=BOTTOM ALT="index" SRC="/images/icons/latex2html/index_motif.gif"></A> <BR>
+<B> Next:</B> <A NAME=tex2html5635 HREF="node313.html"> Example: Computation of </A>
+<B>Up:</B> <A NAME=tex2html5633 HREF="node309.html"> Electron Density Maps</A>
+<B> Previous:</B> <A NAME=tex2html5627 HREF="node311.html"> Requirements</A>
+<BR> <HR> <P>
+<H1><A NAME=SECTION001530000000000000000> Electron Density Map File</A></H1>
+<P>
+<A NAME=4026>&#160;</A>
+	The output file of the  xrefin map statement contains
+information about the unit cell, indexing of the map, and the actual electron
+density map.  It can be read by a modified version of MAPPAGE to provide
+a ``DSN6'' file for FRODO.  Modified versions of this
+program are included in the
+directory ``[.VAX.FRODOMAP]&quot; for the VAX/VMS system
+and ``sgi/fft&quot; for the SGI systems. The grid size of the 
+map is determined
+by the GRID parameter in the  FFT statement.  
+The following is a FORTRAN example of how to read the
+formatted (QFORM=.TRUE.) or unformatted 
+(QFORM=.FALSE.) version of the electron density
+maps:
+<PRE>C
+C read title
+      IF (QFORM) THEN
+      READ(UNIT,'(/I8)',END=6,ERR=7) NTITLE
+      IF (NTITLE .LE. 0) THEN
+      READ( UNIT, '(A)',END=6,ERR=7) 
+      ELSE
+      DO J = 1, NTITLE
+      TITLE(J) = ' '
+      READ (UNIT, '(A)',END=6,ERR=7) TITLE(J)
+      ENDDO
+      ENDIF
+      ELSE 
+      DO J=1,MXTITL
+      TITLE(J)=' '
+      END DO
+      READ(UNIT,END=6,ERR=7) NTITLE,(TITLE(J)(1:80),J=1,NTITLE)
+      END IF
+C
+C read sectioning information
+      IF (QFORM) THEN
+      READ(U,'(9I8)',END=6,ERR=7)
+     &amp;  NA,AMIN,AMAX,NB,BMIN,BMAX,NC,CMIN,CMAX
+      ELSE
+      READ(U,END=6,ERR=7)
+     &amp;  NA,AMIN,AMAX,NB,BMIN,BMAX,NC,CMIN,CMAX
+      END IF
+C
+C read unit cell constants in angstroms and degrees
+      IF (QFORM) THEN
+      READ(U,'(6E12.5)',END=6,ERR=7) (CELL(I),I=1,6)
+      ELSE 
+      READ(U,END=6,ERR=7) (CELL(I),I=1,6)
+      END IF
+      END IF
+C
+C read matrix mode
+      IF (QFORM) THEN
+      READ(U,'(3A)',END=6,ERR=7) MODE 
+      ELSE
+      READ(U,END=6,ERR=7) MODE 
+      END IF
+      IF (MODE.NE.'ZYX') THEN 
+      CALL WRNDIE(-5,'RMAP','error in matrix mode')
+      GOTO 7
+      END IF 
+C           
+C read density matrix, c is slowest (&quot;z-sections&quot;). 
+      DO C=CMIN,CMAX
+C
+C read next section
+      IF (QFORM) THEN
+      READ(U,'(I8)',END=6,ERR=7) KSECT
+      READ(U,'(6E12.5)',END=6,ERR=7)
+     &amp;  ((MAP(A,B,C),A=AMIN,AMAX),B=BMIN,BMAX)
+      ELSE
+      READ(U,END=6,ERR=7) KSECT
+      READ(U,END=6,ERR=7)
+     &amp;  ((MAP(A,B,C),A=AMIN,AMAX),B=BMIN,BMAX)
+      END IF
+      END DO
+</PRE>
+The following lines show the beginning of a typical electron
+density map file:
+<PRE>       2 !NTITLE
+ REMARKS FILENAME=&quot;&quot;                                                                                                                          
+ REMARKS DATE:18-Jun-90  12:24:08       created by user:                                                                            
+ XMAP: extend NA=(  30   4  12) NB=(  15   5  10) NC=(  16   2  12) 
+      30       4      12      15       5      10      16       2      12
+ XMAP: a= 40.96, b= 18.65, c= 22.52, alpha= 90.00, beta= 90.77, gamma= 90.00
+ 0.40960E+02 0.18650E+02 0.22520E+02 0.90000E+02 0.90770E+02 0.90000E+02
+ XMAP: written in ZYX mode (z-sections)
+ZYX
+ XMAP: section #   0 average density=-0.336     sigma= 0.907    
+       0
+-0.97086E+00-0.49927E+00-0.82774E+00-0.13491E+01-0.57034E+00-0.71253E-01
+-0.19491E+00 0.61017E+00 0.10064E+01-0.22888E+01-0.94020E+00 0.77451E+00
+ 0.57539E+00-0.31211E-01-0.27430E+00-0.36526E+00 0.34772E+00 0.81884E+00
+-0.19954E+01-0.10117E+01 0.18038E+01 0.19008E+01 0.11886E+00-0.41646E+00
+ 0.47560E-01 0.48855E+00 0.57606E+00-0.22320E+00-0.12787E+01 0.47590E+00
+</PRE> 
+
+<BR> <HR>
+<P><ADDRESS>
+<I>Web Manager <BR>
+Sat Mar 11 09:37:37 PST 1995</I>
+</ADDRESS>
+</BODY>

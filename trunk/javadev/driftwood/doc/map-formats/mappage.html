@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3O//DTD W3 HTML 2.0//EN">
+<!Converted with LaTeX2HTML 95 (Thu Jan 19 1995) by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds >
+<HEAD>
+<TITLE> mappage</TITLE>
+</HEAD>
+<BODY>
+<meta name="description" value=" mappage">
+<meta name="keywords" value="manual">
+<meta name="resource-type" value="document">
+<meta name="distribution" value="global">
+<P>
+ <BR> <HR><A NAME=tex2html5335 HREF="node306.html"><IMG ALIGN=BOTTOM ALT="next" SRC="gifs/icons/next_motif.gif"></A> <A NAME=tex2html5333 HREF="node303.html"><IMG ALIGN=BOTTOM ALT="up" SRC="gifs/icons/up_motif.gif"></A> <A NAME=tex2html5327 HREF="node304.html"><IMG ALIGN=BOTTOM ALT="previous" SRC="gifs/icons/previous_motif.gif"></A> <A NAME=tex2html5337 HREF="node1.html"><IMG ALIGN=BOTTOM ALT="contents" SRC="gifs/icons/contents_motif.gif"></A> <A NAME=tex2html5338 HREF="node341.html"><IMG ALIGN=BOTTOM ALT="index" SRC="gifs/icons/index_motif.gif"></A> <BR>
+<B> Next:</B> <A NAME=tex2html5336 HREF="node306.html"> Brix --- yet </A>
+<B>Up:</B> <A NAME=tex2html5334 HREF="node303.html"> Associated programs</A>
+<B> Previous:</B> <A NAME=tex2html5328 HREF="node304.html"> bones</A>
+<BR> <HR> <P>
+<H1><A NAME=SECTION001020000000000000000> mappage</A></H1>
+ <A NAME=secmappage>&#160;</A>
+<P>
+Creates a standard electron density file from external file
+formats. Example of reading in a CCP4 map. It has been edited to remove
+excess CCP4 listings.
+<P>
+<PRE> 
+%<b> ../bin/mappage</b>
+          *** Mappage program ****
+Input map name from your crystallographic system:<b> ano1.E</b>
+O style map name:<b> q.map</b> 
+
+ Fourier parameters as read from the data-set
+          Origin ................................    0    0    0
+          Extent ................................   76   84   48
+          Grid ..................................   76   84   48
+          uvw (fast, medium, slow) ..............    Z    X    Y
+
+Do you wish to explicitly define Prod/Plus (y,[n])?<b> n</b> 
+Cell constants ....................  91.800  99.500  56.500  90.000  90
+.000  90.000
+Fourier type ......................N
+Number of pages along x , y \& z    10   11    6
+
+ Byte =    327.670 * density +         18
+vega [32]# <b> di q.map</b>
+-rw-r-----   1 alwyn    oteam     394752 Dec 15 15:48 q.map
+vega [33]#
+</PRE>
+<P>
+Notice the program decided on the prod and plus values. These numbers are
+to force the floating point number into a byte (i.e. an integer with values
+1-255) via
+<P>
+<PRE> 
+byte_value = density_value * prod + plus
+</PRE>
+<P>
+Any values outside the range are truncated. The <em> plus</em> value is therefore
+important when negative values are to be contoured, and the <em> prod</em> values is
+important for scaling.
+<P>
+<BR> <HR>
+</BODY></HTML>
+
