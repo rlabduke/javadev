@@ -44,13 +44,16 @@ public class BallPoint extends AbstractPoint // implements ...
     }
 //}}}
     
-//{{{ setRadius
+//{{{ get/setRadius
 //##################################################################################################
     /** Sets the radius of this point, if applicable */
     public void setRadius(float radius)
     {
         if(radius >= 0) r0 = radius;
     }
+    
+    public float getRadius()
+    { return r0; }
 //}}}
 
 //{{{ signalTransform
