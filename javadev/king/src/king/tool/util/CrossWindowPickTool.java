@@ -120,7 +120,7 @@ public class CrossWindowPickTool extends BasicTool
 //##############################################################################
 //}}}
 
-//{{{ getToolPanel, getHelpURL/Anchor, toString
+//{{{ getToolPanel, getHelpURL/Anchor, toString, isAppletSafe
 //##################################################################################################
     /** Returns a component with controls and options for this tool */
     protected Container getToolPanel()
@@ -137,6 +137,12 @@ public class CrossWindowPickTool extends BasicTool
     { return null; }
     
     public String toString() { return "Cross-window picking"; }
+    
+    /** This plugin is not applet-safe because it requires multiple KiNG windows open. */
+    static public boolean isAppletSafe()
+    {
+        return false;
+    }
 //}}}
 }//class
 

@@ -89,6 +89,20 @@ abstract public class ModelingTool extends BasicTool
     }
 //}}}
 
+//{{{ getDependencies
+//##################################################################################################
+    /**
+    * All modelling tools are dependent on the ModelManager2 plugin.
+    */
+    static public Collection getDependencies()
+    {
+        Collection superDep = BasicTool.getDependencies();
+        ArrayList dep = new ArrayList(superDep);
+        dep.add(ModelManager2.class.getName());
+        return dep;
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##############################################################################
 //}}}

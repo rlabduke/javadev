@@ -1,0 +1,18 @@
+# Standard plugins
+king.tool.model.ModelManager2
+king.EDMapPlugin
+king.tool.util.ViewpointPlugin
+king.tool.draw.SolidObjPlugin
+
+# Tools
+king.tool.util.MovePointTool
+king.tool.util.EditPropertiesTool
+king.tool.draw.DrawingTool
+king.tool.util.Dock3On3Tool
+king.tool.util.DockLsqTool
+king.tool.model.HingeTool
+king.tool.model.ScRotTool
+king.tool.model.ScMutTool
+king.tool.xtal.RNAMapTool
+king.tool.util.CrossWindowPickTool
+

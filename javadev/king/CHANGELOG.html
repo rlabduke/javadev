@@ -33,7 +33,6 @@
     Look at mouse wheel modifiers (e.g. Shift)
     Allow for Tools and Plugins to organize themselves in catagories?
     Provide interface to enable/disable (show/hide) tools and plugins?
-    Load tools and plugins using a service-provider model (see ImageIO.scanForPlugins())
     Split up UIMenus (esp Tools and Help) to facilitate rebuilding
     Do NOEs within d of x,y,z when nothing is mobile (same for Probe?)
     Allow user to type contour level into ED control?
@@ -52,9 +51,8 @@
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
     Add ability to edit masters
   * Think with Vincent about how to better organize/hide/group the tools
-        combo box layout stored in prefs; tools know their dependencies
+        combo box layout stored in prefs
         make sure preferences are cleared out on user reset
-        implement SPI tool loading scheme
     Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
     Key/mouse modifiers need to be checked from Safari (applet)
     Add a Mage-like "count" function
@@ -77,6 +75,13 @@
 - making movies should be done from the POV-Ray exported data, not in KiNG
 - fixed chiropraxis bug that left Ala H's oriented randomly upon "idealization"
 - migrated to using version.props AND buildnum.props to simplify version control
+- merged tool/plugin loading and menu items into a single process in ToolBox
+- removed the now-useless getToolsRBMI() from BasicTool
+  Theoretically breaks backward compatibility for tools, but not often in practice
+- added getDependencies() and isAppletSafe() to Plugin
+- filled in the correct values for tools and plugins that needed them
+- converted ToolBox to use a service-provider model for discovering plugin names
+  and loading them.
 
 ### 1.23 ###
 - added arc drawing tool

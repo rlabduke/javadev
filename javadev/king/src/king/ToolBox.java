@@ -5,6 +5,7 @@ import king.core.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
 import java.net.URL;
 import java.lang.reflect.*;
 //import java.text.*;
@@ -16,31 +17,45 @@ import driftwood.r3.*;
 import driftwood.util.SoftLog;
 //}}}
 /**
- * <code>ToolBox</code> instantiates and coordinates all the tools and plugins.
- *
- * <p>Begun on Fri Jun 21 09:30:40 EDT 2002
- * <br>Copyright (C) 2002-2004 by Ian W. Davis. All rights reserved.
+* <code>ToolBox</code> instantiates and coordinates all the tools and plugins,
+* using the Reflection API and a service provider (SPI) model.
+*
+* <p>Begun on Fri Jun 21 09:30:40 EDT 2002
+* <br>Copyright (C) 2002-2004 by Ian W. Davis. All rights reserved.
 */
 public class ToolBox implements MouseListener, MouseMotionListener, TransformSignalSubscriber
 {
 //{{{ Static fields
 //}}}
 
+//{{{ CLASS: PluginComparator
+//##################################################################################################
+    /** Sorts tools before plugins, then alphabetically by name. */
+    static class PluginComparator implements Comparator
+    {
+        public int compare(Object o1, Object o2)
+        {
+            boolean tool1 = (o1 instanceof BasicTool);
+            boolean tool2 = (o2 instanceof BasicTool);
+            if(tool1 && !tool2)         return -1;
+            else if(tool2 && !tool1)    return 1;
+            else return o1.toString().compareTo(o2.toString());
+        }
+    }
+//}}}
+
 //{{{ Variable definitions
 //##################################################################################################
     // These are public so tools in any package can access them.
-    public KingMain     kMain;
-    public KinCanvas    kCanvas;
-    public ToolServices services;
+    public KingMain         kMain;
+    public KinCanvas        kCanvas;
+    public ToolServices     services;
+    public TransformSignal  sigTransform;
     
-    public TransformSignal      sigTransform;
-    
-    ArrayList   tools;
-    BasicTool   activeTool;
-    final BasicTool                 defaultTool;
-          JRadioButtonMenuItem      defaultToolMI   = null;
-
-    ArrayList   plugins;
+    ArrayList               plugins;
+    BasicTool               activeTool;
+    final BasicTool         defaultTool;
+    JMenuItem               activeToolMI = null, defaultToolMI = null;
 //}}}
 
 //{{{ Constructors
@@ -54,114 +69,125 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
         kMain       = kmain;
         kCanvas     = kcanv;
         services    = new ToolServices(this);
-        
         sigTransform = new TransformSignal();
         
-        // Create plugins first because some tools rely on them
         plugins = new ArrayList();
-        if(kMain.getApplet() == null)
-        {
-            addPluginByName("king.tool.model.ModelManager2");
-        }
-        addPluginByName("king.EDMapPlugin");
-        addPluginByName("king.tool.util.ViewpointPlugin");
-        addPluginByName("king.tool.draw.SolidObjPlugin");
-        
-        // Create tools
-        tools = new ArrayList();
         defaultTool = activeTool = new BasicTool(this);
-        tools.add(activeTool);
-        addToolByName("king.tool.util.MovePointTool");
-        addToolByName("king.tool.util.EditPropertiesTool");
-        addToolByName("king.tool.draw.DrawingTool");
-        addToolByName("king.tool.util.Dock3On3Tool");
-        addToolByName("king.tool.util.DockLsqTool");
-        if(kMain.getApplet() == null)
-        {
-            addToolByName("king.tool.model.HingeTool");
-            addToolByName("king.tool.model.ScRotTool");
-            addToolByName("king.tool.model.ScMutTool");
-            addToolByName("king.tool.xtal.RNAMapTool");
-            addToolByName("king.tool.util.CrossWindowPickTool");
-        }
-        
+        plugins.add(activeTool);
+        loadPlugins();
         activeTool.start();
     }
 //}}}
 
-//{{{ addToolByName
+//{{{ loadPlugins
 //##################################################################################################
     /**
-    * Tries to instantiate a tool of the named class and insert it into the Toolbox,
-    * by using the Reflection API.
-    * @param name the fully qualified Java name of the tool class, e.g. "king.BasicTool"
-    * @return true on success, false on failure
+    * Automatically loads all the tools and plugins that are currently available
+    * to the system, while respecting their dependencies and applet safety.
     */
-    private boolean addToolByName(String name)
+    void loadPlugins()
     {
-        BasicTool thetool;
-        
-        // First, check to see if we already have one.
-        for(Iterator iter = tools.iterator(); iter.hasNext(); )
+        // returned list might not be mutable, so make a copy
+        Collection toLoad = new ArrayList(scanForPlugins());
+        int oldSize;
+        do // cycle through all remaining names until no more can be loaded
         {
-            thetool = (BasicTool)iter.next();
-            if(thetool.getClass().getName().equals(name)) return true;
+            oldSize = toLoad.size();
+            for(Iterator iter = toLoad.iterator(); iter.hasNext(); )
+            {
+                String name = (String) iter.next();
+                if(canLoadPlugin(name))
+                {
+                    // Only try once, because we should succeed.
+                    addPluginByName(name);
+                    iter.remove();
+                }
+            }
         }
+        while(oldSize > toLoad.size());
         
-        // If not, try to load one dynamically.
+        Collections.sort(plugins, new PluginComparator());
+    }
+//}}}
+
+//{{{ scanForPlugins
+//##################################################################################################
+    /**
+    * Using a service-provider (SPI) model like the one in ImageIO.scanForPlugins(),
+    * we scan all jar files on the classpath for lists of Plugins that
+    * could be loaded by KiNG.
+    * Plugins are listed in a plain text file <code>/META-INF/services/king.Plugin</code>.
+    * One fully-qualified class name is given per line, and nothing else.
+    * @return a Collection&lt;String&gt; of fully-qualified plugin names.
+    */
+    Collection scanForPlugins()
+    {
+        Collection pluginNames = new ArrayList();
         try
         {
-            Class[] constargs = { ToolBox.class };
-            Object[] initargs = { this };
-            
-            Class toolclass = Class.forName(name);
-            Constructor toolconst = toolclass.getConstructor(constargs);
-            thetool = (BasicTool)toolconst.newInstance(initargs);
-            tools.add(thetool);
+            ClassLoader loader = this.getClass().getClassLoader();
+            // No leading slashes when using this method
+            Enumeration urls = loader.getResources("META-INF/services/king.Plugin");
+            while(urls.hasMoreElements())
+            {
+                URL url = (URL) urls.nextElement();
+                try
+                {
+                    LineNumberReader in = new LineNumberReader(new InputStreamReader(url.openStream()));
+                    String s;
+                    while((s = in.readLine()) != null)
+                    {
+                        s = s.trim();
+                        if(!s.equals("") && !s.startsWith("#"))
+                            pluginNames.add(s);
+                    }
+                }
+                catch(IOException ex)
+                { SoftLog.err.println("Plugin SPI error: "+ex.getMessage()); }
+            }
+        }
+        catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
+        
+        return pluginNames;
+    }
+//}}}
+
+//{{{ canLoadPlugin
+//##################################################################################################
+    /**
+    * Returns true iff the following conditions are met:
+    * (1) the named class can be located and loaded
+    * (2) the plugin is applet-safe, or we're running as an application
+    * (3) all the plugins this one depends on are already loaded.
+    * @param className the fully qualified name of the Plugin class to check
+    */
+    boolean canLoadPlugin(String className)
+    {
+        // Make a list of the full names of loaded plugins
+        Set loadedPlugins = new HashSet();
+        for(Iterator iter = plugins.iterator(); iter.hasNext(); )
+            loadedPlugins.add(iter.next().getClass().getName());
+        
+        try
+        {
+            Class pluginClass = Class.forName(className);
+            Method appletSafe = pluginClass.getMethod("isAppletSafe", new Class[] {});
+            Boolean safe = (Boolean) appletSafe.invoke(null, new Object[] {});
+            if(kMain.getApplet() != null && safe.booleanValue() == false)
+                return false; // can't load because we're not applet safe
+            Method getDepend = pluginClass.getMethod("getDependencies", new Class[] {});
+            Collection deps = (Collection) getDepend.invoke(null, new Object[] {});
+            for(Iterator iter = deps.iterator(); iter.hasNext(); )
+            {
+                if(!loadedPlugins.contains(iter.next()))
+                    return false; // can't load because of a dependency
+            }
+            return true; // can load; we've passed all the tests
         }
         catch(Throwable t)
         {
             t.printStackTrace(SoftLog.err);
-            SoftLog.err.println("While trying to load '"+name+"': "+t.getMessage());
-            return false;
-        }
-        return true;
-    }
-//}}}
-
-//{{{ addToolsTo{Tools, Help}Menu
-//##################################################################################################
-    /** Appends menu items for using the loaded tools */
-    public void addToolsToToolsMenu(JMenu menu)
-    {
-        BasicTool t;
-        JRadioButtonMenuItem item, first = null;
-        ButtonGroup group = new ButtonGroup();
-        for(Iterator iter = tools.iterator(); iter.hasNext(); )
-        {
-            t = (BasicTool)iter.next();
-            item = t.getToolsRBMI();
-            if(item != null)
-            {
-                menu.add(item);
-                group.add(item);
-                if(first == null) first = item;
-            }
-        }
-        first.setSelected(true);
-        defaultToolMI = first;
-    }
-    
-    /** Appends menu items for understanding the loaded tools */
-    public void addToolsToHelpMenu(JMenu menu)
-    {
-        BasicTool t;
-        JMenuItem item;
-        for(Iterator iter = tools.iterator(); iter.hasNext(); )
-        {
-            t = (BasicTool)iter.next();
-            item = t.getHelpMenuItem();
-            if(item != null) menu.add(item);
+            return false; // can't load because of a reflection error
         }
     }
 //}}}
@@ -217,12 +243,21 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
     {
         Plugin p;
         JMenuItem item;
+        defaultToolMI = activeToolMI = null;
+        ButtonGroup group = new ButtonGroup();
         for(Iterator iter = plugins.iterator(); iter.hasNext(); )
         {
             p = (Plugin)iter.next();
             item = p.getToolsMenuItem();
             if(item != null) menu.add(item);
+            if(p instanceof BasicTool && item != null)
+            {
+                group.add(item);
+                if(p == defaultTool)    defaultToolMI = item;
+                if(p == activeTool)     activeToolMI = item;
+            }
         }
+        if(activeToolMI != null) activeToolMI.setSelected(true);
     }
     
     /** Appends menu items for understanding the loaded plugins */
@@ -253,7 +288,8 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
     /** Programmatically selects the Navigate tool. */
     public void activateDefaultTool()
     {
-        defaultToolMI.setSelected(true);
+        if(defaultToolMI != null)
+            defaultToolMI.setSelected(true);
         toolActivated(defaultTool);
     }
 
