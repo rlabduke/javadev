@@ -1,0 +1,302 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\language english
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\papersize Default
+\paperpackage a4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+Redesigning the 
+\noun on 
+Mage
+\noun default 
+ palette
+\layout Section*
+
+Introduction
+\layout Standard
+
+
+\noun on 
+Mage
+\noun default 
+ uses a palette of 25 named colors for rendering graphics objects.
+ Each of the 25 is actually a set of five closely related shades that are
+ used to impart a sense of depth to the image, with the front of the object
+ being rendered in a stronger tone and the rear fading into the background.
+ Also, the graphics may be displayed with either a solid white or a solid
+ black background, so two different complete palettes are required.
+\layout Standard
+
+The result is that 
+\noun on 
+Mage
+\noun default 
+ uses 250 distinct colors to render its graphics.
+ Previously, each of these was designed by eye and specified individually
+ in the red-green-blue (RGB) colorspace.
+ The palette for use with a black background was very good, but the one
+ for a white background was somewhat lacking.
+ This document describes recent efforts to improve both palettes, but especially
+ the white-background one.
+\layout Standard
+
+The following criteria were used in designing the new palette scheme, and
+ are listed roughly in order of importance:
+\layout Enumerate
+
+The colors should be pleasant to look at for an extended period of time
+ on either the black or the white background.
+\layout Enumerate
+
+The shades of each color should convey depth as well as possible.
+\layout Enumerate
+
+It should be possible to organize the named colors into progressions and
+ families based on both hue and lightness/darkness.
+\layout Enumerate
+
+The colors should be maximally distinguishable from one another.
+\layout Enumerate
+
+The colors should retain these properties on a variety of different monitors
+ with differing configurations, as well as on the printed page.
+\layout Enumerate
+
+The color definitions should be simple and intuitive, with a minimal number
+ of parameters to be specified.
+\layout Section*
+
+The HSV scheme
+\layout Standard
+
+As it turns out, the simplified scheme for defining colors was key to achieving
+ the other properties, and so will be described first.
+ The new palette was not defined in RGB colorspace, but rather in hue-saturation
+-value (HSV) colorspace
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+
+\emph on 
+Brightness
+\emph default 
+ is sometimes used as a synonym for 
+\emph on 
+value
+\emph default 
+, and so this colorspace is also called HSB.
+\end_inset 
+
+.
+ 
+\emph on 
+Hue
+\emph default 
+ is given as an angle on the color wheel, from 0 to 360 degrees, where 0\SpecialChar ~
+=
+ 360\SpecialChar ~
+= pure\SpecialChar ~
+red.
+ 
+\emph on 
+Saturation
+\emph default 
+ is given as a percentage between 0 (a shade of gray, no hue) and 100 (maximum
+ contribution from hue).
+ 
+\emph on 
+Value
+\emph default 
+ indicates the brightness or luminosity, and is given as a percentage with
+ 0\SpecialChar ~
+=\SpecialChar ~
+black and 100\SpecialChar ~
+=\SpecialChar ~
+white.
+\layout Standard
+
+Each named color was previously defined with 30 parameters: red, green,
+ and blue values for five shades on two backgrounds.
+ In the revised scheme, each color with is specified with five.
+ The same hue is used on both backgrounds, but saturation and value are
+ specified independently.
+ These numbers define the first or frontmost color in the progression of
+ shades, and the others are calculated from it.
+\layout Standard
+
+The formulas used for deriving the other shades were based on careful observatio
+n of the original, hand-built palettes.
+ On a black background, hue and saturation were approximately constant for
+ a single named color, but value (
+\emph on 
+i.e.
+\emph default 
+, brightness) decreased as the shades receded into the distance.
+ On a white background, hue held steady, but saturation decreased 
+\emph on 
+and
+\emph default 
+ value increased as the shades receded into the distance.
+\layout Standard
+
+Both cases can be regarded as an interpolation from the frontmost starting
+ shade toward the background color.
+ Any color with a value of 0 is black, regardless of hue or saturation,
+ which explains why only value needs to be manipulated to accomplish a fade
+ towards black.
+ White, however, requires that value be 100 
+\emph on 
+and
+\emph default 
+ that saturation be 0; thus, both parameters must be varied to get believable
+ fading.
+\layout Standard
+
+Interpolation is done linearly, with constant-size steps between the shades.
+ Since this approach yields a very good palette, no more complicated scheme
+ was sought.
+\layout Section*
+
+Color families
+\layout Standard
+
+The 
+\noun on 
+Mage
+\noun default 
+ named colors are organized in two 
+\begin_inset Quotes eld
+\end_inset 
+
+directions
+\begin_inset Quotes erd
+\end_inset 
+
+, as shown in Fig.
+ 1 (TODO).
+ The vertical axis shows progression in hue, with a rainbow of colors.
+ The horizontal axis shows progressions in lightness/darkness, where sets
+ of two or three colors look like they belong together, but differ in saturation
+ and/or value.
+ Note that some colors serve in two different places in the chart.
+\layout Standard
+
+On a black background, the light-to-dark progressions go from the pastels
+ to the semi-saturated colors to the saturated colors.
+ On a white background, however, they go from the semi-saturated colors
+ to the saturated colors to the pastels (which, depite the name, are quite
+ dark).
+\layout Section*
+
+Adjusting the color definitions
+\layout Standard
+
+All of the initial HSV definitions were based on the original 
+\noun on 
+Mage
+\noun default 
+ palette.
+ However, some adjustments were made.
+\layout Subsection*
+
+Hue spacing
+\layout Standard
+
+There are 13 colors that form the primary progression in hue: red, orange,
+ gold, yellow, lime, green, sea, cyan, sky, blue, purple, magenta, and hotpink.
+ There are six 
+\begin_inset Quotes eld
+\end_inset 
+
+anchor
+\begin_inset Quotes erd
+\end_inset 
+
+ colors whose hues correspond to the standard RGB definitions: red (hue\SpecialChar ~
+=\SpecialChar ~
+0),
+ yellow (60), green (120), cyan (180), blue (240), and magenta (300).
+ The other colors are spaced evenly between their flanking anchors, with
+ a few exceptions.
+ Lime is closer to yellow than to green, because colors near green are hard
+ to distinguish from one another on many monitors.
+ Purple is slightly closer to magenta than to blue, again to improve visual
+ separation.
+ Hotpink is also slightly closer to red than to magenta, for the same reason.
+\layout Standard
+
+Most of the light-to-dark progressions (
+\emph on 
+e.g.
+
+\emph default 
+ pinktint-pink-red, bluetint-blue) show some variation in hue; in fact,
+ only yellow and yellowtint share exactly the same hue.
+ This can be attributed to the fact that there are fewer colors in the hue
+ progressions for the semi-saturated and pastel colors, and the hues vary
+ to maximize the distinctiveness of each color.
+ For instance, red and orange are only 20 degrees apart in hue, but pink
+ and peach are 35 degrees apart.
+\layout Subsection*
+
+Value and saturation (black background)
+\layout Standard
+
+For the most part, all colors on the black background start at 100% value.
+ The exceptions are some of the neutrals (gray, brown) and colors near cyan
+ (cyan, sky).
+ For some reason, cyan appears unusally luminous on most computer monitors,
+ and so it starts off at a reduced value to compensate.
+\layout Standard
+
+Levels of saturation are used to distinguish different groups of colors,
+ but with each group there are a few trends worth noting.
+ Green, blue and purple all benefit from a reduction in saturation relative
+ to their peers; at full saturation on a black background, these colors
+ are jarring and almost seem to vibrate.
+ Colors near yellow tolerate the least desaturation; dark and desaturated
+ yellows and oranges quickly become muddy and then turn into brown.
+\layout Subsection*
+
+Value and saturation (white background)
+\layout Standard
+
+Full, 100% value is a disaster against a white background.
+ Those colors are too luminous to be easily separated from the background
+ and strain the eyes.
+ No color except blue has a value above 90%; blue appears so dark in contrast
+ to white that it can tolerate the higher value.
+ (Even for blue, a slighly lower value would be preferable, but the higher
+ one helps with separation from bluetint, which is not much darker but already
+ so dark as to be difficult to distinguish from black.) Both green and greentint
+ have lower values than any of the other members in their hue progressions.
+ This may be due to the fact that human eyes are more sensitive to green
+ wavelengths than to red or blue.
+\layout Standard
+
+Most colors on a white background are fully saturated (except for the neutrals).
+ Again, cyan's high luminosity recommends deemphasizing it, and green and
+ blue also benefit from some reduction in saturation.
+\the_end

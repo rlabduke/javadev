@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+  <title>README for KiNG</title>
+  <meta name="author" content="Ian W. Davis">
+</head>
+<body>
+<h1>README file for KiNG</h1>
+<hr width="100%" size="2">
+<h2>What is KiNG?</h2>
+KiNG is a program for viewing and interacting with three-dimensional
+illustrations in "kinemage" format. This file describes how to run KiNG
+and serves as a guide to the other resources in this distribution.<br>
+<br>
+More information on kinemage graphics and their uses in structural
+biology and in teaching 3-D literacy is available from the homepage of
+the Richardson laboratory at Duke University: <a
+ href="http://kinemage.biochem.duke.edu/">http://kinemage.biochem.duke.edu/</a><br>
+<br>
+<h2>Running KiNG</h2>
+To run KiNG, simply double-click on the file named <tt>king.jar</tt>.
+On most systems, this will launch the Java interpretter and run KiNG --
+after a few seconds, the KiNG window(s) should appear on your screen.<br>
+<br>
+If nothing happens, it probably means you don't have Java installed.
+Only Apple computers running Mac OS X come with Java "out of the box";
+Windows and Linux users need to get Java from Sun and install it. Don't
+worry -- it's not hard and it doesn't cost anything. Just go to this
+page and you'll be up and running in no time: <a
+ href="http://java.sun.com/getjava/index.html">http://java.sun.com/getjava/index.html<br>
+</a><br>
+KiNG works on any platform that provides a modern (1.3+) Java Virtual
+Machine; at the moment, that includes Windows, Apple's OS X, Linux (x86
+only), and Solaris. Note that some tools and plugins, like the Backrub
+tool for refitting protein backbone, require Java 1.4 or later. <b>YOU
+MUST HAVE JAVA INSTALLED IN ORDER FOR KING TO RUN!!!</b> For more
+information on Java visit <a href="http://java.sun.com/">http://java.sun.com/</a>
+or <a href="http://www.java.com">http://www.java.com<br>
+</a><br>
+Unix types may want to create a shell script to launch KiNG on their
+system; it should look something like this:<br>
+<br>
+<tt>#!/bin/sh<br>
+exec java -Xms32m -Xmx128m -jar /home/ian/bin/jars/king.jar "$@"<br>
+<br>
+</tt>Just enter those two lines into a text file named '<span
+ style="font-family: monospace;">king</span>' (change the path to point
+to your copy of <span style="font-family: monospace;">king.jar</span>,
+please), run the command '<span style="font-family: monospace;">chmod
+755 king</span>', and then move it to someplace that's on your PATH --
+maybe '<span style="font-family: monospace;">/usr/local/bin</span>' or '<span
+ style="font-family: monospace;">~/bin</span>'. The <span
+ style="font-family: monospace;">-Xms</span> and <span
+ style="font-family: monospace;">-Xmx</span> switches are optional;
+they
+are recommendations for initial and maximum memory allocations
+(respectively) that will handle almost any
+size kinemage. For <span style="font-style: italic;">very</span> large
+kinemages, you might increase <span style="font-family: monospace;">-Xmx</span>
+to 256 MB or more.<br>
+<br>
+Users of Apple's OS X may want to include two additional flags,
+immediately following the <span style="font-family: monospace;">exec
+java</span> part of the command (separated by spaces, of course).
+Adding <span style="font-family: monospace;">-Dapple.awt.antialiasing=on</span>
+will make the graphics much prettier, and helps offset the fact that
+the drawing primitives are broken (too large) in Apple's
+implementation. Adding <span style="font-family: monospace;">-Dswing.defaultlaf=javax.swing.plaf.metal.MetalLookAndFeel</span>
+will cause KiNG to use the standard Java Look &amp; Feel instead of
+emulating a native Mac application. The native Mac version is somewhat
+buggy, so try this if you get unexplained crashes on OS X.<br>
+<br>
+<h2>Documentation and license terms</h2>
+KiNG features a relatively complete user's guide that is accessible
+from the<br>
+Help menu. Individual tools in the Toolbox also have their own
+documentation.<br>
+For those who prefer hard copies, the <tt>doc/</tt> directory contains
+a PDF of the<br>
+manual and may contain other relevant documentation as well.<br>
+<br>
+KiNG and most contents of this distribution are covered by the terms of
+the<br>
+license found in the <a href="LICENSE.html">LICENSE</a> file. Other
+libraries and resources bundled<br>
+as part of the distribution are governed by their own terms as described<br>
+in the user manual.<br>
+<br>
+<hr width="100%" size="2"><small><i>Last updated 4 Mar 2004 by IWD for
+KiNG 1.22</i></small>
+</body>
+</html>

@@ -1,0 +1,872 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\begin_preamble
+\pagenumbering{arabic}
+\lhead{\nouppercase{\rightmark}}
+\chead{}
+\rhead{\thepage}
+\lfoot{}
+\cfoot{}
+\rfoot{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\sectionmark}[1]{\markboth{}{[\thesection]\ #1}}
+\renewcommand{\subsectionmark}[1]{\markboth{}{[\thesubsection]\ #1}}
+\fancypagestyle{plain}{%
+\fancyhf{}%
+\renewcommand{\headrulewidth}{0pt}%
+\renewcommand{\footrulewidth}{0pt}%
+}
+\end_preamble
+\language english
+\inputencoding auto
+\fontscheme pslatex
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize Default
+\paperpackage a4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle fancy
+
+\layout Title
+
+The Kinemage File Format, v1.0
+\layout Author
+
+Ian W.
+ Davis, Jane S.
+ Richardson, David C.
+ Richardson
+\layout Abstract
+
+This document describes the syntax and semantics of the core feature-set
+ of the kinemage file format.
+ Since even the core features are extensive, the description has been broken
+ into two logical halves.
+\layout Abstract
+
+The first part of the document describes the low-level syntax that is common
+ to all kinemage formats, regardless of how many additional functionalities
+ they incorporate.
+ The descriptions are very precise, at the cost of being somewhat long and
+ tedious.
+ However, this level of detail is necessary for programmers who wish to
+ interpret kinemage files reliably, and may be helpful to authors as well.
+ This level is expected to be extremely stable and change very slowly.
+\layout Abstract
+
+The second part of the document describes the semantics and high-level syntax
+ of kinemage files, giving descriptions of the most commonly used keywords
+ and the various options and parameters that accompany them.
+ This level of detail is important to both programmers and kinemage authors.
+ While the core features are stable and will remain so, additional features
+ may be added with some frequency.
+\layout Abstract
+
+The descriptions assume a similar division of labor in the implementation
+ of computer programs that process kinemages.
+ The low-level syntax is handled by a tokenizer, which can separate a stream
+ of characters into meaningful atomic units.
+ The semantics and high-level syntax are handled by a parser, which is responsib
+le for understanding, 
+\emph on 
+e.g.
+\emph default 
+, the relationships among graphics objects and their implied hierarchical
+ organization.
+\layout Standard
+
+
+\begin_inset LatexCommand \tableofcontents{}
+
+\end_inset 
+
+
+\layout Part
+
+Syntax
+\layout Section
+
+Characters in kinemage files
+\layout Standard
+
+Kinemage files are plain text files encoded according to the ASCII standard
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+See 
+\begin_inset LatexCommand \htmlurl{http://www.asciitable.com/}
+
+\end_inset 
+
+ for details.
+\end_inset 
+
+, which defines 128 characters.
+ Each character is stored in the lower 7 bits of a single byte.
+ Only ASCII characters between 32 and 126 inclusive, plus 9 (horizontal
+ tab), 10 (newline), 12 (formfeed), and 13 (carriage return) are legal character
+s in a kinemage file (numbers given are in decimal).
+ 
+\layout Standard
+
+A kinemage tokenizer may check for and report illegal characters, but is
+ not required to.
+ If the tokenizer does find illegal characters, they should not cause a
+ fatal error, but should instead be treated as alphanumerics (see 
+\begin_inset LatexCommand \ref{sub:Alphanumerics}
+
+\end_inset 
+
+).
+\layout Subsection
+
+Whitespace
+\layout Standard
+
+Whitespace characters are the space (32), horizontal tab (9), newline (10),
+ formfeed (12), carriage return (13), and the comma (44).
+ Commas are defined as whitespace to simplify treatment of a sequence of
+ numbers, which is often writen out with commas as separators.
+\layout Standard
+
+The kinemage format is whitespace insensitive: these characters carry no
+ meaning and may be discarded at the tokenizer level.
+ Where whitespace is called for, one or more whitespace characters may be
+ used, and any sequence of continguous whitespace characters is treated
+ as a single occurance of whitespace.
+ However, there is one important semantic attribute conveyed by whitespace:
+ the newline and carriage return characters impart the beginning-of-line
+ (BOL) property to any token immediately following them.
+ See 
+\begin_inset LatexCommand \ref{sub:Beginning-of-line}
+
+\end_inset 
+
+ for details.
+\layout Standard
+
+When using whitespace, keep in mind that kinemage files should be human-readable
+ and human-editable.
+ Line length should not exceed 80 characters, but superfluous line breaks
+ should be avoided.
+ Single spaces are the preferred form of whitespace within a line.
+ These suggestions are merely matters of style, and a kinemage tokenizer
+ must not rely on them being followed.
+\layout Subsection
+
+Alphanumerics
+\begin_inset LatexCommand \label{sub:Alphanumerics}
+
+\end_inset 
+
+
+\layout Standard
+
+Alphanumeric characters are the uppercase letters A-Z, the lowercase letters
+ a-z, and the digits 0-9.
+ Note that kinemage files are case sensitive.
+ Kinemage tokenizers must not convert or mangle the case of any tokens in
+ a kinemage file, and tokens that differ only by case must still be considered
+ distinct from one another.
+\layout Subsection
+
+Punctuation
+\layout Standard
+
+All legal characters that are neither classified as whitespace nor as alphanumer
+ics are regarded as punctuation.
+ These characters have a variety of functions in the kinemage format.
+ The following characters already have well-defined function and syntax
+ associated with them:
+\layout LyX-Code
+
+@ ( ) - = + { } 
+\begin_inset Quotes eld
+\end_inset 
+
+ ' < .
+ >
+\layout Standard
+
+At the moment, no special significance has been attached to the following
+ characters:
+\layout LyX-Code
+
+` ~ ! # $ % ^ & * _ [ ] 
+\backslash 
+ | : ; / ?
+\layout Standard
+
+However, a future version of the format may define meanings for them.
+\layout Section
+
+Tokens in kinemage files
+\layout Standard
+
+Files in kinemage format can be thought of a sequences of tokens (meaningful),
+ each separated from the others by zero or more whitespace characters (meaningle
+ss).
+ Tokens are divided into two classes, quoted and unquoted.
+ Quoted tokens have clear start and end signals, so they can occur with
+ no intervening whitespace and still be separable.
+ Unquoted tokens lack clear start and/or end signals.
+ Thus, at least one whitespace character is 
+\emph on 
+required
+\emph default 
+ between two unquoted tokens in order to separate them from one another.
+\layout Standard
+
+Theoretically, each token may be of any length, from one character (even
+ zero characters, for quoted tokens) up to the largest string that will
+ fit in memory.
+ In practice, however, tokens should be fairly short; 20 characters or less
+ is a reasonable guideline.
+ No token should exceed 256 characters in length, and more stringent restriction
+s on length may be imposed on some tokens by the higher-level syntax.
+\layout Standard
+
+The names given to token types below reflect their usual function in a kinemage
+ file, but they are not restricted to that function.
+ For example, an identifier usually names some object, but it can also enclose
+ a command line, a file name, and so on.
+\layout Subsection
+
+Beginning-of-line
+\begin_inset LatexCommand \label{sub:Beginning-of-line}
+
+\end_inset 
+
+
+\layout Standard
+
+Beginning-of-line (BOL) is a property of certain tokens that may influence
+ their interpretation by the parser.
+ For instance, for a token to be recognized as a keyword (see 
+\begin_inset LatexCommand \ref{sub:Keywords}
+
+\end_inset 
+
+), it must occur at the beginning of a line.
+ A token is considered BOL under any of the following conditions:
+\layout Itemize
+
+The first character of the token is the first character in the file
+\layout Itemize
+
+The first character of the token is immediately preceded by a newline
+\layout Itemize
+
+The first character of the token is immediately preceded by a carriage return
+\layout Subsection
+
+Quoted tokens
+\layout Standard
+
+Quoted tokens all have explicit markers for the beginning and end of the
+ token.
+ This simplifies the parsing of these tokens, and enables one to classify
+ the type of token present after parsing the first character of it.
+ However, care must be taken to close every token that is opened.
+ To aid authors in discovering such errors in their kinemages, it is recommended
+ that kinemage tokenizers report a non-fatal error when they encounter the
+ end of the file before closing an open quoted token.
+\layout Subsubsection
+
+Identifiers
+\layout Standard
+
+Identifiers are strings quoted by curly braces, like this:
+\layout LyX-Code
+
+{an identifier}
+\layout Standard
+
+An identifier token begins when an opening curly brace is encountered outside
+ of any other quoted token (but possibly 
+\begin_inset Quotes eld
+\end_inset 
+
+inside
+\begin_inset Quotes erd
+\end_inset 
+
+, 
+\emph on 
+i.e.
+\emph default 
+, immediately following, an unquoted token).
+ It terminates as soon as the number of closing curly braces encountered
+ in the course of parsing this token equals the number of opening curly
+ braces encountered.
+ That is, curly braces may be nested within an identifier, but only as long
+ as they are balanced.
+ Otherwise, an identifier may contain any legal character for a kinemage
+ file.
+\layout Subsubsection
+
+Comments
+\layout Standard
+
+Comments are strings quoted by angle brackets, like this:
+\layout LyX-Code
+
+<a comment>
+\layout Standard
+
+A comment token begins when an opening angle bracket is encountered outside
+ of any other quoted token (but possibly 
+\begin_inset Quotes eld
+\end_inset 
+
+inside
+\begin_inset Quotes erd
+\end_inset 
+
+, 
+\emph on 
+i.e.
+\emph default 
+, immediately following, an unquoted token).
+ It terminates as soon as the number of closing angle brackets encountered
+ in the course of parsing this token equals the number of opening angle
+ brackets encountered.
+ That is, angle brackets may be nested within a comment, but only as long
+ as they are balanced.
+ Otherwise, a comment may contain any legal character for a kinemage file.
+\layout Subsubsection
+
+Aspects
+\layout Standard
+
+Aspects are strings quoted by parentheses, like this:
+\layout LyX-Code
+
+(an aspect)
+\layout Standard
+
+An aspect token begins when an opening parenthesis is encountered outside
+ of any other quoted token (but possibly 
+\begin_inset Quotes eld
+\end_inset 
+
+inside
+\begin_inset Quotes erd
+\end_inset 
+
+, 
+\emph on 
+i.e.
+\emph default 
+, immediately following, an unquoted token).
+ It terminates as soon as the number of closing parentheses encountered
+ in the course of parsing this token equals the number of opening parentheses
+ encountered.
+ That is, parentheses may be nested within an aspect, but only as long as
+ they are balanced.
+ Otherwise, an aspect may contain any legal character for a kinemage file.
+\layout Subsubsection
+
+Single quoted strings (pointmasters)
+\layout Standard
+
+Pointmasters are represented as strings deliminted by single quote marks,
+ like this:
+\layout LyX-Code
+
+'abc'
+\layout Standard
+
+A single quoted token begins when a single quote mark is encountered outside
+ of any other quoted token (but possibly 
+\begin_inset Quotes eld
+\end_inset 
+
+inside
+\begin_inset Quotes erd
+\end_inset 
+
+, 
+\emph on 
+i.e.
+\emph default 
+, immediately following, an unquoted token).
+ It terminates as soon another single quote mark is encountered.
+ That is, single quoted strings may not contain embedded single quotes,
+ and no mechanism exists to escape this limitation.
+ Otherwise, a single quoted string may contain any legal character for a
+ kinemage file.
+\layout Subsubsection
+
+Double quoted strings
+\layout Standard
+
+Double quoted strings are defined analogously to single quoted strings,
+ like this:
+\layout LyX-Code
+
+
+\begin_inset Quotes eld
+\end_inset 
+
+abc
+\begin_inset Quotes erd
+\end_inset 
+
+
+\layout Standard
+
+A double quoted token begins when a double quote mark is encountered outside
+ of any other quoted token (but possibly 
+\begin_inset Quotes eld
+\end_inset 
+
+inside
+\begin_inset Quotes erd
+\end_inset 
+
+, 
+\emph on 
+i.e.
+\emph default 
+, immediately following, an unquoted token).
+ It terminates as soon another double quote mark is encountered.
+ That is, double quoted strings may not contain embedded double quotes,
+ and no mechanism exists to escape this limitation.
+ Otherwise, a double quoted string may contain any legal character for a
+ kinemage file.
+\layout Standard
+
+At the moment, no function has been ascribed to double quoted strings in
+ kinemage files.
+ Until a meaning is defined, parsers should ignore them.
+\layout Subsection
+
+Unquoted tokens
+\layout Standard
+
+Unquoted tokens are somewhat harder to parse than quoted tokens, because
+ their start and end signals are less obvious.
+ Also, the entire token may need to be parsed before one is able to decide
+ what kind of token it is.
+ However, rules for parsing these tokens are well-defined.
+ An unquoted token may begin in any of the following positions:
+\layout Itemize
+
+At the beginning of the file
+\layout Itemize
+
+Immediately following the end of a quoted token
+\layout Itemize
+
+Following one or more whitespace characters, outside of all quoted tokens
+\layout Standard
+
+An unquoted token may begin with any non-whitespace character that does
+ not begin a quoted token.
+ An unquoted token is then terminated by the first of these encountered
+ after the initiating character:
+\layout Itemize
+
+The end of the file
+\layout Itemize
+
+Any whitespace character
+\layout Itemize
+
+The equals sign (ASCII 61)
+\layout Itemize
+
+Any character that begins a quoted token: 
+\family typewriter 
+{ < ( ' 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\layout Standard
+
+While the initiating character is considered part of the token, the terminating
+ character may or may not be considered part of the token.
+ Whitespace will be discarded, and quoted token initiators will be part
+ of the next (quoted) token.
+ The equals sign will be kept as part of this token.
+ Note that this means tokens ending in the equals sign (called 
+\begin_inset Quotes eld
+\end_inset 
+
+Properties
+\begin_inset Quotes erd
+\end_inset 
+
+; see 
+\begin_inset LatexCommand \ref{sub:Properties}
+
+\end_inset 
+
+) are effectively half-quoted: there need not be whitespace after the equals
+ sign to separate this token from the next (unquoted) token.
+\layout Standard
+
+The following sections present rules for categorizing unquoted tokens.
+ The rules are in order of precedence---that is, a token must be classified
+ according to the 
+\emph on 
+first
+\emph default 
+ rule it matches from this list.
+ This resolves the ambiguity that would arise if, 
+\emph on 
+e.g.
+\emph default 
+, a token began with an 
+\begin_inset Quotes eld
+\end_inset 
+
+at
+\begin_inset Quotes erd
+\end_inset 
+
+ sign (like a keyword) and ended with an equals sign (like a property).
+\layout Subsubsection
+
+Keywords
+\begin_inset LatexCommand \label{sub:Keywords}
+
+\end_inset 
+
+
+\layout Standard
+
+Keywords define the major sections of a kinemage.
+ Each keyword begins with the 
+\begin_inset Quotes eld
+\end_inset 
+
+at
+\begin_inset Quotes erd
+\end_inset 
+
+ sign (64).
+ For example, all of the following are keywords:
+\layout LyX-Code
+
+@kinemage @master @vectorlist
+\layout Standard
+
+Furthermore, in order to be recognized as a keyword, the 
+\begin_inset Quotes eld
+\end_inset 
+
+at
+\begin_inset Quotes erd
+\end_inset 
+
+ sign must occur at the beginning-of-line (BOL; see 
+\begin_inset LatexCommand \ref{sub:Beginning-of-line}
+
+\end_inset 
+
+).
+ In addition to enforcing good style, this streamlines the processing of
+ plain text segments (see 
+\begin_inset LatexCommand \ref{sub:Plain-text-blocks}
+
+\end_inset 
+
+).
+\layout Subsubsection
+
+Properties
+\begin_inset LatexCommand \label{sub:Properties}
+
+\end_inset 
+
+
+\layout Standard
+
+Properties are generally used for labeling the meaning of the next token
+ in the file.
+ Each property ends with an equals sign (61).
+ The following are all properties:
+\layout LyX-Code
+
+color= master= radius=
+\layout Standard
+
+Note that, by definition of an unquoted token, whitespace is forbidden before
+ the equal sign.
+ Although some old kinemages may allow this syntax, it requires the tokenizer
+ to read ahead through an arbitrary amount of whitespace following every
+ unquoted token in order to determine if it is a property or not.
+ This behavior could be undesirable if the kinemage contains sections of
+ plain text (see 
+\begin_inset LatexCommand \ref{sub:Plain-text-blocks}
+
+\end_inset 
+
+) or is embedded within some other data format.
+\layout Standard
+
+As described above, there may be whitespace after the equals sign, but it
+ is not required, even if the next token is unquoted.
+ This semi-quoted (quoted at the end, but not the beginning) behavior of
+ property tokens is a historical feature of the kinemage format that has
+ been retained for backward compatibility.
+ The preferred format for new kinemages is to have a space following the
+ equals sign.
+\layout Standard
+
+There are no low-level syntactic restrictions on the positioning of properties;
+ however, at a higher level, syntax generally requires that each property
+ be followed by a non-keyword, non-property token.
+ For example:
+\layout LyX-Code
+
+color= red
+\layout LyX-Code
+
+width= 7
+\layout LyX-Code
+
+master={backbone}
+\layout LyX-Code
+
+radius=2.5
+\layout Subsubsection
+
+Integers
+\layout Standard
+
+Integers are exactly that: text representations of integer numbers.
+ Legal integers are either the single digit zero, or a non-zero digit followed
+ by zero or more additional digits and optionally preceded by a plus or
+ minus sign.
+ The following are legal integers:
+\layout LyX-Code
+
+0 +1 7 -365 2020
+\layout Standard
+
+The following are 
+\emph on 
+not
+\emph default 
+ legal integers:
+\layout LyX-Code
+
+-0 007 5+2
+\layout Standard
+
+Tokens that are not legal integers but consist only of digits 0-9 and the
+ plus and minus signs (
+\emph on 
+e.g.
+\emph default 
+, the above) may be interpretted as integers or as literals on a case-by-case
+ basis, at the discretion of the tokenizer.
+ It is recommended that a warning be issued if such a token is encountered.
+\layout Subsubsection
+
+Numbers
+\begin_inset LatexCommand \label{sub:Numbers}
+
+\end_inset 
+
+
+\layout Standard
+
+Numbers are a superset of the integers: text representations of real numbers
+ in decimal or scientific notation.
+ Legal numbers follow the pattern
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+See 
+\begin_inset LatexCommand \htmlurl{http://www.garshol.priv.no/download/text/bnf.html}
+
+\end_inset 
+
+ for an introduction to Extended Backus-Naur Form.
+\end_inset 
+
+ below:
+\layout LyX-Code
+
+number ::= integer fraction? exponent?
+\layout LyX-Code
+
+fraction ::= '.' digit+
+\layout LyX-Code
+
+exponent ::= ('e' | 'E') integer
+\layout Standard
+
+Basically, there must be something before the decimal point, even if it's
+ a zero; there must be something after the decimal point, if there is one;
+ and the exponential part (if present) may be indicated with either a capital
+ or a lowercase E.
+ The following are legal numbers:
+\layout LyX-Code
+
+-0.42 1e5 3.14 6.022E+23
+\layout Standard
+
+Tokens that are not legal numbers but consist only of digits 0-9, the letters
+ 
+\family sans 
+\series bold 
+e
+\family default 
+\series default 
+ and 
+\family sans 
+\series bold 
+E
+\family default 
+\series default 
+, the decimal point, and the plus and minus signs may be interpretted as
+ numbers or as literals on a case-by-case basis, at the discretion of the
+ tokenizer.
+ It is recommended that a warning be issued if such a token is encountered.
+\layout Subsubsection
+
+Literals
+\begin_inset LatexCommand \label{sub:Literals}
+
+\end_inset 
+
+
+\layout Comment
+
+TODO: find a better name for this token class?
+\layout Standard
+
+Legal unquoted tokens that cannot be otherwise classified are lumped together
+ as literals.
+ Note that, by the definitions provided for unquoted tokens, a literal may
+ begin with a numeric digit.
+ This is in contrast to many programming languages.
+ Those defining new semantics for kinemages are strongly advised against
+ defining literals that are not numbers but use only characters allowed
+ in numbers; the interpretation of such tokens is poorly defined (
+\begin_inset LatexCommand \ref{sub:Numbers}
+
+\end_inset 
+
+).
+ In fact, it is recommended that literals contain only alphanumeric characters
+ and that they start with a letter rather than a number.
+ The following are all legal literals:
+\layout LyX-Code
+
+animate 2animate red blue green big_long_literal
+\layout Subsection
+
+Plain text blocks
+\begin_inset LatexCommand \label{sub:Plain-text-blocks}
+
+\end_inset 
+
+
+\layout Standard
+
+In addition to the ordinary, tokenizable parts of a kinemage file, sections
+ of text data that do not conform to the rules for tokens may be embedded.
+ This data cannot be processed as usual by the tokenizer for two reasons:
+\layout Enumerate
+
+The data is in an unknown format, and whitespace may be significant.
+\layout Enumerate
+
+The data may 
+\begin_inset Quotes eld
+\end_inset 
+
+open
+\begin_inset Quotes erd
+\end_inset 
+
+ a quoted string but never close it, thereby hiding the remaining content
+ of the file.
+\layout Comment
+
+TODO: We need a mechanism for identifying these plain text blocks.
+\layout Standard
+
+An example of this is the plain text write-ups that follow the 
+\family sans 
+\series bold 
+@text
+\family default 
+\series default 
+ keyword; however, future kinemages could conceivably contain embedded HTML,
+ base-64 encoded binary resources, 
+\emph on 
+etc.
+
+\emph default 
+ At the moment, there is no purely syntactic means for identifying such
+ regions.
+ However, upon the request of the parser, the tokenizer must be able to
+ deliver the unaltered text content of the file from the current position
+ until reaching a kinemage-format keyword (
+\emph on 
+i.e.
+\emph default 
+, a new line or carriage return followed by an 
+\begin_inset Quotes eld
+\end_inset 
+
+at
+\begin_inset Quotes erd
+\end_inset 
+
+ symbol).
+\layout Part
+
+Semantics: core features
+\layout Section
+
+Overview of a kinemage file
+\layout Section
+
+Meta-data
+\layout Section
+
+Views and display options
+\layout Section
+
+Masters, aspects, and colors
+\layout Section
+
+Groups and subgroups
+\layout Section
+
+Lists
+\layout Section
+
+Points
+\layout Part
+
+Semantics: selected extensions
+\the_end

@@ -1,0 +1,5 @@
+#Information needed before the Installer is loaded.
+#Wed Mar 24 08:57:56 EST 2004
+Locales=
+ia.custom.code.zip.size=0
+SplashName=com/zerog/ia/installer/images/Splash.png

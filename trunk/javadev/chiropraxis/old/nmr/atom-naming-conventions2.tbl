@@ -1,0 +1,329 @@
+ALA             H               H       HN      HN      HN      H               HN
+ALA             HA              HA      HA      HA      HA      HA              HA
+ALA             HB1             1HB     HB1     HB1     HB1     HB1             HB1
+ALA             HB2             2HB     HB2     HB2     HB2     HB2             HB2
+ALA             HB3             3HB     HB3     HB3     HB3     HB3             HB3
+ALA             C               C               C       C       C       C       C
+ALA             CA              CA              CA      CA      CA      CA      CA
+ALA             CB              CB              CB      CB      CB      CB      CB
+ALA             N               N               N       N       N       N       N
+ALA             O               O               O       O       O       O       O
+ARG             H               H       HN      HN      HN      H               HN
+ARG             HA              HA      HA      HA      HA      HA              HA
+ARG             HB2     pro-R   1HB     HB1     HB1     HB2     HB2             HB2
+ARG             HB3     pro-S   2HB     HB2     HB2     HB1     HB1             HB3
+ARG             HG2     pro-S   1HG     HG1     HG1     HG2     HG2             HG2
+ARG             HG3     pro-R   2HG     HG2     HG2     HG1     HG1             HG3
+ARG             HD2     pro-S   1HD     HD1     HD1     HD2     HD2             HD2
+ARG             HD3     pro-R   2HD     HD2     HD2     HD1     HD1             HD3
+ARG             HE              HE      HNE     HE      HE      HE              HE
+ARG             HH11    Z       1HH1    HN11    HH11    HH11    HH11            HH11
+ARG             HH12    E       2HH1    HN12    HH12    HH12    HH12            HH12
+ARG             HH21    Z       1HH2    HN21    HH22    HH21    HH21            HH21
+ARG             HH22    E       2HH2    HN22    HH21    HH22    HH22            HH22
+ARG             C               C               C       C       C       C       C
+ARG             CA              CA              CA      CA      CA      CA      CA
+ARG             CB              CB              CB      CB      CB      CB      CB
+ARG             CG              CG              CG      CG      CG      CG      CG
+ARG             CD              CD              CD      CD      CD      CD      CD
+ARG             CZ              CZ              CZ      CZ      CZ      CZ      CZ
+ARG             N               N               N       N       N       N       N
+ARG             NE              NE              NE      NE      NE      NE      NE
+ARG             NH1     Z       NH1             NH1     NH1     NH1     NH1     NH1
+ARG             NH2     E       NH2             NH2     NH2     NH2     NH2     NH2
+ARG             O               O               O       O       O       O       O
+ASP             H               H       HN      HN      HN      H               HN
+ASP             HA              HA      HA      HA      HA      HA              HA
+ASP             HB2     pro-S   1HB     HB1     HB1     HB2     HB2             HB2
+ASP             HB3     pro-R   2HB     HB2     HB2     HB1     HB1             HB3
+ASP             HD2                             HD2                             HD2
+ASP             C               C               C       C       C       C       C
+ASP             CA              CA              CA      CA      CA      CA      CA
+ASP             CB              CB              CB      CB      CB      CB      CB
+ASP             CG              CG              CG      CG      CG      CG      CG
+ASP             N               N               N       N       N       N       N
+ASP             O               O               O       O       O       O       O
+ASP             OD1             OD1             OD1     OD1     OD1     OD1     OD1
+ASP             OD2             OD2             OD2     OD2     OD2     OD2     OD2
+ASN             H               H       HN      HN      HN      H               HN
+ASN             HA              HA      HA      HA      HA      HA              HA
+ASN             HB2     pro-S   1HB     HB1     HB1     HB2     HB2             HB2
+ASN             HB3     pro-R   2HB     HB2     HB2     HB1     HB1             HB3
+ASN             HD21    E       2HD2    HN21    HD21    HD21    HD21            HD21
+ASN             HD22    Z       1HD2    HN22    HD22    HD22    HD22            HD22
+ASN             C               C               C       C       C       C       C
+ASN             CA              CA              CA      CA      CA      CA      CA
+ASN             CB              CB              CB      CB      CB      CB      CB
+ASN             CG              CG              CG      CG      CG      CG      CG
+ASN             N               N               N       N       N       N       N
+ASN             ND2             ND2             ND2     ND2     ND2     ND2     ND2
+ASN             O               O               O       O       O       O       O
+ASN             OD1             OD1             OD1     OD1     OD1     OD1     OD1
+CYS             H               H       HN      HN      HN      H               HN
+CYS             HA              HA      HA      HA      HA      HA              HA
+CYS             HB2     pro-S   1HB     HB1     HB1     HB2     HB2             HB2
+CYS             HB3     pro-R   2HB     HB2     HB2     HB1     HB1             HB3
+CYS             HG              HG      HSG     HG      HG      HG              HG
+CYS             C               C               C       C       C       C       C
+CYS             CA              CA              CA      CA      CA      CA      CA
+CYS             CB              CB              CB      CB      CB      CB      CB
+CYS             N               N               N       N       N       N       N
+CYS             O               O               O       O       O       O       O
+CYS             SG              SG              SG      SG      SG      SG      SG
+GLU             H               H       HN      HN      HN      H               HN
+GLU             HA              HA      HA      HA      HA      HA              HA
+GLU             HB2     pro-R   1HB     HB1     HB1     HB2     HB2             HB2
+GLU             HB3     pro-S   2HB     HB2     HB2     HB1     HB1             HB3
+GLU             HG2     pro-S   1HG     HG1     HG1     HG2     HG2             HG2
+GLU             HG3     pro-R   2HG     HG2     HG2     HG1     HG1             HG3
+GLU             HE2                             HE2                             HE2
+GLU             C               C               C       C       C       C       C
+GLU             CA              CA              CA      CA      CA      CA      CA
+GLU             CB              CB              CB      CB      CB      CB      CB
+GLU             CG              CG              CG      CG      CG      CG      CG
+GLU             CD              CD              CD      CD      CD      CD      CD
+GLU             N               N               N       N       N       N       N
+GLU             O               O               O       O       O       O       O
+GLU             OE1             OE1             OE1     OE1     OE1     OE1     OE1
+GLU             OE2             OE2             OE2     OE2     OE2     OE2     OE2
+GLN             H               H       HN      HN      HN      H               HN
+GLN             HA              HA      HA      HA      HA      HA              HA
+GLN             HB2     pro-R   1HB     HB1     HB1     HB2     HB2             HB2
+GLN             HB3     pro-S   2HB     HB2     HB2     HB1     HB1             HB3
+GLN             HG2     pro-S   1HG     HG1     HG1     HG2     HG2             HG2
+GLN             HG3     pro-R   2HG     HG2     HG2     HG1     HG1             HG3
+GLN             HE21    E       2HE2    HN21    HE21    HE21    HE21            HE21
+GLN             HE22    Z       1HE2    HN22    HE22    HE22    HE22            HE22
+GLN             C               C               C       C       C       C       C
+GLN             CA              CA              CA      CA      CA      CA      CA
+GLN             CB              CB              CB      CB      CB      CB      CB
+GLN             CG              CG              CG      CG      CG      CG      CG
+GLN             CD              CD              CD      CD      CD      CD      CD
+GLN             N               N               N       N       N       N       N
+GLN             NE2             NE2             NE2     NE2     NE2     NE2     NE2
+GLN             O               O               O       O       O       O       O
+GLN             OE1             OE1             OE1     OE1     OE1     OE1     OE1
+GLY             H               H       HN      HN      HN      H               HN
+GLY             HA2     pro-R   1HA     HA1     HA1     HA2     HA2             HA1
+GLY             HA3     pro-S   2HA     HA2     HA2     HA1     HA1             HA2
+GLY             C               C               C       C       C       C       C
+GLY             CA              CA              CA      CA      CA      CA      CA
+GLY             N               N               N       N       N       N       N
+GLY             O               O               O       O       O       O       O
+HIS             H               H       HN      HN      HN      H               HN
+HIS             HA              HA      HA      HA      HA      HA              HA
+HIS             HB2     pro-S   1HB     HB1     HB1     HB2     HB2             HB2
+HIS             HB3     pro-R   2HB     HB2     HB2     HB1     HB1             HB3
+HIS             HD1             HD1     HND1    HD1     HD1     HD1             HD1
+HIS             HD2             HD2     HD2     HD2     HD2     HD2             HD2
+HIS             HE1             HE1     HE1     HE1     HE1     HE1             HE1
+HIS             HE2                     HNE2    HE2                             HE2
+HIS             C               C               C       C       C       C       C
+HIS             CA              CA              CA      CA      CA      CA      CA
+HIS             CB              CB              CB      CB      CB      CB      CB
+HIS             CG              CG              CG      CG      CG      CG      CG
+HIS             CD2             CD2             CD2     CD2     CD2     CD2     CD2
+HIS             CE1             CE1             CE1     CE1     CE1     CE1     CE1
+HIS             N               N               N       N       N       N       N
+HIS             ND1             ND1             ND1     ND1     ND1     ND1     ND1
+HIS             NE2             NE2             NE2     NE2     NE2     NE2     NE2
+HIS             O               O               O       O       O       O       O
+ILE             H               H       HN      HN      HN      H               HN
+ILE             HA              HA      HA      HA      HA      HA              HA
+ILE             HB              HB      HB      HB      HB      HB              HB
+ILE             HG12    pro-R   1HG1    HG11    HG11    HG12    HG12            HG12
+ILE             HG13    pro-S   2HG1    HG12    HG12    HG11    HG11            HG13
+ILE             HG21            1HG2    HG21    HG21    HG21    HG21            HG21
+ILE             HG22            2HG2    HG22    HG22    HG22    HG22            HG22
+ILE             HG23            3HG2    HG23    HG23    HG23    HG23            HG23
+ILE             HD11            1HD1    HD11    HD11    HD11    HD11            HD11
+ILE             HD12            2HD1    HD12    HD12    HD12    HD12            HD12
+ILE             HD13            3HD1    HD13    HD13    HD13    HD13            HD13
+ILE             C               C               C       C       C       C       C
+ILE             CA              CA              CA      CA      CA      CA      CA
+ILE             CB              CB              CB      CB      CB      CB      CB
+ILE             CG1             CG1             CG1     CG1     CG1     CG1     CG1
+ILE             CG2             CG2             CG2     CG2     CG2     CG2     CG2
+ILE             CD1             CD1             CD1     CD1     CD1     CD1     CD1
+ILE             N               N               N       N       N       N       N
+ILE             O               O               O       O       O       O       O
+LEU             H               H       HN      HN      HN      H               HN
+LEU             HA              HA      HA      HA      HA      HA              HA
+LEU             HB2     pro-R   1HB     HB1     HB1     HB2     HB2             HB2
+LEU             HB3     pro-S   2HB     HB2     HB2     HB1     HB1             HB3
+LEU             HG              HG      HG      HG      HG      HG              HG
+LEU             HD11            1HD1    HD11    HD11    HD11    HD11            HD11
+LEU             HD12            2HD1    HD12    HD12    HD12    HD12            HD12
+LEU             HD13            3HD1    HD13    HD13    HD13    HD13            HD13
+LEU             HD21            1HD2    HD21    HD21    HD21    HD21            HD21
+LEU             HD22            2HD2    HD22    HD22    HD22    HD22            HD22
+LEU             HD23            3HD2    HD23    HD23    HD23    HD23            HD23
+LEU             C               C               C       C       C       C       C
+LEU             CA              CA              CA      CA      CA      CA      CA
+LEU             CB              CB              CB      CB      CB      CB      CB
+LEU             CG              CG              CG      CG      CG      CG      CG
+LEU             CD1     pro-R   CD1             CD1     CD1     CD1     CD1     CD1
+LEU             CD2     pro-S   CD2             CD2     CD2     CD2     CD2     CD2
+LEU             N               N               N       N       N       N       N
+LEU             O               O               O       O       O       O       O
+LYS             H               H       HN      HN      HN      H               HN
+LYS             HA              HA      HA      HA      HA      HA              HA
+LYS             HB2     pro-R   1HB     HB1     HB1     HB2     HB2             HB2
+LYS             HB3     pro-S   2HB     HB2     HB2     HB1     HB1             HB3
+LYS             HG2     pro-R   1HG     HG1     HG1     HG2     HG2             HG2
+LYS             HG3     pro-S   2HG     HG2     HG2     HG1     HG1             HG3
+LYS             HD2     pro-S   1HD     HD1     HD1     HD2     HD2             HD2
+LYS             HD3     pro-R   2HD     HD2     HD2     HD1     HD1             HD3
+LYS             HE2     pro-S   1HE     HE1     HE1     HE2     HE2             HE2
+LYS             HE3     pro-R   2HE     HE2     HE2     HE1     HE1             HE3
+LYS             HZ1             1HZ     HNZ1    HZ1     HZ1     HZ1             HZ1
+LYS             HZ2             2HZ     HNZ2    HZ2     HZ2     HZ2             HZ2
+LYS             HZ3             3HZ     HNZ3    HZ3     HZ3     HZ3             HZ3
+LYS             C               C               C       C       C       C       C
+LYS             CA              CA              CA      CA      CA      CA      CA
+LYS             CB              CB              CB      CB      CB      CB      CB
+LYS             CG              CG              CG      CG      CG      CG      CG
+LYS             CD              CD              CD      CD      CD      CD      CD
+LYS             CE              CE              CE      CE      CE      CE      CE
+LYS             N               N               N       N       N       N       N
+LYS             NZ              NZ              NZ      NZ      NZ      NZ      NZ
+LYS             O               O               O       O       O       O       O
+MET             H               H       HN      HN      HN      H               HN
+MET             HA              HA      HA      HA      HA      HA              HA
+MET             HB2     pro-S   1HB     HB1     HB1     HB2     HB2             HB2
+MET             HB3     pro-R   2HB     HB2     HB2     HB1     HB1             HB3
+MET             HG2     pro-S   1HG     HG1     HG1     HG2     HG2             HG2
+MET             HG3     pro-R   2HG     HG2     HG2     HG1     HG1             HG3
+MET             HE1             1HE     HE1     HE1     HE1     HE1             HE1
+MET             HE2             2HE     HE2     HE2     HE2     HE2             HE2
+MET             HE3             3HE     HE3     HE3     HE3     HE3             HE3
+MET             C               C               C       C       C       C       C
+MET             CA              CA              CA      CA      CA      CA      CA
+MET             CB              CB              CB      CB      CB      CB      CB
+MET             CG              CG              CG      CG      CG      CG      CG
+MET             CE              CE              CE      CE      CE      CE      CE
+MET             N               N               N       N       N       N       N
+MET             O               O               O       O       O       O       O
+MET             SD              SD              SD      SD      SD      SD      SD
+PHE             H               H       HN      HN      HN      H               HN
+PHE             HA              HA      HA      HA      HA      HA              HA
+PHE             HB2     pro-R   1HB     HB1     HB1     HB2     HB2             HB2
+PHE             HB3     pro-S   2HB     HB2     HB2     HB1     HB1             HB3
+PHE             HD1             HD1     HD1     HD1     HD1     HD1             HD1
+PHE             HD2             HD2     HD2     HD2     HD2     HD2             HD2
+PHE             HE1             HE1     HE1     HE1     HE1     HE1             HE1
+PHE             HE2             HE2     HE2     HE2     HE2     HE2             HE2
+PHE             HZ              HZ      HZ      HZ      HZ      HZ              HZ
+PHE             C               C               C       C       C       C       C
+PHE             CA              CA              CA      CA      CA      CA      CA
+PHE             CB              CB              CB      CB      CB      CB      CB
+PHE             CG              CG              CG      CG      CG      CG      CG
+PHE             CD1             CD1             CD1     CD1     CD1     CD1     CD1
+PHE             CD2             CD2             CD2     CD2     CD2     CD2     CD2
+PHE             CE1             CE1             CE1     CE1     CE1     CE1     CE1
+PHE             CE2             CE2             CE2     CE2     CE2     CE2     CE2
+PHE             CZ              CZ              CZ      CZ      CZ      CZ      CZ
+PHE             N               N               N       N       N       N       N
+PHE             O               O               O       O       O       O       O
+PRO             H2      pro-R   H2              HN2     HT2                     
+PRO             H3      pro-S   H1              HN1     HT1                     
+PRO             HA              HA      HA      HA      HA      HA              HA
+PRO             HB2     pro-R   1HB     HB1     HB1     HB2     HB2             HB2
+PRO             HB3     pro-S   2HB     HB2     HB2     HB1     HB1             HB3
+PRO             HG2     pro-S   1HG     HG1     HG1     HG2     HG2             HG2
+PRO             HG3     pro-R   2HG     HG2     HG2     HG1     HG1             HG3
+PRO             HD2     pro-S   1HD     HD2     HD1     HD2     HD2             HD2
+PRO             HD3     pro-R   2HD     HD1     HD2     HD1     HD1             HD3
+PRO             C               C               C       C       C       C       C
+PRO             CA              CA              CA      CA      CA      CA      CA
+PRO             CB              CB              CB      CB      CB      CB      CB
+PRO             CG              CG              CG      CG      CG      CG      CG
+PRO             CD              CD              CD      CD      CD      CD      CD
+PRO             N               N               N       N       N       N       N
+PRO             O               O               O       O       O       O       O
+SER             H               H       HN      HN      HN      H               HN
+SER             HA              HA      HA      HA      HA      HA              HA
+SER             HB2     pro-S   1HB     HB1     HB1     HB2     HB2             HB2
+SER             HB3     pro-R   2HB     HB2     HB2     HB1     HB1             HB3
+SER             HG              HG      HOG     HG      HG      HG              HG
+SER             C               C               C       C       C       C       C
+SER             CA              CA              CA      CA      CA      CA      CA
+SER             CB              CB              CB      CB      CB      CB      CB
+SER             N               N               N       N       N       N       N
+SER             O               O               O       O       O       O       O
+SER             OG              OG              OG      OG      OG      OG      OG
+THR             H               H       HN      HN      HN      H               HN
+THR             HA              HA      HA      HA      HA      HA              HA
+THR             HB              HB      HB      HB      HB      HB              HB
+THR             HG1             HG1     HOG1    HG1     HG1     HG1             HG1
+THR             HG21            1HG2    HG21    HG21    HG21    HG21            HG21
+THR             HG22            2HG2    HG22    HG22    HG22    HG22            HG22
+THR             HG23            3HG2    HG23    HG23    HG23    HG23            HG23
+THR             C               C               C       C       C       C       C
+THR             CA              CA              CA      CA      CA      CA      CA
+THR             CB              CB              CB      CB      CB      CB      CB
+THR             CG2             CG2             CG2     CG2     CG2     CG2     CG2
+THR             N               N               N       N       N       N       N
+THR             O               O               O       O       O       O       O
+THR             OG1             OG1             OG1     OG1     OG1     OG1     OG1
+TRP             H               H       HN      HN      HN      H               HN
+TRP             HA              HA      HA      HA      HA      HA              HA
+TRP             HB2     pro-R   1HB     HB1     HB1     HB2     HB2             HB2
+TRP             HB3     pro-S   2HB     HB2     HB2     HB1     HB1             HB3
+TRP             HD1             HD1     HD1     HD1     HD1     HD1             HD1
+TRP             HE1             HE1     HNE1    HE1     HE1     HE1             HE1
+TRP             HE3             HE3     HE3     HE3     HE3     HE3             HE3
+TRP             HZ2             HZ2     HZ2     HZ2     HZ2     HZ2             HZ2
+TRP             HZ3             HZ3     HZ3     HZ3     HZ3     HZ3             HZ3
+TRP             HH2             HH2     HH2     HH2     HH2     HH2             HH2
+TRP             C               C               C       C       C       C       C
+TRP             CA              CA              CA      CA      CA      CA      CA
+TRP             CB              CB              CB      CB      CB      CB      CB
+TRP             CG              CG              CG      CG      CG      CG      CG
+TRP             CD1             CD1             CD1     CD1     CD1     CD1     CD1
+TRP             CD2             CD2             CD2     CD2     CD2     CD2     CD2
+TRP             CE2             CE2             CE2     CE2     CE2     CE2     CE2
+TRP             CE3             CE3             CE3     CE3     CE3     CE3     CE3
+TRP             CZ2             CZ2             CZ2     CZ2     CZ2     CZ2     CZ2
+TRP             CZ3             CZ3             CZ3     CZ3     CZ3     CZ3     CZ3
+TRP             CH2             CH2             CH2     CH2     CH2     CH2     CH2
+TRP             N               N               N       N       N       N       N
+TRP             NE1             NE1             NE1     NE1     NE1     NE1     NE1
+TRP             O               O               O       O       O       O       O
+TYR             H               H       HN      HN      HN      H               HN
+TYR             HA              HA      HA      HA      HA      HA              HA
+TYR             HB2     pro-R   1HB     HB1     HB1     HB2     HB2             HB2
+TYR             HB3     pro-S   2HB     HB2     HB2     HB1     HB1             HB3
+TYR             HD1             HD1     HD1     HD1     HD1     HD1             HD1
+TYR             HD2             HD2     HD2     HD2     HD2     HD2             HD2
+TYR             HE1             HE1     HE1     HE1     HE1     HE1             HE1
+TYR             HE2             HE2     HE2     HE2     HE2     HE2             HE2
+TYR             HH              HH      HOH     HH      HH      HH              HH
+TYR             C               C               C       C       C       C       C
+TYR             CA              CA              CA      CA      CA      CA      CA
+TYR             CB              CB              CB      CB      CB      CB      CB
+TYR             CG              CG              CG      CG      CG      CG      CG
+TYR             CD1             CD1             CD1     CD1     CD1     CD1     CD1
+TYR             CD2             CD2             CD2     CD2     CD2     CD2     CD2
+TYR             CE1             CE1             CE1     CE1     CE1     CE1     CE1
+TYR             CE2             CE2             CE2     CE2     CE2     CE2     CE2
+TYR             CZ              CZ              CZ      CZ      CZ      CZ      CZ
+TYR             N               N               N       N       N       N       N
+TYR             O               O               O       O       O       O       O
+TYR             OH              OH              OH      OH      OH      OH      OH
+VAL             H               H       HN      HN      HN      H               HN
+VAL             HA              HA      HA      HA      HA      HA              HA
+VAL             HB              HB      HB      HB      HB      HB              HB
+VAL             HG11            1HG1    HG11    HG21    HG11    HG11            HG11
+VAL             HG12            2HG1    HG12    HG22    HG12    HG12            HG12
+VAL             HG13            3HG1    HG13    HG23    HG13    HG13            HG13
+VAL             HG21            1HG2    HG21    HG11    HG21    HG21            HG21
+VAL             HG22            2HG2    HG22    HG12    HG22    HG22            HG22
+VAL             HG23            3HG2    HG23    HG13    HG23    HG23            HG23
+VAL             C               C               C       C       C       C       C
+VAL             CA              CA              CA      CA      CA      CA      CA
+VAL             CB              CB              CB      CB      CB      CB      CB
+VAL             CG1     pro-R   CG1             CG2     CG1     CG1     CG1     CG1
+VAL             CG2     pro-S   CG2             CG1     CG2     CG2     CG2     CG2
+VAL             N               N               N       N       N       N       N
+VAL             O               O               O       O       O       O       O

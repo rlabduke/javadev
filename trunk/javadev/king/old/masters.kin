@@ -1,0 +1,10 @@
+@text
+This kinemage tests Mage's interpretation of masters.
+
+@kinemage 1
+@master {master1}
+@master {master2}
+@group {test group}
+@labellist {test list} color= white master= {master1} master= {master2}
+{Can you see me?} 0 0 0
+

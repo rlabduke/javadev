@@ -1,0 +1,96 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <TITLE>The KiNG manual: Saving and printing</TITLE>
+ <LINK HREF="king-manual-6.html" REL=next>
+ <LINK HREF="king-manual-4.html" REL=previous>
+ <LINK HREF="king-manual.html#toc5" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="king-manual-6.html">Next</A>
+<A HREF="king-manual-4.html">Previous</A>
+<A HREF="king-manual.html#toc5">Contents</A>
+<HR>
+<H2><A NAME="s5">5.</A> <A HREF="king-manual.html#toc5">Saving and printing</A></H2>
+
+<H2><A NAME="ss5.1">5.1</A> <A HREF="king-manual.html#toc5.1">Saving kinemages</A>
+</H2>
+
+<P>You can save traditional kinemages using the <CODE>File | Save as</CODE> menu;
+these files are typically given the extension <CODE>.kin</CODE>. The resulting
+kinemage file will be plain text that you can view and even edit
+by hand using any text editor (though of course you don't have to!).
+If you choose to do this and want use a word processor (like Microsoft
+Word), make sure that you load and save the file in plain text format.</P>
+
+<P>Note that due to the security restrictions that web browsers
+place on Java applets, saving will never be possible when KiNG is
+running inside a web browser.</P>
+
+<H2><A NAME="ss5.2">5.2</A> <A HREF="king-manual.html#toc5.2">Printing kinemages</A>
+</H2>
+
+<P>You can use <CODE>File | Print</CODE> to send the image in the graphics area
+to your printer. The image will fill as much of the page as possible
+without distorting it. The relative size of the elements will be
+exactly the same as on screen. Among the consequences of this are
+that an image printed from a small graphics window will have thicker
+lines when printed than will the image when printed from a larger
+graphics window. Don't worry about this too much; just remember printing
+is WYSIWYG (what-you-see-is-what-you-get). If it looks right on the
+screen, it should look right on the paper! Some images will fit better
+in landscape mode than portrait mode; this decision is left up to
+the user.</P>
+
+<P>Printing should work even when KiNG is running in a web browser,
+although the user will generally be asked for permission first.</P>
+
+<H2><A NAME="ss5.3">5.3</A> <A HREF="king-manual.html#toc5.3">Exporting as PostScript, PDF, <EM>etc.</EM></A>
+</H2>
+
+<P>Rather than sending the image to the printer, it can be captured
+for inclusion in a publication or later manipulation in a graphics
+program like Adobe Illustrator. The method of doing this is somewhat
+dependent on your system.</P>
+
+<P>Under Linux, choosing <CODE>Print to file</CODE> from the Print dialog will
+generate a PostScript file, which can be converted many other formats
+using <EM>e.g.</EM> Ghostscript tools like <CODE>ps2pdf</CODE> (PDF, Portable Document
+Format) and <CODE>ps2epsi</CODE> (EPS, Encapsulated PostScript). Printing to a
+file may not be possible when KiNG is running as an applet in a web
+page.</P>
+
+<P>With Macintosh OS X, both PostScript and PDF output are supported
+directly from the Print dialog. Nice and easy!</P>
+
+<P>Under Microsoft Windows, things don't seem to be as straightforward.
+One possiblity is to install the generic PostScript printer drivers
+from Adobe, 
+<A HREF="http://www.adobe.com">http://www.adobe.com</A>, and then direct this "virtual printer" to FILE (rather
+than, <EM>e.g.</EM>, LPT1). This should allow you to generate PostScript output.
+Adobe's Acrobat program (the full version, the one you have to pay
+for) may provide a similar virtual printer for creating PDF files.
+Your mileage may vary; I'd be interested in hearing about better
+ways to do this from any Windows experts out there.</P>
+
+<H2><A NAME="ss5.4">5.4</A> <A HREF="king-manual.html#toc5.4">Exporting as XML</A>
+</H2>
+
+<P>You can export kinemages in XML format using the Kinetic Image
+Markup Language by choosing <CODE>Kin-XML</CODE> from the <CODE>File | Export</CODE> menu.
+We recommend giving these files the extension <CODE>.xkn</CODE> or <CODE>.xml</CODE>. At this
+time, KiNG does not read these files, nor do other kinemage viewers.
+Also, they may not include all of the information that would be present
+in a traditional kinemage file. However, for people who would like
+to operate on the data from a kinemage without having to write a
+parser for the kinemage format, we expect this will be useful and
+convenient. Translation from the modified XML back to kinemage format
+is left as an exercise to the reader ;)</P>
+
+<HR>
+<A HREF="king-manual-6.html">Next</A>
+<A HREF="king-manual-4.html">Previous</A>
+<A HREF="king-manual.html#toc5">Contents</A>
+</BODY>
+</HTML>

@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <TITLE>The KiNG manual: Launching KiNG</TITLE>
+ <LINK HREF="king-manual-8.html" REL=next>
+ <LINK HREF="king-manual-6.html" REL=previous>
+ <LINK HREF="king-manual.html#toc7" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="king-manual-8.html">Next</A>
+<A HREF="king-manual-6.html">Previous</A>
+<A HREF="king-manual.html#toc7">Contents</A>
+<HR>
+<H2><A NAME="s7">7.</A> <A HREF="king-manual.html#toc7">Launching KiNG</A></H2>
+
+<P>KiNG runs both as a stand-alone application, and as an applet
+that can be included in web pages. In any case, KiNG requires a Java
+Virtual Machine (JVM), version 1.3 or higher. You can get Java from
+<A HREF="http://java.sun.com">http://java.sun.com</A>.</P>
+
+<H2><A NAME="ss7.1">7.1</A> <A HREF="king-manual.html#toc7.1">Running KiNG as an application</A>
+</H2>
+
+<P>How you launch the KiNG application will depend on what operating
+system (Windows, Mac OS X, Linux, <EM>etc</EM>.) you're using. With Windows
+and the Mac, you can usually just double-click on the <CODE>king.jar</CODE> file
+to start KiNG. For Linux, there is a shell script called <CODE>king</CODE> that
+will launch the program; put it on your path and then edit it to
+enter the full path to <CODE>king.jar</CODE>.</P>
+
+<P>On all operating systems, you can type</P>
+
+<P>
+<PRE>
+java -jar king.jar [-merge | -single] [file1 file2 ...]
+</PRE>
+</P>
+<P>All the files listed on the command line will be merged together
+into one kinemage,, unless the <CODE>-s</CODE> flag is included, in which case
+all the files will be opened as separate kinemages.</P>
+
+<H2><A NAME="ss7.2">7.2</A> <A HREF="king-manual.html#toc7.2">Making KiNG an applet in a web page</A>
+</H2>
+
+<P>KiNG can also be included as a web page applet. The following
+HTML code is a simple example that uses the &lt;APPLET&gt; tag, which
+will work with browsers using a recent JVM. Older browsers may need
+&lt;OBJECT&gt; or &lt;EMBED&gt; tags; more information on this is
+available from Sun.</P>
+
+<P>
+<PRE>
+&lt;applet code="king/Kinglet.class" archive="king.jar" width=300 height=150&gt;
+&lt;param name="kinSource" value="some_file_name.kin"&gt;
+&lt;/applet&gt;
+</PRE>
+</P>
+<P>Just put all the jar files, including king.jar, in the same directory
+as the HTML file. Users who visit the page will see a 300x150 KiNG
+logo in the web page, along with a floating KiNG window that looks
+very much like the stand-alone application. However, due to security
+restrictions imposed by the browser environment, some functions (<EM>e.g.</EM>,
+saving files) will be disabled.</P>
+
+<P>Some Tools and Plugins may define their own &lt;PARAM&gt; tags,
+which will be described in their documentation.</P>
+
+<HR>
+<A HREF="king-manual-8.html">Next</A>
+<A HREF="king-manual-6.html">Previous</A>
+<A HREF="king-manual.html#toc7">Contents</A>
+</BODY>
+</HTML>

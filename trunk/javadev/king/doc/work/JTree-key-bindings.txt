@@ -1,0 +1,51 @@
+All the key bindings from the JTree InputMap(WHEN_FOCUSED) and its parent(s)
+(actually, all of them appear to be bound to its immediate parent)
+
+keyCode Up-P -> selectPrevious
+keyCode End-P -> selectLast
+keyCode ShiftSpace-P -> extendSelection
+keyCode Down-P -> selectNext
+keyCode Home-P -> selectFirst
+keyCode CtrlV-P -> paste
+keyCode Ctrl+ShiftPage Up-P -> scrollUpExtendSelection
+keyCode Left-P -> selectParent
+keyCode Left-P -> selectParent
+keyCode ShiftPage Down-P -> scrollDownExtendSelection
+keyCode CtrlX-P -> cut
+keyCode Right-P -> selectChild
+keyCode CtrlUp-P -> selectPreviousChangeLead
+keyCode Up-P -> selectPrevious
+keyCode CtrlSpace-P -> toggleSelectionPreserveAnchor
+keyCode Copy-P -> copy
+keyCode CtrlDown-P -> selectNextChangeLead
+keyCode ShiftHome-P -> selectFirstExtendSelection
+keyCode Right-P -> selectChild
+keyCode Ctrl/-P -> selectAll
+keyCode CtrlPage Up-P -> scrollUpChangeLead
+keyCode CtrlLeft-P -> scrollLeft
+keyCode Down-P -> selectNext
+keyCode CtrlPage Down-P -> scrollDownChangeLead
+keyCode CtrlRight-P -> scrollRight
+keyCode Paste-P -> paste
+keyCode ShiftDown-P -> selectNextExtendSelection
+keyCode ShiftUp-P -> selectPreviousExtendSelection
+keyCode CtrlEnd-P -> selectLastChangeLead
+keyCode Ctrl\-P -> clearSelection
+keyCode CtrlHome-P -> selectFirstChangeLead
+keyCode ShiftPage Up-P -> scrollUpExtendSelection
+keyCode F2-P -> startEditing
+keyCode CtrlA-P -> selectAll
+keyCode Cut-P -> cut
+keyCode ShiftDown-P -> selectNextExtendSelection
+keyCode CtrlLeft-P -> scrollLeft
+keyCode Ctrl+ShiftPage Down-P -> scrollDownExtendSelection
+keyCode CtrlUp-P -> selectPreviousChangeLead
+keyCode CtrlC-P -> copy
+keyCode ShiftEnd-P -> selectLastExtendSelection
+keyCode Space-P -> toggleSelectionPreserveAnchor
+keyCode CtrlRight-P -> scrollRight
+keyCode Page Up-P -> scrollUpChangeSelection
+keyCode CtrlDown-P -> selectNextChangeLead
+keyCode ShiftUp-P -> selectPreviousExtendSelection
+keyCode Page Down-P -> scrollDownChangeSelection
+

@@ -1,0 +1,20 @@
+BUILDME file for KiNG
+=====================
+
+KiNG is built using Apache Ant, which stores its configuration in build.xml.
+Ant is the standard build tool for Java projects, like 'make' is for C/C++.
+It is written in Java and works cross-platform, anywhere that Java does.
+You can obtain Ant for free at 
+    http://ant.apache.org
+These build files were written to work with Ant 1.5.2; if you have a newer
+version, there may have been some changes to the file structure.
+
+To build the JAR and all the classfiles, rename the king-xxxx-src and
+driftwood-xxxx-src directories to 'king' and 'driftwood', respectively. Then
+enter the king directory and type 'ant'. The necessary Driftwood libraries
+will be built automatically, followed by compilation of the KiNG code,
+followed by the creation of king.jar (which contains class files and
+resources from both trees of code, as well as from the gnu.regexp package
+included in the 'lib' directory).
+
+Last updated 7 Mar 2003 by IWD for KiNG version 0.31
