@@ -304,7 +304,6 @@ public class SheetBuilder //extends ... implements ...
         }
         
         Map normals = new HashMap();
-        LsqPlane lsqPlane = new LsqPlane();
         for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
         {
             Residue res = (Residue) iter.next();
@@ -322,7 +321,7 @@ public class SheetBuilder //extends ... implements ...
                 guidePts.add(nPep.hbondN.midpoint);
                 guidePts.add(nPep.midpoint);
                 guidePts.add(nPep.hbondO.midpoint);
-                lsqPlane.fitPlane(guidePts);
+                LsqPlane lsqPlane = new LsqPlane(guidePts);
                 Triple normal = new Triple(lsqPlane.getNormal());
                 normals.put(res, normal);
                 // Try to make it point the same way as Ca-Cb

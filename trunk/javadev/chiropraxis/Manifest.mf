@@ -1,2 +1,2 @@
-Class-Path: itext.jar jama.jar
+Class-Path: itext.jar
 

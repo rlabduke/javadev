@@ -49,7 +49,6 @@
         <!-- inherited properties go here -->
     </ant>
     <copy file="../lib/iText/itext-1.02b.jar" tofile="${basedir}/itext.jar" failonerror="false"/>
-    <copy file="../lib/Jama/jama.jar" tofile="${basedir}/jama.jar" failonerror="false"/>
     <mkdir dir="${build}"/>
     <javac srcdir="${src}"
            destdir="${build}"
@@ -59,7 +58,6 @@
          <classpath>
             <pathelement location="../driftwood/build"/>
             <pathelement location="itext.jar"/>             <!-- Required for PDF export -->
-            <pathelement location="jama.jar"/>              <!-- Required for mc.LsqPlane -->
          </classpath>
     </javac>
 </target>
@@ -114,7 +112,6 @@
     <delete dir="${build}"/>
     <delete file="${ant.project.name}.jar"/>
     <delete file="itext.jar"/>
-    <delete file="jama.jar"/>
 </target>
 
 <!-- Bundles this code and saves it locally and remotely - simple version control -->
@@ -135,6 +132,12 @@
 <target name="deploy-local"  description="Build class files and copy to ~/bin" depends="build">
     <copy file="${ant.project.name}.jar" todir="${user.home}/bin/jars/" overwrite="true" failonerror="false"/>
     <copy file="${ant.project.name}.jar" todir="${user.home}/Sites/molprobity/" overwrite="true" failonerror="false"/>
+</target>
+
+<!-- Deploys the executable on the local MolProbity - applies to IWD's machine only  -->
+<target name="deploy-local-mp"  description="Deploy to local MolProbity 3" depends="build">
+    <copy file="${ant.project.name}.jar" todir="${user.home}/Sites/molprobity3/lib/" overwrite="true" failonerror="false"/>
+    <copy file="itext.jar" todir="${user.home}/Sites/molprobity3/lib/" overwrite="true" failonerror="false"/>
 </target>
 
 <!-- Deploys the executable for the whole lab - applies to IWD's machine only -->

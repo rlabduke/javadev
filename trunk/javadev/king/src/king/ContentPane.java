@@ -177,6 +177,14 @@ public class ContentPane extends JPanel // implements ...
     public void setButtons(Component c)
     {
         buttonScroll.setViewportView(c);
+        
+        // Makes sure that the brushed metal look appears on OS X.
+        // java.swing.Boxes apparently don't draw their background correctly.
+        
+        // Aiieee! This just makes it worse. Half stripped, half metal!
+        //JPanel wrapper = new JPanel(new BorderLayout());
+        //wrapper.add(c, BorderLayout.CENTER);
+        //buttonScroll.setViewportView(wrapper);
     }
 //}}}
 

@@ -1,6 +1,6 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
-package chiropraxis.mc;
+package driftwood.r3;
 
 //import java.awt.*;
 //import java.awt.event.*;
@@ -10,19 +10,13 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
-import driftwood.r3.*;
 import driftwood.util.*;
-
 import Jama.*;
 //}}}
 /**
 * <code>LsqPlane</code> performs a least-squares fit of a plane
 * through some number of {@link driftwood.r3.Tuple3}s.
 * The resulting plane is defined in terms of an anchor point and a unit normal.
-*
-* <p>I would have put this in <code>driftwood.r3</code> except
-* that it depends on the singular value decomposition code from Jama,
-* and I don't want driftwood to have outside dependencies.
 *
 * <p>From Ask Dr. Math, I learned that the orthogonal least-squares regression
 * plane passes through the centroid of the data (x0,y0,z0) and its normal vector
@@ -53,37 +47,22 @@ public class LsqPlane //extends ... implements ...
 
 //{{{ Constructor(s)
 //##############################################################################
-    public LsqPlane()
-    {
-        super();
-    }
-//}}}
-
-//{{{ getNormal, getAnchor
-//##############################################################################
-    /**
-    * Returns the unit normal of the plane calculated during the last fitting.
-    */
-    public Tuple3 getNormal()
-    { return normal; }
-    
-    /**
-    * Returns the anchor point for the plane calculated during the last fitting.
-    * This is equal to the centroid of all the data points used.
-    */
-    public Tuple3 getAnchor()
-    { return anchor; }
-//}}}
-
-//{{{ fitPlane
-//##############################################################################
     /**
     * Finds a least-squares plane through all the data points.
     * You can retrieve the plane definition with {@link #getNormal()}
     * and {@link #getAnchor()}.
     * @param data a Collection of Tuple3 objects
     */
-    public void fitPlane(Collection data)
+    public LsqPlane(Collection data)
+    {
+        super();
+        fitPlane(data);
+    }
+//}}}
+
+//{{{ fitPlane
+//##############################################################################
+    private void fitPlane(Collection data)
     {
         anchor = calcCentroid(data);
         Matrix m = buildMatrix(data, anchor);
@@ -131,49 +110,56 @@ public class LsqPlane //extends ... implements ...
     }
 //}}}
 
+//{{{ getNormal, getAnchor
+//##############################################################################
+    /**
+    * Returns the unit normal of the plane calculated during the last fitting.
+    */
+    public Tuple3 getNormal()
+    { return normal; }
+    
+    /**
+    * Returns the anchor point for the plane calculated during the last fitting.
+    * This is equal to the centroid of all the data points used.
+    */
+    public Tuple3 getAnchor()
+    { return anchor; }
+//}}}
+
 //{{{ empty_code_segment
 //##############################################################################
 //}}}
 
-//{{{ Main, main
+//{{{ main
 //##############################################################################
-    /**
-    * Main() function for running as an application
-    */
-    public void Main() throws IOException
-    {
-        ArrayList data = new ArrayList();
-        LineNumberReader in = new LineNumberReader(new InputStreamReader(System.in));
-        String s;
-        while((s = in.readLine()) != null)
-        {
-            try
-            {
-                String[] line = Strings.explode(s, ' ');
-                Triple t = new Triple(
-                    Double.parseDouble(line[0]),
-                    Double.parseDouble(line[1]),
-                    Double.parseDouble(line[2])
-                );
-                data.add(t);
-            }
-            catch(NumberFormatException ex) { System.err.println(ex.getMessage()); }
-            catch(IndexOutOfBoundsException ex) { System.err.println(ex.getMessage()); }
-        }
-        
-        this.fitPlane(data);
-        System.out.println("Anchor: "+this.getAnchor());
-        System.out.println("Normal: "+this.getNormal());
-        Triple plus = new Triple(this.getAnchor()).add(this.getNormal());
-        System.out.println("Ar+Nm : "+plus);
-    }
-
     public static void main(String[] args)
     {
-        LsqPlane mainprog = new LsqPlane();
         try
         {
-            mainprog.Main();
+            ArrayList data = new ArrayList();
+            LineNumberReader in = new LineNumberReader(new InputStreamReader(System.in));
+            String s;
+            while((s = in.readLine()) != null)
+            {
+                try
+                {
+                    String[] line = Strings.explode(s, ' ');
+                    Triple t = new Triple(
+                        Double.parseDouble(line[0]),
+                        Double.parseDouble(line[1]),
+                        Double.parseDouble(line[2])
+                    );
+                    data.add(t);
+                }
+                catch(NumberFormatException ex) { System.err.println(ex.getMessage()); }
+                catch(IndexOutOfBoundsException ex) { System.err.println(ex.getMessage()); }
+            }
+            
+            LsqPlane lsq = new LsqPlane(data);
+            System.out.println("Anchor: "+lsq.getAnchor());
+            System.out.println("Normal: "+lsq.getNormal());
+            Triple plus = new Triple(lsq.getAnchor()).add(lsq.getNormal());
+            System.out.println("Ar+Nm : "+lsq);
         }
         catch(Exception ex)
         {
