@@ -437,38 +437,72 @@ public class KinfileTokenizer //extends ... implements ...
     * Main() function for running as an application.
     * Takes a kinemage on stdin and writes tokens to stdout
     */
-    public void Main() throws IOException
+    public void Main(boolean doCSS) throws IOException
     {
-        String s;
-        long time = System.currentTimeMillis();
-        while(!isEOF())
+        if(doCSS)
         {
-            s = getString();
-            if(isKeyword() && (s.equals("@text") || s.equals("@caption")))
+            System.out.println("<div class='kin2html'>");
+            while(!isEOF())
             {
-                System.out.println("[>>> "+s+"]");
-                System.out.println(advanceToKeyword());
-                System.out.println("[<<< "+s+"]");
+                String start, end, s = getString();
+                if(isBOL()) System.out.print("\n<br />");
+                if(isIdentifier()) { start = "{"; end = "}"; }
+                else if(isComment()) { start = "&lt;"; end = "&gt;"; }
+                else if(isAspect()) { start = "("; end = ")"; }
+                else if(isSingleQuote()) { start = "'"; end = "'"; }
+                else if(isDoubleQuote()) { start = "\""; end = "\""; }
+                else { start = ""; end = ""; }
+                
+                System.out.print("<span class='"+getType()+"'>"+start+s+end+"</span> ");
+
+                if(isKeyword() && (s.equals("@text") || s.equals("@caption")))
+                {
+                    System.out.print("\n<pre>");
+                    System.out.print(advanceToKeyword());
+                    System.out.print("</pre>\n");
+                }
+                else advance();
             }
-            else
-            {
-                if(isBOL()) System.out.println("[BOL:"+justifyLeft(getType(), 10)+"] "+s);
-                else        System.out.println("[    "+justifyLeft(getType(), 10)+"] "+s);
-                advance();
-            }
+            System.out.println("\n</div>");
         }
-        time = System.currentTimeMillis() - time;
-        System.out.println("END OF FILE ("+time+" ms)");
-        System.out.println();
-        System.out.println();
+        else
+        {
+            String s;
+            long time = System.currentTimeMillis();
+            while(!isEOF())
+            {
+                s = getString();
+                if(isKeyword() && (s.equals("@text") || s.equals("@caption")))
+                {
+                    System.out.println("[>>> "+s+"]");
+                    System.out.println(advanceToKeyword());
+                    System.out.println("[<<< "+s+"]");
+                }
+                else
+                {
+                    if(isBOL()) System.out.println("[BOL:"+justifyLeft(getType(), 10)+"] "+s);
+                    else        System.out.println("[    "+justifyLeft(getType(), 10)+"] "+s);
+                    advance();
+                }
+            }
+            time = System.currentTimeMillis() - time;
+            System.out.println("END OF FILE ("+time+" ms)");
+            System.out.println();
+            System.out.println();
+        }
     }
 
     public static void main(String[] args)
     {
-        if(args.length > 0)
-            System.err.println("*** Takes a kinemage on stdin and writes tokens to stdout.");
+        boolean doCSS = false;
+        for(int i = 0; i < args.length; i++)
+        {
+            if("-css".equals(args[i])) doCSS = true;
+            else System.err.println("*** Takes a kinemage on stdin and writes tokens to stdout.");
+        }
+        
         try
-        { new KinfileTokenizer(new LineNumberReader(new InputStreamReader(System.in))).Main(); }
+        { new KinfileTokenizer(new LineNumberReader(new InputStreamReader(System.in))).Main(doCSS); }
         catch(IOException ex)
         { ex.printStackTrace(SoftLog.err); }
     }
