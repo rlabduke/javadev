@@ -154,6 +154,12 @@ public class RibbonTool extends BasicTool implements ActionListener {
 
 //{{{ sortStructure
 //##################################################################################################
+    /**
+     * Initializer function that handles the sorting of a prekin-generated ribbon kinemage.  It sorts
+     * based on the second master of each KList in the kinemage.  This function needs to be called
+     * before any of the highlighting functions can be called.
+     **/
+    
     public void sortStructure(KPoint p) {
 
 	String pointID = p.getName().trim();
