@@ -143,11 +143,10 @@ public class FastaTool extends BasicTool //implements ActionListener
                 "Sorry!", JOptionPane.ERROR_MESSAGE);
             //ex.printStackTrace(SoftLog.err);
         }
-	buildGUI();
-	//show();
-	dialog.pack();
-	dialog.setLocationRelativeTo(kMain.getTopWindow());
-        dialog.setVisible(true);
+	//buildGUI();
+	//dialog.pack();
+	//dialog.setLocationRelativeTo(kMain.getTopWindow());
+        //dialog.setVisible(true);
     }
 //}}}
 
@@ -165,6 +164,11 @@ public class FastaTool extends BasicTool //implements ActionListener
             {
 		FileReader reader = new FileReader(f);
 		scanFile(reader);
+		buildGUI();
+		//show();
+		dialog.pack();
+		dialog.setLocationRelativeTo(kMain.getTopWindow());
+		dialog.setVisible(true);
                 kCanvas.repaint(); // otherwise we get partial-redraw artifacts
             }
         }
@@ -303,7 +307,7 @@ public class FastaTool extends BasicTool //implements ActionListener
 		if (color.equals(KPalette.blue)) {
 		    point.setColor(KPalette.bluetint);
 		} else if (color.equals(KPalette.red)) {
-		    point.setColor(KPalette.pinktint);
+		    point.setColor(KPalette.red);
 		} else if (color.equals(KPalette.green)) {
 		    point.setColor(KPalette.greentint);
 		}

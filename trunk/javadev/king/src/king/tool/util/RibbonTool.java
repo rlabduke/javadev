@@ -13,8 +13,9 @@ import javax.swing.*;
 import javax.swing.event.*;
 //}}}
 /**
- * <code>RibbonTool</code> was created in response to numerous requests for the ability to color individual ribbons 
- * of a kinemage quickly and easily.  It supports coloring single ribbons, multiple ribbons of a type, and 
+ * <code>RibbonTool</code> was created in response to numerous requests for the 
+ * ability to color individual ribbons of a kinemage quickly and easily.  It 
+ * supports coloring single ribbons, multiple ribbons of a type, and 
  * regions of ribbons in a Prekin-created ribbon kinemage.  
  *
  * <p>Copyright (C) 2004 by Vincent B. Chen. All rights reserved.
@@ -69,19 +70,27 @@ public class RibbonTool extends BasicTool implements ActionListener {
         color1.addActionListener(this);
 
 	colorOne = new JRadioButton("Color One", true);
+	colorRegion = new JRadioButton("Color Region", false);
 	colorAll = new JRadioButton("Color All", false);
+	colorOne.addActionListener(this);
+	colorRegion.addActionListener(this);
+	colorAll.addActionListener(this);
 	ButtonGroup colorRange = new ButtonGroup();
 	colorRange.add(colorOne);
+	colorRange.add(colorRegion);
 	colorRange.add(colorAll);
 
 	chooseColor = new JRadioButton("Choose Color", true);
 	checkSort = new JRadioButton("Check Sort", false);
-	colorRegion = new JRadioButton("Color Region", false);
+	//colorRegion = new JRadioButton("Color Region", false);
 	hippieMode = new JRadioButton("Hippie Mode", false);
+	chooseColor.addActionListener(this);
+	checkSort.addActionListener(this);
+	hippieMode.addActionListener(this);
 	ButtonGroup colorType = new ButtonGroup();
 	colorType.add(chooseColor);
 	colorType.add(checkSort);
-	colorType.add(colorRegion);
+	//colorType.add(colorRegion);
 	colorType.add(hippieMode);
 
 	lowNumField = new JTextField("", 5);
@@ -90,14 +99,18 @@ public class RibbonTool extends BasicTool implements ActionListener {
         pane = new TablePane();
 	pane.newRow();
         pane.add(color1);
-        //pane.newRow();
-	pane.add(colorOne);
-	pane.add(colorAll);
-	pane.newRow();
 	pane.add(chooseColor);
-	pane.add(colorRegion);
+	//pane.add(colorRegion);
 	pane.add(hippieMode);
-	pane.add(checkSort);
+	// removing checksort from panel so people can't accidentally use it.
+	//pane.add(checkSort);
+        //pane.newRow();
+
+	pane.newRow();
+	pane.add(colorOne);
+	pane.add(colorRegion);
+	pane.add(colorAll);
+
 	pane.newRow();
 	pane.add(lowNumField);
 	pane.add(highNumField);
@@ -113,29 +126,46 @@ public class RibbonTool extends BasicTool implements ActionListener {
         super.click(x, y, p, ev);
 	if (p != null) {
 	    KList parentList = (KList) p.getOwner();
-	    if (!ribbonMap.containsKey(parentList)) {
-		newGroup();
-		sortStructure(p);
-		sortbyNumber(p);
+	    if (isRibbonList(parentList)) {
+		if (!ribbonMap.containsKey(parentList)) {
+		    newGroup();
+		    if (hasRibbonMasters(parentList)) {
+			sortStructure(p);
+		    } else {
+			setRibbonMode(false);
+			colorRegion.setSelected(true);
+		    }
+		    //System.out.println("sorting by number");
+		    sortbyNumber(p);
+		}
+		//debug();
+		if (colorAll.isSelected()) {
+		    highlightAll(p);
+		} else if (checkSort.isSelected()) {
+		    checkSort(p);
+		} else if (colorRegion.isSelected()) {
+		    highlightRange(p);
+		} else if (hippieMode.isSelected()) {
+		    highlightHippie(p);
+		} else {
+		    highlight(p);
+		}
+		Kinemage k = kMain.getKinemage();
+		if(k != null) k.setModified(true);
 	    }
-	    //debug();
-	    if (colorAll.isSelected()) {
-		highlightAll(p);
-	    } else if (checkSort.isSelected()) {
-		checkSort(p);
-	    } else if (colorRegion.isSelected()) {
-		highlightRange(p);
-	    } else if (hippieMode.isSelected()) {
-		highlightHippie(p);
-	    } else {
-		highlight(p);
-	    }
-	    Kinemage k = kMain.getKinemage();
-	    if(k != null) k.setModified(true);
 	}
 
     }
 //})}
+
+    private void setRibbonMode(boolean mode) {
+	//if (mode) {
+	colorOne.setEnabled(mode);
+	colorAll.setEnabled(mode);
+	chooseColor.setEnabled(mode);
+	checkSort.setEnabled(mode);
+	hippieMode.setEnabled(mode);
+    }
 
 // event functions
 //###############################################################################################
@@ -143,6 +173,22 @@ public class RibbonTool extends BasicTool implements ActionListener {
      * Event handler for when action performed.
      */
     public void actionPerformed(ActionEvent ev) {
+	if (colorAll.isSelected()||colorRegion.isSelected()) {
+	    hippieMode.setEnabled(false);
+	    checkSort.setEnabled(false);
+	    chooseColor.setSelected(true);
+	} else {
+	    hippieMode.setEnabled(true);
+	    checkSort.setEnabled(true);	
+	}
+	if (hippieMode.isSelected()) {
+	    colorRegion.setEnabled(false);
+	    colorAll.setEnabled(false);
+	    colorOne.setSelected(true);
+	} else {
+	    colorRegion.setEnabled(true);
+	    colorAll.setEnabled(true);
+	}
 
         kCanvas.repaint();
     }
@@ -212,14 +258,14 @@ public class RibbonTool extends BasicTool implements ActionListener {
     private void sortbyNumber(KPoint p) {
 	String pointID = p.getName().trim();
 	KList parentList = (KList) p.getOwner();
-	KSubgroup parentGroup = (KSubgroup) parentList.getOwner();
+	AGE parentGroup = (AGE) parentList.getOwner();
 	Iterator iter = parentGroup.iterator();
 	KList list;
 	ArrayList listofLists = new ArrayList();
 	
 	while (iter.hasNext()) {
 	    list = (KList) iter.next();
-	    Integer resNum = getResNumber(list);
+	    Integer resNum = new Integer(getResNumber(list));
 	    if (sortbyNum.containsKey(resNum)) {
 		listofLists = (ArrayList) sortbyNum.get(resNum);
 		listofLists.add(list);
@@ -249,7 +295,7 @@ public class RibbonTool extends BasicTool implements ActionListener {
 	// then sorts appropriately
 	while (iter.hasNext()) {
 	    KList list = (KList) iter.next();
-	    Integer resNum = getResNumber(list);
+	    Integer resNum = new Integer(getResNumber(list));
 	    if ((resNum.equals(oldresNum))||(resNum.equals(new Integer(oldresNum.intValue() + 1)))) {
 		listofLists.add(list);
 		ribbonMap.put(list, listofLists);
@@ -270,12 +316,57 @@ public class RibbonTool extends BasicTool implements ActionListener {
      * Helper function to get the residue number of parentList.  It gets the first KPoint in the KList, 
      * and extracts the residue number from the name.  EXTREMELY dependent on the format of the name of the KPoint.
      **/
-    private Integer getResNumber(KList parentList) {
+    
+    private int getResNumber(KPoint point) {
+	String name = point.getName().trim();
+	String[] uncleanParsed = name.split(" ");
+	String[] parsed = new String[uncleanParsed.length];
+        int i2 = 0;
+	// To clean out the empty strings from the split name.
+	
+	for (int i = 0; i < uncleanParsed.length; i++) {
+	    String unclean = uncleanParsed[i];
+	    if ((!unclean.equals(""))&&(!unclean.equals(" "))) {
+		parsed[i2] = unclean;
+		i2++;
+	    }
+	}
+	// another pass to see if there are any AAName + int in name.
+	if (parsed[1].length() > 3) {
+	    String parseValue = parsed[1].substring(3);
+	    if (isNumeric(parseValue)) {
+		//System.out.print(parseValue + " ");
+		return Integer.parseInt(parseValue);
+	    }
+	}
+	// one pass to see if there are any straight up ints in the name
+	for (int i = 0; i < parsed.length; i++) {
+	    String parseValue = parsed[i];
+	    //System.out.println(parseValue + ", " + i);
+	    if (isNumeric(parseValue)) {
+		return Integer.parseInt(parseValue);
+	    }
+	}
+
+	return -1;
+    }
+
+    private int getResNumber(KList parentList) {
 	Iterator pointIter = parentList.iterator();
 	KPoint firstPoint = (KPoint) pointIter.next();
-	String pointID = firstPoint.getName().trim();
-	return Integer.valueOf(pointID.substring(pointID.lastIndexOf(" ") + 1));
+	return getResNumber(firstPoint);
     }
+
+    public boolean isNumeric(String s) {
+	try {
+	    Integer.parseInt(s);
+	    return true;
+	} catch (NumberFormatException e) {
+	    return false;
+	}
+    }
+
+
 //}}}
 
     //public boolean initiated() {
@@ -296,14 +387,15 @@ public class RibbonTool extends BasicTool implements ActionListener {
 	    lowNumField.setText("");
 	    highNumField.setText("");
 	}
-	KList parentList = (KList) p.getOwner();
-	Integer resNum = getResNumber(parentList);
+	//KList parentList = (KList) p.getOwner();
+	Integer resNum = new Integer(getResNumber(p));
 	if(lowNumField.getText().equals("")) {
 	    lowNumField.setText(resNum.toString());
 	} else if (highNumField.getText().equals("")) {
 	    highNumField.setText(resNum.toString());
 	}
 	if (!highNumField.getText().equals("")) {
+	    //System.out.println("coloring");
 	    int firstNum = Integer.parseInt(lowNumField.getText());
 	    int secondNum = Integer.parseInt(highNumField.getText());
 	    if (firstNum > secondNum) {
@@ -313,10 +405,12 @@ public class RibbonTool extends BasicTool implements ActionListener {
 	    }
 	    for (int i = firstNum; i <= secondNum; i++) {
 		Integer hashKey = new Integer(i);
+		//System.out.println(sortbyNum.size());
 		if (sortbyNum.containsKey(hashKey)) {
 		    ArrayList listofLists = (ArrayList) sortbyNum.get(hashKey);
 		    Iterator iter = listofLists.iterator();
 		    while (iter.hasNext()) {
+			//System.out.print("coloring");
 			KList list = (KList) iter.next();
 			list.setColor((KPaint) color1.getSelectedItem());
 		    }
@@ -459,6 +553,33 @@ public class RibbonTool extends BasicTool implements ActionListener {
 	return oldMaster;
     }
 //}}}
+
+
+    private boolean hasRibbonMasters(KList list) {
+	Iterator masIter = list.masterIterator();
+	if (!(masIter == null)) {
+	    while (masIter.hasNext()) {
+		String oldMaster = (String) masIter.next();
+		if ((oldMaster.equals("coil"))||(oldMaster.equals("beta"))||(oldMaster.equals("alpha"))) {
+		    return true;
+		} 
+	    }
+	}
+	return false;
+    }
+
+    private boolean isRibbonList(KList list) {
+	Iterator masIter = list.masterIterator();
+	if (!(masIter == null)) {
+	    while (masIter.hasNext()) {
+		String oldMaster = (String) masIter.next();
+		if ((oldMaster.equals("ribbon"))) {
+		    return true;
+		} 
+	    }
+	}
+	return false;
+    }
 
 //{{{ newGroup
 //######################################################################################################
