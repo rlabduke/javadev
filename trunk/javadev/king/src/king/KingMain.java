@@ -118,8 +118,9 @@ public class KingMain implements WindowListener, KinemageSignalSubscriber
     */
     public void shutdown()
     {
-        if(uiText != null) uiText.shutdown();
-        if(mainWin != null) mainWin.shutdown();
+        if(uiText != null)      uiText.shutdown();
+        if(mainWin != null)     mainWin.shutdown();
+        if(kinCanvas != null)   kinCanvas.shutdown();
         
         instanceCount--;
         if(instanceCount <= 0 && theApplet == null)

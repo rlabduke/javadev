@@ -45,16 +45,14 @@
     Add ability to edit masters
     Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
     Write Java and Python guides to creating a plugin, listing all the basic steps
-  * JOGL: auto-setting of classpath, java.libary.path in distributions
     Add some kind of transformation hook (listeners, priorities, etc)
-    Warn about saving with multiple kins open
     Warn about losing unsaved changes
-  * Revisit default menu layout
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 1.29 ###
 ### 1.29 ###
 - used getValueIsAdjusting() to make ED sliders smooth
 - fixed menu configuration system that I broke earlier...
@@ -62,6 +60,16 @@
 - tried to fix file extensions, but they're still broken...
 - JPG, PNG, and PDF files now are checked for proper extension at save time
 - kept the text window from scolling when new text is added
+- revised menus layout for Tools menu
+- You can't change java.library.path from within the program. This is a well-
+  known-but-poorly-documented deliberate "feature" of Java. I'm not sure why.
+  This, at least for the moment, pretty much destroys my hopes of bundling
+  the JOGL libraries with KiNG in a convenient way.
+- JOGL window now closes when it's KiNG is shut down in multi-window mode.
+- changed 'recessiveon' to 'collapsable' in GroupEditor
+- added warning about saving with multiple kinemages open
+- fixed annoyance that closing one kin would leave nothing selected
+- deployed to the world on 16 June 2004
 
 ### 1.28 ###
 - added the "accumulate" animation function from Mage

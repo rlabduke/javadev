@@ -415,6 +415,17 @@ public class UIMenus //extends ... implements ...
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onFileSaveAs(ActionEvent ev)
     {
+        int numKins = kMain.getStable().getKins().size();
+        if(numKins > 1)
+        {
+            int result = JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+            "The file will contain all "+numKins+" currently open kinemages.",
+            "Saving multiple kinemages",
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+            
+            if(result == JOptionPane.CANCEL_OPTION) return;
+        }
+        
         KinfileIO io = kMain.getKinIO();
         io.askSaveFile();
     }

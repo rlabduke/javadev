@@ -51,6 +51,10 @@ public class KinStable implements ListSelectionListener
     /** Returns an iterator over the children of this element. All children will be Kinemages. */
     public ListIterator iterator()
     { return children.listIterator(); }
+    
+    /** Returns an unmodifiable list of all open kinemages. */
+    public java.util.List getKins()
+    { return Collections.unmodifiableList(children); }
 //}}}
 
 //{{{ notifyChange
@@ -117,9 +121,13 @@ public class KinStable implements ListSelectionListener
     {
         children.remove(currentKinemage);
         currentKinemage = null;
+        int selPos = kinChooser.getSelectedIndex();
         Object selection = kinChooser.getSelectedValue();
         DefaultListModel model = (DefaultListModel)kinChooser.getModel();
         model.removeElement(selection);
+        
+        selPos = Math.min(selPos, kinChooser.getModel().getSize() - 1);
+        if(selPos >= 0) kinChooser.setSelectedIndex(selPos);
 
         kMain.notifyChange(kMain.EM_CLOSE);
     }

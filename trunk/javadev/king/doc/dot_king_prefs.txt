@@ -84,13 +84,13 @@ helperTimeout       = 5
 ######################################################################
 
 king.BasicTool.menuName = <main menu>
-king.EDMapPlugin.menuName = Struct. biol.
+king.EDMapPlugin.menuName = Structural biology
 king.tool.draw.DrawingTool.menuName = Kin editing
 king.tool.draw.SolidObjPlugin.menuName = Kin editing
 king.tool.util.CrossWindowPickTool.menuName = Specialty
 king.tool.util.Dock3On3Tool.menuName = Kin editing
 king.tool.util.DockLsqTool.menuName = Kin editing
-king.tool.util.EditPropertiesTool.menuName = <main menu>
+king.tool.util.EditPropertiesTool.menuName = Kin editing
 king.tool.util.MovePointTool.menuName = Kin editing
 king.tool.util.RibbonTool.menuName = Kin editing
 king.tool.util.ViewpointPlugin.menuName = <main menu>
