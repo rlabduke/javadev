@@ -177,8 +177,8 @@ public class KinfileParser //extends ... implements ...
             else if(s.equals("@dot"))                   doList(KList.DOT); //deprecated
             else if(s.equals("@balllist"))              doList(KList.BALL);
             else if(s.equals("@ball"))                  doList(KList.BALL); //deprecated
-            else if(s.equals("@spherelist"))            doList(KList.BALL);
-            else if(s.equals("@sphere"))                doList(KList.BALL); //deprecated
+            else if(s.equals("@spherelist"))            doList(KList.SPHERE);
+            else if(s.equals("@sphere"))                doList(KList.SPHERE); //deprecated
             else if(s.equals("@trianglelist"))          doList(KList.TRIANGLE);
             else if(s.equals("@triangle"))              doList(KList.TRIANGLE); //deprecated
             else if(s.equals("@ribbonlist"))            doList(KList.RIBBON);
@@ -568,7 +568,7 @@ public class KinfileParser //extends ... implements ...
         else if(kListType.equals(KList.TRIANGLE))   point = new TrianglePoint(list, defaultPointID, (TrianglePoint)prevPoint);
         else if(kListType.equals(KList.RIBBON))     point = new TrianglePoint(list, defaultPointID, (TrianglePoint)prevPoint);
         else if(kListType.equals(KList.BALL))       point = new BallPoint(list, defaultPointID);
-        else if(kListType.equals(KList.SPHERE))     point = new BallPoint(list, defaultPointID);
+        else if(kListType.equals(KList.SPHERE))     point = new SpherePoint(list, defaultPointID);
         else throw new IllegalArgumentException("Unrecognized list type '"+kListType+"'");
         list.add(point);
 

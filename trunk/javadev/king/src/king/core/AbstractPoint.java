@@ -214,7 +214,7 @@ abstract public class AbstractPoint extends AHEImpl implements KPoint
     { return false; }
 //}}}
 
-//{{{ is/get/set{On, Unpickable, Ghost, Color, Aspects, Width}
+//{{{ is/get/set{On, Unpickable, Ghost, Color, Aspects, Width, Radius}
 //##################################################################################################
     /** Indicates whether this element will paint itself, given the chance */
     public boolean isOn()
@@ -262,6 +262,9 @@ abstract public class AbstractPoint extends AHEImpl implements KPoint
     /** Sets the line width of this point, if applicable */
     public void setWidth(int w)
     {}
+    /** Gets the radius of this point, if applicable */
+    public float getRadius()
+    { return 0; }
     /** Sets the radius of this point, if applicable */
     public void setRadius(float radius)
     {}

@@ -44,8 +44,8 @@ public class HighQualityPainter extends StandardPainter
 //##################################################################################################
     public void paintBall(Paint paint, double x, double y, double z, double r, boolean showHighlight)
     {
-        int d = (int)(2.0*r + 0.5);
-        if(d < 2) d = 2; // make sure balls don't disappear
+        if(r < 0.5) r = 0.5; // make sure balls don't disappear
+        double d = 2.0*r;
         
         // one disk
         g.setPaint(paint);
@@ -57,7 +57,7 @@ public class HighQualityPainter extends StandardPainter
         if(showHighlight)
         {
             double off = 0.5 * r;
-            d = (int)(0.3*r)+1;
+            d = 0.3*r;
             g.setPaint(Color.white);
             g.setStroke(KPalette.pen0);
             ellipse1.setFrame((x-off), (y-off), d, d);
@@ -74,6 +74,21 @@ public class HighQualityPainter extends StandardPainter
         g.setPaint(paint);
         g.setStroke(KPalette.pen0);
         ellipse1.setFrame((x-off), (y-off), width, width);
+        if(REALLY_PAINT) g.fill(ellipse1);
+    }
+//}}}
+
+//{{{ paintSphereDisk
+//##################################################################################################
+    public void paintSphereDisk(Paint paint, double x, double y, double z, double r)
+    {
+        if(r < 0.5) r = 0.5; // make sure balls don't disappear
+        double d = 2.0*r;
+        
+        // one disk
+        g.setPaint(paint);
+        g.setStroke(KPalette.pen0);
+        ellipse1.setFrame((x-r), (y-r), d, d);
         if(REALLY_PAINT) g.fill(ellipse1);
     }
 //}}}

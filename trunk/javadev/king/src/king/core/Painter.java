@@ -25,6 +25,7 @@ public interface Painter //extends ... implements ...
     public void paintDot(Paint paint, double x, double y, double z, int width);
     public void paintLabel(Paint paint, String label, double x, double y, double z);
     public void paintMarker(Paint paint, double x, double y, double z, int width, int paintStyle);
+    public void paintSphereDisk(Paint paint, double x, double y, double z, double r);
     public void paintTriangle(Paint paint,
         double x1, double y1, double z1,
         double x2, double y2, double z2,

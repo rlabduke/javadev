@@ -53,7 +53,6 @@
     Look at Pro geometry with Jane
     Document kinfileBase, kinfileList, kinfileSaveHandler
     Track curr settings for perspective, etc. on a per-kin basis (+ kin defaults)
-  * Implement true SpherePoints (1.33)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -66,6 +65,11 @@
 - converted KPoint into an interface, and moved impl into AbstractPoint
 - removed unused function preTransform() and viewTransform() from AHE
 - added ProxyPoint as the future basis for SpherePoint disks
+- changed ball painting in HighQualityPainter to use doubles, not ints
+- added SpherePoint class
+- added Painter.paintSphereDisk()
+- fixed bug: parser was making @spherelists into @balllists
+- finalized math for SpherePoints; checked in (r82)
 
 ### 1.32 ###
 - changed EDMapPlugin so that it asks for map format after you choose a file

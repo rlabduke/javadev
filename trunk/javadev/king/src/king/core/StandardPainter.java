@@ -145,6 +145,19 @@ public class StandardPainter implements Painter
     }
 //}}}
 
+//{{{ paintSphereDisk
+//##################################################################################################
+    public void paintSphereDisk(Paint paint, double x, double y, double z, double r)
+    {
+        int d = (int)(2.0*r + 0.5);
+        if(d < 2) d = 2; // make sure balls don't disappear
+        
+        // one disk
+        g.setPaint(paint);
+        if(REALLY_PAINT) g.fillOval((int)(x-r), (int)(y-r), d, d);
+    }
+//}}}
+
 //{{{ paintTriangle
 //##################################################################################################
     public void paintTriangle(Paint paint,
