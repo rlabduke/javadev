@@ -158,6 +158,24 @@ public class EDMapWindow implements ChangeListener, ActionListener, TransformSig
         pane.add(discard, 2, 1);
         
         dialog.setContentPane(pane);
+        
+        JMenuBar menubar = new JMenuBar();
+        JMenu menu;
+        JMenuItem item;
+        
+        menu = new JMenu("Presets");
+        menu.setMnemonic(KeyEvent.VK_P);
+        menubar.add(menu);
+        item = new JMenuItem(new ReflectiveAction("2Fo - Fc", null, this, "on2FoFc"));
+        item.setMnemonic(KeyEvent.VK_2);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, UIMenus.MENU_ACCEL_MASK));
+        menu.add(item);
+        item = new JMenuItem(new ReflectiveAction("Fo - Fc", null, this, "onFoFc"));
+        item.setMnemonic(KeyEvent.VK_1);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, UIMenus.MENU_ACCEL_MASK));
+        menu.add(item);
+        
+        dialog.setJMenuBar(menubar);
     }
 //}}}
 
@@ -296,6 +314,37 @@ public class EDMapWindow implements ChangeListener, ActionListener, TransformSig
         }
         
         //SoftLog.err.println("Painted maps.");
+    }
+//}}}
+
+//{{{ on2FoFc, onFoFc
+//##################################################################################################
+    // Preset values for 2Fo-Fc maps
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void on2FoFc(ActionEvent ev)
+    {
+        slider1.setValue(12); // +1.2
+        slider2.setValue(30); // +3.0
+        color1.setSelectedItem(KPalette.gray);
+        color2.setSelectedItem(KPalette.purple);
+        
+        updateMesh();
+        kCanvas.repaint();
+    }
+    
+    // Preset values for Fo-Fc (difference) maps
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onFoFc(ActionEvent ev)
+    {
+        slider1.setValue(-35); // -3.5
+        slider2.setValue( 35); // +3.5
+        color1.setSelectedItem(KPalette.orange);
+        color2.setSelectedItem(KPalette.sky);
+        label1.setSelected(true);
+        label2.setSelected(true);
+        
+        updateMesh();
+        kCanvas.repaint();
     }
 //}}}
     

@@ -8,7 +8,7 @@
     Separate checkboxes, tree nodes from AGEs
     Include demo/tutorial kinemage ?
     Add paintHighQuality to MarkerPoint
-    Add ability to edit masters
+    Add ability to edit alpha; add alpha to other primitives
     Make pointmasters dominant-off like normal masters
     Implement the 'moview= #' feature of Mage?
     Implement "screen" keyword for lists
@@ -53,6 +53,7 @@
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
     Setting point radius/width to "" should be equivalent to 0?
     For measures -- angle between two vectors?
+    Add ability to edit masters
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -74,6 +75,10 @@
 - apparently using full-app antialiasing with Metal on the Mac leads
   to that annoying JLabel/JCheckBox ellipsis (...) bug, regardless of layout.
   Bug report has been submitted to Apple but I don't expect a fix anytime soon.
+- updated build.xml to copy manual to kinemage website
+- changed Mac app bundle to not use full-app antialiasing but keep using Metal.
+- KiNG now allows breaks in a ribbon- or trianglelist using the X flag
+- added presets to EDMapWindow for 2Fo-Fc and Fo-Fc maps
 
 ### 1.22 ###
 - showHelperOutput was broken for background jobs like Probe;
