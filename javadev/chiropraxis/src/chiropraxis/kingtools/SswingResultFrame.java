@@ -5,69 +5,94 @@ import javax.swing.*;
 import javax.swing.text.*;
 import java.util.*;
 import java.io.FileReader;
+import java.io.*;
 
-public class SswingResultFrame extends JFrame {
+public class SswingResultFrame extends JFrame{
 
   String myFileName="";
-
-	private JTextPane textPane = new JTextPane();
-	private StyledDocument document = 
-						  (StyledDocument)textPane.getDocument();
-
+  JTextArea textArea = new  JTextArea();
+  String items[]=new String[500];
+  double angles[]=new double[5];
+  int i;
+   
 	public SswingResultFrame(String openFileName) {
-		Container contentPane = getContentPane();
+
+    for (i=0; i<5; i++)
+        angles[i]=180;
+
+    for (i=0; i<500; i++)
+        items[i]="";
+
 		readFile(openFileName);
-
     myFileName=openFileName;
-		setAttributes();
+        
+    Container content = this.getContentPane();
+    content.setLayout(new BorderLayout());
 
-		textPane.setFont(new Font("Dialog", Font.PLAIN, 18));
-		contentPane.add(new JScrollPane(textPane), 
-						BorderLayout.CENTER);
+    JList list = new JList(items);
+    list.setFont(new Font("MonoSpaced", Font.PLAIN,14));
+
+    content.add(new JScrollPane(list));
+
+    list.addMouseListener(new MouseAdapter() {
+             public void mouseClicked(MouseEvent e) {
+                   JList theList = (JList)e.getSource();
+                   ListModel model = theList.getModel();
+
+                   int index = theList.locationToIndex(e.getPoint());
+                   String itemString =(String)model.getElementAt(index);
+                   String substring;
+
+                   boolean setCHI=false;
+                   i=0;
+                   StringTokenizer st = new StringTokenizer(itemString, ":");
+                   while (st.hasMoreTokens()) {
+                      if(i<4)
+                      {
+                         substring = st.nextToken();                                                 
+                         if(setCHI=substring.startsWith("CHI"))
+                         {
+                            substring = substring.substring(5,11);
+                            angles[i] = Double.valueOf(substring).doubleValue();
+                            i++;
+                         }else ;
+                      }else st.nextToken();
+                   }
+                   if (setCHI)
+                      SswingTool.MODEL_SSWING.setAllAngles(angles);                        
+             }
+    });
 	}
-	private void setAttributes() {
-		SimpleAttributeSet attributes = new SimpleAttributeSet();
 
-//		StyleConstants.setForeground(attributes, Color.blue);
-//		StyleConstants.setUnderline(attributes, true);
-
-//		document.setCharacterAttributes(5,9,attributes,false);
-
-		StyleConstants.setForeground(attributes, Color.red);
-		StyleConstants.setStrikeThrough(attributes, false);
-
-		document.setCharacterAttributes(0,20,attributes,true);
-	}
 	private void readFile(String filename) {
-		EditorKit kit = textPane.getEditorKit();
-		try {
-			kit.read(new FileReader(filename), document, 0);
-		}
-		catch(Exception ex) {
-			ex.printStackTrace();
-		}
+
+    try {
+      Reader r =new FileReader(filename);
+      BufferedReader br = new BufferedReader(r);
+      String s;
+
+      i=0;
+      while((s = br.readLine()) != null)
+      {
+         items[i]=s + "\n";
+         i++;
+      }
+      br.close();
+    }
+    catch(IOException e) {
+         System.err.println(e.getMessage());
+    }	
 	}
-//	public static void main(String args[]){
 
 	public void showFrame(){
-
          JFrame f=new SswingResultFrame(myFileName);
+ 
          f.setTitle(myFileName);
-         f.setBounds(300,300,1200,300);
+         f.setBounds(300,300,1000,300);
          f.setVisible(true);
          f.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-//         f.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-//         f.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-//         f.addWindowListener(new WindowAdapter() {
-//             public void windowClosed(WindowEvent e) {
-//                    System.exit(0);
-//             }
-//         });
+         f.validate();
 
-//	    GJApp.launch(new SswingResultFrame(myFileName),
-//			                 "Sswing results",300,300,1100,300);
- }
-
-
+  }
 }
