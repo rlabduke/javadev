@@ -39,11 +39,12 @@ public class RecolorTool extends BasicTool implements ActionListener {
     HashSet clickedLists;
 
     JRadioButton chooseColor, colorAll;
-    JRadioButton colorRegion, hippieMode;
+    JRadioButton colorRegion, hippieMode, spectralMode;
     TablePane pane;
     JComboBox   color1;
     JTextField lowNumField;
     JTextField highNumField;
+    Integer lowResNum, highResNum;
 
 //}}}
 
@@ -85,6 +86,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	//checkSort = new JRadioButton("Check Sort", false);
 	//colorRegion = new JRadioButton("Color Region", false);
 	hippieMode = new JRadioButton("Hippie Mode", false);
+	spectralMode = new JRadioButton("Spectral Mode", false);
 	//chooseColor.addActionListener(this);
 	//checkSort.addActionListener(this);
 	hippieMode.addActionListener(this);
@@ -93,6 +95,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	//colorType.add(checkSort);
 	//colorType.add(colorRegion);
 	colorType.add(hippieMode);
+	colorType.add(spectralMode);
 
 	lowNumField = new JTextField("", 5);
 	highNumField = new JTextField("", 5);
@@ -103,6 +106,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	pane.add(chooseColor);
 	//pane.add(colorRegion);
 	pane.add(hippieMode);
+	pane.add(spectralMode);
 	// removing checksort from panel so people can't accidentally use it.
 	//pane.add(checkSort);
         //pane.newRow();
@@ -206,6 +210,10 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    listofLists.add(point);
 	    structMap.put(resNumber, listofLists);
 	}
+	//Set keySet = structMap.keySet();
+	TreeSet keys = new TreeSet(structMap.keySet());
+	lowResNum = (Integer) keys.first();
+	highResNum = (Integer) keys.last();
     }
 //}}}
 
@@ -300,29 +308,31 @@ public class RecolorTool extends BasicTool implements ActionListener {
 		firstNum = temp;
 	    }
 	    int index = 0;
-	    Object colors[] = KPalette.getStandardMap().values().toArray();
+	    //Object colors[] = KPalette.getStandardMap().values().toArray();
+	    Object colors[] = createColorArray(secondNum-firstNum+1);
 	    for (int i = firstNum; i <= secondNum; i++) {
-		if (index > (colors.length - 6)) {
+		//Object colors[] = createColorArray(secondNum-firstNum);
+		if (index >= colors.length) {
 		    index = 0;
 		}
 		Integer hashKey = new Integer(i);
-		//System.out.println(sortbyNum.size());
+
 		if (structMap.containsKey(hashKey)) {
 		    ArrayList listofLists = (ArrayList) structMap.get(hashKey);
 		    Iterator iter = listofLists.iterator();
-		    //int index = 0;
-		    //Object colors[] = KPalette.getStandardMap().values().toArray();
+
 		    while (iter.hasNext()) {
-			//if (index > (colors.length - 6)) {
-			//    index = 0;
-		       	//}
-			//System.out.print("coloring");
+
 			KPoint point = (KPoint) iter.next();
-			if (hippieMode.isSelected()) {
-			    point.setColor((KPaint) colors[index]);
-			    //index++;
-			} else {
+			//if (hippieMode.isSelected()) {
+			//   point.setColor((KPaint) colors[index]);
+			//} else {
+			//    point.setColor((KPaint) color1.getSelectedItem());
+			//}
+			if (chooseColor.isSelected()) {
 			    point.setColor((KPaint) color1.getSelectedItem());
+			} else {
+			    point.setColor((KPaint) colors[index]);
 			}
 		    }
 		    index++;
@@ -334,6 +344,32 @@ public class RecolorTool extends BasicTool implements ActionListener {
     }
 //}}}
 
+    private Object[] createColorArray(int numRes) {
+	if (hippieMode.isSelected()) {
+	    Object[] allColors = KPalette.getStandardMap().values().toArray();
+	    Object[] hippieColors = new Object[allColors.length - 6];
+	    for (int i = 0; i < hippieColors.length; i++) {
+		hippieColors[i] = allColors[i];
+	    }
+	    return hippieColors;
+	} else {
+	    Object[] colors = {KPalette.red, KPalette.orange, KPalette.gold, KPalette.yellow, KPalette.lime, KPalette.green, KPalette.sea, KPalette.cyan, KPalette.blue, KPalette.lilac, KPalette.purple};
+	    Object[] spectralColors = new Object[numRes];
+	    if (numRes > 11) {
+		for (int i = 0; i < numRes; i++) {
+		    int colorNum = (int) Math.round(i/((double)numRes/10));
+		    //if (colorNum == 10) colorNum = 0;
+		    //System.out.println((int) Math.round(i/((double)numRes/9)));
+		    spectralColors[i] = colors[colorNum];
+		}
+		return spectralColors;
+	    } else {
+		return colors;
+	    }
+	}
+    }
+	
+
 //{{{ highlightAll
 //#######################################################################################################
     /**
@@ -343,9 +379,19 @@ public class RecolorTool extends BasicTool implements ActionListener {
     public void highlightAll(KPoint p) {
 	KList parentList = (KList) p.getOwner();
 	Iterator iter = parentList.iterator();
+	//int index = 0;
+	//Object colors[] = KPalette.getStandardMap().values().toArray();
 	while (iter.hasNext()) {
+	    //if (index > (colors.length - 6)) {
+	    //	index = 0;
+	    //}
 	    KPoint point = (KPoint) iter.next();
-	    point.setColor((KPaint) color1.getSelectedItem());
+	    //if (hippieMode.isSelected()) {
+	    //	point.setColor((KPaint) colors[index]);
+	    //	index++;
+	    //} else {
+		point.setColor((KPaint) color1.getSelectedItem());
+		//}
 	}
 
     }
