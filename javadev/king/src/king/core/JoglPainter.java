@@ -48,12 +48,20 @@ public class JoglPainter implements Painter
         glu = drawable.getGLU();
         glut = new GLUT();
         
+        // This is necessary for antialiasing, but also for transparent objects.
         gl.glEnable(gl.GL_BLEND);
         gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
-        // Antialiasing - doesn't work for polygons?
-        ////gl.glBlendFunc(gl.GL_SRC_ALPHA_SATURATE, gl.GL_ONE);
+
+        // Antialiasing for points and lines.
+        // Almost everything we draw is done as polygons, so this doesn't help.
         //gl.glEnable(gl.GL_POINT_SMOOTH);
         //gl.glEnable(gl.GL_LINE_SMOOTH);
+
+        // Antialiasing doesn't work for polygons (easily).
+        // Best bet is to render multiple times with slight offset to accum. buffer.
+        // See notes in JoglCanvas.
+        // THIS CODE DOESN"T WORK:
+        //gl.glBlendFunc(gl.GL_SRC_ALPHA_SATURATE, gl.GL_ONE);
         //gl.glEnable(gl.GL_POLYGON_SMOOTH);
         //gl.glDisable(gl.GL_DEPTH_TEST);
         
