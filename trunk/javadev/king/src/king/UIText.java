@@ -11,11 +11,11 @@ import javax.swing.*;
 import javax.swing.event.*;
 import driftwood.gui.*;
 /**
- * <code>UIText</code> is the kinemage text manager.
- * It takes care of displaying and editing the text, though the text is stored in KinStable.
- *
- * <p>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
- * <br>Begun on Sun Jun  9 19:06:25 EDT 2002
+* <code>UIText</code> is the kinemage text manager.
+* It takes care of displaying and editing the text, though the text is stored in KinStable.
+*
+* <p>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
+* <br>Begun on Sun Jun  9 19:06:25 EDT 2002
 */
 public class UIText implements ChangeListener
 {

@@ -58,6 +58,9 @@ public class MovePointTool extends BasicTool
                 allPoints[k].setOrigY(allPoints[k].getOrigY() + offset[1]);
                 allPoints[k].setOrigZ(allPoints[k].getOrigZ() + offset[2]);
             }
+
+            Kinemage k = kMain.getKinemage();
+            if(k != null) k.setModified(true);
             kCanvas.repaint();
         }
         else super.drag(dx, dy, ev);
@@ -74,6 +77,9 @@ public class MovePointTool extends BasicTool
             draggedPoint.setOrigX(draggedPoint.getOrigX() + offset[0]);
             draggedPoint.setOrigY(draggedPoint.getOrigY() + offset[1]);
             draggedPoint.setOrigZ(draggedPoint.getOrigZ() + offset[2]);
+
+            Kinemage k = kMain.getKinemage();
+            if(k != null) k.setModified(true);
             kCanvas.repaint();
         }
         else super.c_drag(dx, dy, ev);
@@ -96,6 +102,9 @@ public class MovePointTool extends BasicTool
                 allPoints[k].setOrigY(allPoints[k].getOrigY() + offset[1]);
                 allPoints[k].setOrigZ(allPoints[k].getOrigZ() + offset[2]);
             }
+
+            Kinemage k = kMain.getKinemage();
+            if(k != null) k.setModified(true);
             kCanvas.repaint();
         }
     }
@@ -111,6 +120,9 @@ public class MovePointTool extends BasicTool
             draggedPoint.setOrigX(draggedPoint.getOrigX() + offset[0]);
             draggedPoint.setOrigY(draggedPoint.getOrigY() + offset[1]);
             draggedPoint.setOrigZ(draggedPoint.getOrigZ() + offset[2]);
+
+            Kinemage k = kMain.getKinemage();
+            if(k != null) k.setModified(true);
             kCanvas.repaint();
         }
     }

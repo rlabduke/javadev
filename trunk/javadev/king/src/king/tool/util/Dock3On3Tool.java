@@ -171,6 +171,7 @@ public class Dock3On3Tool extends BasicTool
         if(!t.isNaN() && kin != null)
         {
             transformAllVisible(kin, t);
+            kin.setModified(true);
         }
         
         pkReference.clear();

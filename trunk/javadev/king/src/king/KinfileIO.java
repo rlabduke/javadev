@@ -321,6 +321,12 @@ public class KinfileIO implements KinLoadListener
                 kMain.getStable().children);
             lastSavedFile = f;
             w.close();
+            
+            for(Iterator iter = kMain.getStable().iterator(); iter.hasNext(); )
+            {
+                Kinemage k = (Kinemage) iter.next();
+                k.setModified(false);
+            }
         }
         catch(IOException ex)
         {

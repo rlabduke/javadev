@@ -68,6 +68,9 @@ public class Kinemage extends AGE // implements ...
     
     // Each kinemage has its own TreeModel
     DefaultTreeModel treeModel;
+    
+    // For tracking whether edits have been saved
+    boolean modified = false;
 //}}}
 
 //{{{ Constructors
@@ -657,6 +660,21 @@ public class Kinemage extends AGE // implements ...
         //kMain.notifyChange(kMain.EM_DISPLAY);
         signal.signalKinemage(this, signal.APPEARANCE);
     }
+//}}}
+
+//{{{ is/setModified
+//##################################################################################################
+    /**
+    * If true, then the kinemage has been modified since it was loaded
+    * and the changes have not yet been saved.
+    * This property is used for save-on-exit traps.
+    */
+    public boolean isModified()
+    { return modified; }
+    
+    /** Sets the value of isModified(). */
+    public void setModified(boolean b)
+    { modified = b; }
 //}}}
 
 //{{{ empty_code_segment

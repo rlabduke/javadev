@@ -11,11 +11,11 @@ import javax.swing.event.*;
 import javax.swing.tree.*;
 
 /**
- * <code>KinStable</code> holds all of the data about one or more kin files.
- * It acts as the root for the hierarchy of groups.
- *
- * <p>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
- * <br>Begun on Wed Apr 24 11:22:51 EDT 2002
+* <code>KinStable</code> holds all of the data about one or more kin files.
+* It acts as the root for the hierarchy of groups.
+*
+* <p>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
+* <br>Begun on Wed Apr 24 11:22:51 EDT 2002
 */
 public class KinStable implements ListSelectionListener
 {

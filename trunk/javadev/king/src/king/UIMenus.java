@@ -403,12 +403,38 @@ public class UIMenus //extends ... implements ...
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onFileClose(ActionEvent ev)
     {
+        Kinemage k = kMain.getKinemage();
+        if(k != null && k.isModified() && JOptionPane.YES_OPTION ==
+        JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+            "This kinemage has been modified.\nDo you want to save it before closing?",
+            "Save before closing?", JOptionPane.YES_NO_OPTION)
+        )
+        {
+            onFileSaveAs(ev);
+        }
+
         kMain.getStable().closeCurrent();
     }
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onFileCloseAll(ActionEvent ev)
     {
+        boolean modified = false;
+        for(Iterator iter = kMain.getStable().iterator(); iter.hasNext(); )
+        {
+            Kinemage k = (Kinemage) iter.next();
+            if(k.isModified()) modified = true;
+        }
+
+        if(modified && JOptionPane.YES_OPTION ==
+        JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+            "One or more open kinemages have been modified.\nDo you want to save them before closing?",
+            "Save before closing?", JOptionPane.YES_NO_OPTION)
+        )
+        {
+            onFileSaveAs(ev);
+        }
+
         kMain.getStable().closeAll();
     }
 
@@ -579,6 +605,7 @@ public class UIMenus //extends ... implements ...
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onFileExit(ActionEvent ev)
     {
+        onFileCloseAll(ev); // checks for modifications and prompts to save
         kMain.shutdown();
     }
 //}}}
