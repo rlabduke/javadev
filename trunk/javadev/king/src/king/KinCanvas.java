@@ -298,6 +298,7 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
             if(kin.currAspect == null) engine.activeAspect = 0;
             else engine.activeAspect = kin.currAspect.getIndex().intValue();
             
+            bestPainter.setGraphics(g2);
             engine.render(this, view, bounds, bestPainter);
             if(toolbox != null) toolbox.overpaintCanvas(bestPainter);
             
