@@ -792,11 +792,12 @@ master
  country.
  However, it might also be nice to turn on and off all the rivers together,
  or all the cities.
- Without masters, there might be a 
+ There might be a 
 \family typewriter 
 {rivers}
 \family default 
- lists in each country, all of which would have to be toggled individually.
+ lists in each country, but without masters all of them would have to be
+ toggled individually.
  With masters, you can have all of the rivers toggled by a single button
  that lives outside the ordinary hierarchy of groups, subgroups, and lists.
 \layout Standard
@@ -846,10 +847,97 @@ indent
  (However, for the masters this is purely cosmetic.)
 \layout Standard
 
-master
+The effect of a master on a list, subgroup, or group is transient -- turning
+ something on or off with a master does not prevent the user from turning
+ that item on or off manually.
+ However, for items marked with more than one master, the masters do interact
+ with each other.
+ Consider the following list:
+\layout LyX-Code
+
+@dotlist {demo list} master= {A} master= {B} master={C}
 \layout Standard
 
-pointmaster
+If 
+\emph on 
+any
+\emph default 
+ one of the master buttons is toggled from on to off, our list will be turned
+ off.
+ However, if one of the masters is toggled from off to on, our list will
+ be toggled on if and only if 
+\emph on 
+all
+\emph default 
+ of the other masters that control it are also currently on.
+ (Of course, if the list was already on, it will remain so.) If, for example,
+ masters B and C are off and master A is on, then turning B on will 
+\emph on 
+not
+\emph default 
+ turn the list on (because C is off).
+ Subsequently turning C on 
+\emph on 
+will
+\emph default 
+, however, turn the list on (because both A and B are also on).
+\layout Standard
+
+Individual points can also be controlled by a master-like mechanism, called
+ 
+\emph on 
+pointmasters
+\emph default 
+.
+ Due to memory limits, there are only 32 possible pointmasters that can
+ be used in a particular kinemage.
+ They are identified by the lowercase letters 
+\emph on 
+a
+\emph default 
+ - 
+\emph on 
+z
+\emph default 
+ and the digits 1 - 6.
+ One or more of these single-character codes are listed inside of single
+ quote marks for some or all of the points in a kinemage.
+ Each pointmaster code is associated with a named master button by a line
+ that starts with 
+\family typewriter 
+@pointmaster
+\family default 
+, then one (or rarely, more than one) single-character code between single
+ quotes, then the master name in curly braces.
+ If the name matches with the name of an ordinary master, then that button
+ will control both the list/subgroup/group master and the pointmaster.
+\layout Standard
+
+Unlike masters, pointmasters do not interact with each other.
+ Turning a pointmaster on turns on all of the points under its control,
+ regardless of which other pointmasters they are controlled by.
+ The same goes for turning a pointmaster off.
+\layout Standard
+
+Shown below are some typical master and pointmaster declarations:
+\layout LyX-Code
+
+@master {rivers}
+\layout LyX-Code
+
+@pointmaster 'a' {large cities}
+\layout LyX-Code
+
+@pointmaster 'b' {small cities}
+\layout LyX-Code
+
+@pointmaster 'ab' {all cities}
+\layout LyX-Code
+
+@master {dual purpose} indent
+\layout LyX-Code
+
+@pointmaster 'c' {dual purpose}
 \layout Section
 
 Colors and aspects
@@ -860,13 +948,566 @@ Colors and aspects
 
 \layout Standard
 
-aspect
+Color-coding is one of the most-used feature in any visualization system,
+ so the kinemage format provides lots of options related to coloring.
+ We've already seen how to assign a color to a whole list or a single point
+ in their respective sections, and we've seen that point colors, when present,
+ generally override the color specified for the list.
+ Below are all 28 of the color names that can be used with lists and points:
 \layout Standard
 
-list of valid color names
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="14" columns="4">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0sp">
+<column alignment="center" valignment="top" leftline="true" width="0sp">
+<column alignment="center" valignment="top" leftline="true" width="0sp">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0sp">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
 \layout Standard
 
+
+\emph on 
+Saturated colors
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\emph on 
+Semi-sat.
+ colors
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\emph on 
+Pastel colors
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\emph on 
+Neutrals
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+red (A)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+pink (N)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+pinktint (V)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+orange (B)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+peach (P)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+peachtint (Q)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+gold (C)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+yellow (D)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+yellow (D)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+yellowtint (R)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+lime (E)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+green (F)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+sea (G)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+greentint (S)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+sea (G)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+white (W)
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+cyan (H)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+gray (X)
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+sky (I)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+brown (Y)
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+blue (J)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+sky (I)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+bluetint (T)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+purple (K)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+lilac (O)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+lilactint (U)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+invisible (Z)
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+magenta (L)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+deadwhite
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+hotpink (M)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+deadblack
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\layout Standard
+
+The letters listed in parentheses are the aspect codes for each color, which
+ will be discussed below.
+ Colors are organized so that the columns form progressions of hue, and
+ the rows form progressions of saturation, although the relationships are
+ somewhat different on a white background.
+ Some colors appear in two different places in the chart because they serve
+ two different 
+\begin_inset Quotes eld
+\end_inset 
+
+purposes
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ See the palette kinemage built into KiNG for more details on how to use
+ color effectively.
+\layout Standard
+
+Sometimes you might develop a kinemage in which tens or hundreds of different
+ lists should all be the same color -- but you aren't sure 
+\emph on 
+which
+\emph default 
+ color.
+ Instead of using the find-and-replace feature of a text editor to test
+ out different options, you can define a symbol to stand in for the color,
+ and then change only the definition of the symbol.
+ This symbolic or 
+\begin_inset Quotes eld
+\end_inset 
+
+variable
+\begin_inset Quotes erd
+\end_inset 
+
+ color name is called a 
+\emph on 
 colorset
+\emph default 
+, and is declared with the 
+\family typewriter 
+@colorset
+\family default 
+ keyword, followed by the symbolic name in curly braces and then the name
+ of a normal kinemage color.
+ Later on, you can assign the symbolic color name to lists (but not individual
+ points).
+ For example,
+\layout LyX-Code
+
+@colorset {water color} sky
+\layout LyX-Code
+
+@vectorlist {river} color= {water color}
+\layout LyX-Code
+
+@balllist {ponds} color= {water color}
+\layout Standard
+
+Since color schemes are so important to visualization, it is sometimes useful
+ to have multiple color schemes within one kinemage.
+ For example, a map might be colored by elevation, by rainfall, or by population
+ density, depending on its intended use.
+ 
+\emph on 
+Aspects
+\emph default 
+ provide a mechanism for specifying more than one possible point color for
+ each point, only one of which is active at a particular time.
+\layout Standard
+
+...more info on aspects...
 \layout Section
 
 Views and display options

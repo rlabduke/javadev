@@ -225,10 +225,12 @@ public class KPaint //extends ... implements ...
         if(dotprod < 0) dotprod = -dotprod;
         if(dotprod > 1) dotprod = 1;
         
-        double weight = AMBIENT_COEFF + (DIFFUSE_COEFF*dotprod);
+        if(dotprod == 1 && alpha == 255)
+            return getPaint(backgroundMode, depth);
 
         try
         {
+            double weight = AMBIENT_COEFF + (DIFFUSE_COEFF*dotprod);
             return blendColors(
                 (Color)paints[backgroundMode][depth], weight,
                 SHADE_BACKGROUNDS[backgroundMode][depth], (1-weight),

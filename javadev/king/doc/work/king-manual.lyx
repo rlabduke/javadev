@@ -1300,6 +1300,17 @@ jogl.jar
 .jnilib
 \family default 
 ).
+ As of summer 2004, the JOGL folks were distributing their native libraries
+ packaged in a JAR file, too; they'll need to be extracted with a 
+\family typewriter 
+jar xvf NATIVE-LIBS.JAR
+\family default 
+ command.
+ You can remove the 
+\family typewriter 
+META-INF
+\family default 
+ directory; it doesn't serve any purpose.
  The JOGL libraries go in 
 \family typewriter 
 jre/lib/ext
@@ -1313,8 +1324,11 @@ jre/bin
 /Library/Java/Extensions
 \family default 
  on Mac OS X (both files).
+ If you're on a Unix-style system (including Mac OS X), be sure to check
+ your permissions as well.
  If you downloaded a platform-specific version of KiNG, the necessary libraries
- may already be included.
+ may already be included (but don't count on it -- for obscure reasons,
+ the technical obstacles to this are very large).
 \layout Standard
 
 Note that due to limitations of Java's interaction with the native windowing

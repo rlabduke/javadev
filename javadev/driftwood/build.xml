@@ -42,6 +42,7 @@
            destdir="${build}"
            includes="**/*.java"
            excludes="**/old/"
+           deprecation="off"
            debug="on" debuglevel="lines,source">
     </javac>
 </target>

@@ -1019,10 +1019,17 @@ performance. You'll need to have an up-to-date version of Java installed,
 along with the JOGL libraries (https://jogl.dev.java.net/).
 Make sure you get both <TT>jogl.jar</TT> and the native library or
 libraries (they end in <TT>.dll</TT>, <TT>.so</TT>, or <TT>.jnilib</TT>).
-The JOGL libraries go in <TT>jre/lib/ext</TT> (JAR file) and <TT>jre/bin</TT>
-(native libs) of your Java installation, or in <TT>/Library/Java/Extensions</TT>
-on Mac OS X (both files). If you downloaded a platform-specific version
-of KiNG, the necessary libraries may already be included.
+As of summer 2004, the JOGL folks were distributing their native libraries
+packaged in a JAR file, too; they'll need to be extracted with a <TT>jar
+xvf NATIVE-LIBS.JAR</TT> command. You can remove the <TT>META-INF</TT>
+directory; it doesn't serve any purpose. The JOGL libraries go in
+<TT>jre/lib/ext</TT> (JAR file) and <TT>jre/bin</TT> (native libs)
+of your Java installation, or in <TT>/Library/Java/Extensions</TT>
+on Mac OS X (both files). If you're on a Unix-style system (including
+Mac OS X), be sure to check your permissions as well. If you downloaded
+a platform-specific version of KiNG, the necessary libraries may already
+be included (but don't count on it - for obscure reasons, the technical
+obstacles to this are very large).
 
 <P>
 Note that due to limitations of Java's interaction with the native
@@ -2251,7 +2258,7 @@ for more details on these and other licenses.
 <BR><HR>
 <ADDRESS>
 Ian W. Davis
-2004-06-16
+2004-06-22
 </ADDRESS>
 </BODY>
 </HTML>

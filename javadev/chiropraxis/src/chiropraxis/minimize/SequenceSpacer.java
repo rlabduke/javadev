@@ -177,7 +177,7 @@ public class SequenceSpacer //extends ... implements ...
         
         out.println("@kinemage");
         out.println("@onewidth");
-        int i = 0;
+        int i = 0, k = 0;
         for(Iterator iter = inputFiles.iterator(); iter.hasNext(); )
             out.println("@"+(++i)+"aspect {"+((File)iter.next()).getName()+"}");
         out.println("@group {sequences}");
@@ -187,7 +187,7 @@ public class SequenceSpacer //extends ... implements ...
         for(i = 0; i < seqs.length; i++)
         {
             out.print("{"+seqs[i].toString()+"} (");
-            for(int k = 0; k < inputFiles.size(); k++)
+            for(k = 0; k < inputFiles.size(); k++)
             {
                 if(seqs[i].flags.get(k))    out.print(COLOR_CODES.charAt( k % COLOR_CODES.length() ));
                 else                        out.print("X");
@@ -199,7 +199,7 @@ public class SequenceSpacer //extends ... implements ...
         for(i = 0; i < seqs.length; i++)
         {
             out.print("{"+seqs[i].toString()+"} (");
-            for(int k = 0; k < inputFiles.size(); k++)
+            for(k = 0; k < inputFiles.size(); k++)
             {
                 if(seqs[i].flags.get(k))    out.print(COLOR_CODES.charAt( k % COLOR_CODES.length() ));
                 else                        out.print("X");
@@ -214,6 +214,21 @@ public class SequenceSpacer //extends ... implements ...
         renderConnections(3, "sky off",     seqs, mutationDist, out);
         renderConnections(4, "blue off",    seqs, mutationDist, out);
         renderConnections(5, "purple off",  seqs, mutationDist, out);
+        
+        // Translucent balls, one group per file
+        String[] clearColors = {"hotpink", "red", "orange", "gold", "yellow", "lime", "green"};
+        k = 0;
+        for(Iterator iter = inputFiles.iterator(); iter.hasNext(); k++)
+        {
+            out.println("@group {"+((File)iter.next()).getName()+"} dominant animate");
+            double radius = 0.1 + 0.02*(k % 5);
+            out.println("@balllist {balls} color= "+clearColors[k%clearColors.length]+" radius= "+df.format(radius)+" nohighlight alpha= 0.4");
+            for(i = 0; i < seqs.length; i++)
+            {
+                if(seqs[i].flags.get(k))
+                    out.println("{"+seqs[i].toString()+"} "+df.format(seqs[i].getX())+" "+df.format(seqs[i].getY())+" "+df.format(seqs[i].getZ()));
+            }
+        }
     }
     
     void renderConnections(int dist, String color, Sequence[] seqs, int[] mutationDist, PrintStream out)
