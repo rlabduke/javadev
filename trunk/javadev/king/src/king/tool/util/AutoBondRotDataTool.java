@@ -544,7 +544,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	Kinemage kin = kMain.getKinemage();
 	Iterator iter = kin.iterator();
 	allPoints.clear();
-	Long startTime = System.currentTimeMillis();
+	long startTime = System.currentTimeMillis();
 	while (iter.hasNext()) {
 	    KGroup group = (KGroup) iter.next();
 	    if (group.isOn()) {
@@ -584,7 +584,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		}
 	    }
 	}
-	Long endTime = System.currentTimeMillis();
+	long endTime = System.currentTimeMillis();
 	
 	System.out.println("Total Time to diff: " + ((endTime-startTime)/1000) + " seconds");
 	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
@@ -680,7 +680,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     public void onSmoothing(ActionEvent ev) {
 	Kinemage kin = kMain.getKinemage();
 	Iterator iter = kin.iterator();
-	Long startTime = System.currentTimeMillis();
+	long startTime = System.currentTimeMillis();
 	while (iter.hasNext()) {
 	    KGroup group = (KGroup) iter.next();
 	    if (group.hasMaster("Data Points")) {
@@ -712,7 +712,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 
 	    //newList.add(point);
 	}
-	Long endTime = System.currentTimeMillis();
+	long endTime = System.currentTimeMillis();
 	
 	System.out.println("Total Time to smooth: " + ((endTime-startTime)/1000) + " seconds");
 	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);

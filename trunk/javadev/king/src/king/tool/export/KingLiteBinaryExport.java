@@ -107,7 +107,9 @@ public class KingLiteBinaryExport extends Plugin
                 try
                 {
                     DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(f)));
-                    if(doPalmHeader) writePalmHeader(out, f.getName(), "Created by KiNG "+kMain.getPrefs().getString("version"));
+                    String palmName = f.getName();
+                    if(palmName.toLowerCase().endsWith(".pdb")) palmName = palmName.substring(0, palmName.length()-4);
+                    if(doPalmHeader) writePalmHeader(out, palmName, "Created by KiNG "+kMain.getPrefs().getString("version"));
                     save(out, kMain.getKinemage());
                     out.close();
                 }
@@ -157,14 +159,13 @@ public class KingLiteBinaryExport extends Plugin
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             //                                               unknown...
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  0x01, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00,
-            // unknown        4b date stamp variant?        len    database name (32 x 16bit chars, null padded)
-            0x00, 0x01, 0x01, 0xe7, 0xf7, 0x71, 0x0c
+            // unknown...     (these bytes vary...)   (this one doesn't!)
+            0x00, 0x01, 0x01, 0xe7, 0xf7, 0x71, 0x0c, 0x16
         };
         for(int i = 0; i < hdr2.length; i++) out.writeByte(hdr2[i]);
-        // Now the length of the (Java) database name, followed by the name and some nulls, for 32 chars
+        // Now the (Java) database name, followed by some nulls, for 32 (16 bit) chars
         String storename = Long.toString(System.currentTimeMillis(), 16)+kinName;
         if(storename.length() > 32) storename = storename.substring(0, 32);
-        out.writeByte(storename.length());
         out.writeChars(storename);
         for(int i = storename.length(); i < 32; i++) out.writeChar( (char)0 );
         int[] hdr3 = { //application name, etc.
