@@ -24,6 +24,9 @@
 - fixed confusion between search path and gradient in GradientMinimizer
 - changed (now correct) Fletcher-Reeves algorithm to Polak-Ribiere; works better
 - added RubberBand tool for KiNG
+- implemented both simple (all-against-all) and fancy (hash table / 3-D bins)
+  approaches to neighbor detection for nonbonded terms. Fancy is preferrable.
+- made some changes to line-min in GradMin to keep things from getting stuck
 
 ### 0.38 ###
 - wrote AnisoOxygenSearch

@@ -50,7 +50,7 @@ public class RubberBandTool extends BasicTool implements Runnable
     public RubberBandTool(ToolBox tb)
     {
         super(tb);
-        this.rubberBand = makeRandomConf(40);
+        this.rubberBand = makeRandomConf(100);
         this.stateMan   = makeState(rubberBand);
         
         Thread thread = new Thread(this);
@@ -91,11 +91,11 @@ public class RubberBandTool extends BasicTool implements Runnable
         int len = points.size() - 3;
         ArrayList terms = new ArrayList();
         for(int i = 0; i < len-1; i++)
-            terms.add(new BondTerm(i, i+1, 1, 1));
+            terms.add(new BondTerm(i, i+1, 1, 10));
         //terms.add(new BondTerm(0,       len,    0, 1));
         //terms.add(new BondTerm(len-1,   len+1,  0, 1));
         for(int i = 0; i < len-2; i++)
-            terms.add(new AngleTerm(i, i+1, i+2, 120, 1));
+            terms.add(new AngleTerm(i, i+1, i+2, 120, 10));
         
         StateManager stateman = new StateManager((MutableTuple3[])points.toArray(new MutableTuple3[points.size()]), len);
         stateman.setEnergyTerms((EnergyTerm[])terms.toArray(new EnergyTerm[terms.size()]));
@@ -186,6 +186,16 @@ public class RubberBandTool extends BasicTool implements Runnable
     {
         super.click(x, y, p, ev);
         runMin = true;
+        
+        if(ev.getClickCount() == 2)
+        {
+            int i;
+            int[] atomTypes = new int[ rubberBand.children.size() + 3 ];
+            for(i = 0; i < rubberBand.children.size(); i++) atomTypes[i] = 1;
+            for( ; i < atomTypes.length; i++) atomTypes[i] = 0;
+            NonbondedTerm term = new NonbondedTerm(atomTypes, 6, 20);
+            baseTerms.add(term);
+        }
 
         synchronized(this) { this.notifyAll(); }
     }
@@ -200,10 +210,15 @@ public class RubberBandTool extends BasicTool implements Runnable
         if(v != null && draggedPoint != null)
         {
             Dimension dim = kCanvas.getCanvasSize();
-            float[] offset = v.translateRotated(dx, -dy, 0, Math.min(dim.width, dim.height));
+            /*float[] offset = v.translateRotated(dx, -dy, 0, Math.min(dim.width, dim.height));
             mouseTug.setX(mouseTug.getX() + offset[0]);
             mouseTug.setY(mouseTug.getY() + offset[1]);
-            mouseTug.setZ(mouseTug.getZ() + offset[2]);
+            mouseTug.setZ(mouseTug.getZ() + offset[2]);*/
+            float[] center = v.getCenter();
+            float[] offset = v.translateRotated(ev.getX() - dim.width/2, dim.height/2 - ev.getY(), 0, Math.min(dim.width, dim.height));
+            mouseTug.setX(center[0]+offset[0]);
+            mouseTug.setY(center[1]+offset[1]);
+            mouseTug.setZ(center[2]+offset[2]);
 
             synchronized(stateMan) { stateMan.readState(); }
             synchronized(this) { this.notifyAll(); }
@@ -232,7 +247,7 @@ public class RubberBandTool extends BasicTool implements Runnable
             if(i != -1 ) synchronized(stateMan)
             {
                 ArrayList terms = new ArrayList(baseTerms);
-                terms.add(new BondTerm(i, j, 0, 1));
+                terms.add(new BondTerm(i, j, 0, 30));
                 stateMan.setEnergyTerms((EnergyTerm[])terms.toArray(new EnergyTerm[terms.size()]));
             }
             
@@ -255,6 +270,21 @@ public class RubberBandTool extends BasicTool implements Runnable
             stateMan.setEnergyTerms((EnergyTerm[])terms.toArray(new EnergyTerm[terms.size()]));
         }
     }
+//}}}
+
+//{{{ getHelpAnchor, toString
+//##################################################################################################
+    /**
+    * Returns an anchor marking a place within <code>king-manual.html</code>
+    * that is the help for this tool. This is called by the default
+    * implementation of <code>getHelpURL()</code>. 
+    * If you override that function, you can safely ignore this one.
+    * @return for example, "#navigate-tool" (or null)
+    */
+    public String getHelpAnchor()
+    { return null; }
+    
+    public String toString() { return "Rubber band toy"; }
 //}}}
 
 //{{{ empty_code_segment

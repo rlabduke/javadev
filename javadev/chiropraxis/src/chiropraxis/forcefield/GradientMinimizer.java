@@ -56,13 +56,10 @@ public class GradientMinimizer //extends ... implements ...
     
     /** Number of steps executed. */
     int                 nSteps      = 0;
-    /** Whether we've hit the minimum */
-    boolean             hitBottom   = false;
-    
-    /** The current step length, as multiplied by a unit path vector. */
-    double              stepLen     = 1e-2;
     /** Number of times the function has been evaluated for the last step. */
     int                 eval        = 0;
+    /** Whether we've hit the minimum */
+    boolean             hitBottom   = false;
 //}}}
 
 //{{{ Constructor(s)
@@ -106,9 +103,12 @@ public class GradientMinimizer //extends ... implements ...
 
         // Take a step against the search vector to reduce the energy.
         if(currGMag > 0 && currPMag > 0)
-            doLineMinimization(currPMag, currPath); 
-        else // currGMag is 0 or NaN
+            doLineMinimization(); 
+        else // currG/PMag is 0 or NaN
+        {
             hitBottom = true;
+            System.err.println("|G| = "+df.format(currGMag)+"    |P| = "+df.format(currPMag));
+        }
         
         if(hitBottom) currGMag = 0;
         
@@ -167,32 +167,40 @@ public class GradientMinimizer //extends ... implements ...
 
 //{{{ doLineMinimization
 //##############################################################################
-    void doLineMinimization(double gMag, double[] path)
+    void doLineMinimization()
     {
+        final double initStep = 1e-2; // seems to be a consistently good guess
         final double tol = 1e-4; // no less than 3e-8 for doubles, 1e-4 for floats
         eval = 0;
         
         // Bracket the function on (a, b, c)
+        double[] path = currPath;
         double a = 0, b, c, x, fa, fb, fc, fx;
-        fa = system.test(a, path); eval++;
+        fa = this.prevEnergy; //system.test(a, path); eval++;
+        b = initStep;
         
         // Find a smaller energy at b:
         while(true)
         {
-            b = a + stepLen / gMag;
-            if(Double.isNaN(b))
-            {
-                hitBottom = true;
-                return;
-            }
             fb = system.test(-b, path); eval++;
             if(fb < fa) break;      // good -- we found a smaller point
-            else if(stepLen == 0)
+            else if(b < 1e-20)      // if min is at 0, Brent won't get closer than 1e-10 anyway
             {
-                hitBottom = true;   // step size is too small
-                return;
+                // Testing |G| / (Ãn) when n = number of variables is due to T. Schlick
+                if(currGMag / Math.sqrt(path.length) < 1e-6*(1+Math.abs(fa)) || currGMag == prevGMag)
+                {
+                    hitBottom = true;
+                    //System.err.println("b is too small after "+eval+" evals;    |G| = "+df.format(currGMag));
+                    return;
+                }
+                else // just a snag, take a small "random" step along the path
+                {
+                    currEnergy = system.accept(); eval++; // larger steps may cause explosions!
+                    //System.err.println("Got stuck, took a small step;    |G| = "+df.format(currGMag));
+                    return;
+                }
             }
-            else stepLen /= 8.0;    // failure - try a smaller step
+            else b /= 8.0;          // failure - try a smaller step
         }
         
         // Initial guess for c:
@@ -206,8 +214,7 @@ public class GradientMinimizer //extends ... implements ...
             a = b; b = c; c = x;
             fa = fb; fb = fc; fc = fx;
         }
-        stepLen = b * gMag; // how far we stepped this time from a==0 to reach bracket center
-        //System.err.print("Bracketed on "+a+" "+b+" "+c+" in "+eval+" evals.");
+        //if(eval > 20) System.err.print("Bracketed on "+a+" "+b+" "+c+" in "+eval+" evals.");
 
         // Brent's method.
         double d = 0, e = 0, u, v, w, xm, fu, fv, fw, p, q, r, tol1, tol2;
@@ -225,7 +232,7 @@ public class GradientMinimizer //extends ... implements ...
             if(Math.abs(x-xm) <= (tol2 - (b-a)/2.0))
             {
                 currEnergy = system.accept(-x, path); eval++;
-                //System.err.println("Solved to "+tol+" as "+b+" in "+eval+" evals.");
+                //if(eval > 40) System.err.println("Solved to "+tol+" as "+b+" in "+eval+" evals.");
                 return;
             }
             // Try a parabolic fit if ... ?
