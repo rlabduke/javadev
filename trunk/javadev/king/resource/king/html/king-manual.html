@@ -2036,6 +2036,25 @@ using KiNG this way may not work well in some browsers; test your
 pages thoroughly.
 
 <P>
+Normally, a KiNG applet displays only the kinemage specified in its
+<TT>kinSource</TT> parameter. However, you can also use the <TT>kinfileBase</TT>
+and <TT>kinfileList</TT> parameters to allow the user to open and/or
+append additional kinemages from a pre-specified set. <TT>kinfileBase</TT>
+specifies a path to the maps relative to the current document base
+URL. <TT>kinfileList</TT> is a space-separated list of filenames that
+can be loaded from that path. Users can also enter and modify URLs
+directly, though obviously this isn't very convenient.
+
+<P>
+The KiNG applet also supports a <TT>kinfileSaveHandler</TT> parameter,
+which is the URL of a CGI script that can accept HTTP POST kinemage
+output. On a properly configured webserver, this allows users of the
+KiNG applet to save their modified kinemages directly to the server!
+However, this is definitely a custom programming job on the server
+side and so is not an option for most ``normal'' uses of the KiNG
+applet.
+
+<P>
 Some Tools and Plugins may define their own &lt;PARAM&gt; tags, which will
 be described in their documentation.
 
@@ -2267,7 +2286,7 @@ for more details on these and other licenses.
 <BR><HR>
 <ADDRESS>
 Ian W. Davis
-2004-09-27
+2004-10-26
 </ADDRESS>
 </BODY>
 </HTML>

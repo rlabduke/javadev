@@ -130,7 +130,8 @@ public class BallPoint extends AbstractPoint // implements ...
     {
         KPaint maincolor = getDrawingColor(engine);
         if(maincolor.isInvisible()) return;
-        Paint paint = maincolor.getPaint(engine.backgroundMode, 1, engine.colorCue, parent.alpha);
+        int alpha = (parent == null ? 255 : parent.alpha);
+        Paint paint = maincolor.getPaint(engine.backgroundMode, 1, engine.colorCue, alpha);
 
         // We have to do this here b/c now widthCue is set
         if(engine.cueThickness) r *= KPalette.widthScale[ engine.widthCue ];

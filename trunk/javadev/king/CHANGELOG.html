@@ -6,7 +6,6 @@
     Separate checkboxes, tree nodes from AGEs
     Include demo/tutorial kinemage ?
     Add paintHighQuality to MarkerPoint
-    Add ability to edit alpha; add alpha to other primitives
     Implement the 'moview= #' feature of Mage?
     Implement "screen" keyword for lists
     Add ability to create/edit colors
@@ -51,7 +50,6 @@
     Optional 2 column button layout?
     use "around x,y,z" for Probe runs
     Look at Pro geometry with Jane
-    Document kinfileBase, kinfileList, kinfileSaveHandler
     Track curr settings for perspective, etc. on a per-kin basis (+ kin defaults)
 
 ==============================================================================
@@ -72,6 +70,10 @@
 - finalized math for SpherePoints; checked in (r82)
 - fixed bug where KinCanvas.print() didn't bestPainter.setGraphics(), resulting
   in either a NullPointerEx or a stale graphics object.
+- added setting for alpha in list editor
+- made vectors use alpha
+- protect against parent==null in parent.alpha for Ball/Triangle/VectorPoint
+- documented kinfileBase, kinfileList, kinfileSaveHandler
 
 ### 1.32 ###
 - changed EDMapPlugin so that it asks for map format after you choose a file

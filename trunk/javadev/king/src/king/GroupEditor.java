@@ -59,7 +59,7 @@ public class GroupEditor implements ChangeListener
     TablePane       liPanel;
     JTextField      liName;
     JCheckBox       liIsOff, liNoButton;
-    JTextField      liWidth, liRadius;
+    JTextField      liWidth, liRadius, liAlpha;
     ColorPicker     liPicker;
     KPaint          originalColor   = null;
     KList           theKList        = null;
@@ -224,6 +224,9 @@ public class GroupEditor implements ChangeListener
         liRadius    = new JTextField(6);
         JLabel radiusLabel = new JLabel("Ball radius:");
         radiusLabel.setLabelFor(liRadius);
+        liAlpha     = new JTextField(6);
+        JLabel alphaLabel = new JLabel("Alpha (0-255):");
+        alphaLabel.setLabelFor(liAlpha);
         
         KingPrefs prefs = kMain.getPrefs();
         int patchSize = (prefs==null? 20 : prefs.getInt("colorSwatchSize"));
@@ -244,6 +247,7 @@ public class GroupEditor implements ChangeListener
             liPanel.addCell(liNoButton, 2, 1).newRow();
             liPanel.addCell(widthLabel).addCell(liWidth).newRow();
             liPanel.addCell(radiusLabel).addCell(liRadius).newRow();
+            liPanel.addCell(alphaLabel).addCell(liAlpha).newRow();
         liPanel.endSubtable();
         liPanel.startSubtable(1,2);
             // colors
@@ -464,6 +468,7 @@ public class GroupEditor implements ChangeListener
         liNoButton.setSelected( !list.hasButton());
         liWidth.setText(Integer.toString(list.width));
         liRadius.setText(Float.toString(list.radius));
+        liAlpha.setText(Integer.toString(list.alpha));
         originalColor = list.getColor();
         liPicker.setBackgroundMode(kMain.getCanvas().getEngine().backgroundMode);
         liPicker.setExtras(kMain.getKinemage().getNewPaintMap().values());
@@ -487,6 +492,10 @@ public class GroupEditor implements ChangeListener
             if(list.width > 7) list.width = 7;
             try { list.radius = Float.parseFloat(liRadius.getText()); }
             catch(NumberFormatException ex) {}
+            try { list.alpha = Integer.parseInt(liAlpha.getText()); }
+            catch(NumberFormatException ex) {}
+            if(list.alpha < 0)      list.alpha = 0;
+            if(list.alpha > 255)    list.alpha = 255;
             // Color is handled as soon as the choice is registered,
             // so we don't need to deal with it here.
             markKinModified(list);

@@ -296,6 +296,9 @@ public class KPaint //extends ... implements ...
     * <code>gray value = Red*29.7% + Green*58.9% + Blue*11.4%</code>.
     * Presumably this roughly matches the response of B&amp;W film,
     * based on some articles I've read elsewhere.
+    * <p>See also http://www.poynton.com/notes/colour_and_gamma/GammaFAQ.html,
+    * which offers this equation: Y(709) = 0.2126*R + 0.7152*G + 0.0722*B.
+    * However, using it directly here would probably be out of context...
     */
     private static Color[] makeMonochrome(Color[] src)
     {
