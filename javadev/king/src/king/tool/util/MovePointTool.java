@@ -133,7 +133,7 @@ public class MovePointTool extends BasicTool
             // The 0.5 allows for a little roundoff error,
             // both in the kinemage itself and our floating point numbers.
             Collection all = kCanvas.getEngine().pickAll3D(
-                draggedPoint.getX(), draggedPoint.getY(), draggedPoint.getZ(),
+                draggedPoint.getDrawX(), draggedPoint.getDrawY(), draggedPoint.getDrawZ(),
                 services.doSuperpick.isSelected(), 0.5);
             allPoints = (KPoint[])all.toArray( new KPoint[all.size()] );
         }

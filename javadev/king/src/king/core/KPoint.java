@@ -83,52 +83,91 @@ abstract public class KPoint extends AHE implements Cloneable, MutableTuple3
     }
 //}}}
 
-//{{{ get/setOrigX/Y/Z, get/setX/Y/Z
+//{{{ get/setOrigX/Y/Z
 //##################################################################################################
-    /** Returns the untransformed coordinate for this point */
+    /** Returns the untransformed coordinate for this point.
+    * @deprecated In favor of getX(). */
     public float getOrigX()
     { return x0; }
-    /** Returns the untransformed coordinate for this point */
+    /** Returns the untransformed coordinate for this point.
+    * @deprecated In favor of getY(). */
     public float getOrigY()
     { return y0; }
-    /** Returns the untransformed coordinate for this point */
+    /** Returns the untransformed coordinate for this point.
+    * @deprecated In favor of getZ). */
     public float getOrigZ()
     { return z0; }
 
-    /** Assigns a value to the untransformed coordinate for this point */
+    /** Assigns a value to the untransformed coordinate for this point.
+    * @deprecated In favor of setX(). */
     public void setOrigX(double xx) { x0 = (float)xx; }
-    /** Assigns a value to the untransformed coordinate for this point */
+    /** Assigns a value to the untransformed coordinate for this point.
+    * @deprecated In favor of setY(). */
     public void setOrigY(double yy) { y0 = (float)yy; }
-    /** Assigns a value to the untransformed coordinate for this point */
+    /** Assigns a value to the untransformed coordinate for this point.
+    * @deprecated In favor of setZ(). */
     public void setOrigZ(double zz) { z0 = (float)zz; }
-    /** Assigns a value to the untransformed coordinates for this point */
+    /** Assigns a value to the untransformed coordinates for this point.
+    * @deprecated In favor of setXYZ(). */
     public void setOrigXYZ(Tuple3 t)
     {
         this.setOrigX(t.getX());
         this.setOrigY(t.getY());
         this.setOrigZ(t.getZ());
     }
-    
-    /** Returns the first element of this tuple */
-    public double getX() { return x; }
-    /** Returns the second element of this tuple */
-    public double getY() { return y; }
-    /** Returns the third element of this tuple */
-    public double getZ() { return z; }
-    
-    /** Assigns a value to the first element of this tuple */
-    public void setX(double xx) { x = (float)xx; }
-    /** Assigns a value to the second element of this tuple */
-    public void setY(double yy) { y = (float)yy; }
-    /** Assigns a value to the third element of this tuple */
-    public void setZ(double zz) { z = (float)zz; }
-    
-    /** Assigns a value to all the elements of this tuple */
+//}}}
+
+//{{{ get/setX/Y/Z
+//##################################################################################################
+    /** Returns the untransformed coordinate for this point */
+    public double getX()
+    { return x0; }
+    /** Returns the untransformed coordinate for this point */
+    public double getY()
+    { return y0; }
+    /** Returns the untransformed coordinate for this point */
+    public double getZ()
+    { return z0; }
+
+    /** Assigns a value to the untransformed coordinate for this point */
+    public void setX(double xx) { x0 = (float)xx; }
+    /** Assigns a value to the untransformed coordinate for this point */
+    public void setY(double yy) { y0 = (float)yy; }
+    /** Assigns a value to the untransformed coordinate for this point */
+    public void setZ(double zz) { z0 = (float)zz; }
+    /** Assigns a value to the untransformed coordinates for this point */
     public void setXYZ(double xx, double yy, double zz)
     {
-        x = (float)xx;
-        y = (float)yy;
-        z = (float)zz;
+        x0 = (float)xx;
+        y0 = (float)yy;
+        z0 = (float)zz;
+    }
+//}}}
+
+//{{{ get/setDrawX/Y/Z
+//##################################################################################################
+    /** Returns the fully transformed (drawing) coordinate for this point */
+    public float getDrawX()
+    { return x; }
+    /** Returns the fully transformed (drawing) coordinate for this point */
+    public float getDrawY()
+    { return y; }
+    /** Returns the fully transformed (drawing) coordinate for this point */
+    public float getDrawZ()
+    { return z; }
+
+    /** Assigns a value to the fully transformed (drawing) coordinate for this point */
+    public void setDrawX(double xx) { x = (float)xx; }
+    /** Assigns a value to the fully transformed (drawing) coordinate for this point */
+    public void setDrawY(double yy) { y = (float)yy; }
+    /** Assigns a value to the fully transformed (drawing) coordinate for this point */
+    public void setDrawZ(double zz) { z = (float)zz; }
+    /** Assigns a value to the fully transformed (drawing) coordinates for this point */
+    public void setDrawXYZ(Tuple3 t)
+    {
+        x = (float)t.getX();
+        y = (float)t.getY();
+        z = (float)t.getZ();
     }
 //}}}
 
@@ -342,8 +381,8 @@ abstract public class KPoint extends AHE implements Cloneable, MutableTuple3
     */
     public void signalTransform(Engine engine, Transform xform, double zoom)
     {
-        setXYZ(x0, y0, z0);
-        xform.transform(this);
+        xform.transform(this, engine.work1);
+        setDrawXYZ(engine.work1);
         
         engine.addPaintable(this, z);
     }

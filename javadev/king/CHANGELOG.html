@@ -51,7 +51,6 @@
   * Document new king/chiropraxis dependency structure in HACKING
     Write a quick and dirty HTML guide to creating a plugin, listing all the basic steps
         Java and Python versions
-    Redefine getX/Y/Z for KPoints to do the more obvious thing...?
     Add some kind of transformation hook (listeners, priorities, etc)
     Warn about saving with multiple kins open
     Warn about losing unsaved changes
@@ -62,6 +61,8 @@
 
 ### 1.28 ###
 - added the "accumulate" animation function from Mage
+- changed the meaning of KPoint.get/setX/Y/Z to refer to the untransformed (original)
+  coordinates, and deprecated get/setOrigX/Y/Z(). Added get/setDrawX/Y/Z().
 
 ### 1.27 ###
 - modified Engine and KPoint.isPickedBy() to account for object picking
