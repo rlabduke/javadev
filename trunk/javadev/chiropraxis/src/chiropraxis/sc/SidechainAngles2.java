@@ -366,8 +366,15 @@ public class SidechainAngles2 //extends ... implements ...
     * or null if that residue is unknown.
     */
     public RotamerDef[] getAllRotamers(Residue res)
+    { return getAllRotamers(res.getName()); }
+    
+    /**
+    * Returns an array of all the named rotamers known for a given residue code,
+    * or null if that residue is unknown.
+    */
+    public RotamerDef[] getAllRotamers(String rescode)
     {
-        String rescode = res.getName().toLowerCase();
+        rescode = rescode.toLowerCase();
         Collection c = (Collection)rotamersForAA.get(rescode);
         if(c == null) return null;
         else return (RotamerDef[])c.toArray(new RotamerDef[c.size()]);

@@ -240,7 +240,7 @@ class UberEntryIterator implements Iterator
     }
 //}}}
 
-//{{{ hash, areKeysEqual, index
+//{{{ hash, keysAreEqual, index
 //##############################################################################    
     /**
     * Returns the hash code for any key, including null.
@@ -367,6 +367,17 @@ class UberEntryIterator implements Iterator
     */
     protected Object putBeforeImpl(UberEntry refEntry, Object key, Object value)
     {
+        // Check for the case that refEntry.key == key
+        // i.e. that we're trying to put key before itself
+        if(refEntry != null && keysAreEqual(refEntry.getKey(), key))
+        {
+            Object oldValue = refEntry.getValue();
+            refEntry.setValue(value);
+            numChanges++;
+            return oldValue;
+        }
+        
+        // Else procede normally:
         // Assume we're going to increase the size of the map;
         // i.e., that this key isn't already in the table.
         if(mapSize+1 > loadFactor*mapEntries.length)
@@ -419,8 +430,21 @@ class UberEntryIterator implements Iterator
     }
 //}}}
 
-//{{{ put, putBefore, putAfter
+//{{{ replace, put, putBefore, putAfter
 //##############################################################################
+    /**
+    * Replaces the value currently associated with key with newValue,
+    * without changing the position of the key in the linked list (unlike put()).
+    * This function just calls putBefore(key, key, newValue), and so if key
+    * is not in the map, it is equivalent to calling put(key, newValue).
+    */
+    public Object replace(Object key, Object newValue)
+    { return putBefore(key, key, newValue); }
+    
+    /**
+    * Adds a new mapping at the end of the map, even if key was
+    * previously positioned elsewhere in the map.
+    */
     public Object put(Object key, Object value)
     { return putBeforeImpl(null, key, value); }
     
