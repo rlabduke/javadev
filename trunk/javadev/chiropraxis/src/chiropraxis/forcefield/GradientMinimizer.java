@@ -107,7 +107,7 @@ public class GradientMinimizer //extends ... implements ...
         else // currG/PMag is 0 or NaN
         {
             hitBottom = true;
-            System.err.println("|G| = "+df.format(currGMag)+"    |P| = "+df.format(currPMag));
+            //System.err.println("|G| = "+df.format(currGMag)+"    |P| = "+df.format(currPMag));
         }
         
         if(hitBottom) currGMag = 0;
