@@ -11,8 +11,9 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 import javax.swing.*;
+import javax.swing.event.*;
 import driftwood.gui.*;
-import driftwood.util.SoftLog;
+import driftwood.util.*;
 //}}}
 /**
 * <code>KinfileIO</code> is a uniform front-end for normal
@@ -25,7 +26,7 @@ import driftwood.util.SoftLog;
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Thu Apr 10 14:38:35 EDT 2003
 */
-public class KinfileIO implements KinLoadListener
+public class KinfileIO implements KinLoadListener, ListSelectionListener
 {
 //{{{ Constants
 //}}}
@@ -37,6 +38,11 @@ public class KinfileIO implements KinLoadListener
     JFileChooser        fileSaveChooser     = null;     // stays null if we're in an Applet
     File                lastOpenedFile      = null;
     File                lastSavedFile       = null;
+
+    JDialog             urlchooser          = null;
+    JList               urlList             = null;
+    JTextField          urlField            = null;
+    boolean             urlChooserOK        = false;
 
     JDialog             progDialog          = null;
     JProgressBar        progBar             = null;
@@ -55,14 +61,15 @@ public class KinfileIO implements KinLoadListener
     public KinfileIO(KingMain kmain)
     {
         kMain = kmain;
-        initChooser();
+        initFileChooser();
+        initURLChooser();
         initProgressDialog();
     }
 //}}}
 
-//{{{ initChooser
+//{{{ initFileChooser
 //##################################################################################################
-    private void initChooser()
+    private void initFileChooser()
     {
         // Will throw an exception if we're running as an Applet
         try
@@ -100,6 +107,50 @@ public class KinfileIO implements KinLoadListener
             }
         }
         catch(SecurityException ex) {}
+    }
+//}}}
+
+//{{{ initURLChooser
+//##################################################################################################
+    void initURLChooser()
+    {
+        // Make actual URL chooser
+        urlList = new FatJList(150, 12);
+        JApplet applet = kMain.getApplet();
+        if(applet != null)
+        {
+            String kins = applet.getParameter("kinfileList");
+            if(kins != null)
+            {
+                String[] kinlist = Strings.explode(kins, ' ');
+                urlList.setListData(kinlist);
+            }
+        }
+        urlList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        urlList.addListSelectionListener(this);
+        JScrollPane listScroll = new JScrollPane(urlList);
+        
+        // Make an (editable) URL line
+        urlField = new JTextField(20);
+        
+        // Make the command buttons
+        JButton btnOK       = new JButton(new ReflectiveAction("OK", null, this, "onUrlOk"));
+        JButton btnCancel   = new JButton(new ReflectiveAction("Cancel", null, this, "onUrlCancel"));
+        
+        // Put it all together in a content pane
+        TablePane2 cp = new TablePane2();
+        cp.center().middle().insets(6).memorize();
+        cp.addCell(listScroll,2,1);
+        cp.newRow();
+        cp.weights(0,1).addCell(new JLabel("URL:")).hfill(true).addCell(urlField);
+        cp.newRow().startSubtable(2,1).center().insets(1,4,1,4).memorize();
+        cp.addCell(btnOK).addCell(btnCancel).endSubtable();
+        
+        urlchooser = new JDialog(kMain.getTopWindow(), "Kinemage URLs", true);
+        urlchooser.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        urlchooser.setContentPane(cp);
+        urlchooser.pack();
+        urlchooser.setLocationRelativeTo(kMain.getTopWindow());
     }
 //}}}
 
@@ -188,6 +239,95 @@ public class KinfileIO implements KinLoadListener
         }
         catch(IOException ex)
         { loadingException(ex); }
+    }
+//}}}
+
+//{{{ askLoadURL, onUrlCancel, onUrlOk
+//##################################################################################################
+    /**
+    * Asks the user to choose a kinemage file to load.
+    * All the kinemages it contains will be added to the stable
+    * or appended to the specified kinemage.
+    *
+    * This function MUST be called from the event-dispatch thread.
+    * This function will not return until all the kinemages have
+    * been loaded.
+    *
+    * @param kin the kinemage into which the opened kinemage(s)
+    *   should be merged, or null for them to stand alone.
+    * @return true iff the user choose to open a file
+    */
+    public boolean askLoadURL(Kinemage kin)
+    {
+        if(urlchooser == null) return false;
+        // Always set the default URL to be the one in kinSource (if specified)
+        try
+        {
+            URL kinURL = kMain.getAppletKinURL();
+            if(kinURL != null)  urlField.setText(kinURL.toString());
+        }
+        catch(MalformedURLException ex) {}
+        urlchooser.setVisible(true);
+        // execution halts until dialog is closed...
+        
+        if(urlChooserOK)
+        {
+            try
+            {
+                URL kinURL = new URL(urlField.getText());
+                loadURL(kinURL, kin);
+                return true;
+            }
+            catch(MalformedURLException ex) { loadingException(ex); }
+        }
+        
+        return false;
+    }
+    
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onUrlCancel(ActionEvent ev)
+    {
+        urlChooserOK = false;
+        urlchooser.setVisible(false);
+    }
+    
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onUrlOk(ActionEvent ev)
+    {
+        urlChooserOK = true;
+        urlchooser.setVisible(false);
+    }
+//}}}
+
+//{{{ valueChanged
+//##################################################################################################
+    /* Gets called when a new URL is picked from the list */
+    public void valueChanged(ListSelectionEvent ev)
+    {
+        Object o = urlList.getSelectedValue();
+        if(o == null) {}
+        else
+        {
+            String name = o.toString();
+            urlField.setText("http://"+name);
+            
+            JApplet applet = kMain.getApplet();
+            if(applet != null)
+            {
+                try
+                {
+                    URL kinURL = new URL(applet.getDocumentBase(), applet.getParameter("kinfileBase")+"/"+name);
+                    urlField.setText(kinURL.toString());
+                }
+                catch(MalformedURLException ex)
+                {
+                    SoftLog.err.println(applet.getDocumentBase());
+                    SoftLog.err.println(applet.getParameter("kinfileBase"));
+                    SoftLog.err.println(name);
+                    ex.printStackTrace(SoftLog.err);
+                }
+            }
+        }
     }
 //}}}
 
@@ -376,6 +516,86 @@ public class KinfileIO implements KinLoadListener
         f = new File(f.getParent(), name);
         fileSaveChooser.setCurrentDirectory(f);
         fileSaveChooser.setSelectedFile(f);
+    }
+//}}}
+
+//{{{ askSaveURL, saveURL
+//##################################################################################################
+    /**
+    * Asks the user to choose a file where all open kinemages will be written.
+    *
+    * This function MUST be called from the event-dispatch thread.
+    * This function will not return until all the kinemages have
+    * been saved.
+    */
+    public void askSaveURL()
+    {
+        String fileName = (String) JOptionPane.showInputDialog(kMain.getTopWindow(),
+            "Enter a new name for the file (overwrite generally NOT allowed):",
+            "Save file as", JOptionPane.PLAIN_MESSAGE);
+        
+        if(fileName != null) saveURL(fileName);
+    }
+    
+    /** Like askSaveURL, but doesn't ask */
+    public void saveURL(String fileName)
+    {
+        try
+        {
+            JApplet applet = kMain.getApplet();
+            if(applet == null) return;
+            String handlerURL = applet.getParameter("kinfileSaveHandler");
+            if(handlerURL == null) return;
+            
+            URL url = new URL(applet.getDocumentBase(), handlerURL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
+            conn.setUseCaches(false);
+            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            // This is nice for maximum web-server / java-client compatibility,
+            // but is technically optional.
+            //conn.setRequestProperty("Content-Length", encData.length());
+            conn.setRequestProperty("User-Agent", "Mozilla/4.0");
+            conn.setRequestMethod("POST");
+            
+            URLEncodedOutputStream ueos = new URLEncodedOutputStream(new BufferedOutputStream(conn.getOutputStream()));
+            Writer w = new OutputStreamWriter(ueos);
+            ueos.setEncoding(false);    w.write("fileName=");       w.flush();
+            ueos.setEncoding(true);     w.write(fileName);          w.flush();
+            ueos.setEncoding(false);    w.write("&fileContents=");  w.flush();
+            ueos.setEncoding(true);
+            
+            KinWriter kw = new KinWriter();
+            kw.save(w,
+                kMain.getTextWindow().getText(),
+                kMain.getStable().children);
+            w.close();
+            
+            SoftLog.err.println("HTTP response: "+conn.getResponseCode()+" "+conn.getResponseMessage());
+            streamcopy(conn.getInputStream(), SoftLog.err);
+            
+            for(Iterator iter = kMain.getStable().iterator(); iter.hasNext(); )
+            {
+                Kinemage k = (Kinemage) iter.next();
+                k.setModified(false);
+            }
+        }
+        catch(Exception ex) // IOException or MalformedURLException
+        {
+            ex.printStackTrace(SoftLog.err);
+            JOptionPane.showMessageDialog(kMain.getTopWindow(),
+                "An error occurred while saving the file.",
+                "Sorry!", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    // Copies src to dst until we hit EOF
+    void streamcopy(InputStream src, OutputStream dst) throws IOException
+    {
+        byte[] buffer = new byte[2048];
+        int len;
+        while((len = src.read(buffer)) != -1) dst.write(buffer, 0, len);
     }
 //}}}
 

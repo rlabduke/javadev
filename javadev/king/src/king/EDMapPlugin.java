@@ -24,9 +24,12 @@ import driftwood.util.*;
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Tue Apr  1 13:45:27 EST 2003
 */
-public class EDMapPlugin extends Plugin implements PropertyChangeListener, ListSelectionListener
+public class EDMapPlugin extends Plugin implements ListSelectionListener
 {
 //{{{ Constants
+    static final String MAPTYPE_O = "O map (DSN6/Brix)";
+    static final String MAPTYPE_XPLOR = "XPLOR map (ASCII format)";
+    static final String MAPTYPE_CCP4 = "CCP4 map (type 2)";
 //}}}
 
 //{{{ Variable definitions
@@ -36,7 +39,6 @@ public class EDMapPlugin extends Plugin implements PropertyChangeListener, ListS
     JList               urlList         = null;
     JTextField          urlField        = null;
     boolean             urlChooserOK    = false;
-    JRadioButton        btnXplorType, btnOType, btnCcp4Type;
     SuffixFileFilter    omapFilter, xmapFilter, ccp4Filter, mapFilter;
 //}}}
 
@@ -105,34 +107,15 @@ public class EDMapPlugin extends Plugin implements PropertyChangeListener, ListS
 //##################################################################################################
     void makeFileChooser()
     {
-        // Make accessory for file chooser
-        TablePane acc = new TablePane();
-        acc.weights(0,0);
-        acc.add(new JLabel("Map type?"));
-        acc.newRow();
-        btnOType = new JRadioButton("O");
-        acc.add(btnOType);
-        acc.newRow();
-        btnXplorType = new JRadioButton("XPLOR");
-        acc.add(btnXplorType);
-        acc.newRow();
-        btnCcp4Type = new JRadioButton("CCP4");
-        acc.add(btnCcp4Type);
-        
-        // Make buttons mutually exclusive
-        ButtonGroup btnGroup = new ButtonGroup();
-        btnGroup.add(btnOType);
-        btnGroup.add(btnXplorType);
-        btnGroup.add(btnCcp4Type);
-        
         // Make actual file chooser -- will throw an exception if we're running as an Applet
         filechooser = new JFileChooser();
         String currdir = System.getProperty("user.dir");
         if(currdir != null) filechooser.setCurrentDirectory(new File(currdir));
         
-        filechooser.setAccessory(acc);
-        filechooser.addPropertyChangeListener(this);
         filechooser.addChoosableFileFilter(mapFilter);
+        filechooser.addChoosableFileFilter(omapFilter);
+        filechooser.addChoosableFileFilter(xmapFilter);
+        filechooser.addChoosableFileFilter(ccp4Filter);
         filechooser.setFileFilter(mapFilter);
     }
 //}}}
@@ -141,26 +124,6 @@ public class EDMapPlugin extends Plugin implements PropertyChangeListener, ListS
 //##################################################################################################
     void makeURLChooser()
     {
-        // Make accessory for URL chooser
-        TablePane acc = new TablePane();
-        acc.weights(0,0);
-        acc.add(new JLabel("Map type?"));
-        acc.newRow();
-        btnOType = new JRadioButton("O");
-        acc.add(btnOType);
-        acc.newRow();
-        btnXplorType = new JRadioButton("XPLOR");
-        acc.add(btnXplorType);
-        acc.newRow();
-        btnCcp4Type = new JRadioButton("CCP4");
-        acc.add(btnCcp4Type);
-        
-        // Make buttons mutually exclusive
-        ButtonGroup btnGroup = new ButtonGroup();
-        btnGroup.add(btnOType);
-        btnGroup.add(btnXplorType);
-        btnGroup.add(btnCcp4Type);
-        
         // Make actual URL chooser
         urlList = new FatJList(150, 12);
         JApplet applet = kMain.getApplet();
@@ -178,25 +141,20 @@ public class EDMapPlugin extends Plugin implements PropertyChangeListener, ListS
         JScrollPane listScroll = new JScrollPane(urlList);
         
         // Make an (editable) URL line
-        urlField = new JTextField();
+        urlField = new JTextField(20);
         
         // Make the command buttons
         JButton btnOK       = new JButton(new ReflectiveAction("OK", null, this, "onUrlOk"));
         JButton btnCancel   = new JButton(new ReflectiveAction("Cancel", null, this, "onUrlCancel"));
-        TablePane btnPane = new TablePane();
-        btnPane.center().insets(1,4,1,4);
-        btnPane.add(btnOK);
-        btnPane.add(btnCancel);
         
         // Put it all together in a content pane
-        TablePane cp = new TablePane();
-        cp.center().middle().insets(6);
-        cp.add(listScroll);
-        cp.add(acc);
+        TablePane2 cp = new TablePane2();
+        cp.center().middle().insets(6).memorize();
+        cp.addCell(listScroll,2,1);
         cp.newRow();
-        cp.save().hfill(true).addCell(urlField, 2, 1).restore();
-        cp.newRow();
-        cp.add(btnPane, 2, 1);
+        cp.weights(0,1).addCell(new JLabel("URL:")).hfill(true).addCell(urlField);
+        cp.newRow().startSubtable(2,1).center().insets(1,4,1,4).memorize();
+        cp.addCell(btnOK).addCell(btnCancel).endSubtable();
         
         urlchooser = new JDialog(kMain.getTopWindow(), "ED Map URLs", true);
         urlchooser.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
@@ -252,7 +210,7 @@ public class EDMapPlugin extends Plugin implements PropertyChangeListener, ListS
     { return "#edmap-plugin"; }
 //}}}
 
-//{{{ onOpenMap
+//{{{ onOpenMap, askMapFormat
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onOpenMap(ActionEvent ev)
@@ -279,6 +237,22 @@ public class EDMapPlugin extends Plugin implements PropertyChangeListener, ListS
             ex.printStackTrace(SoftLog.err);
         }
     }
+    
+    String askMapFormat(String f) // filename or URL
+    {
+        Object[] choices = {MAPTYPE_O, MAPTYPE_XPLOR, MAPTYPE_CCP4};
+        String defaultChoice = MAPTYPE_O;
+        if(omapFilter.accept(f))        defaultChoice = MAPTYPE_O;
+        else if(xmapFilter.accept(f))   defaultChoice = MAPTYPE_XPLOR;
+        else if(ccp4Filter.accept(f))   defaultChoice = MAPTYPE_CCP4;
+        
+        String choice = (String)JOptionPane.showInputDialog(kMain.getTopWindow(),
+            "What format is this map in?",
+            "Choose format", JOptionPane.PLAIN_MESSAGE,
+            null, choices, defaultChoice);
+        
+        return choice;
+    }
 //}}}
 
 //{{{ openMapFile
@@ -293,20 +267,15 @@ public class EDMapPlugin extends Plugin implements PropertyChangeListener, ListS
             File f = filechooser.getSelectedFile();
             if(f != null && f.exists())
             {
+                String choice = askMapFormat(f.getName());
                 CrystalVertexSource map;
-                
-                if(btnOType.isSelected())
-                {
+
+                if(MAPTYPE_O.equals(choice))
                     map = new OMapVertexSource(new FileInputStream(f));
-                }
-                else if(btnXplorType.isSelected())
-                {
+                else if(MAPTYPE_XPLOR.equals(choice))
                     map = new XplorVertexSource(new FileInputStream(f));
-                }
-                else if(btnCcp4Type.isSelected())
-                {
+                else if(MAPTYPE_CCP4.equals(choice))
                     map = new Ccp4VertexSource(new FileInputStream(f));
-                }
                 else throw new IllegalArgumentException("Map type not specified");
                 
                 EDMapWindow win = new EDMapWindow(parent, map, f.getName());
@@ -323,7 +292,7 @@ public class EDMapPlugin extends Plugin implements PropertyChangeListener, ListS
         // Create chooser on demand
         if(urlchooser == null) makeURLChooser();
         
-        urlchooser.pack();
+        //urlchooser.pack(); -- gets too wide when urlField has a long URL in it
         urlchooser.setVisible(true);
         // execution halts until dialog is closed...
         
@@ -333,9 +302,10 @@ public class EDMapPlugin extends Plugin implements PropertyChangeListener, ListS
             URL mapURL = new URL(urlField.getText());
             InputStream is = new BufferedInputStream(mapURL.openStream());
             
-            if(btnOType.isSelected())           map = new OMapVertexSource(is);
-            else if(btnXplorType.isSelected())  map = new XplorVertexSource(is);
-            else if(btnCcp4Type.isSelected())   map = new Ccp4VertexSource(is);
+            String choice = askMapFormat(urlField.getText());
+            if(MAPTYPE_O.equals(choice))            map = new OMapVertexSource(is);
+            else if(MAPTYPE_XPLOR.equals(choice))   map = new XplorVertexSource(is);
+            else if(MAPTYPE_CCP4.equals(choice))    map = new Ccp4VertexSource(is);
             else throw new IllegalArgumentException("Map type not specified");
             
             EDMapWindow win = new EDMapWindow(parent, map, mapURL.getFile());
@@ -358,20 +328,8 @@ public class EDMapPlugin extends Plugin implements PropertyChangeListener, ListS
     }
 //}}}
 
-//{{{ propertyChange, valueChanged
+//{{{ valueChanged
 //##################################################################################################
-    public void propertyChange(PropertyChangeEvent ev)
-    {
-        if(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY.equals(ev.getPropertyName()))
-        {
-            File f = (File)ev.getNewValue();
-            if(f == null) {}
-            else if(omapFilter.accept(f)) btnOType.setSelected(true);
-            else if(xmapFilter.accept(f)) btnXplorType.setSelected(true);
-            else if(ccp4Filter.accept(f)) btnCcp4Type.setSelected(true);
-        }
-    }
-    
     /* Gets called when a new URL is picked from the list */
     public void valueChanged(ListSelectionEvent ev)
     {
@@ -380,9 +338,6 @@ public class EDMapPlugin extends Plugin implements PropertyChangeListener, ListS
         else
         {
             String name = o.toString();
-                 if(omapFilter.accept(name)) btnOType.setSelected(true);
-            else if(xmapFilter.accept(name)) btnXplorType.setSelected(true);
-            else if(ccp4Filter.accept(name)) btnCcp4Type.setSelected(true);
             urlField.setText("http://"+name);
             
             JApplet applet = kMain.getApplet();

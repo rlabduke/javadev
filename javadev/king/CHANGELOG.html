@@ -48,17 +48,22 @@
     Open PDB in model manager without opening kinemage first?
     Optional 2 column button layout?
     Support "on" and "off" for pointmasters in parser? (Flipkin)
-    "URL filesystem" like maps to support open/append, etc. from applet
+    "URL filesystem" like maps to support open/save from applet
     use "around x,y,z" for Probe runs
-    Document mouse keys: use Meta and Alt on Mac, not Shift and Ctrl
     Look at Pro geometry with Jane
-    make EDMap plugin ask for map format after choosing map, like NOEs do
+    Document kinfileBase, kinfileList, kinfileSaveHandler
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 1.31 ###
+### 1.32 ###
+- changed EDMapPlugin so that it asks for map format after you choose a file
+- documented mouse keys: use Meta and Alt on Mac, not Shift and Ctrl
+- added URL kinemage file opener to KinfileIO that uses applet parameters
+  'kinfileBase' and 'kinfileList' like EDMapPlugin does for maps.
+- added URL kinemage saver to KinfileIO that POSTs to 'kinfileSaveHandler'
+
 ### 1.31 ###
 - Ant script now creates javadocs as part of "dist" target
   This makes the source code bundle larger, but nicer for other users

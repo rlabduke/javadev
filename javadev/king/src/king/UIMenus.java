@@ -94,38 +94,45 @@ public class UIMenus //extends ... implements ...
         JMenuItem item;
         JCheckBoxMenuItem cbitem;
         KinCanvas kCanvas;
+        JApplet applet = kMain.getApplet();
         
         //{{{ File menu
         menu = new JMenu("File");
         menu.setMnemonic(KeyEvent.VK_F);
         menubar.add(menu);
-        if(kMain.getApplet() == null) // => not in an applet
+        if(applet == null) // => not in an applet
         {
             item = new JMenuItem(new ReflectiveAction("New KiNG window", null, this, "onFileNewKing"));
             item.setMnemonic(KeyEvent.VK_N);
             item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, MENU_ACCEL_MASK));
             menu.add(item);
             menu.addSeparator();
-            item = new JMenuItem(new ReflectiveAction("Open...", null, this, "onFileOpen"));
-            item.setMnemonic(KeyEvent.VK_O);
-            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, MENU_ACCEL_MASK));
-            menu.add(item);
-            item = new JMenuItem(new ReflectiveAction("Append...", null, this, "onFileMerge"));
-            item.setMnemonic(KeyEvent.VK_A);
-            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, MENU_ACCEL_MASK));
-            menu.add(item);
-            item = new JMenuItem(new ReflectiveAction("Close", null, this, "onFileClose"));
-            item.setMnemonic(KeyEvent.VK_C);
-            menu.add(item);
-            item = new JMenuItem(new ReflectiveAction("Close all", null, this, "onFileCloseAll"));
-            item.setMnemonic(KeyEvent.VK_L);
-            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, MENU_ACCEL_MASK));
-            menu.add(item);
-            menu.addSeparator();
+        }
+        item = new JMenuItem(new ReflectiveAction("Open...", null, this, "onFileOpen"));
+        item.setMnemonic(KeyEvent.VK_O);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, MENU_ACCEL_MASK));
+        menu.add(item);
+        item = new JMenuItem(new ReflectiveAction("Append...", null, this, "onFileMerge"));
+        item.setMnemonic(KeyEvent.VK_A);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, MENU_ACCEL_MASK));
+        menu.add(item);
+        item = new JMenuItem(new ReflectiveAction("Close", null, this, "onFileClose"));
+        item.setMnemonic(KeyEvent.VK_C);
+        menu.add(item);
+        item = new JMenuItem(new ReflectiveAction("Close all", null, this, "onFileCloseAll"));
+        item.setMnemonic(KeyEvent.VK_L);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, MENU_ACCEL_MASK));
+        menu.add(item);
+        menu.addSeparator();
+        if(applet == null || applet.getParameter("kinfileSaveHandler") != null)
+        {
             item = new JMenuItem(new ReflectiveAction("Save as...", null, this, "onFileSaveAs"));
             item.setMnemonic(KeyEvent.VK_S);
             item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_ACCEL_MASK));
             menu.add(item);
+        }
+        if(applet == null) // => not in an applet
+        {
             submenu = new JMenu("Export");
             submenu.setMnemonic(KeyEvent.VK_E);
             menu.add(submenu);
@@ -382,7 +389,8 @@ public class UIMenus //extends ... implements ...
     public void onFileOpen(ActionEvent ev)
     {
         KinfileIO io = kMain.getKinIO();
-        io.askLoadFile(null);
+        if(kMain.getApplet() != null)   io.askLoadURL(null);
+        else                            io.askLoadFile(null);
     }
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
@@ -393,11 +401,19 @@ public class UIMenus //extends ... implements ...
         if(kin == null)
         {
             kin = new Kinemage(KinfileParser.DEFAULT_KINEMAGE_NAME+"1");
-            if(io.askLoadFile(kin))
+            boolean success = false;
+            if(kMain.getApplet() != null)   success = io.askLoadURL(kin);
+            else                            success = io.askLoadFile(kin);
+            
+            if(success)
                 kMain.getStable().append(Arrays.asList(new Kinemage[] {kin}));
             // This way we don't create an empty if append is canceled
         }
-        else io.askLoadFile(kin);
+        else
+        {
+            if(kMain.getApplet() != null)   io.askLoadURL(kin);
+            else                            io.askLoadFile(kin);
+        }
     }
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
@@ -453,7 +469,8 @@ public class UIMenus //extends ... implements ...
         }
         
         KinfileIO io = kMain.getKinIO();
-        io.askSaveFile();
+        if(kMain.getApplet() != null)   io.askSaveURL();
+        else                            io.askSaveFile();
     }
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
