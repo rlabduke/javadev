@@ -90,6 +90,7 @@
          <classpath>
             <pathelement location="${build}"/>
             <pathelement location="../driftwood/build"/>
+            <pathelement location="../lib/jogl/jogl.jar"/>
          </classpath>
     </javac>
 </target>
@@ -106,6 +107,7 @@
         <zipfileset dir="../lib/" prefix="lib/">
             <include name="gnu/regexp/"/>
             <include name="iText/*.jar"/>
+            <include name="jogl/*.jar"/>
         </zipfileset>
     </zip>
     <zip basedir="${dist}"
