@@ -93,6 +93,7 @@ king.EDMapPlugin.menuName = Structural biology
 king.tool.export.ImageExport.menuName = <export>
 king.tool.export.PdfExport.menuName = <export>
 king.tool.export.PovrayExport.menuName = <export>
+king.tool.export.KingLiteBinaryExport.menuName = <export>
 # VRML and XML export are not maintained or complete...
 king.tool.export.Vrml97Writer.menuName = <not shown>
 king.tool.export.XknWriter.menuName = <not shown>
