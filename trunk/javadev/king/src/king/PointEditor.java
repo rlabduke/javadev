@@ -228,6 +228,8 @@ public class PointEditor implements ChangeListener
         try { thePoint.setOrigZ(Float.parseFloat(ptZ.getText().trim())); }
         catch(NumberFormatException ex) {}
         
+        // Let "" be the same as zero here
+        if(ptWidthRadius.getText().trim().equals("")) ptWidthRadius.setText("0");
         try {
             if(thePoint instanceof VectorPoint)
             {

@@ -32,8 +32,8 @@ public class DockLsqTool extends BasicTool
     class PointKeeper implements ActionListener
     {
         public JList        pointList;
-        public Collection   tupleList;
-        public JButton      btnClear;
+        public ArrayList    tupleList;
+        public JButton      btnClear, btnRemove;
         public KList        markList;
         
         DefaultListModel    listModel;
@@ -46,6 +46,8 @@ public class DockLsqTool extends BasicTool
             pointList.setVisibleRowCount(3);
             btnClear = new JButton("Clear");
             btnClear.addActionListener(this);
+            btnRemove = new JButton("Remove last");
+            btnRemove.addActionListener(this);
             markList = new KList();
             markList.setColor(paint);
         }
@@ -66,9 +68,19 @@ public class DockLsqTool extends BasicTool
             syncDockButton();
         }
         
+        public void removeLast()
+        {
+            if(tupleList.size() > 0) tupleList.remove(tupleList.size()-1);
+            if(listModel.size() > 0) listModel.remove(listModel.size()-1);
+            if(markList.children.size() > 0) markList.children.remove(markList.children.size()-1);
+            syncDockButton();
+        }
+        
         public void actionPerformed(ActionEvent ev)
         {
-            clear();
+            if(ev.getSource() == btnClear) clear();
+            else if(ev.getSource() == btnRemove) removeLast();
+            
             kCanvas.repaint();
         }
         
@@ -120,15 +132,17 @@ public class DockLsqTool extends BasicTool
         toolpane.center();
         toolpane.add(btnReference);
         toolpane.add(pkReference.btnClear);
+        toolpane.add(pkReference.btnRemove);
         toolpane.newRow().save().hfill(true).vfill(true);
-        toolpane.add(new JScrollPane(pkReference.pointList),2,1);
+        toolpane.add(new JScrollPane(pkReference.pointList),3,1);
         toolpane.newRow().restore();
         toolpane.add(btnMobile);
         toolpane.add(pkMobile.btnClear);
+        toolpane.add(pkMobile.btnRemove);
         toolpane.newRow().save().hfill(true).vfill(true);
-        toolpane.add(new JScrollPane(pkMobile.pointList),2,1);
+        toolpane.add(new JScrollPane(pkMobile.pointList),3,1);
         toolpane.newRow().restore();
-        toolpane.add(btnDock,2,1);
+        toolpane.add(btnDock,3,1);
     }
 //}}}
 
