@@ -87,6 +87,20 @@ public class SilkEngine //extends ... implements ...
             { densityValues[i] = densityTrace.valueAt(((DataSample)iter.next()).coords); }
             densityTrace.fractionLessThan(densityValues);
         }
+        else if(options.postop == SilkOptions.POSTOP_ENERGY)
+        {
+            // Convert to energy in kcal/mol, with an arbitrary zero point.
+            // The probability of state i, p_i, is related to its energy E_i
+            // by a Boltzmann exponential:
+            //      p_i = exp[ -E_i / (kB * T) ] / Q
+            // where the partition function Q = sum(exp[ -E_j / kT ]) over all j.
+            // For calculating E_i from p_i, Q can be ignored because it just
+            // determines where the zero-point of the energy scale is set:
+            //      E_i = -kT ln(p_i) - kT ln Q
+            densityTrace.scale( 1.0 / densityTrace.totalCount() );  // convert to probability
+            densityTrace.transformTrueNaturalLog();                 // 0 prob. -> -inf
+            densityTrace.scale(-0.0019872 * 298);                    // k_Boltzmann in kcal/mol.K   *   temperature in K
+        }
         if(options.scale != 1.0) densityTrace.scale(options.scale);
         
         return densityTrace;

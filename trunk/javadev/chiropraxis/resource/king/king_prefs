@@ -1,9 +1,10 @@
 ######################################################################
 ### TOOL MENU PLACEMENT ##############################################
 ######################################################################
-chiropraxis.kingtools.HingeTool.menuName = Structural biology
+chiropraxis.kingtools.BackrubTool.menuName = Structural biology
+chiropraxis.kingtools.HingeTool.menuName = <not shown>
 chiropraxis.kingtools.ModelManager2.menuName = Structural biology
 chiropraxis.kingtools.ScRotTool.menuName = Structural biology
 chiropraxis.kingtools.ScMutTool.menuName = Structural biology
-chiropraxis.kingtools.SswingTool.menuName = Structural biology
-chiropraxis.forcefield.RubberBandTool.menuName = Specialty
+chiropraxis.kingtools.SswingTool.menuName = <not shown>
+chiropraxis.forcefield.RubberBandTool.menuName = <not shown>

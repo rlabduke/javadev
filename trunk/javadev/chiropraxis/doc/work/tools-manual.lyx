@@ -36,20 +36,19 @@ Ian W.
 The Tools
 \layout Section
 
-C-alpha Hinges: Protein chiropraxis
-\begin_inset LatexCommand \label{hinges-tool}
+BACKRUB Tool: Protein chiropraxis
+\begin_inset LatexCommand \label{backrub-tool}
 
 \end_inset 
 
 
 \layout Standard
 
-The Hinges tool is used to adjust segments of protein backbone without disturbin
-g the surrounding structure.
- It allows you to select a region of backbone that joins two alpha carbons,
- and then rotate that segment of backbone around an axis drawn between those
- C-alphas.
- Using Hinges requires that 
+The BACKRUB tool is used to adjust short segments of protein backbone without
+ disturbing the surrounding structure.
+ It allows you select one residue, and rotate it around the axis between
+ its neighboring C-alphas.
+ Using BACKRUB requires that 
 \family typewriter 
 chiropraxis.jar
 \family default 
@@ -60,8 +59,7 @@ plugins/
  folder.
 \layout Standard
 
-Create a hinge by control-clicking the alpha carbons that act as its endpoints
- or anchors.
+Create a backrub by control-clicking the alpha carbon of the central residue.
  To use the dial control, click and drag the pointer to the desired value.
  For finer control you can shift-drag along an imaginary slider (this behavior
  is somewhat like the virtual dials in O).
@@ -70,42 +68,16 @@ Create a hinge by control-clicking the alpha carbons that act as its endpoints
  wheel or arrow keys; see below.
 \layout Standard
 
-The Hinges panel provides feedback on the geometric quality of the current
+The BACKRUB panel provides feedback on the geometric quality of the current
  model, displaying residues names, deviation of the tau angle (N-CA-C) from
  ideality, and the position of the residue on the Ramachandran plot (phi,
  psi, and favored/allowed/outlier).
  Deviant geometry is highlighted in red.
 \layout Standard
 
-The 
-\begin_inset Quotes eld
-\end_inset 
-
-Karplus
-\begin_inset Quotes erd
-\end_inset 
-
- field is an alternative measure of deviation in the tau angle, based on
- data in P.
- A.
- Karplus' 1996 
-\begin_inset Quotes eld
-\end_inset 
-
-Hidden Strain
-\begin_inset Quotes erd
-\end_inset 
-
- paper (Protein Science 5:1406).
- There he calls the angle tau3, and claims that its average value varies
- substantially depending on the value of backbone angles phi and psi.
- The meaning and usefulness of a deviation from this number is still under
- investigation.
-\layout Standard
-
 
 \emph on 
-Hinges has not yet been published.
+BACKRUB has not been published as of 1 April 2005.
  When it is, a citation will appear here.
 \layout Subsection
 
@@ -203,7 +175,7 @@ Select
 \bar default 
 \noun default 
 \color default
-anchor for hinge 
+residue for BACKRUB 
 \family roman 
 \series medium 
 \shape up 
@@ -230,7 +202,7 @@ o
 \bar no 
 \noun off 
 \color none
-n a C-alpha)
+n a C-alpha
 \family default 
 \series default 
 \shape default 
@@ -239,7 +211,7 @@ n a C-alpha)
 \bar default 
 \noun default 
 \color default
-; clear current selection (elsewhere)
+); clear current selection (elsewhere)
 \end_inset 
 </cell>
 </row>
@@ -472,6 +444,31 @@ With Shift+Ctrl
 
 \layout Section
 
+C-alpha Hinges
+\begin_inset LatexCommand \label{hinges-tool}
+
+\end_inset 
+
+
+\layout Standard
+
+Hinges is the generalized version of BACKRUB.
+ It allows you to select any continuous region of backbone that joins two
+ alpha carbons, and then rotate that segment of backbone around an axis
+ drawn between those C-alphas.
+ Individual peptides can also be rotated.
+ Create a hinge by control-clicking the two alpha carbons that act as its
+ endpoints or anchors.
+\layout Standard
+
+Regions longer than two peptides (
+\emph on 
+i.e.
+\emph default 
+, what BACKRUB handles) are seldom useful in fitting structures.
+ Thus, this tool has been largely superceded by BACKRUB.
+\layout Section
+
 Sidechain Rotator: Refitting protein models
 \begin_inset LatexCommand \label{scrot-tool}
 
@@ -649,13 +646,13 @@ Copyright
 \layout Standard
 
 The Chiropraxis code and all its associated original resources and documentation
- are copyright (C) 2002-2004 by Ian W.
+ are copyright (C) 2002-2005 by Ian W.
  Davis.
 \layout Section
 
 Revision status
 \layout Standard
 
-This manual was last updated 27 May 2004 by IWD for Chiropraxis version
- 0.36.
+This manual was last updated 1 April 2005 by IWD for Chiropraxis version
+ 0.45.
 \the_end

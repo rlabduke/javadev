@@ -42,46 +42,37 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 
 <P>
 
-<H1><A NAME="SECTION00110000000000000000"></A><A NAME="hinges-tool"></A>
+<H1><A NAME="SECTION00110000000000000000"></A><A NAME="backrub-tool"></A>
 <BR>
-1.1 C-alpha Hinges: Protein chiropraxis
+1.1 BACKRUB Tool: Protein chiropraxis
 </H1>
 
 <P>
-The Hinges tool is used to adjust segments of protein backbone without
-disturbing the surrounding structure. It allows you to select a region
-of backbone that joins two alpha carbons, and then rotate that segment
-of backbone around an axis drawn between those C-alphas. Using Hinges
-requires that <TT>chiropraxis.jar</TT> be present in the <TT>plugins/</TT>
-folder.
+The BACKRUB tool is used to adjust short segments of protein backbone
+without disturbing the surrounding structure. It allows you select
+one residue, and rotate it around the axis between its neighboring
+C-alphas. Using BACKRUB requires that <TT>chiropraxis.jar</TT> be
+present in the <TT>plugins/</TT> folder.
 
 <P>
-Create a hinge by control-clicking the alpha carbons that act as its
-endpoints or anchors. To use the dial control, click and drag the
-pointer to the desired value. For finer control you can shift-drag
-along an imaginary slider (this behavior is somewhat like the virtual
-dials in O). To reset the dial to its starting value, double click
-the dial face. The dial can also be adjusted from the graphics window
-using the mouse wheel or arrow keys; see below.
+Create a backrub by control-clicking the alpha carbon of the central
+residue. To use the dial control, click and drag the pointer to the
+desired value. For finer control you can shift-drag along an imaginary
+slider (this behavior is somewhat like the virtual dials in O). To
+reset the dial to its starting value, double click the dial face.
+The dial can also be adjusted from the graphics window using the mouse
+wheel or arrow keys; see below.
 
 <P>
-The Hinges panel provides feedback on the geometric quality of the
+The BACKRUB panel provides feedback on the geometric quality of the
 current model, displaying residues names, deviation of the tau angle
 (N-CA-C) from ideality, and the position of the residue on the Ramachandran
 plot (phi, psi, and favored/allowed/outlier). Deviant geometry is
 highlighted in red.
 
 <P>
-The ``Karplus'' field is an alternative measure of deviation in
-the tau angle, based on data in P. A. Karplus' 1996 ``Hidden Strain''
-paper (Protein Science 5:1406). There he calls the angle tau3, and
-claims that its average value varies substantially depending on the
-value of backbone angles phi and psi. The meaning and usefulness of
-a deviation from this number is still under investigation.
-
-<P>
-<I>Hinges has not yet been published. When it is, a citation will
-appear here.</I>
+<I>BACKRUB has not been published as of 1 April 2005. When it is,
+a citation will appear here.</I>
 
 <P>
 
@@ -115,9 +106,29 @@ appear here.</I>
 
 <P>
 
-<H1><A NAME="SECTION00120000000000000000"></A><A NAME="scrot-tool"></A>
+<H1><A NAME="SECTION00120000000000000000"></A><A NAME="hinges-tool"></A>
 <BR>
-1.2 Sidechain Rotator: Refitting protein models
+1.2 C-alpha Hinges
+</H1>
+
+<P>
+Hinges is the generalized version of BACKRUB. It allows you to select
+any continuous region of backbone that joins two alpha carbons, and
+then rotate that segment of backbone around an axis drawn between
+those C-alphas. Individual peptides can also be rotated. Create a
+hinge by control-clicking the two alpha carbons that act as its endpoints
+or anchors.
+
+<P>
+Regions longer than two peptides (<I>i.e.</I>, what BACKRUB handles)
+are seldom useful in fitting structures. Thus, this tool has been
+largely superceded by BACKRUB.
+
+<P>
+
+<H1><A NAME="SECTION00130000000000000000"></A><A NAME="scrot-tool"></A>
+<BR>
+1.3 Sidechain Rotator: Refitting protein models
 </H1>
 
 <P>
@@ -144,9 +155,9 @@ in any order.
 
 <P>
 
-<H1><A NAME="SECTION00130000000000000000"></A><A NAME="scmut-tool"></A>
+<H1><A NAME="SECTION00140000000000000000"></A><A NAME="scmut-tool"></A>
 <BR>
-1.3 Sidechain Mutator: Redesigning protein models
+1.4 Sidechain Mutator: Redesigning protein models
 </H1>
 
 <P>
@@ -165,9 +176,9 @@ new sequence.
 
 <P>
 
-<H1><A NAME="SECTION00140000000000000000"></A><A NAME="modelman-plugin"></A>
+<H1><A NAME="SECTION00150000000000000000"></A><A NAME="modelman-plugin"></A>
 <BR>
-1.4 Model Manager: Editing a macromolecular model
+1.5 Model Manager: Editing a macromolecular model
 </H1>
 
 <P>
@@ -231,7 +242,7 @@ aren't automatically updated when the center of view changes.
 
 <P>
 The Chiropraxis code and all its associated original resources and
-documentation are copyright (C) 2002-2004 by Ian W. Davis.
+documentation are copyright (C) 2002-2005 by Ian W. Davis.
 
 <P>
 
@@ -240,12 +251,12 @@ documentation are copyright (C) 2002-2004 by Ian W. Davis.
 </H1>
 
 <P>
-This manual was last updated 27 May 2004 by IWD for Chiropraxis version
-0.36.
+This manual was last updated 1 April 2005 by IWD for Chiropraxis version
+0.45.
 <BR><HR>
 <ADDRESS>
 Ian W. Davis
-2004-05-27
+2005-04-01
 </ADDRESS>
 </BODY>
 </HTML>
