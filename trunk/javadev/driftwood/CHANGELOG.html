@@ -12,7 +12,6 @@ GUI:
     Create an enabler that traverses a Container syncing the enable state
     WeakButtonModel would hold only weak references to GUI listeners
     Make a DialogButtonBar from Box:  Btn1--Btn2--Btn3------------BtnLast
-    Create gui.TablePane2 that uses memorize() instead of save()/restore()
     Make a double list or list with checkboxes for selecting a set of things
 
 ISOSURFACE: Calc surface normals for triangles, write to POV-Ray? (see MC paper)
@@ -33,7 +32,11 @@ R3: Write PrincipleAxes for driftwood.r3
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 0.55 ###
+### 0.56 ###
+- added Props.minimizeDifferences()
+- added gui.TablePane2, which uses memorize() instead of save()/restore()
+  It hasn't been tested much yet and so may still be quite buggy!
+
 ### 0.55 ###
 - added r3.SpatialBin for doing rapid spatial lookups of point neighbors
 - added moldb2.AminoAcid.isAminoAcid()

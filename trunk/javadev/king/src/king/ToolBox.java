@@ -18,7 +18,20 @@ import driftwood.util.SoftLog;
 //}}}
 /**
 * <code>ToolBox</code> instantiates and coordinates all the tools and plugins,
-* using the Reflection API and a service provider (SPI) model.
+* using the Reflection API and a service provider (SPI) model,
+* like the one in javax.imageio.ImageIO.scanForPlugins().
+* We scan all jar files on the classpath for lists of Plugins that could be loaded by KiNG.
+* Plugins are listed in a plain text file <code>META-INF/services/king.Plugin</code>
+* that's part of one or more JARs on the classpath.
+* One fully-qualified class name is given per line, and nothing else.
+*
+* <p>Likewise, the submenu of Tools that a plugin belongs to, if any, is determined
+* in the preferences file by the <i>classname<i><code>.menuName</code> property.
+* The special values <code>&lt;main menu&gt;</code> and <code>&lt;not shown&gt;</code>
+* put the plugin in the main Tools menu or don't put in anywhere at all, respectively.
+* KingPrefs scans all jars for files named <code>king/king_prefs</code>,
+* so plugins bundled in separate jars can include such a file to describe
+* which menus they belong in.
 *
 * <p>Begun on Fri Jun 21 09:30:40 EDT 2002
 * <br>Copyright (C) 2002-2004 by Ian W. Davis. All rights reserved.
@@ -26,9 +39,13 @@ import driftwood.util.SoftLog;
 public class ToolBox implements MouseListener, MouseMotionListener, TransformSignalSubscriber
 {
 //{{{ Static fields
+    /** The menu name that will put a Plugin in the main menu rather than a submenu. */
+    static final String MENU_MAIN = "<main menu>";
+    /** The menu name that will keep a Plugin out of the Tools menu entirely. */
+    static final String MENU_NONE = "<not shown>";
 //}}}
 
-//{{{ CLASS: PluginComparator
+//{{{ CLASS: PluginComparator, MenuComparator
 //##################################################################################################
     /** Sorts tools before plugins, then alphabetically by name. */
     static class PluginComparator implements Comparator
@@ -40,6 +57,16 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
             if(tool1 && !tool2)         return -1;
             else if(tool2 && !tool1)    return 1;
             else return o1.toString().compareTo(o2.toString());
+        }
+    }
+    /** Sorts JMenus alphabetically by name. */
+    static class MenuComparator implements Comparator
+    {
+        public int compare(Object o1, Object o2)
+        {
+            JMenu m1 = (JMenu) o1;
+            JMenu m2 = (JMenu) o2;
+            return m1.getText().compareTo(m2.getText());
         }
     }
 //}}}
@@ -116,8 +143,8 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
     * Using a service-provider (SPI) model like the one in ImageIO.scanForPlugins(),
     * we scan all jar files on the classpath for lists of Plugins that
     * could be loaded by KiNG.
-    * Plugins are listed in a plain text file <code>/META-INF/services/king.Plugin</code>.
-    * One fully-qualified class name is given per line, and nothing else.
+    * Plugins are listed in a plain text file <code>META-INF/services/king.Plugin</code>
+    * that's part of one or more JARs on the classpath.
     * @return a Collection&lt;String&gt; of fully-qualified plugin names.
     */
     Collection scanForPlugins()
@@ -192,7 +219,23 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
     }
 //}}}
 
-//{{{ addPluginByName, getPluginList
+//{{{ getPluginList, getPluginMenuName
+//##################################################################################################
+    /** Returns an unmodifiable List of all installed plugins */
+    public java.util.List getPluginList()
+    { return Collections.unmodifiableList(plugins); }
+    
+    /** Returns the name of the menu the given Plugin belongs in right now */
+    public String getPluginMenuName(Plugin p)
+    {
+        KingPrefs prefs = kMain.getPrefs();
+        String menuName = prefs.getString(p.getClass().getName()+".menuName", MENU_MAIN).trim();
+        if(menuName.equals("")) menuName = MENU_MAIN;
+        return menuName;
+    }
+//}}}
+
+//{{{ addPluginByName
 //##################################################################################################
     /**
     * Tries to instantiate a plugin of the named class and insert it into the Toolbox,
@@ -230,13 +273,9 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
         }
         return true;
     }
-    
-    /** Returns an unmodifiable List of all installed plugins */
-    public java.util.List getPluginList()
-    { return Collections.unmodifiableList(plugins); }
 //}}}
 
-//{{{ addPluginsTo{Tools, Help}Menu
+//{{{ addPluginsToToolsMenu
 //##################################################################################################
     /** Appends menu items for using the loaded plugins */
     public void addPluginsToToolsMenu(JMenu menu)
@@ -244,12 +283,29 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
         Plugin p;
         JMenuItem item;
         defaultToolMI = activeToolMI = null;
+        Map submenus = new HashMap(); // Map<String, JMenu>
         ButtonGroup group = new ButtonGroup();
+        // Add things to primary menu and create submenus
         for(Iterator iter = plugins.iterator(); iter.hasNext(); )
         {
             p = (Plugin)iter.next();
             item = p.getToolsMenuItem();
-            if(item != null) menu.add(item);
+            if(item != null)
+            {
+                String menuName = getPluginMenuName(p);
+                if(MENU_MAIN.equals(menuName))      menu.add(item);
+                else if(MENU_NONE.equals(menuName)) {}  // don't add to any menu
+                else // add to the named submenu
+                {
+                    JMenu submenu = (JMenu) submenus.get(menuName);
+                    if(submenu == null)
+                    {
+                        submenu = new JMenu(menuName);
+                        submenus.put(menuName, submenu);
+                    }
+                    submenu.add(item);
+                }
+            }
             if(p instanceof BasicTool && item != null)
             {
                 group.add(item);
@@ -257,9 +313,21 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
                 if(p == activeTool)     activeToolMI = item;
             }
         }
+        // Sort the submenus alphabetically and add them at the end
+        ArrayList submenuList = new ArrayList(submenus.values());
+        Collections.sort(submenuList, new MenuComparator());
+        for(Iterator iter = submenuList.iterator(); iter.hasNext(); )
+        {
+            JMenu submenu = (JMenu) iter.next();
+            menu.add(submenu);
+        }
+        // Mark the active tool as such
         if(activeToolMI != null) activeToolMI.setSelected(true);
     }
-    
+//}}}
+
+//{{{ addPluginsToHelpMenu
+//##################################################################################################
     /** Appends menu items for understanding the loaded plugins */
     public void addPluginsToHelpMenu(JMenu menu)
     {

@@ -9,7 +9,12 @@
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 0.33 ###
+### 0.34 ###
+- SidechainAngles.setAllAngles() now ignores the NaN's that can be produced
+  by measureAllAngles().
+- SidechainIdealizer.idealizeSidechain() now uses all angles instead of chis.
+  Hopefully, this will remove some of the remaining bugs (e.g. for prolines)
+
 ### 0.33 ###
 - started H-bond network analysis in beta sheet
 - allowed peptides to be incomplete

@@ -296,6 +296,7 @@ public class SidechainAngles2 //extends ... implements ...
         return values;
     }
     
+    /** Angles that are set to NaN are ignored. */
     public ModelState setAllAngles(Residue res, ModelState state, double[] values)
     {
         String rescode = res.getName().toLowerCase();
@@ -307,9 +308,12 @@ public class SidechainAngles2 //extends ... implements ...
         
         for(int i = 0; i < angles.length; i++)
         {
-            try { state = setAngle(angles[i], res, state, values[i]); }
-            catch(IllegalArgumentException ex)  { ex.printStackTrace(SoftLog.err); }
-            catch(AtomException ex)             { ex.printStackTrace(SoftLog.err); }
+            if(!Double.isNaN(values[i]))
+            {
+                try { state = setAngle(angles[i], res, state, values[i]); }
+                catch(IllegalArgumentException ex)  { ex.printStackTrace(SoftLog.err); }
+                catch(AtomException ex)             { ex.printStackTrace(SoftLog.err); }
+            }
         }
         
         return state;

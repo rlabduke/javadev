@@ -358,7 +358,8 @@ perpendicular to the N Ca C plane and NOT along the Ca---Cb vector.
             return start;
         
         // Save initial conformation. Chis only b/c we might lack H's.
-        double[] chis = scAngles.measureChiAngles(res, start);
+        // Actually, we can do all angles and ignore any NaN's we get.
+        double[] chis = scAngles.measureAllAngles(res, start);
         //DEBUG: for(int i = 0; i < chis.length; i++) SoftLog.err.println("chi"+(i+1)+"="+chis[i]);
         
         try
@@ -394,7 +395,7 @@ perpendicular to the N Ca C plane and NOT along the Ca---Cb vector.
             end = idealizeCB(res, end);
             
             // Restore original orientation (chi angles)
-            end = scAngles.setChiAngles(res, end, chis);
+            end = scAngles.setAllAngles(res, end, chis);
             
             return end;
         }

@@ -19,7 +19,7 @@ import driftwood.util.SoftLog;
 * Action objects for various actions the user can take.
 *
 * <p>Begun on Sat Apr 27 20:34:46 EDT 2002
-* <br>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
+* <br>Copyright (C) 2002-2004 by Ian W. Davis. All rights reserved.
 */
 public class UIMenus //extends ... implements ...
 {
@@ -38,7 +38,6 @@ public class UIMenus //extends ... implements ...
     SuffixFileFilter fileFilter;
     PointFinder finder;
     ViewEditor viewEditor;
-    PrefsEditor prefsEditor;
     
     // Timers, etc for auto-xxx functions
     javax.swing.Timer autoAnimTimer = null;
@@ -46,6 +45,7 @@ public class UIMenus //extends ... implements ...
     // Elements of menus that get rebuilt frequently
     JMenu oldViewMenu = null;
     JMenu oldAnimMenu = null;
+    JMenu toolsMenu;
     JCheckBoxMenuItem autoAnimMenuItem = null;
 //}}}
     
@@ -81,7 +81,6 @@ public class UIMenus //extends ... implements ...
 
         finder = new PointFinder(kMain);
         viewEditor = new ViewEditor(kMain);
-        prefsEditor = new PrefsEditor(kMain);
         
         autoAnimTimer = new javax.swing.Timer(kMain.prefs.getInt("autoAnimateDelay"), new ReflectiveAction(null, null, this, "onAnimForward"));
         autoAnimTimer.setRepeats(true);
@@ -209,36 +208,11 @@ public class UIMenus //extends ... implements ...
         displayMenu = new UIDisplayMenu(kMain);
         menubar.add(displayMenu.getMenu());
         
-        //{{{ Tools menu
-        menu = new JMenu("Tools");
+        // Tools menu
+        toolsMenu = menu = new JMenu("Tools");
         menu.setMnemonic(KeyEvent.VK_T);
         menubar.add(menu);
-        cbitem = kMain.getCanvas().getToolBox().services.doFlatland;
-        cbitem.setMnemonic(KeyEvent.VK_L);
-        cbitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0));
-        menu.add(cbitem);
-        cbitem = kMain.getCanvas().getToolBox().services.doXYZ;
-        cbitem.setMnemonic(KeyEvent.VK_X);
-        //cbitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, MENU_ACCEL_MASK));
-        menu.add(cbitem);
-        cbitem = kMain.getCanvas().getToolBox().services.doMeasureAll;
-        cbitem.setMnemonic(KeyEvent.VK_M);
-        cbitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0));
-        menu.add(cbitem);
-        cbitem = kMain.getCanvas().getToolBox().services.doSuperpick;
-        cbitem.setMnemonic(KeyEvent.VK_S);
-        menu.add(cbitem);
-        kCanvas = kMain.getCanvas();
-        if(kCanvas != null)
-        {
-            ToolBox tb = kCanvas.getToolBox();
-            if(tb != null)
-            {
-                menu.addSeparator();
-                tb.addPluginsToToolsMenu(menu);
-            }
-        }
-        //}}}
+        rebuildToolsMenu();
         
         //{{{ Help menu
         menu = new JMenu("Help");
@@ -417,6 +391,43 @@ public class UIMenus //extends ... implements ...
         menubar.revalidate();
         
         oldAnimMenu = menu;
+    }
+//}}}
+
+//{{{ rebuildToolsMenu
+//##################################################################################################
+    public void rebuildToolsMenu()
+    {
+        JMenuItem item;
+        JCheckBoxMenuItem cbitem;
+        
+        JMenu menu = toolsMenu;
+        menu.removeAll();
+        cbitem = kMain.getCanvas().getToolBox().services.doFlatland;
+        cbitem.setMnemonic(KeyEvent.VK_L);
+        cbitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0));
+        menu.add(cbitem);
+        cbitem = kMain.getCanvas().getToolBox().services.doXYZ;
+        cbitem.setMnemonic(KeyEvent.VK_X);
+        //cbitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, MENU_ACCEL_MASK));
+        menu.add(cbitem);
+        cbitem = kMain.getCanvas().getToolBox().services.doMeasureAll;
+        cbitem.setMnemonic(KeyEvent.VK_M);
+        cbitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0));
+        menu.add(cbitem);
+        cbitem = kMain.getCanvas().getToolBox().services.doSuperpick;
+        cbitem.setMnemonic(KeyEvent.VK_S);
+        menu.add(cbitem);
+        KinCanvas kCanvas = kMain.getCanvas();
+        if(kCanvas != null)
+        {
+            ToolBox tb = kCanvas.getToolBox();
+            if(tb != null)
+            {
+                menu.addSeparator();
+                tb.addPluginsToToolsMenu(menu);
+            }
+        }
     }
 //}}}
 
@@ -677,6 +688,7 @@ public class UIMenus //extends ... implements ...
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onEditConfigure(ActionEvent ev)
     {
+        PrefsEditor prefsEditor = new PrefsEditor(kMain);
         prefsEditor.edit();
     }
 //}}}
@@ -900,6 +912,11 @@ public class UIMenus //extends ... implements ...
             finder.clearSearch();
         }
         
+        if((event_mask & KingMain.EM_PREFS) != 0)
+        {
+            // Plugin placement may have changed
+            rebuildToolsMenu();
+        }
         // Notify children
     }
 //}}}
