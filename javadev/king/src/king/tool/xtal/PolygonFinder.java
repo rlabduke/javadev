@@ -109,6 +109,57 @@ public class PolygonFinder {
     }
 //}}}
 
+    public void initiateMap(KList trackedOrg, VectorPoint break1, VectorPoint break2) {
+	Iterator iter;
+	VectorPoint listPoint;
+	HashSet priorSet, breakSet;
+	KList trackedList;
+
+	priorSet = new HashSet();
+	breakSet = new HashSet();
+	System.out.println("Map Initiation started");
+	trackedList = cloneList(trackedOrg);
+	//System.out.println(listDebugger(trackedList));
+	iter = trackedList.iterator();
+	for ( ; iter.hasNext(); ) {
+	    listPoint = (VectorPoint) iter.next();
+	    if(hMap.containsKey(listPoint)) { //old point
+		if (listPoint.isBreak()) {                       
+		    // old point and break:  retrieve the mapping of the point.
+		    breakSet = (HashSet) hMap.get(listPoint);
+		} else {                                         
+		    // old point and not break:  retrieve mapping of point, add
+		    // all points of the current set, and update mappings for all
+		    // points of the old set.
+		    priorSet = (HashSet) hMap.get(listPoint);
+		    priorSet.addAll(breakSet);
+		    for (Iterator breakIter = breakSet.iterator(); breakIter.hasNext(); ) {
+			VectorPoint setPoint = (VectorPoint) breakIter.next();
+			hMap.put(setPoint, priorSet);
+		    }
+		    breakSet = priorSet;
+		    //hMap.put(listPoint, priorSet);
+		}
+	    } else { // new point
+		if(listPoint.isBreak()||listPoint.equals(break1)||listPoint.equals(break2)) {                        
+		    // new point and break:  make a new hashset with the point, and
+		    // put it in the map.
+		    breakSet = new HashSet();
+		    breakSet.add(listPoint);
+		    hMap.put(listPoint, breakSet);
+		} else {                                         
+		    // new point and not break:  add the point to the current set, and
+		    // put it in the map.
+		    breakSet.add(listPoint);
+		    hMap.put(listPoint, breakSet);
+		}
+	    }
+	}
+	//System.out.println("Set: " + hMap.values());
+	finishMap(trackedList);
+    }
+//}}}
+
 //{{{ cloneList, clonePoint
 //##########################################################
 /**
