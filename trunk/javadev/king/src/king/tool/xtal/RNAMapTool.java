@@ -212,13 +212,19 @@ public class RNAMapTool extends BasicTool implements PropertyChangeListener, Lis
     }
 //}}}
 
-//{{{ getHelpAnchor, toString
+//{{{ getHelpAnchor, toString, isAppletSafe
 //##################################################################################################
     public String getHelpAnchor()
     { return "#rnamap-tool"; }
     
     public String toString()
     { return "Analyze RNA Maps"; }
+    
+    /** This plugin is not applet-safe loads files. */
+    static public boolean isAppletSafe()
+    {
+        return false;
+    }
 //}}}
 
 //{{{ start

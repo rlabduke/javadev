@@ -19,8 +19,10 @@ import driftwood.util.SoftLog;
 * functionalities to be incorporated into KiNG in a
 * highly modular manner.
 *
-* To be a Plugin, a class should implement getToolsMenuItem(),
-* getHelpAnchor() (or some other help functions), and toString().
+* To be a Plugin, a class should at a minimum implement getToolsMenuItem(),
+* getHelpMenuItem(), and toString().
+* It's often easier to implement getHelpAnchor() than getHelpMenuItem().
+* More complicated plugins should implement getDependencies() and isAppletSafe().
 *
 * Plugins are very similar to Tools, except that Plugins
 * do not receive mouse events from the graphics window; and
@@ -61,7 +63,7 @@ abstract public class Plugin //extends ... implements ...
     }
 //}}}
 
-//{{{ getToolsMenuItem
+//{{{ getToolsMenuItem, getHelpMenuItem
 //##################################################################################################
     /**
     * Creates a new JMenuItem to be displayed in the Tools menu,
@@ -75,10 +77,7 @@ abstract public class Plugin //extends ... implements ...
     * associated menu item.
     */
     abstract public JMenuItem getToolsMenuItem();
-//}}}
 
-//{{{ getHelpMenuItem, onHelp, getHelpURL, getHelpAnchor
-//##################################################################################################
     /**
     * Creates a new JMenuItem to be displayed in the Help menu,
     * which will allow the user to access help information associated
@@ -99,7 +98,10 @@ abstract public class Plugin //extends ... implements ...
     {
         return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onHelp"));
     }
+//}}}
 
+//{{{ onHelp, getHelpURL, getHelpAnchor
+//##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onHelp(ActionEvent ev)
     {
@@ -131,6 +133,34 @@ abstract public class Plugin //extends ... implements ...
     */
     public String getHelpAnchor()
     { return null; }
+//}}}
+
+//{{{ getDependencies, isAppletSafe
+//##################################################################################################
+    /**
+    * Returns a Collection&lt;String&gt; of all Plugins that must be instantiated
+    * before this one is. If one or more dependencies cannot be resolved,
+    * the plugin will generally not be loaded;
+    * thus, be careful to avoid circular dependencies.
+    * @return a Collection of the fully-qualified names of all plugins that
+    * this Plugin depends on, as Strings. The default is no dependencies.
+    */
+    static public Collection getDependencies()
+    {
+        return Collections.EMPTY_LIST;
+    }
+    
+    /**
+    * Returns true if and only if this plugin is safe to instantiate when
+    * KiNG is running as an applet in a web browser.
+    * Plugins that access the file system or arbitrary URLs (among other things)
+    * should override this method to return true.
+    * @return the default value of false
+    */
+    static public boolean isAppletSafe()
+    {
+        return true;
+    }
 //}}}
 
 //{{{ empty_code_segment

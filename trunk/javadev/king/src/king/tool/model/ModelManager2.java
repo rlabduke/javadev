@@ -984,12 +984,18 @@ public class ModelManager2 extends Plugin
     }
 //}}}
 
-//{{{ getHelpAnchor, toString
+//{{{ getHelpAnchor, toString, isAppletSafe
 //##################################################################################################
     public String getHelpAnchor()
     { return "#modelman-plugin"; }
     
     public String toString() { return "Model manager"; }
+
+    /** This plugin is not applet-safe because it invokes other processes and loads files. */
+    static public boolean isAppletSafe()
+    {
+        return false;
+    }
 //}}}
 
 //{{{ empty_code_segment

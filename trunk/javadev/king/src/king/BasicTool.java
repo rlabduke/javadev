@@ -396,7 +396,7 @@ public class BasicTool extends Plugin implements MouseListener, MouseMotionListe
     }
 //}}}
 
-//{{{ getToolsRBMI/MenuItem, onToolActivate, getToolPanel, getHelpAnchor, toString
+//{{{ getToolsMenuItem, onToolActivate, getToolPanel, getHelpAnchor, toString
 //##################################################################################################
     /**
     * Creates a new JRadioButtonMenuItem to be displayed in the Tools menu,
@@ -404,17 +404,15 @@ public class BasicTool extends Plugin implements MouseListener, MouseMotionListe
     * with this Tool.
     *
     * A tool that wants to return null here should probably be a Plugin instead.
+    * @return a JRadioButtonMenuItem (not just a regular JMenuItem)
     */
-    public JRadioButtonMenuItem getToolsRBMI()
+    public JMenuItem getToolsMenuItem()
     {
         JRadioButtonMenuItem btn = new JRadioButtonMenuItem(
             new ReflectiveAction(this.toString(), null, this, "onToolActivate"));
         btn.setSelected(false);
         return btn;
     }
-    
-    /** In order to comply with the Plugin requirements. Returns <code>getToolsRBMI()</code>. */
-    public JMenuItem getToolsMenuItem() { return this.getToolsRBMI(); }
     
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onToolActivate(ActionEvent ev)

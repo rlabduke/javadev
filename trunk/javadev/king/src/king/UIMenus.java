@@ -235,8 +235,6 @@ public class UIMenus //extends ... implements ...
             if(tb != null)
             {
                 menu.addSeparator();
-                tb.addToolsToToolsMenu(menu);
-                menu.addSeparator();
                 tb.addPluginsToToolsMenu(menu);
             }
         }
@@ -258,11 +256,7 @@ public class UIMenus //extends ... implements ...
             {
                 ToolBox tb = kCanvas.getToolBox();
                 if(tb != null)
-                {
-                    tb.addToolsToHelpMenu(submenu);
-                    submenu.addSeparator();
                     tb.addPluginsToHelpMenu(submenu);
-                }
             }
         item = new JMenuItem(new ReflectiveAction("Keyboard shortcuts...", null, this, "onHelpKeyboardShortcuts"));
         item.setMnemonic(KeyEvent.VK_S);
