@@ -36,8 +36,8 @@ public class AtomState extends Triple implements Cloneable
     
     // x, y, and z are inherited from Triple
     
-    int         serial;
-    char        altconf         = ' ';
+    String      serial;
+    String      altconf         = " ";
     float       charge          = 0;
     float       bfactor         = 0;
     float       occupancy       = 0;
@@ -52,7 +52,7 @@ public class AtomState extends Triple implements Cloneable
     *   This should be unique at least among states for this atom,
     *   and ideally for all states for all atoms in this model.
     */
-    public AtomState(Atom atom, int serial)
+    public AtomState(Atom atom, String serial)
     {
         super();
         
@@ -81,10 +81,10 @@ public class AtomState extends Triple implements Cloneable
     public Atom getAtom()
     { return atom; }
     
-    public int getSerial()
+    public String getSerial()
     { return serial; }
     
-    public char getAltConf()
+    public String getAltConf()
     { return altconf; }
     
     public double getCharge()
@@ -114,7 +114,7 @@ public class AtomState extends Triple implements Cloneable
 
 //{{{ set{AltConf, Charge, TempFactor, Occupancy}
 //##################################################################################################
-    public void setAltConf(char alt)
+    public void setAltConf(String alt)
     { altconf = alt; }
     
     public void setCharge(double e)
@@ -144,7 +144,7 @@ public class AtomState extends Triple implements Cloneable
     /**
     * Makes a copy of this AtomState but attaches it to a new Atom.
     */
-    public AtomState cloneFor(Atom a, int newSerial)
+    public AtomState cloneFor(Atom a, String newSerial)
     {
         AtomState as = (AtomState)this.clone();
         as.atom     = a;

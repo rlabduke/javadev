@@ -104,53 +104,62 @@ public class ScMutTool  extends ModelingTool
 //##############################################################################
     void askMutateResidue(Model model, Residue orig, ModelState origState)
     {
-        String choice = (String) JOptionPane.showInputDialog(kMain.getTopWindow(),
-            "Mutate this sidechain to what?",
-            "Choose mutation",
-            JOptionPane.QUESTION_MESSAGE, null,
-            resChoices, orig.getName());
-        
-        if(choice == null) return; // user canceled operation
-        
-        // Create the mutated sidechain
-        ModelState newState = new ModelState(origState);
-        Residue newRes = idealizer.makeIdealResidue(orig.getChain(),
-            orig.getSegment(),
-            orig.getSequenceNumber(),
-            orig.getInsertionCode(),
-            choice, newState);
-        
-        // Align it on the old backbone
-        newState = idealizer.dockResidue(newRes, newState, orig, origState);
-        
-        // Deal with His protonation states
-        if(choice.equals("HIS"))
+        try
         {
-            choice = (String) JOptionPane.showInputDialog(kMain.getTopWindow(),
-                "Choose protonation state:",
-                "Choose protonation state",
+            String choice = (String) JOptionPane.showInputDialog(kMain.getTopWindow(),
+                "Mutate this sidechain to what?",
+                "Choose mutation",
                 JOptionPane.QUESTION_MESSAGE, null,
-                new String[] {"ND1 and NE2", "ND1 only", "NE2 only"}, "ND1 and NE2");
-            if("ND1 only".equals(choice))
-                newRes.remove(newRes.getAtom(" HE2"));
-            else if("NE2 only".equals(choice))
-                newRes.remove(newRes.getAtom(" HD1"));
+                resChoices, orig.getName());
+            
+            if(choice == null) return; // user canceled operation
+            
+            // Create the mutated sidechain
+            ModelState newState = new ModelState(origState);
+            Residue newRes = idealizer.makeIdealResidue(orig.getChain(),
+                orig.getSegment(),
+                orig.getSequenceNumber(),
+                orig.getInsertionCode(),
+                choice, newState);
+            
+            // Align it on the old backbone
+            newState = idealizer.dockResidue(newRes, newState, orig, origState);
+            
+            // Deal with His protonation states
+            if(choice.equals("HIS"))
+            {
+                choice = (String) JOptionPane.showInputDialog(kMain.getTopWindow(),
+                    "Choose protonation state:",
+                    "Choose protonation state",
+                    JOptionPane.QUESTION_MESSAGE, null,
+                    new String[] {"ND1 and NE2", "ND1 only", "NE2 only"}, "ND1 and NE2");
+                if("ND1 only".equals(choice))
+                    newRes.remove(newRes.getAtom(" HE2"));
+                else if("NE2 only".equals(choice))
+                    newRes.remove(newRes.getAtom(" HD1"));
+            }
+            
+            // Create the mutated model
+            Model newModel = (Model) model.clone();
+            newModel.replace(orig, newRes);
+            
+            // Remove any unnecessary AtomStates from the model
+            newState = newState.createForModel(newModel);
+            
+            // Insert the mutated model into the model manager
+            modelman.replaceModelAndState(newModel, newState);
+            
+            // Make a note in the headers
+            modelman.srcmodgrp.addHeader(ModelGroup.SECTION_USER_MOD, "USER  MOD Mutated "+orig+" to "+newRes);
         }
-        
-        // Create the mutated model
-        Model newModel = (Model) model.clone();
-        newModel.remove(orig);
-        newModel.add(newRes);
-        newModel.restoreOrder();
-        
-        // Remove any unnecessary AtomStates from the model
-        newState = newState.createForModel(newModel);
-        
-        // Insert the mutated model into the model manager
-        modelman.replaceModelAndState(newModel, newState);
-        
-        // Make a note in the headers
-        modelman.srcmodgrp.addHeader(ModelGroup.SECTION_USER_MOD, "USER  MOD Mutated "+orig+" to "+newRes);
+        catch(ResidueException ex)
+        {
+            ex.printStackTrace(SoftLog.err);
+        }
+        catch(AtomException ex)
+        {
+            ex.printStackTrace(SoftLog.err);
+        }
     }
 //}}}
 

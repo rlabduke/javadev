@@ -173,13 +173,9 @@ public class PdbReader //extends ... implements ...
         Residue r = makeResidue(s);
         Atom    a = makeAtom(r, s);
         
-        int serialNum;
-        String serial = s.substring(6, 11).trim();
-        if(serial.length() > 0) serialNum = Integer.parseInt(serial);
-        else                    serialNum = autoSerial++;
-        
-        AtomState state = new AtomState(a, serialNum);
-        char altConf = s.charAt(16);
+        String serial = s.substring(6, 11);
+        AtomState state = new AtomState(a, serial);
+        String altConf = s.substring(16, 17);
         state.setAltConf(altConf);
         
         // We're now ready to add this to a ModelState
@@ -250,12 +246,21 @@ public class PdbReader //extends ... implements ...
         if(r == null)
         {
             if(trimSegID) segID = segID.trim();
-            int     seqNum  = Integer.parseInt(s.substring(22,26).trim());
-            char    insCode = s.charAt(26);
+            String  chainID = s.substring(21,22);
+            String  seqNum  = s.substring(22,26);
+            String  insCode = s.substring(26,27);
             String  resName = s.substring(17,20);
-            r = new Residue(s.charAt(21), segID, seqNum, insCode, resName);
+            r = new Residue(chainID, segID, seqNum, insCode, resName);
             residues.put(key, r);
-            model.add(r);
+            try
+            {
+                model.add(r);
+            }
+            catch(ResidueException ex)
+            {
+                SoftLog.err.println("Logical error: residue "+r+" already exists in model.");
+                ex.printStackTrace(SoftLog.err);
+            }
         }
         
         return r;
@@ -275,7 +280,12 @@ public class PdbReader //extends ... implements ...
         if(a == null)
         {
             a = new Atom(id, s.startsWith("HETATM"));
-            r.add(a);
+            try { r.add(a); }
+            catch(AtomException ex)
+            {
+                System.err.println("Logical error!");
+                ex.printStackTrace();
+            }
         }
         return a;
     }

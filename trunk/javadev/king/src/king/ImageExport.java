@@ -28,7 +28,7 @@ import driftwood.util.SoftLog;
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Mon Sep 29 09:33:14 EDT 2003
 */
-public class ImageExport implements PropertyChangeListener, Runnable
+public class ImageExport extends Plugin implements PropertyChangeListener, Runnable
 {
 //{{{ Constants
 //}}}
@@ -41,9 +41,9 @@ public class ImageExport implements PropertyChangeListener, Runnable
 
 //{{{ Constructor(s)
 //##############################################################################
-    public ImageExport()
+    public ImageExport(ToolBox tb)
     {
-        super();
+        super(tb);
         buildChooser();
     }
 //}}}
@@ -144,7 +144,7 @@ public class ImageExport implements PropertyChangeListener, Runnable
 
 //{{{ askExport
 //##############################################################################
-    public void askExport(KingMain kMain)
+    public void askExport()
     {
         // Auto-generate a file name
         propertyChange(null);
@@ -240,6 +240,27 @@ public class ImageExport implements PropertyChangeListener, Runnable
         }
         
     }
+//}}}
+
+//{{{ getToolsMenuItem, getHelpMenuItem, toString, onExport, isAppletSafe
+//##################################################################################################
+    public JMenuItem getToolsMenuItem()
+    {
+        return new JMenuItem(new ReflectiveAction(this.toString()+"...", null, this, "onExport"));
+    }
+
+    public JMenuItem getHelpMenuItem()
+    { return null; }
+    
+    public String toString()
+    { return "Image file (JPG, PNG)"; }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onExport(ActionEvent ev)
+    { this.askExport(); }
+
+    static public boolean isAppletSafe()
+    { return false; }
 //}}}
 
 //{{{ empty_code_segment

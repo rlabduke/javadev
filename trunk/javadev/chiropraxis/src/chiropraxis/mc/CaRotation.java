@@ -88,12 +88,11 @@ public class CaRotation //extends ... implements ...
     * {@link #makeMobileGroup(Model, Residue, Residue)})
     * by theta degrees around the axis through the
     * C-alphas of the terminal residues.
-    * @throws ResidueException if either one of the terminal residues
-    *   is missing a C-alpha.
-    * @throws AtomException if the state is missing a state definition
+    * @throws AtomException if either one of the terminal residues
+    *   is missing a C-alpha, or if the state is missing a state definition
     *   for any of the mobile atoms.
     */
-    public static ModelState makeConformation(Collection residues, ModelState state, double theta, boolean idealizeSC)
+    public static ModelState makeConformation(Collection residues, ModelState state, double theta, boolean idealizeSC) throws AtomException
     {
         // Find first and last residue in the collection
         Residue first, last;
@@ -106,7 +105,7 @@ public class CaRotation //extends ... implements ...
         firstCA = first.getAtom(" CA ");
         lastCA  =  last.getAtom(" CA ");
         if(firstCA == null || lastCA == null)
-            throw new ResidueException("C-alpha is missing from "+first+" or "+last);
+            throw new AtomException("C-alpha is missing from "+first+" or "+last);
         
         // do the rotation
         Atom[]      atoms   = getMobileAtoms(residues);
@@ -130,12 +129,11 @@ public class CaRotation //extends ... implements ...
     * A more efficient way of doing lots of i to i+1 rotations along a chain.
     * @param residues an array of length L
     * @param thetas an array of length &gt;= (L-1)
-    * @throws ResidueException if any of the residues
-    *   is missing a C-alpha.
-    * @throws AtomException if the state is missing a state definition
+    * @throws AtomException if any of the residues
+    *   is missing a C-alpha, or if the state is missing a state definition
     *   for any of the mobile atoms.
     */
-    public static ModelState twistPeptides(Residue[] residues, ModelState state, double[] thetas, boolean[] idealizeSC)
+    public static ModelState twistPeptides(Residue[] residues, ModelState state, double[] thetas, boolean[] idealizeSC) throws AtomException
     {
         ArrayList   atomList    = new ArrayList();
         Transform   rot         = new Transform();
@@ -156,7 +154,7 @@ public class CaRotation //extends ... implements ...
                 Atom firstCA    = residues[i  ].getAtom(" CA ");
                 Atom lastCA     = residues[i+1].getAtom(" CA ");
                 if(firstCA == null || lastCA == null)
-                    throw new ResidueException("C-alpha is missing from "+residues[i]+" or "+residues[i+1]);
+                    throw new AtomException("C-alpha is missing from "+residues[i]+" or "+residues[i+1]);
                 
                 // do the rotation
                 Atom[] atoms    = (Atom[])atomList.toArray(new Atom[atomList.size()]);

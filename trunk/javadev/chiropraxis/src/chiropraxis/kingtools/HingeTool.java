@@ -205,14 +205,18 @@ public class HingeTool extends ModelingTool implements Remodeler, ChangeListener
         Atom ca = res.getAtom(" CA ");
         if(ca == null) return;
         
-        AtomState cas = state.get(ca);
-        BallPoint mark = new BallPoint(anchorList, "C-alpha axis endpoint");
-        mark.r0 = 0.3f;
-        mark.setOrigX(cas.getX());
-        mark.setOrigY(cas.getY());
-        mark.setOrigZ(cas.getZ());
-        anchorList.add(mark);
-        kCanvas.repaint();
+        try
+        {
+            AtomState cas = state.get(ca);
+            BallPoint mark = new BallPoint(anchorList, "C-alpha axis endpoint");
+            mark.r0 = 0.3f;
+            mark.setOrigX(cas.getX());
+            mark.setOrigY(cas.getY());
+            mark.setOrigZ(cas.getZ());
+            anchorList.add(mark);
+            kCanvas.repaint();
+        }
+        catch(AtomException ex) { ex.printStackTrace(); }
     }
     
     public void wheel(int rotation, MouseEvent ev)
@@ -235,14 +239,22 @@ public class HingeTool extends ModelingTool implements Remodeler, ChangeListener
 
     public ModelState updateModelState(ModelState before)
     {
-        Collection residues = CaRotation.makeMobileGroup(modelman.getModel(), anchor1, anchor2);
-        ModelState after = CaRotation.makeConformation(
-            residues, before, hingeDial.getDegrees(), cbIdealizeSC.isSelected());
-        
-        if(twister != null)
-            after = twister.updateConformation(after);
-        
-        return after;
+        try
+        {
+            Collection residues = CaRotation.makeMobileGroup(modelman.getModel(), anchor1, anchor2);
+            ModelState after = CaRotation.makeConformation(
+                residues, before, hingeDial.getDegrees(), cbIdealizeSC.isSelected());
+            
+            if(twister != null)
+                after = twister.updateConformation(after);
+            
+            return after;
+        }
+        catch(AtomException ex)
+        {
+            ex.printStackTrace();
+            return before;
+        }
     }
     
     // target of reflection

@@ -191,7 +191,7 @@ public class SidechainAngles2 //extends ... implements ...
     * @throws IllegalArgumentException if operation cannot succeed
     * @throws AtomException if required atoms are missing
     */
-    public double measureAngle(String angleName, Residue res, ModelState state)
+    public double measureAngle(String angleName, Residue res, ModelState state) throws AtomException
     {
         String resDotAngle = (res.getName()+"."+angleName).toLowerCase();
         String[] atomNames = (String[])atomsForAngle.get(resDotAngle);
@@ -242,7 +242,7 @@ public class SidechainAngles2 //extends ... implements ...
     * @throws IllegalArgumentException if operation cannot succeed
     * @throws AtomException if required atoms are missing
     */
-    public ModelState setAngle(String angleName, Residue res, ModelState state, double endAngle)
+    public ModelState setAngle(String angleName, Residue res, ModelState state, double endAngle) throws AtomException
     {
         // Copied from measureAngle -- we need this info anyway...
         String resDotAngle = (res.getName()+"."+angleName).toLowerCase();

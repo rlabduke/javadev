@@ -68,10 +68,10 @@ public class ModelTreeViewer //extends ... implements ...
         modelNode.add(chainsNode);
         for(Iterator chainIter = model.getChainIDs().iterator(); chainIter.hasNext(); )
         {
-            Character ch = (Character)chainIter.next();
+            String ch = (String)chainIter.next();
             DefaultMutableTreeNode chainNode = new DefaultMutableTreeNode("Chain '"+ch+"'", true);
             chainsNode.add(chainNode);
-            for(Iterator iter = model.getChain(ch.charValue()).iterator(); iter.hasNext(); )
+            for(Iterator iter = model.getChain(ch).iterator(); iter.hasNext(); )
             {
                 Residue res = (Residue)iter.next();
                 DefaultMutableTreeNode resNode = buildResidueNode(res);

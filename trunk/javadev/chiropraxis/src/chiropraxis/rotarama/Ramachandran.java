@@ -111,7 +111,7 @@ public class Ramachandran //extends ... implements ...
     * @throws ResidueException if no score can be calculated
     *   for this residue.
     */
-    public double rawScore(Model model, Residue res, ModelState state)
+    public double rawScore(Model model, Residue res, ModelState state) throws ResidueException
     {
         double phi, psi, score;
         try {

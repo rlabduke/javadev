@@ -64,7 +64,7 @@ public class AminoAcid //extends ... implements ...
     * @throws AtomException if a required Atom or AtomState
     *   cannot be found in the supplied data.
     */
-    static public double getTau(Residue res, ModelState state)
+    static public double getTau(Residue res, ModelState state) throws AtomException
     {
         AtomState n, ca, c;
         // One of these will throw AtomException if
@@ -81,7 +81,7 @@ public class AminoAcid //extends ... implements ...
     * @throws AtomException if a required Atom or AtomState
     *   cannot be found in the supplied data.
     */
-    static public double getTauDeviation(Residue res, ModelState state)
+    static public double getTauDeviation(Residue res, ModelState state) throws AtomException
     {
         double taudev, tau = getTau(res, state);
              if(res.getName().equals("GLY"))    taudev = tau - 112.5;
@@ -100,7 +100,7 @@ public class AminoAcid //extends ... implements ...
     * @throws ResidueException if the preceding Residue
     *   cannot be found.
     */
-    static public double getPhi(Model model, Residue res, ModelState state)
+    static public double getPhi(Model model, Residue res, ModelState state) throws ResidueException, AtomException
     {
         Residue prev = res.getPrev(model);
         if(prev == null)
@@ -123,7 +123,7 @@ public class AminoAcid //extends ... implements ...
     * @throws ResidueException if the following Residue
     *   cannot be found.
     */
-    static public double getPsi(Model model, Residue res, ModelState state)
+    static public double getPsi(Model model, Residue res, ModelState state) throws ResidueException, AtomException
     {
         Residue next = res.getNext(model);
         if(next == null)

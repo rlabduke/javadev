@@ -54,8 +54,6 @@ public class SidechainIdealizer //extends ... implements ...
     /**
     * Opens a PDB of ideal geometry sc from the JAR, and enters coords in the table.
     * Coordinates are translated so that the C-alpha is at (0,0,0).
-    * @throws AtomException if any atoms are missing coordinates,
-    *   which should never happen with the input we're providing.
     * @return Map&lt;Residue.getName(), Map&lt;Atom.getName(), Triple&gt;&gt;
     */
     Map loadIdealSidechains() throws IOException
@@ -71,16 +69,20 @@ public class SidechainIdealizer //extends ... implements ...
         Map rmap = new HashMap();
         for(Iterator ri = m.getResidues().iterator(); ri.hasNext(); )
         {
-            Residue     res     = (Residue)ri.next();
-            AtomState   ca      = s.get( res.getAtom(" CA ") );
-            Map         amap    = new HashMap();
-            for(Iterator ai = res.getAtoms().iterator(); ai.hasNext(); )
+            try
             {
-                Atom        a   = (Atom)ai.next();
-                AtomState   as  = s.get(a);
-                amap.put(a.getName(), new Triple(as).sub(ca));
+                Residue     res     = (Residue)ri.next();
+                AtomState   ca      = s.get( res.getAtom(" CA ") );
+                Map         amap    = new HashMap();
+                for(Iterator ai = res.getAtoms().iterator(); ai.hasNext(); )
+                {
+                    Atom        a   = (Atom)ai.next();
+                    AtomState   as  = s.get(a);
+                    amap.put(a.getName(), new Triple(as).sub(ca));
+                }
+                rmap.put(res.getName(), amap);
             }
-            rmap.put(res.getName(), amap);
+            catch(AtomException ex) { ex.printStackTrace(); }
         }
         return rmap;
     }
@@ -131,98 +133,93 @@ public class SidechainIdealizer //extends ... implements ...
     *
     * @return a new state, descended from orig, which contains
     *   new states for all non-mainchain atoms.
-    * @throws ResidueException if any of the required backbone atoms
+    * @throws AtomException if any of the required backbone atoms
     *   (N, CA, C) are missing.
     */
-    public static ModelState idealizeCB(Residue res, ModelState orig)
+    public static ModelState idealizeCB(Residue res, ModelState orig) throws AtomException
     {
         Triple t1, t2, ideal = new Triple();
         Builder build = new Builder();
         ModelState modState = new ModelState(orig);
         
-        try // looking for AtomExceptions when states are missing
+        // These will trigger AtomExceptions if res is missing an Atom
+        // because it will try to retrieve the state of null.
+        AtomState aaN   = orig.get( res.getAtom(" N  ") );
+        AtomState aaCA  = orig.get( res.getAtom(" CA ") );
+        AtomState aaC   = orig.get( res.getAtom(" C  ") );
+        
+        // Build an ideal C-beta and swing the side chain into place
+        Atom cBeta = res.getAtom(" CB ");
+        if(cBeta != null)
         {
-            // These will trigger AtomExceptions if res is missing an Atom
-            // because it will try to retrieve the state of null.
-            AtomState aaN   = orig.get( res.getAtom(" N  ") );
-            AtomState aaCA  = orig.get( res.getAtom(" CA ") );
-            AtomState aaC   = orig.get( res.getAtom(" C  ") );
+            // Construct ideal C-beta
+            t1 = build.construct4(aaN, aaC, aaCA, 1.536, 110.4, 123.1);
+            t2 = build.construct4(aaC, aaN, aaCA, 1.536, 110.6, -123.0);
+            ideal.likeMidpoint(t1, t2);
             
-            // Build an ideal C-beta and swing the side chain into place
-            Atom cBeta = res.getAtom(" CB ");
-            if(cBeta != null)
+            // Construct rotation to align actual and ideal
+            AtomState aaCB = orig.get(cBeta);
+            double theta = Triple.angle(ideal, aaCA, aaCB);
+            //SoftLog.err.println("Angle of correction: "+theta);
+            t1.likeNormal(ideal, aaCA, aaCB).add(aaCA);
+            Transform xform = new Transform().likeRotation(aaCA, t1, theta);
+            
+            // Apply the transformation
+            for(Iterator iter = res.getAtoms().iterator(); iter.hasNext(); )
             {
-                // Construct ideal C-beta
-                t1 = build.construct4(aaN, aaC, aaCA, 1.536, 110.4, 123.1);
-                t2 = build.construct4(aaC, aaN, aaCA, 1.536, 110.6, -123.0);
-                ideal.likeMidpoint(t1, t2);
+                Atom        atom    = (Atom)iter.next();
+                String      name    = atom.getName();
                 
-                // Construct rotation to align actual and ideal
-                AtomState aaCB = orig.get(cBeta);
-                double theta = Triple.angle(ideal, aaCA, aaCB);
-                //SoftLog.err.println("Angle of correction: "+theta);
-                t1.likeNormal(ideal, aaCA, aaCB).add(aaCA);
-                Transform xform = new Transform().likeRotation(aaCA, t1, theta);
-                
-                // Apply the transformation
-                for(Iterator iter = res.getAtoms().iterator(); iter.hasNext(); )
+                // Transform everything that's not mainchain
+                if( !( name.equals(" N  ") || name.equals(" H  ")
+                    || name.equals(" CA ") || name.equals(" HA ")
+                    || name.equals("1HA ") || name.equals("2HA ")
+                    || name.equals(" C  ") || name.equals(" O  ")) )
                 {
-                    Atom        atom    = (Atom)iter.next();
-                    String      name    = atom.getName();
-                    
-                    // Transform everything that's not mainchain
-                    if( !( name.equals(" N  ") || name.equals(" H  ")
-                        || name.equals(" CA ") || name.equals(" HA ")
-                        || name.equals("1HA ") || name.equals("2HA ")
-                        || name.equals(" C  ") || name.equals(" O  ")) )
-                    {
-                        // Clone the original state, move it, and insert it into our model
-                        AtomState   s1      = orig.get(atom);
-                        AtomState   s2      = (AtomState)s1.clone();
-                        xform.transform(s1, s2);
-                        modState.add(s2);
-                    }//if atom is not mainchain
-                }//for each atom in the residue
-            }//rebuilt C-beta
-            
-            
-            // Reconstruct alpha hydrogens
-            // These are easier -- just compute the position and make it so!
-            Atom hAlpha = res.getAtom(" HA ");
-            if(hAlpha != null)
-            {
-                AtomState s1 = orig.get(hAlpha);
-                AtomState s2 = (AtomState)s1.clone();
-                t1 = build.construct4(aaN, aaC, aaCA, 1.100, 107.9, -118.3);
-                t2 = build.construct4(aaC, aaN, aaCA, 1.100, 108.1, 118.2);
-                s2.likeMidpoint(t1, t2).sub(aaCA).unit().mult(1.100).add(aaCA);
-                modState.add(s2);
-            }
-            
-            // Now for glycine, and then we're done
-            hAlpha = res.getAtom("1HA ");
-            if(hAlpha != null)
-            {
-                AtomState s1 = orig.get(hAlpha);
-                AtomState s2 = (AtomState)s1.clone();
-                t1 = build.construct4(aaN, aaC, aaCA, 1.100, 109.3, -121.6);
-                t2 = build.construct4(aaC, aaN, aaCA, 1.100, 109.3, 121.6);
-                s2.likeMidpoint(t1, t2).sub(aaCA).unit().mult(1.100).add(aaCA);
-                modState.add(s2);
-            }
-            hAlpha = res.getAtom("2HA ");
-            if(hAlpha != null)
-            {
-                AtomState s1 = orig.get(hAlpha);
-                AtomState s2 = (AtomState)s1.clone();
-                t1 = build.construct4(aaN, aaC, aaCA, 1.100, 109.3, 121.6);
-                t2 = build.construct4(aaC, aaN, aaCA, 1.100, 109.3, -121.6);
-                s2.likeMidpoint(t1, t2).sub(aaCA).unit().mult(1.100).add(aaCA);
-                modState.add(s2);
-            }
+                    // Clone the original state, move it, and insert it into our model
+                    AtomState   s1      = orig.get(atom);
+                    AtomState   s2      = (AtomState)s1.clone();
+                    xform.transform(s1, s2);
+                    modState.add(s2);
+                }//if atom is not mainchain
+            }//for each atom in the residue
+        }//rebuilt C-beta
+        
+        
+        // Reconstruct alpha hydrogens
+        // These are easier -- just compute the position and make it so!
+        Atom hAlpha = res.getAtom(" HA ");
+        if(hAlpha != null)
+        {
+            AtomState s1 = orig.get(hAlpha);
+            AtomState s2 = (AtomState)s1.clone();
+            t1 = build.construct4(aaN, aaC, aaCA, 1.100, 107.9, -118.3);
+            t2 = build.construct4(aaC, aaN, aaCA, 1.100, 108.1, 118.2);
+            s2.likeMidpoint(t1, t2).sub(aaCA).unit().mult(1.100).add(aaCA);
+            modState.add(s2);
         }
-        catch(AtomException ex)
-        { throw new ResidueException("C-beta idealize failed: "+ex.getMessage()); }
+        
+        // Now for glycine, and then we're done
+        hAlpha = res.getAtom("1HA ");
+        if(hAlpha != null)
+        {
+            AtomState s1 = orig.get(hAlpha);
+            AtomState s2 = (AtomState)s1.clone();
+            t1 = build.construct4(aaN, aaC, aaCA, 1.100, 109.3, -121.6);
+            t2 = build.construct4(aaC, aaN, aaCA, 1.100, 109.3, 121.6);
+            s2.likeMidpoint(t1, t2).sub(aaCA).unit().mult(1.100).add(aaCA);
+            modState.add(s2);
+        }
+        hAlpha = res.getAtom("2HA ");
+        if(hAlpha != null)
+        {
+            AtomState s1 = orig.get(hAlpha);
+            AtomState s2 = (AtomState)s1.clone();
+            t1 = build.construct4(aaN, aaC, aaCA, 1.100, 109.3, 121.6);
+            t2 = build.construct4(aaC, aaN, aaCA, 1.100, 109.3, -121.6);
+            s2.likeMidpoint(t1, t2).sub(aaCA).unit().mult(1.100).add(aaCA);
+            modState.add(s2);
+        }
         
         return modState;
     }
@@ -416,7 +413,7 @@ perpendicular to the N Ca C plane and NOT along the Ca---Cb vector.
     * @return the new residue of the specified type.
     * @throws IllegalArgumentException if aaType is not a recognized amino acid code.
     */
-    public Residue makeIdealResidue(char chain, String segment, int seqNum, char insCode, String resName, ModelState outputState)
+    public Residue makeIdealResidue(String chain, String segment, String seqNum, String insCode, String resName, ModelState outputState)
     {
         // Get template
         if(!idealResMap.containsKey(resName))
@@ -424,10 +421,17 @@ perpendicular to the N Ca C plane and NOT along the Ca---Cb vector.
         Residue templateRes = (Residue) idealResMap.get(resName);
         
         // Copy it, with a new name
-        Residue newRes = new Residue(templateRes, chain, segment, seqNum, insCode, resName);
-        newRes.cloneStates(templateRes, idealResState, outputState);
-        
-        return newRes;
+        try
+        {
+            Residue newRes = new Residue(templateRes, chain, segment, seqNum, insCode, resName);
+            newRes.cloneStates(templateRes, idealResState, outputState);
+            return newRes;
+        }
+        catch(AtomException ex)
+        {
+            ex.printStackTrace();
+            return null;
+        }
     }
 //}}}
 
@@ -440,7 +444,7 @@ perpendicular to the N Ca C plane and NOT along the Ca---Cb vector.
     * Neither of the original states is modified.
     * @throws   AtomException if the N, CA, or C atom is missing in from or to.
     */
-    public ModelState dockResidue(Residue mobRes, ModelState mob, Residue refRes, ModelState ref)
+    public ModelState dockResidue(Residue mobRes, ModelState mob, Residue refRes, ModelState ref) throws AtomException
     {
         // Reposition all atoms
         Transform xform = builder.dock3on3(

@@ -4,7 +4,7 @@ package king;
 import king.core.*;
 
 import java.awt.*;
-//import java.awt.event.*;
+import java.awt.event.*;
 import java.io.*;
 //import java.net.*;
 import java.text.*;
@@ -21,7 +21,7 @@ import driftwood.util.SoftLog;
  * <p>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
  * <br>Begun on Thu Oct  3 09:51:11 EDT 2002
 */
-public class PovrayExport //extends ... implements ...
+public class PovrayExport extends Plugin
 {
 //{{{ Constants
     static final DecimalFormat df = new DecimalFormat("0.####");
@@ -35,6 +35,7 @@ public class PovrayExport //extends ... implements ...
     
     JFileChooser        chooser = null;
     SuffixFileFilter    povFilter;
+    JCheckBox           doNormals;
 //}}}
 
 //{{{ Constructor(s)
@@ -42,9 +43,9 @@ public class PovrayExport //extends ... implements ...
     /**
     * Constructor
     */
-    public PovrayExport()
+    public PovrayExport(ToolBox tb)
     {
-        super();
+        super(tb);
     }
 //}}}
 
@@ -61,12 +62,15 @@ public class PovrayExport //extends ... implements ...
         chooser.setFileFilter(povFilter);
         if(currdir != null) chooser.setCurrentDirectory(new File(currdir));
         //chooser.addPropertyChangeListener(this);
+        
+        doNormals = new JCheckBox("Smooth triangles and ribbons", true);
+        chooser.setAccessory(doNormals);
     }
 //}}}
 
 //{{{ askExport
 //##############################################################################
-    public void askExport(KingMain kMain)
+    public void askExport()
     {
         if(chooser == null) buildChooser();
         
@@ -128,7 +132,8 @@ public class PovrayExport //extends ... implements ...
         for(Iterator iter = kinemages.iterator(); iter.hasNext(); index++)
         {
             kin = (Kinemage)iter.next();
-            triNormals = buildTriangleNormals(kin);
+            if(doNormals.isSelected())  triNormals = buildTriangleNormals(kin);
+            else                        triNormals = new HashMap();
             writeKinemage(kin, index);
         }
         
@@ -142,10 +147,9 @@ public class PovrayExport //extends ... implements ...
     {
         Iterator iter;
         out.println("//@kinemage "+index+" - hand edit at end of kinemage def.");
-        
-        out.println();
         out.println("// Should be span (from view) / (2 * rendering width in pixels)");
         out.println("#declare LW = "+df.format(kin.getCurrentView().getSpan())+" / (2 * 600); // unit line width"); 
+        out.println("#declare DW = "+df.format(kin.getCurrentView().getSpan())+" / (2 * 600); // unit dot width"); 
         out.println("#declare LabelFont = \"timrom.ttf\"; // may need +L/path/to/font/files");
         out.println("#declare LabelDepth = 0.001; // essentially flat text");
         out.println("#declare LabelOffset = 0;");
@@ -185,9 +189,12 @@ public class PovrayExport //extends ... implements ...
         
         out.println();
         out.println("//{{{ View definitions");
-        out.println("// Use these transforms directly on the kinemage object,");
-        out.println("// or as transform { View1 inverse } on the camera and bounding box.");
-        out.println("// Use CLIPPED_BY statements with object declaration (at bottom).");
+        out.println("// The kinemage is declared using the original coordinates from the file.");
+        out.println("// By default, these 'views' are used to transform it into a 2x2x2 unit box centered");
+        out.println("// on the origin, while the viewpoint/camera is 6 units away on the +Z axis.");
+        out.println("// Alternatively, you can work in the kinemage space by transforming the view instead:");
+        out.println("//     camera { ... transform { View0 inverse } } // INVERSE is crucial!");
+        out.println("// Use CLIPPED_BY statements with kinemage object declaration to get clipping.");
         int idx = 0;
         writeView(kin.getCurrentView(), idx++);
         for(iter = kin.getViewIterator(); iter.hasNext(); idx++)
@@ -314,7 +321,7 @@ public class PovrayExport //extends ... implements ...
         {
             int width = list.getWidth();
             out.println("sphere { <"+df.format(point.getOrigX())+", "+df.format(point.getOrigY())+", "+df.format(point.getOrigZ())+">, "
-                +"LW*"+df.format(width)+paintName+" }");
+                +"DW*"+df.format(width)+paintName+" }");
         }
         else if(point instanceof LabelPoint)
         {
@@ -477,6 +484,27 @@ public class PovrayExport //extends ... implements ...
         }
         return avNormal;
     }
+//}}}
+
+//{{{ getToolsMenuItem, getHelpMenuItem, toString, onExport, isAppletSafe
+//##################################################################################################
+    public JMenuItem getToolsMenuItem()
+    {
+        return new JMenuItem(new ReflectiveAction(this.toString()+"...", null, this, "onExport"));
+    }
+
+    public JMenuItem getHelpMenuItem()
+    { return null; }
+    
+    public String toString()
+    { return "POV-Ray scene"; }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onExport(ActionEvent ev)
+    { this.askExport(); }
+
+    static public boolean isAppletSafe()
+    { return false; }
 //}}}
 
 //{{{ empty_code_segment

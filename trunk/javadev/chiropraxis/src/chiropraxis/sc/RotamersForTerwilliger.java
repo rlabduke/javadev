@@ -77,15 +77,19 @@ public class RotamersForTerwilliger //extends ... implements ...
             out.println(Strings.justifyRight(""+(i+1), 6)+"    "+resList[i]+"  ! RESIDUE ID -----------------------");
             // Create an idealized residue of the appropriate type
             ModelState stateRaw = new ModelState(); // will be written into by next call
-            Residue res = idealizer.makeIdealResidue(' ', "", i+1, ' ', resList[i], stateRaw);
+            Residue res = idealizer.makeIdealResidue(" ", "", Integer.toString(i+1), " ", resList[i], stateRaw);
             stateRaw = stateRaw.createCollapsed();
             // Orient the residue correctly (transform in place)
-            AtomState n = stateRaw.get(res.getAtom(" N  "));
-            AtomState ca = stateRaw.get(res.getAtom(" CA "));
-            AtomState c = stateRaw.get(res.getAtom(" C  "));
-            Transform xform = builder.dock3on3(new Triple(0,0,0), new Triple(1,0,0), new Triple(0,1,0), ca, n, c);
-            for(Iterator iter = stateRaw.getLocalStateMap().values().iterator(); iter.hasNext(); )
-                xform.transform((AtomState) iter.next());
+            try
+            {
+                AtomState n = stateRaw.get(res.getAtom(" N  "));
+                AtomState ca = stateRaw.get(res.getAtom(" CA "));
+                AtomState c = stateRaw.get(res.getAtom(" C  "));
+                Transform xform = builder.dock3on3(new Triple(0,0,0), new Triple(1,0,0), new Triple(0,1,0), ca, n, c);
+                for(Iterator iter = stateRaw.getLocalStateMap().values().iterator(); iter.hasNext(); )
+                    xform.transform((AtomState) iter.next());
+            }
+            catch(AtomException ex) { ex.printStackTrace(); }
             ModelState stateDock = stateRaw;
             // Find a list of all the heavy atoms
             Collection heavyAtoms = new ArrayList();
@@ -106,14 +110,18 @@ public class RotamersForTerwilliger //extends ... implements ...
                 ModelState stateRot = scangles.setChiAngles(res, stateDock, rotamers[j].chiAngles);
                 for(Iterator iter = heavyAtoms.iterator(); iter.hasNext(); )
                 {
-                    Atom a = (Atom) iter.next();
-                    AtomState as = stateRot.get(a);
-                    out.println(
-                        Strings.justifyRight(df.format(as.getX()), 8)+
-                        Strings.justifyRight(df.format(as.getY()), 8)+
-                        Strings.justifyRight(df.format(as.getZ()), 8)+
-                        " "+a.getName()+"   ! XYZ"
-                    );
+                    try
+                    {
+                        Atom a = (Atom) iter.next();
+                        AtomState as = stateRot.get(a);
+                        out.println(
+                            Strings.justifyRight(df.format(as.getX()), 8)+
+                            Strings.justifyRight(df.format(as.getY()), 8)+
+                            Strings.justifyRight(df.format(as.getZ()), 8)+
+                            " "+a.getName()+"   ! XYZ"
+                        );
+                    }
+                    catch(AtomException ex) { ex.printStackTrace(); }
                 }
             }
         }

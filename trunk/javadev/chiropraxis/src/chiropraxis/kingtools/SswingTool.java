@@ -133,7 +133,7 @@ public class SswingTool extends ModelingTool
         // XXX unneeded -- sswing needs auxillary scripts that have to be in the PATH too
         String sswingExe = SswingRunner.findProgram(kMain, "sswing");
         String sswingOption = "-f -s ";
-        if(targetRes.getChain() != ' ')
+        if(!" ".equals(targetRes.getChain()))
             sswingOption = sswingOption+"-c "+targetRes.getChain();
         String cmd = sswingExe+" "+sswingOption+" "+
             "'"+modelman.getFrozenPDB().getCanonicalPath()+"' "+

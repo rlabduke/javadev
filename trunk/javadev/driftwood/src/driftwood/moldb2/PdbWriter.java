@@ -102,17 +102,24 @@ public class PdbWriter //extends ... implements ...
             if(as.isHet())  sb.append("HETATM");
             else            sb.append("ATOM  ");
             
-            if(!renumberAtoms)  atomSerial = as.getSerial();
-            sb.append(Strings.justifyRight(Integer.toString(atomSerial++), 5));
+            String serial = as.getSerial();
+            if(renumberAtoms) serial = Integer.toString(atomSerial++);
+            if(serial.length() > 5) serial.substring(0, 5);
+            else if(serial.length() < 5) serial = Strings.justifyRight(serial, 5);
+            sb.append(serial);
             sb.append(" "); // unused
             
             sb.append(as.getName());
-            sb.append(as.getAltConf());
+            String altconf = as.getAltConf();
+            if(altconf.length() > 1) altconf = altconf.substring(0, 1);
+            else if(altconf.length() == 0) altconf = " ";
+            sb.append(altconf);
+            
             sb.append(Strings.justifyLeft(res.getName(), 3));
             sb.append(" "); // unused
             sb.append(res.getChain());
             
-            String seqNum = Integer.toString(res.getSequenceNumber());
+            String seqNum = res.getSequenceNumber();
             sb.append(Strings.justifyRight(seqNum, 4));
             sb.append(res.getInsertionCode());
             sb.append("   "); // unused
@@ -229,56 +236,54 @@ public class PdbWriter //extends ... implements ...
     {
         Set outputStates = new HashSet(); // to avoid duplicates
         
-        Residue res = null;
-        for(Iterator ci = model.getChains().iterator(); ci.hasNext(); )
+        Residue oldRes = null;
+        for(Iterator ri = model.getResidues().iterator(); ri.hasNext(); )
         {
-            Collection chain = (Collection)ci.next();
-            for(Iterator ri = chain.iterator(); ri.hasNext(); )
+            Residue res = (Residue)ri.next();
+            for(Iterator ai = res.getAtoms().iterator(); ai.hasNext(); )
             {
-                res = (Residue)ri.next();
-                for(Iterator ai = res.getAtoms().iterator(); ai.hasNext(); )
+                Atom atom = (Atom)ai.next();
+                for(int i = 0; i < states.length; i++)
                 {
-                    Atom atom = (Atom)ai.next();
-                    for(int i = 0; i < states.length; i++)
+                    try
                     {
-                        try
+                        AtomState as = states[i].get(atom);
+                        // We want to make sure every atom output has a unique PDB name.
+                        // We're not worried so much about duplicating coordinates (old code).
+                        // Name requirement is important for dealing with alt confs,
+                        // where a single atom (' ') may move in A but not B --
+                        // this led to two ATOM entries with different coords but the same name.
+                        String aName = as.getAtom().toString()+as.getAltConf();
+                        //if(!outputStates.contains(as))
+                        if(!outputStates.contains(aName))
                         {
-                            AtomState as = states[i].get(atom);
-                            // We want to make sure every atom output has a unique PDB name.
-                            // We're not worried so much about duplicating coordinates (old code).
-                            // Name requirement is important for dealing with alt confs,
-                            // where a single atom (' ') may move in A but not B --
-                            // this led to two ATOM entries with different coords but the same name.
-                            String aName = as.getAtom().toString()+as.getAltConf();
-                            //if(!outputStates.contains(as))
-                            if(!outputStates.contains(aName))
-                            {
-                                //outputStates.add(as);
-                                outputStates.add(aName);
-                                writeAtom(as);
-                            }
+                            //outputStates.add(as);
+                            outputStates.add(aName);
+                            writeAtom(as);
                         }
-                        catch(AtomException ex) {} // no state
                     }
-                }//for each atom
-            }// for each residue
-            
+                    catch(AtomException ex) {} // no state
+                }
+            }//for each atom
+
             // insert TER record
-            if(res != null)
+            if(oldRes != null && !oldRes.getChain().equals(res.getChain()))
             {
                 StringBuffer    sb  = new StringBuffer(27).append("TER   ");
-                // This does the right thing with the serial #
-                // whether or not we're renumbering atoms.
+                // This gets the serial number wrong unless we're renumbering,
+                // but nobody uses them anyway...
                 sb.append(Strings.justifyRight(Integer.toString(atomSerial++), 5));
                 sb.append("      "); // unused
-                sb.append(Strings.justifyLeft(res.getName(), 3));
+                sb.append(Strings.justifyLeft(oldRes.getName(), 3));
                 sb.append(" "); // unused
-                sb.append(res.getChain());
-                sb.append(Strings.justifyRight(Integer.toString(res.getSequenceNumber()), 4));
-                sb.append(res.getInsertionCode());
+                sb.append(oldRes.getChain());
+                sb.append(Strings.justifyRight(oldRes.getSequenceNumber(), 4));
+                sb.append(oldRes.getInsertionCode());
             }
-        }//for each chain
-        
+            
+            oldRes = res;
+        }// for each residue
+            
         out.flush();
     }
 //}}}

@@ -19,7 +19,7 @@ import java.util.*;
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Mon Jun  9 16:42:31 EDT 2003
 */
-public class AtomException extends RuntimeException
+public class AtomException extends Exception
 {
     /**
     * Constructor
