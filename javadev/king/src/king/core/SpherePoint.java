@@ -27,6 +27,9 @@ public class SpherePoint extends BallPoint
     static final double[]   cos         = new double[N_DISKS];
     static
     {
+        // Sin is fwd offset from largest disk, moving toward viewer.
+        // Sin spacing is such that disk spacing is equal.
+        // Cos is for scaling disk radius.
         for(int i = 0; i < N_DISKS; i++)
         {
             sin[i] = (double)i/(double)N_DISKS;
@@ -131,8 +134,10 @@ public class SpherePoint extends BallPoint
             // Don't use alpha, b/c it won't look right for stacked disks
         Paint paint = maincolor.getPaint(engine.backgroundMode, 0, engine.colorCue, 255);
 
+        // Can't do depth cueing by width -- causes really weird problems!!
+        //
         // We have to do this here b/c now widthCue is set
-        if(engine.cueThickness) r *= KPalette.widthScale[ engine.widthCue ];
+        //if(engine.cueThickness) r *= KPalette.widthScale[ engine.widthCue ];
         
         engine.painter.paintSphereDisk(paint, x, y, z, r);
     }

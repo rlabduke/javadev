@@ -292,7 +292,7 @@ public class KinLoader extends List implements CommandListener
         int viewport = Math.min(kMain.kCanvas.getWidth(), kMain.kCanvas.getHeight())/2;
         
         view.setScale(0);
-        while((radius >> view.getScale()) > viewport) view.setScale(view.getScale()+1);
+        while((radius / view.getScaleDivisor()) > viewport) view.setScale(view.getScale()+1);
         
         return view;
     }
