@@ -133,6 +133,48 @@ public class VectorPoint extends KPoint // implements ...
     }
 //}}}
 
+//{{{ isPickedBy
+//##################################################################################################
+    /**
+    * Returns true if the specified pick hits this point, else returns false
+    * Pays no attention to whether this point is marked as unpickable.
+    * @param radius the desired picking radius
+    * @param objPick whether we should try to pick solid objects in addition to points
+    * @return the KPoint that should be counted as being picked, or null for none.
+    *   Usually <code>this</code>, but maybe not for object picking.
+    */
+    public KPoint isPickedBy(float xx, float yy, float radius, boolean objPick)
+    {
+        if(objPick && from != null)
+        {
+            VectorPoint A = this, B = from;
+            // first check: bounding box
+            if(xx > (Math.min(A.x,B.x) - radius) && xx < (Math.max(A.x,B.x)+radius)
+            && yy > (Math.min(A.y,B.y) - radius) && yy < (Math.max(A.y,B.y)+radius))
+            {
+                // line as ax + by + d = 0, like a plane
+                float a = B.y - A.y, b = A.x - B.x;
+                double num = a*xx + b*yy - (a*A.x + b*A.y); // parenthesized term is -d
+                double d2 = (num*num) / (a*a + b*b); // square of distance to the line
+                //System.err.println("x = "+xx+" : "+Math.min(A.x,B.x)+" - "+Math.max(A.x,B.x));
+                //System.err.println("y = "+yy+" : "+Math.min(A.y,B.y)+" - "+Math.max(A.y,B.y));
+                //System.err.println("a = "+a+"; b = "+b+"; d = "+(-(a*A.x + b*A.y)));
+                //System.err.println("D^2 = "+d2);
+                if(d2 < radius*radius)
+                {
+                    float dx, dy, dA, dB;
+                    dx = xx - A.x; dy = yy - A.y; dA = dx*dx + dy*dy;
+                    dx = xx - B.x; dy = yy - B.y; dB = dx*dx + dy*dy;
+                    if(dA <= dB)    return A;
+                    else            return B;
+                }
+            }
+        }
+        
+        return super.isPickedBy(xx, yy, radius, objPick);
+    }
+//}}}
+
 //{{{ paintFast
 //##################################################################################################
     /**

@@ -44,21 +44,18 @@
     Add choice of experiments to expected NOEs
     Distribute noe-display in packaged KiNG versions?
     Key/mouse modifiers need to be checked from Safari (applet)
+    New list type: @meshlist (triangles or squares)
+    Extract each set of painting objects into a Painter object with methods for each pt type
 <!-- Postponed TO DO items }}} -->
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
     Add ability to edit masters
     Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
     Add a Mage-like "count" function (transform time, draw time, num obj)
   * Rewrite HACKING section on Tools vs. Plugins
-    Triangle picking for Andrew Ban (generalize to object picking)
-        Picking for balls
-        Picking for lines
-        User control for object picking in Tools menu
-    New list type: @meshlist (triangles or squares)
+    Document Tools | Pick objects in user manual
   ? Redefine getX/Y/Z for KPoints to do the more obvious thing...
     Warn about saving with multiple kins open
     Warn about losing unsaved changes
-    Extract each set of painting objects into a Painter object with methods for each pt type
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -67,6 +64,10 @@
 ### 1.27 ###
 - modified Engine and KPoint.isPickedBy() to account for object picking
 - implemented object picking for triangles
+- added "Pick objects" item to Tools menu
+- implemented object picking for balls and spheres
+- in picking functions, now pass radius instead of radius^2 (for lines)
+- implemented object picking for line segments
 
 ### 1.26 ###
 - added Mage's HTML description of the kinemage format

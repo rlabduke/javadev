@@ -66,6 +66,7 @@ public class ToolServices implements TransformSignalSubscriber
     public JCheckBox            doMarkers;
     public JCheckBoxMenuItem    doFlatland;
     public JCheckBoxMenuItem    doSuperpick;
+    public JCheckBoxMenuItem    doObjectPick;
     public JCheckBoxMenuItem    doMeasureAll;
     public JCheckBox            doPickcenter;
     
@@ -96,6 +97,9 @@ public class ToolServices implements TransformSignalSubscriber
             doFlatland.setToolTipText("Translate in X-Y instead of rotating");
         doSuperpick     = new JCheckBoxMenuItem("Superpick", false);
             doSuperpick.setToolTipText("Pick points that are otherwise unpickable");
+        doObjectPick    = new JCheckBoxMenuItem(new ReflectiveAction("Pick objects", null, this, "onObjectPick"));
+            doObjectPick.setSelected(kCanvas.getEngine().useObjPicking);
+            doObjectPick.setToolTipText("Pick lines and faces in addition to points");
         doMeasureAll    = new JCheckBoxMenuItem(new ReflectiveAction("Measure angle & dihedral", null, this, "onShowMeasures"));
             doMeasureAll.setSelected(false);
         doPickcenter    = new JCheckBox("Pick center", false);
@@ -382,13 +386,11 @@ public class ToolServices implements TransformSignalSubscriber
     }
 //}}}
 
-//{{{ onShowMarkers, onShowXYZ, onShowMeasures
+//{{{ onShowMarkers, onShowXYZ, onShowMeasures, onObjectPick
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onShowMarkers(ActionEvent ev)
-    {
-        kMain.notifyChange(KingMain.EM_ON_OFF);
-    }
+    { kMain.notifyChange(KingMain.EM_ON_OFF); }
     
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onShowMeasures(ActionEvent ev)
@@ -411,9 +413,11 @@ public class ToolServices implements TransformSignalSubscriber
     
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onShowXYZ(ActionEvent ev)
-    {
-        kCanvas.repaint();
-    }
+    { kCanvas.repaint(); }
+    
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onObjectPick(ActionEvent ev)
+    { kCanvas.getEngine().useObjPicking = doObjectPick.isSelected(); }
 //}}}
 
 //{{{ empty

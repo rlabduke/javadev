@@ -83,12 +83,12 @@ public class TrianglePoint extends KPoint // implements ...
     /**
     * Returns true if the specified pick hits this point, else returns false
     * Pays no attention to whether this point is marked as unpickable.
-    * @param radius2 the SQUARE of the desired picking radius
+    * @param radius the desired picking radius
     * @param objPick whether we should try to pick solid objects in addition to points
     * @return the KPoint that should be counted as being picked, or null for none.
     *   Usually <code>this</code>, but maybe not for object picking.
     */
-    public KPoint isPickedBy(float xx, float yy, float radius2, boolean objPick)
+    public KPoint isPickedBy(float xx, float yy, float radius, boolean objPick)
     {
         if(objPick && from != null && from.from != null)
         {
@@ -112,7 +112,7 @@ public class TrianglePoint extends KPoint // implements ...
             }
         }
         
-        return super.isPickedBy(xx, yy, radius2, objPick);
+        return super.isPickedBy(xx, yy, radius, objPick);
     }
 //}}}
 
