@@ -69,7 +69,7 @@ public class PdfExport implements PropertyChangeListener, Runnable
     static public void exportPDF(KinCanvas kCanvas, File outfile)
         throws IOException, DocumentException
     {
-        Dimension   dim = kCanvas.getSize();
+        Dimension   dim = kCanvas.getCanvasSize();
         Document    doc = new Document(PageSize.LETTER, 72, 72, 72, 72); // 1" margins
         PdfWriter   pdf = PdfWriter.getInstance(doc, new FileOutputStream(outfile));
         doc.addCreator("KiNG by Ian W. Davis");

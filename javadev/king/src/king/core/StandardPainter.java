@@ -30,31 +30,26 @@ public class StandardPainter implements Painter
     * On my G4 PowerBook, transforming and all the paint calcs account for
     * only about 10% of the total time required to render one frame.
     */
-    private static final boolean REALLY_PAINT = true;
+    protected static final boolean REALLY_PAINT = true;
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
     boolean         forceAA;
     Graphics2D      g           = null;
+    Font            font        = null;
+    FontMetrics     metrics     = null;
+    Rectangle       clipRgn     = new Rectangle(0,0,1,1);
     int[]           xPoints     = new int[6];
     int[]           yPoints     = new int[6];
 //}}}
 
-//{{{ Constructor(s), setGraphics
+//{{{ Constructor(s)
 //##############################################################################
     public StandardPainter(boolean forceAntialiasing)
     {
         super();
         this.forceAA = forceAntialiasing;
-    }
-    
-    /** Sets the Graphics object this painter will use for painting. */
-    public void setGraphics(Graphics2D g2)
-    {
-        this.g = g2;
-        if(forceAA)
-            this.g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     }
 //}}}
 
@@ -92,8 +87,7 @@ public class StandardPainter implements Painter
 
 //{{{ paintLabel
 //##################################################################################################
-    public void paintLabel(Paint paint, Font font, FontMetrics metrics,
-        String label, double x, double y, double z)
+    public void paintLabel(Paint paint, String label, double x, double y, double z)
     {
         g.setPaint(paint);
         g.setFont(font);
@@ -251,6 +245,48 @@ public class StandardPainter implements Painter
             for(i = start; i < 0; i++) g.drawLine(x1+i, y1, x2+i, y2); 
             for(i = 1; i < end; i++)   g.drawLine(x1+i, y1, x2+i, y2); 
         }
+    }
+//}}}
+
+//{{{ setGraphics, setFont, getLabelWidth/Ascent/Descent
+//##############################################################################
+    /** Sets the Graphics object this painter will use for painting. */
+    public void setGraphics(Graphics2D g2)
+    {
+        this.g = g2;
+        if(forceAA)
+            this.g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        if(font != null)
+            this.metrics = g.getFontMetrics(font);
+    }
+    
+    public void setFont(Font f)
+    {
+        this.font = f;
+        if(g != null)
+            this.metrics = g.getFontMetrics(f);
+    }
+    
+    public int getLabelWidth(String s)
+    { return metrics.stringWidth(s); }
+    public int getLabelAscent(String s)
+    { return metrics.getAscent(); }
+    public int getLabelDescent(String s)
+    { return metrics.getDescent(); }
+//}}}
+
+//{{{ setViewport, clearCanvas
+//##############################################################################
+    public void setViewport(int x, int y, int width, int height)
+    {
+        clipRgn.setBounds(x, y, width, height);
+        g.setClip(clipRgn);
+    }
+    
+    public void clearCanvas(Color color)
+    {
+        g.setColor(color);
+        if(REALLY_PAINT) g.fillRect(clipRgn.x, clipRgn.y, clipRgn.width, clipRgn.height);
     }
 //}}}
 

@@ -46,21 +46,18 @@
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
     Add ability to edit masters
     Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
-  * Document new king/chiropraxis dependency structure in HACKING
-    Write a quick and dirty HTML guide to creating a plugin, listing all the basic steps
-        Java and Python versions
-    Enable OpenGL painting via JOGL
-        Add clear and clip methods to Painter
-        Get Graphics out of Engine
-        Delegation and JOGL canvas calls the engine
+    Write Java and Python guides to creating a plugin, listing all the basic steps
+    JOGL: auto-setting of classpath, java.libary.path in distributions
     Add some kind of transformation hook (listeners, priorities, etc)
     Warn about saving with multiple kins open
     Warn about losing unsaved changes
+*** Deploy to RLab!!
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 1.28 ###
 ### 1.28 ###
 - added the "accumulate" animation function from Mage
 - changed the meaning of KPoint.get/setX/Y/Z to refer to the untransformed (original)
@@ -71,6 +68,24 @@
   KingPrefs. This keeps those menu names from appearing in ~/.king_prefs.
 - moved all references to the Graphics object out of Points into the Painters
 - KinCanvas now creates and manages the painters based on rendering quality
+- created clear, clip/viewport, and font methods for Painters
+- implemented JoglFrame and JoglPainter;
+  JoglPainter does not support markers, labels, or ToolBox overpainting yet.
+- replaced calls to KinCanvas.getSize() with getCanvasSize() for OpenGL.
+- implemented ToolBox overpainting using images, but it's very, very slow
+  if something is actually drawn. Not too bad if nothing drawn (~30ms).
+- changed to an alternative scheme that's much faster (30 / 50 ms)
+- added "Installed in ..." line to About box and SelfUpdatePlugin
+- implemented lazy loading of JOGL libraries in KinCanvas
+- fixed stereo offset problem for JOGL; fixed stereo clipping issue in Engine
+- implemented label painting using the bitmapped font functions in GLUT
+- replaced overpaintCanvas(Graphics2D) with overpaintCanvas(Painter);
+  this eliminates JOGL performance problems previously caused by overpainting.
+- implemented marker painting for JOGL (not all markers have been tested)
+- documented the SelfUpdatePlugin
+- documented the OpenGL acceleration feature
+- documented new king/chiropraxis dependency structure, new painting in HACKING
+- deployed to Rlab on 7 June 2004
 
 ### 1.27 ###
 - modified Engine and KPoint.isPickedBy() to account for object picking

@@ -55,9 +55,9 @@ public class LabelPoint extends KPoint // implements ...
         Paint paint = maincolor.getPaint(engine.backgroundMode, engine.colorCue);
         
         int width, ascent, descent;
-        width   = engine.labelFontMetrics.stringWidth(toString());
-        ascent  = engine.labelFontMetrics.getAscent();
-        descent = engine.labelFontMetrics.getDescent();
+        width   = engine.painter.getLabelWidth(this.toString());
+        ascent  = engine.painter.getLabelAscent(this.toString());
+        descent = engine.painter.getLabelDescent(this.toString());
         
         maxy = (int)y + descent;    // screen coords: big y is down
         miny = (int)y - ascent;     // "
@@ -67,8 +67,7 @@ public class LabelPoint extends KPoint // implements ...
         else                           { minx = (int)x;           }
         maxx = minx + width;
         
-        engine.painter.paintLabel(paint, engine.labelFont, engine.labelFontMetrics,
-            this.toString(), minx, y, z);
+        engine.painter.paintLabel(paint, this.toString(), minx, y, z);
     }
 //}}}
 

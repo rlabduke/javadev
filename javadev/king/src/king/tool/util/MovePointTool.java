@@ -50,7 +50,7 @@ public class MovePointTool extends BasicTool
         KingView v = kMain.getView();
         if(v != null && allPoints != null)
         {
-            Dimension dim = kCanvas.getSize();
+            Dimension dim = kCanvas.getCanvasSize();
             for(int k = 0; k < allPoints.length; k++)
             {
                 float[] offset = v.translateRotated(dx, -dy, 0, Math.min(dim.width, dim.height));
@@ -69,7 +69,7 @@ public class MovePointTool extends BasicTool
         KingView v = kMain.getView();
         if(v != null && draggedPoint != null)
         {
-            Dimension dim = kCanvas.getSize();
+            Dimension dim = kCanvas.getCanvasSize();
             float[] offset = v.translateRotated(dx, -dy, 0, Math.min(dim.width, dim.height));
             draggedPoint.setOrigX(draggedPoint.getOrigX() + offset[0]);
             draggedPoint.setOrigY(draggedPoint.getOrigY() + offset[1]);
@@ -88,7 +88,7 @@ public class MovePointTool extends BasicTool
         KingView v = kMain.getView();
         if(v != null && draggedPoint != null)
         {
-            Dimension dim = kCanvas.getSize();
+            Dimension dim = kCanvas.getCanvasSize();
             for(int k = 0; k < allPoints.length; k++)
             {
                 float[] offset = v.translateRotated(0, 0, 6*rotation, Math.min(dim.width, dim.height));
@@ -106,7 +106,7 @@ public class MovePointTool extends BasicTool
         KingView v = kMain.getView();
         if(v != null && draggedPoint != null)
         {
-            Dimension dim = kCanvas.getSize();
+            Dimension dim = kCanvas.getCanvasSize();
             float[] offset = v.translateRotated(0, 0, 6*rotation, Math.min(dim.width, dim.height));
             draggedPoint.setOrigX(draggedPoint.getOrigX() + offset[0]);
             draggedPoint.setOrigY(draggedPoint.getOrigY() + offset[1]);

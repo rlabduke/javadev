@@ -455,9 +455,10 @@ public class Transform //extends ... implements ...
         y0 = pIn.getY();
         z0 = pIn.getZ();
         wH = m41*x0 + m42*y0 + m43*z0 + m44;
-        pOut.setX((m11*x0 + m12*y0 + m13*z0 + m14) / wH);
-        pOut.setY((m21*x0 + m22*y0 + m23*z0 + m24) / wH);
-        pOut.setZ((m31*x0 + m32*y0 + m33*z0 + m34) / wH);
+        pOut.setXYZ(
+            (m11*x0 + m12*y0 + m13*z0 + m14) / wH,
+            (m21*x0 + m22*y0 + m23*z0 + m24) / wH,
+            (m31*x0 + m32*y0 + m33*z0 + m34) / wH);
     }
 
     /**
@@ -480,9 +481,10 @@ public class Transform //extends ... implements ...
         y0 = vIn.getY();
         z0 = vIn.getZ();
         wH = m44;
-        vOut.setX((m11*x0 + m12*y0 + m13*z0) / wH);
-        vOut.setY((m21*x0 + m22*y0 + m23*z0) / wH);
-        vOut.setZ((m31*x0 + m32*y0 + m33*z0) / wH);
+        vOut.setXYZ(
+            (m11*x0 + m12*y0 + m13*z0) / wH,
+            (m21*x0 + m22*y0 + m23*z0) / wH,
+            (m31*x0 + m32*y0 + m33*z0) / wH);
     }
 //}}}
 

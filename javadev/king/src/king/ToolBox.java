@@ -605,12 +605,12 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
     * Called by KinCanvas after all kinemage painting is complete,
     * this gives the tools a chance to write additional info
     * (e.g., point IDs) to the graphics area.
-    * @param g2 the Graphics2D of the KinCanvas being painted
+    * @param painter    the Painter that can paint on the current canvas
     */
-    public void overpaintCanvas(Graphics2D g2)
+    public void overpaintCanvas(Painter painter)
     {
-        services.overpaintCanvas(g2);
-        activeTool.overpaintCanvas(g2);
+        services.overpaintCanvas(painter);
+        activeTool.overpaintCanvas(painter);
     }
 //}}}
 

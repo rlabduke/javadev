@@ -1269,6 +1269,68 @@ info-vis
 \end_inset 
 
 ).
+\layout Subsection
+
+OpenGL
+\layout Standard
+
+KiNG is capable of using OpenGL rendering commands to take advantage of
+ your graphics hardware and get (hopefully) accelerated graphics performance.
+ You'll need to have an up-to-date version of Java installed, along with
+ the JOGL libraries (
+\begin_inset LatexCommand \htmlurl{https://jogl.dev.java.net/}
+
+\end_inset 
+
+).
+ The JOGL libraries go in 
+\family typewriter 
+jre/lib/ext
+\family default 
+ of your Java installation or 
+\family typewriter 
+/Library/Java/Extensions
+\family default 
+, depending on your system; make sure you get both 
+\family typewriter 
+jogl.jar
+\family default 
+ and the native library or libraries (they end in 
+\family typewriter 
+.dll
+\family default 
+, 
+\family typewriter 
+.so
+\family default 
+, or 
+\family typewriter 
+.jnilib
+\family default 
+).
+ If you downloaded a platform-specific version of KiNG, the necessary libraries
+ may already be included.
+\layout Standard
+
+Note that due to limitations of Java's interaction with the native windowing
+ system, OpenGL graphics have to have their own window.
+ You can make it easier to work with by collapsing away the normal graphics
+ area and shrinking down the main KiNG window; it will then tile nicely
+ beside the graphics window.
+\layout Standard
+
+This feature has been tested with Java 1.4.2 and JOGL 1.1.0.
+ JOGL is still under development, as is this feature, and interacting so
+ directly with the hardware is always risky, so it's possible that OpenGL
+ rendering may hang KiNG on your computer.
+ You've been warned.
+\layout Standard
+
+Hopefully, a future version of Java (possibly the 1.5.x series) will use OpenGL
+ behind the scenes for all graphics operations, making KiNG much faster
+ and making this feature obsolete.
+ Until then, this is a work-around for large kinemages where performance
+ is an issue.
 \layout Section
 
 Master buttons
@@ -3071,6 +3133,58 @@ The lathe tool takes a single polyline and sweeps it out around an axis
  The standard axis of rotation is the Y-axis, with rotation centered at
  the origin, so keep this in mind when drawing a half-profile to use with
  this tool.
+\layout Section
+
+Update KiNG: Upgrading without the hassle
+\begin_inset LatexCommand \label{update-plugin}
+
+\end_inset 
+
+
+\layout Standard
+
+The Update KiNG plugin allows you to quickly and easily update KiNG to the
+ latest version published on the Kinemage website (kinemage.biochem.duke.edu).
+ After you confirm your intentions, KiNG will begin downloading the new
+ version.
+ If the download proceeds too slowly, you can cancel with no changes to
+ KiNG.
+ Once complete, the downloaded version will be unpacked in the same place
+ as your current installed version of KiNG, and the existing version will
+ be overwritten.
+ You can then quit KiNG and restart to take advantage of new features and
+ capabilities.
+\layout Standard
+
+The Update plugin has been tested on a variety of platforms under a variety
+ of conditions, but there is always a chance that it won't work quite right
+ on 
+\emph on 
+your
+\emph default 
+ computer.
+ The chance is greater if you created a non-standard custom installation
+ from the JAR files rather than using the pre-packaged platform-specific
+ installer.
+ If KiNG fails to start after the update, you may have to remove it and
+ then download and install a clean copy by hand.
+\layout Standard
+
+There are certain things the automatic updater 
+\emph on 
+can't
+\emph default 
+ update, like the bundled binary programs (
+\family typewriter 
+probe
+\family default 
+, 
+\emph on 
+etc
+\emph default 
+.) or the displayed version number of the Mac application bundle.
+ For this reason, you may want to periodically remove the existing installation
+ completely and reinstall from scratch.
 \layout Chapter
 
 Configuring KiNG
@@ -3473,6 +3587,8 @@ The KiNG program and all its associated original resources and documentation
  KiNG makes use of the gnu.regexp library, which is copyright (C) by Wes
  Biggs, and of icons copyright (C) by Sun Microsystems provided for use
  with Java programs.
+ It is also capable of using the iText library for generating PDF files,
+ and the JOGL library for OpenGL rendering.
 \layout Section
 
 Licenses
@@ -3505,6 +3621,12 @@ KiNG is free software available under the terms of its own BSD-style license
  License (MPL).
  iText is available from 
 \begin_inset LatexCommand \htmlurl{http://www.lowagie.com/iText/}
+
+\end_inset 
+
+.
+ JOGL is available under a BSD-style license from 
+\begin_inset LatexCommand \htmlurl{https://jogl.dev.java.net/}
 
 \end_inset 
 
@@ -3560,7 +3682,7 @@ KiNG is free software built on free software.
 Revision status
 \layout Standard
 
-This manual was last updated 18 May 2004 by IWD for KiNG version 1.26.
+This manual was last updated 6 June 2004 by IWD for KiNG version 1.28.
 \layout Chapter
 \start_of_appendix 
 KiNG License

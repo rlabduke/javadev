@@ -353,7 +353,7 @@ public class UIMenus //extends ... implements ...
             }
         }
         menu.addSeparator();
-        item = new JMenuItem(new ReflectiveAction("Customize this menu...", null, this, "onEditConfigurePlugins"));
+        item = new JMenuItem(new ReflectiveAction("Customize Tools menu...", null, this, "onEditConfigurePlugins"));
         item.setMnemonic(KeyEvent.VK_C);
         menu.add(item);
     }
@@ -711,6 +711,7 @@ public class UIMenus //extends ... implements ...
     public void onHelpAbout(ActionEvent ev)
     {
         ArrayList msgs = new ArrayList();
+        KingPrefs prefs = kMain.getPrefs();
         
         Runtime runtime = Runtime.getRuntime();
         int i, total0 = 0, free0 = 0, total1 = 0, free1 = 0, used; // in kilobytes
@@ -718,6 +719,10 @@ public class UIMenus //extends ... implements ...
         msgs.add(new JLabel("KiNG (Kinetic Image, Next Generation)"));
         msgs.add(new JLabel("Version "+kMain.getPrefs().getString("version")));
         msgs.add(new JLabel("Build "+kMain.getPrefs().getString("buildnum")));
+        try {
+            if(prefs.jarFileDirectory != null)
+                msgs.add(new JLabel("Installed in "+prefs.jarFileDirectory.getCanonicalPath()));
+        } catch(IOException ex) {}
         msgs.add(new JLabel("Copyright (C) 2002-2004 Ian W. Davis"));
         msgs.add(new JLabel("All rights reserved."));
 
@@ -726,7 +731,8 @@ public class UIMenus //extends ... implements ...
         try {
             msgs.add(new JLabel(System.getProperty("java.home", "(path not found)")));
         } catch(SecurityException ex) {}
-        msgs.add(new JLabel("Using gnu.regexp "+gnu.regexp.RE.version()));
+        // We're not listing the versions of iText, JOGL, etc. here ...
+        //msgs.add(new JLabel("Using gnu.regexp "+gnu.regexp.RE.version()));
 
         // Take up to 10 tries at garbage collection
         for(i = 0; i < 10; i++)

@@ -31,9 +31,9 @@
 </target>
 <!-- }}} -->
 
-<!-- build, compile, compile-mac {{{ -->
+<!-- build, compile, compile-mac, compile-jogl {{{ -->
 <!-- Bundles up all needed class and resource files into a JAR -->
-<target name="build" description="Build class files" depends="init,compile,compile-mac">
+<target name="build" description="Build class files" depends="init,compile,compile-mac,compile-jogl">
     <echo message="Version ${version}"/>
     <echo message="Build # ${buildnum}"/>
     <!-- As of 1.5.2, Ant screws up the INDEX by not considering Class-Path -->
@@ -66,6 +66,7 @@
          <include name="**/*.java"/>
          <exclude name="**/old/"/>
          <exclude name="**/Mac*.java"/>
+         <exclude name="**/Jogl*.java"/>
          <classpath>
             <pathelement location="../driftwood/build"/>
             <pathelement location="../lib"/>
@@ -78,6 +79,17 @@
 <target name="compile-mac" depends="init,compile" if="isMacOSX">
     <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source">
          <include name="**/Mac*.java"/>
+         <classpath>
+            <pathelement location="${build}"/>
+            <pathelement location="../driftwood/build"/>
+         </classpath>
+    </javac>
+</target>
+
+<!-- Compiles .java files that only work with JOGL installed -->
+<target name="compile-jogl" depends="init,compile">
+    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" failonerror="false">
+         <include name="**/Jogl*.java"/>
          <classpath>
             <pathelement location="${build}"/>
             <pathelement location="../driftwood/build"/>
@@ -147,12 +159,9 @@
     <delete file="itext.jar"/>
 </target>
 
-<!-- Also cleans chiropraxis and driftwood -->
-<target name="clean-all" depends="clean" description="Clean up king, chiropraxis, and driftwood">
+<!-- Also cleans driftwood -->
+<target name="clean-all" depends="clean" description="Clean up king and driftwood">
     <ant antfile="../driftwood/build.xml" inheritAll="false" target="clean">
-        <!-- inherited properties go here -->
-    </ant>
-    <ant antfile="../chiropraxis/build.xml" inheritAll="false" target="clean">
         <!-- inherited properties go here -->
     </ant>
 </target>

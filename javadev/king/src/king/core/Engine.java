@@ -55,13 +55,14 @@ public class Engine //extends ... implements ...
     public int          activeAspect    = 0;        // 0 -> don't use aspects, x -> use aspect x if present
     public int          markerSize      = 1;
     public Font         labelFont       = null;
-    public FontMetrics  labelFontMetrics = null;
+    //public FontMetrics  labelFontMetrics = null;
     public int          backgroundMode  = -1;
     public Triple       lightingVector  = new Triple(-1, 1, 3).unit();
     
     // READ/WRITE: Shared "scratch" objects that points can use
     public Triple           work1           = new Triple();
     public Triple           work2           = new Triple();
+    public Dimension        dim1            = new Dimension();
     
     // FOR USE BY ENGINE ONLY
     ArrayList[]         zbuffer;
@@ -72,6 +73,7 @@ public class Engine //extends ... implements ...
     
     Font                bigFont, smallFont;
     Rectangle           pickingRect = new Rectangle();
+    Rectangle           canvasRect = new Rectangle();
     float               pickingRadius = 5f;
     boolean             warnedPickingRegion = false; // have we warned user about out-of-bounds picks?
 //}}}
@@ -100,10 +102,9 @@ public class Engine //extends ... implements ...
     * @param subscriber     the subscriber that will be transformed and rendered
     * @param view           a KingView representing the current rotation/zoom/clip
     * @param bounds         the bounds of the area to render to
-    * @param g              the graphics context of a Swing component or an offscreen buffer
     * @param painter        the Painter that should be used for rendering stuff this pass
     */
-    public void render(TransformSignalSubscriber subscriber, KingView view, Rectangle bounds, Graphics2D g, Painter painter)
+    public void render(TransformSignalSubscriber subscriber, KingView view, Rectangle bounds, Painter painter)
     {
         // The game plan:
         // 1. Paint background
@@ -113,27 +114,28 @@ public class Engine //extends ... implements ...
         //     add transformed objects to Z-buffer.
         //  b. Paint all objects in Z-buffer, from back to front.
         
+        this.painter = painter;
+        this.canvasRect.setBounds(bounds);
+        
         // Get colors and prepare the graphics device
+        painter.setViewport(bounds.x, bounds.y, bounds.width, bounds.height);
         if(whiteBackground)
         {
             if(monochrome)  backgroundMode = KPaint.WHITE_MONO;
             else            backgroundMode = KPaint.WHITE_COLOR;
-            g.setColor(Color.white);
+            painter.clearCanvas(Color.white);
         }
         else
         {
             if(monochrome)  backgroundMode = KPaint.BLACK_MONO;
             else            backgroundMode = KPaint.BLACK_COLOR;
-            g.setColor(Color.black);
+            painter.clearCanvas(Color.black);
         }
-        g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
-        
-        this.painter = painter;
         
         // Set some last-minute drawing variables
         markerSize          = (bigMarkers   ? 2         : 1);
         labelFont           = (bigLabels    ? bigFont   : smallFont);
-        labelFontMetrics    = g.getFontMetrics(labelFont);
+        painter.setFont(labelFont);
         
         if(useStereo)
         {
@@ -141,19 +143,17 @@ public class Engine //extends ... implements ...
             KingView    altview     = (KingView)view.clone();
             altview.rotateY(stereoRotation);
 
-            Rectangle oldClipRgn, clipRgn;
-            oldClipRgn  = g.getClipBounds();
-            clipRgn     = new Rectangle();
-            
-            clipRgn.setBounds(bounds.x, bounds.y, halfwidth, bounds.height);
-            g.setClip(clipRgn);
+            Rectangle clipRgn = new Rectangle();
+            clipRgn.setBounds(  bounds.x, bounds.y, halfwidth, bounds.height);
+            painter.setViewport(bounds.x, bounds.y, halfwidth, bounds.height);
             renderLoop(subscriber, altview, clipRgn);
             
-            clipRgn.setBounds((bounds.x + bounds.width - halfwidth), bounds.y, halfwidth, bounds.height);
-            g.setClip(clipRgn);
+            clipRgn.setBounds(  (bounds.x + bounds.width - halfwidth), bounds.y, halfwidth, bounds.height);
+            painter.setViewport((bounds.x + bounds.width - halfwidth), bounds.y, halfwidth, bounds.height);
             renderLoop(subscriber,    view, clipRgn);
-            
-            g.setClip(oldClipRgn);
+        
+            // Have to re-activate all of the screen for drawing during overpaint
+            painter.setViewport(bounds.x, bounds.y, bounds.width, bounds.height);
         }
         else//!useStereo
         {
@@ -573,7 +573,7 @@ public class Engine //extends ... implements ...
     }
 //}}}
 
-//{{{ getNumberPainted
+//{{{ getNumberPainted, getCanvasSize
 //##################################################################################################
     /** Calculates the number of KPoint objects that were "painted" in the last cycle. */
     public int getNumberPainted()
@@ -581,6 +581,12 @@ public class Engine //extends ... implements ...
         int num = 0;
         for(int i = 0; i < zbuffer.length; i++) num += zbuffer[i].size();
         return num;
+    }
+    
+    /** Returns the size of the last rendering operation. */
+    public Dimension getCanvasSize()
+    {
+        return new Dimension(canvasRect.width, canvasRect.height);
     }
 //}}}
 

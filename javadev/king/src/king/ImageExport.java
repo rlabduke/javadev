@@ -74,7 +74,7 @@ public class ImageExport implements PropertyChangeListener, Runnable
     static public void exportImage(KinCanvas kCanvas, String format, File outfile)
         throws IOException
     {
-        Dimension       dim = kCanvas.getSize();
+        Dimension       dim = kCanvas.getCanvasSize();
         BufferedImage   img;
         if(format.equals("png"))
             img = new BufferedImage(dim.width, dim.height,
