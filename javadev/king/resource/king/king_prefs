@@ -110,6 +110,7 @@ king.tool.xtal.SuiteRotationTool.menuName = Specialty
 king.tool.util.FastaTool.menuName = Specialty
 king.tool.util.RecolorTool.menuName = Kin editing
 king.tool.util.ClipPlanesPlugin.menuName = Specialty
+king.tool.util.AutoBondRotDataTool.menuName = Specialty
 
 ######################################################################
 ### PROTECTION AND CONFIRMATION ######################################
