@@ -1,0 +1,2 @@
+#!/bin/bash
+java -cp ../../../driftwood.jar driftwood.moldb.TryReadPdb "$@"

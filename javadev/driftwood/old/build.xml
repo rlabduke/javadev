@@ -1,0 +1,95 @@
+<project name="driftwood" default="main" basedir=".">
+<description>Driftwood libraries by IWD</description>
+
+<property name="src"        location="src"/>
+<property name="resource"   location="resource"/>
+<property name="build"      location="build"/>
+<property name="dist"       location="dist"/>
+<property file="${resource}/${ant.project.name}/version.props"/>
+
+<target name="main"  description="Build class files" depends="build"/>
+<target name="build" description="Build class files" depends="init,compile">
+    <echo message="Version ${version}"/>
+    <echo message="Build # ${buildnum}"/>
+    <jar jarfile="${ant.project.name}.jar" index="true">
+        <fileset dir="${build}"/>
+        <fileset dir="${resource}"/>
+    </jar>
+</target>
+
+<target name="init">
+    <tstamp/>
+    <mkdir dir="${build}"/>
+</target>
+
+<target name="compile" depends="init">
+    <ant antfile="build-gui.xml"            target="compile"/>
+    <ant antfile="build-isosurface.xml"     target="compile"/>
+    <ant antfile="build-moldb.xml"          target="compile"/>
+    <ant antfile="build-r3.xml"             target="compile"/>
+    <ant antfile="build-string.xml"         target="compile"/>
+</target>
+
+<target name="dist" description="Generate the distributions" depends="clean,build,dist-src,dist-exe">
+    <zip basedir="${dist}"
+         destfile="${dist}/${ant.project.name}-${version}-src.zip"
+         includes="${ant.project.name}-${version}-src/"/>
+    <tar basedir="${dist}"
+         destfile="${dist}/${ant.project.name}-${version}-src.tgz"
+         includes="${ant.project.name}-${version}-src/"
+         compression="gzip"/>
+    <zip basedir="${dist}"
+         destfile="${dist}/${ant.project.name}-${version}.zip"
+         includes="${ant.project.name}-${version}/"/>
+    <tar basedir="${dist}"
+         destfile="${dist}/${ant.project.name}-${version}.tgz"
+         includes="${ant.project.name}-${version}/"
+         compression="gzip"/>
+</target>
+
+<target name="dist-src">
+    <mkdir dir="${dist}/${ant.project.name}-${version}-src"/>
+    <copy todir="${dist}/${ant.project.name}-${version}-src" preservelastmodified="true">
+        <fileset dir="${basedir}">
+            <include name="src/"/>
+            <include name="resource/"/>
+            <include name="doc/"/>
+            <include name="*.xml"/>
+            <exclude name="**/old/"/>
+        </fileset>
+    </copy>
+</target>
+
+<target name="dist-exe" depends="build">
+    <mkdir dir="${dist}/${ant.project.name}-${version}"/>
+    <copy todir="${dist}/${ant.project.name}-${version}" preservelastmodified="true">
+        <fileset dir="${basedir}">
+            <include name="${ant.project.name}.jar"/>
+            <include name="doc/"/>
+            <exclude name="doc/work/"/>
+        </fileset>
+    </copy>
+</target>
+
+<target name="clean" description="Clean up build/ and dist/">
+    <delete dir="${dist}"/>
+    <delete dir="${build}"/>
+    <delete file="${ant.project.name}.jar"/>
+</target>
+
+<target name="init-scp">
+    <property file="../lib/scp.props"/>
+    <taskdef name="antscp" classname="net.ericalexander.antscp.AntSCP"/>
+</target>
+
+<target name="backup" depends="clean,init-scp" description="Backs up this project on IWD's machine">
+    <tstamp/>
+    <mkdir dir="${user.home}/ark/old-versions/${ant.project.name}"/>
+    <jar jarfile="${user.home}/ark/old-versions/${ant.project.name}/${ant.project.name}-${version}.${DSTAMP}.${TSTAMP}.jar" index="true">
+        <fileset dir="${basedir}"/>
+    </jar>
+    <antscp remoteUserName="${scp.username}" remoteHost="${scp.hostname}" remotePassword="${scp.password}"
+            localFile="${user.home}/ark/old-versions/${ant.project.name}/${ant.project.name}-${version}.${DSTAMP}.${TSTAMP}.jar"
+            remoteFile="devel/old-versions/${ant.project.name}-${version}.${DSTAMP}.${TSTAMP}.jar"/>
+</target>
+</project>

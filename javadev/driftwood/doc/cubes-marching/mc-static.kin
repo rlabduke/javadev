@@ -1,0 +1,100 @@
+@text
+Illustration for Marching Cubes, transformed into a right-handed coordinate system.
+Vertices have been renumbered 0-7, edges 0-11.
+@kinemage 1
+@perspective
+@zoom 0.6
+@group {static}
+@subgroup {edges} dominant
+@vectorlist {edges} color= white
+{e0}P 0 0 0 {e0} 100 0 0
+{e1}P 100 0 0 {e1} 100 100 0
+{e2}P 100 100 0 {e2} 0 100 0
+{e3}P 0 100 0 {e3} 0 0 0
+{e4}P 0 0 100 {e4} 100 0 100
+{e5}P 100 0 100 {e5} 100 100 100
+{e6}P 100 100 100 {e6} 0 100 100
+{e7}P 0 100 100 {e7} 0 0 100
+{e8}P 0 0 0 {e8} 0 0 100
+{e9}P 100 0 0 {e9} 100 0 100
+{e10}P 100 100 0 {e10} 100 100 100
+{e11}P 0 100 0 {e11} 0 100 100
+@subgroup {balls} dominant off
+@balllist {corners} color= gray radius= 5.0
+{v0 (i,j,k)} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6 (i+1,j+1,k+1)} 100 100 100
+{v7} 0 100 100
+@balllist {edge-balls} color= gray radius= 3.0
+{e0} 50 0 0
+{e1} 100 50 0
+{e2} 50 100 0
+{e3} 0 50 0
+{e4} 50 0 100
+{e5} 100 50 100
+{e6} 50 100 100
+{e7} 0 50 100
+{e8} 0 0 50
+{e9} 100 0 50
+{e10} 100 100 50
+{e11} 0 100 50
+@subgroup {labels}
+@labellist {corner-labels} color= sea
+{v0 (i,j,k)} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6 (i+1,j+1,k+1)} 100 100 100
+{v7} 0 100 100
+@labellist {edge-labels} color= sea
+{e0} 50 0 0
+{e1} 100 50 0
+{e2} 50 100 0
+{e3} 0 50 0
+{e4} 50 0 100
+{e5} 100 50 100
+{e6} 50 100 100
+{e7} 0 50 100
+{e8} 0 0 50
+{e9} 100 0 50
+{e10} 100 100 50
+{e11} 0 100 50
+@subgroup {faces} dominant
+@vectorlist {ignore1} color= gray
+{x} 10 10 100
+{x} 90 10 100
+{x} 10 90 100
+{x} 90 90 100
+@vectorlist {ignore2} color= gray
+{x} 10 100 10
+{x} 10 100 90
+{x} 90 100 10
+{x} 90 100 90
+@vectorlist {ignore3} color= gray
+{x} 100 10 10
+{x} 100 10 90
+{x} 100 90 10
+{x} 100 90 90
+@subgroup {solid-faces} dominant off
+@ribbonlist {ignore1} color= gray
+{x} 10 10 101
+{x} 90 10 101
+{x} 10 90 101
+{x} 90 90 101
+@ribbonlist {ignore2} color= gray
+{x} 10 101 10
+{x} 10 101 90
+{x} 90 101 10
+{x} 90 101 90
+@ribbonlist {ignore3} color= gray
+{x} 101 10 10
+{x} 101 10 90
+{x} 101 90 10
+{x} 101 90 90
+

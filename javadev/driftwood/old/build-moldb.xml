@@ -1,0 +1,23 @@
+<project name="driftwood.moldb" default="main" basedir=".">
+<description>Driftwood Molecular Database libraries</description>
+
+<property name="src"        location="src"/>
+<property name="build"      location="build"/>
+
+<target name="main"  description="Build class files" depends="build"/>
+<target name="build" description="Build class files" depends="init,compile"/>
+
+<target name="init">
+    <mkdir dir="${build}"/>
+</target>
+
+<target name="compile" depends="init">
+    <ant antfile="build-r3.xml"             target="compile"/>
+    <ant antfile="build-string.xml"         target="compile"/>
+    <javac srcdir="${src}"
+           destdir="${build}"
+           includes="driftwood/moldb/**/*.java"
+           excludes="**/old/"
+           debug="on" debuglevel="lines,source"/>
+</target>
+</project>

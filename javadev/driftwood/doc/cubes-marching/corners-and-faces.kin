@@ -1,0 +1,3549 @@
+@kinemage 1
+@group {0} dominant animate
+@balllist {0} color= red radius= 3.0
+@trianglelist {faces} color= cyan alpha= 0.35
+@group {1} dominant animate
+@balllist {1} color= red radius= 3.0
+{v0} 0 0 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 0 50
+{x} 0 50 0
+@group {2} dominant animate
+@balllist {2} color= red radius= 3.0
+{v1} 100 0 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 50 0 0
+{x} 100 50 0
+@group {3} dominant animate
+@balllist {3} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 0 0 50
+{x} 100 50 0
+{x} 0 50 0
+@group {4} dominant animate
+@balllist {4} color= red radius= 3.0
+{v2} 100 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 100 50 0
+{x} 50 100 0
+@group {5} dominant animate
+@balllist {5} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 0 50
+{x} 0 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 100 50
+{x} 100 50 0
+@group {6} dominant animate
+@balllist {6} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 50 100 0
+{x} 100 0 50
+{x} 100 100 50
+@group {7} dominant animate
+@balllist {7} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 0 50 0
+{x} 100 100 50
+{x} 0 0 50
+{x} 100 0 50
+@group {8} dominant animate
+@balllist {8} color= red radius= 3.0
+{v3} 0 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 100 50
+{x} 50 100 0
+@group {9} dominant animate
+@balllist {9} color= red radius= 3.0
+{v0} 0 0 0
+{v3} 0 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 100 50
+{x} 50 0 0
+{x} 50 100 0
+@group {10} dominant animate
+@balllist {10} color= red radius= 3.0
+{v1} 100 0 0
+{v3} 0 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 100 0 50
+{x} 50 0 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 100 50
+{x} 50 100 0
+@group {11} dominant animate
+@balllist {11} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v3} 0 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 50 100 0
+{x} 100 0 50
+{x} 0 100 50
+{x} 0 0 50
+@group {12} dominant animate
+@balllist {12} color= red radius= 3.0
+{v2} 100 100 0
+{v3} 0 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 100 100 50
+{x} 0 50 0
+{x} 100 50 0
+@group {13} dominant animate
+@balllist {13} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 100 50 0
+{x} 0 0 50
+{x} 100 100 50
+{x} 0 100 50
+@group {14} dominant animate
+@balllist {14} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 50 0 0
+{x} 0 100 50
+{x} 100 0 50
+{x} 100 100 50
+@group {15} dominant animate
+@balllist {15} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 100 50
+{x} 0 0 50
+{x} 0 100 50
+@group {16} dominant animate
+@balllist {16} color= red radius= 3.0
+{v4} 0 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 50 0 100
+{x} 0 50 100
+@group {17} dominant animate
+@balllist {17} color= red radius= 3.0
+{v0} 0 0 0
+{v4} 0 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 50 0
+{x} 50 0 100
+{x} 50 0 0
+@group {18} dominant animate
+@balllist {18} color= red radius= 3.0
+{v1} 100 0 0
+{v4} 0 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 0 50 100
+{x} 0 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 100 50 0
+{x} 100 0 50
+@group {19} dominant animate
+@balllist {19} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v4} 0 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 100 0 50
+{x} 0 50 100
+{x} 100 50 0
+{x} 0 50 0
+@group {20} dominant animate
+@balllist {20} color= red radius= 3.0
+{v2} 100 100 0
+{v4} 0 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 0 50
+{x} 50 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 100 50 0
+{x} 50 100 0
+@group {21} dominant animate
+@balllist {21} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 50 0 100
+{x} 0 50 0
+{x} 0 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 100 50
+{x} 100 50 0
+@group {22} dominant animate
+@balllist {22} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 50 100 0
+{x} 100 0 50
+{x} 100 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 0 50 100
+{x} 0 0 50
+@group {23} dominant animate
+@balllist {23} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 50 100 0
+{x} 0 50 100
+{x} 100 0 50
+{x} 50 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 100 50
+{x} 100 0 50
+@group {24} dominant animate
+@balllist {24} color= red radius= 3.0
+{v3} 0 100 0
+{v4} 0 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 50 0 100
+{x} 0 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 50 100 0
+{x} 0 50 0
+@group {25} dominant animate
+@balllist {25} color= red radius= 3.0
+{v0} 0 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 100
+{x} 50 100 0
+{x} 50 0 100
+{x} 50 0 0
+@group {26} dominant animate
+@balllist {26} color= red radius= 3.0
+{v1} 100 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 0
+{x} 50 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 100 50 0
+{x} 100 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 0 50
+{x} 50 0 100
+@group {27} dominant animate
+@balllist {27} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 0 50 100
+{x} 100 0 50
+{x} 0 100 50
+{x} 100 50 0
+{x} 50 100 0
+@group {28} dominant animate
+@balllist {28} color= red radius= 3.0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 100 100 50
+{x} 0 50 0
+{x} 100 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 50 0 100
+{x} 0 50 100
+@group {29} dominant animate
+@balllist {29} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 50 0 0
+{x} 0 50 100
+{x} 100 100 50
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 100 100 50
+{x} 100 50 0
+@group {30} dominant animate
+@balllist {30} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 50 100
+{x} 50 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 50 0 0
+{x} 0 100 50
+{x} 100 0 50
+{x} 100 100 50
+@group {31} dominant animate
+@balllist {31} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 0 50 100
+{x} 100 0 50
+{x} 0 100 50
+{x} 100 100 50
+@group {32} dominant animate
+@balllist {32} color= red radius= 3.0
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 0 100
+{x} 100 0 50
+@group {33} dominant animate
+@balllist {33} color= red radius= 3.0
+{v0} 0 0 0
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 50 100
+{x} 50 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 50 0
+{x} 50 0 0
+@group {34} dominant animate
+@balllist {34} color= red radius= 3.0
+{v1} 100 0 0
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 50 0 0
+{x} 100 50 100
+{x} 100 50 0
+@group {35} dominant animate
+@balllist {35} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 50 0 100
+{x} 0 50 0
+{x} 100 50 100
+{x} 100 50 0
+@group {36} dominant animate
+@balllist {36} color= red radius= 3.0
+{v2} 100 100 0
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 0 100
+{x} 100 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 50 100 0
+{x} 100 100 50
+@group {37} dominant animate
+@balllist {37} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 50 0
+{x} 100 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 50 100
+{x} 50 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 50 0 0
+{x} 0 0 50
+@group {38} dominant animate
+@balllist {38} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 100 100 50
+{x} 50 0 100
+{x} 50 100 0
+{x} 50 0 0
+@group {39} dominant animate
+@balllist {39} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 100 50
+{x} 0 50 0
+{x} 100 50 100
+{x} 0 0 50
+{x} 50 0 100
+@group {40} dominant animate
+@balllist {40} color= red radius= 3.0
+{v3} 0 100 0
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 0 50 0
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 0 100
+{x} 100 0 50
+@group {41} dominant animate
+@balllist {41} color= red radius= 3.0
+{v0} 0 0 0
+{v3} 0 100 0
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 100 50
+{x} 50 0 0
+{x} 50 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 50 100
+{x} 50 0 100
+@group {42} dominant animate
+@balllist {42} color= red radius= 3.0
+{v1} 100 0 0
+{v3} 0 100 0
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 100 50 100
+{x} 50 0 0
+{x} 50 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 100 50
+{x} 50 100 0
+@group {43} dominant animate
+@balllist {43} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v3} 0 100 0
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 0 50
+{x} 50 100 0
+{x} 100 50 100
+{x} 100 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 100 50 100
+{x} 50 0 100
+@group {44} dominant animate
+@balllist {44} color= red radius= 3.0
+{v2} 100 100 0
+{v3} 0 100 0
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 0 50 0
+{x} 100 100 50
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 0 100
+{x} 100 0 50
+@group {45} dominant animate
+@balllist {45} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 50 0 100
+{x} 100 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 100 50 0
+{x} 0 0 50
+{x} 100 100 50
+{x} 0 100 50
+@group {46} dominant animate
+@balllist {46} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 50 0
+{x} 50 0 100
+{x} 100 100 50
+{x} 100 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 100 50
+{x} 100 100 50
+@group {47} dominant animate
+@balllist {47} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 0 100
+{x} 100 100 50
+{x} 0 0 50
+{x} 0 100 50
+@group {48} dominant animate
+@balllist {48} color= red radius= 3.0
+{v4} 0 0 100
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 100 0 50
+{x} 0 50 100
+{x} 100 50 100
+@group {49} dominant animate
+@balllist {49} color= red radius= 3.0
+{v0} 0 0 0
+{v4} 0 0 100
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 50 0 0
+{x} 100 50 100
+{x} 0 50 0
+{x} 0 50 100
+@group {50} dominant animate
+@balllist {50} color= red radius= 3.0
+{v1} 100 0 0
+{v4} 0 0 100
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 0 50
+{x} 100 50 0
+{x} 0 50 100
+{x} 100 50 100
+@group {51} dominant animate
+@balllist {51} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v4} 0 0 100
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 0 50 0
+{x} 100 50 100
+{x} 0 50 100
+@group {52} dominant animate
+@balllist {52} color= red radius= 3.0
+{v2} 100 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 0 50 100
+{x} 100 0 50
+{x} 0 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 50 100 0
+{x} 100 100 50
+@group {53} dominant animate
+@balllist {53} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 100 100 50
+{x} 50 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 50 0 0
+{x} 100 50 100
+{x} 0 50 0
+{x} 0 50 100
+@group {54} dominant animate
+@balllist {54} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 50 0 0
+{x} 100 100 50
+{x} 0 50 100
+{x} 100 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 50 100
+{x} 0 0 50
+@group {55} dominant animate
+@balllist {55} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 100 50
+{x} 0 50 0
+{x} 100 50 100
+{x} 0 50 100
+@group {56} dominant animate
+@balllist {56} color= red radius= 3.0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 100 0 50
+{x} 0 50 100
+{x} 100 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 50 100 0
+{x} 0 50 0
+@group {57} dominant animate
+@balllist {57} color= red radius= 3.0
+{v0} 0 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 100 0 50
+{x} 50 100 0
+{x} 0 50 100
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 50 100
+{x} 0 50 100
+@group {58} dominant animate
+@balllist {58} color= red radius= 3.0
+{v1} 100 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 50 100 0
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 0 50
+{x} 100 50 0
+{x} 0 50 100
+{x} 100 50 100
+@group {59} dominant animate
+@balllist {59} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 50 100 0
+{x} 0 50 100
+{x} 100 50 0
+{x} 100 50 100
+@group {60} dominant animate
+@balllist {60} color= red radius= 3.0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 100 50 0
+{x} 0 100 50
+{x} 0 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 100 0 50
+{x} 0 50 100
+{x} 0 0 50
+@group {61} dominant animate
+@balllist {61} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 0 100 50
+{x} 100 50 100
+{x} 0 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 50 0 0
+{x} 100 50 0
+@group {62} dominant animate
+@balllist {62} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 100 50 100
+{x} 0 100 50
+{x} 100 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 50 0 0
+{x} 0 0 50
+@group {63} dominant animate
+@balllist {63} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 0 100 50
+{x} 100 50 100
+{x} 0 50 100
+@group {64} dominant animate
+@balllist {64} color= red radius= 3.0
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 100 50 100
+{x} 100 100 50
+@group {65} dominant animate
+@balllist {65} color= red radius= 3.0
+{v0} 0 0 0
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 0 50
+{x} 0 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 50 100 100
+{x} 100 50 100
+@group {66} dominant animate
+@balllist {66} color= red radius= 3.0
+{v1} 100 0 0
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 50 100 100
+{x} 100 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 50 0 0
+{x} 100 50 0
+@group {67} dominant animate
+@balllist {67} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 0 0 50
+{x} 100 50 0
+{x} 0 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 50 100 100
+{x} 100 50 100
+@group {68} dominant animate
+@balllist {68} color= red radius= 3.0
+{v2} 100 100 0
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 50 100 100
+{x} 100 50 0
+{x} 100 50 100
+@group {69} dominant animate
+@balllist {69} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 50 100 100
+{x} 100 50 0
+{x} 100 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 0 50
+{x} 0 50 0
+@group {70} dominant animate
+@balllist {70} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 50 100
+{x} 50 0 0
+{x} 50 100 100
+{x} 50 100 0
+@group {71} dominant animate
+@balllist {71} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 100 0 50
+{x} 0 50 0
+{x} 50 100 100
+{x} 50 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 50 100 100
+{x} 100 50 100
+@group {72} dominant animate
+@balllist {72} color= red radius= 3.0
+{v3} 0 100 0
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 0 50 0
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 100 50 100
+{x} 100 100 50
+@group {73} dominant animate
+@balllist {73} color= red radius= 3.0
+{v0} 0 0 0
+{v3} 0 100 0
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 50 0 0
+{x} 0 100 50
+{x} 0 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 100 50 100
+{x} 100 100 50
+@group {74} dominant animate
+@balllist {74} color= red radius= 3.0
+{v1} 100 0 0
+{v3} 0 100 0
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 50 100 0
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 50 100 100
+{x} 100 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 100 50 0
+{x} 100 0 50
+@group {75} dominant animate
+@balllist {75} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v3} 0 100 0
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 100 50 100
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 50 100 0
+{x} 100 0 50
+{x} 0 100 50
+{x} 0 0 50
+@group {76} dominant animate
+@balllist {76} color= red radius= 3.0
+{v2} 100 100 0
+{v3} 0 100 0
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 0 100 50
+{x} 100 50 100
+{x} 0 50 0
+{x} 100 50 0
+@group {77} dominant animate
+@balllist {77} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 50 0 0
+{x} 100 50 100
+{x} 0 100 50
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 0 50
+{x} 0 100 50
+@group {78} dominant animate
+@balllist {78} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 100 50 100
+{x} 0 100 50
+{x} 100 0 50
+{x} 0 50 0
+{x} 50 0 0
+@group {79} dominant animate
+@balllist {79} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 100 50 100
+{x} 0 100 50
+{x} 100 0 50
+{x} 0 0 50
+@group {80} dominant animate
+@balllist {80} color= red radius= 3.0
+{v4} 0 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 100 100 50
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 0 50
+{x} 50 0 100
+@group {81} dominant animate
+@balllist {81} color= red radius= 3.0
+{v0} 0 0 0
+{v4} 0 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 50 0
+{x} 50 0 100
+{x} 50 0 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 100 100 50
+{x} 50 100 100
+@group {82} dominant animate
+@balllist {82} color= red radius= 3.0
+{v1} 100 0 0
+{v4} 0 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 50 0 100
+{x} 0 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 50 0 0
+{x} 100 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 100 50 100
+{x} 100 100 50
+@group {83} dominant animate
+@balllist {83} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v4} 0 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 100 100
+{x} 100 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 100 0 50
+{x} 0 50 100
+{x} 100 50 0
+{x} 0 50 0
+@group {84} dominant animate
+@balllist {84} color= red radius= 3.0
+{v2} 100 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 100 50 0
+{x} 50 100 100
+{x} 50 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 0 50
+{x} 50 0 100
+@group {85} dominant animate
+@balllist {85} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 0 50 100
+{x} 50 0 0
+{x} 0 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 100 100
+{x} 100 50 0
+{x} 50 100 0
+@group {86} dominant animate
+@balllist {86} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 0 0 50
+{x} 0 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 50 100
+{x} 50 0 0
+{x} 50 100 100
+{x} 50 100 0
+@group {87} dominant animate
+@balllist {87} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 50 100 0
+{x} 0 50 100
+{x} 0 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 100 0 50
+{x} 100 50 100
+@group {88} dominant animate
+@balllist {88} color= red radius= 3.0
+{v3} 0 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 100 100
+{x} 100 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 50 100 0
+{x} 0 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 0 50 100
+{x} 0 0 50
+@group {89} dominant animate
+@balllist {89} color= red radius= 3.0
+{v0} 0 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 100 100 50
+{x} 100 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 100
+{x} 50 100 0
+{x} 50 0 100
+{x} 50 0 0
+@group {90} dominant animate
+@balllist {90} color= red radius= 3.0
+{v1} 100 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 50 0 0
+{x} 100 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 0
+{x} 50 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 100 100 50
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 50 100
+{x} 50 0 100
+@group {91} dominant animate
+@balllist {91} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 50 100 100
+{x} 0 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 0 100
+{x} 100 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 100 50
+{x} 100 50 0
+@group {92} dominant animate
+@balllist {92} color= red radius= 3.0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 50 0 100
+{x} 0 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 0 100 50
+{x} 100 50 100
+{x} 0 50 0
+{x} 100 50 0
+@group {93} dominant animate
+@balllist {93} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 50 0 0
+{x} 100 50 100
+{x} 100 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 0 100 50
+{x} 0 50 100
+@group {94} dominant animate
+@balllist {94} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 0 50
+{x} 50 0 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 100 0 50
+{x} 100 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 100
+{x} 50 100 100
+@group {95} dominant animate
+@balllist {95} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 0 100 50
+{x} 0 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 100 0 50
+{x} 100 50 100
+@group {96} dominant animate
+@balllist {96} color= red radius= 3.0
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 100 50
+{x} 50 0 100
+{x} 50 100 100
+@group {97} dominant animate
+@balllist {97} color= red radius= 3.0
+{v0} 0 0 0
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 100 50
+{x} 50 0 100
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 50 0
+{x} 50 0 0
+@group {98} dominant animate
+@balllist {98} color= red radius= 3.0
+{v1} 100 0 0
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 100 50 0
+{x} 50 100 100
+{x} 50 0 0
+{x} 50 0 100
+@group {99} dominant animate
+@balllist {99} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 0 0 50
+{x} 50 100 100
+{x} 100 50 0
+{x} 100 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 50 0
+{x} 100 50 0
+@group {100} dominant animate
+@balllist {100} color= red radius= 3.0
+{v2} 100 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 100 0 50
+{x} 50 100 0
+{x} 50 0 100
+{x} 50 100 100
+@group {101} dominant animate
+@balllist {101} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 50 0
+{x} 0 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 100 0 50
+{x} 50 100 0
+{x} 50 0 100
+{x} 50 100 100
+@group {102} dominant animate
+@balllist {102} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 50 0 0
+{x} 50 100 100
+{x} 50 0 100
+@group {103} dominant animate
+@balllist {103} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 50 0
+{x} 50 0 100
+{x} 50 100 0
+{x} 50 100 100
+@group {104} dominant animate
+@balllist {104} color= red radius= 3.0
+{v3} 0 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 50 0 100
+{x} 100 100 50
+{x} 100 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 0 50 0
+{x} 0 100 50
+@group {105} dominant animate
+@balllist {105} color= red radius= 3.0
+{v0} 0 0 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 0 50
+{x} 50 100 0
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 50 0 100
+{x} 100 100 50
+{x} 50 100 100
+@group {106} dominant animate
+@balllist {106} color= red radius= 3.0
+{v1} 100 0 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 0 100 50
+{x} 0 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 100 50 0
+{x} 50 100 100
+{x} 50 0 0
+{x} 50 0 100
+@group {107} dominant animate
+@balllist {107} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 0 50
+{x} 50 100 100
+{x} 50 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 100 50 0
+{x} 50 100 0
+@group {108} dominant animate
+@balllist {108} color= red radius= 3.0
+{v2} 100 100 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 50 100 100
+{x} 100 0 50
+{x} 0 50 0
+{x} 100 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 0 50 0
+{x} 0 100 50
+@group {109} dominant animate
+@balllist {109} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 50 100 100
+{x} 0 0 50
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 100 50 0
+{x} 100 0 50
+@group {110} dominant animate
+@balllist {110} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 100 50
+{x} 50 0 0
+{x} 50 100 100
+{x} 50 0 100
+@group {111} dominant animate
+@balllist {111} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 0 50
+{x} 50 100 100
+{x} 50 0 100
+@group {112} dominant animate
+@balllist {112} color= red radius= 3.0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 50 100 100
+{x} 0 0 50
+{x} 100 100 50
+{x} 100 0 50
+@group {113} dominant animate
+@balllist {113} color= red radius= 3.0
+{v0} 0 0 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 50 100
+{x} 50 0 0
+{x} 100 100 50
+{x} 100 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 100 100 50
+{x} 50 100 100
+@group {114} dominant animate
+@balllist {114} color= red radius= 3.0
+{v1} 100 0 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 100 50 0
+{x} 0 0 50
+{x} 100 100 50
+{x} 0 50 100
+{x} 50 100 100
+@group {115} dominant animate
+@balllist {115} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 50 100 100
+{x} 100 50 0
+{x} 0 50 100
+{x} 0 50 0
+@group {116} dominant animate
+@balllist {116} color= red radius= 3.0
+{v2} 100 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 0 50 100
+{x} 50 100 0
+{x} 100 0 50
+{x} 100 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 0 50
+{x} 100 0 50
+@group {117} dominant animate
+@balllist {117} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 50 100
+{x} 50 100 0
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 100 0 50
+{x} 50 0 0
+@group {118} dominant animate
+@balllist {118} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 0 50
+{x} 50 100 100
+{x} 50 0 0
+{x} 50 100 0
+@group {119} dominant animate
+@balllist {119} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 50 100 0
+{x} 0 50 100
+{x} 0 50 0
+@group {120} dominant animate
+@balllist {120} color= red radius= 3.0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 0
+{x} 50 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 50 100 100
+{x} 0 0 50
+{x} 100 100 50
+{x} 100 0 50
+@group {121} dominant animate
+@balllist {121} color= red radius= 3.0
+{v0} 0 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 100 0 50
+{x} 50 100 0
+{x} 50 0 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 100
+{x} 50 100 100
+@group {122} dominant animate
+@balllist {122} color= red radius= 3.0
+{v1} 100 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 100 50
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 100 50
+{x} 100 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 50 0
+{x} 50 0 0
+@group {123} dominant animate
+@balllist {123} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 100
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 100 50 0
+{x} 50 100 0
+@group {124} dominant animate
+@balllist {124} color= red radius= 3.0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 100 50 0
+{x} 0 0 50
+{x} 100 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 50 100 100
+{x} 0 100 50
+@group {125} dominant animate
+@balllist {125} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 100
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 100 0 50
+{x} 50 0 0
+@group {126} dominant animate
+@balllist {126} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 50 100 100
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 50 0 0
+{x} 0 0 50
+@group {127} dominant animate
+@balllist {127} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 50 100 100
+{x} 0 100 50
+@group {128} dominant animate
+@balllist {128} color= red radius= 3.0
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 50 100 100
+{x} 0 100 50
+@group {129} dominant animate
+@balllist {129} color= red radius= 3.0
+{v0} 0 0 0
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 50 100 100
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 50 0 0
+{x} 0 0 50
+@group {130} dominant animate
+@balllist {130} color= red radius= 3.0
+{v1} 100 0 0
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 100
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 100 0 50
+{x} 50 0 0
+@group {131} dominant animate
+@balllist {131} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 100 50 0
+{x} 0 0 50
+{x} 100 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 50 100 100
+{x} 0 100 50
+@group {132} dominant animate
+@balllist {132} color= red radius= 3.0
+{v2} 100 100 0
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 100
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 100 50 0
+{x} 50 100 0
+@group {133} dominant animate
+@balllist {133} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 100 50
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 100 50
+{x} 100 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 50 0
+{x} 50 0 0
+@group {134} dominant animate
+@balllist {134} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 100 0 50
+{x} 50 100 0
+{x} 50 0 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 100
+{x} 50 100 100
+@group {135} dominant animate
+@balllist {135} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 50 100 100
+{x} 0 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 0 50 0
+{x} 100 100 50
+{x} 0 0 50
+{x} 100 0 50
+@group {136} dominant animate
+@balllist {136} color= red radius= 3.0
+{v3} 0 100 0
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 50 100 0
+{x} 0 50 100
+{x} 0 50 0
+@group {137} dominant animate
+@balllist {137} color= red radius= 3.0
+{v0} 0 0 0
+{v3} 0 100 0
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 0 50
+{x} 50 100 100
+{x} 50 0 0
+{x} 50 100 0
+@group {138} dominant animate
+@balllist {138} color= red radius= 3.0
+{v1} 100 0 0
+{v3} 0 100 0
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 50 100
+{x} 50 100 0
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 100 0 50
+{x} 50 0 0
+@group {139} dominant animate
+@balllist {139} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v3} 0 100 0
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 50 100
+{x} 100 0 50
+{x} 50 100 0
+{x} 100 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 50 100 100
+{x} 50 100 0
+@group {140} dominant animate
+@balllist {140} color= red radius= 3.0
+{v2} 100 100 0
+{v3} 0 100 0
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 50 100 100
+{x} 100 50 0
+{x} 0 50 100
+{x} 0 50 0
+@group {141} dominant animate
+@balllist {141} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 50 100 100
+{x} 0 0 50
+{x} 100 100 50
+{x} 50 0 0
+{x} 100 50 0
+@group {142} dominant animate
+@balllist {142} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 50 0
+{x} 50 100 100
+{x} 100 0 50
+{x} 100 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 100 0 50
+{x} 50 0 0
+@group {143} dominant animate
+@balllist {143} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 50 100 100
+{x} 0 0 50
+{x} 100 100 50
+{x} 100 0 50
+@group {144} dominant animate
+@balllist {144} color= red radius= 3.0
+{v4} 0 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 0 50
+{x} 50 100 100
+{x} 50 0 100
+@group {145} dominant animate
+@balllist {145} color= red radius= 3.0
+{v0} 0 0 0
+{v4} 0 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 100 50
+{x} 50 0 0
+{x} 50 100 100
+{x} 50 0 100
+@group {146} dominant animate
+@balllist {146} color= red radius= 3.0
+{v1} 100 0 0
+{v4} 0 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 50 100 100
+{x} 0 0 50
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 100 50 0
+{x} 100 0 50
+@group {147} dominant animate
+@balllist {147} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v4} 0 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 0 50 0
+{x} 100 0 50
+{x} 50 100 100
+{x} 50 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 50 100 100
+{x} 0 100 50
+@group {148} dominant animate
+@balllist {148} color= red radius= 3.0
+{v2} 100 100 0
+{v4} 0 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 0 50
+{x} 50 100 100
+{x} 50 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 100 50 0
+{x} 50 100 0
+@group {149} dominant animate
+@balllist {149} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 50 0
+{x} 100 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 100 50
+{x} 50 0 0
+{x} 50 100 100
+{x} 50 0 100
+@group {150} dominant animate
+@balllist {150} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 0 100 50
+{x} 50 0 100
+{x} 0 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 50 100 0
+{x} 100 0 50
+{x} 50 0 0
+@group {151} dominant animate
+@balllist {151} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 50 0 100
+{x} 100 100 50
+{x} 100 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 0 50 0
+{x} 0 100 50
+@group {152} dominant animate
+@balllist {152} color= red radius= 3.0
+{v3} 0 100 0
+{v4} 0 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 50 0
+{x} 50 0 100
+{x} 50 100 0
+{x} 50 100 100
+@group {153} dominant animate
+@balllist {153} color= red radius= 3.0
+{v0} 0 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 50 0 100
+{x} 50 100 0
+{x} 50 0 0
+@group {154} dominant animate
+@balllist {154} color= red radius= 3.0
+{v1} 100 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 100 0 50
+{x} 100 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 50 0
+{x} 50 0 100
+{x} 50 100 0
+{x} 50 100 100
+@group {155} dominant animate
+@balllist {155} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 100 0 50
+{x} 50 100 0
+{x} 50 0 100
+{x} 50 100 100
+@group {156} dominant animate
+@balllist {156} color= red radius= 3.0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 0 50
+{x} 100 50 0
+{x} 50 100 100
+{x} 100 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 50 0 100
+{x} 50 100 100
+@group {157} dominant animate
+@balllist {157} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 100 50 0
+{x} 50 100 100
+{x} 50 0 0
+{x} 50 0 100
+@group {158} dominant animate
+@balllist {158} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 100 50
+{x} 50 0 100
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 50 0
+{x} 50 0 0
+@group {159} dominant animate
+@balllist {159} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 100 50
+{x} 50 0 100
+{x} 50 100 100
+@group {160} dominant animate
+@balllist {160} color= red radius= 3.0
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 0 100 50
+{x} 0 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 100 0 50
+{x} 100 50 100
+@group {161} dominant animate
+@balllist {161} color= red radius= 3.0
+{v0} 0 0 0
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 0 50
+{x} 50 0 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 100 0 50
+{x} 100 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 100
+{x} 50 100 100
+@group {162} dominant animate
+@balllist {162} color= red radius= 3.0
+{v1} 100 0 0
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 50 0 0
+{x} 100 50 100
+{x} 100 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 0 100 50
+{x} 0 50 100
+@group {163} dominant animate
+@balllist {163} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 100 50
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 50 0 100
+{x} 0 50 0
+{x} 100 50 100
+{x} 100 50 0
+@group {164} dominant animate
+@balllist {164} color= red radius= 3.0
+{v2} 100 100 0
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 50 100 100
+{x} 0 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 0 100
+{x} 100 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 100 50
+{x} 100 50 0
+@group {165} dominant animate
+@balllist {165} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 0 50
+{x} 0 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 0 50 100
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 50 100 0
+{x} 100 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 100 50 100
+{x} 100 0 50
+@group {166} dominant animate
+@balllist {166} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 0 50 100
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 100 100 50
+{x} 50 0 100
+{x} 50 100 0
+{x} 50 0 0
+@group {167} dominant animate
+@balllist {167} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 100 100
+{x} 100 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 50 100 0
+{x} 0 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 0 50 100
+{x} 0 0 50
+@group {168} dominant animate
+@balllist {168} color= red radius= 3.0
+{v3} 0 100 0
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 50 100 0
+{x} 0 50 100
+{x} 0 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 100 0 50
+{x} 100 50 100
+@group {169} dominant animate
+@balllist {169} color= red radius= 3.0
+{v0} 0 0 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 100 50 100
+{x} 100 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 0 50
+{x} 50 100 100
+{x} 50 0 0
+{x} 50 100 0
+@group {170} dominant animate
+@balllist {170} color= red radius= 3.0
+{v1} 100 0 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 0 100
+{x} 100 50 0
+{x} 50 0 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 0 50 100
+{x} 50 100 0
+{x} 0 50 0
+@group {171} dominant animate
+@balllist {171} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 100 50 0
+{x} 50 100 100
+{x} 50 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 0 50
+{x} 50 0 100
+@group {172} dominant animate
+@balllist {172} color= red radius= 3.0
+{v2} 100 100 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 100 0 50
+{x} 50 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 50 100 100
+{x} 100 50 0
+{x} 0 50 100
+{x} 0 50 0
+@group {173} dominant animate
+@balllist {173} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 50 0 100
+{x} 0 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 50 0 0
+{x} 100 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 100 50 100
+{x} 100 100 50
+@group {174} dominant animate
+@balllist {174} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 50 0
+{x} 50 0 100
+{x} 50 0 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 100 100 50
+{x} 50 100 100
+@group {175} dominant animate
+@balllist {175} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 100 100 50
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 0 50
+{x} 50 0 100
+@group {176} dominant animate
+@balllist {176} color= red radius= 3.0
+{v4} 0 0 100
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 100 50 100
+{x} 0 100 50
+{x} 100 0 50
+{x} 0 0 50
+@group {177} dominant animate
+@balllist {177} color= red radius= 3.0
+{v0} 0 0 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 50 100
+{x} 50 0 0
+{x} 50 100 100
+{x} 0 50 0
+{x} 0 100 50
+@group {178} dominant animate
+@balllist {178} color= red radius= 3.0
+{v1} 100 0 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 50 0 0
+{x} 0 100 50
+{x} 100 50 100
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 100 50 0
+{x} 100 50 100
+@group {179} dominant animate
+@balllist {179} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 0 100 50
+{x} 100 50 100
+{x} 0 50 0
+{x} 100 50 0
+@group {180} dominant animate
+@balllist {180} color= red radius= 3.0
+{v2} 100 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 50 100 0
+{x} 100 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 100 50 100
+{x} 0 100 50
+{x} 100 0 50
+{x} 0 0 50
+@group {181} dominant animate
+@balllist {181} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 50 100 0
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 50 100 100
+{x} 100 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 100 50 0
+{x} 100 0 50
+@group {182} dominant animate
+@balllist {182} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 50 0 0
+{x} 0 100 50
+{x} 0 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 100 50 100
+{x} 100 100 50
+@group {183} dominant animate
+@balllist {183} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 0 50 0
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 100 50 100
+{x} 100 100 50
+@group {184} dominant animate
+@balllist {184} color= red radius= 3.0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 0 0 50
+{x} 100 50 100
+{x} 50 100 0
+{x} 50 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 50 100 0
+{x} 0 50 0
+@group {185} dominant animate
+@balllist {185} color= red radius= 3.0
+{v0} 0 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 50 100
+{x} 50 0 0
+{x} 50 100 100
+{x} 50 100 0
+@group {186} dominant animate
+@balllist {186} color= red radius= 3.0
+{v1} 100 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 50 100 100
+{x} 100 50 0
+{x} 100 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 0 50
+{x} 0 50 0
+@group {187} dominant animate
+@balllist {187} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 50 100 100
+{x} 100 50 0
+{x} 100 50 100
+@group {188} dominant animate
+@balllist {188} color= red radius= 3.0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 0 0 50
+{x} 100 50 0
+{x} 0 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 50 100 100
+{x} 100 50 100
+@group {189} dominant animate
+@balllist {189} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 50 100 100
+{x} 100 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 50 0 0
+{x} 100 50 0
+@group {190} dominant animate
+@balllist {190} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 0 50
+{x} 0 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 50 100 100
+{x} 100 50 100
+@group {191} dominant animate
+@balllist {191} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 100
+{x} 100 50 100
+{x} 100 100 50
+@group {192} dominant animate
+@balllist {192} color= red radius= 3.0
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 0 100 50
+{x} 100 50 100
+{x} 0 50 100
+@group {193} dominant animate
+@balllist {193} color= red radius= 3.0
+{v0} 0 0 0
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 100 50 100
+{x} 0 100 50
+{x} 100 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 50 0 0
+{x} 0 0 50
+@group {194} dominant animate
+@balllist {194} color= red radius= 3.0
+{v1} 100 0 0
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 0 100 50
+{x} 100 50 100
+{x} 0 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 50 0 0
+{x} 100 50 0
+@group {195} dominant animate
+@balllist {195} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 100 100 50
+{x} 0 50 100
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 50 0
+{x} 0 0 50
+{x} 0 50 0
+@group {196} dominant animate
+@balllist {196} color= red radius= 3.0
+{v2} 100 100 0
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 50 100 0
+{x} 0 50 100
+{x} 100 50 0
+{x} 100 50 100
+@group {197} dominant animate
+@balllist {197} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 0 50
+{x} 50 0 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 50 100 0
+{x} 0 50 100
+{x} 100 50 0
+{x} 100 50 100
+@group {198} dominant animate
+@balllist {198} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 0 100 50
+{x} 50 0 0
+{x} 100 50 100
+{x} 100 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 100
+{x} 100 50 100
+@group {199} dominant animate
+@balllist {199} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 100 0 50
+{x} 0 50 100
+{x} 100 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 50 100 0
+{x} 0 50 0
+@group {200} dominant animate
+@balllist {200} color= red radius= 3.0
+{v3} 0 100 0
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 100 50
+{x} 0 50 0
+{x} 100 50 100
+{x} 0 50 100
+@group {201} dominant animate
+@balllist {201} color= red radius= 3.0
+{v0} 0 0 0
+{v3} 0 100 0
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 50 100 0
+{x} 0 0 50
+{x} 100 50 100
+{x} 0 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 50 100
+{x} 100 100 50
+@group {202} dominant animate
+@balllist {202} color= red radius= 3.0
+{v1} 100 0 0
+{v3} 0 100 0
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 50 0 0
+{x} 100 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 100 50
+{x} 0 50 0
+{x} 100 50 100
+{x} 0 50 100
+@group {203} dominant animate
+@balllist {203} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v3} 0 100 0
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 0 50 100
+{x} 100 0 50
+{x} 0 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 50 100 0
+{x} 100 100 50
+@group {204} dominant animate
+@balllist {204} color= red radius= 3.0
+{v2} 100 100 0
+{v3} 0 100 0
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 50 0
+{x} 100 50 100
+{x} 100 50 0
+@group {205} dominant animate
+@balllist {205} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 0 50
+{x} 100 50 0
+{x} 0 50 100
+{x} 100 50 100
+@group {206} dominant animate
+@balllist {206} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 50 0 0
+{x} 100 50 100
+{x} 0 50 0
+{x} 0 50 100
+@group {207} dominant animate
+@balllist {207} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 100 0 50
+{x} 0 50 100
+{x} 100 50 100
+@group {208} dominant animate
+@balllist {208} color= red radius= 3.0
+{v4} 0 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 0 100
+{x} 100 100 50
+{x} 0 0 50
+{x} 0 100 50
+@group {209} dominant animate
+@balllist {209} color= red radius= 3.0
+{v0} 0 0 0
+{v4} 0 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 100 50 100
+{x} 50 0 0
+{x} 0 100 50
+{x} 0 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 100 100 50
+{x} 0 100 50
+@group {210} dominant animate
+@balllist {210} color= red radius= 3.0
+{v1} 100 0 0
+{v4} 0 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 50 0
+{x} 50 0 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 0 100
+{x} 100 100 50
+{x} 0 0 50
+{x} 0 100 50
+@group {211} dominant animate
+@balllist {211} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v4} 0 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 0 50 0
+{x} 100 100 50
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 0 100
+{x} 100 0 50
+@group {212} dominant animate
+@balllist {212} color= red radius= 3.0
+{v2} 100 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 100 50
+{x} 50 0 100
+{x} 100 50 0
+{x} 100 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 100 50 0
+{x} 50 100 0
+@group {213} dominant animate
+@balllist {213} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 100 50 100
+{x} 50 0 0
+{x} 50 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 100 50
+{x} 50 100 0
+@group {214} dominant animate
+@balllist {214} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 100 50
+{x} 50 0 0
+{x} 50 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 50 100
+{x} 50 0 100
+@group {215} dominant animate
+@balllist {215} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 0 50 0
+{x} 0 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 0 100
+{x} 100 0 50
+@group {216} dominant animate
+@balllist {216} color= red radius= 3.0
+{v3} 0 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 50 0 100
+{x} 0 50 0
+{x} 100 50 100
+{x} 50 100 0
+{x} 100 100 50
+@group {217} dominant animate
+@balllist {217} color= red radius= 3.0
+{v0} 0 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 100 100 50
+{x} 50 0 100
+{x} 50 100 0
+{x} 50 0 0
+@group {218} dominant animate
+@balllist {218} color= red radius= 3.0
+{v1} 100 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 50 0
+{x} 100 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 50 100
+{x} 50 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 50 0 0
+{x} 0 0 50
+@group {219} dominant animate
+@balllist {219} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 0 100
+{x} 100 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 50 100 0
+{x} 100 100 50
+@group {220} dominant animate
+@balllist {220} color= red radius= 3.0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 50 0 100
+{x} 0 50 0
+{x} 100 50 100
+{x} 100 50 0
+@group {221} dominant animate
+@balllist {221} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 50 0 0
+{x} 100 50 100
+{x} 100 50 0
+@group {222} dominant animate
+@balllist {222} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 100 50 100
+{x} 50 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 50 0
+{x} 50 0 0
+@group {223} dominant animate
+@balllist {223} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 100
+{x} 50 0 100
+{x} 100 0 50
+@group {224} dominant animate
+@balllist {224} color= red radius= 3.0
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 0 50 100
+{x} 100 0 50
+{x} 0 100 50
+{x} 100 100 50
+@group {225} dominant animate
+@balllist {225} color= red radius= 3.0
+{v0} 0 0 0
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 50 0 0
+{x} 0 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 0 50 100
+{x} 100 0 50
+{x} 0 100 50
+{x} 100 100 50
+@group {226} dominant animate
+@balllist {226} color= red radius= 3.0
+{v1} 100 0 0
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 50 0 100
+{x} 100 50 0
+{x} 0 100 50
+{x} 100 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 0 100 50
+{x} 0 50 100
+@group {227} dominant animate
+@balllist {227} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 100 100 50
+{x} 0 50 0
+{x} 100 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 50 0 100
+{x} 0 50 100
+@group {228} dominant animate
+@balllist {228} color= red radius= 3.0
+{v2} 100 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 100
+{x} 50 100 0
+{x} 50 0 100
+{x} 100 50 0
+{x} 100 0 50
+@group {229} dominant animate
+@balllist {229} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 0
+{x} 50 100 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 100 50 0
+{x} 100 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 0 50
+{x} 50 0 100
+@group {230} dominant animate
+@balllist {230} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 0 50 100
+{x} 50 100 0
+{x} 50 0 100
+{x} 50 0 0
+@group {231} dominant animate
+@balllist {231} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 50 0 100
+{x} 0 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 50 100 0
+{x} 0 50 0
+@group {232} dominant animate
+@balllist {232} color= red radius= 3.0
+{v3} 0 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 50 100 0
+{x} 100 0 50
+{x} 0 50 100
+{x} 50 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 0 50 0
+{x} 0 50 100
+@group {233} dominant animate
+@balllist {233} color= red radius= 3.0
+{v0} 0 0 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 50 100 0
+{x} 100 0 50
+{x} 100 100 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 0 50 100
+{x} 0 0 50
+@group {234} dominant animate
+@balllist {234} color= red radius= 3.0
+{v1} 100 0 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 50 0 100
+{x} 0 50 0
+{x} 0 50 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 100 50
+{x} 100 50 0
+@group {235} dominant animate
+@balllist {235} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 0 50
+{x} 50 0 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 100 50 0
+{x} 50 100 0
+@group {236} dominant animate
+@balllist {236} color= red radius= 3.0
+{v2} 100 100 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 100 0 50
+{x} 0 50 100
+{x} 100 50 0
+{x} 0 50 0
+@group {237} dominant animate
+@balllist {237} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 100
+{x} 0 50 100
+{x} 0 0 50
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 100 50 0
+{x} 100 0 50
+@group {238} dominant animate
+@balllist {238} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 100
+{x} 0 50 0
+{x} 50 0 100
+{x} 50 0 0
+@group {239} dominant animate
+@balllist {239} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 50 0 100
+{x} 0 50 100
+@group {240} dominant animate
+@balllist {240} color= red radius= 3.0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 0 0 50
+{x} 100 100 50
+{x} 0 100 50
+@group {241} dominant animate
+@balllist {241} color= red radius= 3.0
+{v0} 0 0 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 50 0 0
+{x} 0 100 50
+{x} 100 0 50
+{x} 100 100 50
+@group {242} dominant animate
+@balllist {242} color= red radius= 3.0
+{v1} 100 0 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 100 50 0
+{x} 0 0 50
+{x} 100 100 50
+{x} 0 100 50
+@group {243} dominant animate
+@balllist {243} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 100 50
+{x} 100 100 50
+{x} 0 50 0
+{x} 100 50 0
+@group {244} dominant animate
+@balllist {244} color= red radius= 3.0
+{v2} 100 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 50 100 0
+{x} 100 0 50
+{x} 0 100 50
+{x} 0 0 50
+@group {245} dominant animate
+@balllist {245} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 50 0
+{x} 100 0 50
+{x} 50 0 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 100 50
+{x} 50 100 0
+@group {246} dominant animate
+@balllist {246} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 0 50
+{x} 0 100 50
+{x} 50 0 0
+{x} 50 100 0
+@group {247} dominant animate
+@balllist {247} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 0 50 0
+{x} 0 100 50
+{x} 50 100 0
+@group {248} dominant animate
+@balllist {248} color= red radius= 3.0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 0 50 0
+{x} 100 100 50
+{x} 0 0 50
+{x} 100 0 50
+@group {249} dominant animate
+@balllist {249} color= red radius= 3.0
+{v0} 0 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 50 100 0
+{x} 100 0 50
+{x} 100 100 50
+@group {250} dominant animate
+@balllist {250} color= red radius= 3.0
+{v1} 100 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 0 50
+{x} 0 50 0
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 100 0
+{x} 100 100 50
+{x} 100 50 0
+@group {251} dominant animate
+@balllist {251} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 100 50
+{x} 100 50 0
+{x} 50 100 0
+@group {252} dominant animate
+@balllist {252} color= red radius= 3.0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 0 0 50
+{x} 100 50 0
+{x} 0 50 0
+@group {253} dominant animate
+@balllist {253} color= red radius= 3.0
+{v0} 0 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 100 0 50
+{x} 50 0 0
+{x} 100 50 0
+@group {254} dominant animate
+@balllist {254} color= red radius= 3.0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35
+{x} 50 0 0
+{x} 0 0 50
+{x} 0 50 0
+@group {255} dominant animate
+@balllist {255} color= red radius= 3.0
+{v0} 0 0 0
+{v1} 100 0 0
+{v2} 100 100 0
+{v3} 0 100 0
+{v4} 0 0 100
+{v5} 100 0 100
+{v6} 100 100 100
+{v7} 0 100 100
+@trianglelist {faces} color= cyan alpha= 0.35

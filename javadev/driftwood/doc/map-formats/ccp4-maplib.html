@@ -1,0 +1,1118 @@
+<html><head><title>CCP4 Program Suite: maplib</title></head>
+<body>
+
+<!-- ::INDEX_INFO::MAPLIB::Library::::Subroutine Library for CCP4 map file handling:::::::: -->
+
+<h1> MAPLIB (CCP4: Library)</h1>
+<h2> NAME</h2>
+<b>maplib </b>
+- Subroutine Library for CCP4 map file handling
+
+<p>
+Original documentation by Phil Evans and John Campbell.
+ 
+</p><h2> CONTENTS</h2>
+ 
+<ol>
+<li>     <a href="#introduction">INTRODUCTION</a>
+ 
+</li><li>     <a href="#description">DETAILED DESCRIPTION OF THE MAP FORMAT</a>
+ 
+</li><li>     <a href="#subroutines">MAP HANDLING SUBROUTINES</a>
+ 
+</li><li>     <a href="#mrdhdr">THE SUBROUTINES 'MRDHDR' and 'MRDHDS'</a> <br>
+         ('ccp4_map_read_open_header' and 'ccp4_map_read_open_header_check')
+
+</li><li>     <a href="#mposn">THE SUBROUTINE 'MPOSN'</a> <br>
+         ('ccp4_map_read_position_section')
+ 
+</li><li>     <a href="#mrdlin">THE SUBROUTINE 'MRDLIN'</a> <br>
+         ('ccp4_map_read_line_as_mode')
+ 
+</li><li>     <a href="#mgulp">THE SUBROUTINE 'MGULP'</a> <br>
+         ('ccp4_map_read_whole_section_as_mode')
+ 
+</li><li>     <a href="#mgulpr">THE SUBROUTINE 'MGULPR'</a> <br>
+         ('ccp4_map_read_whole_section_as_real')
+
+</li><li>     <a href="#mrclos">THE SUBROUTINE 'MRCLOS'</a> <br>
+         ('ccp4_map_read_close')
+ 
+</li><li>     <a href="#mwrhdr">THE SUBROUTINES 'MWRHDR' and 'MWRHDL'</a> <br>
+         ('ccp4_map_write_open_header_by_id' and 'ccp4_map_write_open_header_by_name')
+ 
+</li><li>     <a href="#mspew">THE SUBROUTINE 'MSPEW'</a> <br>
+         ('ccp4_map_write_all_section')
+ 
+</li><li>     <a href="#mwrsec">THE SUBROUTINE 'MWRSEC'</a> <br>
+         ('ccp4_map_write_part_section')
+ 
+</li><li>     <a href="#mposnw">THE SUBROUTINE 'MPOSNW'</a> <br>
+         ('ccp4_map_write_position_section')
+
+</li><li>     <a href="#mwclose">THE SUBROUTINES 'MWCLOSE',  'MCLOSE' and `MCLOSC'</a> <br>
+         ('ccp4_map_write_close_auto', 'ccp4_map_write_close_user_sum' and
+          'ccp4_map_write_close_user_mean')
+ 
+</li><li>     <a href="#msyput">THE SUBROUTINES 'MSYPUT' and 'MSYWRT'</a> <br>
+         ('ccp4_map_write_spgname' and 'ccp4_map_write_symm_matrix')
+ 
+</li><li>     <a href="#msymop">THE SUBROUTINE 'MSYMOP'</a> <br>
+         ('ccp4_map_read_symm_matrix')
+ 
+</li><li>     <a href="#msycpy">THE SUBROUTINE 'MSYCPY'</a> <br>
+         ('ccp4_map_copy_symmetry')
+ 
+</li><li>     <a href="#mskput">THE SUBROUTINE 'MSKPUT'</a> <br>
+         ('ccp4_map_write_skew_info')
+ 
+</li><li>     <a href="#mskget">THE FUNCTION 'MSKGET'</a> <br>
+         (No alternative name)
+
+</li><li>     <a href="#mttcpy">THE SUBROUTINES `MTTCPY' and `MTTREP'</a> <br>
+         ('ccp4_map_copy_title' and 'ccp4_map_write_replace_title')
+
+</li><li>     <a href="#mrfnam">THE SUBROUTINES 'MRFNAM' and 'MWFNAM'</a> <br>
+         ('ccp4_map_get_last_read_filename' and 'ccp4_map_get_last_write_filename')
+
+</li><li>     <a href="#ccp4maphead">THE SUBROUTINES 'CCP4MAPHEAD', 'CCP4MAPIN' and
+         'CCP4MAPOUT'</a>
+         ('ccp4_map_read_header_only', 'ccp4_map_read_whole_map' and
+         'ccp4_map_write_whole_map')
+ 
+</li><li>     <a href="#calling_sequence">TYPICAL CALLING SEQUENCES</a>
+ 
+</li><li>     <a href="#implementation">IMPLEMENTATION NOTES</a>
+</li></ol>
+
+<h2><a name="introduction"></a> 1) INTRODUCTION</h2>
+ 
+The standard map file format used by the CCP4 programs is the
+map/image file format devised at the MRC LMB Cambridge, originally by
+David Agard. The advantages of the format include the following:
+
+<dl compact="compact"><dt>     a)</dt><dd> The information in the header describes the relationship of
+the map to the crystal cell, and other information useful in
+crystallographic calculations (eg crystal symmetry)
+ 
+</dd><dt>     b)</dt><dd> The file may be written and read in different ways e.g. written
+section by section and read line by line.
+ 
+</dd><dt>     c)</dt><dd> The format is suitable for both crystallographic work and for
+image processing so that Fourier and plotting programs can be used for
+both purposes.
+</dd></dl>
+ 
+<h2> <a name="description"></a> 2) DETAILED DESCRIPTION OF THE MAP FORMAT</h2> 
+
+The overall layout of the file is as follows:
+
+<dl compact="compact"><dt>a)</dt><dd> File header (256 longwords)
+
+</dd><dt>b)</dt><dd> Symmetry information
+
+</dd><dt>c)</dt><dd> Map, stored as a 3-dimensional array
+</dd></dl>
+
+The files are read &amp; written using the diskio package, which allows
+the file to be treated as a direct-access byte stream, essentially as
+in C fread &amp; fwrite calls. 
+<p>
+ The header is organised as 56 words followed by space for ten 80
+character text labels as follows:
+</p><pre> 
+ 1      NC              # of Columns    (fastest changing in map)
+ 2      NR              # of Rows
+ 3      NS              # of Sections   (slowest changing in map)
+ 4      MODE            Data type
+                          0 = envelope stored as signed bytes (from
+                              -128 lowest to 127 highest)
+                          1 = Image     stored as Integer*2
+                          2 = Image     stored as Reals
+                          3 = Transform stored as Complex Integer*2
+                          4 = Transform stored as Complex Reals
+                          5 == 0	
+ 
+                          Note: Mode 2 is the normal mode used in
+                                the CCP4 programs. Other modes than 2 and 0
+                                may NOT WORK
+ 
+ 5      NCSTART         Number of first COLUMN  in map
+ 6      NRSTART         Number of first ROW     in map
+ 7      NSSTART         Number of first SECTION in map
+ 8      NX              Number of intervals along X
+ 9      NY              Number of intervals along Y
+10      NZ              Number of intervals along Z
+11      X length        Cell Dimensions (Angstroms)
+12      Y length                     "
+13      Z length                     "
+14      Alpha           Cell Angles     (Degrees)
+15      Beta                         "
+16      Gamma                        "
+17      MAPC            Which axis corresponds to Cols.  (1,2,3 for X,Y,Z)
+18      MAPR            Which axis corresponds to Rows   (1,2,3 for X,Y,Z)
+19      MAPS            Which axis corresponds to Sects. (1,2,3 for X,Y,Z)
+20      AMIN            Minimum density value
+21      AMAX            Maximum density value
+22      AMEAN           Mean    density value    (Average)
+23      ISPG            Space group number
+24      NSYMBT          Number of bytes used for storing symmetry operators
+25      LSKFLG          Flag for skew transformation, =0 none, =1 if foll
+26-34   SKWMAT          Skew matrix S (in order S11, S12, S13, S21 etc) if
+                        LSKFLG .ne. 0.
+35-37   SKWTRN          Skew translation t if LSKFLG .ne. 0.
+                        Skew transformation is from standard orthogonal
+                        coordinate frame (as used for atoms) to orthogonal
+                        map frame, as
+ 
+                                Xo(map) = S * (Xo(atoms) - t)
+ 
+38      future use       (some of these are used by the MSUBSX routines
+ .          "              in MAPBRICK, MAPCONT and FRODO)
+ .          "   (all set to zero by default)
+ .          "
+52          "
+
+53	MAP	        Character string 'MAP ' to identify file type
+54	MACHST		Machine stamp indicating the machine type
+			which wrote file
+55      ARMS            Rms deviation of map from mean density
+56      NLABL           Number of labels being used
+57-256  LABEL(20,10)    10  80 character text labels (ie. A4 format)
+
+</pre>
+Symmetry records follow - if any -  stored  as  text  as  in  International
+Tables, operators separated by * and grouped into 'lines' of 80  characters
+(ie. symmetry operators do not cross the ends of the  80-character  'lines'
+and the 'lines' do not terminate in a *).
+<p> 
+Map data array follows.
+ 
+</p><h2> <a name="subroutines"></a> 3) MAP HANDLING SUBROUTINES</h2>
+ 
+High level subroutines are provided to handle 3-D maps. There are
+routines to handle the header, to read and write sections (ie a part
+of the 3D array corresponding to 1 value of the slow-moving index),
+and to handle the symmetry data.
+ <p>
+<b>Summary of routines:</b>
+</p><p>
+Nb: longer descriptive names are now also available; calls to subroutines using
+the new names have the same arguments as those usng the original names.
+</p><p>
+Input:
+</p><p>
+<table border="1">
+<tbody><tr>
+  <th>Original name
+  </th><th>Function
+  </th><th>Alternative name
+</th></tr><tr>
+  <td> <a href="#mrdhdr">MRDHDR</a>
+  </td><td>  open file for reading, read header and print
+  </td><td>ccp4_map_read_open_header
+</td></tr><tr>
+  <td> <a href="#mposn">MPOSN</a>
+  </td><td>  position file to a given map section
+  </td><td>ccp4_map_read_position_section
+</td></tr><tr>
+  <td> <a href="#mgulp">MGULP</a>
+  </td><td>  read a section of map
+  </td><td>ccp4_map_read_whole_section_as_mode
+</td></tr><tr>
+  <td> <a href="#mgulpr">MGULPR</a>
+  </td><td>  read a section of map and convert to real*4 if necessary
+  </td><td>ccp4_map_read_whole_section_as_real
+</td></tr><tr>
+  <td> <a href="#mrclos">MRCLOS</a>
+  </td><td>  close input file
+  </td><td>ccp4_map_read_close
+</td></tr><tr>
+  <td> <a href="#ccp4maphead">CCP4MAPHEAD</a>
+  </td><td> read spacegroup, cell and map limits from header
+  </td><td>ccp4_map_read_header_only
+</td></tr><tr>
+  <td> <a href="#ccp4maphead">CCP4MAPIN</a>
+  </td><td> read in the whole map and store in x,y,z order
+  </td><td>ccp4_map_read_whole_map
+</td></tr><tr>
+  <td> <a href="#mrdlin">[MRDLIN]</a>
+  </td><td>  [read a line of map]
+  </td><td>[ccp4_map_read_line_as_mode]
+</td></tr></tbody></table>
+
+</p><p>
+Output:
+</p><p>
+
+<table border="1">
+<tbody><tr>
+  <th>Original name
+  </th><th>Function
+  </th><th>Alternative name
+</th></tr><tr>
+  <td><a href="#mwrhdr">MWRHDR / MWRHDL</a>
+  </td><td>  open output file and set up header
+  </td><td>ccp4_map_write_open_header_by_id / ccp4_map_write_open_header_by _name
+</td></tr><tr>
+  <td><a href="#mspew">MSPEW</a>
+  </td><td>  write section
+  </td><td>ccp4_map_write_all_section
+</td></tr><tr>
+  <td><a href="#mwclose">MWCLOSE / [MCLOSE] / [MCLOSC]</a>
+  </td><td>  write out header and close file
+  </td><td>ccp4_map_write_close_auto / [ccp4_map_write_close_user_sum] / [ccp4_map_write_close_user_mean]
+</td></tr><tr>
+  <td><a href="#ccp4maphead">CCP4MAPOUT</a>
+  </td><td> write out the whole map in x,y,z order
+  </td><td>ccp4_map_write_whole_map
+</td></tr><tr>
+  <td><a href="#mwrsec">[MWRSEC]</a>
+  </td><td>  [write part of array as section]
+  </td><td>[ccp4_map_write_part_section]
+</td></tr></tbody></table>
+
+</p><p>
+Symmetry:
+</p><p>
+
+<table border="1"><tbody><tr>
+  <th>Original name
+  </th><th>Function
+  </th><th>Alternative name
+</th></tr><tr>
+  <td><a href="#msyput">MSYPUT</a>
+  </td><td>  copy symmetry data from library file to map file
+  </td><td>ccp4_map_write_spgname
+</td></tr><tr>
+  <td><a href="#msyput">MSYWRT</a>
+  </td><td>  write symmetry data to mapfile
+  </td><td>ccp4_map_write_symm_matrix
+</td></tr><tr>
+  <td><a href="#msymop">MSYMOP</a>
+  </td><td>  read symmetry data from map file and convert to matrices and vectors.
+  </td><td>ccp4_map_read_symm_matrix
+</td></tr><tr>
+  <td><a href="#msycpy">MSYCPY</a>
+  </td><td>  copy symmetry data from input map file to output map file
+  </td><td>ccp4_map_copy_symmetry
+</td></tr><tr>
+  <td>MSYGET
+  </td><td>  get symmetry operations from library file (nothing to do with map files,
+        exists in symlib.f)
+  </td><td>No alternative name
+</td></tr></tbody></table>
+
+</p><p>
+Skew transformation:
+</p><p>
+
+<table border="1"><tbody><tr>
+  <th>Original name
+  </th><th>Function
+  </th><th>Alternative name
+</th></tr><tr>
+  <td><a href="#mskput">MSKPUT</a>
+  </td><td>  put skew transformation into header common block
+  </td><td>ccp4_map_write_skew_info
+</td></tr><tr>
+  <td><a href="#mskget">MSKGET</a>
+  </td><td>  get skew transformation from header common block (Function call)
+  </td><td>No alternative name
+</td></tr></tbody></table>
+
+</p><p>
+Titles:
+</p><p>
+
+<table border="1"><tbody><tr>
+  <th>Original name
+  </th><th>Function
+  </th><th>Alternative name
+</th></tr><tr>
+  <td><a href="#mttcpy">MTTCPY</a>
+  </td><td>  Copy all titles from previously opened input and output files
+  </td><td>ccp4_map_copy_title
+</td></tr><tr>
+  <td><a href="#mttcpy">MTTREP</a>
+  </td><td>  Replace title in output file
+  </td><td>ccp4_map_write_replace_title
+</td></tr></tbody></table>
+
+</p><p>
+In all these routines IUNIT is a logical stream number in the  range  1  to
+12. These stream numbers are not directly related  to  the  Fortran  stream
+numbers.
+ 
+</p><h2> <a name="mrdhdr"></a> 4) THE SUBROUTINES 'MRDHDR' and 'MRDHDS'</h2>
+
+<b>Alternative names:</b> <tt>ccp4_map_read_open_header</tt> and
+<tt>ccp4_map_read_open_header_check</tt>
+
+<p>
+ 
+The subroutines 'MRDHDR' (_read_open_header) or 'MRDHDS' (_read_open_header_check)
+are used to open an input map
+file and read the header information. MRDHDS differs from MRDHDR only
+in the provision of 2 extra arguments IFAIL &amp; IPRINT which allow for
+soft failure of file opening, and control of printing
+</p><pre>
+Call:  CALL MRDHDR(IUNIT,MAPNAM,TITLE,NSEC,IUVW,MXYZ,NW1,NU1,NU2,
+      *NV1,NV2,CELL,LSPGRP,LMODE,RHMIN,RHMAX,RHMEAN,RHRMS)
+
+       CALL MRDHDS(IUNIT,MAPNAM,TITLE,NSEC,IUVW,MXYZ,NW1,NU1,NU2,
+      *NV1,NV2,CELL,LSPGRP,LMODE,RHMIN,RHMAX,RHMEAN,RHRMS,IFAIL,IPRINT)
+
+</pre>
+Arguments:
+<pre> 
+ IUNIT (I)   Map stream number
+ 
+MAPNAM (I)   Logical file name (type CHARACTER) e.g. 'MAPIN'
+ 
+ TITLE (O)   Map title (CHARACTER*80)
+ 
+  NSEC (O)   Number of sections in the map
+ 
+  IUVW (O)   3 word array with fast, medium, slow axes (1=X, 2=Y, 3=Z)
+ 
+  MXYZ (O)   3 word array with sampling intervals along whole cell on X, Y,
+             Z
+ 
+   NW1 (O)   No. of first section
+ 
+   NU1 (O)   Start of section on fast axis (grid units)
+ 
+   NU2 (O)   End of section on fast axis
+ 
+   NV1 (O)   Start of section on medium axis
+ 
+   NV2 (O)   End of section on medium axis
+ 
+  CELL (O)   6 word array for cell dimensions in Angstroms and degrees
+ 
+LSPGRP (O)   Space group number
+ 
+ LMODE (O)   Map data mode =0, byte
+                           =1, INTEGER*2
+                           =2, REAL
+                           =3, COMPLEX INTEGER*2
+                           =4, COMPLEX REAL
+                           =5, Treated as mode 0
+             Only mode 2 and 0 should occur with CCP4 programs
+ 
+ RHMIN (O)   Minimum density
+ 
+ RHMAX (O)   Maximum density
+ 
+RHMEAN (O)   Mean density
+
+RHRMS  (O)   Rms deviation from the mean
+
+</pre>
+The following arguments are for MRDHDS (ccp4_map_read_open_header_check) only
+<pre>
+ IFAIL (I/O)  On input:     =0, stop on error
+                             =1, return on error
+              On output:    unchanged if no error
+                             =-1, error 
+  IPRINT (I)                 = 0; silent
+                          .ne. 0; print file name, header info etc
+
+</pre>
+ 
+<h2> <a name="mposn"></a> 5) THE SUBROUTINE 'MPOSN'</h2>
+
+<b>Alternative name:</b> <tt>ccp4_map_read_position_section</tt>
+
+<p>
+ 
+This subroutine is used to set the position in the map  file  so  that  the
+next section to be read is section JSEC.
+</p><pre> 
+Call:  CALL MPOSN(IUNIT,JSEC)
+ 
+</pre>
+Arguments:
+<pre> 
+ IUNIT (I)   Map stream number
+ 
+  JSEC (I)   Position the input map before section JSEC
+ 
+</pre>
+
+<h2> <a name="mrdlin"></a> 6) THE SUBROUTINE 'MRDLIN'</h2>
+
+<b>Alternative name:</b> <tt>ccp4_map_read_line_as_mode</tt>
+
+<p>
+ 
+Read the next line from an input map file. The data  are  returned  in  the
+same form as that stored in the map.
+</p><pre> 
+Call:  CALL MRDLIN(IUNIT,X,IER)
+ 
+</pre>
+Arguments:
+<pre> 
+ IUNIT (I)   Map stream number
+ 
+     X (O)   Array to contain the line of data read from the map
+ 
+   IER (O)   Error flag =0, OK   non-zero, error or end of file
+ 
+</pre>
+
+<h2> <a name="mgulp"></a> 7) THE SUBROUTINE 'MGULP'</h2>
+
+<b>Alternative name:</b> <tt>ccp4_map_read_whole_section_as_mode</tt>
+
+<p>
+ 
+This subroutine reads the next whole map section. The data are returned  in
+the same form as that stored in the map (ie no conversion for
+different modes is done).
+</p><pre> 
+Call:  CALL MGULP(IUNIT,X,IER)
+ 
+</pre>
+Arguments:
+<pre> 
+ IUNIT (I)   Map stream number
+ 
+     X (O)   Array to contain the section of data read from the map
+ 
+   IER (O)   Error flag =0, OK   non-zero, error or end of file
+ 
+</pre>
+
+<h2> <a name="mgulpr"></a> 8) THE SUBROUTINE 'MGULPR'</h2>
+
+<b>Alternative name:</b> <tt>ccp4_map_read_whole_section_as_real</tt>
+
+<p>
+ 
+This subroutine reads the next whole map section. For map modes other  than
+2 the output data are converted to type=REAL. For complex maps (mode = 3 or
+4) the complex amplitude is returned.
+</p><pre> 
+Call:  CALL MGULPR(IUNIT,X,IER)
+ 
+</pre>
+Arguments:
+<pre> 
+ IUNIT (I)   Map stream number
+ 
+     X (O)   Array to contain  the  section  of  data  read  from  the  map
+             (Returned as REAL values)
+ 
+   IER (O)   Error flag =0, OK   non-zero, error or end of file
+ 
+</pre>
+
+<h2> <a name="mrclos"></a> 9) THE SUBROUTINE 'MRCLOS'</h2>
+
+<b>Alternative name:</b> <tt>ccp4_map_read_close</tt>
+
+<p>
+
+MRCLOS closes a map file open for reading to re-use the stream.
+</p><pre>
+Call: CALL MRCLOS(IUNIT)
+
+</pre>
+Arguments:
+<pre>
+ IUNIT (I)   The map stream number
+
+</pre>
+
+<h2> <a name="mwrhdr"></a> 10) THE SUBROUTINES 'MWRHDR' AND'MWRHDL'</h2> 
+ 
+<b>Alternative names:</b> <tt>ccp4_map_write_open_header_by_id</tt> and
+<tt>ccp4_map_write_open_header_by_name</tt>
+
+<p>
+
+These subroutines are used to open an output map file and set up the header
+information. The actual header is only written to the file when the file is
+closed via  the  routine <a href="#mwclose">MCLOSE (ccp4_map_write_close_user_sum)</a>.
+The  only  difference  between  the  two subroutines is that <a href="#mwrhdr">MWRHDR
+(ccp4_map_write_open_header_by_id)</a> does not have a parameter for the  logical  file
+name for which a name of 'MAPOUT' is assumed.
+</p><pre>
+Call:  CALL MWRHDR(IUNIT,TITLE,NSEC,IUVW,MXYZ,NW1,NU1,NU2,
+      *NV1,NV2,CELL,LSPGRP,LMODE)
+ 
+Call:  CALL MWRHDL(IUNIT,MAPNAM,TITLE,NSEC,IUVW,MXYZ,NW1,NU1,NU2,
+      *NV1,NV2,CELL,LSPGRP,LMODE)
+
+</pre>
+Arguments:
+<pre> 
+ IUNIT (I)   Map stream number
+ 
+MAPNAM (I)   Logical  file  name  (type  CHARACTER)  e.g.  'MAPOUT'   (This
+             parameter only present for MWRHDL)
+ 
+ TITLE (I)   Map title (CHARACTER*80)
+ 
+  NSEC (I)   Number of sections in the map
+ 
+  IUVW (I)   3 word array with fast, medium, slow axes (1=X, 2=Y, 3=Z)
+ 
+  MXYZ (I)   3 word array with sampling intervals along whole cell on X, Y,
+             Z
+ 
+   NW1 (I)   No. of first section
+ 
+   NU1 (I)   Start of section on fast axis (grid units)
+ 
+   NU2 (I)   End of section on fast axis
+ 
+   NV1 (I)   Start of section on medium axis
+ 
+   NV2 (I)   End of section on medium axis
+ 
+  CELL (I)   6 word array for cell dimensions in Angstroms and degrees
+ 
+LSPGRP (I)   Space group number
+ 
+ LMODE (I)   Map data mode =0, byte for envelopes
+                           =1, INTEGER*2
+                           =2, REAL  (usual mode)
+                           =3, COMPLEX INTEGER*2
+                           =4, COMPLEX REAL
+                           =5, Treated as mode 0
+              Only mode 2 and 0 should occur with CCP4 programs
+ 
+</pre>
+
+<h2> <a name="mspew"></a> 11) THE SUBROUTINE 'MSPEW'</h2> 
+
+<b>Alternative name:</b> <tt>ccp4_map_write_all_section</tt>
+
+<p>
+ 
+This subroutine writes the next whole map section. The routine is used when
+the section occupies the complete  array.  The  data  are  written  without
+translation for different modes.
+</p><pre>
+Call:  CALL MSPEW(IUNIT,X)
+ 
+</pre>
+Arguments:
+<pre> 
+ IUNIT (I)   Map stream number
+ 
+     X (I)   Array holding the map section
+ 
+</pre>
+
+<h2> <a name="mwrsec"></a> 12) THE SUBROUTINE 'MWRSEC'</h2>
+
+<b>Alternative name:</b> <tt>ccp4_map_write_part_section</tt>
+
+<p>
+ 
+This subroutine is used to write a map section as part of an array  to  the
+map file.
+</p><pre> 
+Call:  CALL MWRSEC(IUNIT,X,MU,MV,IU1,IU2,IV1,IV2)
+ 
+</pre>
+Arguments:
+<pre> 
+ IUNIT (I)   The map stream number
+ 
+     X (I)   The array holding the map section
+ 
+    MU (I)   The number of points along the whole fast axis
+ 
+    MV (I)   The number of points along the whole medium axis
+ 
+   IU1 (I)   The start array index along the fast axis
+ 
+   IU2 (I)   The finish array index along the fast axis
+ 
+   IV1 (I)   The start array index along the medium axis
+ 
+   IV2 (I)   the finish array index along the medium axis
+ 
+</pre>
+The elements written for a section may be described in FORTRAN notation  as
+((X(I,J),I=IU1,IU2),J=IV1,IV2).
+ 
+<h2> <a name="mposnw"></a> 13) THE SUBROUTINE 'MPOSNW'</h2>
+
+<b>Alternative name:</b> <tt>ccp4_map_write_position_section</tt>
+
+<p>
+ 
+This subroutine is used to set the position in the map  file  so  that  the
+next section to be written is section JSEC.
+</p><pre> 
+Call:  CALL MPOSNW(IUNIT,JSEC)
+ 
+</pre>
+Arguments:
+<pre> 
+ IUNIT (I)   Map stream number
+ 
+  JSEC (I)   Position the output map before section JSEC
+ 
+</pre>
+
+<h2> <a name="mwclose"></a> 14) THE SUBROUTINE 'MWCLOSE', 'MCLOSC' and `MCLOSE'</h2> 
+
+<b>Alternative names:</b> <tt>ccp4_map_write_close_auto</tt>,
+<tt>ccp4_map_write_close_user_sum</tt> and <tt>ccp4_map_write_close_user_mean</tt>
+
+<p>
+ 
+MWCLOSE, MCLOSC &amp; MCLOSE write the header records to the output map
+file and close the file. They differ in their handling of the density
+limits, mean and rms deviation. You are strongly recommended to use MWCLOSE
+(ccp4_map_write_close_user_sum).
+</p><p>
+Use:-
+</p><dl><dt>MWCLOSE (ccp4_map_write_close_auto)
+        </dt><dd>if the sums for mean &amp; rms are accumulated inside the maplib
+	package (in MSPEW/ccp4_map_write_all_section). This works for mode=2 only.
+        USE THIS FOR NORMAL PURPOSES.
+
+</dd><dt>MCLOSC (ccp4_map_write_close_user_sum)
+        </dt><dd>when a map file is just being copied, since the RHMEAN &amp; RHRMS
+	arguments can be taken directly from the call to 
+        MRDHDR/ccp4_map_read_open_header. This
+	call is also useful when the mean &amp; rms need to be weighted
+	(as in rotation functions), so they need to be calculated in
+	the main program.	
+
+</dd><dt>MCLOSE (ccp4_map_write_close_user_mean)
+        </dt><dd>if the sums for mean &amp; rms RHSUM &amp; RHSUM2 are accumulated
+	outside the maplib package.
+</dd></dl>
+<pre>
+Calls:  CALL MWCLOSE(IUNIT)
+ 	CALL MCLOSC(IUNIT,RHMIN,RHMAX,RHMEAN,RHRMS)
+	CALL MCLOSE(IUNIT,RHMIN,RHMAX,RHSUM,RHSUM2)
+
+</pre>
+Arguments:
+<pre> 
+ IUNIT (I)   The map stream number
+ 
+ RHMIN (I)   The minimum density in the map
+ 
+ RHMAX (I)   The maximum density in the map
+ 
+RHSUM  (I)   The sum of all the densities in the map (This will be  divided
+             internally by the number of points in the map to give the mean
+             density which is then stored)
+ 
+RHSUM2 (I)   The sum of squares of the density values in the map (This will
+             used internally to calculate the rms deviation from the mean
+             value which is then stored.)
+                                   
+RHMEAN (I)   The mean density in the map. This is the same as is returned
+             from reading the header
+ 
+RHRMS  (I)   The rms deviation from the mean density, as stored in the header
+</pre>
+
+<h2> <a name="msyput"></a> 15) THE SUBROUTINES 'MSYPUT' and 'MSYWRT'</h2>
+ 
+<b>Alternative names:</b> <tt>ccp4_map_write_spgname</tt> and
+<tt>ccp4_map_write_symm_matrix</tt>
+
+<p>
+
+The subroutine MSYPUT reads the symmetry operators file (logical name SYMOP)
+and finds the entry for the requested space group. The symmetry
+operators are copied from the symmetry operators file to the map file
+on stream IUNIT leaving space for the header records.
+</p><pre> 
+Call:  CALL MSYPUT(IST,LSPGRP,IUNIT)
+ 
+</pre>
+Arguments:
+<pre> 
+   IST (I)   The FORTRAN unit number for  reading  the  symmetry  operators
+             file (choose a unit number which does not conflict with
+	     the rest of your program).
+ 
+LSPGRP (I)   The space group number
+ 
+ IUNIT (I)   The map stream number of the output map file
+
+
+</pre>
+The subroutine MSYWRT writes symmetry operators to map stream IUNIT
+Note that the symmetry operators are written to the file one per line
+and may have a different format to those in the SYMOP file
+<pre>
+Call: CALL  MSYWRT(IUNIT,NSYM,ROT)
+
+</pre>
+Arguments:
+<pre>
+       IUNIT    (I)     Map stream number 
+       NSYM     (I)     Number of symmetry operators
+ ROT(4,4,NSYM)  (I)     rotation/translation matrices
+
+</pre>
+
+ 
+<h2> <a name="msymop"></a> 16) THE SUBROUTINE 'MSYMOP'</h2>
+ 
+<b>Alternative name:</b> <tt>ccp4_map_read_symm_matrix</tt>
+
+<p>
+
+This subroutine reads the symmetry operators from an input map file  (after
+calling <a href="#mrdhdr">MRDHDR /ccp4_map_read_open_header</a>).
+The operators are converted and returned as matrices.
+</p><pre> 
+Call:  CALL MSYMOP(IUNIT,NSYM,ROT)
+ 
+</pre>
+Arguments:
+<pre> 
+ IUNIT (I)   The map stream number
+ 
+  NSYM (O)   The number of symmetry operators
+ 
+   ROT (O)   The array in which the symmetry operators are returned as  4*4
+             matrices. It should be dimensioned as ROT(4,4,NS) where NS  &gt;=
+             NSYM (usually NS = 96)
+ 
+</pre>
+
+<h2> <a name="msycpy"></a> 17)  THE SUBROUTINE 'MSYCPY'</h2>
+
+<b>Alternative name:</b> <tt>ccp4_map_copy_symmetry</tt>
+
+<p>
+ 
+This subroutine copies the symmetry operators from an input map file to  an
+output map file after calls to <a href="#mrdhdr">MRDHDR (_read_open_header)</a>
+and <a href="#mwrhdr">MWRHDR (_write_open_header_by_id)</a> (or <a href="#mwrhdr">MWRHDL
+/ _write_open_header_by_name</a>). Note
+that if you have more than one input file, this routine should be
+called after MRDHDR for the file from which you want to copy the
+symmetry operations, and before calling MRDHDR for any other file.
+</p><pre> 
+Call:  CALL MSYCPY(IN,IOUT)
+ 
+</pre>
+Arguments:
+<pre> 
+    IN (I)   The input map stream number
+ 
+  IOUT (I)   The output map stream number
+ 
+</pre>
+ 
+<h2> <a name="mskput"></a> 18) THE SUBROUTINE 'MSKPUT'</h2>
+ 
+<b>Alternative name:</b> <tt>ccp4_map_write_skew_info</tt>
+
+<p>
+
+This subroutine writes a skew transformation to an output map header  block
+(after a call to <a href="#mwrhdr">MWRHDR (_write_open_header_by_id)</a> or
+<a href="#mwrhdr">MWRHDL (_write_open_header_by_name)</a> ).
+</p><p>
+NB *** Use of MSKPUT &amp; MSKGET has not been generally implemented in the
+CCP4 suite ***
+</p><pre> 
+Call:  CALL MSKPUT(SKWMAT,SKWTRN)
+ 
+</pre>
+Arguments:
+<pre> 
+SKWMAT (I)   3*3 Skew rotation matrix
+ 
+SKWTRN (I)   3 word Skew translation matrix
+ 
+</pre>
+
+<h2> <a name="mskget"></a> 19) THE FUNCTION 'MSKGET'</h2>
+
+<b>Alternative name:</b> None.
+
+<p>
+ 
+This function reads a skew transformation from an input  map  header  block
+(after a call to <a href="#mrdhdr">MRDHDR (_read_open_header)</a> ).
+</p><p>
+NB *** Use of MSKPUT &amp; MSKGET has not been generally implemented in the
+CCP4 suite ***
+</p><pre> 
+Call:  I = MSKGET(SKWMAT,SKWTRN)
+ 
+</pre>
+Arguments:
+<pre> 
+SKWMAT (O)   3*3 Skew rotation matrix
+ 
+SKWTRN (O)   3 word Skew translation matrix
+ 
+</pre>
+Returns MSKGET =1, skew transformation present, =0, absent
+
+<h2> <a name="mttcpy"></a> 20) THE SUBROUTINES `MTTCPY' and `MTTREP'</h2>
+
+<b>Alternative names:</b> <tt>ccp4_map_copy_title</tt> and
+<tt>ccp4_map_write_replace_title</tt>
+
+<p>
+
+MTTCPY (ccp4_map_copy_tile) copies all titles from a previously opened input to the
+previously opened output file, adding the new TITLE to the end or
+overwriting the last one if there are already 10 (the maximum which
+can be stored).
+</p><pre>
+Call:  CALL MTTCPY(TITLE)
+
+</pre>
+Arguments:
+<pre>
+TITLE (I)  CHARACTER variable holding the new title (&lt;=80 characters)
+
+</pre>
+MTTREP (ccp4_map_write_replace_title) replaces the NT-th title in the output file
+(after calls to <a href="#mwrhdr">MWRHDR / ccp4_map_read_open_header</a> and MTTCPY
+/ ccp4_map_copy_title), adding a new TITLE to the end or overwriting the
+last one if there are already 10.
+<pre> 
+Call:  CALL MTTREP(TITLE,NT)
+
+</pre>
+Arguments:
+<pre>
+TITLE (I)  CHARACTER varaible holding the new title
+
+   NT (I)  INTEGER number of title to be replaced
+
+</pre>
+
+<h2> <a name="mrfnam"></a> 21) THE SUBROUTINES 'MRFNAM' and 'MWFNAM'</h2>
+
+<b>Alternative names:</b> <tt>ccp4_map_get_last_read_filename</tt> and
+<tt>ccp4_map_get_last_write_filename</tt>
+
+<p>
+
+These routines may be called to return the full filename for a file
+open for reading (MRFNAM / ccp4_map_get_last_read_filename) or writing
+(MWFNAM / ccp4_map_get_last_write_filename).
+</p><pre>
+Call: CALL MRFNAM(FNAME)
+      CALL MWFNAM(FNAME)
+
+</pre>
+Arguments:
+<pre>
+  FNAME (O) file name of last file opened by MRDHDR/MRDHDS or by
+		MWRHDR/MWRHDL
+
+</pre>
+
+<h2> <a name="ccp4maphead"></a> 22) THE SUBROUTINES 'CCP4MAPHEAD', 'CCP4MAPIN'
+                                    AND 'CCP4MAPOUT'</h2>
+
+<b>Alternative names:</b> <tt>ccp4_map_read_header_only</tt>,
+<tt>ccp4_map_read_whole_map</tt>, and <tt>ccp4_map_write_whole_map</tt>.
+
+<p>
+
+These are Kevin Cowtan's "wrapper" routines which provide an interface to
+other maplib subroutines in order to easily read and write entire maps.
+CCP4MAPHEAD obtains the map limits from the map file, and CCP4MAPIN and CCP4MAPOUT
+then use this information  to resepctively read in and write out an entire map
+in one go.
+
+</p><p>
+
+CCP4MAPHEAD reads header information from a map file. It is used to
+get the map limits before calling CCP4MAPIN.
+</p><pre>  Call: CALL ccpmap4head(iunit,name,nspgrp,cell,nu,nv,nw,nu1,nv1,nw1,nu2,
+       +                 nv2,nw2)
+</pre>
+Arguments:
+<pre>  iunit   (I)  Map stream number (integer)
+  name    (I)  Logical file name (type character*8) e.g.'MAPIN'   
+  nspgrp  (O)  Space group number (integer)
+  cell    (O)  6 word array for cell dimensions in Angstroms and
+               degrees (real)
+  nu      (O)  Sampling interval along whole cell on X (integer)
+  nv      (O)  Sampling interval along whole cell on Y (integer)
+  nw      (O)  Sampling interval along whole cell on Z (integer)
+  nu1     (O)  Start of map on X axis, in grid units (integer)
+  nv1     (O)  Start of map on Y axis, in grid units (integer)
+  nw1     (O)  Start of map on Z axis, in grid units (integer)
+  nu2     (O)  End of map on X axis (integer)
+  nv2     (O)  End of map on Y axis (integer)
+  nw2     (O)  End of map on Z axis (integer)
+</pre>
+Note that this differs from <a href="#mrdhdr">ccp4_map_read_open_header_check</a>
+[MRDHDS] (which it calls) in that the file is not left open but is closed
+(by a call to <a href="#mrclos">ccp4_map_read_close</a> [MRCLOS]) before the
+subroutine terminates. Note also that the map limits are returned in x,y,z order
+rather than in fast, medium, slow order.
+
+<p>
+
+CCP4MAPIN reads a whole map into an array and stores it in x,y,z order.
+The map limits are required as input to dimension the array holding
+the map, and can be obtained with a call to the subroutine CCP4MAPHEAD.
+</p><pre>  Call: CALL ccp4mapin (iunit,name,title,map,nu1,nv1,nw1,nu2,nv2,nw2)
+</pre>
+Arguments:
+<pre>  iunit   (I)  Map stream number (integer)
+  name    (O)  logical file name (type character) e.g. 'MAPIN'
+  title   (O)  Map title (type character)
+  map     (O)  Real array of dimension (nu1:nu2,nv1:nv2,nw1:nw2)
+               which stores the map which is read in
+  nu1     (I)  Start of map on X axis, in grid units (integer)
+  nv1     (I)  Start of map on Y axis, in grid units (integer)
+  nw1     (I)  Start of map on Z axis, in grid units (integer)
+  nu2     (I)  End of map on X axis (integer)
+  nv2     (I)  End of map on Y axis (integer)
+  nw2     (I)  End of map on Z axis (integer)
+</pre>
+CCP4MAPIN utilises calls to the following maplib routines:
+<ul>
+<li><a href="#mrdhdr">ccp4_map_read_open_header_check</a> [MRDHDS],
+</li><li><a href="#mgulpr">ccp4_map_read_whole_section_as_real</a> [MGULPR], and
+</li><li><a href="#mrclos">ccp4_map_read_close</a> [MRCLOS].
+</li></ul>
+
+<p>
+CCP4MAPOUT writes out a whole map in x,y,z order.
+</p><pre>  Call: CALL ccp4mapout(iunit,name,title,map,nspgrp,cell,nu,nv,nw,nu1,
+       +                nv1,nw1,nu2,nv2,nw2)
+</pre>
+Arguments:
+<pre>  iunit   (I)  Map stream number (integer)
+  name    (I)  Logical file name (type character) e.g.'MAPIN'   
+  title   (I)  Map title (type character)
+  map     (I)  Real array of dimension (nu1:nu2,nv1:nv2,nw1:nw2)
+               which stores the map being written out
+  nspgrp  (I)  Space group number (integer)
+  cell    (I)  6 word array for cell dimensions in Angstroms and degrees (real)
+  nu      (I)  Sampling interval along whole cell on X (integer)
+  nv      (I)  Sampling interval along whole cell on Y (integer)
+  nw      (I)  Sampling interval along whole cell on Z (integer)
+  nu1     (I)  Start of map on X axis, in grid units (integer)
+  nv1     (I)  Start of map on Y axis, in grid units (integer)
+  nw1     (I)  Start of map on Z axis, in grid units (integer)
+  nu2     (I)  End of map on X axis (integer)
+  nv2     (I)  End of map on Y axis (integer)
+  nw2     (I)  End of map on Z axis (integer)
+</pre>
+CCP4MAPOUT utilises calls to the following maplib subroutines:
+<ul>
+<li><a href="#mwrhdr">ccp4_map_write_open_header_by_name</a> [MWRHDL],
+</li><li><a href="#msyput">ccp4_map_write_symm_matrix</a> [MSYWRT],
+</li><li><a href="#mspew">ccp4_map_write_all_section</a> [MSPEW],
+</li><li><a href="#mwclose">ccp4_map_write_close_auto</a> [MWCLOSE].
+</li></ul>
+There is also a call to the symlib routine MSYMLB.
+
+<h2> <a name="calling_sequence"></a> 23) TYPICAL CALLING SEQUENCES</h2>
+ 
+Typical calling sequences are as follows:
+
+<p>
+Write new file
+</p><p>
+<table border="1"><tbody><tr>
+  <td>        <a href="#mwrhdr">MWRHDR/MWRHDL</a>
+  </td><td>        ccp4_map_write_open_header_by_id / ccp4_map_write_open_header_by_name
+</td></tr><tr>
+  <td>        <a href="#msyput">MSYPUT</a>
+  </td><td>        ccp4_map_write_spgname
+</td></tr><tr>
+  <td>        <a href="#mspew">MSPEW</a>  repeated for each section
+  </td><td>        ccp4_map_write_all_section
+</td></tr><tr>
+  <td>        <a href="#mwclose">MWCLOSE[/MCLOSE/MCLOSC]</a>
+  </td><td>        ccp4_map_write_close_auto [/ccp4_map_write_close_user_sum 
+              / ccp4_map_write_close_user_mean]
+</td></tr></tbody></table>
+</p><p>
+
+</p><p>
+Read file
+</p><p>
+<table border="1"><tbody><tr>
+  <td>        <a href="#mrdhdr">MRDHDR</a>
+  </td><td>        ccp4_map_read_open_header
+</td></tr><tr>
+  <td>        <a href="#msymop">MSYMOP</a>
+  </td><td>        ccp4_map_read_symm_matrix
+</td></tr><tr>
+  <td>        <a href="#mposn">MPOSN</a>  to 1st section
+  </td><td>        ccp4_map_read_position_section
+</td></tr><tr>
+  <td>        <a href="#mgulp">MGULP</a> (or <a href="#mgulpr">MGULPR</a>)
+              repeated for each section
+  </td><td>        ccp4_map_read_whole_section_as_mode
+              (or ccp4_map_read_whole_section_as_real)
+</td></tr></tbody></table>
+</p><p>
+
+</p><p>
+Read file, write modified file
+</p><p>
+<table border="1">
+<tbody><tr>
+  <td>        <a href="#mrdhdr">MRDHDR</a>
+  </td><td>        ccp4_map_read_open_header
+</td></tr><tr>
+  <td>        <a href="#mwrhdr">MWRHDR/MWRHDL</a>
+  </td><td>        ccp4_map_write_open_header_by_id / ccp4_map_write_open_header_by_name
+</td></tr><tr>
+  <td>        <a href="#msymop">MSYMOP</a>
+  </td><td>        ccp4_map_read_symm_matrix
+</td></tr><tr>
+  <td>        <a href="#msycpy">MSYCPY</a>
+  </td><td>        ccp4_map_copy_symmetry
+</td></tr><tr>
+  <td>        <a href="#mgulp">MGULP</a>  ) repeated for each section<br>
+              <a href="#mspew">MSPEW</a>  )
+  </td><td>        ccp4_map_read_whole_section_as_mode )<br>
+              ccp4_map_write_all_section          )
+</td></tr><tr>
+  <td>        <a href="#mwclose">MWCLOSE[/MCLOSE/MCLOSC]</a>
+  </td><td>        ccp4_map_write_close_auto [/ccp4_map_write_close_user_sum 
+              / ccp4_map_write_close_user_mean
+</td></tr></tbody></table>
+
+</p><p>
+Read and write whole map
+</p><p>
+<table border="1"><tbody><tr>
+  <td>        <a href="#ccp4maphead">CCP4MAPHEAD</a> to get map limits
+  </td><td>        ccp4_map_read_header_only
+</td></tr><tr>
+  <td>        <a href="#ccp4maphead">CCP4MAPIN</a>
+  </td><td>        ccp4_map_read_whole_map
+</td></tr><tr>
+  <td>        <a href="#ccp4maphead">CCP4MAPOUT</a> once map has been manipulated
+  </td><td>        ccp4_map_write_whole_map
+</td></tr></tbody></table>
+
+</p><h2> <a name="implementation"></a> 24) IMPLEMENTATION NOTES</h2> 
+ 
+The map functions (modes other than 2 or 4) requiring non standard
+code are handled via the routines CCPBYT, CCPTOI, CCPBYI, CCPGTB etc.
+in CCPLIB and through the DISKIO routines.  In particular, use packed
+integer arrays for handling masks/envelopes.  The convention for masks is
+that non-zero represents `true', i.e. protein region, and 0 false, i.e.
+solvent region; normally only 0 and 1 should be used for masks.
+
+</body></html>

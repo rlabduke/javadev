@@ -1,0 +1,76 @@
+==============================================================================
+===  TO DO  ==================================================================
+==============================================================================
+    isosurface: Remove debug statement from MeshMarchingCubes.getEdge()
+    isosurface: Make vertex lookup do sym ops (?)
+    
+==============================================================================
+===  CHANGE LOG  =============================================================
+==============================================================================
+
+### 0.13 ###
+- found and squashed a fencepost bug in CrystalVertexSource.evaluateVertex()
+  that caused ArrayIndexOutOfBoundsExceptions in CVS.getValue()
+
+### 0.12 ###
+- migrated to building with Apache Ant (ant.apache.org)
+
+### 0.11 ###
+- moved from util.isosurface to driftwood.isosurface
+- made most fields in CrystalVertexSource public
+- watch for OutOfMemoryError in OMap b/c no way to recognize DSN6 format
+
+### 0.10 ###
+- renamed DSN6VertexSource to OMapVertexSource
+- resolved how cell edges are handled in O maps (padded to 8x8x8)
+- added support for Brix maps from O
+- added another BufferedInputStream to constructor to fix the broken
+  mark() method in GZIPInputStream. (submitted to Sun)
+
+### 0.09 ###
+- added findVertexForPoint() to VertexLocator
+- modified MMC.march() to deal with NaN from VertexEvaluators
+- implemented findVertexForPoint() for CrystalVertexSource
+- added auto-detect/auto-gunzip to XplorVertexSource for gzipped map files
+- fixed problem reading O maps -- every byte pair is transposed
+- added auto-gzip to DSN6VertexSource
+
+### 0.08 ###
+- O maps work but are of low quality with many artifacts
+- Try supports color, map format switches
+- I've tried many variations on the O format, but it's still not right
+  I don't know what to do at this point...
+- Using MapMan to convert DSN6 to XPLOR and then rendering gives
+  perfect results, which are different from the source O-map.
+  I must still not understand the format completely.
+
+### 0.07 ###
+- it looks like non-orthogonal unit cell axes are now supported properly.
+  YAY!!!
+- reorganized code somewhat to combine (hopefully) common functions in
+  CrystalVertexSource
+- began work on DSN6VertexSource to support O maps
+  
+### 0.06 ###
+- support for non-orthogonal axes (in progress)
+
+### 0.05 ###
+- fixed bugs in XplorVertexSource.nextValue()
+- added bin wrapping to XplorVertexSource.{evaluate,locate}Vertex()
+- realized locateVertex() shouldn't do wrapping after all. (D'oh!)
+
+### 0.04 ###
+- wrote KinfileEdgePlotter
+- started XplorVertexSource
+- fixed fencepost bug in MMC.march()
+- fixed cube cases #23 and #108; regenerated kin files
+
+### 0.03 ###
+- wrote MeshMarchingCubes
+
+### 0.02 ###
+- defined EdgePlotter, VertexLocator, VertexEvaluator
+
+### 0.01 ###
+- created kinemages, built marching cubes lookup table
+
