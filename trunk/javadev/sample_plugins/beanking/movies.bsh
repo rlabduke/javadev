@@ -1,15 +1,18 @@
 import king.tool.export.ImageExport;
 String _movieFileName = null;
 int _movieFrameCounter = 0;
+LinkedList _movieUndoStack = null;
 
 movieHelp() {
     print("==== PREDEFINED FUNCTIONS ====");
     print("movieHelp()              this help text");
     print("");
+    print("movieMarkUndo()          save the current frame number for later undos");
     print("movieRock(frames,deg)    create movie of rocking around Y");
     print("movieSetSize(w,h)        set canvas size for movie output");
-    print("movieSpin(frames)        create movie of spinning around Y");
+    print("movieSpin(frames,deg?)   create movie of spinning around Y");
     print("movieStart(file)         set the filename prefix for a new movie");
+    print("movieUndo()              undoes the last set of frames written");
     print("movieWriteFrame(num?)    write the current view as 1+ frame(s)");
     print("");
     print("Don't use these functions with OpenGL rendering enabled.");
@@ -19,9 +22,15 @@ movieHelp() {
 }
 movieHelp(); // display this message on startup!
 
+void movieMarkUndo()
+{
+    _movieUndoStack.addLast(_movieFrameCounter);
+}
+
 void movieRock(int nFrames, double nDegrees)
 {
     // This version is Swing-friendly, so you can see what's happening.
+    movieMarkUndo();
     KingView startView = kMain.getView();
     int i = 0;
     
@@ -50,17 +59,19 @@ void movieSetSize(int width, int height)
 }
 
 void movieSpin(int nFrames)
+{ movieSpin(nFrames, 360.0); }
+
+void movieSpin(int nFrames, double nDegrees)
 {
     // This version is Swing-friendly, so you can see what's happening.
-    int sign = (nFrames > 0 ? 1 : -1);
-    if(nFrames < 0) nFrames = -nFrames;
+    movieMarkUndo();
     int i = 0;
     
     void run()
     {
         movieWriteFrame();
         KingView v = kMain.getView();
-        v.rotateY((float)(sign * 2.0*Math.PI / nFrames));
+        v.rotateY((float)(Math.toRadians(nDegrees) / nFrames));
         kCanvas.repaint();
         if(++i < nFrames) SwingUtilities.invokeLater(super);
     }
@@ -72,13 +83,35 @@ void movieStart(String fileName)
 {
     _movieFileName = fileName;
     _movieFrameCounter = 1;
+    _movieUndoStack = new LinkedList();
+}
+
+boolean movieUndo()
+{
+    if(_movieUndoStack.size() == 0)
+    {
+        print("No movie frames to undo!");
+        return false;
+    }
+    else
+    {
+        int currFr = _movieFrameCounter;
+        _movieFrameCounter = _movieUndoStack.removeLast();
+        print("Undid movie frames "+_movieFrameCounter+" - "+(currFr-1));
+        return true;
+    }
 }
 
 void movieWriteFrame()
 { movieWriteFrame(1); }
 
 void movieWriteFrame(int numCopies)
+{ movieWriteFrame(numCopies, true); }
+
+void movieWriteFrame(int numCopies, boolean undoable)
 {
+    if(undoable) movieMarkUndo();
+    
     String filenum = ""+(_movieFrameCounter++);
     while(filenum.length() < 4) filenum = "0"+filenum;
     File file = new File(_movieFileName+"_"+filenum+".png");

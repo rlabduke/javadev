@@ -6,6 +6,7 @@ king.tool.export.PovrayExport
 king.tool.export.Vrml97Writer
 king.tool.export.XknWriter
 king.tool.util.ViewpointPlugin
+king.tool.util.ClipPlanesPlugin
 king.tool.draw.SolidObjPlugin
 king.tool.util.SelfUpdatePlugin
 

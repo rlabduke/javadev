@@ -58,7 +58,7 @@ public class GroupEditor implements ChangeListener
     boolean         liFirstShow     = true;
     TablePane       liPanel;
     JTextField      liName;
-    JCheckBox       liIsOff, liNoButton;
+    JCheckBox       liIsOff, liNoButton, liNoHilite;
     JTextField      liWidth, liRadius, liAlpha;
     ColorPicker     liPicker;
     KPaint          originalColor   = null;
@@ -217,6 +217,7 @@ public class GroupEditor implements ChangeListener
         liName      = new JTextField(20);
         liIsOff     = new JCheckBox("off (Hide this list from view)");
         liNoButton  = new JCheckBox("nobutton (Don't provide on/off button)");
+        liNoHilite  = new JCheckBox("nohighlight (No highlight on balls)");
         
         liWidth     = new JTextField(6);
         JLabel widthLabel = new JLabel("Line width:");
@@ -245,6 +246,7 @@ public class GroupEditor implements ChangeListener
             liPanel.addCell(liName, 2, 1).newRow();
             liPanel.addCell(liIsOff, 2, 1).newRow();
             liPanel.addCell(liNoButton, 2, 1).newRow();
+            liPanel.addCell(liNoHilite, 2, 1).newRow();
             liPanel.addCell(widthLabel).addCell(liWidth).newRow();
             liPanel.addCell(radiusLabel).addCell(liRadius).newRow();
             liPanel.addCell(alphaLabel).addCell(liAlpha).newRow();
@@ -467,6 +469,7 @@ public class GroupEditor implements ChangeListener
         liName.requestFocus();
         liIsOff.setSelected(    !list.isOn());
         liNoButton.setSelected( !list.hasButton());
+        liNoHilite.setSelected((list.flags & KList.NOHILITE) != 0);
         liWidth.setText(Integer.toString(list.width));
         liRadius.setText(Float.toString(list.radius));
         liAlpha.setText(Integer.toString(list.alpha));
@@ -487,6 +490,8 @@ public class GroupEditor implements ChangeListener
             list.setName(      liName.getText());
             list.setOn(        !liIsOff.isSelected());
             list.setHasButton( !liNoButton.isSelected());
+            if(liNoHilite.isSelected()) list.flags |= KList.NOHILITE;
+            else                        list.flags &= ~KList.NOHILITE;
             try { list.width = Integer.parseInt(liWidth.getText()); }
             catch(NumberFormatException ex) {}
             if(list.width < 1) list.width = 1;
