@@ -46,11 +46,15 @@
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
     Add ability to edit masters
     Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
-  * Note in user manual about installing plugins
- ** Fix documentation for chiropraxis plugins!
   * Document new king/chiropraxis dependency structure in HACKING
     Write a quick and dirty HTML guide to creating a plugin, listing all the basic steps
         Java and Python versions
+    Enable OpenGL painting via JOGL
+        Get Graphics out of points and into the painters
+        Add clear and clip methods to Painter
+        Get Graphics out of Engine
+        Get canvas to set the Painter in Engine
+        Delegation and JOGL canvas calls the engine
     Add some kind of transformation hook (listeners, priorities, etc)
     Warn about saving with multiple kins open
     Warn about losing unsaved changes
@@ -63,6 +67,10 @@
 - added the "accumulate" animation function from Mage
 - changed the meaning of KPoint.get/setX/Y/Z to refer to the untransformed (original)
   coordinates, and deprecated get/setOrigX/Y/Z(). Added get/setDrawX/Y/Z().
+- added note to user manual about installing plugins (but didn't update)
+- moved documentation for Chiropraxis tools out of the KiNG manual proper
+- ToolBox now loads king_prefs for other tools into the defaults object of
+  KingPrefs. This keeps those menu names from appearing in ~/.king_prefs.
 
 ### 1.27 ###
 - modified Engine and KPoint.isPickedBy() to account for object picking

@@ -7,13 +7,14 @@ import king.core.*;
 //import java.awt.*;
 //import java.awt.event.*;
 import java.io.*;
-import java.net.URL;
+import java.net.*;
 import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
 import driftwood.moldb2.*;
 import driftwood.r3.*;
+import driftwood.util.SoftLog;
 //}}}
 /**
 * <code>ModelingTool</code> provides a few small conveniences
@@ -53,6 +54,23 @@ abstract public class ModelingTool extends BasicTool
         }
         if(modelman == null)
             throw new RuntimeException("Model manager plugin not loaded");
+    }
+//}}}
+
+//{{{ getHelpURL
+//##################################################################################################
+    /** Returns the URL of a web page explaining use of this tool */
+    public URL getHelpURL()
+    {
+        URL     url     = getClass().getResource("tools-manual.html");
+        String  anchor  = getHelpAnchor();
+        if(url != null && anchor != null)
+        {
+            try { url = new URL(url, anchor); }
+            catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+            return url;
+        }
+        else return null;
     }
 //}}}
 
