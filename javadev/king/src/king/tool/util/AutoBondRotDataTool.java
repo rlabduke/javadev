@@ -38,6 +38,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     JTextField          lowNumField;
     JTextField          highNumField;
     JTextField          scalingField;
+    JCheckBoxMenuItem   logScaleBox;
     JButton             colorButton, setOnButton, setOffButton;
     JCheckBox           plotChangeBox;
 
@@ -81,6 +82,8 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	lowNumField = new JTextField("", 5);
 	highNumField = new JTextField("", 5);
 	scalingField = new JTextField("5", 5);
+	
+	logScaleBox = new JCheckBoxMenuItem("Plot by log scale", true);
 
 	colorButton = new JButton(new ReflectiveAction("Color!", null, this, "onHighlightRange"));
 	//colorButton.setActionCommand("color");
@@ -119,10 +122,18 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 
 	menu = new JMenu("Options");
 	menubar.add(menu);
-	item = new JMenuItem(new ReflectiveAction("Score in Last Col", null, this, "onFixScore"));
+	item = new JMenuItem(new ReflectiveAction("Open File", null, this, "onOpenFile"));
+	menu.add(item);
+	menu.add(logScaleBox);
+	item = new JMenuItem(new ReflectiveAction("Smooth Data", null, this, "onSmoothing"));
+	menu.add(item);
+	item = new JMenuItem(new ReflectiveAction("Take Difference", null, this, "onDifference"));
 	menu.add(item);
 	item = new JMenuItem(new ReflectiveAction("Restore Default", null, this, "onSetDefault"));
 	menu.add(item);
+	item = new JMenuItem(new ReflectiveAction("Score in Last Col", null, this, "onFixScore"));
+	menu.add(item);	
+	menu.insertSeparator(4);
 
 	dialog.setJMenuBar(menubar);
 	
@@ -154,8 +165,8 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     {
         if(kMain.getKinemage() == null) return;
 
-        try
-        {
+        //try
+        //{
 	    buildGUI();
             //if(kMain.getApplet() != null)   openMapURL();
             //else                            openMapFile();
@@ -163,26 +174,26 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	    listMap = new HashMap();
 	    offPoints = new HashSet();
 	    allPoints = new ArrayList();
-	    openFile();
+	    //openFile();
 	    
 	    
 	    
 	    show();
-        }
-        catch(IOException ex) // includes MalformedURLException
-        {
-            JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                "An I/O error occurred while loading the file:\n"+ex.getMessage(),
-                "Sorry!", JOptionPane.ERROR_MESSAGE);
+	    //}
+	    //catch(IOException ex) // includes MalformedURLException
+	    //{
+	    //    JOptionPane.showMessageDialog(kMain.getTopWindow(),
+	    //        "An I/O error occurred while loading the file:\n"+ex.getMessage(),
+	    //       "Sorry!", JOptionPane.ERROR_MESSAGE);
             //ex.printStackTrace(SoftLog.err);
-        }
-        catch(IllegalArgumentException ex)
-        {
-            JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                "Wrong map format was chosen, or map is corrupt:\n"+ex.getMessage(),
-                "Sorry!", JOptionPane.ERROR_MESSAGE);
+	    //}
+	    //catch(IllegalArgumentException ex)
+	    //{
+	    //    JOptionPane.showMessageDialog(kMain.getTopWindow(),
+	    //        "Wrong map format was chosen, or map is corrupt:\n"+ex.getMessage(),
+	    //        "Sorry!", JOptionPane.ERROR_MESSAGE);
             //ex.printStackTrace(SoftLog.err);
-        }
+	    //}
 
 	//show();
 	//buildGUI();
@@ -200,32 +211,62 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 							     null, choices, "First");
 	return choice;
     }
+    
+    private String askAngleFormat(String f) {
+	Object[] choices = {"phi, psi, angle", "phi, angle, psi", "angle, phi, psi"};
+	String choice = (String) JOptionPane.showInputDialog(kMain.getTopWindow(),
+							     "How is the data formatted?",
+							     "Choose", JOptionPane.PLAIN_MESSAGE,
+							     null, choices, "phi, psi, angle");
+	return choice;
+    }
 
 
 //{{{ openMapFile
 //##################################################################################################
-    void openFile() throws IOException
+    public void onOpenFile(ActionEvent ev)
     {
         // Create file chooser on demand
         if(filechooser == null) makeFileChooser();
         
         if(JFileChooser.APPROVE_OPTION == filechooser.showOpenDialog(kMain.getTopWindow()))
-        {
-            File f = filechooser.getSelectedFile();
-            if(f != null && f.exists())
-            {
-		BufferedReader reader = new BufferedReader(new FileReader(f));
-		String choice = askFileFormat(f.getName());
-		scanFile(reader, choice);
-		//buildGUI();
-		//show();
-		//dialog.pack();
-		//dialog.setLocationRelativeTo(kMain.getTopWindow());
-		//dialog.setVisible(true);
-                kCanvas.repaint(); // otherwise we get partial-redraw artifacts
-            }
-        }
+	{
+	    try {
+		File f = filechooser.getSelectedFile();
+		if(f != null && f.exists()) {
+		    BufferedReader reader = new BufferedReader(new FileReader(f));
+		    String fileChoice = askFileFormat(f.getName());
+		    String angleChoice = "none";
+		    if (fileChoice.equals("First")) {
+			angleChoice = askAngleFormat(f.getName());
+		    }
+		    listMap = new HashMap();
+		    offPoints = new HashSet();
+		    allPoints = new ArrayList();
+		    scanFile(reader, fileChoice, angleChoice);
+		    //buildGUI();
+		    //show();
+		    //dialog.pack();
+		    //dialog.setLocationRelativeTo(kMain.getTopWindow());
+		    //dialog.setVisible(true);
+		    kCanvas.repaint(); // otherwise we get partial-redraw artifacts
+		}
+	    } 
+	    
+	    catch(IOException ex) { // includes MalformedURLException 
+		JOptionPane.showMessageDialog(kMain.getTopWindow(),
+					      "An I/O error occurred while loading the file:\n"+ex.getMessage(),
+					      "Sorry!", JOptionPane.ERROR_MESSAGE);
+		//ex.printStackTrace(SoftLog.err);
+	    } catch(IllegalArgumentException ex) {
+		JOptionPane.showMessageDialog(kMain.getTopWindow(),
+					      "Wrong map format was chosen, or map is corrupt:\n"+ex.getMessage(),
+					      "Sorry!", JOptionPane.ERROR_MESSAGE);
+		//ex.printStackTrace(SoftLog.err);
+	    }
+	}
     }
+    
 //}}}
 
 //{{{ scanFile
@@ -233,45 +274,59 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     /**
      * Does most of the work reading and analyzing the data files.
      **/
-    private void scanFile(BufferedReader reader, String choice) {
+    private void scanFile(BufferedReader reader, String fileChoice, String angleChoice) {
 	String line;
 	try {
 	    while((line = reader.readLine())!=null){
 		
 		if (line.charAt(0)=='#') {
 		    System.out.println(line);
-		    if (line.indexOf("#ROT")>-1) analyzeRotLine(line);
+		    //if (line.indexOf("#ROT")>-1) analyzeRotLine(line);
 		} else {
 		    line.trim();
 		    StringTokenizer spaceToks = new StringTokenizer(line, " ");
 		    double x, y, clashValue;
+		    double temp1, temp2, temp3, temp4 = Double.NaN;
 		    double z = Double.NaN;
-		    if (choice.equals("Last")) {
-			x = Double.parseDouble(spaceToks.nextToken());
-			y = Double.parseDouble(spaceToks.nextToken());
-			clashValue = Double.parseDouble(spaceToks.nextToken());
-			if (spaceToks.hasMoreTokens()) {
-			    z = clashValue;
-			    clashValue = Double.parseDouble(spaceToks.nextToken());
+		    temp1 = Double.parseDouble(spaceToks.nextToken());
+		    temp2 = Double.parseDouble(spaceToks.nextToken());
+		    temp3 = Double.parseDouble(spaceToks.nextToken());
+		    if (spaceToks.hasMoreTokens()) {
+			temp4 = Double.parseDouble(spaceToks.nextToken());
+		    }
+		    if (fileChoice.equals("Last")) {
+			x = temp1;
+			y = temp2;
+			if (!Double.isNaN(temp4)) {
+			    clashValue = temp4;
+			    z = temp3;
+			} else {
+			    clashValue = temp3;
 			}
 		    } else {
-			clashValue = Double.parseDouble(spaceToks.nextToken());
-		    //float clashFloat = clashValue.floatValue();
-			x = Double.parseDouble(spaceToks.nextToken());
-			y = Double.parseDouble(spaceToks.nextToken());
-			//z = Double.NaN;
-			if (spaceToks.hasMoreTokens()) {
-			    // Temporarily switching y and z stupidly.
-			    z = y;
-			    y = Double.parseDouble(spaceToks.nextToken());
+			clashValue = temp1;
+			if (Double.isNaN(temp4)) {
+			    x = temp2;
+			    y = temp3;
+			} else {
+			    if (angleChoice.equals("phi, psi, angle")) {
+				x = temp2;
+				y = temp3;
+				z = temp4;
+			    } else if (angleChoice.equals("phi, angle, psi")) {
+				x = temp2;
+				z = temp3;
+				y = temp4;
+			    } else {
+				z = temp2;
+				x = temp3;
+				y = temp4;
+			    }
 			}
 		    }
-		    //trackHighLows(x, y, z); // for determining what planes to split into different lists.
 		    BallPoint point = new BallPoint(null, Double.toString(clashValue));
 		    allPoints.add(point);
 
-
-		    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 		    if (clashValue>0) {
 			point.setRadius((float)clashValue);
 			//point.setColor(KPalette.green);
@@ -279,37 +334,19 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 			point.setRadius(-(float)clashValue/10);
 			//point.setRadius(1);
 		    }
-		    point.setOrigX(x);
-		    point.setOrigY(y);
-		    //point.setOrigZ(clashValue*100);
+		    point.setX(x);
+		    point.setY(y);
+		    //point.setZ(clashValue*100);
 		    if (!Double.isNaN(z)) {
 			sortByValue(z, point);
 		    } else {
 			sortByValue(0, point);
 		    }
-		    //makeDataMap(point, 1);
-		    // for recoloring by clash value
-		    /*
-		    Integer clashInt = new Integer((int)Math.floor(clashValue));
-		    if (dataMap.containsKey(clashInt)) {
-			ArrayList clashPoints = (ArrayList) dataMap.get(clashInt);
-			clashPoints.add(point);
-		    } else {
-			ArrayList clashPoints = new ArrayList();
-			clashPoints.add(point);
-			dataMap.put(clashInt, clashPoints);
-		    }
-		    */
-		    //reSortKlists();
-
 		}
 	    }
-	    //fixScoreInLastCol();
 	    plotByScore(true, 5);
 	    setDefaultColors();
-	    //fixScoreInLastCol();
 	    reSortKlists();
-	    //fixScoreInLastCol();
 	    //kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
 	} catch (IOException ex) {
 	    JOptionPane.showMessageDialog(kMain.getTopWindow(),
@@ -319,28 +356,6 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
         }
     }
 //}}}
-/*
-    private void makeDataMap(KPoint point, int multiplier) {
-	double clashValue = Double.parseDouble(point.getName()) * multiplier;
-	Integer clashInt = new Integer((int)Math.floor(clashValue));
-	if (dataMap.containsKey(clashInt)) {
-	    ArrayList clashPoints = (ArrayList) dataMap.get(clashInt);
-	    clashPoints.add(point);
-	} else {
-	    ArrayList clashPoints = new ArrayList();
-	    clashPoints.add(point);
-	    dataMap.put(clashInt, clashPoints);
-	}
-    }
-    
-    private void trackHighLows(int x, int y, int z) {
-	if (x > maxX) maxX = x;
-	if (x < minX) minX = x;
-	if (x > maxY) maxY = y;
-	if (x < minY) minY = y;	
-	if (x > maxZ) maxZ = z;
-	if (x < minZ) minZ = z;	
-	}*/
 
     // analyzes the comment lines in the files; function is not used at the moment.
     private void analyzeRotLine(String line) {
@@ -371,6 +386,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	    KList list = new KList();
 	    list.setType(KList.BALL);
 	    point.setOwner(list);
+	    list.setName(Double.toString(value));
 	    listMap.put(new Double(value), list);
 	}
 
@@ -448,34 +464,6 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 
     }
 
-//{{{ togglePointStatus
-//###############################################################################################
-    /**
-     * turns on/off all points with value between firstNum and secondNum
-     **/
-    /*
-    public void togglePointStatus(int firstNum, int secondNum, boolean status) {
-	if (firstNum > secondNum) {
-	    int temp = secondNum;
-	    secondNum = firstNum;
-	    firstNum = temp;
-	}
-	for (int i = firstNum; i < secondNum; i++) {
-	    if (dataMap.containsKey(new Integer(i))) {
-		//System.out.println("coloring " + i);
-		ArrayList clashPoints = (ArrayList) dataMap.get(new Integer(i));
-		Iterator iter = clashPoints.iterator();
-		while (iter.hasNext()) {
-		    BallPoint point = (BallPoint) iter.next();
-		    //point.setColor((KPaint) color1.getSelectedItem());
-		    //point.setColor(color);
-		    point.setOn(status);
-		}
-	    }
-	}
-
-	}*/
-
     public void onSetDefault(ActionEvent ev) {
 	setDefaultColors();
     }
@@ -552,6 +540,58 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	
     }
 
+    public void onDifference(ActionEvent ev) {
+	Kinemage kin = kMain.getKinemage();
+	Iterator iter = kin.iterator();
+	allPoints.clear();
+	Long startTime = System.currentTimeMillis();
+	while (iter.hasNext()) {
+	    KGroup group = (KGroup) iter.next();
+	    if (group.isOn()) {
+		if (group.hasMaster("Data Points")) {
+		    KSubgroup subgroup = (KSubgroup) group.getChildAt(0);
+		    
+		    KList list = (KList) subgroup.getChildAt(0);
+		    //if (list.isOn()) {
+		    Iterator points = list.iterator();
+		    while (points.hasNext()) {
+			KPoint point = (KPoint) points.next();
+			allPoints.add(point);
+		    }
+		    //}
+		}
+	    }
+	}
+
+	PointSorter ps = new PointSorter(allPoints, PointSorter.SORTBY_Y);
+	allPoints = (ArrayList) ps.sortPhiPsi();
+        ps = new PointSorter(allPoints, PointSorter.SORTBY_X);
+	allPoints = (ArrayList) ps.sortPhiPsi();
+
+	for (int i = 0; i < allPoints.size(); i++) {
+	    KPoint point = (KPoint) allPoints.get(i);
+	    if ((i+1) < allPoints.size()) {
+		KPoint nextPoint = (KPoint) allPoints.get(i+1);
+		double score = Double.parseDouble(point.getName());
+		double npScore = Double.parseDouble(nextPoint.getName());
+		if ((point.getX()==nextPoint.getX())&&(point.getY()==nextPoint.getY())&&(score!=npScore)) {
+		    //double z = point.getZ();
+		    //double npz = nextPoint.getZ();
+		    point.setZ((score-npScore)*5);
+		    nextPoint.setZ((score-npScore)*5);
+		    point.setRadius((float)1);
+		    point.setRadius((float)1);
+		}
+	    }
+	}
+	Long endTime = System.currentTimeMillis();
+	
+	System.out.println("Total Time to diff: " + ((endTime-startTime)/1000) + " seconds");
+	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+	
+    }
+
+
     private void plotByScore(boolean plotStat, double scaleFactor) {
 	if (plotStat) {
 	    //Collection values = dataMap.values();
@@ -561,15 +601,30 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		//Iterator points = value.iterator();
 		//while (points.hasNext()) {
 		KPoint point = (KPoint) iter.next();
-		point.setOrigZ(Double.parseDouble(point.getName())*scaleFactor);
-		if (scaleFactor>=100) {
-		    point.setRadius((float)(Double.parseDouble(point.getName())*scaleFactor/40));
+		if (logScaleBox.getState()) {
+		    point.setZ(Math.log(Double.parseDouble(point.getName())+1)*scaleFactor);
 		} else {
-		    point.setRadius((float)(Double.parseDouble(point.getName())*scaleFactor/10));
+		    point.setZ(Double.parseDouble(point.getName())*scaleFactor);
+		}
+		if (scaleFactor>=100) {
+		    point.setRadius((float)((Double.parseDouble(point.getName())*scaleFactor/70)));
+		} else {
+		    point.setRadius((float)(Double.parseDouble(point.getName())/10));
+		}
+		if (point.getRadius() > 3) {
+		    point.setRadius((float)3);
 		}
 		    //}
 	    }
 	} else {
+	    Iterator iter = allPoints.iterator();
+	    while (iter.hasNext()) {
+		KPoint point = (KPoint) iter.next();
+		KList list = (KList) point.getOwner();
+		point.setZ(Double.parseDouble(list.getName()));
+	    }
+
+	    /*
 	    Set keys = listMap.keySet();
 	    Iterator iter = keys.iterator();
 	    while (iter.hasNext()) {
@@ -578,9 +633,10 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		Iterator points = list.iterator();
 		while (points.hasNext()) {
 		    KPoint point = (KPoint) points.next();
-		    point.setOrigZ(key.doubleValue());
+		    point.setZ(key.doubleValue());
 		}
 	    }
+	    */
 	}
     }
 
@@ -621,49 +677,54 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
     }
 
+    public void onSmoothing(ActionEvent ev) {
+	Kinemage kin = kMain.getKinemage();
+	Iterator iter = kin.iterator();
+	Long startTime = System.currentTimeMillis();
+	while (iter.hasNext()) {
+	    KGroup group = (KGroup) iter.next();
+	    if (group.hasMaster("Data Points")) {
+		KSubgroup subgroup = (KSubgroup) group.getChildAt(0);
+		KList list = (KList) subgroup.getChildAt(0);
+		Iterator points = list.iterator();
+		while (points.hasNext()) {
+		    KPoint point = (KPoint) points.next();
+		    allPoints.add(point);
+		}
+	    }
+	}
+
+	PointSorter ps = new PointSorter(allPoints, PointSorter.SORTBY_Y);
+	allPoints = (ArrayList) ps.sortPhiPsi();
+        ps = new PointSorter(allPoints, PointSorter.SORTBY_X);
+	allPoints = (ArrayList) ps.sortPhiPsi();
+	for (int i = 0; i < allPoints.size(); i++) {
+	    KPoint point = (KPoint) allPoints.get(i);
+	    if ((i+1) < allPoints.size()) {
+		KPoint nextPoint = (KPoint) allPoints.get(i+1);
+		if ((point.getX()==nextPoint.getX())&&(point.getY()==nextPoint.getY())&&(point.getZ()!=nextPoint.getZ())) {
+		    double z = point.getZ();
+		    double npz = nextPoint.getZ();
+		    point.setZ(z+npz);
+		    nextPoint.setZ(z+npz);
+		}
+	    }
+
+	    //newList.add(point);
+	}
+	Long endTime = System.currentTimeMillis();
+	
+	System.out.println("Total Time to smooth: " + ((endTime-startTime)/1000) + " seconds");
+	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+	
+    }
+
 // event functions
 //###############################################################################################
     /**
      * Event handler for when action performed.
      */
     public void actionPerformed(ActionEvent ev) {
-	/*
-	if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))) {
-	    if ("color".equals(ev.getActionCommand())) {
-		//if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))) {
-		
-		double firstNum = Double.parseDouble(lowNumField.getText());
-		double secondNum = Double.parseDouble(highNumField.getText());
-		//if (firstNum > secondNum) {
-		//    int temp = secondNum;
-		//    secondNum = firstNum;
-		//    firstNum = temp;
-		//}
-		
-		highlightRange(firstNum, secondNum, (KPaint) color1.getSelectedItem());
-		
-		
-		//}
-	    } else if ("set defaults".equals(ev.getActionCommand())) {
-		setDefaultColors();
-	    } else if ("setOn".equals(ev.getActionCommand())) {
-
-		double firstNum = Double.parseDouble(lowNumField.getText());
-		double secondNum = Double.parseDouble(highNumField.getText());
-		//togglePointStatus(firstNum, secondNum, true);
-		addPoints(firstNum, secondNum);
-	    } else if ("setOff".equals(ev.getActionCommand())) {
-
-		double firstNum = Double.parseDouble(lowNumField.getText());
-		double secondNum = Double.parseDouble(highNumField.getText());
-		//togglePointStatus(firstNum, secondNum, false);
-		removePoints(firstNum, secondNum);
-
-	    } 
-	} else {
-	    JOptionPane.showMessageDialog(kMain.getTopWindow(), "You have to put numbers in the text boxes!", "Error",
-					  JOptionPane.ERROR_MESSAGE);
-					  }*/
 	if (plotChangeBox.isSelected()) {
 	    plotByScore(true, Double.parseDouble(scalingField.getText()));
 	    //dataMap.clear();
