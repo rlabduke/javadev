@@ -129,7 +129,7 @@ public interface KPoint extends AHE, Cloneable, MutableTuple3
     public boolean isBreak();
 //}}}
 
-//{{{ is/get/set{On, Unpickable, Ghost, Color, Aspects, Width}
+//{{{ is/get/set{On, Unpickable, Ghost, Color, Aspects, Width, Radius}
 //##################################################################################################
     /** Indicates whether this point can be picked with the mouse */
     public boolean isUnpickable();
@@ -154,6 +154,8 @@ public interface KPoint extends AHE, Cloneable, MutableTuple3
     public int getWidth();
     /** Sets the line width of this point, if applicable */
     public void setWidth(int w);
+    /** Gets the radius of this point, if applicable */
+    public float getRadius();
     /** Sets the radius of this point, if applicable */
     public void setRadius(float radius);
 //}}}

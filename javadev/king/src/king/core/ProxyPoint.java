@@ -133,7 +133,7 @@ public class ProxyPoint implements KPoint
     public boolean isBreak() { return proxyFor.isBreak(); }
 //}}}
 
-//{{{ is/get/set{On, Unpickable, Ghost, Color, Aspects, Width}
+//{{{ is/get/set{On, Unpickable, Ghost, Color, Aspects, Width, Radius}
 //##################################################################################################
     /** Indicates whether this element will paint itself, given the chance */
     public boolean isOn() { return proxyFor.isOn(); }
@@ -163,6 +163,8 @@ public class ProxyPoint implements KPoint
     public int getWidth() { return proxyFor.getWidth(); }
     /** Sets the line width of this point, if applicable */
     public void setWidth(int w) { proxyFor.setWidth(w); }
+    /** Gets the radius of this point, if applicable */
+    public float getRadius() { return proxyFor.getRadius(); }
     /** Sets the radius of this point, if applicable */
     public void setRadius(float radius) { proxyFor.setRadius(radius); }
 //}}}

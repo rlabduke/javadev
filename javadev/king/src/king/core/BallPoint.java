@@ -135,9 +135,6 @@ public class BallPoint extends AbstractPoint // implements ...
         // We have to do this here b/c now widthCue is set
         if(engine.cueThickness) r *= KPalette.widthScale[ engine.widthCue ];
         
-        int d = (int)(2.0*r + 0.5);
-        if(d < 2) d = 2; // make sure balls don't disappear
-        
         engine.painter.paintBall(paint, x, y, z, r, ((parent.flags & KList.NOHILITE) == 0));
     }
 //}}}
