@@ -94,17 +94,34 @@ kinetic image,
 \begin_inset Quotes erd
 \end_inset 
 
- a three-dimensional illustration that lends itself to a variety of subjects.
- Kinemages were first created as a way of visualizing macromolecular structures,
- particularly x-ray crystal structures of proteins.
+ an interactive, three-dimensional illustration.
+ Because kinemages contain simple geometric objects --- points, lines, spheres,
+ 
+\emph on 
+etc.
+
+\emph default 
+ --- they are suited to a great variety of subjects, from simple sketches
+ to sophisticated plots to detailed schematics of 3-D objects.
  Their strength is in 
 \emph on 
 selective
 \emph default 
- presentation of information --- they are intended as an alternative to
- flat, static journal illustrations.
+ presentation of information --- they were originally intended as an alternative
+ to flat, static illustrations in scientific journals.
+\layout Standard
+
+In fact, kinemages were first created as a way of visualizing macromolecular
+ structures, particularly x-ray crystal structures of proteins.
+ However, such a kinemage is a 
+\emph on 
+drawing
+\emph default 
+ of a molecule, albeit a 3-D drawing, and not the molecule itself.
+ Thus, the kinemage lacks most of the information in a PDB file, and kinemage
+ display program cannot read PDB files directly.
  Since their creation, kinemages have been extended to a variety of other
- fields, from the social sciences to education.
+ fields, from the social sciences to ecology to education.
 \layout Standard
 
 The kinemage concept is the brainchild of Drs.
@@ -1129,12 +1146,8 @@ Kinemages often include animations.
  An animation in this sense is not a movie, but more like a flip-book, where
  similar images are aligned and displayed one at a time, in a series of
  discrete frames.
- Animations can be selected from the 
-\family typewriter 
-Animations
-\family default 
- menu, where one can also step forward or backward one frame.
- There are also forward and reverse buttons below the graphics area.
+ If a kinemage contains animation(s), there will be forward and reverse
+ buttons for the animation located below the checkboxes for groups and masters.
 \layout Section
 
 Controlling presentation: The Display menu
@@ -1297,6 +1310,19 @@ off
 Kinemage authoring: Using KiNG to edit a kinemage
 \layout Standard
 
+Kinemage files are stored as human-readable, plain-text files.
+ They're also designed to be easily edited by human beings, using a text
+ editor like Notepad (Windows), TextEdit (Mac), or vi (Unix).
+ You can also use a word processor like Microsoft Word, but you have to
+ be careful to save as plain text (.txt) rather than formatted text (.doc
+ and others).
+ A description of the kinemage file format is distributed with KiNG as a
+ separate document from this manual.
+\layout Section
+
+Merging kinemages together
+\layout Standard
+
 The most basic sort of editing is to combine two kinemages into one.
  For this, simply use the 
 \family typewriter 
@@ -1420,7 +1446,17 @@ Plug-ins, on the other hand, just offer additional functionality that doesn't
 \layout Standard
 
 The tools menu also has some other options that are related to how mouse
- clicks and drags are interpretted.
+ clicks and drags are interpretted, which are discussed below.
+ The tools and plugins listed in the menu can be rearranged, grouped into
+ submenus, or hidden entirely by using the 
+\family typewriter 
+Tools | Customize
+\family default 
+ dialog box, which is also accessible from 
+\family typewriter 
+Edit | Configure KiNG
+\family default 
+.
 \layout Subsection
 
 Extra measurements
@@ -3601,6 +3637,11 @@ Edit | Configure KiNG
 , one can adjust several aspects of KiNG's behavior and appearance, such
  as font sizes, stereo settings, and whether or not certain warnings are
  issued.
+ The configuration dialog also allows for reorganizing the 
+\family typewriter 
+Tools
+\family default 
+ menu to suit your own work habits.
  Preferrences may be saved to disk, where they are stored in a simple text
  file named 
 \family typewriter 
@@ -4073,7 +4114,7 @@ KiNG is free software built on free software.
 Revision status
 \layout Standard
 
-This manual was last updated 4 Mar 2004 by IWD for KiNG version 1.22.
+This manual was last updated 18 May 2004 by IWD for KiNG version 1.26.
 \layout Chapter
 \start_of_appendix 
 KiNG License

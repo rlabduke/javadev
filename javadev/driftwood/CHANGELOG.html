@@ -5,14 +5,15 @@
     Create driftwood.signal for publish/subscribe message passing
 
 DATA: {{{
-    Add UberMap.subMap and UberSet.subSet ?
     Add CheapMap and CheapSet, which use a single array? CheapSet extends ArrayList?
+    Add data.FinalArrayList to wrap arrays in an unmodifiable way
 }}}
 GUI: {{{
     Create an enabler that traverses a Container syncing the enable state
     WeakButtonModel would hold only weak references to GUI listeners
     Make a DialogButtonBar from Box:  Btn1--Btn2--Btn3------------BtnLast
     Make a list with checkboxes for selecting a set of things?
+    TreeFoldSlider controls tree expansion like TOC in LyX
 }}}
 ISOSURFACE: {{{
     Calc surface normals for triangles, write to POV-Ray? (see MC paper)
@@ -38,7 +39,11 @@ UTIL: {{{
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 0.56 ###
+### 0.57 ###
+- fixed a potential bug in data.UberMap from calling putBefore(key, key, value)
+- added UberMap.replace() as a complement to put()
+- moved unused classes in data
+
 ### 0.56 ###
 - added Props.minimizeDifferences()
 - added gui.TablePane2, which uses memorize() instead of save()/restore()

@@ -40,6 +40,7 @@
     For Views tool: Center Visible command ?
     Allow user to set focal length for perspective "lens"?
     New shades of gray: smoke (light), charcoal (dark) ?
+    Think about free-form docking tools
 <!-- Postponed TO DO items }}} -->
     Add choice of experiments to expected NOEs
     Distribute noe-display in packaged KiNG versions?
@@ -49,17 +50,22 @@
     Key/mouse modifiers need to be checked from Safari (applet)
     Add a Mage-like "count" function
   * Rewrite HACKING section on Tools vs. Plugins
-  * Add notes to user manual about configuring tools menu
-  * Rewrite manual sections on animations
-    Efficient point representations for Andrew Ban
-    Distribute kin fmt doc from Mage with KiNG
-    Do we make it clear that a kin is an *illustration*?
+    Efficient point representations for Andrew Ban (instance=)
+        Store actingParent (default=null) for each registered point
+    Triangle picking for Andrew Ban
+  ? Redefine getX/Y/Z for KPoints to do the more obvious thing...
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 1.25 ###
+### 1.26 ###
+- added Mage's HTML description of the kinemage format
+- updated manual intro to make it more clear that kinemages are *illustrations*
+- mentioned kinemage format doc in user manual Ch. 4
+- updated manual section on viewing animations
+- made a note about configuring Tools menu in the manual
+
 ### 1.25 ###
 - tools and plugins can be placed in submenus based on the .king_prefs file
 - KingPrefs now searches all jars for default settings in king/king_prefs
