@@ -130,7 +130,10 @@ public class RibbonTool extends BasicTool implements ActionListener {
 	    } else {
 		highlight(p);
 	    }
+	    Kinemage k = kMain.getKinemage();
+	    if(k != null) k.setModified(true);
 	}
+
     }
 //})}
 
