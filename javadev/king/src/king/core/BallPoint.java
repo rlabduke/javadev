@@ -103,6 +103,23 @@ public class BallPoint extends KPoint // implements ...
     }
 //}}}
 
+//{{{ isPickedBy
+//##################################################################################################
+    /**
+    * Returns true if the specified pick hits this point, else returns false
+    * Pays no attention to whether this point is marked as unpickable.
+    * @param radius the desired picking radius
+    * @param objPick whether we should try to pick solid objects in addition to points
+    * @return the KPoint that should be counted as being picked, or null for none.
+    *   Usually <code>this</code>, but maybe not for object picking.
+    */
+    public KPoint isPickedBy(float xx, float yy, float radius, boolean objPick)
+    {
+        if(objPick) return super.isPickedBy(xx, yy, Math.max(radius, r), objPick);
+        else        return super.isPickedBy(xx, yy, radius, objPick);
+    }
+//}}}
+
 //{{{ paintStandard
 //##################################################################################################
     /**

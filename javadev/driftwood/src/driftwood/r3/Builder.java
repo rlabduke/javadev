@@ -214,6 +214,17 @@ The underlying concept:
   less wordy, and perhaps there are simpler ways to describe what I've
   written above, but hopefully you've gotten a sense of where it all
   comes from.
+
+-----
+
+Oh...  I just realized this formulation is a lot easier.
+
+ - take tangent vector at point p
+ - draw second vector _perpendicular_ to tangent vector from point p
+   towards region R.
+ - cross product (== sign)
+
+I have a tendency to make things too complicated on the first pass. :)
 </pre>*/
 //}}}
 

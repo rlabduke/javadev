@@ -336,6 +336,9 @@ public class UIMenus //extends ... implements ...
         cbitem.setMnemonic(KeyEvent.VK_M);
         cbitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0));
         menu.add(cbitem);
+        cbitem = kMain.getCanvas().getToolBox().services.doObjectPick;
+        cbitem.setMnemonic(KeyEvent.VK_O);
+        menu.add(cbitem);
         cbitem = kMain.getCanvas().getToolBox().services.doSuperpick;
         cbitem.setMnemonic(KeyEvent.VK_S);
         menu.add(cbitem);

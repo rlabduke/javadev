@@ -78,7 +78,7 @@ public class Engine //extends ... implements ...
     
     Font                bigFont, smallFont;
     Rectangle           pickingRect = new Rectangle();
-    float               pickingRadius2 = 25f;
+    float               pickingRadius = 5f;
     boolean             warnedPickingRegion = false; // have we warned user about out-of-bounds picks?
 //}}}
     
@@ -555,7 +555,7 @@ public class Engine //extends ... implements ...
             for(j = 0; j < end_j && theone == null; j++)
             {
                 p = (KPoint)zb.get(j);
-                q = p.isPickedBy(xcoord, ycoord, pickingRadius2, useObjPicking);
+                q = p.isPickedBy(xcoord, ycoord, pickingRadius, useObjPicking);
                 // q will usually be p or null, but sometimes not for object picking
                 if( q != null && (!q.isUnpickable() || superpick))
                     theone = q;
@@ -567,7 +567,7 @@ public class Engine //extends ... implements ...
     public void setPickingRadius(double r)
     {
         if(r > 1)
-            this.pickingRadius2 = (float)(r*r);
+            this.pickingRadius = (float)r;
     }
 //}}}
 
