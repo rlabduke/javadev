@@ -32,12 +32,8 @@
     <jar jarfile="${ant.project.name}.jar" manifest="Manifest.mf" index="false">
         <fileset dir="${build}"/>
         <fileset dir="${resource}"/>
-        <fileset dir="../driftwood/build/">
-            <include name="driftwood/"/>
-        </fileset>
-        <fileset dir="../driftwood/resource/">
-            <include name="driftwood/"/>
-        </fileset>
+        <fileset dir="../driftwood/build/"/>
+        <fileset dir="../driftwood/resource/"/>
     </jar>
 </target>
 

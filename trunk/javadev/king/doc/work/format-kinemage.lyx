@@ -116,37 +116,757 @@ Overview of a kinemage file
 Lists
 \layout Standard
 
-vector/label/dot/ball/sphere/triangle/ribbon
+Depending on how you look at it, either the list or the point could be considere
+d the fundamental unit of a kinemage.
+ Points specify particular locations in three-dimensional space by listing
+ an X, Y, and Z coordinate.
+ Lists bring together collections of points to describe 3-D 
+\emph on 
+primitives
+\emph default 
+.
+ Some primitives are defined by only one point (for instance, a ball is
+ specified by it's center), but others need more -- a line segment needs
+ two endpoints, and a triangle needs three corners.
+ Each list has enough points in it to describe one or more primitives, and
+ all the primitives in a list are of the same type -- all balls, say, or
+ all triangles.
+ For example, a list might contain all the line segments that form the outline
+ of a cube, or all the dots representing one particular data set on a graph.
+ Where it makes logical sense to group a bunch primitives into a single
+ list, it's a good idea, because it will more efficient than creating a
+ separate list for each one.
 \layout Standard
 
-color/radius/width/nohighlight/alpha*
+There are seven basic types of list, corresponding to seven different types
+ of primitive:
+\layout Description
+
+Ball lists specify spheres of some finite size.
+ They're typically drawn as round disks with a little white spot, which
+ looks very convincing as a 
+\begin_inset Quotes eld
+\end_inset 
+
+real
+\begin_inset Quotes erd
+\end_inset 
+
+ rendered sphere.
+ However, they may not look quite right if they intersect other objects,
+ except for line segements with an end point at the ball's center.
+\layout Description
+
+Sphere lists are very similar to ball lists, but hint to the display program
+ that the ball is large and may intersect other objects in a complex way.
+ Depending on the kinemage viewer you're using, the spheres may look more
+ realistic, at the expense of taking more time to render.
+\layout Description
+
+Dot lists specify small points in space, like a ball or sphere that's just
+ big enough to see.
+ They're a good alternative to very small balls or spheres, because they're
+ faster to draw.
+\layout Description
+
+Label lists specify short text labels anchored to a particular point in
+ space.
+ The label swings around as the kinemage is rotated so it's always facing
+ forward and is right side up.
+\layout Description
+
+Vector lists specify a set of line segments, which are often connected head-to-t
+ail in a 
+\emph on 
+polyline
+\emph default 
+.
+ However, a vector list can contain any number of separate line segments,
+ too.
+\layout Description
+
+Triangle lists specify filled triangles.
+ Like vectors are often chained together into polylines, triangles are chained
+ into 
+\emph on 
+triangle strips
+\emph default 
+.
+ Points 1, 2, and 3 make up the first triangle; then points 2 and 3 are
+ reused together with point 4 for a second triangle.
+ On it goes, with a 3, 4, and 5 making the third triangle; 4, 5 and 6 making
+ the fourth, and so on.
+ Traditionally, all the triangles in one list have to be part of a single
+ connected strip.
+\layout Description
+
+Ribbon lists are very similar to triangle lists, except that pairs of consecutiv
+e triangles are assumed to lie in the same plane.
+ In fact, the lighting effects are manipulated so that the four points look
+ like they form a flat, four-sided polygon even if they really don't.
+ As the name implies, this is used for ribbons that curl through space but
+ need to look smooth.
 \layout Standard
 
-master/instance/clone
+In the kinemage file, lists are specified by an @ symbol followed by the
+ list type and the word 
+\begin_inset Quotes eld
+\end_inset 
+
+list
+\begin_inset Quotes erd
+\end_inset 
+
+, all lower case and without any spaces in between.
+ The entire list definition must be on a single line; it cannot be split
+ across multiple lines.
+ The first item after the @list keyword is the name of the list, enclosed
+ in curly braces.
+ The options listed below then follow in any order, as desired:
+\layout Itemize
+
+The word 
+\family typewriter 
+off
+\family default 
+ requests that the list not be initially visible when the kinemage is loaded.
+ If it has an on/off button in the button panel, the user may turn it on
+ manually, or it may be turned on by a master button.
+\layout Itemize
+
+The word 
+\family typewriter 
+nobutton
+\family default 
+ requests that the list not have an on/off button even if it would have
+ otherwise.
+ Note that many lists will not have an on/off button anyway because their
+ subgroup or group is 
+\family typewriter 
+dominant
+\family default 
+.
+\layout Itemize
+
+
+\family typewriter 
+radius= #.#
+\family default 
+ and 
+\family typewriter 
+width= #
+\family default 
+ are used to specify the size of balls/spheres and vectors/dots, respectively.
+ Radius may be a decimal number, but width refers to a number of pixels
+ on the screen and must be an integer between 1 and 7.
+ Lines and dots default to a width of 2.
+ You should always specify a radius for balls and spheres explicitly.
+\layout Itemize
+
+Ball or sphere lists marked with 
+\family typewriter 
+nohighlight
+\family default 
+ will be drawn as flat colored disks and will not have a white highlight
+ drawn to make them look 3-D.
+\layout Itemize
+
+
+\family typewriter 
+color= colorname
+\family default 
+ specifies the base color for objects in the list; however, the list color
+ interacts with the colors of individual points (if any).
+ By default, lists are white.
+ See 
+\begin_inset LatexCommand \ref{sec:Aspects-and-colors}
+
+\end_inset 
+
+ for more information about colors.
+\layout Itemize
+
+
+\family typewriter 
+alpha= #.#
+\family default 
+ specifies the opacity of objects from 1.0 (fully opaque) to 0.0 (invisible).
+ Alpha is currently supported only by KiNG and only for triangle or ribbon
+ lists.
+\layout Itemize
+
+
+\family typewriter 
+master= {mastername}
+\family default 
+ specifies that this list is controlled by the named master.
+ A given list may have multiple 
+\family typewriter 
+master=
+\family default 
+ statements, but you should read 
+\begin_inset LatexCommand \ref{sec:Masters}
+
+\end_inset 
+
+ to see how multiple masters interact.
+\layout Itemize
+
+
+\family typewriter 
+clone= {listname}
+\family default 
+ and 
+\family typewriter 
+instance= {listname}
+\family default 
+ specify that this list has the same points in it as the named list, which
+ must be of the same type and must have been declared before the current
+ list.
+ This list, however, may have different properties (color, radius, 
+\emph on 
+etc.
+\emph default 
+) than the other one.
+ Clone is purely a convenience for kinemage authors, the current list is
+ a totally independent copy of the other list that just happens to have
+ the same contents.
+ When the kinemage is saved, both lists will be written out in full without
+ using 
+\family typewriter 
+clone=
+\family default 
+.
+ Instance, on the other hand, actually re-uses the same point data, so editing
+ the points of one list will affect all its clones too.
+ The 
+\family typewriter 
+instance=
+\family default 
+ property 
+\emph on 
+will
+\emph default 
+ appear in the saved kinemage.
+ Instance is a good way to make more efficient use of memory in certain
+ cases, such as when an identical object needs to appear in multiple frames
+ of an animation.
 \layout Standard
 
-off/nobutton
+A few sample list declarations are shown below.
+\layout LyX-Code
+
+@balllist {Circles} radius= 3.5 nohighlight off
+\layout LyX-Code
+
+@spherelist {Mars look-alikes} radius= 10000 color= red master= {planets}
+ nobutton
+\layout LyX-Code
+
+@vectorlist {tiger's tail} color= orange width= 5
+\layout LyX-Code
+
+@trianglelist {veil} color= yellowtint alpha= 0.25
+\layout LyX-Code
+
+@trianglelist {a newer veil} color= white alpha= 0.3 clone= {veil}
 \layout Section
 
 Points
 \layout Standard
 
-pointID/flags/ghost/color/width/radius/ptmasters/aspects/coords
+Points determine the actual geometry of the objects in a kinemage file.
+ At a minimum, each point must specify an X, Y, and Z coordinate.
+ Coordinates are given in a right handed Cartesian system.
+ The 
+\begin_inset Quotes eld
+\end_inset 
+
+Cartesian
+\begin_inset Quotes erd
+\end_inset 
+
+ part just means that the X, Y, and Z axes are all at right angles to each
+ other.
+ The 
+\begin_inset Quotes eld
+\end_inset 
+
+right handed
+\begin_inset Quotes erd
+\end_inset 
+
+ part means that if you're looking down the positive Z axis toward the origin,
+ the positive Y axis goes up and the positive X axis goes to the right.
+ Coordinates can be any possible decimal number, but it's a good idea to
+ not make them all really large (say, all in the millions) or really small
+ (thousandths and less), because you may lose accuracy in some kinemage
+ viewers.
+\layout Comment
+
+Is really this true of Mage?
+\layout Standard
+
+In addition to coordinates, it's a very good idea to give every point an
+ ID, even though this is not strictly required.
+ The ID appears when the user picks the point with the mouse, and for points
+ in a label list the ID is actually the text that will be displayed for
+ the label.
+ IDs are allowed to be empty (just a pair of curly braces), and this is
+ preferrable to no ID at all.
+ The special ID 
+\family typewriter 
+{
+\begin_inset Quotes erd
+\end_inset 
+
+}
+\family default 
+ means that the point will have the same ID as the point that preceded it;
+ if all the points in a list have the same ID, all but the first can have
+ 
+\family typewriter 
+{
+\begin_inset Quotes erd
+\end_inset 
+
+}
+\family default 
+ for their ID.
+\layout Standard
+
+Points are typically writen one to a line, though they can span multiple
+ lines or more than one point can appear on the same line.
+ The ID must come first, enclosed in curly braces, and the coordinates must
+ come last.
+ In between, there are a lot of per-point options that can be employed in
+ any order:
+\layout Itemize
+
+The 
+\family typewriter 
+P
+\family default 
+ flag marks a point in a vectorlist as starting a new polyline.
+ The first point in the list is automatically 
+\family typewriter 
+P
+\family default 
+, but after that line segements are drawn from one point to another until
+ a 
+\family typewriter 
+P
+\family default 
+ point is encountered.
+ To draw a series of disconnected single line segments, every other point
+ should be marked 
+\family typewriter 
+P
+\family default 
+ (starting with the first one).
+ The 
+\family typewriter 
+P
+\family default 
+ flag does not affect triangle lists.
+\layout Itemize
+
+Points marked with the 
+\family typewriter 
+U
+\family default 
+ flag are 
+\begin_inset Quotes eld
+\end_inset 
+
+unpickable
+\begin_inset Quotes erd
+\end_inset 
+
+ under normal circumstances, meaning that clicking on them with the mouse
+ will not do anything.
+\layout Itemize
+
+In KiNG, the 
+\family typewriter 
+X
+\family default 
+ flag can be used to break one triangle list into multiple triangle strips,
+ analogous to the 
+\family typewriter 
+P
+\family default 
+ flag for vector lists.
+\layout Itemize
+
+Points can be given their own color just by writing the color name.
+ They can also be assigned alternative colors for different coloring schemes
+ through the use of aspects (see 
+\begin_inset LatexCommand \ref{sec:Aspects-and-colors}
+
+\end_inset 
+
+).
+ Aspects are lists of single uppercase letters A - Z enclosed in parentheses.
+ If aspects are used in a file, every point should have the same number
+ of aspects specified.
+ The color of a line segment is the color of its second point, not its first;
+ likewise, the color of a triangle is the color of its third point.
+\layout Itemize
+
+Width and radius can also be specified on a point-by-point basis.
+ Widths are specified as 
+\family typewriter 
+width1
+\family default 
+, 
+\family typewriter 
+width2
+\family default 
+, ...
+ 
+\family typewriter 
+width7
+\family default 
+; radii are specified as 
+\family typewriter 
+r= #.#
+\family default 
+.
+\layout Itemize
+
+The visibility of points can also be controlled by pointmasters, which are
+ analogous to the masters that control lists, subgroups, and groups.
+ Pointmasters are identified by single character codes (the lowercase letters
+ a - z and the numbers 1 - 6) enclosed in single quote marks.
+ Multiple point masters interact differently than multiple masters do; see
+ 
+\begin_inset LatexCommand \ref{sec:Masters}
+
+\end_inset 
+
+ for more information.
+\layout Itemize
+
+Each point can have an additional text 
+\begin_inset Quotes eld
+\end_inset 
+
+comment
+\begin_inset Quotes erd
+\end_inset 
+
+ associated with it, which should be enclosed in angle brackets.
+ Some kinemage viewers use these for special purposes, while others may
+ ignore them altogether.
+\layout Standard
+
+Some example point definitions are shown below; these points are not intended
+ to all belong to the same list!
+\layout LyX-Code
+
+{clown nose} red r= 2.4 1.0 2.0 3.0
+\layout LyX-Code
+
+{x-axis}P U 0 0 0
+\layout LyX-Code
+
+{
+\begin_inset Quotes erd
+\end_inset 
+
+} <other end of X axis> U width1 10 0 0
+\layout LyX-Code
+
+{really complicated} 'aeg' (HZTU) 8.31 19.78 42.13
 \layout Section
 
-Groups and subgroups
+Kinemages, groups, and subgroups
 \layout Standard
 
-animate/2animate
+Complicated kinemages may have hundreds of lists in them, which would quickly
+ become unmanagable for the user.
+ Groups and subgroups allow us to organize lists hierarchically, so that
+ sets of related objects can be shown or hidden as a unit, and unneccessary
+ detail can be supressed.
+ There are also cases where several kinemages deal with different aspects
+ of the same visualization problem, and the kinemage format provides for
+ collecting these multiple kinemages into a single file.
 \layout Standard
 
-off/nobutton/dominant
+Only the start of each kinemage, group, subgroup, or list is marked, and
+ not the end.
+ A kinemage declaration must appear at the start of the file, and everything
+ else in that file is considered part of the kinemage until another kinemage
+ declaration is found.
+ In the same way, a group includes all the subgroups and lists that follow
+ it, until another group is declared or the end of the file is reached.
+ Likewise, subgroups contain all the lists that follow them, until another
+ group or subgroup declaration is encountered.
+ Lists contain all the points that follow them, until another list, subgroup,
+ or group declaration is encountered.
+ In this way, a hierarchical organization is built up with points gathered
+ into lists, lists gathered into subgroups, subgroups gathered into groups,
+ and groups gathered into kinemages.
 \layout Standard
 
-recessiveon/collapsable/collapsible
+Kinemage declarations are very simple: the 
+\family typewriter 
+@kinemage
+\family default 
+ keyword, followed by an identifying number.
+ The first kinemage in a file should be number 1, the second should be number
+ 2, and so on.
+ Thus, every kinemage file starts like this, with nothing preceding it except
+ possibly a 
+\family typewriter 
+@text
+\family default 
+ block (see 
+\begin_inset LatexCommand \ref{sec:Metadata}
+
+\end_inset 
+
+):
+\layout LyX-Code
+
+@kinemage 1
 \layout Standard
 
-master/instance/clone
+Group and subgroup declarations are only slightly more complicated.
+ They start with 
+\family typewriter 
+@group
+\family default 
+ or 
+\family typewriter 
+@subgroup
+\family default 
+, respectively, followed by the (sub)group name in curly braces, possibly
+ followed by some of the following flags.
+ As with lists, group and subgroup declarations may not span multiple lines.
+\layout Itemize
+
+The word 
+\family typewriter 
+off
+\family default 
+ requests that the (sub)group not be initially visible when the kinemage
+ is loaded.
+ If it has an on/off button in the button panel, the user may turn it on
+ manually, or it may be turned on by a master button.
+\layout Itemize
+
+The word 
+\family typewriter 
+nobutton
+\family default 
+ requests that the (sub)group not have an on/off button even if it would
+ have otherwise.
+ Note that some subgroups will not have an on/off button anyway because
+ their group is 
+\family typewriter 
+dominant
+\family default 
+.
+\layout Itemize
+
+The word 
+\family typewriter 
+dominant
+\family default 
+ requests that the buttons of objects below this (sub)group in the hierarchy
+ not be shown.
+ Dominant subgroups hide the buttons of their lists; dominant groups hide
+ the buttons of their subgroups and their lists.
+\layout Itemize
+
+The word 
+\family typewriter 
+collapsable
+\family default 
+ is similar to dominant.
+ When a collapsable group is on, the buttons of its subgroups and groups
+ are visible as usual.
+ When the collapsable group is off, however, those buttons are supressed,
+ as though it were 
+\family typewriter 
+dominant
+\family default 
+.
+ The situation is analogous for collapsable subgroups and the lists under
+ them.
+\layout Itemize
+
+
+\family typewriter 
+master= {mastername}
+\family default 
+ specifies that this (sub)group is controlled by the named master.
+ A given (sub)group may have multiple 
+\family typewriter 
+master=
+\family default 
+ statements, but you should read 
+\begin_inset LatexCommand \ref{sec:Masters}
+
+\end_inset 
+
+ to see how multiple masters interact.
+\layout Itemize
+
+The words 
+\family typewriter 
+animate
+\family default 
+ and 
+\family typewriter 
+2animate
+\family default 
+ can only be used with groups.
+ Groups so marked become part of the first or second animation, respectively.
+ When the kinemage is loaded, all animate groups except the first one are
+ turned off, regardless of any 
+\family typewriter 
+off
+\family default 
+ flags.
+ The user can the cycle the animation forward/backward so that the next/previous
+ group is on and all the others are off.
+ Animate groups can be turned on or off by the user without any restrictions,
+ but stepping forward or backward in the animation will again ensure that
+ only one of them is on at a particular time.
+ The 
+\family typewriter 
+2animate
+\family default 
+ flag lets authors establish a second, unrelated animation that behaves
+ in exactly the same way.
+ In general, no group should be marked with both 
+\family typewriter 
+animate
+\family default 
+ and 
+\family typewriter 
+2animate
+\family default 
+.
+\layout Standard
+
+The following are typical group and subgroup declarations:
+\layout LyX-Code
+
+@group {first frame} dominant animate
+\layout LyX-Code
+
+@group {not visible} dominant nobutton master= {use this instead}
+\layout LyX-Code
+
+@group {lots of stuff} collapsable
+\layout LyX-Code
+
+@subgroup {not very important} off master= {optional stuff}
+\layout Section
+
+Masters
+\begin_inset LatexCommand \label{sec:Masters}
+
+\end_inset 
+
+
+\layout Standard
+
+The so-called 
+\begin_inset Quotes eld
+\end_inset 
+
+master
+\begin_inset Quotes erd
+\end_inset 
+
+ buttons provide an important facility for complex kinemages: the ability
+ to group and organize the elements by a secondary scheme that may be very
+ different from the primary, hierarchical organization.
+ For example, if you were making an interactive map of the world, you might
+ decide to make one group for each continent, and one subgroup for each
+ country.
+ However, it might also be nice to turn on and off all the rivers together,
+ or all the cities.
+ Without masters, there might be a 
+\family typewriter 
+{rivers}
+\family default 
+ lists in each country, all of which would have to be toggled individually.
+ With masters, you can have all of the rivers toggled by a single button
+ that lives outside the ordinary hierarchy of groups, subgroups, and lists.
+\layout Standard
+
+Masters are automatically created whenever they're mentioned the 
+\family typewriter 
+master=
+\family default 
+ part of a list, subgroup, or group declaration.
+ Their buttons appear in the same button panel as group/subgroup/list buttons,
+ but after all of those and somewhat separated from them.
+ You can control the order and presentation of masters a little bit better
+ by using the 
+\family typewriter 
+@master
+\family default 
+ keyword, which usually appears in the kinemage 
+\begin_inset Quotes eld
+\end_inset 
+
+header
+\begin_inset Quotes erd
+\end_inset 
+
+ -- after 
+\family typewriter 
+@kinemage
+\family default 
+ but before the group, subgroup, and list declarations.
+ 
+\family typewriter 
+@master
+\family default 
+ is followed by the master name in curly braces, which must exactly match
+ the name used in 
+\family typewriter 
+master=
+\family default 
+ statements.
+ The name may be followed by the 
+\family typewriter 
+indent
+\family default 
+ flag, which hints that its button should be indented relative to the other
+ master buttons so as to imply the same sort of hierarchy that occurs in
+ the regular buttons.
+ (However, for the masters this is purely cosmetic.)
+\layout Standard
+
+master
+\layout Standard
+
+pointmaster
+\layout Section
+
+Colors and aspects
+\begin_inset LatexCommand \label{sec:Aspects-and-colors}
+
+\end_inset 
+
+
+\layout Standard
+
+aspect
+\layout Standard
+
+list of valid color names
+\layout Standard
+
+colorset
 \layout Section
 
 Views and display options
@@ -164,25 +884,17 @@ viewid/zoom/span/center/matrix/zslab/ztran
 lens
 \layout Section
 
-Masters, aspects, and colors
-\layout Standard
+Metadata
+\begin_inset LatexCommand \ref{sec:Metadata}
 
-master
-\layout Standard
+\end_inset 
 
-pointmaster
-\layout Standard
 
-aspect
-\layout Standard
+\begin_inset LatexCommand \label{sec:Metadata}
 
-list of valid color names
-\layout Standard
+\end_inset 
 
-colorset
-\layout Section
 
-Meta-data
 \layout Standard
 
 text/caption/title/copyright
@@ -192,6 +904,9 @@ pdbfile/mapfile?
 \layout Standard
 
 mage/prekin/command
+\layout Section
+
+Alternative spellings
 \layout Part
 
 Syntax

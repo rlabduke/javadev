@@ -27,37 +27,42 @@
     Make hierarchy editor drag-and-drop
     Tau minimizer over a range (rebuild peptides too?)
     Look at mouse wheel modifiers (e.g. Shift)
+    Key/mouse modifiers need to be checked from Safari (applet)
     Do NOEs within d of x,y,z when nothing is mobile (same for Probe?)
-    Allow user to type contour level into ED control?
     Support wordlists (and point comments!)
     Hyperlinks/URLs in point comments?
     Add matrix-based deformatation option to Hierarchy:Transform
     Show CB deviation in Hinge when not idealizing sc positions
     Draw: construct 4 and 5, polylines, triangle strips, true sphere, cylinder
-    For Views tool: Center Visible command ?
+    For Views tool: Center Visible command (use r3.PrincipleAxes)
     Allow user to set focal length for perspective "lens"?
     New shades of gray: smoke (light), charcoal (dark) ?
     Think about free-form docking tools
     Add choice of experiments to expected NOEs
     Distribute noe-display in packaged KiNG versions?
-    Key/mouse modifiers need to be checked from Safari (applet)
-    New list type: @meshlist (triangles or squares) ?
 <!-- Postponed TO DO items }}} -->
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
     Add ability to edit masters
     Export kin for POV-Ray (based on KinWriter code, orig coords + all views)
     Write Java and Python guides to creating a plugin, listing all the basic steps
-    JOGL: auto-setting of classpath, java.libary.path in distributions
+  * JOGL: auto-setting of classpath, java.libary.path in distributions
     Add some kind of transformation hook (listeners, priorities, etc)
     Warn about saving with multiple kins open
     Warn about losing unsaved changes
-*** Deploy to RLab!!
+  * Revisit default menu layout
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 1.28 ###
+### 1.29 ###
+- used getValueIsAdjusting() to make ED sliders smooth
+- fixed menu configuration system that I broke earlier...
+- changed auto-rock to use a sin() function for smooth pauses at either end
+- tried to fix file extensions, but they're still broken...
+- JPG, PNG, and PDF files now are checked for proper extension at save time
+- kept the text window from scolling when new text is added
+
 ### 1.28 ###
 - added the "accumulate" animation function from Mage
 - changed the meaning of KPoint.get/setX/Y/Z to refer to the untransformed (original)

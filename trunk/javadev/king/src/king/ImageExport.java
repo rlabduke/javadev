@@ -63,6 +63,7 @@ public class ImageExport implements PropertyChangeListener, Runnable
         chooser = new JFileChooser();
         chooser.addChoosableFileFilter(pngFilter);
         chooser.addChoosableFileFilter(jpgFilter);
+        chooser.setAcceptAllFileFilterUsed(false);
         chooser.setFileFilter(jpgFilter);
         if(currdir != null) chooser.setCurrentDirectory(new File(currdir));
         chooser.addPropertyChangeListener(this);
@@ -151,23 +152,28 @@ public class ImageExport implements PropertyChangeListener, Runnable
         // Show the Save dialog
         if(JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(kMain.getTopWindow()))
         {
+            String fmt;
+            javax.swing.filechooser.FileFilter filter = chooser.getFileFilter();
+            if(pngFilter.equals(filter))        fmt = "png";
+            else if(jpgFilter.equals(filter))   fmt = "jpg";
+            else                                fmt = "jpg"; // shouldn't happen
+            
             File f = chooser.getSelectedFile();
+            if(!filter.accept(f) &&
+            JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+            "This file has the wrong extension. Append '."+fmt+"' to the name?",
+            "Fix extension?", JOptionPane.YES_NO_OPTION))
+            {
+                f = new File(f+"."+fmt);
+            }
+
+                
             if(!f.exists() ||
             JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(kMain.getTopWindow(),
             "This file exists -- do you want to overwrite it?",
             "Overwrite file?", JOptionPane.YES_NO_OPTION))
             {
-                try
-                {
-                    String fmt;
-                    if(pngFilter.equals(chooser.getFileFilter()))           fmt = "png";
-                    else if(jpgFilter.equals(chooser.getFileFilter()))      fmt = "jpg";
-                    else if(pngFilter.accept(f))                            fmt = "png";
-                    else if(jpgFilter.accept(f))                            fmt = "jpg";
-                    else fmt = "jpg";
-                    
-                    exportImage(kMain.getCanvas(), fmt, f);
-                }
+                try { exportImage(kMain.getCanvas(), fmt, f); }
                 catch(IOException ex)
                 {
                     JOptionPane.showMessageDialog(kMain.getTopWindow(),

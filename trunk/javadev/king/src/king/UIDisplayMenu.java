@@ -537,8 +537,13 @@ public class UIDisplayMenu //extends ... implements ...
             rockRight = !rockRight;
         }
         
-        if(rockRight) v.rotateY( rockStepSize);
-        else          v.rotateY(-rockStepSize);
+        // Stiff bouncing:
+        //if(rockRight) v.rotateY( rockStepSize);
+        //else          v.rotateY(-rockStepSize);
+        
+        // Slows and pauses at either end:
+        if(rockRight) v.rotateY((float)(2 *  rockStepSize * Math.sin((Math.PI*rockStepCount)/rockMaxSteps)));
+        else          v.rotateY((float)(2 * -rockStepSize * Math.sin((Math.PI*rockStepCount)/rockMaxSteps)));
         
         rockStepCount++;
         

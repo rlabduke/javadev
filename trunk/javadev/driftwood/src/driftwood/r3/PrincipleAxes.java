@@ -14,7 +14,9 @@ import driftwood.util.*;
 import Jama.*;
 //}}}
 /**
-* <code>PrincipleAxes</code> has not yet been documented.
+* <code>PrincipleAxes</code> uses Principle Components Analysis
+* and the JAMA matrix libraries to calculate the principle components of
+* a set of 3-D points.
 *
 * <p>Copyright (C) 2004 by Ian W. Davis. All rights reserved.
 * <br>Begun on Mon Apr 26 15:13:42 EDT 2004
@@ -53,6 +55,8 @@ public class PrincipleAxes //extends ... implements ...
 //##############################################################################
     /** Principle component vectors in columns; greatest in col 0 */
     Matrix principleComponents;
+    /** Weights of the components, sorted in the same order */
+    double[] pcaEigenvalues;
     /** Transpose/inverse (same thing) of principleComponents */
     Transform pcaTransform;
     /** The minimum and maximum (x,y,z) values for input data in transformed coordinates */
@@ -72,7 +76,8 @@ public class PrincipleAxes //extends ... implements ...
         Matrix features = packTuples(data);
         Matrix cov = covariance(features);
         EigenvalueDecomposition eig = cov.eig();
-        this.principleComponents = sortEigenvectors(eig);
+        this.pcaEigenvalues = new double[3];
+        this.principleComponents = sortEigenvectors(eig, pcaEigenvalues);
         
         // Form rotation matrix for going from Cartesian coordinates
         // to coordinates with the PCA as a basis set
@@ -100,6 +105,53 @@ public class PrincipleAxes //extends ... implements ...
     }
 //}}}
 
+//{{{ getTransform, getAxes, getLengths
+//##############################################################################
+    /**
+    * Will transform coordinates from the input space to PCA space.
+    * This is a pure rotation, with no scaling, translation, or shearing.
+    */
+    public Transform getTransform()
+    {
+        return new Transform().like(pcaTransform);
+    }
+    
+    /** Returns the 3 principle components as normalized vectors, with the major one first. */
+    public Tuple3[] getAxes()
+    {
+        Triple[] out = new Triple[3];
+        out[0] = new Triple(principleComponents.get(0,0), principleComponents.get(1,0), principleComponents.get(2,0));
+        out[1] = new Triple(principleComponents.get(0,1), principleComponents.get(1,1), principleComponents.get(2,1));
+        out[2] = new Triple(principleComponents.get(0,2), principleComponents.get(1,2), principleComponents.get(2,2));
+        return out;
+    }
+    
+    /** Returns the relative lengths of the components (that is, the eigenvalues), sorted in descending order. */
+    public double[] getLengths()
+    {
+        return (double[]) pcaEigenvalues.clone();
+    }
+//}}}
+
+//{{{ getKinCenter, getKinSpan
+//##############################################################################
+    /** Returns the center of the PCA bounding box in Cartesian coords. */
+    public Tuple3 getKinCenter()
+    {
+        // Compute box center and backtranslate to Cartesian coords
+        Matrix center = new Matrix(3,1);
+        center.set(0, 0, (boxMax.getX()+boxMin.getX())/2);
+        center.set(1, 0, (boxMax.getY()+boxMin.getY())/2);
+        center.set(2, 0, (boxMax.getZ()+boxMin.getZ())/2);
+        center = principleComponents.times(center);
+        return new Triple(center.get(0,0), center.get(1,0), center.get(2,0));
+    }
+    
+    /** Returns the (Cartesian space) length of the longest side of the (PCA space) bounding box. */
+    public double getKinSpan()
+    { return boxMax.getX() - boxMin.getX(); }
+//}}}
+
 //{{{ getKinView
 //##############################################################################
     /**
@@ -114,21 +166,16 @@ public class PrincipleAxes //extends ... implements ...
         out.append("@").append(viewID).append("viewid {").append(viewLabel).append("}\n");
         
         // Compute span and z-slab
-        double dx = boxMax.getX() - boxMin.getX(); // largest side
-        double span = 1.05*dx;
+        double span = 1.05 * getKinSpan(); // largest side
         double zslab = 200; // as deep as it is wide
         out.append("@").append(viewID).append("span ").append(df.format(span)).append("\n");
         out.append("@").append(viewID).append("zslab ").append(df.format(zslab)).append("\n");
         
         // Compute box center and backtranslate to Cartesian coords
-        Matrix center = new Matrix(3,1);
-        center.set(0, 0, (boxMax.getX()+boxMin.getX())/2);
-        center.set(1, 0, (boxMax.getY()+boxMin.getY())/2);
-        center.set(2, 0, (boxMax.getZ()+boxMin.getZ())/2);
-        center = principleComponents.times(center);
-        out.append("@").append(viewID).append("center ").append(df.format(center.get(0,0)));
-        out.append(" ").append(df.format(center.get(1,0)));
-        out.append(" ").append(df.format(center.get(2,0))).append("\n");
+        Tuple3 center = getKinCenter();
+        out.append("@").append(viewID).append("center ").append(df.format(center.getX()));
+        out.append(" ").append(df.format(center.getY()));
+        out.append(" ").append(df.format(center.getZ())).append("\n");
         
         // Write out transpose of transformation matrix (== original PCA matrix)
         out.append("@").append(viewID).append("matrix");
@@ -151,7 +198,7 @@ public class PrincipleAxes //extends ... implements ...
     * Takes a Collection of Tuple3s and packs them into the rows of
     * a Matrix, suitable for using with covariance().
     */
-    static private Matrix packTuples(Collection data)
+    static Matrix packTuples(Collection data)
     {
         int rows = data.size();
         Matrix out = new Matrix(rows, 3);
@@ -175,7 +222,7 @@ public class PrincipleAxes //extends ... implements ...
     * The covariance matrix is square, and equal in dimension to the number of
     * columns in the input data.
     */
-    static public Matrix covariance(Matrix data)
+    static Matrix covariance(Matrix data)
     {
         int rows = data.getRowDimension(), cols = data.getColumnDimension();
         
@@ -210,11 +257,12 @@ public class PrincipleAxes //extends ... implements ...
     * matrices anyway, but that's from a quick reading of the source code
     * and not from the javadocs.
     * (Jama sorts in ascending order, though.)
+    * @param eigenvals      will be overwritten with sorted eigenvalues
     * @return a sorted version of the EigenvalueDecomposition matrix V,
     *   with the most significant principle component in the first column
     *   and the least significant one in the last column.
     */
-    static public Matrix sortEigenvectors(EigenvalueDecomposition eig)
+    static Matrix sortEigenvectors(EigenvalueDecomposition eig, double[] eigenvals)
     {
         Matrix d = eig.getD();
         Matrix v = eig.getV();
@@ -226,17 +274,20 @@ public class PrincipleAxes //extends ... implements ...
         Arrays.sort(sort);
         
         Matrix v2 = new Matrix(rows, cols);
-        for(int r = 0; r < rows; r++)
-            for(int c = 0; c < cols; c++)
+        for(int c = 0; c < cols; c++)
+        {
+            eigenvals[c] = sort[c].value;
+            for(int r = 0; r < rows; r++)
                 v2.set(r, c, v.get(r, sort[c].index));
+        }
         
         return v2;
     }
 //}}}
 
-//{{{ main
+//{{{ main - for testing
 //##############################################################################
-    public static void main(String[] args)
+    /*public static void main(String[] args)
     {
         try
         {
@@ -259,17 +310,16 @@ public class PrincipleAxes //extends ... implements ...
                 catch(IndexOutOfBoundsException ex) { System.err.println(ex.getMessage()); }
             }
             
-            /*Matrix features = packTuples(data);
-            Matrix cov = covariance(features);
+            //Matrix features = packTuples(data);
+            //Matrix cov = covariance(features);
             
-            EigenvalueDecomposition eig = cov.eig();
-            eig.getD().print(20, 8);
-            eig.getV().print(20, 8);
+            //EigenvalueDecomposition eig = cov.eig();
+            //eig.getD().print(20, 8);
+            //eig.getV().print(20, 8);
             
-            Matrix pca = sortEigenvectors(eig);
-            pca.print(20, 8);
-            pca.transpose().times(pca).print(20, 8);
-            */
+            //Matrix pca = sortEigenvectors(eig);
+            //pca.print(20, 8);
+            //pca.transpose().times(pca).print(20, 8);
             PrincipleAxes axes = new PrincipleAxes(data);
             System.out.println( axes.getKinView("", "PCA view") );
         }
@@ -277,7 +327,7 @@ public class PrincipleAxes //extends ... implements ...
         {
             ex.printStackTrace();
         }
-    }
+    }*/
 //}}}
 }//class
 
