@@ -285,15 +285,7 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
             
             Rectangle bounds = new Rectangle(dim);
             bounds.setLocation((int)(format.getImageableX()/scale), (int)(format.getImageableY()/scale));
-            
-            if(kin.currAspect == null) engine.activeAspect = 0;
-            else engine.activeAspect = kin.currAspect.getIndex().intValue();
-            engine.usePerspective   = kin.atPerspective;
-            engine.cueThickness     = ! kin.atOnewidth;
-            engine.thinLines        = kin.atThinline;
-            engine.whiteBackground  = kin.atWhitebackground;
-            engine.colorByList      = kin.atListcolordominant;
-            
+            engine.syncToKin(kin);
             bestPainter.setGraphics(g2);
             engine.render(this, view, bounds, bestPainter);
             if(toolbox != null) toolbox.overpaintCanvas(bestPainter);

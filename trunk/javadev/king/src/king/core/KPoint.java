@@ -22,20 +22,6 @@ import driftwood.r3.*;
 public interface KPoint extends AHE, Cloneable, MutableTuple3
 {
 //{{{ Constants
-    // Bit allocation for 'multi':
-    //   kngpt  points  future  color (no longer used)
-    // skkkkkkkppppppppffffffffcccccccc
-    
-    /** A mask for isolating the color bits using AND */
-    //public static final int COLOR_MASK      = 0x000000ff;
-    /** If this bit is set, the point is 'live' and should be painted */
-    public static final int ON_BIT          = 0x40000000;
-    /** If this bit is set, the point will not be picked by a mouse click */
-    public static final int UNPICKABLE      = 0x20000000;
-    /** Used by e.g. TrianglePoints to tell whose normal to in lighting effects */
-    public static final int SEQ_EVEN_BIT    = 0x10000000;
-    /** A flag used by Mage only; point is visible but not written to PDB output. */
-    public static final int GHOST_BIT       = 0x08000000;
 //}}}
 
 //{{{ clone

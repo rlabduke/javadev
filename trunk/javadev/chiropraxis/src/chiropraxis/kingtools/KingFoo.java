@@ -12,6 +12,7 @@ import java.util.*;
 //import javax.swing.*;
 import driftwood.moldb2.*;
 import driftwood.r3.*;
+import driftwood.util.*;
 //}}}
 /**
 * <code>KingFoo</code> is a cavity-detection utility based on DCR's "foo" in Mage.
@@ -113,6 +114,41 @@ public class KingFoo //extends ... implements ...
                 liveFoos.add(foo);
             }
         }
+        return liveFoos.size();
+    }
+//}}}
+
+//{{{ placeFoosWithProbe
+//##############################################################################
+    /**
+    * Uses Probe to place foo balls on the accessible surface of non-water atoms.
+    * This should be called before trying to generate a dot surface.
+    * @return the number of foos successfully placed
+    */
+    public int placeFoosWithProbe(File pdbFile) throws IOException
+    {
+        DecimalFormat df = new DecimalFormat("0.0###");
+        String cmd = "probe -drop -add"+df.format(fooRadius)+" -r0.0 -density2.0 -u -out 'not water' '"+pdbFile+"'";
+        Process proc = Runtime.getRuntime().exec(Strings.tokenizeCommandLine(cmd));
+        ProcessTank tank = new ProcessTank();
+        tank.fillTank(proc);
+        
+        String s;
+        LineNumberReader in = new LineNumberReader(new InputStreamReader(tank.getStdout()));
+        while((s = in.readLine()) != null)
+        {
+            String[] fields = Strings.explode(s, ':');
+            try
+            {
+                Triple foo = new Triple(Double.parseDouble(fields[14]),
+                    Double.parseDouble(fields[15]),
+                    Double.parseDouble(fields[16]));
+                fooBin.add(foo);
+                liveFoos.add(foo);
+            }
+            catch(NumberFormatException ex) { ex.printStackTrace(); }
+        }
+        in.close();
         return liveFoos.size();
     }
 //}}}
@@ -294,62 +330,37 @@ public class KingFoo //extends ... implements ...
     {
         Builder b = new Builder();
         DecimalFormat df = new DecimalFormat("0.0###");
+        File inputFile = null;
         
-        /*{{{ Dot-ball testing
-        Collection dots = b.makeDotSphere(1.0, 16);
-        System.out.println("@dotlist {ball 1} color= red");
-        for(Iterator iter = dots.iterator(); iter.hasNext(); )
-            System.out.println("{x} "+((Triple)iter.next()).format(df));
-
-        dots = b.makeDotSphere(1.0, 64);
-        System.out.println("@dotlist {ball 2} color= yellow");
-        for(Iterator iter = dots.iterator(); iter.hasNext(); )
-            System.out.println("{x} "+((Triple)iter.next()).format(df));
-
-        dots = b.makeDotSphere(2.0, 16);
-        System.out.println("@dotlist {ball 3} color= green");
-        for(Iterator iter = dots.iterator(); iter.hasNext(); )
-            System.out.println("{x} "+((Triple)iter.next()).format(df));
-
-        dots = b.makeDotSphere(3.0, 16);
-        System.out.println("@dotlist {ball 4} color= blue");
-        for(Iterator iter = dots.iterator(); iter.hasNext(); )
-            System.out.println("{x} "+((Triple)iter.next()).format(df));
-        }}}*/
+        for(int i = 0; i < args.length; i++)
+        {
+            if(inputFile == null) inputFile = new File(args[i]);
+            else System.err.println("Unrecognized argument "+args[i]);
+        }
         
-        final double fooRadius = Double.parseDouble(args[0]);//0.5;
-        Model m = new PdbReader().read(System.in).getFirstModel();
+        final double fooRadius = 1.0;
+        Model m = new PdbReader().read(inputFile).getFirstModel();
         Collection atoms = m.getState().createCollapsed().getLocalStateMap().values();
-        
-        // Get bounding box of atoms, convert to center and halfwidths
-        Triple[] bounds = Builder.makeBoundingBox(atoms);
-        bounds[0].likeMidpoint(bounds[0], bounds[1]);
-        bounds[1].sub(bounds[0]);
-        
-        // Number of trials is a multiple of the number of non-overlapping balls
-        // that could be placed in the bounding box on a cubic lattice.
-        //final int fooTrials = (int) Math.round(25 * (bounds[1].getX()/fooRadius) * (bounds[1].getY()/fooRadius) * (bounds[1].getZ()/fooRadius));
-        final int fooTrials = (int) Math.round(25 * 8 * bounds[1].getX() * bounds[1].getY() * bounds[1].getZ());
         
         long time = System.currentTimeMillis();
         KingFoo kf = new KingFoo(atoms, fooRadius, fooRadius/1.0);
-        kf.placeFoos(fooTrials, bounds[0], bounds[1]);
+        kf.placeFoosWithProbe(inputFile);
         time = System.currentTimeMillis() - time;
-        System.err.println(kf.liveFoos.size()+"/"+fooTrials+" foos were placed successfully in "+time+" ms");
+        System.err.println(kf.getFoos().size()+" foos were placed successfully in "+time+" ms");
         
         time = System.currentTimeMillis();
         kf.removeWetFoos();
         time = System.currentTimeMillis() - time;
-        System.err.println(kf.liveFoos.size()+" dry foos remaining after "+time+" ms");
+        System.err.println(kf.getFoos().size()+" dry foos remaining after "+time+" ms");
         
         System.out.println("@kinemage 1");
         System.out.println("@group {foo cavities}");
         System.out.println("@subgroup {foo cavities}");
-        System.out.println("@balllist {foo balls} radius= "+df.format(fooRadius)+" color= sea nohighlight");
-        for(Iterator iter = kf.liveFoos.iterator(); iter.hasNext(); )
+        System.out.println("@balllist {foo balls} radius= "+df.format(fooRadius)+" color= sea nohighlight alpha= 1.0");
+        for(Iterator iter = kf.getFoos().iterator(); iter.hasNext(); )
             System.out.println("{x} "+((Triple)iter.next()).format(df));
         
-        time = System.currentTimeMillis();
+        /*time = System.currentTimeMillis();
         Collection dotSurface = kf.surfaceFoos(16);
         time = System.currentTimeMillis() - time;
         System.err.println(dotSurface.size()+" dots placed in "+time+" ms");
@@ -357,6 +368,7 @@ public class KingFoo //extends ... implements ...
         System.out.println("@dotlist {foo dots} color= purple off");
         for(Iterator iter = dotSurface.iterator(); iter.hasNext(); )
             System.out.println("{x} "+((Triple)iter.next()).format(df));
+        */
     }
 //}}}
 }//class
