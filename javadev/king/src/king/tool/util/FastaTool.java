@@ -343,7 +343,7 @@ public class FastaTool extends BasicTool //implements PropertyChangeListener
 	    KPoint point = (KPoint) iter.next();
 	    String pName = point.getName();
 	    if (getResidueNumber(pName) > 0) {
-		point.setColor(colors[getResidueNumber(pName)]);
+		point.setColor(colors[getResidueNumber(pName)-1]);
 	    }
 
 	}
@@ -359,20 +359,35 @@ public class FastaTool extends BasicTool //implements PropertyChangeListener
     }
 
     private int getResidueNumber(String name) {
-	String[] parsed = name.split(" ");
+	String[] uncleanParsed = name.split(" ");
+	String[] parsed = new String[uncleanParsed.length];
+        int i2 = 0;
+	// To clean out the empty strings from the split name.
+	for (int i = 0; i < uncleanParsed.length; i++) {
+	    String unclean = uncleanParsed[i];
+	    if ((!unclean.equals(""))&&(!unclean.equals(" "))) {
+		parsed[i2] = unclean;
+		i2++;
+	    }
+	}
+	// one pass to see if there are any straight up ints in the name
 	for (int i = 0; i < parsed.length; i++) {
 	    String parseValue = parsed[i];
 	    if (isNumeric(parseValue)) {
 		return Integer.parseInt(parseValue);
 	    }
 	}
-	if (parsed[2].length() > 3) {
-	    String parseValue = parsed[2].substring(3);
+
+	// another pass to see if there are any AAName + int in name.
+	if (parsed[1].length() > 3) {
+	    String parseValue = parsed[1].substring(3);
 	    if (isNumeric(parseValue)) {
+		//System.out.print(parseValue + " ");
 		return Integer.parseInt(parseValue);
 	    }
 	}
-	//System.out.print(parsed[2]);
+	System.out.print(parsed[1] + ":");
+	//System.out.print(":");
 	return -1;
     }
 
