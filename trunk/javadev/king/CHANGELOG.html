@@ -60,6 +60,7 @@
     Expand KingLiteBinaryExport to do views
     KingLiteBinaryExport should automatically rescale coords to fit in 30 bits.
     Move extra tools to their own package(s)
+    Doc: plugin jars go AFTER king.jar with commas (,) in applet ARCHIVE="..."
     Choose OpenGL (if avail) by default at startup?
 
 ==============================================================================
@@ -74,6 +75,8 @@
 - created dedicated tool for BACKRUB in chiropraxis.kingtools
 - added setContrast() to KPaint and KPalette
 - added "Set contrast..." function to the Display menu (may need tuning)
+- let ToolBox search (relative) URLs specified by applet PARAMs (plugin#=...)
+  ... only it can't work, because applets aren't allowed to make class loaders!
 
 ### 1.39 ###
 - modified VectorPoint and TrianglePoint so object picking always returns the

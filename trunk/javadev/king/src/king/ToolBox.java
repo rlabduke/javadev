@@ -121,31 +121,65 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
     /**
     * Creates a special class loader for loading plugins.
     * If the named class cannot be found, it also searches the plugins/
-    * directory where king.jar is found.
+    * directory where king.jar is found or (for applets) the URL(s) named
+    * in the PLUGIN1, PLUGIN2, PLUGIN3, ... applet PARAMs.
     */
     protected ClassLoader makeClassLoader()
     {
         ClassLoader defaultLoader = this.getClass().getClassLoader();
-        if(kMain.getApplet() != null) return defaultLoader;
-        
         try
         {
-            File pluginFolder = new File(kMain.getPrefs().jarFileDirectory, "plugins");
-            if(!pluginFolder.exists() || !pluginFolder.canRead() || !pluginFolder.isDirectory())
-                return defaultLoader;
-            
-            File[] files = pluginFolder.listFiles();
+            JApplet applet = kMain.getApplet();
             ArrayList urls = new ArrayList();
-            for(int i = 0; i < files.length; i++)
+            
+            // Case: we're running in an applet
+            if(applet != null)
             {
-                if(files[i].exists() && files[i].canRead() && files[i].isFile()
-                && files[i].getName().toLowerCase().endsWith(".jar"))
+                /***************************************************************
+                * Throws an exception if we create a class loader...
+                *
+                java.security.AccessControlException: access denied (java.lang.RuntimePermission createClassLoader)
+                    at java.security.AccessControlContext.checkPermission(AccessControlContext.java:269)
+                    at java.security.AccessController.checkPermission(AccessController.java:401)
+                    at java.lang.SecurityManager.checkPermission(SecurityManager.java:524)
+                    at java.lang.SecurityManager.checkCreateClassLoader(SecurityManager.java:586)
+                    at java.lang.ClassLoader.<init>(ClassLoader.java:186)
+                    at java.security.SecureClassLoader.<init>(SecureClassLoader.java:53)
+                    at java.net.URLClassLoader.<init>(URLClassLoader.java:81)
+                    at king.ToolBox.makeClassLoader(ToolBox.java:169)
+                    at king.ToolBox.<init>(ToolBox.java:109)
+                // Numbering can start at 0 or 1, but must be continuous thereafter.
+                for(int i = 0; true; i++)
                 {
-                    try { urls.add(files[i].toURL()); }
-                    catch(MalformedURLException ex) { SoftLog.err.println(ex.getMessage()); }
+                    String relURL = applet.getParameter("plugin"+i);
+                    if(relURL != null)
+                    {
+                        try { urls.add(new URL(applet.getDocumentBase(), relURL)); }
+                        catch(MalformedURLException ex) { ex.printStackTrace(); }
+                    }
+                    else if(i >= 1) break; // out of for loop
+                }
+                ***************************************************************/
+            }
+            // Case: we're running as a standalone application (NOT an applet)
+            else
+            {
+                File pluginFolder = new File(kMain.getPrefs().jarFileDirectory, "plugins");
+                if(!pluginFolder.exists() || !pluginFolder.canRead() || !pluginFolder.isDirectory())
+                    return defaultLoader;
+                
+                File[] files = pluginFolder.listFiles();
+                for(int i = 0; i < files.length; i++)
+                {
+                    if(files[i].exists() && files[i].canRead() && files[i].isFile()
+                    && files[i].getName().toLowerCase().endsWith(".jar"))
+                    {
+                        try { urls.add(files[i].toURL()); }
+                        catch(MalformedURLException ex) { SoftLog.err.println(ex.getMessage()); }
+                    }
                 }
             }
-            
+                
             URLClassLoader jarLoader = new URLClassLoader(
                 (URL[]) urls.toArray(new URL[urls.size()]), defaultLoader);
             return jarLoader;
