@@ -40,7 +40,6 @@
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
     Make refitting tools able to set up alternate confs (as an option)
     Mutated residues should retain B factors where possible (?)
-    Support "on" and "off" for pointmasters in parser? (Flipkin)
 <!-- Postponed TO DO items }}} -->
     Add ability to edit masters/pointmasters
     Add some kind of transformation hook (listeners, priorities, etc)
@@ -50,10 +49,19 @@
     use "around x,y,z" for Probe runs
     Look at Pro geometry with Jane
     Track curr settings for perspective, etc. on a per-kin basis (+ kin defaults)
+    Develop a POV-Ray texture that looks like Jane's ribbon drawings
+    Try to put a GLCanvas inside the Swing UI
+    Support "on" and "off" for (point)masters in parser? (Flipkin)
+        Do it by modifying MasterGroup.syncState() and setting initial on/off in parser
+  * Using current renderer for image export means OpenGL leads to no image!
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 1.35 ###
+- fixed EDMapPlotter so mesh/vector ED won't be translucent, only triangle/poly
+- removed MasterGroup.pmLookup b/c it's no longer used by anything
 
 ### 1.34 ###
 - changed triangle depth-cueing to the average of backmost two points.
@@ -71,6 +79,7 @@
   Required work on exporters, ToolBox, UIMenus.
 - moved image, PDF, etc. export tools to king.tool.export
 - updated manual re: exporting, esp. for POV-Ray
+- deployed to Rlab on 22 Nov 2004 (r90)
 
 ### 1.33 ###
 - Made AHE into an interface and moved the functionality into AHEImpl

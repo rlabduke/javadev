@@ -104,37 +104,30 @@ public class PdbWriter //extends ... implements ...
             
             String serial = as.getSerial();
             if(renumberAtoms) serial = Integer.toString(atomSerial++);
-            if(serial.length() > 5) serial.substring(0, 5);
-            else if(serial.length() < 5) serial = Strings.justifyRight(serial, 5);
-            sb.append(serial);
+            sb.append(Strings.forceRight(serial, 5));
             sb.append(" "); // unused
             
-            sb.append(as.getName());
-            String altconf = as.getAltConf();
-            if(altconf.length() > 1) altconf = altconf.substring(0, 1);
-            else if(altconf.length() == 0) altconf = " ";
-            sb.append(altconf);
-            
-            sb.append(Strings.justifyLeft(res.getName(), 3));
+            sb.append(Strings.forceLeft(as.getName(), 4));
+            sb.append(Strings.forceLeft(as.getAltConf(), 1));
+            sb.append(Strings.forceLeft(res.getName(), 3));
             sb.append(" "); // unused
-            sb.append(res.getChain());
+            // We could be smarter here and try to make them unique:
+            sb.append(Strings.forceLeft(res.getChain(), 1));
             
-            String seqNum = res.getSequenceNumber();
-            sb.append(Strings.justifyRight(seqNum, 4));
-            sb.append(res.getInsertionCode());
+            sb.append(Strings.forceRight(res.getSequenceNumber(), 4));
+            sb.append(Strings.forceLeft(res.getInsertionCode(), 1));
             sb.append("   "); // unused
             
-            sb.append(Strings.justifyRight(df3.format(as.getX()), 8));
-            sb.append(Strings.justifyRight(df3.format(as.getY()), 8));
-            sb.append(Strings.justifyRight(df3.format(as.getZ()), 8));
-            sb.append(Strings.justifyRight(df2.format(as.getOccupancy()), 6));
-            sb.append(Strings.justifyRight(df2.format(as.getTempFactor()), 6));
+            sb.append(Strings.forceRight(df3.format(as.getX()), 8));
+            sb.append(Strings.forceRight(df3.format(as.getY()), 8));
+            sb.append(Strings.forceRight(df3.format(as.getZ()), 8));
+            sb.append(Strings.forceRight(df2.format(as.getOccupancy()), 6));
+            sb.append(Strings.forceRight(df2.format(as.getTempFactor()), 6));
             sb.append("      "); // unused
             
             String seg = res.getSegment();
             if(seg == null) seg = "    "; // should never happen
-            else if(seg.length() > 4) seg = seg.substring(0,4);
-            sb.append(Strings.justifyLeft(seg, 4));
+            sb.append(Strings.forceLeft(seg, 4));
             sb.append("  "); // element
             if(as.getCharge() == 0.0)   sb.append("  ");
             else if(as.getCharge() > 0) sb.append(((int)as.getCharge())+"+");
@@ -199,7 +192,7 @@ public class PdbWriter //extends ... implements ...
         {
             Model model = (Model)iter.next();
             if(modelGroup.getModels().size() > 1) // only use MODEL when >1
-                out.println("MODEL     "+Strings.justifyRight(model.getName(), 4));
+                out.println("MODEL     "+Strings.forceRight(model.getName(), 4));
             
             
             Collection stateSet = (Collection)modelStates.get(model);
@@ -240,6 +233,11 @@ public class PdbWriter //extends ... implements ...
         for(Iterator ri = model.getResidues().iterator(); ri.hasNext(); )
         {
             Residue res = (Residue)ri.next();
+            // insert TER record as needed
+            if(oldRes != null && !oldRes.getChain().equals(res.getChain()))
+                writeTerCard(oldRes);
+            oldRes = res;
+            // print this residue
             for(Iterator ai = res.getAtoms().iterator(); ai.hasNext(); )
             {
                 Atom atom = (Atom)ai.next();
@@ -265,31 +263,31 @@ public class PdbWriter //extends ... implements ...
                     catch(AtomException ex) {} // no state
                 }
             }//for each atom
-
-            // insert TER record
-            if(oldRes != null && !oldRes.getChain().equals(res.getChain()))
-            {
-                StringBuffer    sb  = new StringBuffer(27).append("TER   ");
-                // This gets the serial number wrong unless we're renumbering,
-                // but nobody uses them anyway...
-                sb.append(Strings.justifyRight(Integer.toString(atomSerial++), 5));
-                sb.append("      "); // unused
-                sb.append(Strings.justifyLeft(oldRes.getName(), 3));
-                sb.append(" "); // unused
-                sb.append(oldRes.getChain());
-                sb.append(Strings.justifyRight(oldRes.getSequenceNumber(), 4));
-                sb.append(oldRes.getInsertionCode());
-            }
-            
-            oldRes = res;
         }// for each residue
-            
+        
+        // insert TER record for end of final chain
+        writeTerCard(oldRes);
+        
         out.flush();
     }
 //}}}
 
-//{{{ empty_code_segment
+//{{{ writeTerCard
 //##################################################################################################
+    private void writeTerCard(Residue res)
+    {
+        StringBuffer sb  = new StringBuffer(27).append("TER   ");
+        // This gets the serial number wrong unless we're renumbering,
+        // but nobody uses them anyway...
+        sb.append(Strings.forceRight(Integer.toString(atomSerial++), 5));
+        sb.append("      "); // unused
+        sb.append(Strings.forceLeft(res.getName(), 3));
+        sb.append(" "); // unused
+        sb.append(Strings.forceLeft(res.getChain(), 1));
+        sb.append(Strings.forceRight(res.getSequenceNumber(), 4));
+        sb.append(Strings.forceLeft(res.getInsertionCode(), 1));
+        out.println(sb);
+    }
 //}}}
 
 //{{{ empty_code_segment

@@ -230,7 +230,7 @@ public class Residue implements Comparable
     * null if there is no such residue.
     * This function relies on the ordering maintained by
     * Model and will not work properly if the residues are
-    * out of order; see {@link Model#restoreOrder()}.
+    * out of order.
     * The chain ID is checked; but segment ID and distance
     * are NOT taken into consideration.
     */
@@ -257,7 +257,7 @@ public class Residue implements Comparable
     * null if there is no such residue.
     * This function relies on the ordering maintained by
     * Model and will not work properly if the residues are
-    * out of order; see {@link Model#restoreOrder()}.
+    * out of order.
     * The chain ID is checked; but segment ID and distance
     * are NOT taken into consideration.
     */

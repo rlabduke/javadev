@@ -6,6 +6,7 @@
 
 DATA: {{{
     Add CheapMap and CheapSet, which use a single array? CheapSet extends ArrayList?
+    Add HashFunc interface
 }}}
 GUI: {{{
     Create an enabler that traverses a Container syncing the enable state
@@ -15,7 +16,6 @@ GUI: {{{
     TreeFoldSlider controls tree expansion like TOC in LyX
 }}}
 ISOSURFACE: {{{
-    Calc surface normals for triangles, write to POV-Ray? (see MC paper)
 }}}
 MOLDB2: {{{
     Write PdbUpdater that reads new coords/state into an old model
@@ -24,7 +24,6 @@ MOLDB2: {{{
 R3: {{{
 }}}
 STAR: {{{
-    Add a class that can load StarFile objects into moldb2 data structures
     Add StarWriter
     Add a class that can write moldb2 data into a StarFile DOM
 }}}
@@ -35,7 +34,12 @@ UTIL: {{{
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 0.65 ###
+### 0.66 ###
+- wrote moldb2.CifReader; it works for most atoms but not e.g. waters
+- inserted fakeResNumber hack to invent residue numbers for waters
+- fixed TER cards in PdbWriter
+- added Strings.forceLeft/Right() to make PdbWriter safer
+
 ### 0.65 ###
 - made moldb2.ResidueException a checked exception
 - made moldb2.AtomException a checked exception
@@ -43,6 +47,7 @@ UTIL: {{{
 - changed Residue chain and insCode to Strings (CIF)
 - converted Residue sequence number to a String (CIF)
 - changed PdbWriter to not depend on order of residues in *chain*, just order
+- fixed Javadoc bug for Residue.getNext/Prev()
 
 ### 0.64 ###
 - added gui.ReclickListSelectionListener

@@ -19,7 +19,6 @@ import driftwood.gui.IndentBox;
 public class MasterGroup extends AGE // implements ...
 {
 //{{{ Static fields
-    static final String pmLookup = "abcdefghijklmnopqrstuvwxyz123456";
 //}}}
 
 //{{{ Variable definitions
