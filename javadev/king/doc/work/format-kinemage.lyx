@@ -1013,33 +1013,17 @@ Mage does not (yet) support multiple pointmasters for a single point, so
  quotes, then the master name in curly braces.
  If the name matches with the name of an ordinary master, then that button
  will control both the list/subgroup/group master and the pointmaster.
- As with masters, the 
+\layout Standard
+
+As with masters, the 
 \family typewriter 
 @pointmaster
 \family default 
  declaration is optional; pointmaster buttons will be created automatically
  if needed.
-\layout Standard
-
-Unlike masters, pointmasters do not interact with each other.
- Turning a pointmaster on turns on all of the points under its control,
- regardless of which other pointmasters they are controlled by.
- The same goes for turning a pointmaster off.
-\begin_inset Foot
-collapsed true
-
-\layout Standard
-
-Actually, this is true only for KiNG.
- Mage treats pointmasters like ordinary masters: points are turned on if
- and only if 
-\emph on 
-all
-\emph default 
- their pointmasters are currently on.
-\end_inset 
-
-
+ Likewise, multiple pointmasters for a single point interact the same way
+ that multiple masters for a single list do: that is, any master will turn
+ the point off, but all of them must be on in order to turn it back on.
 \layout Standard
 
 Shown below are some typical master and pointmaster declarations:

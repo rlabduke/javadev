@@ -226,9 +226,20 @@ public class MasterGroup extends AGE // implements ...
     */
     public void pmHit(int mask, boolean turnon)
     {
-        //if(parent != null) parent.pmHit(pm_mask, turnon);
-        
         if(parent == null) return;
+
+        // Build a mask of master bits that are off; we're already on
+        int offmask = 0;
+        for(Iterator iter = parent.masterList().iterator(); iter.hasNext(); )
+        {
+            MasterGroup m = (MasterGroup)iter.next();
+            if(!m.isOn()) offmask |= m.pm_mask;
+        }
+        if(turnon && (mask & ~offmask) == 0) return;
+        //System.err.println(" turnon = "+turnon);
+        //System.err.println("   mask = "+Integer.toBinaryString(mask));
+        //System.err.println("offmask = "+Integer.toBinaryString(offmask));
+
         Iterator grIter, suIter, liIter, ptIter;
         KGroup      group;
         KSubgroup   subgroup;
@@ -247,7 +258,7 @@ public class MasterGroup extends AGE // implements ...
                     for(ptIter = list.iterator(); ptIter.hasNext(); )
                     {
                         point = (KPoint)ptIter.next();
-                        point.pmHit(pm_mask, turnon);
+                        point.pmHit(mask, offmask, turnon);
                     }//points
                 }//lists
             }//subgroups

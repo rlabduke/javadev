@@ -305,13 +305,24 @@ abstract public class KPoint extends AHE implements Cloneable, MutableTuple3
 //##################################################################################################
     /**
     * Processes a pointmaster on/off request.
-    * @param mask the bitmask indicating which masters are being turned on/off
+    * @param mask       the bitmask indicating which masters are being turned on/off
+    * @param offmask    the bitmask indicating which masters are already off
     * @param turnon <code>true</code> if affected points are to be turned on,
     *               <code>false</code> if affected points are to be turned off.
     */
-    public void pmHit(int mask, boolean turnon)
+    public void pmHit(int mask, int offmask, boolean turnon)
     {
-        if((mask & pm_mask) != 0) setOn(turnon);
+        //Turn OFF if we're affected by this pointmaster, period.
+        //Turn ON if and only if all our other pointmasters are also ON already.
+        if(turnon)
+        {
+            if((   mask & pm_mask) != 0
+            && (offmask & pm_mask) == 0)    setOn(true);
+        }
+        else
+        {
+            if((mask & pm_mask) != 0)       setOn(false);
+        }
     }
     
     /** Indicates whether or not the given pointmaster set would affect this point. */
