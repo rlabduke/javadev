@@ -33,7 +33,7 @@ public class SidechainSswing implements Remodeler, ChangeListener, ListSelection
 //{{{ Variable definitions
 //##################################################################################################
     Residue             targetRes;
-    SswingManager       modelman;
+    ModelManager2       modelman;
     SidechainAngles2    scAngles;
     Rotamer             rotamer;
     SidechainIdealizer  scIdealizer     = null;
@@ -56,7 +56,7 @@ public class SidechainSswing implements Remodeler, ChangeListener, ListSelection
     * @throws IOException if the needed resource(s) can't be loaded from the JAR file
     * @throws NoSuchElementException if the resource is missing a required entry
     */
-    public SidechainSswing(Frame frame, Residue target, SswingManager mm) throws IOException
+    public SidechainSswing(Frame frame, Residue target, ModelManager2 mm) throws IOException
     {
         this.targetRes  = target;
         this.modelman   = mm;
@@ -90,7 +90,7 @@ public class SidechainSswing implements Remodeler, ChangeListener, ListSelection
             dials[i] = new AngleDial();
             dials[i].setOrigDegrees(angleVals[i]);
             dials[i].setDegrees(angleVals[i]);
-//            dials[i].addChangeListener(this);
+            dials[i].addChangeListener(this);
             dialPane.add(dials[i]);
             dialPane.newRow();
         }
