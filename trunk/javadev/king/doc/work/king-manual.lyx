@@ -886,15 +886,56 @@ e.g.
  do this from any Windows experts out there.
 \layout Subsection
 
-Exporting as XML
+Exporting for POV-Ray
+\layout Standard
+
+KiNG can produce output script files to be fed into the high-quality free
+ raytracing program POV-Ray (www.povray.org).
+ POV-Ray can generate all kinds of 
+\begin_inset Quotes eld
+\end_inset 
+
+photo-realistic
+\begin_inset Quotes erd
+\end_inset 
+
+ effects including different materials and lighting schemes, simulated depth
+ of field, 
+\emph on 
+etc.
+
+\emph default 
+ It is also very useful for producing digital movies that may be more convenient
+ to use during talks and presentations.
+ (I recommend the inexpensive QuickTime Pro from Apple for stitching together
+ all the output images into a movie.) The POV file is largely complete as
+ written and includes terse hints for rendering, but if you use this feature
+ much you'll probably want to learn something about POV-Ray and tweak the
+ scripts before rendering them.
+ Most of the things you'll want to change are either at the very top (colors,
+ textures, and sizes of things) or at the very bottom (camera viewpoint,
+ depth cueing, lighting).
+\layout Subsection
+
+Deprecated export formats
 \layout Standard
 
 
 \emph on 
-This feature now lags far behind the rest of the program in functionality;
- it may not work at all.
- If you need this capability, you are encouraged to contact the author and
- encourage on-going development.
+These feature now lag far behind the rest of the program in functionality;
+ they may not work at all.
+ For this reason, they do not appear in the menus by default and must be
+ 
+\begin_inset Quotes eld
+\end_inset 
+
+enabled
+\begin_inset Quotes erd
+\end_inset 
+
+ under the Tools menu.
+ If you need any of these capabilities, you are encouraged to contact the
+ author and encourage on-going development.
 \layout Standard
 
 You can export kinemages in XML format using the Kinetic Image Markup Language
@@ -924,12 +965,10 @@ File | Export
  will be useful and convenient.
  Translation from the modified XML back to kinemage format is left as an
  exercise to the reader ;)
-\layout Subsection
-
-Exporting as VRML
 \layout Standard
 
-KiNG has rudimentary abilities to export its 3-D primitives in VRML97 (a.k.a.
+KiNG also has rudimentary abilities to export its 3-D primitives in VRML97
+ (a.k.a.
  VRML 2.0) format.
  At present, only dots and balls are exported, and they are both rendered
  as spheres.

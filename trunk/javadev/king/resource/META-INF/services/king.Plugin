@@ -1,10 +1,10 @@
 # Standard plugins
 king.EDMapPlugin
-king.ImageExport
-king.PdfExport
-king.PovrayExport
-king.Vrml97Writer
-king.XknWriter
+king.tool.export.ImageExport
+king.tool.export.PdfExport
+king.tool.export.PovrayExport
+king.tool.export.Vrml97Writer
+king.tool.export.XknWriter
 king.tool.util.ViewpointPlugin
 king.tool.draw.SolidObjPlugin
 king.tool.util.SelfUpdatePlugin
