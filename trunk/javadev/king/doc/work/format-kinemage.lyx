@@ -143,10 +143,10 @@ red
 
 List definitions must appear all on one line.
  This is a good rule of thumb for the whole file (though not a requirement):
- each keyword starts a new line, and all its relevant options and parameters
- appear on that same line.
- The next keyword starts another line.
- When defining a list, one point is listed per line.
+ each keyword must start a new line, and all its relevant options and parameters
+ should probably appear on that same line.
+ Regardless, the next keyword must start another line.
+ When defining a list, one point is typically listed per line.
 \layout Section
 
 Overview of a kinemage file
@@ -192,8 +192,16 @@ primitives
  specified by it's center), but others need more -- a line segment needs
  two endpoints, and a triangle needs three corners.
  Each list has enough points in it to describe one or more primitives, and
- all the primitives in a list are of the same type -- all balls, say, or
- all triangles.
+ all the primitives in a list are of the same type
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+In some instances, Mage can accomodate various point types within one list.
+\end_inset 
+
+ -- all balls, say, or all triangles.
  For example, a list might contain all the line segments that form the outline
  of a cube, or all the dots representing one particular data set on a graph.
  Where it makes logical sense to group a bunch primitives into a single
@@ -216,8 +224,12 @@ real
 \end_inset 
 
  rendered sphere.
- However, they may not look right if they intersect other objects, except
- for line segements with an end point at the ball's center.
+ However, they may not look right if they intersect other objects, with
+ one exception: line segements that start or end 
+\emph on 
+exactly
+\emph default 
+ at the ball's center are rendered correctly.
 \layout Description
 
 Sphere lists are very similar to ball lists, but hint to the display program
@@ -341,7 +353,7 @@ color= colorname
  specifies the base color for objects in the list; however, the list color
  interacts with the colors of individual points (if any).
  By default, lists are white.
- See 
+ See section 
 \begin_inset LatexCommand \ref{sec:Aspects-and-colors}
 
 \end_inset 
@@ -354,8 +366,8 @@ color= colorname
 alpha= #.#
 \family default 
  specifies the opacity of objects from 1.0 (fully opaque) to 0.0 (invisible).
- Alpha is currently supported only by KiNG and only for triangle or ribbon
- lists.
+ Alpha is currently supported only by KiNG and only for triangle, ribbon,
+ ball, and sphere lists.
 \layout Itemize
 
 
@@ -367,7 +379,7 @@ master= {mastername}
 \family typewriter 
 master=
 \family default 
- statements, but you should read 
+ statements, but you should read section 
 \begin_inset LatexCommand \ref{sec:Masters}
 
 \end_inset 
@@ -391,8 +403,8 @@ instance= {listname}
 etc.
 \emph default 
 ) than the other one.
- Clone is purely a convenience for kinemage authors, the current list is
- a totally independent copy of the other list that just happens to have
+ Clone is purely a convenience for kinemage authors; the current list will
+ be a totally independent copy of the cloned list that just happens to have
  the same contents.
  When the kinemage is saved, both lists will be written out in full without
  using 
@@ -401,7 +413,7 @@ clone=
 \family default 
 .
  Instance, on the other hand, actually re-uses the same point data, so editing
- the points of one list will affect all its clones too.
+ the points of one list will affect all its instances too.
  The 
 \family typewriter 
 instance=
@@ -423,10 +435,9 @@ A few sample list declarations are shown below.
 \layout LyX-Code
 
 @spherelist {Mars look-alikes} radius= 10000 color= red master= {planets}
- nobutton
 \layout LyX-Code
 
-@vectorlist {tiger's tail} color= orange width= 5
+@vectorlist {tiger's tail} color= orange width= 5 nobutton
 \layout LyX-Code
 
 @trianglelist {veil} color= yellowtint alpha= 0.25
@@ -481,7 +492,17 @@ In addition to coordinates, it's a very good idea to give every point an
  in a label list the ID is actually the text that will be displayed for
  the label.
  IDs are allowed to be empty (just a pair of curly braces), and this is
- preferrable to no ID at all.
+ preferrable to no ID at all
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+KiNG interprets a missing point ID as the empty string, while Mage displays
+ the X,Y,Z coordinates of the point as its ID in this case.
+\end_inset 
+
+.
  The special ID 
 \family typewriter 
 {
@@ -569,7 +590,7 @@ P
 
 Points can be given their own color just by writing the color name.
  They can also be assigned alternative colors for different coloring schemes
- through the use of aspects (see 
+ through the use of aspects (see section 
 \begin_inset LatexCommand \ref{sec:Aspects-and-colors}
 
 \end_inset 
@@ -608,7 +629,7 @@ The visibility of points can also be controlled by pointmasters, which are
  Pointmasters are identified by single character codes (the lowercase letters
  a - z and the numbers 1 - 6) enclosed in single quote marks.
  Multiple point masters interact differently than multiple masters do; see
- 
+ section 
 \begin_inset LatexCommand \ref{sec:Masters}
 
 \end_inset 
@@ -684,13 +705,23 @@ Kinemage declarations are very simple: the
 \family default 
  keyword, followed by an identifying number.
  The first kinemage in a file should be number 1, the second should be number
- 2, and so on.
+ 2, and so on
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+Generally, you're OK as long as the numbers are all different and are monotonica
+lly increasing.
+\end_inset 
+
+.
  Thus, every kinemage file starts like this, with nothing preceding it except
  possibly a 
 \family typewriter 
 @text
 \family default 
- block (see 
+ block (see section 
 \begin_inset LatexCommand \ref{sec:Metadata}
 
 \end_inset 
@@ -775,7 +806,7 @@ master= {mastername}
 \family typewriter 
 master=
 \family default 
- statements, but you should read 
+ statements, but you should read section 
 \begin_inset LatexCommand \ref{sec:Masters}
 
 \end_inset 
@@ -969,7 +1000,17 @@ z
 \emph default 
  and the digits 1 - 6.
  One or more of these single-character codes are listed inside of single
- quote marks for some or all of the points in a kinemage.
+ quote marks for some or all of the points in a kinemage
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+Mage does not (yet) support multiple pointmasters for a single point, so
+ it will only accept a single character in single quotes.
+\end_inset 
+
+.
  Each pointmaster code is associated with a named master button by a line
  that starts with 
 \family typewriter 
@@ -1594,7 +1635,7 @@ e.g.
  definitions in the kinemage.
  As explained in the section on points, the single-letter aspects codes
  for a point appear inside parentheses as part of the point definition (see
- 
+ section 
 \begin_inset LatexCommand \ref{sec:Points}
 
 \end_inset 
@@ -1786,12 +1827,8 @@ There are a number of other useful keywords that correspond to display settings
  back are thinner, to aid in giving a feeling of depth and three-dimensionality.
 \layout Description
 
-@thinline suggests all lines be drawn as thin as possible, regardless of
- their specified 
-\family typewriter 
-width=
-\family default 
-.
+@thinline suggests the default line width be as thin as possible, rather
+ than the standard 2 pixels.
 \layout Description
 
 @whitebackground hints that the kinemage would look best on a white background,
@@ -2059,7 +2096,8 @@ s in a kinemage file (numbers given are in decimal).
 A kinemage tokenizer may check for and report illegal characters, but is
  not required to.
  If the tokenizer does find illegal characters, they should not cause a
- fatal error, but should instead be treated as alphanumerics (see 
+ fatal error, but should instead be treated as alphanumerics (see section
+ 
 \begin_inset LatexCommand \ref{sub:Alphanumerics}
 
 \end_inset 
@@ -2084,7 +2122,7 @@ The kinemage format is whitespace insensitive: these characters carry no
  However, there is one important semantic attribute conveyed by whitespace:
  the newline and carriage return characters impart the beginning-of-line
  (BOL) property to any token immediately following them.
- See 
+ See section 
 \begin_inset LatexCommand \ref{sub:Beginning-of-line}
 
 \end_inset 
@@ -2189,7 +2227,7 @@ Beginning-of-line
 
 Beginning-of-line (BOL) is a property of certain tokens that may influence
  their interpretation by the parser.
- For instance, for a token to be recognized as a keyword (see 
+ For instance, for a token to be recognized as a keyword (see section 
 \begin_inset LatexCommand \ref{sub:Keywords}
 
 \end_inset 
@@ -2446,7 +2484,7 @@ Properties
 \begin_inset Quotes erd
 \end_inset 
 
-; see 
+; see section 
 \begin_inset LatexCommand \ref{sub:Properties}
 
 \end_inset 
@@ -2509,14 +2547,14 @@ at
 \begin_inset Quotes erd
 \end_inset 
 
- sign must occur at the beginning-of-line (BOL; see 
+ sign must occur at the beginning-of-line (BOL; see section 
 \begin_inset LatexCommand \ref{sub:Beginning-of-line}
 
 \end_inset 
 
 ).
  In addition to enforcing good style, this streamlines the processing of
- plain text segments (see 
+ plain text segments (see section 
 \begin_inset LatexCommand \ref{sub:Plain-text-blocks}
 
 \end_inset 
@@ -2547,7 +2585,7 @@ Note that, by definition of an unquoted token, whitespace is forbidden before
  to read ahead through an arbitrary amount of whitespace following every
  unquoted token in order to determine if it is a property or not.
  This behavior could be undesirable if the kinemage contains sections of
- plain text (see 
+ plain text (see section 
 \begin_inset LatexCommand \ref{sub:Plain-text-blocks}
 
 \end_inset 
@@ -2698,7 +2736,8 @@ Legal unquoted tokens that cannot be otherwise classified are lumped together
  This is in contrast to many programming languages.
  Those defining new semantics for kinemages are strongly advised against
  defining literals that are not numbers but use only characters allowed
- in numbers; the interpretation of such tokens is poorly defined (
+ in numbers; the interpretation of such tokens is poorly defined (see section
+ 
 \begin_inset LatexCommand \ref{sub:Numbers}
 
 \end_inset 

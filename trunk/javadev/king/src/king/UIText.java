@@ -6,7 +6,7 @@ import java.awt.*;
 import java.awt.event.*;
 //import java.io.*;
 //import java.text.*;
-//import java.util.*;
+import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import driftwood.gui.*;
@@ -30,6 +30,8 @@ public class UIText implements ChangeListener, MouseListener
     JTextArea textarea;
     
     JButton popupButton;
+    
+    Collection mageHypertextListeners = new ArrayList();
 //}}}
 
 //{{{ Constructors
@@ -158,11 +160,45 @@ public class UIText implements ChangeListener, MouseListener
     {
         int where = textarea.viewToModel(ev.getPoint());
         //System.err.println("Click occurred at position "+where);
+        
+        String text = this.getText();
+        int prevOpen, prevClose, nextOpen, nextClose;
+        prevOpen = text.lastIndexOf("*{", where);
+        prevClose = text.lastIndexOf("}*", where);
+        nextOpen = text.indexOf("*{", where);
+        nextClose = text.indexOf("}*", where);
+        
+        if(prevOpen != -1 && prevOpen > prevClose && nextClose != -1 && nextClose < nextOpen)
+        {
+            String link = text.substring(prevOpen+2, nextClose);
+            textarea.select(prevOpen, nextClose+2);
+            //System.err.println("Hit hypertext: '"+link+"'");
+            for(Iterator iter = mageHypertextListeners.iterator(); iter.hasNext(); )
+            {
+                MageHypertextListener listener = (MageHypertextListener) iter.next();
+                listener.mageHypertextHit(link);
+            }
+        }
     }
 
     public void mouseEntered(MouseEvent ev)     {}
     public void mouseExited(MouseEvent ev)      {}
     public void mousePressed(MouseEvent ev)     {}
     public void mouseReleased(MouseEvent ev)    {}
+//}}}
+
+//{{{ add/removeHypertextListener
+//##################################################################################################
+    /** Registers a listener for hypertext events. */
+    public void addHypertextListener(MageHypertextListener listener)
+    {
+        mageHypertextListeners.add(listener);
+    }
+
+    /** Registers a listener for hypertext events. */
+    public void removeHypertextListener(MageHypertextListener listener)
+    {
+        mageHypertextListeners.remove(listener);
+    }
 //}}}
 }//class
