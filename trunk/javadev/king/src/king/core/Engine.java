@@ -534,9 +534,9 @@ public class Engine //extends ... implements ...
             for(j = 0; j < end_j; j++)
             {
                 p = (KPoint)zb.get(j);
-                double dx = p.getX() - xcoord;
-                double dy = p.getY() - ycoord;
-                double dz = p.getZ() - zcoord;
+                double dx = p.getDrawX() - xcoord;
+                double dy = p.getDrawY() - ycoord;
+                double dz = p.getDrawZ() - zcoord;
                 if((dx*dx + dy*dy + dz*dz) <= r2 && (!p.isUnpickable() || superpick))
                     found.add(p);
             }
@@ -573,8 +573,8 @@ public class Engine //extends ... implements ...
             for(j = 0; j < end_j; j++)
             {
                 p = (KPoint)zb.get(j);
-                double dx = p.getX() - xcoord;
-                double dy = p.getY() - ycoord;
+                double dx = p.getDrawX() - xcoord;
+                double dy = p.getDrawY() - ycoord;
                 if((dx*dx + dy*dy) <= r2 && (!p.isUnpickable() || superpick))
                     found.add(p);
             }

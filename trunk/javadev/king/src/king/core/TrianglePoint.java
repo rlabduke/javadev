@@ -68,8 +68,8 @@ public class TrianglePoint extends KPoint // implements ...
     {
         // Don't call super.signalTransform() b/c we do it all here
         
-        setXYZ(x0, y0, z0);
-        xform.transform(this);
+        xform.transform(this, engine.work1);
+        setDrawXYZ(engine.work1);
 
         double triangleZ;
         if(from == null || from.from == null)   triangleZ = z;
@@ -151,8 +151,10 @@ public class TrianglePoint extends KPoint // implements ...
 
         // Do dot product of surface normal with lighting vector
         // to determine diffuse lighting.
-        engine.work1.likeVector(B, A);
-        engine.work2.likeVector(B, C);
+        //engine.work1.likeVector(B, A);
+        engine.work1.setXYZ( A.getDrawX()-B.getDrawX(), A.getDrawY()-B.getDrawY(), A.getDrawZ()-B.getDrawZ() );
+        //engine.work2.likeVector(B, C);
+        engine.work2.setXYZ( C.getDrawX()-B.getDrawX(), C.getDrawY()-B.getDrawY(), C.getDrawZ()-B.getDrawZ() );
         engine.work1.cross(engine.work2).unit();
         double dotprod = engine.work1.dot(engine.lightingVector);
         Paint paint = maincolor.getPaint(engine.backgroundMode, dotprod, engine.colorCue, parent.alpha);

@@ -80,10 +80,10 @@ public class BallPoint extends KPoint // implements ...
     {
         // Don't call super.signalTransform() b/c we do it all here
         
-        setXYZ(x0, y0, z0);
         if(r0 <= 0 && parent != null) r = (float)(parent.radius * zoom);
         else                          r = (float)(r0 * zoom);
-        xform.transform(this);
+        xform.transform(this, engine.work1);
+        setDrawXYZ(engine.work1);
 
         if(engine.usePerspective)
         {

@@ -109,8 +109,8 @@ public class VectorPoint extends KPoint // implements ...
     {
         // Don't call super.signalTransform() b/c we do it all here
         
-        setXYZ(x0, y0, z0);
-        xform.transform(this);
+        xform.transform(this, engine.work1);
+        setDrawXYZ(engine.work1);
         
         // This only works because starting points are listed before ending points
         // in a kinemage, thus, from has already been transformed when we get here!
