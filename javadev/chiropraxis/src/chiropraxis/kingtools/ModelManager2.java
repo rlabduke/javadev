@@ -94,21 +94,28 @@ public class ModelManager2 extends Plugin
     Set                     allMoltenRes;
     
     BgKinRunner             probePlotter    = null;
+    SswingRunner            sswingPlotter   = null;
     File                    noeFile         = null;
     String                  noeFormat       = "xplor";
     NoePanel                noePanel;
     ExpectedNoePanel        expNoePanel;
     
-    SuffixFileFilter        pdbFilter, rotFilter, noeFilter;
-    JFileChooser            openChooser, saveChooser, noeChooser;
+    SuffixFileFilter        pdbFilter, mapFilter, rotFilter, noeFilter;
+    JFileChooser            openChooser, mapChooser, saveChooser, noeChooser;
     JCheckBox               cbUseSegID;
     boolean                 changedSinceSave = false;
     JDialog                 dialog;
     JLabel                  lblFileName;
     JLabel                  lblNumMolten;
     JMenuItem               miUndo;
-    JCheckBox               cbShowProbe, cbShowNOEs, cbShowExpNOEs;
-    AttentiveTextField      tfProbeCmd;
+    JCheckBox               cbShowProbe, cbShowSswing, cbShowNOEs, cbShowExpNOEs;
+    AttentiveTextField      tfProbeCmd, tfSswingCmd;
+
+    String                  pdbFileName="";
+    String                  densityFileName="";
+    boolean                 sswingRunning= true;
+
+
 //}}}
 
 //{{{ Constructor(s)
@@ -137,6 +144,8 @@ public class ModelManager2 extends Plugin
     {
         pdbFilter = new SuffixFileFilter("Protein Data Bank (PDB) files");
         pdbFilter.addSuffix(".pdb");
+        mapFilter = new SuffixFileFilter("CCP4 Map files");
+        mapFilter.addSuffix(".ccp4");
         rotFilter = new SuffixFileFilter("Rotated-coordinate files");
         rotFilter.addSuffix(".rot");
         noeFilter = new SuffixFileFilter("NOE files");
@@ -154,6 +163,11 @@ public class ModelManager2 extends Plugin
         cbUseSegID = new JCheckBox("Use SegID to define chains", false);
         openChooser.setAccessory(cbUseSegID);
         // can't set PDB file yet b/c kinemage not loaded
+
+        mapChooser = new JFileChooser();
+        mapChooser.addChoosableFileFilter(mapFilter);
+        mapChooser.setFileFilter(mapFilter);
+        if(currdir != null) mapChooser.setCurrentDirectory(new File(currdir));
 
         saveChooser = new JFileChooser();
         //XXX-??? saveChooser.addChoosableFileFilter(rotFilter);
@@ -181,6 +195,14 @@ public class ModelManager2 extends Plugin
         FoldingBox probeBox = new FoldingBox(cbShowProbe, tfProbeCmd);
         probeBox.setAutoPack(true);
         probeBox.setIndent(10);
+
+        cbShowSswing = new JCheckBox("Sswing", false);
+        cbShowSswing.addActionListener(visUpdate);
+        tfSswingCmd = new AttentiveTextField("", 25);
+        tfSswingCmd.addActionListener(new ReflectiveAction("edit-sswing-cmd", null, this, "onEditSswingCmd"));
+        FoldingBox sswingBox = new FoldingBox(cbShowSswing, tfSswingCmd);
+        sswingBox.setAutoPack(true);
+        sswingBox.setIndent(10);
 
         cbShowNOEs = new JCheckBox("NOEs", false);
         cbShowNOEs.addActionListener(visUpdate);
@@ -218,6 +240,12 @@ public class ModelManager2 extends Plugin
         cp.newRow();
         cp.save().hfill(true).vfill(true).addCell(probeBox).restore();
         cp.newRow();
+
+        cp.addCell(cbShowSswing);
+        cp.newRow();
+        cp.addCell(sswingBox);
+        cp.newRow();        
+
         cp.addCell(cbShowNOEs);
         cp.newRow();
         cp.save().hfill(true).vfill(true).addCell(noeBox).restore();
@@ -248,6 +276,10 @@ public class ModelManager2 extends Plugin
         menubar.add(menu);
         item = new JMenuItem(new ReflectiveAction("Open PDB file...", null, this, "onOpenPDB"));
         item.setMnemonic(KeyEvent.VK_O);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, UIMenus.MENU_ACCEL_MASK));
+        menubar.add(menu);
+        item = new JMenuItem(new ReflectiveAction("Open Map file...", null, this, "onOpenMap"));
+        item.setMnemonic(KeyEvent.VK_M);
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, UIMenus.MENU_ACCEL_MASK));
         menu.add(item);
         item = new JMenuItem(new ReflectiveAction("Open NOE file...", null, this, "onOpenNOE"));
@@ -305,6 +337,13 @@ public class ModelManager2 extends Plugin
                 this.getProbePlotter().setLastGroupOn(cbShowProbe.isSelected());
                 kCanvas.repaint();
             }
+            // If sswing
+            if(ev.getSource() == cbShowSswing)
+            {
+//               this.getSswingPlotter().setLastGroupOn(cbShowSswing.isSelected());
+//               kCanvas.repaint();
+            }
+
             // If NOEs were just turned on/off, turn them on/off in the display, too.
             if(ev.getSource() == cbShowNOEs)
             {
@@ -323,6 +362,68 @@ public class ModelManager2 extends Plugin
         requestStateRefresh();
     }
 //}}}
+
+//{{{ onOpenMap
+//##################################################################################################
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onOpenMap(ActionEvent ev)
+    {
+        // Make sure we don't have any residues checked out right now
+//        if(isMolten())
+//        {
+//            JOptionPane.showMessageDialog(kMain.getTopWindow(),
+//                "Can't open a new model while some residues are checked out for modification.",
+//                "Sorry!", JOptionPane.ERROR_MESSAGE);
+//            return;
+//        }
+
+        // Ask about saving the old one (if it's been modified)
+//        askSavePDB();
+
+        // If a @pdbfile was specified, try to pre-select that
+        // TODO-XXX: this assumes kin was opened from current dir!
+//        Kinemage kin = kMain.getKinemage();
+//        if(kin != null && kin.atPdbfile != null)
+//        {
+            // Done once, at create time
+            //String currdir = System.getProperty("user.dir");
+            //if(currdir != null) openChooser.setCurrentDirectory(new File(currdir));
+
+//            File f = new File(kin.atPdbfile);
+//            if(f.exists())
+//            {
+                // setSelectedFile() doesn't do this prior to 1.4.1
+//                mapChooser.setCurrentDirectory(f);
+//                mapChooser.setSelectedFile(f);
+                // get pdbfile name for sswing command line
+//                densityFileName=f.getName();
+//            }
+//        }
+
+        // Open the new file
+        if(JFileChooser.APPROVE_OPTION == mapChooser.showOpenDialog(kMain.getTopWindow()))
+        {
+//            try
+//            {
+                File f = mapChooser.getSelectedFile();
+                if(f != null && f.exists()){
+                    densityFileName=f.getName();
+                }
+//            }
+//            catch(IOException ex)
+//            {
+//                JOptionPane.showMessageDialog(kMain.getTopWindow(),
+//                    "An I/O error occurred while loading the file:\n"+ex.getMessage(),
+//                    "Sorry!", JOptionPane.ERROR_MESSAGE);
+//                ex.printStackTrace(SoftLog.err);
+//            }
+        }
+    }
+//}}}
+
+
+
+
 
 //{{{ onOpenPDB
 //##################################################################################################
@@ -356,6 +457,8 @@ public class ModelManager2 extends Plugin
                 // setSelectedFile() doesn't do this prior to 1.4.1
                 openChooser.setCurrentDirectory(f);
                 openChooser.setSelectedFile(f);
+                // get pdbfile name for sswing command line
+                pdbFileName=f.getName();
             }
         }
         
@@ -365,8 +468,10 @@ public class ModelManager2 extends Plugin
             try
             {
                 File f = openChooser.getSelectedFile();
-                if(f != null && f.exists())
+                if(f != null && f.exists()){
                     openPDB(f);
+                    pdbFileName=f.getName();
+                }
             }
             catch(IOException ex)
             {
@@ -700,9 +805,19 @@ public class ModelManager2 extends Plugin
         // Update visualizations
         visualizeMoltenModel();
         if(cbShowProbe.isSelected())    visualizeProbeDots();
+        if(cbShowSswing.isSelected())
+        {
+              if(densityFileName.length()==0) onOpenMap(null);
+              if(sswingRunning){
+                   visualizeSswing();
+                   sswingRunning=false;
+              }
+        }
+
         if(cbShowNOEs.isSelected())     visualizeNOEs();
         if(cbShowExpNOEs.isSelected())  visualizeExpectedNOEs();
         kCanvas.repaint();
+
     }
     
     /**
@@ -735,17 +850,20 @@ public class ModelManager2 extends Plugin
     */
     public void unregisterTool(Remodeler tool)
     {
+        sswingRunning= false;
         registeredTools.remove(tool);
         moltenRes.remove(tool);
-        
+
         allMoltenRes.clear();
         for(Iterator iter = moltenRes.values().iterator(); iter.hasNext(); )
         {
             allMoltenRes.addAll( (Collection)iter.next() );
         }
         refreshGUI();
-        
+
         requestStateRefresh();
+        sswingRunning= true;
+
     }
     
     /**
@@ -919,6 +1037,79 @@ public class ModelManager2 extends Plugin
     }
 //}}}
 
+
+//{{{ getSswingPlotter, visualizeSswing, onEditSswingCmd
+//##################################################################################################
+    SswingRunner getSswingPlotter()
+    {
+        // Set up Sswing
+        Kinemage kin = kMain.getKinemage();
+        if(kin != null && (sswingPlotter == null || !sswingPlotter.getKinemage().equals(kin)))
+        {
+            if(sswingPlotter != null) sswingPlotter.terminate(); // clean up the old one
+
+            //
+            //
+            //
+
+            // Incomplete, will be completed in a moment
+             for(Iterator iter = allMoltenRes.iterator(); iter.hasNext(); )
+             {
+               String sswingCmd =pdbFileName;
+               sswingPlotter = new SswingRunner(kMain, kin, sswingCmd);
+               String sswingExe = sswingPlotter.findProgram("sswing ");
+               String sswingOption="-f -s ";
+               Residue re = (Residue) iter.next();
+               if (re.getChain()!=' ')
+                  sswingOption=sswingOption+"-c "+re.getChain();
+               sswingPlotter.setCommand(sswingExe+" "+
+                                       sswingOption+" "+
+                                       sswingCmd+" "+
+                                       re.getSequenceNumber()+" "+
+                                       re.getName()+" "+densityFileName); // now complete cmd line
+               tfSswingCmd.setText(sswingPlotter.getCommand());
+             }
+       }
+            return sswingPlotter;
+    }
+
+    void visualizeSswing()
+    {
+
+          SswingRunner sswingPlotter = getSswingPlotter();
+          for(Iterator iter = allMoltenRes.iterator(); iter.hasNext(); )
+          {
+
+              String sswingCmd =pdbFileName;              
+//            sswingPlotter = new BgKinRunner(kMain, kin, sswingCmd);
+              String sswingExe = sswingPlotter.findProgram("sswing ");
+              String sswingOption="-f -s ";
+              Residue re = (Residue) iter.next();
+              if (re.getChain()!=' ')
+                 sswingOption=sswingOption+"-c "+re.getChain();
+              sswingPlotter.setCommand(sswingExe+" "+
+                                       sswingOption+" "+
+                                       sswingCmd+" "+
+                                       re.getSequenceNumber()+" "+
+                                       re.getName()+" "+densityFileName); // now complete cmd line
+              tfSswingCmd.setText(sswingPlotter.getCommand());
+        }
+        System.out.println(sswingPlotter.getCommand()+" ....\n");
+        sswingPlotter.setCommand(tfSswingCmd.getText());
+        sswingPlotter.requestRun(allMoltenRes, getMoltenState(), getFrozenPDB());
+    }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onEditSswingCmd(ActionEvent ev)
+    {
+        /*BgKinRunner pp = getProbePlotter();
+        if(pp.editCommand(kMain.getTopWindow()))
+            requestStateRefresh();*/
+        this.getSswingPlotter().setCommand(tfSswingCmd.getText());
+        requestStateRefresh();
+    }
+//}}}
+
 //{{{ onOpenNOE, visualizeNOEs, visualizeExpectedNOEs
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
@@ -999,6 +1190,8 @@ public class ModelManager2 extends Plugin
             dialog.setVisible(true);
         }
         if(stateList == null || stateList.size() < 1) onOpenPDB(null);
+//        if(cbShowSswing.isSelected())   onOpenMap(null);
+        
     }
 //}}}
 
