@@ -973,13 +973,16 @@ public class ModelManager2 extends Plugin
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onShowDialog(ActionEvent ev)
     {
-        Container mw = kMain.getContentContainer();
-        dialog.pack();
-        Point loc = mw.getLocation();
-        loc.x += mw.getWidth() - dialog.getWidth();
-        loc.y += mw.getHeight() - dialog.getHeight();
-        dialog.setLocation(loc);
-        dialog.setVisible(true);
+        if(! dialog.isVisible() )
+        {
+            Container mw = kMain.getContentContainer();
+            dialog.pack();
+            Point loc = mw.getLocation();
+            loc.x += mw.getWidth() - dialog.getWidth();
+            loc.y += mw.getHeight() - dialog.getHeight();
+            dialog.setLocation(loc);
+            dialog.setVisible(true);
+        }
         if(stateList == null || stateList.size() < 1) onOpenPDB(null);
     }
 //}}}

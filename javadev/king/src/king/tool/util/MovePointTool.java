@@ -121,7 +121,11 @@ public class MovePointTool extends BasicTool
     public void mousePressed(MouseEvent ev)
     {
         super.mousePressed(ev);
-        draggedPoint = kCanvas.getEngine().pickPoint(ev.getX(), ev.getY(), services.doSuperpick.isSelected());
+        if(kMain.getKinemage() != null)
+            draggedPoint = kCanvas.getEngine().pickPoint(ev.getX(), ev.getY(), services.doSuperpick.isSelected());
+        else draggedPoint = null;
+        // Otherwise, we just create a nonsensical warning message about stereo picking
+        
         if(draggedPoint == null)
             allPoints = null;
         else

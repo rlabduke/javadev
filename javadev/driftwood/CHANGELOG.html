@@ -6,7 +6,6 @@
 
 DATA: {{{
     Add CheapMap and CheapSet, which use a single array? CheapSet extends ArrayList?
-    Add data.FinalArrayList to wrap arrays in an unmodifiable way
 }}}
 GUI: {{{
     Create an enabler that traverses a Container syncing the enable state
@@ -30,7 +29,10 @@ R3: {{{
     Make center, rotation matrix, etc accessible from API
     Incorporate this into a "center visible" function in KiNG 90 deg rotations
 }}}
-STAR: {{{
+STAR: {{
+ ** quoted tokens can contain quote character escaped by being repeated!?
+    Add StarWriter
+    Add a class that can load StarFile objects into moldb2 data structures
 }}}
 UTIL: {{{
 }}}
@@ -42,7 +44,10 @@ UTIL: {{{
 ### 0.57 ###
 - fixed a potential bug in data.UberMap from calling putBefore(key, key, value)
 - added UberMap.replace() as a complement to put()
-- moved unused classes in data
+- moved unused classes in data into old/
+- added data.FinalArrayList to wrap arrays in an unmodifiable way
+- finished writing StarFile class
+- added StarReader
 
 ### 0.56 ###
 - added Props.minimizeDifferences()

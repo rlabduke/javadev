@@ -265,7 +265,10 @@ public class BasicTool extends Plugin implements MouseListener, MouseMotionListe
     {
         // Handle picking, etc. here
         int x = ev.getX(), y = ev.getY();
-        KPoint p = kCanvas.getEngine().pickPoint(x, y, services.doSuperpick.isSelected());
+        KPoint p = null;
+        if(kMain.getKinemage() != null)
+            p = kCanvas.getEngine().pickPoint(x, y, services.doSuperpick.isSelected());
+        // otherwise, we just create a nonsensical warning message about stereo picking
         
         /* Mouse debugging * /
         // Java:    RMB == Meta, MMB == Alt

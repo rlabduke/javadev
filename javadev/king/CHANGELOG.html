@@ -50,10 +50,12 @@
     Key/mouse modifiers need to be checked from Safari (applet)
     Add a Mage-like "count" function
   * Rewrite HACKING section on Tools vs. Plugins
-    Efficient point representations for Andrew Ban (instance=)
-        Store actingParent (default=null) for each registered point
+ ** Efficient point representations for Andrew Ban (instance=)
+        KList needs instance field, copy constructor, parser/writer, xform code
     Triangle picking for Andrew Ban
   ? Redefine getX/Y/Z for KPoints to do the more obvious thing...
+    Warn about saving with multiple kins open
+    Warn about losing unsaved changes
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -65,6 +67,11 @@
 - mentioned kinemage format doc in user manual Ch. 4
 - updated manual section on viewing animations
 - made a note about configuring Tools menu in the manual
+- put a "Don't warn me again" control on the stereo-pick warning dialog
+- protected against showing warning for pick with no kinemage open
+- stopped model manager dialog from jumping around when switching tools
+- added the machinery to Engine to allow efficient instance= impl
+  Doesn't seem to have broken anything (yet!)
 
 ### 1.25 ###
 - tools and plugins can be placed in submenus based on the .king_prefs file
