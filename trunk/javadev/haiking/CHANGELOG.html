@@ -3,14 +3,23 @@
 ===  TO DO  ==================================================================
 ==============================================================================
     Add polyline breaker to separate really long lines into chunks?
-    Put a reasonable URL in KinLoader
+    Spin off KingLite into a J2SE 1.1 web applet
+    Ball size rendering doesn't use persp. correction (v. small effect, anyhow)
+  * Put a reasonable URL in KinLoader
     Support views (at least one)
     Move clipping into the View class
     Add basic help text
+    Allow resorting of kinemage list?
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 1.07 ###
+- changed view transform to use division rather than bit shift so that we can
+  go in finer steps than full powers of two.
+  Required updates to KinLoader (view generation) and KinCanvas (ball drawing).
+- changed zoom steps to 0.33 powers of two instead of 0.50 powers.
 
 ### 1.06 ###
 - removed command that disables/enables double buffering (too useless)

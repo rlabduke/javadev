@@ -21,6 +21,31 @@ static final int[] sin_degrees = {
     7371, 7927, 8481, 9032, 9580, 10126, 10668, 11207
 };
 
+// Divide the native coords by one of these numbers to get pixel coords.
+// They're spaced at HALF powers of two, from 2^0 to 2^26 inclusive.
+// Bit-shift produces full power-of-two steps, but that's too coarse.
+/*static final int[] ZOOM_FACTORS = {
+    1, 2, 3, 4, 6, 8, 11, 16, 23, 32, 45, 64, 91, 128, 181, 256, 362, 512, 724,
+    1024, 1448, 2048, 2896, 4096, 5793, 8192, 11585, 16384, 23170, 32768, 46341,
+    65536, 92682, 131072, 185364, 262144, 370728, 524288, 741455, 1048576,
+    1482910, 2097152, 2965821, 4194304, 5931642, 8388608, 11863283, 16777216,
+    23726566, 33554432, 47453133, 67108864
+};*/
+
+// Divide the native coords by one of these numbers to get pixel coords.
+// They're spaced at ONE-THIRD powers of two, from 2^0 to 2^26 inclusive.
+// (Duplicates created by roundoff of small ints were removed.)
+// Bit-shift produces full power-of-two steps, but that's too coarse.
+static final int[] ZOOM_FACTORS = {
+    1, 2, 3, 4, 5, 6, 8, 10, 13, 16, 20, 25, 32, 40, 51, 64, 81, 102, 128, 161,
+    203, 256, 323, 406, 512, 645, 813, 1024, 1290, 1625, 2048, 2580, 3251, 4096,
+    5161, 6502, 8192, 10321, 13004, 16384, 20643, 26008, 32768, 41285, 52016,
+    65536, 82570, 104032, 131072, 165140, 208064, 262144, 330281, 416128,
+    524288, 660561, 832255, 1048576, 1321123, 1664511, 2097152, 2642246,
+    3329021, 4194304, 5284492, 6658043, 8388608, 10568984, 13316085, 16777216,
+    21137968, 26632170, 33554432, 42275935, 53264341, 67108864
+};
+
 static final int ROT_BITS = 15;     // decimal bits in rot matrix
 static final int SCALE_MAX = 26;    // max # of bits to downshift orig coords
 static final int PERSP_DIST = 500;  // perspective distance, in pixels
@@ -36,8 +61,8 @@ static final int MIN_COORD = -MAX_COORD;
         r31=0, r32=0, r33=1<<ROT_BITS;
     // Center (untransformed coords)
     int cx = 0, cy = 0, cz = 0;
-    // Scale: number of bits to right-shift orig coords (0 to SCALE_MAX)
-    private int scale = SCALE_MAX;
+    // Scale: number of bits to right-shift orig coords (0 to ZOOM_FACTORS.length-1)
+    private int scaleIndex = ZOOM_FACTORS.length-1;
 //}}}
 
 //{{{ Constructor(s)
@@ -62,12 +87,13 @@ static final int MIN_COORD = -MAX_COORD;
     {
         KPoint firstDrawable = null;
         boolean transformThis = false, transformNext = false;
+        int scale = getScaleDivisor();
         while(p != null)
         {
             // Center and rescale point in pixel units
-            p.x1 = (p.x0 - cx) >> scale;
-            p.y1 = (p.y0 - cy) >> scale;
-            p.z1 = (p.z0 - cz) >> scale;
+            p.x1 = (p.x0 - cx) / scale;
+            p.y1 = (p.y0 - cy) / scale;
+            p.z1 = (p.z0 - cz) / scale;
             
             // If we're not in the sphere enclosing the viewable box,
             // we'll never be visible no matter how we're rotated.
@@ -234,34 +260,33 @@ static final int MIN_COORD = -MAX_COORD;
     /** Translates the view center by a certain dx, dy, dz. */
     public void translate(int dx, int dy, int dz)
     {
-        // rotate, rescale, add to center
-        if(ROT_BITS > scale)
-        {
-            cx -= (r11*dx + r21*dy + r31*dz) >> (ROT_BITS - scale);
-            cy -= (r12*dx + r22*dy + r32*dz) >> (ROT_BITS - scale);
-            cz -= (r13*dx + r23*dy + r33*dz) >> (ROT_BITS - scale);
-        }
-        else
-        {
-            cx -= (r11*dx + r21*dy + r31*dz) << (scale - ROT_BITS);
-            cy -= (r12*dx + r22*dy + r32*dz) << (scale - ROT_BITS);
-            cz -= (r13*dx + r23*dy + r33*dz) << (scale - ROT_BITS);
-        }
+        // We have to use longs to avoid overflow while retaining precision.
+        long scale = getScaleDivisor();
+        long xx = ((r11*dx + r21*dy + r31*dz)*scale) >> ROT_BITS;
+        long yy = ((r12*dx + r22*dy + r32*dz)*scale) >> ROT_BITS;
+        long zz = ((r13*dx + r23*dy + r33*dz)*scale) >> ROT_BITS;
+        cx -= (int)xx;
+        cy -= (int)yy;
+        cz -= (int)zz;
     }
 //}}}
 
-//{{{ get/setScale
+//{{{ get/setScale, getScaleDivisor
 //##############################################################################
     public int getScale()
-    { return this.scale; }
+    { return this.scaleIndex; }
 
     /** Sets the scale factor as a number of bits; 0 is max zoom. */
     public void setScale(int s)
     {
-        if(s < 0)               scale = 0;
-        else if(s > SCALE_MAX)  scale = SCALE_MAX;
-        else                    scale = s;
+        if(s < 0)                           scaleIndex = 0;
+        else if(s >= ZOOM_FACTORS.length)   scaleIndex = ZOOM_FACTORS.length;
+        else                                scaleIndex = s;
     }
+    
+    /** Returns the factor by which to divide coordinates to scale them for this view. */
+    public int getScaleDivisor()
+    { return ZOOM_FACTORS[this.scaleIndex]; }
 //}}}
 
 //{{{ empty_code_segment

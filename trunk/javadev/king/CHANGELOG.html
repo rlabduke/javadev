@@ -56,19 +56,24 @@
     Open/save PDB from/to network
     use "around x,y,z" for Probe runs
     Look at Pro geometry with Jane
-    Expand KLBE to do views
+    Expand KingLiteBinaryExport to do views
+    KingLiteBinaryExport should automatically rescale coords to fit in 30 bits.
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
 ### 1.39 ###
+### 1.39 ###
 - modified VectorPoint and TrianglePoint so object picking always returns the
   last point -- this makes changing colors, etc. much easier and more natural.
 - updated manual re: object picking; king_prefs text was OK as-is.
-- changed KLBE to write multi first, as part of change to new format.
-- added group/subgroup/list export to KLBE
-- added animation support to KLBE
+- changed KingLiteBinaryExport to write multi first, as part of change to new format.
+- added group/subgroup/list export to KingLiteBinaryExport
+- added animation support to KingLiteBinaryExport
+- Vince fixed Java 1.5 bugs: no kin selected on open, mouse drag produces click
+- fixed sphere rendering bug by not doing depth cue by width for spheres
+- deployed to world on 9 March 2005 (r123)
 
 ### 1.38 ###
 - updated copyright dates in license, manual, About box, logo
@@ -95,7 +100,7 @@
 - changed Longs in DataTool to longs
 - set -source and -target flags in build.xml
 - added bitmask for ball radius in KingLiteBinaryExport
-- fixed KLBE to deal with @colorset colors correctly
+- fixed KingLiteBinaryExport to deal with @colorset colors correctly
 - fixed NPEx caused by bond rot code in parser when loading 0-byte file
 - reordered items in Draw palette to avoid dot/dotted line confusion
 - balls and labels are always "object pickable" now

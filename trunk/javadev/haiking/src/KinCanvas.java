@@ -251,6 +251,7 @@ public class KinCanvas extends Canvas implements CommandListener
     private void zpaint(Graphics g)
     {
         KPoint p, q;
+        int scale = view.getScaleDivisor(); // doesn't account for perspective
         g.setFont(labelFont);
         for(int i = 0; i < ZBUF_SIZE; i++)
         {
@@ -286,7 +287,7 @@ public class KinCanvas extends Canvas implements CommandListener
                     g.fillRect(p.x2-2, p.y2-2, 5, 5);
                     break;
                 case KPoint.TYPE_BALL:
-                    int r = p.getRadius() >> view.getScale();
+                    int r = p.getRadius() / scale;
                     if(r < 1) r = 1;
                     int d = r<<1;
                     g.fillArc(p.x2-r, p.y2-r, d, d, 0, 360);
