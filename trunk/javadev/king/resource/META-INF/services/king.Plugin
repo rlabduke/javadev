@@ -15,4 +15,5 @@ king.tool.model.ScRotTool
 king.tool.model.ScMutTool
 king.tool.xtal.RNAMapTool
 king.tool.util.CrossWindowPickTool
+king.tool.util.RibbonTool
 
