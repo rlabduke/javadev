@@ -73,8 +73,12 @@ public class JoglCanvas extends JPanel implements GLEventListener, TransformSign
         
         // Create and listen to an OpenGL canvas
         GLCapabilities capabilities = new GLCapabilities();
-        //System.err.println("Double-buffering enabled by default? "+capabilities.getDoubleBuffered());
         capabilities.setDoubleBuffered(true); // usually enabled by default, but to be safe...
+        
+        int fsaaNumSamples = kMain.getPrefs().getInt("joglNumSamples");
+        capabilities.setSampleBuffers(fsaaNumSamples > 1); // enables/disables full-scene antialiasing (FSAA)
+        capabilities.setNumSamples(fsaaNumSamples); // sets number of samples for FSAA (default is 2)
+
         canvas = GLDrawableFactory.getFactory().createGLCanvas(capabilities);
         canvas.addGLEventListener(this); // calls display(), reshape(), etc.
         toolbox.listenTo(canvas);
@@ -91,7 +95,7 @@ public class JoglCanvas extends JPanel implements GLEventListener, TransformSign
     {
         GL gl = drawable.getGL();
         Kinemage kin = kMain.getKinemage();
-        
+
         if(kin == null)
         {
             gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -112,6 +116,7 @@ public class JoglCanvas extends JPanel implements GLEventListener, TransformSign
                 SoftLog.err.println(timestamp+" ms ("+(timestamp > 0 ? Long.toString(1000/timestamp) : ">1000")
                     +" FPS) - "+engine.getNumberPainted()+" objects painted");
             
+            // Old code for Graphics2D overlays, now done in one line after engine.render()
             /*if(toolbox != null)
             {
                 //timestamp = System.currentTimeMillis();

@@ -46,6 +46,9 @@ textOpenOnStart = true
 graphicsWidth  = 0
 graphicsHeight = 0
 
+# Number of samples for OpenGL full-scene antialiasing (FSAA). 1 means off.
+joglNumSamples = 4
+
 ######################################################################
 ### DISPLAY OPTIONS ##################################################
 ######################################################################

@@ -52,13 +52,18 @@
     'space' with (point)masters - what does it mean?
     Create a MagnifiedOceanTheme and load it using reflection
     Create a splash-screen loader for KiNG
-  * update KiNG logo, docs for 2005
+  * add mouse cursor reset to JOGLCanvas
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 1.37 ###
+### 1.38 ###
+- updated copyright dates in license, manual, About box, logo
+- clarified antialiasing code in JoglPainter
+- experimented with JOGL antialiasing via the accumulation buffer, but too slow.
+- discovered calls to enable full-scene antialiasing in GLCapabilities. Yay!
+
 ### 1.37 ###
 - added undo stack to BeanKing movie commands
 - added editing of "nohighlight" flag for lists to GroupEditor
