@@ -17,6 +17,13 @@
     </propertyfile>
     <property file="${resource}/${ant.project.name}/buildnum.props"/>
     <property file="${resource}/${ant.project.name}/version.props"/>
+    <!-- Conditional, platform-specific compilation -->
+    <condition property="isMacOSX">
+        <and>
+            <os family="mac"/>
+            <os family="unix"/>
+        </and>
+    </condition>
 </target>
 <!-- Defines properties needed to use ANTSCP -->
 <target name="init-scp">
@@ -27,9 +34,9 @@
 </target>
 <!-- }}} -->
 
-<!-- build, compile {{{ -->
+<!-- build, compile, compile-mac {{{ -->
 <!-- Bundles up all needed class and resource files into a JAR -->
-<target name="build" description="Build class files" depends="init,compile">
+<target name="build" description="Build class files" depends="init,compile,compile-mac">
     <echo message="Version ${version}"/>
     <echo message="Build # ${buildnum}"/>
     <!-- As of 1.5.2, Ant screws up the INDEX by not considering Class-Path -->
@@ -62,16 +69,26 @@
     <copy file="../chiropraxis/chiropraxis.jar" todir="${basedir}" overwrite="true"/>
     <copy file="../lib/iText/itext-1.02b.jar" tofile="${basedir}/itext.jar" failonerror="false"/>
     <mkdir dir="${build}"/>
-    <javac srcdir="${src}"
-           destdir="${build}"
-           includes="**/*.java"
-           excludes="**/old/"
-           debug="on" debuglevel="lines,source">
+    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source">
+         <include name="**/*.java"/>
+         <exclude name="**/old/"/>
+         <exclude name="**/Mac*.java"/>
          <classpath>
             <pathelement location="../driftwood/build"/>
             <pathelement location="../lib"/>
             <pathelement location="chiropraxis.jar"/>
             <pathelement location="itext.jar"/>             <!-- Required for PDF export -->
+         </classpath>
+    </javac>
+</target>
+
+<!-- Compiles .java files that only work on the Mac -->
+<target name="compile-mac" depends="init,compile" if="isMacOSX">
+    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source">
+         <include name="**/Mac*.java"/>
+         <classpath>
+            <pathelement location="${build}"/>
+            <pathelement location="../driftwood/build"/>
          </classpath>
     </javac>
 </target>
