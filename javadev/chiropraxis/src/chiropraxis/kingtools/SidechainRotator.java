@@ -1,6 +1,7 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
 package chiropraxis.kingtools;
+import king.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -32,6 +33,7 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
 
 //{{{ Variable definitions
 //##################################################################################################
+    KingMain            kMain;
     Residue             targetRes;
     ModelManager2       modelman;
     SidechainAngles2    scAngles;
@@ -56,8 +58,9 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
     * @throws IOException if the needed resource(s) can't be loaded from the JAR file
     * @throws NoSuchElementException if the resource is missing a required entry
     */
-    public SidechainRotator(Frame frame, Residue target, ModelManager2 mm) throws IOException
+    public SidechainRotator(KingMain kMain, Residue target, ModelManager2 mm) throws IOException
     {
+        this.kMain      = kMain;
         this.targetRes  = target;
         this.modelman   = mm;
         this.scAngles   = new SidechainAngles2();
@@ -66,7 +69,7 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
             scIdealizer = new SidechainIdealizer();
         } catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
 
-        buildGUI(frame);
+        buildGUI(kMain.getTopWindow());
 
         modelman.registerTool(this, Collections.singleton(targetRes));
     }
@@ -128,8 +131,13 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
         if(scIdealizer != null) cbIdealize.setSelected(true);
         else                    cbIdealize.setEnabled(false);
         twistPane.add(cbIdealize, BorderLayout.NORTH);
-        JButton release = new JButton(new ReflectiveAction("Release", null, this, "onReleaseResidue"));
-        twistPane.add(release, BorderLayout.SOUTH);
+        
+        JButton btnRelease = new JButton(new ReflectiveAction("Finished", null, this, "onReleaseResidue"));
+        JButton btnBackrub = new JButton(new ReflectiveAction("BACKRUB mainchain", null, this, "onBackrub"));
+        TablePane2 btnPane = new TablePane2();
+        btnPane.addCell(btnRelease);
+        btnPane.addCell(btnBackrub);
+        twistPane.add(btnPane, BorderLayout.SOUTH);
         
         // Assemble the dialog
         dialog = new JDialog(frame, targetRes.toString(), false);
@@ -161,6 +169,18 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
             modelman.unregisterTool(this);
         
         dialog.dispose();
+    }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onBackrub(ActionEvent ev)
+    {
+        try { new BackrubWindow(kMain, targetRes, modelman); }
+        catch(IllegalArgumentException ex)
+        {
+            JOptionPane.showMessageDialog(kMain.getTopWindow(),
+                targetRes+"doesn't have neighbors in the same chain.\n",
+                "Sorry!", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
