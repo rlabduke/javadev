@@ -207,10 +207,11 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
             if(kMain.getPrefs().newerVersionAvailable())
                 announceNewVersion(g2);
         }
+        // This is not the usual way in which the JOGL canvas is redrawn,
+        // and in fact, it may NEVER get called any more because the actual
+        // KinCanvas object is never displayed while the JOGL canvas is.
         else if(quality >= QUALITY_JOGL && joglAction != null)
-        {
             joglAction.actionPerformed(null);
-        }
         else
         {
             Painter painter = null;
@@ -230,23 +231,16 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
                 painter = goodPainter;
             }
             
-            if(kin.currAspect == null) engine.activeAspect = 0;
-            else engine.activeAspect = kin.currAspect.getIndex().intValue();
-            engine.usePerspective   = kin.atPerspective;
-            engine.cueThickness     = ! kin.atOnewidth;
-            engine.thinLines        = kin.atThinline;
-            engine.whiteBackground  = kin.atWhitebackground;
-            engine.colorByList      = kin.atListcolordominant;
-
+            long timestamp = System.currentTimeMillis();
             KingView view = kin.getCurrentView();
             Rectangle bounds = new Rectangle(dim);
-            long timestamp = System.currentTimeMillis();
+            engine.syncToKin(kin);
             engine.render(this, view, bounds, painter);
+            if(toolbox != null) toolbox.overpaintCanvas(painter);
             timestamp = System.currentTimeMillis() - timestamp;
             if(writeFPS)
                 SoftLog.err.println(timestamp+" ms ("+(timestamp > 0 ? Long.toString(1000/timestamp) : ">1000")
                     +" FPS) - "+engine.getNumberPainted()+" objects painted");
-            if(toolbox != null) toolbox.overpaintCanvas(painter);
         }
     }
 //}}}

@@ -48,13 +48,28 @@
     Optional 2 column button layout?
     use "around x,y,z" for Probe runs
     Look at Pro geometry with Jane
-    Document on/off for (point)masters; discuss 'on' behavior w/ Dave ('space'?)
+    'space' with (point)masters - what does it mean?
+    Write help HTML for BeanKing
+    Allow editing of nohighlight flag for lists
+    Add black rims on balls like Mage does?
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 1.35 ###
+### 1.36 ###
+- masters now have 3 states in kin file: default (auto detect starting state),
+  on, and off (these two force the kinemage to match them).
+- documented on/off for (point)masters in the kinemage format doc
+- fixed pointmaster bug for merging kins introduced in v1.32
+- updated BeanKing to have some nice built-in functions. Try 'help();' for info.
+- changed JoglPainter to paint single pixels for width=1 dots
+- fixed depth-cueing by width in JoglPainter; checked double buffering (OK)
+- modified Hierarchy editor GUI -- all buttons on left side now
+- second fix for depth cues, thinline, etc.; in KinCanvas.paintCanvas()
+- third time's the charm: created Engine.syncToKin() function to be called
+- fixed kinemage property editor to sync Display menu checkboxes
+
 ### 1.35 ###
 - fixed EDMapPlotter so mesh/vector ED won't be translucent, only triangle/poly
 - removed MasterGroup.pmLookup b/c it's no longer used by anything

@@ -901,7 +901,7 @@ master
  that lives outside the ordinary hierarchy of groups, subgroups, and lists.
 \layout Standard
 
-Masters are automatically created whenever they're mentioned the 
+Masters are automatically created whenever they're mentioned in the 
 \family typewriter 
 master=
 \family default 
@@ -1026,6 +1026,43 @@ As with masters, the
  the point off, but all of them must be on in order to turn it back on.
 \layout Standard
 
+By default, master and pointmaster buttons will begin in the 
+\begin_inset Quotes eld
+\end_inset 
+
+on
+\begin_inset Quotes erd
+\end_inset 
+
+ (checked) state, unless 
+\emph on 
+all
+\emph default 
+ of the groups/subgroups/lists controlled by that master are marked as 
+\family typewriter 
+off
+\family default 
+ in the kinemage, in which case the master starts off unchecked.
+ Master and pointmaster declarations can optionally be followed by either
+ 
+\family typewriter 
+on
+\family default 
+ or 
+\family typewriter 
+off
+\family default 
+, in which case the kinemage acts as though that master was clicked on or
+ off immediately after the kinemage was loaded.
+ This is not used very often, but can be helpful for quickly modifying which
+ groups, 
+\emph on 
+etc.
+
+\emph default 
+ will be initially visible when the kinemage is loaded.
+\layout Standard
+
 Shown below are some typical master and pointmaster declarations:
 \layout LyX-Code
 
@@ -1035,7 +1072,7 @@ Shown below are some typical master and pointmaster declarations:
 @pointmaster 'a' {large cities}
 \layout LyX-Code
 
-@pointmaster 'b' {small cities}
+@pointmaster 'b' {small cities} off
 \layout LyX-Code
 
 @pointmaster 'ab' {all cities}

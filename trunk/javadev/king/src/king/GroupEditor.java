@@ -374,6 +374,7 @@ public class GroupEditor implements ChangeListener
             kinemage.atFlat                 = kiFlat.isSelected();
             kinemage.atListcolordominant    = kiListcolor.isSelected();
             markKinModified(kinemage);
+            kMain.getMenus().displayMenu.syncCheckboxes();
         }
         
         return acceptChanges;

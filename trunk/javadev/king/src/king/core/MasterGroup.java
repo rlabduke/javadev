@@ -25,6 +25,7 @@ public class MasterGroup extends AGE // implements ...
 //##################################################################################################
     public int pm_mask = 0; // no point masters to start with
     boolean indent = false;
+    boolean forceOnOff = false; // was state specified in kin? See setOnForced()
     Kinemage parent;
 //}}}
 
@@ -56,7 +57,7 @@ public class MasterGroup extends AGE // implements ...
     }
 //}}}
 
-//{{{ cboxHit, setOn, buildButtons
+//{{{ cboxHit, setOn{Limited, Forced}, buildButtons
 //##################################################################################################
     /** Called when the associated checkbox is turned on/off */
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
@@ -86,6 +87,17 @@ public class MasterGroup extends AGE // implements ...
     public void setOnLimited(boolean alive)
     {
         super.setOn(alive);
+    }
+    
+    /**
+    * Has the effect of setOn(), but delays triggering the master until
+    * syncState() is called. This is useful for explicit 'on' and 'off'
+    * designations of masters in the kinemage file.
+    */
+    public void setOnForced(boolean alive)
+    {
+        setOnLimited(alive);
+        this.forceOnOff = true;
     }
     
     /** Builds a grouping of Mage-style on/off buttons in the specified container. */
@@ -179,7 +191,13 @@ public class MasterGroup extends AGE // implements ...
     {
         if(parent == null) return;
         
-        if(this.isOn())
+        if(this.forceOnOff)
+        {
+            // This *WILL* trigger the master to turn things it controls ON or OFF
+            this.setOn( this.isOn() );
+            //this.forceOnOff = false;
+        }
+        else if(this.isOn())
         {
             Iterator grIter, suIter, liIter, ptIter;
             KGroup      group;
@@ -217,8 +235,8 @@ public class MasterGroup extends AGE // implements ...
         }//if this master was on to start with...
         else
         {
-            // This *WILL* trigger the master to turn things it controls OFF
-            this.setOn( this.isOn() ); // logically, this.isOn() == false here
+            // Master wasn't on, but wasn't forced (ie wasn't explicitly specified in the kin).
+            // This should never happen, but if it did no action would be needed.
         }
     }
 //}}}

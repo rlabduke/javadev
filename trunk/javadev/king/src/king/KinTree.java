@@ -208,6 +208,10 @@ public class KinTree //extends ... implements ...
         
         TablePane lBtns = new TablePane();
         lBtns.weights(1,0).center().hfill(true);
+        lBtns.addCell(btnVisible).newRow();
+        lBtns.addCell(btnProperties).newRow();
+        lBtns.addCell(btnTransform).newRow();
+        lBtns.addCell(lBtns.strut(0,16)).newRow();
         lBtns.addCell(btnNew).newRow();
         lBtns.addCell(btnCut).newRow();
         lBtns.addCell(btnCopy).newRow();
@@ -218,12 +222,12 @@ public class KinTree //extends ... implements ...
         lBtns.addCell(btnDelete).newRow();
         content.add(lBtns, BorderLayout.WEST);
         
-        TablePane rBtns = new TablePane();
+        /*TablePane rBtns = new TablePane();
         rBtns.weights(1,0).center().hfill(true);
         rBtns.addCell(btnVisible).newRow();
         rBtns.addCell(btnProperties).newRow();
         rBtns.addCell(btnTransform).newRow();
-        content.add(rBtns, BorderLayout.EAST);
+        content.add(rBtns, BorderLayout.EAST);*/
         
         frame.pack();
     }

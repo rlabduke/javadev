@@ -33,7 +33,7 @@ public class SpatialBin //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     /**
-    * A Map&gt;Tuple3, Collection&gt;Tuple3&lt;$lt; that maps integer bin indices
+    * A Map&gt;Tuple3, ArrayList&gt;Tuple3&lt;$lt; that maps integer bin indices
     * to Collections of points with Cartesian coordinates.
     */
     Map             grid = new HashMap();
@@ -59,7 +59,7 @@ public class SpatialBin //extends ... implements ...
     * bins all to themselves, which is wasteful and inefficient to search.
     * @param width the dimension along one axis of a cubic grid cell
     */
-    public SpatialBin(int width)
+    public SpatialBin(double width)
     {
         super();
         this.xWidth = width;
@@ -85,7 +85,7 @@ public class SpatialBin //extends ... implements ...
     public void add(Tuple3 pt)
     {
         getIndex(pt, lookupIndex);
-        Collection bin = (Collection) grid.get(lookupIndex);
+        ArrayList bin = (ArrayList) grid.get(lookupIndex);
         if(bin == null)
         {
             bin = new ArrayList();
@@ -145,12 +145,15 @@ public class SpatialBin //extends ... implements ...
         for(int k = minz; k <= maxz; k++)
         {
             lookupIndex.setXYZ(i, j, k);
-            Collection bin = (Collection) grid.get(lookupIndex);
+            ArrayList bin = (ArrayList) grid.get(lookupIndex);
             if(bin != null)
             {
-                for(Iterator iter = bin.iterator(); iter.hasNext(); )
+                // Using get() is substantially (>25%) faster than creating iterators
+                //for(Iterator iter = bin.iterator(); iter.hasNext(); )
+                for(int l = 0, end_l = bin.size(); l < end_l; l++)
                 {
-                    Tuple3 hit = (Tuple3) iter.next();
+                    //Tuple3 hit = (Tuple3) iter.next();
+                    Tuple3 hit = (Tuple3) bin.get(l);
                     if(searchProxy.sqDistance(hit) <= r2)
                         found.add(hit);
                 }

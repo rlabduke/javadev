@@ -893,8 +893,8 @@ public class KinfileParser //extends ... implements ...
                 if(token.isLiteral())
                 {
                     if(token.getString().equals("indent"))      master.indent = true;
-                    else if(token.getString().equals("on"))     master.setOn(true); // affects previously-declared objects only (now)
-                    else if(token.getString().equals("off"))    master.setOnLimited(false); // will turn off ALL target groups during sync
+                    else if(token.getString().equals("on"))     master.setOnForced(true); // will turn on ALL target groups during sync
+                    else if(token.getString().equals("off"))    master.setOnForced(false); // will turn off ALL target groups during sync
                     else error("Unrecognized literal '"+token.getString()+"' will be ignored");
                 }
                 else error("Unrecognized token '"+token.getString()+"' will be ignored");
@@ -929,8 +929,8 @@ public class KinfileParser //extends ... implements ...
                 if(token.isLiteral())
                 {
                     if(token.getString().equals("indent"))      master.indent = true;
-                    else if(token.getString().equals("on"))     master.setOnLimited(true); // no real effect
-                    else if(token.getString().equals("off"))    master.setOnLimited(false); // will turn off all target groups
+                    else if(token.getString().equals("on"))     master.setOnForced(true); // will turn on ALL target pts during sync (no effect)
+                    else if(token.getString().equals("off"))    master.setOnForced(false); // will turn off ALL target pts during sync
                     else error("Unrecognized literal '"+token.getString()+"' will be ignored");
                 }
                 else error("Unrecognized token '"+token.getString()+"' will be ignored");

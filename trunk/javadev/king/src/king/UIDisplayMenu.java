@@ -184,9 +184,7 @@ public class UIDisplayMenu //extends ... implements ...
     {
         if(menu == null) return;
         KinCanvas kCanvas = kMain.getCanvas();
-        if(kCanvas == null) return;
         Engine engine = kCanvas.getEngine();
-        if(engine == null) return;
         
         cbPersp.setSelected(engine.usePerspective);
         cbStereo.setSelected(engine.useStereo);
@@ -199,6 +197,16 @@ public class UIDisplayMenu //extends ... implements ...
         cbBackground.setSelected(engine.whiteBackground);
         cbMonochrome.setSelected(engine.monochrome);
         cbColorByList.setSelected(engine.colorByList);
+        
+        Kinemage kin = kMain.getKinemage();
+        if(kin == null) return;
+        
+        cbPersp.setSelected(kin.atPerspective);
+        cbThickness.setSelected(!kin.atOnewidth);
+        cbThin.setSelected(kin.atThinline);
+        cbBackground.setSelected(kin.atWhitebackground);
+        cbColorByList.setSelected(kin.atListcolordominant);
+        
     }
 //}}}
 

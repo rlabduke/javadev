@@ -170,10 +170,15 @@ public class JoglPainter implements Painter
 //##################################################################################################
     public void paintDot(Paint paint, double x, double y, double z, int width)
     {
-        width += 1; // not big enough otherwise
         double off = width/2;
         setPaint(paint);
-        fillOval(x-off, y-off, width, width);
+        if(width == 1)
+            fillRect((int)(x-off), (int)(y-off), width, width);
+        else
+        {
+            width += 1; // not big enough otherwise
+            fillOval(x-off, y-off, width, width);
+        }
     }
 //}}}
 
@@ -270,7 +275,7 @@ public class JoglPainter implements Painter
         double x2, double y2, double z2)
     {
         setPaint(paint);
-        prettyLine((int)x1, (int)y1, (int)x2, (int)y2, width);
+        prettyLine((int)x1, (int)y1, (int)x2, (int)y2, KPalette.lineWidths[width-1][widthCue]);
     }
 //}}}
 
