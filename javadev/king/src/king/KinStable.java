@@ -181,7 +181,7 @@ public class KinStable implements ListSelectionListener
     }
 //}}}
     
-//{{{ getKinemage(), getChooser()
+//{{{ getKinemage, getChooser, changeCurrentKinemage
 //##################################################################################################
     /** Returns the Kingemage that contains all of the 3-D data being displayed. */
     public synchronized Kinemage getKinemage()
@@ -192,16 +192,16 @@ public class KinStable implements ListSelectionListener
     
     /** Returns a JList that lists all the loaded kinemages. */
     public Component getChooser() { return kinChooser; }
-//}}}
 
-    public void changeCurrentKinemage(String kinNum) {
-	//System.out.println("Kin Num" + kinNum);
-	Iterator iter = this.iterator();
-	while (iter.hasNext()) {
-	    Kinemage kin = (Kinemage) iter.next();
-	    if (kin.getName().equals("Kinemage #" + kinNum)) {
-		kinChooser.setSelectedValue(kin, true);
-	    }
-	}
+    public void changeCurrentKinemage(int kinNum)
+    {
+        int i = 1;
+        for(Iterator iter = this.iterator(); iter.hasNext(); i++)
+        {
+            Kinemage kin = (Kinemage) iter.next();
+            if(i == kinNum)
+                kinChooser.setSelectedValue(kin, true);
+        }
     }
+//}}}
 }//class
