@@ -189,8 +189,13 @@ public class EDMapWindow implements ChangeListener, ActionListener, TransformSig
         val = calcSliderValue(slider2);
         label2.setText(df1.format(val)+" sigma");
         
-        updateMesh();
-        kCanvas.repaint();
+        if(!extent.getValueIsAdjusting()
+        && !slider1.getValueIsAdjusting()
+        && !slider2.getValueIsAdjusting())
+        {
+            updateMesh();
+            kCanvas.repaint();
+        }
     }
     
     public void actionPerformed(ActionEvent ev)

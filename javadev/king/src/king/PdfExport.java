@@ -113,6 +113,15 @@ public class PdfExport implements PropertyChangeListener, Runnable
         if(JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(kMain.getTopWindow()))
         {
             File f = chooser.getSelectedFile();
+            if(!pdfFilter.accept(f) &&
+            JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+            "This file has the wrong extension. Append '.pdf' to the name?",
+            "Fix extension?", JOptionPane.YES_NO_OPTION))
+            {
+                f = new File(f+".pdf");
+            }
+
+                
             if(!f.exists() ||
             JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(kMain.getTopWindow(),
             "This file exists -- do you want to overwrite it?",

@@ -79,14 +79,19 @@ public class UIText implements ChangeListener
     public void setText(String txt)
     {
         textarea.setText(txt);
+        textarea.setCaretPosition(0); // at the top
         //editpane.setText(text2html(txt));
     }
 
     public void appendText(String txt)
     {
         txt = getText().concat(txt);
+        
+        // Keep the text window from moving around too much
+        int caret = textarea.getCaretPosition();
+        caret = Math.min(caret, txt.length());
         textarea.setText(txt);
-        //editpane.setText(text2html(txt));
+        textarea.setCaretPosition(caret);
     }
 //}}}
 

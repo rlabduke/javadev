@@ -80,7 +80,9 @@ public class SuffixFileFilter extends javax.swing.filechooser.FileFilter impleme
     public boolean accept(File f)
     {
         if(f == null) return false;
-        if(f.isDirectory() || !f.isFile()) return true; // don't hide directories
+        // Don't hide existing directories, but don't allow
+        // any old filename that happens to not have an extension.
+        if((f.isDirectory() || !f.isFile()) && f.exists()) return true;
         return accept(f.getName());
     }
     

@@ -87,7 +87,6 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
     JMenuItem               activeToolMI = null, defaultToolMI = null;
     
     ClassLoader             pluginClassLoader;
-    Props                   pluginProps;
 //}}}
 
 //{{{ Constructors
@@ -103,8 +102,6 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
         services    = new ToolServices(this);
         sigTransform = new TransformSignal();
         
-        //pluginProps = new Props(kMain.getPrefs());
-        pluginProps = (Props) kMain.getPrefs().getDefaults();
         pluginClassLoader = this.makeClassLoader();
         
         plugins = new ArrayList();
@@ -202,6 +199,8 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
         // This is how we load menu preferences for external plugins
         try
         {
+            // Write menu preferences into the defaults section of Prefs
+            Props pluginProps = (Props) kMain.getPrefs().getDefaults();
             // No leading slashes when using this method
             Enumeration urls = pluginClassLoader.getResources("king/king_prefs");
             while(urls.hasMoreElements())
@@ -298,7 +297,9 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
     /** Returns the name of the menu the given Plugin belongs in right now */
     public String getPluginMenuName(Plugin p)
     {
-        String menuName = pluginProps.getString(p.getClass().getName()+".menuName", MENU_MAIN).trim();
+        // Read from user prefs + defaults
+        KingPrefs prefs = kMain.getPrefs();
+        String menuName = prefs.getString(p.getClass().getName()+".menuName", MENU_MAIN).trim();
         if(menuName.equals("")) menuName = MENU_MAIN;
         return menuName;
     }

@@ -212,14 +212,41 @@ T = [  0 by cy ]
     }
 //}}}
 
-//{{{ getValue
+//{{{ getValue, evaluateAtPoint
 //##################################################################################################
     /**
     * Returns the value at the specified grid point,
     * where the indexes i, j, and k have been adjusted
     * to start from 0 (i.e. i==0 means aMin, j==1 means bMin+1, etc.)
+    * No wrapping, etc. is done by this function -- you probably want evaluateVertex() instead.
     */
     abstract public double getValue(int i, int j, int k);
+    
+    /**
+    * Linearly estimates the value at a specific set of Cartesian coordinates.
+    * Return value may be NaN if no data is available in this region.
+    */
+    public double evaluateAtPoint(double x, double y, double z)
+    {
+        double[] ijk = new double[3];
+        findVertexForPoint(x, y, z, ijk);
+        int lowI = (int)Math.floor(ijk[0]);
+        int lowJ = (int)Math.floor(ijk[1]);
+        int lowK = (int)Math.floor(ijk[2]);
+        double aI = ijk[0] - lowI;
+        double aJ = ijk[1] - lowJ;
+        double aK = ijk[2] - lowK;
+        
+        return
+            (1-aI)*(1-aJ)*(1-aK)*evaluateVertex(lowI, lowJ, lowK) +
+            (1-aI)*(1-aJ)*(aK)*evaluateVertex(lowI, lowJ, lowK+1) +
+            (1-aI)*(aJ)*(1-aK)*evaluateVertex(lowI, lowJ+1, lowK) +
+            (1-aI)*(aJ)*(aK)*evaluateVertex(lowI, lowJ+1, lowK+1) +
+            (aI)*(1-aJ)*(1-aK)*evaluateVertex(lowI+1, lowJ, lowK) +
+            (aI)*(1-aJ)*(aK)*evaluateVertex(lowI+1, lowJ, lowK+1) +
+            (aI)*(aJ)*(1-aK)*evaluateVertex(lowI+1, lowJ+1, lowK) +
+            (aI)*(aJ)*(aK)*evaluateVertex(lowI+1, lowJ+1, lowK+1);
+    }
 //}}}
 
 //{{{ locateVertex
@@ -276,6 +303,27 @@ T = [  0 by cy ]
         ijk[0] = (int)Math.round(a * aSteps);
         ijk[1] = (int)Math.round(b * bSteps);
         ijk[2] = (int)Math.round(c * cSteps);
+    }
+
+    /**
+    * Returns the fractional indices of the pseudo-vertex at some point &lt;x,y,z&gt;.
+    * The numbers don't correspond to a real (integer indexed) vertex, but can be used
+    * to choose such indices for e.g. linear interpolation.
+    * @param x      the x coordinate in the Cartesian system
+    * @param y      the x coordinate in the Cartesian system
+    * @param z      the x coordinate in the Cartesian system
+    * @param ijk    a double[3] to be filled with the indices of the pseudo-vertex
+    */
+    public void findVertexForPoint(double x, double y, double z, double[] ijk)
+    {
+        // Do Gaussian elimination to solve for i, j, and k
+        double a, b, c;
+        c = (z) / tcz;
+        b = (y - tcy*c) / tby;
+        a = (x - tcx*c - tbx*b) / tax;
+        ijk[0] = (a * aSteps);
+        ijk[1] = (b * bSteps);
+        ijk[2] = (c * cSteps);
     }
 //}}}
 

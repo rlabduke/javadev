@@ -25,9 +25,6 @@ MOLDB3: {{{
     ModelGroup should carry the states instead of models carrying them
 }}}
 R3: {{{
-    Write PrincipleAxes for driftwood.r3
-    Make center, rotation matrix, etc accessible from API
-    Incorporate this into a "center visible" function in KiNG 90 deg rotations
 }}}
 STAR: {{
     Add a class that can load StarFile objects into moldb2 data structures
@@ -41,7 +38,14 @@ UTIL: {{{
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 0.59 ###
+### 0.60 ###
+- added CrystalVertexSource.getValueForPoint()
+- finished r3.PrincipleAxes so data is available from the API
+- fixed prototype on getValueForPoint()
+- getValueForPoint (evaluateAtPoint) should call evaluateVertex(), not getValue()
+- fixed a typo in the interpolation of evaluateAtPoint()
+- fixed a bug in SuffixFileFilter that was unconditionally accepting filenames without extensions
+
 ### 0.59 ###
 - StarReader now allows stop_ tokens to end loop_ constructs
 - modified Transform.transform to use setXYZ instead of individual set funcs
