@@ -130,9 +130,9 @@
     <jar jarfile="${user.home}/ark/old-versions/${ant.project.name}/${ant.project.name}-${version}.${buildnum}.jar" index="true">
         <fileset dir="${basedir}"/>
     </jar>
-    <antscp remoteUserName="${scp.backup.username}" remoteHost="${scp.backup.hostname}" remotePassword="${scp.backup.password}"
-            localFile="${user.home}/ark/old-versions/${ant.project.name}/${ant.project.name}-${version}.${buildnum}.jar"
-            remoteFile="${scp.backup.path}/${ant.project.name}-${version}.${buildnum}.jar"/>
+    <scp file="${user.home}/ark/old-versions/${ant.project.name}/${ant.project.name}-${version}.${buildnum}.jar"
+        todir="${scp.backup.username}@${scp.backup.hostname}:${scp.backup.path}/${ant.project.name}-${version}.${buildnum}.jar"
+        password="${scp.backup.password}" failonerror="true"/>
 </target>
 <!-- }}} -->
 
