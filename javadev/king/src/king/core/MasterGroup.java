@@ -1,4 +1,5 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
+//{{{ Package, imports
 package king.core;
 import java.awt.*;
 import java.awt.event.*;
@@ -8,7 +9,7 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.tree.*;
 import driftwood.gui.IndentBox;
-
+//}}}
 /**
 * <code>MasterGroup</code> is used to implements masters.
 *
@@ -205,44 +206,13 @@ public class MasterGroup extends AGE // implements ...
     }
 //}}}
 
-//{{{ Pointmaster (PM) functions
+//{{{ setPmMask, pmHit
 //##################################################################################################
-    /**
-    * Converts a string of characters 'a' - 'z' to a bit mask for pointmasters.
-    * An 'a' lights up bit 0; a 'b', bit 1; and a 'z', bit 25.
-    */
-    public static int toPmBitmask(String s)
-    {
-        int i, end_i, bit, mask = 0;
-        s = s.toLowerCase();
-        end_i = s.length();
-        
-        for(i = 0; i < end_i; i++)
-        {
-            bit = pmLookup.indexOf(s.charAt(i));
-            if(bit >= 0 && bit < 32) mask |= 1 << bit;
-        }
-        
-        return mask;
-    }
-    
-    /** Does the inverse of toPmBitmask() */
-    public static String fromPmBitmask(int mask)
-    {
-        StringBuffer result = new StringBuffer();
-        int probe = 1;
-        for(int i = 0; i < 32; i++)
-        {
-            if((mask & probe) != 0) result.append(pmLookup.charAt(i));
-            probe = probe << 1;
-        }
-        return result.toString();
-    }
-    
     /** Sets the point master flags of this button based on a string */
     public void setPmMask(String mask)
     {
-        pm_mask = toPmBitmask(mask);
+        if(parent != null)
+            pm_mask = parent.toPmBitmask(mask, true, false);
         // assume that if we have points, at least some of them are on
         // therefore, this master should start out on, too
         ///super.setOn(true);

@@ -105,7 +105,7 @@ public class KinWriter //extends ... implements ...
         
         for(iter = kin.masterList().iterator(); iter.hasNext(); )
         {
-            writeMaster((MasterGroup)iter.next());
+            writeMaster((MasterGroup)iter.next(), kin);
         }
         
         // etc.
@@ -243,7 +243,7 @@ public class KinWriter //extends ... implements ...
         if(pointID.equals(lastPointID)) out.print("{\"}");
         else                            out.print("{"+pointID+"}");
         
-        if(point.pm_mask != 0)          out.print("'"+MasterGroup.fromPmBitmask(point.pm_mask)+"' ");
+        if(point.pm_mask != 0)          out.print("'"+kin.fromPmBitmask(point.pm_mask)+"' ");
         if(point.getAspects() != null)  out.print("("+point.getAspects()+") ");
         if(point.isBreak())             out.print("P ");
         if(point.isUnpickable())        out.print("U ");
@@ -301,7 +301,7 @@ public class KinWriter //extends ... implements ...
         out.println();
     }
     
-    void writeMaster(MasterGroup master)
+    void writeMaster(MasterGroup master, Kinemage kin)
     {
         out.print("@master {"+master.getName()+"}");
         //if(! master.isOn())         out.print(" off");
@@ -311,7 +311,7 @@ public class KinWriter //extends ... implements ...
         
         if(master.pm_mask != 0)
         {
-            out.println("@pointmaster '"+MasterGroup.fromPmBitmask(master.pm_mask)+"' {"+master.getName()+"}");
+            out.println("@pointmaster '"+kin.fromPmBitmask(master.pm_mask)+"' {"+master.getName()+"}");
         }
     }
 ///}}}

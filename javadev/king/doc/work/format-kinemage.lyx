@@ -990,15 +990,8 @@ pointmasters
 .
  Due to memory limits, there are only 32 possible pointmasters that can
  be used in a particular kinemage.
- They are identified by the lowercase letters 
-\emph on 
-a
-\emph default 
- - 
-\emph on 
-z
-\emph default 
- and the digits 1 - 6.
+ They are identified by single-character codes; lowercase letters are typical,
+ but any legal character is allowed.
  One or more of these single-character codes are listed inside of single
  quote marks for some or all of the points in a kinemage
 \begin_inset Foot
@@ -1020,12 +1013,33 @@ Mage does not (yet) support multiple pointmasters for a single point, so
  quotes, then the master name in curly braces.
  If the name matches with the name of an ordinary master, then that button
  will control both the list/subgroup/group master and the pointmaster.
+ As with masters, the 
+\family typewriter 
+@pointmaster
+\family default 
+ declaration is optional; pointmaster buttons will be created automatically
+ if needed.
 \layout Standard
 
 Unlike masters, pointmasters do not interact with each other.
  Turning a pointmaster on turns on all of the points under its control,
  regardless of which other pointmasters they are controlled by.
  The same goes for turning a pointmaster off.
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+Actually, this is true only for KiNG.
+ Mage treats pointmasters like ordinary masters: points are turned on if
+ and only if 
+\emph on 
+all
+\emph default 
+ their pointmasters are currently on.
+\end_inset 
+
+
 \layout Standard
 
 Shown below are some typical master and pointmaster declarations:

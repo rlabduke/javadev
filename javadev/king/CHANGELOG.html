@@ -46,9 +46,9 @@
     Add some kind of transformation hook (listeners, priorities, etc)
     Add pluginStartup() method to plugins that's called after everything is running?
     Open PDB in model manager without opening kinemage first?
+    Open/save PDB from/to network
     Optional 2 column button layout?
     Support "on" and "off" for pointmasters in parser? (Flipkin)
-    "URL filesystem" like maps to support open/save from applet
     use "around x,y,z" for Probe runs
     Look at Pro geometry with Jane
     Document kinfileBase, kinfileList, kinfileSaveHandler
@@ -71,6 +71,11 @@
 - VectorPoint was multiplying in widthCue prematurely in setting line width
 - fixed naming swap with "Prune" and "Punch" in Draw New tool
 - added "do nothing" button to the draw new tool (can also just ctrl-click)
+- reformatted tabs in Kinemage and KinfileParser
+- moved pointmasters into Kinemage so that 1) each kin can choose 32 different
+  chars to be pointmasters and 2) unknown pointmasters are auto-created.
+  Tested and debugged on- and off-line using Cb kins and multikins.
+- updated pointmaster section in kinemage format document
 
 ### 1.31 ###
 - Ant script now creates javadocs as part of "dist" target

@@ -66,6 +66,9 @@ public class Kinemage extends AGE // implements ...
     java.util.List mastersList = new ArrayList();
     Component masterSpacer = Box.createRigidArea(new Dimension(0,15));
     
+    // For assigning pointmasters to bitfield positions
+    public String pmLookup = ""; // no pointmasters defined initially
+    
     // Each kinemage has its own TreeModel
     DefaultTreeModel treeModel;
     
@@ -467,6 +470,59 @@ public class Kinemage extends AGE // implements ...
     }
 //}}}
 
+//{{{ toPmBitmask, fromPmBitmask
+//##################################################################################################
+    /**
+    * Converts a string of characters to a bit mask for pointmasters.
+    * The particular mapping of characters to bits is unique to each kinemage,
+    * but only up to 32 different characters (case-sensitive) are supported).
+    * @param addFlags   if true, assign unrecognized characters to bit positions,
+    *   but don't necessarily create masters for them. Defaults to false.
+    * @param addMasters if true, for newly-assigned characters also create
+    *   a master to control that flag. Defaults to false.
+    */
+    public int toPmBitmask(String s, boolean addFlags, boolean addMasters)
+    {
+        int i, end_i, bit, mask = 0;
+        end_i = s.length();
+        
+        for(i = 0; i < end_i; i++)
+        {
+            bit = pmLookup.indexOf(s.charAt(i));
+            if(bit >= 0 && bit < 32) mask |= 1 << bit;
+            else if(addFlags && bit == -1)
+            {
+                pmLookup = pmLookup+s.charAt(i);
+                bit = pmLookup.indexOf(s.charAt(i));
+                if(bit >= 0 && bit < 32) mask |= 1 << bit;
+                if(addMasters)
+                {
+                    MasterGroup master = getMasterByName(s.substring(i,i+1));
+                    master.setPmMask(s.substring(i,i+1));
+                }
+            }
+        }
+        
+        return mask;
+    }
+    
+    public int toPmBitmask(String s)
+    { return toPmBitmask(s, false, false); }
+    
+    /** Does the inverse of toPmBitmask() */
+    public String fromPmBitmask(int mask)
+    {
+        StringBuffer result = new StringBuffer();
+        int probe = 1, end = Math.min(32, pmLookup.length());
+        for(int i = 0; i < end; i++)
+        {
+            if((mask & probe) != 0) result.append(pmLookup.charAt(i));
+            probe = probe << 1;
+        }
+        return result.toString();
+    }
+//}}}
+
 //{{{ animate, animate2, doAnimation
 //##################################################################################################
     /**
@@ -680,16 +736,16 @@ public class Kinemage extends AGE // implements ...
     { modified = b; }
 //}}}
 
-    /**
-     * Functions for setting and getting bondrots.
-     **/
+//{{{ setBondRots, getBondRots
+//##################################################################################################
     public void setBondRots(Collection br) {
-	bondRots = br;
+        bondRots = br;
     }
 
     public Collection getBondRots() {
-	return bondRots;
+        return bondRots;
     }
+//}}}
 
 //{{{ empty_code_segment
 //##################################################################################################
