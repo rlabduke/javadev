@@ -16,7 +16,10 @@ import driftwood.r3.*;
 * <code>StateManager</code> keeps track of the points and energy terms
 * used for a molecular mechanics force field minimization.
 *
-* Before beginning the minimization call: accept();
+* Before beginning the minimization call <code>accept()</code>.
+* GradientMinimizer does this for you, so you don't have to worry about it.
+*
+* This class uses IdentityHashMap, which first became available with Java 1.4.
 *
 * <p>Copyright (C) 2004 by Ian W. Davis. All rights reserved.
 * <br>Begun on Mon Jul 12 13:17:42 EDT 2004
@@ -24,6 +27,7 @@ import driftwood.r3.*;
 public class StateManager //extends ... implements ...
 {
 //{{{ Constants
+    static final EnergyTerm[] emptyTerms = {};
 //}}}
 
 //{{{ Variable definitions
@@ -40,8 +44,20 @@ public class StateManager //extends ... implements ...
     /** The gradient of the function as calculated by the last call to accept(). Read only. */
     public double[] gradient;
     
+    // Gradients of individual components
+    double[] gBond, gAngle, gNonbond, gExtra;
+    
     // The various energy terms being used right now
-    EnergyTerm[] energyFunc = {};
+    EnergyTerm[] bondTerms = {};
+    EnergyTerm[] angleTerms = {};
+    EnergyTerm[] nbTerms = {};
+    EnergyTerm[] extraTerms = {};
+    
+    // Weights on all the various energy terms
+    double wBond = 1, wAngle = 1, wNonbond = 1, wExtra = 1;
+    
+    // A table for looking up the index of a particular point
+    Map indexTable;
 //}}}
 
 //{{{ Constructor(s)
@@ -55,18 +71,26 @@ public class StateManager //extends ... implements ...
         this.state      = new double[ points.length * 3 ];
         this.testState  = new double[ points.length * 3 ];
         this.gradient   = new double[ points.length * 3 ];
+        this.gBond      = new double[ points.length * 3 ];
+        this.gAngle     = new double[ points.length * 3 ];
+        this.gNonbond   = new double[ points.length * 3 ];
+        this.gExtra     = new double[ points.length * 3 ];
         
-        readState();
+        this.indexTable = new IdentityHashMap();
+        for(int i = 0; i < points.length; i++)
+            indexTable.put(points[i], new Integer(i));
+        
+        setState();
     }
 //}}}
 
-//{{{ readState, writeState
+//{{{ get/setState
 //##############################################################################
     /**
     * Initializes the current state and test state to be the contents of
     * the current coordinates of the MutableTuple3's this object was created with.
     */
-    public void readState()
+    public void setState()
     {
         for(int i = 0, ii = 0; i < points.length; i++)
         {
@@ -80,7 +104,7 @@ public class StateManager //extends ... implements ...
     * Writes the current state into the coordinates of the
     * MutableTuple3's this object was created with.
     */
-    public void writeState()
+    public void getState()
     {
         for(int i = 0, ii = 0; i < points.length; i++)
         {
@@ -91,19 +115,95 @@ public class StateManager //extends ... implements ...
     }
 //}}}
 
-//{{{ get/setEnergyTerms
+//{{{ get/setPoint, getIndex
 //##############################################################################
-    /** Sets the energy terms that will be evaluated for this state. */
-    public void setEnergyTerms(EnergyTerm[] terms)
+    /** Changes the coordinates of the ith point. */
+    public void setPoint(int i, double x, double y, double z)
     {
-        this.energyFunc = (EnergyTerm[]) terms.clone();
+        int ii = i*3;
+        state[ii  ] = x;
+        state[ii+1] = y;
+        state[ii+2] = z;
     }
     
-    /** Returns a copy of the array of terms that are being evaluated for this state. Read only, please. */
-    public EnergyTerm[] getEnergyTerms()
+    /** Updates the coordinates of the ith point from its corresponding MutableTuple3 object. */
+    public void setPoint(int i)
     {
-        return (EnergyTerm[]) energyFunc.clone();
+        int ii = i*3;
+        state[ii  ] = points[i].getX();
+        state[ii+1] = points[i].getY();
+        state[ii+2] = points[i].getZ();
     }
+    
+    /** Fills in the coordinates of the ith point */
+    public void getPoint(int i, MutableTuple3 t)
+    {
+        int ii = i*3;
+        t.setXYZ( state[ii], state[ii+1], state[ii+2] );
+    }
+    
+    /**
+    * Retrieves the index associated with given point.
+    * If the point is not part of this state, returns -1.
+    * Lookup is based on strict equality, not equals().
+    */
+    public int getIndex(MutableTuple3 t)
+    {
+        Integer i = (Integer) indexTable.get(t);
+        if(i == null) return -1;
+        else return i.intValue();
+    }
+//}}}
+
+//{{{ get/setXXXTerms
+//##############################################################################
+    /** Sets the bond energy terms that will be evaluated for this state. */
+    public void setBondTerms(Collection terms, double weight)
+    {
+        this.bondTerms = (EnergyTerm[]) terms.toArray(new EnergyTerm[terms.size()]);
+        this.wBond = weight;
+    }
+    public void setBondTerms(Collection terms)
+    { setBondTerms(terms, 1); }
+    /** Returns a copy of the array of bond terms that are being evaluated for this state. */
+    public EnergyTerm[] getBondTerms()
+    { return (EnergyTerm[]) bondTerms.clone(); }
+
+    /** Sets the angle energy terms that will be evaluated for this state. */
+    public void setAngleTerms(Collection terms, double weight)
+    {
+        this.angleTerms = (EnergyTerm[]) terms.toArray(new EnergyTerm[terms.size()]);
+        this.wAngle = weight;
+    }
+    public void setAngleTerms(Collection terms)
+    { setAngleTerms(terms, 1); }
+    /** Returns a copy of the array of angle terms that are being evaluated for this state. */
+    public EnergyTerm[] getAngleTerms()
+    { return (EnergyTerm[]) angleTerms.clone(); }
+
+    /** Sets the nonbonded energy terms that will be evaluated for this state. */
+    public void setNbTerms(Collection terms, double weight)
+    {
+        this.nbTerms = (EnergyTerm[]) terms.toArray(new EnergyTerm[terms.size()]);
+        this.wNonbond = weight;
+    }
+    public void setNbTerms(Collection terms)
+    { setNbTerms(terms, 1); }
+    /** Returns a copy of the array of nonbonded terms that are being evaluated for this state. */
+    public EnergyTerm[] getNbTerms()
+    { return (EnergyTerm[]) nbTerms.clone(); }
+
+    /** Sets the extra energy terms that will be evaluated for this state. */
+    public void setExtraTerms(Collection terms, double weight)
+    {
+        this.extraTerms = (EnergyTerm[]) terms.toArray(new EnergyTerm[terms.size()]);
+        this.wExtra = weight;
+    }
+    public void setExtraTerms(Collection terms)
+    { setExtraTerms(terms, 1); }
+    /** Returns a copy of the array of extra terms that are being evaluated for this state. */
+    public EnergyTerm[] getExtraTerms()
+    { return (EnergyTerm[]) extraTerms.clone(); }
 //}}}
 
 //{{{ test, accept
@@ -152,29 +252,73 @@ public class StateManager //extends ... implements ...
     }
 //}}}
 
-//{{{ eval
+//{{{ eval(state, gradient)
 //##############################################################################
     public double eval(double[] s, double[] g)
     {
-        Arrays.fill(g, 0);
-        double energy = 0;
-        for(int i = 0, end_i = energyFunc.length; i < end_i; i++)
+        //Arrays.fill(g, 0);
+        double bondE = 0, angleE = 0, nonbondE = 0, extraE = 0;
+        
+        if(bondTerms != null && wBond != 0)
         {
-            energy += energyFunc[i].eval(s, g);
+            Arrays.fill(gBond, 0);
+            for(int i = 0, end_i = bondTerms.length; i < end_i; i++)
+                bondE += bondTerms[i].eval(s, gBond);
+        }
+        if(angleTerms != null && wAngle != 0)
+        {
+            Arrays.fill(gAngle, 0);
+            for(int i = 0, end_i = angleTerms.length; i < end_i; i++)
+                angleE += angleTerms[i].eval(s, gAngle);
+        }
+        if(nbTerms != null && wNonbond != 0)
+        {
+            Arrays.fill(gNonbond, 0);
+            for(int i = 0, end_i = nbTerms.length; i < end_i; i++)
+                nonbondE += nbTerms[i].eval(s, gNonbond);
+        }
+        if(extraTerms != null && wExtra != 0)
+        {
+            Arrays.fill(gExtra, 0);
+            for(int i = 0, end_i = extraTerms.length; i < end_i; i++)
+                extraE += extraTerms[i].eval(s, gExtra);
         }
         
-        return energy;
+        for(int i = 0, end_i = g.length; i < end_i; i++)
+            g[i] = wBond*gBond[i] + wAngle*gAngle[i] + wNonbond*gNonbond[i] + wExtra*gExtra[i];
+        
+        return wBond*bondE + wAngle*angleE + wNonbond*nonbondE + wExtra*extraE;
     }
+//}}}
 
+//{{{ eval(state)
+//##############################################################################
     public double eval(double[] s)
     {
-        double energy = 0;
-        for(int i = 0, end_i = energyFunc.length; i < end_i; i++)
+        double bondE = 0, angleE = 0, nonbondE = 0, extraE = 0;
+        
+        if(bondTerms != null && wBond != 0)
         {
-            energy += energyFunc[i].eval(s);
+            for(int i = 0, end_i = bondTerms.length; i < end_i; i++)
+                bondE += bondTerms[i].eval(s);
+        }
+        if(angleTerms != null && wAngle != 0)
+        {
+            for(int i = 0, end_i = angleTerms.length; i < end_i; i++)
+                angleE += angleTerms[i].eval(s);
+        }
+        if(nbTerms != null && wNonbond != 0)
+        {
+            for(int i = 0, end_i = nbTerms.length; i < end_i; i++)
+                nonbondE += nbTerms[i].eval(s);
+        }
+        if(extraTerms != null && wExtra != 0)
+        {
+            for(int i = 0, end_i = extraTerms.length; i < end_i; i++)
+                extraE += extraTerms[i].eval(s);
         }
         
-        return energy;
+        return wBond*bondE + wAngle*angleE + wNonbond*nonbondE + wExtra*extraE;
     }
 //}}}
 
@@ -223,7 +367,7 @@ public class StateManager //extends ... implements ...
             System.err.println(j+": "+min.getFuncEvals()+" evals; dE = "+df.format(100*min.getFracDeltaEnergy())
                 +"% ("+df.format(min.getDeltaEnergy())+"); |G| = "+df.format(min.getGradMag()));
             netEvals += min.getFuncEvals();
-            stateman.writeState();
+            stateman.getState();
         }
         System.err.println("Average "+(netEvals / (j+1))+" evals per step");
         

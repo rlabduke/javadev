@@ -27,6 +27,10 @@
 - implemented both simple (all-against-all) and fancy (hash table / 3-D bins)
   approaches to neighbor detection for nonbonded terms. Fancy is preferrable.
 - made some changes to line-min in GradMin to keep things from getting stuck
+- made separate categories with separate weightings for energy terms in StateMan
+  The weightings do make gradient calculation somewhat less efficient, so we may
+  want to remove them later if there's no real benefit or use.
+- added some GUI controls to the rubber band tool to make it more fun
 
 ### 0.38 ###
 - wrote AnisoOxygenSearch

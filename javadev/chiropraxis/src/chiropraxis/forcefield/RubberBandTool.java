@@ -10,6 +10,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 import javax.swing.*;
+import javax.swing.event.*;
 import driftwood.gui.*;
 import driftwood.r3.*;
 import driftwood.util.*;
@@ -23,9 +24,11 @@ import king.core.*;
 * <p>Copyright (C) 2004 by Ian W. Davis. All rights reserved.
 * <br>Begun on Tue Jul 13 11:26:26 EDT 2004
 */
-public class RubberBandTool extends BasicTool implements Runnable
+public class RubberBandTool extends BasicTool implements Runnable, ChangeListener
 {
 //{{{ Constants
+    static final KPaint[] colors = { KPalette.red, KPalette.orange, KPalette.gold, KPalette.yellow, KPalette.lime,
+        KPalette.green, KPalette.sea, KPalette.cyan, KPalette.sky, KPalette.blue, KPalette.purple };
 //}}}
 
 //{{{ Variable definitions
@@ -37,12 +40,16 @@ public class RubberBandTool extends BasicTool implements Runnable
     KList               rubberBand;
     StateManager        stateMan;
     GradientMinimizer   minimizer;
-    Collection          baseTerms;
+    Collection          bondTerms, angleTerms, nbTerms, extraTerms = new HashSet();
     
     KPoint          draggedPoint = null;
     KPoint[]        allPoints = null;
 
     volatile boolean runMin = false;
+    
+    TablePane2      toolPane;
+    JCheckBox       cbRunMinimizer, cbUseBonds, cbUseAngles, cbUseVDW;
+    JSlider         slBonds, slAngles, slVDW;
 //}}}
 
 //{{{ Constructor(s)
@@ -53,6 +60,8 @@ public class RubberBandTool extends BasicTool implements Runnable
         this.rubberBand = makeRandomConf(100);
         this.stateMan   = makeState(rubberBand);
         
+        buildGUI();
+        
         Thread thread = new Thread(this);
         thread.setDaemon(true);
         thread.setPriority( Thread.currentThread().getPriority() - 1 );
@@ -60,7 +69,37 @@ public class RubberBandTool extends BasicTool implements Runnable
     }
 //}}}
 
-//{{{ makeRandomConf, makeState
+//{{{ buildGUI
+//##############################################################################
+    void buildGUI()
+    {
+        cbRunMinimizer = new JCheckBox(new ReflectiveAction("Run minimizer", null, this, "onGuiAction"));
+        cbUseBonds  = new JCheckBox(new ReflectiveAction("Use bond terms", null, this, "onGuiAction"));
+        cbUseAngles = new JCheckBox(new ReflectiveAction("Use angle terms", null, this, "onGuiAction"));
+        cbUseVDW    = new JCheckBox(new ReflectiveAction("Use VDW terms", null, this, "onGuiAction"));
+
+        cbRunMinimizer.setSelected(runMin);
+        cbUseBonds.setSelected(stateMan.getBondTerms().length != 0);
+        cbUseAngles.setSelected(stateMan.getAngleTerms().length != 0);
+        cbUseVDW.setSelected(stateMan.getNbTerms().length != 0);
+        
+        slBonds = new JSlider(0, 100, 100);
+        slBonds.addChangeListener(this);
+        slAngles = new JSlider(0, 100, 100);
+        slAngles.addChangeListener(this);
+        slVDW = new JSlider(0, 100, 100);
+        slVDW.addChangeListener(this);
+        
+        TablePane2 cp = toolPane = new TablePane2();
+        cp.addCell(cbRunMinimizer).newRow();
+        cp.addCell(cp.strut(0,10)).newRow();
+        cp.addCell(cbUseBonds).hfill(true).addCell(slBonds).newRow();
+        cp.addCell(cbUseAngles).hfill(true).addCell(slAngles).newRow();
+        cp.addCell(cbUseVDW).hfill(true).addCell(slVDW).newRow();
+    }
+//}}}
+
+//{{{ makeRandomConf
 //##############################################################################
     KList makeRandomConf(int howmany)
     {
@@ -73,33 +112,45 @@ public class RubberBandTool extends BasicTool implements Runnable
         {
             VectorPoint p = new VectorPoint(list, "pt "+i, prev);
             p.setXYZ(10*Math.random(), 10*Math.random(), 10*Math.random());
+            //p.setColor(colors[colors.length*i / howmany]);
             list.add(p);
             prev = p;
         }
         
         return list;
     }
-    
-    /** Returns a set of EnergyTerm objects for the list */
+//}}}
+
+//{{{ makeState
+//##############################################################################
     StateManager makeState(KList klist)
     {
+        int i;
         ArrayList points = new ArrayList(klist.children);
         points.add(this.endpoint0);
         points.add(this.endpoint1);
         points.add(this.mouseTug);
         
         int len = points.size() - 3;
-        ArrayList terms = new ArrayList();
-        for(int i = 0; i < len-1; i++)
-            terms.add(new BondTerm(i, i+1, 1, 10));
+        this.bondTerms = new ArrayList();
+        for(i = 0; i < len-1; i++)
+            bondTerms.add(new BondTerm(i, i+1, 1, 10));
         //terms.add(new BondTerm(0,       len,    0, 1));
         //terms.add(new BondTerm(len-1,   len+1,  0, 1));
-        for(int i = 0; i < len-2; i++)
-            terms.add(new AngleTerm(i, i+1, i+2, 120, 10));
+        
+        this.angleTerms = new ArrayList();
+        for(i = 0; i < len-2; i++)
+            angleTerms.add(new AngleTerm(i, i+1, i+2, 120, 10));
+        
+        this.nbTerms = new ArrayList();
+        int[] atomTypes = new int[ points.size() ];
+        for(i = 0; i < len; i++) atomTypes[i] = 1;
+        for( ; i < atomTypes.length; i++) atomTypes[i] = 0;
+        nbTerms.add(new NonbondedTerm(atomTypes, 6, 20));
         
         StateManager stateman = new StateManager((MutableTuple3[])points.toArray(new MutableTuple3[points.size()]), len);
-        stateman.setEnergyTerms((EnergyTerm[])terms.toArray(new EnergyTerm[terms.size()]));
-        baseTerms = terms;
+        stateman.setBondTerms(bondTerms);
+        stateman.setAngleTerms(angleTerms);
         
         return stateman;
     }
@@ -173,9 +224,50 @@ public class RubberBandTool extends BasicTool implements Runnable
     {
         synchronized(stateMan)
         {
-            stateMan.writeState();
+            stateMan.getState();
         }
+        
+        int nPoints = 0;
+        Triple centroid = new Triple();
+        for(Iterator iter = rubberBand.children.iterator(); iter.hasNext(); nPoints++)
+        {
+            KPoint p = (KPoint) iter.next();
+            centroid.add(p);
+        }
+        centroid.mult( 1.0/nPoints );
+        for(Iterator iter = rubberBand.children.iterator(); iter.hasNext(); )
+        {
+            KPoint p = (KPoint) iter.next();
+            int index = (int) Math.min(colors.length-1, 3*centroid.distance(p));
+            p.setColor(colors[index]);
+        }
+        
         kCanvas.repaint();
+    }
+//}}}
+
+//{{{ stateChanged, onGuiAction
+//##############################################################################
+    public void stateChanged(ChangeEvent ev)
+    {
+        this.onGuiAction(null);
+    }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onGuiAction(ActionEvent ev)
+    {
+        synchronized(stateMan)
+        {
+            stateMan.setBondTerms((cbUseBonds.isSelected() ? bondTerms : Collections.EMPTY_SET),
+                (double)slBonds.getValue() / (double)slBonds.getMaximum());
+            stateMan.setAngleTerms((cbUseAngles.isSelected() ? angleTerms : Collections.EMPTY_SET),
+                (double)slAngles.getValue() / (double)slAngles.getMaximum());
+            stateMan.setNbTerms((cbUseVDW.isSelected() ? nbTerms : Collections.EMPTY_SET),
+                (double)slVDW.getValue() / (double)slVDW.getMaximum());
+            
+            runMin = cbRunMinimizer.isSelected();
+        }
+        synchronized(this) { this.notifyAll(); }
     }
 //}}}
 
@@ -185,19 +277,6 @@ public class RubberBandTool extends BasicTool implements Runnable
     public void click(int x, int y, KPoint p, MouseEvent ev)
     {
         super.click(x, y, p, ev);
-        runMin = true;
-        
-        if(ev.getClickCount() == 2)
-        {
-            int i;
-            int[] atomTypes = new int[ rubberBand.children.size() + 3 ];
-            for(i = 0; i < rubberBand.children.size(); i++) atomTypes[i] = 1;
-            for( ; i < atomTypes.length; i++) atomTypes[i] = 0;
-            NonbondedTerm term = new NonbondedTerm(atomTypes, 6, 20);
-            baseTerms.add(term);
-        }
-
-        synchronized(this) { this.notifyAll(); }
     }
 //}}}
 
@@ -210,17 +289,14 @@ public class RubberBandTool extends BasicTool implements Runnable
         if(v != null && draggedPoint != null)
         {
             Dimension dim = kCanvas.getCanvasSize();
-            /*float[] offset = v.translateRotated(dx, -dy, 0, Math.min(dim.width, dim.height));
-            mouseTug.setX(mouseTug.getX() + offset[0]);
-            mouseTug.setY(mouseTug.getY() + offset[1]);
-            mouseTug.setZ(mouseTug.getZ() + offset[2]);*/
             float[] center = v.getCenter();
             float[] offset = v.translateRotated(ev.getX() - dim.width/2, dim.height/2 - ev.getY(), 0, Math.min(dim.width, dim.height));
             mouseTug.setX(center[0]+offset[0]);
             mouseTug.setY(center[1]+offset[1]);
             mouseTug.setZ(center[2]+offset[2]);
 
-            synchronized(stateMan) { stateMan.readState(); }
+            synchronized(stateMan) { stateMan.setPoint(stateMan.getIndex(mouseTug)); }
+            //synchronized(stateMan) { stateMan.setState(); }
             synchronized(this) { this.notifyAll(); }
         }
         else super.drag(dx, dy, ev);
@@ -243,12 +319,12 @@ public class RubberBandTool extends BasicTool implements Runnable
         {
             mouseTug.like(draggedPoint);
             int i = rubberBand.children.indexOf(draggedPoint);
-            int j = rubberBand.children.size() + 2;
-            if(i != -1 ) synchronized(stateMan)
+            int j = stateMan.getIndex(mouseTug);
+            if(i != -1 && j != -1) synchronized(stateMan)
             {
-                ArrayList terms = new ArrayList(baseTerms);
-                terms.add(new BondTerm(i, j, 0, 30));
-                stateMan.setEnergyTerms((EnergyTerm[])terms.toArray(new EnergyTerm[terms.size()]));
+                extraTerms.clear();
+                extraTerms.add(new BondTerm(i, j, 0, 30));
+                stateMan.setExtraTerms(extraTerms);
             }
             
             // The 0.5 allows for a little roundoff error,
@@ -266,14 +342,17 @@ public class RubberBandTool extends BasicTool implements Runnable
         //draggedPoint = null;
         synchronized(stateMan)
         {
-            ArrayList terms = new ArrayList(baseTerms);
-            stateMan.setEnergyTerms((EnergyTerm[])terms.toArray(new EnergyTerm[terms.size()]));
+            stateMan.setExtraTerms(Collections.EMPTY_SET);
         }
     }
 //}}}
 
-//{{{ getHelpAnchor, toString
+//{{{ getToolPanel, getHelpAnchor, toString
 //##################################################################################################
+    /** Returns a component with controls and options for this tool */
+    protected Container getToolPanel()
+    { return toolPane; }
+    
     /**
     * Returns an anchor marking a place within <code>king-manual.html</code>
     * that is the help for this tool. This is called by the default
@@ -285,14 +364,6 @@ public class RubberBandTool extends BasicTool implements Runnable
     { return null; }
     
     public String toString() { return "Rubber band toy"; }
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
 //}}}
 
 //{{{ empty_code_segment

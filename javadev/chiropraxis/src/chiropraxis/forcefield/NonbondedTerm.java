@@ -16,6 +16,23 @@ import java.util.*;
 * <code>NonbondedTerm</code> uses a hash table / 3-D bins approach to
 * make computing non-bonded terms more efficient. This seems to be a win over
 * a simple all-against-all strategy for any more than a few hundred points.
+* <p>Following in the footsteps of Sculpt, we use a Lennard-Jones-like 4-8
+* potential with a standard Coulombic one in a vacuum, so
+* <code>E = A/r^8 - B/r^4 + Qij/r</code>.
+* The derivatives are straight-forward and based on my own calculations.
+*
+* <p>The standard form for the Lennard-Jones potential is
+* <br>A/r^12 - B/r^6
+* <br>where the first term is repulsive and the second is attractive.
+*
+* <p>A nicer formulation uses the optimal separation r0 and the well depth e:
+* <br>e*[(r0/r)^12 - 2*(r0/r)^6]
+*
+* <p>Given e and r0, you can find A and B as follows:
+* <br>A = e * r0^12
+* <br>B = 2e * r0^6
+*
+* <p>The same argument holds easily for the 4-8 potential used here.
 *
 * <p>Copyright (C) 2004 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Jul 14 10:30:12 EDT 2004
@@ -82,7 +99,7 @@ public class NonbondedTerm implements EnergyTerm
         this.Qij        = new double[ NUM_TYPES*NUM_TYPES ];
         
         this.Aij        = new double[] {0, 0, 0, 1};
-        this.Bij        = new double[] {0, 0, 0, 1};
+        this.Bij        = new double[] {0, 0, 0, 2};
         this.Qij        = new double[] {0, 0, 0, 0};
         
         this.cutoff     = cutoff;
