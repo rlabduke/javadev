@@ -1,6 +1,6 @@
 #!/bin/sh
-javac -classpath bsh-2.0b1.jar:../king/king.jar BeanKing.java
+javac -classpath bsh-2.0b1.jar:../../king/king.jar BeanKing.java
 cp bsh-2.0b1.jar beanking.jar
 jar uvf beanking.jar BeanKing.class META-INF/ king/
-cp beanking.jar ../king/plugins/
+cp beanking.jar ../../king/plugins/
 

@@ -1,0 +1,127 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>Sample Plugins for KiNG</title>
+</head>
+<body>
+<h1 style="text-align: center;">Sample Plugins for KiNG</h1>
+This document describes the basics of creating new plugins for the KiNG
+3-D graphics program and provides several simple examples. The examples
+were written by Ian W. Davis
+(ian.davis@duke.edu) and Andrea Mantler (mantler@cs.unc.edu), and were
+last tested against KiNG 1.30.<br>
+<h2>Getting Started</h2>
+In order to compile and test these plugins, you'll want the following
+resources:<br>
+<ul>
+  <li>The complete KiNG source code, which you can download for free
+from <a href="http://kinemage.biochem.duke.edu">http://kinemage.biochem.duke.edu.</a></li>
+  <li>The "Hacking KiNG" document, included with the source code in the
+    <span style="font-family: monospace;">king/doc/</span> folder. This
+document provides a detailed overview of the program structure with
+specific details on creating plugins.<br>
+  </li>
+  <li>The KiNG Javadocs, also included with the source code. These
+serve as a useful reference for developing plugin functionality.<br>
+  </li>
+  <li>A Java Development Kit (JDK) for Java 1.4.x or newer.<br>
+  </li>
+  <li>The Ant build tool (<a href="http://ant.apache.org/">http://ant.apache.org/</a>).<br>
+  </li>
+</ul>
+Optional equipment includes:<br>
+<ul>
+  <li>The Jython package from <a href="http://www.jython.org/">http://www.jython.org/</a>,
+for compiling and testing the <span style="font-weight: bold;">pyking</span>
+plugin.</li>
+  <li>A newer version of <a href="http://www.beanshell.org/">BeanShell</a>,
+for the <span style="font-weight: bold;">beanking</span> plugin.</li>
+</ul>
+The <span style="font-family: monospace;">sample_plugins</span> folder
+should be in the same place as the <span
+ style="font-family: monospace;">king</span>, <span
+ style="font-family: monospace;">chiropraxis</span>, and <span
+ style="font-family: monospace;">driftwood</span> folders, like this:<br>
+<br>
+<samp>source_code<br>
+|<br>
++-- king<br>
+|&nbsp;&nbsp; |<br>
+|&nbsp;&nbsp; +-- doc<br>
+|&nbsp;&nbsp; |<br>
+|&nbsp;&nbsp; .<br>
+|&nbsp;&nbsp; .<br>
+|<br>
++-- driftwood<br>
+|<br>
++-- javadocs<br>
+|<br>
++-- sample_plugins<br>
+|&nbsp;&nbsp; |<br>
+|&nbsp;&nbsp; +-- demoPlugin<br>
+|&nbsp;&nbsp; .<br>
+|&nbsp;&nbsp; .<br>
+.<br>
+.</samp><br>
+<h2>Basic steps</h2>
+In outline form, here are the basic steps you must take to create and
+test a new KiNG plugin. See "Hacking KiNG" for more detail, and see the
+sample projects included here for example code.<br>
+<ul>
+  <li>Create a Java class that extends <span
+ style="font-family: monospace;">king.Plugin</span> or <span
+ style="font-family: monospace;">king.BasicTool</span>.</li>
+  <ul>
+    <li>Implement <span style="font-family: monospace;">getToolsMenuItem()</span>.</li>
+    <li>(<span style="font-style: italic;">Optional</span>) Implement
+one or more of <span style="font-family: monospace;">getHelpURL()</span>,<span
+ style="font-family: monospace;"> getDependencies</span>, <span
+ style="font-family: monospace;">isAppletSafe()</span>.<br>
+    </li>
+  </ul>
+  <li>Create a <span style="font-family: monospace;">META_INF/services/king.Plugin</span>
+file that lists the fully qualified name of your plugin class(es).</li>
+  <li>(<span style="font-style: italic;">Optional</span>) Create a <span
+ style="font-family: monospace;">king/king_prefs</span> file that
+describes which menu your plugin will appear in.</li>
+  <li>Package the above into a JAR file.</li>
+  <li>Place the JAR file in the <span style="font-family: monospace;">plugins/</span>
+folder of your current copy of KiNG, and then (re)start KiNG.</li>
+</ul>
+<h2>demoPlugin</h2>
+Andrea Mantler's code creates an empty kinemage and fills it with
+random lines and balls. This is a great demo of a fully-functional
+plugin complete with help documentation. Among other things, it shows
+how to create new graphics objects and how to update the graphics
+display afterwards. The code is very well commented, but be sure to see
+her <span style="font-family: monospace;">doc/readme</span> file as
+well.<br>
+<h2>BeanKing</h2>
+BeanKing is about as bare-bones a plugin as you can write. It uses the
+excellent BeanShell library to give KiNG an interpretted scripting
+language. This means you can write short, Java-like scripts as KiNG is
+running and see what they do! This is a great way to experiment with
+programming KiNG, and may help you in developing other plugins. Try
+reading the BeanShell website to learn about built-in functions like <span
+ style="font-family: monospace;">editor()</span>.<br>
+<h2>PyKing</h2>
+PyKing is very similar to BeanKing, except that the scripting language
+is Python instead of a variant of Java. PyKing uses the Jython library,
+which is a Python interpretter coded in pure Java. Because Jython is
+rather large, it's not bundled with this distribution -- you'll have to
+download and install it separately.<br>
+<br>
+PyKing allows you write Python scripts interactively while KiNG is
+running, just like BeanKing does. This is a fun way to test KiNG's
+functionality. However, PyKing itself is <span
+ style="font-weight: bold;">written in Python</span> and compiled to
+some Java class files. Thus, if you're more comfortable writing in
+Python than in Java, you can use this as a template for writing
+pre-compiled, full-featured KiNG plugins in the Python language.
+However, you're still going to have to learn some Java if you want to
+make much use of either the Java GUI classes (Swing/AWT) or of KiNG's
+functionality, a fact which is quite obvious in the PyKing source code.<br>
+</body>
+</html>
