@@ -78,6 +78,44 @@ public class TrianglePoint extends KPoint // implements ...
     }
 //}}}
 
+//{{{ isPickedBy
+//##################################################################################################
+    /**
+    * Returns true if the specified pick hits this point, else returns false
+    * Pays no attention to whether this point is marked as unpickable.
+    * @param radius2 the SQUARE of the desired picking radius
+    * @param objPick whether we should try to pick solid objects in addition to points
+    * @return the KPoint that should be counted as being picked, or null for none.
+    *   Usually <code>this</code>, but maybe not for object picking.
+    */
+    public KPoint isPickedBy(float xx, float yy, float radius2, boolean objPick)
+    {
+        if(objPick && from != null && from.from != null)
+        {
+            // deliberately using transformed coordinates, b/c they're projected flat
+            TrianglePoint A = this, B = from, C = from.from;
+            // first, make sure this is really a triangle, i.e. A != B != C
+            // otherwise, the signed area is always zero and it looks like we hit the edge
+            if(!((A.x == B.x && A.y == B.y) || (B.x == C.x && B.y == C.y) || (C.x == A.x && C.y == A.y)))
+            {
+                // then, do Andrew Ban's nifty intersection test
+                if(Builder.checkTriangle(xx, yy, A.x, A.y, B.x, B.y, C.x, C.y))
+                {
+                    float dx, dy, dA, dB, dC;
+                    dx = xx - A.x; dy = yy - A.y; dA = dx*dx + dy*dy;
+                    dx = xx - B.x; dy = yy - B.y; dB = dx*dx + dy*dy;
+                    dx = xx - B.x; dy = yy - C.y; dC = dx*dx + dy*dy;
+                    if(dA <= dB && dA <= dC)    return A;
+                    else if(dB <= dC)           return B;
+                    else                        return C;
+                }
+            }
+        }
+        
+        return super.isPickedBy(xx, yy, radius2, objPick);
+    }
+//}}}
+
 //{{{ paintStandard
 //##################################################################################################
     /**

@@ -458,14 +458,17 @@ abstract public class KPoint extends AHE implements Cloneable, MutableTuple3
     * Returns true if the specified pick hits this point, else returns false
     * Pays no attention to whether this point is marked as unpickable.
     * @param radius2 the SQUARE of the desired picking radius
+    * @param objPick whether we should try to pick solid objects in addition to points
+    * @return the KPoint that should be counted as being picked, or null for none.
+    *   Usually <code>this</code>, but maybe not for object picking.
     */
-    public boolean isPickedBy(float xx, float yy, float radius2)
+    public KPoint isPickedBy(float xx, float yy, float radius2, boolean objPick)
     {
         float deltax, deltay;
         deltax = (x - xx);
         deltay = (y - yy);
-        if((deltax*deltax + deltay*deltay) <= radius2)  return true;
-        else                                            return false;        
+        if((deltax*deltax + deltay*deltay) <= radius2)  return this;
+        else                                            return null;        
     }
 //}}}
 

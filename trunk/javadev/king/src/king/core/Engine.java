@@ -42,6 +42,7 @@ public class Engine //extends ... implements ...
     public double       perspDist       = 2000;
     
     // READ ONLY: Parameters for painting points
+    public boolean      useObjPicking   = true;     // should we pick triangles, lines, balls as solid objects?
     public boolean      useStereo       = false;
     public float        stereoRotation  = 0;
     public boolean      bigMarkers      = false;
@@ -544,7 +545,7 @@ public class Engine //extends ... implements ...
         // Iterate over all levels and all points in each level, searching for "the one"
         int         i, j, end_j;        // loop over z-buffer
         ArrayList   zb;                 // == zbuffer[i], saves array lookups
-        KPoint      theone = null, p;
+        KPoint      theone = null, p, q;
         
         // Note: looping front to back, rather than back to front as in render()
         for(i = TOP_LAYER; i >= 0 && theone == null; i--)
@@ -554,8 +555,10 @@ public class Engine //extends ... implements ...
             for(j = 0; j < end_j && theone == null; j++)
             {
                 p = (KPoint)zb.get(j);
-                if(p.isPickedBy(xcoord, ycoord, pickingRadius2) && (!p.isUnpickable() || superpick)) theone = p;
-                
+                q = p.isPickedBy(xcoord, ycoord, pickingRadius2, useObjPicking);
+                // q will usually be p or null, but sometimes not for object picking
+                if( q != null && (!q.isUnpickable() || superpick))
+                    theone = q;
             }
         }
         return theone;
