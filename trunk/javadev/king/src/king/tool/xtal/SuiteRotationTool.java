@@ -90,7 +90,8 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
     }
 
     public void start() {
-	Iterator bondRotIter = kMain.getKinIO().getBondRotIterator();
+	Collection brColl = kMain.getKinemage().getBondRots();
+	Iterator bondRotIter = brColl.iterator();
 	//BondRot bonds = (BondRot) bondRotIter.next();
 	//System.out.println(bonds);
 	ArrayList bondRotList = new ArrayList();
@@ -98,14 +99,6 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 
 	    BondRot bonds = (BondRot) bondRotIter.next();
 	    bondRotList.add(bonds);
-	    //dial = new AngleDial();
-	    //dial.addChangeListener(this);
-	    //JLabel label = new JLabel();
-	    //pane.addCell(label);
-	    //pane.addCell(dial);
-	    //pane.addCell(rotList);
-	    //pane.newRow();
-	    //dialMap.put(dial, bonds);
 
 	    ArrayList origList = new ArrayList();
 	    ArrayList ptsList = new ArrayList();
@@ -125,9 +118,7 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 		//System.out.println("list color set");
 		storeCoords(bondList, ptsList, origList);
 	    }
-	    //label.setText(bonds.getName());
-	    //dial.setOrigDegrees(bonds.getAngle());
-	    //dial.setDegrees(bonds.getAngle());
+
 	}
 	// at this point i have 2 hashmaps: 1 with original coordinates of points in an RNATriple,
 	// and 1 with "current" coordinates of points in a KPoint.  
@@ -143,38 +134,10 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 	pane.addCell(rotList);
 	pane.addCell(rotDial);
 	
+	kCanvas.repaint();
 	//SET ROTATION
 	show();
     }
-
-
-    public void click(int x, int y, KPoint p, MouseEvent ev)
-    {
-        super.click(x, y, p, ev);
-	if(p instanceof VectorPoint) {
-	    /*
-	    if (firstPoint == null) {
-		firstPoint = p;
-		firstTrip = new RNATriple(p);
-	    } else if (secondPoint == null) {
-		secondPoint = p;
-		secondTrip = new RNATriple(p);
-		//calcRotation();
-	    } else {
-		thirdPoint = p;
-		thirdTrip = new RNATriple(p);
-		list = (KList) thirdPoint.getOwner();
-		storeCoords(list);
-	    }
-	    */
-	
-	}
-    }
-
-    //private void calcRotation() {
-    //	rotate = new Transform();
-	//rotate = rotate.likeRotation(firstTrip, secondTrip, rotDial.getDegrees());
-    //}
 
     private void calcRotation(KList axis) {
 	//rotate = new Transform();
@@ -202,53 +165,6 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 	    point.setOrigZ(trip.getZ());
 	    //trip = origTrip;
 	}
-    }
-
-    private void doRotation(AngleDial dial) {
-	/*
-	//list = (KList) thirdPoint.getOwner();
-	Transform rotate = new Transform();
-
-	//KList axis = (KList) axisMap.get(dial);
-	//Iterator axisIter = axis.iterator();
-	//firstTrip = new RNATriple((KPoint) axisIter.next());
-	//System.out.println(firstPoint);
-	//secondTrip = new RNATriple((KPoint) axisIter.next());
-	
-	//rotate = rotate.likeRotation(firstTrip, secondTrip, dial.getDegrees() - dial.getOrigDegrees());
-	//BondRot bonds = (BondRot) dialMap.get(dial);
-	//bonds.setColor(KPalette.blue);
-	
-	//while (listIter.hasNext()) {
-	//doRotation((KList) listIter.next());
-	    //}
-	//rotate = rotate.likeRotation(firstTrip, secondTrip, rotDial.getDegrees());
-	//storeCoords(list);
-	//doRotation(list);
-
-	//RNATriple origTrip = (RNATriple) thirdTrip.clone();
-	//rotate.transform(thirdTrip);
-	//thirdPoint.setOrigX(thirdTrip.getX());
-	//thirdPoint.setOrigY(thirdTrip.getY());
-	//thirdPoint.setOrigZ(thirdTrip.getZ());
-	//thirdTrip = origTrip;
-	//System.out.println(thirdPoint + ", org x: " + thirdPoint.getOrigX());
-	//System.out.println(thirdPoint + ", x: " + thirdPoint.getX());
-	//list.add(thirdPoint);
-	
-	Iterator iter = ((ArrayList) origMap.get(bonds)).iterator();
-	Iterator pointIter = ((ArrayList) pointMap.get(bonds)).iterator();
-	while (iter.hasNext()) {
-	    KPoint point = (KPoint) pointIter.next();
-	    RNATriple origTrip = (RNATriple) iter.next();
-	    RNATriple trip = (RNATriple) origTrip.clone();
-	    rotate.transform(trip);
-	    point.setOrigX(trip.getX());
-	    point.setOrigY(trip.getY());
-	    point.setOrigZ(trip.getZ());
-	    //trip = origTrip;
-	}
-	*/
     }
 
     private void updateCoords(BondRot rot) {
@@ -294,26 +210,6 @@ public class SuiteRotationTool extends BasicTool implements ChangeListener, List
 	//System.out.println(" origCoords size: " + origList.size());
     }
 
-    //need to add old points to rotation too.
-    /*
-    private void doRotation(KList list) {
-	Iterator iter = origCoords.iterator();
-	Iterator pointIter = points.iterator();
-	while (iter.hasNext()) {
-	    KPoint point = (KPoint) pointIter.next();
-	    RNATriple origTrip = (RNATriple) iter.next();
-	    RNATriple trip = (RNATriple) origTrip.clone();
-	    rotate.transform(trip);
-	    point.setOrigX(trip.getX());
-	    point.setOrigY(trip.getY());
-	    point.setOrigZ(trip.getZ());
-	    //trip = origTrip;
-	}
-	}*/
-
-    public void onOpenKin(ActionEvent ev) {
-
-    }
 
 //{{{ getToolPanel, getHelpAnchor, toString
 //##################################################################################################

@@ -15,8 +15,11 @@ import java.util.*;
 //import driftwood.util.SoftLog;
 //}}}
 /**
-
-*/
+ * <code>BondRot</code> is an object to represent a BondRot for doing bond rotations like in Mage.
+ * 
+ * <p>Copyright (C) 2004 Vincent B. Chen. All rights reserved.
+ * <br>Begun in June 2004
+ **/
 public class BondRot {
 
 //{{{ Constants
@@ -45,6 +48,9 @@ public class BondRot {
     }
 //}}}
 
+    /**
+     * Constructor
+     **/
     public BondRot(int rotNum, String nm, double angle) {
 	bondLists = new ArrayList();
 	bondRotNum = rotNum;
@@ -56,9 +62,16 @@ public class BondRot {
 
 //{{{ Methods
 //##################################################################################################
+
+//{{{ Add
+//##################################################################################################
+    /**
+     * Adds a KList to this bondrot.
+     **/
     public void add(KList list) {
 	bondLists.add(list);
     }
+//{{{
 
     public void setOpen(boolean status) {
 	isOpen = status;
@@ -81,6 +94,8 @@ public class BondRot {
     public void setCurrentAngle(double ang) {
 	currAng = ang;
     }
+
+
 
     public Iterator iterator() {
 	return bondLists.iterator();
