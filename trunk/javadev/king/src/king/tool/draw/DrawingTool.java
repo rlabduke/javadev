@@ -70,9 +70,9 @@ public class DrawingTool extends BasicTool
 //{{{ Variable definitions
 //##############################################################################
     TablePane       ui;
-    JRadioButton    rbLineSegment, rbBalls, rbLabels, rbDots, rbDottedLine,
-                    rbArcSegment, rbTriangle;
-    JRadioButton    rbPrune, rbPunch, rbAuger, rbSphereCrop;
+    JRadioButton    rbDoNothing, rbLineSegment, rbBalls, rbLabels, rbDots,
+                    rbDottedLine, rbArcSegment, rbTriangle;
+    JRadioButton    rbPunch, rbPrune, rbAuger, rbSphereCrop;
     
     Builder         builder = new Builder();
     KPoint          lineseg1 = null, lineseg2 = null;
@@ -112,6 +112,8 @@ public class DrawingTool extends BasicTool
         ButtonGroup buttonGroup = new ButtonGroup();
         
         // Build all the radio buttons for different drawing modes
+        rbDoNothing = new JRadioButton("Do nothing");
+        buttonGroup.add(rbDoNothing);
         rbLineSegment = new JRadioButton("Draw line segments");
         buttonGroup.add(rbLineSegment);
         rbBalls = new JRadioButton("Draw balls");
@@ -127,10 +129,10 @@ public class DrawingTool extends BasicTool
         rbTriangle = new JRadioButton("Draw triangles");
         buttonGroup.add(rbTriangle);
 
-        rbPrune = new JRadioButton("Prune one point");
-        buttonGroup.add(rbPrune);
-        rbPunch = new JRadioButton("Punch a polyline");
+        rbPunch = new JRadioButton("Punch one point");
         buttonGroup.add(rbPunch);
+        rbPrune = new JRadioButton("Prune a polyline");
+        buttonGroup.add(rbPrune);
         rbAuger = new JRadioButton("Auger a region");
         buttonGroup.add(rbAuger);
         rbSphereCrop = new JRadioButton("Spherical crop");
@@ -201,6 +203,7 @@ public class DrawingTool extends BasicTool
         // Put the UI together
         ui = new TablePane();
         ui.hfill(true).vfill(true);
+        ui.addCell(rbDoNothing).newRow();
         ui.addCell(rbLineSegment).newRow();
             ui.addCell(fbLineSeg).newRow();
         ui.addCell(rbBalls).newRow();
@@ -213,8 +216,8 @@ public class DrawingTool extends BasicTool
             ui.addCell(fbArcSegment).newRow();
         ui.addCell(rbTriangle).newRow();
             ui.addCell(fbTriangle).newRow();
-        ui.addCell(rbPrune).newRow();
         ui.addCell(rbPunch).newRow();
+        ui.addCell(rbPrune).newRow();
         ui.addCell(rbAuger).newRow();
         ui.addCell(rbSphereCrop).newRow();
             ui.addCell(fbSphereCrop).newRow();
@@ -229,15 +232,16 @@ public class DrawingTool extends BasicTool
     public void click(int x, int y, KPoint p, MouseEvent ev)
     {
         super.click(x, y, p, ev);
-        if(rbLineSegment.isSelected())          doLineSegment(x, y, p, ev);
+        if(rbDoNothing.isSelected())            return; // don't mark kin as modified
+        else if(rbLineSegment.isSelected())     doLineSegment(x, y, p, ev);
         else if(rbBalls.isSelected())           doBalls(x, y, p, ev);
         else if(rbLabels.isSelected())          doLabels(x, y, p, ev);
         else if(rbDots.isSelected())            doDots(x, y, p, ev);
         else if(rbDottedLine.isSelected())      doDottedLine(x, y, p, ev);
         else if(rbArcSegment.isSelected())      doArcSegment(x, y, p, ev);
         else if(rbTriangle.isSelected())        doTriangle(x, y, p, ev);
-        else if(rbPrune.isSelected())           doPrune(x, y, p, ev);
         else if(rbPunch.isSelected())           doPunch(x, y, p, ev);
+        else if(rbPrune.isSelected())           doPrune(x, y, p, ev);
         else if(rbAuger.isSelected())           doAuger(x, y, p, ev);
         else if(rbSphereCrop.isSelected())      doSphereCrop(x, y, p, ev);
         
@@ -676,9 +680,9 @@ public class DrawingTool extends BasicTool
     }
 //}}}
 
-//{{{ doPrune, excisePoint
+//{{{ doPunch, excisePoint
 //##############################################################################
-    protected void doPrune(int x, int y, KPoint p, MouseEvent ev)
+    protected void doPunch(int x, int y, KPoint p, MouseEvent ev)
     {
         if(p == null) return;
         KList list = (KList) p.getOwner();
@@ -693,7 +697,7 @@ public class DrawingTool extends BasicTool
         kin.signal.signalKinemage(kin, KinemageSignal.APPEARANCE);
     }
     
-    // Used by Prune and Auger -- not undoable in & of itself
+    // Used by Punch and Auger -- not undoable in & of itself
     // Step can be null, or it will be used to save the modified point.
     private void excisePoint(KPoint p, UndoStep step)
     {
@@ -719,9 +723,9 @@ public class DrawingTool extends BasicTool
     }
 //}}}
 
-//{{{ doPunch
+//{{{ doPrune
 //##############################################################################
-    protected void doPunch(int x, int y, KPoint p, MouseEvent ev)
+    protected void doPrune(int x, int y, KPoint p, MouseEvent ev)
     {
         if(p == null) return;
         

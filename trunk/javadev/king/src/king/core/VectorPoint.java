@@ -291,16 +291,13 @@ public class VectorPoint extends KPoint // implements ...
     // Vector way of finding the right line width to use, given the settings in the engine
     int calcLineWidth(Engine engine)
     {
+        if(engine.thinLines) return 1;
+        
         int wid = 2;
-        if(width > 0) wid = width;
+        if(this.width > 0)      wid = this.width;
         else if(parent != null) wid = parent.width;
         
-        if(engine.thinLines) return (int)(1*KPalette.widthScale[engine.widthCue] + 0.5);
-        else
-        {
-            int w = (int)(wid*KPalette.widthScale[engine.widthCue] + 0.5);
-            return (w < 1 ? 1 : w);
-        }
+        return wid;
     }
 //}}}
 

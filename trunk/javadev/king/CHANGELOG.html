@@ -52,6 +52,7 @@
     use "around x,y,z" for Probe runs
     Look at Pro geometry with Jane
     Document kinfileBase, kinfileList, kinfileSaveHandler
+    Track curr settings for perspective, etc. on a per-kin basis (+ kin defaults)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -66,6 +67,10 @@
 - set up JOGL libraries so anybody using SVN can compile JOGL version
 - added JOGL libs to src code distro, so downloaders can compile it too
 - add JOGL native libs to the Mac Application Bundle
+- AIOOBEx in HiQualPainter line 111 arises when depth cueing by line width is on
+- VectorPoint was multiplying in widthCue prematurely in setting line width
+- fixed naming swap with "Prune" and "Punch" in Draw New tool
+- added "do nothing" button to the draw new tool (can also just ctrl-click)
 
 ### 1.31 ###
 - Ant script now creates javadocs as part of "dist" target
