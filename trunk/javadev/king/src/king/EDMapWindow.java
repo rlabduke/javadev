@@ -45,7 +45,7 @@ public class EDMapWindow implements ChangeListener, ActionListener, TransformSig
     JSlider     extent, slider1, slider2;
     JCheckBox   label1, label2;
     JComboBox   color1, color2;
-    JCheckBox   useTriangles;
+    JCheckBox   useTriangles, useLowRes;
     JButton     discard, export;
     
     float       ctrX, ctrY, ctrZ;
@@ -120,6 +120,7 @@ public class EDMapWindow implements ChangeListener, ActionListener, TransformSig
         
         useTriangles = new JCheckBox(new ReflectiveAction("Translucent surface", null, this, "onTriangles"));
         useTriangles.setToolTipText("Enables a translucent triangle-mesh surface; use with Best rendering quality.");
+        useLowRes = new JCheckBox(new ReflectiveAction("Coarser mesh", null, this, "onCoarseMesh"));
         discard = new JButton(new ReflectiveAction("Discard this map", null, this, "onMapDiscard"));
         export  = new JButton(new ReflectiveAction("Export to kinemage", null, this, "onMapExport"));
         
@@ -151,6 +152,8 @@ public class EDMapWindow implements ChangeListener, ActionListener, TransformSig
         pane.add(pane.strut(0,4));
         pane.newRow();
         pane.add(useTriangles, 2, 1);
+        pane.newRow();
+        pane.add(useLowRes, 2, 1);
         pane.newRow();
         pane.center().hfill(true);
         pane.add(export, 2, 1);
@@ -210,6 +213,13 @@ public class EDMapWindow implements ChangeListener, ActionListener, TransformSig
         kCanvas.repaint();
     }
     
+    // target of reflection
+    public void onCoarseMesh(ActionEvent ev)
+    {
+        updateMesh();
+        kCanvas.repaint();
+    }
+    
     double calcSliderValue(JSlider slider)
     {
         int i = slider.getValue();
@@ -257,14 +267,25 @@ public class EDMapWindow implements ChangeListener, ActionListener, TransformSig
         Object mode = (useTriangles.isSelected() ? MarchingCubes.MODE_TRIANGLE : MarchingCubes.MODE_MESH);
         plotter1 = new EDMapPlotter(false, mode);
         plotter2 = new EDMapPlotter(false, mode);
-        mc1 = new MarchingCubes(map, map, plotter1, mode);
-        mc2 = new MarchingCubes(map, map, plotter2, mode);
         
         double val, size = extent.getValue() / 2.0;
         int[] corner1 = new int[3], corner2 = new int[3];
         
-        map.findVertexForPoint(ctrX-size, ctrY-size, ctrZ-size, corner1);
-        map.findVertexForPoint(ctrX+size, ctrY+size, ctrZ+size, corner2);
+        if(useLowRes.isSelected())
+        {
+            LowResolutionVertexSource lores = new LowResolutionVertexSource(map, 2);
+            mc1 = new MarchingCubes(lores, lores, plotter1, mode);
+            mc2 = new MarchingCubes(lores, lores, plotter2, mode);
+            lores.findVertexForPoint(ctrX-size, ctrY-size, ctrZ-size, corner1);
+            lores.findVertexForPoint(ctrX+size, ctrY+size, ctrZ+size, corner2);
+        }
+        else
+        {
+            mc1 = new MarchingCubes(map, map, plotter1, mode);
+            mc2 = new MarchingCubes(map, map, plotter2, mode);
+            map.findVertexForPoint(ctrX-size, ctrY-size, ctrZ-size, corner1);
+            map.findVertexForPoint(ctrX+size, ctrY+size, ctrZ+size, corner2);
+        }
         
         /*double[] xyz = new double[3];
         map.locateVertex(corner1[0], corner1[1], corner1[2], xyz);
