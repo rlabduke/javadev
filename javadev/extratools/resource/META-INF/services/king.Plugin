@@ -16,3 +16,4 @@ king.tool.postkin.RecolorTool
 king.tool.sequence.FastaTool
 king.tool.data_analysis.CrossWindowPickTool
 king.tool.data_analysis.AutoBondRotDataTool
+king.tool.postkin.KinFudgerTool

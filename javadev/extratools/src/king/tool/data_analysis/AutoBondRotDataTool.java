@@ -243,7 +243,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		    if (fileChoice.equals("First")) {
 			angleChoice = askAngleFormat(f.getName());
 		    }
-		    if ((!fileChoice.equals(null))&&(!angleChoice.equals(null))) {
+		    if ((fileChoice != null)&&(angleChoice != null)) {
 			listMap = new HashMap();
 			offPoints = new ArrayList();
 			allPoints = new ArrayList();
@@ -781,7 +781,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 //{{{ getHelpAnchor, toString
 //##################################################################################################
     public String getHelpAnchor()
-    { return "#draw-tool"; }
+    { return null; }
 
     public Container getToolPanel()
     { return dialog; }
