@@ -9,13 +9,16 @@ import driftwood.r3.*;
 import driftwood.gui.*;
 
 import javax.swing.*;
+import java.io.*;
+import java.text.*;
 import java.util.*;
 import java.awt.event.*;
+import java.lang.Double;
 
 public class KinFudgerTool extends BasicTool {
 
 //{{{ Constants
-
+    static final DecimalFormat df = new DecimalFormat("0.000");
 //}}}
 
 //{{{ Variable definitions
@@ -51,11 +54,16 @@ public class KinFudgerTool extends BasicTool {
 	ButtonGroup fudgeGroup = new ButtonGroup();
 	fudgeGroup.add(fudgeDistance);
 	fudgeGroup.add(fudgeAngle);
+
+	JButton exportButton = new JButton(new ReflectiveAction("Export", null, this, "onExport"));
+	//exportButton.addActionListener(this);
 	
 	TablePane pane = new TablePane();
 	pane.newRow();
 	pane.add(fudgeDistance);
 	pane.add(fudgeAngle);
+	pane.newRow();
+	pane.add(exportButton);
 
 	dialog.setContentPane(pane);
 
@@ -131,7 +139,9 @@ public class KinFudgerTool extends BasicTool {
 
 
     public void buildAdjacencyList() {
+	adjacencyMap = new HashMap();
 	Kinemage kin = kMain.getKinemage();
+	if (kin != null) kin.setModified(true);
 	Iterator iter = kin.iterator();
 	while (iter.hasNext()) {
 	    KGroup group = (KGroup) iter.next();
@@ -292,6 +302,59 @@ public class KinFudgerTool extends BasicTool {
 	list.add(prev);
 	list.add(point);
     }
+
+    public void onExport(ActionEvent ev) {
+	buildAdjacencyList();
+	JFileChooser saveChooser = new JFileChooser();
+	String currdir = System.getProperty("user.dir");
+	if(currdir != null) {
+	    saveChooser.setCurrentDirectory(new File(currdir));
+	}
+	if (saveChooser.APPROVE_OPTION == saveChooser.showSaveDialog(kMain.getTopWindow())) {
+	    File f = saveChooser.getSelectedFile();
+	    if( !f.exists() ||
+                JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+                    "This file exists -- do you want to overwrite it?",
+                    "Overwrite file?", JOptionPane.YES_NO_OPTION)
+                == JOptionPane.YES_OPTION )
+            {
+                savePDB(f);
+            }
+	}
+
+    }
+
+    public void savePDB(File f) {
+	try {
+	    Writer w = new FileWriter(f);
+	    PrintWriter out = new PrintWriter(new BufferedWriter(w));
+	    Set keys = adjacencyMap.keySet();
+	    Iterator iter = keys.iterator();
+	    while (iter.hasNext()) {
+		AbstractPoint point = (AbstractPoint) iter.next();
+		out.print("ATOM      1 ");
+		out.print(point.getName().toUpperCase().substring(0, 8) + "  " + point.getName().toUpperCase().substring(8) + "     ");
+		out.print(formatCoords(point.getX()) + "  ");
+		out.print(formatCoords(point.getY()) + "  ");
+		out.print(formatCoords(point.getZ()) + "  ");
+		out.println("1.00  0.00");
+	    }
+	    out.flush();
+	    w.close();
+	} catch (IOException ex) {
+	    JOptionPane.showMessageDialog(kMain.getTopWindow(),
+                "An error occurred while saving the file.",
+                "Sorry!", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public String formatCoords(double coord) {
+	if (coord < 0) {
+	    return (df.format(coord));
+	}
+	return " " + (df.format(coord));
+    }
+
 	
 
 //{{{ getToolPanel, getHelpAnchor, toString
