@@ -343,13 +343,17 @@ public class KingFoo //extends ... implements ...
     * @return the number of placed foos REMAINING after removing wet ones.
     */
     public int removeWetFoos()
+    { return removeWetFoos(1.4); }
+    
+    public int removeWetFoos(double waterRadius)
     {
-        final double waterRadius = 1.4;
         double totalRadius = fooRadius+waterRadius;
-        // Dots projected onto foo surface will be at least 16/A^2
-        // b/c surface grows as square of radius
-        double density = 3;//Math.max(4, 16 * (fooRadius/totalRadius) * (fooRadius/totalRadius));
+        // Dots projected onto foo surface will be ~ 16/A^2
+        // b/c surface grows as square of radius.
+        // Should be fine for most applications.
+        double density = 16 * (fooRadius/totalRadius) * (fooRadius/totalRadius);
         Collection dotSphere = new Builder().makeDotSphere(totalRadius, density);
+        //DEBUG: System.err.println(dotSphere.size()+" wet dots tested per foo");
         
         Triple dot = new Triple(); // avoid creating and discarding Triples
         ArrayList hits = new ArrayList();
@@ -520,32 +524,33 @@ public class KingFoo //extends ... implements ...
         
         long time = System.currentTimeMillis();
         KingFoo kf = new KingFoo(atoms, fooRadius, fooRadius/1.0);
-        //kf.placeFoosFCC(new Triple(), 2.0, 2);
+        //DEBUG: kf.placeFoosFCC(new Triple(), 2.0, 2);
         kf.placeFoosFCC(new Triple(81.574, 28.956, 85.759), 0.4, 40);
         time = System.currentTimeMillis() - time;
         System.err.println(kf.getFoos().size()+" foos were placed successfully in "+time+" ms");
         
         time = System.currentTimeMillis();
-        //kf.removeWetFoos();
+        kf.removeWetFoos(3.0);
         time = System.currentTimeMillis() - time;
         System.err.println(kf.getFoos().size()+" dry foos remaining after "+time+" ms");
         
         System.out.println("@kinemage 1");
         System.out.println("@group {foo cavities}");
         System.out.println("@subgroup {foo cavities}");
-        System.out.println("@balllist {foo balls} radius= "+df.format(fooRadius)+" color= sea nohighlight alpha= 1.0");
+        System.out.println("@balllist {foo balls} radius= "+df.format(fooRadius)+" color= pink off nohighlight alpha= 1.0");
         for(Iterator iter = kf.getFoos().iterator(); iter.hasNext(); )
             System.out.println("{x} "+((Triple)iter.next()).format(df));
         
-        /*time = System.currentTimeMillis();
+        /**/
+        time = System.currentTimeMillis();
         Collection dotSurface = kf.surfaceFoos(16);
         time = System.currentTimeMillis() - time;
         System.err.println(dotSurface.size()+" dots placed in "+time+" ms");
         
-        System.out.println("@dotlist {foo dots} color= purple off");
+        System.out.println("@dotlist {foo dots} color= gray");
         for(Iterator iter = dotSurface.iterator(); iter.hasNext(); )
             System.out.println("{x} "+((Triple)iter.next()).format(df));
-        */
+        /**/
     }
 //}}}
 }//class

@@ -129,13 +129,13 @@ public class Engine //extends ... implements ...
         {
             if(monochrome)  backgroundMode = KPaint.WHITE_MONO;
             else            backgroundMode = KPaint.WHITE_COLOR;
-            painter.clearCanvas(Color.white);
+            painter.clearCanvas(KPaint.white);
         }
         else
         {
             if(monochrome)  backgroundMode = KPaint.BLACK_MONO;
             else            backgroundMode = KPaint.BLACK_COLOR;
-            painter.clearCanvas(Color.black);
+            painter.clearCanvas(KPaint.black);
         }
         
         // Set some last-minute drawing variables

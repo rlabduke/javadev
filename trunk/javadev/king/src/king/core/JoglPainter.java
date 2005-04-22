@@ -169,7 +169,7 @@ public class JoglPainter implements Painter
             Color c = (Color) paint;
             if(d >= 10 && c.getAlpha() == 255)
             {
-                setPaint(Color.black);
+                setPaint(KPaint.black); // wants to merge with the background
                 drawOval(x-r, y-r, d, d);
             }
         }
@@ -184,7 +184,7 @@ public class JoglPainter implements Painter
         {
             double off = 0.5 * r;
             d = (int)(0.3*r)+1;
-            setPaint(Color.white);
+            setPaint(Color.white); // wants to be bright white no matter what
             fillOval(x-off, y-off, d, d);
         }
     }

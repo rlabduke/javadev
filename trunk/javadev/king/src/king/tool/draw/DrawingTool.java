@@ -840,6 +840,8 @@ public class DrawingTool extends BasicTool
         
         final int r = AUGER_RADIUS;
         Graphics g = kCanvas.getGraphics();
+        if(g == null) return; // this happens when we're using OpenGL
+        
         g.setXORMode(Color.white);
         // Apple Java 1.4.1 occasionally throws OOME on fillOval() for no reason
         try
@@ -868,6 +870,8 @@ public class DrawingTool extends BasicTool
         
         final int r = AUGER_RADIUS;
         Graphics g = kCanvas.getGraphics();
+        if(g == null) return; // this happens when we're using OpenGL
+        
         g.setXORMode(Color.white);
         // Apple Java 1.4.1 occasionally throws OOME on fillOval() for no reason
         try

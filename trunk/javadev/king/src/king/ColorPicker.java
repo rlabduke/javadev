@@ -232,23 +232,23 @@ public class ColorPicker extends TablePane implements MouseListener
         
         if(backgroundMode == KPaint.BLACK_COLOR)
         {
-            background  = Color.black;
-            highlight  = Color.white;
+            background  = KPaint.black;
+            highlight  = KPaint.white;
         }
         else if(backgroundMode == KPaint.BLACK_MONO)
         {
-            background  = Color.black;
-            highlight  = Color.white;
+            background  = KPaint.black;
+            highlight  = KPaint.white;
         }
         else if(backgroundMode == KPaint.WHITE_COLOR)
         {
-            background  = Color.white;
-            highlight  = Color.black;
+            background  = KPaint.white;
+            highlight  = KPaint.black;
         }
         else if(backgroundMode == KPaint.WHITE_MONO)
         {
-            background  = Color.white;
-            highlight  = Color.black;
+            background  = KPaint.white;
+            highlight  = KPaint.black;
         }
         
         setOpaque(true);

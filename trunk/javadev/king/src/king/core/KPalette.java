@@ -131,8 +131,8 @@ public class KPalette //extends ... implements ...
     public static final KPaint gray         = KPaint.createHSV("gray",      0,      0,      0,      50,     40);
     //public static final KPaint grey         = KPaint.createHSV("grey",      0,      0,      0,      50,     40);
     public static final KPaint brown        = KPaint.createHSV("brown",     20,     45,     45,     75,     55);
-    public static final KPaint deadwhite    = KPaint.createSolid("deadwhite", Color.white);
-    public static final KPaint deadblack    = KPaint.createSolid("deadblack", Color.black);
+    public static final KPaint deadwhite    = KPaint.createSolid("deadwhite", KPaint.white);
+    public static final KPaint deadblack    = KPaint.createSolid("deadblack", KPaint.black);
     //public static final KPaint black        = KPaint.createSolid("black", Color.black);
     public static final KPaint invisible    = KPaint.createInvisible("invisible");
     
