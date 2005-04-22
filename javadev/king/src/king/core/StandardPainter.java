@@ -70,7 +70,7 @@ public class StandardPainter implements Painter
             Color c = (Color) paint;
             if(d >= 10 && c.getAlpha() == 255)
             {
-                g.setPaint(Color.black);
+                g.setPaint(KPaint.black); // wants to merge with the background
                 if(REALLY_PAINT) g.drawOval((int)(x-r), (int)(y-r), d, d);
             }
         }
@@ -85,7 +85,7 @@ public class StandardPainter implements Painter
         {
             double off = 0.5 * r;
             d = (int)(0.3*r)+1;
-            g.setPaint(Color.white);
+            g.setPaint(Color.white); // wants to be bright white no matter what
             if(REALLY_PAINT) g.fillOval((int)(x-off), (int)(y-off), d, d);
         }
     }

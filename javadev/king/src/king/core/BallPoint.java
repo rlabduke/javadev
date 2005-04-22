@@ -140,8 +140,13 @@ public class BallPoint extends AbstractPoint // implements ...
         int alpha = (parent == null ? 255 : parent.alpha);
         Paint paint = maincolor.getPaint(engine.backgroundMode, 1, engine.colorCue, alpha);
 
+        // We *can* do extra depth cueing hints for balls, but I prefer not to.
+        // It works for small, isolated balls (e.g. waters), but it is confusing
+        // and downright misleading when many balls are close together, because
+        // the sizes of the balls are consistently and substantially inflated.
+        //
         // We have to do this here b/c now widthCue is set
-        if(engine.cueThickness) r *= KPalette.widthScale[ engine.widthCue ];
+        //if(engine.cueThickness) r *= KPalette.widthScale[ engine.widthCue ];
         
         engine.painter.paintBall(paint, x, y, z, r, ((parent.flags & KList.NOHILITE) == 0));
     }

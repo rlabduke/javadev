@@ -59,7 +59,7 @@ public class HighQualityPainter extends StandardPainter
             Color c = (Color) paint;
             if(d >= 10 && c.getAlpha() == 255)
             {
-                g.setPaint(Color.black);
+                g.setPaint(KPaint.black); // wants to merge with the background
                 g.setStroke(KPalette.pen1);
                 if(REALLY_PAINT) g.draw(ellipse1);
             }
@@ -75,7 +75,7 @@ public class HighQualityPainter extends StandardPainter
         {
             double off = 0.5 * r;
             d = 0.3*r;
-            g.setPaint(Color.white);
+            g.setPaint(Color.white); // wants to be bright white no matter what
             g.setStroke(KPalette.pen0);
             ellipse1.setFrame((x-off), (y-off), d, d);
             if(REALLY_PAINT) g.fill(ellipse1);

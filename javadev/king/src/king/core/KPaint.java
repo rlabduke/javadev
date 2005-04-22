@@ -22,6 +22,12 @@ import java.util.*;
 public class KPaint //extends ... implements ...
 {
 //{{{ Constants
+    /** The nominal "black" color to be used as a background, etc. */
+    public static final Color black = new Color(0.00f, 0.00f, 0.00f);
+    /** The nominal "white" color to be used as a background, etc. */
+    public static final Color white = new Color(1.00f, 1.00f, 1.00f);
+    //public static final Color white = new Color(0.95f, 0.95f, 0.95f);
+
     /** The number of different depth-cueing levels available */
     public static final int COLOR_LEVELS = 16;
     
@@ -52,12 +58,13 @@ public class KPaint //extends ... implements ...
     {
         Color[] background = new Color[COLOR_LEVELS];
         for(int i = 0; i < COLOR_LEVELS; i++)
-            background[i] = Color.black;
+            background[i] = black;
         SHADE_BACKGROUNDS[BLACK_COLOR]  = background;
         SHADE_BACKGROUNDS[BLACK_MONO]   = background;
         
         // Instead of blending toward black, we're going to blend
         // toward black depthcued on a white background:
+        // XXX: needs to be updated to use KPaint.white ...
         background = new Color[COLOR_LEVELS];
         for(int i = 0; i < COLOR_LEVELS; i++)
             background[i] = new Color(Color.HSBtoRGB(0f, 0f, (1-WVAL)*(COLOR_LEVELS-1-i) / (COLOR_LEVELS-1)));
