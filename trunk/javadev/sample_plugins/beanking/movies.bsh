@@ -1,5 +1,5 @@
 import king.tool.export.ImageExport;
-String _movieFileName = null;
+String _movieFilePrefix = null;
 int _movieFrameCounter = 0;
 LinkedList _movieUndoStack = null;
 
@@ -15,9 +15,12 @@ movieHelp() {
     print("movieUndo()              undoes the last set of frames written");
     print("movieWriteFrame(num?)    write the current view as 1+ frame(s)");
     print("");
-    print("Don't use these functions with OpenGL rendering enabled.");
-    print("rock <-> roll: use same # frames and 60 deg, or half and 30 deg.");
-    print("QuickTime: Export QT Movie/LAN, change size and data rate.");
+    print("90 frames and 30 degrees @ 15fps is a nice slow rock");
+    print("rock <-> roll: use same # frames and 60 deg, or half and 30 deg;");
+    print("500x500 and 600x400 are good sizes; movies read best w/ perspective ON.");
+    print("QuickTime: Export QT Movie/LAN, data rate = 400 at above natural sizes.");
+    print(""):
+    print("*** DO NOT use these functions with OpenGL rendering enabled! ***");
     print("");
 }
 movieHelp(); // display this message on startup!
@@ -46,6 +49,7 @@ void movieRock(int nFrames, double nDegrees)
         {
             startView.selectedFromMenu(null);
             kCanvas.repaint();
+            print("movieRock() finished!");
         }
     }
     
@@ -74,6 +78,7 @@ void movieSpin(int nFrames, double nDegrees)
         v.rotateY((float)(Math.toRadians(nDegrees) / nFrames));
         kCanvas.repaint();
         if(++i < nFrames) SwingUtilities.invokeLater(super);
+        else print("movieSpin() finished!");
     }
     
     SwingUtilities.invokeLater(this);
@@ -81,7 +86,7 @@ void movieSpin(int nFrames, double nDegrees)
 
 void movieStart(String fileName)
 {
-    _movieFileName = fileName;
+    _movieFilePrefix = fileName;
     _movieFrameCounter = 1;
     _movieUndoStack = new LinkedList();
 }
@@ -112,16 +117,12 @@ void movieWriteFrame(int numCopies, boolean undoable)
 {
     if(undoable) movieMarkUndo();
     
-    String filenum = ""+(_movieFrameCounter++);
-    while(filenum.length() < 4) filenum = "0"+filenum;
-    File file = new File(_movieFileName+"_"+filenum+".png");
+    File file = movieGetFileForFrame(_movieFrameCounter++);
     ImageExport.exportImage(kMain.getCanvas(), "png", file);
     print("Wrote frame "+file);
     for(int i = 1; i < numCopies; i++)
     {
-        String filenum2 = ""+(_movieFrameCounter++);
-        while(filenum2.length() < 4) filenum2 = "0"+filenum2;
-        File file2 = new File(_movieFileName+"_"+filenum2+".png");
+        File file2 = movieGetFileForFrame(_movieFrameCounter++);
         InputStream src = new BufferedInputStream(new FileInputStream(file));
         OutputStream dst = new BufferedOutputStream(new FileOutputStream(file2));
         byte[] buffer = new byte[2048];
@@ -131,4 +132,12 @@ void movieWriteFrame(int numCopies, boolean undoable)
         src.close();
         print("Wrote frame "+file2);
     }
+}
+
+File movieGetFileForFrame(int frameNo)
+{
+    String filenum = ""+(frameNo);
+    while(filenum.length() < 4) filenum = "0"+filenum;
+    File file = new File(_movieFilePrefix+"_"+filenum+".png");
+    return file;
 }
