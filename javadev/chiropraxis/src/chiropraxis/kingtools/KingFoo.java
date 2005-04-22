@@ -25,6 +25,45 @@ public class KingFoo //extends ... implements ...
 {
 //{{{ Constants
     static final double MAX_ATOM_RADIUS = 2.0;
+    /**
+    * Offsets from (0,0,0) to neighbor spheres in an FCC lattice.
+    * See placeFoosFCC.
+    */
+    static final Triple[] FCC_OFFSETS = {
+        // In plane, clockwise from top right:
+        new Triple( 0, 1, 0),
+        new Triple( 1, 0, 0),
+        new Triple( 1,-1, 0),
+        new Triple( 0,-1, 0),
+        new Triple(-1, 0, 0),
+        new Triple(-1, 1, 0),
+        // Above the plane, clockwise from top right:
+        new Triple( 0, 0, 1),
+        new Triple( 0,-1, 1),
+        new Triple(-1, 0, 1),
+        // Below the plane, clockwise from top:
+        new Triple( 0, 1,-1),
+        new Triple( 1, 0,-1),
+        new Triple( 0, 0,-1)
+    };
+    
+    static Transform makeFCCtoCartesian()
+    {
+        // How i affects x, y, z:
+        double ix = 1.0;
+        double iy = 0.0;
+        double iz = 0.0;
+        // How j affects x, y, z:
+        double jx = Math.cos(Math.toRadians(60));       // 60 deg from equilateral triangle
+        double jy = Math.sin(Math.toRadians(60));       // "
+        double jz = 0.0;
+        // How k affects x, y, z:
+        double kx = Math.cos(Math.toRadians(60));       // 0.5 over to reach midpoint of underlying triangle
+        double ky = Math.tan(Math.toRadians(30)) / 2;   // Enough up to reach midpoint of underlying triangle
+        double kz = Math.sqrt(1 - kx*kx - ky*ky);       // Makes the sphere-sphere distance == 1, given the above
+        
+        return new Transform().likeMatrix(ix, jx, kx, iy, jy, ky, iz, jz, kz);
+    }
 //}}}
 
 //{{{ Variable definitions
@@ -149,6 +188,137 @@ public class KingFoo //extends ... implements ...
             catch(NumberFormatException ex) { ex.printStackTrace(); }
         }
         in.close();
+        return liveFoos.size();
+    }
+//}}}
+
+//{{{ placeFoosFCC
+//##############################################################################
+    /**
+    * Place foos on a face-centered cubic (FCC) lattice.
+    * FCC lattices (aka cubic closest packed) are one of two closest packed
+    * arrangements of spheres, the other one being hexagonal closest packed.
+    * Both consist of stacked layers of spheres in a (flat) triangular lattice,
+    * with the layers offset to settle in the divots of the layer below.
+    * HCP uses an ABABAB pattern, while FCC uses the ABCABC pattern.
+    * (A layers lie directly above other A layers, B above B, etc.)
+    * FCC is higher symmetry than HCP, or so I hear.
+    *
+    * <p>Just as grid points on a cubic lattice can be indexed with three
+    * integers (i,j,k), so can points on a face-centered cubic lattice.
+    * The transformation between FCC "coordinates" and Cartesian ones is a
+    * simple affine transform (aka matrix multiplication).
+    * The one uses here keeps (0,0,0) and (1,0,0) as themselves, and maintains
+    * the handedness of the coordinate system.
+    *
+    * <p>For more information, see http://www.polymorf.net/matter6.htm
+    * and http://mathworld.wolfram.com/CubicClosePacking.html
+    *
+    * <p><b>The Algorithm</b>
+    * <br>The idea is to start with a "seed" foo, and then grow out to its
+    * neighbors, and their neighbors, etc etc.
+    * At any step, a foo that contacts protein is marked dead and that trail stops.
+    * This continues for a specified number of steps.
+    * We have to make sure not to re-visit nodes we've already been to, to keep
+    * this from expanding exponentially.
+    * Depth first search (DFS) is easy to implement recursively, but because we can
+    * (and do!) follow very inefficient paths to some nodes, the foo doesn't
+    * expand equally in all directions.
+    * Instead, we must do Breadth First Search (BFS), which is more irritating,
+    * but assures we reach each node for the first time in the minimal number of steps.
+    *
+    * <p>This should be called before trying to generate a dot surface.
+    *
+    * @param centerCartn    the desired Cartesian coordinates for the origen.
+    * @param numSteps       the numbers of steps out toward neighbors to take,
+    *   total. Stop when this hits zero.
+    * @return the number of foos successfully placed
+    */
+    public int placeFoosFCC(Triple centerCartn, double gridSpacing, int numSteps)
+    {
+        // The transform to get from (i,j,k) to Cartesian coordinates.
+        Transform fcc2cartn = makeFCCtoCartesian();
+        fcc2cartn.append(new Transform().likeScale(gridSpacing));
+        fcc2cartn.append(new Transform().likeTranslation(centerCartn));
+        
+        // All the ijk's to try as seeds in this round:
+        Set centerFCC = new HashSet();
+        centerFCC.add(new Triple(0,0,0)); // origen
+        // All the ijk indices that have been tried, for good or ill.
+        // Don't bother trying them again. Doesn't yet include indices in centerFCC.
+        Set triedFCC = new HashSet();
+        // Temporary storage for doing spatial searches
+        List hits = new ArrayList();
+
+        // At the START of this function:
+        // - the foos indexed by ijk's (in centerFCC) have not been tried before
+        //   and are not in triedFCC
+        // - they may or may not overlap with atoms in the macromolecule
+        // - they may or may not need to check their neighbors, depending on numSteps
+        while(true) // do numSteps cycles - break is about 2/3 of the way down...
+        {
+            // Iterate over all "seed" points at the surface of the growing blob of foos. {{{
+            Triple foo = new Triple(); // reallocated only when we retain it
+            for(Iterator iter = centerFCC.iterator(); iter.hasNext(); )
+            {
+                Triple ijk = (Triple) iter.next();
+                triedFCC.add(ijk); // we know it wasn't already in there; see below
+                fcc2cartn.transform(ijk, foo);
+                
+                // Coarse test to find nearby atoms
+                hits.clear();
+                atomBin.findSphere(foo, MAX_ATOM_RADIUS+fooRadius+touchDist, hits);
+                
+                // Fine test to distinguish overlaps from contacts
+                boolean isDead = false, isTouching = false;
+                for(int j = 0; j < hits.size(); j++)
+                {
+                    AtomState as = (AtomState) hits.get(j);
+                    double realDist = foo.sqDistance(as);
+                    double deadDist = getVdwRadius(as) + fooRadius;
+                    double liveDist = deadDist + touchDist;
+                    deadDist = deadDist * deadDist; // less than this is collision
+                    liveDist = liveDist * liveDist; // greater than this is not touching
+                    if(realDist < deadDist)         { isDead        = true; break; }
+                    else if(realDist <= liveDist)   { isTouching    = true;        }
+                }
+                
+                // Foo clashes with protein - abort this line of exploration.
+                if(isDead) { iter.remove(); continue; }
+                
+                // We only want to try surfacing foos near the protein, but other
+                // non-dead foos still need to recruit their neighbors (see below).
+                if(isTouching)
+                {
+                    fooBin.add(foo);
+                    liveFoos.add(foo);
+                    foo = new Triple(); // allocate a new one for future rounds
+                }
+            }//}}} end iteration over foos to try in this round
+            
+            // Do we have more steps? If not, we're done!
+            if(--numSteps < 0) break;
+            
+            // All non-dead foos now contact their neighbors, if we have more steps. {{{
+            Set newFCC = new HashSet(); // points to be tried in the NEXT recursion
+            Triple neighbor = new Triple(); // reallocated only when we use it
+            for(Iterator iter = centerFCC.iterator(); iter.hasNext(); )
+            {
+                Triple ijk = (Triple) iter.next();
+                for(int i = 0; i < FCC_OFFSETS.length; i++)
+                {
+                    neighbor.like(ijk).add(FCC_OFFSETS[i]);
+                    if(triedFCC.contains(neighbor)) continue; // we've been down this road before...
+                    
+                    newFCC.add(neighbor);
+                    neighbor = new Triple(); // allocate a new one for future rounds
+                }
+            }//}}}
+            
+            // Rename variables and start from the top!
+            centerFCC = newFCC;
+        } // end of outer while loop over numSteps rounds...
+
         return liveFoos.size();
     }
 //}}}
@@ -340,16 +510,23 @@ public class KingFoo //extends ... implements ...
         
         final double fooRadius = 1.0;
         Model m = new PdbReader().read(inputFile).getFirstModel();
-        Collection atoms = m.getState().createCollapsed().getLocalStateMap().values();
+        Collection atoms = new LinkedList(m.getState().createCollapsed().getLocalStateMap().values());
+        // Remove HET atoms:
+        for(Iterator iter = atoms.iterator(); iter.hasNext(); )
+        {
+            AtomState as = (AtomState) iter.next();
+            if(as.isHet()) iter.remove();
+        }
         
         long time = System.currentTimeMillis();
         KingFoo kf = new KingFoo(atoms, fooRadius, fooRadius/1.0);
-        kf.placeFoosWithProbe(inputFile);
+        //kf.placeFoosFCC(new Triple(), 2.0, 2);
+        kf.placeFoosFCC(new Triple(81.574, 28.956, 85.759), 0.4, 40);
         time = System.currentTimeMillis() - time;
         System.err.println(kf.getFoos().size()+" foos were placed successfully in "+time+" ms");
         
         time = System.currentTimeMillis();
-        kf.removeWetFoos();
+        //kf.removeWetFoos();
         time = System.currentTimeMillis() - time;
         System.err.println(kf.getFoos().size()+" dry foos remaining after "+time+" ms");
         

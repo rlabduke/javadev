@@ -61,11 +61,22 @@
     KingLiteBinaryExport should automatically rescale coords to fit in 30 bits.
     Move documentation for extra tools to their own packages
     Doc: plugin jars go AFTER king.jar with commas (,) in applet ARCHIVE="..."
-    Choose OpenGL (if avail) by default at startup?
+    Choose OpenGL (if avail) by default at startup IFF set in .king_prefs
+    Include extratools in dist-src/javadocs
+    Look for XOR OpenGL composite mode (to make auger work right)
+    Don't unnecessarily regenerate ED map contours on EITHER on/off or recenter
+    Bundle updated probe (2.11) with all distros (first needs testing!)
+    White background to light gray; tune white palette? (KPalette.black/white)
+    For multi-click draw ops, "miss" should reset!
+    Add a movieFade() to beanking for doing transitions!
+    BALLS are drawn too big relative to SPHERES (spheres are correct size)
+        ... when not @onewidth (cue by width for balls is awful...)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 1.41 ###
 
 ### 1.40 ###
 - updated Mac app to JOGL 1.1b10
@@ -79,6 +90,7 @@
   ... only it can't work, because applets aren't allowed to make class loaders!
 - moved most tools and plugins to a separate jar file: extratools.jar
 - modified EDMap plugin to do coarser contours for figure production, etc.
+- distributed to Rlab on 11 April 2005
 
 ### 1.39 ###
 - modified VectorPoint and TrianglePoint so object picking always returns the
