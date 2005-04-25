@@ -54,6 +54,9 @@
     Add ability to edit masters/pointmasters
     use "around x,y,z" for Probe runs
     Look at Pro geometry with Jane
+    White background to light gray?
+        Rewrite KPaint to use its black/white (but not blendColors - hue shift?)
+        Greentint a bit too dark; cyan could be darker?
 <!-- Postponed TO DO items }}} -->
     Open PDB in model manager without opening kinemage first?
     Open/save PDB from/to network
@@ -66,8 +69,6 @@
     Look for XOR OpenGL composite mode (to make auger work right)
         XOR also doesn't work on JNB's machine, period (but does on Laura's)
     Bundle updated probe (2.11) with all distros (first needs testing!)
-    White background to light gray; tune white palette? (KPalette.black/white)
-        Rewrite KPaint to use its black/white (but not blendColors - hue shift?)
     For multi-click draw ops, "miss" should reset?
     Add a movieFade() to beanking for doing transitions!
 
@@ -82,6 +83,8 @@
 - replaced most references to Color.black/white with KPaint.black/white.
   In the future, this might let us do an off-white background, though KPaint
   still needs more work for that to happen correctly.
+- rewrote complex expressions in KPaint in terms of linear interpolations,
+  but without changing the results at all. Removed unneeded Math.min(1, ...)
 
 ### 1.40 ###
 - updated Mac app to JOGL 1.1b10

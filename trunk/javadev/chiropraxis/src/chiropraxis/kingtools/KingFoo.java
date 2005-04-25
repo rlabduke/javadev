@@ -232,9 +232,12 @@ public class KingFoo //extends ... implements ...
     * @param centerCartn    the desired Cartesian coordinates for the origen.
     * @param numSteps       the numbers of steps out toward neighbors to take,
     *   total. Stop when this hits zero.
+    * @param freeSteps      for the first N steps, don't stop exploring
+    *   just because the foo clashes. This allows us some slop in the placement
+    *   of the initial seed foo. Can be zero if you don't want any slop.
     * @return the number of foos successfully placed
     */
-    public int placeFoosFCC(Triple centerCartn, double gridSpacing, int numSteps)
+    public int placeFoosFCC(Triple centerCartn, double gridSpacing, int numSteps, int freeSteps)
     {
         // The transform to get from (i,j,k) to Cartesian coordinates.
         Transform fcc2cartn = makeFCCtoCartesian();
@@ -284,11 +287,11 @@ public class KingFoo //extends ... implements ...
                 }
                 
                 // Foo clashes with protein - abort this line of exploration.
-                if(isDead) { iter.remove(); continue; }
+                if(freeSteps <= 0 && isDead) { iter.remove(); continue; }
                 
                 // We only want to try surfacing foos near the protein, but other
                 // non-dead foos still need to recruit their neighbors (see below).
-                if(isTouching)
+                if(!isDead && isTouching)
                 {
                     fooBin.add(foo);
                     liveFoos.add(foo);
@@ -298,6 +301,7 @@ public class KingFoo //extends ... implements ...
             
             // Do we have more steps? If not, we're done!
             if(--numSteps < 0) break;
+            --freeSteps;
             
             // All non-dead foos now contact their neighbors, if we have more steps. {{{
             Set newFCC = new HashSet(); // points to be tried in the NEXT recursion
@@ -498,6 +502,7 @@ public class KingFoo //extends ... implements ...
 //##############################################################################
 //}}}
 
+/*
 //{{{ main (for testing)
 //##############################################################################
     static public void main(String[] args) throws IOException, NumberFormatException
@@ -541,7 +546,6 @@ public class KingFoo //extends ... implements ...
         for(Iterator iter = kf.getFoos().iterator(); iter.hasNext(); )
             System.out.println("{x} "+((Triple)iter.next()).format(df));
         
-        /**/
         time = System.currentTimeMillis();
         Collection dotSurface = kf.surfaceFoos(16);
         time = System.currentTimeMillis() - time;
@@ -550,8 +554,8 @@ public class KingFoo //extends ... implements ...
         System.out.println("@dotlist {foo dots} color= gray");
         for(Iterator iter = dotSurface.iterator(); iter.hasNext(); )
             System.out.println("{x} "+((Triple)iter.next()).format(df));
-        /**/
     }
 //}}}
+*/
 }//class
 
