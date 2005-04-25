@@ -51,7 +51,9 @@ public class KPaint //extends ... implements ...
     public static final int        BLACK_MONO      = 2;
     public static final int        WHITE_MONO      = 3;
     public static final int        N_BACKGROUNDS   = 4;
-    
+//}}}
+
+//{{{ Constants for ribbon shading
     /** Background colors for ribbon shading calcs. */
     static final Color[][] SHADE_BACKGROUNDS = new Color[N_BACKGROUNDS][COLOR_LEVELS];
     static
@@ -65,9 +67,10 @@ public class KPaint //extends ... implements ...
         // Instead of blending toward black, we're going to blend
         // toward black depthcued on a white background:
         // XXX: needs to be updated to use KPaint.white ...
+        float[] values = interpolate(1-WVAL, 0, COLOR_LEVELS);
         background = new Color[COLOR_LEVELS];
         for(int i = 0; i < COLOR_LEVELS; i++)
-            background[i] = new Color(Color.HSBtoRGB(0f, 0f, (1-WVAL)*(COLOR_LEVELS-1-i) / (COLOR_LEVELS-1)));
+            background[i] = new Color(Color.HSBtoRGB(0f, 0f, values[i]));
         SHADE_BACKGROUNDS[WHITE_COLOR]  = background;
         SHADE_BACKGROUNDS[WHITE_MONO]   = background;
     }
@@ -118,23 +121,17 @@ public class KPaint //extends ... implements ...
         
         // value decreases going back
         Color[] bcolors = new Color[COLOR_LEVELS];
+        float[] bvalues = interpolate(BVAL, 1, COLOR_LEVELS);
         for(int i = 0; i < COLOR_LEVELS; i++)
-        {
-            bcolors[i] = getHSB(hue, blackSat,
-                //( 0.36f + 0.64f*i/(COLOR_LEVELS-1) )*blackVal );
-                ( BVAL + (1-BVAL)*i/(COLOR_LEVELS-1) )*blackVal );
-        }
+            bcolors[i] = getHSB(hue, blackSat, bvalues[i]*blackVal);
         
         // value increases, saturation decreases going back
         Color[] wcolors = new Color[COLOR_LEVELS];
+        float[] wsats = interpolate(WSAT, 1, COLOR_LEVELS);
+        // Low end is a blend between specified value and pure white value
+        float[] wvalues = interpolate( (WVAL*whiteVal + (1f-WVAL)*1f) , whiteVal, COLOR_LEVELS);
         for(int i = 0; i < COLOR_LEVELS; i++)
-        {
-            wcolors[i] = getHSB(hue,
-                //( 0.36f + 0.64f*i/(COLOR_LEVELS-1) )*whiteSat,
-                //Math.min(1f, 1f + (whiteVal-1f)*( 0.40f + 0.60f*i/(COLOR_LEVELS-1) )) ); 
-                ( WSAT + (1-WSAT)*i/(COLOR_LEVELS-1) )*whiteSat,
-                Math.min(1f, 1f + (whiteVal-1f)*( WVAL + (1-WVAL)*i/(COLOR_LEVELS-1) )) ); 
-        }
+            wcolors[i] = getHSB(hue, wsats[i]*whiteSat, wvalues[i]);
         
         p.paints[BLACK_COLOR]   = bcolors;
         p.paints[WHITE_COLOR]   = wcolors;
@@ -323,6 +320,21 @@ public class KPaint //extends ... implements ...
             targ[i] = new Color(gray, gray, gray, sc.getAlpha()/255f);
         }
         return targ;
+    }
+//}}}
+
+//{{{ interpolate
+//##################################################################################################
+    /** Blends linearly from start to end, with steps-2 intervening steps. */
+    static float[] interpolate(double start, double end, int steps)
+    {
+        float[] result = new float[steps];
+        for(int i = 0; i < steps; i++)
+        {
+            double a = (double)i / (double)(steps-1);
+            result[i] = (float)((1-a)*start + a*end);
+        }
+        return result;
     }
 //}}}
 
