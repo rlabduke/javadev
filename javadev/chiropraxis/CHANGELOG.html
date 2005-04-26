@@ -20,6 +20,9 @@
 - implemented face-centered cubic lattice and breadth first search for KingFoo
 - added KingFooCLI as a cmd-line interface to KingFoo
 - renamed chiropraxis.minimize to the more appropriate chiropraxis.dezymer
+- added get/setState() variants to forcefield.StateManager
+- converted SequenceSpacer to use chiropraxis.forcefield implementation instead
+  of its own custom minimizer. ~2x slower, but more robust and maintainable.
 
 ### 0.46 ###
 - made Backrub tool into BackrubWindow, so multiple can be open at once.

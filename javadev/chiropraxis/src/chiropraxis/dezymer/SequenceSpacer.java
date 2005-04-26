@@ -1,6 +1,6 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
-package chiropraxis.minimize;
+package chiropraxis.dezymer;
 
 //import java.awt.*;
 //import java.awt.event.*;
@@ -11,6 +11,7 @@ import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
 import driftwood.r3.*;
+import chiropraxis.forcefield.*;
 //}}}
 /**
 * <code>SequenceSpacer</code> uses pseudo-physical potentials and
@@ -71,8 +72,6 @@ public class SequenceSpacer //extends ... implements ...
     List    inputFiles  = new ArrayList();
     int     numTries    = 5;
     double  pow         = 1.0; // controls spring fall-off
-    boolean useConjDir  = true;
-    boolean useLineSrch = false;
     boolean useBlosum   = false;
 //}}}
 
@@ -260,12 +259,14 @@ public class SequenceSpacer //extends ... implements ...
 
 //{{{ randomizePositions
 //##############################################################################
-    void randomizePositions(PotentialFunction func, double boxSize)
+    void randomizePositions(Sequence[] seqs, double boxSize)
     {
-        double[] state = func.getState(null);
-        for(int i = 0; i < state.length; i++)
-            state[i] = Math.random()*boxSize;
-        func.setState(state);
+        for(int i = 0; i < seqs.length; i++)
+        {
+            seqs[i].setX(Math.random()*boxSize);
+            seqs[i].setY(Math.random()*boxSize);
+            seqs[i].setZ(Math.random()*boxSize);
+        }
     }
 //}}}
 
@@ -295,7 +296,8 @@ public class SequenceSpacer //extends ... implements ...
         // TODO: check to make sure lengths all match!!
         
         // Set up all of our harmonic restraints
-        SimpleHarmonicPotential harmpot = new SimpleHarmonicPotential(seqs);
+        StateManager stateman = new StateManager(seqs, seqs.length);
+        Collection bondTerms = new ArrayList();
         int[] mutationDist = new int[ seqs.length*seqs.length ];
         for(int i = 0; i < seqs.length; i++)
         {
@@ -309,45 +311,41 @@ public class SequenceSpacer //extends ... implements ...
                 if(useBlosum)
                 {
                     double b = blosumDistance(seqs[i], seqs[j]);
-                    harmpot.addSpring(i, j, b, 1.0/Math.pow(b, pow));
+                    bondTerms.add(new BondTerm(i, j, b, 1.0/Math.pow(b, pow)));
                 }
                 else
-                    harmpot.addSpring(i, j, d, 1.0/Math.pow(d, pow));
+                    bondTerms.add(new BondTerm(i, j, d, 1.0/Math.pow(d, pow)));
             }
         }
+        stateman.setBondTerms(bondTerms);
         
         // Run the minimization to position the sequences in R3
         DecimalFormat df = new DecimalFormat("0.0000E0");
-        double[]    bestState   = null;
         double      bestEnergy  = Double.POSITIVE_INFINITY;
+        Triple[]    bestState   = new Triple[seqs.length];
+        for(int i = 0; i < bestState.length; i++) bestState[i] = new Triple();
+        
         for(int k = 0; k < numTries; k++)
         {
-            randomizePositions(harmpot, 10.0);
-            GradientMinimizer min = new GradientMinimizer(harmpot);
-            min.useConjugates(useConjDir);
-            min.useLineSearch(useLineSrch);
+            randomizePositions(seqs, 10.0);
+            stateman.setState(); // sucks in coords of Sequence objects again
+            GradientMinimizer min = new GradientMinimizer(stateman);
             long time = System.currentTimeMillis();
             for(int i = 1; i <= 100; i++)
             {
-                double preEnergy    = harmpot.evaluate();
-                double magGradient  = min.step();
-                double postEnergy   = harmpot.evaluate();
-                double relDeltaE    = (postEnergy-preEnergy)/preEnergy;
-                /*System.err.println("STEP "+i+":    E = "+df.format(postEnergy)
-                    +"    % deltaE = "+df.format(100*relDeltaE)
-                    +"    |g| = "+df.format(magGradient));*/
-                if(relDeltaE > -1e-4) break;
+                if(!min.step()) break;
+                if(min.getFracDeltaEnergy() > -1e-4) break;
             }
             time = System.currentTimeMillis() - time;
-            System.err.println(time+" ms; E = "+df.format(harmpot.evaluate()));
-            if(harmpot.evaluate() < bestEnergy)
+            System.err.println(time+" ms; E = "+df.format(min.getEnergy()));
+            if(min.getEnergy() < bestEnergy)
             {
-                bestEnergy  = harmpot.evaluate();
-                bestState   = harmpot.getState(bestState); // created iff it doesn't exist
+                bestEnergy  = min.getEnergy();
+                stateman.getState(bestState);
             }
         }
-        harmpot.setState(bestState);
-        harmpot.exportState(seqs); // read out the new coordinates!!
+        stateman.setState(bestState);
+        stateman.getState(); // read out the new coordinates into members of seqs!!
         
         System.err.println();
         System.err.println("Best energy:  "+df.format(bestEnergy));
@@ -483,14 +481,6 @@ public class SequenceSpacer //extends ... implements ...
         {
             try { pow = Double.parseDouble(param); }
             catch(NumberFormatException ex) {}
-        }
-        else if(flag.equals("-sd"))
-        {
-            useConjDir = false;
-        }
-        else if(flag.equals("-ls"))
-        {
-            useLineSrch = true;
         }
         else if(flag.equals("-blosum"))
         {

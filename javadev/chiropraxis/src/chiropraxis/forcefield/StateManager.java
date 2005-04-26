@@ -88,15 +88,44 @@ public class StateManager //extends ... implements ...
 //##############################################################################
     /**
     * Initializes the current state and test state to be the contents of
+    * the current coordinates of the given array of MutableTuple3's.
+    * This does not change the "default set" given when this object was created.
+    * @throws IndexOutOfBoundsException if pts is longer/shorter than expected.
+    */
+    public void setState(MutableTuple3[] pts)
+    {
+        if(pts.length != this.points.length)
+            throw new IndexOutOfBoundsException("Must provide exactly "+points.length+" points");
+        for(int i = 0, ii = 0; i < pts.length; i++)
+        {
+            state[ii] = testState[ii] = pts[i].getX(); ii++;
+            state[ii] = testState[ii] = pts[i].getY(); ii++;
+            state[ii] = testState[ii] = pts[i].getZ(); ii++;
+        }
+    }
+    
+    /**
+    * Initializes the current state and test state to be the contents of
     * the current coordinates of the MutableTuple3's this object was created with.
     */
     public void setState()
+    { this.setState(this.points); }
+    
+    /**
+    * Writes the current state into the coordinates of the
+    * given array of MutableTuple3's.
+    * This does not change the "default set" given when this object was created.
+    * @throws IndexOutOfBoundsException if pts is longer/shorter than expected.
+    */
+    public void getState(MutableTuple3[] pts)
     {
-        for(int i = 0, ii = 0; i < points.length; i++)
+        if(pts.length != this.points.length)
+            throw new IndexOutOfBoundsException("Must provide exactly "+points.length+" points");
+        for(int i = 0, ii = 0; i < pts.length; i++)
         {
-            state[ii] = testState[ii] = points[i].getX(); ii++;
-            state[ii] = testState[ii] = points[i].getY(); ii++;
-            state[ii] = testState[ii] = points[i].getZ(); ii++;
+            pts[i].setX( state[ii++] );
+            pts[i].setY( state[ii++] );
+            pts[i].setZ( state[ii++] );
         }
     }
     
@@ -105,14 +134,7 @@ public class StateManager //extends ... implements ...
     * MutableTuple3's this object was created with.
     */
     public void getState()
-    {
-        for(int i = 0, ii = 0; i < points.length; i++)
-        {
-            points[i].setX( state[ii++] );
-            points[i].setY( state[ii++] );
-            points[i].setZ( state[ii++] );
-        }
-    }
+    { this.getState(this.points); }
 //}}}
 
 //{{{ get/setPoint, getIndex

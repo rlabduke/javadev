@@ -1,6 +1,6 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
-package chiropraxis.minimize;
+package chiropraxis.dezymer;
 
 //import java.awt.*;
 //import java.awt.event.*;
