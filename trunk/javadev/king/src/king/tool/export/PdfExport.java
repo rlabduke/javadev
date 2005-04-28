@@ -81,7 +81,7 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
         PdfContentByte  content     = pdf.getDirectContent();
         PdfTemplate     template    = content.createTemplate((float)dim.getWidth(), (float)dim.getHeight());
         Graphics2D      g2          = template.createGraphics((float)dim.getWidth(), (float)dim.getHeight());
-        kCanvas.paintCanvas(g2, KinCanvas.QUALITY_BEST);
+        kCanvas.paintCanvas(g2, dim, KinCanvas.QUALITY_BEST);
         g2.dispose();
         
         // Post-multiplied transformation matrix:

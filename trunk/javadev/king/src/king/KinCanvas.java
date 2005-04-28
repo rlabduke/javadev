@@ -183,11 +183,11 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
     protected void paintComponent(Graphics g)
     {
         Graphics2D g2 = (Graphics2D)g;
-        paintCanvas(g2, renderQuality);
+        paintCanvas(g2, this.getSize(), renderQuality);
     }
 
     /** Does the rendering, with Engine.render() doing most of the real work. */
-    public void paintCanvas(Graphics2D g2, int quality)
+    public void paintCanvas(Graphics2D g2, Dimension dim, int quality)
     {
         /* A quick query for analyzing graphics performance
         java.awt.image.VolatileImage vi = createVolatileImage(getWidth(), getHeight());
@@ -197,7 +197,6 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
             SoftLog.err.println("isAccelerated = "+ic.isAccelerated()+"; isTrueVolatile = "+ic.isTrueVolatile());
         }*/
         
-        Dimension dim = getSize();
         Kinemage kin = kMain.getKinemage();
         if(kin == null)
         {
@@ -269,7 +268,7 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
     public int print(Graphics g, PageFormat format, int pageindex)
     {
         Graphics2D g2 = (Graphics2D)g;
-        Dimension dim = getSize();
+        Dimension dim = getCanvasSize();
 
         Kinemage kin = kMain.getKinemage();
         if(kin == null || pageindex > 0) return NO_SUCH_PAGE; 
