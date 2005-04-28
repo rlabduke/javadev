@@ -20,8 +20,9 @@ movieHelp() {
     print("500x500 and 600x400 are good sizes; movies read best w/ perspective ON.");
     print("QuickTime: Export QT Movie/LAN, data rate = 400 at above natural sizes.");
     print(""):
-    print("*** DO NOT use these functions with OpenGL rendering enabled! ***");
-    print("");
+    //FIXED (?) 28 April 2005
+    //print("*** DO NOT use these functions with OpenGL rendering enabled! ***");
+    //print("");
 }
 movieHelp(); // display this message on startup!
 

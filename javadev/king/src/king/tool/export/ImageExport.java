@@ -86,7 +86,7 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
             BufferedImage.TYPE_INT_BGR); // this avoids color problems with JPEG and gives smaller files (?)
         Graphics2D      g2  = img.createGraphics();
         
-        kCanvas.paintCanvas(g2, KinCanvas.QUALITY_BEST);
+        kCanvas.paintCanvas(g2, dim, KinCanvas.QUALITY_BEST);
         
         // This ensures we get high-quality JPEGs
         if(format.equals("jpg"))

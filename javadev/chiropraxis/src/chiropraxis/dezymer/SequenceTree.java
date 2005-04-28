@@ -328,6 +328,7 @@ public class SequenceTree //extends ... implements ...
         this.currentHeight = 1;
         while(true)
         {
+            System.err.print("."); // for tracking progress
             // Find closest pair
             int bestI = -1, bestJ = -1;
             double bestDist = -Double.MAX_VALUE;
@@ -364,6 +365,7 @@ public class SequenceTree //extends ... implements ...
                 blosumDist[i][bestJ] = blosumDist[bestJ][i] = -Double.MAX_VALUE; // Wipe out info for bestJ
             }
         }
+        System.err.println();
         // seqs[] is now null everywhere except for topNode
         // blosumDist[][] is now == -Double.MAX_VALUE everywhere
         
