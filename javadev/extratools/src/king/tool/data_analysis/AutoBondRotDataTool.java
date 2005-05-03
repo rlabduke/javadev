@@ -32,7 +32,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     boolean             urlChooserOK    = false;
 
     //HashMap             dataMap; // probescore -> arraylist of BallPoints
-    //TablePane           pane;
+    TablePane           pane;
     //JDialog             dialog;
     JComboBox           color1;
     JTextField          lowNumField;
@@ -101,7 +101,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	plotChangeBox = new JCheckBox("Toggle plotting", true);
 	plotChangeBox.addActionListener(this);
 
-	TablePane pane = new TablePane();
+	pane = new TablePane();
 	pane.newRow();
 	pane.add(color1);
 	pane.add(lowNumField);
@@ -114,6 +114,8 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	pane.add(plotChangeBox);
 	pane.add(scalingField);
 
+        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        dialog.addWindowListener(this);
 	dialog.setContentPane(pane);
 	
 	JMenuBar menubar = new JMenuBar();
@@ -784,7 +786,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     { return null; }
 
     public Container getToolPanel()
-    { return dialog; }
+    { return pane; }
     
     public String toString()
     { return "AutoBondRot Data"; }
