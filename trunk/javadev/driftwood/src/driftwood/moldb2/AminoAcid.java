@@ -262,6 +262,11 @@ public class AminoAcid //extends ... implements ...
     }
 //}}}
 
+    static public boolean isAminoAcid(String s) {
+	s = s.toUpperCase();
+	return (AA_NAMES.indexOf(s) != -1);
+    }
+
 //{{{ empty_code_segment
 //##################################################################################################
 //}}}
