@@ -214,6 +214,20 @@ public class RNAMapTool extends BasicTool implements PropertyChangeListener, Lis
 
 //{{{ getHelpAnchor, toString
 //##################################################################################################
+    /** Returns the URL of a web page explaining use of this tool */
+    public URL getHelpURL()
+    {
+        URL     url     = getClass().getResource("/extratools/tools-manual.html");
+        String  anchor  = getHelpAnchor();
+        if(url != null && anchor != null)
+        {
+            try { url = new URL(url, anchor); }
+            catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+            return url;
+        }
+        else return null;
+    }
+    
     public String getHelpAnchor()
     { return "#rnamap-tool"; }
     

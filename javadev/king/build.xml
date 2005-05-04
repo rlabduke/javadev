@@ -104,6 +104,7 @@
         <zipfileset dir="${dist}" includes="javadocs/"/>
         <zipfileset dir="../driftwood/dist/" includes="driftwood-*-src/"/>
         <zipfileset dir="../chiropraxis/dist/" includes="chiropraxis-*-src/"/>
+        <zipfileset dir="../extratools/dist/" includes="extratools-*-src/"/>
         <zipfileset dir="../lib/" prefix="lib/">
             <include name="gnu/regexp/"/>
             <include name="iText/*.jar"/>
@@ -121,6 +122,9 @@
         <!-- inherited properties go here -->
     </ant>
     <ant antfile="../chiropraxis/build.xml" inheritAll="false" target="dist-src">
+        <!-- inherited properties go here -->
+    </ant>
+    <ant antfile="../extratools/build.xml" inheritAll="false" target="dist-src">
         <!-- inherited properties go here -->
     </ant>
     <mkdir dir="${dist}/${ant.project.name}-${version}-src"/>

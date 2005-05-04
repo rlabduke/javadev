@@ -7,13 +7,14 @@ import king.core.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.net.URL;
+import java.net.*;
 import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 import javax.swing.*;
 import driftwood.gui.*;
 import driftwood.r3.*;
+import driftwood.util.SoftLog;
 //}}}
 /**
 * <code>Dock3On3Tool</code> is a simple tool for doing
@@ -248,6 +249,20 @@ public class Dock3On3Tool extends BasicTool
     /** Returns a component with controls and options for this tool */
     protected Container getToolPanel()
     { return toolpane; }
+    
+    /** Returns the URL of a web page explaining use of this tool */
+    public URL getHelpURL()
+    {
+        URL     url     = getClass().getResource("/extratools/tools-manual.html");
+        String  anchor  = getHelpAnchor();
+        if(url != null && anchor != null)
+        {
+            try { url = new URL(url, anchor); }
+            catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+            return url;
+        }
+        else return null;
+    }
     
     /**
     * Returns an anchor marking a place within <code>king-manual.html</code>

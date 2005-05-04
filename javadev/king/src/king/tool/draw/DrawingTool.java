@@ -842,7 +842,8 @@ public class DrawingTool extends BasicTool
         Graphics g = kCanvas.getGraphics();
         if(g == null) return; // this happens when we're using OpenGL
         
-        g.setXORMode(Color.white);
+        g.setColor(Color.white);
+        g.setXORMode(Color.black);
         // Apple Java 1.4.1 occasionally throws OOME on fillOval() for no reason
         try
         {
@@ -872,7 +873,8 @@ public class DrawingTool extends BasicTool
         Graphics g = kCanvas.getGraphics();
         if(g == null) return; // this happens when we're using OpenGL
         
-        g.setXORMode(Color.white);
+        g.setColor(Color.white);
+        g.setXORMode(Color.black);
         // Apple Java 1.4.1 occasionally throws OOME on fillOval() for no reason
         try
         {

@@ -591,6 +591,7 @@ public class KinfileParser //extends ... implements ...
                 }
                 else if(s.equals("X") || s.equals("x"))         point.setPrev(null); // P doesn't work for triangle, ribbon
                 else if(s.equals("L") || s.equals("l") || s.equals("D") || s.equals("d")) {}
+                else if(s.equals("T") || s.equals("t")) {} // to avoid error messages for Mage ribbon/triangle lists
                 else if(s.equals("U") || s.equals("u"))         point.setUnpickable(true);
                 else if(s.equals("ghost"))                      point.setGhost(true);
                 else if(s.startsWith("width"))
