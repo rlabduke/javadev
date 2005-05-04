@@ -1,0 +1,323 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 2002 (1.62)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>The Extratools manual</TITLE>
+<META NAME="description" CONTENT="The Extratools manual">
+<META NAME="keywords" CONTENT="tools-manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2002">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="tools-manual.css">
+
+</HEAD>
+
+<BODY >
+
+<P>
+
+
+
+
+<P>
+
+<P>
+<H1 ALIGN="CENTER">The Extratools manual</H1>
+<P ALIGN="CENTER"><STRONG>Ian W. Davis and Vincent B. Chen</STRONG></P>
+<BR>
+
+<H2><A NAME="SECTION00100000000000000000">
+Contents</A>
+</H2>
+<!--Table of Contents-->
+
+<UL>
+<LI><A NAME="tex2html15"
+  HREF="tools-manual.html">1. The Tools</A>
+<UL>
+<LI><A NAME="tex2html16"
+  HREF="tools-manual.html#SECTION00210000000000000000">1.1 Dock 3-on-3: Geometric construction</A>
+<LI><A NAME="tex2html17"
+  HREF="tools-manual.html#SECTION00220000000000000000">1.2 Least-Squares Docking: Getting the best fit</A>
+<LI><A NAME="tex2html18"
+  HREF="tools-manual.html#SECTION00230000000000000000">1.3 RNA Maps: Finding the phosphates</A>
+<UL>
+<LI><A NAME="tex2html19"
+  HREF="tools-manual.html#SECTION00231000000000000000">1.3.1 Current Issues</A>
+</UL>
+<LI><A NAME="tex2html20"
+  HREF="tools-manual.html#SECTION00240000000000000000">1.4 90 Degree Rotations: Seeing precisely</A>
+<LI><A NAME="tex2html21"
+  HREF="tools-manual.html#SECTION00250000000000000000">1.5 ``Lathe'' tool: Just for fun</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html22"
+  HREF="tools-manual.html#SECTION00300000000000000000">2. Exporting kinemages in other formats</A>
+<UL>
+<LI><A NAME="tex2html23"
+  HREF="tools-manual.html#SECTION00310000000000000000">2.1 Exporting for POV-Ray</A>
+<LI><A NAME="tex2html24"
+  HREF="tools-manual.html#SECTION00320000000000000000">2.2 Deprecated export formats</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html25"
+  HREF="tools-manual.html#SECTION00400000000000000000">3. Copyright &amp; acknowledgments</A>
+<UL>
+<LI><A NAME="tex2html26"
+  HREF="tools-manual.html#SECTION00410000000000000000">3.1 Copyright</A>
+<LI><A NAME="tex2html27"
+  HREF="tools-manual.html#SECTION00420000000000000000">3.2 Revision status</A>
+</UL></UL>
+<!--End of Table of Contents-->
+
+<P>
+
+<H1><A NAME="SECTION00200000000000000000">
+1. The Tools</A>
+</H1>
+
+<P>
+
+<H1><A NAME="SECTION00210000000000000000"></A><A NAME="dock3-tool"></A>
+<BR>
+1.1 Dock 3-on-3: Geometric construction
+</H1>
+
+<P>
+The three-point docking tool is useful for constructing geometric
+shapes and figures out of existing pieces in kinemage format. As you
+start picking points with the mouse, they will be labeled with numbers:
+first three points in the reference frame, then three in the mobile
+frame. When you're ready to apply the docking transformation, turn
+off groups that should remain in place and leave visible those that
+should move. Then press the <TT>Dock</TT> button. The first points
+will be superimposed exactly, the 1-2 axes will be aligned (so that
+the mobile ``points in the direction of'' the reference) and the
+final points are used to determine rotational position (dihedral angle)
+about the 1-2 axis.
+
+<P>
+If you'd like to dock several of the same object with respect to each
+other, remember you can use the copy and paste commands in the hierarchy
+editor to create duplicate objects.
+
+<P>
+
+<H1><A NAME="SECTION00220000000000000000"></A><A NAME="lsqdock-tool"></A>
+<BR>
+1.2 Least-Squares Docking: Getting the best fit
+</H1>
+
+<P>
+The least-squares docking tool is useful for matching up two objects
+that are similar but not quite the same. As you start picking points
+with the mouse, they will be labeled with numbers, defining the Reference
+frame. Once you've selected something to dock onto, you should choose
+the Mobile frame and add an equal number of points to it. The order
+matters: 1 will match with 1, 2 with 2, and so on. When you're ready
+to apply the docking transformation, turn off groups that should remain
+in place and leave visible those that should move. Then press the
+<TT>Dock</TT> button. The matched points will be positioned so as
+to minimize the sum of the squares of their separation (thus the phrase
+``least sqaures'').
+
+<P>
+If you'd like to dock several of the same object with respect to each
+other, remember you can use the copy and paste commands in the hierarchy
+editor to create duplicate objects.
+
+<P>
+
+<H1><A NAME="SECTION00230000000000000000"></A><A NAME="rnamap-tool"></A>
+<BR>
+1.3 RNA Maps: Finding the phosphates
+</H1>
+
+<P>
+<I>Authored by Vincent Chen (vbc3@duke.edu)</I>
+
+<P>
+This tool (still under development) was designed to aid users in locating
+potential phosphate positions in the electron density maps of nucleic
+acids. Similar to the existing electron density viewing plug-in, this
+tool asks the user to open a map file, and opens a control window
+containing many of the same controls as the electron density plug-in.
+In addition to these controls, it has a toggle button to activate/deactivate
+the &#34;poly picking&#34; feature and a color selection
+list. When active, if the user left-clicks on a point in the kinemage,
+the polyhedron containing that point will be highlighted in the color
+selected. Next, the tool searches through the map to find the highest
+electron density value within that selected polyhedron, and places
+a marker point on that spot, showing an approximate position for the
+phosphorous.
+
+<P>
+
+<H2><A NAME="SECTION00231000000000000000">
+1.3.1 Current Issues</A>
+</H2>
+
+<P>
+This tool does not differentiate between a point in the electron density
+and a point on the actual structure. Clicking on the structure with
+the poly picking tool active can result in the program searching through
+the whole structure, which can take a very long time. Be sure to click
+carefully, and to limit the polyhedra to be selected to a reasonable
+size (i.e. have the sigma level set high enough that the polyhedra
+are about the size of a phosphate). Also, once the first polyhedron
+has been selected, moving the electron density around and selecting
+a polyhedron may result in an error. If this happens, the program
+will have to be restarted in order to selected a polyhedron not in
+the inital set.
+
+<P>
+
+<H1><A NAME="SECTION00240000000000000000"></A><A NAME="rot90-plugin"></A>
+<BR>
+1.4 90 Degree Rotations: Seeing precisely
+</H1>
+
+<P>
+The 90 Degree Rotations plugin provides a simple way to turn your
+model by 90 degrees around any of the three Cartesian axes. It also
+provides a shortcut back to the standard kinemage orientation: looking
+straight down the Z axis from the positive end toward the negative
+one, with positive X to the right and positive Y at the top of the
+screen.
+
+<P>
+This plugin is particularly useful in combination with a trick for
+setting up simultaneous orthogonal views of a kinemage. Read about
+it in the section on stereo graphics in the KiNG manual.
+
+<P>
+
+<H1><A NAME="SECTION00250000000000000000"></A><A NAME="lathe-plugin"></A>
+<BR>
+1.5 ``Lathe'' tool: Just for fun
+</H1>
+
+<P>
+This is a fun helper that shows what a wide variety of shapes and
+forms can be constructed from a clever combination of kinemage primitives.
+
+<P>
+The lathe tool takes a single polyline and sweeps it out around an
+axis to create a polygonal object. One strip of 64 triangles is created
+for every line segment. This tool is ideal for creating anything with
+an axis of symmetry: bottles, vases, lamps, simple cylinders, and
+so on. The standard axis of rotation is the Y-axis, with rotation
+centered at the origin, so keep this in mind when drawing a half-profile
+to use with this tool.
+
+<P>
+
+<H1><A NAME="SECTION00300000000000000000">
+2. Exporting kinemages in other formats</A>
+</H1>
+
+<P>
+Several facilities are provided that can help get data out of kinemage
+format and into other forms, either for making figures for publication
+or for further processing. Due to security restrictions placed on
+applets, the export features are unavailable when KiNG is running
+in a web browser.
+
+<P>
+
+<H1><A NAME="SECTION00310000000000000000"></A><A NAME="export-povray"></A>
+<BR>
+2.1 Exporting for POV-Ray
+</H1>
+
+<P>
+KiNG can produce output script files to be fed into the high-quality
+free raytracing program POV-Ray (www.povray.org). POV-Ray can generate
+all kinds of ``photo-realistic'' effects including different materials
+and lighting schemes, simulated depth of field, <I>etc.</I> It is
+also very useful for producing digital movies that may be more convenient
+to use during talks and presentations. (I recommend the inexpensive
+QuickTime Pro from Apple for stitching together all the output images
+into a movie.) The POV file is largely complete as written and includes
+terse hints for rendering, but if you use this feature much you'll
+probably want to learn something about POV-Ray and tweak the scripts
+before rendering them. Most of the things you'll want to change are
+either at the very top (colors, textures, and sizes of things) or
+at the very bottom (camera viewpoint, depth cueing, lighting).
+
+<P>
+
+<H1><A NAME="SECTION00320000000000000000"></A><A NAME="export-xml"></A><A NAME="export-vrml97"></A>
+<BR>
+2.2 Deprecated export formats
+</H1>
+
+<P>
+<I>These feature now lag far behind the rest of the program in
+functionality; they may not work at all. For this reason, they do
+not appear in the menus by default and must be ``enabled'' under
+the Tools menu. If you need any of these capabilities, you are encouraged
+to contact the author and encourage on-going development.</I>
+
+<P>
+You can export kinemages in XML format using the Kinetic Image Markup
+Language by choosing <TT>Kin-XML</TT> from the <TT>File | Export</TT>
+menu. We recommend giving these files the extension <TT>.xkn</TT>
+or <TT>.xml</TT>. At this time, KiNG does not read these files, nor
+do other kinemage viewers. Also, they may not include all of the information
+that would be present in a traditional kinemage file. However, for
+people who would like to operate on the data from a kinemage without
+having to write a parser for the kinemage format, we expect this will
+be useful and convenient. Translation from the modified XML back to
+kinemage format is left as an exercise to the reader ;)
+
+<P>
+KiNG also has rudimentary abilities to export its 3-D primitives in
+VRML97 (a.k.a. VRML 2.0) format. At present, only dots and balls are
+exported, and they are both rendered as spheres. This feature was
+intended to facilitate the creation of models for rapid prototyping
+systems. As with XML export, contact the author if further development
+of this feature would be useful to you.
+
+<P>
+
+<H1><A NAME="SECTION00400000000000000000">
+3. Copyright &amp; acknowledgments</A>
+</H1>
+
+<P>
+
+<H1><A NAME="SECTION00410000000000000000">
+3.1 Copyright</A>
+</H1>
+
+<P>
+The Extratools code and all its associated original resources and
+documentation are copyright (C) 2002-2005 by Ian W. Davis and Vincent
+B. Chen.
+
+<P>
+
+<H1><A NAME="SECTION00420000000000000000">
+3.2 Revision status</A>
+</H1>
+
+<P>
+This manual was last updated 4 May 2005 by IWD for Extratools version
+1.00.
+<BR><HR>
+<ADDRESS>
+Ian W. Davis
+2005-05-04
+</ADDRESS>
+</BODY>
+</HTML>

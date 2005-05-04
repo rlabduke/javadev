@@ -7,7 +7,7 @@ import king.core.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.net.URL;
+import java.net.*;
 import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
@@ -129,6 +129,20 @@ public class ViewpointPlugin extends Plugin implements MouseMotionListener
 
 //{{{ getHelpAnchor
 //##################################################################################################
+    /** Returns the URL of a web page explaining use of this tool */
+    public URL getHelpURL()
+    {
+        URL     url     = getClass().getResource("/extratools/tools-manual.html");
+        String  anchor  = getHelpAnchor();
+        if(url != null && anchor != null)
+        {
+            try { url = new URL(url, anchor); }
+            catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+            return url;
+        }
+        else return null;
+    }
+    
     /**
     * Returns an anchor marking a place within <code>king-manual.html</code>
     * that is the help for this plugin. This is called by the default

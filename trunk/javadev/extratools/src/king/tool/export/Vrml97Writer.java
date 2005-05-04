@@ -7,7 +7,7 @@ import king.core.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-//import java.net.*;
+import java.net.*;
 import java.text.*;
 import java.util.*;
 //import java.util.regex.*;
@@ -238,9 +238,23 @@ public class Vrml97Writer extends Plugin
         return new JMenuItem(new ReflectiveAction(this.toString()+"...", null, this, "onExport"));
     }
 
-    public JMenuItem getHelpMenuItem()
-    { return null; }
+    /** Returns the URL of a web page explaining use of this tool */
+    public URL getHelpURL()
+    {
+        URL     url     = getClass().getResource("/extratools/tools-manual.html");
+        String  anchor  = getHelpAnchor();
+        if(url != null && anchor != null)
+        {
+            try { url = new URL(url, anchor); }
+            catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+            return url;
+        }
+        else return null;
+    }
     
+    public String getHelpAnchor()
+    { return "#export-vrml97"; }
+
     public String toString()
     { return "VRML 2.0 (97)"; }
 

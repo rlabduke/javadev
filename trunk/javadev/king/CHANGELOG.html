@@ -64,20 +64,15 @@
     Open/save PDB from/to network
     Expand KingLiteBinaryExport to do views
     KingLiteBinaryExport should automatically rescale coords to fit in 30 bits.
-    Doc: plugin jars go AFTER king.jar with commas (,) in applet ARCHIVE="..."
     Choose OpenGL (if avail) by default at startup IFF set in .king_prefs
-    Move documentation for extra tools to their own packages
-    Include extratools in dist-src/javadocs
-    XOR also doesn't work on JNB's machine, period (but does on Laura's)
-    Bundle updated probe (2.11) with all distros (first needs testing!)
     For multi-click draw ops, "miss" should reset?
     Add a movieFade() to beanking for doing transitions!
-    Fix image save to work when in OpenGL mode (sizing)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 1.41 ###
 ### 1.41 ###
 - added check for null Graphics in code for auger (DrawingTool)
 - removed depth-cue-by-size for balls (already gone for spheres), because their
@@ -94,6 +89,13 @@
 - changed KinCanvas.print() to use getCanvasSize(); now works properly w/ JOGL.
 - added size param to KinCanvas.paintCanvas(); this fixes sizing problems for
   image and PDF export encountered when using OpenGL mode.
+- small mod. to DrawingTool XOR code for auger to be more correct/robust.
+- now recognize 'T' in point declarations. No-op, but avoids an error message.
+- included extratools in dist src/ (but not javadocs)
+- fixed Windows/Linux installers to have 1GB memory cap (same for OSX app)
+- updated all dists (Mac/Win/Linux) to bundle Probe 2.11
+- doc: plugin jars go AFTER king.jar with commas (,) in applet ARCHIVE="..."
+- moved documentation for extra tools to their own packages
 
 ### 1.40 ###
 - updated Mac app to JOGL 1.1b10

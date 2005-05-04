@@ -7,13 +7,14 @@ import king.core.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.net.URL;
+import java.net.*;
 import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 import javax.swing.*;
 import driftwood.gui.*;
 import driftwood.r3.*;
+import driftwood.util.SoftLog;
 //}}}
 /**
 * <code>LathePlugin</code> allows creation of solid
@@ -182,8 +183,22 @@ public class LathePlugin extends Plugin
         return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onLathe"));
     }
     
+    /** Returns the URL of a web page explaining use of this tool */
+    public URL getHelpURL()
+    {
+        URL     url     = getClass().getResource("/extratools/tools-manual.html");
+        String  anchor  = getHelpAnchor();
+        if(url != null && anchor != null)
+        {
+            try { url = new URL(url, anchor); }
+            catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+            return url;
+        }
+        else return null;
+    }
+    
     public String getHelpAnchor()
-    { return "#solidobj-plugin"; }
+    { return "#lathe-plugin"; }
 
     public String toString()
     { return "Lathe: line -> object"; }

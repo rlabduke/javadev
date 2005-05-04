@@ -884,98 +884,6 @@ e.g.
 , LPT1).
  Your mileage may vary; I'd be interested in hearing about better ways to
  do this from any Windows experts out there.
-\layout Subsection
-
-Exporting for POV-Ray
-\layout Standard
-
-KiNG can produce output script files to be fed into the high-quality free
- raytracing program POV-Ray (www.povray.org).
- POV-Ray can generate all kinds of 
-\begin_inset Quotes eld
-\end_inset 
-
-photo-realistic
-\begin_inset Quotes erd
-\end_inset 
-
- effects including different materials and lighting schemes, simulated depth
- of field, 
-\emph on 
-etc.
-
-\emph default 
- It is also very useful for producing digital movies that may be more convenient
- to use during talks and presentations.
- (I recommend the inexpensive QuickTime Pro from Apple for stitching together
- all the output images into a movie.) The POV file is largely complete as
- written and includes terse hints for rendering, but if you use this feature
- much you'll probably want to learn something about POV-Ray and tweak the
- scripts before rendering them.
- Most of the things you'll want to change are either at the very top (colors,
- textures, and sizes of things) or at the very bottom (camera viewpoint,
- depth cueing, lighting).
-\layout Subsection
-
-Deprecated export formats
-\layout Standard
-
-
-\emph on 
-These feature now lag far behind the rest of the program in functionality;
- they may not work at all.
- For this reason, they do not appear in the menus by default and must be
- 
-\begin_inset Quotes eld
-\end_inset 
-
-enabled
-\begin_inset Quotes erd
-\end_inset 
-
- under the Tools menu.
- If you need any of these capabilities, you are encouraged to contact the
- author and encourage on-going development.
-\layout Standard
-
-You can export kinemages in XML format using the Kinetic Image Markup Language
- by choosing 
-\family typewriter 
-Kin-XML
-\family default 
- from the 
-\family typewriter 
-File | Export
-\family default 
- menu.
- We recommend giving these files the extension 
-\family typewriter 
-.xkn
-\family default 
- or 
-\family typewriter 
-.xml
-\family default 
-.
- At this time, KiNG does not read these files, nor do other kinemage viewers.
- Also, they may not include all of the information that would be present
- in a traditional kinemage file.
- However, for people who would like to operate on the data from a kinemage
- without having to write a parser for the kinemage format, we expect this
- will be useful and convenient.
- Translation from the modified XML back to kinemage format is left as an
- exercise to the reader ;)
-\layout Standard
-
-KiNG also has rudimentary abilities to export its 3-D primitives in VRML97
- (a.k.a.
- VRML 2.0) format.
- At present, only dots and balls are exported, and they are both rendered
- as spheres.
- This feature was intended to facilitate the creation of models for rapid
- prototyping systems.
- As with XML export, contact the author if further development of this feature
- would be useful to you.
 \layout Chapter
 
 Advanced kinemage reading
@@ -2917,82 +2825,6 @@ Undo The Undo button undoes the last drawing action, with a few exceptions
  operations you've performed since loading the kinemage.
 \layout Section
 
-Dock 3-on-3: Geometric construction
-\begin_inset LatexCommand \label{dock3-tool}
-
-\end_inset 
-
-
-\layout Standard
-
-The three-point docking tool is useful for constructing geometric shapes
- and figures out of existing pieces in kinemage format.
- As you start picking points with the mouse, they will be labeled with numbers:
- first three points in the reference frame, then three in the mobile frame.
- When you're ready to apply the docking transformation, turn off groups
- that should remain in place and leave visible those that should move.
- Then press the 
-\family typewriter 
-Dock
-\family default 
- button.
- The first points will be superimposed exactly, the 1-2 axes will be aligned
- (so that the mobile 
-\begin_inset Quotes eld
-\end_inset 
-
-points in the direction of
-\begin_inset Quotes erd
-\end_inset 
-
- the reference) and the final points are used to determine rotational position
- (dihedral angle) about the 1-2 axis.
-\layout Standard
-
-If you'd like to dock several of the same object with respect to each other,
- remember you can use the copy and paste commands in the hierarchy editor
- to create duplicate objects.
-\layout Section
-
-Least-Squares Docking: Getting the best fit
-\begin_inset LatexCommand \label{lsqdock-tool}
-
-\end_inset 
-
-
-\layout Standard
-
-The least-squares docking tool is useful for matching up two objects that
- are similar but not quite the same.
- As you start picking points with the mouse, they will be labeled with numbers,
- defining the Reference frame.
- Once you've selected something to dock onto, you should choose the Mobile
- frame and add an equal number of points to it.
- The order matters: 1 will match with 1, 2 with 2, and so on.
- When you're ready to apply the docking transformation, turn off groups
- that should remain in place and leave visible those that should move.
- Then press the 
-\family typewriter 
-Dock
-\family default 
- button.
- The matched points will be positioned so as to minimize the sum of the
- squares of their separation (thus the phrase 
-\begin_inset Quotes eld
-\end_inset 
-
-least sqaures
-\begin_inset Quotes erd
-\end_inset 
-
-).
-\layout Standard
-
-If you'd like to dock several of the same object with respect to each other,
- remember you can use the copy and paste commands in the hierarchy editor
- to create duplicate objects.
-\layout Section
-
 Electron Density: Visualizing maps
 \begin_inset LatexCommand \label{edmap-plugin}
 
@@ -3093,110 +2925,6 @@ EDMAPLIST
  is a space-separated list of filenames that can be loaded from that path.
  Users can also enter and modify URLs directly, though obviously this isn't
  very convenient.
-\layout Section
-
-RNA Maps: Finding the phosphates
-\begin_inset LatexCommand \label{rnamap-tool}
-
-\end_inset 
-
-
-\layout Standard
-
-
-\emph on 
-Authored by Vincent Chen (vbc3@duke.edu)
-\layout Standard
-
-This tool (still under development) was designed to aid users in locating
- potential phosphate positions in the electron density maps of nucleic acids.
- Similar to the existing electron density viewing plug-in, this tool asks
- the user to open a map file, and opens a control window containing many
- of the same controls as the electron density plug-in.
- In addition to these controls, it has a toggle button to activate/deactivate
- the "poly picking" feature and a color selection list.
- When active, if the user left-clicks on a point in the kinemage, the polyhedron
- containing that point will be highlighted in the color selected.
- Next, the tool searches through the map to find the highest electron density
- value within that selected polyhedron, and places a marker point on that
- spot, showing an approximate position for the phosphorous.
-\layout Subsection
-
-Current Issues
-\layout Standard
-
-This tool does not differentiate between a point in the electron density
- and a point on the actual structure.
- Clicking on the structure with the poly picking tool active can result
- in the program searching through the whole structure, which can take a
- very long time.
- Be sure to click carefully, and to limit the polyhedra to be selected to
- a reasonable size (i.e.
- have the sigma level set high enough that the polyhedra are about the size
- of a phosphate).
- Also, once the first polyhedron has been selected, moving the electron
- density around and selecting a polyhedron may result in an error.
- If this happens, the program will have to be restarted in order to selected
- a polyhedron not in the inital set.
-\layout Section
-
-90 Degree Rotations: Seeing precisely
-\begin_inset LatexCommand \label{rot90-plugin}
-
-\end_inset 
-
-
-\layout Standard
-
-The 90 Degree Rotations plugin provides a simple way to turn your model
- by 90 degrees around any of the three Cartesian axes.
- It also provides a shortcut back to the standard kinemage orientation:
- looking straight down the Z axis from the positive end toward the negative
- one, with positive X to the right and positive Y at the top of the screen.
-\layout Standard
-
-This plugin is particularly useful in combination with a trick for setting
- up simultaneous orthogonal views of a kinemage.
- Read about it in the section on stereo graphics (
-\begin_inset LatexCommand \ref{using_stereo}
-
-\end_inset 
-
-).
-\layout Section
-
-Solid Object Drawing: Just for fun
-\begin_inset LatexCommand \label{solidobj-plugin}
-
-\end_inset 
-
-
-\layout Standard
-
-The solid objects plugin is a fun helper that shows what a wide variety
- of shapes and forms can be constructed from a clever combination of kinemage
- primitives.
-\layout Subsection
-
-
-\begin_inset Quotes eld
-\end_inset 
-
-Lathe
-\begin_inset Quotes erd
-\end_inset 
-
- tool
-\layout Standard
-
-The lathe tool takes a single polyline and sweeps it out around an axis
- to create a polygonal object.
- One strip of 64 triangles is created for every line segment.
- This tool is ideal for creating anything with an axis of symmetry: bottles,
- vases, lamps, simple cylinders, and so on.
- The standard axis of rotation is the Y-axis, with rotation centered at
- the origin, so keep this in mind when drawing a half-profile to use with
- this tool.
 \layout Section
 
 Update KiNG: Upgrading without the hassle
@@ -3465,6 +3193,38 @@ king.jar
 archive
 \family default 
  property instead.
+\layout Standard
+
+If you want to include additional jar files for plugins and tools, you need
+ to list those in the 
+\family typewriter 
+archive
+\family default 
+ field, after 
+\family typewriter 
+king.jar
+\family default 
+, separated by commas.
+ For example:
+\layout LyX-Code
+
+<applet code=
+\begin_inset Quotes erd
+\end_inset 
+
+king/Kinglet.class
+\begin_inset Quotes erd
+\end_inset 
+
+ archive=
+\begin_inset Quotes erd
+\end_inset 
+
+king.jar,chiropraxis.jar,extratools.jar
+\begin_inset Quotes erd
+\end_inset 
+
+ width=300 height=150>
 \layout Standard
 
 It is possible to run KiNG in two other applet modes to achieve a slightly
@@ -3795,7 +3555,7 @@ KiNG is free software built on free software.
 Revision status
 \layout Standard
 
-This manual was last updated 4 Jan 2005 by IWD for KiNG version 1.37.
+This manual was last updated 4 May 2005 by IWD for KiNG version 1.41.
 \layout Chapter
 \start_of_appendix 
 KiNG License
