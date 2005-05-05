@@ -36,21 +36,31 @@ public class UberSet extends AbstractSet
     /** Default load factor is 0.75. */
     public UberSet(int initCapacity)
     { this(initCapacity, 0.75); }
+    /** Default hash function is NullNaturalComparator. */
+    public UberSet(int initCapacity, double loadFactor)
+    { this(initCapacity, loadFactor, null); }
+    public UberSet(HashFunction hashFunc)
+    { this(16, 0.75, null); }
+    public UberSet(int initCapacity, HashFunction hashFunc)
+    { this(initCapacity, 0.75, null); }
     
     /**
     * See java.util.HashMap for a discussion of capacity and load factor.
     * Note that in keeping with the semantics of HashMap, the effective
     * maximum size() before rehashing is the capacity divided by the load factor.
     */
-    public UberSet(int initCapacity, double loadFactor)
+    public UberSet(int initCapacity, double loadFactor, HashFunction hashFunc)
     {
         super();
-        map = new UberMap(initCapacity, loadFactor);
+        map = new UberMap(initCapacity, loadFactor, hashFunc);
     }
     
     public UberSet(Collection c)
+    { this(c, null); }
+
+    public UberSet(Collection c, HashFunction hashFunc)
     {
-        this(c.size());
+        this(c.size(), hashFunc);
         this.addAll(c);
     }
 //}}}

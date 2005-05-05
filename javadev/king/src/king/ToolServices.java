@@ -251,11 +251,14 @@ public class ToolServices implements TransformSignalSubscriber
                     
                     msg.append("   dihd: ").append(df_1.format(angle));
 
-                    // Angle between an axis (r-s) and a vector (q-p)
-                    // Dot product: d . f = d f cos(a) = dxfx + dyfy + dzfz
-                    // But notice 'f' has the wrong sign here for this to work right...
-                    //angle = (float)Math.toDegrees(Math.acos((dx*fx + dy*fy + dz*fz) / (dmag * -fmag)));
-                    //msg.append("   vect: ").append(df_1.format(angle));
+                    if(kMain.getPrefs().getBoolean("measureVectorVectorAngle"))
+                    {
+                        // Angle between an axis (r-s) and a vector (q-p)
+                        // Dot product: d . f = d f cos(a) = dxfx + dyfy + dzfz
+                        // But notice 'f' has the wrong sign here for this to work right...
+                        angle = (float)Math.toDegrees(Math.acos((dx*fx + dy*fy + dz*fz) / (dmag * -fmag)));
+                        msg.append("   vect: ").append(df_1.format(angle));
+                    }
                 }//dihedral
             }//angle
             

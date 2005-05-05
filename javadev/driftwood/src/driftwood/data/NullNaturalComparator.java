@@ -22,8 +22,11 @@ import java.util.*;
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri Jun 13 14:36:00 EDT 2003
 */
-public class NullNaturalComparator implements Comparator
+public class NullNaturalComparator implements Comparator, HashFunction
 {
+    /** Provides a non-zero hash code for null keys */
+    private static final int NULL_HASH_CODE = (new Object()).hashCode();
+    
     private boolean nullComesFirst;
 
     /**
@@ -61,5 +64,18 @@ public class NullNaturalComparator implements Comparator
             else            return ((Comparable)o1).compareTo(o2);
         }
     }
+
+    /** Returns (o1 == null ? o2 == null : o1.equals(o2)) */
+    public boolean areEqual(Object o1, Object o2)
+    {
+        return (o1 == null ? o2 == null : o1.equals(o2));
+    }
+    
+    /** Returns o1.hashCode() unless o1 is null, in which case it returns something else. */
+    public int hashCodeFor(Object o1)
+    {
+        return (o1 == null ? NULL_HASH_CODE : o1.hashCode() );
+    }
+
 }//class
 

@@ -58,6 +58,9 @@ joglNumSamples = 4
 # Show frame rate in stderr?
 writeFPS = false
 
+# Should the Measures tool calc the dot product between 1-2 and 3-4?
+measureVectorVectorAngle = false
+
 # The angle for stereo separation, in degrees.
 # Positive values are wall-eye, negative values are cross-eye.
 stereoAngle = 6.0
