@@ -190,6 +190,18 @@ public class VectorPoint extends AbstractPoint // implements ...
         
         KPaint maincolor = getDrawingColor(engine);
         if(maincolor.isInvisible()) return;
+        
+        // [IWD, 4 May 2005]
+        // For Mage/Prekin, it's enough for EITHER end of the line to be off to
+        // not draw it. The line below could be replaced with a custom pmHit()
+        // that ORs this.pm_mask with from.pm_mask before deciding on a hit.
+        // That would be faster (precomputed) but seems riskier at the moment...
+        //
+        // Oops, the real problem is the FROM side not being marked with a pointmaster,
+        // which means... what? How does this end up being a problem again?
+        //
+        //    if(from.getDrawingColor(engine).isInvisible()) return;
+        
         //Paint paint = maincolor.getPaint(engine.backgroundMode, engine.colorCue);
         int alpha = (parent == null ? 255 : parent.alpha);
         Paint paint = maincolor.getPaint(engine.backgroundMode, 1, engine.colorCue, alpha);

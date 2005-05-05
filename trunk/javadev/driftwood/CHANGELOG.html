@@ -6,7 +6,7 @@
 
 DATA: {{{
     Add CheapMap and CheapSet, which use a single array? CheapSet extends ArrayList?
-    Add HashFunc interface
+        Also explore open hashing, esp. for sets -- no container obj.
 }}}
 GUI: {{{
     Create an enabler that traverses a Container syncing the enable state
@@ -22,6 +22,8 @@ MOLDB2: {{
         How to best chain together conf. definitions?
     Write PdbUpdater that reads new coords/state into an old model
     ModelGroup should carry the states instead of models carrying them?
+    Create DistanceConnectivity (sparse table of bonding partners)
+    Create AtomConnection class for enumerating bonds?
 }}}
 R3: {{{
 }}}
@@ -35,6 +37,13 @@ UTIL: {{{
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 0.69 ###
+- defined data.HashFunction
+- extended data.NullNaturalComparator to implement HashFunction
+- changed UberMap to accept a HashFunction
+- changed UberSet to accept a HashFunction
+- added r3.Tuple3HashFunction
 
 ### 0.68 ###
 - added isosurface.LowResolutionVertexSource to make coarser isosurfaces

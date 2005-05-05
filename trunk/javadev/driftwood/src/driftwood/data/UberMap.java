@@ -31,9 +31,6 @@ import java.util.*;
 public class UberMap extends AbstractMap
 {
 //{{{ Constants
-    /** Provides a non-zero hash code for null keys */
-    static final Object NULL_PROXY = new Object();
-    
     // Overflow, multiplying negative numbers seems to give same result
     // as doing the calculation with longs and then casting to int.
     //static final long HASH_MULT = 2654435769L; // 0x9e3779b9 -- negative as an int!
@@ -68,7 +65,10 @@ static class UberEntry implements Map.Entry
             && (this.value==null ? e.getValue()==null : this.value.equals(e.getValue()));
     }
     
-    /** Falls back to the native hashCode() for key to ensure we obey the equals() contract */
+    /**
+    * Falls back to the native hashCode() for key to ensure we obey the equals() contract.
+    * FIXME: This is pathological (always 0) if key == value, as is the case for Sets.
+    */
     public int hashCode()
     {
         return (this.key==null ? 0 : this.key.hashCode())
@@ -181,17 +181,19 @@ class UberEntryIterator implements Iterator
 
 //{{{ Variable definitions
 //##############################################################################
-    UberEntry[]     mapEntries;         // length is always a power of 2
-    UberEntry       mapHead     = null;
-    UberEntry       mapTail     = null;
-    int             mapSize     = 0;
+    final HashFunction  hashFunc;
 
-    final double    loadFactor;
-    int             log2Capacity;       // aka 'p'
-    int             hashMask;           // == (1 << p) - 1;
-    
-    UberEntrySet    mapEntrySet = null;
-    int             numChanges  = 0;    // used for fail-fast iteration
+    UberEntry[]         mapEntries;         // length is always a power of 2
+    UberEntry           mapHead     = null;
+    UberEntry           mapTail     = null;
+    int                 mapSize     = 0;
+
+    final double        loadFactor;
+    int                 log2Capacity;       // aka 'p'
+    int                 hashMask;           // == (1 << p) - 1;
+
+    UberEntrySet        mapEntrySet = null;
+    int                 numChanges  = 0;    // used for fail-fast iteration
 //}}}
 
 //{{{ Constructor(s)
@@ -202,15 +204,25 @@ class UberEntryIterator implements Iterator
     /** Default load factor is 0.75. */
     public UberMap(int initCapacity)
     { this(initCapacity, 0.75); }
+    /** Default hash function is NullNaturalComparator. */
+    public UberMap(int initCapacity, double loadFactor)
+    { this(initCapacity, loadFactor, null); }
+    public UberMap(HashFunction hashFunc)
+    { this(16, 0.75, null); }
+    public UberMap(int initCapacity, HashFunction hashFunc)
+    { this(initCapacity, 0.75, null); }
     
     /**
     * See java.util.HashMap for a discussion of capacity and load factor.
     * Note that in keeping with the semantics of HashMap, the effective
     * maximum size() before rehashing is the capacity divided by the load factor.
+    * A null hashFunc will result in NullNaturalComparator being used.
     */
-    public UberMap(int initCapacity, double loadFactor)
+    public UberMap(int initCapacity, double loadFactor, HashFunction hashFunc)
     {
         super();
+        if(hashFunc == null)    this.hashFunc = new NullNaturalComparator();
+        else                    this.hashFunc = hashFunc;
         
         if(loadFactor < 0.1)    loadFactor = 0.1;
         if(loadFactor > 1.0)    loadFactor = 1.0;
@@ -240,30 +252,8 @@ class UberEntryIterator implements Iterator
     }
 //}}}
 
-//{{{ hash, keysAreEqual, index
+//{{{ index
 //##############################################################################    
-    /**
-    * Returns the hash code for any key, including null.
-    * The default implementation returns key.hashCode(),
-    * or some constant for null.
-    * This allows for pluggable hash functions in the future.
-    * This should be overriden with keysAreEqual().
-    */
-    protected int hash(Object key)
-    {
-        if(key == null) return NULL_PROXY.hashCode();
-        else            return key.hashCode();
-    }
-    
-    /**
-    * Returns true if two (possibly null) keys should be considered equal.
-    * This should be overriden with hash().
-    */
-    protected boolean keysAreEqual(Object k1, Object k2)
-    {
-        return (k1 == null ? k2 == null : k1.equals(k2));
-    }
-    
     /**
     * Converts any integer hash code into an index
     * between zero and mapEntries.length.
@@ -288,12 +278,12 @@ class UberEntryIterator implements Iterator
     */
     protected UberEntry fetchEntry(Object key)
     {
-        int idx     = index(hash(key));
+        int idx     = index(hashFunc.hashCodeFor(key));
         UberEntry e = mapEntries[idx];
         
         while(e != null)
         {
-            if(keysAreEqual(e.getKey(), key))
+            if(hashFunc.areEqual(e.getKey(), key))
                 return e;
             e = e.chain;
         }
@@ -316,13 +306,13 @@ class UberEntryIterator implements Iterator
 //##############################################################################
     public Object remove(Object key)
     {
-        int idx         = index(hash(key));
+        int idx         = index(hashFunc.hashCodeFor(key));
         UberEntry e     = mapEntries[idx];
         UberEntry prev  = null;
         
         while(e != null)
         {
-            if(keysAreEqual(e.getKey(), key))
+            if(hashFunc.areEqual(e.getKey(), key))
             {
                 // Preserve the chain of entries at this index
                 if(prev == null)        mapEntries[idx] = e.chain;
@@ -369,7 +359,7 @@ class UberEntryIterator implements Iterator
     {
         // Check for the case that refEntry.key == key
         // i.e. that we're trying to put key before itself
-        if(refEntry != null && keysAreEqual(refEntry.getKey(), key))
+        if(refEntry != null && hashFunc.areEqual(refEntry.getKey(), key))
         {
             Object oldValue = refEntry.getValue();
             refEntry.setValue(value);
@@ -386,7 +376,7 @@ class UberEntryIterator implements Iterator
         // Remove the old entry for this key, if any
         Object oldValue = remove(key);
         
-        int hcode       = hash(key);
+        int hcode       = hashFunc.hashCodeFor(key);
         int idx         = index(hcode);
         UberEntry e     = new UberEntry(key, value, hcode);
         UberEntry prev  = mapEntries[idx];
