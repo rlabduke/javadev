@@ -54,12 +54,14 @@ public class AtomGraph //extends ... implements ...
     * All of the covalent Bonds for all of the states.
     * Fully populating this is expensive, so it's created lazily when requested.
     * Data will be plundered from covNeighbors when it's available.
+    * Unmodifiable once created.
     */
     SortedSet           allBonds = null;
     
     /**
     * Contains all AtomStates known not to have any covalent bonds to them.
     * Stays null until allBonds is populated.
+    * Unmodifiable once created.
     */
     Collection          unbondedAtoms = null;
     
@@ -130,8 +132,23 @@ public class AtomGraph //extends ... implements ...
                     }
                 }
             }
+            this.allBonds = Collections.unmodifiableSortedSet(this.allBonds);
+            this.unbondedAtoms = Collections.unmodifiableCollection(this.unbondedAtoms);
         }
         return this.allBonds;
+    }
+//}}}
+
+//{{{ getCovalentUnbonded
+//##############################################################################
+    /**
+    * Returns a Collection of AtomStates that have no covalent bonds.
+    * These will usually be metals, ions, waters (oxygen only), etc.
+    */
+    public Collection getCovalentUnbonded()
+    {
+        if(this.unbondedAtoms == null) getCovalentBonds();
+        return this.unbondedAtoms;
     }
 //}}}
 
