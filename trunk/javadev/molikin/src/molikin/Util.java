@@ -8,7 +8,7 @@ import java.io.*;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
-//import java.util.regex.*;
+import java.util.regex.*;
 //import javax.swing.*;
 import driftwood.moldb2.*;
 //}}}
@@ -21,13 +21,6 @@ import driftwood.moldb2.*;
 */
 public class Util //extends ... implements ...
 {
-//{{{ Constants
-//}}}
-
-//{{{ Variable definitions
-//##############################################################################
-//}}}
-
 //{{{ Constructor(s)
 //##############################################################################
     private Util()
@@ -85,6 +78,19 @@ public class Util //extends ... implements ...
     }
 //}}}
 
+//{{{ altsAreCompatible
+//##############################################################################
+    /**
+    * True iff both states have the same alternate conformation label
+    * or if one of them has " " (a single space) as its ID.
+    */
+    static public boolean altsAreCompatible(AtomState as1, AtomState as2)
+    {
+        String alt1 = as1.getAltConf(), alt2 = as2.getAltConf();
+        return (alt1.equals(alt2) || alt1.equals(" ") || alt2.equals(" "));
+    }
+//}}}
+
 //{{{ isH, isQ, isCNO
 //##############################################################################
     static public boolean isH(AtomState as)
@@ -93,7 +99,7 @@ public class Util //extends ... implements ...
         if(name.length() < 2)
             return as.equals("H");
         char c1 = name.charAt(0), c2 = name.charAt(1);
-        return ((c2 == 'H' || c2 == 'D' || c2 == 'T')
+        return ((c2 == 'H' || c2 == 'D')// || c2 == 'T')
             &&  (c1 == ' ' || ('0' <= c1 && c1 <= '9')));
     }
     
@@ -123,21 +129,28 @@ public class Util //extends ... implements ...
     }
 //}}}
 
-//{{{ altsAreCompatible
+//{{{ isMainchain, isWater
 //##############################################################################
-    /**
-    * True iff both states have the same alternate conformation label
-    * or if one of them has " " (a single space) as its ID.
-    */
-    static public boolean altsAreCompatible(AtomState as1, AtomState as2)
+    /** Based on Prekin PKINCSBS.c decidemainside() */
+    static String mcPattern = ".N[ T].|.C[A ].|.O .|.OXT|[^2][HDQ][A ] |.[HDQ].['*]|.P  |.O[12]P|.[CO][1-5]['*]";
+    static Matcher mcMatcher = null;
+    static public boolean isMainchain(AtomState as)
     {
-        String alt1 = as1.getAltConf(), alt2 = as2.getAltConf();
-        return (alt1.equals(alt2) || alt1.equals(" ") || alt2.equals(" "));
+        if(mcMatcher == null) mcMatcher = Pattern.compile(mcPattern).matcher("");
+        mcMatcher.reset(as.getName());
+        return mcMatcher.matches();
     }
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
+    
+    static String waterPattern = "HOH|DOD|H20|D20|WAT|SOL|TIP|TP3|MTO|HOD|DOH";
+    static Matcher waterMatcher = null;
+    static public boolean isWater(AtomState as)
+    { return isWater(as.getResidue()); }
+    static public boolean isWater(Residue res)
+    {
+        if(waterMatcher == null) waterMatcher = Pattern.compile(waterPattern).matcher("");
+        waterMatcher.reset(res.getName());
+        return waterMatcher.matches();
+    }
 //}}}
 
 //{{{ empty_code_segment

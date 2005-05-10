@@ -5,8 +5,7 @@
     Create driftwood.signal for publish/subscribe message passing
 
 DATA: {{{
-    Add CheapMap and CheapSet, which use a single array? CheapSet extends ArrayList?
-        Also explore open hashing, esp. for sets -- no container obj.
+    Implement CheapMap like CheapSet, but intersperse keys and values in one array.
 }}}
 GUI: {{{
     Create an enabler that traverses a Container syncing the enable state
@@ -42,6 +41,9 @@ UTIL: {{{
 - changed UberMap to accept a HashFunction
 - changed UberSet to accept a HashFunction
 - added r3.Tuple3HashFunction
+- added data.IdentityHashFunction
+- added data.CheapSet, a quadratic-probed, open-addressed hashtable Set impl.
+  It's been tested only very lightly...
 
 ### 0.68 ###
 - added isosurface.LowResolutionVertexSource to make coarser isosurfaces
