@@ -1,0 +1,133 @@
+<!-- (jEdit options) :folding=explicit:collapseFolds=1: -->
+<project name="molikin" default="dist" basedir=".">
+<description>Renders macromolecules as kinemage files</description>
+
+<!-- global properties that we always want defined {{{ -->
+<property name="src"        location="src"/>
+<property name="resource"   location="resource"/>
+<property name="build"      location="build"/>
+<property name="dist"       location="dist"/>
+<!-- Version control: creates timestamp, updates ${buildnum}, loads ${version} -->
+<target name="init">
+    <tstamp>
+        <format property="DSTAMP_SIX" pattern="yyMMdd"/>
+    </tstamp>
+    <propertyfile file="${resource}/${ant.project.name}/buildnum.props">
+        <entry key="buildnum" value="${DSTAMP}.${TSTAMP}"/>
+    </propertyfile>
+    <property file="${resource}/${ant.project.name}/buildnum.props"/>
+    <property file="${resource}/${ant.project.name}/version.props"/>
+</target>
+<!-- Defines properties needed to use SCP -->
+<target name="init-scp">
+    <property file="../lib/scp.props"/>
+</target>
+<!-- }}} -->
+
+<!-- build, compile {{{ -->
+<!-- Bundles up all needed class and resource files into a JAR -->
+<target name="build" description="Build class files" depends="init,compile">
+    <echo message="Version ${version}"/>
+    <echo message="Build # ${buildnum}"/>
+    <jar jarfile="${ant.project.name}.jar" manifest="Manifest.mf" index="false">
+        <fileset dir="${build}"/>
+        <fileset dir="${resource}"/>
+        <fileset dir="../driftwood/build/"/>
+        <fileset dir="../driftwood/resource/"/>
+    </jar>
+</target>
+
+<!-- Compiles all .java files for this package -->
+<target name="compile" depends="init">
+    <ant antfile="../driftwood/build.xml" inheritAll="false" target="compile">
+        <!-- inherited properties go here -->
+    </ant>
+    <ant antfile="../king/build.xml" inheritAll="false" target="compile">
+        <!-- inherited properties go here -->
+    </ant>
+    <mkdir dir="${build}"/>
+    <javac srcdir="${src}"
+           destdir="${build}"
+           includes="**/*.java"
+           excludes="**/old/"
+           debug="on" debuglevel="lines,source">
+         <classpath>
+            <pathelement location="../driftwood/build"/>
+            <pathelement location="../king/build"/>
+         </classpath>
+    </javac>
+</target>
+<!-- }}} -->
+
+<!-- dist, dist-src, dist-exe {{{ -->
+<!-- Makes .zip and .tgz files from the ${dist} directory -->
+<target name="dist" description="Generate the distributions" depends="init,clean,build,dist-src,dist-exe">
+    <zip destfile="${dist}/${ant.project.name}-${version}-src.zip">
+         <zipfileset dir="${dist}" includes="${ant.project.name}-${version}-src/"/>
+         <zipfileset dir="../driftwood/dist/" includes="driftwood-*-src/"/>
+    </zip>
+    <zip basedir="${dist}"
+         destfile="${dist}/${ant.project.name}-${version}.zip"
+         includes="${ant.project.name}-${version}/"/>
+</target>
+
+<!-- Makes the source code distribution -->
+<target name="dist-src" depends="init">
+    <ant antfile="../driftwood/build.xml" inheritAll="false" target="dist-src">
+        <!-- inherited properties go here -->
+    </ant>
+    <mkdir dir="${dist}/${ant.project.name}-${version}-src"/>
+    <copy todir="${dist}/${ant.project.name}-${version}-src" preservelastmodified="true">
+        <fileset dir="${basedir}">
+            <exclude name="build/"/>
+            <exclude name="dist/"/>
+            <exclude name="**/old/"/>
+        </fileset>
+    </copy>
+</target>
+
+<!-- Makes the end-user distribution -->
+<target name="dist-exe" depends="init,build">
+    <mkdir dir="${dist}/${ant.project.name}-${version}"/>
+    <copy todir="${dist}/${ant.project.name}-${version}" preservelastmodified="true">
+        <fileset dir="${basedir}">
+            <include name="${ant.project.name}.jar"/>
+            <include name="README*"/>
+            <include name="LICENSE*"/>
+            <include name="doc/"/>
+            <exclude name="doc/work/"/>
+        </fileset>
+    </copy>
+</target>
+<!-- }}} -->
+
+<!-- clean, backup {{{ -->
+<!-- Removes products of compilation -->
+<target name="clean" description="Clean up build/ and dist/">
+    <delete dir="${dist}"/>
+    <delete dir="${build}"/>
+    <delete file="${ant.project.name}.jar"/>
+</target>
+
+<!-- Bundles this code and saves it locally and remotely - simple version control -->
+<target name="backup" depends="init,clean,init-scp" description="Backs up this project on IWD's machine">
+    <tstamp/>
+    <mkdir dir="${user.home}/ark/old-versions/${ant.project.name}"/>
+    <jar jarfile="${user.home}/ark/old-versions/${ant.project.name}/${ant.project.name}-${version}.${buildnum}.jar" index="true">
+        <fileset dir="${basedir}"/>
+    </jar>
+    <scp file="${user.home}/ark/old-versions/${ant.project.name}/${ant.project.name}-${version}.${buildnum}.jar"
+        todir="${scp.backup.username}@${scp.backup.hostname}:${scp.backup.path}/${ant.project.name}-${version}.${buildnum}.jar"
+        password="${scp.backup.password}" failonerror="true"/>
+</target>
+<!-- }}} -->
+
+<!-- deploy-local, deploy-local-mp {{{ -->
+<!-- Deploys the executable on the local system - applies to IWD's machine only -->
+<target name="deploy-local"  description="Build class files and copy to plugins/" depends="build">
+    <copy file="${ant.project.name}.jar" todir="../king/plugins/" overwrite="true" failonerror="true"/>
+    <copy file="${ant.project.name}.jar" todir="${user.home}/bin/jars/plugins/" overwrite="true" failonerror="false"/>
+    <copy file="${ant.project.name}.jar" todir="/Applications/KiNG.app/Contents/Resources/Java/plugins/" overwrite="true" failonerror="false"/>
+</target>
+<!-- }}} -->
+</project>
