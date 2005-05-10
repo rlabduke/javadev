@@ -95,7 +95,7 @@ public class Util //extends ... implements ...
 //##############################################################################
     static public boolean isH(AtomState as)
     {
-        String name = as.getName().toUpperCase();
+        String name = as.getName();
         if(name.length() < 2)
             return as.equals("H");
         char c1 = name.charAt(0), c2 = name.charAt(1);
@@ -106,7 +106,7 @@ public class Util //extends ... implements ...
     /** True iff this is an NMR pseudo-hydrogen "Q" */
     static public boolean isQ(AtomState as)
     {
-        String name = as.getName().toUpperCase();
+        String name = as.getName();
         if(name.length() < 2)
             return as.equals("H");
         char c1 = name.charAt(0), c2 = name.charAt(1);
@@ -120,7 +120,7 @@ public class Util //extends ... implements ...
     */
     static public boolean isCNO(AtomState as)
     {
-        String name = as.getName().toUpperCase();
+        String name = as.getName();
         if(name.length() < 2)
             return as.equals("C") || as.equals("N") || as.equals("O");
         char c1 = name.charAt(0), c2 = name.charAt(1);
@@ -133,6 +133,8 @@ public class Util //extends ... implements ...
 //##############################################################################
     /** Based on Prekin PKINCSBS.c decidemainside() */
     static String mcPattern = ".N[ T].|.C[A ].|.O .|.OXT|[^2][HDQ][A ] |.[HDQ].['*]|.P  |.O[12]P|.[CO][1-5]['*]";
+    //                                                   ^^^^
+    //                              makes one Gly H sidechain, the other mainchain
     static Matcher mcMatcher = null;
     static public boolean isMainchain(AtomState as)
     {
@@ -153,12 +155,50 @@ public class Util //extends ... implements ...
     }
 //}}}
 
-//{{{ empty_code_segment
+//{{{ isS, isDisulfide
 //##############################################################################
+    static public boolean isS(AtomState as)
+    {
+        String name = as.getName();
+        if(name.length() < 2)
+            return as.equals("S");
+        char c1 = name.charAt(0), c2 = name.charAt(1);
+        return ((c2 == 'S')
+            &&  (c1 == ' ' || ('0' <= c1 && c1 <= '9')));
+    }
+    
+    /** AtomState fields of the Bond must be filled for this to work (ie non-null). */
+    static public boolean isDisulfide(Bond bond)
+    {
+        return (isS(bond.lower) && isS(bond.higher));
+    }
 //}}}
 
-//{{{ empty_code_segment
+//{{{ selectBondsBetween
 //##############################################################################
+    /**
+    * @param bonds  a bunch of Bond objects, of which 0+ will be selected.
+    * @param src    AtomStates the bonds are allowed to "originate" from.
+    *   (Bonds are symmetrical, so there's no difference b/t originate and terminate.)
+    *   This should probably be a collection that uses identity for contains()
+    *   rather than equals(), such as CheapMap(IdentityHashFunction).
+    * @param dst    AtomStates the bonds are allowed to "terminate" at.
+    *   This and src can be exchanged and the results will be identical.
+    */
+    static public SortedSet selectBondsBetween(Collection bonds, Collection src, Collection dst)
+    {
+        SortedSet out = new TreeSet();
+        for(Iterator iter = bonds.iterator(); iter.hasNext(); )
+        {
+            Bond bond = (Bond) iter.next();
+            if((src.contains(bond.lower) && dst.contains(bond.higher))
+            || (dst.contains(bond.lower) && src.contains(bond.higher)))
+            {
+                out.add(bond);
+            }
+        }
+        return out;
+    }
 //}}}
 
 //{{{ empty_code_segment

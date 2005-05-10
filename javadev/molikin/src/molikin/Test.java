@@ -10,6 +10,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
+import driftwood.data.*;
 import driftwood.moldb2.*;
 //}}}
 /**
@@ -25,6 +26,22 @@ public class Test //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
+    // Collections of AtomStates:
+    Set allH        = new CheapSet(new IdentityHashFunction());
+    Set hetH        = new CheapSet(new IdentityHashFunction());
+    Set waterH      = new CheapSet(new IdentityHashFunction());
+    Set otherH      = new CheapSet(new IdentityHashFunction());
+    Set nonHetH     = new CheapSet(new IdentityHashFunction());
+    Set mcH         = new CheapSet(new IdentityHashFunction());
+    Set scH         = new CheapSet(new IdentityHashFunction());
+    
+    Set allNonH     = new CheapSet(new IdentityHashFunction());
+    Set hetNonH     = new CheapSet(new IdentityHashFunction());
+    Set waterNonH   = new CheapSet(new IdentityHashFunction());
+    Set otherNonH   = new CheapSet(new IdentityHashFunction());
+    Set nonHetNonH  = new CheapSet(new IdentityHashFunction());
+    Set mcNonH      = new CheapSet(new IdentityHashFunction());
+    Set scNonH      = new CheapSet(new IdentityHashFunction());
 //}}}
 
 //{{{ Constructor(s)
@@ -32,6 +49,49 @@ public class Test //extends ... implements ...
     public Test()
     {
         super();
+    }
+//}}}
+
+//{{{ segregateAtomStates
+//##############################################################################
+    void segregateAtomStates(Collection states)
+    {
+        for(Iterator iter = states.iterator(); iter.hasNext(); )
+        {
+            AtomState as = (AtomState) iter.next();
+            if(Util.isH(as))
+            {
+                allH.add(as);
+                if(as.isHet())
+                {
+                    hetH.add(as);
+                    if(Util.isWater(as))        waterH.add(as);
+                    else                        otherH.add(as);
+                }
+                else // non het
+                {
+                    nonHetH.add(as);
+                    if(Util.isMainchain(as))    mcH.add(as);
+                    else                        scH.add(as);
+                }
+            }
+            else // heavy atom
+            {
+                allNonH.add(as);
+                if(as.isHet())
+                {
+                    hetNonH.add(as);
+                    if(Util.isWater(as))        waterNonH.add(as);
+                    else                        otherNonH.add(as);
+                }
+                else // non het
+                {
+                    nonHetNonH.add(as);
+                    if(Util.isMainchain(as))    mcNonH.add(as);
+                    else                        scNonH.add(as);
+                }
+            }
+        }// for each atom state
     }
 //}}}
 
@@ -58,7 +118,8 @@ public class Test //extends ... implements ...
         System.err.println("Loading PDB:         "+time+" ms");
 
         time = System.currentTimeMillis();
-        AtomGraph graph = new AtomGraph(Util.extractOrderedStatesByName(model));
+        Collection atomStates = Util.extractOrderedStatesByName(model);
+        AtomGraph graph = new AtomGraph(atomStates);
         time = System.currentTimeMillis() - time;
         System.err.println("Initializing graph:  "+time+" ms");
 
@@ -68,7 +129,50 @@ public class Test //extends ... implements ...
         System.err.println("Determining network: "+time+" ms");
 
         time = System.currentTimeMillis();
-        printBonds(System.out, bonds);
+        segregateAtomStates(atomStates);
+        time = System.currentTimeMillis() - time;
+        System.err.println("Classifying atoms:   "+time+" ms");
+
+        time = System.currentTimeMillis();
+        System.out.println("@kinemage");
+        System.out.println("@onewidth");
+        Collection someBonds;
+        someBonds = Util.selectBondsBetween(bonds, mcNonH, mcNonH);
+        printBonds(System.out, someBonds, "mc", "white");
+        someBonds = Util.selectBondsBetween(bonds, mcH, nonHetNonH);
+        printBonds(System.out, someBonds, "mcH", "gray");
+        
+        // Disulfides are different:
+        someBonds = Util.selectBondsBetween(bonds, scNonH, nonHetNonH);
+        Collection ssBonds = new TreeSet();
+        for(Iterator iter = someBonds.iterator(); iter.hasNext(); )
+        {
+            Bond b = (Bond) iter.next();
+            if(Util.isDisulfide(b))
+            {
+                iter.remove();
+                ssBonds.add(b);
+            }
+        }
+        printBonds(System.out, someBonds, "sc", "cyan");
+        printBonds(System.out, ssBonds,   "SS", "yellow");
+            
+        someBonds = Util.selectBondsBetween(bonds, scH, nonHetNonH);
+        printBonds(System.out, someBonds, "scH", "gray");
+        someBonds = Util.selectBondsBetween(bonds, hetNonH, allNonH);
+        printBonds(System.out, someBonds, "het", "pink");
+        someBonds = Util.selectBondsBetween(bonds, hetH, hetNonH);
+        printBonds(System.out, someBonds, "hetH", "gray");
+        // "Free" het atoms (metals, etc)
+        Set freeAtoms = new CheapSet(new IdentityHashFunction());
+        freeAtoms.addAll(graph.getCovalentUnbonded());
+        //for(Iterator iter = waterNonH.iterator(); iter.hasNext(); ) freeAtoms.remove(iter.next());
+        freeAtoms.removeAll(waterNonH);
+        printAtoms(System.out, freeAtoms, "unbonded", "lime");
+        // Waters are also special:
+        printAtoms(System.out, waterNonH, "water", "peachtint");
+        someBonds = Util.selectBondsBetween(bonds, waterH, waterNonH);
+        printBonds(System.out, someBonds, "waterH", "gray");
         time = System.currentTimeMillis() - time;
         System.err.println("Drawing bonds:       "+time+" ms");
     }
@@ -95,11 +199,10 @@ public class Test //extends ... implements ...
 
 //{{{ printBonds
 //##############################################################################
-    static void printBonds(PrintStream out, Collection bonds)
+    static void printBonds(PrintStream out, Collection bonds, String title, String color)
     {
         DecimalFormat df = new DecimalFormat("0.000");
-        out.println("@kinemage");
-        out.println("@vectorlist {bonds?} color= yellow");
+        out.println("@vectorlist {"+title+"} color= "+color);
         Bond last = new Bond(null, -1, null, -1);
         for(Iterator iter = bonds.iterator(); iter.hasNext(); )
         {
@@ -108,6 +211,20 @@ public class Test //extends ... implements ...
                 out.print("{"+curr.lower.getAtom()+"}P "+curr.lower.format(df)+" ");
             out.println("{"+curr.higher.getAtom()+"}L "+curr.higher.format(df));
             last = curr;
+        }
+    }
+//}}}
+
+//{{{ printAtoms
+//##############################################################################
+    static void printAtoms(PrintStream out, Collection atomStates, String title, String color)
+    {
+        DecimalFormat df = new DecimalFormat("0.000");
+        out.println("@balllist {"+title+"} radius= 0.15 color= "+color);
+        for(Iterator iter = atomStates.iterator(); iter.hasNext(); )
+        {
+            AtomState as = (AtomState) iter.next();
+            out.println("{"+as.getAtom()+"}L "+as.format(df));
         }
     }
 //}}}
