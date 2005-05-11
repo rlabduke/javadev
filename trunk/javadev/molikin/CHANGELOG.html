@@ -3,12 +3,24 @@
 ===  TO DO  ==================================================================
 ==============================================================================
     Deal with NMR 'Q' atoms in AtomGraph
-    Split into mc, mcH, sc, scH, wat, watH, het, hetH
+  ? Split into mc, mcH, sc, scH, wat, watH, het, hetH
         And have it work with nucleic acids too!
+    Don't bond metals/ions/"weird" atoms to anything?
+    Allow disabling cache for getCovalentNeighbors (?)
+  * Test RNA/DNA
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 0.03 ###
+- refactored Test to accept either PDB or mmCIF input
+- stopped Test from printing xxxlists when there is no content
+- created KingMoleculeImporter as a plugin to load PDBs/mmCIFs directly in KiNG
+  It uses Test to do its drawing and (at the moment) is not configurable.
+- changed AtomGraph and Util.selectBondsBetween() to return a Collection of
+  Bond objects, rather than a SortedSet. AtomGraph still uses TreeSet, but
+  Util uses ArrayList b/c it's faster/cheaper and the Bonds are already sorted.
 
 ### 0.02 ###
 - added isSS(), isDisulfide() to Util

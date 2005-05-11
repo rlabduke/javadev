@@ -103,7 +103,8 @@ public class BeanKing extends Plugin
         outText = new JTextArea(25, 60);
         outText.setLineWrap(false);
         outText.setEditable(false);
-        outText.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        int fontSize = (int) Math.ceil(12 * kMain.getPrefs().getFloat("fontMagnification"));
+        outText.setFont(new Font("Monospaced", Font.PLAIN, fontSize));
         new TextCutCopyPasteMenu(outText);
         JScrollPane outScroll = new JScrollPane(outText);
         

@@ -177,6 +177,8 @@ public class Util //extends ... implements ...
 //{{{ selectBondsBetween
 //##############################################################################
     /**
+    * Selects bonds that bridge the src and dst sets. Bonds will be returned
+    * in the same order they were input.
     * @param bonds  a bunch of Bond objects, of which 0+ will be selected.
     * @param src    AtomStates the bonds are allowed to "originate" from.
     *   (Bonds are symmetrical, so there's no difference b/t originate and terminate.)
@@ -185,9 +187,10 @@ public class Util //extends ... implements ...
     * @param dst    AtomStates the bonds are allowed to "terminate" at.
     *   This and src can be exchanged and the results will be identical.
     */
-    static public SortedSet selectBondsBetween(Collection bonds, Collection src, Collection dst)
+    static public Collection selectBondsBetween(Collection bonds, Collection src, Collection dst)
     {
-        SortedSet out = new TreeSet();
+        //SortedSet out = new TreeSet();
+        Collection out = new ArrayList();
         for(Iterator iter = bonds.iterator(); iter.hasNext(); )
         {
             Bond bond = (Bond) iter.next();

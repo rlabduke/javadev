@@ -105,7 +105,7 @@ public class AtomGraph //extends ... implements ...
     * Results are cached for future calls to this function and to getCovalentNeighbors(),
     * and any cached results from previous getCovalentNeighbors() calls are used here.
     */
-    public SortedSet getCovalentBonds()
+    public Collection getCovalentBonds()
     {
         if(this.allBonds == null)
         {

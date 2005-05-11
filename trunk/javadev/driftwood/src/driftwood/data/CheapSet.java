@@ -81,6 +81,7 @@ class CheapIterator implements Iterator
         if(lastEntry != -1)
         {
             CheapSet.this.setEntries[lastEntry] = CheapSet.DELETED_PROXY;
+            CheapSet.this.setSize--;
             this.expectedNumChanges = ++CheapSet.this.numChanges;
         }
         else
@@ -298,6 +299,7 @@ class CheapIterator implements Iterator
             else if(hashFunc.areEqual(entry, o))
             {
                 setEntries[idx] = DELETED_PROXY;
+                setSize--;
                 return true;
             }
         }
