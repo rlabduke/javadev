@@ -331,32 +331,41 @@ public class KinfileIO implements KinLoadListener, ListSelectionListener
     }
 //}}}
 
-//{{{ loadURL
+//{{{ loadURL, loadStream
 //##################################################################################################
     /** Like loadFile, but it takes a URL */
     public void loadURL(URL url, Kinemage kin)
     {
         try
         {
-            fName           = url.getFile();
-            mergeTarget     = kin;
+            fName = url.getFile();
             
             URLConnection uconn = url.openConnection();
             uconn.setAllowUserInteraction(false);
             uconn.connect();
-            new KinfileLoader(kMain, uconn.getInputStream(), this);
             
-            progBar.setMaximum(uconn.getContentLength());
-            progBar.setValue(0);
-            
-            progDialog.pack();
-            progDialog.setLocationRelativeTo(kMain.getTopWindow());
-            progDialog.setVisible(true);
+            loadStream(uconn.getInputStream(), uconn.getContentLength(), kin);
             // Execution halts here until ioException()
             // or loadingComplete() closes the dialog.
         }
         catch(IOException ex)
         { loadingException(ex); }
+    }
+
+    /** Like loadFile, but it takes an InputStream. */
+    public void loadStream(InputStream in, int dataLen, Kinemage kin)
+    {
+        mergeTarget = kin;
+        new KinfileLoader(kMain, in, this);
+        
+        progBar.setMaximum(dataLen);
+        progBar.setValue(0);
+        
+        progDialog.pack();
+        progDialog.setLocationRelativeTo(kMain.getTopWindow());
+        progDialog.setVisible(true);
+        // Execution halts here until ioException()
+        // or loadingComplete() closes the dialog.
     }
 //}}}
 

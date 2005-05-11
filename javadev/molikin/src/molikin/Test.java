@@ -42,6 +42,8 @@ public class Test //extends ... implements ...
     Set nonHetNonH  = new CheapSet(new IdentityHashFunction());
     Set mcNonH      = new CheapSet(new IdentityHashFunction());
     Set scNonH      = new CheapSet(new IdentityHashFunction());
+    
+    boolean inputIsCIF = false;
 //}}}
 
 //{{{ Constructor(s)
@@ -106,75 +108,8 @@ public class Test //extends ... implements ...
     */
     public void Main() throws IOException
     {
-        File infile = null; // FIXME later
-        
-        long time = System.currentTimeMillis();
-        PdbReader   pdbReader   = new PdbReader();
-        ModelGroup  modelGroup;
-        if(infile == null)  modelGroup = pdbReader.read(System.in);
-        else                modelGroup = pdbReader.read(infile);
-        Model model = modelGroup.getFirstModel();
-        time = System.currentTimeMillis() - time;
-        System.err.println("Loading PDB:         "+time+" ms");
-
-        time = System.currentTimeMillis();
-        Collection atomStates = Util.extractOrderedStatesByName(model);
-        AtomGraph graph = new AtomGraph(atomStates);
-        time = System.currentTimeMillis() - time;
-        System.err.println("Initializing graph:  "+time+" ms");
-
-        time = System.currentTimeMillis();
-        SortedSet bonds = graph.getCovalentBonds();
-        time = System.currentTimeMillis() - time;
-        System.err.println("Determining network: "+time+" ms");
-
-        time = System.currentTimeMillis();
-        segregateAtomStates(atomStates);
-        time = System.currentTimeMillis() - time;
-        System.err.println("Classifying atoms:   "+time+" ms");
-
-        time = System.currentTimeMillis();
-        System.out.println("@kinemage");
-        System.out.println("@onewidth");
-        Collection someBonds;
-        someBonds = Util.selectBondsBetween(bonds, mcNonH, mcNonH);
-        printBonds(System.out, someBonds, "mc", "white");
-        someBonds = Util.selectBondsBetween(bonds, mcH, nonHetNonH);
-        printBonds(System.out, someBonds, "mcH", "gray");
-        
-        // Disulfides are different:
-        someBonds = Util.selectBondsBetween(bonds, scNonH, nonHetNonH);
-        Collection ssBonds = new TreeSet();
-        for(Iterator iter = someBonds.iterator(); iter.hasNext(); )
-        {
-            Bond b = (Bond) iter.next();
-            if(Util.isDisulfide(b))
-            {
-                iter.remove();
-                ssBonds.add(b);
-            }
-        }
-        printBonds(System.out, someBonds, "sc", "cyan");
-        printBonds(System.out, ssBonds,   "SS", "yellow");
-            
-        someBonds = Util.selectBondsBetween(bonds, scH, nonHetNonH);
-        printBonds(System.out, someBonds, "scH", "gray");
-        someBonds = Util.selectBondsBetween(bonds, hetNonH, allNonH);
-        printBonds(System.out, someBonds, "het", "pink");
-        someBonds = Util.selectBondsBetween(bonds, hetH, hetNonH);
-        printBonds(System.out, someBonds, "hetH", "gray");
-        // "Free" het atoms (metals, etc)
-        Set freeAtoms = new CheapSet(new IdentityHashFunction());
-        freeAtoms.addAll(graph.getCovalentUnbonded());
-        //for(Iterator iter = waterNonH.iterator(); iter.hasNext(); ) freeAtoms.remove(iter.next());
-        freeAtoms.removeAll(waterNonH);
-        printAtoms(System.out, freeAtoms, "unbonded", "lime");
-        // Waters are also special:
-        printAtoms(System.out, waterNonH, "water", "peachtint");
-        someBonds = Util.selectBondsBetween(bonds, waterH, waterNonH);
-        printBonds(System.out, someBonds, "waterH", "gray");
-        time = System.currentTimeMillis() - time;
-        System.err.println("Drawing bonds:       "+time+" ms");
+        if(inputIsCIF)  doCIF(new InputStreamReader(System.in), new OutputStreamWriter(System.out));
+        else            doPDB(new InputStreamReader(System.in), new OutputStreamWriter(System.out));
     }
 
     public static void main(String[] args)
@@ -197,10 +132,109 @@ public class Test //extends ... implements ...
     }
 //}}}
 
+//{{{ doPDB, doCIF
+//##############################################################################
+    public void doPDB(Reader pdbIn, Writer kinOut) throws IOException
+    {
+        long        time        = System.currentTimeMillis();
+        PdbReader   pdbReader   = new PdbReader();
+        ModelGroup  modelGroup  = pdbReader.read(pdbIn);
+        Model       model       = modelGroup.getFirstModel();
+        time = System.currentTimeMillis() - time;
+        System.err.println("Loading PDB:         "+time+" ms");
+        
+        PrintWriter out = new PrintWriter(kinOut);
+        doModel(model, out);
+        out.flush();
+    }
+
+    public void doCIF(Reader cifIn, Writer kinOut) throws IOException
+    {
+        long        time        = System.currentTimeMillis();
+        CifReader   cifReader   = new CifReader();
+        ModelGroup  modelGroup  = cifReader.read(cifIn);
+        Model       model       = modelGroup.getFirstModel();
+        time = System.currentTimeMillis() - time;
+        System.err.println("Loading mmCIF:       "+time+" ms");
+        
+        PrintWriter out = new PrintWriter(kinOut);
+        doModel(model, out);
+        out.flush();
+    }
+//}}}
+
+//{{{ doModel
+//##############################################################################
+    public void doModel(Model model, PrintWriter out)
+    {
+        long time;
+        time = System.currentTimeMillis();
+        Collection atomStates = Util.extractOrderedStatesByName(model);
+        AtomGraph graph = new AtomGraph(atomStates);
+        time = System.currentTimeMillis() - time;
+        System.err.println("Initializing graph:  "+time+" ms");
+
+        time = System.currentTimeMillis();
+        Collection bonds = graph.getCovalentBonds();
+        time = System.currentTimeMillis() - time;
+        System.err.println("Determining network: "+time+" ms");
+
+        time = System.currentTimeMillis();
+        segregateAtomStates(atomStates);
+        time = System.currentTimeMillis() - time;
+        System.err.println("Classifying atoms:   "+time+" ms");
+
+        time = System.currentTimeMillis();
+        out.println("@kinemage");
+        out.println("@onewidth");
+        Collection someBonds;
+        someBonds = Util.selectBondsBetween(bonds, mcNonH, mcNonH);
+        printBonds(out, someBonds, "mc", "white");
+        someBonds = Util.selectBondsBetween(bonds, mcH, nonHetNonH);
+        printBonds(out, someBonds, "mcH", "gray");
+        
+        // Disulfides are different:
+        someBonds = Util.selectBondsBetween(bonds, scNonH, nonHetNonH);
+        Collection ssBonds = new TreeSet();
+        for(Iterator iter = someBonds.iterator(); iter.hasNext(); )
+        {
+            Bond b = (Bond) iter.next();
+            if(Util.isDisulfide(b))
+            {
+                iter.remove();
+                ssBonds.add(b);
+            }
+        }
+        printBonds(out, someBonds, "sc", "cyan");
+        printBonds(out, ssBonds,   "SS", "yellow");
+            
+        someBonds = Util.selectBondsBetween(bonds, scH, nonHetNonH);
+        printBonds(out, someBonds, "scH", "gray");
+        someBonds = Util.selectBondsBetween(bonds, hetNonH, allNonH);
+        printBonds(out, someBonds, "het", "pink");
+        someBonds = Util.selectBondsBetween(bonds, hetH, hetNonH);
+        printBonds(out, someBonds, "hetH", "gray");
+        // "Free" het atoms (metals, etc)
+        Set freeAtoms = new CheapSet(new IdentityHashFunction());
+        freeAtoms.addAll(graph.getCovalentUnbonded());
+        //for(Iterator iter = waterNonH.iterator(); iter.hasNext(); ) freeAtoms.remove(iter.next());
+        freeAtoms.removeAll(waterNonH);
+        printAtoms(out, freeAtoms, "unbonded", "lime");
+        // Waters are also special:
+        printAtoms(out, waterNonH, "water", "peachtint");
+        someBonds = Util.selectBondsBetween(bonds, waterH, waterNonH);
+        printBonds(out, someBonds, "waterH", "gray");
+        time = System.currentTimeMillis() - time;
+        System.err.println("Drawing bonds:       "+time+" ms");
+    }
+//}}}
+
 //{{{ printBonds
 //##############################################################################
-    static void printBonds(PrintStream out, Collection bonds, String title, String color)
+    static void printBonds(PrintWriter out, Collection bonds, String title, String color)
     {
+        if(bonds.size() == 0) return;
+        
         DecimalFormat df = new DecimalFormat("0.000");
         out.println("@vectorlist {"+title+"} color= "+color);
         Bond last = new Bond(null, -1, null, -1);
@@ -217,8 +251,10 @@ public class Test //extends ... implements ...
 
 //{{{ printAtoms
 //##############################################################################
-    static void printAtoms(PrintStream out, Collection atomStates, String title, String color)
+    static void printAtoms(PrintWriter out, Collection atomStates, String title, String color)
     {
+        if(atomStates.size() == 0) return;
+        
         DecimalFormat df = new DecimalFormat("0.000");
         out.println("@balllist {"+title+"} radius= 0.15 color= "+color);
         for(Iterator iter = atomStates.iterator(); iter.hasNext(); )
@@ -319,6 +355,7 @@ public class Test //extends ... implements ...
             showHelp(true);
             System.exit(0);
         }
+        else if(flag.equals("-cif") || flag.equals("mmcif")) inputIsCIF = true;
         else if(flag.equals("-dummy_option"))
         {
             // handle option here
