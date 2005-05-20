@@ -3,11 +3,9 @@
 ===  TO DO  ==================================================================
 ==============================================================================
     Deal with NMR 'Q' atoms in AtomGraph
-  ? Split into mc, mcH, sc, scH, wat, watH, het, hetH
-        And have it work with nucleic acids too!
     Don't bond metals/ions/"weird" atoms to anything?
     Allow disabling cache for getCovalentNeighbors (?)
-  * Test RNA/DNA
+    Create PLOptimizer that reorders Bonds to minimize the number of 'P' points
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -21,6 +19,8 @@
 - changed AtomGraph and Util.selectBondsBetween() to return a Collection of
   Bond objects, rather than a SortedSet. AtomGraph still uses TreeSet, but
   Util uses ArrayList b/c it's faster/cheaper and the Bonds are already sorted.
+- tested importing 1JJ2 (lg. ribosomal subunit) into KiNG -- works pretty well,
+  except that some hets are "bonded" to protein (same for 1BOV and others...)
 
 ### 0.02 ###
 - added isSS(), isDisulfide() to Util
