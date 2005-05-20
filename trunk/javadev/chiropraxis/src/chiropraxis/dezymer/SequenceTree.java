@@ -22,6 +22,13 @@ import java.util.*;
 public class SequenceTree //extends ... implements ...
 {
 //{{{ Constants
+    /** Space sequences by BLOSUM distance or by 1 unit? */
+    static final boolean BLOSUM_SPACING = true;
+    /** Layout in radial pattern or traditional tree pattern? */
+    static final boolean RADIAL_LAYOUT = true;
+    
+    
+
     static DecimalFormat df = new DecimalFormat("0.0####");
     static final String COLOR_CODES = "ABCDEFGHIJKLM";
     
@@ -61,7 +68,7 @@ public class SequenceTree //extends ... implements ...
         int     index   = -1;               // array index for tracking blosum scores
         int     weight  = 1;                // number of sequences clustered into this node
         int     height  = 0;                // max number of branches at or below this
-        double  minx = -1, maxx = -1;       // position on the 2-D chart
+        double  minx = -1, maxx = -1;       // position on the traditional 2-D chart
         
         public Sequence(String sequence)
         {
@@ -73,7 +80,7 @@ public class SequenceTree //extends ... implements ...
             child1 = s1;
             child2 = s2;
             weight = child1.weight + child2.weight;
-            height = currentHeight++;
+            height = prevHeight++;
             
             flags.clear();
             flags.or(child1.flags);
@@ -83,10 +90,30 @@ public class SequenceTree //extends ... implements ...
         public String toString()
         { return (seq == null ? weight+" sequences" : seq); }
         
+        /**
+        * Depth First Search ensures we visit leaf nodes in left-to-right order
+        * (where child1 is always left of child2). Thus we use prevX to track
+        * the position of the last child node laid out; when finished, we also
+        * add in the distance from the last leaf around to the first, to
+        * facilitate radial layout later.
+        */
         public void calculatePositions()
         {
             if(child1 == null || child2 == null)
-                minx = maxx = currentX++;
+            {
+                if(firstLeaf == null)
+                {
+                    minx = maxx = prevX = 0;
+                    prevLeaf = firstLeaf = this;
+                }
+                else
+                {
+                    // with BLOSUM scores, higher numbers mean more similar, not less similar!
+                    if(BLOSUM_SPACING)  minx = maxx = prevX = (prevX + 1 + maxPairwiseBlosum - blosumScore(this, prevLeaf));
+                    else                minx = maxx = prevX = (prevX + 1);
+                    prevLeaf = this;
+                }
+            }
             else
             {
                 child1.calculatePositions();
@@ -96,21 +123,49 @@ public class SequenceTree //extends ... implements ...
             }
         }
         
-        public double getX()
+        private double getRawX()
         {
             if(child1 == null || child2 == null)
                 return (minx + maxx) / 2.0;
             else
                 return (child1.maxx + child2.minx) / 2.0;
         }
+        
+        /** Properly scaled X coordinate for drawing. */
+        public double getX()
+        {
+            if(RADIAL_LAYOUT)
+            {
+                double r = prevHeight - height;
+                double t = 2.0 * Math.PI * (getRawX() / prevX);
+                return r * Math.cos(t);
+            }
+            else return getRawX();
+        }
+
+        /** Properly scaled Y coordinate for drawing. */
+        public double getY()
+        {
+            if(RADIAL_LAYOUT)
+            {
+                double r = prevHeight - height;
+                double t = 2.0 * Math.PI * (getRawX() / prevX);
+                return r * Math.sin(t);
+            }
+            // So we get a "square" tree:
+            else return (double)height * (double)prevX / (double)prevHeight;
+        }
     }
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    List    inputFiles  = new ArrayList();
-    int     currentX = 0;
-    int     currentHeight = 1;
+    List        inputFiles  = new ArrayList();
+    int         prevX = 0;          // X position of most recently placed leaf
+    Sequence    prevLeaf = null;    // identity of most recently placed leaf
+    Sequence    firstLeaf = null;   // first leaf placed, at X = 0
+    int         prevHeight = 1;     // Y position of most recently placed branch
+    int         maxPairwiseBlosum = Integer.MIN_VALUE; // used for BLOSUM spacing in output
 //}}}
 
 //{{{ Constructor(s)
@@ -188,8 +243,6 @@ public class SequenceTree //extends ... implements ...
 //##############################################################################
     void renderToKinemage(Sequence top, PrintStream out)
     {
-        double scaleY = (double)(top.maxx - top.minx) / (double)top.height;
-        
         out.println("@kinemage");
         out.println("@onewidth");
         out.println("@flat");
@@ -200,12 +253,12 @@ public class SequenceTree //extends ... implements ...
         out.println("@group {connections}");
         out.println("@subgroup {connections} nobutton");
         out.println("@vectorlist {links} color= gray");
-        renderConnections(top, scaleY, out);
+        renderConnections(top, out);
 
         out.println("@group {sequences}");
         out.println("@subgroup {sequences} nobutton");
         out.println("@balllist {balls} color= white radius= 0.8");
-        renderNodeBall(top, scaleY, out);
+        renderNodeBall(top, out);
         
         /*out.println("@labellist {labels} color= white off");
         for(i = 0; i < seqs.length; i++)
@@ -234,9 +287,9 @@ public class SequenceTree //extends ... implements ...
         }*/
     }
     
-    void renderNodeBall(Sequence node, double scaleY, PrintStream out)
+    void renderNodeBall(Sequence node, PrintStream out)
     {
-        double x = node.getX(), y = node.height * scaleY;
+        double x = node.getX(), y = node.getY();
 
         out.print("{"+node+"} (");
         for(int k = 0; k < inputFiles.size(); k++)
@@ -246,17 +299,17 @@ public class SequenceTree //extends ... implements ...
         }
         out.println(") "+df.format(x)+" "+df.format(y)+" 0");
         
-        if(node.child1 != null) renderNodeBall(node.child1, scaleY, out);
-        if(node.child2 != null) renderNodeBall(node.child2, scaleY, out);
+        if(node.child1 != null) renderNodeBall(node.child1, out);
+        if(node.child2 != null) renderNodeBall(node.child2, out);
     }
     
-    void renderConnections(Sequence node, double scaleY, PrintStream out)
+    void renderConnections(Sequence node, PrintStream out)
     {
-        double x1 = node.getX(), y1 = node.height * scaleY;
+        double x1 = node.getX(), y1 = node.getY();
         
         if(node.child1 != null)
         {
-            double x2 = node.child1.getX(), y2 = node.child1.height * scaleY;
+            double x2 = node.child1.getX(), y2 = node.child1.getY();
             out.println("{"+node+"}P "+df.format(x1)+" "+df.format(y1)+" 0");
             //out.println("{"+node.child1+"} "+df.format(x2)+" "+df.format(y2)+" 0");
             out.print("{"+node.child1+"} (");
@@ -270,7 +323,7 @@ public class SequenceTree //extends ... implements ...
 
         if(node.child2 != null)
         {
-            double x2 = node.child2.getX(), y2 = node.child2.height * scaleY;
+            double x2 = node.child2.getX(), y2 = node.child2.getY();
             out.println("{"+node+"}P "+df.format(x1)+" "+df.format(y1)+" 0");
             //out.println("{"+node.child2+"} "+df.format(x2)+" "+df.format(y2)+" 0");
             out.print("{"+node.child2+"} (");
@@ -282,8 +335,8 @@ public class SequenceTree //extends ... implements ...
             out.println(") "+df.format(x2)+" "+df.format(y2)+" 0");
         }
 
-        if(node.child1 != null) renderConnections(node.child1, scaleY, out);
-        if(node.child2 != null) renderConnections(node.child2, scaleY, out);
+        if(node.child1 != null) renderConnections(node.child1, out);
+        if(node.child2 != null) renderConnections(node.child2, out);
     }
 //}}}
 
@@ -320,12 +373,17 @@ public class SequenceTree //extends ... implements ...
         {
             blosumDist[i][i] = -Double.MAX_VALUE; // so we never try merging i with itself!
             for(j = i+1; j < seqs.length; j++)
-                blosumDist[i][j] = blosumDist[j][i] = blosumScore(seqs[i], seqs[j]);
+            {
+                int d = blosumScore(seqs[i], seqs[j]);
+                blosumDist[i][j] = blosumDist[j][i] = d;
+                // Used for layout:
+                this.maxPairwiseBlosum = Math.max(d, maxPairwiseBlosum);
+            }
         }
         
         // Iterate through, merging the nearest sequences into a cluster
         Sequence topNode = null;
-        this.currentHeight = 1;
+        this.prevHeight = 1;
         while(true)
         {
             System.err.print("."); // for tracking progress
@@ -369,8 +427,11 @@ public class SequenceTree //extends ... implements ...
         // seqs[] is now null everywhere except for topNode
         // blosumDist[][] is now == -Double.MAX_VALUE everywhere
         
-        this.currentX = 0;
+        this.prevX = 0;
         topNode.calculatePositions();
+        // update prevX to be the total perimiter of the circle,
+        // in case we're doing radial layout.
+        this.prevX += (BLOSUM_SPACING ? blosumScore(firstLeaf, prevLeaf) : 1);
         
         // Write a kinemage visualization
         renderToKinemage(topNode, System.out);
