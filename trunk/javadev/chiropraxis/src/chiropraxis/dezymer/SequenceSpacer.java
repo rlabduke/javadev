@@ -53,8 +53,9 @@ public class SequenceSpacer //extends ... implements ...
 //##############################################################################
     static class Sequence extends Triple
     {
-        String  seq;
-        BitSet  flags   = new BitSet();
+        String      seq;
+        BitSet      flags   = new BitSet();
+        Collection  neighbors;  // other Sequences within 1 mutation of this one
         
         public Sequence(String sequence)
         {
@@ -64,6 +65,14 @@ public class SequenceSpacer //extends ... implements ...
         
         public String toString()
         { return seq; }
+        
+        public void neighborGraph(Set graph)
+        {
+            if(graph.contains(this)) return;
+            graph.add(this);
+            for(Iterator iter = neighbors.iterator(); iter.hasNext(); )
+                ((Sequence) iter.next()).neighborGraph(graph);
+        }
     }
 //}}}
 
@@ -349,6 +358,30 @@ public class SequenceSpacer //extends ... implements ...
         
         System.err.println();
         System.err.println("Best energy:  "+df.format(bestEnergy));
+        
+        // Find neighbors for all sequences
+        for(int i = 0; i < seqs.length; i++)
+        {
+            Collection neighbors = seqs[i].neighbors = new ArrayList();
+            for(int j = i+1; j < seqs.length; j++)
+            {
+                if(mutationDist[seqs.length*i + j] == 1)
+                    neighbors.add(seqs[j]);
+            }
+        }
+        
+        // Group sequences into connected graphs (edges are point mutations)
+        Set allSeq = new HashSet(Arrays.asList(seqs));
+        Collection graphs = new ArrayList(); // Collection of Sets of Sequences
+        while(allSeq.size() > 0)
+        {
+            Sequence s = (Sequence) allSeq.iterator().next();
+            Set graph = new HashSet();
+            s.neighborGraph(graph);
+            graphs.add(graph);
+            allSeq.removeAll(graph);
+        }
+        System.err.println(seqs.length+" sequences form "+graphs.size()+" connected graphs");
         
         // Write a kinemage visualization
         renderToKinemage(seqs, mutationDist, System.out);
