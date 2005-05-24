@@ -14,6 +14,7 @@ import java.util.*;
 //import java.util.regex.*;
 import javax.swing.*;
 import driftwood.moldb2.*;
+import driftwood.r3.*;
 import driftwood.util.*;
 //}}}
 /**
@@ -37,6 +38,8 @@ import driftwood.util.*;
 <li><b>{pdbfile}</b> the full path and file name for the "base" PDB file</li>
 <li><b>{molten}</b> a comma-separated list of residue numbers for molten residues</li>
 <li><b>{center}</b> the center of view for the current kinemage</li>
+<li><b>{centroid}</b> the center of mass for all molten atoms</li>
+<li><b>{radius}</b> distance from the {centroid} that captures all molten atoms plus a 5A buffer</li>
 </ul>
 *
 * <p>Be careful -- stray instances of this class will prevent
@@ -48,6 +51,7 @@ import driftwood.util.*;
 public class BgKinRunner implements Runnable
 {
 //{{{ Constants
+    DecimalFormat df = new DecimalFormat("0.0##");
 //}}}
 
 //{{{ Variable definitions
@@ -171,17 +175,23 @@ public class BgKinRunner implements Runnable
         }
         float[] ctr = kin.getCurrentView().getCenter();
         String viewCtr = ctr[0]+", "+ctr[1]+", "+ctr[2];
+        Triple centroid = getCentroid(residues, state);
+        double radius = getRadius(residues, state, centroid) + 5.0;
         
         // Splice in parameters and parse out command line
         String[] cmdKeys = {
             "pdbfile",
             "molten",
-            "center"
+            "center",
+            "centroid",
+            "radius"
         };
         String[] cmdParams = {
             pdbfile.getCanonicalPath(),
             resCommas.toString(),
-            viewCtr
+            viewCtr,
+            centroid.format(df, ", "),
+            df.format(radius)
         };
         // MessageFormat doesn't work well here so we roll our own:
         String cmdLine = Strings.expandVariables(cmdTplt, cmdKeys, cmdParams);
@@ -236,6 +246,45 @@ public class BgKinRunner implements Runnable
         byte[] buffer = new byte[2048];
         int len;
         while((len = src.read(buffer)) != -1) dst.write(buffer, 0, len);
+    }
+//}}}
+
+//{{{ getCentroid, getRadius
+//##################################################################################################
+    /** Centroid of all mobile atoms */
+    Triple getCentroid(Collection residues, ModelState state)
+    {
+        Triple ctr = new Triple();
+        int cnt = 0;
+        for(Iterator ri = residues.iterator(); ri.hasNext(); )
+        {
+            Residue r = (Residue) ri.next();
+            for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
+            {
+                Atom a = (Atom) ai.next();
+                try { ctr.add( state.get(a) ); cnt++; }
+                catch(AtomException ex) {}
+            }
+        }
+        ctr.div(cnt);
+        return ctr;
+    }
+    
+    /** Maximum radius from centroid to any atom. */
+    double getRadius(Collection residues, ModelState state, Triple ctr)
+    {
+        double radius2 = 0;
+        for(Iterator ri = residues.iterator(); ri.hasNext(); )
+        {
+            Residue r = (Residue) ri.next();
+            for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
+            {
+                Atom a = (Atom) ai.next();
+                try { radius2 = Math.max(radius2, ctr.sqDistance(state.get(a))); }
+                catch(AtomException ex) {}
+            }
+        }
+        return Math.sqrt(radius2);
     }
 //}}}
 
