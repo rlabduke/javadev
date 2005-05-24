@@ -16,17 +16,14 @@ GUI: {{{
 }}}
 ISOSURFACE: {{{
 }}}
-MOLDB2: {{
-    1n55 Arg refitting alt B won't move (H only in A):
-        How to best chain together conf. definitions?
+MOLDB2: {{{
     Write PdbUpdater that reads new coords/state into an old model
-    ModelGroup should carry the states instead of models carrying them?
+    Add a class that can write moldb2 data into a StarFile DOM
 }}}
 R3: {{{
 }}}
 STAR: {{{
     Add StarWriter
-    Add a class that can write moldb2 data into a StarFile DOM
 }}}
 UTIL: {{{
 }}}
@@ -34,6 +31,13 @@ UTIL: {{{
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 0.70 ###
+- added moldb2.ModelState.fillInForModel() to deal with alt conf weirdnesses.
+  Still, this can be weird if other state is modified but old alt is saved.
+- added moldb2.Model.fillInStates(), which solves the weirdnesses by making
+  alt conf IDs consistent. It's not perfect, but may be the best I can do!
+- fixed up PdbReader and CifReader to use Model.fillInStates()
 
 ### 0.69 ###
 - defined data.HashFunction

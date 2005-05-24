@@ -132,6 +132,19 @@ public class CifReader //extends ... implements ...
             catch(AtomException ex) { ex.printStackTrace(); } // logically unreachable
         }
         
+        // This little dance makes sure that all alt confs define some state for every atom.
+        for(Iterator iter = modelGroup.getModels().iterator(); iter.hasNext(); )
+        {
+            Model m = (Model) iter.next();
+            try { m.fillInStates(); }
+            catch(AtomException ex)
+            {
+                // This shouldn't ever be able to happen...
+                SoftLog.err.println("Unable to find states for all atoms in model!");
+                ex.printStackTrace(SoftLog.err);
+            }
+        }
+        
         return this.modelGroup;
     }
 //}}}

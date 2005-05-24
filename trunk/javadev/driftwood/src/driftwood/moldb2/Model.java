@@ -432,6 +432,29 @@ public class Model implements Cloneable
     }
 //}}}
 
+//{{{ fillInStates
+//##################################################################################################
+    /**
+    * Once this model's states are fully populated, you can call this function to make sure that
+    * every state (except possibly " ") has an AtomState for every Atom in the model.
+    * @throws AtomException if no state exists for some Atom in the model.
+    */
+    public void fillInStates() throws AtomException
+    {
+        Collection allStates = this.stateMap.values();
+        for(Iterator iter = this.stateMap.entrySet().iterator(); iter.hasNext(); )
+        {
+            Map.Entry e = (Map.Entry) iter.next();
+            String altConf = (String) e.getKey();
+            if(" ".equals(altConf)) continue; // base conf. doesn't need all atoms defined
+            
+            ModelState state = (ModelState) e.getValue();
+            e.setValue( state.fillInForModel(this, altConf, allStates) );
+        }
+        this.modified(); // changes the ModelState objects returned
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##################################################################################################
 //}}}
