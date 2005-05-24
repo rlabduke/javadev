@@ -12,6 +12,7 @@ import java.util.*;
 //import javax.swing.*;
 //import driftwood.*;
 import driftwood.star.*;
+import driftwood.util.SoftLog;
 //}}}
 /**
 * <code>CifReader</code> loads mmCIF files into the MolDB2 data structures,

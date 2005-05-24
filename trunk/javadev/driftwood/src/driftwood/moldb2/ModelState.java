@@ -296,6 +296,7 @@ public class ModelState //extends ... implements ...
     */
     public ModelState fillInForModel(Model model, String altConf, Collection otherModelStates) throws AtomException
     {
+        System.err.println("Filling in states for '"+altConf+"'");
         ModelState m = new ModelState(this);
         ModelState[] others = (ModelState[]) otherModelStates.toArray(new ModelState[otherModelStates.size()]);
         for(Iterator ri = model.getResidues().iterator(); ri.hasNext(); )
@@ -311,6 +312,7 @@ public class ModelState //extends ... implements ...
                         s = others[i].getImpl(a);
                     if(s != null)
                     {
+                        System.err.println("Atom "+a+" needs a states in "+altConf);
                         s = (AtomState) s.clone();
                         s.setAltConf(altConf);
                         try { m.add(s); }
