@@ -441,6 +441,7 @@ public class Model implements Cloneable
     */
     public void fillInStates() throws AtomException
     {
+        System.err.println("Filling in states for this model...");
         Collection allStates = this.stateMap.values();
         for(Iterator iter = this.stateMap.entrySet().iterator(); iter.hasNext(); )
         {
