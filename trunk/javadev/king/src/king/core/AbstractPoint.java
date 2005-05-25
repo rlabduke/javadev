@@ -299,16 +299,18 @@ abstract public class AbstractPoint extends AHEImpl implements KPoint
     /** Returns the color that will be used to draw this point, taking aspects into account. Never null. */
     public KPaint getDrawingColor(Engine engine)
     {
-        KPaint paint = null;
+        KPaint paint = null, tmppaint = null;
         boolean byList = (engine.colorByList && parent != null);
-        boolean doAspects = (aspects != null
-            && engine.activeAspect > 0
+        boolean doAspects = (engine.activeAspect > 0
+            && aspects != null
             && aspects.length() >= engine.activeAspect);
             
         // If live bit has been unset by a pointmaster, we're invisible!
         if(!isOn())             paint = KPalette.invisible;
         else if(byList)         paint = parent.color;
-        else if(doAspects)      paint = KPalette.forAspect( aspects.charAt(engine.activeAspect-1) );
+        // This way, we only use the aspect if we recognize the character
+        else if(doAspects && (tmppaint = KPalette.forAspect(aspects.charAt(engine.activeAspect-1))) != null)
+                                paint = tmppaint;
         else if(color != null)  paint = color;
         else if(parent != null) paint = parent.color;
         

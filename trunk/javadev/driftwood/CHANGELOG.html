@@ -32,6 +32,13 @@ UTIL: {{{
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 0.71 ###
+- modified CheapSet to apply secondary hash function only once. This keeps the
+  memory addresses of probe positions actually spaced at the triangular numbers,
+  which should improve cache locality substantially in large sets.
+- added data.ReverseComparator, which isn't provided in java.util.Collections
+  until Java 1.5.
+
 ### 0.70 ###
 - added moldb2.ModelState.fillInForModel() to deal with alt conf weirdnesses.
   Still, this can be weird if other state is modified but old alt is saved.

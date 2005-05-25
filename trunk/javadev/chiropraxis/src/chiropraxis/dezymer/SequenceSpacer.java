@@ -10,6 +10,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
+import driftwood.data.*;
 import driftwood.r3.*;
 import chiropraxis.forcefield.*;
 //}}}
@@ -51,11 +52,13 @@ public class SequenceSpacer //extends ... implements ...
 
 //{{{ CLASS: Sequence
 //##############################################################################
-    static class Sequence extends Triple
+    static class Sequence extends Triple implements Comparable
     {
         String      seq;
         BitSet      flags   = new BitSet();
         Collection  neighbors;  // other Sequences within 1 mutation of this one
+        int         degree_1;   // number of neighbors
+        int         degree_2;   // sum of n.degree_1 for n in neighbors
         
         public Sequence(String sequence)
         {
@@ -73,6 +76,54 @@ public class SequenceSpacer //extends ... implements ...
             for(Iterator iter = neighbors.iterator(); iter.hasNext(); )
                 ((Sequence) iter.next()).neighborGraph(graph);
         }
+        
+        public void calculateDegrees()
+        {
+            this.degree_1 = this.neighbors.size();
+            this.degree_2 = 0;
+            for(Iterator iter = neighbors.iterator(); iter.hasNext(); )
+            {
+                Sequence neighbor = (Sequence) iter.next();
+                degree_2 += neighbor.neighbors.size();
+            }
+        }
+        
+        public int compareTo(Object o)
+        {
+            Sequence that = (Sequence) o;
+            if(this.degree_1 != that.degree_1)
+                return this.degree_1 - that.degree_1;
+            else
+                return this.degree_2 - that.degree_2;
+        }
+        
+        public String printNeighborhood(Collection graph)
+        {
+            StringBuffer buf = new StringBuffer();
+            for(int i = 0; i < seq.length(); i++)
+            {
+                buf.append("  ").append(seq.charAt(i));
+                Set others = new HashSet();
+                for(Iterator iter = graph.iterator(); iter.hasNext(); )
+                    others.add(new Character(((Sequence)iter.next()).seq.charAt(i)));
+                others.remove(new Character(seq.charAt(i)));
+                for(Iterator iter = others.iterator(); iter.hasNext(); )
+                    buf.append(iter.next());
+                buf.append("\n");
+            }
+            return buf.toString();
+        }
+    }
+//}}}
+
+//{{{ CLASS: CollectionSizeComparator
+//##############################################################################
+    static public class CollectionSizeComparator implements Comparator
+    {
+        public int compare(Object o1, Object o2)
+        {
+            return ((Collection)o1).size() - ((Collection)o2).size();
+        }
     }
 //}}}
 
@@ -82,6 +133,10 @@ public class SequenceSpacer //extends ... implements ...
     int     numTries    = 5;
     double  pow         = 1.0; // controls spring fall-off
     boolean useBlosum   = false;
+    
+    Sequence[] seqs;
+    int[] mutationDist;
+    Collection neighborGraphs; // Collection of Sets of Sequences
 //}}}
 
 //{{{ Constructor(s)
@@ -184,13 +239,154 @@ public class SequenceSpacer //extends ... implements ...
     }
 //}}}
 
-//{{{ renderToKinemage, renderConnections
+//{{{ createRestraints
+//##############################################################################
+    /** Fills in mutationDist and returns a StateManager. */
+    StateManager createRestraints()
+    {
+        this.mutationDist = new int[ seqs.length*seqs.length ];
+
+        StateManager stateman = new StateManager(seqs, seqs.length);
+        Collection bondTerms = new ArrayList();
+        for(int i = 0; i < seqs.length; i++)
+        {
+            mutationDist[seqs.length*i + i] = 0;
+            for(int j = i+1; j < seqs.length; j++)
+            {
+                int d = seqDistance(seqs[i], seqs[j]);
+                mutationDist[seqs.length*i + j] = d;
+                mutationDist[seqs.length*j + i] = d;
+                
+                if(useBlosum)
+                {
+                    double b = blosumDistance(seqs[i], seqs[j]);
+                    bondTerms.add(new BondTerm(i, j, b, 1.0/Math.pow(b, pow)));
+                }
+                else
+                    bondTerms.add(new BondTerm(i, j, d, 1.0/Math.pow(d, pow)));
+            }
+        }
+        stateman.setBondTerms(bondTerms);
+        return stateman;
+    }
+//}}}
+
+//{{{ findLowestEnergy, randomizePositions
+//##############################################################################
+    double findLowestEnergy(StateManager stateman)
+    {
+        DecimalFormat df = new DecimalFormat("0.0000E0");
+        double      bestEnergy  = Double.POSITIVE_INFINITY;
+        Triple[]    bestState   = new Triple[seqs.length];
+        for(int i = 0; i < bestState.length; i++) bestState[i] = new Triple();
+        
+        for(int k = 0; k < numTries; k++)
+        {
+            randomizePositions(seqs, 10.0);
+            stateman.setState(); // sucks in coords of Sequence objects again
+            GradientMinimizer min = new GradientMinimizer(stateman);
+            long time = System.currentTimeMillis();
+            for(int i = 1; i <= 100; i++)
+            {
+                if(!min.step()) break;
+                if(min.getFracDeltaEnergy() > -1e-4) break;
+            }
+            time = System.currentTimeMillis() - time;
+            System.err.println(time+" ms; E = "+df.format(min.getEnergy()));
+            if(min.getEnergy() < bestEnergy)
+            {
+                bestEnergy  = min.getEnergy();
+                stateman.getState(bestState);
+            }
+        }
+        stateman.setState(bestState);
+        stateman.getState(); // read out the new coordinates into members of seqs!!
+        
+        System.err.println();
+        System.err.println("Best energy:  "+df.format(bestEnergy));
+        
+        return bestEnergy;
+    }
+
+    void randomizePositions(Sequence[] seqs, double boxSize)
+    {
+        for(int i = 0; i < seqs.length; i++)
+        {
+            seqs[i].setX(Math.random()*boxSize);
+            seqs[i].setY(Math.random()*boxSize);
+            seqs[i].setZ(Math.random()*boxSize);
+        }
+    }
+//}}}
+
+//{{{ findNeighbors, makeNeighborGraphs
+//##############################################################################
+    void findNeighbors()
+    {
+        for(int i = 0; i < seqs.length; i++)
+        {
+            Collection neighbors = seqs[i].neighbors = new ArrayList();
+            for(int j = 0; j < seqs.length; j++)
+            {
+                if(mutationDist[seqs.length*i + j] == 1)
+                    neighbors.add(seqs[j]);
+            }
+        }
+        // Once all neighbors are known, calculate degrees of connectedness.
+        for(int i = 0; i < seqs.length; i++) seqs[i].calculateDegrees();
+    }
+    
+    Collection makeNeighborGraphs()
+    {
+        Set allSeq = new HashSet(Arrays.asList(seqs));
+        ArrayList graphs = new ArrayList(); // Collection of Sets of Sequences
+        while(allSeq.size() > 0)
+        {
+            Sequence s = (Sequence) allSeq.iterator().next();
+            Set graph = new HashSet();
+            s.neighborGraph(graph);
+            graphs.add(graph);
+            allSeq.removeAll(graph);
+        }
+        Collections.sort(graphs, new ReverseComparator(new CollectionSizeComparator()));
+        
+        return graphs;
+    }
+//}}}
+
+//{{{ renderLinkedViews
+//##############################################################################
+    void renderLinkedViews(Sequence[] seqs, Collection neighborGraphs, PrintStream out)
+    {
+        out.println("@text");
+        int i = 0;
+        for(Iterator iter = neighborGraphs.iterator(); iter.hasNext() && i < 10; i++)
+        {
+            ArrayList ng = new ArrayList((Collection) iter.next());
+            Collections.sort(ng, Collections.reverseOrder());
+            Sequence first = (Sequence) ng.get(0);
+            out.println("*{v="+(i+1)+"}*   "+ng.size()+" member cluster with "+first.degree_1+" neighbors to "+first.seq);
+            out.println(first.printNeighborhood(ng));
+        }
+        i = 0;
+        for(Iterator iter = neighborGraphs.iterator(); iter.hasNext() && i < 10; i++)
+        {
+            ArrayList ng = new ArrayList((Collection) iter.next());
+            Collections.sort(ng, Collections.reverseOrder());
+            Sequence first = (Sequence) ng.get(0);
+            out.println("@"+(i+1)+"viewid {"+first.seq+"}");
+            out.println("@"+(i+1)+"center "+first.format(df));
+            out.println("@"+(i+1)+"span 4");
+        }
+    }
+//}}}
+
+//{{{ renderToKinemage
 //##############################################################################
     void renderToKinemage(Sequence[] seqs, int[] mutationDist, PrintStream out)
     {
         final String COLOR_CODES = "MABCDEF";
         
-        out.println("@kinemage");
         out.println("@onewidth");
         int i = 0, k = 0;
         for(Iterator iter = inputFiles.iterator(); iter.hasNext(); )
@@ -245,7 +441,10 @@ public class SequenceSpacer //extends ... implements ...
             }
         }
     }
-    
+//}}}
+
+//{{{ renderConnections
+//##############################################################################
     void renderConnections(int dist, String color, Sequence[] seqs, int[] mutationDist, PrintStream out)
     {
         out.println("@vectorlist {+"+dist+"} color= "+color);
@@ -256,25 +455,19 @@ public class SequenceSpacer //extends ... implements ...
                 int d = mutationDist[seqs.length*i + j];
                 if(d == dist)
                 {
-                    out.println("{"+seqs[i].toString()+"} P "
-                        +df.format(seqs[i].getX())+" "+df.format(seqs[i].getY())+" "+df.format(seqs[i].getZ()));
-                    out.println("{"+seqs[j].toString()+"} "
-                        +df.format(seqs[j].getX())+" "+df.format(seqs[j].getY())+" "+df.format(seqs[j].getZ()));
+                    StringBuffer aspects = new StringBuffer(inputFiles.size()+2);
+                    aspects.append("(");
+                    for(int k = 0; k < inputFiles.size(); k++)
+                    {
+                        if(seqs[i].flags.get(k) && seqs[j].flags.get(k))    aspects.append(" "); // default color
+                        else                                                aspects.append("X"); // gray
+                    }
+                    aspects.append(")");
+                    
+                    out.println("{"+seqs[i].toString()+"} P "+aspects+" "+seqs[i].format(df));
+                    out.println("{"+seqs[j].toString()+"} "+aspects+" "+seqs[j].format(df));
                 }
             }
-        }
-    }
-//}}}
-
-//{{{ randomizePositions
-//##############################################################################
-    void randomizePositions(Sequence[] seqs, double boxSize)
-    {
-        for(int i = 0; i < seqs.length; i++)
-        {
-            seqs[i].setX(Math.random()*boxSize);
-            seqs[i].setY(Math.random()*boxSize);
-            seqs[i].setZ(Math.random()*boxSize);
         }
     }
 //}}}
@@ -291,99 +484,34 @@ public class SequenceSpacer //extends ... implements ...
     public void Main() throws IOException
     {
         // Load all the sequence objects from files or stdin
-        Sequence[] seqs;
         if(inputFiles.isEmpty())
-            seqs = loadSequences(new InputStream[] {System.in});
+            this.seqs = loadSequences(new InputStream[] {System.in});
         else
         {
             InputStream[] in = new InputStream[ inputFiles.size() ];
             for(int i = 0; i < in.length; i++)
                 in[i] = new FileInputStream( (File)inputFiles.get(i) );
-            seqs = loadSequences(in);
+            this.seqs = loadSequences(in);
         }
         
         // TODO: check to make sure lengths all match!!
         
         // Set up all of our harmonic restraints
-        StateManager stateman = new StateManager(seqs, seqs.length);
-        Collection bondTerms = new ArrayList();
-        int[] mutationDist = new int[ seqs.length*seqs.length ];
-        for(int i = 0; i < seqs.length; i++)
-        {
-            mutationDist[seqs.length*i + i] = 0;
-            for(int j = i+1; j < seqs.length; j++)
-            {
-                int d = seqDistance(seqs[i], seqs[j]);
-                mutationDist[seqs.length*i + j] = d;
-                mutationDist[seqs.length*j + i] = d;
-                
-                if(useBlosum)
-                {
-                    double b = blosumDistance(seqs[i], seqs[j]);
-                    bondTerms.add(new BondTerm(i, j, b, 1.0/Math.pow(b, pow)));
-                }
-                else
-                    bondTerms.add(new BondTerm(i, j, d, 1.0/Math.pow(d, pow)));
-            }
-        }
-        stateman.setBondTerms(bondTerms);
+        StateManager stateman = createRestraints();
         
         // Run the minimization to position the sequences in R3
-        DecimalFormat df = new DecimalFormat("0.0000E0");
-        double      bestEnergy  = Double.POSITIVE_INFINITY;
-        Triple[]    bestState   = new Triple[seqs.length];
-        for(int i = 0; i < bestState.length; i++) bestState[i] = new Triple();
-        
-        for(int k = 0; k < numTries; k++)
-        {
-            randomizePositions(seqs, 10.0);
-            stateman.setState(); // sucks in coords of Sequence objects again
-            GradientMinimizer min = new GradientMinimizer(stateman);
-            long time = System.currentTimeMillis();
-            for(int i = 1; i <= 100; i++)
-            {
-                if(!min.step()) break;
-                if(min.getFracDeltaEnergy() > -1e-4) break;
-            }
-            time = System.currentTimeMillis() - time;
-            System.err.println(time+" ms; E = "+df.format(min.getEnergy()));
-            if(min.getEnergy() < bestEnergy)
-            {
-                bestEnergy  = min.getEnergy();
-                stateman.getState(bestState);
-            }
-        }
-        stateman.setState(bestState);
-        stateman.getState(); // read out the new coordinates into members of seqs!!
-        
-        System.err.println();
-        System.err.println("Best energy:  "+df.format(bestEnergy));
+        double bestEnergy = findLowestEnergy(stateman);
         
         // Find neighbors for all sequences
-        for(int i = 0; i < seqs.length; i++)
-        {
-            Collection neighbors = seqs[i].neighbors = new ArrayList();
-            for(int j = i+1; j < seqs.length; j++)
-            {
-                if(mutationDist[seqs.length*i + j] == 1)
-                    neighbors.add(seqs[j]);
-            }
-        }
+        findNeighbors();
         
         // Group sequences into connected graphs (edges are point mutations)
-        Set allSeq = new HashSet(Arrays.asList(seqs));
-        Collection graphs = new ArrayList(); // Collection of Sets of Sequences
-        while(allSeq.size() > 0)
-        {
-            Sequence s = (Sequence) allSeq.iterator().next();
-            Set graph = new HashSet();
-            s.neighborGraph(graph);
-            graphs.add(graph);
-            allSeq.removeAll(graph);
-        }
-        System.err.println(seqs.length+" sequences form "+graphs.size()+" connected graphs");
+        this.neighborGraphs = makeNeighborGraphs();
+        System.err.println(seqs.length+" sequences form "+neighborGraphs.size()+" connected graphs");
         
         // Write a kinemage visualization
+        System.out.println("@kinemage");
+        renderLinkedViews(seqs, neighborGraphs, System.out);
         renderToKinemage(seqs, mutationDist, System.out);
     }
 

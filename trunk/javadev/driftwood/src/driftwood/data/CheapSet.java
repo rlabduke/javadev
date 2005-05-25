@@ -219,13 +219,13 @@ class CheapIterator implements Iterator
         if(setSize+1 > loadFactor*setEntries.length)
             rehash(setEntries.length * 2);
         
-        int hash = hashFunc.hashCodeFor(o);
+        int hash = index(hashFunc.hashCodeFor(o));
         // For quadratic probing with triangular numbers: 1, 3, 6, 10, 15, 21, 28, ...
         int triNum = 0, triStep = 0;
         while(true)
         {
             triNum = triNum + triStep++;
-            int idx = index(hash+triNum);
+            int idx = (hash+triNum) & hashMask; // equiv. to % table length
             Object entry = setEntries[idx];
             if(entry == null || entry == DELETED_PROXY)
             {
@@ -255,13 +255,13 @@ class CheapIterator implements Iterator
     public boolean contains(Object o)
     {
         if(o == null) throw new NullPointerException("CheapSet cannot contain nulls");
-        int hash = hashFunc.hashCodeFor(o);
+        int hash = index(hashFunc.hashCodeFor(o));
         // For quadratic probing with triangular numbers: 1, 3, 6, 10, 15, 21, 28, ...
         int triNum = 0, triStep = 0;
         while(true)
         {
             triNum = triNum + triStep++;
-            int idx = index(hash+triNum);
+            int idx = (hash+triNum) & hashMask; // equiv. to % table length
             Object entry = setEntries[idx];
             if(entry == null)
                 return false;
@@ -284,13 +284,13 @@ class CheapIterator implements Iterator
     public boolean remove(Object o)
     {
         if(o == null) throw new NullPointerException("CheapSet cannot contain nulls");
-        int hash = hashFunc.hashCodeFor(o);
+        int hash = index(hashFunc.hashCodeFor(o));
         // For quadratic probing with triangular numbers: 1, 3, 6, 10, 15, 21, 28, ...
         int triNum = 0, triStep = 0;
         while(true)
         {
             triNum = triNum + triStep++;
-            int idx = index(hash+triNum);
+            int idx = (hash+triNum) & hashMask; // equiv. to % table length
             Object entry = setEntries[idx];
             if(entry == null)
                 return false;
@@ -312,7 +312,7 @@ class CheapIterator implements Iterator
     { return setSize; }
 //}}}
 
-/*{{{ FOR TESTING ONLY: main        */
+/*{{{ FOR TESTING ONLY: main        * /
 //##############################################################################
     public static void main(String[] args)
     {
