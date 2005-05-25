@@ -12,10 +12,18 @@
     Make a KiNG tool that uses the foos (KingFooTool)
     Think on defn of "wet" foos (water touches edge? center?)
     Allow ModelManager to switch between alt confs and create new ones
+  * Probe "within" should use ctr of bounding box, not centroid
+        This may require renaming the "center" parameter
+    Show histogram of cluster sizes for SequenceSpacer (maybe in kin text?)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 0.49 ###
+- added neighbor discovery to SequenceSpacer and hyperlinked views
+- added aspects to connections between sequences
+- added print-out of mutations to other neighbors
 
 ### 0.48 ###
 - modified dezymer.SequenceTree to (1) use a radial layout and (2) use BLOSUM-
