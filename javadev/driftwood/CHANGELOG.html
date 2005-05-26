@@ -33,11 +33,16 @@ UTIL: {{{
 ==============================================================================
 
 ### 0.71 ###
+### 0.71 ###
 - modified CheapSet to apply secondary hash function only once. This keeps the
   memory addresses of probe positions actually spaced at the triangular numbers,
   which should improve cache locality substantially in large sets.
 - added data.ReverseComparator, which isn't provided in java.util.Collections
   until Java 1.5.
+- modified ProcessTank to check for process termination less often, because
+  the check can generate an expensive-to-process exception.
+- fixed ReclickListSelectionModel bug that caused multiple events to the
+  listeners for every mouse click.
 
 ### 0.70 ###
 - added moldb2.ModelState.fillInForModel() to deal with alt conf weirdnesses.

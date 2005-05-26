@@ -37,9 +37,9 @@ import driftwood.util.*;
 <ul>
 <li><b>{pdbfile}</b> the full path and file name for the "base" PDB file</li>
 <li><b>{molten}</b> a comma-separated list of residue numbers for molten residues</li>
-<li><b>{center}</b> the center of view for the current kinemage</li>
-<li><b>{centroid}</b> the center of mass for all molten atoms</li>
-<li><b>{radius}</b> distance from the {centroid} that captures all molten atoms plus a 5A buffer</li>
+<li><b>{viewcenter}</b> the center of view for the current kinemage</li>
+<li><b>{bbcenter}</b> the center of the bounding box for all molten atoms</li>
+<li><b>{bbradius}</b> distance from the {bbcenter} that captures all molten atoms plus a 5A buffer</li>
 </ul>
 *
 * <p>Be careful -- stray instances of this class will prevent
@@ -175,22 +175,22 @@ public class BgKinRunner implements Runnable
         }
         float[] ctr = kin.getCurrentView().getCenter();
         String viewCtr = ctr[0]+", "+ctr[1]+", "+ctr[2];
-        Triple centroid = getCentroid(residues, state);
-        double radius = getRadius(residues, state, centroid) + 5.0;
+        Triple[] bbox = getBoundingBox(residues, state);
+        double radius = bbox[1].mag() + 5.0;
         
         // Splice in parameters and parse out command line
         String[] cmdKeys = {
             "pdbfile",
             "molten",
-            "center",
-            "centroid",
-            "radius"
+            "viewcenter",
+            "bbcenter",
+            "bbradius"
         };
         String[] cmdParams = {
             pdbfile.getCanonicalPath(),
             resCommas.toString(),
             viewCtr,
-            centroid.format(df, ", "),
+            bbox[0].format(df, ", "),
             df.format(radius)
         };
         // MessageFormat doesn't work well here so we roll our own:
@@ -214,7 +214,7 @@ public class BgKinRunner implements Runnable
         // Buffer output to decrease latency and chance of deadlock?
         ProcessTank tank = new ProcessTank();
         if(!tank.fillTank(proc, helperTimeout))
-            SoftLog.err.println("*** Abnormal (forced) termination of background process '"+cmdTokens[0]+"'!");
+            SoftLog.err.println("*** Forced termination of background process '"+cmdTokens[0]+"'!");
         
         // Try to interpret what it sends back
         KinfileParser parser = new KinfileParser();
@@ -249,12 +249,12 @@ public class BgKinRunner implements Runnable
     }
 //}}}
 
-//{{{ getCentroid, getRadius
+//{{{ getBoundingBox
 //##################################################################################################
-    /** Centroid of all mobile atoms */
-    Triple getCentroid(Collection residues, ModelState state)
+    /** (center, halfwidths) of bounding box for all mobile atoms */
+    Triple[] getBoundingBox(Collection residues, ModelState state)
     {
-        Triple ctr = new Triple();
+        ArrayList atomStates = new ArrayList(20*residues.size());
         int cnt = 0;
         for(Iterator ri = residues.iterator(); ri.hasNext(); )
         {
@@ -262,29 +262,15 @@ public class BgKinRunner implements Runnable
             for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
             {
                 Atom a = (Atom) ai.next();
-                try { ctr.add( state.get(a) ); cnt++; }
+                try { atomStates.add( state.get(a) ); cnt++; }
                 catch(AtomException ex) {}
             }
         }
-        ctr.div(cnt);
-        return ctr;
-    }
-    
-    /** Maximum radius from centroid to any atom. */
-    double getRadius(Collection residues, ModelState state, Triple ctr)
-    {
-        double radius2 = 0;
-        for(Iterator ri = residues.iterator(); ri.hasNext(); )
-        {
-            Residue r = (Residue) ri.next();
-            for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
-            {
-                Atom a = (Atom) ai.next();
-                try { radius2 = Math.max(radius2, ctr.sqDistance(state.get(a))); }
-                catch(AtomException ex) {}
-            }
-        }
-        return Math.sqrt(radius2);
+        Builder builder = new Builder();
+        Triple[] bbox = builder.makeBoundingBox(atomStates);
+        bbox[0].add(bbox[1]).div(2);
+        bbox[1].sub(bbox[0]);
+        return bbox;
     }
 //}}}
 
@@ -398,7 +384,9 @@ public class BgKinRunner implements Runnable
         Object[] msg = {
             "{pdbfile} is the full path to the PDB file",
             "{molten} is a list of molten residues: 1,2,3",
-            "{center} is the current center of view: x, y, z",
+            "{viewcenter} is the current center of view: x, y, z",
+            "{bbcenter} is the center of the bounding box for molten atoms: x, y, z",
+            "{bbradius} is the 'radius' of the bounding box for molten atoms: x, y, z",
         };
         
         Object input = JOptionPane.showInputDialog(dlgParent,

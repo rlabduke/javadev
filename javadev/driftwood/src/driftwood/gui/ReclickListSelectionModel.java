@@ -164,6 +164,10 @@ public class ReclickListSelectionModel implements ListSelectionModel
 //##############################################################################
     protected void fireValueChanged()
     {
+        // Changes to selection may call multiple functions, but we want to
+        // avoid sending multiple events to our listeners!
+        if(this.getValueIsAdjusting()) return;
+        
         ListSelectionEvent ev = new ListSelectionEvent(this.ourList,
             0, this.ourList.getModel().getSize()-1, this.isAdjusting);
         for(Iterator iter = this.listeners.iterator(); iter.hasNext(); )

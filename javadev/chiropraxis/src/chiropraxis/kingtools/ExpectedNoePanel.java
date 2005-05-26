@@ -63,7 +63,7 @@ public class ExpectedNoePanel extends TablePane implements ActionListener, Chang
         //tfDisplaySel.addActionListener(this);
         
         cmDisplaySel = new AttentiveComboBox(
-            new Object[] { "{molten}", "within 5 of {center}", "all", "viol" });
+            new Object[] { "{molten}", "within 5 of {viewcenter}", "all", "viol" });
         //cmDisplaySel.setEditable(true); -- redundant
         cmDisplaySel.addActionListener(this);
         

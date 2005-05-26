@@ -21,10 +21,6 @@ import java.util.*;
 * can read and process data at its leisure, without worrying about
 * deadlock caused by full buffers.
 *
-* In the future, this class may also include a runaway process monitor
-* that can kill off external processes that don't expire within a given
-* window...
-*
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri May 16 18:51:18 EDT 2003
 */
@@ -80,18 +76,20 @@ public class ProcessTank //extends ... implements ...
     *   Defaults to 0 (no timeout criterion will be applied).
     * @param killRunaway    if a timeout was specified, should a Process
     *   that has timed out be forcibly terminated (destroy()ed)? Defaults to true.
+    * @return true if the process exited on its own; false if it was killed forcibly.
     */
     public boolean fillTank(Process process, long timeout, boolean killRunaway) throws IOException
     {
-        if(process == null)
-            throw new IllegalArgumentException("Must provide a non-null process");
+        long enterTime, exitTime, lastReadTime, lastExitCheckTime;
+        int outReadCount = 0, errReadCount = 0, exitCheckCount = 0;
         
         InputStream outStream = process.getInputStream();
         InputStream errStream = process.getErrorStream();
         int outAvail, errAvail;
-        byte[] buffer = new byte[2048];
+        byte[] buffer = new byte[32*1024];
         boolean finished = false;
-        long timestamp = System.currentTimeMillis();
+        boolean returnCode = true; // assume normal termination
+        enterTime = lastReadTime = lastExitCheckTime = System.currentTimeMillis();
         
         while(!finished)
         {
@@ -99,8 +97,10 @@ public class ProcessTank //extends ... implements ...
             outAvail = outStream.available();
             if(outAvail > 0)
             {
+                //System.err.println("Reading!");
                 outAvail = outStream.read(buffer, 0, Math.min(buffer.length, outAvail));
                 outTank.write(buffer, 0, outAvail);
+                outReadCount++;
             }
             
             // Try reading from stderr (without blocking)
@@ -109,31 +109,49 @@ public class ProcessTank //extends ... implements ...
             {
                 errAvail = errStream.read(buffer, 0, Math.min(buffer.length, errAvail));
                 errTank.write(buffer, 0, errAvail);
+                errReadCount++;
             }
             
-            // If no data was read in this pass,
-            // try checking the exit code of the process.
-            // This will throw an exception if it's still running.
+            // If no data was read in this pass, try checking the exit code of the process.
+            // This will throw an exception if the process is still running.
+            // Thus we check the exit code a maximum of once every 50 ms, to avoid swamping the system.
+            long currTime = System.currentTimeMillis();
+            long sinceLastExitCheck = currTime - lastExitCheckTime;
             if(outAvail <= 0 && errAvail <= 0)
             {
-                try
+                if(sinceLastExitCheck >= 50)
                 {
-                    process.exitValue(); // may throw ITSEx
-                    finished = true;
-                }
-                catch(IllegalThreadStateException ex)
-                {
-                    // Check for timeout condition -- timeout set, data read, and enough time elapsed
-                    if(timeout > 0 && System.currentTimeMillis() - timestamp > timeout)
+                    try
                     {
+                        lastExitCheckTime = currTime;
+                        exitCheckCount++;
+                        process.exitValue(); // may throw ITSEx
                         finished = true;
-                        if(killRunaway) process.destroy();
-                        return false; // abnormal termination
                     }
-                }//try-catch(check exit code)
+                    catch(IllegalThreadStateException ex)
+                    {
+                        // Check for timeout condition -- timeout set, data read, and enough time elapsed
+                        long sinceLastRead = currTime - lastReadTime;
+                        if(timeout > 0 && sinceLastRead > timeout)
+                        {
+                            finished = true;
+                            if(killRunaway) process.destroy();
+                            returnCode = false; // abnormal termination
+                            break;
+                        }
+                    }//try-catch(check exit code)
+                }
+                else
+                {
+                    // No data read this pass, but we checked the exit code recently.
+                    // Sleep for a while and try again later.
+                    //System.err.println("Sleeping...");
+                    try { Thread.sleep(50); }
+                    catch(InterruptedException ex) {}
+                }
             }//if(no data read this time)
             else
-            { timestamp = System.currentTimeMillis(); }
+            { lastReadTime = currTime; }
             
             // Play nice and let other threads run.
             // This may matter if the process isn't running
@@ -141,7 +159,11 @@ public class ProcessTank //extends ... implements ...
             Thread.yield();
         }//while(not finished)
         
-        return true; // normal termination
+        exitTime = System.currentTimeMillis();
+        //System.err.println("exit("+exitTime+") - enter("+enterTime+") = "+(exitTime-enterTime)+" ms ellapsed");
+        //System.err.println("stdout reads: "+outReadCount+"    stderr reads: "+errReadCount+"    exit checks: "+exitCheckCount);
+        
+        return returnCode;
     }
 //}}}
 

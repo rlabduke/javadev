@@ -893,7 +893,7 @@ public class ModelManager2 extends Plugin
             
             // Incomplete, will be completed in a moment
             String probeCmd = " -quiet -kin -drop -mc -both -stdbonds '(file1 "
-                +"within {radius} of {centroid} not water not({molten})),file2' 'file2' '{pdbfile}' -";
+                +"within {bbradius} of {bbcenter} not water not({molten})),file2' 'file2' '{pdbfile}' -";
             probePlotter = new BgKinRunner(kMain, kin, probeCmd);
             String probeExe = probePlotter.findProgram("probe");
             probePlotter.setCommand(probeExe+probeCmd); // now complete cmd line
