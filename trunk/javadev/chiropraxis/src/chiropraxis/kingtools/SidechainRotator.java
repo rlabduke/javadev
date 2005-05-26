@@ -210,7 +210,10 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
     public void stateChanged(ChangeEvent ev)
     {
         setFeedback();
-        modelman.requestStateRefresh();
+        // This keeps us from running Probe N times when a rotamer with
+        // N angles is selected from the list! (Maybe?)
+        if(!isUpdating())
+            modelman.requestStateRefresh();
     }
     
     /* Gets called when a new rotamer is picked from the list */
