@@ -36,7 +36,7 @@ public class PointComparator implements Comparator {
     Props     scProps;
     ArrayList heteroAtoms;
     ArrayList hydrogens;
-    ArrayList allAtoms;
+    static ArrayList allAtoms;
 //}}}
 
 //{{{ Constructor(s)
@@ -61,7 +61,7 @@ public class PointComparator implements Comparator {
      * specification given for Comparator.
      */
     public int compare(Object o1, Object o2) {
-	int value = 0;
+	long value = 0;
 	if ((o1 instanceof AbstractPoint) && (o2 instanceof AbstractPoint)) {
 	    AbstractPoint point1 = (AbstractPoint) o1;
 	    AbstractPoint point2 = (AbstractPoint) o2;
@@ -78,28 +78,37 @@ public class PointComparator implements Comparator {
 	    //	value = ((int)(calc/Math.abs(calc)));
 	    //}
 
-	    int atomPosition = allAtoms.indexOf(atom1) - allAtoms.indexOf(atom2);
-	    value = atomPosition * 1000;
+	    //int atomPosition = allAtoms.indexOf(atom1) - allAtoms.indexOf(atom2);
+	    int atomPosition = getAtomNamePosition(p1name) - getAtomNamePosition(p2name);
+	    value = atomPosition * 10;
 
 	    
-	    value = value + getResAA(p1name).compareTo(getResAA(p2name)) * 1000000;
+	    value = value + getResAA(p1name).compareTo(getResAA(p2name)) * 1000;
 	
 	    
-	    value = value + (getResNumber(p1name) - getResNumber(p2name)) * 1000000000;
+	    value = value + (getResNumber(p1name) - getResNumber(p2name)) * 1000000;
 	    //return value;
 	    if (value == 0) {
 		System.out.println(p1name + ", " + p2name + ": " + value);
 	    }
 	}
-	return value;
+	//return value;
+	if (value < 0) {
+	    return -1;
+	} else if (value == 0) {
+	    return 0;
+	} else {
+	    return 1;
+	}
     }
+
 
 //{{{ get functions
 //##################################################################################################
     /**
      * Functions that extract various info from pointIDs.
      */
-    public int getResNumber(String name) {
+    public static int getResNumber(String name) {
 	//String name = point.getName().trim();
 	String[] uncleanParsed = name.split(" ");
 	String[] parsed = new String[uncleanParsed.length];
@@ -116,9 +125,12 @@ public class PointComparator implements Comparator {
 	// another pass to see if there are any AAName + int in name.
 	if (parsed[1].length() > 3) {
 	    String parseValue = parsed[1].substring(3);
-	    if (isNumeric(parseValue)) {
-		//System.out.print(parseValue + " ");
-		return Integer.parseInt(parseValue);
+	    String potentialAA = parsed[1].substring(0, 3);
+	    if (AminoAcid.isAminoAcid(potentialAA)) {
+		if (isNumeric(parseValue)) {
+		    //System.out.print(parseValue + " ");
+		    return Integer.parseInt(parseValue);
+		}
 	    }
 	}
 	// one pass to see if there are any straight up ints in the name
@@ -135,7 +147,7 @@ public class PointComparator implements Comparator {
 	return -1;
     }
 
-    public String getResAA(String name) {
+    public static String getResAA(String name) {
 	String[] uncleanParsed = name.split(" ");
 	String[] parsed = new String[uncleanParsed.length];
         int i2 = 0;
@@ -143,13 +155,16 @@ public class PointComparator implements Comparator {
 	
 	for (int i = 0; i < uncleanParsed.length; i++) {
 	    String unclean = uncleanParsed[i];
-	    if ((!unclean.equals(""))&&(!unclean.equals(" "))) {
+	    //System.out.println(unclean);
+	    if ((!unclean.equals(""))&&(!unclean.equals(" "))&&(unclean != null)) {
 		parsed[i2] = unclean;
 		i2++;
 	    }
+	    //if (unclean
 	}
 	for (int i = 0; i < parsed.length; i++) {
 	    String parseValue = parsed[i];
+	    //System.out.println(parseValue);
 	    //System.out.println(parseValue + ", " + i);
 	    if (parseValue.length()==3){
 		if (AminoAcid.isAminoAcid(parseValue)) {
@@ -160,7 +175,7 @@ public class PointComparator implements Comparator {
 	return "UNK";
     }
 
-    public boolean isNumeric(String s) {
+    public static boolean isNumeric(String s) {
 	try {
 	    Integer.parseInt(s);
 	    return true;
@@ -248,4 +263,53 @@ public class PointComparator implements Comparator {
 	//System.out.println(list);
     }
 
+    public int getAtomNamePosition(String name) {
+	for (int i = allAtoms.size() - 1; i >= 0; i--) {
+	    String atom = ((String) allAtoms.get(i)).trim();
+	    if (atom.length() == 1) {
+		atom = " " + atom + " ";
+	    } else if (atom.length() == 2) {
+		atom = " " + atom + " ";
+	    } else if (atom.length() == 3) {
+		if (isNumeric(atom.substring(0, 1))) {
+		    atom = atom + " ";
+		} else {
+		    atom = " " + atom;
+		}
+	    }
+	    //System.out.print(atom + ",");
+	    if (name.indexOf(atom)>-1) {
+		//System.out.print(atom + ",");
+		return i;
+	    }
+	}
+	return -1;
+    }
+
+    public static String getAtomName(String name) {
+	for (int i = allAtoms.size() - 1; i >= 0; i--) {
+	    String atom = ((String) allAtoms.get(i)).trim();
+	    if (atom.length() == 1) {
+		atom = " " + atom + " ";
+	    } else if (atom.length() == 2) {
+		atom = " " + atom + " ";
+	    } else if (atom.length() == 3) {
+		if (isNumeric(atom.substring(0, 1))) {
+		    atom = atom + " ";
+		} else {
+		    atom = " " + atom;
+		}
+	    }
+	    //System.out.print(atom + ",");
+	    if (name.indexOf(atom)>-1) {
+		//System.out.print(atom + ",");
+		if (atom.length() == 3) {
+		    return atom + " ";
+		} else {
+		    return atom;
+		}
+	    }
+	}
+	return "UNK ";
+    }
 }

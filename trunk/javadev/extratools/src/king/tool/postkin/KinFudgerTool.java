@@ -206,6 +206,7 @@ public class KinFudgerTool extends BasicTool {
 		while (groupIters.hasNext()) {
 		    KSubgroup sub = (KSubgroup) groupIters.next();
 		    Iterator subIters = sub.iterator();
+		    if (sub.isOn()) {
 		    while (subIters.hasNext()) {
 			KList list = (KList) subIters.next();
 			if (list.isOn()) {
@@ -215,7 +216,7 @@ public class KinFudgerTool extends BasicTool {
 				if (next instanceof VectorPoint) {
 				    VectorPoint currPoint = (VectorPoint) next;
 				    
-				    if (!currPoint.isBreak()) {
+				    if ((!currPoint.isBreak())&&(currPoint.isOn())) {
 					VectorPoint prevPoint = (VectorPoint) currPoint.getPrev();
 					addPoints(prevPoint, currPoint);
 					addPoints(currPoint, prevPoint);
@@ -223,6 +224,7 @@ public class KinFudgerTool extends BasicTool {
 				}
 			    }
 			}
+		    }
 		    }
 		}
 	    }
@@ -440,17 +442,32 @@ public class KinFudgerTool extends BasicTool {
 	    Writer w = new FileWriter(f);
 	    PrintWriter out = new PrintWriter(new BufferedWriter(w));
 	    //Set keys = adjacencyMap.keySet();
-	    TreeSet keyTree = new TreeSet(new PointComparator());
+	    int i = 1;
+	    PointComparator pc = new PointComparator();
+	    TreeSet keyTree = new TreeSet(pc);
 	    keyTree.addAll(adjacencyMap.keySet());
 	    Iterator iter = keyTree.iterator();
 	    while (iter.hasNext()) {
 		AbstractPoint point = (AbstractPoint) iter.next();
-		out.print("ATOM      1 ");
-		out.print(point.getName().toUpperCase().substring(0, 8) + "  " + point.getName().toUpperCase().substring(8) + "     ");
+		out.print("ATOM  ");
+		String atomNum = String.valueOf(i);
+		while (atomNum.length()<5) {
+		    atomNum = " " + atomNum;
+		}
+		out.print(atomNum + " ");
+		//out.print(point.getName().toUpperCase().substring(0, 8) + "  " + point.getName().toUpperCase().substring(8) + "     ");
+		String atomName = PointComparator.getAtomName(point.getName().toUpperCase());
+		if (atomName.equals("UNK ")) {
+		    
+		}
+		out.print(PointComparator.getAtomName(point.getName().toUpperCase()) + " ");
+		out.print(PointComparator.getResAA(point.getName().toUpperCase()) + "  ");
+		out.print(PointComparator.getResNumber(point.getName().toUpperCase()) + "    ");
 		out.print(formatCoords(point.getX()) + "  ");
 		out.print(formatCoords(point.getY()) + "  ");
 		out.print(formatCoords(point.getZ()) + "  ");
 		out.println("1.00  0.00");
+		i++;
 	    }
 	    out.flush();
 	    w.close();
