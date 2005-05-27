@@ -450,11 +450,11 @@ public class KinFudgerTool extends BasicTool {
 	    while (iter.hasNext()) {
 		AbstractPoint point = (AbstractPoint) iter.next();
 		out.print("ATOM  ");
-		String atomNum = String.valueOf(i);
-		while (atomNum.length()<5) {
-		    atomNum = " " + atomNum;
-		}
-		out.print(atomNum + " ");
+		//String atomNum = String.valueOf(i);
+		//while (atomNum.length()<5) {
+		//    atomNum = " " + atomNum;
+		//}
+		out.print(formatStrings(String.valueOf(i), 5) + " ");
 		//out.print(point.getName().toUpperCase().substring(0, 8) + "  " + point.getName().toUpperCase().substring(8) + "     ");
 		String atomName = PointComparator.getAtomName(point.getName().toUpperCase());
 		if (atomName.equals("UNK ")) {
@@ -462,11 +462,11 @@ public class KinFudgerTool extends BasicTool {
 		}
 		out.print(PointComparator.getAtomName(point.getName().toUpperCase()) + " ");
 		out.print(PointComparator.getResAA(point.getName().toUpperCase()) + "  ");
-		out.print(PointComparator.getResNumber(point.getName().toUpperCase()) + "    ");
-		out.print(formatCoords(point.getX()) + "  ");
-		out.print(formatCoords(point.getY()) + "  ");
-		out.print(formatCoords(point.getZ()) + "  ");
-		out.println("1.00  0.00");
+		out.print(formatStrings(String.valueOf(PointComparator.getResNumber(point.getName().toUpperCase())), 4) + "    ");
+		out.print(formatStrings(df.format(point.getX()), 8));
+		out.print(formatStrings(df.format(point.getY()), 8));
+		out.print(formatStrings(df.format(point.getZ()), 8));
+		out.println("  1.00  0.00");
 		i++;
 	    }
 	    out.flush();
@@ -478,11 +478,15 @@ public class KinFudgerTool extends BasicTool {
         }
     }
 
-    public String formatCoords(double coord) {
-	if (coord < 0) {
-	    return (df.format(coord));
+    public String formatStrings(String value, int numSpaces) {
+	while (value.length() < numSpaces) {
+	    value = " " + value;
 	}
-	return " " + (df.format(coord));
+	return value;
+	//if (coord < 0) {
+	//    return (df.format(coord));
+	//}
+	//return " " + (df.format(coord));
     }
 
 	

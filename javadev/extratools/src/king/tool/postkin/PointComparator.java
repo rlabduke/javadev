@@ -134,7 +134,7 @@ public class PointComparator implements Comparator {
 	    }
 	}
 	// one pass to see if there are any straight up ints in the name
-	for (int i = 0; i < parsed.length; i++) {
+	for (int i = 0; i < i2; i++) {
 	    String parseValue = parsed[i];
 	    //System.out.println(parseValue + ", " + i);
 	    if (isNumeric(parseValue)) {
@@ -162,8 +162,11 @@ public class PointComparator implements Comparator {
 	    }
 	    //if (unclean
 	}
-	for (int i = 0; i < parsed.length; i++) {
+	for (int i = 0; i < i2; i++) {
 	    String parseValue = parsed[i];
+	    if (parseValue == null) {
+		System.out.println(name + ", " + i + ", " + parsed.length);
+	    }
 	    //System.out.println(parseValue);
 	    //System.out.println(parseValue + ", " + i);
 	    if (parseValue.length()==3){
