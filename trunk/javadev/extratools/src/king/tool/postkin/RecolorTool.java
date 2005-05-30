@@ -9,8 +9,11 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.text.*;
+import java.net.*;
+
 import driftwood.gui.*;
 import driftwood.moldb2.AminoAcid;
+import driftwood.util.SoftLog;
 import javax.swing.*;
 import javax.swing.event.*;
 //}}}
@@ -465,6 +468,20 @@ public class RecolorTool extends BasicTool implements ActionListener {
     /** Returns a component with controls and options for this tool */
     protected Container getToolPanel()
     { return dialog; }
+
+    /** Returns the URL of a web page explaining use of this tool */
+    public URL getHelpURL()
+    {
+        URL     url     = getClass().getResource("/extratools/tools-manual.html");
+        String  anchor  = getHelpAnchor();
+        if(url != null && anchor != null)
+        {
+            try { url = new URL(url, anchor); }
+            catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+            return url;
+        }
+        else return null;
+    }
 
     public String getHelpAnchor()
     { return "#recolor-tool"; }
