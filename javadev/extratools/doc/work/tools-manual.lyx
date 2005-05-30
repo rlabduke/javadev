@@ -109,7 +109,7 @@ Dock
 \begin_inset Quotes eld
 \end_inset 
 
-least sqaures
+least squares
 \begin_inset Quotes erd
 \end_inset 
 
@@ -163,7 +163,7 @@ This tool does not differentiate between a point in the electron density
  Also, once the first polyhedron has been selected, moving the electron
  density around and selecting a polyhedron may result in an error.
  If this happens, the program will have to be restarted in order to selected
- a polyhedron not in the inital set.
+ a polyhedron not in the initial set.
 \layout Section
 
 90 Degree Rotations: Seeing precisely
@@ -214,6 +214,113 @@ The lathe tool takes a single polyline and sweeps it out around an axis
  The standard axis of rotation is the Y-axis, with rotation centered at
  the origin, so keep this in mind when drawing a half-profile to use with
  this tool.
+\layout Chapter
+
+Editing kinemages
+\layout Standard
+
+Several new tools have been created that allow kinemages to be more easily
+ edited without having to go back to the original PDB and creating a new
+ kinemage.
+\layout Section
+
+Recoloring
+\begin_inset LatexCommand \label{recolor-tool}
+
+\end_inset 
+
+
+\layout Standard
+
+KiNG now has the ability to easily recolor kinemages.
+ This tool was designed to specifically recolor protein structure kinemages;
+ however, it can probably be used to recolor other kinds of kinemages as
+ well.
+ It allows specific regions of a structure to be recolored.
+ For example, a specific amino acid, a particular alpha helix, or a whole
+ subunit can be highlighted.
+ This tool can also create a table of the amino acids in a structure.
+\layout Standard
+
+The control panel for this tool has a number of options.
+ The top line contains the color options, the second line contains the area
+ of effect options, and the third line contains info boxes about what you
+ are coloring and some extra control options.
+ Most of the coloring is activated by clicking on the structure.
+ It is important to note that this tool only recolors lists and subgroups,
+ so depending on your kinemage, it is possible to color the sidechains separatel
+y from the backbone.
+ Also, this tool only colors by point color.
+ 
+\layout Section
+
+Kinemage Fudging
+\begin_inset LatexCommand \label{kinfudger-tool}
+
+\end_inset 
+
+
+\layout Standard
+
+The KinFudger tool now allows distance and angles between points to be easily
+ adjusted.
+ This is especially useful in modifying bond distances, angles, and dihedrals
+ in macromolecular structures.
+ 
+\layout Standard
+
+The control panel is simple, consisting of options for the parameter you
+ wish to adjust, whether you want to move only one point (and all attached
+ single points--I use this to move an atom and its attached hydrogens),
+ and a button to export your kin to PDB.
+\layout Subsection
+
+Adjusting bond distances, angles, and dihedrals
+\layout Standard
+
+In order to adjust a parameter, select the parameter you wish to adjust
+ and click on the kinemage points you want to adjust, in order as if you
+ were doing measures.
+ By default, the tool will move the last point you clicked on, plus all
+ the points connected to that point excluding the points 
+\begin_inset Quotes eld
+\end_inset 
+
+behind
+\begin_inset Quotes erd
+\end_inset 
+
+ the points you clicked.
+ So for example, if you had a A-B-C-D connection, and you were adjusting
+ the distance between B and C, and you clicked on B first, then C, then
+ the program would move C and D.
+ Likewise, if you clicked on C first, and then B, the program would move
+ A and B.
+ Naturally, the connectivity finding algorithm I use gets confused if you
+ are adjusting with a cyclic structure, so be careful in that situation.
+\layout Standard
+
+An interesting use I discovered about this tool is that you can use the
+ distance adjusting to do a one-point docking of structures to close gaps.
+ 
+\layout Subsection
+
+Exporting to PDB
+\layout Standard
+
+The KinFudger also includes an export to PDB functionality.
+ As long as your kinemage PointIDs are formatted in a standard fashion,
+ the tool will export all active points to a PDB file.
+ So turn off anything you don't want in your PDB.
+ Also, if it encounters an non-standard atom name, it will output 
+\begin_inset Quotes eld
+\end_inset 
+
+UNK
+\begin_inset Quotes erd
+\end_inset 
+
+ in the atom field of the PDB.
 \layout Chapter
 
 Exporting kinemages in other formats
@@ -348,5 +455,6 @@ The Extratools code and all its associated original resources and documentation
 Revision status
 \layout Standard
 
-This manual was last updated 4 May 2005 by IWD for Extratools version 1.00.
+This manual was last updated 30 May 2005 by VBC for Extratools version 1.00
+ (added chapter about kinemage editing).
 \the_end

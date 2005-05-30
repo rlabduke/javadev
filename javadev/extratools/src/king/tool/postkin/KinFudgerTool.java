@@ -7,6 +7,8 @@ import king.core.*;
 
 import driftwood.r3.*;
 import driftwood.gui.*;
+import driftwood.util.SoftLog;
+import java.net.*;
 
 import java.awt.*;
 import javax.swing.*;
@@ -497,8 +499,22 @@ public class KinFudgerTool extends BasicTool {
     protected Container getToolPanel()
     { return pane; }
 
+    /** Returns the URL of a web page explaining use of this tool */
+    public URL getHelpURL()
+    {
+        URL     url     = getClass().getResource("/extratools/tools-manual.html");
+        String  anchor  = getHelpAnchor();
+        if(url != null && anchor != null)
+        {
+            try { url = new URL(url, anchor); }
+            catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+            return url;
+        }
+        else return null;
+    }
+
     public String getHelpAnchor()
-    { return null; }
+    { return "#kinfudger-tool"; }
 
     public String toString() { return "Fudge Kins"; }
 //}}}
