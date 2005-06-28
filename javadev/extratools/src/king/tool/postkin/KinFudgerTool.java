@@ -35,6 +35,8 @@ public class KinFudgerTool extends BasicTool {
 
     AbstractPoint firstClick, secondClick, thirdClick;
 
+    AbstractPoint draggedPoint = null;
+
 //}}}
 
 
@@ -193,7 +195,108 @@ public class KinFudgerTool extends BasicTool {
 	return choice;
     }
 
-    
+    public void mousePressed(MouseEvent ev)
+    {
+        super.mousePressed(ev);
+	//AbstractPoint draggedPoint = null;
+        if(kMain.getKinemage() != null) {
+	    buildAdjacencyList();
+            draggedPoint = (AbstractPoint) kCanvas.getEngine().pickPoint(ev.getX(), ev.getY(), services.doSuperpick.isSelected());
+	}
+        else {draggedPoint = null;}
+        // Otherwise, we just create a nonsensical warning message about stereo picking
+        
+        if(draggedPoint == null)
+            mobilePoints = new HashSet();
+        else
+        {
+	    mobilityFinder(null, draggedPoint);
+        }
+    }    
+
+//{{{ xx_drag() functions
+//##################################################################################################
+    /** Override this function for (left-button) drags */
+    public void drag(int dx, int dy, MouseEvent ev)
+    {
+        KingView v = kMain.getView();
+        if(v != null && draggedPoint != null)
+        {
+
+	    Dimension dim = kCanvas.getCanvasSize();
+	    float[] center = v.getCenter();
+	    float[] offset = v.translateRotated(ev.getX() - dim.width/2, dim.height/2 - ev.getY(), 0, Math.min(dim.width, dim.height));
+	    Triple origCoord = new Triple().like(draggedPoint);
+	    //System.out.println(origCoord);
+	    origCoord = (new Triple(center[0]+offset[0], center[1]+offset[1], center[2]+offset[2])).sub(origCoord);
+	    //System.out.println(origCoord);
+
+	    draggedPoint.setX(draggedPoint.getX() + origCoord.getX());
+	    draggedPoint.setY(draggedPoint.getY() + origCoord.getY());
+	    draggedPoint.setZ(draggedPoint.getZ() + origCoord.getZ());  
+
+
+	    Kinemage kin = kMain.getKinemage();
+	    Iterator iter = kin.iterator();
+	    while (iter.hasNext()) {
+		KGroup group = (KGroup) iter.next();
+		if (group.isOn()) {
+		    Iterator groupIters = group.iterator();
+		    while (groupIters.hasNext()) {
+			KSubgroup sub = (KSubgroup) groupIters.next();
+			Iterator subIters = sub.iterator();
+			while (subIters.hasNext()) {
+			    KList list = (KList) subIters.next();
+			    Iterator listIter = list.iterator();
+			    while (listIter.hasNext()) {
+				AbstractPoint point = (AbstractPoint) listIter.next();
+				if (mobilePoints.contains(point)) {
+				    //System.out.println("Moving: " + point);
+				    //mobilePoints.remove(point);
+				    point.setX(point.getX() + origCoord.getX());
+				    point.setY(point.getY() + origCoord.getY());
+				    point.setZ(point.getZ() + origCoord.getZ());  
+				    mobilePoints.add(clonePoint(point));
+				}
+				
+			    }
+			}
+		    }
+		}
+	    }
+	    
+	    /*
+	    Iterator iter = mobilePoints.iterator();
+	    while (iter.hasNext()) {
+		AbstractPoint point = (AbstractPoint) iter.next();
+		
+		//Dimension dim = kCanvas.getCanvasSize();
+		//float[] center = v.getCenter();
+		//float[] offset = v.translateRotated(ev.getX() - dim.width/2, dim.height/2 - ev.getY(), 0, Math.min(dim.width, dim.height));
+		//Triple origCoord = new Triple().like(draggedPoint);
+		//System.out.print("moving");
+		//origCoord.sub(new Triple(center[0]+offset[0], center[1]+offset[1], center[2]+offset[2]));
+		//System.out.print(point.getX() + " ");
+
+		//point.setX(point.getX() + origCoord.getX());
+		//point.setY(point.getY() + origCoord.getY());
+		//point.setZ(point.getZ() + origCoord.getZ());
+
+		//System.out.println(point.getX());
+		point.setX(center[0]+offset[0]);
+		point.setY(center[1]+offset[1]);
+		point.setZ(center[2]+offset[2]);
+		
+		//synchronized(stateMan) { stateMan.setPoint(stateMan.getIndex(mouseTug)); }
+		//synchronized(stateMan) { stateMan.setState(); }
+		//synchronized(this) { this.notifyAll(); }
+		//kCanvas.repaint();
+		}*/
+	    kCanvas.repaint();
+	}
+        else super.drag(dx, dy, ev);
+    }
+//}}}
 
 
     public void buildAdjacencyList() {
