@@ -17,3 +17,4 @@ king.tool.sequence.FastaTool
 king.tool.data_analysis.CrossWindowPickTool
 king.tool.data_analysis.AutoBondRotDataTool
 king.tool.postkin.KinFudgerTool
+king.tool.postkin.RamaTool
