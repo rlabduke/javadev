@@ -250,9 +250,18 @@ class CheapIterator implements Iterator
     }
 //}}}
 
-//{{{ contains
+//{{{ contains, get
 //##############################################################################
     public boolean contains(Object o)
+    { return (get(o) != null); }
+    
+    /**
+    * Given an object o that <i>compares as equal</i> to some object present in
+    * the set, this function returns the actual object from the set, else it
+    * returns null (which isn't a valid set member anyway).
+    * This is useful for doing uniquification operations like String.intern().
+    */
+    public Object get(Object o)
     {
         if(o == null) throw new NullPointerException("CheapSet cannot contain nulls");
         int hash = index(hashFunc.hashCodeFor(o));
@@ -264,11 +273,11 @@ class CheapIterator implements Iterator
             int idx = (hash+triNum) & hashMask; // equiv. to % table length
             Object entry = setEntries[idx];
             if(entry == null)
-                return false;
+                return null; // == false in contains()
             else if(entry == DELETED_PROXY)
                 continue;
             else if(hashFunc.areEqual(entry, o))
-                return true;
+                return entry; // == true in contains()
         }
     }
 //}}}

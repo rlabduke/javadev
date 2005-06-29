@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- This script was automatically generated using Zero G's InstallAnywhere 5.5.1 Now, Build 2032
      STATUS: Fully Functional LICENSED Edition
-     DATE:   Tue May 24 16:39:36 EDT 2005 -->
+     DATE:   Thu May 26 17:17:56 EDT 2005 -->
 <InstallAnywhere_Deployment_Project increments="1554">
 	<!-- ** DO NOT EDIT ** Essential authorization and configuration data ** DO NOT EDIT ** -->
 	<essentialScriptInfo>
@@ -10,7 +10,7 @@
 		<scriptID>12,42,11,90,83,49,52,48,53,76,81,66,70,67,78,72</scriptID>
 		<buildID>3,13,71,77,97,99,32,79,83,32,88,44,32,49,48,46,51,46,57,44,32,112,112,99,59,32,74,97,118,97,32,49,46,51,46,49,44,32,65,112,112,108,101,32,67,111,109,112,117,116,101,114,44,32,73,110,99,46,44,32,104,116,116,112,58,47,47,97,112,112,108,101,46,99,111,109,47,59,32,101,110,44,32,85,83,59,32,77,97,99,82,111,109,97,110</buildID>
 		<!-- The authorizationID may change between project saves and builds.  This does not effect the integrity of the project, nor do changes in this value represent changes in the actual InstallAnywhere project. -->
-		<authorizationID>1,0,0,0,24,107,-128,-64,80,112,112,97,87,98,113,97,113,65,81,51,74,65,78,68,71,68,64,69,66,69,48,79,87,5,2,5,9,30,112,4,1,0,0</authorizationID>
+		<authorizationID>1,0,0,0,24,-37,80,64,80,112,112,97,87,98,113,97,113,65,81,51,74,65,78,68,71,68,64,69,66,69,48,79,87,5,2,8,10,30,122,4,1,0,0</authorizationID>
 	</essentialScriptInfo>
 	<installationObjects uniqueObjects="80">
 		<object class="com.zerog.ia.installer.Installer" objectID="5351b8a1a760">
@@ -176,7 +176,7 @@ it will search for ones in this list]]></string>
 								</object>
 							</method>
 							<method name="addElement">
-								<object class="com.zerog.ia.installer.util.LAXPropertyData" objectID="23ee035a9a96">
+								<object class="com.zerog.ia.installer.util.LAXPropertyData" objectID="2e5f238e9a96">
 									<property name="propertyValue">
 										<string><![CDATA[king.KingMain]]></string>
 									</property>
@@ -260,7 +260,7 @@ and any path to a file to read from that file]]></string>
 								<string><![CDATA[king.jar]]></string>
 							</property>
 							<property name="fileSize">
-								<long>504280</long>
+								<long>504066</long>
 							</property>
 							<property name="macBinary">
 								<boolean>false</boolean>
@@ -723,7 +723,7 @@ Press "Done" to quit the installer.]]></string>
 				<object class="java.util.Properties">
 					<method name="put">
 						<string><![CDATA[com.zerog.ia.project.save.last.date]]></string>
-						<string><![CDATA[Tue May 24 16:39:35 EDT 2005]]></string>
+						<string><![CDATA[Thu May 26 17:17:56 EDT 2005]]></string>
 					</method>
 					<method name="put">
 						<string><![CDATA[com.zerog.ia.build.options.optimization.platform.merge]]></string>
@@ -767,7 +767,7 @@ Press "Done" to quit the installer.]]></string>
 					</method>
 					<method name="put">
 						<string><![CDATA[com.zerog.ia.project.build.last.date]]></string>
-						<string><![CDATA[Tue May 24 16:39:35 EDT 2005]]></string>
+						<string><![CDATA[Thu May 26 17:17:56 EDT 2005]]></string>
 					</method>
 					<method name="put">
 						<string><![CDATA[com.zerog.ia.installer.options.heap.size.initial]]></string>
@@ -967,7 +967,7 @@ Press "Done" to quit the installer.]]></string>
 						<int>1</int>
 					</property>
 					<property name="productVersionMinor">
-						<int>42</int>
+						<int>43</int>
 					</property>
 					<property name="productVersionRevision">
 						<int>0</int>
@@ -1413,7 +1413,7 @@ and any path to a file to read from that file]]></string>
 												<string><![CDATA[chiropraxis.jar]]></string>
 											</property>
 											<property name="fileSize">
-												<long>2015643</long>
+												<long>2017412</long>
 											</property>
 											<property name="macBinary">
 												<boolean>false</boolean>
@@ -1471,7 +1471,7 @@ and any path to a file to read from that file]]></string>
 												<string><![CDATA[dot_king_prefs.txt]]></string>
 											</property>
 											<property name="fileSize">
-												<long>4487</long>
+												<long>4488</long>
 											</property>
 											<property name="macBinary">
 												<boolean>false</boolean>

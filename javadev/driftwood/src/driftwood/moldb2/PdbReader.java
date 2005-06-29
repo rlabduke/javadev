@@ -50,6 +50,9 @@ public class PdbReader //extends ... implements ...
     /** A surrogate atom serial number if necessary */
     int         autoSerial;
     
+    /** A map for intern'ing Strings */
+    CheapSet    stringCache = new CheapSet();
+    
     /** If true, drop leading and trailing whitespace from seg IDs */
     boolean     trimSegID       = false;
     /** If true, segment IDs will define chains and thus must be consistent within one residue. */
@@ -67,7 +70,7 @@ public class PdbReader //extends ... implements ...
     }
 //}}}
 
-//{{{ init/clearData
+//{{{ init/clearData, intern
 //##################################################################################################
     void initData()
     {
@@ -83,6 +86,19 @@ public class PdbReader //extends ... implements ...
         model       = null;
         residues    = null;
         autoSerial  = -9999;
+        stringCache.clear();
+    }
+    
+    /** Like String.intern(), but the cache is discarded after reading the file. */
+    String intern(String s)
+    {
+        String t = (String) stringCache.get(s);
+        if(t == null)
+        {
+            stringCache.add(s);
+            return s;
+        }
+        else return t;
     }
 //}}}
 
@@ -150,7 +166,7 @@ public class PdbReader //extends ... implements ...
                     String six;
                     if(s.length() >= 6) six = s.substring(0,6);
                     else                six = s;
-                    group.addHeader(six, s);
+                    group.addHeader(intern(six), s);
                 }
             }
             catch(IndexOutOfBoundsException ex)
@@ -189,7 +205,7 @@ public class PdbReader //extends ... implements ...
         
         String serial = s.substring(6, 11);
         AtomState state = new AtomState(a, serial);
-        String altConf = s.substring(16, 17);
+        String altConf = intern(s.substring(16, 17));
         state.setAltConf(altConf);
         
         // We're now ready to add this to a ModelState
@@ -260,10 +276,11 @@ public class PdbReader //extends ... implements ...
         if(r == null)
         {
             if(trimSegID) segID = segID.trim();
-            String  chainID = s.substring(21,22);
-            String  seqNum  = s.substring(22,26);
-            String  insCode = s.substring(26,27);
-            String  resName = s.substring(17,20);
+                    segID   = intern(segID);
+            String  chainID = intern(s.substring(21,22));
+            String  seqNum  = intern(s.substring(22,26));
+            String  insCode = intern(s.substring(26,27));
+            String  resName = intern(s.substring(17,20));
             r = new Residue(chainID, segID, seqNum, insCode, resName);
             residues.put(key, r);
             try
@@ -293,7 +310,7 @@ public class PdbReader //extends ... implements ...
         Atom    a   = r.getAtom(id);
         if(a == null)
         {
-            a = new Atom(id, s.startsWith("HETATM"));
+            a = new Atom(intern(id), s.startsWith("HETATM"));
             try { r.add(a); }
             catch(AtomException ex)
             {
