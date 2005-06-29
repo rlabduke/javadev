@@ -235,7 +235,7 @@ public class KinFudgerTool extends BasicTool {
 	    draggedPoint.setY(draggedPoint.getY() + origCoord.getY());
 	    draggedPoint.setZ(draggedPoint.getZ() + origCoord.getZ());  
 
-
+	    HashSet tempSet = new HashSet();  // for storing new, moved coords temporarily for mobilePoints
 	    Kinemage kin = kMain.getKinemage();
 	    Iterator iter = kin.iterator();
 	    while (iter.hasNext()) {
@@ -256,7 +256,7 @@ public class KinFudgerTool extends BasicTool {
 				    point.setX(point.getX() + origCoord.getX());
 				    point.setY(point.getY() + origCoord.getY());
 				    point.setZ(point.getZ() + origCoord.getZ());  
-				    mobilePoints.add(clonePoint(point));
+				    tempSet.add(clonePoint(point));
 				}
 				
 			    }
@@ -264,6 +264,8 @@ public class KinFudgerTool extends BasicTool {
 		    }
 		}
 	    }
+	    mobilePoints.clear();
+	    mobilePoints.addAll(tempSet);
 	    
 	    /*
 	    Iterator iter = mobilePoints.iterator();
