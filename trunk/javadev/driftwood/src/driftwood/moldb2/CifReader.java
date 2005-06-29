@@ -11,6 +11,7 @@ import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
 //import driftwood.*;
+import driftwood.data.*;
 import driftwood.star.*;
 import driftwood.util.SoftLog;
 //}}}
@@ -53,6 +54,7 @@ public class CifReader //extends ... implements ...
     Map modelMap = null; // maps model names as Strings to Model objects
     Map resMap = null; // maps res pseudonames as Strings to Residue objects
     int fakeResNumber = 1; // used for waters, etc. that lack residue numbers
+    CheapSet stringCache = new CheapSet(); // a map for intern'ing Strings
 //}}}
 
 //{{{ Constructor(s)
@@ -60,6 +62,21 @@ public class CifReader //extends ... implements ...
     public CifReader()
     {
         super();
+    }
+//}}}
+
+//{{{ init/clearData, intern
+//##################################################################################################
+    /** Like String.intern(), but the cache is discarded after reading the file. */
+    String intern(String s)
+    {
+        String t = (String) stringCache.get(s);
+        if(t == null)
+        {
+            stringCache.add(s);
+            return s;
+        }
+        else return t;
     }
 //}}}
 
@@ -112,6 +129,7 @@ public class CifReader //extends ... implements ...
         this.modelMap   = new HashMap();
         this.resMap     = new HashMap();
         this.fakeResNumber = 1;
+        this.stringCache.clear();
         for(int i = 0; i < numRecords; i++)
         {
             Model       model   = getModel(i);
@@ -207,6 +225,7 @@ public class CifReader //extends ... implements ...
         Model m = (Model) modelMap.get(modelName);
         if(m == null)
         {
+            modelName = intern(modelName);
             m = new Model(modelName);
             modelMap.put(modelName, m);
             this.modelGroup.add(m);
@@ -241,7 +260,7 @@ public class CifReader //extends ... implements ...
                 //if(insCode.length() > 1) insCode = insCode.substring(0,1);
                 if(".".equals(insCode) || "?".equals(insCode) || insCode.length() == 0) insCode = " ";
             }
-            r = new Residue(asymId, "", seqId, insCode, compId);
+            r = new Residue(intern(asymId), "", intern(seqId), intern(insCode), intern(compId));
             resMap.put(resLookup, r);
             try { m.add(r); }
             catch(ResidueException ex) { ex.printStackTrace(); } // logical error
@@ -259,7 +278,7 @@ public class CifReader //extends ... implements ...
         Atom a = r.getAtom(name);
         if(a == null)
         {
-            a = new Atom(name, (groupPdb == null ? false : ((String)groupPdb.get(i)).equals("HETATM")));
+            a = new Atom(intern(name), (groupPdb == null ? false : ((String)groupPdb.get(i)).equals("HETATM")));
             try { r.add(a); }
             catch(AtomException ex) { ex.printStackTrace(); }
         }
@@ -323,14 +342,14 @@ public class CifReader //extends ... implements ...
     /** Creates an AtomState object for the specified line */
     AtomState buildAtomState(Atom a, int i)
     {
-        AtomState as = new AtomState(a, (String) atomSiteId.get(i));
+        AtomState as = new AtomState(a, intern((String) atomSiteId.get(i)));
         
         if(labelAltId != null)
         {
             String altId = (String) labelAltId.get(i);
             //if(altId.length() > 1) altId = altId.substring(0,1);
             if(".".equals(altId) || "?".equals(altId) || altId.length() == 0) altId = " ";
-            as.setAltConf(altId);
+            as.setAltConf(intern(altId));
         }
         if(cartnX != null)
         {

@@ -22,6 +22,7 @@ import driftwood.moldb2.*;
 public class Test //extends ... implements ...
 {
 //{{{ Constants
+    static final DecimalFormat memdf = new DecimalFormat("##0.0E0");
 //}}}
 
 //{{{ Variable definitions
@@ -142,10 +143,12 @@ public class Test //extends ... implements ...
         Model       model       = modelGroup.getFirstModel();
         time = System.currentTimeMillis() - time;
         System.err.println("Loading PDB:         "+time+" ms");
+        System.err.println("Mem. usage:          "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
         
         PrintWriter out = new PrintWriter(kinOut);
         doModel(model, out);
         out.flush();
+        System.err.println("Mem. usage:          "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
     }
 
     public void doCIF(Reader cifIn, Writer kinOut) throws IOException
@@ -156,10 +159,12 @@ public class Test //extends ... implements ...
         Model       model       = modelGroup.getFirstModel();
         time = System.currentTimeMillis() - time;
         System.err.println("Loading mmCIF:       "+time+" ms");
+        System.err.println("Mem. usage:          "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
         
         PrintWriter out = new PrintWriter(kinOut);
         doModel(model, out);
         out.flush();
+        System.err.println("Mem. usage:          "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
     }
 //}}}
 
