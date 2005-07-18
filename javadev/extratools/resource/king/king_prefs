@@ -8,6 +8,7 @@ king.tool.data_analysis.CrossWindowPickTool.menuName = Specialty
 king.tool.data_analysis.AutoBondRotDataTool.menuName = Specialty
 king.tool.docking.Dock3On3Tool.menuName = Kin editing
 king.tool.docking.DockLsqTool.menuName = Kin editing
+king.tool.docking.DockConnTool.menuName = Kin editing
 king.tool.views.ViewpointPlugin.menuName = <main menu>
 king.tool.views.ClipPlanesPlugin.menuName = Specialty
 king.tool.rnaxtal.RNAMapTool.menuName = Specialty

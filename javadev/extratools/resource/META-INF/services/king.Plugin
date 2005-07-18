@@ -10,6 +10,7 @@ king.tool.draw.LathePlugin
 # Tools
 king.tool.docking.Dock3On3Tool
 king.tool.docking.DockLsqTool
+king.tool.docking.DockConnTool
 king.tool.rnaxtal.RNAMapTool
 king.tool.rnaxtal.GuilloTool
 king.tool.postkin.RecolorTool
