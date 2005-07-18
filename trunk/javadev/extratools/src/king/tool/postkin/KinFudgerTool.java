@@ -266,34 +266,7 @@ public class KinFudgerTool extends BasicTool {
 	    }
 	    mobilePoints.clear();
 	    mobilePoints.addAll(tempSet);
-	    
-	    /*
-	    Iterator iter = mobilePoints.iterator();
-	    while (iter.hasNext()) {
-		AbstractPoint point = (AbstractPoint) iter.next();
-		
-		//Dimension dim = kCanvas.getCanvasSize();
-		//float[] center = v.getCenter();
-		//float[] offset = v.translateRotated(ev.getX() - dim.width/2, dim.height/2 - ev.getY(), 0, Math.min(dim.width, dim.height));
-		//Triple origCoord = new Triple().like(draggedPoint);
-		//System.out.print("moving");
-		//origCoord.sub(new Triple(center[0]+offset[0], center[1]+offset[1], center[2]+offset[2]));
-		//System.out.print(point.getX() + " ");
 
-		//point.setX(point.getX() + origCoord.getX());
-		//point.setY(point.getY() + origCoord.getY());
-		//point.setZ(point.getZ() + origCoord.getZ());
-
-		//System.out.println(point.getX());
-		point.setX(center[0]+offset[0]);
-		point.setY(center[1]+offset[1]);
-		point.setZ(center[2]+offset[2]);
-		
-		//synchronized(stateMan) { stateMan.setPoint(stateMan.getIndex(mouseTug)); }
-		//synchronized(stateMan) { stateMan.setState(); }
-		//synchronized(this) { this.notifyAll(); }
-		//kCanvas.repaint();
-		}*/
 	    kCanvas.repaint();
 	}
         else super.drag(dx, dy, ev);

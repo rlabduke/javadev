@@ -252,6 +252,20 @@ The control panel for this tool has a number of options.
 y from the backbone.
  Also, this tool only colors by point color.
  
+\layout Standard
+
+Usage tip: There seems to be some issues with serine sidechains not being
+ able to be colored.
+ To work around this, try turning on the 
+\begin_inset Quotes eld
+\end_inset 
+
+Pick Objects
+\begin_inset Quotes erd
+\end_inset 
+
+ option in the Tools menu, and click directly on a bond in the sidechain.
+ 
 \layout Section
 
 Kinemage Fudging
