@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- This script was automatically generated using Zero G's InstallAnywhere 5.5.1 Now, Build 2032
      STATUS: Fully Functional LICENSED Edition
-     DATE:   Thu May 26 17:17:56 EDT 2005 -->
-<InstallAnywhere_Deployment_Project increments="1554">
+     DATE:   Wed Jul 06 11:10:31 EDT 2005 -->
+<InstallAnywhere_Deployment_Project increments="1574">
 	<!-- ** DO NOT EDIT ** Essential authorization and configuration data ** DO NOT EDIT ** -->
 	<essentialScriptInfo>
 		<versionID major="5" minor="5" revision="1"/>
 		<editionID>53,46,53,46,49,32,78,111,119,32,66,117,105,108,100,32,50,48,51,50</editionID>
 		<scriptID>12,42,11,90,83,49,52,48,53,76,81,66,70,67,78,72</scriptID>
-		<buildID>3,13,71,77,97,99,32,79,83,32,88,44,32,49,48,46,51,46,57,44,32,112,112,99,59,32,74,97,118,97,32,49,46,51,46,49,44,32,65,112,112,108,101,32,67,111,109,112,117,116,101,114,44,32,73,110,99,46,44,32,104,116,116,112,58,47,47,97,112,112,108,101,46,99,111,109,47,59,32,101,110,44,32,85,83,59,32,77,97,99,82,111,109,97,110</buildID>
+		<buildID>3,13,71,77,97,99,32,79,83,32,88,44,32,49,48,46,52,46,49,44,32,112,112,99,59,32,74,97,118,97,32,49,46,51,46,49,95,49,53,44,32,65,112,112,108,101,32,67,111,109,112,117,116,101,114,44,32,73,110,99,46,44,32,104,116,116,112,58,47,47,97,112,112,108,101,46,99,111,109,47,59,32,101,110,44,32,85,83,59,32,77,97,99,82,111,109,97,110</buildID>
 		<!-- The authorizationID may change between project saves and builds.  This does not effect the integrity of the project, nor do changes in this value represent changes in the actual InstallAnywhere project. -->
-		<authorizationID>1,0,0,0,24,-37,80,64,80,112,112,97,87,98,113,97,113,65,81,51,74,65,78,68,71,68,64,69,66,69,48,79,87,5,2,8,10,30,122,4,1,0,0</authorizationID>
+		<authorizationID>1,0,0,0,-24,-68,-80,80,80,112,112,97,87,98,113,97,113,65,81,51,74,65,78,68,71,68,64,69,66,69,48,79,87,5,2,15,2,18,124,4,1,0,0</authorizationID>
 	</essentialScriptInfo>
-	<installationObjects uniqueObjects="80">
+	<installationObjects uniqueObjects="81">
 		<object class="com.zerog.ia.installer.Installer" objectID="5351b8a1a760">
 			<property name="wizardME">
 				<object class="com.zerog.ia.installer.actions.MakeExecutable" objectID="5351d34da762">
@@ -176,7 +176,7 @@ it will search for ones in this list]]></string>
 								</object>
 							</method>
 							<method name="addElement">
-								<object class="com.zerog.ia.installer.util.LAXPropertyData" objectID="2e5f238e9a96">
+								<object class="com.zerog.ia.installer.util.LAXPropertyData" objectID="0032348cba9b">
 									<property name="propertyValue">
 										<string><![CDATA[king.KingMain]]></string>
 									</property>
@@ -723,7 +723,7 @@ Press "Done" to quit the installer.]]></string>
 				<object class="java.util.Properties">
 					<method name="put">
 						<string><![CDATA[com.zerog.ia.project.save.last.date]]></string>
-						<string><![CDATA[Thu May 26 17:17:56 EDT 2005]]></string>
+						<string><![CDATA[Wed Jul 06 11:10:30 EDT 2005]]></string>
 					</method>
 					<method name="put">
 						<string><![CDATA[com.zerog.ia.build.options.optimization.platform.merge]]></string>
@@ -1616,36 +1616,6 @@ and any path to a file to read from that file]]></string>
 												<int>0</int>
 											</property>
 										</object>
-										<object class="com.zerog.ia.installer.actions.InstallDirectory" objectID="41846b5484f4">
-											<property name="unixPermissions">
-												<string><![CDATA[775]]></string>
-											</property>
-											<property name="sourceName">
-												<string><![CDATA[]]></string>
-											</property>
-											<property name="overrideUnixPermissions">
-												<boolean>false</boolean>
-											</property>
-											<property name="sourcePath">
-												<string><![CDATA[/Users/ian/javadev/king/plugins]]></string>
-											</property>
-											<property name="shouldUninstall">
-												<boolean>true</boolean>
-											</property>
-											<property name="destinationName">
-												<string><![CDATA[plugins]]></string>
-											</property>
-											<property name="removeRecursively">
-												<boolean>false</boolean>
-											</property>
-											<property name="macBinary">
-												<boolean>false</boolean>
-											</property>
-											<visualChildren>
-												<object refID="41846b6784f9"/>
-												<object refID="201f918884f6"/>
-											</visualChildren>
-										</object>
 										<object class="com.zerog.ia.installer.actions.InstallFile" objectID="201fe64c84f6">
 											<property name="unixPermissions">
 												<string><![CDATA[664]]></string>
@@ -1916,6 +1886,66 @@ and any path to a file to read from that file]]></string>
 													</property>
 												</object>
 											</rules>
+										</object>
+										<object class="com.zerog.ia.installer.actions.InstallZipfile" objectID="0033abfeba9c">
+											<property name="unixPermissions">
+												<string><![CDATA[664]]></string>
+											</property>
+											<property name="sourceName">
+												<string><![CDATA[extratools.jar]]></string>
+											</property>
+											<property name="overrideUnixPermissions">
+												<boolean>false</boolean>
+											</property>
+											<property name="sourcePath">
+												<string><![CDATA[/Users/ian/javadev/king/dist/king/plugins/]]></string>
+											</property>
+											<property name="shouldUninstall">
+												<boolean>true</boolean>
+											</property>
+											<property name="destinationName">
+												<string><![CDATA[extratools.jar]]></string>
+											</property>
+											<property name="fileSize">
+												<long>-1</long>
+											</property>
+											<property name="macBinary">
+												<boolean>false</boolean>
+											</property>
+											<property name="targetCheckKind">
+												<int>0</int>
+											</property>
+										</object>
+										<object class="com.zerog.ia.installer.actions.InstallDirectory" objectID="41846b5484f4">
+											<property name="unixPermissions">
+												<string><![CDATA[775]]></string>
+											</property>
+											<property name="sourceName">
+												<string><![CDATA[]]></string>
+											</property>
+											<property name="overrideUnixPermissions">
+												<boolean>false</boolean>
+											</property>
+											<property name="sourcePath">
+												<string><![CDATA[/Users/ian/javadev/king/plugins]]></string>
+											</property>
+											<property name="shouldUninstall">
+												<boolean>true</boolean>
+											</property>
+											<property name="destinationName">
+												<string><![CDATA[plugins]]></string>
+											</property>
+											<property name="removeRecursively">
+												<boolean>false</boolean>
+											</property>
+											<property name="macBinary">
+												<boolean>false</boolean>
+											</property>
+											<visualChildren>
+												<object refID="41846b6784f9"/>
+												<object refID="201f918884f6"/>
+												<object refID="0033abfeba9c"/>
+											</visualChildren>
 										</object>
 									</installChildren>
 								</object>

@@ -272,11 +272,14 @@ public class UIMenus //extends ... implements ...
         item.setMnemonic(KeyEvent.VK_P);
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, MENU_ACCEL_MASK));
         menu.add(item);
-        menu.addSeparator();
-        item = new JMenuItem(new ReflectiveAction("Exit", null, this, "onFileExit"));
-        item.setMnemonic(KeyEvent.VK_X);
-        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, MENU_ACCEL_MASK));
-        menu.add(item);
+        if(applet == null) // => not in an applet
+        {
+            menu.addSeparator();
+            item = new JMenuItem(new ReflectiveAction("Exit", null, this, "onFileExit"));
+            item.setMnemonic(KeyEvent.VK_X);
+            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, MENU_ACCEL_MASK));
+            menu.add(item);
+        }
     }
 //}}}
 
