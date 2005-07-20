@@ -81,7 +81,7 @@ public class BackrubTool extends ModelingTool
     }
 //}}}
 
-//{{{ c_click, markAnchor, wheel, c_wheel
+//{{{ c_click
 //##################################################################################################
     /** Override this function for middle-button/control clicks */
     public void c_click(int x, int y, KPoint p, MouseEvent ev)
@@ -104,14 +104,6 @@ public class BackrubTool extends ModelingTool
             }
         }
     }
-    
-    public void wheel(int rotation, MouseEvent ev)
-    {
-        //hingeDial.setDegrees(hingeDial.getDegrees()-rotation);
-    }
-    
-    public void c_wheel(int rotation, MouseEvent ev)
-    { super.wheel(rotation, ev); }
 //}}}
 
 //{{{ empty_code_segment

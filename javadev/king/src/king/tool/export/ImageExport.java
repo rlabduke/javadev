@@ -37,7 +37,7 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
 //{{{ Variable definitions
 //##############################################################################
     JFileChooser        chooser;
-    SuffixFileFilter    jpgFilter, pngFilter;
+    SuffixFileFilter    jpgFilter, pngFilter, pngtFilter;
 //}}}
 
 //{{{ Constructor(s)
@@ -53,17 +53,20 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
 //##############################################################################
     private void buildChooser()
     {
-        pngFilter = new SuffixFileFilter("Portable Network Graphics (PNG)");
-        pngFilter.addSuffix(".png");
         jpgFilter = new SuffixFileFilter("Joint Photographic Experts Group (JPEG)");
         jpgFilter.addSuffix(".jpg");
         jpgFilter.addSuffix(".jpe");
         jpgFilter.addSuffix(".jpeg");
+        pngFilter = new SuffixFileFilter("Portable Network Graphics (PNG)");
+        pngFilter.addSuffix(".png");
+        pngtFilter = new SuffixFileFilter("PNG with transparent background");
+        pngtFilter.addSuffix(".png");
         
         String currdir = System.getProperty("user.dir");
         chooser = new JFileChooser();
-        chooser.addChoosableFileFilter(pngFilter);
         chooser.addChoosableFileFilter(jpgFilter);
+        chooser.addChoosableFileFilter(pngFilter);
+        chooser.addChoosableFileFilter(pngtFilter);
         chooser.setAcceptAllFileFilterUsed(false);
         chooser.setFileFilter(jpgFilter);
         if(currdir != null) chooser.setCurrentDirectory(new File(currdir));
@@ -75,6 +78,10 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
 //##############################################################################
     static public void exportImage(KinCanvas kCanvas, String format, File outfile)
         throws IOException
+    { exportImage(kCanvas, format, false, outfile); }
+
+    static public void exportImage(KinCanvas kCanvas, String format, boolean transparentBackground, File outfile)
+        throws IOException
     {
         Dimension       dim = kCanvas.getCanvasSize();
         BufferedImage   img;
@@ -84,8 +91,10 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
         else
             img = new BufferedImage(dim.width, dim.height,
             BufferedImage.TYPE_INT_BGR); // this avoids color problems with JPEG and gives smaller files (?)
-        Graphics2D      g2  = img.createGraphics();
         
+        Graphics2D g2 = img.createGraphics();
+        if(transparentBackground)
+            kCanvas.getEngine().setTransparentBackground();
         kCanvas.paintCanvas(g2, dim, KinCanvas.QUALITY_BEST);
         
         // This ensures we get high-quality JPEGs
@@ -153,12 +162,9 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
         // Show the Save dialog
         if(JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(kMain.getTopWindow()))
         {
-            String fmt;
+            String fmt = getFormat();
+
             javax.swing.filechooser.FileFilter filter = chooser.getFileFilter();
-            if(pngFilter.equals(filter))        fmt = "png";
-            else if(jpgFilter.equals(filter))   fmt = "jpg";
-            else                                fmt = "jpg"; // shouldn't happen
-            
             File f = chooser.getSelectedFile();
             if(!filter.accept(f) &&
             JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(kMain.getTopWindow(),
@@ -174,7 +180,7 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
             "This file exists -- do you want to overwrite it?",
             "Overwrite file?", JOptionPane.YES_NO_OPTION))
             {
-                try { exportImage(kMain.getCanvas(), fmt, f); }
+                try { exportImage(kMain.getCanvas(), fmt, pngtFilter.equals(filter), f); }
                 catch(IOException ex)
                 {
                     JOptionPane.showMessageDialog(kMain.getTopWindow(),
@@ -187,8 +193,19 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
     }
 //}}}
 
-//{{{ propertyChange, run
+//{{{ getFormat, propertyChange, run
 //##################################################################################################
+    String getFormat()
+    {
+        String fmt;
+        javax.swing.filechooser.FileFilter filter = chooser.getFileFilter();
+        if(pngFilter.equals(filter))        fmt = "png";
+        else if(pngtFilter.equals(filter))  fmt = "png";
+        else if(jpgFilter.equals(filter))   fmt = "jpg";
+        else                                fmt = "jpg"; // shouldn't happen
+        return fmt;
+    }
+    
     public void propertyChange(PropertyChangeEvent ev)
     {
         if(ev == null || JFileChooser.FILE_FILTER_CHANGED_PROPERTY.equals(ev.getPropertyName()))
@@ -196,28 +213,19 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
             // Has to be done "asynchronously" or file name will be corrupted
             SwingUtilities.invokeLater(this);
         }
-        // Example from other KiNG code:
-        //if(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY.equals(ev.getPropertyName()))
-        //...
     }
     
     public void run()
     {
-        String fmt = null;
-        if(pngFilter.equals(chooser.getFileFilter()))           fmt = "png";
-        else if(jpgFilter.equals(chooser.getFileFilter()))      fmt = "jpg";
-        
-        if(fmt != null)
+        String fmt = getFormat();
+        // Autogenerate an output name.
+        for(int i = 1; i < 1000; i++)
         {
-            // Autogenerate an output name.
-            for(int i = 1; i < 1000; i++)
+            File f = new File("kingsnap"+i+"."+fmt);
+            if(!f.exists())
             {
-                File f = new File("kingsnap"+i+"."+fmt);
-                if(!f.exists())
-                {
-                    chooser.setSelectedFile(f);
-                    break;
-                }
+                chooser.setSelectedFile(f);
+                break;
             }
         }
     }

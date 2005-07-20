@@ -78,11 +78,22 @@ public class LogViewer extends JDialog
         cp.hfill(false).vfill(false).weights(0,0);
         cp.left().add(clear);
         cp.right().add(save);
+        
+        ActionMap am = this.getRootPane().getActionMap();
+        InputMap  im = this.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        am.put("close-window", new ReflectiveAction("", null, this, "onClose"));
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_W , Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), "close-window" );
     }
 //}}}
 
-//{{{ onClear, onSave
+//{{{ onClose, onClear, onSave
 //##############################################################################
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onClose(ActionEvent ev)
+    {
+        this.dispose();
+    }
+
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onClear(ActionEvent ev)
     {

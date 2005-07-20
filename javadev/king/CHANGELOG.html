@@ -63,17 +63,12 @@
     Choose OpenGL (if avail) by default at startup IFF set in .king_prefs
     For multi-click draw ops, "miss" should reset?
     Add a movieFade() to beanking for doing transitions!
-    Copy chiropraxis, extratools PDFs into dist/doc/
-    Backrub tool breaks mouse wheel zooming (use windowActivated to set target?)
+  * Copy chiropraxis, extratools PDFs into dist/doc/
     Document new aspect convention: space means use the default point/list color
-    Enable Cmd+W for error log window (A. Mantler)
     Use E+H 2000 geometry for Pro?
     Backrub: sc first, then bb, no bb opt sc, leads to sc tool not fixing Cb dev
-    Allow saving images with NO/transparent background (how?)
-*** Add extratools.jar to InstallAnywhere script!!!
-    OPB: Prekin/Win keeps kin file open continuously
-    OPB: stray vectors on windows -- buffer flush issue?
     Draw tool - autolabel distances, angles
+  * Image/PDF export file naming broken (prob. re: what is cur. dir.?)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -82,6 +77,10 @@
 ### 1.44 ###
 - fixed memory specs in KiNG Mac bundle ("16MBm" to "16m" as memory size!)
   This is required for proper operation with Java 1.5.x
+- removed File | Exit menu choice when running as an applet
+- added extratools.jar to InstallAnywhere script (fixes missing tools on Win)
+- added mechanism to supress background painting to Engine
+- added transparent-background option to Image and PDF export tools
 
 ### 1.43 ###
 - changed AbstractPoint.getDrawingColor() to ignore unrecognized aspect codes.

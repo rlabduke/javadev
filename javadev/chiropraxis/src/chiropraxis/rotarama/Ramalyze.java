@@ -26,8 +26,8 @@ import driftwood.moldb2.*;
 public class Ramalyze //extends ... implements ...
 {
 //{{{ Constants
-    static final String MODE_PDF = "PDF document";
-    static final String MODE_KIN = "Kinemage";
+    public static final Object MODE_PDF = "PDF document";
+    //public static final Object MODE_KIN = "Kinemage";
 //}}}
 
 //{{{ CLASS: RamaEval
@@ -81,9 +81,7 @@ public class Ramalyze //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     File infile = null, outfile = null;
-    String mode = MODE_PDF;
-    
-    Ramachandran rama;
+    Object mode = MODE_PDF;
 //}}}
 
 //{{{ Constructor(s)
@@ -104,7 +102,7 @@ public class Ramalyze //extends ... implements ...
     * Takes a Collection of RamaEval objects and improves the residue names
     * by removing redundant chain IDs and/or segment IDs.
     */
-    void improveResidueNames(Collection analysis, boolean useModelNames)
+    static void improveResidueNames(Collection analysis, boolean useModelNames)
     {
         Set segIDs = new HashSet();
         Set chainIDs = new HashSet();
@@ -144,11 +142,13 @@ public class Ramalyze //extends ... implements ...
     * Performs Ramachandran analysis on one Model and its associated ModelStates.
     * @return a Set of RamaEval objects. One object is produced for each protein
     * residue with a measurable phi, psi and a unique conformation.
+    * @throws IOException if the Ramachandran evaluator cannot be loaded.
     */
-    public Set analyzeModel(Model model, Collection modelStates)
+    static public Set analyzeModel(Model model, Collection modelStates) throws IOException
     {
         String protein = "GLY,ALA,VAL,LEU,ILE,PRO,PHE,TYR,TRP,SER,THR,CYS,MET,MSE,LYS,HIS,ARG,ASP,ASN,GLN,GLU";
         UberSet analysis = new UberSet();
+        Ramachandran rama = Ramachandran.getInstance();
         
         for(Iterator ri = model.getResidues().iterator(); ri.hasNext(); )
         {
@@ -190,20 +190,21 @@ public class Ramalyze //extends ... implements ...
     }
 //}}}
 
-//{{{ Main, main
+//{{{ runAnalysis
 //##############################################################################
     /**
-    * Main() function for running as an application
+    * @param inputPdbFile the structure to analyze in standard PDB format
+    * @param out the destination for PDF, kinemage, whatever
+    * @param mode one of the MODE_XXX constants from this class
+    * @throws IOException if the Ramachandran evaluator can't be loaded,
+    *   or if the PDB file can't be read in.
+    * @throws IllegalArgumentException if an unknown mode is requested
     */
-    public void Main() throws IOException
+    static public void runAnalysis(InputStream inputPdbFile, OutputStream out, Object mode) throws IOException
+    { runAnalysis( (new PdbReader()).read(inputPdbFile), out, mode ); }
+    
+    static public void runAnalysis(ModelGroup modelGroup, OutputStream out, Object mode) throws IOException
     {
-        this.rama = Ramachandran.getInstance();
-        
-        PdbReader   pdbReader   = new PdbReader();
-        ModelGroup  modelGroup;
-        if(infile == null)  modelGroup = pdbReader.read(System.in);
-        else                modelGroup = pdbReader.read(infile);
-        
         Map analyses = new UberMap();
         for(Iterator iter = modelGroup.getModels().iterator(); iter.hasNext(); )
         {
@@ -222,15 +223,36 @@ public class Ramalyze //extends ... implements ...
         
         if(mode == MODE_PDF)
         {
-            OutputStream out;
-            if(outfile == null) out = System.out;
-            else out = new BufferedOutputStream(new FileOutputStream(outfile));
             RamaPdfWriter writer = new RamaPdfWriter();
             writer.createRamaPDF(analyses, label, out);
             try { out.flush(); }
             catch(IOException ex) {} // PdfWriter might have already closed it!
         }
         // TODO: else if(mode == MODE_KIN) ...
+        else throw new IllegalArgumentException("Unknown output mode: "+mode);
+    }
+//}}}
+
+///{{{ Main, main
+//##############################################################################
+    /**
+    * Main() function for running as an application
+    */
+    public void Main() throws IOException
+    {
+        PdbReader   pdbReader   = new PdbReader();
+        ModelGroup  modelGroup;
+        if(infile == null)  modelGroup = pdbReader.read(System.in);
+        else                modelGroup = pdbReader.read(infile);
+        
+        OutputStream out;
+        if(outfile == null) out = System.out;
+        else out = new BufferedOutputStream(new FileOutputStream(outfile));
+        
+        runAnalysis(modelGroup, out, this.mode);
+
+        try { out.flush(); out.close(); }
+        catch(IOException ex) {} // PdfWriter might have already closed it!
     }
 
     public static void main(String[] args)

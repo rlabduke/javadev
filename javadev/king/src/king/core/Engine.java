@@ -82,6 +82,7 @@ public class Engine //extends ... implements ...
     Rectangle           canvasRect = new Rectangle();
     float               pickingRadius = 5f;
     boolean             warnedPickingRegion = false; // have we warned user about out-of-bounds picks?
+    boolean             transparentBackground = false; // used only for certain export features
 //}}}
     
 //{{{ Constructor
@@ -125,18 +126,31 @@ public class Engine //extends ... implements ...
         
         // Get colors and prepare the graphics device
         painter.setViewport(bounds.x, bounds.y, bounds.width, bounds.height);
+        Color backgroundClearColor;
         if(whiteBackground)
         {
             if(monochrome)  backgroundMode = KPaint.WHITE_MONO;
             else            backgroundMode = KPaint.WHITE_COLOR;
-            painter.clearCanvas(KPaint.white);
+            backgroundClearColor = KPaint.white;
         }
         else
         {
             if(monochrome)  backgroundMode = KPaint.BLACK_MONO;
             else            backgroundMode = KPaint.BLACK_COLOR;
-            painter.clearCanvas(KPaint.black);
+            backgroundClearColor = KPaint.black;
         }
+        
+        if(this.transparentBackground)
+        {
+            backgroundClearColor = new Color(
+                backgroundClearColor.getRed(),
+                backgroundClearColor.getGreen(),
+                backgroundClearColor.getBlue(),
+                0); // alpha = 0  -->  transparent
+            this.transparentBackground = false; // disabled after one pass
+        }
+        
+        painter.clearCanvas(backgroundClearColor);
         
         // Set some last-minute drawing variables
         markerSize          = (bigMarkers   ? 2         : 1);
@@ -644,7 +658,7 @@ public class Engine //extends ... implements ...
     }
 //}}}
 
-//{{{ getNumberPainted, getCanvasSize
+//{{{ getNumberPainted, getCanvasSize, setTransparentBackground
 //##################################################################################################
     /** Calculates the number of KPoint objects that were "painted" in the last cycle. */
     public int getNumberPainted()
@@ -659,6 +673,14 @@ public class Engine //extends ... implements ...
     {
         return new Dimension(canvasRect.width, canvasRect.height);
     }
+    
+    /**
+    * Makes the background be rendered as transparent for the next pass ONLY.
+    * This is useful for certain export features that don't want a black/white
+    * box hanging around behind the image.
+    */
+    public void setTransparentBackground()
+    { this.transparentBackground = true; }
 //}}}
 
 //{{{ empty_code_segment

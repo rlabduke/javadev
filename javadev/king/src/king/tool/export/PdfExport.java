@@ -37,7 +37,7 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
 //{{{ Variable definitions
 //##############################################################################
     JFileChooser        chooser;
-    SuffixFileFilter    pdfFilter;
+    SuffixFileFilter    pdfFilter, pdftFilter;
 //}}}
 
 //{{{ Constructor(s)
@@ -55,10 +55,13 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
     {
         pdfFilter = new SuffixFileFilter("Portable Document Format (PDF)");
         pdfFilter.addSuffix(".pdf");
+        pdftFilter = new SuffixFileFilter("PDF with transparent background");
+        pdftFilter.addSuffix(".pdf");
         
         String currdir = System.getProperty("user.dir");
         chooser = new JFileChooser();
         chooser.addChoosableFileFilter(pdfFilter);
+        chooser.addChoosableFileFilter(pdftFilter);
         chooser.setFileFilter(pdfFilter);
         if(currdir != null) chooser.setCurrentDirectory(new File(currdir));
         chooser.addPropertyChangeListener(this);
@@ -68,6 +71,10 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
 //{{{ exportPDF
 //##############################################################################
     static public void exportPDF(KinCanvas kCanvas, File outfile)
+        throws IOException, DocumentException
+    { exportPDF(kCanvas, false, outfile); }
+    
+    static public void exportPDF(KinCanvas kCanvas, boolean transparentBackground, File outfile)
         throws IOException, DocumentException
     {
         Dimension   dim = kCanvas.getCanvasSize();
@@ -81,6 +88,8 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
         PdfContentByte  content     = pdf.getDirectContent();
         PdfTemplate     template    = content.createTemplate((float)dim.getWidth(), (float)dim.getHeight());
         Graphics2D      g2          = template.createGraphics((float)dim.getWidth(), (float)dim.getHeight());
+        if(transparentBackground)
+            kCanvas.getEngine().setTransparentBackground();
         kCanvas.paintCanvas(g2, dim, KinCanvas.QUALITY_BEST);
         g2.dispose();
         
@@ -130,7 +139,7 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
             {
                 try
                 {
-                    exportPDF(kMain.getCanvas(), f);
+                    exportPDF(kMain.getCanvas(), pdftFilter.equals(chooser.getFileFilter()), f);
                 }
                 catch(Exception ex)
                 {
@@ -153,9 +162,6 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
             // Has to be done "asynchronously" or file name will be corrupted
             SwingUtilities.invokeLater(this);
         }
-        // Example from other KiNG code:
-        //if(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY.equals(ev.getPropertyName()))
-        //...
     }
     
     public void run()
