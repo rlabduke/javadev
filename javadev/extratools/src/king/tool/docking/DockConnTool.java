@@ -9,6 +9,7 @@ import java.util.*;
 import java.awt.event.*;
 import javax.swing.*;
 import driftwood.r3.*;
+import driftwood.gui.*;
 
 public class DockConnTool extends DockLsqTool {
 
@@ -20,6 +21,7 @@ public class DockConnTool extends DockLsqTool {
     //TablePane       toolpane;
     //JRadioButton    btnReference, btnMobile;
     //JButton         btnDock;
+    JCheckBox keepRefBox;
     HashSet mobilePoints;
     HashMap adjacencyMap;
     AbstractPoint firstClick, secondClick;
@@ -32,18 +34,20 @@ public class DockConnTool extends DockLsqTool {
     {
         super(tb);
 
-        //buildGUI();
+        addGUI();
     }
 //}}}
 
 //{{{ buildGUI
 //##############################################################################
-    //private void buildGUI()
-    //{
-
-    //    btnDock = new JButton(new ReflectiveAction(
-    //        "Dock visible on invisible", null, this, "onDock"));
-
+    private void addGUI()
+    {
+	//super.buildGUI();
+        //btnDock = new JButton(new ReflectiveAction("Dock mobile on reference", null, this, "onDock"));
+	keepRefBox = new JCheckBox("Keep reference points", true);
+	toolpane.newRow();
+	toolpane.add(keepRefBox, 3, 1);
+    }
 
     //}
 
@@ -71,7 +75,7 @@ public class DockConnTool extends DockLsqTool {
 	    if (firstClick != null) {
 		buildAdjacencyList(false);
 		ArrayList list = pathFinder(firstClick, (AbstractPoint) p);
-		System.out.println(list.size());
+		//System.out.println(list.size());
 		Iterator iter = list.iterator();
 		while (iter.hasNext()) {
 		    AbstractPoint point = (AbstractPoint) iter.next();
@@ -175,6 +179,9 @@ public class DockConnTool extends DockLsqTool {
 	while (iter.hasNext()) {
 	    AbstractPoint point = (AbstractPoint) iter.next();
 	    ArrayList list = new ArrayList();
+	    if (!first.equals(point)) {
+		list.add(first);
+	    }
 	    list.add(point);
 	    branchLists.put(point, list);
 	    queue.addLast(point);
@@ -287,8 +294,11 @@ public class DockConnTool extends DockLsqTool {
         // Swap which button is selected
         if(btnReference.isSelected())   btnMobile.setSelected(true);
         else                            btnReference.setSelected(true);
-        
-        pkReference.clear();
+
+        if(!keepRefBox.isSelected()) {
+	    pkReference.clear();
+	    btnMobile.setSelected(true);
+	}
         pkMobile.clear();
         kCanvas.repaint();
     }
