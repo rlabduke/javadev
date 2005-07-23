@@ -16,9 +16,27 @@ GUI: {{{
 }}}
 ISOSURFACE: {{{
 }}}
-MOLDB2: {{{
+MOLDB2: {{
     Write PdbUpdater that reads new coords/state into an old model
-    Add a class that can write moldb2 data into a StarFile DOM
+    Add a class that can WRITE moldb2 data into a StarFile DOM (CifWriter)
+  * Rename ModelGroup to CoordinateFile in these 17 files:
+        chiropraxis/kingtools/ModelManager2.java
+        chiropraxis/kingtools/ScMutTool.java
+        chiropraxis/mc/AltConfBackrubFinder.java
+        chiropraxis/mc/AnisoOxygenSearch.java
+        chiropraxis/mc/HingeFit.java
+        chiropraxis/mc/PeptideFlipFinder.java
+        chiropraxis/mc/SheetBuilder.java
+        chiropraxis/mc/Suppose.java
+        chiropraxis/rotarama/Ramalyze.java
+        chiropraxis/sc/RotamerSampler.java
+        chiropraxis/sc/SidechainIdealizer.java
+        driftwood/moldb2/CifReader.java
+        driftwood/moldb2/ModelGroup.java
+        driftwood/moldb2/ModelTreeViewer.java
+        driftwood/moldb2/PdbReader.java
+        driftwood/moldb2/PdbWriter.java
+        molikin/Test.java
 }}}
 R3: {{{
 }}}
@@ -38,6 +56,8 @@ UTIL: {{{
   this isn't as good as I had hoped, but better than nothing I guess.
 - added string interning to CifReader also, for a ~10% speedup
 - added support for cmd-W to close gui.LogViewer windows
+- though about using ModelStates for NMR models, but then PdbWriter wouldn't
+  know how to output them, and there would be problems with the root model " ".
 
 ### 0.71 ###
 - modified CheapSet to apply secondary hash function only once. This keeps the

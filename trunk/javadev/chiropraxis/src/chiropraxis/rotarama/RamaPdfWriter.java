@@ -150,10 +150,13 @@ public class RamaPdfWriter //extends ... implements ...
             ArrayList allRes = new ArrayList();
             for(Iterator iter = analyses.keySet().iterator(); iter.hasNext(); )
                 allRes.addAll((Collection) iter.next());
-            PdfTemplate stats = plotStatistics(content, 540, 144, allRes);
-            float scale = Math.min(540/stats.getWidth(), 144/stats.getHeight());
+            //PdfTemplate stats = plotStatistics(content, 540, 144, allRes);
+            PdfTemplate stats = plotStatistics(content, 540, 130, allRes);
+            //float scale = Math.min(540/stats.getWidth(), 144/stats.getHeight());
+            float scale = Math.min(540/stats.getWidth(), 130/stats.getHeight());
             if(scale > 1) scale = 1;
-            content.addTemplate(stats, scale, 0, 0, scale, 36, 36);
+            //content.addTemplate(stats, scale, 0, 0, scale, 36, 36);
+            content.addTemplate(stats, scale, 0, 0, scale, 50, 50);
             
             if(structName != null)  addPageTitle(structName+", all models", content);
             else                    addPageTitle("All models", content);
@@ -175,10 +178,13 @@ public class RamaPdfWriter //extends ... implements ...
                 62.5f-PLOT_OFFSET, 221.5f-PLOT_OFFSET);
             content.addTemplate(preproTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
                 345.0f-PLOT_OFFSET, 221.5f-PLOT_OFFSET);
-            PdfTemplate stats = plotStatistics(content, 540, 144, analysis);
-            float scale = Math.min(540/stats.getWidth(), 144/stats.getHeight());
+            //PdfTemplate stats = plotStatistics(content, 540, 144, analysis);
+            PdfTemplate stats = plotStatistics(content, 540, 130, analysis);
+            //float scale = Math.min(540/stats.getWidth(), 144/stats.getHeight());
+            float scale = Math.min(540/stats.getWidth(), 130/stats.getHeight());
             if(scale > 1) scale = 1;
-            content.addTemplate(stats, scale, 0, 0, scale, 36, 36);
+            //content.addTemplate(stats, scale, 0, 0, scale, 36, 36);
+            content.addTemplate(stats, scale, 0, 0, scale, 50, 50);
             
             if(structName != null)  addPageTitle(structName+", model "+label, content);
             else                    addPageTitle("Model "+label, content);
