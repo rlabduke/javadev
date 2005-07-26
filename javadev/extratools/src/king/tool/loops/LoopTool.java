@@ -21,10 +21,11 @@ public class LoopTool extends BasicTool {
 //{{{ Variable definitions
 //##############################################################################
     HashSet keptSet;
-    JButton delButton, keepButton;
+    JButton delButton, keepButton, removeButton;
     JTextField lowNumField, highNumField;
     TablePane pane;
-
+    JList keptList;
+    DefaultListModel listModel;
 
 
     public LoopTool(ToolBox tb) {
@@ -40,9 +41,12 @@ public class LoopTool extends BasicTool {
 	dialog = new JDialog(kMain.getTopWindow(), "Loops", false);
 	lowNumField = new JTextField("", 5);
 	highNumField = new JTextField("", 5);
+	listModel = new DefaultListModel();
+	keptList = new JList(listModel);
 
 	keepButton = new JButton(new ReflectiveAction("Keep!", null, this, "onKeep"));
 	delButton = new JButton(new ReflectiveAction("Delete rest!", null, this, "onDelete"));
+	removeButton = new JButton(new ReflectiveAction("Remove last", null, this, "onRemove"));
 
 	pane = new TablePane();
 	pane.newRow();
@@ -50,6 +54,10 @@ public class LoopTool extends BasicTool {
 	pane.add(highNumField);
 	pane.add(keepButton);
 	pane.add(delButton);
+	pane.newRow().save().hfill(true).vfill(true);
+	pane.add(new JScrollPane(keptList), 4, 1);
+	pane.newRow().restore();
+	pane.add(removeButton, 2, 1);
 
 	dialog.setContentPane(pane);
     }
@@ -77,6 +85,7 @@ public class LoopTool extends BasicTool {
 	    for (int i = firstNum; i <= secondNum; i++) {
 		keptSet.add(new Integer(i));
 	    }
+	    listModel.addElement(Integer.toString(firstNum) + " to " + Integer.toString(secondNum));
 	} else {
 	    JOptionPane.showMessageDialog(pane, "You have to put numbers in the text boxes!", "Error",
 						  JOptionPane.ERROR_MESSAGE);
@@ -87,6 +96,23 @@ public class LoopTool extends BasicTool {
 	//currently assuming kins formatted as lots.
 	delete(kMain.getKinemage());
 	kCanvas.repaint();
+    }
+
+    public void onRemove(ActionEvent ev) {
+	//if(kept.size() > 0) tupleList.remove(tupleList.size()-1);
+	if(listModel.size() > 0) {
+	    String last = (String) listModel.get(listModel.size()-1);
+	    listModel.remove(listModel.size()-1);
+	    
+	    String[] limits = last.split(" to ");
+	    int firstNum = Integer.parseInt(limits[0]);
+	    int secondNum = Integer.parseInt(limits[1]);
+	    for (int i = firstNum; i <= secondNum; i++) {
+		keptSet.remove(new Integer(i));
+	    }
+	}
+	//if(markList.children.size() > 0) markList.children.remove(markList.children.size()-1);
+	
     }
 
     private void delete(AGE target) {
