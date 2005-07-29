@@ -81,8 +81,8 @@ public class HingeFit //extends ... implements ...
         
         // Load model group from PDB files
         PdbReader pdbReader = new PdbReader();
-        ModelGroup mg = pdbReader.read(in);
-        Model m = mg.getFirstModel();
+        CoordinateFile cf = pdbReader.read(in);
+        Model m = cf.getFirstModel();
         
         // Extract the C-alphas
         Collection  res     = m.getResidues();

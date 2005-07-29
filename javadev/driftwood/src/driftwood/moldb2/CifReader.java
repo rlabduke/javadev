@@ -50,7 +50,7 @@ public class CifReader //extends ... implements ...
     List    uIsoOrEquiv     = null; // NOT required, B = 8*pi*pi*U
     List    pdbModelNum     = null; // NOT required, any string
     
-    ModelGroup modelGroup = null;
+    CoordinateFile coordFile = null;
     Map modelMap = null; // maps model names as Strings to Model objects
     Map resMap = null; // maps res pseudonames as Strings to Residue objects
     int fakeResNumber = 1; // used for waters, etc. that lack residue numbers
@@ -82,21 +82,21 @@ public class CifReader //extends ... implements ...
 
 //{{{ read (convenience)
 //##################################################################################################
-    public ModelGroup read(File f) throws IOException
+    public CoordinateFile read(File f) throws IOException
     {
         Reader r = new FileReader(f);
-        ModelGroup rv = read(r);
+        CoordinateFile rv = read(r);
         rv.setFile(f);
         r.close();
         return rv;
     }
 
-    public ModelGroup read(InputStream is) throws IOException
+    public CoordinateFile read(InputStream is) throws IOException
     {
         return read(new InputStreamReader(is));
     }
 
-    public ModelGroup read(Reader r) throws IOException
+    public CoordinateFile read(Reader r) throws IOException
     {
         try
         {
@@ -113,10 +113,10 @@ public class CifReader //extends ... implements ...
 //{{{ read
 //##############################################################################
     /**
-    * Creates a ModelGroup from the specified CIF file object.
+    * Creates a CoordinateFile from the specified CIF file object.
     * @throws IOException if the data is internally inconsistent
     */
-    public ModelGroup read(StarFile dom) throws IOException
+    public CoordinateFile read(StarFile dom) throws IOException
     {
         // Set up lists of data items
         Iterator dataBlocks = dom.getDataBlockNames().iterator();
@@ -125,7 +125,7 @@ public class CifReader //extends ... implements ...
         DataBlock db = dom.getDataBlock((String)dataBlocks.next());
         loadItems(db);
         
-        this.modelGroup = new ModelGroup();
+        this.coordFile  = new CoordinateFile();
         this.modelMap   = new HashMap();
         this.resMap     = new HashMap();
         this.fakeResNumber = 1;
@@ -152,7 +152,7 @@ public class CifReader //extends ... implements ...
         }
         
         // This little dance makes sure that all alt confs define some state for every atom.
-        for(Iterator iter = modelGroup.getModels().iterator(); iter.hasNext(); )
+        for(Iterator iter = coordFile.getModels().iterator(); iter.hasNext(); )
         {
             Model m = (Model) iter.next();
             try { m.fillInStates(); }
@@ -164,7 +164,7 @@ public class CifReader //extends ... implements ...
             }
         }
         
-        return this.modelGroup;
+        return this.coordFile;
     }
 //}}}
 
@@ -228,7 +228,7 @@ public class CifReader //extends ... implements ...
             modelName = intern(modelName);
             m = new Model(modelName);
             modelMap.put(modelName, m);
-            this.modelGroup.add(m);
+            this.coordFile.add(m);
         }
         return m;
     }
@@ -392,9 +392,9 @@ public class CifReader //extends ... implements ...
 //##############################################################################
     public static void main(String[] args) throws IOException
     {
-        ModelGroup mg = new CifReader().read(System.in);
+        CoordinateFile cf = new CifReader().read(System.in);
         PdbWriter w = new PdbWriter(System.out);
-        w.writeModelGroup(mg, Collections.EMPTY_MAP);
+        w.writeCoordinateFile(cf, Collections.EMPTY_MAP);
         w.close();
     }
 //}}}

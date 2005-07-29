@@ -156,11 +156,11 @@ public class AnisoOxygenSearch //extends ... implements ...
     public void Main() throws IOException
     {
         PdbReader reader = new PdbReader();
-        ModelGroup mg = reader.read(pdbFile);
-        Model m = (Model) mg.getFirstModel();
+        CoordinateFile cf = reader.read(pdbFile);
+        Model m = (Model) cf.getFirstModel();
         ModelState state = m.getState();
         String label = pdbFile.toString();
-        if(mg.getIdCode() != null) label = mg.getIdCode();
+        if(cf.getIdCode() != null) label = cf.getIdCode();
         
         InputStream is = new BufferedInputStream(new FileInputStream(mapFile));
         CrystalVertexSource map = new OMapVertexSource(is);

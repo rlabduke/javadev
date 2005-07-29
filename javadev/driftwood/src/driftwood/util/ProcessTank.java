@@ -93,6 +93,12 @@ public class ProcessTank //extends ... implements ...
         
         while(!finished)
         {
+            // From a Java Tech tip in July 2005 that deals w/ Runtime.exec():
+            //  "A word of caution about the examples in this tip. It is possible
+            //  that the examples will deadlock if the subprocess generates enough
+            //  output to overflow the system. A more robust solution requires
+            //  draining the process stdout and stderr in separate threads.
+
             // Try reading from stdout (without blocking)
             outAvail = outStream.available();
             if(outAvail > 0)

@@ -28,9 +28,9 @@ public class PdbMunger //extends ... implements ...
     public static void main(String[] args) throws IOException
     {
         PdbReader   reader  = new PdbReader();
-        ModelGroup  mg      = reader.read(System.in);
+        CoordinateFile cf   = reader.read(System.in);
         PdbWriter   writer  = new PdbWriter(System.out);
-        writer.writeModelGroup(mg, new HashMap());
+        writer.writeCoordinateFile(cf, new HashMap());
     }
 }//class
 
