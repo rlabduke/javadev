@@ -167,8 +167,8 @@ public class PeptideFlipFinder //extends ... implements ...
             String fileName = (String) iter.next();
             try
             {
-                ModelGroup group = reader.read(new File(fileName));
-                Model model = group.getFirstModel();
+                CoordinateFile cf = reader.read(new File(fileName));
+                Model model = cf.getFirstModel();
                 Collection stateClcn = model.getStates();
                 ModelState[] states = (ModelState[]) stateClcn.toArray(new ModelState[stateClcn.size()]);
                 

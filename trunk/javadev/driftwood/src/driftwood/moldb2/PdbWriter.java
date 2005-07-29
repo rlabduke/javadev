@@ -167,31 +167,31 @@ public class PdbWriter //extends ... implements ...
     }
 //}}}
 
-//{{{ writeModelGroup
+//{{{ writeCoordinateFile
 //##################################################################################################
     /**
     * Writes out a whole group of models, complete with
     * all header information. This function should generate
     * a PDB file with (almost?) all of the information present
     * in the original that was read by PdbReader.
-    * @param modelGroup     the group of models to be written out.
+    * @param coordFile      the group of models to be written out.
     * @param modelStates    a Map&lt;Model, Collection&lt;ModelState&gt;&gt; of states to write.
     *   That is, for each Model there should be an entry in this map that
     *   contains a Collection of the states one would like to write out.
     *   If this Collection is missing or null, it will be obtained from Model.getStates().
     */
-    public void writeModelGroup(ModelGroup modelGroup, Map modelStates)
+    public void writeCoordinateFile(CoordinateFile coordFile, Map modelStates)
     {
-        for(Iterator iter = modelGroup.getHeaders().iterator(); iter.hasNext(); )
+        for(Iterator iter = coordFile.getHeaders().iterator(); iter.hasNext(); )
         {
             String header = iter.next().toString(); // they should already be Strings
             if(!header.startsWith("CONECT")) out.println(header);
         }
         
-        for(Iterator iter = modelGroup.getModels().iterator(); iter.hasNext(); )
+        for(Iterator iter = coordFile.getModels().iterator(); iter.hasNext(); )
         {
             Model model = (Model)iter.next();
-            if(modelGroup.getModels().size() > 1) // only use MODEL when >1
+            if(coordFile.getModels().size() > 1) // only use MODEL when >1
                 out.println("MODEL     "+Strings.forceRight(model.getName(), 4));
             
             
@@ -202,14 +202,14 @@ public class PdbWriter //extends ... implements ...
             writeModel(model, states);
             
             
-            if(modelGroup.getModels().size() > 1)
+            if(coordFile.getModels().size() > 1)
                 out.println("ENDMDL");
         }//for each model
         
         // This only makes sense if we haven't renumbered the atoms!
         if(!renumberAtoms)
         {
-            for(Iterator iter = modelGroup.getHeaders().iterator(); iter.hasNext(); )
+            for(Iterator iter = coordFile.getHeaders().iterator(); iter.hasNext(); )
             {
                 String header = iter.next().toString(); // they should already be Strings
                 if(header.startsWith("CONECT")) out.println(header);

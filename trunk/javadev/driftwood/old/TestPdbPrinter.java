@@ -78,11 +78,11 @@ public class TestPdbPrinter //extends ... implements ...
         try
         {
             long readTime = System.currentTimeMillis();
-            ModelGroup group = reader.read(System.in);
+            CoordinateFile coordFile = reader.read(System.in);
             readTime = System.currentTimeMillis() - readTime;
             
             long printTime = System.currentTimeMillis();
-            for(Iterator iter = group.getModels().iterator(); iter.hasNext(); )
+            for(Iterator iter = coordFile.getModels().iterator(); iter.hasNext(); )
             {
                 Model model = (Model)iter.next();
                 treePrint(model, model.getStates());

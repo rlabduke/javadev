@@ -391,8 +391,8 @@ public class Suppose //extends ... implements ...
         
         // Load model group from PDB files
         PdbReader pdbReader = new PdbReader();
-        ModelGroup mg = pdbReader.read(in);
-        return mg.getFirstModel();
+        CoordinateFile cf = pdbReader.read(in);
+        return cf.getFirstModel();
     }
     
     AtomState[] loadAtomStates(Model m)

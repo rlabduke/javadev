@@ -203,23 +203,23 @@ public class Ramalyze //extends ... implements ...
     static public void runAnalysis(InputStream inputPdbFile, OutputStream out, Object mode) throws IOException
     { runAnalysis( (new PdbReader()).read(inputPdbFile), out, mode ); }
     
-    static public void runAnalysis(ModelGroup modelGroup, OutputStream out, Object mode) throws IOException
+    static public void runAnalysis(CoordinateFile coordFile, OutputStream out, Object mode) throws IOException
     {
         Map analyses = new UberMap();
-        for(Iterator iter = modelGroup.getModels().iterator(); iter.hasNext(); )
+        for(Iterator iter = coordFile.getModels().iterator(); iter.hasNext(); )
         {
             Model model = (Model) iter.next();
             Collection analysis = analyzeModel(model, model.getStates());
-            boolean useModelNames = (modelGroup.getModels().size() > 1);
+            boolean useModelNames = (coordFile.getModels().size() > 1);
             improveResidueNames(analysis, useModelNames);
             analyses.put(analysis, model.getName());
         }
         
         String label = null;
-        if(modelGroup.getFile() != null)
-            label = modelGroup.getFile().getName();
-        else if(modelGroup.getIdCode() != null)
-            label = modelGroup.getIdCode();
+        if(coordFile.getFile() != null)
+            label = coordFile.getFile().getName();
+        else if(coordFile.getIdCode() != null)
+            label = coordFile.getIdCode();
         
         if(mode == MODE_PDF)
         {
@@ -240,16 +240,16 @@ public class Ramalyze //extends ... implements ...
     */
     public void Main() throws IOException
     {
-        PdbReader   pdbReader   = new PdbReader();
-        ModelGroup  modelGroup;
-        if(infile == null)  modelGroup = pdbReader.read(System.in);
-        else                modelGroup = pdbReader.read(infile);
+        PdbReader       pdbReader   = new PdbReader();
+        CoordinateFile  coordFile;
+        if(infile == null)  coordFile = pdbReader.read(System.in);
+        else                coordFile = pdbReader.read(infile);
         
         OutputStream out;
         if(outfile == null) out = System.out;
         else out = new BufferedOutputStream(new FileOutputStream(outfile));
         
-        runAnalysis(modelGroup, out, this.mode);
+        runAnalysis(coordFile, out, this.mode);
 
         try { out.flush(); out.close(); }
         catch(IOException ex) {} // PdfWriter might have already closed it!

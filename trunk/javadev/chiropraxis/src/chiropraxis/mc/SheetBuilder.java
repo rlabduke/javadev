@@ -616,11 +616,11 @@ public class SheetBuilder //extends ... implements ...
     {
         // Load model group from PDB files
         PdbReader pdbReader = new PdbReader();
-        ModelGroup mg = pdbReader.read(System.in);
+        CoordinateFile cf = pdbReader.read(System.in);
         
-        Model m = mg.getFirstModel();
+        Model m = cf.getFirstModel();
         ModelState state = m.getState();
-        processModel(mg.getIdCode(), m, state);
+        processModel(cf.getIdCode(), m, state);
     }
 
     public static void main(String[] args)

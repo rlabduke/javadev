@@ -137,10 +137,10 @@ public class Test //extends ... implements ...
 //##############################################################################
     public void doPDB(Reader pdbIn, Writer kinOut) throws IOException
     {
-        long        time        = System.currentTimeMillis();
-        PdbReader   pdbReader   = new PdbReader();
-        ModelGroup  modelGroup  = pdbReader.read(pdbIn);
-        Model       model       = modelGroup.getFirstModel();
+        long            time        = System.currentTimeMillis();
+        PdbReader       pdbReader   = new PdbReader();
+        CoordinateFile  coordFile   = pdbReader.read(pdbIn);
+        Model           model       = coordFile.getFirstModel();
         time = System.currentTimeMillis() - time;
         System.err.println("Loading PDB:         "+time+" ms");
         System.err.println("Mem. usage:          "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
@@ -153,10 +153,10 @@ public class Test //extends ... implements ...
 
     public void doCIF(Reader cifIn, Writer kinOut) throws IOException
     {
-        long        time        = System.currentTimeMillis();
-        CifReader   cifReader   = new CifReader();
-        ModelGroup  modelGroup  = cifReader.read(cifIn);
-        Model       model       = modelGroup.getFirstModel();
+        long            time        = System.currentTimeMillis();
+        CifReader       cifReader   = new CifReader();
+        CoordinateFile  coordFile   = cifReader.read(cifIn);
+        Model           model       = coordFile.getFirstModel();
         time = System.currentTimeMillis() - time;
         System.err.println("Loading mmCIF:       "+time+" ms");
         System.err.println("Mem. usage:          "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));

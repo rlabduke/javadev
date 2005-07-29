@@ -58,10 +58,10 @@ public class RotamerSampler //extends ... implements ...
             throw new IllegalArgumentException("Not enough command line arguments");
         
         // Obtain template residue
-        PdbReader   pdbReader   = new PdbReader();
-        ModelGroup  modelGroup  = pdbReader.read(this.getClass().getResourceAsStream("singleres.pdb"));
-        Model       model       = modelGroup.getFirstModel();
-        ModelState  modelState  = model.getState();
+        PdbReader       pdbReader   = new PdbReader();
+        CoordinateFile  coordFile   = pdbReader.read(this.getClass().getResourceAsStream("singleres.pdb"));
+        Model           model       = coordFile.getFirstModel();
+        ModelState      modelState  = model.getState();
         
         for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
         {

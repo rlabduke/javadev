@@ -79,10 +79,10 @@ public class ModelManager2 extends Plugin
 
 //{{{ Variable definitions
 //##################################################################################################
-    File                    srcfile     = null;
-    ModelGroup              srcmodgrp   = null;
-    Model                   srcmodel    = null;
-    ModelState              srcstate    = null;
+    File                    srcfile         = null;
+    CoordinateFile          srccoordfile    = null;
+    Model                   srcmodel        = null;
+    ModelState              srcstate        = null;
     FastModelOpen           fastModelOpen;
     
     LinkedList              stateList   = null; // Stack<ModelStatePair>
@@ -386,15 +386,15 @@ public class ModelManager2 extends Plugin
         srcfile                 = f;
         PdbReader pdbr          = new PdbReader();
         pdbr.setUseSegID(cbUseSegID.isSelected());
-        srcmodgrp               = pdbr.read(srcfile);
+        srccoordfile            = pdbr.read(srcfile);
         changedSinceSave        = false;
         
         // Let user select model
         Model m;
         ModelState s;
-        Collection models = srcmodgrp.getModels();
+        Collection models = srccoordfile.getModels();
         if(models.size() == 1)
-            m = srcmodgrp.getFirstModel();
+            m = srccoordfile.getFirstModel();
         else
         {
             Object[] choices = models.toArray();
@@ -403,7 +403,7 @@ public class ModelManager2 extends Plugin
                 "Choose model", JOptionPane.PLAIN_MESSAGE,
                 null, choices, choices[0]);
             if(m == null)
-                m = srcmodgrp.getFirstModel();
+                m = srccoordfile.getFirstModel();
         }
         
         // Let user select alt conf
@@ -527,11 +527,11 @@ public class ModelManager2 extends Plugin
                         // Create a record of what was changed
                         Collection moves = detectMovedResidues(this.getModel(), srcstate, this.getFrozenState());
                         for(Iterator iter = moves.iterator(); iter.hasNext(); )
-                            srcmodgrp.addHeader(ModelGroup.SECTION_USER_MOD, iter.next().toString());
+                            srccoordfile.addHeader(CoordinateFile.SECTION_USER_MOD, iter.next().toString());
                         
                         // this won't do anything unless e.g. we made a mutation
-                        srcmodgrp.replace(srcmodel, this.getModel());
-                        pdbWriter.writeModelGroup(srcmodgrp, stateMap);
+                        srccoordfile.replace(srcmodel, this.getModel());
+                        pdbWriter.writeCoordinateFile(srccoordfile, stateMap);
                         
                         srcfile             = f;
                         srcmodel            = this.getModel();

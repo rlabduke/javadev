@@ -61,10 +61,10 @@ public class SidechainIdealizer //extends ... implements ...
         InputStream is = this.getClass().getResourceAsStream("singlesc.pdb");
         if(is == null) throw new IOException("File not found in JAR: singlesc.pdb");
         
-        PdbReader   pdbr    = new PdbReader();
-        ModelGroup  mg      = pdbr.read(is);
-        Model       m       = mg.getFirstModel();
-        ModelState  s       = m.getState();
+        PdbReader       pdbr    = new PdbReader();
+        CoordinateFile  cf      = pdbr.read(is);
+        Model           m       = cf.getFirstModel();
+        ModelState      s       = m.getState();
         
         Map rmap = new HashMap();
         for(Iterator ri = m.getResidues().iterator(); ri.hasNext(); )
@@ -95,10 +95,10 @@ public class SidechainIdealizer //extends ... implements ...
         InputStream is = this.getClass().getResourceAsStream("singleres.pdb");
         if(is == null) throw new IOException("File not found in JAR: singleres.pdb");
         
-        PdbReader   pdbr    = new PdbReader();
-        ModelGroup  mg      = pdbr.read(is);
-        Model       m       = mg.getFirstModel();
-        idealResState       = m.getState();
+        PdbReader       pdbr    = new PdbReader();
+        CoordinateFile  cf      = pdbr.read(is);
+        Model           m       = cf.getFirstModel();
+        idealResState           = m.getState();
         
         idealResMap = new TreeMap();
         for(Iterator iter = m.getResidues().iterator(); iter.hasNext(); )

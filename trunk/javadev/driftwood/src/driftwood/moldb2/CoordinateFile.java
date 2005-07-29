@@ -13,13 +13,13 @@ import java.util.*;
 //import driftwood.*;
 //}}}
 /**
-* <code>ModelGroup</code> is a lightweight container for a group
+* <code>CoordinateFile</code> is a lightweight container for a group
 * of Models that have some relationship to one another.
 *
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Jun 11 11:15:15 EDT 2003
 */
-public class ModelGroup //extends ... implements ...
+public class CoordinateFile //extends ... implements ...
 {
 //{{{ Constants
     /** The first thing in the file: user modifications */
@@ -43,7 +43,7 @@ public class ModelGroup //extends ... implements ...
     /**
     * Constructor
     */
-    public ModelGroup()
+    public CoordinateFile()
     {
         models  = new ArrayList();
         headers = new ArrayList();

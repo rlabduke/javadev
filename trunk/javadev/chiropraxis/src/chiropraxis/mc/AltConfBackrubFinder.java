@@ -112,12 +112,12 @@ public class AltConfBackrubFinder //extends ... implements ...
             File f = (File) files.next();
             try
             {
-                ModelGroup mg = reader.read(f);
-                for(Iterator models = mg.getModels().iterator(); models.hasNext(); )
+                CoordinateFile cf = reader.read(f);
+                for(Iterator models = cf.getModels().iterator(); models.hasNext(); )
                 {
                     Model m = (Model) models.next();
                     String label = f.toString();
-                    if(mg.getIdCode() != null) label = mg.getIdCode();
+                    if(cf.getIdCode() != null) label = cf.getIdCode();
                     searchModel(System.out, label, m);
                 }
             }

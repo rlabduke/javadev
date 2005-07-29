@@ -43,10 +43,10 @@ public class ModelTreeViewer //extends ... implements ...
 
 //{{{ buildRootNode
 //##################################################################################################
-    DefaultMutableTreeNode buildRootNode(ModelGroup group)
+    DefaultMutableTreeNode buildRootNode(CoordinateFile coordFile)
     {
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("All models", true);
-        for(Iterator iter = group.getModels().iterator(); iter.hasNext(); )
+        for(Iterator iter = coordFile.getModels().iterator(); iter.hasNext(); )
         {
             Model model = (Model)iter.next();
             DefaultMutableTreeNode modelNode = buildModelNode(model);
@@ -134,13 +134,13 @@ public class ModelTreeViewer //extends ... implements ...
 //##################################################################################################
 //}}}
 
-//{{{ loadModelGroup, launchTreeWindow
+//{{{ loadCoordinateFile, launchTreeWindow
 //##################################################################################################
-    ModelGroup loadModelGroup() throws IOException
+    CoordinateFile loadCoordinateFile() throws IOException
     {
         PdbReader reader = new PdbReader();
-        ModelGroup group = reader.read(System.in);
-        return group;
+        CoordinateFile cf = reader.read(System.in);
+        return cf;
     }
     
     void launchTreeWindow(TreeNode rootNode)
@@ -169,8 +169,8 @@ public class ModelTreeViewer //extends ... implements ...
     {
         try
         {
-            ModelGroup group = loadModelGroup();
-            TreeNode rootNode = buildRootNode(group);
+            CoordinateFile cf = loadCoordinateFile();
+            TreeNode rootNode = buildRootNode(cf);
             launchTreeWindow(rootNode);
         }
         catch(IOException ex)

@@ -38,8 +38,8 @@ public class PdbReader //extends ... implements ...
 //##################################################################################################
     // Shared data structures
     
-    /** The group of Models */
-    ModelGroup  group;
+    /** The set of all Models */
+    CoordinateFile coordFile;
     
     /** The current Model */
     Model       model;
@@ -74,7 +74,7 @@ public class PdbReader //extends ... implements ...
 //##################################################################################################
     void initData()
     {
-        group       = new ModelGroup();
+        coordFile   = new CoordinateFile();
         model       = null;
         residues    = new HashMap();
         autoSerial  = -9999;
@@ -82,7 +82,7 @@ public class PdbReader //extends ... implements ...
     
     void clearData()
     {
-        group       = null;
+        coordFile   = null;
         model       = null;
         residues    = null;
         autoSerial  = -9999;
@@ -104,21 +104,21 @@ public class PdbReader //extends ... implements ...
 
 //{{{ read (convenience)
 //##################################################################################################
-    public ModelGroup read(File f) throws IOException
+    public CoordinateFile read(File f) throws IOException
     {
         Reader r = new FileReader(f);
-        ModelGroup rv = read(r);
+        CoordinateFile rv = read(r);
         rv.setFile(f);
         r.close();
         return rv;
     }
 
-    public ModelGroup read(InputStream is) throws IOException
+    public CoordinateFile read(InputStream is) throws IOException
     {
         return read(new InputStreamReader(is));
     }
 
-    public ModelGroup read(Reader r) throws IOException
+    public CoordinateFile read(Reader r) throws IOException
     {
         return read(new LineNumberReader(r));
     }
@@ -131,7 +131,7 @@ public class PdbReader //extends ... implements ...
     * residue order, etc.
     * @param r a <code>LineNumberReader</code> hooked up to a PDB file
     */
-    public ModelGroup read(LineNumberReader r) throws IOException
+    public CoordinateFile read(LineNumberReader r) throws IOException
     {
         initData();
         
@@ -147,7 +147,7 @@ public class PdbReader //extends ... implements ...
                 else if(s.startsWith("MODEL ") && s.length() >= 14)
                 {
                     model = new Model(s.substring(10,14).trim());
-                    group.add(model);
+                    coordFile.add(model);
                     residues.clear();
                 }
                 else if(s.startsWith("ENDMDL"))
@@ -162,11 +162,11 @@ public class PdbReader //extends ... implements ...
                 {
                     // Headers are just saved for later and then output again
                     if(s.startsWith("HEADER") && s.length() >= 66)
-                        group.setIdCode(s.substring(62,66));
+                        coordFile.setIdCode(s.substring(62,66));
                     String six;
                     if(s.length() >= 6) six = s.substring(0,6);
                     else                six = s;
-                    group.addHeader(intern(six), s);
+                    coordFile.addHeader(intern(six), s);
                 }
             }
             catch(IndexOutOfBoundsException ex)
@@ -175,7 +175,7 @@ public class PdbReader //extends ... implements ...
             { SoftLog.err.println("Error reading from PDB file, line "+r.getLineNumber()+": "+ex.getMessage()); }
         }//while more lines
         
-        ModelGroup rv = group;
+        CoordinateFile rv = coordFile;
         clearData();
 
         // This little dance makes sure that all alt confs define some state for every atom.
@@ -250,7 +250,7 @@ public class PdbReader //extends ... implements ...
         if(model == null)
         {
             model = new Model("1");
-            group.add(model);
+            coordFile.add(model);
             residues.clear();
         }
     }
