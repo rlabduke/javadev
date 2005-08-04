@@ -208,7 +208,9 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
     
     public void propertyChange(PropertyChangeEvent ev)
     {
-        if(ev == null || JFileChooser.FILE_FILTER_CHANGED_PROPERTY.equals(ev.getPropertyName()))
+        if(ev == null
+        || JFileChooser.FILE_FILTER_CHANGED_PROPERTY.equals(ev.getPropertyName())
+        || JFileChooser.DIRECTORY_CHANGED_PROPERTY.equals(ev.getPropertyName()))
         {
             // Has to be done "asynchronously" or file name will be corrupted
             SwingUtilities.invokeLater(this);
@@ -221,7 +223,7 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
         // Autogenerate an output name.
         for(int i = 1; i < 1000; i++)
         {
-            File f = new File("kingsnap"+i+"."+fmt);
+            File f = new File(chooser.getCurrentDirectory(), "kingsnap"+i+"."+fmt);
             if(!f.exists())
             {
                 chooser.setSelectedFile(f);

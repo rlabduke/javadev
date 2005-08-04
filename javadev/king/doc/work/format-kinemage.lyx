@@ -398,11 +398,13 @@ instance= {listname}
  specify that this list has the same points in it as the named list, which
  must be of the same type and must have been declared before the current
  list.
- This list, however, may have different properties (color, radius, 
+ Although is has the same points, this list must have its list properties
+ specified explicitly (color, radius, 
 \emph on 
 etc.
 \emph default 
-) than the other one.
+), even if they are intended to be the same as those of the cloned/instanced
+ list.
  Clone is purely a convenience for kinemage authors; the current list will
  be a totally independent copy of the cloned list that just happens to have
  the same contents.
@@ -483,7 +485,7 @@ right handed
  viewers.
 \layout Comment
 
-Is really this true of Mage?
+Is this really true of Mage?
 \layout Standard
 
 In addition to coordinates, it's a very good idea to give every point an
@@ -1668,6 +1670,24 @@ e.g.
 @aspect
 \family default 
  definitions in the kinemage.
+ When a point should be specially colored for some aspects but not others,
+ a space character (
+\begin_inset Quotes eld
+\end_inset 
+
+ 
+\begin_inset Quotes eld
+\end_inset 
+
+) can be used instead of a letter to mean that point's 
+\begin_inset Quotes eld
+\end_inset 
+
+normal
+\begin_inset Quotes erd
+\end_inset 
+
+ color.
  As explained in the section on points, the single-letter aspects codes
  for a point appear inside parentheses as part of the point definition (see
  section 
@@ -1697,10 +1717,10 @@ e.g.
 {Raleigh} (DEF) 1 0 0
 \layout LyX-Code
 
-{Chapel Hill} (GHI) -1 0 0
+{Chapel Hill} (G I) -1 0 0
 \layout LyX-Code
 
-{Cary} (JKL) 0.5 -0.5 0
+{Cary} (J  ) 0.5 -0.5 0
 \layout Section
 
 Views and display options

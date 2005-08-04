@@ -63,17 +63,16 @@
     Choose OpenGL (if avail) by default at startup IFF set in .king_prefs
     For multi-click draw ops, "miss" should reset?
     Add a movieFade() to beanking for doing transitions!
-  * Copy chiropraxis, extratools PDFs into dist/doc/
-    Document new aspect convention: space means use the default point/list color
     Use E+H 2000 geometry for Pro?
     Backrub: sc first, then bb, no bb opt sc, leads to sc tool not fixing Cb dev
     Draw tool - autolabel distances, angles
-  * Image/PDF export file naming broken (prob. re: what is cur. dir.?)
+ ** Add docs in king-ver/doc/(chiropraxis|extratools) to InstallAnywhere script
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 1.44 ###
 ### 1.44 ###
 - fixed memory specs in KiNG Mac bundle ("16MBm" to "16m" as memory size!)
   This is required for proper operation with Java 1.5.x
@@ -81,6 +80,12 @@
 - added extratools.jar to InstallAnywhere script (fixes missing tools on Win)
 - added mechanism to supress background painting to Engine
 - added transparent-background option to Image and PDF export tools
+- we now copy chiropraxis, extratools PDFs into dist/doc/ for exe distro
+- updated Kinemage to make animate turn off all 2animate and vice versa,
+  which is the standard behavior established by Mage. (fixed for J. Voet)
+- fixed current-dir bug re: auto file naming in image/PDF export plugins
+- clarified documentation of instance=
+- documented the meaning of a space (" ") inside a point's aspect list
 
 ### 1.43 ###
 - changed AbstractPoint.getDrawingColor() to ignore unrecognized aspect codes.
