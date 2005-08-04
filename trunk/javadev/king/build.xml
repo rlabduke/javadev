@@ -135,6 +135,7 @@
             <exclude name="**/old/"/>
         </fileset>
     </copy>
+    <!-- docs for other top-level projects are in their dist/ folders already -->
     <mkdir dir="${dist}/javadocs"/>
     <javadoc packagenames="driftwood.*,Jama.*,king.*"
         sourcepath="src:../driftwood/src"
@@ -160,6 +161,9 @@
             <exclude name="doc/work/"/>
         </fileset>
     </copy>
+    <!-- extra doc files from other top-level projects; some need to be renamed -->
+    <copy file="../chiropraxis/doc/tools-manual.pdf" tofile="${dist}/${ant.project.name}-${version}-src/doc/chiropraxis-manual.pdf"/>
+    <copy file="../extratools/doc/tools-manual.pdf" tofile="${dist}/${ant.project.name}-${version}-src/doc/extratools-manual.pdf"/>
 </target>
 <!-- }}} -->
 

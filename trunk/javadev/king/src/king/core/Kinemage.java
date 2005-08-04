@@ -262,8 +262,8 @@ public class Kinemage extends AGE // implements ...
         syncAllMasters();
         initAllViews();
         animate(0);
-        animate2(0);
-        //rebuildAnimations(true);
+        if(!hasAnimateGroups())
+            animate2(0); // turns off animate group that was just turned on
     }
 
     public DefaultTreeModel getTreeModel() { return treeModel; }
@@ -562,36 +562,20 @@ public class Kinemage extends AGE // implements ...
     /**
     * Drives the animation forward (+1), backward (-1), or to having just one
     * group on (0) for all groups marked 'animate'.
+    * All '2animate' groups are turned off.
     */
     public void animate(int incr)
-    {
-        ArrayList animateGroups = new ArrayList();
-        for(Iterator iter = children.iterator(); iter.hasNext(); )
-        {
-            KGroup group = (KGroup) iter.next();
-            if(group.isAnimate()) animateGroups.add(group);
-        }
-        KGroup[] groups = (KGroup[]) animateGroups.toArray(new KGroup[animateGroups.size()]);
-        doAnimation(groups, incr);
-    }
+    { doAnimation(getAnimateGroups(), get2AnimateGroups(), incr); }
 
     /**
     * Drives the animation forward (+1), backward (-1), or to having just one
     * group on (0) for all groups marked '2animate'.
+    * All 'animate' groups are turned off.
     */
     public void animate2(int incr)
-    {
-        ArrayList animateGroups = new ArrayList();
-        for(Iterator iter = children.iterator(); iter.hasNext(); )
-        {
-            KGroup group = (KGroup) iter.next();
-            if(group.is2Animate()) animateGroups.add(group);
-        }
-        KGroup[] groups = (KGroup[]) animateGroups.toArray(new KGroup[animateGroups.size()]);
-        doAnimation(groups, incr);
-    }
+    { doAnimation(get2AnimateGroups(), getAnimateGroups(), incr); }
     
-    void doAnimation(AGE[] ages, int incr)
+    void doAnimation(AGE[] ages, AGE[] offages, int incr)
     {
         int firstOn = -1;
         for(int i = 0; i < ages.length; i++)
@@ -609,36 +593,21 @@ public class Kinemage extends AGE // implements ...
         
         for(int i = 0; i < ages.length; i++)
             ages[i].setOn(i == turnOn);
+        
+        for(int i = 0; i < offages.length; i++)
+            offages[i].setOn(false);
     }
 //}}}
 
 //{{{ accumulate, accumulate2, doAccumulate
 //##################################################################################################
-    /** Turns on the next 'animate' group. */
+    /** Turns on the next 'animate' group. '2animate' groups are not affected. */
     public void accumulate()
-    {
-        ArrayList animateGroups = new ArrayList();
-        for(Iterator iter = children.iterator(); iter.hasNext(); )
-        {
-            KGroup group = (KGroup) iter.next();
-            if(group.isAnimate()) animateGroups.add(group);
-        }
-        KGroup[] groups = (KGroup[]) animateGroups.toArray(new KGroup[animateGroups.size()]);
-        doAccumulate(groups);
-    }
+    { doAccumulate(getAnimateGroups()); }
     
-    /** Turns on the next '2animate' group. */
+    /** Turns on the next '2animate' group. 'animate' groups are not affected. */
     public void accumulate2()
-    {
-        ArrayList animateGroups = new ArrayList();
-        for(Iterator iter = children.iterator(); iter.hasNext(); )
-        {
-            KGroup group = (KGroup) iter.next();
-            if(group.is2Animate()) animateGroups.add(group);
-        }
-        KGroup[] groups = (KGroup[]) animateGroups.toArray(new KGroup[animateGroups.size()]);
-        doAccumulate(groups);
-    }
+    { doAccumulate(get2AnimateGroups()); }
     
     /**
     * In order for this to work as expected, we want to turn on the first off group
@@ -667,7 +636,7 @@ public class Kinemage extends AGE // implements ...
     }
 //}}}
 
-//{{{ has(2)AnimateGroups
+//{{{ has(2)AnimateGroups, get(2)AnimateGroups
 //##################################################################################################
     public boolean hasAnimateGroups()
     {
@@ -687,6 +656,28 @@ public class Kinemage extends AGE // implements ...
             if(group.is2Animate()) return true;
         }
         return false;
+    }
+    
+    KGroup[] getAnimateGroups()
+    {
+        ArrayList animateGroups = new ArrayList();
+        for(Iterator iter = children.iterator(); iter.hasNext(); )
+        {
+            KGroup group = (KGroup) iter.next();
+            if(group.isAnimate()) animateGroups.add(group);
+        }
+        return (KGroup[]) animateGroups.toArray(new KGroup[animateGroups.size()]);
+    }
+    
+    KGroup[] get2AnimateGroups()
+    {
+        ArrayList animateGroups = new ArrayList();
+        for(Iterator iter = children.iterator(); iter.hasNext(); )
+        {
+            KGroup group = (KGroup) iter.next();
+            if(group.is2Animate()) animateGroups.add(group);
+        }
+        return (KGroup[]) animateGroups.toArray(new KGroup[animateGroups.size()]);
     }
 //}}}
 
