@@ -82,7 +82,8 @@ public class KinFudgerTool extends BasicTool {
 
 	//dialog.setContentPane(pane);
 
-    }
+    } 
+	//}}}
 
 
     public void start() {
@@ -194,7 +195,8 @@ public class KinFudgerTool extends BasicTool {
 	String choice = (String) JOptionPane.showInputDialog(kMain.getTopWindow(), "What is your desired " + f + " (orig value: " + df.format(orig) + ")");
 	return choice;
     }
-
+	
+//{{{ mousePressed
     public void mousePressed(MouseEvent ev)
     {
         super.mousePressed(ev);
@@ -213,6 +215,7 @@ public class KinFudgerTool extends BasicTool {
 	    mobilityFinder(null, draggedPoint);
         }
     }    
+//}}}
 
 //{{{ xx_drag() functions
 //##################################################################################################
@@ -281,15 +284,15 @@ public class KinFudgerTool extends BasicTool {
 	Iterator iter = kin.iterator();
 	while (iter.hasNext()) {
 	    KGroup group = (KGroup) iter.next();
-	    if (group.isOn()) {
+	    //if (group.isOn()) {
 		Iterator groupIters = group.iterator();
 		while (groupIters.hasNext()) {
 		    KSubgroup sub = (KSubgroup) groupIters.next();
 		    Iterator subIters = sub.iterator();
-		    if (sub.isOn()) {
+		    //if (sub.isOn()) {
 		    while (subIters.hasNext()) {
 			KList list = (KList) subIters.next();
-			if (list.isOn()) {
+			//if (list.isOn()) {
 			    Iterator listIter = list.iterator();
 			    while (listIter.hasNext()) {
 				Object next = listIter.next();
@@ -302,12 +305,12 @@ public class KinFudgerTool extends BasicTool {
 					addPoints(currPoint, prevPoint);
 				    }
 				}
-			    }
+				//}
 			}
-		    }
+			    //}
 		    }
 		}
-	    }
+		//}
 	}
     }
     

@@ -89,6 +89,8 @@ public class RecolorTool extends BasicTool implements ActionListener {
     {
         
         dialog = new JDialog(kMain.getTopWindow(),"Recolor", false);
+	//initDialog();
+	//dialog.setTitle("Recolor");
 	color1 = new JComboBox(KPalette.getStandardMap().values().toArray());
 	color1.setSelectedItem(KPalette.blue);
         color1.addActionListener(this);
@@ -161,6 +163,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	pane.add(colorPrior);
 	
 	dialog.setContentPane(pane);
+	dialog.addWindowListener(this);
 
 	JMenuBar menubar = new JMenuBar();
 	JMenu menu;
@@ -186,6 +189,10 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	//colorator = new RecolorNonRibbon();
 	show();
     }
+
+    //public void windowClosing(WindowEvent ev)     { parent.activateDefaultTool(); }
+    //public void windowDeactivated(WindowEvent ev) { parent.activateDefaultTool(); }
+
 
 //{{{ xx_click() functions
 //##################################################################################################
@@ -269,8 +276,10 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	   
 	}
     }
-//})}
+//}}}
 
+
+//{{{ numberHandler
     public void numberHandler(KPoint p) {
 	if (!highNumField.getText().equals("")) {
 	    lowNumField.setText("");
@@ -296,8 +305,10 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    //highlightRange(firstNum, secondNum);
 	}
     }
-
-// event functions
+//}}}
+    
+    
+//{{{ event functions
 //###############################################################################################
     /**
      * Event handler for when action performed.
@@ -362,6 +373,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 
         kCanvas.repaint();
     }
+//}}}
 
     public void recolorTable(int offset, int length, KPaint[] colors) {
 	int index = 0;
@@ -391,10 +403,10 @@ public class RecolorTool extends BasicTool implements ActionListener {
     /**
      * Event handler for when tool window closed.
      */
-    public void windowClosing(WindowEvent ev) {
+    //public void windowClosing(WindowEvent ev) {
 	//newGroup();
-	parent.activateDefaultTool(); 
-    }
+    //	parent.activateDefaultTool(); 
+    //}
 
     public void onTable(ActionEvent ev) {
 	textPane = new JTextPane();
@@ -467,7 +479,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 //##################################################################################################
     /** Returns a component with controls and options for this tool */
     protected Container getToolPanel()
-    { return dialog; }
+    { return pane; }
 
     /** Returns the URL of a web page explaining use of this tool */
     public URL getHelpURL()
@@ -488,4 +500,4 @@ public class RecolorTool extends BasicTool implements ActionListener {
 
     public String toString() { return "Recolor Kins"; }
 //}}}
-}//class
+}//}}}class

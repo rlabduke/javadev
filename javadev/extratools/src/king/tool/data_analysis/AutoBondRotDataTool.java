@@ -10,6 +10,7 @@ import java.util.*;
 import javax.swing.*;
 import java.awt.event.*;
 import driftwood.gui.*;
+import java.text.DecimalFormat;
 
 //}}}
 /**
@@ -20,7 +21,9 @@ import driftwood.gui.*;
  **/
 public class AutoBondRotDataTool extends BasicTool implements ActionListener
 {
-//{{{ Constants    
+//{{{ Constants   
+    static final DecimalFormat df = new DecimalFormat("0.000");
+    static final DecimalFormat intf = new DecimalFormat("0");
 //}}}
 
 //{{{ Variable definitions
@@ -84,7 +87,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	highNumField = new JTextField("", 5);
 	scalingField = new JTextField("5", 5);
 	
-	logScaleBox = new JCheckBoxMenuItem("Plot by log scale", true);
+	logScaleBox = new JCheckBoxMenuItem("Plot by log scale", false);
 
 	colorButton = new JButton(new ReflectiveAction("Color!", null, this, "onHighlightRange"));
 	//colorButton.setActionCommand("color");
@@ -132,6 +135,8 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	menu.add(item);
 	item = new JMenuItem(new ReflectiveAction("Take Difference", null, this, "onDifference"));
 	menu.add(item);
+	item = new JMenuItem(new ReflectiveAction("Export", null, this, "onExport"));
+	menu.add(item);
 	item = new JMenuItem(new ReflectiveAction("Restore Default", null, this, "onSetDefault"));
 	menu.add(item);
 	item = new JMenuItem(new ReflectiveAction("Score in Last Col", null, this, "onFixScore"));
@@ -141,6 +146,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	dialog.setJMenuBar(menubar);
 	
     }
+//}}}
 
 //{{{ makeFileChooser
 //##################################################################################################
@@ -170,42 +176,23 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 
         //try
         //{
-	    buildGUI();
+	buildGUI();
             //if(kMain.getApplet() != null)   openMapURL();
             //else                            openMapFile();
 	    //dataMap = new HashMap();
-	    listMap = new HashMap();
-	    offPoints = new ArrayList();
-	    allPoints = new ArrayList();
-	    //openFile();
+	listMap = new HashMap();
+	offPoints = new ArrayList();
+	allPoints = new ArrayList();
+	//openFile();
 	    
+	
 	    
+	show();
 	    
-	    show();
-	    //}
-	    //catch(IOException ex) // includes MalformedURLException
-	    //{
-	    //    JOptionPane.showMessageDialog(kMain.getTopWindow(),
-	    //        "An I/O error occurred while loading the file:\n"+ex.getMessage(),
-	    //       "Sorry!", JOptionPane.ERROR_MESSAGE);
-            //ex.printStackTrace(SoftLog.err);
-	    //}
-	    //catch(IllegalArgumentException ex)
-	    //{
-	    //    JOptionPane.showMessageDialog(kMain.getTopWindow(),
-	    //        "Wrong map format was chosen, or map is corrupt:\n"+ex.getMessage(),
-	    //        "Sorry!", JOptionPane.ERROR_MESSAGE);
-            //ex.printStackTrace(SoftLog.err);
-	    //}
-
-	//show();
-	//buildGUI();
-	//dialog.pack();
-	//dialog.setLocationRelativeTo(kMain.getTopWindow());
-        //dialog.setVisible(true);
     }
 //}}}
 
+//{{{ askFormats
     private String askFileFormat(String f) {
 	Object[] choices = {"First", "Last"};
 	String choice = (String) JOptionPane.showInputDialog(kMain.getTopWindow(), 
@@ -222,10 +209,9 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 							     "Choose", JOptionPane.PLAIN_MESSAGE,
 							     null, choices, "phi, angle, psi");
 	return choice;
-    }
+    } //}}}
 
-
-//{{{ openMapFile
+//{{{ openOpenFile
 //##################################################################################################
     public void onOpenFile(ActionEvent ev)
     {
@@ -251,11 +237,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 			allPoints = new ArrayList();
 			scanFile(reader, fileChoice, angleChoice);
 		    }
-		    //buildGUI();
-		    //show();
-		    //dialog.pack();
-		    //dialog.setLocationRelativeTo(kMain.getTopWindow());
-		    //dialog.setVisible(true);
+
 		    kCanvas.repaint(); // otherwise we get partial-redraw artifacts
 		}
 	    } 
@@ -290,7 +272,9 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		    System.out.println(line);
 		    //if (line.indexOf("#ROT")>-1) analyzeRotLine(line);
 		} else {
-		    line.trim();
+		    line = line.trim();
+		    //System.out.println(line);
+		    /*
 		    StringTokenizer spaceToks = new StringTokenizer(line, " ");
 		    int numToks = spaceToks.countTokens();
 		    double x, y, clashValue;
@@ -304,7 +288,27 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 			if (spaceToks.hasMoreTokens()) {
 			    temp4 = Double.parseDouble(spaceToks.nextToken());
 			}
+			}*/
+		    //System.out.println(line);
+		    String[] values = line.split("\\s");
+		    //System.out.print(values.length + " ");
+		    //if (values.length>2) {
+		    //System.out.println(values[0]);
+		    //}
+		    int numValues = values.length;
+		    double x, y, clashValue;
+		    double temp1 = 1000, temp2 = 1000, temp3 = 1000;
+		    double temp4 = Double.NaN;
+		    double z = Double.NaN;
+		    if (numValues > 2) {
+			temp1 = Double.parseDouble(values[0]);
+			temp2 = Double.parseDouble(values[1]);
+			temp3 = Double.parseDouble(values[2]);
 		    }
+		    if (numValues > 3) {
+			temp4 = Double.parseDouble(values[3]);
+		    }
+
 		    if (fileChoice.equals("Last")) {
 			x = temp1;
 			y = temp2;
@@ -353,11 +357,15 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		    } else {
 			sortByValue(0, point);
 		    }
+		    //System.out.println(allPoints.size());
 		}
 	    }
+	    //System.out.println(allPoints.size());
 	    plotByScore(true, 5);
+	    //System.out.println(allPoints.size());
 	    setDefaultColors();
 	    reSortKlists();
+	    //System.out.println(allPoints.size());
 	    //kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
 	} catch (IOException ex) {
 	    JOptionPane.showMessageDialog(kMain.getTopWindow(),
@@ -368,7 +376,8 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     }
 //}}}
 
-    // analyzes the comment lines in the files; function is not used at the moment.
+//{{{ analyzeRotLine
+        // analyzes the comment lines in the files; function is not used at the moment.
     private void analyzeRotLine(String line) {
 	System.out.println(line.substring(line.indexOf("from ")+5, line.indexOf(" to "))+ ".");
 	System.out.println(line.substring(line.indexOf("to ") + 3, line.indexOf(" by "))+ ".");
@@ -386,8 +395,10 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	
 	
     }
+//}}}
 
-    //need to set owners of the Klists.
+//{{{ sortByValue
+//need to set owners of the Klists.
     private void sortByValue(double value, KPoint point) {
 	if (listMap.containsKey(new Double(value))) {
 	    KList list = (KList) listMap.get(new Double(value));
@@ -397,12 +408,13 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	    KList list = new KList();
 	    list.setType(KList.BALL);
 	    point.setOwner(list);
+	    list.add(point);
 	    list.setName(Double.toString(value));
 	    listMap.put(new Double(value), list);
 	}
 
     }
-
+//}}}
 
 //{{{ reSortKlists
 //###################################################################################################
@@ -440,6 +452,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	}
 	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
     }
+//}}}
 
 //{{{ setDefaultColors
 //################################################################################################
@@ -451,7 +464,8 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	highlightRange(-5, -15, KPalette.gold);
 	highlightRange(0, -5, KPalette.yellow);
     }
-
+//}}}
+    
 //{{{ highlightRange
 //################################################################################################
     /**
@@ -474,12 +488,16 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	kCanvas.repaint();
 
     }
+//}}}    
+
+//{{{ onSetDefault
 
     public void onSetDefault(ActionEvent ev) {
 	setDefaultColors();
     }
-
-    //public void onTurnOff(double firstNum, double secondNum) {
+//}}}
+    
+//{{{ onTurnOff
     public void onTurnOff(ActionEvent ev) {
 	if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))) {
 	    double firstNum = Double.parseDouble(lowNumField.getText());
@@ -522,8 +540,9 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	kCanvas.repaint();
 
     }
-
-    //public void onTurnOn(double firstNum, double secondNum) {
+//}}}
+    
+//{{{ onTurnOn
     public void onTurnOn(ActionEvent ev) {
 	if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))) {
 	    double firstNum = Double.parseDouble(lowNumField.getText());
@@ -534,29 +553,9 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		secondNum = firstNum;
 		firstNum = temp;
 	    } 
-	    //int i = 0;
-	    /*
-	    Iterator iter = allPoints.iterator();
-	    while (iter.hasNext()) {
-		KPoint point = (KPoint) iter.next();
-		double clashValue = Double.parseDouble(point.getName());
-		if ((clashValue>=firstNum)&&(clashValue<=secondNum)) {
-		    //System.out.print("True");
-		    if (offPoints.contains(point)) {
-			//System.out.print("true");
-			KList owner = (KList) point.getOwner();
-			owner.add(point);
-			offPoints.remove(point);
-			i++;
-		    }
-		}
-		}
-	    */
+
 	    for (int i = offPoints.size() - 1; i > -1; i--) {
 		KPoint point = (KPoint) offPoints.get(i);
-		//Iterator iter = offPoints.iterator();
-		//while (iter.hasNext()) {
-		//KPoint point = (KPoint) iter.next();
 		double clashValue = Double.parseDouble(point.getName());
 		if ((clashValue>=firstNum)&&(clashValue<=secondNum)) {
 		    KList owner = (KList) point.getOwner();
@@ -572,8 +571,11 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	kCanvas.repaint();
 	
     }
+//}}}
 
+//{{{ onDifference
     public void onDifference(ActionEvent ev) {
+	/*
 	Kinemage kin = kMain.getKinemage();
 	Iterator iter = kin.iterator();
 	allPoints.clear();
@@ -600,7 +602,9 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	allPoints = (ArrayList) ps.sortPhiPsi();
         ps = new PointSorter(allPoints, PointSorter.SORTBY_X);
 	allPoints = (ArrayList) ps.sortPhiPsi();
-
+	*/
+	long startTime = System.currentTimeMillis();
+	addAllDataPoints();
 	for (int i = 0; i < allPoints.size(); i++) {
 	    KPoint point = (KPoint) allPoints.get(i);
 	    if ((i+1) < allPoints.size()) {
@@ -623,13 +627,102 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
 	
     }
+//}}}
 
+//{{{ addAllDataPoints
+
+    private void addAllDataPoints() {
+	Kinemage kin = kMain.getKinemage();
+	Iterator iter = kin.iterator();
+	allPoints.clear();
+	//long startTime = System.currentTimeMillis();
+	while (iter.hasNext()) {
+	    KGroup group = (KGroup) iter.next();
+	    if (group.isOn()) {
+		if (group.hasMaster("Data Points")) {
+		    KSubgroup subgroup = (KSubgroup) group.getChildAt(0);
+		    
+		    KList list = (KList) subgroup.getChildAt(0);
+		    //if (list.isOn()) {
+		    Iterator points = list.iterator();
+		    while (points.hasNext()) {
+			KPoint point = (KPoint) points.next();
+			allPoints.add(point);
+		    }
+		    //}
+		}
+	    }
+	}
+
+	PointSorter ps = new PointSorter(allPoints, PointSorter.SORTBY_Y);
+	allPoints = (ArrayList) ps.sortPhiPsi();
+        ps = new PointSorter(allPoints, PointSorter.SORTBY_X);
+	allPoints = (ArrayList) ps.sortPhiPsi();
+
+    }
+//}}}
+
+//{{{ onExport
+
+    public void onExport(ActionEvent ev) {
+	//addAllDataPoints();
+	JFileChooser saveChooser = new JFileChooser();
+	String currdir = System.getProperty("user.dir");
+	if(currdir != null) {
+	    saveChooser.setCurrentDirectory(new File(currdir));
+	}
+	if (saveChooser.APPROVE_OPTION == saveChooser.showSaveDialog(kMain.getTopWindow())) {
+	    File f = saveChooser.getSelectedFile();
+	    if( !f.exists() ||
+                JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+                    "This file exists -- do you want to overwrite it?",
+                    "Overwrite file?", JOptionPane.YES_NO_OPTION)
+                == JOptionPane.YES_OPTION )
+            {
+                saveDataFile(f);
+            }
+	}
+
+    }
+//}}}
+
+//{{{ saveDataFile
+
+    public void saveDataFile(File f) {
+	try {
+	    Writer w = new FileWriter(f);
+	    PrintWriter out = new PrintWriter(new BufferedWriter(w));
+	    addAllDataPoints();
+	    Iterator iter = allPoints.iterator();
+	    while (iter.hasNext()) {
+		AbstractPoint point = (AbstractPoint) iter.next();
+		out.print(df.format(point.getZ()));
+		out.print(" ");
+		out.print(intf.format(point.getX()));
+		out.print(" ");
+		out.println(intf.format(point.getY()));
+
+
+	    }
+	    out.flush();
+	    w.close();
+
+	} catch (IOException ex) {
+	    JOptionPane.showMessageDialog(kMain.getTopWindow(),
+                "An error occurred while saving the file.",
+                "Sorry!", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+//}}}
+
+//{{{ plotByScore
 
     private void plotByScore(boolean plotStat, double scaleFactor) {
 	if (plotStat) {
 	    //Collection values = dataMap.values();
 	    Iterator iter = allPoints.iterator();
 	    while (iter.hasNext()) {
+		//System.out.print("1");
 		//ArrayList value = (ArrayList) iter.next();
 		//Iterator points = value.iterator();
 		//while (points.hasNext()) {
@@ -656,22 +749,11 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		KList list = (KList) point.getOwner();
 		point.setZ(Double.parseDouble(list.getName()));
 	    }
-
-	    /*
-	    Set keys = listMap.keySet();
-	    Iterator iter = keys.iterator();
-	    while (iter.hasNext()) {
-		Double key = (Double) iter.next();
-		KList list = (KList) listMap.get(key);
-		Iterator points = list.iterator();
-		while (points.hasNext()) {
-		    KPoint point = (KPoint) points.next();
-		    point.setZ(key.doubleValue());
-		}
-	    }
-	    */
 	}
     }
+//}}}
+
+//{{{ onHighlightRange
 
     public void onHighlightRange(ActionEvent ev) {
 	if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))) {
@@ -684,6 +766,9 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	}
 	kCanvas.repaint();
     }
+//}}}
+    
+//{{{ onFixScore
 
     public void onFixScore(ActionEvent ev) {
 	//Collection values = dataMap.values();
@@ -709,8 +794,12 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	reSortKlists();
 	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
     }
+     //}}}
 
+//{{{ onSmoothing
+          
     public void onSmoothing(ActionEvent ev) {
+	/*
 	Kinemage kin = kMain.getKinemage();
 	Iterator iter = kin.iterator();
 	long startTime = System.currentTimeMillis();
@@ -732,6 +821,9 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	allPoints = (ArrayList) ps.sortPhiPsi();
         ps = new PointSorter(allPoints, PointSorter.SORTBY_X);
 	allPoints = (ArrayList) ps.sortPhiPsi();
+	*/
+	long startTime = System.currentTimeMillis();
+	addAllDataPoints();
 	for (int i = 0; i < allPoints.size(); i++) {
 	    KPoint point = (KPoint) allPoints.get(i);
 	    if ((i+1) < allPoints.size()) {
@@ -752,8 +844,9 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
 	
     }
+//}}}
 
-// event functions
+//{{{ event functions
 //###############################################################################################
     /**
      * Event handler for when action performed.
@@ -770,7 +863,8 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	}
 	kCanvas.repaint();
     }
-
+//}}}
+    
     public boolean isNumeric(String s) {
 	try {
 	    Double.parseDouble(s);
@@ -792,3 +886,4 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     { return "AutoBondRot Data"; }
 //}}}
 }
+//}}}

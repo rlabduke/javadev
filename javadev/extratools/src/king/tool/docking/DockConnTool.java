@@ -307,7 +307,7 @@ public class DockConnTool extends DockLsqTool {
 //##############################################################################
     private void transform(AGE target, Transform t)
     {
-        if(!target.isOn()) return;
+        //if(!target.isOn()) return;
         
         if(target instanceof KList)
         {
