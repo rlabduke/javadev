@@ -17,7 +17,8 @@ public class RamaTool extends BasicTool {
 
 //{{{ Variable definitions
 //##############################################################################
-    HashMap pointMap;
+    TreeMap pointMap;
+    HashMap lengthMap;
     TablePane pane;
 
 
@@ -37,18 +38,26 @@ public class RamaTool extends BasicTool {
     }
 
     public void onCalc(ActionEvent ev) {
-	analyzeKin();
+	//analyzeKin();
 	System.out.println(pointMap.size());
-	plotRama();
+	//plotRama();
     }
 
     public void start() {
 	if (kMain.getKinemage() == null) return;
 	//adjacencyMap = new HashMap();
 	//buildAdjacencyList();
-	pointMap = new HashMap();
+	//pointMap = new HashMap();
 
 	show();
+    }
+
+    public void click(int x, int y, KPoint p, MouseEvent ev) {
+	super.click(x, y, p, ev);
+	if (p != null) {
+	    analyzeKin(p);
+	    plotRama();
+	}
     }
 
     public VectorPoint calcRama(AbstractPoint c0, AbstractPoint n1, AbstractPoint ca1, AbstractPoint c1, AbstractPoint n2, VectorPoint prev) {
@@ -57,7 +66,9 @@ public class RamaTool extends BasicTool {
 	VectorPoint point = new VectorPoint(null, n1.getName(), prev);
 	point.setX(phi);
 	point.setY(psi);
-	point.setZ(PointComparator.getResNumber(n1.getName()));
+	int resNum = PointComparator.getResNumber(n1.getName());
+	int transNum = ((Integer)lengthMap.get(new Integer(resNum))).intValue();
+	point.setZ(transNum);
 	return point;
     }
 
@@ -133,7 +144,49 @@ public class RamaTool extends BasicTool {
 	return null;
     }
 
-    public void analyzeKin() {
+    public void analyzeKin(KPoint p) {
+	ConnectivityFinder cf = new ConnectivityFinder(kMain);
+	cf.buildAdjacencyList();
+	HashSet mobilePoints = cf.mobilityFinder(null, (AbstractPoint) p, false);
+	Iterator iter = mobilePoints.iterator();
+	pointMap = new TreeMap();
+	while (iter.hasNext()) {
+	    VectorPoint point = (VectorPoint) iter.next();
+	    Integer resNumber = new Integer(PointComparator.getResNumber(point.getName()));
+	    if (pointMap.containsKey(resNumber)) {
+		ArrayList list = (ArrayList) pointMap.get(resNumber);
+		if (!list.contains(point)) {
+		    list.add(point);
+		}
+	    } else {
+		ArrayList list = new ArrayList();
+		list.add(point);
+		pointMap.put(resNumber, list);
+	    }
+	}
+	lengthMap = new HashMap();
+	Integer first = (Integer) pointMap.firstKey();
+	Integer last = (Integer) pointMap.lastKey();
+	int length = last.intValue() - first.intValue() + 1;
+	Set keys = pointMap.keySet();
+	iter = keys.iterator();
+	while (iter.hasNext()) {
+	    Integer key = (Integer) iter.next();
+	    Integer transKey = new Integer((key.intValue() - first.intValue() + 1)*5);
+	    lengthMap.put(key,transKey);
+	
+	//lengthMap.put(first, new Double(1));
+	//iter.next(); //first already in lengthMap
+	//lengthMap.put(iter.next(), new Double(2));
+	//if (length - 4 > 0) {
+	//    while (iter.hasNext()) {
+		
+	//lengthMap.put(
+	//if (length < 4) {
+	}    
+			   
+    }
+	/*
 	Kinemage kin = kMain.getKinemage();
 	if (kin != null) kin.setModified(true);
 	Iterator iter = kin.iterator();
@@ -161,7 +214,8 @@ public class RamaTool extends BasicTool {
 		}
 	    }
 	}
-    }
+	*/
+    
     
     public void addPoints(VectorPoint point) {
 	Integer resNumber = new Integer(PointComparator.getResNumber(point.getName()));
