@@ -23,8 +23,10 @@ public class LoopTool extends BasicTool {
 //{{{ Variable definitions
 //##############################################################################
     HashSet keptSet;
+    HashMap startColorMap, endColorMap;
     HashMap pdbKeepMap;
-    JButton delButton, keepButton, removeButton, openButton, delFromFileButton;
+    TreeMap bFactorMap;
+    JButton delButton, keepButton, removeButton, openButton, delFromFileButton, doAllButton;
     JTextField lowNumField, highNumField;
     TablePane pane;
     JList keptList;
@@ -54,6 +56,7 @@ public class LoopTool extends BasicTool {
 
 	openButton = new JButton(new ReflectiveAction("Open file", null, this, "onOpenFile"));
 	delFromFileButton = new JButton(new ReflectiveAction("Delete from file", null, this, "onDeleteFromFile"));
+	doAllButton = new JButton(new ReflectiveAction("Do ALL from file", null, this, "onDoAll"));
 
 	pane = new TablePane();
 	pane.newRow();
@@ -65,8 +68,10 @@ public class LoopTool extends BasicTool {
 	pane.add(new JScrollPane(keptList), 4, 1);
 	pane.newRow().restore();
 	pane.add(removeButton, 2, 1);
-	pane.add(openButton);
-	pane.add(delFromFileButton);
+	pane.add(openButton, 1, 1);
+	pane.add(delFromFileButton, 1, 1);
+	pane.newRow();
+	pane.add(doAllButton, 3, 1);
 
         dialog.addWindowListener(this);
 
@@ -76,10 +81,13 @@ public class LoopTool extends BasicTool {
 //}}}
 
     public void start() {
-	if (kMain.getKinemage() == null) return;
+	//if (kMain.getKinemage() == null) return;
 	buildGUI();
 	keptSet = new HashSet();
 	pdbKeepMap = new HashMap();
+	startColorMap = new HashMap();
+	endColorMap = new HashMap();
+	bFactorMap = new TreeMap();
 	//colorator = new RecolorNonRibbon();
 	show();
     }   
@@ -118,19 +126,35 @@ public class LoopTool extends BasicTool {
 		    try {
 			while ((line = reader.readLine())!=null) {
 			    String[] exploded = Strings.explode(line, ',', false, true);
-			    System.out.print(exploded[0]+ " ");
-			    System.out.println(exploded[1]+ " " + exploded[2]);
+			    //System.out.print(exploded[0]+ " ");
+			    //System.out.println(exploded[1]+ " " + exploded[2]);
 			    String pdbName = exploded[0];
 			    pdbName = pdbName.toLowerCase();
 			    //System.out.print(pdbName);
 			    //pdbName = pdbName.toLowerCase();
 			    if (pdbKeepMap.containsKey(pdbName)) {
 				HashSet value = (HashSet) pdbKeepMap.get(pdbName);
+				HashSet startSet = (HashSet) startColorMap.get(pdbName);
+				HashSet endSet = (HashSet) endColorMap.get(pdbName);
 				keepRange(value, Integer.parseInt(exploded[1])-5, Integer.parseInt(exploded[2])+10);
+				startSet.add(Integer.parseInt(exploded[1]));
+				startSet.add(Integer.parseInt(exploded[1])+1);
+				endSet.add(Integer.parseInt(exploded[2]));
+				endSet.add(Integer.parseInt(exploded[2])+1);
+				bFactorMap.put(Double.parseDouble(exploded[5]), pdbName);
 			    } else {
 				HashSet value = new HashSet();
 				keepRange(value, Integer.parseInt(exploded[1])-5, Integer.parseInt(exploded[2])+10);
 				pdbKeepMap.put(pdbName, value);
+				HashSet start = new HashSet();
+				HashSet end = new HashSet();
+				start.add(Integer.parseInt(exploded[1]));
+				start.add(Integer.parseInt(exploded[1])+1);
+				end.add(Integer.parseInt(exploded[2]));
+				end.add(Integer.parseInt(exploded[2])+1);
+				startColorMap.put(pdbName, start);
+				endColorMap.put(pdbName, end);
+			        bFactorMap.put(Double.parseDouble(exploded[5]), pdbName);
 			    }
 			}
 		    } catch (IOException ex) {
@@ -155,6 +179,52 @@ public class LoopTool extends BasicTool {
 					      "Sorry!", JOptionPane.ERROR_MESSAGE);
 		//ex.printStackTrace(SoftLog.err);
 	    }
+	}
+    }
+
+    public void onDoAll(ActionEvent ev) {
+	if (filechooser == null) makeFileChooser();
+
+        if(JFileChooser.APPROVE_OPTION == filechooser.showOpenDialog(kMain.getTopWindow()))
+	{
+	    //try {
+		File f = filechooser.getSelectedFile();
+		System.out.println(f.getPath() + " : " + f.getName() + " : " + f.getParent());
+		File[] allFiles = f.getParentFile().listFiles();
+		File saveLoc = new File(f.getParentFile(), "loops");
+		HashMap fileMap = new HashMap();
+		for (int i = 0; i < allFiles.length; i++) {
+		    File pdbFile = allFiles[i];
+		    String pdbName = pdbFile.getName().substring(0,4);
+		    fileMap.put(pdbName, pdbFile);
+		    //System.out.println(pdbFile.getPath() + " : " + pdbName + " : " + pdbFile.getParent());
+		    //System.out.println(pdbKeepMap.containsKey(pdbName.toLowerCase()));
+		}
+		Collection values = bFactorMap.values();
+		Iterator iter = values.iterator();
+		while (iter.hasNext()) {
+		    String value = (String) iter.next();
+		    File pdbFile = (File) fileMap.get(value);
+		    //if (pdbKeepMap.containsKey(pdbName)) {
+			kMain.getKinIO().loadFile(pdbFile, null);
+			System.out.println(pdbFile.getPath());
+			onDeleteFromFile(ev);
+			kMain.getKinIO().saveFile(new File(saveLoc, value + ".kin"));
+			kMain.getStable().closeCurrent();
+		    
+		}
+		//}
+		//catch(IOException ex) { // includes MalformedURLException 
+		//	JOptionPane.showMessageDialog(kMain.getTopWindow(),
+		//			      "An I/O error occurred while loading the file:\n"+ex.getMessage(),
+		//			      "Sorry!", JOptionPane.ERROR_MESSAGE);
+		//ex.printStackTrace(SoftLog.err);
+		//} catch(IllegalArgumentException ex) {
+		//JOptionPane.showMessageDialog(kMain.getTopWindow(),
+		//			      "Wrong map format was chosen, or map is corrupt:\n"+ex.getMessage(),
+		//			      "Sorry!", JOptionPane.ERROR_MESSAGE);
+		//ex.printStackTrace(SoftLog.err);
+		//}
 	}
     }
 
@@ -191,6 +261,9 @@ public class LoopTool extends BasicTool {
 	if (pdbKeepMap.containsKey(pdbName)) {
 	    HashSet keepSet = (HashSet) pdbKeepMap.get(pdbName);
 	    delete(kMain.getKinemage(), keepSet);
+	    recolor(kMain.getKinemage(), (HashSet) startColorMap.get(pdbName), KPalette.green);
+	    recolor(kMain.getKinemage(), (HashSet) endColorMap.get(pdbName), KPalette.red);
+	    rename(kMain.getKinemage(), pdbName);
 	} else {
 	    JOptionPane.showMessageDialog(kMain.getTopWindow(),
 						      "This PDB file name was not found in the reference file.",
@@ -204,6 +277,7 @@ public class LoopTool extends BasicTool {
     public void onDelete(ActionEvent ev) {
 	//currently assuming kins formatted as lots.
 	delete(kMain.getKinemage(), keptSet);
+	//recolor(kMain.getKinemage(), startColor
 	kCanvas.repaint();
     }
 
@@ -224,7 +298,50 @@ public class LoopTool extends BasicTool {
 	
     }
 
+    private void rename(AGE target, String addOn) {
+	if (target instanceof KList) {
+	    ListIterator iter = target.iterator();
+	    while (iter.hasNext()) {
+		KPoint pt = (KPoint) iter.next();
+		pt.setName(pt.getName() + " " + addOn);
+		//int resNum = KinUtil.getResNumber(pt);
+		//if (colorSet.contains(new Integer(resNum))) {
+		//    pt.setColor(color);
+		//} 
+	    }
+	} else {
+	    Iterator iter = target.iterator();
+	    while (iter.hasNext()) {
+		rename((AGE)iter.next(), addOn);
+	    }
+	}
+    }
+
+    private void recolor(AGE target, HashSet colorSet, KPaint color) {
+	if (target instanceof KList) {
+	    ListIterator iter = target.iterator();
+	    while (iter.hasNext()) {
+		KPoint pt = (KPoint) iter.next();
+		int resNum = KinUtil.getResNumber(pt);
+		if (colorSet.contains(new Integer(resNum))) {
+		    pt.setColor(color);
+		} 
+		
+		
+		
+	    }
+	} else {
+	    Iterator iter = target.iterator();
+	    while (iter.hasNext()) {
+		recolor((AGE)iter.next(), colorSet, color);
+	    }
+	}
+    }
+
     private void delete(AGE target, HashSet keepSet) {
+	if (target instanceof Kinemage) {
+	    if (target != null) ((Kinemage)target).setModified(true);
+	}
 	if (target instanceof KList) {
 	    ListIterator iter = target.iterator();
 	    while (iter.hasNext()) {

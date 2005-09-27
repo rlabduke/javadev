@@ -292,8 +292,8 @@ public class DockConnTool extends DockLsqTool {
         }
         
         // Swap which button is selected
-        if(btnReference.isSelected())   btnMobile.setSelected(true);
-        else                            btnReference.setSelected(true);
+        //if(btnReference.isSelected())   btnMobile.setSelected(true);
+        //else                            btnReference.setSelected(true);
 
         if(!keepRefBox.isSelected()) {
 	    pkReference.clear();
