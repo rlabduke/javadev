@@ -358,25 +358,27 @@ public class SequenceSpacer //extends ... implements ...
 //##############################################################################
     void renderLinkedViews(Sequence[] seqs, Collection neighborGraphs, PrintStream out)
     {
+        final int maxViews = 10;
         out.println("@text");
         int i = 0;
-        for(Iterator iter = neighborGraphs.iterator(); iter.hasNext() && i < 10; i++)
+        for(Iterator iter = neighborGraphs.iterator(); iter.hasNext() && i < maxViews; i++)
         {
             ArrayList ng = new ArrayList((Collection) iter.next());
             Collections.sort(ng, Collections.reverseOrder());
             Sequence first = (Sequence) ng.get(0);
-            out.println("*{v="+(i+1)+"}*   "+ng.size()+" member cluster with "+first.degree_1+" neighbors to "+first.seq);
+            out.println("*{v="+(i+2)+"}*   "+ng.size()+" member cluster with "+first.degree_1+" neighbors to "+first.seq);
             out.println(first.printNeighborhood(ng));
         }
+        out.println("@1viewid {Overview}"); // other params auto determined on kinemage load
         i = 0;
-        for(Iterator iter = neighborGraphs.iterator(); iter.hasNext() && i < 10; i++)
+        for(Iterator iter = neighborGraphs.iterator(); iter.hasNext() && i < maxViews; i++)
         {
             ArrayList ng = new ArrayList((Collection) iter.next());
             Collections.sort(ng, Collections.reverseOrder());
             Sequence first = (Sequence) ng.get(0);
-            out.println("@"+(i+1)+"viewid {"+first.seq+"}");
-            out.println("@"+(i+1)+"center "+first.format(df));
-            out.println("@"+(i+1)+"span 4");
+            out.println("@"+(i+2)+"viewid {"+first.seq+"}");
+            out.println("@"+(i+2)+"center "+first.format(df));
+            out.println("@"+(i+2)+"span 4");
         }
     }
 //}}}

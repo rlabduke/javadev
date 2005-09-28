@@ -472,7 +472,7 @@ public class ToolBox implements MouseListener, MouseMotionListener, TransformSig
     }
 //}}}
 
-//{{{ toolActivated, notifyChange
+//{{{ toolActivated, activateDefaultTool, notifyChange
 //##################################################################################################
     /** Called by Tools when their radio button gets hit. */
     public void toolActivated(BasicTool t)

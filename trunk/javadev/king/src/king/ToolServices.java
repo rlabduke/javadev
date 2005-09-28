@@ -11,6 +11,7 @@ import java.util.*;
 import javax.swing.*;
 import driftwood.gui.*;
 import driftwood.r3.*;
+import driftwood.util.SoftLog;
 
 import java.util.List;
 //}}}
@@ -576,9 +577,14 @@ public class ToolServices implements TransformSignalSubscriber
         if(coords   != null && doXYZ.isSelected())  painter.paintLabel(fontColor, coords, hOffset2, vOffset1, 0);
         if(pointID  != null)
         {
+            int lblWidth = painter.getLabelWidth(pointID);
             // pointID is bumped up one line if it's really long
-            if(hOffset1 + painter.getLabelWidth(pointID) >= hOffset2)
+            if(hOffset1 + lblWidth >= hOffset2)
+            {
                 painter.paintLabel(fontColor, pointID, hOffset1, vOffset3, 0);
+                if(hOffset1 + lblWidth >= size.width) // REALLY long: print to std out
+                    SoftLog.out.println(pointID);
+            }
             else
                 painter.paintLabel(fontColor, pointID, hOffset1, vOffset2, 0);
         }

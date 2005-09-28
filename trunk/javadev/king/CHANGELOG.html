@@ -7,7 +7,6 @@
     Separate checkboxes, tree nodes from AGEs
     Include demo/tutorial kinemage ?
     Add paintHighQuality to MarkerPoint
-    Implement the 'moview= #' feature of Mage?
     Implement "screen" keyword for lists
     Add ability to create/edit colors
     Allow editing of all points below a given group/subgroup/list.
@@ -66,13 +65,24 @@
     Use E+H 2000 geometry for Pro?
     Backrub: sc first, then bb, no bb opt sc, leads to sc tool not fixing Cb dev
     Draw tool - autolabel distances, angles
- ** Add docs in king-ver/doc/(chiropraxis|extratools) to InstallAnywhere script
+    Implement the 'moview= #' feature of Mage for J. Voet (?)
+  * Copy 3 PDFs to KiNG FTP folder as part of deploy-world script
+    Access edit properties, move points from Draw tool
+    Move points should treat labels differently...
+    Does KiNG have the extra rotamer points?
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 1.44 ###
+### 1.45 ###
+- fixed hyperlink code to respect a slightly larger active area.
+  It was previously cut too short on the right hand side.
+- added border to exported images
+- removed border from exported images; easier to do in Keynote/Powerpoint
+  (but it does look really good!)
+- really long point IDs are sent to stdout when screen is drawn
+
 ### 1.44 ###
 - fixed memory specs in KiNG Mac bundle ("16MBm" to "16m" as memory size!)
   This is required for proper operation with Java 1.5.x
@@ -86,6 +96,8 @@
 - fixed current-dir bug re: auto file naming in image/PDF export plugins
 - clarified documentation of instance=
 - documented the meaning of a space (" ") inside a point's aspect list
+- Oops! chiropraxis/extratools PDFs went to wrong folder. Now fixed.
+- added docs in king-ver/doc/(chiropraxis|extratools) to InstallAnywhere script
 
 ### 1.43 ###
 - changed AbstractPoint.getDrawingColor() to ignore unrecognized aspect codes.

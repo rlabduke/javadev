@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- This script was automatically generated using Zero G's InstallAnywhere 5.5.1 Now, Build 2032
      STATUS: Fully Functional LICENSED Edition
-     DATE:   Wed Jul 06 11:10:31 EDT 2005 -->
-<InstallAnywhere_Deployment_Project increments="1574">
+     DATE:   Thu Aug 04 10:35:30 EDT 2005 -->
+<InstallAnywhere_Deployment_Project increments="1614">
 	<!-- ** DO NOT EDIT ** Essential authorization and configuration data ** DO NOT EDIT ** -->
 	<essentialScriptInfo>
 		<versionID major="5" minor="5" revision="1"/>
 		<editionID>53,46,53,46,49,32,78,111,119,32,66,117,105,108,100,32,50,48,51,50</editionID>
 		<scriptID>12,42,11,90,83,49,52,48,53,76,81,66,70,67,78,72</scriptID>
-		<buildID>3,13,71,77,97,99,32,79,83,32,88,44,32,49,48,46,52,46,49,44,32,112,112,99,59,32,74,97,118,97,32,49,46,51,46,49,95,49,53,44,32,65,112,112,108,101,32,67,111,109,112,117,116,101,114,44,32,73,110,99,46,44,32,104,116,116,112,58,47,47,97,112,112,108,101,46,99,111,109,47,59,32,101,110,44,32,85,83,59,32,77,97,99,82,111,109,97,110</buildID>
+		<buildID>3,13,71,77,97,99,32,79,83,32,88,44,32,49,48,46,52,46,50,44,32,112,112,99,59,32,74,97,118,97,32,49,46,51,46,49,95,49,53,44,32,65,112,112,108,101,32,67,111,109,112,117,116,101,114,44,32,73,110,99,46,44,32,104,116,116,112,58,47,47,97,112,112,108,101,46,99,111,109,47,59,32,101,110,44,32,85,83,59,32,77,97,99,82,111,109,97,110</buildID>
 		<!-- The authorizationID may change between project saves and builds.  This does not effect the integrity of the project, nor do changes in this value represent changes in the actual InstallAnywhere project. -->
-		<authorizationID>1,0,0,0,-24,-68,-80,80,80,112,112,97,87,98,113,97,113,65,81,51,74,65,78,68,71,68,64,69,66,69,48,79,87,5,2,15,2,18,124,4,1,0,0</authorizationID>
+		<authorizationID>1,0,0,0,-120,-18,16,-128,80,112,112,97,87,98,113,97,113,65,81,51,74,65,78,68,71,68,64,69,66,69,48,79,87,5,2,9,2,27,113,5,1,0,0</authorizationID>
 	</essentialScriptInfo>
-	<installationObjects uniqueObjects="81">
+	<installationObjects uniqueObjects="83">
 		<object class="com.zerog.ia.installer.Installer" objectID="5351b8a1a760">
 			<property name="wizardME">
 				<object class="com.zerog.ia.installer.actions.MakeExecutable" objectID="5351d34da762">
@@ -176,7 +176,7 @@ it will search for ones in this list]]></string>
 								</object>
 							</method>
 							<method name="addElement">
-								<object class="com.zerog.ia.installer.util.LAXPropertyData" objectID="0032348cba9b">
+								<object class="com.zerog.ia.installer.util.LAXPropertyData" objectID="95677ca58939">
 									<property name="propertyValue">
 										<string><![CDATA[king.KingMain]]></string>
 									</property>
@@ -260,7 +260,7 @@ and any path to a file to read from that file]]></string>
 								<string><![CDATA[king.jar]]></string>
 							</property>
 							<property name="fileSize">
-								<long>504066</long>
+								<long>505516</long>
 							</property>
 							<property name="macBinary">
 								<boolean>false</boolean>
@@ -723,7 +723,7 @@ Press "Done" to quit the installer.]]></string>
 				<object class="java.util.Properties">
 					<method name="put">
 						<string><![CDATA[com.zerog.ia.project.save.last.date]]></string>
-						<string><![CDATA[Wed Jul 06 11:10:30 EDT 2005]]></string>
+						<string><![CDATA[Thu Aug 04 10:35:30 EDT 2005]]></string>
 					</method>
 					<method name="put">
 						<string><![CDATA[com.zerog.ia.build.options.optimization.platform.merge]]></string>
@@ -767,7 +767,7 @@ Press "Done" to quit the installer.]]></string>
 					</method>
 					<method name="put">
 						<string><![CDATA[com.zerog.ia.project.build.last.date]]></string>
-						<string><![CDATA[Thu May 26 17:17:56 EDT 2005]]></string>
+						<string><![CDATA[Thu Aug 04 10:35:30 EDT 2005]]></string>
 					</method>
 					<method name="put">
 						<string><![CDATA[com.zerog.ia.installer.options.heap.size.initial]]></string>
@@ -967,7 +967,7 @@ Press "Done" to quit the installer.]]></string>
 						<int>1</int>
 					</property>
 					<property name="productVersionMinor">
-						<int>43</int>
+						<int>44</int>
 					</property>
 					<property name="productVersionRevision">
 						<int>0</int>
@@ -1413,7 +1413,7 @@ and any path to a file to read from that file]]></string>
 												<string><![CDATA[chiropraxis.jar]]></string>
 											</property>
 											<property name="fileSize">
-												<long>2017412</long>
+												<long>2030435</long>
 											</property>
 											<property name="macBinary">
 												<boolean>false</boolean>
@@ -1607,7 +1607,7 @@ and any path to a file to read from that file]]></string>
 												<string><![CDATA[beanking.jar]]></string>
 											</property>
 											<property name="fileSize">
-												<long>287953</long>
+												<long>287954</long>
 											</property>
 											<property name="macBinary">
 												<boolean>false</boolean>
@@ -1636,7 +1636,7 @@ and any path to a file to read from that file]]></string>
 												<string><![CDATA[format-kinemage.pdf]]></string>
 											</property>
 											<property name="fileSize">
-												<long>83935</long>
+												<long>84006</long>
 											</property>
 											<property name="macBinary">
 												<boolean>false</boolean>
@@ -1644,40 +1644,6 @@ and any path to a file to read from that file]]></string>
 											<property name="targetCheckKind">
 												<int>0</int>
 											</property>
-										</object>
-										<object class="com.zerog.ia.installer.actions.InstallDirectory" objectID="41858cfd8512">
-											<property name="unixPermissions">
-												<string><![CDATA[775]]></string>
-											</property>
-											<property name="sourceName">
-												<string><![CDATA[]]></string>
-											</property>
-											<property name="overrideUnixPermissions">
-												<boolean>false</boolean>
-											</property>
-											<property name="sourcePath">
-												<string><![CDATA[/Users/ian/javadev/king/doc]]></string>
-											</property>
-											<property name="shouldUninstall">
-												<boolean>true</boolean>
-											</property>
-											<property name="destinationName">
-												<string><![CDATA[doc]]></string>
-											</property>
-											<property name="removeRecursively">
-												<boolean>false</boolean>
-											</property>
-											<property name="macBinary">
-												<boolean>false</boolean>
-											</property>
-											<visualChildren>
-												<object refID="41858d548517"/>
-												<object refID="41858d558517"/>
-												<object refID="41858d578517"/>
-												<object refID="41858d568518"/>
-												<object refID="41858d578518"/>
-												<object refID="201fe64c84f6"/>
-											</visualChildren>
 										</object>
 										<object class="com.zerog.ia.installer.actions.InstallFile" objectID="bb8a3d988b6c">
 											<property name="unixPermissions">
@@ -1907,7 +1873,7 @@ and any path to a file to read from that file]]></string>
 												<string><![CDATA[extratools.jar]]></string>
 											</property>
 											<property name="fileSize">
-												<long>-1</long>
+												<long>123112</long>
 											</property>
 											<property name="macBinary">
 												<boolean>false</boolean>
@@ -1945,6 +1911,100 @@ and any path to a file to read from that file]]></string>
 												<object refID="41846b6784f9"/>
 												<object refID="201f918884f6"/>
 												<object refID="0033abfeba9c"/>
+											</visualChildren>
+										</object>
+										<object class="com.zerog.ia.installer.actions.InstallFile" objectID="956c06f3893b">
+											<property name="unixPermissions">
+												<string><![CDATA[664]]></string>
+											</property>
+											<property name="sourceName">
+												<string><![CDATA[chiropraxis-manual.pdf]]></string>
+											</property>
+											<property name="overrideUnixPermissions">
+												<boolean>false</boolean>
+											</property>
+											<property name="sourcePath">
+												<string><![CDATA[/Users/ian/javadev/king/dist/king/doc/]]></string>
+											</property>
+											<property name="shouldUninstall">
+												<boolean>true</boolean>
+											</property>
+											<property name="destinationName">
+												<string><![CDATA[chiropraxis-manual.pdf]]></string>
+											</property>
+											<property name="fileSize">
+												<long>25279</long>
+											</property>
+											<property name="macBinary">
+												<boolean>false</boolean>
+											</property>
+											<property name="targetCheckKind">
+												<int>0</int>
+											</property>
+										</object>
+										<object class="com.zerog.ia.installer.actions.InstallFile" objectID="956c06f4893b">
+											<property name="unixPermissions">
+												<string><![CDATA[664]]></string>
+											</property>
+											<property name="sourceName">
+												<string><![CDATA[extratools-manual.pdf]]></string>
+											</property>
+											<property name="overrideUnixPermissions">
+												<boolean>false</boolean>
+											</property>
+											<property name="sourcePath">
+												<string><![CDATA[/Users/ian/javadev/king/dist/king/doc/]]></string>
+											</property>
+											<property name="shouldUninstall">
+												<boolean>true</boolean>
+											</property>
+											<property name="destinationName">
+												<string><![CDATA[extratools-manual.pdf]]></string>
+											</property>
+											<property name="fileSize">
+												<long>72918</long>
+											</property>
+											<property name="macBinary">
+												<boolean>false</boolean>
+											</property>
+											<property name="targetCheckKind">
+												<int>0</int>
+											</property>
+										</object>
+										<object class="com.zerog.ia.installer.actions.InstallDirectory" objectID="41858cfd8512">
+											<property name="unixPermissions">
+												<string><![CDATA[775]]></string>
+											</property>
+											<property name="sourceName">
+												<string><![CDATA[]]></string>
+											</property>
+											<property name="overrideUnixPermissions">
+												<boolean>false</boolean>
+											</property>
+											<property name="sourcePath">
+												<string><![CDATA[/Users/ian/javadev/king/doc]]></string>
+											</property>
+											<property name="shouldUninstall">
+												<boolean>true</boolean>
+											</property>
+											<property name="destinationName">
+												<string><![CDATA[doc]]></string>
+											</property>
+											<property name="removeRecursively">
+												<boolean>false</boolean>
+											</property>
+											<property name="macBinary">
+												<boolean>false</boolean>
+											</property>
+											<visualChildren>
+												<object refID="41858d548517"/>
+												<object refID="41858d558517"/>
+												<object refID="41858d578517"/>
+												<object refID="41858d568518"/>
+												<object refID="41858d578518"/>
+												<object refID="201fe64c84f6"/>
+												<object refID="956c06f3893b"/>
+												<object refID="956c06f4893b"/>
 											</visualChildren>
 										</object>
 									</installChildren>

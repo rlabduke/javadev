@@ -63,16 +63,21 @@ public class SequenceTree //extends ... implements ...
         Sequence child1 = null, child2 = null;
         String  seq     = null;
         // either seq is null or children are null, but not both
+        
+        SeqTracker tracker = null;
 
         BitSet  flags   = new BitSet();     // for marking which files this came from
         int     index   = -1;               // array index for tracking blosum scores
         int     weight  = 1;                // number of sequences clustered into this node
-        int     height  = 0;                // max number of branches at or below this
-        double  minx = -1, maxx = -1;       // position on the traditional 2-D chart
+        int     height  = 0;                // max number of branches below this
+        int     depth   = 0;                // number of nodes above this ones
+        //double  minx = -1, maxx = -1;       // position on the traditional 2-D chart
+        double  minx = 0, maxx = 360;       // position on the traditional 2-D chart
         
         public Sequence(String sequence)
         {
             seq = sequence;
+            tracker = new SeqTracker(seq);
         }
         
         public Sequence(Sequence s1, Sequence s2)
@@ -85,10 +90,13 @@ public class SequenceTree //extends ... implements ...
             flags.clear();
             flags.or(child1.flags);
             flags.or(child2.flags);
+            
+            tracker = new SeqTracker(child1.tracker, child2.tracker);
         }
         
         public String toString()
-        { return (seq == null ? weight+" sequences" : seq); }
+        //{ return (seq == null ? weight+" sequences" : seq); }
+        { return tracker.toString(); }
         
         /**
         * Depth First Search ensures we visit leaf nodes in left-to-right order
@@ -100,6 +108,27 @@ public class SequenceTree //extends ... implements ...
         public void calculatePositions()
         {
             if(child1 == null || child2 == null)
+            {
+                this.height = 0;
+            }
+            else
+            {
+                double midx = (minx + maxx) / 2.0;
+                child1.minx     = this.minx;
+                child1.maxx     = midx;
+                child1.depth    = this.depth+1;
+                child1.calculatePositions();
+                child2.minx     = midx;
+                child2.maxx     = this.maxx;
+                child2.depth    = this.depth+1;
+                child2.calculatePositions();
+                this.height = Math.max(child1.height, child2.height)+1;
+            }
+            
+            // Temporary, to avoid NPEx
+            if(firstLeaf == null) prevLeaf = firstLeaf = this;
+            
+            /*if(child1 == null || child2 == null)
             {
                 if(firstLeaf == null)
                 {
@@ -120,41 +149,114 @@ public class SequenceTree //extends ... implements ...
                 child2.calculatePositions();
                 minx = child1.minx;
                 maxx = child2.maxx;
-            }
+            }*/
         }
         
         private double getRawX()
         {
-            if(child1 == null || child2 == null)
+            //if(child1 == null || child2 == null)
                 return (minx + maxx) / 2.0;
-            else
-                return (child1.maxx + child2.minx) / 2.0;
+            //else
+            //    return (child1.maxx + child2.minx) / 2.0;
         }
         
         /** Properly scaled X coordinate for drawing. */
         public double getX()
         {
-            if(RADIAL_LAYOUT)
+            double r = depth / Math.max(depth + height, 1.0);
+            double t = Math.toRadians(getRawX());
+            return r * Math.cos(t);
+            /*if(RADIAL_LAYOUT)
             {
                 double r = prevHeight - height;
                 double t = 2.0 * Math.PI * (getRawX() / prevX);
                 return r * Math.cos(t);
             }
-            else return getRawX();
+            else return getRawX();*/
         }
 
         /** Properly scaled Y coordinate for drawing. */
         public double getY()
         {
-            if(RADIAL_LAYOUT)
+            double r = depth / Math.max(depth + height, 1.0);
+            double t = Math.toRadians(getRawX());
+            return r * Math.sin(t);
+            /*if(RADIAL_LAYOUT)
             {
                 double r = prevHeight - height;
                 double t = 2.0 * Math.PI * (getRawX() / prevX);
                 return r * Math.sin(t);
             }
             // So we get a "square" tree:
-            else return (double)height * (double)prevX / (double)prevHeight;
+            else return (double)height * (double)prevX / (double)prevHeight;*/
         }
+    }
+//}}}
+
+//{{{ CLASS: SeqTracker
+//##############################################################################
+    /** Tracks sequence distributions for composite nodes */
+    static class SeqTracker
+    {
+        Map[] maps;
+        
+        public SeqTracker(SeqTracker t1, SeqTracker t2)
+        {
+            maps = new Map[t1.length()];
+            for(int i = 0; i < length(); i++)
+            {
+                maps[i] = new HashMap( t1.maps[i] ); // clone
+                for(Iterator iter = t2.maps[i].entrySet().iterator(); iter.hasNext(); )
+                {
+                    Map.Entry e = (Map.Entry) iter.next();
+                    String key = (String) e.getKey();
+                    Integer v1 = (Integer) e.getValue();
+                    Integer v2 = (Integer) maps[i].get(key);
+                    if(v2 == null) v2 = new Integer(0);
+                    maps[i].put( key, new Integer(v1.intValue() + v2.intValue()) );
+                }
+            }
+        }
+        
+        public SeqTracker(String seq)
+        {
+            maps = new Map[seq.length()];
+            for(int i = 0; i < length(); i++)
+            {
+                maps[i] = new HashMap();
+                maps[i].put(seq.substring(i,i+1), new Integer(1));
+            }
+        }
+        
+        /** TODO: sort by number of hits */
+        public String toString()
+        {
+            StringBuffer buf = new StringBuffer();
+            for(int i = 0; i < length(); i++)
+            {
+                Map m = maps[i];
+                if(m.size() == 1)
+                    buf.append( m.keySet().iterator().next() );
+                else
+                {
+                    buf.append("[");
+                    boolean first = true;
+                    for(Iterator iter = m.entrySet().iterator(); iter.hasNext(); )
+                    {
+                        Map.Entry e = (Map.Entry) iter.next();
+                        if(first) first = false;
+                        else buf.append(" ");
+                        buf.append(e.getKey());
+                        buf.append(e.getValue());
+                    }
+                    buf.append("]");
+                }
+            }
+            return buf.toString();
+        }
+        
+        public int length()
+        { return maps.length; }
     }
 //}}}
 
@@ -257,7 +359,8 @@ public class SequenceTree //extends ... implements ...
 
         out.println("@group {sequences}");
         out.println("@subgroup {sequences} nobutton");
-        out.println("@balllist {balls} color= white radius= 0.8");
+        //out.println("@balllist {balls} color= white radius= 0.8");
+        out.println("@balllist {balls} color= white radius= 0.005");
         renderNodeBall(top, out);
         
         /*out.println("@labellist {labels} color= white off");

@@ -162,8 +162,8 @@
         </fileset>
     </copy>
     <!-- extra doc files from other top-level projects; some need to be renamed -->
-    <copy file="../chiropraxis/doc/tools-manual.pdf" tofile="${dist}/${ant.project.name}-${version}-src/doc/chiropraxis-manual.pdf"/>
-    <copy file="../extratools/doc/tools-manual.pdf" tofile="${dist}/${ant.project.name}-${version}-src/doc/extratools-manual.pdf"/>
+    <copy file="../chiropraxis/doc/tools-manual.pdf" tofile="${dist}/${ant.project.name}-${version}/doc/chiropraxis-manual.pdf"/>
+    <copy file="../extratools/doc/tools-manual.pdf" tofile="${dist}/${ant.project.name}-${version}/doc/extratools-manual.pdf"/>
 </target>
 <!-- }}} -->
 
