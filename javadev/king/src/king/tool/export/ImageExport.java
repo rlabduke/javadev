@@ -97,6 +97,16 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
             kCanvas.getEngine().setTransparentBackground();
         kCanvas.paintCanvas(g2, dim, KinCanvas.QUALITY_BEST);
         
+        /* Easy enough to do in Keynote that it's not worth including here!
+        // Tasteful border - 1px, medium gray
+        if(!transparentBackground)
+        {
+            g2.setColor(new Color(0.5f, 0.5f, 0.5f, 1.0f));
+            g2.setStroke(new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.drawRect(0, 0, dim.width, dim.height);
+        }
+        */
+        
         // This ensures we get high-quality JPEGs
         if(format.equals("jpg"))
             writeAtHighestQuality(img, format, outfile);

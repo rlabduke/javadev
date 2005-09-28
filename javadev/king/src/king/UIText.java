@@ -141,10 +141,13 @@ public class UIText implements MouseListener
         
         String text = this.getText();
         int prevOpen, prevClose, nextOpen, nextClose;
+        // "where-#" terms below ensure that link is active out through the space between } and *
+        // Original code used "where" in all four places, cutting the link short.
+        // Passing a negative start index to (last)IndexOf is the same as passing zero.
         prevOpen = text.lastIndexOf("*{", where);
-        prevClose = text.lastIndexOf("}*", where);
+        prevClose = text.lastIndexOf("}*", where-2);
         nextOpen = text.indexOf("*{", where);
-        nextClose = text.indexOf("}*", where);
+        nextClose = text.indexOf("}*", where-1);
         //System.err.println("prevs:" + prevOpen + "," + prevClose + "; nexts:" + nextOpen + "," + nextClose);
         
         //                   Still works if prevClose == -1             Might not be a next hyperlink...
