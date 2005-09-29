@@ -8,10 +8,17 @@
     Create PLOptimizer that reorders Bonds to minimize the number of 'P' points
   * Test bond finding against 1ACX (very inaccurate atom positions)
   * Disallow water-water bond
+  * current scheme misses all bonds from Gly 2HA
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 0.05 ###
+- added isProtein, isNucleicAcid, and isIon to Util
+- added ResClassifier to decide protein/nucleic/ion/water/het
+- added AtomClassifier to decide bb/sc and heavy/H
+- added BondClassifier to get standard kinemage groupings (bb/sc, prot/het)
 
 ### 0.04 ###
 - string interning in moldb seems to have sped things up across the board,

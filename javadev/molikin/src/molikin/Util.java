@@ -155,6 +155,43 @@ public class Util //extends ... implements ...
     }
 //}}}
 
+//{{{ isProtein, isNucleicAcid, isIon
+//##############################################################################
+    /** Based on Prekin's AAList */
+    static String protPattern = "GLY|ALA|VAL|PHE|PRO|MET|ILE|LEU|ASP|GLU|LYS|ARG|SER|THR|TYR|HIS|CYS|ASN|GLN|TRP|ASX|GLX|ACE|FOR|NH2|NME|MSE|AIB|ABU|PCA|MLY|CYO|M31";
+    //mly added 001114 for myosin 2MYS methylated lysine
+    //cyo added 010708 for S-LECTIN 1SLT oxidized cys
+    //m3l added 041011 for methylated lysine== Methyl 3 Lysine
+    static Matcher protMatcher = null;
+    static public boolean isProtein(Residue res)
+    {
+        if(protMatcher == null) protMatcher = Pattern.compile(protPattern).matcher("");
+        protMatcher.reset(res.getName());
+        return protMatcher.matches();
+    }
+
+    /** Based on Prekin's NAList */
+    static String nucacidPattern = "  C|  G|  A|  T|  U|CYT|GUA|ADE|THY|URA|URI|CTP|CDP|CMP|GTP|GDP|GMP|ATP|ADP|AMP|TTP|TDP|TMP|UTP|UDP|UMP|GSP|H2U|PSU|1MG|2MG|M2G|5MC|5MU|T6A|1MA|RIA|OMC|OMG| YG|  I|7MG";
+    //7mg added 001114 for tRNA 1EHZ
+    static Matcher nucacidMatcher = null;
+    static public boolean isNucleicAcid(Residue res)
+    {
+        if(nucacidMatcher == null) nucacidMatcher = Pattern.compile(nucacidPattern).matcher("");
+        nucacidMatcher.reset(res.getName());
+        return nucacidMatcher.matches();
+    }
+
+    /** Based on name only -- if you want only 1 atom, you must check that yourself */
+    static String ionPattern = " *(?:HE|LI|BE|F|NE|NA|MG|P|S|CL|AR|K|CA|CR|MN|FE|CO|NI|CU|ZN|GA|AS|SE|BR|KR|RB|SR|MO|RU|RH|PD|AG|CD|SN|I|XE|CS|BA|W|RE|OS|IR|PT|AU|HG|TL|PB|BI|RN|FR|RA|U|PU) *";
+    static Matcher ionMatcher = null;
+    static public boolean isIon(Residue res)
+    {
+        if(ionMatcher == null) ionMatcher = Pattern.compile(ionPattern).matcher("");
+        ionMatcher.reset(res.getName());
+        return ionMatcher.matches();
+    }
+//}}}
+
 //{{{ isS, isDisulfide
 //##############################################################################
     static public boolean isS(AtomState as)
