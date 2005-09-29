@@ -172,6 +172,14 @@ public class Test //extends ... implements ...
 //##############################################################################
     public void doModel(Model model, PrintWriter out)
     {
+        /* For testing ResClassifier
+        ResClassifier rc = new ResClassifier(model.getResidues());
+        for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
+        {
+            Residue r = (Residue) iter.next();
+            System.err.println(r+"    "+rc.classify(r));
+        }*/
+        
         long time;
         time = System.currentTimeMillis();
         Collection atomStates = Util.extractOrderedStatesByName(model);
