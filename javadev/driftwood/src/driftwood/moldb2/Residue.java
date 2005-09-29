@@ -62,6 +62,14 @@ public class Residue implements Comparable
     
     /** Number of times this residue has been modified */
     int             modCount        = 0;
+    
+    /**
+    * A numeric counter for classifying Residues into arbitrary "sections".
+    * Use it any way you like in your own code,
+    * but unless you assign it a meaningful value, don't expect it to have one.
+    * Default value is zero (0).
+    */
+    public int sectionID = 0;
 //}}}
 
 //{{{ Constructor(s)

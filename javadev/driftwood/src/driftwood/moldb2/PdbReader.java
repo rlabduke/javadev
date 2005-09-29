@@ -26,6 +26,12 @@ import driftwood.util.*;
 * PdbWriter spits them all back out, but it may not put them in the
 * right part of the file.
 *
+* <p>TER cards are counted by incrementing Residue.sectionID: before the first
+* TER, all Residues have sectionID = 0; after the first TER, sectionID = 1;
+* after the second TER, sectionID = 2; etc.
+* SectionID is NOT incremented just because chainID or segmentID changes,
+* so further processing is necessary in most cases to create "real" sections.
+*
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Jun 11 11:15:15 EDT 2003
 */
@@ -49,6 +55,9 @@ public class PdbReader //extends ... implements ...
     
     /** A surrogate atom serial number if necessary */
     int         autoSerial;
+    
+    /** Number of TER cards encountered so far */
+    int         countTER;
     
     /** A map for intern'ing Strings */
     CheapSet    stringCache = new CheapSet();
@@ -78,6 +87,7 @@ public class PdbReader //extends ... implements ...
         model       = null;
         residues    = new HashMap();
         autoSerial  = -9999;
+        countTER    = 0;
     }
     
     void clearData()
@@ -86,6 +96,7 @@ public class PdbReader //extends ... implements ...
         model       = null;
         residues    = null;
         autoSerial  = -9999;
+        countTER    = 0;
         stringCache.clear();
     }
     
@@ -154,7 +165,11 @@ public class PdbReader //extends ... implements ...
                 {
                     model = null;
                 }
-                else if(s.startsWith("TER") || s.startsWith("MASTER") || s.startsWith("END"))
+                else if(s.startsWith("TER"))
+                {
+                    countTER++;
+                }
+                else if(s.startsWith("MASTER") || s.startsWith("END"))
                 {
                     // These lines are useless. Ignore them.
                 }
@@ -282,6 +297,7 @@ public class PdbReader //extends ... implements ...
             String  insCode = intern(s.substring(26,27));
             String  resName = intern(s.substring(17,20));
             r = new Residue(chainID, segID, seqNum, insCode, resName);
+            r.sectionID = countTER;
             residues.put(key, r);
             try
             {
