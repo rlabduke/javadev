@@ -10,7 +10,8 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
-//import driftwood.*;
+import driftwood.data.*;
+import driftwood.moldb2.*;
 //}}}
 /**
 * <code>AtomClassifier</code> divides AtomStates into the groups needed in
@@ -37,8 +38,8 @@ public class AtomClassifier //extends ... implements ...
     public Set scHeavy      = new CheapSet(new IdentityHashFunction());
     public Set scHydro      = new CheapSet(new IdentityHashFunction());
     public Set wiHeavy      = new CheapSet(new IdentityHashFunction());
-    public Set wiHeavy      = new CheapSet(new IdentityHashFunction());
-    public Set hetHydro     = new CheapSet(new IdentityHashFunction());
+    public Set wiHydro      = new CheapSet(new IdentityHashFunction());
+    public Set hetHeavy     = new CheapSet(new IdentityHashFunction());
     public Set hetHydro     = new CheapSet(new IdentityHashFunction());
 //}}}
 
