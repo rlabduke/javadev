@@ -97,7 +97,7 @@ public class Util //extends ... implements ...
     {
         String name = as.getName();
         if(name.length() < 2)
-            return as.equals("H");
+            return name.equals("H");
         char c1 = name.charAt(0), c2 = name.charAt(1);
         return ((c2 == 'H' || c2 == 'D')// || c2 == 'T')
             &&  (c1 == ' ' || ('0' <= c1 && c1 <= '9')));
@@ -108,7 +108,7 @@ public class Util //extends ... implements ...
     {
         String name = as.getName();
         if(name.length() < 2)
-            return as.equals("H");
+            return name.equals("H");
         char c1 = name.charAt(0), c2 = name.charAt(1);
         return ((c2 == 'Q')
             &&  (c1 == ' ' || ('0' <= c1 && c1 <= '9')));
@@ -122,7 +122,7 @@ public class Util //extends ... implements ...
     {
         String name = as.getName();
         if(name.length() < 2)
-            return as.equals("C") || as.equals("N") || as.equals("O");
+            return name.equals("C") || name.equals("N") || name.equals("O");
         char c1 = name.charAt(0), c2 = name.charAt(1);
         return ((c2 == 'C' || c2 == 'N' || c2 == 'O')
             &&  (c1 == ' ' || ('0' <= c1 && c1 <= '9')));
@@ -198,7 +198,7 @@ public class Util //extends ... implements ...
     {
         String name = as.getName();
         if(name.length() < 2)
-            return as.equals("S");
+            return name.equals("S");
         char c1 = name.charAt(0), c2 = name.charAt(1);
         return ((c2 == 'S')
             &&  (c1 == ' ' || ('0' <= c1 && c1 <= '9')));
@@ -224,7 +224,7 @@ public class Util //extends ... implements ...
     * @param dst    AtomStates the bonds are allowed to "terminate" at.
     *   This and src can be exchanged and the results will be identical.
     */
-    static public Collection selectBondsBetween(Collection bonds, Collection src, Collection dst)
+    static public Collection selectBondsBetween(Collection bonds, Set src, Set dst)
     {
         //SortedSet out = new TreeSet();
         Collection out = new ArrayList();

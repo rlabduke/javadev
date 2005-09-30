@@ -203,28 +203,45 @@ public class Test //extends ... implements ...
         System.err.println("Building bond network:  "+time+" ms");
 
         time = System.currentTimeMillis();
-    StickPrinter p = new StickPrinter(out);
+    StickPrinter sp = new StickPrinter(out);
+    BallPrinter bp = new BallPrinter(out);
         out.println("@kinemage");
         out.println("@onewidth");
         out.println("@group {macromol}");
         out.println("@subgroup {backbone}");
         out.println("@vectorlist {heavy} color= white");
-    p.printSticks(bonds, atomC.bbHeavy, atomC.bbHeavy);
+    sp.printSticks(bonds, atomC.bbHeavy, atomC.bbHeavy);
         out.println("@vectorlist {H} color= gray master= {Hs}");
-    p.printSticks(bonds, atomC.bbHydro, atomC.bbHeavy);
+    sp.printSticks(bonds, atomC.bbHydro, atomC.bbHeavy);
         out.println("@subgroup {sidechain}");
         out.println("@vectorlist {heavy} color= cyan"); // includes disulfides, for now
-    p.printSticks(bonds, atomC.scHeavy, atomC.bioHeavy); // to scHeavy if we want stubs to ribbon instead
+    sp.printSticks(bonds, atomC.scHeavy, atomC.bioHeavy); // to scHeavy if we want stubs to ribbon instead
         out.println("@vectorlist {H} color= gray master= {Hs}");
-    p.printSticks(bonds, atomC.scHydro, atomC.bioHeavy); // makes sure Gly 2HA connects to bb
-        out.println("@subgroup {hets}");
-        out.println("@vectorlist {heavy} color= pink");
-    p.printSticks(bonds, atomC.hetHeavy, atomC.hetHeavy);
-        out.println("@vectorlist {H} color= gray master= {Hs}");
-    p.printSticks(bonds, atomC.hetHydro, atomC.hetHeavy);
-        out.println("@vectorlist {connect} color= pinktint");
-    p.printSticks(bonds, atomC.hetHeavy, atomC.bioHeavy);
-        
+    sp.printSticks(bonds, atomC.scHydro, atomC.bioHeavy); // makes sure Gly 2HA connects to bb
+        if(atomC.hetHeavy.size() > 0)
+        {
+            out.println("@subgroup {hets}");
+            out.println("@vectorlist {heavy} color= pink");
+        sp.printSticks(bonds, atomC.hetHeavy, atomC.hetHeavy);
+            out.println("@vectorlist {H} color= gray master= {Hs}");
+        sp.printSticks(bonds, atomC.hetHydro, atomC.hetHeavy);
+            out.println("@vectorlist {connect} color= pinktint");
+        sp.printSticks(bonds, atomC.hetHeavy, atomC.bioHeavy);
+        }
+        if(atomC.ion.size() > 0)
+        {
+            out.println("@subgroup {ions}");
+            out.println("@spherelist {heavy} color= magenta radius= 0.5");
+        bp.printBalls(atomC.ion);
+        }
+        if(atomC.watHeavy.size() > 0)
+        {
+            out.println("@subgroup {water}");
+            out.println("@balllist {heavy} color= bluetint radius= 0.15");
+        bp.printBalls(atomC.watHeavy);
+            out.println("@vectorlist {H} color= gray master= {Hs}");
+        sp.printSticks(bonds, atomC.watHydro, atomC.watHeavy);
+        }
         
         /* Disulfides are different:
         someBonds = Util.selectBondsBetween(bonds, scNonH, nonHetNonH);
@@ -242,56 +259,8 @@ public class Test //extends ... implements ...
         printBonds(out, ssBonds,   "SS", "yellow");*/
         
         
-        /* "Free" het atoms (metals, etc)
-        Set freeAtoms = new CheapSet(new IdentityHashFunction());
-        freeAtoms.addAll(graph.getCovalentUnbonded());
-        //for(Iterator iter = waterNonH.iterator(); iter.hasNext(); ) freeAtoms.remove(iter.next());
-        freeAtoms.removeAll(waterNonH);
-        printAtoms(out, freeAtoms, "unbonded", "lime");
-        // Waters are also special:
-        printAtoms(out, waterNonH, "water", "peachtint");
-        someBonds = Util.selectBondsBetween(bonds, waterH, waterNonH);
-        printBonds(out, someBonds, "waterH", "gray");*/
-        
-        
         time = System.currentTimeMillis() - time;
         System.err.println("Drawing bonds:          "+time+" ms");
-    }
-//}}}
-
-//{{{ printBonds
-//##############################################################################
-    static void printBonds(PrintWriter out, Collection bonds, String title, String color)
-    {
-        if(bonds.size() == 0) return;
-        
-        DecimalFormat df = new DecimalFormat("0.000");
-        out.println("@vectorlist {"+title+"} color= "+color);
-        Bond last = new Bond(null, -1, null, -1);
-        for(Iterator iter = bonds.iterator(); iter.hasNext(); )
-        {
-            Bond curr = (Bond) iter.next();
-            if(curr.iLow != last.iHigh)
-                out.print("{"+curr.lower.getAtom()+"}P "+curr.lower.format(df)+" ");
-            out.println("{"+curr.higher.getAtom()+"}L "+curr.higher.format(df));
-            last = curr;
-        }
-    }
-//}}}
-
-//{{{ printAtoms
-//##############################################################################
-    static void printAtoms(PrintWriter out, Collection atomStates, String title, String color)
-    {
-        if(atomStates.size() == 0) return;
-        
-        DecimalFormat df = new DecimalFormat("0.000");
-        out.println("@balllist {"+title+"} radius= 0.15 color= "+color);
-        for(Iterator iter = atomStates.iterator(); iter.hasNext(); )
-        {
-            AtomState as = (AtomState) iter.next();
-            out.println("{"+as.getAtom()+"}L "+as.format(df));
-        }
     }
 //}}}
 
