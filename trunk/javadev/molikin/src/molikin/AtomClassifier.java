@@ -33,6 +33,7 @@ public class AtomClassifier //extends ... implements ...
     Collection      atomStates;
     ResClassifier   resClassifier;
     
+    // First, the disjoint sets:
     public Set bbHeavy      = new CheapSet(new IdentityHashFunction());
     public Set bbHydro      = new CheapSet(new IdentityHashFunction());
     public Set scHeavy      = new CheapSet(new IdentityHashFunction());
@@ -41,6 +42,9 @@ public class AtomClassifier //extends ... implements ...
     public Set wiHydro      = new CheapSet(new IdentityHashFunction());
     public Set hetHeavy     = new CheapSet(new IdentityHashFunction());
     public Set hetHydro     = new CheapSet(new IdentityHashFunction());
+
+    // Now, the unions of the above:
+    public Set bioHeavy     = new CheapSet(new IdentityHashFunction()); // bbHeavy + scHeavy
 //}}}
 
 //{{{ Constructor(s)
@@ -51,6 +55,7 @@ public class AtomClassifier //extends ... implements ...
         this.atomStates     = atomStates;
         this.resClassifier  = resClassifier;
         
+        // First, divide all AtomStates into one of eight disjoint sets
         for(Iterator iter = atomStates.iterator(); iter.hasNext(); )
         {
             AtomState as = (AtomState) iter.next();
@@ -79,6 +84,10 @@ public class AtomClassifier //extends ... implements ...
                 else                hetHeavy.add(as);
             }
         }// for each atom state
+        
+        // Now, create the unions of those sets for convenience:
+        bioHeavy.addAll(bbHeavy);
+        bioHeavy.addAll(scHeavy);
     }
 //}}}
 
