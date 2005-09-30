@@ -7,8 +7,8 @@
     Allow disabling cache for getCovalentNeighbors (?)
     Create PLOptimizer that reorders Bonds to minimize the number of 'P' points
   * Test bond finding against 1ACX (very inaccurate atom positions)
-  * Disallow water-water bond
-    Add BondCrayons and AtomCrayons; support them in the Printers
+    Check Prekin's NAList and AAList to make sure we have all entries...
+    Make SelectorPane use the residue ranges info
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -20,6 +20,7 @@
 - further subdivided atoms in AtomClassifier
 - added BondCrayon, AtomCrayon, and ConstCrayon
 - modified BallPrinter and StickPrinter to take a Crayon object
+- added primitive SelectorPane and tested it for selecting sc to draw
 
 ### 0.05 ###
 - added isProtein, isNucleicAcid, and isIon to Util

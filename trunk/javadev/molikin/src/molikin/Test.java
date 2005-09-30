@@ -1,15 +1,16 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
 package molikin;
+import molikin.gui.*;
 
-//import java.awt.*;
-//import java.awt.event.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.io.*;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
-//import javax.swing.*;
+import javax.swing.*;
 import driftwood.data.*;
 import driftwood.moldb2.*;
 //}}}
@@ -27,23 +28,6 @@ public class Test //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
-    // Collections of AtomStates:
-    Set allH        = new CheapSet(new IdentityHashFunction());
-    Set hetH        = new CheapSet(new IdentityHashFunction());
-    Set waterH      = new CheapSet(new IdentityHashFunction());
-    Set otherH      = new CheapSet(new IdentityHashFunction());
-    Set nonHetH     = new CheapSet(new IdentityHashFunction());
-    Set mcH         = new CheapSet(new IdentityHashFunction());
-    Set scH         = new CheapSet(new IdentityHashFunction());
-    
-    Set allNonH     = new CheapSet(new IdentityHashFunction());
-    Set hetNonH     = new CheapSet(new IdentityHashFunction());
-    Set waterNonH   = new CheapSet(new IdentityHashFunction());
-    Set otherNonH   = new CheapSet(new IdentityHashFunction());
-    Set nonHetNonH  = new CheapSet(new IdentityHashFunction());
-    Set mcNonH      = new CheapSet(new IdentityHashFunction());
-    Set scNonH      = new CheapSet(new IdentityHashFunction());
-    
     boolean inputIsCIF = false;
 //}}}
 
@@ -55,46 +39,21 @@ public class Test //extends ... implements ...
     }
 //}}}
 
-//{{{ segregateAtomStates
+//{{{ showGUI
 //##############################################################################
-    void segregateAtomStates(Collection states)
+    Set showGUI(CoordinateFile cfile)
     {
-        for(Iterator iter = states.iterator(); iter.hasNext(); )
-        {
-            AtomState as = (AtomState) iter.next();
-            if(Util.isH(as))
-            {
-                allH.add(as);
-                if(as.isHet())
-                {
-                    hetH.add(as);
-                    if(Util.isWater(as))        waterH.add(as);
-                    else                        otherH.add(as);
-                }
-                else // non het
-                {
-                    nonHetH.add(as);
-                    if(Util.isMainchain(as))    mcH.add(as);
-                    else                        scH.add(as);
-                }
-            }
-            else // heavy atom
-            {
-                allNonH.add(as);
-                if(as.isHet())
-                {
-                    hetNonH.add(as);
-                    if(Util.isWater(as))        waterNonH.add(as);
-                    else                        otherNonH.add(as);
-                }
-                else // non het
-                {
-                    nonHetNonH.add(as);
-                    if(Util.isMainchain(as))    mcNonH.add(as);
-                    else                        scNonH.add(as);
-                }
-            }
-        }// for each atom state
+        SelectorPane selector = new SelectorPane(cfile);
+        
+        JFrame parent = new JFrame();
+        JDialog frame = new JDialog(parent, "Choose sidechains to display", true); // modal
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setContentPane(selector);
+        frame.pack();
+        frame.setVisible(true);
+        parent.dispose();
+        
+        return selector.getSelectedResidues();
     }
 //}}}
 
@@ -140,13 +99,12 @@ public class Test //extends ... implements ...
         long            time        = System.currentTimeMillis();
         PdbReader       pdbReader   = new PdbReader();
         CoordinateFile  coordFile   = pdbReader.read(pdbIn);
-        Model           model       = coordFile.getFirstModel();
         time = System.currentTimeMillis() - time;
         System.err.println("Loading PDB:            "+time+" ms");
         System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
         
         PrintWriter out = new PrintWriter(kinOut);
-        doModel(model, out);
+        doModel(coordFile, out);
         out.flush();
         System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
     }
@@ -156,13 +114,12 @@ public class Test //extends ... implements ...
         long            time        = System.currentTimeMillis();
         CifReader       cifReader   = new CifReader();
         CoordinateFile  coordFile   = cifReader.read(cifIn);
-        Model           model       = coordFile.getFirstModel();
         time = System.currentTimeMillis() - time;
         System.err.println("Loading mmCIF:          "+time+" ms");
         System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
         
         PrintWriter out = new PrintWriter(kinOut);
-        doModel(model, out);
+        doModel(coordFile, out);
         out.flush();
         System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
     }
@@ -170,8 +127,14 @@ public class Test //extends ... implements ...
 
 //{{{ doModel
 //##############################################################################
-    public void doModel(Model model, PrintWriter out)
+    public void doModel(CoordinateFile coordFile, PrintWriter out)
     {
+        Model model = coordFile.getFirstModel();
+        
+        // Test of GUI for residue selections
+        Set selectedResidues = showGUI(coordFile);
+        Set allResidues = new CheapSet(model.getResidues());
+        
         /* For testing ResClassifier
         ResClassifier rc = new ResClassifier(model.getResidues());
         for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
@@ -203,44 +166,44 @@ public class Test //extends ... implements ...
         System.err.println("Building bond network:  "+time+" ms");
 
         time = System.currentTimeMillis();
-    StickPrinter sp = new StickPrinter(out);
-    BallPrinter bp = new BallPrinter(out);
+        StickPrinter sp = new StickPrinter(out);
+        BallPrinter bp = new BallPrinter(out);
         out.println("@kinemage");
         out.println("@onewidth");
         out.println("@group {macromol}");
         out.println("@subgroup {backbone}");
         out.println("@vectorlist {heavy} color= white");
-    sp.printSticks(bonds, atomC.bbHeavy, atomC.bbHeavy);
+        sp.printSticks(bonds, atomC.bbHeavy, atomC.bbHeavy);
         out.println("@vectorlist {H} color= gray master= {Hs}");
-    sp.printSticks(bonds, atomC.bbHydro, atomC.bbHeavy);
+        sp.printSticks(bonds, atomC.bbHydro, atomC.bbHeavy);
         out.println("@subgroup {sidechain}");
         out.println("@vectorlist {heavy} color= cyan"); // includes disulfides, for now
-    sp.printSticks(bonds, atomC.scHeavy, atomC.bioHeavy); // to scHeavy if we want stubs to ribbon instead
+        sp.printSticks(bonds, atomC.scHeavy, atomC.bioHeavy, selectedResidues, allResidues); // to scHeavy if we want stubs to ribbon instead
         out.println("@vectorlist {H} color= gray master= {Hs}");
-    sp.printSticks(bonds, atomC.scHydro, atomC.bioHeavy); // makes sure Gly 2HA connects to bb
+        sp.printSticks(bonds, atomC.scHydro, atomC.bioHeavy, selectedResidues, allResidues); // makes sure Gly 2HA connects to bb
         if(atomC.hetHeavy.size() > 0)
         {
             out.println("@subgroup {hets}");
             out.println("@vectorlist {heavy} color= pink");
-        sp.printSticks(bonds, atomC.hetHeavy, atomC.hetHeavy);
+            sp.printSticks(bonds, atomC.hetHeavy, atomC.hetHeavy);
             out.println("@vectorlist {H} color= gray master= {Hs}");
-        sp.printSticks(bonds, atomC.hetHydro, atomC.hetHeavy);
+            sp.printSticks(bonds, atomC.hetHydro, atomC.hetHeavy);
             out.println("@vectorlist {connect} color= pinktint");
-        sp.printSticks(bonds, atomC.hetHeavy, atomC.bioHeavy);
+            sp.printSticks(bonds, atomC.hetHeavy, atomC.bioHeavy);
         }
         if(atomC.ion.size() > 0)
         {
             out.println("@subgroup {ions}");
             out.println("@spherelist {heavy} color= magenta radius= 0.5");
-        bp.printBalls(atomC.ion);
+            bp.printBalls(atomC.ion);
         }
         if(atomC.watHeavy.size() > 0)
         {
             out.println("@subgroup {water}");
             out.println("@balllist {heavy} color= bluetint radius= 0.15");
-        bp.printBalls(atomC.watHeavy);
+            bp.printBalls(atomC.watHeavy);
             out.println("@vectorlist {H} color= gray master= {Hs}");
-        sp.printSticks(bonds, atomC.watHydro, atomC.watHeavy);
+            sp.printSticks(bonds, atomC.watHydro, atomC.watHeavy);
         }
         
         /* Disulfides are different:
