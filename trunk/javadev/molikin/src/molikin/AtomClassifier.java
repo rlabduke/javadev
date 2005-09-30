@@ -38,8 +38,9 @@ public class AtomClassifier //extends ... implements ...
     public Set bbHydro      = new CheapSet(new IdentityHashFunction());
     public Set scHeavy      = new CheapSet(new IdentityHashFunction());
     public Set scHydro      = new CheapSet(new IdentityHashFunction());
-    public Set wiHeavy      = new CheapSet(new IdentityHashFunction());
-    public Set wiHydro      = new CheapSet(new IdentityHashFunction());
+    public Set watHeavy     = new CheapSet(new IdentityHashFunction());
+    public Set watHydro     = new CheapSet(new IdentityHashFunction());
+    public Set ion          = new CheapSet(new IdentityHashFunction());
     public Set hetHeavy     = new CheapSet(new IdentityHashFunction());
     public Set hetHydro     = new CheapSet(new IdentityHashFunction());
 
@@ -73,10 +74,14 @@ public class AtomClassifier //extends ... implements ...
                     else                scHeavy.add(as);
                 }
             }
-            else if(clas == ResClassifier.WATER || clas == ResClassifier.ION)
+            else if(clas == ResClassifier.WATER)
             {
-                if(Util.isH(as))    wiHydro.add(as);
-                else                wiHeavy.add(as);
+                if(Util.isH(as))    watHydro.add(as);
+                else                watHeavy.add(as);
+            }
+            else if(clas == ResClassifier.ION)
+            {
+                                    ion.add(as);
             }
             else // OHET and UNKNOWN
             {

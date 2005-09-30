@@ -28,6 +28,7 @@ public class StickPrinter //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     PrintWriter out;
+    BondCrayon crayon = ConstCrayon.NONE;
 //}}}
 
 //{{{ Constructor(s)
@@ -55,7 +56,7 @@ public class StickPrinter //extends ... implements ...
             Bond curr = (Bond) iter.next();
             if(curr.iLow != last.iHigh)
                 out.print("{"+curr.lower.getAtom()+"}P "+curr.lower.format(df)+" ");
-            out.println("{"+curr.higher.getAtom()+"}L "+curr.higher.format(df));
+            out.println("{"+curr.higher.getAtom()+"}L "+crayon.colorBond(curr.lower, curr.higher)+" "+curr.higher.format(df));
             last = curr;
         }
         
@@ -69,10 +70,10 @@ public class StickPrinter //extends ... implements ...
     * Draws the supplied Bond objects in order.
     * Only bonds that go from AtomStates in srcA to AtomStates in dstA (or vice versa) are drawn.
     * Only points are generated; the client is responsible for writing "@vectorlist ...".
-    * @param srcA   a Collection of AtomStates
-    * @param dstA   a Collection of AtomStates
+    * @param srcA   a Set of AtomStates
+    * @param dstA   a Set of AtomStates
     */
-    public void printSticks(Collection bonds, Collection srcA, Collection dstA)
+    public void printSticks(Collection bonds, Set srcA, Set dstA)
     {
         if(bonds.size() == 0) return;
         
@@ -85,7 +86,7 @@ public class StickPrinter //extends ... implements ...
             {
                 if(curr.iLow != last.iHigh)
                     out.print("{"+curr.lower.getAtom()+"}P "+curr.lower.format(df)+" ");
-                out.println("{"+curr.higher.getAtom()+"}L "+curr.higher.format(df));
+                out.println("{"+curr.higher.getAtom()+"}L "+crayon.colorBond(curr.lower, curr.higher)+" "+curr.higher.format(df));
                 last = curr;
             }
         }
@@ -101,12 +102,12 @@ public class StickPrinter //extends ... implements ...
     * Only bonds that go from AtomStates in srcA which belong to Residues in srcR,
     * to AtomStates in dstR that belong to Residues in dstR (or vice versa), are drawn.
     * Only points are generated; the client is responsible for writing "@vectorlist ...".
-    * @param srcA   a Collection of AtomStates
-    * @param dstA   a Collection of AtomStates
-    * @param srcR   a Collection of Residues
-    * @param dstR   a Collection of Residues
+    * @param srcA   a Set of AtomStates
+    * @param dstA   a Set of AtomStates
+    * @param srcR   a Set of Residues
+    * @param dstR   a Set of Residues
     */
-    public void printSticks(Collection bonds, Collection srcA, Collection dstA, Collection srcR, Collection dstR)
+    public void printSticks(Collection bonds, Set srcA, Set dstA, Set srcR, Set dstR)
     {
         if(bonds.size() == 0) return;
         
@@ -119,7 +120,7 @@ public class StickPrinter //extends ... implements ...
             {
                 if(curr.iLow != last.iHigh)
                     out.print("{"+curr.lower.getAtom()+"}P "+curr.lower.format(df)+" ");
-                out.println("{"+curr.higher.getAtom()+"}L "+curr.higher.format(df));
+                out.println("{"+curr.higher.getAtom()+"}L "+crayon.colorBond(curr.lower, curr.higher)+" "+curr.higher.format(df));
                 last = curr;
             }
         }
