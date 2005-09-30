@@ -142,13 +142,13 @@ public class Test //extends ... implements ...
         CoordinateFile  coordFile   = pdbReader.read(pdbIn);
         Model           model       = coordFile.getFirstModel();
         time = System.currentTimeMillis() - time;
-        System.err.println("Loading PDB:         "+time+" ms");
-        System.err.println("Mem. usage:          "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
+        System.err.println("Loading PDB:            "+time+" ms");
+        System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
         
         PrintWriter out = new PrintWriter(kinOut);
         doModel(model, out);
         out.flush();
-        System.err.println("Mem. usage:          "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
+        System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
     }
 
     public void doCIF(Reader cifIn, Writer kinOut) throws IOException
@@ -158,13 +158,13 @@ public class Test //extends ... implements ...
         CoordinateFile  coordFile   = cifReader.read(cifIn);
         Model           model       = coordFile.getFirstModel();
         time = System.currentTimeMillis() - time;
-        System.err.println("Loading mmCIF:       "+time+" ms");
-        System.err.println("Mem. usage:          "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
+        System.err.println("Loading mmCIF:          "+time+" ms");
+        System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
         
         PrintWriter out = new PrintWriter(kinOut);
         doModel(model, out);
         out.flush();
-        System.err.println("Mem. usage:          "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
+        System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
     }
 //}}}
 
@@ -182,31 +182,51 @@ public class Test //extends ... implements ...
         
         long time;
         time = System.currentTimeMillis();
-        Collection atomStates = Util.extractOrderedStatesByName(model);
-        AtomGraph graph = new AtomGraph(atomStates);
+    ResClassifier resC = new ResClassifier(model.getResidues());
         time = System.currentTimeMillis() - time;
-        System.err.println("Initializing graph:  "+time+" ms");
+        System.err.println("Classifying residues:   "+time+" ms");
 
         time = System.currentTimeMillis();
-        Collection bonds = graph.getCovalentBonds();
+    Collection atomStates = Util.extractOrderedStatesByName(model);
+    AtomClassifier atomC = new AtomClassifier(atomStates, resC);
         time = System.currentTimeMillis() - time;
-        System.err.println("Determining network: "+time+" ms");
+        System.err.println("Classifying atoms:      "+time+" ms");
 
         time = System.currentTimeMillis();
-        segregateAtomStates(atomStates);
+    AtomGraph graph = new AtomGraph(atomStates);
         time = System.currentTimeMillis() - time;
-        System.err.println("Classifying atoms:   "+time+" ms");
+        System.err.println("Spatial binning:        "+time+" ms");
 
         time = System.currentTimeMillis();
+    Collection bonds = graph.getCovalentBonds();
+        time = System.currentTimeMillis() - time;
+        System.err.println("Building bond network:  "+time+" ms");
+
+        time = System.currentTimeMillis();
+    StickPrinter p = new StickPrinter(out);
         out.println("@kinemage");
         out.println("@onewidth");
-        Collection someBonds;
-        someBonds = Util.selectBondsBetween(bonds, mcNonH, mcNonH);
-        printBonds(out, someBonds, "mc", "white");
-        someBonds = Util.selectBondsBetween(bonds, mcH, nonHetNonH);
-        printBonds(out, someBonds, "mcH", "gray");
+        out.println("@group {macromol}");
+        out.println("@subgroup {backbone}");
+        out.println("@vectorlist {heavy} color= white");
+    p.printSticks(bonds, atomC.bbHeavy, atomC.bbHeavy);
+        out.println("@vectorlist {H} color= gray master= {Hs}");
+    p.printSticks(bonds, atomC.bbHydro, atomC.bbHeavy);
+        out.println("@subgroup {sidechain}");
+        out.println("@vectorlist {heavy} color= cyan"); // includes disulfides, for now
+    p.printSticks(bonds, atomC.scHeavy, atomC.bioHeavy); // to scHeavy if we want stubs to ribbon instead
+        out.println("@vectorlist {H} color= gray master= {Hs}");
+    p.printSticks(bonds, atomC.scHydro, atomC.bioHeavy); // makes sure Gly 2HA connects to bb
+        out.println("@subgroup {hets}");
+        out.println("@vectorlist {heavy} color= pink");
+    p.printSticks(bonds, atomC.hetHeavy, atomC.hetHeavy);
+        out.println("@vectorlist {H} color= gray master= {Hs}");
+    p.printSticks(bonds, atomC.hetHydro, atomC.hetHeavy);
+        out.println("@vectorlist {connect} color= pinktint");
+    p.printSticks(bonds, atomC.hetHeavy, atomC.bioHeavy);
         
-        // Disulfides are different:
+        
+        /* Disulfides are different:
         someBonds = Util.selectBondsBetween(bonds, scNonH, nonHetNonH);
         Collection ssBonds = new TreeSet();
         for(Iterator iter = someBonds.iterator(); iter.hasNext(); )
@@ -219,15 +239,10 @@ public class Test //extends ... implements ...
             }
         }
         printBonds(out, someBonds, "sc", "cyan");
-        printBonds(out, ssBonds,   "SS", "yellow");
-            
-        someBonds = Util.selectBondsBetween(bonds, scH, nonHetNonH);
-        printBonds(out, someBonds, "scH", "gray");
-        someBonds = Util.selectBondsBetween(bonds, hetNonH, allNonH);
-        printBonds(out, someBonds, "het", "pink");
-        someBonds = Util.selectBondsBetween(bonds, hetH, hetNonH);
-        printBonds(out, someBonds, "hetH", "gray");
-        // "Free" het atoms (metals, etc)
+        printBonds(out, ssBonds,   "SS", "yellow");*/
+        
+        
+        /* "Free" het atoms (metals, etc)
         Set freeAtoms = new CheapSet(new IdentityHashFunction());
         freeAtoms.addAll(graph.getCovalentUnbonded());
         //for(Iterator iter = waterNonH.iterator(); iter.hasNext(); ) freeAtoms.remove(iter.next());
@@ -236,9 +251,11 @@ public class Test //extends ... implements ...
         // Waters are also special:
         printAtoms(out, waterNonH, "water", "peachtint");
         someBonds = Util.selectBondsBetween(bonds, waterH, waterNonH);
-        printBonds(out, someBonds, "waterH", "gray");
+        printBonds(out, someBonds, "waterH", "gray");*/
+        
+        
         time = System.currentTimeMillis() - time;
-        System.err.println("Drawing bonds:       "+time+" ms");
+        System.err.println("Drawing bonds:          "+time+" ms");
     }
 //}}}
 
