@@ -1,6 +1,7 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
 package molikin.gui;
+import molikin.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -10,6 +11,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 import javax.swing.*;
+import javax.swing.event.*;
 import driftwood.data.*;
 import driftwood.gui.*;
 import driftwood.moldb2.*;
@@ -21,7 +23,7 @@ import driftwood.moldb2.*;
 * <p>Copyright (C) 2005 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri Sep 30 14:37:36 EDT 2005
 */
-public class SelectorPane extends TablePane2
+public class SelectorPane extends TablePane2 implements ListSelectionListener
 {
 //{{{ Constants
 //}}}
@@ -30,8 +32,11 @@ public class SelectorPane extends TablePane2
 //##############################################################################
     JList           modelList;      // holds Models
     JList           chainList;      // holds Strings
+    JList           resNumList;     // holds Strings
     JList           resTypeList;    // holds Strings
     JTextField      resRangeField;
+    
+    ResRanger       resRanger;
 //}}}
 
 //{{{ Constructor(s)
@@ -52,6 +57,9 @@ public class SelectorPane extends TablePane2
             modelList.setVisibleRowCount(6);
         chainList = new FatJList(0, 4);
             chainList.setVisibleRowCount(6);
+        resNumList = new FatJList(0, 4);
+            resNumList.addListSelectionListener(this);
+            resNumList.setVisibleRowCount(6);
         resTypeList = new FatJList(0, 4);
             resTypeList.setVisibleRowCount(6);
         resRangeField = new JTextField();
@@ -59,24 +67,19 @@ public class SelectorPane extends TablePane2
         this.insets(2,8,2,8).memorize();
         this.addCell(new JLabel("Models"));
         this.addCell(new JLabel("Chains"));
+        this.addCell(new JLabel("Numbers"));
         this.addCell(new JLabel("Types"));
         this.newRow();
         this.hfill(true).addCell(new JScrollPane(modelList));
         this.hfill(true).addCell(new JScrollPane(chainList));
+        this.hfill(true).addCell(new JScrollPane(resNumList));
         this.hfill(true).addCell(new JScrollPane(resTypeList));
-        /*this.startSubtable();
-            this.addCell(new JCheckBox("Protein", true)).newRow();
-            this.addCell(new JCheckBox("DNA / RNA", true)).newRow();
-            this.addCell(new JCheckBox("Hets", true)).newRow();
-            this.addCell(new JCheckBox("Ions", true)).newRow();
-            this.addCell(new JCheckBox("Water", true)).newRow();
-        this.endSubtable();*/
         this.newRow();
-        this.startSubtable(3,1);//(4,1);
-            this.weights(0.0, 1.0).addCell(new JLabel("Ranges"));
+        this.startSubtable(4,1);
+            this.weights(0.0, 1.0).addCell(new JLabel("Numbers"));
             this.hfill(true).weights(1.0, 1.0).addCell(resRangeField);
             this.newRow();
-            this.addCell(new JLabel("e.g. 5, 34, 77-100, 120b-120f, 200"), 2, 1);
+            this.addCell(new JLabel("e.g. 5, 34, 77-100, 120a-120f, 200"), 2, 1);
         this.endSubtable();
     }
 //}}}
@@ -89,11 +92,13 @@ public class SelectorPane extends TablePane2
         modelList.setListData(models.toArray());
         modelList.setSelectionInterval(0, models.size()-1); // select all
         
+        ArrayList allRes = new ArrayList();
         UberSet chainIDs = new UberSet();
         HashSet resNames = new HashSet();
         for(Iterator iter = models.iterator(); iter.hasNext(); )
         {
             Model m = (Model) iter.next();
+            allRes.addAll(m.getResidues());
             chainIDs.addAll(m.getChainIDs());
             for(Iterator ri = m.getResidues().iterator(); ri.hasNext(); )
             {
@@ -101,9 +106,14 @@ public class SelectorPane extends TablePane2
                 resNames.add(r.getName());
             }
         }
-        
         chainList.setListData(chainIDs.toArray());
         chainList.setSelectionInterval(0, chainIDs.size()-1); // select all
+        
+        resRanger = new ResRanger(allRes);
+        Collection allResNum = resRanger.getAllNumbers();
+        resNumList.setListData(allResNum.toArray());
+        resNumList.setSelectionInterval(0, allResNum.size()-1); // select all
+        // TODO: transfer selection to Ranger and to text field
         
         Object[] rNames = resNames.toArray();
         Arrays.sort(rNames);
@@ -114,26 +124,30 @@ public class SelectorPane extends TablePane2
 
 //{{{ getSelectedResidues
 //##############################################################################
-    public Set getSelectedResidues()
+    public Collection getSelectedModels()
+    { return Arrays.asList(modelList.getSelectedValues()); }
+    
+    public Set getSelectedResidues(Model m)
     {
-        Collection models = Arrays.asList(modelList.getSelectedValues());
         Collection chains = Arrays.asList(chainList.getSelectedValues());
         Set resTypes = new HashSet(Arrays.asList(resTypeList.getSelectedValues()));
+        resRanger.select(resRangeField.getText().toUpperCase());
+        Set resNumbers = resRanger.getSelectedNumbers();
         
         UberSet selected = new UberSet();
         
-        for(Iterator mi = models.iterator(); mi.hasNext(); )
+        for(Iterator ci = chains.iterator(); ci.hasNext(); )
         {
-            Model m = (Model) mi.next();
-            for(Iterator ci = chains.iterator(); ci.hasNext(); )
+            String chainID = (String) ci.next();
+            Collection chain = m.getChain(chainID);
+            if(chain == null) continue;
+            for(Iterator ri = chain.iterator(); ri.hasNext(); )
             {
-                String chainID = (String) ci.next();
-                Collection chain = m.getChain(chainID);
-                if(chain == null) continue;
-                for(Iterator ri = chain.iterator(); ri.hasNext(); )
+                Residue r = (Residue) ri.next();
+                if(resTypes.contains(r.getName()))
                 {
-                    Residue r = (Residue) ri.next();
-                    if(resTypes.contains(r.getName()))
+                    String resNum = r.getSequenceNumber().trim() + r.getInsertionCode().trim();
+                    if(resNumbers.contains(resNum))
                         selected.add(r);
                 }
             }
@@ -141,6 +155,23 @@ public class SelectorPane extends TablePane2
         
         return selected;
     }
+//}}}
+
+//{{{ ListSelectionListener: valueChanged
+//##############################################################################
+    public void valueChanged(ListSelectionEvent ev)
+    {
+        if(resNumList.getValueIsAdjusting()) return;
+        if(resRanger != null)
+        {
+            resRanger.select(resNumList.getSelectedIndices());
+            resRangeField.setText( resRanger.getSelectionString() );
+        }
+    }
+//}}}
+
+//{{{ empty_code_segment
+//##############################################################################
 //}}}
 
 //{{{ empty_code_segment

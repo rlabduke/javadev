@@ -53,7 +53,7 @@ public class Test //extends ... implements ...
         frame.setVisible(true);
         parent.dispose();
         
-        return selector.getSelectedResidues();
+        return selector.getSelectedResidues(cfile.getFirstModel());
     }
 //}}}
 
