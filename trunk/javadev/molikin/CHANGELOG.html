@@ -2,13 +2,15 @@
 ==============================================================================
 ===  TO DO  ==================================================================
 ==============================================================================
+    Weird PDBs:
+        1ACX - weird geom leads to weird bonding patterns
+        We could modify AtomGroup.connectHeavyAtoms()
+        to keep only the N shortest bonds...
     Deal with NMR 'Q' atoms in AtomGraph
-    Don't bond metals/ions/"weird" atoms to anything?
     Allow disabling cache for getCovalentNeighbors (?)
-    Create PLOptimizer that reorders Bonds to minimize the number of 'P' points
-  * Test bond finding against 1ACX (very inaccurate atom positions)
+    Create BondOptimizer that reorders Bonds to minimize the number of 'P' points
     Check Prekin's NAList and AAList to make sure we have all entries...
-  * Make selector text field Attentive and couple it to the List
+  * blank text field should mean select all
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -23,6 +25,11 @@
 - added primitive SelectorPane and tested it for selecting sc to draw
 - added ResRanger for managing range selection statements
 - added range support to SelectorPane and coupled List to TextField
+- fixed inclusive/exclusive index issue with BitSet in ResRanger
+- text field selections are now coupled to the list
+- testing against 1RTU, 1EMA: the protein MODRES is pink (het) but still
+  connected as it should be ... this seems like a reasonable result.
+  Plus, I can't fix it without screwing up other hets!
 
 ### 0.05 ###
 - added isProtein, isNucleicAcid, and isIon to Util

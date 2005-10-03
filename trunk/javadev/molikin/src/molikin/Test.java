@@ -135,13 +135,14 @@ public class Test //extends ... implements ...
         Set selectedResidues = showGUI(coordFile);
         Set allResidues = new CheapSet(model.getResidues());
         
-        /* For testing ResClassifier
+        /* For testing ResClassifier * /
         ResClassifier rc = new ResClassifier(model.getResidues());
         for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
         {
             Residue r = (Residue) iter.next();
             System.err.println(r+"    "+rc.classify(r));
-        }*/
+        }
+        /* For testing ResClassifier */
         
         long time;
         time = System.currentTimeMillis();
