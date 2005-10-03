@@ -87,7 +87,13 @@ public class ResClassifier //extends ... implements ...
             // If current is unknown and was preceded by protein/nucleic acid,
             // treat it as a continuation of that.
             // Else it might be followed by protein/nucleic acid later on.
-            if(clas == UNKNOWN)
+            //
+            // On including OHETs vs. not in the relabeling scheme:
+            // MODRES in protein backbond are usually done with HETATMs,
+            // as are selenomethionine (but we allow for those in isProtein).
+            // However, an SO4 following protein but still in chain _ would be
+            // reclassified as protein if we allow OHETs to be relabeled like this.
+            if(clas == UNKNOWN)// || clas == OHET)
             {
                 if((prevClas == PROTEIN || prevClas == NUCACID) && isSameChain(prevRes, res))
                     clas = prevClas;

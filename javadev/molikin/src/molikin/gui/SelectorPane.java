@@ -23,7 +23,7 @@ import driftwood.moldb2.*;
 * <p>Copyright (C) 2005 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri Sep 30 14:37:36 EDT 2005
 */
-public class SelectorPane extends TablePane2 implements ListSelectionListener
+public class SelectorPane extends TablePane2 implements ListSelectionListener, ActionListener
 {
 //{{{ Constants
 //}}}
@@ -62,7 +62,8 @@ public class SelectorPane extends TablePane2 implements ListSelectionListener
             resNumList.setVisibleRowCount(6);
         resTypeList = new FatJList(0, 4);
             resTypeList.setVisibleRowCount(6);
-        resRangeField = new JTextField();
+        resRangeField = new AttentiveTextField();
+            resRangeField.addActionListener(this);
         
         this.insets(2,8,2,8).memorize();
         this.addCell(new JLabel("Models"));
@@ -131,7 +132,8 @@ public class SelectorPane extends TablePane2 implements ListSelectionListener
     {
         Collection chains = Arrays.asList(chainList.getSelectedValues());
         Set resTypes = new HashSet(Arrays.asList(resTypeList.getSelectedValues()));
-        resRanger.select(resRangeField.getText().toUpperCase());
+        // Not needed -- list or text has already set the selection
+        //resRanger.select(resRangeField.getText().toUpperCase());
         Set resNumbers = resRanger.getSelectedNumbers();
         
         UberSet selected = new UberSet();
@@ -157,7 +159,7 @@ public class SelectorPane extends TablePane2 implements ListSelectionListener
     }
 //}}}
 
-//{{{ ListSelectionListener: valueChanged
+//{{{ ListSelectionListener for res numbers list: valueChanged
 //##############################################################################
     public void valueChanged(ListSelectionEvent ev)
     {
@@ -170,8 +172,22 @@ public class SelectorPane extends TablePane2 implements ListSelectionListener
     }
 //}}}
 
-//{{{ empty_code_segment
+//{{{ ActionListener for res numbers text: actionPerformed
 //##############################################################################
+    public void actionPerformed(ActionEvent ev)
+    {
+        resRanger.select(resRangeField.getText().toUpperCase());
+        //resRangeField.setText( resRanger.getSelectionString() ); -- see below
+        BitSet sel = resRanger.getSelectionMask();
+        int[] indices = new int[ sel.cardinality() ];
+        int i = 0, j = 0;
+        for(i = 0; i < sel.length(); i++)
+        {
+            if(sel.get(i)) indices[j++] = i;
+        }
+        resNumList.setSelectedIndices(indices);
+        // change in list selection will trigger regularization of text field contents
+    }
 //}}}
 
 //{{{ empty_code_segment

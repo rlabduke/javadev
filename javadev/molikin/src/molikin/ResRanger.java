@@ -135,8 +135,8 @@ public class ResRanger //extends ... implements ...
                 int i1 = callmes.indexOf( ranges[j].substring(0, k).trim() );
                 int i2 = callmes.indexOf( ranges[j].substring(k+1 ).trim() );
                 if(i1 == -1 || i2 == -1) {} // uninterpretable range -- can't find endpoint(s)
-                else if(i1 > i2)    resSel.set(i2, i1);
-                else                resSel.set(i1, i2);
+                else if(i1 > i2)    resSel.set(i2, i1+1); // our endpoint in inclusive,
+                else                resSel.set(i1, i2+1); // BitSet is exclusive -- hence, +1
             }
         }
     }
