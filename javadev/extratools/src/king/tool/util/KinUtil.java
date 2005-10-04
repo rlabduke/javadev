@@ -1,6 +1,6 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
-package king.tool.loops;
+package king.tool.util;
 
 import king.*;
 import king.core.*;
@@ -17,7 +17,10 @@ public class KinUtil {
 
 
 
-
+    public static int getResNumber(KPoint point) {
+	String name = point.getName().trim();
+	return getResNumber(name);
+    }
 
 
 //{{{ getResNumber
@@ -27,8 +30,8 @@ public class KinUtil {
      * and extracts the residue number from the name.  EXTREMELY dependent on the format of the name of the KPoint.
      **/
     
-    public static int getResNumber(KPoint point) {
-	String name = point.getName().trim();
+    public static int getResNumber(String name) {
+	//String name = point.getName().trim();
 	String[] uncleanParsed = name.split(" ");
 	String[] parsed = new String[uncleanParsed.length];
         int i2 = 0;
@@ -70,6 +73,31 @@ public class KinUtil {
 	} catch (NumberFormatException e) {
 	    return false;
 	}
+    }
+
+    public static String getResName(KPoint point) {
+	String name = point.getName().trim();
+	return getResName(name);
+    }
+
+    public static String getResName(String name) {
+	//String name = point.getName().trim();
+	String[] uncleanParsed = name.split(" ");
+	String[] parsed = new String[uncleanParsed.length];
+        int i2 = 0;
+	String returnString = "";
+	// To clean out the empty strings from the split name.
+	
+	for (int i = 0; i < uncleanParsed.length; i++) {
+	    String unclean = uncleanParsed[i];
+	    if ((!unclean.equals(""))&&(!unclean.equals(" "))) {
+		parsed[i2] = unclean;
+		i2++;
+	    }
+	}
+	return parsed[1];
+	//while ((returnString.equals("")&&
+
     }
 
 }

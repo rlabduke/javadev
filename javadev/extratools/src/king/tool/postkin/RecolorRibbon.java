@@ -132,17 +132,22 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
 	
 	while (iter.hasNext()) {
 	    list = (KList) iter.next();
-	    Iterator listIter = list.iterator();
-	    KPoint point = (KPoint) listIter.next();
-	    if (!point.isUnpickable()) { //to not color over black outlines on ribbons
-		Integer resNum = new Integer(getResNumber(list));
-		if (structMap.containsKey(resNum)) {
-		    listofLists = (ArrayList) structMap.get(resNum);
-		    listofLists.add(list);
-		} else {
-		    listofLists = new ArrayList();
-		    listofLists.add(list);
-		    structMap.put(resNum, listofLists);
+	    ArrayList residueLists = splitLists(list);
+	    Iterator residueIter = residueLists.iterator();
+	    while (residueIter.hasNext()) {
+		list = (KList) residueIter.next();
+		Iterator listIter = list.iterator();
+		KPoint point = (KPoint) listIter.next();
+		if (!point.isUnpickable()) { //to not color over black outlines on ribbons
+		    Integer resNum = new Integer(getResNumber(list));
+		    if (structMap.containsKey(resNum)) {
+			listofLists = (ArrayList) structMap.get(resNum);
+			listofLists.add(list);
+		    } else {
+			listofLists = new ArrayList();
+			listofLists.add(list);
+			structMap.put(resNum, listofLists);
+		    }
 		}
 	    }
 	}
@@ -201,10 +206,11 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
 		index = 0;
 	    }
 	    Integer hashKey = new Integer(i);
-	    
+	    //System.out.println(structMap.containsKey(hashKey));
 	    if (structMap.containsKey(hashKey)) {
 		ArrayList listofLists = (ArrayList) structMap.get(hashKey);
 		Iterator iter = listofLists.iterator();
+		//System.out.println(structMap.containsKey(hashKey));
 		
 		while (iter.hasNext()) {
 		    
@@ -217,6 +223,7 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
 		    //if (chooseColor) {
 		    //	point.setColor(color);
 		    //} else {
+		    //System.out.println("Recoloring" + i);
 			setPointColors(list, (KPaint) colors[index]);
 			//}
 		}
@@ -239,10 +246,15 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
 	Iterator iter = parentSub.iterator();
 	while (iter.hasNext()) {
 	    KList list = (KList) iter.next();
-	    if (containsAAName(list, aaName)) {
-		setPointColors(list, color);
-		Integer resNum = new Integer(getResNumber(list));
-		aaNums.add(resNum);
+	    ArrayList resLists = splitLists(list);
+	    Iterator resIter = resLists.iterator();
+	    while (resIter.hasNext()) {
+		list = (KList) resIter.next();
+		if (containsAAName(list, aaName)) {
+		    setPointColors(list, color);
+		    Integer resNum = new Integer(getResNumber(list));
+		    aaNums.add(resNum);
+		}
 	    }
 	}
 	if (colorPrior) {
@@ -287,6 +299,28 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
 	    }
 	}
 	return aaText;
+    }
+
+
+    //breaks up KLists that contain more than one residue
+    public ArrayList splitLists(KList bigList) {
+	Iterator iter = bigList.iterator();
+	int oldResNum = -100;
+	KList list = new KList();
+	ArrayList residueList = new ArrayList();
+	while (iter.hasNext()) {
+	    KPoint point = (KPoint) iter.next();
+	    //oldResNum = getResNumber(point);
+	    if (getResNumber(point) != oldResNum) {
+		list = new KList();
+		list.add(point);
+		oldResNum = getResNumber(point);
+		residueList.add(list);
+	    } else {
+		list.add(point);
+	    }
+	}
+	return residueList;
     }
 
 
