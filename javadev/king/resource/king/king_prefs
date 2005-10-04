@@ -95,9 +95,7 @@ king.BasicTool.menuName = <main menu>
 king.EDMapPlugin.menuName = Structural biology
 king.tool.export.ImageExport.menuName = <export>
 king.tool.export.PdfExport.menuName = <export>
-king.tool.draw.DrawingTool.menuName = Kin editing
-king.tool.draw.EditPropertiesTool.menuName = Kin editing
-king.tool.draw.MovePointTool.menuName = Kin editing
+king.tool.draw.DrawingTool.menuName = <main menu>
 king.tool.util.SelfUpdatePlugin.menuName = <main menu>
 king.tool.bondrot.SuiteRotationTool.menuName = Specialty
 
