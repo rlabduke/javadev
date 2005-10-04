@@ -69,8 +69,9 @@ public class DrawingTool extends BasicTool
 
 //{{{ Variable definitions
 //##############################################################################
-    TablePane       ui;
-    JRadioButton    rbDoNothing, rbLineSegment, rbDottedLine, rbArcSegment,
+    TablePane2      ui;
+    JRadioButton    rbDoNothing, rbEditList, rbEditPoint, rbMovePoint;
+    JRadioButton    rbLineSegment, rbDottedLine, rbArcSegment,
                     rbBalls, rbLabels, rbDots, rbTriangle;
     JRadioButton    rbPunch, rbPrune, rbAuger, rbSphereCrop;
     
@@ -78,6 +79,11 @@ public class DrawingTool extends BasicTool
     KPoint          lineseg1 = null, lineseg2 = null;
     KPoint          triang1 = null, triang2 = null, triang3 = null;
     KPoint          arcseg1 = null, arcseg2 = null, arcseg3 = null;
+    GroupEditor     grEditor;
+    PointEditor     ptEditor;
+    KPoint          draggedPoint = null;
+    KPoint[]        allPoints = null;
+    
     JTextField      tfShortenLine;
     JCheckBox       cbLabelIsID;
     JTextField      tfNumDots;
@@ -100,6 +106,8 @@ public class DrawingTool extends BasicTool
     public DrawingTool(ToolBox tb)
     {
         super(tb);
+        grEditor = new GroupEditor(kMain, kMain.getTopWindow());
+        ptEditor = new PointEditor(kMain);
         undoStack = new LinkedList();
         buildGUI();
     }
@@ -112,8 +120,15 @@ public class DrawingTool extends BasicTool
         ButtonGroup buttonGroup = new ButtonGroup();
         
         // Build all the radio buttons for different drawing modes
-        rbDoNothing = new JRadioButton("Do nothing");
+        rbDoNothing = new JRadioButton("Do nothing (navigate)");
         buttonGroup.add(rbDoNothing);
+        rbEditList = new JRadioButton("Edit list props");
+        buttonGroup.add(rbEditList);
+        rbEditPoint = new JRadioButton("Edit point props");
+        buttonGroup.add(rbEditPoint);
+        rbMovePoint = new JRadioButton("Move points");
+        buttonGroup.add(rbMovePoint);
+        
         rbLineSegment = new JRadioButton("Draw line segments");
         buttonGroup.add(rbLineSegment);
         rbDottedLine = new JRadioButton("Draw dotted lines");
@@ -194,16 +209,20 @@ public class DrawingTool extends BasicTool
         fbSphereCrop.setIndent(10);
         
         // Choose default drawing tool
-        rbLineSegment.setSelected(true);
+        rbEditList.setSelected(true);
         
         // Create the UNDO button, etc
-        JButton btnUndo = new JButton(new ReflectiveAction("Undo", null, this, "onUndo"));
+        JButton btnUndo = new JButton(new ReflectiveAction("Undo drawing", null, this, "onUndo"));
         JButton btnNewSubgroup = new JButton(new ReflectiveAction("New subgroup", null, this, "onNewSubgroup"));
         
         // Put the UI together
-        ui = new TablePane();
-        ui.hfill(true).vfill(true);
+        ui = new TablePane2();
+        ui.hfill(true).vfill(true).insets(0,1,0,1).memorize();
         ui.addCell(rbDoNothing).newRow();
+        ui.addCell(rbEditList).newRow();
+        ui.addCell(rbEditPoint).newRow();
+        ui.addCell(rbMovePoint).newRow();
+        ui.addCell(ui.strut(0,6)).newRow();
         ui.addCell(rbLineSegment).newRow();
             ui.addCell(fbLineSeg).newRow();
         ui.addCell(rbDottedLine).newRow();
@@ -216,6 +235,7 @@ public class DrawingTool extends BasicTool
         ui.addCell(rbDots).newRow();
         ui.addCell(rbTriangle).newRow();
             ui.addCell(fbTriangle).newRow();
+        ui.addCell(ui.strut(0,6)).newRow();
         ui.addCell(rbPunch).newRow();
         ui.addCell(rbPrune).newRow();
         ui.addCell(rbAuger).newRow();
@@ -233,6 +253,9 @@ public class DrawingTool extends BasicTool
     {
         super.click(x, y, p, ev);
         if(rbDoNothing.isSelected())            return; // don't mark kin as modified
+        else if(rbEditList.isSelected())        doEditList(x, y, p, ev);
+        else if(rbEditPoint.isSelected())       doEditPoint(x, y, p, ev);
+        else if(rbMovePoint.isSelected())       return; // don't mark kin as modified
         else if(rbLineSegment.isSelected())     doLineSegment(x, y, p, ev);
         else if(rbDottedLine.isSelected())      doDottedLine(x, y, p, ev);
         else if(rbArcSegment.isSelected())      doArcSegment(x, y, p, ev);
@@ -347,6 +370,27 @@ public class DrawingTool extends BasicTool
             kin.signal.signalKinemage(kin, KinemageSignal.STRUCTURE); // the new alternative to notifyChange()
         }
         return list;
+    }
+//}}}
+
+//{{{ doEditList
+//##############################################################################
+    public void doEditList(int x, int y, KPoint p, MouseEvent ev)
+    {
+        if(p != null)
+        {
+            KList list = (KList)p.getOwner();
+            if(list != null && grEditor.editList(list))
+                kMain.notifyChange(KingMain.EM_EDIT_GROSS);
+        }
+    }
+//}}}
+
+//{{{ doEditPoint
+//##############################################################################
+    public void doEditPoint(int x, int y, KPoint p, MouseEvent ev)
+    {
+        if(p != null) ptEditor.editPoint(p);
     }
 //}}}
 
@@ -831,6 +875,131 @@ public class DrawingTool extends BasicTool
 //##############################################################################
 //}}}
 
+//{{{ xx_drag() functions
+//##################################################################################################
+    /** Override this function for (left-button) drags */
+    public void drag(int dx, int dy, MouseEvent ev)
+    {
+        KingView v = kMain.getView();
+        if(rbMovePoint.isSelected() && v != null && allPoints != null)
+        {
+            Dimension dim = kCanvas.getCanvasSize();
+            for(int k = 0; k < allPoints.length; k++)
+            {
+                float[] offset = v.translateRotated(dx, -dy, 0, Math.min(dim.width, dim.height));
+                
+                // Check to make sure this isn't just a SpherePoint disk:
+                if(allPoints[k] instanceof ProxyPoint) continue;
+                
+                allPoints[k].setOrigX(allPoints[k].getOrigX() + offset[0]);
+                allPoints[k].setOrigY(allPoints[k].getOrigY() + offset[1]);
+                allPoints[k].setOrigZ(allPoints[k].getOrigZ() + offset[2]);
+            }
+
+            Kinemage k = kMain.getKinemage();
+            if(k != null) k.setModified(true);
+            kCanvas.repaint();
+        }
+        else super.drag(dx, dy, ev);
+    }
+
+    /** Override this function for middle-button/control drags */
+    public void c_drag(int dx, int dy, MouseEvent ev)
+    {
+        KingView v = kMain.getView();
+        if(rbMovePoint.isSelected() && v != null && draggedPoint != null)
+        {
+            Dimension dim = kCanvas.getCanvasSize();
+            float[] offset = v.translateRotated(dx, -dy, 0, Math.min(dim.width, dim.height));
+            draggedPoint.setOrigX(draggedPoint.getOrigX() + offset[0]);
+            draggedPoint.setOrigY(draggedPoint.getOrigY() + offset[1]);
+            draggedPoint.setOrigZ(draggedPoint.getOrigZ() + offset[2]);
+
+            Kinemage k = kMain.getKinemage();
+            if(k != null) k.setModified(true);
+            kCanvas.repaint();
+        }
+        else super.c_drag(dx, dy, ev);
+    }
+//}}}
+
+//{{{ xx_wheel() functions
+//##################################################################################################
+    /** Override this function for mouse wheel motion */
+    public void wheel(int rotation, MouseEvent ev)
+    {
+        KingView v = kMain.getView();
+        if(rbMovePoint.isSelected() && v != null && draggedPoint != null)
+        {
+            Dimension dim = kCanvas.getCanvasSize();
+            for(int k = 0; k < allPoints.length; k++)
+            {
+                float[] offset = v.translateRotated(0, 0, 6*rotation, Math.min(dim.width, dim.height));
+                allPoints[k].setOrigX(allPoints[k].getOrigX() + offset[0]);
+                allPoints[k].setOrigY(allPoints[k].getOrigY() + offset[1]);
+                allPoints[k].setOrigZ(allPoints[k].getOrigZ() + offset[2]);
+            }
+
+            Kinemage k = kMain.getKinemage();
+            if(k != null) k.setModified(true);
+            kCanvas.repaint();
+        }
+    }
+
+    /** Override this function for mouse wheel motion with control down */
+    public void c_wheel(int rotation, MouseEvent ev)
+    {
+        KingView v = kMain.getView();
+        if(rbMovePoint.isSelected() && v != null && draggedPoint != null)
+        {
+            Dimension dim = kCanvas.getCanvasSize();
+            float[] offset = v.translateRotated(0, 0, 6*rotation, Math.min(dim.width, dim.height));
+            draggedPoint.setOrigX(draggedPoint.getOrigX() + offset[0]);
+            draggedPoint.setOrigY(draggedPoint.getOrigY() + offset[1]);
+            draggedPoint.setOrigZ(draggedPoint.getOrigZ() + offset[2]);
+
+            Kinemage k = kMain.getKinemage();
+            if(k != null) k.setModified(true);
+            kCanvas.repaint();
+        }
+    }
+//}}}
+
+//{{{ mousePressed, mouseReleased
+//##################################################################################################
+    public void mousePressed(MouseEvent ev)
+    {
+        super.mousePressed(ev);
+        if(kMain.getKinemage() != null)
+            draggedPoint = kCanvas.getEngine().pickPoint(ev.getX(), ev.getY(), services.doSuperpick.isSelected());
+        else draggedPoint = null;
+        // Otherwise, we just create a nonsensical warning message about stereo picking
+        
+        if(draggedPoint == null)
+            allPoints = null;
+        else if(draggedPoint instanceof LabelPoint)
+        {
+            // Labels should never drag other points with them!
+            allPoints = new KPoint[] {draggedPoint};
+        }
+        else
+        {
+            // The 0.5 allows for a little roundoff error,
+            // both in the kinemage itself and our floating point numbers.
+            Collection all = kCanvas.getEngine().pickAll3D(
+                draggedPoint.getDrawX(), draggedPoint.getDrawY(), draggedPoint.getDrawZ(),
+                services.doSuperpick.isSelected(), 0.5);
+            allPoints = (KPoint[])all.toArray( new KPoint[all.size()] );
+        }
+    }
+    
+    public void mouseReleased(MouseEvent ev)
+    {
+        // Let's keep the point around so we can Z-translate too
+        //draggedPoint = null;
+    }
+//}}}
+
 //{{{ mouseMoved, mouseExited, overpaintCanvas
 //##################################################################################################
     public void mouseMoved(MouseEvent ev)
@@ -919,7 +1088,7 @@ public class DrawingTool extends BasicTool
     public String getHelpAnchor()
     { return "#drawnew-tool"; }
     
-    public String toString() { return "Draw & delete"; }
+    public String toString() { return "Edit / draw / delete"; }
 //}}}
 }//class
 

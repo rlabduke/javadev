@@ -5,8 +5,6 @@ king.tool.export.PdfExport
 king.tool.util.SelfUpdatePlugin
 
 # Tools
-king.tool.draw.MovePointTool
-king.tool.draw.EditPropertiesTool
 king.tool.draw.DrawingTool
 king.tool.bondrot.SuiteRotationTool
 

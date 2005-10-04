@@ -67,9 +67,8 @@
     Draw tool - autolabel distances, angles
     Implement the 'moview= #' feature of Mage for J. Voet (?)
   * Copy 3 PDFs to KiNG FTP folder as part of deploy-world script
-    Access edit properties, move points from Draw tool
-    Move points should treat labels differently...
     Does KiNG have the extra rotamer points?
+  * Merge edit props, move points docs in with draw new tool docs
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -82,6 +81,10 @@
 - removed border from exported images; easier to do in Keynote/Powerpoint
   (but it does look really good!)
 - really long point IDs are sent to stdout when screen is drawn
+- Edit Properties and Move Points tools were merged into Draw New tool;
+  Move Points also treats labels differently in order to "do the right thing"
+- moved the drawing tool to the main menu
+- NB: pick objects + move points = weird behavior (wrong end of lines)
 
 ### 1.44 ###
 - fixed memory specs in KiNG Mac bundle ("16MBm" to "16m" as memory size!)
