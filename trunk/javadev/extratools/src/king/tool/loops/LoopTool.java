@@ -10,14 +10,16 @@ import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import java.text.DecimalFormat;
 
 import driftwood.util.*;
 import driftwood.gui.*;
+import king.tool.util.KinUtil;
 
 public class LoopTool extends BasicTool {
 
 //{{{ Constants
-
+    static final DecimalFormat df = new DecimalFormat("00.0");
 //}}}
 
 //{{{ Variable definitions
@@ -141,7 +143,7 @@ public class LoopTool extends BasicTool {
 				startSet.add(Integer.parseInt(exploded[1])+1);
 				endSet.add(Integer.parseInt(exploded[2]));
 				endSet.add(Integer.parseInt(exploded[2])+1);
-				bFactorMap.put(Double.parseDouble(exploded[5]), pdbName);
+				bFactorMap.put(df.format(Double.parseDouble(exploded[5]))+pdbName, pdbName);
 			    } else {
 				HashSet value = new HashSet();
 				keepRange(value, Integer.parseInt(exploded[1])-5, Integer.parseInt(exploded[2])+10);
@@ -154,7 +156,7 @@ public class LoopTool extends BasicTool {
 				end.add(Integer.parseInt(exploded[2])+1);
 				startColorMap.put(pdbName, start);
 				endColorMap.put(pdbName, end);
-			        bFactorMap.put(Double.parseDouble(exploded[5]), pdbName);
+			        bFactorMap.put(df.format(Double.parseDouble(exploded[5]))+pdbName, pdbName);
 			    }
 			}
 		    } catch (IOException ex) {

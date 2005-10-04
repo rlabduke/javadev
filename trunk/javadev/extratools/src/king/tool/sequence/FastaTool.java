@@ -17,6 +17,10 @@ import javax.swing.*;
 import driftwood.gui.*;
 //import driftwood.isosurface.*;
 import driftwood.util.*;
+import driftwood.moldb2.AminoAcid;
+import king.tool.util.*;
+
+
 //}}}
 /**
 
@@ -40,7 +44,7 @@ public class FastaTool extends BasicTool //implements ActionListener
     KPaint[] colors = null;
 
     JDialog dialog;
-    JButton colorStructure, colorProbe;
+    JButton openFileButton, colorStructure, colorProbe, exportButton;
     //RNAMapWindow win;
 //}}}
 
@@ -72,14 +76,22 @@ public class FastaTool extends BasicTool //implements ActionListener
     private void buildGUI() {
 
 	dialog = new JDialog(kMain.getTopWindow(), "Fasta Tool", false);
+
+	openFileButton = new JButton(new ReflectiveAction("Open Fasta File", null, this, "onFileOpen"));
 	
 	colorStructure = new JButton(new ReflectiveAction("Color Structure", null, this, "onColorStructure"));
 	colorProbe = new JButton(new ReflectiveAction("Color Probe Dots", null, this, "onColorProbe"));
+	exportButton = new JButton(new ReflectiveAction("Export to Fasta", null, this, "onDoAll"));
+	
 	
 	TablePane pane = new TablePane();
+	pane.add(openFileButton);
+	pane.newRow();
 	pane.add(colorStructure);
 	pane.newRow();
 	pane.add(colorProbe);
+	pane.newRow();
+	pane.add(exportButton);
 
 	dialog.setContentPane(pane);
     }
@@ -120,29 +132,35 @@ public class FastaTool extends BasicTool //implements ActionListener
 //##################################################################################################
     public void start()
     {
-        if(kMain.getKinemage() == null) return;
+        //if(kMain.getKinemage() == null) return;
 
-        try
-        {
+        //try
+        //{
             //if(kMain.getApplet() != null)   openMapURL();
             //else                            openMapFile();
-	    openFastaFile();
+	    buildGUI();
+	    //show();
+	    dialog.pack();
+	    dialog.setLocationRelativeTo(kMain.getTopWindow());
+	    dialog.setVisible(true);
+	    kCanvas.repaint(); // otherwise we get partial-redraw artifacts
+	    //openFastaFile();
 
-        }
-        catch(IOException ex) // includes MalformedURLException
-        {
-            JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                "An I/O error occurred while loading the file:\n"+ex.getMessage(),
-                "Sorry!", JOptionPane.ERROR_MESSAGE);
+	    //}
+	    //catch(IOException ex) // includes MalformedURLException
+	    //{
+            //JOptionPane.showMessageDialog(kMain.getTopWindow(),
+            //    "An I/O error occurred while loading the file:\n"+ex.getMessage(),
+            //    "Sorry!", JOptionPane.ERROR_MESSAGE);
             //ex.printStackTrace(SoftLog.err);
-        }
-        catch(IllegalArgumentException ex)
-        {
-            JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                "Wrong map format was chosen, or map is corrupt:\n"+ex.getMessage(),
-                "Sorry!", JOptionPane.ERROR_MESSAGE);
+	    //}
+	    //catch(IllegalArgumentException ex)
+	    //{
+	    //    JOptionPane.showMessageDialog(kMain.getTopWindow(),
+	    //        "Wrong map format was chosen, or map is corrupt:\n"+ex.getMessage(),
+	    //       "Sorry!", JOptionPane.ERROR_MESSAGE);
             //ex.printStackTrace(SoftLog.err);
-        }
+	    //}
 	//buildGUI();
 	//dialog.pack();
 	//dialog.setLocationRelativeTo(kMain.getTopWindow());
@@ -164,12 +182,12 @@ public class FastaTool extends BasicTool //implements ActionListener
             {
 		FileReader reader = new FileReader(f);
 		scanFile(reader);
-		buildGUI();
+		//buildGUI();
 		//show();
-		dialog.pack();
-		dialog.setLocationRelativeTo(kMain.getTopWindow());
-		dialog.setVisible(true);
-                kCanvas.repaint(); // otherwise we get partial-redraw artifacts
+		//dialog.pack();
+		//dialog.setLocationRelativeTo(kMain.getTopWindow());
+		//dialog.setVisible(true);
+                //kCanvas.repaint(); // otherwise we get partial-redraw artifacts
             }
         }
     }
@@ -411,6 +429,37 @@ public class FastaTool extends BasicTool //implements ActionListener
 	return -1;
     }
 
+    public void onFileOpen(ActionEvent ev) {
+        try
+        {
+            //if(kMain.getApplet() != null)   openMapURL();
+            //else                            openMapFile();
+	    //buildGUI();
+	    //show();
+	    //dialog.pack();
+	    //dialog.setLocationRelativeTo(kMain.getTopWindow());
+	    //dialog.setVisible(true);
+	    //kCanvas.repaint(); // otherwise we get partial-redraw artifacts
+	    openFastaFile();
+
+        }
+        catch(IOException ex) // includes MalformedURLException
+        {
+            JOptionPane.showMessageDialog(kMain.getTopWindow(),
+                "An I/O error occurred while loading the file:\n"+ex.getMessage(),
+                "Sorry!", JOptionPane.ERROR_MESSAGE);
+            //ex.printStackTrace(SoftLog.err);
+        }
+        catch(IllegalArgumentException ex)
+        {
+            JOptionPane.showMessageDialog(kMain.getTopWindow(),
+                "Wrong map format was chosen, or map is corrupt:\n"+ex.getMessage(),
+                "Sorry!", JOptionPane.ERROR_MESSAGE);
+            //ex.printStackTrace(SoftLog.err);
+        }
+
+	//openFastaFile();
+    }
 
     public void onColorStructure(ActionEvent ev) {
 	recolorNoDots();
@@ -420,6 +469,76 @@ public class FastaTool extends BasicTool //implements ActionListener
     public void onColorProbe(ActionEvent ev) {
 	recolorDots();
 	kCanvas.repaint();
+    }
+
+    public void onDoAll(ActionEvent ev) {
+	if (filechooser == null) makeFileChooser();
+	filechooser.setFileFilter(null);
+	String output = "";
+        if(JFileChooser.APPROVE_OPTION == filechooser.showOpenDialog(kMain.getTopWindow()))
+	{
+	    File f = filechooser.getSelectedFile();
+	    //System.out.println(f.getPath() + " : " + f.getName() + " : " + f.getParent());
+	    File[] allFiles = f.getParentFile().listFiles();
+	    for (int i = 0; i < allFiles.length; i++) {
+		File pdbFile = allFiles[i];
+		kMain.getKinIO().loadFile(pdbFile, null);
+		output = output + ">" + pdbFile.getName() + "\n" + export(kMain.getKinemage()) + "\n";
+		kMain.getStable().closeCurrent();
+	    }
+	}
+	System.out.println(output);
+    }
+
+    public void onExport(ActionEvent ev) {
+	//try {
+	//    Writer w = new FileWriter(f);
+	//    PrintWriter out = new PrintWriter(new BufferedWriter(w));
+	    
+
+
+
+	Kinemage kin = kMain.getKinemage();
+	//Iterator iter = kin.iterator();
+	//KGroup firstGroup = (KGroup) iter.next();
+	//iter = firstGroup.iterator();
+	
+	export(kin);
+	//System.out.println("exporting");
+    }
+
+
+
+    /**
+     * Only does the first group, subgroup's list.
+     **/
+    private String export(AGE target) {
+	String output = "";
+	if (target instanceof KList) {
+	    ListIterator iter = target.iterator();
+	    int resNum = 1000000;
+	    //String output = "";
+	    while (iter.hasNext()) {
+		KPoint pt = (KPoint) iter.next();
+		int newResNum = KinUtil.getResNumber(pt.getName());
+		if (resNum != newResNum) {
+		    if (newResNum > resNum + 1) output = output.concat("\n");
+		    output = output.concat(AminoAcid.translate(KinUtil.getResName(pt)));
+		    //if (newResNum > resNum + 1) output = output.concat("\n");
+		    resNum = newResNum;
+		}
+	    }
+	    //System.out.println(output);
+	    return output;
+	    
+		    
+	} else {
+	    Iterator iter = target.iterator();
+	    //while (iter.hasNext()) {
+	    return export((AGE) iter.next());
+		//}
+	}
+	//return "null";
     }
 
 /*
