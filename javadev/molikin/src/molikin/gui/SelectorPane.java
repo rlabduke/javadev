@@ -66,19 +66,22 @@ public class SelectorPane extends TablePane2 implements ListSelectionListener, A
             resRangeField.addActionListener(this);
         
         this.insets(2,8,2,8).memorize();
+        this.weights(1,0).memorize();
         this.addCell(new JLabel("Models"));
         this.addCell(new JLabel("Chains"));
         this.addCell(new JLabel("Numbers"));
         this.addCell(new JLabel("Types"));
         this.newRow();
-        this.hfill(true).addCell(new JScrollPane(modelList));
-        this.hfill(true).addCell(new JScrollPane(chainList));
-        this.hfill(true).addCell(new JScrollPane(resNumList));
-        this.hfill(true).addCell(new JScrollPane(resTypeList));
+        this.weights(1,1).memorize(); // all vertical space to lists
+        this.hfill(true).vfill(true).addCell(new JScrollPane(modelList));
+        this.hfill(true).vfill(true).addCell(new JScrollPane(chainList));
+        this.hfill(true).vfill(true).addCell(new JScrollPane(resNumList));
+        this.hfill(true).vfill(true).addCell(new JScrollPane(resTypeList));
         this.newRow();
+        this.weights(1,0).memorize();
         this.startSubtable(4,1);
-            this.weights(0.0, 1.0).addCell(new JLabel("Numbers"));
-            this.hfill(true).weights(1.0, 1.0).addCell(resRangeField);
+            this.weights(0,1).addCell(new JLabel("Numbers"));
+            this.hfill(true).addCell(resRangeField); // all horiz space to field
             this.newRow();
             this.addCell(new JLabel("e.g. 5, 34, 77-100, 120a-120f, 200"), 2, 1);
         this.endSubtable();

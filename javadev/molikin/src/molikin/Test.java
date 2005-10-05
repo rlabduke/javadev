@@ -43,17 +43,17 @@ public class Test //extends ... implements ...
 //##############################################################################
     Set showGUI(CoordinateFile cfile)
     {
-        SelectorPane selector = new SelectorPane(cfile);
+        BallAndStickPane stickPane = new BallAndStickPane(cfile);
         
         JFrame parent = new JFrame();
         JDialog frame = new JDialog(parent, "Choose sidechains to display", true); // modal
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setContentPane(selector);
+        frame.setContentPane(stickPane);
         frame.pack();
         frame.setVisible(true);
         parent.dispose();
         
-        return selector.getSelectedResidues(cfile.getFirstModel());
+        return stickPane.getSelectedResidues(cfile.getFirstModel());
     }
 //}}}
 
@@ -101,12 +101,12 @@ public class Test //extends ... implements ...
         CoordinateFile  coordFile   = pdbReader.read(pdbIn);
         time = System.currentTimeMillis() - time;
         System.err.println("Loading PDB:            "+time+" ms");
-        System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
+        System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())+" bytes");
         
         PrintWriter out = new PrintWriter(kinOut);
         doModel(coordFile, out);
         out.flush();
-        System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
+        System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())+" bytes");
     }
 
     public void doCIF(Reader cifIn, Writer kinOut) throws IOException
@@ -116,12 +116,12 @@ public class Test //extends ... implements ...
         CoordinateFile  coordFile   = cifReader.read(cifIn);
         time = System.currentTimeMillis() - time;
         System.err.println("Loading mmCIF:          "+time+" ms");
-        System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
+        System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())+" bytes");
         
         PrintWriter out = new PrintWriter(kinOut);
         doModel(coordFile, out);
         out.flush();
-        System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
+        System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())+" bytes");
     }
 //}}}
 
@@ -133,6 +133,7 @@ public class Test //extends ... implements ...
         
         // Test of GUI for residue selections
         Set selectedResidues = showGUI(coordFile);
+        System.err.println("# residues selected:    "+selectedResidues.size()+" res");
         Set allResidues = new CheapSet(model.getResidues());
         
         /* For testing ResClassifier * /
