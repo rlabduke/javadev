@@ -944,6 +944,7 @@ public class DrawingTool extends BasicTool
             if(k != null) k.setModified(true);
             kCanvas.repaint();
         }
+        else super.wheel(rotation, ev);
     }
 
     /** Override this function for mouse wheel motion with control down */
@@ -962,6 +963,7 @@ public class DrawingTool extends BasicTool
             if(k != null) k.setModified(true);
             kCanvas.repaint();
         }
+        else super.c_wheel(rotation, ev);
     }
 //}}}
 

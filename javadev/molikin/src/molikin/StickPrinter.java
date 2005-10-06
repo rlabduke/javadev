@@ -58,8 +58,6 @@ public class StickPrinter //extends ... implements ...
     */
     public void printSticks(Collection bonds, Set srcA, Set dstA, Set srcR, Set dstR)
     {
-        if(bonds.size() == 0) return;
-        
         Bond last = new Bond(null, -1, null, -1);
         for(Iterator iter = bonds.iterator(); iter.hasNext(); )
         {

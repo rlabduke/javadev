@@ -10,6 +10,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
+import driftwood.data.*;
 import driftwood.moldb2.*;
 //}}}
 /**
@@ -46,6 +47,14 @@ public class ResClassifier //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     Map map = new HashMap(); // Residue to one of the defined classes
+    
+    // Sets of the above classifications
+    public Set proteinRes   = new CheapSet();
+    public Set nucAcidRes   = new CheapSet();
+    public Set waterRes     = new CheapSet();
+    public Set ionRes       = new CheapSet();
+    public Set ohetRes      = new CheapSet();
+    public Set unknownRes   = new CheapSet();
 //}}}
 
 //{{{ Constructor(s)
@@ -119,6 +128,13 @@ public class ResClassifier //extends ... implements ...
             else unknowns.clear();
             
             map.put(res, clas);
+            if(clas == PROTEIN)         proteinRes.add(res);
+            else if(clas == NUCACID)    nucAcidRes.add(res);
+            else if(clas == WATER)      waterRes.add(res);
+            else if(clas == ION)        ionRes.add(res);
+            else if(clas == OHET)       ohetRes.add(res);
+            else if(clas == UNKNOWN)    unknownRes.add(res);
+            
             prevRes = res;
             prevClas = clas;
         }

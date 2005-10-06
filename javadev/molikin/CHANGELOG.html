@@ -11,6 +11,7 @@
     Create BondOptimizer that reorders Bonds to minimize the number of 'P' points
     Check Prekin's NAList and AAList to make sure we have all entries...
   * blank text field should mean select all
+    add up/down arrow "history" to selection text field?
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -23,6 +24,13 @@
   Still, StickPrinter is simplified with no measurable performance penalty.
 - improved SelectorPane layout constraints
 - added BallAndStickPane; controls are not functional yet
+- changed selection API slightly in SelectorPane
+- added DataCache for caching calculated geometry data for each model
+- added Sets of Residues to ResClassifier
+- started moving printing logic out of Test and into BallAndStickPane;
+  protein drawing is now working in BallAndStickPane
+- simplified BallPrinter
+- completed all drawing in BallAndStickPane except pseudobb and atom balls
 
 ### 0.06 ###
 - fixed isX() typo bugs in Util

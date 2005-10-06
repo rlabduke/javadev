@@ -126,14 +126,24 @@ public class SelectorPane extends TablePane2 implements ListSelectionListener, A
     }
 //}}}
 
-//{{{ getSelectedResidues
+//{{{ getSelectedModels/Chains/Residues
 //##############################################################################
+    /** As a Collection of Model objects. */
     public Collection getSelectedModels()
     { return Arrays.asList(modelList.getSelectedValues()); }
     
+    /** As a Collection of Strings representing chain IDs. */
+    public Collection getSelectedChains()
+    { return Arrays.asList(chainList.getSelectedValues()); }
+    
+    /** As a Set of Residue objects. */
     public Set getSelectedResidues(Model m)
+    { return getSelectedResidues(m.getResidues()); }
+    
+    /** As a Set of Residue objects, which are a subset of the collection passed in. */
+    public Set getSelectedResidues(Collection residues)
     {
-        Collection chains = Arrays.asList(chainList.getSelectedValues());
+        Set chains = new HashSet(Arrays.asList(chainList.getSelectedValues()));
         Set resTypes = new HashSet(Arrays.asList(resTypeList.getSelectedValues()));
         // Not needed -- list or text has already set the selection
         //resRanger.select(resRangeField.getText().toUpperCase());
@@ -141,20 +151,14 @@ public class SelectorPane extends TablePane2 implements ListSelectionListener, A
         
         UberSet selected = new UberSet();
         
-        for(Iterator ci = chains.iterator(); ci.hasNext(); )
+        for(Iterator ri = residues.iterator(); ri.hasNext(); )
         {
-            String chainID = (String) ci.next();
-            Collection chain = m.getChain(chainID);
-            if(chain == null) continue;
-            for(Iterator ri = chain.iterator(); ri.hasNext(); )
+            Residue r = (Residue) ri.next();
+            if(resTypes.contains(r.getName()) && chains.contains(r.getChain()))
             {
-                Residue r = (Residue) ri.next();
-                if(resTypes.contains(r.getName()))
-                {
-                    String resNum = r.getSequenceNumber().trim() + r.getInsertionCode().trim();
-                    if(resNumbers.contains(resNum))
-                        selected.add(r);
-                }
+                String resNum = r.getSequenceNumber().trim() + r.getInsertionCode().trim();
+                if(resNumbers.contains(resNum))
+                    selected.add(r);
             }
         }
         
