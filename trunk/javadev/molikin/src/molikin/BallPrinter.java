@@ -40,41 +40,19 @@ public class BallPrinter //extends ... implements ...
     }
 //}}}
 
-//{{{ printBalls(atoms)
-//##############################################################################
-    /**
-    * Draws the supplied AtomState objects in order.
-    * Only points are generated; the client is responsible for writing "@balllist ...".
-    */
-    public void printBalls(Collection atoms)
-    {
-        if(atoms.size() == 0) return;
-        
-        for(Iterator iter = atoms.iterator(); iter.hasNext(); )
-        {
-            AtomState curr = (AtomState) iter.next();
-            out.println("{"+curr.getAtom()+"}"+crayon.colorAtom(curr)+" "+curr.format(df));
-        }
-        
-        out.flush();
-    }
-//}}}
-
-//{{{ printBalls(atoms, res)
+//{{{ printBalls
 //##############################################################################
     /**
     * Draws the supplied AtomState objects in order,
-    * but only if they belong to the given set of Residues.
+    * but only if they belong to the given set of Residues (may be null).
     * Only points are generated; the client is responsible for writing "@balllist ...".
     */
     public void printBalls(Collection atoms, Set res)
     {
-        if(atoms.size() == 0) return;
-        
         for(Iterator iter = atoms.iterator(); iter.hasNext(); )
         {
             AtomState curr = (AtomState) iter.next();
-            if(res.contains(curr.getResidue()))
+            if(res == null || res.contains(curr.getResidue()))
             {
                 out.println("{"+curr.getAtom()+"}"+crayon.colorAtom(curr)+" "+curr.format(df));
             }
@@ -82,6 +60,13 @@ public class BallPrinter //extends ... implements ...
         
         out.flush();
     }
+    
+    /**
+    * Draws the supplied AtomState objects in order.
+    * Only points are generated; the client is responsible for writing "@balllist ...".
+    */
+    public void printBalls(Collection atoms)
+    { printBalls(atoms, null); }
 //}}}
 
 //{{{ empty_code_segment

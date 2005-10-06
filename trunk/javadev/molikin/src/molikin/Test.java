@@ -41,19 +41,21 @@ public class Test //extends ... implements ...
 
 //{{{ showGUI
 //##############################################################################
-    Set showGUI(CoordinateFile cfile)
+    void showGUI(CoordinateFile cfile, PrintWriter out)
     {
         BallAndStickPane stickPane = new BallAndStickPane(cfile);
         
         JFrame parent = new JFrame();
-        JDialog frame = new JDialog(parent, "Choose sidechains to display", true); // modal
+        JDialog frame = new JDialog(parent, "Choose residues to display", true); // modal
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setContentPane(stickPane);
         frame.pack();
         frame.setVisible(true);
         parent.dispose();
         
-        return stickPane.getSelectedResidues(cfile.getFirstModel());
+        out.println("@kinemage");
+        out.println("@onewidth");
+        stickPane.printKinemage(out);
     }
 //}}}
 
@@ -104,7 +106,8 @@ public class Test //extends ... implements ...
         System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())+" bytes");
         
         PrintWriter out = new PrintWriter(kinOut);
-        doModel(coordFile, out);
+        //doModel(coordFile, out);
+        showGUI(coordFile, out);
         out.flush();
         System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())+" bytes");
     }
@@ -119,7 +122,8 @@ public class Test //extends ... implements ...
         System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())+" bytes");
         
         PrintWriter out = new PrintWriter(kinOut);
-        doModel(coordFile, out);
+        //doModel(coordFile, out);
+        showGUI(coordFile, out);
         out.flush();
         System.err.println("Mem. usage:             "+memdf.format(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())+" bytes");
     }
@@ -132,9 +136,10 @@ public class Test //extends ... implements ...
         Model model = coordFile.getFirstModel();
         
         // Test of GUI for residue selections
-        Set selectedResidues = showGUI(coordFile);
-        System.err.println("# residues selected:    "+selectedResidues.size()+" res");
         Set allResidues = new CheapSet(model.getResidues());
+        Set selectedResidues = allResidues;
+        //Set selectedResidues = showGUI(coordFile);
+        //System.err.println("# residues selected:    "+selectedResidues.size()+" res");
         
         /* For testing ResClassifier * /
         ResClassifier rc = new ResClassifier(model.getResidues());
