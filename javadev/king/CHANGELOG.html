@@ -69,6 +69,10 @@
   * Copy 3 PDFs to KiNG FTP folder as part of deploy-world script
     Does KiNG have the extra rotamer points?
   * Merge edit props, move points docs in with draw new tool docs
+  * Check on hyperlink code (UIText / MageHypertexter)
+    Implement @arrowlist radius= angle= for soc sci people?
+        Needs to get perp and par from radius and angle
+        Needs to be loaded by KinParser, stored by KinWriter
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -86,6 +90,9 @@
 - moved the drawing tool to the main menu
 - NB: pick objects + move points = weird behavior (wrong end of lines)
 - made scroll wheel zoom work again for Draw New tool
+- implemented arrowheads (directional vectors, @arrowlist) in ArrowPoint.
+  Had to modify VectorPoint and Engine very slightly to accomodate this.
+  Implementation is not complete yet (no read/write)
 
 ### 1.44 ###
 - fixed memory specs in KiNG Mac bundle ("16MBm" to "16m" as memory size!)

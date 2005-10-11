@@ -208,8 +208,10 @@ public class VectorPoint extends AbstractPoint // implements ...
         
         //{{{ Determine who's in back and who's in front.
         double xb, yb, zb, shortenb, xf, yf, zf, shortenf; // Back and Front
+        boolean fromIsFront; // are the "f" (front) points this or this.from?
         if(from.z < z)
         {
+            fromIsFront = false;
             xb = from.x;
             yb = from.y;
             zb = from.z;
@@ -221,6 +223,7 @@ public class VectorPoint extends AbstractPoint // implements ...
         }
         else // from.z >= z
         {
+            fromIsFront = true;
             xf = from.x;
             yf = from.y;
             zf = from.z;
@@ -297,8 +300,27 @@ public class VectorPoint extends AbstractPoint // implements ...
         }
         //}}} Shorten to fit in clipping plane, outside of balls
     
-        engine.painter.paintVector(paint, calcLineWidth(engine), engine.widthCue,
-            xb, yb, zb, xf, yf, zf);
+        //engine.painter.paintVector(paint, calcLineWidth(engine), engine.widthCue,
+        //    xb, yb, zb, xf, yf, zf);
+        
+        if(fromIsFront) paintStandard2(engine, paint, xf, yf, zf, xb, yb, zb);
+        else            paintStandard2(engine, paint, xb, yb, zb, xf, yf, zf);
+    }
+//}}}
+
+//{{{ paintStandard2
+//##################################################################################################
+    /**
+    * This function exists solely for the convenience of ArrowPoints;
+    * a good JIT will optimize it away for VectorPoints.
+    * Coordinates are already transformed, perspective corrected, and clipped by Z planes.
+    * They have NOT been clipped to the drawing area yet.
+    */
+    void paintStandard2(Engine engine, Paint paint, double fromX, double fromY, double fromZ, double toX, double toY, double toZ)
+    {
+        int lineWidth = calcLineWidth(engine);
+        engine.painter.paintVector(paint, lineWidth, engine.widthCue,
+            fromX, fromY, fromZ, toX, toY, toZ);
     }
 //}}}
 
