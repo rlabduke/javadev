@@ -6,7 +6,6 @@
     Extra clipping planes don't support line shortening
     Separate checkboxes, tree nodes from AGEs
     Include demo/tutorial kinemage ?
-    Add paintHighQuality to MarkerPoint
     Implement "screen" keyword for lists
     Add ability to create/edit colors
     Allow editing of all points below a given group/subgroup/list.
@@ -42,7 +41,7 @@
     Mutated residues should retain B factors where possible (?)
     'space' with (point)masters - what does it mean?
     Create a MagnifiedOceanTheme and load it using reflection
-    Create a splash-screen loader for KiNG
+    Create a splash-screen loader for KiNG (via manifest in Mustang)
     Add some kind of transformation hook (listeners, priorities, etc)
     Optional 2 column button layout?
     Start points of invisible lines are still pickable
@@ -65,19 +64,18 @@
     Use E+H 2000 geometry for Pro?
     Backrub: sc first, then bb, no bb opt sc, leads to sc tool not fixing Cb dev
     Draw tool - autolabel distances, angles
-    Implement the 'moview= #' feature of Mage for J. Voet (?)
+    Implement the 'moview= #' feature of Mage for J. Voet (?) (also 'movieview')
   * Copy 3 PDFs to KiNG FTP folder as part of deploy-world script
     Does KiNG have the extra rotamer points?
   * Merge edit props, move points docs in with draw new tool docs
   * Check on hyperlink code (UIText / MageHypertexter)
-    Implement @arrowlist radius= angle= for soc sci people?
-        Needs to get perp and par from radius and angle
-        Needs to be loaded by KinParser, stored by KinWriter
+        Document syntax for hyperlinks
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 1.45 ###
 ### 1.45 ###
 - fixed hyperlink code to respect a slightly larger active area.
   It was previously cut too short on the right hand side.
@@ -93,6 +91,9 @@
 - implemented arrowheads (directional vectors, @arrowlist) in ArrowPoint.
   Had to modify VectorPoint and Engine very slightly to accomodate this.
   Implementation is not complete yet (no read/write)
+- modified KList, KinfileParser to read in @arrowlists
+- modified KinWriter to write out @arrowlists
+- deployed to Rlab for testing
 
 ### 1.44 ###
 - fixed memory specs in KiNG Mac bundle ("16MBm" to "16m" as memory size!)

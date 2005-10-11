@@ -61,7 +61,12 @@ public class ArrowPoint extends VectorPoint // implements ...
         // The parallel is foreshortened by the dot product of the body with <0,0,1>;
         // the perpendicular is unchanged, which keeps the arrow "facing" the screen as much as possible.
         // Perspective effects are ignored b/c the arrowheads are small.
-        double tinePerp = 0.1*engine.zoom3D, tinePar = 0.2*engine.zoom3D; // in pixels
+        double tinePerp = 10, tinePar = 20; // in pixels
+        if(parent != null)
+        {
+            tinePerp = parent.tinePerp * engine.zoom3D;
+            tinePar  = parent.tinePar  * engine.zoom3D;
+        }
         
         // Unit vector from arrow head toward arrow tail
         engine.work1.setXYZ( fromX-toX, fromY-toY, fromZ-toZ );

@@ -215,6 +215,11 @@ public class KinWriter //extends ... implements ...
             out.print(" radius= "+df.format(list.radius));
             if((list.flags & KList.NOHILITE) != 0) out.print(" nohilite"); 
         }
+        else if(list.getType() == KList.ARROW)
+        {
+            out.print(" radius= "+df.format(list.getRadius()));
+            out.print(" angle= "+df.format(list.getAngle()));
+        }
         
         if(list.alpha != 255) out.print(" alpha= "+df.format(list.alpha/255.0));
         for(iter = list.masterIterator(); iter != null && iter.hasNext(); )
