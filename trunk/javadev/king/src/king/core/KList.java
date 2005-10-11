@@ -31,6 +31,7 @@ public class KList extends AGE implements Cloneable
     public static final String  RIBBON   = "ribbon";
     public static final String  BALL     = "ball";
     public static final String  SPHERE   = "sphere";
+    public static final String  ARROW    = "arrow";
 
     public static final int     NOHILITE = 0x00000001;  // no highlight on balls
 //}}}
@@ -44,10 +45,16 @@ public class KList extends AGE implements Cloneable
     
     public KPaint   color   = KPalette.defaultColor;
     public int      alpha   = 255;      // 255 = opaque, 0 = fully transparent
-    public float    radius  = 0.2f;     // seems to be default in Mage
+    public float    radius  = 0.2f;     // seems to be default in Mage; also used for arrow tine length (radius=)
     public int      width   = 2;
     public int      flags   = 0;        // nohighlight for balls, style for markers, etc
     Object          clipMode = null;    // null for default, else some object key
+    
+    // Parameters used for arrowlists; see ArrowPoint for explanation
+    // of tine PERPendicular and PARallel components.
+    float   angle       = 20f;
+    float   tinePerp    = (float)(radius * Math.sin(Math.toRadians(angle)));
+    float   tinePar     = (float)(radius * Math.cos(Math.toRadians(angle)));
 //}}}
 
 //{{{ Constructor(s)
@@ -142,7 +149,7 @@ public class KList extends AGE implements Cloneable
     { return this.instance; }
 //}}}
 
-//{{{ get/set{Type, Color, Width, Radius, Style, ClipMode}
+//{{{ get/set{Type, Color, Width, Radius, Angle, Style, ClipMode}
 //##################################################################################################
     /** Determines the type of points held by this list */
     public String getType()
@@ -174,7 +181,21 @@ public class KList extends AGE implements Cloneable
     public float getRadius()
     { return radius; }
     public void setRadius(float r)
-    { radius = r; }
+    {
+        radius      = r;
+        tinePerp    = (float)(radius * Math.sin(Math.toRadians(angle)));
+        tinePar     = (float)(radius * Math.cos(Math.toRadians(angle)));
+    }
+    
+    /** For use with ArrowPoint */
+    public float getAngle()
+    { return angle; }
+    public void setAngle(float a)
+    {
+        angle       = a;
+        tinePerp    = (float)(radius * Math.sin(Math.toRadians(angle)));
+        tinePar     = (float)(radius * Math.cos(Math.toRadians(angle)));
+    }
     
     /** For use with MarkerPoint */
     public int getStyle()

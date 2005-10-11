@@ -185,6 +185,8 @@ public class KinfileParser //extends ... implements ...
             else if(s.equals("@ribbon"))                doList(KList.RIBBON); //deprecated
             else if(s.equals("@marklist"))              doList(KList.MARK);
             else if(s.equals("@mark"))                  doList(KList.MARK); //deprecated
+            else if(s.equals("@arrowlist"))             doList(KList.ARROW);
+            else if(s.equals("@arrow"))                 doList(KList.ARROW); //deprecated
             else
             {
                 // In the future, we'd like to save this as-is.
@@ -499,6 +501,11 @@ public class KinfileParser //extends ... implements ...
                     if(token.isNumber()) list.setRadius(token.getFloat());
                     else error("radius= was not followed by a number");
                 }
+                else if(s.equals("angle="))
+                {
+                    if(token.isNumber()) list.setAngle(token.getFloat());
+                    else error("angle= was not followed by a number");
+                }
                 else if(s.equals("alpha=")) // opacity, from 1 (opaque) to 0 (transparent)
                 {
                     if(token.isNumber())
@@ -560,6 +567,7 @@ public class KinfileParser //extends ... implements ...
         else if(kListType.equals(KList.RIBBON))     point = new TrianglePoint(list, defaultPointID, (TrianglePoint)prevPoint);
         else if(kListType.equals(KList.BALL))       point = new BallPoint(list, defaultPointID);
         else if(kListType.equals(KList.SPHERE))     point = new SpherePoint(list, defaultPointID);
+        else if(kListType.equals(KList.ARROW))      point = new ArrowPoint(list, defaultPointID, (VectorPoint)prevPoint);
         else throw new IllegalArgumentException("Unrecognized list type '"+kListType+"'");
 
         boolean pointIdFound    = false;
