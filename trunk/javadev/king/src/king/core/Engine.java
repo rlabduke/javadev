@@ -52,6 +52,7 @@ public class Engine //extends ... implements ...
     public Font         labelFont       = null;
     public int          backgroundMode  = -1;
     public Triple       lightingVector  = new Triple(-1, 1, 3).unit();
+    public Rectangle    pickingRect     = new Rectangle(); // bounds of one side of stero area or whole canvas
     
     // READ ONLY: These are set from Kinemage obj by KinCanvas on every drawing pass.
     // Changing them here will have NO EFFECT because they'll be overwritten.
@@ -78,7 +79,6 @@ public class Engine //extends ... implements ...
     Map frontClipMap = new HashMap(), backClipMap = new HashMap();
     
     Font                bigFont, smallFont;
-    Rectangle           pickingRect = new Rectangle();
     Rectangle           canvasRect = new Rectangle();
     float               pickingRadius = 5f;
     boolean             warnedPickingRegion = false; // have we warned user about out-of-bounds picks?
