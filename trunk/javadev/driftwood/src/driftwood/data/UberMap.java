@@ -471,7 +471,7 @@ class UberEntryIterator implements Iterator
         if(log2Capacity == 30) return; // table is as big as it can get
         
         // Get putAll() to do our dirty work for us
-        UberMap newMap = new UberMap(newCapacity, loadFactor);
+        UberMap newMap = new UberMap(newCapacity, loadFactor, hashFunc);
         newMap.putAll(this);
         
         // Canabalize the new map
