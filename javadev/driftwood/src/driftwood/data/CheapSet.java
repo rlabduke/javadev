@@ -182,7 +182,7 @@ class CheapIterator implements Iterator
             throw new UnsupportedOperationException("Set has reached maximum size");
         
         // Get putAll() to do our dirty work for us
-        CheapSet newSet = new CheapSet(newCapacity, loadFactor);
+        CheapSet newSet = new CheapSet(newCapacity, loadFactor, hashFunc);
         newSet.addAll(this);
         
         // Canabalize the new set
