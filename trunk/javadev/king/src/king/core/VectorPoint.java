@@ -206,6 +206,22 @@ public class VectorPoint extends AbstractPoint // implements ...
         int alpha = (parent == null ? 255 : parent.alpha);
         Paint paint = maincolor.getPaint(engine.backgroundMode, 1, engine.colorCue, alpha);
         
+        // If we REALLY wanted to clip line segments to the visible volume, we
+        // could use 6 planes defining a box / truncated pyramid.
+        // See ArrowPoint for ideas on Cohen-Sutherland clipping.
+        // To intersect a line with a plane, from Comp.Graphics.Algorithms FAQ 5:
+        //  If the plane is defined as:
+        //      a*x + b*y + c*z + d = 0
+        //  and the line is defined as:
+        //      x = x1 + (x2 - x1)*t = x1 + i*t
+        //      y = y1 + (y2 - y1)*t = y1 + j*t
+        //      z = z1 + (z2 - z1)*t = z1 + k*t
+        //  Then just substitute these into the plane equation. You end up with:
+        //      t = - (a*x1 + b*y1 + c*z1 + d)/(a*i + b*j + c*k)
+        //  When the denominator is zero, the line is contained in the plane if
+        //  the numerator is also zero (the point at t=0 satisfies the plane
+        //  equation), otherwise the line is parallel to the plane.
+        
         //{{{ Determine who's in back and who's in front.
         double xb, yb, zb, shortenb, xf, yf, zf, shortenf; // Back and Front
         boolean fromIsFront; // are the "f" (front) points this or this.from?

@@ -108,7 +108,7 @@ public class Util //extends ... implements ...
     {
         String name = as.getName();
         if(name.length() < 2)
-            return name.equals("H");
+            return name.equals("Q");
         char c1 = name.charAt(0), c2 = name.charAt(1);
         return ((c2 == 'Q')
             &&  (c1 == ' ' || ('0' <= c1 && c1 <= '9')));
@@ -208,6 +208,68 @@ public class Util //extends ... implements ...
     static public boolean isDisulfide(Bond bond)
     {
         return (isS(bond.lower) && isS(bond.higher));
+    }
+//}}}
+
+//{{{ getElement, getElementColor
+//##############################################################################
+    /**
+    * Returns our best guess at the element symbol (1 or 2 chars, uppercase)
+    */
+    static public String getElement(AtomState as)
+    {
+        String name = as.getName();
+        if(name.length() < 2)
+            return name;
+        char c1 = name.charAt(0), c2 = name.charAt(1);
+        if('A' <= c1 && c1 <= 'Z')  return name.substring(0,2);
+        else if(c2 == 'D')          return "H"; // D is the isotope, not the element
+        else                        return name.substring(1,2);
+    }
+    
+    static Map elementColors = null;
+    /**
+    * Given the element symbol (1 or 2 chars, uppercase) this returns
+    * the standard kinemage color for it.
+    */
+    static public String getElementColor(String element)
+    {
+        if(elementColors == null)
+        {
+            elementColors = new HashMap();
+            elementColors.put("H", "gray");
+            elementColors.put("C", "white");
+            elementColors.put("N", "sky");
+            elementColors.put("O", "red");
+            elementColors.put("S", "yellow");
+            elementColors.put("P", "gold");
+            // These ~ borrowed from RasMol
+            elementColors.put("HE", "pinktint");
+            elementColors.put("LI", "brown");
+            elementColors.put("B", "green");
+            elementColors.put("F", "orange");
+            elementColors.put("NA", "blue");
+            elementColors.put("MG", "greentint");
+            elementColors.put("AL", "gray");
+            elementColors.put("SI", "gold");
+            elementColors.put("CL", "green");
+            elementColors.put("CA", "gray");
+            elementColors.put("TI", "gray");
+            elementColors.put("CR", "gray");
+            elementColors.put("MN", "gray");
+            elementColors.put("FE", "orange");
+            elementColors.put("NI", "brown");
+            elementColors.put("CU", "brown");
+            elementColors.put("ZN", "brown");
+            elementColors.put("BR", "brown");
+            elementColors.put("AG", "gray");
+            elementColors.put("I", "bluetint");
+            elementColors.put("BA", "orange");
+            elementColors.put("AU", "gold");
+        }
+        String color = (String) elementColors.get(element);
+        if(color == null)   return "hotpink";
+        else                return color;
     }
 //}}}
 

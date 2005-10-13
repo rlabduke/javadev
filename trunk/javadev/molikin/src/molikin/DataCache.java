@@ -65,7 +65,7 @@ public class DataCache //extends ... implements ...
     }
 //}}}
 
-//{{{ getResClassifier, getUniqueAtomStates, getAtomClassifier, getAtomGraph
+//{{{ getResClassifier, getUniqueAtomStates, getAtomClassifier, getCovalentGraph
 //##############################################################################
     public ResClassifier getResClassifier()
     {
@@ -88,7 +88,7 @@ public class DataCache //extends ... implements ...
         return atomC;
     }
     
-    public AtomGraph getAtomGraph()
+    public AtomGraph getCovalentGraph()
     {
         if(atomGraph == null)
             atomGraph = new AtomGraph(getUniqueAtomStates());

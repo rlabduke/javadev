@@ -168,7 +168,7 @@ public class Test //extends ... implements ...
         System.err.println("Spatial binning:        "+time+" ms");
 
         time = System.currentTimeMillis();
-    Collection bonds = graph.getCovalentBonds();
+    Collection bonds = graph.getBonds();
         time = System.currentTimeMillis() - time;
         System.err.println("Building bond network:  "+time+" ms");
 
