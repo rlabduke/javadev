@@ -45,13 +45,13 @@ public class AtomGraph //extends ... implements ...
     
     /**
     * A bunch of Collection&lt;AtomState&gt; for recording which atoms are
-    * one covalent bond away from a particular atom. Starts empty and is filled lazily.
+    * one bond away from a particular atom. Starts empty and is filled lazily.
     * Indices match with those of atomStates and stateIndices.
     */
     Collection[]        covNeighbors;
     
     /**
-    * All of the covalent Bonds for all of the states.
+    * All of the Bonds for all of the states.
     * Fully populating this is expensive, so it's created lazily when requested.
     * Data will be plundered from covNeighbors when it's available.
     * Unmodifiable once created.
@@ -59,7 +59,7 @@ public class AtomGraph //extends ... implements ...
     SortedSet           allBonds = null;
     
     /**
-    * Contains all AtomStates known not to have any covalent bonds to them.
+    * Contains all AtomStates known not to have any bonds to them.
     * Stays null until allBonds is populated.
     * Unmodifiable once created.
     */
@@ -96,16 +96,16 @@ public class AtomGraph //extends ... implements ...
     }
 //}}}
 
-//{{{ getCovalentBonds
+//{{{ getBonds
 //##############################################################################
     /**
     * Returns all the bonds between all the atoms in this graph.
     * For N atoms, this is an O(N) or O(N ln N) computation,
     * but it may still be reasonably expensive.
-    * Results are cached for future calls to this function and to getCovalentNeighbors(),
-    * and any cached results from previous getCovalentNeighbors() calls are used here.
+    * Results are cached for future calls to this function and to getNeighbors(),
+    * and any cached results from previous getNeighbors() calls are used here.
     */
-    public Collection getCovalentBonds()
+    public Collection getBonds()
     {
         if(this.allBonds == null)
         {
@@ -115,7 +115,7 @@ public class AtomGraph //extends ... implements ...
             for(int i = 0; i < atomStates.length; i++)
             {
                 AtomState query = atomStates[i];
-                Collection neighbors = this.getCovalentNeighbors(query); // forces neighbors to be found
+                Collection neighbors = this.getNeighbors(query); // forces neighbors to be found
                 if(neighbors.size() == 0)
                 {
                     this.unbondedAtoms.add(query);
@@ -139,27 +139,27 @@ public class AtomGraph //extends ... implements ...
     }
 //}}}
 
-//{{{ getCovalentUnbonded
+//{{{ getUnbonded
 //##############################################################################
     /**
-    * Returns a Collection of AtomStates that have no covalent bonds.
+    * Returns a Collection of AtomStates that have no bonds.
     * These will usually be metals, ions, waters (oxygen only), etc.
     */
-    public Collection getCovalentUnbonded()
+    public Collection getUnbonded()
     {
-        if(this.unbondedAtoms == null) getCovalentBonds();
+        if(this.unbondedAtoms == null) getBonds();
         return this.unbondedAtoms;
     }
 //}}}
 
-//{{{ getCovalentNeighbors
+//{{{ getNeighbors
 //##############################################################################
     /**
-    * Gets all the AtomStates that the given AtomState is covalently bonded to.
+    * Gets all the AtomStates that the given AtomState is bonded to.
     * AtomStates are compared by identity here, not equality, so use
     * one of the states passed to the constructor.
     */
-    public Collection getCovalentNeighbors(AtomState query)
+    public Collection getNeighbors(AtomState query)
     {
         //////////////////////////////////////////////////////////////////
         // Impl. note: this function is generally NOT REENTRANT, but is //
@@ -181,7 +181,7 @@ public class AtomGraph //extends ... implements ...
 
 //{{{ connectHydrogens
 //##############################################################################
-    /** Finds the closest covalent neighbor (JUST ONE) of a given H */
+    /** Finds the closest neighbor (JUST ONE) of a given H */
     private Collection connectHydrogens(AtomState query)
     {
         // See http://chemviz.ncsa.uiuc.edu/content/doc-resources-bond.html
@@ -215,7 +215,7 @@ public class AtomGraph //extends ... implements ...
 
 //{{{ connectHeavyAtoms
 //##############################################################################
-    /** Finds the closest covalent neighbor(s) of a given heavy atom */
+    /** Finds the closest neighbor(s) of a given heavy atom */
     private Collection connectHeavyAtoms(AtomState query)
     {
         // See http://chemviz.ncsa.uiuc.edu/content/doc-resources-bond.html
@@ -245,7 +245,7 @@ public class AtomGraph //extends ... implements ...
             // this avoids H's with too many bonds to them.
             if(Util.isH(hit))
             {
-                Collection neighborsH = getCovalentNeighbors(hit);
+                Collection neighborsH = getNeighbors(hit);
                 //if(neighborsH.contains(query)) ... -- nice, but uses equals() instead of ==
                 if(neighborsH.size() >= 1 && neighborsH.iterator().next() == query)
                     neighbors.add(hit);

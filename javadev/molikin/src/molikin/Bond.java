@@ -17,7 +17,7 @@ import driftwood.moldb2.*;
 * which must be indentified by unique integers.
 * Given atoms 1, 2, and 3 with bonds between them,
 * bonds 1-2 and 2-1 compare as equal,
-* and they sort as (1-2, 1-3, 2-3).
+* and they sort as (1-3, 1-2, 2-3).
 *
 * <p>Copyright (C) 2005 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri May  6 14:03:37 EDT 2005

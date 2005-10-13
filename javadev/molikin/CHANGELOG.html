@@ -31,6 +31,11 @@
   protein drawing is now working in BallAndStickPane
 - simplified BallPrinter
 - completed all drawing in BallAndStickPane except pseudobb and atom balls
+- added getElement() and getElementColor() to Util
+- added BallAndStickPane.printAtomBalls() and hooked it up to the GUI
+- moved the "covalent" naming out of AtomGraph and into DataCache.
+  This allows us to easily make AtomGraph an abstract class in the future,
+  instances of which might concern covalent bonds, H-bonds, etc etc.
 
 ### 0.06 ###
 - fixed isX() typo bugs in Util

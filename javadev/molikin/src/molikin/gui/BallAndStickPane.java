@@ -37,7 +37,7 @@ public class BallAndStickPane extends TablePane2
     SelectorPane    selector;
     JCheckBox       cbProtein, cbNucleic, cbHets, cbIons, cbWater;
     JCheckBox       cbPseudoBB, cbBackbone, cbSidechains, cbHydrogens;
-    JCheckBox       cbBallsOnCarbon, cbBallsOnNoncarbon;
+    JCheckBox       cbBallsOnCarbon, cbBallsOnAtoms;
     JComboBox       cmColorBy;
 //}}}
 
@@ -69,14 +69,16 @@ public class BallAndStickPane extends TablePane2
         cbWater     = new JCheckBox("water", true);
         
         cbPseudoBB      = new JCheckBox("C-alpha trace", true);
+            cbPseudoBB.setEnabled(false);
         cbBackbone      = new JCheckBox("backbone", true);
         cbSidechains    = new JCheckBox("sidechain", true);
         cbHydrogens     = new JCheckBox("hydrogens", true);
         
-        cbBallsOnCarbon     = new JCheckBox("balls on C atoms", false);
-        cbBallsOnNoncarbon  = new JCheckBox("balls on N, O, P, etc.", false);
+        cbBallsOnCarbon     = new JCheckBox("balls on C atoms too", false);
+        cbBallsOnAtoms      = new JCheckBox("balls on N, O, P, etc.", false);
         
         cmColorBy   = new JComboBox(new String[] {"backbone / sidechain", "element (half bonds)", "B factor", "occupancy"});
+            cmColorBy.setEnabled(false);
         
         this.hfill(true).vfill(true).addCell(selector, 2, 1).newRow();
         this.weights(1,0).memorize();
@@ -92,7 +94,7 @@ public class BallAndStickPane extends TablePane2
         this.addCell(cbIons).addCell(cbHydrogens).newRow();
         this.addCell(cbWater).skip().newRow();
         this.addCell(this.strut(0,6)).newRow();
-        this.addCell(cbBallsOnCarbon).addCell(cbBallsOnNoncarbon).newRow();
+        this.addCell(cbBallsOnAtoms).addCell(cbBallsOnCarbon).newRow();
         
         this.setBorder( BorderFactory.createTitledBorder(null, "Ball & stick") );
     }
@@ -149,7 +151,7 @@ public class BallAndStickPane extends TablePane2
         if(proteinRes.size() == 0) return;
         
         AtomClassifier  atomC   = data.getAtomClassifier();
-        Collection      bonds   = data.getAtomGraph().getCovalentBonds();
+        Collection      bonds   = data.getCovalentGraph().getBonds();
         
         if(cbPseudoBB.isSelected())
         {
@@ -161,11 +163,17 @@ public class BallAndStickPane extends TablePane2
             {
                 out.println("@vectorlist {protein bb} color= "+bbColor+" master= {protein} master= {backbone}");
                 sp.printSticks(bonds, atomC.bbHeavy, atomC.bbHeavy, proteinRes, proteinRes);
-            }
-            if(cbHydrogens.isSelected() && atomC.bbHydro.size() > 0)
-            {
-                out.println("@vectorlist {protein bbH} color= gray master= {protein} master= {backbone} master= {Hs}");
-                sp.printSticks(bonds, atomC.bbHydro, atomC.bbHeavy, proteinRes, proteinRes);
+                if(cbHydrogens.isSelected() && atomC.bbHydro.size() > 0)
+                {
+                    out.println("@vectorlist {protein bbH} color= gray master= {protein} master= {backbone} master= {Hs}");
+                    sp.printSticks(bonds, atomC.bbHydro, atomC.bbHeavy, proteinRes, proteinRes);
+                }
+                if(cbBallsOnAtoms.isSelected())
+                {
+                    printAtomBalls(out, atomC.bbHeavy, proteinRes,
+                        (cbBallsOnCarbon.isSelected() ? bbColor : null),
+                        "master= {protein} master= {backbone}");
+                }
             }
         }
         if(cbSidechains.isSelected())
@@ -176,12 +184,18 @@ public class BallAndStickPane extends TablePane2
                 out.println("@vectorlist {protein sc} color= cyan master= {protein} master= {sidechains}");
                 // to scHeavy if we want stubs to ribbon instead
                 sp.printSticks(bonds, atomC.scHeavy, atomC.bioHeavy, proteinRes, proteinRes);
-            }
-            if(cbHydrogens.isSelected() && atomC.scHydro.size() > 0)
-            {
-                out.println("@vectorlist {protein scH} color= gray master= {protein} master= {sidechains} master= {Hs}");
-                // makes sure Gly 2HA connects to bb
-                sp.printSticks(bonds, atomC.scHydro, atomC.bioHeavy, proteinRes, proteinRes);
+                if(cbHydrogens.isSelected() && atomC.scHydro.size() > 0)
+                {
+                    out.println("@vectorlist {protein scH} color= gray master= {protein} master= {sidechains} master= {Hs}");
+                    // makes sure Gly 2HA connects to bb
+                    sp.printSticks(bonds, atomC.scHydro, atomC.bioHeavy, proteinRes, proteinRes);
+                }
+                if(cbBallsOnAtoms.isSelected())
+                {
+                    printAtomBalls(out, atomC.scHeavy, proteinRes,
+                        (cbBallsOnCarbon.isSelected() ? "cyan" : null),
+                        "master= {protein} master= {sidechains}");
+                }
             }
         }
     }
@@ -200,7 +214,7 @@ public class BallAndStickPane extends TablePane2
         if(nucAcidRes.size() == 0) return;
         
         AtomClassifier  atomC   = data.getAtomClassifier();
-        Collection      bonds   = data.getAtomGraph().getCovalentBonds();
+        Collection      bonds   = data.getCovalentGraph().getBonds();
         
         if(cbPseudoBB.isSelected())
         {
@@ -212,11 +226,17 @@ public class BallAndStickPane extends TablePane2
             {
                 out.println("@vectorlist {nuc. acid bb} color= "+bbColor+" master= {nucleic acid} master= {backbone}");
                 sp.printSticks(bonds, atomC.bbHeavy, atomC.bbHeavy, nucAcidRes, nucAcidRes);
-            }
-            if(cbHydrogens.isSelected() && atomC.bbHydro.size() > 0)
-            {
-                out.println("@vectorlist {nuc. acid bbH} color= gray master= {nucleic acid} master= {backbone} master= {Hs}");
-                sp.printSticks(bonds, atomC.bbHydro, atomC.bbHeavy, nucAcidRes, nucAcidRes);
+                if(cbHydrogens.isSelected() && atomC.bbHydro.size() > 0)
+                {
+                    out.println("@vectorlist {nuc. acid bbH} color= gray master= {nucleic acid} master= {backbone} master= {Hs}");
+                    sp.printSticks(bonds, atomC.bbHydro, atomC.bbHeavy, nucAcidRes, nucAcidRes);
+                }
+                if(cbBallsOnAtoms.isSelected())
+                {
+                    printAtomBalls(out, atomC.bbHeavy, nucAcidRes,
+                        (cbBallsOnCarbon.isSelected() ? bbColor : null),
+                        "master= {nucleic acid} master= {backbone}");
+                }
             }
         }
         if(cbSidechains.isSelected())
@@ -226,11 +246,17 @@ public class BallAndStickPane extends TablePane2
                 out.println("@vectorlist {nuc. acid sc} color= cyan master= {nucleic acid} master= {sidechains}");
                 // to scHeavy if we want stubs to ribbon instead
                 sp.printSticks(bonds, atomC.scHeavy, atomC.bioHeavy, nucAcidRes, nucAcidRes);
-            }
-            if(cbHydrogens.isSelected() && atomC.scHydro.size() > 0)
-            {
-                out.println("@vectorlist {nuc. acid scH} color= gray master= {nucleic acid} master= {sidechains} master= {Hs}");
-                sp.printSticks(bonds, atomC.scHydro, atomC.scHeavy, nucAcidRes, nucAcidRes);
+                if(cbHydrogens.isSelected() && atomC.scHydro.size() > 0)
+                {
+                    out.println("@vectorlist {nuc. acid scH} color= gray master= {nucleic acid} master= {sidechains} master= {Hs}");
+                    sp.printSticks(bonds, atomC.scHydro, atomC.scHeavy, nucAcidRes, nucAcidRes);
+                }
+                if(cbBallsOnAtoms.isSelected())
+                {
+                    printAtomBalls(out, atomC.scHeavy, nucAcidRes,
+                        (cbBallsOnCarbon.isSelected() ? "cyan" : null),
+                        "master= {nucleic acid} master= {sidechains}");
+                }
             }
         }
     }
@@ -250,13 +276,20 @@ public class BallAndStickPane extends TablePane2
         if(hetRes.size() == 0) return;
         
         AtomClassifier  atomC   = data.getAtomClassifier();
-        Collection      bonds   = data.getAtomGraph().getCovalentBonds();
+        Collection      bonds   = data.getCovalentGraph().getBonds();
         
         // First, the hets themselves.
         if(atomC.hetHeavy.size() == 0) return;
         out.println("@vectorlist {het} color= pink master= {hets}");
         sp.printSticks(bonds, atomC.hetHeavy, atomC.hetHeavy, hetRes, hetRes);
 
+        if(cbBallsOnAtoms.isSelected())
+        {
+            printAtomBalls(out, atomC.hetHeavy, hetRes,
+                (cbBallsOnCarbon.isSelected() ? "pink" : null),
+                "master= {hets}");
+        }
+        
         if(cbHydrogens.isSelected() && atomC.hetHydro.size() > 0)
         {
             out.println("@vectorlist {hetH} color= gray master= {hets} master= {Hs}");
@@ -341,10 +374,50 @@ public class BallAndStickPane extends TablePane2
         if(cbHydrogens.isSelected() && atomC.watHydro.size() > 0)
         {
             StickPrinter    sp      = new StickPrinter(out);
-            Collection      bonds   = data.getAtomGraph().getCovalentBonds();
+            Collection      bonds   = data.getCovalentGraph().getBonds();
 
             out.println("@vectorlist {waterH} color= gray master= {waters} master= {Hs}");
             sp.printSticks(bonds, atomC.watHydro, atomC.watHeavy, waterRes, waterRes);
+        }
+    }
+//}}}
+
+//{{{ printAtomBalls
+//##############################################################################
+    /** null for carbonColor means leave off carbon balls */
+    void printAtomBalls(PrintWriter out, Collection atomStates, Set residues, String carbonColor, String masters)
+    {
+        // First, sort the AtomStates by element
+        Map elementsToAtoms = new HashMap();
+        for(Iterator iter = atomStates.iterator(); iter.hasNext(); )
+        {
+            AtomState as = (AtomState) iter.next();
+            if(Util.isH(as) || Util.isQ(as))        continue;
+            if(!residues.contains(as.getResidue())) continue;
+            String element = Util.getElement(as);
+            Collection atoms = (Collection) elementsToAtoms.get(element);
+            if(atoms == null)
+            {
+                atoms = new ArrayList();
+                elementsToAtoms.put(element, atoms);
+            }
+            atoms.add(as);
+        }
+        
+        // Remove carbon if no color has been specified
+        if(carbonColor == null) elementsToAtoms.remove("C");
+        
+        // Now print one balllist per element
+        BallPrinter bp = new BallPrinter(out);
+        for(Iterator iter = elementsToAtoms.keySet().iterator(); iter.hasNext(); )
+        {
+            String element = (String) iter.next();
+            Collection atoms = (Collection) elementsToAtoms.get(element);
+            String color = Util.getElementColor(element);
+            // Matching carbon color to backbone, sidechain, etc. doesn't really work, visually.
+            //if(carbonColor != null && element.equals("C")) color = carbonColor;
+            out.println("@balllist {"+element+" balls} color= "+color+" radius= 0.2 master= {"+element+"} "+masters);
+            bp.printBalls(atoms);
         }
     }
 //}}}
