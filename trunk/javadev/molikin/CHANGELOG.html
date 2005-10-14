@@ -8,7 +8,6 @@
         to keep only the N shortest bonds...
     Deal with NMR 'Q' atoms in AtomGraph
     Allow disabling cache for getCovalentNeighbors (?)
-    Create BondOptimizer that reorders Bonds to minimize the number of 'P' points
     Check Prekin's NAList and AAList to make sure we have all entries...
     blank text field should mean select all
     add up/down arrow "history" to selection text field?
@@ -16,6 +15,19 @@
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 0.08 ###
+- changed sort order of Bonds to work better with:
+- added Util.optimizeBondSequence() for cleaner kinemages
+- experimenting with up-front optimization of the set of all bonds shows this
+  doesn't improve kinemage connectivity once bonds are broken into mc, sc, etc.
+- added Bond.reverse() to facilitate optimizing the connectivity. Is this a good idea???
+- NO! added "mirror" field to Bond instead, so they remain immutable.
+- elaborated on Util.selectBondsBetween() based on StickPrinter experience
+- added BondOptimizer, which can now truly maximize the connectedness
+  Adding calls to this from StickPrinter actually speeds things up, as well as
+  reduces the size of the kinemage file.
+- streamlined the operation of BallAndStickPane a bit
 
 ### 0.07 ###
 - simplified StickPrinter and made it significantly faster (!)

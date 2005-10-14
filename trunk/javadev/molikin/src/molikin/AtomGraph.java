@@ -10,6 +10,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
+import driftwood.data.*;
 import driftwood.moldb2.*;
 import driftwood.r3.*;
 //}}}
@@ -56,7 +57,7 @@ public class AtomGraph //extends ... implements ...
     * Data will be plundered from covNeighbors when it's available.
     * Unmodifiable once created.
     */
-    SortedSet           allBonds = null;
+    Collection          allBonds = null;
     
     /**
     * Contains all AtomStates known not to have any bonds to them.
@@ -79,6 +80,7 @@ public class AtomGraph //extends ... implements ...
     public AtomGraph(Collection states)
     {
         super();
+        //long time = System.currentTimeMillis();
         
         // AtomStates are compared by identity, not equality, to avoid XYZ overlaps.
         this.atomStates = (AtomState[]) states.toArray( new AtomState[states.size()] );
@@ -93,6 +95,9 @@ public class AtomGraph //extends ... implements ...
         // Start an empty map for AtomState -> Collection<AtomState> mapping.
         this.covNeighbors = new Collection[this.atomStates.length];
         for(int i = 0; i < covNeighbors.length; i++) covNeighbors[i] = null;
+        
+        //time = System.currentTimeMillis() - time;
+        //System.err.println("Spatial binning:        "+time+" ms");
     }
 //}}}
 
@@ -109,8 +114,11 @@ public class AtomGraph //extends ... implements ...
     {
         if(this.allBonds == null)
         {
+            //long time = System.currentTimeMillis();
+
             // A Set is used so that duplicate bonds will be eliminated.
-            this.allBonds = new TreeSet();
+            // CheapSet + sort() ~ TreeSet in speed but uses less memory
+            this.allBonds = new CheapSet();
             this.unbondedAtoms = new ArrayList();
             for(int i = 0; i < atomStates.length; i++)
             {
@@ -132,8 +140,18 @@ public class AtomGraph //extends ... implements ...
                     }
                 }
             }
-            this.allBonds = Collections.unmodifiableSortedSet(this.allBonds);
+            // Iteration over the FinalArrayList is twice as fast as over the wrapped TreeSet!
+            //this.allBonds = Collections.unmodifiableCollection(this.allBonds);
+            Object[] bonds = this.allBonds.toArray();
+            this.allBonds = null;
+            Arrays.sort(bonds);
+            // There's no point in optimizing their order now, because when
+            // broken down into mc, sc, etc the bonds will be disconnected again.
+            this.allBonds = new FinalArrayList(bonds);
             this.unbondedAtoms = Collections.unmodifiableCollection(this.unbondedAtoms);
+
+            //time = System.currentTimeMillis() - time;
+            //System.err.println("Building bond network:  "+time+" ms");
         }
         return this.allBonds;
     }

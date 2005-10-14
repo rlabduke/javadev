@@ -17,7 +17,9 @@ import driftwood.moldb2.*;
 * which must be indentified by unique integers.
 * Given atoms 1, 2, and 3 with bonds between them,
 * bonds 1-2 and 2-1 compare as equal,
-* and they sort as (1-3, 1-2, 2-3).
+* and they sort as (1-2, 1-3, 2-3).
+* Every bond has a mirror image in which "lower" and "higher" are reversed,
+* but the two bonds compare as equal and sort to the same place.
 *
 * <p>Copyright (C) 2005 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri May  6 14:03:37 EDT 2005
@@ -31,6 +33,7 @@ public class Bond implements Comparable
 //##############################################################################
     public final AtomState lower, higher;
     final int iLow, iHigh;
+    public final Bond mirror;
 //}}}
 
 //{{{ Constructor(s)
@@ -61,6 +64,16 @@ public class Bond implements Comparable
             higher  = two;
             iHigh   = iTwo;
         }
+        mirror = new Bond(this);
+    }
+    
+    private Bond(Bond that)
+    {
+        this.lower  = that.higher;
+        this.higher = that.lower;
+        this.iLow   = that.iLow; // no mistake, these are still sorted by value
+        this.iHigh  = that.iHigh;
+        this.mirror = that;
     }
 //}}}
 
@@ -84,14 +97,11 @@ public class Bond implements Comparable
     {
         Bond that = (Bond) o;
         int diff = this.iLow - that.iLow;
+        // This way, intra-residue bonds come before inter-residue ones
         if(diff == 0)
-            diff = that.iHigh - this.iHigh; // reverse order!
+            diff = this.iHigh - that.iHigh;
         return diff;
     }
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
 //}}}
 
 //{{{ empty_code_segment

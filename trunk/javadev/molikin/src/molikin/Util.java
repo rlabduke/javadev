@@ -276,28 +276,36 @@ public class Util //extends ... implements ...
 //{{{ selectBondsBetween
 //##############################################################################
     /**
-    * Selects bonds that bridge the src and dst sets. Bonds will be returned
-    * in the same order they were input.
-    * @param bonds  a bunch of Bond objects, of which 0+ will be selected.
-    * @param src    AtomStates the bonds are allowed to "originate" from.
-    *   (Bonds are symmetrical, so there's no difference b/t originate and terminate.)
-    *   This should probably be a collection that uses identity for contains()
-    *   rather than equals(), such as CheapMap(IdentityHashFunction).
-    * @param dst    AtomStates the bonds are allowed to "terminate" at.
-    *   This and src can be exchanged and the results will be identical.
+    * Selects matching bonds, retaining their input order.
+    * Only bonds that go from AtomStates in srcA which belong to Residues in srcR,
+    * to AtomStates in dstR that belong to Residues in dstR (or vice versa), are drawn.
+    * @param bonds  the Bonds to select from
+    * @param srcA   a Set of AtomStates (may be null for "any")
+    * @param dstA   a Set of AtomStates (may be null for "any")
+    * @param srcR   a Set of Residues (may be null for "any")
+    * @param dstR   a Set of Residues (may be null for "any")
+    * @param out    a Collection to append selected bonds to. Will be created if null.
+    * @return the Collection holding the selected bonds
     */
-    static public Collection selectBondsBetween(Collection bonds, Set src, Set dst)
+    static public Collection selectBondsBetween(Collection bonds, Set srcA, Set dstA, Set srcR, Set dstR, Collection out)
     {
-        //SortedSet out = new TreeSet();
-        Collection out = new ArrayList();
+        if(out == null) out = new ArrayList();
         for(Iterator iter = bonds.iterator(); iter.hasNext(); )
         {
-            Bond bond = (Bond) iter.next();
-            if((src.contains(bond.lower) && dst.contains(bond.higher))
-            || (dst.contains(bond.lower) && src.contains(bond.higher)))
-            {
-                out.add(bond);
-            }
+            Bond curr = (Bond) iter.next();
+            
+            // Testing for null vs. maintaining separate implementations that don't test at all
+            // produces no measurable performance impact, even for the ribosome.
+            
+            boolean residuesAllowed = ((srcR == null || srcR.contains(curr.lower.getResidue())) && (dstR == null || dstR.contains(curr.higher.getResidue())))
+                                    ||((dstR == null || dstR.contains(curr.lower.getResidue())) && (srcR == null || srcR.contains(curr.higher.getResidue())));
+            if(!residuesAllowed) continue;
+            
+            boolean atomsAllowed    = ((srcA == null || srcA.contains(curr.lower)) && (dstA == null || dstA.contains(curr.higher)))
+                                    ||((dstA == null || dstA.contains(curr.lower)) && (srcA == null || srcA.contains(curr.higher)));
+            if(!atomsAllowed) continue;
+            
+            out.add(curr);
         }
         return out;
     }
