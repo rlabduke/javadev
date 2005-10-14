@@ -33,6 +33,7 @@ public class StickPrinter //extends ... implements ...
     
     boolean halfbonds = false; // draw half bonds instead of whole ones
     Triple midpoint = new Triple(); // for half bond calculation
+    Collection selectedBonds = new ArrayList();
 //}}}
 
 //{{{ Constructor(s)
@@ -58,23 +59,22 @@ public class StickPrinter //extends ... implements ...
     */
     public void printSticks(Collection bonds, Set srcA, Set dstA, Set srcR, Set dstR)
     {
+        //long time = System.currentTimeMillis();
+
+        // Doing the selection inline saves a bit of time on allocating selectedBonds,
+        // but much greater savings are achieved through bond order optimization.
+        selectedBonds.clear();
+        Util.selectBondsBetween(bonds, srcA, dstA, srcR, dstR, selectedBonds);
+        // The optimization reduces total bond drawing time by ~20%
+        // because it reduces kinemage size by ~15%. Less output, faster code!
+        Bond[] b = (Bond[]) selectedBonds.toArray(new Bond[selectedBonds.size()]);
+        BondOptimizer.optimizeBondSequence(b);
+        
         Bond last = new Bond(null, -1, null, -1);
-        for(Iterator iter = bonds.iterator(); iter.hasNext(); )
+        for(int i = 0; i < b.length; i++)
         {
-            Bond curr = (Bond) iter.next();
-            
-            // Testing for null vs. maintaining separate implementations that don't test at all
-            // produces no measurable performance impact, even for the ribosome.
-            
-            boolean residuesAllowed = ((srcR == null || srcR.contains(curr.lower.getResidue())) && (dstR == null || dstR.contains(curr.higher.getResidue())))
-                                    ||((dstR == null || dstR.contains(curr.lower.getResidue())) && (srcR == null || srcR.contains(curr.higher.getResidue())));
-            if(!residuesAllowed) continue;
-            
-            boolean atomsAllowed    = ((srcA == null || srcA.contains(curr.lower)) && (dstA == null || dstA.contains(curr.higher)))
-                                    ||((dstA == null || dstA.contains(curr.lower)) && (srcA == null || srcA.contains(curr.higher)));
-            if(!atomsAllowed) continue;
-            
-            if(curr.iLow != last.iHigh)
+            Bond curr = b[i];
+            if(curr.lower != last.higher)
                 out.print("{"+curr.lower.getAtom()+"}P "+curr.lower.format(df)+" ");
             if(halfbonds) // insignificant speed penalty to check in-line
             {
@@ -84,8 +84,10 @@ public class StickPrinter //extends ... implements ...
             out.println("{"+curr.higher.getAtom()+"}L "+crayon.colorBond(curr.higher, curr.lower)+" "+curr.higher.format(df));
             last = curr;
         }
-        
         out.flush();
+        
+        //time = System.currentTimeMillis() - time;
+        //System.err.println("Drawing bonds:          "+time+" ms");
     }
     
     public void printSticks(Collection bonds, Set srcA, Set dstA)

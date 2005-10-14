@@ -34,6 +34,10 @@ public class BallAndStickPane extends TablePane2
     CoordinateFile  coordFile;
     String          idCode;
     
+    PrintWriter     out = null;
+    StickPrinter    sp  = null;
+    BallPrinter     bp  = null;
+    
     SelectorPane    selector;
     JCheckBox       cbProtein, cbNucleic, cbHets, cbIons, cbWater;
     JCheckBox       cbPseudoBB, cbBackbone, cbSidechains, cbHydrogens;
@@ -105,6 +109,10 @@ public class BallAndStickPane extends TablePane2
     /** Emits the kinemage (text) representation as selected by the user */
     public void printKinemage(PrintWriter out)
     {
+        this.out = out;
+        this.sp = new StickPrinter(out);
+        this.bp = new BallPrinter(out);
+        
         Collection models = selector.getSelectedModels();
         boolean groupByModel = (models.size() > 1);
         Collection chains = selector.getSelectedChains();
@@ -128,21 +136,25 @@ public class BallAndStickPane extends TablePane2
                 else                out.println("@group {"+idCode+" "+chainID+"} dominant");
                 
                 String bbColor = BACKBONE_COLORS[ chainNum % BACKBONE_COLORS.length ];
-                if(cbProtein.isSelected())  printProtein(out, m, residues, bbColor);
-                if(cbNucleic.isSelected())  printNucAcid(out, m, residues, bbColor);
-                if(cbHets.isSelected())     printHets(out, m, residues);
-                if(cbIons.isSelected())     printIons(out, m, residues);
-                if(cbWater.isSelected())    printWaters(out, m, residues);
+                if(cbProtein.isSelected())  printProtein(m, residues, bbColor);
+                if(cbNucleic.isSelected())  printNucAcid(m, residues, bbColor);
+                if(cbHets.isSelected())     printHets(m, residues);
+                if(cbIons.isSelected())     printIons(m, residues);
+                if(cbWater.isSelected())    printWaters(m, residues);
             }
         }
+        
+        this.out.flush();
+        this.out = null;
+        this.sp = null;
+        this.bp = null;
     }
 //}}}
 
 //{{{ printProtein
 //##############################################################################
-    void printProtein(PrintWriter out, Model model, Set selectedRes, String bbColor)
+    void printProtein(Model model, Set selectedRes, String bbColor)
     {
-        StickPrinter    sp      = new StickPrinter(out);
         DataCache       data    = DataCache.getDataFor(model);
         ResClassifier   resC    = data.getResClassifier();
         
@@ -170,7 +182,7 @@ public class BallAndStickPane extends TablePane2
                 }
                 if(cbBallsOnAtoms.isSelected())
                 {
-                    printAtomBalls(out, atomC.bbHeavy, proteinRes,
+                    printAtomBalls(atomC.bbHeavy, proteinRes,
                         (cbBallsOnCarbon.isSelected() ? bbColor : null),
                         "master= {protein} master= {backbone}");
                 }
@@ -192,7 +204,7 @@ public class BallAndStickPane extends TablePane2
                 }
                 if(cbBallsOnAtoms.isSelected())
                 {
-                    printAtomBalls(out, atomC.scHeavy, proteinRes,
+                    printAtomBalls(atomC.scHeavy, proteinRes,
                         (cbBallsOnCarbon.isSelected() ? "cyan" : null),
                         "master= {protein} master= {sidechains}");
                 }
@@ -203,9 +215,8 @@ public class BallAndStickPane extends TablePane2
 
 //{{{ printNucAcid
 //##############################################################################
-    void printNucAcid(PrintWriter out, Model model, Set selectedRes, String bbColor)
+    void printNucAcid(Model model, Set selectedRes, String bbColor)
     {
-        StickPrinter    sp      = new StickPrinter(out);
         DataCache       data    = DataCache.getDataFor(model);
         ResClassifier   resC    = data.getResClassifier();
         
@@ -233,7 +244,7 @@ public class BallAndStickPane extends TablePane2
                 }
                 if(cbBallsOnAtoms.isSelected())
                 {
-                    printAtomBalls(out, atomC.bbHeavy, nucAcidRes,
+                    printAtomBalls(atomC.bbHeavy, nucAcidRes,
                         (cbBallsOnCarbon.isSelected() ? bbColor : null),
                         "master= {nucleic acid} master= {backbone}");
                 }
@@ -253,7 +264,7 @@ public class BallAndStickPane extends TablePane2
                 }
                 if(cbBallsOnAtoms.isSelected())
                 {
-                    printAtomBalls(out, atomC.scHeavy, nucAcidRes,
+                    printAtomBalls(atomC.scHeavy, nucAcidRes,
                         (cbBallsOnCarbon.isSelected() ? "cyan" : null),
                         "master= {nucleic acid} master= {sidechains}");
                 }
@@ -264,9 +275,8 @@ public class BallAndStickPane extends TablePane2
 
 //{{{ printHets
 //##############################################################################
-    void printHets(PrintWriter out, Model model, Set selectedRes)
+    void printHets(Model model, Set selectedRes)
     {
-        StickPrinter    sp      = new StickPrinter(out);
         DataCache       data    = DataCache.getDataFor(model);
         ResClassifier   resC    = data.getResClassifier();
         
@@ -285,7 +295,7 @@ public class BallAndStickPane extends TablePane2
 
         if(cbBallsOnAtoms.isSelected())
         {
-            printAtomBalls(out, atomC.hetHeavy, hetRes,
+            printAtomBalls(atomC.hetHeavy, hetRes,
                 (cbBallsOnCarbon.isSelected() ? "pink" : null),
                 "master= {hets}");
         }
@@ -334,9 +344,8 @@ public class BallAndStickPane extends TablePane2
 
 //{{{ printIons
 //##############################################################################
-    void printIons(PrintWriter out, Model model, Set selectedRes)
+    void printIons(Model model, Set selectedRes)
     {
-        BallPrinter     bp      = new BallPrinter(out);
         DataCache       data    = DataCache.getDataFor(model);
         ResClassifier   resC    = data.getResClassifier();
         
@@ -355,9 +364,8 @@ public class BallAndStickPane extends TablePane2
 
 //{{{ printWaters
 //##############################################################################
-    void printWaters(PrintWriter out, Model model, Set selectedRes)
+    void printWaters(Model model, Set selectedRes)
     {
-        BallPrinter     bp      = new BallPrinter(out);
         DataCache       data    = DataCache.getDataFor(model);
         ResClassifier   resC    = data.getResClassifier();
         
@@ -373,9 +381,7 @@ public class BallAndStickPane extends TablePane2
 
         if(cbHydrogens.isSelected() && atomC.watHydro.size() > 0)
         {
-            StickPrinter    sp      = new StickPrinter(out);
             Collection      bonds   = data.getCovalentGraph().getBonds();
-
             out.println("@vectorlist {waterH} color= gray master= {waters} master= {Hs}");
             sp.printSticks(bonds, atomC.watHydro, atomC.watHeavy, waterRes, waterRes);
         }
@@ -385,7 +391,7 @@ public class BallAndStickPane extends TablePane2
 //{{{ printAtomBalls
 //##############################################################################
     /** null for carbonColor means leave off carbon balls */
-    void printAtomBalls(PrintWriter out, Collection atomStates, Set residues, String carbonColor, String masters)
+    void printAtomBalls(Collection atomStates, Set residues, String carbonColor, String masters)
     {
         // First, sort the AtomStates by element
         Map elementsToAtoms = new HashMap();
@@ -408,7 +414,6 @@ public class BallAndStickPane extends TablePane2
         if(carbonColor == null) elementsToAtoms.remove("C");
         
         // Now print one balllist per element
-        BallPrinter bp = new BallPrinter(out);
         for(Iterator iter = elementsToAtoms.keySet().iterator(); iter.hasNext(); )
         {
             String element = (String) iter.next();
