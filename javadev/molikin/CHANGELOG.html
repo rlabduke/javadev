@@ -9,8 +9,9 @@
     Deal with NMR 'Q' atoms in AtomGraph
     Allow disabling cache for getCovalentNeighbors (?)
     Check Prekin's NAList and AAList to make sure we have all entries...
-    blank text field should mean select all
+    blank text field should mean select all?
     add up/down arrow "history" to selection text field?
+    do pointmasters for alt confs
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -28,6 +29,8 @@
   Adding calls to this from StickPrinter actually speeds things up, as well as
   reduces the size of the kinemage file.
 - streamlined the operation of BallAndStickPane a bit
+- added PseudoBackbone for doing C-alpha traces and DNA/RNA pseudo bb.
+- finished implementation of pseudo-backbone and C-alpha traces
 
 ### 0.07 ###
 - simplified StickPrinter and made it significantly faster (!)

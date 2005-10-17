@@ -73,7 +73,6 @@ public class BallAndStickPane extends TablePane2
         cbWater     = new JCheckBox("water", true);
         
         cbPseudoBB      = new JCheckBox("C-alpha trace", true);
-            cbPseudoBB.setEnabled(false);
         cbBackbone      = new JCheckBox("backbone", true);
         cbSidechains    = new JCheckBox("sidechain", true);
         cbHydrogens     = new JCheckBox("hydrogens", true);
@@ -167,7 +166,9 @@ public class BallAndStickPane extends TablePane2
         
         if(cbPseudoBB.isSelected())
         {
-            // Print C-alpha trace
+            out.println("@vectorlist {protein ca} color= "+bbColor+" master= {protein} master= {C-alphas}");
+            PseudoBackbone pseudoBB = data.getPseudoBackbone();
+            sp.printSticks(pseudoBB.getProteinBonds(), null, null, proteinRes, proteinRes);
         }
         if(cbBackbone.isSelected())
         {
@@ -229,7 +230,9 @@ public class BallAndStickPane extends TablePane2
         
         if(cbPseudoBB.isSelected())
         {
-            // Print pseudobackbone trace
+            out.println("@vectorlist {nuc. acid pseudobb} color= "+bbColor+" master= {nucleic acid} master= {pseudo-bb}");
+            PseudoBackbone pseudoBB = data.getPseudoBackbone();
+            sp.printSticks(pseudoBB.getNucAcidBonds(), null, null, nucAcidRes, nucAcidRes);
         }
         if(cbBackbone.isSelected())
         {

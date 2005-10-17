@@ -38,6 +38,7 @@ public class DataCache //extends ... implements ...
     Collection      atomStates  = null;
     AtomClassifier  atomC       = null;
     AtomGraph       atomGraph   = null;
+    PseudoBackbone  pseudoBB    = null;
 //}}}
 
 //{{{ Constructor(s), getDataFor
@@ -93,6 +94,16 @@ public class DataCache //extends ... implements ...
         if(atomGraph == null)
             atomGraph = new AtomGraph(getUniqueAtomStates());
         return atomGraph;
+    }
+//}}}
+
+//{{{ getPseudoBackbone
+//##############################################################################
+    public PseudoBackbone getPseudoBackbone()
+    {
+        if(pseudoBB == null)
+            pseudoBB = new PseudoBackbone(model, model.getStates(), getResClassifier());
+        return pseudoBB;
     }
 //}}}
 
