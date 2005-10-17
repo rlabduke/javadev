@@ -22,7 +22,7 @@ import driftwood.moldb2.*;
 * <p>Copyright (C) 2005 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Oct  5 10:58:41 EDT 2005
 */
-public class BallAndStickPane extends TablePane2
+public class BallAndStickPane extends TablePane2 implements DrawingPane
 {
 //{{{ Constants
     // pinktint is not used b/c that's used for connections to hets
@@ -33,6 +33,7 @@ public class BallAndStickPane extends TablePane2
 //##############################################################################
     CoordinateFile  coordFile;
     String          idCode;
+    String          title;
     
     PrintWriter     out = null;
     StickPrinter    sp  = null;
@@ -47,10 +48,11 @@ public class BallAndStickPane extends TablePane2
 
 //{{{ Constructor(s)
 //##############################################################################
-    public BallAndStickPane(CoordinateFile cfile)
+    public BallAndStickPane(CoordinateFile cfile, String title)
     {
         super();
         this.coordFile  = cfile;
+        this.title      = title;
         
         if(coordFile.getIdCode() != null)       this.idCode = coordFile.getIdCode();
         else if(coordFile.getFile() != null)    this.idCode = coordFile.getFile().getName();
@@ -101,6 +103,12 @@ public class BallAndStickPane extends TablePane2
         
         this.setBorder( BorderFactory.createTitledBorder(null, "Ball & stick") );
     }
+//}}}
+
+//{{{ toString
+//##############################################################################
+    public String toString()
+    { return this.title; }
 //}}}
 
 //{{{ printKinemage
@@ -166,7 +174,7 @@ public class BallAndStickPane extends TablePane2
         
         if(cbPseudoBB.isSelected())
         {
-            out.println("@vectorlist {protein ca} color= "+bbColor+" master= {protein} master= {C-alphas}");
+            out.println("@vectorlist {protein ca} color= "+bbColor+" master= {protein} master= {Calphas}");
             PseudoBackbone pseudoBB = data.getPseudoBackbone();
             sp.printSticks(pseudoBB.getProteinBonds(), null, null, proteinRes, proteinRes);
         }
