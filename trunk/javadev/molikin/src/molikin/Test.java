@@ -12,6 +12,7 @@ import java.util.*;
 //import java.util.regex.*;
 import javax.swing.*;
 import driftwood.data.*;
+import driftwood.gui.*;
 import driftwood.moldb2.*;
 //}}}
 /**
@@ -41,21 +42,35 @@ public class Test //extends ... implements ...
 
 //{{{ showGUI
 //##############################################################################
+    PrintWriter outWriter = null;
+    JDialog frame = null;
+    MainGuiPane guiPane = null;
+
     void showGUI(CoordinateFile cfile, PrintWriter out)
     {
-        BallAndStickPane stickPane = new BallAndStickPane(cfile);
+        outWriter = out;
+        guiPane = new MainGuiPane(cfile);
+        guiPane.right().addCell(new JButton(new ReflectiveAction("Make kinemage", null, this, "onMakeKinemage")));
         
         JFrame parent = new JFrame();
-        JDialog frame = new JDialog(parent, "Choose residues to display", true); // modal
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setContentPane(stickPane);
+        frame = new JDialog(parent, "Choose residues to display", true); // modal
+        //frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setContentPane(guiPane);
         frame.pack();
         frame.setVisible(true);
         parent.dispose();
-        
-        out.println("@kinemage");
-        out.println("@onewidth");
-        stickPane.printKinemage(out);
+    }
+    
+    public void onMakeKinemage(ActionEvent ev)
+    {
+        frame.dispose();
+        outWriter.println("@kinemage");
+        outWriter.println("@onewidth");
+        for(Iterator iter = guiPane.getAllPanes().iterator(); iter.hasNext(); )
+        {
+            DrawingPane p = (DrawingPane) iter.next();
+            p.printKinemage(outWriter);
+        }
     }
 //}}}
 
