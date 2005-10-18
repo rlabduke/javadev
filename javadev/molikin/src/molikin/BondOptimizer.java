@@ -85,7 +85,9 @@ public class BondOptimizer //extends ... implements ...
     */
     static private void extendLeft(Bond[] b, int curr, int last)
     {
-        OUTER_LOOP: while(true)
+        // Incrementing curr on every pass is necessary to avoid deadlock
+        // if the bonds can be shuffled around and around in a circle.
+        OUTER_LOOP: for( ; curr < last; curr++)
         {
             // Scan for bonds where curr.lower == x.higher
             for(int i = curr+1; i < last; i++)

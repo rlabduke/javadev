@@ -9,6 +9,8 @@
     Deal with NMR 'Q' atoms in AtomGraph
     Allow disabling cache for getCovalentNeighbors (?)
     Check Prekin's NAList and AAList to make sure we have all entries...
+    Look at TR0001 for bb/sc -- some bb atoms are called sc
+        _CM2 for OMC, OMG; OP3 for terminus
     blank text field should mean select all?
     add up/down arrow "history" to selection text field?
     do pointmasters for alt confs
@@ -23,6 +25,7 @@
   This keeps colors consistent and pieces grouped together.
   Changes to moldb2.Model make the chains come out in order, too.
 - changed defaults for BallAndStickPane
+- tr0001 OMC 32 caught a possible endless loop in BondOptimizer.extendLeft()
 
 ### 0.08 ###
 - changed sort order of Bonds to work better with:
