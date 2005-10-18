@@ -25,14 +25,11 @@ import driftwood.moldb2.*;
 public class BallAndStickPane extends TablePane2 implements DrawingPane
 {
 //{{{ Constants
-    // pinktint is not used b/c that's used for connections to hets
-    static final String[] BACKBONE_COLORS = { "white", "yellowtint", "peachtint", "greentint", "bluetint", "lilactint" };
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
     CoordinateFile  coordFile;
-    String          idCode;
     String          title;
     
     PrintWriter     out = null;
@@ -54,10 +51,6 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
         this.coordFile  = cfile;
         this.title      = title;
         
-        if(coordFile.getIdCode() != null)       this.idCode = coordFile.getIdCode();
-        else if(coordFile.getFile() != null)    this.idCode = coordFile.getFile().getName();
-        else                                    this.idCode = "macromol";
-        
         buildGUI();
     }
 //}}}
@@ -72,12 +65,12 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
         cbNucleic   = new JCheckBox("nucleic acids", true);
         cbHets      = new JCheckBox("hets (non-water)", true);
         cbIons      = new JCheckBox("metals/ions", true);
-        cbWater     = new JCheckBox("water", true);
+        cbWater     = new JCheckBox("water", false);
         
         cbPseudoBB      = new JCheckBox("C-alpha trace", true);
-        cbBackbone      = new JCheckBox("backbone", true);
-        cbSidechains    = new JCheckBox("sidechain", true);
-        cbHydrogens     = new JCheckBox("hydrogens", true);
+        cbBackbone      = new JCheckBox("backbone", false);
+        cbSidechains    = new JCheckBox("sidechain", false);
+        cbHydrogens     = new JCheckBox("hydrogens", false);
         
         cbBallsOnCarbon     = new JCheckBox("balls on C atoms too", false);
         cbBallsOnAtoms      = new JCheckBox("balls on N, O, P, etc.", false);
@@ -105,51 +98,46 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
     }
 //}}}
 
-//{{{ toString
+//{{{ toString, getSelectedModels, getSelectedChains
 //##############################################################################
     public String toString()
     { return this.title; }
+    
+    /** As a Collection of Model objects. */
+    public Collection getSelectedModels()
+    { return selector.getSelectedModels(); }
+    
+    /** As a Collection of Strings representing chain IDs. */
+    public Collection getSelectedChains()
+    { return selector.getSelectedChains(); }
 //}}}
 
 //{{{ printKinemage
 //##############################################################################
     /** Emits the kinemage (text) representation as selected by the user */
-    public void printKinemage(PrintWriter out)
+    public void printKinemage(PrintWriter out, Model m, String chainID, String bbColor)
     {
+        Collection models = selector.getSelectedModels();
+        if(!models.contains(m)) return;
+        
+        Collection chains = selector.getSelectedChains();
+        if(!chains.contains(chainID)) return;
+        
+        Collection chainRes = m.getChain(chainID);
+        if(chainRes == null) return;
+        
+        Set residues = selector.getSelectedResidues(chainRes);
+        if(residues.size() == 0) return;
+        
         this.out = out;
         this.sp = new StickPrinter(out);
         this.bp = new BallPrinter(out);
         
-        Collection models = selector.getSelectedModels();
-        boolean groupByModel = (models.size() > 1);
-        Collection chains = selector.getSelectedChains();
-        
-        for(Iterator mi = models.iterator(); mi.hasNext(); )
-        {
-            Model m = (Model) mi.next();
-            if(groupByModel) out.println("@group {"+idCode+" "+m+"} dominant animate master= {all models}");
-            
-            int chainNum = 0;
-            for(Iterator ci = chains.iterator(); ci.hasNext(); chainNum++)
-            {
-                String chainID = (String) ci.next();
-                Collection chainRes = m.getChain(chainID);
-                if(chainRes == null) continue;
-
-                Set residues = selector.getSelectedResidues(chainRes);
-                if(residues.size() == 0) continue;
-                
-                if(groupByModel)    out.println("@subgroup {chain"+chainID+"} dominant master= {chain"+chainID+"}");
-                else                out.println("@group {"+idCode+" "+chainID+"} dominant");
-                
-                String bbColor = BACKBONE_COLORS[ chainNum % BACKBONE_COLORS.length ];
-                if(cbProtein.isSelected())  printProtein(m, residues, bbColor);
-                if(cbNucleic.isSelected())  printNucAcid(m, residues, bbColor);
-                if(cbHets.isSelected())     printHets(m, residues);
-                if(cbIons.isSelected())     printIons(m, residues);
-                if(cbWater.isSelected())    printWaters(m, residues);
-            }
-        }
+        if(cbProtein.isSelected())  printProtein(m, residues, bbColor);
+        if(cbNucleic.isSelected())  printNucAcid(m, residues, bbColor);
+        if(cbHets.isSelected())     printHets(m, residues);
+        if(cbIons.isSelected())     printIons(m, residues);
+        if(cbWater.isSelected())    printWaters(m, residues);
         
         this.out.flush();
         this.out = null;

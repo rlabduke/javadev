@@ -139,7 +139,7 @@ public class DataCell //extends ... implements ...
     public void putItem(String itemName, String itemValue)
     {
         keys.remove(itemName);
-        items.replace(itemName, itemValue);
+        items.put(itemName, itemValue);
     }
 
     /** Replaces the previous item of the same name or adds to the end of the list. */
@@ -147,7 +147,7 @@ public class DataCell //extends ... implements ...
     {
         keys.remove(itemName);
         String[] data = (String[]) itemValues.toArray(new String[itemValues.size()]);
-        items.replace(itemName, new FinalArrayList(data));
+        items.put(itemName, new FinalArrayList(data));
     }
     
     /** Inserts the new item after the reference item or at the end of the list. */

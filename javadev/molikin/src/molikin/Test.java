@@ -45,12 +45,14 @@ public class Test //extends ... implements ...
     PrintWriter outWriter = null;
     JDialog frame = null;
     MainGuiPane guiPane = null;
+    int kinemageNumber = 1;
 
     void showGUI(CoordinateFile cfile, PrintWriter out)
     {
         outWriter = out;
         guiPane = new MainGuiPane(cfile);
         guiPane.right().addCell(new JButton(new ReflectiveAction("Make kinemage", null, this, "onMakeKinemage")));
+        guiPane.weights(0,0).addCell(new JButton(new ReflectiveAction("Done", null, this, "onDone")));
         
         JFrame parent = new JFrame();
         frame = new JDialog(parent, "Choose residues to display", true); // modal
@@ -63,14 +65,14 @@ public class Test //extends ... implements ...
     
     public void onMakeKinemage(ActionEvent ev)
     {
-        frame.dispose();
-        outWriter.println("@kinemage");
+        outWriter.println("@kinemage "+(kinemageNumber++));
         outWriter.println("@onewidth");
-        for(Iterator iter = guiPane.getAllPanes().iterator(); iter.hasNext(); )
-        {
-            DrawingPane p = (DrawingPane) iter.next();
-            p.printKinemage(outWriter);
-        }
+        guiPane.printKinemage(outWriter);
+    }
+    
+    public void onDone(ActionEvent ev)
+    {
+        frame.dispose();
     }
 //}}}
 

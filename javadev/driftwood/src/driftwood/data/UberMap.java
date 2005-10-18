@@ -420,22 +420,21 @@ class UberEntryIterator implements Iterator
     }
 //}}}
 
-//{{{ replace, put, putBefore, putAfter
+//{{{ put, putAtEnd, putBefore, putAfter
 //##############################################################################
     /**
     * Replaces the value currently associated with key with newValue,
-    * without changing the position of the key in the linked list (unlike put()).
-    * This function just calls putBefore(key, key, newValue), and so if key
-    * is not in the map, it is equivalent to calling put(key, newValue).
+    * without changing the position of the key in the linked list;
+    * if the key is not in the map, the key-value pair is added at the end.
     */
-    public Object replace(Object key, Object newValue)
+    public Object put(Object key, Object newValue)
     { return putBefore(key, key, newValue); }
     
     /**
     * Adds a new mapping at the end of the map, even if key was
     * previously positioned elsewhere in the map.
     */
-    public Object put(Object key, Object value)
+    public Object putAtEnd(Object key, Object value)
     { return putBeforeImpl(null, key, value); }
     
     /**
