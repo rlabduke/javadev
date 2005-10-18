@@ -67,7 +67,7 @@ public class StarFile //extends ... implements ...
     * Returns the previous block of the same name, or null if none.
     */
     public DataBlock addDataBlock(DataBlock block)
-    { return (DataBlock) dataBlocks.replace(block.toString(), block); }
+    { return (DataBlock) dataBlocks.put(block.toString(), block); }
     
     /** Removes the named data block if it's part of this file. */
     public DataBlock removeDataBlock(String blockName)

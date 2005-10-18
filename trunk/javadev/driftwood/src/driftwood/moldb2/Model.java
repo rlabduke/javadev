@@ -73,11 +73,13 @@ public class Model implements Cloneable
         residues    = new UberSet();
         resCNIT     = new HashMap();
         
-        // Use TreeMap because it keeps the identifiers in order
-        // (Is this always what we want?)
-        chainMap    = new TreeMap(); // all keys should be non-empty Strings
-        //segmentMap  = new TreeMap(new NullNaturalComparator());
-        segmentMap  = new TreeMap(); // all keys are non-null
+        // Use TreeMap because it keeps the identifiers in alphabetical order
+        // Use UberMap because is preserves the order from the input file
+        // (This matters esp. for chains when _ is the LAST chain in the file)
+        //chainMap    = new TreeMap(); // all keys should be non-empty Strings
+        chainMap    = new UberMap(); // all keys should be non-empty Strings
+        //segmentMap  = new TreeMap(); // all keys are non-null
+        segmentMap  = new UberMap(); // all keys are non-null
         stateMap    = new TreeMap(); // all keys should be non-empty Strings
     }
 //}}}
@@ -98,8 +100,8 @@ public class Model implements Cloneable
             Model m         = (Model) super.clone();
             m.residues      = new UberSet(m.residues);
             m.resCNIT       = new HashMap(m.resCNIT);
-            m.chainMap      = new TreeMap(m.chainMap);
-            m.segmentMap    = new TreeMap(m.segmentMap);
+            m.chainMap      = new UberMap(m.chainMap);
+            m.segmentMap    = new UberMap(m.segmentMap);
             m.stateMap      = new TreeMap(m.stateMap);
 
             // Deep copy of chain and segment maps

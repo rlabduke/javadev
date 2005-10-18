@@ -41,6 +41,8 @@ UTIL: {{{
 - added data.Maps with sort() and increment() functions
 - BUG: data.CheapSet.rehash() failed to use the requested hash function!
 - BUG: data.UberMap.rehash() also failed to use the requested hash function!
+- changed semantics of UberMap.put() to be like LinkedHashMap and PHP
+- changed moldb2.Model to keep chains/segs in insertion order, not alphabetical
 
 ### 0.72 ###
 - added the get() function to CheapSet

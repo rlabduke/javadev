@@ -10,7 +10,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
-//import driftwood.*;
+import driftwood.moldb2.*;
 //}}}
 /**
 * <code>DrawingPane</code> is the common interface for
@@ -25,6 +25,12 @@ public interface DrawingPane //extends ... implements ...
     public String toString();
     
     /** Emits the kinemage (text) representation as selected by the user */
-    public void printKinemage(PrintWriter out);
+    public void printKinemage(PrintWriter out, Model m, String chainID, String bbColor);
+    
+    /** As a Collection of Model objects. */
+    public Collection getSelectedModels();
+    
+    /** As a Collection of Strings representing chain IDs. */
+    public Collection getSelectedChains();
 }//class
 

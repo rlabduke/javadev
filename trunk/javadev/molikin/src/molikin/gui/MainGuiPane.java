@@ -12,6 +12,7 @@ import java.util.*;
 //import java.util.regex.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import driftwood.data.*;
 import driftwood.gui.*;
 import driftwood.moldb2.*;
 //}}}
@@ -25,6 +26,8 @@ import driftwood.moldb2.*;
 public class MainGuiPane extends TablePane2 implements ListSelectionListener
 {
 //{{{ Constants
+    // pinktint is not used b/c that's used for connections to hets
+    static final String[] BACKBONE_COLORS = { "white", "yellowtint", "peachtint", "greentint", "bluetint", "lilactint" };
 //}}}
 
 //{{{ Variable definitions
@@ -39,6 +42,7 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
     JPanel              drawingPanel;
     
     CoordinateFile      coordFile;
+    String              idCode;
     int                 paneNumber = 1;
     Collection          paneListData; // holds DrawingPane objects
 //}}}
@@ -50,6 +54,10 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
         super();
         this.coordFile = cFile;
         this.paneListData = new ArrayList();
+
+        if(coordFile.getIdCode() != null)       this.idCode = coordFile.getIdCode();
+        else if(coordFile.getFile() != null)    this.idCode = coordFile.getFile().getName();
+        else                                    this.idCode = "macromol";
         
         buildGUI();
         onNewBallAndStick(null);
@@ -126,16 +134,6 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
     }
 //}}}
 
-//{{{ getSelectedPane, getAllPanes
-//##############################################################################
-    /** Might return null */
-    public DrawingPane getSelectedPane()
-    { return (DrawingPane) drawingPaneList.getSelectedValue(); }
-    
-    public Collection getAllPanes()
-    { return paneListData; }
-//}}}
-
 //{{{ addDrawingPane, onNewBallAndStick
 //##############################################################################
     void addDrawingPane(DrawingPane pane)
@@ -156,8 +154,75 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
     }
 //}}}
 
-//{{{ empty_code_segment
+//{{{ printKinemage
 //##############################################################################
+    /** Emits the kinemage (text) representation as selected by the user */
+    public void printKinemage(PrintWriter out)
+    {
+        Collection models = this.getSelectedModels();
+        boolean groupByModel = (models.size() > 1);
+        Collection chains = this.getSelectedChains();
+        
+        int modelCount = 0;
+        for(Iterator mi = models.iterator(); mi.hasNext(); modelCount++)
+        {
+            Model m = (Model) mi.next();
+            if(groupByModel) out.println("@group {"+idCode+" "+m+"} dominant animate master= {all models}");
+            
+            int chainCount = 0;
+            for(Iterator ci = chains.iterator(); ci.hasNext(); chainCount++)
+            {
+                String chainID = (String) ci.next();
+                if(groupByModel)    out.println("@subgroup {chain"+chainID+"} dominant master= {chain"+chainID+"}");
+                else                out.println("@group {"+idCode+" "+chainID+"} dominant");
+                
+                for(Iterator iter = paneListData.iterator(); iter.hasNext(); )
+                {
+                    DrawingPane p = (DrawingPane) iter.next();
+                    String bbColor = BACKBONE_COLORS[ (groupByModel ? modelCount : chainCount) % BACKBONE_COLORS.length];
+                    p.printKinemage(out, m, chainID, bbColor);
+                }
+            }
+        }
+        
+        out.flush();
+    }
+//}}}
+
+//{{{ getSelectedModels, getSelectedChains
+//##############################################################################
+    /** As a Collection of Model objects. */
+    public Collection getSelectedModels()
+    {
+        Set selectedModels = new HashSet();
+        for(Iterator iter = paneListData.iterator(); iter.hasNext(); )
+        {
+            DrawingPane p = (DrawingPane) iter.next();
+            selectedModels.addAll(p.getSelectedModels());
+        }
+        Collection models = new ArrayList(coordFile.getModels());
+        models.retainAll(selectedModels);
+        return models;
+    }
+    
+    /** As a Collection of Strings representing chain IDs. */
+    public Collection getSelectedChains()
+    {
+        Set selectedChains = new HashSet();
+        for(Iterator iter = paneListData.iterator(); iter.hasNext(); )
+        {
+            DrawingPane p = (DrawingPane) iter.next();
+            selectedChains.addAll(p.getSelectedChains());
+        }
+        Set chains = new UberSet();
+        for(Iterator iter = coordFile.getModels().iterator(); iter.hasNext(); )
+        {
+            Model m = (Model) iter.next();
+            chains.addAll(m.getChainIDs());
+        }
+        chains.retainAll(selectedChains);
+        return chains;
+    }
 //}}}
 
 //{{{ empty_code_segment
