@@ -270,7 +270,7 @@ public class KingPrefs extends Props // implements ...
     {
         remoteVersionURL = propsURL;
         Thread checkThread = new Thread(new ReflectiveRunnable(this, "checkVersionBackground"));
-        checkThread.run();
+        checkThread.start(); // NOT run()! start() spawns a new thread; run() would just do the action from here!
         // If the URL hasn't connected in time, we leave it running and return to our business.
         try { checkThread.join(timeoutMillis); }
         catch(InterruptedException ex) {}

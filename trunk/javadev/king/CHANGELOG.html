@@ -72,12 +72,18 @@
         Document syntax for hyperlinks
     Saving gzipped kinemage retains the ".gz" extension (even though it's not)
     Triptic (sp?) stereo for making figures?
+    Allow dragging waters/ions from chiropraxis?
+ ** When version check times out, KiNG startup delay is HUGE (like a crash)
+    Sc mutator should launch a rotator window too
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 1.45 ###
+### 1.46 ###
+- threaded approach to KiNG version check wasn't working b/c I called run()
+  instead of calling start() -- thus the thread was never actually spawned.
+
 ### 1.45 ###
 - fixed hyperlink code to respect a slightly larger active area.
   It was previously cut too short on the right hand side.
