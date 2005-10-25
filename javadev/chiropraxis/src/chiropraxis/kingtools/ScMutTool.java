@@ -155,6 +155,12 @@ public class ScMutTool  extends ModelingTool
             
             // Make a note in the headers
             modelman.srccoordfile.addHeader(CoordinateFile.SECTION_USER_MOD, "USER  MOD Mutated "+orig+" to "+newRes);
+            
+            // Set it up for rotation
+            try {
+                new SidechainRotator(kMain, newRes, modelman);
+            } catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
+            
         }
         catch(ResidueException ex)
         {
