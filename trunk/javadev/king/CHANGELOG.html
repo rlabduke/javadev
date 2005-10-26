@@ -76,6 +76,8 @@
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 1.47 ###
+
 ### 1.46 ###
 - threaded approach to KiNG version check wasn't working b/c I called run()
   instead of calling start() -- thus the thread was never actually spawned.
@@ -85,6 +87,7 @@
 - deploy-world now copies ZIP to .current.java and docs to king/docs;
   this will simplify web maintainance and facilitate auto-update.
 - did a deploy-world to test the new build file
+- had to change 'server' to 'kinemage.biochem.duke.edu' or it breaks at home
 
 ### 1.45 ###
 - fixed hyperlink code to respect a slightly larger active area.
