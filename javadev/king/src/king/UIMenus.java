@@ -675,7 +675,11 @@ public class UIMenus //extends ... implements ...
             if(prefs.jarFileDirectory != null)
                 msgs.add(new JLabel("Installed in "+prefs.jarFileDirectory.getCanonicalPath()));
         } catch(IOException ex) {}
-        msgs.add(new JLabel("Copyright (C) 2002-2005 Ian W. Davis"));
+        msgs.add(new JLabel(" "));
+        msgs.add(new JLabel("Created in the Richardson lab at Duke University"));
+        msgs.add(new JLabel("http://kinemage.biochem.duke.edu"));
+        msgs.add(new JLabel(" "));
+        msgs.add(new JLabel("Copyright (C) 2002-2005 Ian W. Davis and Vincent B. Chen"));
         msgs.add(new JLabel("All rights reserved."));
 
         msgs.add(new JLabel(" "));

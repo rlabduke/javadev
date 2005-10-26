@@ -237,6 +237,15 @@
     <scp file="${dist}/${ant.project.name}-${version}.zip"
         todir="${scp.ftp.username}@${scp.ftp.hostname}:${scp.ftp.path}/${ant.project.name}/${ant.project.name}.${version}.${DSTAMP_SIX}.zip"
         password="${scp.ftp.password}" failonerror="true"/>
+    <!-- Provide a ZIP file for auto-update -->
+    <scp file="${dist}/${ant.project.name}-${version}.zip"
+        todir="${scp.ftp.username}@${scp.ftp.hostname}:${scp.ftp.path}/${ant.project.name}/.current.java"
+        password="${scp.ftp.password}" failonerror="true"/>
+    <!-- Provide current docs to the web site -->
+    <scp todir="${scp.ftp.username}@${scp.ftp.hostname}:${scp.ftp.path}/${ant.project.name}/docs"
+        password="${scp.ftp.password}" failonerror="true">
+        <fileset dir="${dist}/${ant.project.name}-${version}/doc"/>
+    </scp>
     <!-- Update marker for current version -->
     <scp file="${resource}/${ant.project.name}/version.props"
         todir="${scp.www.username}@${scp.www.hostname}:${scp.www.path}/software/${ant.project.name}.version.props"
@@ -245,7 +254,7 @@
     <scp file="${resource}/${ant.project.name}/html/king-manual.html"
         todir="${scp.www.username}@${scp.www.hostname}:${scp.www.path}/kinemage/king-manual.html"
         password="${scp.www.password}" failonerror="true"/>
-    <!-- Copy to MolProbity, too -->
+    <!-- Copy to old MolProbity, too; new MolProbity will be updated from deploy-local-mp via Subversion -->
     <scp file="${basedir}/${ant.project.name}.jar"
         todir="${scp.molprobity.username}@${scp.molprobity.hostname}:${scp.molprobity.path}/"
         password="${scp.molprobity.password}" failonerror="true"/>
