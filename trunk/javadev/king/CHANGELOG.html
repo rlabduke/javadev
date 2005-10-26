@@ -53,27 +53,24 @@
         Greentint a bit too dark; cyan could be darker?
         OpenGL: "fog" is linear* interp. in RGB space with background color
             Same on black backgr, slightly different on white.
+    Expand KingLiteBinaryExport to do views
+    KingLiteBinaryExport should automatically rescale coords to fit in 30 bits.
+    For multi-click draw ops, "miss" should reset?
+    Draw tool - autolabel distances, angles
+    Implement the 'moview= #' feature of Mage for J. Voet (?) (also 'movieview')
+    Triptic (sp?) stereo for making figures?
+    Add a movieFade() to beanking for doing transitions!
+    Use E+H 2000 geometry for Pro?
 <!-- Postponed TO DO items }}} -->
     Open PDB in model manager without opening kinemage first?
     Open/save PDB from/to network
-    Expand KingLiteBinaryExport to do views
-    KingLiteBinaryExport should automatically rescale coords to fit in 30 bits.
     Choose OpenGL (if avail) by default at startup IFF set in .king_prefs
-    For multi-click draw ops, "miss" should reset?
-    Add a movieFade() to beanking for doing transitions!
-    Use E+H 2000 geometry for Pro?
     Backrub: sc first, then bb, no bb opt sc, leads to sc tool not fixing Cb dev
-    Draw tool - autolabel distances, angles
-    Implement the 'moview= #' feature of Mage for J. Voet (?) (also 'movieview')
-  * Copy 3 PDFs to KiNG FTP folder as part of deploy-world script
     Does KiNG have the extra rotamer points?
-  * Merge edit props, move points docs in with draw new tool docs
   * Check on hyperlink code (UIText / MageHypertexter)
         Document syntax for hyperlinks
     Saving gzipped kinemage retains the ".gz" extension (even though it's not)
-    Triptic (sp?) stereo for making figures?
     Allow dragging waters/ions from chiropraxis?
-    More credit to the Richardson lab in KiNG (splash, title, About, etc)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -82,6 +79,12 @@
 ### 1.46 ###
 - threaded approach to KiNG version check wasn't working b/c I called run()
   instead of calling start() -- thus the thread was never actually spawned.
+- merged edit props, move points docs in with draw new tool docs
+- updated credits in the About box
+- added Richardson lab to splash screen image; updated KinCanvas version notice
+- deploy-world now copies ZIP to .current.java and docs to king/docs;
+  this will simplify web maintainance and facilitate auto-update.
+- did a deploy-world to test the new build file
 
 ### 1.45 ###
 - fixed hyperlink code to respect a slightly larger active area.

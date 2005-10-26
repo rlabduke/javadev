@@ -2007,15 +2007,50 @@ With Shift+Ctrl
 
 \layout Section
 
-Move Points: Remaking the kinemage
-\begin_inset LatexCommand \label{movept-tool}
+Draw New: Reworking the kinemage
+\begin_inset LatexCommand \label{drawnew-tool}
 
 \end_inset 
 
 
 \layout Standard
 
-This tool allows you to click on individual points and drag them around
+The Draw New tool provides a variety of simple tools for creating new objects
+ in the kinemage or removing existing ones on a point-by-point basis.
+\layout Description
+
+Edit\SpecialChar ~
+list\SpecialChar ~
+props Picking a point opens the editing window for that point's
+ list, where you can set color, width, radius, 
+\emph on 
+etc
+\emph default 
+.
+ You will need to activate the 
+\family typewriter 
+Tools | Superpick
+\family default 
+ option to edit unpickable points.
+\layout Description
+
+Edit\SpecialChar ~
+point\SpecialChar ~
+props Picking a point opens the editing window for that point,
+ where you can set color, position, point ID, 
+\emph on 
+etc
+\emph default 
+.
+ You will need to activate the 
+\family typewriter 
+Tools | Superpick
+\family default 
+ option to edit unpickable points.
+\layout Description
+
+Move\SpecialChar ~
+points Allows you to click on individual points and drag them around
  to new positions.
  Dragging them with the mouse moves them in the plane of the screen.
  Using the mouse wheel or up & down arrow keys moves them in and out (this
@@ -2037,671 +2072,7 @@ points
 \family typewriter 
 Tools | Superpick
 \family default 
- option to edit unpickable points.
-\layout Subsection
-
-Command reference
-\layout Standard
-\noindent \align center 
-
-\begin_inset  Tabular
-<lyxtabular version="3" rows="5" columns="2">
-<features>
-<column alignment="center" valignment="top" leftline="true" width="0sp">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0sp">
-<row topline="true" bottomline="true">
-<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Mouse clicks
-\end_inset 
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Normal
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Mark and identify point; make measurement (pick)
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Shift
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Center on selected point (pickcenter)
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Ctrl
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
--
-\end_inset 
-</cell>
-</row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Shift+Ctrl
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
--
-\end_inset 
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset 
-
-
-\layout Standard
-\noindent \align center 
-
-\begin_inset  Tabular
-<lyxtabular version="3" rows="5" columns="2">
-<features>
-<column alignment="center" valignment="top" leftline="true" width="0sp">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0sp">
-<row topline="true" bottomline="true">
-<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Mouse drags
-\end_inset 
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Normal
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Move all overlapped points together in X-Y (on a point); X-Y and Z-rotation
- (otherwise)
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Shift
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Adjust zoom (up/down); Adjust clipping (left/right) 
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Ctrl
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Move top-most point only in X-Y (on a point); X-Y and Z-translate (otherwise)
-\end_inset 
-</cell>
-</row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Shift+Ctrl
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Rotate around Y axis only
-\end_inset 
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset 
-
-
-\layout Standard
-\noindent \align center 
-
-\begin_inset  Tabular
-<lyxtabular version="3" rows="5" columns="2">
-<features>
-<column alignment="center" valignment="top" leftline="true" width="0sp">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0sp">
-<row topline="true" bottomline="true">
-<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Mouse wheel / Up & Down arrow keys
-\end_inset 
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Normal
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Move all overlapped points together in Z
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Shift
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Adjust clipping
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Ctrl
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Move top-most point only in Z
-\end_inset 
-</cell>
-</row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Shift+Ctrl
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
--
-\end_inset 
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset 
-
-
-\layout Section
-
-Edit Properties: Changing colors and more
-\begin_inset LatexCommand \label{editprop-tool}
-
-\end_inset 
-
-
-\layout Standard
-
-This tool is just like Navigate, except that picking a point opens the editing
- window for that point (or that point's list for Ctrl+Click).
- You will need to activate the 
-\family typewriter 
-Tools | Superpick
-\family default 
- option to edit unpickable points.
-\layout Subsection
-
-Command reference
-\layout Standard
-\noindent \align center 
-
-\begin_inset  Tabular
-<lyxtabular version="3" rows="5" columns="2">
-<features>
-<column alignment="center" valignment="top" leftline="true" width="0sp">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0sp">
-<row topline="true" bottomline="true">
-<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Mouse clicks
-\end_inset 
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Normal
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Pick point and edit its properties
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Shift
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Center on selected point (pickcenter)
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Ctrl
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Pick point and edit list properties
-\end_inset 
-</cell>
-</row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Shift+Ctrl
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
--
-\end_inset 
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset 
-
-
-\layout Standard
-\noindent \align center 
-
-\begin_inset  Tabular
-<lyxtabular version="3" rows="5" columns="2">
-<features>
-<column alignment="center" valignment="top" leftline="true" width="0sp">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0sp">
-<row topline="true" bottomline="true">
-<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Mouse drags
-\end_inset 
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Normal
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Rotate around X and Y axes; Z-rotate (pinwheel) near top of screen
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Shift
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Adjust zoom (up/down); Adjust clipping (left/right) 
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Ctrl
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Translate in X-Y plane (flatland); Z-translate near top of screen
-\end_inset 
-</cell>
-</row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Shift+Ctrl
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Rotate around Y axis only
-\end_inset 
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset 
-
-
-\layout Standard
-\noindent \align center 
-
-\begin_inset  Tabular
-<lyxtabular version="3" rows="5" columns="2">
-<features>
-<column alignment="center" valignment="top" leftline="true" width="0sp">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0sp">
-<row topline="true" bottomline="true">
-<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Mouse wheel / Up & Down arrow keys
-\end_inset 
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Normal
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Adjust zoom
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Shift
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Adjust clipping
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Ctrl
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
--
-\end_inset 
-</cell>
-</row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-With Shift+Ctrl
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
--
-\end_inset 
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset 
-
-
-\layout Section
-
-Draw New: Reworking the kinemage
-\begin_inset LatexCommand \label{drawnew-tool}
-
-\end_inset 
-
-
-\layout Standard
-
-The Draw New tool provides a variety of simple tools for creating new objects
- in the kinemage or removing existing ones on a point-by-point basis.
- Remember that you can use the Edit Properties (
-\begin_inset LatexCommand \ref{editprop-tool}
-
-\end_inset 
-
-) and Move Points (
-\begin_inset LatexCommand \ref{movept-tool}
-
-\end_inset 
-
-) tools to further customize your creations in terms of color, width / radius,
- point ID, position, 
-\emph on 
-etc
-\emph default 
-.
+ option to move unpickable points.
 \layout Description
 
 Draw\SpecialChar ~
@@ -3536,26 +2907,31 @@ I owe an enormous debt of gratitude to many, many people for making this
  and mentors, and who developed the kinemage concept, the file format, and
  most of the features found in KiNG --- my contribution was only the Java
  implementation.
- Second, I am grateful to the other members of the Richardson lab, who have
+ Second, I thank Vincent Chen for his ongoing contributions to KiNG; he
+ has developed many useful plugins and has made significant contributions
+ to the core.
+ I am also grateful to the other members of the Richardson lab, who have
  supported and encouraged me in developing KiNG, providing invaluable insight
  into how to improve the program.
+ Of course, this work would not have been possible without support from
+ the National Institutes of Health and the Howard Hughes Medical Institute.
 \layout Standard
 
 KiNG is free software built on free software.
  I can't hope to acknowledge all the authors of all the software that has
  been used to create KiNG, but I can mention a few of the most prominent:
  Sun Microsystems, the creators of the Java language and libraries; the
- gnu.regexp project, which provides regular expression support to KiNG; the
  LyX document processor, used for writing the documentation; jEdit, a fantastic
- programmer's text editor written entirely in Java; and of course RedHat
- and the entire Linux movement, for providing what is arguably the best
- OS available today.
+ programmer's text editor written entirely in Java; and the entire Linux
+ movement, for providing a real alternative to comercial operating systems.
+ I have also taken advantage of a number of excellent free Java libraries,
+ which are described above.
 \layout Section
 
 Revision status
 \layout Standard
 
-This manual was last updated 4 May 2005 by IWD for KiNG version 1.41.
+This manual was last updated 26 October 2005 by IWD for KiNG version 1.46.
 \layout Chapter
 \start_of_appendix 
 KiNG License

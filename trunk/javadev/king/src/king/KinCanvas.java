@@ -255,7 +255,7 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
         g2.setColor(Color.white);
         FontMetrics metrics = g2.getFontMetrics();
         Rectangle2D r = metrics.getStringBounds(msg, g2);
-        g2.drawString(msg, (d.width - (int)r.getWidth())/2, (d.height - (int)r.getHeight())/2 + 110);
+        g2.drawString(msg, (d.width - (int)r.getWidth())/2, (d.height - (int)r.getHeight())/2 + 170);
     }
 //}}}
 
