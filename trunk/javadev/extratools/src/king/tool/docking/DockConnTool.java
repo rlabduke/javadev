@@ -3,6 +3,7 @@
 package king.tool.docking;
 import king.*;
 import king.core.*;
+import king.tool.postkin.ConnectivityFinder;
 
 import java.util.*;
 
@@ -26,6 +27,7 @@ public class DockConnTool extends DockLsqTool {
     HashMap adjacencyMap;
     AbstractPoint firstClick, secondClick;
     LinkedList refList = new LinkedList();
+    ConnectivityFinder connect;
 //}}}
 
 //{{{ Constructor(s)
@@ -53,7 +55,8 @@ public class DockConnTool extends DockLsqTool {
 
     public void start() {
 	if (kMain.getKinemage() == null) return;
-	adjacencyMap = new HashMap();
+	connect = new ConnectivityFinder(kMain);
+	//adjacencyMap = new HashMap();
 	//buildAdjacencyList();
 
 	show();
@@ -73,8 +76,8 @@ public class DockConnTool extends DockLsqTool {
 
         if(p != null) {
 	    if (firstClick != null) {
-		buildAdjacencyList(false);
-		ArrayList list = pathFinder(firstClick, (AbstractPoint) p);
+		connect.buildAdjacencyList(false);
+		ArrayList list = connect.pathFinder(firstClick, (AbstractPoint) p);
 		//System.out.println(list.size());
 		Iterator iter = list.iterator();
 		while (iter.hasNext()) {
@@ -115,7 +118,7 @@ public class DockConnTool extends DockLsqTool {
 	    */
         }
     }
-
+    /*
     public void buildAdjacencyList(boolean useAllLists) {
 	adjacencyMap = new HashMap();
 	Kinemage kin = kMain.getKinemage();
@@ -268,14 +271,14 @@ public class DockConnTool extends DockLsqTool {
 	pointClone.setZ((float) point.getZ());
 	return pointClone;
     }
-
+    */
 //{{{ onDock
 //##############################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onDock(ActionEvent ev)
     {
-	buildAdjacencyList(true);
-	mobilityFinder((AbstractPoint)pkMobile.tupleList.get(0));
+	connect.buildAdjacencyList(true);
+	mobilePoints = connect.mobilityFinder((AbstractPoint)pkMobile.tupleList.get(0));
         Tuple3[] ref = (Tuple3[])pkReference.tupleList.toArray(new Tuple3[pkReference.tupleList.size()]);
         Tuple3[] mob = (Tuple3[])pkMobile.tupleList.toArray(new Tuple3[pkMobile.tupleList.size()]);
         double[] w = new double[ref.length];

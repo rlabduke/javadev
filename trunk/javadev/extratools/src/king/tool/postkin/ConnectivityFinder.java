@@ -28,9 +28,12 @@ public class ConnectivityFinder {
 
 //{{{ buildAdjacencyList
     public void buildAdjacencyList() {
-	adjacencyMap = new HashMap();
+
+	//adjacencyMap = new HashMap();
 	Kinemage kin = kMain.getKinemage();
 	if (kin != null) kin.setModified(true);
+	buildAdjacencyList(kin, false);
+	/*
 	Iterator iter = kin.iterator();
 	while (iter.hasNext()) {
 	    KGroup group = (KGroup) iter.next();
@@ -61,9 +64,47 @@ public class ConnectivityFinder {
 		    }
 		}
 	    }
+	    }*/
+    }
+//}}}
+
+    public void buildAdjacencyList(boolean useAllLists) {
+	adjacencyMap = new HashMap();
+	buildAdjacencyList(kMain.getKinemage(), useAllLists);
+    }
+
+    private void buildAdjacencyList(AGE target, boolean useAllLists) {
+	//adjacencyMap = new HashMap();
+	if (target instanceof KList) {
+	    //KList list = (KList) target;
+	    if (target.isOn()||useAllLists) {
+		Iterator iter = target.iterator();
+		while (iter.hasNext()) {
+		    KPoint pt = (KPoint) iter.next();
+		    if (pt instanceof VectorPoint) {
+			VectorPoint currPoint = (VectorPoint) pt;
+			
+			if ((!currPoint.isBreak())&&((currPoint.isOn())||useAllLists)) {
+			    VectorPoint prevPoint = (VectorPoint) currPoint.getPrev();
+			    addPoints(prevPoint, currPoint);
+			    addPoints(currPoint, prevPoint);
+			}
+		    }
+		}
+	    }
+	} else {
+	    Iterator iter = target.iterator();
+	    //HashMap adjMap = new HashMap;
+	    while (iter.hasNext()) {
+		AGE next = (AGE) iter.next();
+		if (next.isOn()||useAllLists) {
+		    buildAdjacencyList(next, useAllLists);
+		}
+	    }
+	    //return adjMap;
 	}
     }
-//}}}	
+
 	
 //{{{ addPoints
     private void addPoints(VectorPoint prev, VectorPoint curr) {
@@ -79,6 +120,11 @@ public class ConnectivityFinder {
 //}}}
 	
 //{{{ mobilityFinder
+    /**
+     * Finds mobility based on orientation of second in relation to the first.
+     * Used for KinFudger to be able to move pieces of the same structure.
+     *
+     **/
     public HashSet mobilityFinder(AbstractPoint first, AbstractPoint second, boolean onePoint) {
 
 	    
@@ -128,6 +174,41 @@ public class ConnectivityFinder {
     }
 //}}}
 
+// finds mobility based on only one point, so everything connected to that
+// point is mobile.
+    public HashSet mobilityFinder(AbstractPoint first) {
+	Set keys = adjacencyMap.keySet();
+	Iterator iter = keys.iterator();
+	HashMap colors = new HashMap();
+	mobilePoints = new HashSet();
+	while (iter.hasNext()) {
+	    Object key = iter.next();
+	    colors.put(key, KPalette.white);
+	}
+	colors.put(first, KPalette.gray);
+	//colors.put(first, KPalette.deadblack);
+	LinkedList queue = new LinkedList();
+	queue.addFirst(first);
+	mobilePoints.add(clonePoint(first));
+	while (!queue.isEmpty()) {
+	    AbstractPoint point = (AbstractPoint) queue.getFirst();
+	    queue.removeFirst();
+	    HashSet adjSet = (HashSet) adjacencyMap.get(point);
+	    Iterator adjIter = adjSet.iterator();
+	    while (adjIter.hasNext()) {
+		AbstractPoint adjPoint = (AbstractPoint) adjIter.next();
+		if (colors.get(adjPoint).equals(KPalette.white)) {
+		    colors.put(adjPoint, KPalette.gray);
+		    mobilePoints.add(clonePoint(adjPoint));
+		    queue.addLast(adjPoint);
+		}
+	    }
+	    colors.put(point, KPalette.deadblack);
+	}
+	return mobilePoints;
+    }
+
+
 //{{{ clonePoint
     private Object clonePoint(AbstractPoint point) {
 	VectorPoint pointClone = new VectorPoint(null, point.getName(), null);
@@ -137,6 +218,68 @@ public class ConnectivityFinder {
 	return pointClone;
     }
 //}}}
+
+    public ArrayList pathFinder(AbstractPoint first, AbstractPoint second) {
+	    
+	HashSet adjPoints = (HashSet) adjacencyMap.get(first);
+	Iterator iter = adjPoints.iterator();
+	HashMap branchLists = new HashMap();
+	LinkedList queue = new LinkedList();
+	while (iter.hasNext()) {
+	    AbstractPoint point = (AbstractPoint) iter.next();
+	    ArrayList list = new ArrayList();
+	    if (!first.equals(point)) {
+		list.add(first);
+	    }
+	    list.add(point);
+	    branchLists.put(point, list);
+	    queue.addLast(point);
+	}
+
+	HashMap colors = new HashMap();
+	Set keys = adjacencyMap.keySet();
+	Iterator keysIter = keys.iterator();
+	while (keysIter.hasNext()) {
+	    Object key = keysIter.next();
+	    colors.put(key, KPalette.white);
+	}
+	colors.put(first, KPalette.deadblack);
+	while (!queue.isEmpty()) {
+	    AbstractPoint point = (AbstractPoint) queue.getFirst();
+	    ArrayList branch = (ArrayList) branchLists.get(point);
+	    queue.removeFirst();
+	    HashSet adjSet = (HashSet) adjacencyMap.get(point);
+	    //System.out.println(adjSet.size());
+
+	    //if (adjSet.size() = 1) {
+		
+	    Iterator adjIter = adjSet.iterator();
+	    while (adjIter.hasNext()) {
+		AbstractPoint adjPoint = (AbstractPoint) adjIter.next();
+		if (((HashSet) adjacencyMap.get(adjPoint)).size() == 1) {
+		// to eliminate all 1 atom branches (O's, H's, etc)
+		    colors.put(adjPoint, KPalette.deadblack); 
+		}
+		if (colors.get(adjPoint).equals(KPalette.white)) {
+		    branch.add(adjPoint);
+		    branchLists.put(adjPoint, branch);
+		    colors.put(adjPoint, KPalette.gray);
+		    //mobilePoints.add(clonePoint(adjPoint));
+		    queue.addLast(adjPoint);
+		}
+		if (adjPoint.equals(second)) {
+		    return branch;
+		    //queue.clear();
+		}
+	    
+	    }
+	    colors.put(point, KPalette.deadblack);
+	}
+	return null;
+    }
+
+
+
 
 }//}}}
 //class

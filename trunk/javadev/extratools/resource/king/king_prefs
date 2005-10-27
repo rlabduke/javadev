@@ -18,4 +18,5 @@ king.tool.postkin.RecolorTool.menuName = Kin editing
 king.tool.postkin.KinFudgerTool.menuName = Kin editing
 king.tool.postkin.RamaTool.menuName = Specialty
 king.tool.loops.LoopTool.menuName = Specialty
+king.tool.loops.LoopDockingTool.menuName = Specialty
 

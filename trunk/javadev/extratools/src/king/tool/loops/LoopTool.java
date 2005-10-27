@@ -27,6 +27,7 @@ public class LoopTool extends BasicTool {
     HashSet keptSet;
     HashMap startColorMap, endColorMap;
     HashMap pdbKeepMap;
+    HashMap pdbMultiLoopMap;
     TreeMap bFactorMap;
     JButton delButton, keepButton, removeButton, openButton, delFromFileButton, doAllButton;
     JTextField lowNumField, highNumField;
@@ -90,6 +91,7 @@ public class LoopTool extends BasicTool {
 	startColorMap = new HashMap();
 	endColorMap = new HashMap();
 	bFactorMap = new TreeMap();
+	pdbMultiLoopMap = new HashMap();
 	//colorator = new RecolorNonRibbon();
 	show();
     }   
@@ -134,30 +136,45 @@ public class LoopTool extends BasicTool {
 			    pdbName = pdbName.toLowerCase();
 			    //System.out.print(pdbName);
 			    //pdbName = pdbName.toLowerCase();
-			    if (pdbKeepMap.containsKey(pdbName)) {
-				HashSet value = (HashSet) pdbKeepMap.get(pdbName);
+			    /*
+			    if (pdbMultiLoopMap.containsKey(pdbName)) {
+				//HashSet fullSet = (HashSet) pdbMultiLoopMap.get(pdbName);
 				HashSet startSet = (HashSet) startColorMap.get(pdbName);
 				HashSet endSet = (HashSet) endColorMap.get(pdbName);
+				HashSet value = new HashSet();
 				keepRange(value, Integer.parseInt(exploded[1])-5, Integer.parseInt(exploded[2])+10);
+				int start = Integer.parseInt(exploded[1])-5;
+				String fullName = pdbName + Integer.toString(start);
+				//fullSet.add(fullName);
+				pdbKeepMap.put(fullName, value);
 				startSet.add(Integer.parseInt(exploded[1]));
 				startSet.add(Integer.parseInt(exploded[1])+1);
 				endSet.add(Integer.parseInt(exploded[2]));
 				endSet.add(Integer.parseInt(exploded[2])+1);
-				bFactorMap.put(df.format(Double.parseDouble(exploded[5]))+pdbName, pdbName);
-			    } else {
+				bFactorMap.put(df.format(Double.parseDouble(exploded[5]))+pdbName, fullName);
+				} else {*/
 				HashSet value = new HashSet();
 				keepRange(value, Integer.parseInt(exploded[1])-5, Integer.parseInt(exploded[2])+10);
-				pdbKeepMap.put(pdbName, value);
+				int startRes = Integer.parseInt(exploded[1])-5;
+				String fullName = pdbName + "-" + Integer.toString(startRes);
+				//HashSet fullSet = new HashSet();
+				//fullSet.add(fullName);
+				pdbMultiLoopMap.put(fullName, pdbName);
+				pdbKeepMap.put(fullName, value);
 				HashSet start = new HashSet();
 				HashSet end = new HashSet();
-				start.add(Integer.parseInt(exploded[1]));
-				start.add(Integer.parseInt(exploded[1])+1);
-				end.add(Integer.parseInt(exploded[2]));
-				end.add(Integer.parseInt(exploded[2])+1);
+				if (startColorMap.containsKey(pdbName)) {
+				    start = (HashSet) startColorMap.get(pdbName);
+				    end = (HashSet) endColorMap.get(pdbName);
+				}
+				start.add(new Integer(exploded[1]));
+				start.add(new Integer(Integer.parseInt(exploded[1])+1));
+				end.add(new Integer(exploded[2]));
+				end.add(new Integer(Integer.parseInt(exploded[2])+1));
 				startColorMap.put(pdbName, start);
 				endColorMap.put(pdbName, end);
-			        bFactorMap.put(df.format(Double.parseDouble(exploded[5]))+pdbName, pdbName);
-			    }
+			        bFactorMap.put(df.format(Double.parseDouble(exploded[5]))+pdbName, fullName);
+				//}
 			}
 		    } catch (IOException ex) {
 			JOptionPane.showMessageDialog(kMain.getTopWindow(),
@@ -197,7 +214,7 @@ public class LoopTool extends BasicTool {
 		HashMap fileMap = new HashMap();
 		for (int i = 0; i < allFiles.length; i++) {
 		    File pdbFile = allFiles[i];
-		    String pdbName = pdbFile.getName().substring(0,4);
+		    String pdbName = pdbFile.getName().substring(0,4).toLowerCase();
 		    fileMap.put(pdbName, pdbFile);
 		    //System.out.println(pdbFile.getPath() + " : " + pdbName + " : " + pdbFile.getParent());
 		    //System.out.println(pdbKeepMap.containsKey(pdbName.toLowerCase()));
@@ -205,13 +222,16 @@ public class LoopTool extends BasicTool {
 		Collection values = bFactorMap.values();
 		Iterator iter = values.iterator();
 		while (iter.hasNext()) {
-		    String value = (String) iter.next();
-		    File pdbFile = (File) fileMap.get(value);
+		    String fullName = (String) iter.next();
+		    String pdbName = (String) pdbMultiLoopMap.get(fullName);
+		    HashSet keepSet = (HashSet) pdbKeepMap.get(fullName);
+		    File pdbFile = (File) fileMap.get(pdbName);
 		    //if (pdbKeepMap.containsKey(pdbName)) {
 			kMain.getKinIO().loadFile(pdbFile, null);
 			System.out.println(pdbFile.getPath());
-			onDeleteFromFile(ev);
-			kMain.getKinIO().saveFile(new File(saveLoc, value + ".kin"));
+			//onDeleteFromFile(ev);
+			deleteFromFile(keepSet, pdbName);
+			kMain.getKinIO().saveFile(new File(saveLoc, fullName + ".kin"));
 			kMain.getStable().closeCurrent();
 		    
 		}
@@ -274,7 +294,20 @@ public class LoopTool extends BasicTool {
 	kCanvas.repaint();
     }
 
-
+    public void deleteFromFile(HashSet keepSet, String pdbName) {
+	//String pdbName = kMain.getKinemage().atPdbfile.substring(0, 4).toLowerCase();
+	//if (pdbMultiLoopMap.containsKey(pdbName)) {
+	    delete(kMain.getKinemage(), keepSet);
+	    recolor(kMain.getKinemage(), (HashSet) startColorMap.get(pdbName), KPalette.green);
+	    recolor(kMain.getKinemage(), (HashSet) endColorMap.get(pdbName), KPalette.red);
+	    rename(kMain.getKinemage(), pdbName);
+	    //} else {
+	    //    JOptionPane.showMessageDialog(kMain.getTopWindow(),
+	    //					      "This PDB file name was not found in the reference file.",
+							  //					      "Sorry!", JOptionPane.ERROR_MESSAGE);
+	    //}
+	kCanvas.repaint();
+    }
 
     public void onDelete(ActionEvent ev) {
 	//currently assuming kins formatted as lots.
@@ -367,6 +400,7 @@ public class LoopTool extends BasicTool {
 		    
 	    }
 	} else {
+	    //System.out.println(target.toString());
 	    Iterator iter = target.iterator();
 	    while (iter.hasNext()) {
 		delete((AGE)iter.next(), keepSet);

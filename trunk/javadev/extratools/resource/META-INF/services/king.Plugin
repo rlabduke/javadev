@@ -20,3 +20,4 @@ king.tool.data_analysis.AutoBondRotDataTool
 king.tool.postkin.KinFudgerTool
 king.tool.postkin.RamaTool
 king.tool.loops.LoopTool
+king.tool.loops.LoopDockingTool
