@@ -1,5 +1,6 @@
 king.tool.export.PovrayExport.menuName = <export>
 king.tool.export.KingLiteBinaryExport.menuName = <export>
+king.tool.export.DiveExport.menuName = <export>
 # VRML and XML export are not maintained or complete...
 king.tool.export.Vrml97Writer.menuName = <not shown>
 king.tool.export.XknWriter.menuName = <not shown>

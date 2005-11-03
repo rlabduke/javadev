@@ -123,8 +123,10 @@ public class BgKinRunner implements Runnable
     {
         while(!backgroundTerminate)
         {
+            //long outsideLoop = System.currentTimeMillis();
             while(dropboxFull)
             {
+                long insideLoop = System.currentTimeMillis();
                 Collection  residues;
                 ModelState  state;
                 File        pdbfile;
@@ -143,14 +145,23 @@ public class BgKinRunner implements Runnable
                 // may want to submit an update request.
                 try { runCommand(residues, state, pdbfile, cmdtemp); }
                 catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
+                System.err.println("This cycle:     "+(System.currentTimeMillis() - insideLoop)+" ms");
             }//while dropboxFull
             
             // update the kinemage from the GUI thread
+            // this takes 1 - 200 ms on the Mac (yes, really -- but why?)
+            long endOfLoop = System.currentTimeMillis();
             SwingUtilities.invokeLater(new ReflectiveRunnable(this, "updateKinemage"));
+            long afterInvoke = System.currentTimeMillis();
+            System.err.println("invokeLater():  "+(afterInvoke-endOfLoop)+" ms");
             
             // we have to own the lock in order to wait()
             synchronized(this)
             {
+                //long afterSync = System.currentTimeMillis();
+                //System.err.println("synchronize:    "+(afterSync-afterInvoke)+" ms");
+                //System.err.println("run() loop:     "+(afterSync-outsideLoop)+" ms");
+                System.err.println("----------------------------------------");
                 // we will be notify()'d when state changes
                 try { this.wait(); }
                 catch(InterruptedException ex) {}
@@ -165,6 +176,10 @@ public class BgKinRunner implements Runnable
     void runCommand(Collection residues, ModelState state, File pdbfile, String cmdTplt)
         throws IOException
     {
+        long time;
+        
+        // Make the command line in its final form.
+        // This is very fast (1-2 ms).
         // Build replacement strings for placeholders
         StringBuffer resCommas = new StringBuffer();
         for(Iterator iter = residues.iterator(); iter.hasNext(); )
@@ -177,7 +192,6 @@ public class BgKinRunner implements Runnable
         String viewCtr = ctr[0]+", "+ctr[1]+", "+ctr[2];
         Triple[] bbox = getBoundingBox(residues, state);
         double radius = bbox[1].mag() + 5.0;
-        
         // Splice in parameters and parse out command line
         String[] cmdKeys = {
             "pdbfile",
@@ -199,24 +213,47 @@ public class BgKinRunner implements Runnable
             SoftLog.err.println(cmdLine); // print cmd line for debugging
         String[] cmdTokens = Strings.tokenizeCommandLine(cmdLine);
         //for(int i = 0; i < cmdTokens.length; i++) SoftLog.err.println("  #"+cmdTokens[i]+"#");
+    System.err.println("time "+cmdLine+" < dummy.pdb > dummy.out");
         
+        // Create the PDB file fragment to be feed in on stdin.
+        // This also very fast (~10 ms).
         // Build up the PDB fragment in a memory buffer
         // This decreases latency and may avoid deadlock...
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PdbWriter writer = new PdbWriter(baos);
+        StreamTank pdbFrag = new StreamTank();
+        PdbWriter writer = new PdbWriter(pdbFrag);
         writer.writeResidues(residues, state);
+        // Don't run the cmd if we're not goint to use the results:
+        if(dropboxFull) return;
+        
+        
+    time = System.currentTimeMillis();
         // Launch command and feed it the PDB file fragment
+        // This is usually the lion's share of run time (>50%)
         Process proc = Runtime.getRuntime().exec(cmdTokens);
-        baos.writeTo(proc.getOutputStream());
+    System.err.println("Starting proc:      "+(System.currentTimeMillis()-time)+" ms");
+    time = System.currentTimeMillis();
+        // Send PDB fragment to stdin (buffering doesn't help speed)
+        //OutputStream stdin = new BufferedOutputStream(proc.getOutputStream(), 20000);
+        //pdbFrag.writeTo(stdin);
+        pdbFrag.writeTo(proc.getOutputStream());
         // send EOF to let command know we're done
+        //stdin.close();
         proc.getOutputStream().close();
-    
-        // Buffer output to decrease latency and chance of deadlock?
+    System.err.println("Feeding stdout:     "+(System.currentTimeMillis()-time)+" ms with "+pdbFrag.size()+" bytes");
+    time = System.currentTimeMillis();
+        // Wait for command to finish and collect its output on stdout.
+        // Buffer output of cmd to decrease latency and chance of deadlock?
         ProcessTank tank = new ProcessTank();
         if(!tank.fillTank(proc, helperTimeout))
             SoftLog.err.println("*** Forced termination of background process '"+cmdTokens[0]+"'!");
+    System.err.println("Harvesting stdin:   "+(System.currentTimeMillis()-time)+" ms");
+        // Don't bother with parsing if we're not goint to use the results:
+        if(dropboxFull) return;
+
         
+    time = System.currentTimeMillis();
         // Try to interpret what it sends back
+        // This is also fairly slow (~100-200 ms)
         KinfileParser parser = new KinfileParser();
         parser.parse(new LineNumberReader(new InputStreamReader(tank.getStdout())));
         Collection kins = parser.getKinemages();
@@ -238,6 +275,7 @@ public class BgKinRunner implements Runnable
                 streamcopy(tank.getStdout(), SoftLog.err);
             }
         }
+    System.err.println("Parsing kin:        "+(System.currentTimeMillis()-time)+" ms");
     }
     
     // Copies src to dst until we hit EOF

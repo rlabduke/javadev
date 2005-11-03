@@ -1,6 +1,7 @@
 # Standard plugins
 king.tool.export.PovrayExport
 king.tool.export.KingLiteBinaryExport
+king.tool.export.DiveExport
 king.tool.export.Vrml97Writer
 king.tool.export.XknWriter
 king.tool.views.ViewpointPlugin

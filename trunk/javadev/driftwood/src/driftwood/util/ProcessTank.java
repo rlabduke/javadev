@@ -81,6 +81,7 @@ public class ProcessTank //extends ... implements ...
     public boolean fillTank(Process process, long timeout, boolean killRunaway) throws IOException
     {
         long enterTime, exitTime, lastReadTime, lastExitCheckTime;
+        long loopStartTime, loopTotalTime = 0;
         int outReadCount = 0, errReadCount = 0, exitCheckCount = 0;
         
         InputStream outStream = process.getInputStream();
@@ -93,6 +94,8 @@ public class ProcessTank //extends ... implements ...
         
         while(!finished)
         {
+            //loopStartTime = System.currentTimeMillis();
+            
             // From a Java Tech tip in July 2005 that deals w/ Runtime.exec():
             //  "A word of caution about the examples in this tip. It is possible
             //  that the examples will deadlock if the subprocess generates enough
@@ -103,9 +106,9 @@ public class ProcessTank //extends ... implements ...
             outAvail = outStream.available();
             if(outAvail > 0)
             {
-                //System.err.println("Reading!");
                 outAvail = outStream.read(buffer, 0, Math.min(buffer.length, outAvail));
                 outTank.write(buffer, 0, outAvail);
+                //System.err.println("    Read+stored "+outAvail+" bytes");
                 outReadCount++;
             }
             
@@ -147,17 +150,23 @@ public class ProcessTank //extends ... implements ...
                         }
                     }//try-catch(check exit code)
                 }
-                else
+                else // No data read this pass, but we checked the exit code recently.
                 {
-                    // No data read this pass, but we checked the exit code recently.
                     // Sleep for a while and try again later.
-                    //System.err.println("Sleeping...");
-                    try { Thread.sleep(50); }
-                    catch(InterruptedException ex) {}
+                    // Sleep for a short time in case reads are small:
+                    // Mac OS X will only give us 4096 bytes at a time.
+                    //
+                    // ACTUALLY, it's much more efficient to just Thread.yield().
+                    // However, not doing either one is the least efficient.
+                    //
+                    //try { Thread.sleep(2); }
+                    //catch(InterruptedException ex) {}
                 }
-            }//if(no data read this time)
-            else
+            }
+            else // Data was read this pass; keep working
             { lastReadTime = currTime; }
+            
+            //loopTotalTime += (System.currentTimeMillis() - loopStartTime);
             
             // Play nice and let other threads run.
             // This may matter if the process isn't running
@@ -166,7 +175,7 @@ public class ProcessTank //extends ... implements ...
         }//while(not finished)
         
         exitTime = System.currentTimeMillis();
-        //System.err.println("exit("+exitTime+") - enter("+enterTime+") = "+(exitTime-enterTime)+" ms ellapsed");
+        //System.err.println(loopTotalTime+" ms inside the loop; "+(exitTime-enterTime)+" ms ellapsed total");
         //System.err.println("stdout reads: "+outReadCount+"    stderr reads: "+errReadCount+"    exit checks: "+exitCheckCount);
         
         return returnCode;
