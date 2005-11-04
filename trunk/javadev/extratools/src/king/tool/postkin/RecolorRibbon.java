@@ -346,17 +346,23 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
      **/
     private String getOldMaster(KList list) {
 	Iterator masIter = list.masterIterator();
-	String oldMaster = (String) masIter.next();
+	while (masIter.hasNext()) {
+	    String oldMaster = (String) masIter.next();
+	    if (oldMaster.equals("alpha")||oldMaster.equals("beta")||oldMaster.equals("coil")) {
+		return oldMaster;
 	//while (masIter.hasNext()) {
 
 	//if (oldMaster.equals("ribbon")) {
 
-		oldMaster = (String) masIter.next();
+		//oldMaster = (String) masIter.next();
 
 		//}
 		//}
 
-	return oldMaster;
+		//return oldMaster;
+	    }
+	}
+	return "";
     }
 //}}}
 
