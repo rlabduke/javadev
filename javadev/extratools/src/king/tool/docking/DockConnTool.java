@@ -46,6 +46,7 @@ public class DockConnTool extends DockLsqTool {
     {
 	//super.buildGUI();
         //btnDock = new JButton(new ReflectiveAction("Dock mobile on reference", null, this, "onDock"));
+	btnDock.setLabel("Dock mobile on reference");
 	keepRefBox = new JCheckBox("Keep reference points", true);
 	toolpane.newRow();
 	toolpane.add(keepRefBox, 3, 1);
