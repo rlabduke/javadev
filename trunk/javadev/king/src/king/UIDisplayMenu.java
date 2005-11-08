@@ -141,6 +141,8 @@ public class UIDisplayMenu //extends ... implements ...
         String defQual = "Standard";
         if(kMain.getCanvas().renderQuality == KinCanvas.QUALITY_BETTER)
             defQual = "Better"; // for OS X
+        else if(kMain.getCanvas().renderQuality == KinCanvas.QUALITY_JOGL)
+            defQual = "OpenGL"; // for king_prefs:joglByDefault = true
         JMenuItem submenu = new DispQualityList(map, list, defQual).getMenu();
         submenu.setText("Rendering quality");
         menu.add(submenu);

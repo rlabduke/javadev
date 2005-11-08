@@ -127,31 +127,38 @@ public class DiveExport extends Plugin
         
         if(p instanceof BallPoint || p instanceof SpherePoint)
         {
-            out.println(getAtomName(p)+"\t"+df.format(-p.getX())+"\t"+df.format(p.getY())+"\t"+df.format(p.getZ()));
+            out.println("ball_"+getPtName(p)+"\t"+df.format(-p.getX())+"\t"+df.format(p.getY())+"\t"+df.format(p.getZ()));
+        }
+        if(p instanceof DotPoint)
+        {
+            out.println("dot_"+getPtName(p)+"\t"+df.format(-p.getX())+"\t"+df.format(p.getY())+"\t"+df.format(p.getZ()));
         }
         else if(p instanceof VectorPoint)
         {
             KPoint q = p.getPrev();
             if(q != null)
             {
-                out.println(df.format(-q.getX())+"\t"+df.format(q.getY())+"\t"+df.format(q.getZ())+"\t"+
+                out.println("vector_"+getPtName(p)+"\t"+df.format(-q.getX())+"\t"+df.format(q.getY())+"\t"+df.format(q.getZ())+"\t"+
                     df.format(-p.getX())+"\t"+df.format(p.getY())+"\t"+df.format(p.getZ()));
             }
         }
     }
 //}}}
 
-//{{{ getAtomName
+//{{{ getPtName
 //##############################################################################
     /** Extracts putative atom name for kins made by Molikin */
-    String getAtomName(KPoint p)
+    String getPtName(KPoint p)
     {
+        /*
         Matcher m = atomNamePattern.matcher(p.getName());
         if(m.find() && m.groupCount() >= 1)
         {
             return m.group(1).trim();
         }
         else return "X";
+        */
+        return p.getDrawingColor().toString();
     }
 //}}}
 

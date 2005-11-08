@@ -36,7 +36,7 @@ public class PrefsEditor //extends ... implements ...
     JTabbedPane tabPane;
     JTextField fontMagnification, fontSizeSmall, fontSizeBig;
     JTextField stereoAngle;
-    JCheckBox textOpenOnStart;
+    JCheckBox joglByDefault, textOpenOnStart;
     JCheckBox treeConfirmDelete, treeConfirmMerge;
     JCheckBox checkNewVersion;
     Map pluginMenuMap; // maps plugin class name to a JComboBox
@@ -94,29 +94,22 @@ public class PrefsEditor //extends ... implements ...
         fontSizeBig         = new JTextField(4);
         stereoAngle         = new JTextField(4);
         
+        joglByDefault       = new JCheckBox("Start in OpenGL mode");
         textOpenOnStart     = new JCheckBox("Open text window on startup");
         treeConfirmDelete   = new JCheckBox("Ask before deleting groups");
         treeConfirmMerge    = new JCheckBox("Ask before merging groups");
         checkNewVersion     = new JCheckBox("Check for new version online");
         
-        GridBagPanel innerPane = new GridBagPanel();
-        innerPane.gbc.anchor = GridBagConstraints.WEST;
-        innerPane.gbc.weightx = innerPane.gbc.weighty = 1f;
-        innerPane.gbc.insets = new Insets(2,2,2,2); //TLBR
-        
-        innerPane.add(new JLabel("Menu font magnification (requires restart)"), 0, 0);
-        innerPane.add(fontMagnification, 1, 0);
-        innerPane.add(new JLabel("Font size (normal)"), 0, 1);
-        innerPane.add(fontSizeSmall, 1, 1);
-        innerPane.add(new JLabel("Font size (large)"), 0, 2);
-        innerPane.add(fontSizeBig, 1, 2);
-        innerPane.add(new JLabel("Stereo angle (- cross, + wall)"), 0, 3);
-        innerPane.add(stereoAngle, 1, 3);
-        
-        innerPane.span(2,1).add(textOpenOnStart,   0, 4);
-        innerPane.span(2,1).add(treeConfirmDelete, 0, 5);
-        innerPane.span(2,1).add(treeConfirmMerge,  0, 6);
-        innerPane.span(2,1).add(checkNewVersion,   0, 7);
+        TablePane2 innerPane = new TablePane2();
+        innerPane.addCell(new JLabel("Menu font magnification (requires restart)")).addCell(fontMagnification).newRow();
+        innerPane.addCell(new JLabel("Font size (normal)")).addCell(fontSizeSmall).newRow();
+        innerPane.addCell(new JLabel("Font size (large)")).addCell(fontSizeBig).newRow();
+        innerPane.addCell(new JLabel("Stereo angle (- cross, + wall)")).addCell(stereoAngle).newRow();
+        innerPane.addCell(joglByDefault, 2, 1).newRow();
+        innerPane.addCell(textOpenOnStart, 2, 1).newRow();
+        innerPane.addCell(treeConfirmDelete, 2, 1).newRow();
+        innerPane.addCell(treeConfirmMerge, 2, 1).newRow();
+        innerPane.addCell(checkNewVersion, 2, 1).newRow();
         
         return innerPane;
     }
@@ -197,6 +190,7 @@ public class PrefsEditor //extends ... implements ...
         fontSizeSmall.setText(p.getString("fontSizeSmall"));
         fontSizeBig.setText(p.getString("fontSizeBig"));
         stereoAngle.setText(p.getString("stereoAngle"));
+        joglByDefault.setSelected(p.getBoolean("joglByDefault"));
         textOpenOnStart.setSelected(p.getBoolean("textOpenOnStart"));
         treeConfirmDelete.setSelected(p.getBoolean("treeConfirmDelete"));
         treeConfirmMerge.setSelected(p.getBoolean("treeConfirmMerge"));
@@ -228,6 +222,7 @@ public class PrefsEditor //extends ... implements ...
             p.setProperty("stereoAngle", f.toString());
         } catch(NumberFormatException ex) {}
         
+        p.setProperty("joglByDefault", new Boolean(joglByDefault.isSelected()).toString());
         p.setProperty("textOpenOnStart", new Boolean(textOpenOnStart.isSelected()).toString());
         p.setProperty("treeConfirmDelete", new Boolean(treeConfirmDelete.isSelected()).toString());
         p.setProperty("treeConfirmMerge",  new Boolean(treeConfirmMerge.isSelected()).toString());
