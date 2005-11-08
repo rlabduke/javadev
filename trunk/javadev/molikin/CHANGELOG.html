@@ -11,14 +11,9 @@
     Check Prekin's NAList and AAList to make sure we have all entries...
     Look at TR0001 for bb/sc -- some bb atoms are called sc
         _CM2 for OMC, OMG; OP3 for terminus
-    blank text field should mean select all?
-    add up/down arrow "history" to selection text field?
     do pointmasters for alt confs
     allow "remove (all)" for DrawingPanes
-    halfbond midpt may be optional: is color1 == color2 ?
     color by residue type (each AA, base, etc has its own color)
-    reformat point IDs to match Prekin (?), including alt conf labels
-        pluggable point ID algorithm
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -30,6 +25,8 @@
   Changes to moldb2.Model make the chains come out in order, too.
 - changed defaults for BallAndStickPane
 - tr0001 OMC 32 caught a possible endless loop in BondOptimizer.extendLeft()
+- added pluggable point IDs and matched default to Prekin output
+- added check for whether half-bond midpoint is actually needed
 
 ### 0.08 ###
 - changed sort order of Bonds to work better with:

@@ -29,7 +29,8 @@ public class StickPrinter //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     PrintWriter out;
-    BondCrayon crayon = ConstCrayon.NONE;
+    BondCrayon  crayon  = ConstCrayon.NONE;
+    AtomIDer    ider    = new PrekinIDer();
     
     boolean halfbonds = false; // draw half bonds instead of whole ones
     Triple midpoint = new Triple(); // for half bond calculation
@@ -74,14 +75,21 @@ public class StickPrinter //extends ... implements ...
         for(int i = 0; i < b.length; i++)
         {
             Bond curr = b[i];
+            String higherColor = crayon.colorBond(curr.higher, curr.lower);
+            
             if(curr.lower != last.higher)
-                out.print("{"+curr.lower.getAtom()+"}P "+curr.lower.format(df)+" ");
+                out.print("{"+ider.identifyAtom(curr.lower)+"}P "+curr.lower.format(df)+" ");
             if(halfbonds) // insignificant speed penalty to check in-line
             {
-                midpoint.likeMidpoint(curr.lower, curr.higher);
-                out.print("{mid}U "+crayon.colorBond(curr.lower, curr.higher)+" "+midpoint.format(df)+" ");
+                // Draw the midpoint only if we change color / pointmasters / etc.
+                String lowerColor = crayon.colorBond(curr.lower, curr.higher);
+                if(!lowerColor.equals(higherColor))
+                {
+                    midpoint.likeMidpoint(curr.lower, curr.higher);
+                    out.print("{mid}U "+lowerColor+" "+midpoint.format(df)+" ");
+                }
             }
-            out.println("{"+curr.higher.getAtom()+"}L "+crayon.colorBond(curr.higher, curr.lower)+" "+curr.higher.format(df));
+            out.println("{"+ider.identifyAtom(curr.higher)+"}L "+higherColor+" "+curr.higher.format(df));
             last = curr;
         }
         out.flush();
@@ -97,7 +105,7 @@ public class StickPrinter //extends ... implements ...
     { printSticks(bonds, null, null, null, null); }
 //}}}
 
-//{{{ get/setHalfBonds, get/setCrayon
+//{{{ get/setHalfBonds, get/setCrayon, get/setAtomIDer
 //##############################################################################
     /** Whether this will print midpoints for bonds or directly from atom to atom. */
     public boolean getHalfBonds()
@@ -112,6 +120,13 @@ public class StickPrinter //extends ... implements ...
     /** The BondCrayon used for coloring these sticks. */
     public void setCrayon(BondCrayon c)
     { this.crayon = c; }
+    
+    /** The AtomIDer used to make point IDs. */
+    public AtomIDer getAtomIDer()
+    { return this.ider; }
+    /** The AtomIDer used to make point IDs. */
+    public void setAtomIDer(AtomIDer ai)
+    { this.ider = ai; }
 //}}}
 
 //{{{ empty_code_segment
