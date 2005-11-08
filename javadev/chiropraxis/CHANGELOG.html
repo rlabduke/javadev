@@ -5,7 +5,7 @@
     Add outline to Rama PDF instead of thumbs
     Add kinemage, raw, and stat-summary output to Ramalyze
     Summary info can be preformatted, data should be parsable
-  * Provide both 4-in-1  PDF and 4 separate jpegs
+    Provide both 4-in-1  PDF and 4 separate jpegs
     Allow "slop" around rota and Rama contours
     Make ModelManager support loading from/saving to URLs
     Make sidechain refitting support two naming conventions for SeMet
@@ -13,10 +13,17 @@
     Think on defn of "wet" foos (water touches edge? center?)
     Allow ModelManager to switch between alt confs and create new ones
     Show histogram of cluster sizes for SequenceSpacer (maybe in kin text?)
+    [can't repr] Backrub: sc first, then bb, no bb opt sc, leads to sc tool not fixing Cb dev
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 0.52 ###
+- added "S" rotamer sample points to Phe, Tyr, Asp, Asn, Gln, and Glu.
+  It *seems* that everything still works...
+- commented out timing println() statements in BgKinRunner
+- added mc.AlignChains for quick comparisons of NCS related subunits
 
 ### 0.51 ###
 - added an "Overview" view to the output of SequenceSpacer

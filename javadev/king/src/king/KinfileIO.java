@@ -504,6 +504,9 @@ public class KinfileIO implements KinLoadListener, ListSelectionListener
         else                            return;
         
         String name = f.getName();
+        // Remove .gz extension -- we're not compressed anymore
+        if(name.endsWith(".gz")) name = name.substring(0, name.length()-3);
+        // Do version numbering for .kin files
         if(name.endsWith(".kin"))
         {
             if(name.length() > 6 && name.charAt(name.length()-6) == '.')

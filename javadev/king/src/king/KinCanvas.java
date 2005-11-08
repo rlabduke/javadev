@@ -139,6 +139,18 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
         }
         
         toolbox.listenTo(this);
+        
+        // If we do this here, everything JOGL needs is already created. I think.
+        // It seems to work, at least, which isn't true if this code comes earlier!
+        if(kMain.getPrefs().getBoolean("joglByDefault"))
+        {
+            try
+            {
+                //SoftLog.err.println("Trying to init OpenGL...");
+                this.setQuality(QUALITY_JOGL);
+            }
+            catch(Throwable t) {}//{ t.printStackTrace(SoftLog.err); }
+        }
     }
 //}}}
     

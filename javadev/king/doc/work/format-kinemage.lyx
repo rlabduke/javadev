@@ -1942,7 +1942,7 @@ file
 }*
 \family default 
 .
- The specific syntax is described elsewhere.
+ The specific syntax is described below.
  Multiple 
 \family typewriter 
 @text
@@ -2002,6 +2002,111 @@ INFO\SpecialChar ~
 CMD} suggests a command that the user or the kinemage viewer
  could run to generate additional kinemage data, which could then be merged
  into the current file.
+\layout Subsection
+
+Kinemage text hyperlinks
+\layout Standard
+
+Both Mage and KiNG support hypertext commands in the text window.
+ When the user clicks on one of these with the mouse, some action is invoked.
+ Hyperlinks are delimited by 
+\family typewriter 
+*{
+\family default 
+ and 
+\family typewriter 
+}*
+\family default 
+.
+ They may contain multiple commands, which are separated by commas.
+ Common commands are:
+\layout Description
+
+kinemage\SpecialChar ~
+1 Takes the user to the first kinemage in the file.
+\layout Description
+
+kin\SpecialChar ~
+1 (short form for 
+\begin_inset Quotes eld
+\end_inset 
+
+kinemage
+\begin_inset Quotes erd
+\end_inset 
+
+)
+\layout Description
+
+view\SpecialChar ~
+2 Takes the user to the second view in the current kinemage.
+ May be combined with 
+\begin_inset Quotes eld
+\end_inset 
+
+kinemage
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Description
+
+v=2 (short form for 
+\begin_inset Quotes eld
+\end_inset 
+
+view
+\begin_inset Quotes erd
+\end_inset 
+
+)
+\layout Description
+
+alloff Turns off all master buttons.
+ Usually followed by one or more 
+\begin_inset Quotes eld
+\end_inset 
+
+master ...
+ on
+\begin_inset Quotes erd
+\end_inset 
+
+ commands.
+\layout Description
+
+master=\SpecialChar ~
+{Master\SpecialChar ~
+Name}\SpecialChar ~
+on/off Turns the specified master on or off.
+\layout Description
+
+m={Master\SpecialChar ~
+Name}\SpecialChar ~
+on/off (short form for 
+\begin_inset Quotes eld
+\end_inset 
+
+master
+\begin_inset Quotes erd
+\end_inset 
+
+)
+\layout Standard
+
+Some examples of hyperlinks appear below:
+\layout LyX-Code
+
+*{KINEMAGE 3}*
+\layout LyX-Code
+
+*{Kin 2, View 4}*
+\layout LyX-Code
+
+*{kin 3, v=5, alloff, m={charges} on, m={Hphobics} on}*
+\layout LyX-Code
+
+*{view 5, master={mc} off}*
 \layout Section
 
 Alternative spellings

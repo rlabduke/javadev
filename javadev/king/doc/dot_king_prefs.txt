@@ -48,6 +48,8 @@ textOpenOnStart = true
 graphicsWidth  = 0
 graphicsHeight = 0
 
+# Should we enable OpenGL at startup by default?
+joglByDefault = true
 # Number of samples for OpenGL full-scene antialiasing (FSAA). 1 means off.
 joglNumSamples = 4
 

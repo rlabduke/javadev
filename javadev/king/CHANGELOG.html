@@ -44,6 +44,7 @@
     Create a splash-screen loader for KiNG (via manifest in Mustang)
     Add some kind of transformation hook (listeners, priorities, etc)
     Optional 2 column button layout?
+    Allow applet/prefs to set width of check-button panel
     Start points of invisible lines are still pickable
     Redraw problems with Tree (OS X only?)
     Add ability to edit masters/pointmasters
@@ -64,16 +65,7 @@
 <!-- Postponed TO DO items }}} -->
     Open PDB in model manager without opening kinemage first?
     Open/save PDB from/to network
-    Choose OpenGL (if avail) by default at startup IFF set in .king_prefs
-    Backrub: sc first, then bb, no bb opt sc, leads to sc tool not fixing Cb dev
-    Does KiNG have the extra rotamer points?
-  * Check on hyperlink code (UIText / MageHypertexter)
-        Document syntax for hyperlinks
-    Saving gzipped kinemage retains the ".gz" extension (even though it's not)
     Allow dragging waters/ions from chiropraxis?
- ** Locate bottleneck(s) in Probe update on OS X (re: new notebook for Jane)
-        Remove println() statements before releasing a new version...
-  * Add dots to JNB's tool (1st field is "dot_cyan" etc.)
     Save one kin vs. all kins (JSR)
 
 ==============================================================================
@@ -81,6 +73,15 @@
 ==============================================================================
 
 ### 1.47 ###
+- minor bug fixes to chiropraxis code ("S" rotamers, BgKinRunner println's)
+- documented syntax of Mage hyperlinks, as best I can.
+- rewrote MageHypertexter using KinfileTokenizer for parsing. This should be
+  more robust to formatting errors than the original code was.
+- added small white border to text window to improve readability
+- removed .gz from suggested save name b/c files are never compressed on save
+- added joglByDefault to king_prefs; it seems to work...
+- added joglByDefault to visual prefs editor
+- made joglByDefault true in the distro king prefs; it fails silently
 
 ### 1.46 ###
 - threaded approach to KiNG version check wasn't working b/c I called run()
