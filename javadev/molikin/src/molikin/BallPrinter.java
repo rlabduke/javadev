@@ -28,7 +28,8 @@ public class BallPrinter //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     PrintWriter out;
-    AtomCrayon crayon = ConstCrayon.NONE;
+    AtomCrayon  crayon  = ConstCrayon.NONE;
+    AtomIDer    ider    = new PrekinIDer();
 //}}}
 
 //{{{ Constructor(s)
@@ -54,7 +55,7 @@ public class BallPrinter //extends ... implements ...
             AtomState curr = (AtomState) iter.next();
             if(res == null || res.contains(curr.getResidue()))
             {
-                out.println("{"+curr.getAtom()+"}"+crayon.colorAtom(curr)+" "+curr.format(df));
+                out.println("{"+ider.identifyAtom(curr)+"}"+crayon.colorAtom(curr)+" "+curr.format(df));
             }
         }
         
@@ -67,6 +68,23 @@ public class BallPrinter //extends ... implements ...
     */
     public void printBalls(Collection atoms)
     { printBalls(atoms, null); }
+//}}}
+
+//{{{ get/setCrayon, get/setAtomIDer
+//##############################################################################
+    /** The AtomCrayon used for coloring these balls. */
+    public AtomCrayon getCrayon()
+    { return this.crayon; }
+    /** The AtomCrayon used for coloring these balls. */
+    public void setCrayon(AtomCrayon c)
+    { this.crayon = c; }
+    
+    /** The AtomIDer used to make point IDs. */
+    public AtomIDer getAtomIDer()
+    { return this.ider; }
+    /** The AtomIDer used to make point IDs. */
+    public void setAtomIDer(AtomIDer ai)
+    { this.ider = ai; }
 //}}}
 
 //{{{ empty_code_segment
