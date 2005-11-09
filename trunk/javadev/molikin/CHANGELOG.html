@@ -12,13 +12,15 @@
     Look at TR0001 for bb/sc -- some bb atoms are called sc
         _CM2 for OMC, OMG; OP3 for terminus
     do pointmasters for alt confs
-    allow "remove (all)" for DrawingPanes
     color by residue type (each AA, base, etc has its own color)
+    plugin - set kin as modified!
+    waters should be peachtint?
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 0.09 ###
 ### 0.09 ###
 - modified the GUI to iterate models, chains at top level; not per panel
   This keeps colors consistent and pieces grouped together.
@@ -27,6 +29,11 @@
 - tr0001 OMC 32 caught a possible endless loop in BondOptimizer.extendLeft()
 - added pluggable point IDs and matched default to Prekin output
 - added check for whether half-bond midpoint is actually needed
+- added ability to remove a DrawingPane from the GUI, or to remove all
+- added Util.getVdwRadius(), based on Probe's atomprops.h
+- added gui.VanDerWaalsPane to do ball/sphere vdW renderings
+- created much nicer interface for KiNG plugin; removed old one
+- tweaked layout on MainGuiPane
 
 ### 0.08 ###
 - changed sort order of Bonds to work better with:

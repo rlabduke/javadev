@@ -1,6 +1,6 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
-package molikin;
+package molikin.kingplugin;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -11,17 +11,18 @@ import java.util.*;
 //import java.util.regex.*;
 import javax.swing.*;
 import driftwood.gui.*;
+import driftwood.moldb2.*;
 import driftwood.util.*;
 import king.*;
 //}}}
 /**
-* <code>KingMoleculeImporter</code> allows users to "open" PDB and mmCIF files
+* <code>MolikinPlugin</code> allows users to "open" PDB and mmCIF files
 * from KiNG directly, rather than going thru Prekin.
 *
 * <p>Copyright (C) 2005 by Ian W. Davis. All rights reserved.
-* <br>Begun on Wed May 11 09:16:35 EDT 2005
+* <br>Begun on Wed Nov  9 13:54:31 EST 2005
 */
-public class KingMoleculeImporter extends king.Plugin
+public class MolikinPlugin extends king.Plugin
 {
 //{{{ Constants
 //}}}
@@ -30,11 +31,12 @@ public class KingMoleculeImporter extends king.Plugin
 //##############################################################################
     SuffixFileFilter        pdbFilter, cifFilter, allFilter;
     JFileChooser            openChooser;
+    JFrame                  frame;
 //}}}
 
 //{{{ Constructor(s)
 //##############################################################################
-    public KingMoleculeImporter(ToolBox tb)
+    public MolikinPlugin(ToolBox tb)
     {
         super(tb);
         buildFileChooser();
@@ -71,7 +73,7 @@ public class KingMoleculeImporter extends king.Plugin
     }
 //}}}
 
-//{{{ onOpenFile
+//{{{ onOpenFile, doPDB/CIF
 //##############################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onOpenFile(ActionEvent ev)
@@ -84,17 +86,9 @@ public class KingMoleculeImporter extends king.Plugin
                 File f = openChooser.getSelectedFile();
                 if(f != null && f.exists())
                 {
-                    Test test = new Test();
-                    Reader in = new FileReader(f);
-                    StreamTank kinData = new StreamTank();
-                    Writer out = new OutputStreamWriter(kinData);
-                    if(pdbFilter.accept(f))         test.doPDB(in, out);
-                    else if(cifFilter.accept(f))    test.doCIF(in, out);
+                    if(pdbFilter.accept(f))         doPDB(f);
+                    else if(cifFilter.accept(f))    doCIF(f);
                     else throw new IOException("Can't identify file type");
-                    
-                    out.flush();
-                    kinData.close();
-                    kMain.getKinIO().loadStream(kinData.getInputStream(), kinData.size(), null);
                 }
             }
             catch(IOException ex)
@@ -105,6 +99,20 @@ public class KingMoleculeImporter extends king.Plugin
                 ex.printStackTrace(SoftLog.err);
             }
         }
+    }
+    
+    void doPDB(File f) throws IOException
+    {
+        PdbReader       pdbReader   = new PdbReader();
+        CoordinateFile  coordFile   = pdbReader.read(f);
+        new MolikinWindow(this.parent, coordFile);
+    }
+
+    void doCIF(File f) throws IOException
+    {
+        CifReader       cifReader   = new CifReader();
+        CoordinateFile  coordFile   = cifReader.read(f);
+        new MolikinWindow(this.parent, coordFile);
     }
 //}}}
 
