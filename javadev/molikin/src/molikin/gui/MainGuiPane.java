@@ -77,6 +77,9 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
         drawingPanel = new JPanel(drawingCards);
         
         JButton ballAndStick = new JButton(new ReflectiveAction("New ball & stick", null, this, "onNewBallAndStick"));
+        JButton vanDerWaals = new JButton(new ReflectiveAction("New van der Waals", null, this, "onNewVanDerWaals"));
+        JButton removePane = new JButton(new ReflectiveAction("Clear selected", null, this, "onRemovePane"));
+        JButton removeAll = new JButton(new ReflectiveAction("Clear all", null, this, "onRemoveAll"));
         
         String bugReporting = "Doesn't work? Send the PDB/CIF file, the kinemage, and a description of your problem to iwd@duke.edu";
         
@@ -85,17 +88,23 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
         // The HTML helps with word wrapping... (maybe)
         this.addCell(new JLabel("<html><i>"+bugReporting+"</i></html>"), 3, 1).newRow();
         this.weights(0,1).startSubtable();
-            this.insets(insetSize).memorize();
+            this.insets(insetSize).hfill(true).weights(1,0).memorize();
             this.addCell(ballAndStick).newRow();
+            this.addCell(vanDerWaals).newRow();
+            this.addCell(removePane).newRow();
+            this.addCell(removeAll).newRow();
+            // This acts as "glue" at the bottom to absorb all the extra space.
+            // The result? All the buttons float to the top of the space!
+            this.weights(1,1).addCell( this.strut(0,0) );
         this.endSubtable();
         this.weights(0,1).vfill(true).addCell(new JScrollPane(drawingPaneList));
         this.hfill(true).vfill(true).addCell(drawingPanel);
         
         // Space underneath for client buttons:
         this.newRow();
-        this.skip();
-        this.skip();
-        this.startSubtable();
+        //this.skip();
+        //this.skip();
+        this.startSubtable(3,1);
             this.insets(insetSize).memorize();
             //this.right().addCell(new JButton("Fake OK btn"));
     }
@@ -134,7 +143,7 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
     }
 //}}}
 
-//{{{ addDrawingPane, onNewBallAndStick
+//{{{ add/removeDrawingPane, onRemovePane, onRemoveAll
 //##############################################################################
     void addDrawingPane(DrawingPane pane)
     {
@@ -147,10 +156,49 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
         packParent();
     }
     
+    void removeDrawingPane(DrawingPane pane)
+    {
+        drawingPanel.remove( (Component)pane );
+        
+        paneListData.remove(pane);
+        Object sel = drawingPaneList.getSelectedValue();
+        drawingPaneList.setListData( paneListData.toArray() );
+        drawingPaneList.setSelectedValue(sel, true);
+        
+        //packParent();
+    }
+    
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onRemovePane(ActionEvent ev)
+    {
+        removeDrawingPane( (DrawingPane)drawingPaneList.getSelectedValue() );
+    }
+    
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onRemoveAll(ActionEvent ev)
+    {
+        // Make a copy or we get ConcurrentModEx
+        Collection panes = new ArrayList(paneListData);
+        for(Iterator iter = panes.iterator(); iter.hasNext(); )
+        {
+            DrawingPane pane = (DrawingPane) iter.next();
+            removeDrawingPane( pane );
+        }
+    }
+//}}}
+
+//{{{ onNewBallAndStick, onNewVanDerWaals
+//##############################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onNewBallAndStick(ActionEvent ev)
     {
         addDrawingPane(new BallAndStickPane(coordFile, (paneNumber++)+" - Ball & stick"));
+    }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onNewVanDerWaals(ActionEvent ev)
+    {
+        addDrawingPane(new VanDerWaalsPane(coordFile, (paneNumber++)+" - van der Waals"));
     }
 //}}}
 

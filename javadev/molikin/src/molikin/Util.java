@@ -234,7 +234,7 @@ public class Util //extends ... implements ...
     */
     static public String getElementColor(String element)
     {
-        if(elementColors == null)
+        if(elementColors == null) //{{{
         {
             elementColors = new HashMap();
             elementColors.put("H", "gray");
@@ -244,6 +244,7 @@ public class Util //extends ... implements ...
             elementColors.put("S", "yellow");
             elementColors.put("P", "gold");
             // These ~ borrowed from RasMol
+            // We could equally well turn to Probe's atomprops.h
             elementColors.put("HE", "pinktint");
             elementColors.put("LI", "brown");
             elementColors.put("B", "green");
@@ -266,10 +267,152 @@ public class Util //extends ... implements ...
             elementColors.put("I", "bluetint");
             elementColors.put("BA", "orange");
             elementColors.put("AU", "gold");
-        }
+        }//}}}
         String color = (String) elementColors.get(element);
         if(color == null)   return "hotpink";
         else                return color;
+    }
+//}}}
+
+//{{{ getVdwRadius
+//##############################################################################
+    static Map exVdwRadii = null;
+    /**
+    * Given the element symbol (1 or 2 chars, uppercase) this returns
+    * the explicit-H van der Waals radius (taken from Probe's atomprops.h).
+    */
+    static public double getVdwRadius(String element)
+    {
+        if(exVdwRadii == null) //{{{
+        {
+            exVdwRadii = new HashMap();
+            // For non-metals, explicit VDW radii from 
+            // Gavezzotti, J. Am. Chem. Soc. (1983) 105, 5220-5225.
+            // or, if unavailable,
+            // Bondi, J. Phys. Chem. (1964), V68, N3, 441-451.
+            // Covalent and ionic radii from
+            // Advanced Inorganic Chemistry, Cotton & Wilkinson, 1962, p93.
+            exVdwRadii.put("H".toUpperCase(), new Double(1.17));
+            //exVdwRadii.put("Harom".toUpperCase(), new Double(1.00));
+            //exVdwRadii.put("Hpolar".toUpperCase(), new Double(1.00));
+            //exVdwRadii.put("HOd".toUpperCase(), new Double(1.00));
+            exVdwRadii.put("C".toUpperCase(), new Double(1.75));
+            exVdwRadii.put("N".toUpperCase(), new Double(1.55));
+            exVdwRadii.put("O".toUpperCase(), new Double(1.40));
+            exVdwRadii.put("P".toUpperCase(), new Double(1.80));
+            exVdwRadii.put("S".toUpperCase(), new Double(1.80));
+            exVdwRadii.put("As".toUpperCase(), new Double(2.00));
+            exVdwRadii.put("Se".toUpperCase(), new Double(1.90));
+            exVdwRadii.put("F".toUpperCase(), new Double(1.30));
+            exVdwRadii.put("Cl".toUpperCase(), new Double(1.77));
+            exVdwRadii.put("Br".toUpperCase(), new Double(1.95));
+            exVdwRadii.put("I".toUpperCase(), new Double(2.10));
+            // for most common metals we use Pauling's ionic radii
+            // "covalent radii" = ionic + 0.74 (i.e., oxygenVDW(1.4) - oxygenCov(0.66))
+            // because the ionic radii are usually calculated from Oxygen-Metal distance
+            exVdwRadii.put("Li".toUpperCase(), new Double(0.60));
+            exVdwRadii.put("Na".toUpperCase(), new Double(0.95));
+            exVdwRadii.put("Al".toUpperCase(), new Double(0.50));
+            exVdwRadii.put("K".toUpperCase(), new Double(1.33));
+            exVdwRadii.put("Mg".toUpperCase(), new Double(0.65));
+            exVdwRadii.put("Ca".toUpperCase(), new Double(0.99));
+            exVdwRadii.put("Mn".toUpperCase(), new Double(0.80));
+            exVdwRadii.put("Fe".toUpperCase(), new Double(0.74));
+            exVdwRadii.put("Co".toUpperCase(), new Double(0.70));
+            exVdwRadii.put("Ni".toUpperCase(), new Double(0.66));
+            exVdwRadii.put("Cu".toUpperCase(), new Double(0.72));
+            exVdwRadii.put("Zn".toUpperCase(), new Double(0.71));
+            exVdwRadii.put("Rb".toUpperCase(), new Double(1.48));
+            exVdwRadii.put("Sr".toUpperCase(), new Double(1.10));
+            exVdwRadii.put("Mo".toUpperCase(), new Double(0.93));
+            exVdwRadii.put("Ag".toUpperCase(), new Double(1.26));
+            exVdwRadii.put("Cd".toUpperCase(), new Double(0.91));
+            exVdwRadii.put("In".toUpperCase(), new Double(0.81));
+            exVdwRadii.put("Cs".toUpperCase(), new Double(1.69));
+            exVdwRadii.put("Ba".toUpperCase(), new Double(1.29));
+            exVdwRadii.put("Au".toUpperCase(), new Double(1.10));
+            exVdwRadii.put("Hg".toUpperCase(), new Double(1.00));
+            exVdwRadii.put("Tl".toUpperCase(), new Double(1.44));
+            exVdwRadii.put("Pb".toUpperCase(), new Double(0.84));
+            // for other metals we use Shannon's ionic radii
+            // Acta Crystallogr. (1975) A32, pg751.
+            exVdwRadii.put("V".toUpperCase(), new Double(0.79));
+            exVdwRadii.put("Cr".toUpperCase(), new Double(0.73));
+            exVdwRadii.put("Te".toUpperCase(), new Double(0.97));
+            exVdwRadii.put("Sm".toUpperCase(), new Double(1.08));
+            exVdwRadii.put("Gd".toUpperCase(), new Double(1.05));
+            exVdwRadii.put("Yb".toUpperCase(), new Double(1.14));
+            exVdwRadii.put("W".toUpperCase(), new Double(0.66));
+            exVdwRadii.put("Pt".toUpperCase(), new Double(0.63));
+            exVdwRadii.put("U".toUpperCase(), new Double(1.03));
+            // Cotton & Wilkinson and also-
+            // L.E. Sutton (ed.) in Table of interatomic distances and configuration in molecules
+            // and ions, Supplement 1956-1959, Special publication No. 18, Chemical Society,
+            // London, UK, 1965 (as listed in web-elements by Mark Winter)
+            //                   http://www.shef.ac.uk/chemistry/web-elements
+            exVdwRadii.put("He".toUpperCase(), new Double(1.60));
+            exVdwRadii.put("Be".toUpperCase(), new Double(0.31));
+            exVdwRadii.put("B".toUpperCase(), new Double(0.20));
+            exVdwRadii.put("Ne".toUpperCase(), new Double(1.60));
+            exVdwRadii.put("Si".toUpperCase(), new Double(2.10));
+            exVdwRadii.put("Ar".toUpperCase(), new Double(1.89));
+            exVdwRadii.put("Sc".toUpperCase(), new Double(0.68));
+            exVdwRadii.put("Ti".toUpperCase(), new Double(0.75));
+            exVdwRadii.put("Ga".toUpperCase(), new Double(0.53));
+            exVdwRadii.put("Ge".toUpperCase(), new Double(0.60));
+            exVdwRadii.put("Kr".toUpperCase(), new Double(2.01));
+            exVdwRadii.put("Y".toUpperCase(), new Double(0.90));
+            exVdwRadii.put("Zr".toUpperCase(), new Double(0.77));
+            exVdwRadii.put("Sn".toUpperCase(), new Double(0.71));
+            exVdwRadii.put("Sb".toUpperCase(), new Double(2.20));
+            exVdwRadii.put("Xe".toUpperCase(), new Double(2.18));
+            exVdwRadii.put("La".toUpperCase(), new Double(1.03));
+            exVdwRadii.put("Ce".toUpperCase(), new Double(0.87));
+            exVdwRadii.put("Fr".toUpperCase(), new Double(1.94));
+            exVdwRadii.put("Ra".toUpperCase(), new Double(1.62));
+            exVdwRadii.put("Th".toUpperCase(), new Double(1.08));
+            // finally, we have a set of elements where the radii are unknown
+            // so we use estimates and extrapolations based on web-elements data
+            exVdwRadii.put("Nb".toUpperCase(), new Double(0.86));
+            exVdwRadii.put("Tc".toUpperCase(), new Double(0.71));
+            exVdwRadii.put("Ru".toUpperCase(), new Double(0.82));
+            exVdwRadii.put("Rh".toUpperCase(), new Double(0.76));
+            exVdwRadii.put("Pd".toUpperCase(), new Double(1.05));
+            exVdwRadii.put("Pr".toUpperCase(), new Double(1.11));
+            exVdwRadii.put("Nd".toUpperCase(), new Double(1.10));
+            exVdwRadii.put("Pm".toUpperCase(), new Double(1.15));
+            exVdwRadii.put("Eu".toUpperCase(), new Double(1.31));
+            exVdwRadii.put("Tb".toUpperCase(), new Double(1.05));
+            exVdwRadii.put("Dy".toUpperCase(), new Double(1.05));
+            exVdwRadii.put("Ho".toUpperCase(), new Double(1.04));
+            exVdwRadii.put("Er".toUpperCase(), new Double(1.03));
+            exVdwRadii.put("Tm".toUpperCase(), new Double(1.02));
+            exVdwRadii.put("Lu".toUpperCase(), new Double(1.02));
+            exVdwRadii.put("Hf".toUpperCase(), new Double(0.85));
+            exVdwRadii.put("Ta".toUpperCase(), new Double(0.86));
+            exVdwRadii.put("Re".toUpperCase(), new Double(0.77));
+            exVdwRadii.put("Os".toUpperCase(), new Double(0.78));
+            exVdwRadii.put("Ir".toUpperCase(), new Double(0.80));
+            exVdwRadii.put("Bi".toUpperCase(), new Double(1.17));
+            exVdwRadii.put("Po".toUpperCase(), new Double(0.99));
+            exVdwRadii.put("At".toUpperCase(), new Double(0.91));
+            exVdwRadii.put("Rn".toUpperCase(), new Double(2.50));
+            exVdwRadii.put("Ac".toUpperCase(), new Double(1.30));
+            exVdwRadii.put("Pa".toUpperCase(), new Double(1.10));
+            exVdwRadii.put("Np".toUpperCase(), new Double(1.00));
+            exVdwRadii.put("Pu".toUpperCase(), new Double(1.00));
+            exVdwRadii.put("Am".toUpperCase(), new Double(1.00));
+            exVdwRadii.put("Cm".toUpperCase(), new Double(1.00));
+            exVdwRadii.put("Bk".toUpperCase(), new Double(1.00));
+            exVdwRadii.put("Cf".toUpperCase(), new Double(1.00));
+            exVdwRadii.put("Es".toUpperCase(), new Double(1.00));
+            exVdwRadii.put("Fm".toUpperCase(), new Double(1.00));
+            exVdwRadii.put("Md".toUpperCase(), new Double(1.00));
+            exVdwRadii.put("No".toUpperCase(), new Double(1.00));
+        }//}}}
+        Double radius = (Double) exVdwRadii.get(element);
+        if(radius == null)  return 2.0;
+        else                return radius.doubleValue();
     }
 //}}}
 
