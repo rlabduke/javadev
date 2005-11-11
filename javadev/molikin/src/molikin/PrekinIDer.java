@@ -45,19 +45,20 @@ public class PrekinIDer implements AtomIDer
         Residue res = as.getResidue();
         StringBuffer buf = new StringBuffer(16); // should be long enough for almost all
         
-        buf.append(Strings.justifyLeft(as.getName(), 4));
-        buf.append(Strings.justifyLeft(as.getAltConf(), 1));
-        buf.append(Strings.justifyLeft(res.getName(), 3));
-        buf.append(" ");
-        buf.append(Strings.justifyLeft(res.getChain(), 1));
-        buf.append(" ");
-        buf.append(res.getSequenceNumber().trim());
-        buf.append(Strings.justifyLeft(res.getInsertionCode(), 1));
+        buf.append(as.getName());                       // 4 chars
+        buf.append(as.getAltConf());                    // 1
+        buf.append(res.getName());                      // 3
+        buf.append(" ");                                // 1
+        buf.append(res.getChain());                     // 1
+        buf.append(" ");                                // 1
+        buf.append(res.getSequenceNumber().trim());     // 1 - 4 (or more)
+        buf.append(res.getInsertionCode());             // 1
         
         StringBuffer buf2 = new StringBuffer(buf.length() + 8);
+        // lowercasing is somewhat expensive, computationally.
         buf2.append(buf.toString().toLowerCase());
-        buf2.append(" B");
-        buf2.append(df2.format(as.getTempFactor()));
+        buf2.append(" B");                              // 2
+        buf2.append(df2.format(as.getTempFactor()));    // 4 - 5 (or more)
         
         return buf2.toString();
     }

@@ -82,6 +82,7 @@ public class StickPrinter //extends ... implements ...
             if(halfbonds) // insignificant speed penalty to check in-line
             {
                 // Draw the midpoint only if we change color / pointmasters / etc.
+                // Is this really wise? It might make editing harder later on...
                 String lowerColor = crayon.colorBond(curr.lower, curr.higher);
                 if(!lowerColor.equals(higherColor))
                 {

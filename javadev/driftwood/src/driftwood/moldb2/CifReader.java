@@ -155,7 +155,7 @@ public class CifReader //extends ... implements ...
         for(Iterator iter = coordFile.getModels().iterator(); iter.hasNext(); )
         {
             Model m = (Model) iter.next();
-            try { m.fillInStates(); }
+            try { m.fillInStates(false); }
             catch(AtomException ex)
             {
                 // This shouldn't ever be able to happen...

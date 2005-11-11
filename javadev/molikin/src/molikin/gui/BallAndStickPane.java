@@ -131,7 +131,9 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
         
         this.out = out;
         this.sp = new StickPrinter(out);
+        sp.setCrayon(new AltConfCrayon());
         this.bp = new BallPrinter(out);
+        bp.setCrayon(new AltConfCrayon());
         
         if(cbProtein.isSelected())  printProtein(m, residues, bbColor);
         if(cbNucleic.isSelected())  printNucAcid(m, residues, bbColor);
@@ -375,7 +377,7 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
         AtomClassifier  atomC   = data.getAtomClassifier();
         if(atomC.watHeavy.size() == 0) return;
         
-        out.println("@balllist {waters} color= peach radius= 0.2 master= {waters}");
+        out.println("@balllist {waters} color= peachtint radius= 0.15 master= {waters}");
         bp.printBalls(atomC.watHeavy, waterRes);
 
         if(cbHydrogens.isSelected() && atomC.watHydro.size() > 0)

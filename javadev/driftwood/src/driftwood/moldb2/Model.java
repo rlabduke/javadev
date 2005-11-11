@@ -439,9 +439,13 @@ public class Model implements Cloneable
     /**
     * Once this model's states are fully populated, you can call this function to make sure that
     * every state (except possibly " ") has an AtomState for every Atom in the model.
+    * @param cloneAtomStates    if true, AtomStates for fill-in will be cloned and
+    *   given the "correct" alt conf label. If false, existing AtomStates will be
+    *   used as-is. In most cases, the best choice is false -- this avoids e.g.
+    *   creating new ATOM cards when the model is written to PDB.
     * @throws AtomException if no state exists for some Atom in the model.
     */
-    public void fillInStates() throws AtomException
+    public void fillInStates(boolean cloneAtomStates) throws AtomException
     {
         Collection allStates = this.stateMap.values();
         for(Iterator iter = this.stateMap.entrySet().iterator(); iter.hasNext(); )
@@ -451,7 +455,8 @@ public class Model implements Cloneable
             if(" ".equals(altConf)) continue; // base conf. doesn't need all atoms defined
             
             ModelState state = (ModelState) e.getValue();
-            e.setValue( state.fillInForModel(this, altConf, allStates) );
+            if(cloneAtomStates) e.setValue( state.fillInForModel(this, altConf, allStates) );
+            else                e.setValue( state.fillInForModel(this, allStates) );
         }
         this.modified(); // changes the ModelState objects returned
     }
