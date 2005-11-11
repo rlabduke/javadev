@@ -14,13 +14,14 @@ GUI: {{{
     Make a DialogButtonBar from Box:  Btn1--Btn2--Btn3------------BtnLast
     Make a list with checkboxes for selecting a set of things?
     TreeFoldSlider controls tree expansion like TOC in LyX
+    Add addStrut() to TablePane2 as combo of addCell(strut(...))
 }}}
 ISOSURFACE: {{{
 }}}
-MOLDB2: {{
+MOLDB2: {{{
     Write PdbUpdater that reads new coords/state into an old model
     Add a class that can WRITE moldb2 data into a StarFile DOM (CifWriter)
- ** Residue.compareTo() works with PDB numbers (space padded) but not CIF (trimmed)
+    We need an Model.extractAtomStates() function based on AS [identity? name?]
 }}}
 R3: {{{
 }}}
@@ -33,6 +34,15 @@ UTIL: {{{
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 0.74 ###
+- fillInStates code now has the option of creating new ATOMs or not.
+- PdbReader and CifReader now default to NOT creating new atoms during fill-in.
+- added a field to Residue so compareTo will work with trimmed residue numbers.
+  Because CIF residues "numbers" can be any length, any string, space padding
+  them the way we did for PDB numbers isn't practical.
+  (PDB numbers are currently still space padded, just to be obnoxious --
+  if code is robust, it shouldn't care which convention is used!)
 
 ### 0.73 ###
 - fixed code formatting in AminoAcid

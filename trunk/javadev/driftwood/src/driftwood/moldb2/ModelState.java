@@ -282,14 +282,27 @@ public class ModelState //extends ... implements ...
 
 //{{{ fillInForModel
 //##################################################################################################
+    /** Fills in without duplicating any AtomStates; alt conf labels are left as-is. */
+    public ModelState fillInForModel(Model model, Collection otherModelStates) throws AtomException
+    { return fillInForModel(model, null, otherModelStates); }
+    
     /**
     * For any Atom for which this ModelState does not have an AtomState,
     * the otherModelStates are queried (in order) until a matching AtomState
     * is found. A new ModelState with this as its parent is created to contain
-    * the clones of the "fill-in" states, which now have correct alt IDs.
+    * the "fill-in" states, which may or may not have "correct" alt IDs.
+    *
+    * <p>Two modes of fill-in are possible. If altConf is left as null, then existing
+    * AtomState objects will be used for fill-in and they will not be altered.
+    * If altConf is supplied, AtomStates will be cloned and the alt conf of the
+    * clones will be set to the supplied value.
+    * While this might *seem* like a good thing, in the case of many A and B states
+    * and just a few C states, you end up creating a lot of new "C" ATOM cards that
+    * are just duplicates of the information in A.
     *
     * @param model              the model to search for Atoms that need AtomStates.
     * @param altConf            the alternate conformation code for (cloned) fill-in AtomStates.
+    *   If this is left null (the usual choice), AtomStates will be used as-is (not cloned).
     * @param otherModelStates   a Collection of ModelStates to be queried for fill-ins.
     *
     * @throws AtomException     if no state could be found in all of the otherModelStates for an Atom in the model.
@@ -311,8 +324,11 @@ public class ModelState //extends ... implements ...
                         s = others[i].getImpl(a);
                     if(s != null)
                     {
-                        s = (AtomState) s.clone();
-                        s.setAltConf(altConf);
+                        if(altConf != null)
+                        {
+                            s = (AtomState) s.clone();
+                            s.setAltConf(altConf);
+                        }
                         try { m.add(s); }
                         catch(AtomException ex) { System.err.println("Logical error!"); ex.printStackTrace(); }
                     }//if s != null

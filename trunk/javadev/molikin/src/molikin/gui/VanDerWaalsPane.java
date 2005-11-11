@@ -126,6 +126,7 @@ public class VanDerWaalsPane extends TablePane2 implements DrawingPane
         
         this.out = out;
         this.bp = new BallPrinter(out);
+        bp.setCrayon(new AltConfCrayon());
         
         if(cbProtein.isSelected())  printProtein(m, residues, bbColor);
         if(cbNucleic.isSelected())  printNucAcid(m, residues, bbColor);

@@ -36,6 +36,7 @@ import driftwood.util.Strings;
 public class Residue implements Comparable
 {
 //{{{ Constants
+    static final int NAN_SEQ = Integer.MAX_VALUE;
 //}}}
 
 //{{{ Variable definitions
@@ -50,6 +51,9 @@ public class Residue implements Comparable
     
     /** The index of this residue in its chain; may be zero or negative */
     String          seqNum;
+    
+    /** The integer version of seqNum, or NAN_SEQ if seqNum is alphanumeric. Used for sorting. */
+    int             seqInt;
     
     /** The insertion code for this residue */
     String          insCode;
@@ -100,6 +104,9 @@ public class Residue implements Comparable
         this.seqNum     = seqNum;
         this.insCode    = insCode;
         this.resName    = resName;
+        
+        try { this.seqInt = Integer.parseInt(this.seqNum.trim()); }
+        catch(NumberFormatException ex) { this.seqInt = NAN_SEQ; }
 
         atoms = new UberMap();
     }
@@ -366,6 +373,9 @@ public class Residue implements Comparable
         comp = r1.segment.compareTo(r2.segment);
         if(comp != 0) return comp;
         
+        comp = r1.seqInt - r2.seqInt;
+        if(comp != 0) return comp;
+        // seqNums could still differ by whitespace...
         comp = r1.seqNum.compareTo(r2.seqNum);
         if(comp != 0) return comp;
         comp = r1.insCode.compareTo(r2.insCode);

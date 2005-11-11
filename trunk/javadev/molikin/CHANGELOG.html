@@ -12,15 +12,23 @@
     Look at TR0001 for bb/sc -- some bb atoms are called sc
         _CM2 for OMC, OMG; OP3 for terminus
     do pointmasters for alt confs
+ **     Highlights problems in our extractByName + fill-in for empty states...
+        1US0 has many C sidechains that are duplicates of the A's
     color by residue type (each AA, base, etc has its own color)
     plugin - set kin as modified!
-    waters should be peachtint?
+    Calphas should be off if mainchain is included (?)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 0.09 ###
+### 0.10 ###
+- removed all the justifyLeft()'s from PrekinIDer after profiling showed that
+  to be a hotspot. Formatting numbers and lowercasing are still expensive.
+- made waters peachtint, 0.15 to match Prekin
+- added AltConfCrayon to handle alt conf pointmasters; set it in GUI
+- added CompositeCrayon to allow multiple crayons to play well together
+
 ### 0.09 ###
 - modified the GUI to iterate models, chains at top level; not per panel
   This keeps colors consistent and pieces grouped together.
