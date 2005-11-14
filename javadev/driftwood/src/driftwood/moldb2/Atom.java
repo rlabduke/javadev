@@ -42,8 +42,11 @@ public class Atom
     /** Typically PDB-style (exactly 4 characters), never null */
     String          name;
     
+    /** One or two chars, uppercase, "XX" for unknown */
+    String          element;
+    
     /** True iff this atom is considered part of a het group */
-    boolean         het         = false;
+    boolean         het;
 //}}}
 
 //{{{ Constructor(s)
@@ -51,17 +54,25 @@ public class Atom
     /**
     * Creates a new Atom with the given name.
     * @param    name        the name of this atom (not null)
+    * @param    element     the element symbol for this atom (not null)
     * @param    isHet       true if this is a het atom
     */
-    public Atom(String name, boolean isHet)
+    public Atom(String name, String element, boolean isHet)
     {
         if(name == null)
             throw new NullPointerException("Must supply a non-null Atom name");
+        if(element == null)
+            throw new NullPointerException("Must supply a non-null Atom element symbol");
         
         this.name       = name;
+        this.element    = element;
         this.het        = isHet;
     }
 
+    /** Creates an atom of element "XX" */
+    public Atom(String name, boolean isHet)
+    { this(name, "XX", false); }
+    
     /** Creates a new non-het atom */
     public Atom(String name)
     { this(name, false); }
@@ -76,11 +87,15 @@ public class Atom
     { this(template.getName(), template.isHet()); }
 //}}}
 
-//{{{ getName, getResidue, isHet, toString
+//{{{ getName, getElement, getResidue, isHet, toString
 //##################################################################################################
     /** Returns the name of this atom, usually a four letter code */
     public String getName()
     { return name; }
+    
+    /** The element symbol for this atom -- one or two chars, uppercase, never null or empty */
+    public String getElement()
+    { return element; }
 
     public Residue getResidue()
     { return parent; }

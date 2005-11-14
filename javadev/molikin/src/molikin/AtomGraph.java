@@ -189,8 +189,9 @@ public class AtomGraph //extends ... implements ...
         Collection neighbors = this.covNeighbors[iQuery];
         if(neighbors == null)
         {
-            if(Util.isH(query)) neighbors = connectHydrogens(query);
-            else                neighbors = connectHeavyAtoms(query);
+            String elem = query.getElement();
+            if(elem.equals("H"))    neighbors = connectHydrogens(query);
+            else                    neighbors = connectHeavyAtoms(query);
             this.covNeighbors[iQuery] = neighbors;
         }
         return neighbors;
@@ -216,7 +217,8 @@ public class AtomGraph //extends ... implements ...
         {
             AtomState hit = (AtomState) iter.next();
             if(hit == query) continue;
-            if(Util.isH(hit) || Util.isQ(hit)) continue;
+            String elem = hit.getElement();
+            if(elem.equals("H") || elem.equals("Q")) continue;
             
             double d2 = query.sqDistance(hit);
             if(d2 <= d2max && d2 < d2best && Util.altsAreCompatible(query, hit))
@@ -240,7 +242,8 @@ public class AtomGraph //extends ... implements ...
         // and the Prekin source in PKINCSUB.c ::  connectheavyatom()
         _hits1.clear();
         final double toCNO, toOther;
-        if(Util.isCNO(query))
+        String qElem = query.getElement();
+        if(qElem.equals("C") || qElem.equals("N") || qElem.equals("O"))
         {
             toCNO   = 2.0 * 2.0;
             toOther = 2.2 * 2.2;
@@ -258,10 +261,11 @@ public class AtomGraph //extends ... implements ...
         {
             AtomState hit = (AtomState) iter.next();
             if(hit == query) continue;
+            String hElem = hit.getElement();
             
             // We're bonded to an H iff the H is bonded to us --
             // this avoids H's with too many bonds to them.
-            if(Util.isH(hit))
+            if(hElem.equals("H"))
             {
                 Collection neighborsH = getNeighbors(hit);
                 //if(neighborsH.contains(query)) ... -- nice, but uses equals() instead of ==
@@ -271,8 +275,8 @@ public class AtomGraph //extends ... implements ...
             else
             {
                 double d2max;
-                if(Util.isCNO(hit)) d2max = toCNO;
-                else                d2max = toOther;
+                if(hElem.equals("C") || hElem.equals("N") || hElem.equals("O")) d2max = toCNO;
+                else                                                            d2max = toOther;
                 if(query.sqDistance(hit) <= d2max && Util.altsAreCompatible(query, hit))
                     neighbors.add(hit);
             }

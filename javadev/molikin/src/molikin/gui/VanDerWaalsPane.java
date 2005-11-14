@@ -276,7 +276,7 @@ public class VanDerWaalsPane extends TablePane2 implements DrawingPane
         {
             AtomState as = (AtomState) iter.next();
             if(!residues.contains(as.getResidue())) continue;
-            String element = Util.getElement(as);
+            String element = as.getElement();
             Collection atoms = (Collection) elementsToAtoms.get(element);
             if(atoms == null)
             {

@@ -61,32 +61,33 @@ public class AtomClassifier //extends ... implements ...
         {
             AtomState as = (AtomState) iter.next();
             Object clas = resClassifier.classify(as.getResidue());
+            boolean isH = as.getElement().equals("H");
             if(clas == ResClassifier.PROTEIN || clas == ResClassifier.NUCACID)
             {
                 if(Util.isMainchain(as))
                 {
-                    if(Util.isH(as))    bbHydro.add(as);
-                    else                bbHeavy.add(as);
+                    if(isH) bbHydro.add(as);
+                    else    bbHeavy.add(as);
                 }
                 else // sidechain
                 {
-                    if(Util.isH(as))    scHydro.add(as);
-                    else                scHeavy.add(as);
+                    if(isH) scHydro.add(as);
+                    else    scHeavy.add(as);
                 }
             }
             else if(clas == ResClassifier.WATER)
             {
-                if(Util.isH(as))    watHydro.add(as);
-                else                watHeavy.add(as);
+                if(isH)     watHydro.add(as);
+                else        watHeavy.add(as);
             }
             else if(clas == ResClassifier.ION)
             {
-                                    ion.add(as);
+                            ion.add(as);
             }
             else // OHET and UNKNOWN
             {
-                if(Util.isH(as))    hetHydro.add(as);
-                else                hetHeavy.add(as);
+                if(isH)     hetHydro.add(as);
+                else        hetHeavy.add(as);
             }
         }// for each atom state
         

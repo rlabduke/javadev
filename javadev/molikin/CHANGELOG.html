@@ -6,17 +6,10 @@
         1ACX - weird geom leads to weird bonding patterns
         We could modify AtomGroup.connectHeavyAtoms()
         to keep only the N shortest bonds...
-    Deal with NMR 'Q' atoms in AtomGraph
-    Allow disabling cache for getCovalentNeighbors (?)
-    Check Prekin's NAList and AAList to make sure we have all entries...
-    Look at TR0001 for bb/sc -- some bb atoms are called sc
-        _CM2 for OMC, OMG; OP3 for terminus
-    do pointmasters for alt confs
- **     Highlights problems in our extractByName + fill-in for empty states...
-        1US0 has many C sidechains that are duplicates of the A's
+    Deal with NMR 'Q' atoms in AtomGraph (how -- what did I mean?)
     color by residue type (each AA, base, etc has its own color)
-    plugin - set kin as modified!
-    Calphas should be off if mainchain is included (?)
+    plugin - set kin as modified! (for append only?)
+    How to draw: only A alts? only atoms with B -lt 30? Q -gt 0.66?
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -28,6 +21,20 @@
 - made waters peachtint, 0.15 to match Prekin
 - added AltConfCrayon to handle alt conf pointmasters; set it in GUI
 - added CompositeCrayon to allow multiple crayons to play well together
+- made changes in driftwood.moldb2 to fix alt conf problem with 1US0, etc.
+  C conf had few atoms; fill-in with duplication created many extra A copies.
+  Drawing still seems to work fine now that fill-in is done without cloning.
+- complexified Util.getElement() b/c 1US0 has junk letters in 1st atom name pos
+- removed Util.is(H|Q|CNO|S|Disulfide) b/c they suffer from the same problems.
+- 1US0 still doesn't quite work b/c "AC.." is a valid element name!
+- removed Util.getElement() b/c we now have moldb2.Atom.getElement()
+- this has finally fixed the problems with rendering 1US0
+- Calphas / pseudo-backbone is "off" if we're also doing mainchain
+- added a few more NA names based on Prekin's NAList
+- added _CM2 and _O3P for tr0001 to Util.isMainchain()
+- modified gui.SelectorPane to show chains/models only if there are multiple
+- fixed insets on SelectorPane's text field for residue numbers
+- B factor is only printed in point ID if != 0
 
 ### 0.09 ###
 - modified the GUI to iterate models, chains at top level; not per panel

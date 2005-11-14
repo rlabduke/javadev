@@ -97,11 +97,15 @@ public class AtomState extends Triple implements Cloneable
     { return occupancy; }
 //}}}
 
-//{{{ getName, getResidue, isHet
+//{{{ getName, getElement, getResidue, isHet
 //##################################################################################################
     /** Convenience function that passes through to the underlying Atom */
     public String getName()
     { return atom.getName(); }
+    
+    /** Convenience function that passes through to the underlying Atom */
+    public String getElement()
+    { return atom.getElement(); }
     
     /** Convenience function that passes through to the underlying Atom */
     public Residue getResidue()
