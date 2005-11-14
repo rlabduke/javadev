@@ -164,7 +164,8 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
         
         if(cbPseudoBB.isSelected())
         {
-            out.println("@vectorlist {protein ca} color= "+bbColor+" master= {protein} master= {Calphas}");
+            String off = (cbBackbone.isSelected() ? " off" : "");
+            out.println("@vectorlist {protein ca} color= "+bbColor+" master= {protein} master= {Calphas}"+off);
             PseudoBackbone pseudoBB = data.getPseudoBackbone();
             sp.printSticks(pseudoBB.getProteinBonds(), null, null, proteinRes, proteinRes);
         }
@@ -228,7 +229,8 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
         
         if(cbPseudoBB.isSelected())
         {
-            out.println("@vectorlist {nuc. acid pseudobb} color= "+bbColor+" master= {nucleic acid} master= {pseudo-bb}");
+            String off = (cbBackbone.isSelected() ? " off" : "");
+            out.println("@vectorlist {nuc. acid pseudobb} color= "+bbColor+" master= {nucleic acid} master= {pseudo-bb}"+off);
             PseudoBackbone pseudoBB = data.getPseudoBackbone();
             sp.printSticks(pseudoBB.getNucAcidBonds(), null, null, nucAcidRes, nucAcidRes);
         }
@@ -399,20 +401,19 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
         for(Iterator iter = atomStates.iterator(); iter.hasNext(); )
         {
             AtomState as = (AtomState) iter.next();
-            if(Util.isH(as) || Util.isQ(as))        continue;
+            String elem = as.getElement();
+            // Remove carbon if no color has been specified; always remove H and Q
+            if(elem.equals("H") || elem.equals("Q") || (carbonColor == null && elem.equals("C")))
+                continue;
             if(!residues.contains(as.getResidue())) continue;
-            String element = Util.getElement(as);
-            Collection atoms = (Collection) elementsToAtoms.get(element);
+            Collection atoms = (Collection) elementsToAtoms.get(elem);
             if(atoms == null)
             {
                 atoms = new ArrayList();
-                elementsToAtoms.put(element, atoms);
+                elementsToAtoms.put(elem, atoms);
             }
             atoms.add(as);
         }
-        
-        // Remove carbon if no color has been specified
-        if(carbonColor == null) elementsToAtoms.remove("C");
         
         // Now print one balllist per element
         for(Iterator iter = elementsToAtoms.keySet().iterator(); iter.hasNext(); )

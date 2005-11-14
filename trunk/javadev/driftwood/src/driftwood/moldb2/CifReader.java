@@ -278,7 +278,28 @@ public class CifReader //extends ... implements ...
         Atom a = r.getAtom(name);
         if(a == null)
         {
-            a = new Atom(intern(name), (groupPdb == null ? false : ((String)groupPdb.get(i)).equals("HETATM")));
+            String elem = null;
+            if(typeSymbol != null)
+            {
+                String ts = (String) typeSymbol.get(i);
+                ts = ts.toUpperCase();
+                elem = getElement(ts);
+                if(elem == null && ts.length() > 2)
+                {
+                    ts = ts.substring(0,2);
+                    elem = getElement(ts);
+                }
+                if(elem == null && ts.length() > 1)
+                {
+                    ts = ts.substring(0,1);
+                    elem = getElement(ts);
+                }
+            }
+            if(elem == null) elem = getElement(name.substring(0,2));
+            if(elem == null) elem = getElement(name.substring(1,2));
+            if(elem == null) elem = "XX";
+            
+            a = new Atom(intern(name), elem, (groupPdb == null ? false : ((String)groupPdb.get(i)).equals("HETATM")));
             try { r.add(a); }
             catch(AtomException ex) { ex.printStackTrace(); }
         }
@@ -334,6 +355,43 @@ public class CifReader //extends ... implements ...
         }
         else if(len == 4) return atomName;
         else return atomName.substring(0, 4); // length() > 4
+    }
+//}}}
+
+//{{{ getElement
+//##############################################################################
+    static final String[] allElementNames = {
+"H", "HE",
+"LI", "BE", "B", "C", "N", "O", "F", "NE",
+"NA", "MG", "AL", "SI", "P", "S", "CL", "AR",
+"K", "CA", "SC", "TI", "V", "CR", "MN", "FE", "CO", "NI", "CU", "ZN", "GA",
+    "GE", "AS", "SE", "BR", "KR",
+"RB", "SR", "Y", "ZR", "NB", "MO", "TC", "RU", "RH", "PD", "AG", "CD", "IN",
+    "SN", "CB", "TE", "I", "XE",
+"CS", "BA", "LA", "CE", "PR", "ND", "PM", "SM", "EU", "GD", "TB", "DY", "HO",
+    "ER", "TM", "YB", "LU", "HF", "TA", "W", "RE", "OS", "IR", "PT", "AU",
+    "HG", "TL", "PB", "BI", "PO", "AT", "RN",
+"FR", "RA", "AC", "TH", "PA", "U", "NP", "PU", "AM", "CM", "BK", "CF", "ES",
+    "FM", "MD", "NO", "LR", "RF", "DB", "SG", "BH", "HS", "MT", "DS"
+    };
+    static Map elementNames = null;
+    /**
+    * Pass in a valid element symbol, or D, T, or Q (1 or 2 chars, uppercase).
+    * Get back a valid element symbol.
+    * Returns null for things we don't recognize at all.
+    */
+    static String getElement(String name)
+    {
+        if(elementNames == null)
+        {
+            elementNames = new HashMap();
+            for(int i = 0; i < allElementNames.length; i++)
+                elementNames.put(allElementNames[i], allElementNames[i]);
+            elementNames.put("D", "H"); // deuterium
+            elementNames.put("T", "H"); // tritium
+            elementNames.put("Q", "Q"); // NMR pseudo atoms
+        }
+        return (String) elementNames.get(name);
     }
 //}}}
 

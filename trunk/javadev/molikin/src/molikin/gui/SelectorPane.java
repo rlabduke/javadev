@@ -44,14 +44,15 @@ public class SelectorPane extends TablePane2 implements ListSelectionListener, A
     public SelectorPane(CoordinateFile cfile)
     {
         super();
-        buildGUI();
+        buildGUI1();
         populateLists(cfile);
+        buildGUI2();
     }
 //}}}
 
-//{{{ buildGUI
+//{{{ buildGUI[12]
 //##############################################################################
-    private void buildGUI()
+    private void buildGUI1()
     {
         modelList = new FatJList(0, 4);
             modelList.setVisibleRowCount(6);
@@ -64,22 +65,32 @@ public class SelectorPane extends TablePane2 implements ListSelectionListener, A
             resTypeList.setVisibleRowCount(6);
         resRangeField = new AttentiveTextField();
             resRangeField.addActionListener(this);
+    }
+    
+    private void buildGUI2()
+    {
+        boolean showModels = (modelList.getModel().getSize() > 1);
+        boolean showChains = (chainList.getModel().getSize() > 1);
+        int cols = 2;
+        if(showModels)  cols++;
+        if(showChains)  cols++;
         
         this.insets(2,8,2,8).memorize();
         this.weights(1,0).memorize();
-        this.addCell(new JLabel("Models"));
-        this.addCell(new JLabel("Chains"));
+        if(showModels)  this.addCell(new JLabel("Models"));
+        if(showChains)  this.addCell(new JLabel("Chains"));
         this.addCell(new JLabel("Numbers"));
         this.addCell(new JLabel("Types"));
         this.newRow();
         this.weights(1,1).memorize(); // all vertical space to lists
-        this.hfill(true).vfill(true).addCell(new JScrollPane(modelList));
-        this.hfill(true).vfill(true).addCell(new JScrollPane(chainList));
+        if(showModels)  this.hfill(true).vfill(true).addCell(new JScrollPane(modelList));
+        if(showChains)  this.hfill(true).vfill(true).addCell(new JScrollPane(chainList));
         this.hfill(true).vfill(true).addCell(new JScrollPane(resNumList));
         this.hfill(true).vfill(true).addCell(new JScrollPane(resTypeList));
         this.newRow();
         this.weights(1,0).memorize();
-        this.startSubtable(4,1);
+        this.startSubtable(cols,1);
+            this.insets(2,8,2,8).memorize();
             this.weights(0,1).addCell(new JLabel("Numbers"));
             this.hfill(true).addCell(resRangeField); // all horiz space to field
             this.newRow();

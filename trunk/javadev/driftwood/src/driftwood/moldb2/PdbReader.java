@@ -326,7 +326,13 @@ public class PdbReader //extends ... implements ...
         Atom    a   = r.getAtom(id);
         if(a == null)
         {
-            a = new Atom(intern(id), s.startsWith("HETATM"));
+            String elem = null;
+            if(s.length() >= 78) elem = getElement(s.substring(76,78).trim());
+            if(elem == null) elem = getElement(id.substring(0,2));
+            if(elem == null) elem = getElement(id.substring(1,2));
+            if(elem == null) elem = "XX";
+            
+            a = new Atom(intern(id), elem, s.startsWith("HETATM"));
             try { r.add(a); }
             catch(AtomException ex)
             {
@@ -335,6 +341,43 @@ public class PdbReader //extends ... implements ...
             }
         }
         return a;
+    }
+//}}}
+
+//{{{ getElement
+//##############################################################################
+    static final String[] allElementNames = {
+"H", "HE",
+"LI", "BE", "B", "C", "N", "O", "F", "NE",
+"NA", "MG", "AL", "SI", "P", "S", "CL", "AR",
+"K", "CA", "SC", "TI", "V", "CR", "MN", "FE", "CO", "NI", "CU", "ZN", "GA",
+    "GE", "AS", "SE", "BR", "KR",
+"RB", "SR", "Y", "ZR", "NB", "MO", "TC", "RU", "RH", "PD", "AG", "CD", "IN",
+    "SN", "CB", "TE", "I", "XE",
+"CS", "BA", "LA", "CE", "PR", "ND", "PM", "SM", "EU", "GD", "TB", "DY", "HO",
+    "ER", "TM", "YB", "LU", "HF", "TA", "W", "RE", "OS", "IR", "PT", "AU",
+    "HG", "TL", "PB", "BI", "PO", "AT", "RN",
+"FR", "RA", "AC", "TH", "PA", "U", "NP", "PU", "AM", "CM", "BK", "CF", "ES",
+    "FM", "MD", "NO", "LR", "RF", "DB", "SG", "BH", "HS", "MT", "DS"
+    };
+    static Map elementNames = null;
+    /**
+    * Pass in a valid element symbol, or D, T, or Q (1 or 2 chars, uppercase).
+    * Get back a valid element symbol.
+    * Returns null for things we don't recognize at all.
+    */
+    static String getElement(String name)
+    {
+        if(elementNames == null)
+        {
+            elementNames = new HashMap();
+            for(int i = 0; i < allElementNames.length; i++)
+                elementNames.put(allElementNames[i], allElementNames[i]);
+            elementNames.put("D", "H"); // deuterium
+            elementNames.put("T", "H"); // tritium
+            elementNames.put("Q", "Q"); // NMR pseudo atoms
+        }
+        return (String) elementNames.get(name);
     }
 //}}}
 

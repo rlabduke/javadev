@@ -91,50 +91,13 @@ public class Util //extends ... implements ...
     }
 //}}}
 
-//{{{ isH, isQ, isCNO
-//##############################################################################
-    static public boolean isH(AtomState as)
-    {
-        String name = as.getName();
-        if(name.length() < 2)
-            return name.equals("H");
-        char c1 = name.charAt(0), c2 = name.charAt(1);
-        return ((c2 == 'H' || c2 == 'D')// || c2 == 'T')
-            &&  (c1 == ' ' || ('0' <= c1 && c1 <= '9')));
-    }
-    
-    /** True iff this is an NMR pseudo-hydrogen "Q" */
-    static public boolean isQ(AtomState as)
-    {
-        String name = as.getName();
-        if(name.length() < 2)
-            return name.equals("Q");
-        char c1 = name.charAt(0), c2 = name.charAt(1);
-        return ((c2 == 'Q')
-            &&  (c1 == ' ' || ('0' <= c1 && c1 <= '9')));
-    }
-    
-    /**
-    * Returns true iff this atom appears to be carbon, nitrogen, or oxygen
-    * based on its atom name.
-    */
-    static public boolean isCNO(AtomState as)
-    {
-        String name = as.getName();
-        if(name.length() < 2)
-            return name.equals("C") || name.equals("N") || name.equals("O");
-        char c1 = name.charAt(0), c2 = name.charAt(1);
-        return ((c2 == 'C' || c2 == 'N' || c2 == 'O')
-            &&  (c1 == ' ' || ('0' <= c1 && c1 <= '9')));
-    }
-//}}}
-
 //{{{ isMainchain, isWater
 //##############################################################################
     /** Based on Prekin PKINCSBS.c decidemainside() */
-    static String mcPattern = ".N[ T].|.C[A ].|.O .|.OXT|[^2][HDQ][A ] |.[HDQ].['*]|.P  |.O[12]P|.[CO][1-5]['*]";
+    static String mcPattern = ".N[ T].|.C[A ].|.O .|.OXT|[^2][HDQ][A ] |.[HDQ].['*]|.P  |.O[123]P|.[CO][1-5]['*]| CM2";
     //                                                   ^^^^
     //                              makes one Gly H sidechain, the other mainchain
+    // added _CM2 and _O3P for tr0001 on 051114
     static Matcher mcMatcher = null;
     static public boolean isMainchain(AtomState as)
     {
@@ -171,7 +134,7 @@ public class Util //extends ... implements ...
     }
 
     /** Based on Prekin's NAList */
-    static String nucacidPattern = "  C|  G|  A|  T|  U|CYT|GUA|ADE|THY|URA|URI|CTP|CDP|CMP|GTP|GDP|GMP|ATP|ADP|AMP|TTP|TDP|TMP|UTP|UDP|UMP|GSP|H2U|PSU|1MG|2MG|M2G|5MC|5MU|T6A|1MA|RIA|OMC|OMG| YG|  I|7MG";
+    static String nucacidPattern = "  C|  G|  A|  T|  U|CYT|GUA|ADE|THY|URA|URI|CTP|CDP|CMP|GTP|GDP|GMP|ATP|ADP|AMP|TTP|TDP|TMP|UTP|UDP|UMP|GSP|H2U|PSU|1MG|2MG|M2G|5MC|5MU|T6A|1MA|RIA|OMC|OMG| YG|  I|7MG|C  |G  |A  |T  |U  |YG |I  ";
     //7mg added 001114 for tRNA 1EHZ
     static Matcher nucacidMatcher = null;
     static public boolean isNucleicAcid(Residue res)
@@ -192,41 +155,8 @@ public class Util //extends ... implements ...
     }
 //}}}
 
-//{{{ isS, isDisulfide
+//{{{ getElementColor
 //##############################################################################
-    static public boolean isS(AtomState as)
-    {
-        String name = as.getName();
-        if(name.length() < 2)
-            return name.equals("S");
-        char c1 = name.charAt(0), c2 = name.charAt(1);
-        return ((c2 == 'S')
-            &&  (c1 == ' ' || ('0' <= c1 && c1 <= '9')));
-    }
-    
-    /** AtomState fields of the Bond must be filled for this to work (ie non-null). */
-    static public boolean isDisulfide(Bond bond)
-    {
-        return (isS(bond.lower) && isS(bond.higher));
-    }
-//}}}
-
-//{{{ getElement, getElementColor
-//##############################################################################
-    /**
-    * Returns our best guess at the element symbol (1 or 2 chars, uppercase)
-    */
-    static public String getElement(AtomState as)
-    {
-        String name = as.getName();
-        if(name.length() < 2)
-            return name;
-        char c1 = name.charAt(0), c2 = name.charAt(1);
-        if('A' <= c1 && c1 <= 'Z')  return name.substring(0,2);
-        else if(c2 == 'D')          return "H"; // D is the isotope, not the element
-        else                        return name.substring(1,2);
-    }
-    
     static Map elementColors = null;
     /**
     * Given the element symbol (1 or 2 chars, uppercase) this returns
