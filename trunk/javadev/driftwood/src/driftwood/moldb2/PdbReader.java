@@ -50,6 +50,9 @@ public class PdbReader //extends ... implements ...
     /** The current Model */
     Model       model;
     
+    /** A Map&lt;String, ModelState&gt; for this Model */
+    Map         states;
+    
     /** A Map&lt;String, Residue&gt; based on PDB naming */
     Map         residues;
     
@@ -85,6 +88,7 @@ public class PdbReader //extends ... implements ...
     {
         coordFile   = new CoordinateFile();
         model       = null;
+        states      = new HashMap();
         residues    = new HashMap();
         autoSerial  = -9999;
         countTER    = 0;
@@ -94,6 +98,7 @@ public class PdbReader //extends ... implements ...
     {
         coordFile   = null;
         model       = null;
+        states      = null;
         residues    = null;
         autoSerial  = -9999;
         countTER    = 0;
@@ -157,12 +162,17 @@ public class PdbReader //extends ... implements ...
                 }
                 else if(s.startsWith("MODEL ") && s.length() >= 14)
                 {
+                    if(model != null) model.setStates(states);
+                    
                     model = new Model(s.substring(10,14).trim());
                     coordFile.add(model);
+                    states.clear();
                     residues.clear();
                 }
                 else if(s.startsWith("ENDMDL"))
                 {
+                    if(model != null) model.setStates(states);
+                    
                     model = null;
                 }
                 else if(s.startsWith("TER"))
@@ -189,6 +199,8 @@ public class PdbReader //extends ... implements ...
             catch(NumberFormatException ex)
             { SoftLog.err.println("Error reading from PDB file, line "+r.getLineNumber()+": "+ex.getMessage()); }
         }//while more lines
+        if(model != null) model.setStates(states);
+                    
         
         CoordinateFile rv = coordFile;
         clearData();
@@ -225,7 +237,7 @@ public class PdbReader //extends ... implements ...
         
         // We're now ready to add this to a ModelState
         // It's possible this state will have no coords, etc
-        ModelState mState = model.makeState(altConf);
+        ModelState mState = makeState(altConf);
         // This protects us against duplicate lines
         // that re-define the same atom and state!
         try { mState.add(state); }
@@ -266,6 +278,7 @@ public class PdbReader //extends ... implements ...
         {
             model = new Model("1");
             coordFile.add(model);
+            states.clear();
             residues.clear();
         }
     }
@@ -311,6 +324,31 @@ public class PdbReader //extends ... implements ...
         }
         
         return r;
+    }
+//}}}
+
+//{{{ makeState
+//##################################################################################################
+    /**
+    * Returns a conformation identified by its one letter code,
+    * in the form of a ModelState;
+    * or <b>creates it if it didn't previously exist</b>.
+    * <p>If the ID is something other than space (' '), the
+    * new conformation will have the default conformation set
+    * as its parent. If a default conformation does not exist
+    * yet, it will also be created.
+    */
+    ModelState makeState(String stateID)
+    {
+        ModelState state = (ModelState) states.get(stateID);
+        if(state == null)
+        {
+            state = new ModelState();
+            states.put(stateID, state);
+            if(! " ".equals(stateID))
+                state.setParent(this.makeState(" "));
+        }
+        return state;
     }
 //}}}
 

@@ -36,6 +36,7 @@ UTIL: {{{
 ==============================================================================
 
 ### 0.74 ###
+### 0.74 ###
 - fillInStates code now has the option of creating new ATOMs or not.
 - PdbReader and CifReader now default to NOT creating new atoms during fill-in.
 - added a field to Residue so compareTo will work with trimmed residue numbers.
@@ -46,6 +47,11 @@ UTIL: {{{
 - added getElement() to moldb2.Atom and AtomState
 - PdbReader now sets element when file is read in
 - CifReader now sets element when file is read in
+- removed Model.getChains() -- no one uses it, and it should be a Map
+- removed Model.getStateIDs(); changed getStates() to return a Map
+- added Model.setStates(); with clone() this should make modification easier
+- moved Model.makeState() logic into PdbReader and CifReader, where it belongs.
+  It makes the Reader code uglier, but it makes Model cleaner.
 
 ### 0.73 ###
 - fixed code formatting in AminoAcid

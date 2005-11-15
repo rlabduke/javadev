@@ -209,7 +209,7 @@ public class Ramalyze //extends ... implements ...
         for(Iterator iter = coordFile.getModels().iterator(); iter.hasNext(); )
         {
             Model model = (Model) iter.next();
-            Collection analysis = analyzeModel(model, model.getStates());
+            Collection analysis = analyzeModel(model, model.getStates().values());
             boolean useModelNames = (coordFile.getModels().size() > 1);
             improveResidueNames(analysis, useModelNames);
             analyses.put(analysis, model.getName());

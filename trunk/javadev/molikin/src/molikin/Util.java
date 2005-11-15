@@ -32,7 +32,7 @@ public class Util //extends ... implements ...
 //{{{ extractOrderedStatesByName
 //##############################################################################
     static public Collection extractOrderedStatesByName(Model model)
-    { return extractOrderedStatesByName(model.getResidues(), model.getStates()); }
+    { return extractOrderedStatesByName(model.getResidues(), model.getStates().values()); }
     
     /**
     * Extracts all the uniquely named AtomStates for the given model, in the

@@ -269,12 +269,6 @@ public class Model implements Cloneable
         return Collections.unmodifiableSet(chainMap.keySet());
     }
     
-    /** Returns a Collection&lt;Collection&lt;Residue&gt;&gt; for all chains in the model */
-    public Collection getChains()
-    {
-        return Collections.unmodifiableCollection(chainMap.values());
-    }
-    
     /**
     * Returns a chain identified by its one letter code,
     * in the form of an unmodifiable Set&lt;Residue&gt;;
@@ -373,15 +367,11 @@ public class Model implements Cloneable
     }
 //}}}
 
-//{{{ getState(IDs), makeState
+//{{{ getState(s), setStates
 //##################################################################################################
-    /** Returns an unmodifiable Set&lt;String&gt; of all the populated conformations in this model */
-    public Set getStateIDs()
-    { return Collections.unmodifiableSet(stateMap.keySet()); }
-    
-    /** Returns an unmodifiable Collection&lt;ModelState&gt; for all the populated conformations in this model */
-    public Collection getStates()
-    { return Collections.unmodifiableCollection(stateMap.values()); }
+    /** Returns an unmodifiable Map&lt;String, ModelState&gt; for all the populated conformations in this model */
+    public Map getStates()
+    { return Collections.unmodifiableMap(stateMap); }
     
     /**
     * Returns a conformation identified by its one letter code,
@@ -407,30 +397,15 @@ public class Model implements Cloneable
     }
     
     /**
-    * Returns a conformation identified by its one letter code,
-    * in the form of a ModelState;
-    * or <b>creates it if it didn't previously exist</b>.
-    * <p>If the ID is something other than space (' '), the
-    * new conformation will have the default conformation set
-    * as its parent. If a default conformation does not exist
-    * yet, it will also be created.
+    * Uses the given Map&lt;String, ModelState&gt; to associate
+    * a new set of states with a new set of labels in this Model.
     */
-    public ModelState makeState(String stateID)
+    public void setStates(Map newStates)
     {
-        ModelState state = (ModelState)stateMap.get(stateID);
-        if(state == null)
-        {
-            state = new ModelState();
-            stateMap.put(stateID, state);
-            // This counts as a logical change because the
-            // results of getStates() is altered.
-            this.modified();
-            
-            if(! " ".equals(stateID))
-                state.setParent(this.makeState(" "));
-        }
-        
-        return state;
+        this.stateMap = new TreeMap(newStates);
+        // This counts as a logical change because the
+        // results of getStates() is altered.
+        this.modified();
     }
 //}}}
 

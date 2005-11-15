@@ -46,7 +46,7 @@ public class AltConfBackrubFinder //extends ... implements ...
     {
         DecimalFormat df = new DecimalFormat("0.0####");
         final double maxCaShift = 0.01; // less than 2% more examples at 0.1 A allowance
-        Collection stateC = model.getStates();
+        Collection stateC = model.getStates().values();
         ModelState[] states = (ModelState[]) stateC.toArray(new ModelState[stateC.size()]);
         for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
         {
