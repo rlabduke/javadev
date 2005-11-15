@@ -8,14 +8,18 @@
         to keep only the N shortest bonds...
     Deal with NMR 'Q' atoms in AtomGraph (how -- what did I mean?)
     color by residue type (each AA, base, etc has its own color)
-    plugin - set kin as modified! (for append only?)
     How to draw: only A alts? only atoms with B -lt 30? Q -gt 0.66?
+        Create new Model with edited ModelStates
+    VDW, Ball+Stick engines should be separated from their GUIs
+        public boolean showXXX = false
+        element color map should be pluggable, not from Util
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
 ### 0.11 ###
+- plugin now marks kin as modified on Append, but not on New (may be throwaway)
 
 ### 0.10 ###
 - removed all the justifyLeft()'s from PrekinIDer after profiling showed that
