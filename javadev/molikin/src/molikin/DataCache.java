@@ -102,7 +102,7 @@ public class DataCache //extends ... implements ...
     public PseudoBackbone getPseudoBackbone()
     {
         if(pseudoBB == null)
-            pseudoBB = new PseudoBackbone(model, model.getStates(), getResClassifier());
+            pseudoBB = new PseudoBackbone(model, model.getStates().values(), getResClassifier());
         return pseudoBB;
     }
 //}}}

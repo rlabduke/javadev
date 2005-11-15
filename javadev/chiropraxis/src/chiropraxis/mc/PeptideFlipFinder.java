@@ -169,7 +169,7 @@ public class PeptideFlipFinder //extends ... implements ...
             {
                 CoordinateFile cf = reader.read(new File(fileName));
                 Model model = cf.getFirstModel();
-                Collection stateClcn = model.getStates();
+                Collection stateClcn = model.getStates().values();
                 ModelState[] states = (ModelState[]) stateClcn.toArray(new ModelState[stateClcn.size()]);
                 
                 Collection flipRes = findPeptideFlips(model, states);

@@ -407,7 +407,7 @@ public class ModelManager2 extends Plugin
         }
         
         // Let user select alt conf
-        Collection states = new ArrayList(m.getStateIDs());
+        Collection states = new ArrayList(m.getStates().keySet());
         if(states.size() == 1)
             s = m.getState();
         else
@@ -516,7 +516,7 @@ public class ModelManager2 extends Plugin
                         
                         // Use modified state for modified model,
                         // default (original) for all other models.
-                        Set states = new UberSet(this.getModel().getStates());
+                        Set states = new UberSet(this.getModel().getStates().values());
                         states.remove(srcstate); // remove default state
                         Set newStates = new UberSet();
                         newStates.add(this.getFrozenState());

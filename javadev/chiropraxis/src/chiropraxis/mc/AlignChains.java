@@ -144,7 +144,7 @@ public class AlignChains //extends ... implements ...
         for(Iterator mi = coordFile.getModels().iterator(); mi.hasNext(); )
         {
             Model m = (Model) mi.next();
-            Collection allAtomStates = extractOrderedStatesByName(m.getResidues(), m.getStates());
+            Collection allAtomStates = extractOrderedStatesByName(m.getResidues(), m.getStates().values());
             AtomState[] atomStates = (AtomState[]) allAtomStates.toArray(new AtomState[allAtomStates.size()]);
             for(Iterator ci = mobChains.iterator(); ci.hasNext(); )
             {

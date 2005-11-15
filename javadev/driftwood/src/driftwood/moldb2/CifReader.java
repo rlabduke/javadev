@@ -52,6 +52,7 @@ public class CifReader //extends ... implements ...
     
     CoordinateFile coordFile = null;
     Map modelMap = null; // maps model names as Strings to Model objects
+    Map states; // a Map<Model, Map<String, ModelState>>
     Map resMap = null; // maps res pseudonames as Strings to Residue objects
     int fakeResNumber = 1; // used for waters, etc. that lack residue numbers
     CheapSet stringCache = new CheapSet(); // a map for intern'ing Strings
@@ -65,7 +66,7 @@ public class CifReader //extends ... implements ...
     }
 //}}}
 
-//{{{ init/clearData, intern
+//{{{ intern
 //##################################################################################################
     /** Like String.intern(), but the cache is discarded after reading the file. */
     String intern(String s)
@@ -127,6 +128,7 @@ public class CifReader //extends ... implements ...
         
         this.coordFile  = new CoordinateFile();
         this.modelMap   = new HashMap();
+        this.states     = new HashMap();
         this.resMap     = new HashMap();
         this.fakeResNumber = 1;
         this.stringCache.clear();
@@ -136,7 +138,7 @@ public class CifReader //extends ... implements ...
             Residue     res     = getResidue(model, i);
             Atom        atom    = getAtom(res, i);
             AtomState   as      = buildAtomState(atom, i);
-            ModelState  ms      = model.makeState(as.getAltConf());
+            ModelState  ms      = makeState(model, as.getAltConf());
             
             // Waters, etc. don't have sequence IDs
             // Assume same residue until we get an atom name collision.
@@ -155,6 +157,7 @@ public class CifReader //extends ... implements ...
         for(Iterator iter = coordFile.getModels().iterator(); iter.hasNext(); )
         {
             Model m = (Model) iter.next();
+            m.setStates( (Map) states.get(m) );
             try { m.fillInStates(false); }
             catch(AtomException ex)
             {
@@ -216,7 +219,7 @@ public class CifReader //extends ... implements ...
     }
 //}}}
 
-//{{{ getModel
+//{{{ getModel, makeState
 //#############################################################################
     /** Returns the model for the given record number. */
     Model getModel(int i)
@@ -231,6 +234,35 @@ public class CifReader //extends ... implements ...
             this.coordFile.add(m);
         }
         return m;
+    }
+    
+    /**
+    * Returns a conformation identified by its one letter code,
+    * in the form of a ModelState;
+    * or <b>creates it if it didn't previously exist</b>.
+    * <p>If the ID is something other than space (' '), the
+    * new conformation will have the default conformation set
+    * as its parent. If a default conformation does not exist
+    * yet, it will also be created.
+    */
+    ModelState makeState(Model model, String stateID)
+    {
+        Map modelStateMap = (Map) states.get(model);
+        if(modelStateMap == null)
+        {
+            modelStateMap = new HashMap();
+            states.put(model, modelStateMap);
+        }
+        
+        ModelState state = (ModelState) modelStateMap.get(stateID);
+        if(state == null)
+        {
+            state = new ModelState();
+            modelStateMap.put(stateID, state);
+            if(! " ".equals(stateID))
+                state.setParent(this.makeState(model, " "));
+        }
+        return state;
     }
 //}}}
 

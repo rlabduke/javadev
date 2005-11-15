@@ -196,7 +196,7 @@ public class PdbWriter //extends ... implements ...
             
             
             Collection stateSet = (Collection)modelStates.get(model);
-            if(stateSet == null) stateSet = model.getStates();
+            if(stateSet == null) stateSet = model.getStates().values();
             ModelState[] states = (ModelState[])stateSet.toArray(new ModelState[stateSet.size()]);
             
             writeModel(model, states);
