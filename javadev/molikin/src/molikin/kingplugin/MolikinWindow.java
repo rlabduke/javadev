@@ -82,7 +82,11 @@ public class MolikinWindow //extends ... implements ...
     { buildKinemage(null); }
     
     public void onAppendKinemage(ActionEvent ev)
-    { buildKinemage( kMain.getKinemage() ); }
+    {
+        Kinemage kin = kMain.getKinemage(); // could be null
+        buildKinemage(kin);
+        if(kin != null) kin.setModified(true);
+    }
     
     public void onDone(ActionEvent ev)
     {
