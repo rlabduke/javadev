@@ -205,8 +205,7 @@
 </target>
 
 <!-- Deploys the executable on the local MolProbity - applies to IWD's machine only  -->
-<target name="deploy-local-mp"  description="Deploy to local MolProbity 2 and 3" depends="build">
-    <copy file="${ant.project.name}.jar" todir="${user.home}/Sites/molprobity/" overwrite="true" failonerror="false"/>
+<target name="deploy-local-mp"  description="Deploy to local MolProbity 3" depends="build">
     <copy file="${ant.project.name}.jar" todir="${user.home}/Sites/molprobity3/public_html/" overwrite="true" failonerror="false"/>
 </target>
 
