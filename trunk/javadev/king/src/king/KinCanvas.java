@@ -147,7 +147,9 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
             try
             {
                 //SoftLog.err.println("Trying to init OpenGL...");
-                this.setQuality(QUALITY_JOGL);
+                //this.setQuality(QUALITY_JOGL); -- generates an error dialog
+                this.loadJOGL();
+                this.renderQuality = QUALITY_JOGL;
             }
             catch(Throwable t) {}//{ t.printStackTrace(SoftLog.err); }
         }
@@ -363,7 +365,18 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
         // JOGL canvas *is* reusable, but for some reason we have to set the
         // graphics component here -- it doesn't work in paintComponent()!
         if(q == QUALITY_JOGL && joglCanvas == null)
-            loadJOGL();
+        {
+            try { loadJOGL(); }
+            catch(Throwable t)
+            {
+                t.printStackTrace(SoftLog.err);
+                joglCanvas = null;
+                joglAction = null;
+                JOptionPane.showMessageDialog(kMain.getTopWindow(),
+                    "Unable to initialize OpenGL graphics.\nSee user manual for details on enabling this feature.",
+                    "No OpenGL", JOptionPane.ERROR_MESSAGE);
+            }
+        }
         else if(q < QUALITY_JOGL)
             kMain.getContentPane().setGraphicsComponent(this);
     }
@@ -418,25 +431,13 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
     }
     
     // lazily loads the JOGL Painter just before we need it
-    private void loadJOGL()
+    private void loadJOGL() throws Throwable
     {
         // Try to create a JOGL painter, via reflection
-        try
-        {
-            Class joglClass = Class.forName("king.JoglCanvas");
-            Constructor joglConstr = joglClass.getConstructor(new Class[] { KingMain.class, Engine.class, ToolBox.class });
-            joglCanvas = (Component)joglConstr.newInstance(new Object[] { kMain, engine, toolbox });
-            joglAction = new ReflectiveAction(null, null, joglCanvas, "requestRepaint");
-        }
-        catch(Throwable t)
-        {
-            t.printStackTrace(SoftLog.err);
-            joglCanvas = null;
-            joglAction = null;
-            JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                "Unable to initialize OpenGL graphics.\nSee user manual for details on enabling this feature.",
-                "No OpenGL", JOptionPane.ERROR_MESSAGE);
-        }
+        Class joglClass = Class.forName("king.JoglCanvas");
+        Constructor joglConstr = joglClass.getConstructor(new Class[] { KingMain.class, Engine.class, ToolBox.class });
+        joglCanvas = (Component)joglConstr.newInstance(new Object[] { kMain, engine, toolbox });
+        joglAction = new ReflectiveAction(null, null, joglCanvas, "requestRepaint");
     }
 //}}}
 

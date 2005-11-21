@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- This script was automatically generated using Zero G's InstallAnywhere 5.5.1 Now, Build 2032
      STATUS: Fully Functional LICENSED Edition
-     DATE:   Thu Aug 04 10:35:30 EDT 2005 -->
-<InstallAnywhere_Deployment_Project increments="1614">
+     DATE:   Tue Nov 15 11:10:02 EST 2005 -->
+<InstallAnywhere_Deployment_Project increments="1634">
 	<!-- ** DO NOT EDIT ** Essential authorization and configuration data ** DO NOT EDIT ** -->
 	<essentialScriptInfo>
 		<versionID major="5" minor="5" revision="1"/>
 		<editionID>53,46,53,46,49,32,78,111,119,32,66,117,105,108,100,32,50,48,51,50</editionID>
 		<scriptID>12,42,11,90,83,49,52,48,53,76,81,66,70,67,78,72</scriptID>
-		<buildID>3,13,71,77,97,99,32,79,83,32,88,44,32,49,48,46,52,46,50,44,32,112,112,99,59,32,74,97,118,97,32,49,46,51,46,49,95,49,53,44,32,65,112,112,108,101,32,67,111,109,112,117,116,101,114,44,32,73,110,99,46,44,32,104,116,116,112,58,47,47,97,112,112,108,101,46,99,111,109,47,59,32,101,110,44,32,85,83,59,32,77,97,99,82,111,109,97,110</buildID>
+		<buildID>3,13,71,77,97,99,32,79,83,32,88,44,32,49,48,46,52,46,51,44,32,112,112,99,59,32,74,97,118,97,32,49,46,51,46,49,95,49,54,44,32,65,112,112,108,101,32,67,111,109,112,117,116,101,114,44,32,73,110,99,46,44,32,104,116,116,112,58,47,47,97,112,112,108,101,46,99,111,109,47,59,32,101,110,44,32,85,83,59,32,77,97,99,82,111,109,97,110</buildID>
 		<!-- The authorizationID may change between project saves and builds.  This does not effect the integrity of the project, nor do changes in this value represent changes in the actual InstallAnywhere project. -->
-		<authorizationID>1,0,0,0,-120,-18,16,-128,80,112,112,97,87,98,113,97,113,65,81,51,74,65,78,68,71,68,64,69,66,69,48,79,87,5,2,9,2,27,113,5,1,0,0</authorizationID>
+		<authorizationID>1,0,0,0,-104,-65,-96,-16,80,112,112,97,87,98,113,97,113,65,81,51,74,65,78,68,71,68,64,69,66,69,48,79,87,5,2,7,0,16,116,7,1,0,0</authorizationID>
 	</essentialScriptInfo>
-	<installationObjects uniqueObjects="83">
+	<installationObjects uniqueObjects="84">
 		<object class="com.zerog.ia.installer.Installer" objectID="5351b8a1a760">
 			<property name="wizardME">
 				<object class="com.zerog.ia.installer.actions.MakeExecutable" objectID="5351d34da762">
@@ -176,7 +176,7 @@ it will search for ones in this list]]></string>
 								</object>
 							</method>
 							<method name="addElement">
-								<object class="com.zerog.ia.installer.util.LAXPropertyData" objectID="95677ca58939">
+								<object class="com.zerog.ia.installer.util.LAXPropertyData" objectID="a830de79bb6b">
 									<property name="propertyValue">
 										<string><![CDATA[king.KingMain]]></string>
 									</property>
@@ -260,7 +260,7 @@ and any path to a file to read from that file]]></string>
 								<string><![CDATA[king.jar]]></string>
 							</property>
 							<property name="fileSize">
-								<long>505516</long>
+								<long>513340</long>
 							</property>
 							<property name="macBinary">
 								<boolean>false</boolean>
@@ -723,7 +723,7 @@ Press "Done" to quit the installer.]]></string>
 				<object class="java.util.Properties">
 					<method name="put">
 						<string><![CDATA[com.zerog.ia.project.save.last.date]]></string>
-						<string><![CDATA[Thu Aug 04 10:35:30 EDT 2005]]></string>
+						<string><![CDATA[Tue Nov 15 11:10:01 EST 2005]]></string>
 					</method>
 					<method name="put">
 						<string><![CDATA[com.zerog.ia.build.options.optimization.platform.merge]]></string>
@@ -767,7 +767,7 @@ Press "Done" to quit the installer.]]></string>
 					</method>
 					<method name="put">
 						<string><![CDATA[com.zerog.ia.project.build.last.date]]></string>
-						<string><![CDATA[Thu Aug 04 10:35:30 EDT 2005]]></string>
+						<string><![CDATA[Tue Nov 15 11:10:01 EST 2005]]></string>
 					</method>
 					<method name="put">
 						<string><![CDATA[com.zerog.ia.installer.options.heap.size.initial]]></string>
@@ -967,7 +967,7 @@ Press "Done" to quit the installer.]]></string>
 						<int>1</int>
 					</property>
 					<property name="productVersionMinor">
-						<int>44</int>
+						<int>47</int>
 					</property>
 					<property name="productVersionRevision">
 						<int>0</int>
@@ -1413,7 +1413,7 @@ and any path to a file to read from that file]]></string>
 												<string><![CDATA[chiropraxis.jar]]></string>
 											</property>
 											<property name="fileSize">
-												<long>2030435</long>
+												<long>2041009</long>
 											</property>
 											<property name="macBinary">
 												<boolean>false</boolean>
@@ -1471,7 +1471,7 @@ and any path to a file to read from that file]]></string>
 												<string><![CDATA[dot_king_prefs.txt]]></string>
 											</property>
 											<property name="fileSize">
-												<long>4488</long>
+												<long>4449</long>
 											</property>
 											<property name="macBinary">
 												<boolean>false</boolean>
@@ -1529,7 +1529,7 @@ and any path to a file to read from that file]]></string>
 												<string><![CDATA[king-manual.pdf]]></string>
 											</property>
 											<property name="fileSize">
-												<long>93417</long>
+												<long>90566</long>
 											</property>
 											<property name="macBinary">
 												<boolean>false</boolean>
@@ -1607,7 +1607,7 @@ and any path to a file to read from that file]]></string>
 												<string><![CDATA[beanking.jar]]></string>
 											</property>
 											<property name="fileSize">
-												<long>287954</long>
+												<long>287953</long>
 											</property>
 											<property name="macBinary">
 												<boolean>false</boolean>
@@ -1636,7 +1636,7 @@ and any path to a file to read from that file]]></string>
 												<string><![CDATA[format-kinemage.pdf]]></string>
 											</property>
 											<property name="fileSize">
-												<long>84006</long>
+												<long>85654</long>
 											</property>
 											<property name="macBinary">
 												<boolean>false</boolean>
@@ -1873,7 +1873,7 @@ and any path to a file to read from that file]]></string>
 												<string><![CDATA[extratools.jar]]></string>
 											</property>
 											<property name="fileSize">
-												<long>123112</long>
+												<long>136576</long>
 											</property>
 											<property name="macBinary">
 												<boolean>false</boolean>
@@ -1881,37 +1881,6 @@ and any path to a file to read from that file]]></string>
 											<property name="targetCheckKind">
 												<int>0</int>
 											</property>
-										</object>
-										<object class="com.zerog.ia.installer.actions.InstallDirectory" objectID="41846b5484f4">
-											<property name="unixPermissions">
-												<string><![CDATA[775]]></string>
-											</property>
-											<property name="sourceName">
-												<string><![CDATA[]]></string>
-											</property>
-											<property name="overrideUnixPermissions">
-												<boolean>false</boolean>
-											</property>
-											<property name="sourcePath">
-												<string><![CDATA[/Users/ian/javadev/king/plugins]]></string>
-											</property>
-											<property name="shouldUninstall">
-												<boolean>true</boolean>
-											</property>
-											<property name="destinationName">
-												<string><![CDATA[plugins]]></string>
-											</property>
-											<property name="removeRecursively">
-												<boolean>false</boolean>
-											</property>
-											<property name="macBinary">
-												<boolean>false</boolean>
-											</property>
-											<visualChildren>
-												<object refID="41846b6784f9"/>
-												<object refID="201f918884f6"/>
-												<object refID="0033abfeba9c"/>
-											</visualChildren>
 										</object>
 										<object class="com.zerog.ia.installer.actions.InstallFile" objectID="956c06f3893b">
 											<property name="unixPermissions">
@@ -2005,6 +1974,67 @@ and any path to a file to read from that file]]></string>
 												<object refID="201fe64c84f6"/>
 												<object refID="956c06f3893b"/>
 												<object refID="956c06f4893b"/>
+											</visualChildren>
+										</object>
+										<object class="com.zerog.ia.installer.actions.InstallZipfile" objectID="a831a42bbb6d">
+											<property name="unixPermissions">
+												<string><![CDATA[664]]></string>
+											</property>
+											<property name="sourceName">
+												<string><![CDATA[molikin.jar]]></string>
+											</property>
+											<property name="overrideUnixPermissions">
+												<boolean>false</boolean>
+											</property>
+											<property name="sourcePath">
+												<string><![CDATA[/Users/ian/javadev/king/dist/king/plugins/]]></string>
+											</property>
+											<property name="shouldUninstall">
+												<boolean>true</boolean>
+											</property>
+											<property name="destinationName">
+												<string><![CDATA[molikin.jar]]></string>
+											</property>
+											<property name="fileSize">
+												<long>204202</long>
+											</property>
+											<property name="macBinary">
+												<boolean>false</boolean>
+											</property>
+											<property name="targetCheckKind">
+												<int>0</int>
+											</property>
+										</object>
+										<object class="com.zerog.ia.installer.actions.InstallDirectory" objectID="41846b5484f4">
+											<property name="unixPermissions">
+												<string><![CDATA[775]]></string>
+											</property>
+											<property name="sourceName">
+												<string><![CDATA[]]></string>
+											</property>
+											<property name="overrideUnixPermissions">
+												<boolean>false</boolean>
+											</property>
+											<property name="sourcePath">
+												<string><![CDATA[/Users/ian/javadev/king/plugins]]></string>
+											</property>
+											<property name="shouldUninstall">
+												<boolean>true</boolean>
+											</property>
+											<property name="destinationName">
+												<string><![CDATA[plugins]]></string>
+											</property>
+											<property name="removeRecursively">
+												<boolean>false</boolean>
+											</property>
+											<property name="macBinary">
+												<boolean>false</boolean>
+											</property>
+											<visualChildren>
+												<object refID="41846b6784f9"/>
+												<object refID="201f918884f6"/>
+												<object refID="0033abfeba9c"/>
+												<object refID="a831a42bbb6d"/>
 											</visualChildren>
 										</object>
 									</installChildren>
