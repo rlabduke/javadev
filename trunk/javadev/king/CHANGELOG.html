@@ -27,10 +27,14 @@
         Assymetic scaling of axes
     Show CB deviation in Hinge when not idealizing sc positions
     Draw: construct 4 and 5, polylines, triangle strips, true sphere, cylinder
+    For multi-click draw ops, "miss" should reset?
+    Draw tool - autolabel distances, angles
     For Views tool: Center Visible command (use r3.PrincipleAxes)
     Allow user to set focal length for perspective "lens"?
     New shades of gray: smoke (light), charcoal (dark) ?
     Think about free-form docking tools
+        Add some kind of transformation hook (listeners, priorities, etc) ?
+        Probably better to just save KPoint[] and Triple[] ...
     Add choice of experiments to expected NOEs
     Distribute noe-display in packaged KiNG versions?
     Text editor should notice edits to text and mark kin(s) as modified
@@ -42,7 +46,6 @@
     'space' with (point)masters - what does it mean?
     Create a MagnifiedOceanTheme and load it using reflection
     Create a splash-screen loader for KiNG (via manifest in Mustang)
-    Add some kind of transformation hook (listeners, priorities, etc)
     Optional 2 column button layout?
     Allow applet/prefs to set width of check-button panel
     Start points of invisible lines are still pickable
@@ -56,20 +59,17 @@
             Same on black backgr, slightly different on white.
     Expand KingLiteBinaryExport to do views
     KingLiteBinaryExport should automatically rescale coords to fit in 30 bits.
-    For multi-click draw ops, "miss" should reset?
-    Draw tool - autolabel distances, angles
     Implement the 'moview= #' feature of Mage for J. Voet (?) (also 'movieview')
     Triptic (sp?) stereo for making figures?
     Add a movieFade() to beanking for doing transitions!
     Use E+H 2000 geometry for Pro?
+    Do something about multiple copies of Driftwood classes -- in every JAR
 <!-- Postponed TO DO items }}} -->
     Open PDB in model manager without opening kinemage first?
     Open/save PDB from/to network
     Allow dragging waters/ions from chiropraxis?
-    Save one kin vs. all kins (JSR)
     POV-Ray export should do current kin ONLY (?)
     Add auger-like Paintbrush
-    Do something about multiple copies of Driftwood classes -- in every JAR
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -80,6 +80,9 @@
 - changed DrawingTool to use drawOval() instead of XOR-ed drawing
 - added undo ability to the drawing tool's Move Points option
 - fixed: std/OpenGL flipping on Linux causes seg fault
+- we remove empty groups/subgroups/lists and unused masters on read and write.
+  This keeps our kinemages nice and clean!
+- on save with multiple kinemages, we now ask: Save one, or save all?
 
 ### 1.48 ###
 - changed KinCanvas to avoid "No OpenGL" error dialog if JOGL not present

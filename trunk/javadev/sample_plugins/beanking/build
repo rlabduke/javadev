@@ -1,6 +1,6 @@
 #!/bin/sh
-cp bsh-2.0b2.jar beanking.jar
-javac -target 1.3 -classpath beanking.jar:../../king/king.jar *.java \
+cp bsh-2.0b4.jar beanking.jar
+javac -source 1.3 -target 1.3 -classpath beanking.jar:../../king/king.jar *.java \
 && jar uvf beanking.jar *.class *.bsh META-INF/services/king.Plugin king/king_prefs \
 && cp -v beanking.jar ../../king/plugins/
 

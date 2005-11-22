@@ -485,20 +485,29 @@ public class UIMenus //extends ... implements ...
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onFileSaveAs(ActionEvent ev)
     {
-        int numKins = kMain.getStable().getKins().size();
-        if(numKins > 1)
-        {
-            int result = JOptionPane.showConfirmDialog(kMain.getTopWindow(),
-            "The file will contain all "+numKins+" currently open kinemages.",
-            "Saving multiple kinemages",
-            JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
-            
-            if(result == JOptionPane.CANCEL_OPTION) return;
-        }
-        
         KinfileIO io = kMain.getKinIO();
         if(kMain.getApplet() != null)   io.askSaveURL();
-        else                            io.askSaveFile();
+        else
+        {
+            int numKins = kMain.getStable().getKins().size();
+            if(numKins > 1)
+            {
+                Object[] choices = {
+                    (numKins == 2 ? "Save both in one file" : "Save all "+numKins+" in one file"),
+                    "Save only the currently selected kinemage"
+                };
+                Object result = JOptionPane.showInputDialog(kMain.getTopWindow(),
+                "There are currently "+numKins+" open kinemages. What do you want to do?",
+                "Saving multiple kinemages",
+                JOptionPane.QUESTION_MESSAGE, null, // no icon
+                choices, choices[0]);
+                
+                if(result == null) {}
+                else if(result.equals(choices[0]))  io.askSaveFile();
+                else if(result.equals(choices[1]))  io.askSaveFile(kMain.getKinemage());
+            }
+            else io.askSaveFile();
+        }
     }
 
     // This might throw a SecurityException, if the user denies us permission...

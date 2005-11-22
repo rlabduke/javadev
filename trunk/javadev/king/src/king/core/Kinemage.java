@@ -257,8 +257,10 @@ public class Kinemage extends AGE // implements ...
     */
     public void initAll()
     {
+        removeEmptyAGEs();
         calcSize();
         ensureAllMastersExist();
+        removeUnusedMasters();
         syncAllMasters();
         initAllViews();
         animate(0);
@@ -769,6 +771,87 @@ public class Kinemage extends AGE // implements ...
 
     public Collection getBondRots() {
         return bondRots;
+    }
+//}}}
+
+//{{{ removeUnusedMasters
+//##################################################################################################
+    /** Deletes all masters that don't affect any group/subgroup/list/point */
+    public void removeUnusedMasters()
+    {
+        Iterator grIter, suIter, liIter, ptIter;
+        KGroup      group;
+        KSubgroup   subgroup;
+        KList       list;
+        KPoint      point;
+        Set         usedNames = new HashSet();
+        int         pm_mask = 0;
+        
+        // First, tally all masters and pointmasters
+        for(grIter = this.iterator(); grIter.hasNext(); )
+        {
+            group = (KGroup)grIter.next();
+            if(group.masters != null) usedNames.addAll(group.masters);
+            for(suIter = group.iterator(); suIter.hasNext(); )
+            {
+                subgroup = (KSubgroup)suIter.next();
+                if(subgroup.masters != null) usedNames.addAll(subgroup.masters);
+                for(liIter = subgroup.iterator(); liIter.hasNext(); )
+                {
+                    list = (KList)liIter.next();
+                    if(list.masters != null) usedNames.addAll(list.masters);
+                    if(pm_mask != 0) // only do this if we're a pointmaster
+                    {
+                        for(ptIter = list.iterator(); ptIter.hasNext(); )
+                        {
+                            point = (KPoint)ptIter.next();
+                            pm_mask |= point.getPmMask();
+                        }//points
+                    }//if pointmaster
+                }//lists
+            }//subgroups
+        }//groups
+        
+        // Now, remove masters that aren't used
+        for(Iterator iter = mastersMap.entrySet().iterator(); iter.hasNext(); )
+        {
+            Map.Entry e = (Map.Entry) iter.next();
+            String name = (String) e.getKey();
+            MasterGroup master = (MasterGroup) e.getValue();
+            if( !usedNames.contains(name) && (master.pm_mask & pm_mask) == 0)
+            {
+                iter.remove();
+                mastersList.remove(master);
+            }
+        }
+    }
+//}}}
+
+//{{{ removeEmptyAGEs
+//##################################################################################################
+    /** Deletes all groups/subgroups/lists that have no points under them */
+    public void removeEmptyAGEs()
+    {
+        Iterator grIter, suIter, liIter;
+        KGroup      group;
+        KSubgroup   subgroup;
+        KList       list;
+        
+        for(grIter = this.iterator(); grIter.hasNext(); )
+        {
+            group = (KGroup)grIter.next();
+            for(suIter = group.iterator(); suIter.hasNext(); )
+            {
+                subgroup = (KSubgroup)suIter.next();
+                for(liIter = subgroup.iterator(); liIter.hasNext(); )
+                {
+                    list = (KList)liIter.next();
+                    if(list.children.size() == 0) liIter.remove();
+                }//lists
+                if(subgroup.children.size() == 0) suIter.remove();
+            }//subgroups
+            if(group.children.size() == 0) grIter.remove();
+        }//groups
     }
 //}}}
 
