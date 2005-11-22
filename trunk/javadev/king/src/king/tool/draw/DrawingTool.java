@@ -28,7 +28,16 @@ public class DrawingTool extends BasicTool
     static final int AUGER_RADIUS = 40;
 //}}}
 
-//{{{ Class: UndoStep
+//{{{ Interface: UndoStep
+//##############################################################################
+    interface UndoStep
+    {
+        /** Triggers the undo action */
+        public void undo();
+    }
+//}}}
+
+//{{{ Class: ListChildrenUndo
 //##############################################################################
     /*
     * Provides a simple undo mechanism for all the drawing tools.
@@ -36,7 +45,7 @@ public class DrawingTool extends BasicTool
     * is cloned and saved here. The editing action can then be undone
     * simply by copying this over top of the current <code>children</code>.
     */
-    static class UndoStep
+    static class ListChildrenUndo implements UndoStep
     {
         KList       list;
         ArrayList   children;
@@ -44,7 +53,7 @@ public class DrawingTool extends BasicTool
         KPoint      modPrev = null;
         
         /* Saves the state of list l */
-        public UndoStep(KList l)
+        public ListChildrenUndo(KList l)
         {
             super();
             this.list = l;
@@ -63,6 +72,31 @@ public class DrawingTool extends BasicTool
         {
             list.children = this.children;
             if(modPoint != null) modPoint.setPrev(modPrev);
+        }
+    }
+//}}}
+
+//{{{ Class: PointCoordsUndo
+//##############################################################################
+    /** Allows us to undo moving points, eg when we drag them around. */
+    static class PointCoordsUndo implements UndoStep
+    {
+        KPoint[]    points;
+        Triple[]    coords;
+        
+        public PointCoordsUndo(KPoint[] pts)
+        {
+            super();
+            this.points = (KPoint[]) pts.clone();
+            this.coords = new Triple[ points.length ];
+            for(int i = 0; i < points.length; i++)
+                coords[i] = new Triple(points[i]);
+        }
+
+        public void undo()
+        {
+            for(int i = 0; i < points.length; i++)
+                points[i].setXYZ(coords[i].getX(), coords[i].getY(), coords[i].getZ());
         }
     }
 //}}}
@@ -96,8 +130,7 @@ public class DrawingTool extends BasicTool
     LinkedList      undoStack;
     /** Used by getDrawingList() to create new lists when subgroup is updated */
     int             subgroupCounter = 0;
-    /** Used by Auger for doing its XOR'd marker drawing */
-    boolean         isCanvasDirty = false;
+    /** Used by Auger for doing its marker drawing */
     int             lastAugerX, lastAugerY;
 //}}}
 
@@ -410,7 +443,7 @@ public class DrawingTool extends BasicTool
             KList list = this.getDrawingList(KList.VECTOR, "lineSegment");
             if(list == null) return;
             
-            undoStack.addLast(new SoftReference(new UndoStep(list)));
+            undoStack.addLast(new SoftReference(new ListChildrenUndo(list)));
             
             // Calculate line shortening
             double shorten = 0.0;
@@ -450,7 +483,7 @@ public class DrawingTool extends BasicTool
         KList list = this.getDrawingList(KList.BALL, "balls");
         if(list == null) return;
         
-        undoStack.addLast(new SoftReference(new UndoStep(list)));
+        undoStack.addLast(new SoftReference(new ListChildrenUndo(list)));
         
         BallPoint b = new BallPoint(list, "drawn");
         b.setOrigX(p.getOrigX());
@@ -480,7 +513,7 @@ public class DrawingTool extends BasicTool
             if(labelText == null) return;
         }
         
-        undoStack.addLast(new SoftReference(new UndoStep(list)));
+        undoStack.addLast(new SoftReference(new ListChildrenUndo(list)));
         
         LabelPoint lbl = new LabelPoint(list, labelText.toString());
         lbl.setOrigX(p.getOrigX());
@@ -503,7 +536,7 @@ public class DrawingTool extends BasicTool
         KList list = this.getDrawingList(KList.DOT, "dots");
         if(list == null) return;
         
-        undoStack.addLast(new SoftReference(new UndoStep(list)));
+        undoStack.addLast(new SoftReference(new ListChildrenUndo(list)));
         
         DotPoint dt = new DotPoint(list, "drawn");
         dt.setOrigX(p.getOrigX());
@@ -533,7 +566,7 @@ public class DrawingTool extends BasicTool
             KList list = this.getDrawingList(KList.DOT, "dottedLine");
             if(list == null) return;
             
-            undoStack.addLast(new SoftReference(new UndoStep(list)));
+            undoStack.addLast(new SoftReference(new ListChildrenUndo(list)));
             
             // Endpoints and working registers
             Triple p1 = new Triple(lineseg1.getOrigX(), lineseg1.getOrigY(), lineseg1.getOrigZ());
@@ -579,7 +612,7 @@ public class DrawingTool extends BasicTool
             arcseg3 = p; // arc head
             KList list = this.getDrawingList(KList.VECTOR, "arcSegment");
             if(list == null) return;
-            undoStack.addLast(new SoftReference(new UndoStep(list)));
+            undoStack.addLast(new SoftReference(new ListChildrenUndo(list)));
             
             //       R
             //
@@ -685,7 +718,7 @@ public class DrawingTool extends BasicTool
             KList list = this.getDrawingList(KList.TRIANGLE, "triangle");
             if(list == null) return;
             
-            undoStack.addLast(new SoftReference(new UndoStep(list)));
+            undoStack.addLast(new SoftReference(new ListChildrenUndo(list)));
             
             // Corner points
             Triple p1 = new Triple(triang1.getOrigX(), triang1.getOrigY(), triang1.getOrigZ());
@@ -732,7 +765,7 @@ public class DrawingTool extends BasicTool
         KList list = (KList) p.getOwner();
         if(list == null) return;
         
-        UndoStep step = new UndoStep(list);
+        ListChildrenUndo step = new ListChildrenUndo(list);
         undoStack.addLast(new SoftReference(step));
         excisePoint(p, step);
         
@@ -743,7 +776,7 @@ public class DrawingTool extends BasicTool
     
     // Used by Punch and Auger -- not undoable in & of itself
     // Step can be null, or it will be used to save the modified point.
-    private void excisePoint(KPoint p, UndoStep step)
+    private void excisePoint(KPoint p, ListChildrenUndo step)
     {
         if(p == null) return;
         KList list = (KList) p.getOwner();
@@ -776,7 +809,7 @@ public class DrawingTool extends BasicTool
         KList list = (KList) p.getOwner();
         if(list == null) return;
         
-        UndoStep step = new UndoStep(list);
+        ListChildrenUndo step = new ListChildrenUndo(list);
         undoStack.addLast(new SoftReference(step));
         
         for(ListIterator iter = list.children.listIterator(); iter.hasNext(); )
@@ -993,6 +1026,9 @@ public class DrawingTool extends BasicTool
                 services.doSuperpick.isSelected(), 0.5);
             allPoints = (KPoint[])all.toArray( new KPoint[all.size()] );
         }
+        
+        if(allPoints != null && rbMovePoint.isSelected())
+            undoStack.addLast(new SoftReference(new PointCoordsUndo(allPoints)));
     }
     
     public void mouseReleased(MouseEvent ev)
@@ -1002,64 +1038,34 @@ public class DrawingTool extends BasicTool
     }
 //}}}
 
-//{{{ mouseMoved, mouseExited, overpaintCanvas
+//{{{ mouseMoved/Dragged/Exited, overpaintCanvas
 //##################################################################################################
     public void mouseMoved(MouseEvent ev)
     {
         super.mouseMoved(ev);
-        if(! rbAuger.isSelected()) return;
-        
-        final int r = AUGER_RADIUS;
-        Graphics g = kCanvas.getGraphics();
-        if(g == null) return; // this happens when we're using OpenGL
-        
-        g.setColor(Color.white);
-        g.setXORMode(Color.black);
-        // Apple Java 1.4.1 occasionally throws OOME on fillOval() for no reason
-        try
-        {
-            if(isCanvasDirty)
-            {
-                g.fillOval(lastAugerX-r, lastAugerY-r, 2*r, 2*r);
-                isCanvasDirty = false;
-            }
-    
-            int x = ev.getX(), y = ev.getY();
-            g.fillOval(x-r, y-r, 2*r, 2*r);
-            lastAugerX = x;
-            lastAugerY = y;
-            isCanvasDirty = true;
-        }
-        catch(OutOfMemoryError ex) {}
-        
-        g.dispose();
+        lastAugerX = ev.getX();
+        lastAugerY = ev.getY();
+        if(rbAuger.isSelected()) // trigger a redraw
+            kCanvas.repaint();
+    }
+
+    public void mouseDragged(MouseEvent ev)
+    {
+        super.mouseDragged(ev);
+        lastAugerX = ev.getX();
+        lastAugerY = ev.getY();
+        // repaint will occur anyway
     }
 
     public void mouseExited(MouseEvent ev)
     {
-        super.mouseMoved(ev);
-        if(! rbAuger.isSelected()) return;
-        
-        final int r = AUGER_RADIUS;
-        Graphics g = kCanvas.getGraphics();
-        if(g == null) return; // this happens when we're using OpenGL
-        
-        g.setColor(Color.white);
-        g.setXORMode(Color.black);
-        // Apple Java 1.4.1 occasionally throws OOME on fillOval() for no reason
-        try
-        {
-            if(isCanvasDirty)
-            {
-                g.fillOval(lastAugerX-r, lastAugerY-r, 2*r, 2*r);
-                isCanvasDirty = false;
-            }
-        }
-        catch(OutOfMemoryError ex) {}
-        
-        g.dispose();
+        super.mouseExited(ev);
+        // Stop painting the marker at all when mouse leaves drawing area
+        lastAugerX = lastAugerY = -1;
+        if(rbAuger.isSelected()) // trigger a redraw
+            kCanvas.repaint();
     }
-
+    
     /**
     * Called by KinCanvas after all kinemage painting is complete,
     * this gives the tools a chance to write additional info
@@ -1070,7 +1076,13 @@ public class DrawingTool extends BasicTool
     */
     public void overpaintCanvas(Painter painter)
     {
-        isCanvasDirty = false;
+        if(lastAugerX < 0 || lastAugerY < 0) return;
+        
+        if(rbAuger.isSelected())
+        {
+            double diam = AUGER_RADIUS * 2;
+            painter.drawOval(new Color(0xcc0000), lastAugerX, lastAugerY, 0, diam, diam);
+        }
     }
 //}}}
 

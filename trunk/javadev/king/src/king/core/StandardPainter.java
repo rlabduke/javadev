@@ -77,7 +77,7 @@ public class StandardPainter implements Painter
         catch(ClassCastException ex)
         {
             ex.printStackTrace();
-            System.err.println("JoglPainter: tried painting with non-Color type of Paint");
+            System.err.println("StandardPainter: tried painting with non-Color type of Paint");
         }
         
         // highlight
@@ -274,6 +274,16 @@ public class StandardPainter implements Painter
             for(i = start; i < 0; i++) g.drawLine(x1+i, y1, x2+i, y2); 
             for(i = 1; i < end; i++)   g.drawLine(x1+i, y1, x2+i, y2); 
         }
+    }
+//}}}
+
+//{{{ drawOval
+//##################################################################################################
+    public void drawOval(Paint paint, double x, double y, double z, double width, double height)
+    {
+        // one disk
+        g.setPaint(paint);
+        if(REALLY_PAINT) g.drawOval((int)(x - width/2), (int)(y - height/2), (int)width, (int)height);
     }
 //}}}
 

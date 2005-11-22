@@ -358,6 +358,15 @@ public class JoglPainter implements Painter
     }
 //}}}
 
+//{{{ drawOval
+//##################################################################################################
+    public void drawOval(Paint paint, double x, double y, double z, double width, double height)
+    {
+        setPaint(paint);
+        drawOval((x - width/2), (y - height/2), width, height);
+    }
+//}}}
+
 //{{{ setFont, getLabelWidth/Ascent/Descent
 //##############################################################################
     public void setFont(Font f)

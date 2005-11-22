@@ -35,7 +35,11 @@ UTIL: {{{
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 0.74 ###
+### 0.75 ###
+- we now allow redefinition of identically named residues in a PDB file,
+  as long as they're separated by 1+ TER cards. This helps in dealing with
+  symmetry-expaned PDBs from crystallography. Don't know yet if CIF needs this.
+
 ### 0.74 ###
 - fillInStates code now has the option of creating new ATOMs or not.
 - PdbReader and CifReader now default to NOT creating new atoms during fill-in.

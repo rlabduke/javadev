@@ -361,10 +361,10 @@ public class KinCanvas extends JComponent implements TransformSignalSubscriber, 
     {
         renderQuality = q;
         
-        // We can't re-use the JOGL window or else we get no drawing.
-        // JOGL canvas *is* reusable, but for some reason we have to set the
+        // JOGL canvas is reusable in some situations but not others:
+        // eg it crashes on FC2 with Java 1.5. For some reason, we must set the
         // graphics component here -- it doesn't work in paintComponent()!
-        if(q == QUALITY_JOGL && joglCanvas == null)
+        if(q == QUALITY_JOGL)// && joglCanvas == null)
         {
             try { loadJOGL(); }
             catch(Throwable t)

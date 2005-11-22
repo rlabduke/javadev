@@ -67,7 +67,7 @@ public class HighQualityPainter extends StandardPainter
         catch(ClassCastException ex)
         {
             ex.printStackTrace();
-            System.err.println("JoglPainter: tried painting with non-Color type of Paint");
+            System.err.println("HighQualityPainter: tried painting with non-Color type of Paint");
         }
         
         // highlight
@@ -143,6 +143,17 @@ public class HighQualityPainter extends StandardPainter
         g.setStroke(KPalette.pens[width-1][widthCue]);
         line1.setLine(x1, y1, x2, y2);
         if(REALLY_PAINT) g.draw(line1);
+    }
+//}}}
+
+//{{{ drawOval
+//##################################################################################################
+    public void drawOval(Paint paint, double x, double y, double z, double width, double height)
+    {
+        g.setPaint(paint);
+        g.setStroke(KPalette.pen1);
+        ellipse1.setFrame((x - width/2), (y - height/2), width, height);
+        if(REALLY_PAINT) g.draw(ellipse1);
     }
 //}}}
 
