@@ -33,6 +33,10 @@ public interface Painter //extends ... implements ...
     public void paintVector(Paint paint, int width, int widthCue,
         double x1, double y1, double z1,
         double x2, double y2, double z2);
+    
+    // Used by the auger tool for its targeting circle
+    /** x,y,z is CENTER, not edge like it is for Java AWT functions */
+    public void drawOval(Paint paint, double x, double y, double z, double width, double height);
         
     public void setFont(Font f);
     public int getLabelWidth(String s);

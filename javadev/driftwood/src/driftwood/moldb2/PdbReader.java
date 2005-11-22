@@ -177,6 +177,18 @@ public class PdbReader //extends ... implements ...
                 }
                 else if(s.startsWith("TER"))
                 {
+                    // If we clear out our list of residues-by-name, then it's
+                    // OK to do something like this:
+                    //  chain B atoms...
+                    //  TER
+                    //  chain B atoms of same names...
+                    // Although it seems awful, this is often what you get when
+                    // doing a symmetry expansion in crystallography.
+                    // So even though it's not very nice, we *should* allow it:
+                    residues.clear();
+                    
+                    // Label our residues with how many TERs precede them.
+                    // Thus, the identical "chain B Ile 47" 's above are distinct.
                     countTER++;
                 }
                 else if(s.startsWith("MASTER") || s.startsWith("END"))

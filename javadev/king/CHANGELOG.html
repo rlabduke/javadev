@@ -68,13 +68,19 @@
     Allow dragging waters/ions from chiropraxis?
     Save one kin vs. all kins (JSR)
     POV-Ray export should do current kin ONLY (?)
-    Std/OpenGL flipping on Linux causes seg fault
+    Add auger-like Paintbrush
+    Do something about multiple copies of Driftwood classes -- in every JAR
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 1.48 ###
+### 1.49 ###
+- added king.core.Painter.drawOval(...) to make the circle o' death for Auger
+- changed DrawingTool to use drawOval() instead of XOR-ed drawing
+- added undo ability to the drawing tool's Move Points option
+- fixed: std/OpenGL flipping on Linux causes seg fault
+
 ### 1.48 ###
 - changed KinCanvas to avoid "No OpenGL" error dialog if JOGL not present
 - removed deploy-local copy to Sites/molprobity
