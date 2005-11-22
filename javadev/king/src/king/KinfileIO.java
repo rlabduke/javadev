@@ -433,6 +433,11 @@ public class KinfileIO implements KinLoadListener, ListSelectionListener
 
 //{{{ askSaveFile, saveFile
 //##################################################################################################
+    public void askSaveFile()
+    { askSaveFile(kMain.getStable().children); }
+    public void askSaveFile(Kinemage kin)
+    { askSaveFile(Collections.singleton(kin)); }
+    
     /**
     * Asks the user to choose a file where all open kinemages will be written.
     *
@@ -440,7 +445,7 @@ public class KinfileIO implements KinLoadListener, ListSelectionListener
     * This function will not return until all the kinemages have
     * been saved.
     */
-    public void askSaveFile()
+    public void askSaveFile(Collection kinsToSave)
     {
         if(fileSaveChooser == null) return;
         
@@ -454,25 +459,36 @@ public class KinfileIO implements KinLoadListener, ListSelectionListener
                     "Overwrite file?", JOptionPane.YES_NO_OPTION)
                 == JOptionPane.YES_OPTION )
             {
-                saveFile(f);
+                saveFile(f, kinsToSave);
             }
         }
     }
     
-    /** Like askSaveFile, but doesn't ask */
     public void saveFile(File f)
+    { saveFile(f, kMain.getStable().children); }
+
+    /** Like askSaveFile, but doesn't ask */
+    public void saveFile(File f, Collection kinsToSave)
     {
+        // Don't write out empty groups/subgroups/lists or useless masters
+        for(Iterator iter = kinsToSave.iterator(); iter.hasNext(); )
+        {
+            Kinemage k = (Kinemage) iter.next();
+            k.removeEmptyAGEs();
+            k.removeUnusedMasters();
+        }
+        
         try
         {
             Writer w = new FileWriter(f);
             KinWriter kw = new KinWriter();
             kw.save(w,
                 kMain.getTextWindow().getText(),
-                kMain.getStable().children);
+                kinsToSave);
             lastSavedFile = f;
             w.close();
             
-            for(Iterator iter = kMain.getStable().iterator(); iter.hasNext(); )
+            for(Iterator iter = kinsToSave.iterator(); iter.hasNext(); )
             {
                 Kinemage k = (Kinemage) iter.next();
                 k.setModified(false);
@@ -485,6 +501,9 @@ public class KinfileIO implements KinLoadListener, ListSelectionListener
                 "An error occurred while saving the file.",
                 "Sorry!", JOptionPane.ERROR_MESSAGE);
         }
+        
+        // We may have removed masters/groups/etc on save
+        kMain.notifyChange(KingMain.EM_EDIT_GROSS);
     }
 //}}}
 
