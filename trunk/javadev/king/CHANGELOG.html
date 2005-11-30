@@ -68,8 +68,8 @@
     Open PDB in model manager without opening kinemage first?
     Open/save PDB from/to network
     Allow dragging waters/ions from chiropraxis?
-    POV-Ray export should do current kin ONLY (?)
     Add auger-like Paintbrush
+  * release new version; remind JNB to update his laptop
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -83,6 +83,9 @@
 - we remove empty groups/subgroups/lists and unused masters on read and write.
   This keeps our kinemages nice and clean!
 - on save with multiple kinemages, we now ask: Save one, or save all?
+  (First with drop-down box; later with radio buttons.)
+- POV-Ray export tool now exports currently visible kin ONLY, like pdf/png/jpg.
+- fixed bug re: pointmasters in elimination of unused masters
 
 ### 1.48 ###
 - changed KinCanvas to avoid "No OpenGL" error dialog if JOGL not present

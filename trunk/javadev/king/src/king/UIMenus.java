@@ -492,19 +492,25 @@ public class UIMenus //extends ... implements ...
             int numKins = kMain.getStable().getKins().size();
             if(numKins > 1)
             {
-                Object[] choices = {
-                    (numKins == 2 ? "Save both in one file" : "Save all "+numKins+" in one file"),
-                    "Save only the currently selected kinemage"
-                };
-                Object result = JOptionPane.showInputDialog(kMain.getTopWindow(),
-                "There are currently "+numKins+" open kinemages. What do you want to do?",
-                "Saving multiple kinemages",
-                JOptionPane.QUESTION_MESSAGE, null, // no icon
-                choices, choices[0]);
+                JRadioButton btnBoth = new JRadioButton((numKins == 2 ? "Save both in one file" : "Save all "+numKins+" in one file"), true);
+                JRadioButton btnCurr = new JRadioButton("Save only the currently selected kinemage", false);
+                ButtonGroup btnGroup = new ButtonGroup();
+                btnGroup.add(btnBoth);
+                btnGroup.add(btnCurr);
                 
-                if(result == null) {}
-                else if(result.equals(choices[0]))  io.askSaveFile();
-                else if(result.equals(choices[1]))  io.askSaveFile(kMain.getKinemage());
+                int result = JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+                    new Object[] {
+                        "There are currently "+numKins+" open kinemages.",
+                        "What do you want to do?",
+                        btnBoth,
+                        btnCurr
+                    },
+                    "Saving multiple kinemages",
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.QUESTION_MESSAGE);
+                if(result == JOptionPane.NO_OPTION || result == JOptionPane.CANCEL_OPTION) {}
+                else if(btnBoth.isSelected())   io.askSaveFile();
+                else if(btnCurr.isSelected())   io.askSaveFile(kMain.getKinemage());
             }
             else io.askSaveFile();
         }
