@@ -96,7 +96,10 @@ public class PovrayExport extends Plugin
                 try
                 {
                     Writer w = new BufferedWriter(new FileWriter(f));
-                    save(w, kMain.getTextWindow().getText(), kMain.getStable().getKins());
+                    // Doesn't make sense to save more than the current kinemage.
+                    // This is consistent with what PDF, JPG/PNG exporters do.
+                    //save(w, kMain.getTextWindow().getText(), kMain.getStable().getKins());
+                    save(w, kMain.getTextWindow().getText(), Collections.singleton(kMain.getKinemage()));
                 }
                 catch(Exception ex)
                 {

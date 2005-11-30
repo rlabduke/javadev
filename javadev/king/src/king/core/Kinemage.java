@@ -800,14 +800,11 @@ public class Kinemage extends AGE // implements ...
                 {
                     list = (KList)liIter.next();
                     if(list.masters != null) usedNames.addAll(list.masters);
-                    if(pm_mask != 0) // only do this if we're a pointmaster
+                    for(ptIter = list.iterator(); ptIter.hasNext(); )
                     {
-                        for(ptIter = list.iterator(); ptIter.hasNext(); )
-                        {
-                            point = (KPoint)ptIter.next();
-                            pm_mask |= point.getPmMask();
-                        }//points
-                    }//if pointmaster
+                        point = (KPoint)ptIter.next();
+                        pm_mask |= point.getPmMask();
+                    }//points
                 }//lists
             }//subgroups
         }//groups
