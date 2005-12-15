@@ -57,7 +57,7 @@ public class LoopTool extends BasicTool {
 	delButton = new JButton(new ReflectiveAction("Delete rest!", null, this, "onDelete"));
 	removeButton = new JButton(new ReflectiveAction("Remove last", null, this, "onRemove"));
 
-	openButton = new JButton(new ReflectiveAction("Open file", null, this, "onOpenFile"));
+	openButton = new JButton(new ReflectiveAction("Open CSV file", null, this, "onOpenFile"));
 	delFromFileButton = new JButton(new ReflectiveAction("Delete from file", null, this, "onDeleteFromFile"));
 	doAllButton = new JButton(new ReflectiveAction("Do ALL from file", null, this, "onDoAll"));
 
@@ -154,8 +154,8 @@ public class LoopTool extends BasicTool {
 				bFactorMap.put(df.format(Double.parseDouble(exploded[5]))+pdbName, fullName);
 				} else {*/
 				HashSet value = new HashSet();
-				keepRange(value, Integer.parseInt(exploded[1])-5, Integer.parseInt(exploded[2])+10);
-				int startRes = Integer.parseInt(exploded[1])-5;
+				keepRange(value, Integer.parseInt(exploded[1])-8, Integer.parseInt(exploded[2])+8);
+				int startRes = Integer.parseInt(exploded[1])-8;
 				String fullName = pdbName + "-" + Integer.toString(startRes);
 				//HashSet fullSet = new HashSet();
 				//fullSet.add(fullName);
@@ -167,10 +167,20 @@ public class LoopTool extends BasicTool {
 				    start = (HashSet) startColorMap.get(pdbName);
 				    end = (HashSet) endColorMap.get(pdbName);
 				}
-				start.add(new Integer(exploded[1]));
-				start.add(new Integer(Integer.parseInt(exploded[1])+1));
-				end.add(new Integer(exploded[2]));
-				end.add(new Integer(Integer.parseInt(exploded[2])+1));
+				int loopStart = Integer.parseInt(exploded[1]);
+				int loopEnd = Integer.parseInt(exploded[2]);
+				for (int i = loopStart-8; i <= loopStart; i++) {
+				    int resToColor = i;
+				    start.add(new Integer(resToColor));
+				    //start.add(new Integer(exploded[1]));
+				}
+				//start.add(new Integer(Integer.parseInt(exploded[1])+1));
+				for (int i = loopEnd; i <= loopEnd + 8; i++) {
+				    int resToColor = i;
+				    end.add(new Integer(resToColor));
+				    //end.add(new Integer(exploded[2]));
+				}
+				//end.add(new Integer(Integer.parseInt(exploded[2])+1));
 				startColorMap.put(pdbName, start);
 				endColorMap.put(pdbName, end);
 			        bFactorMap.put(df.format(Double.parseDouble(exploded[5]))+pdbName, fullName);
@@ -225,13 +235,17 @@ public class LoopTool extends BasicTool {
 		    String fullName = (String) iter.next();
 		    String pdbName = (String) pdbMultiLoopMap.get(fullName);
 		    HashSet keepSet = (HashSet) pdbKeepMap.get(fullName);
+		    //System.out.println(pdbName);
+		    //System.out.println(fullName);
 		    File pdbFile = (File) fileMap.get(pdbName);
 		    //if (pdbKeepMap.containsKey(pdbName)) {
+		    //System.out.println(pdbFile);
 			kMain.getKinIO().loadFile(pdbFile, null);
 			System.out.println(pdbFile.getPath());
 			//onDeleteFromFile(ev);
 			deleteFromFile(keepSet, pdbName);
 			kMain.getKinIO().saveFile(new File(saveLoc, fullName + ".kin"));
+			kMain.getTextWindow().setText("");
 			kMain.getStable().closeCurrent();
 		    
 		}
@@ -283,7 +297,7 @@ public class LoopTool extends BasicTool {
 	if (pdbKeepMap.containsKey(pdbName)) {
 	    HashSet keepSet = (HashSet) pdbKeepMap.get(pdbName);
 	    delete(kMain.getKinemage(), keepSet);
-	    recolor(kMain.getKinemage(), (HashSet) startColorMap.get(pdbName), KPalette.green);
+	    recolor(kMain.getKinemage(), (HashSet) startColorMap.get(pdbName), KPalette.lime);
 	    recolor(kMain.getKinemage(), (HashSet) endColorMap.get(pdbName), KPalette.red);
 	    rename(kMain.getKinemage(), pdbName);
 	} else {
