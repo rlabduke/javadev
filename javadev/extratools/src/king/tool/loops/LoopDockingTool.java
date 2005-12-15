@@ -38,6 +38,8 @@ public class LoopDockingTool extends BasicTool {
     JTextField numResField;
     JRadioButton dockOnStartButton;
     JRadioButton dockOnEndButton;
+    JRadioButton dockOnLoopButton;
+    JRadioButton dockOnBothButton;
 
 //}}}
 
@@ -66,9 +68,13 @@ public class LoopDockingTool extends BasicTool {
 	
 	dockOnStartButton = new JRadioButton("Dock on start of loop", true);
 	dockOnEndButton = new JRadioButton("Dock on end of loop", false);
+	dockOnBothButton = new JRadioButton("Dock on both ends", false);
+	dockOnLoopButton = new JRadioButton("Dock on loop", false);
 	ButtonGroup dockType = new ButtonGroup();
 	dockType.add(dockOnStartButton);
 	dockType.add(dockOnEndButton);
+	dockType.add(dockOnLoopButton);
+	dockType.add(dockOnBothButton);
 	//delFromFileButton = new JButton(new ReflectiveAction("Delete from file", null, this, "onDeleteFromFile"));
 	//doAllButton = new JButton(new ReflectiveAction("Do ALL from file", null, this, "onDoAll"));
 
@@ -86,6 +92,8 @@ public class LoopDockingTool extends BasicTool {
 	pane.newRow();
 	pane.add(dockOnStartButton);
 	pane.add(dockOnEndButton);
+	pane.add(dockOnBothButton);
+	pane.add(dockOnLoopButton);
 	pane.newRow();
 	pane.add(label);
 	pane.add(numResField);
@@ -215,7 +223,7 @@ public class LoopDockingTool extends BasicTool {
 	
 	
 	if (p != null) {
-	    if (refPath != null) {
+	    if (refPath != null) { // after a reference has been picked
 		connect.buildAdjacencyList(false);
 		KList list = (KList) p.getOwner();
 		KSubgroup sub = (KSubgroup) list.getOwner();
@@ -229,12 +237,27 @@ public class LoopDockingTool extends BasicTool {
 		    ssEnd = (Integer) startColorMap.get(pdbID + minRes.toString());
 		    ssStart = new Integer(ssEnd.intValue() - numRestoSuper);
 		}
-		//HashSet mobile = connect.mobilityFinder((AbstractPoint)p);
-		mobilePath = connect.pathFinder(findPoint(mobilePoints, ssStart), findPoint(mobilePoints, ssEnd));
+		if (dockOnLoopButton.isSelected()) {
+		    ssEnd = (Integer) endColorMap.get(pdbID + minRes.toString());
+		    ssEnd = new Integer(ssEnd.intValue() - 1);
+		    ssStart = (Integer) startColorMap.get(pdbID + minRes.toString());
+		    ssStart = new Integer(ssStart.intValue() + 1);
+		}
+		if (dockOnBothButton.isSelected()) {
+		    ssEnd = (Integer) startColorMap.get(pdbID + minRes.toString());
+		    ssStart = new Integer(ssEnd.intValue() - numRestoSuper);
+		    mobilePath = connect.pathFinder(findPoint(mobilePoints, ssStart), findPoint(mobilePoints, ssEnd));
+		    ssStart = (Integer) endColorMap.get(pdbID + minRes.toString());
+		    ssEnd = new Integer(ssStart.intValue() + numRestoSuper);
+		    mobilePath.addAll(connect.pathFinder(findPoint(mobilePoints, ssStart), findPoint(mobilePoints, ssEnd)));
+		} else {
+		    //HashSet mobile = connect.mobilityFinder((AbstractPoint)p);
+		    mobilePath = connect.pathFinder(findPoint(mobilePoints, ssStart), findPoint(mobilePoints, ssEnd));
+		}
 		connect.buildAdjacencyList(true);
 		mobilePoints = connect.mobilityFinder((AbstractPoint)p);
 		superimpose(refPath, mobilePath);
-	    } else {
+	    } else { // picks the reference points
 		connect.buildAdjacencyList(false);
 		KList list = (KList) p.getOwner();
 		KSubgroup sub = (KSubgroup) list.getOwner();
@@ -248,8 +271,23 @@ public class LoopDockingTool extends BasicTool {
 		    ssEnd = (Integer) startColorMap.get(pdbID + minRes.toString());
 		    ssStart = new Integer(ssEnd.intValue() - numRestoSuper);
 		}
-		//HashSet mobile = connect.mobilityFinder((AbstractPoint)p);
-		refPath = connect.pathFinder(findPoint(mobilePoints, ssStart), findPoint(mobilePoints, ssEnd));
+		if (dockOnLoopButton.isSelected()) {
+		    ssEnd = (Integer) endColorMap.get(pdbID + minRes.toString());
+		    ssEnd = new Integer(ssEnd.intValue() - 1);
+		    ssStart = (Integer) startColorMap.get(pdbID + minRes.toString());
+		    ssStart = new Integer(ssStart.intValue() + 1);
+		}
+		if (dockOnBothButton.isSelected()) {
+		    ssEnd = (Integer) startColorMap.get(pdbID + minRes.toString());
+		    ssStart = new Integer(ssEnd.intValue() - numRestoSuper);
+		    refPath = connect.pathFinder(findPoint(mobilePoints, ssStart), findPoint(mobilePoints, ssEnd));
+		    ssStart = (Integer) endColorMap.get(pdbID + minRes.toString());
+		    ssEnd = new Integer(ssStart.intValue() + numRestoSuper);
+		    refPath.addAll(connect.pathFinder(findPoint(mobilePoints, ssStart), findPoint(mobilePoints, ssEnd)));
+		} else {
+		    //HashSet mobile = connect.mobilityFinder((AbstractPoint)p);
+		    refPath = connect.pathFinder(findPoint(mobilePoints, ssStart), findPoint(mobilePoints, ssEnd));
+		}
 	    }
 		
 	}
