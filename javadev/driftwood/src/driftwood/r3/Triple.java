@@ -528,6 +528,9 @@ public class Triple implements MutableTuple3
     /**
     * Makes this vector a unit vector orthogonal to the given vector,
     * although the orientation is pseudo-random.
+    *
+    * <p>FWIW, likeOrthogonal(v) == likeOrthogonal(v.neg())
+    *
     * Safe to execute on <code>this</code>.
     */
     public Triple likeOrthogonal(Tuple3 v)

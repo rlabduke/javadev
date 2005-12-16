@@ -87,7 +87,7 @@ public class ArrowPoint extends VectorPoint // implements ...
         // Int flags represent being out of bounds on each of four sides:
         final int LEFT = 1, RIGHT = 2, BOTTOM = 4, TOP = 8;
         final double xmin = engine.pickingRect.x, ymin = engine.pickingRect.y;
-        final double xmax = xmin+engine.pickingRect.height, ymax = ymin+engine.pickingRect.height;
+        final double xmax = xmin+engine.pickingRect.width, ymax = ymin+engine.pickingRect.height;
         int toOutcode = 0, fromOutcode = 0;
         if(toX < xmin) toOutcode |= LEFT;
         else if(toX > xmax) toOutcode |= RIGHT;

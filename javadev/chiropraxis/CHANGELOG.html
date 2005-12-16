@@ -14,10 +14,20 @@
     Allow ModelManager to switch between alt confs and create new ones
     Show histogram of cluster sizes for SequenceSpacer (maybe in kin text?)
     [can't repr] Backrub: sc first, then bb, no bb opt sc, leads to sc tool not fixing Cb dev
+  ? How does molten state interact with replacing the Model frequently?
+  ? How to log changes (which sidechains, which backbones?)
+  * Random things got claimed by G??
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 0.53 ###
+- started modifying ModelManager2 to allow switching alts and defining new alts
+- it seems to basically work now, except that change logging is broken
+- improved interface: save chooser doesn't switch dirs, current alt is shown
+- started BackrubFinder
+- updated forcefield.NonbondedTerm to be configurable
 
 ### 0.52 ###
 - added "S" rotamer sample points to Phe, Tyr, Asp, Asn, Gln, and Glu.

@@ -40,8 +40,6 @@ import java.util.*;
 public class NonbondedTerm implements EnergyTerm
 {
 //{{{ Constants
-    /** Number of different atom types. Max index must be one less than this. */
-    public static final int NUM_TYPES = 2;
 //}}}
 
 //{{{ CLASS: Key
@@ -79,6 +77,7 @@ public class NonbondedTerm implements EnergyTerm
 //{{{ Variable definitions
 //##############################################################################
     int[]           atomType;
+    final int       numTypes;
     double[]        Aij; // vdW repulsive term
     double[]        Bij; // vdw attractive term
     double[]        Qij; // electrostatics: qi * qj
@@ -90,23 +89,52 @@ public class NonbondedTerm implements EnergyTerm
 
 //{{{ Constructor(s)
 //##############################################################################
+    /**
+    * Creates a new NonbondedTerm with all Aij, Bij, and Qij set to zero.
+    * @param atomType   atom type codes; one per atom in the simulation.
+    *   Type codes range from 0 to N; the smaller N is, the less memory used.
+    * @param cutoff     space is divided into cubes with this edge size
+    * @param initCap    expected max number of atoms in each cube
+    */
     public NonbondedTerm(int[] atomType, double cutoff, int initCap)
     {
         super();
-        this.atomType   = (int[]) atomType.clone();
-        this.Aij        = new double[ NUM_TYPES*NUM_TYPES ];
-        this.Bij        = new double[ NUM_TYPES*NUM_TYPES ];
-        this.Qij        = new double[ NUM_TYPES*NUM_TYPES ];
+        int maxTypeCode = 0;
+        for(int i = 0; i < atomType.length; i++)
+        {
+            if(atomType[i] < 0) throw new IllegalArgumentException("Negative atom types are not allowed!");
+            else if(atomType[i] > maxTypeCode) maxTypeCode = atomType[i];
+        }
         
-        this.Aij        = new double[] {0, 0, 0, 1};
-        this.Bij        = new double[] {0, 0, 0, 2};
-        this.Qij        = new double[] {0, 0, 0, 0};
+        this.numTypes   = maxTypeCode+1;
+        this.atomType   = (int[]) atomType.clone();
+        this.Aij        = new double[ numTypes*numTypes ];
+        this.Bij        = new double[ numTypes*numTypes ];
+        this.Qij        = new double[ numTypes*numTypes ];
         
         this.cutoff     = cutoff;
         this.cutoff_2   = cutoff*cutoff;
         this.initCap    = initCap;
         this.lookup     = new HashMap();
         this.tmpkey     = new Key();
+    }
+//}}}
+
+//{{{ setAB, get/setQ
+//##############################################################################
+    public void setAB(int atomTypeI, int atomTypeJ, double aij, double bij)
+    {
+        int index1 = atomTypeI * numTypes + atomTypeJ;
+        int index2 = atomTypeJ * numTypes + atomTypeI;
+        Aij[index1] = Aij[index2] = aij;
+        Bij[index1] = Bij[index2] = bij;
+    }
+
+    public void setQ(int atomTypeI, int atomTypeJ, double qij)
+    {
+        int index1 = atomTypeI * numTypes + atomTypeJ;
+        int index2 = atomTypeJ * numTypes + atomTypeI;
+        Qij[index1] = Qij[index2] = qij;
     }
 //}}}
 
@@ -286,7 +314,7 @@ public class NonbondedTerm implements EnergyTerm
             rij_2 = dx*dx + dy*dy + dz*dz;
             if(rij_2 > cutoff_2) continue;
             
-            int typeIndex = type*NUM_TYPES + atomType[j/3];
+            int typeIndex = type*numTypes + atomType[j/3];
             double rij_4 = rij_2 * rij_2;
             double rij_8 = rij_4 * rij_4;
             energy += Aij[typeIndex]/rij_8 - Bij[typeIndex]/rij_4;
@@ -320,7 +348,7 @@ public class NonbondedTerm implements EnergyTerm
             rij_2 = dx*dx + dy*dy + dz*dz;
             if(rij_2 > cutoff_2) continue;
             
-            int typeIndex = type*NUM_TYPES + atomType[j/3];
+            int typeIndex = type*numTypes + atomType[j/3];
             double rij = Math.sqrt(rij_2);
             double rij_4 = rij_2 * rij_2;
             double rij_8 = rij_4 * rij_4;

@@ -39,6 +39,8 @@ UTIL: {{{
 - we now allow redefinition of identically named residues in a PDB file,
   as long as they're separated by 1+ TER cards. This helps in dealing with
   symmetry-expaned PDBs from crystallography. Don't know yet if CIF needs this.
+- fixed PdbWriter to not need a Map of states in order to write a Model
+- PdbWriter will no longer write alt_ for an atom that has altA, altB, etc.
 
 ### 0.74 ###
 - fillInStates code now has the option of creating new ATOMs or not.

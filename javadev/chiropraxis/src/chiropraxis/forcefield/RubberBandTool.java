@@ -146,7 +146,9 @@ public class RubberBandTool extends BasicTool implements Runnable, ChangeListene
         int[] atomTypes = new int[ points.size() ];
         for(i = 0; i < len; i++) atomTypes[i] = 1;
         for( ; i < atomTypes.length; i++) atomTypes[i] = 0;
-        nbTerms.add(new NonbondedTerm(atomTypes, 6, 20));
+        NonbondedTerm nbTerm = new NonbondedTerm(atomTypes, 6, 20);
+        nbTerm.setAB(1, 1, 1.0, 2.0);
+        nbTerms.add(nbTerm);
         
         StateManager stateman = new StateManager((MutableTuple3[])points.toArray(new MutableTuple3[points.size()]), len);
         stateman.setBondTerms(bondTerms);
