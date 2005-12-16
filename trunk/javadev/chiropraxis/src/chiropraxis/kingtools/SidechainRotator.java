@@ -164,7 +164,10 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
         if(reply == JOptionPane.CANCEL_OPTION) return;
         
         if(reply == JOptionPane.YES_OPTION)
+        {
             modelman.requestStateChange(this); // will call this.updateModelState()
+            modelman.addUserMod("Refit sidechain of "+targetRes);
+        }
         else //  == JOptionPane.NO_OPTION
             modelman.unregisterTool(this);
         
