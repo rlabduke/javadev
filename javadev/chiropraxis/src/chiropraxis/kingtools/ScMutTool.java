@@ -154,7 +154,7 @@ public class ScMutTool  extends ModelingTool
             modelman.replaceModelAndState(newModel, newState);
             
             // Make a note in the headers
-            modelman.srccoordfile.addHeader(CoordinateFile.SECTION_USER_MOD, "USER  MOD Mutated "+orig+" to "+newRes);
+            modelman.addUserMod("Mutated "+orig+" to "+newRes);
             
             // Set it up for rotation
             try {

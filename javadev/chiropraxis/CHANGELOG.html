@@ -14,8 +14,8 @@
     Allow ModelManager to switch between alt confs and create new ones
     Show histogram of cluster sizes for SequenceSpacer (maybe in kin text?)
     [can't repr] Backrub: sc first, then bb, no bb opt sc, leads to sc tool not fixing Cb dev
+    Make USER MODs in ModelManager2 undoable by storing them in ModelStatePair
   ? How does molten state interact with replacing the Model frequently?
-  ? How to log changes (which sidechains, which backbones?)
   * Random things got claimed by G??
 
 ==============================================================================
@@ -28,6 +28,7 @@
 - improved interface: save chooser doesn't switch dirs, current alt is shown
 - started BackrubFinder
 - updated forcefield.NonbondedTerm to be configurable
+- added change logging to ModelManager2 the dumb way -- not undoable right now
 
 ### 0.52 ###
 - added "S" rotamer sample points to Phe, Tyr, Asp, Asn, Gln, and Glu.

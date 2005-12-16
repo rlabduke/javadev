@@ -488,6 +488,7 @@ public class ModelManager2 extends Plugin
         newStates.put(newAlt, new ModelState(m.getState(oldAlt)));
         newModel.setStates(newStates);
         setModelAndState(newModel, newAlt);
+        addUserMod("Created alternate conformation '"+newAlt+"'");
     }
 //}}}
 
@@ -563,8 +564,8 @@ public class ModelManager2 extends Plugin
                     {
                         Model m = this.getModel();
                         
-                        // Create a record of what was changed
-                        //Collection moves = detectMovedResidues(m, srcstate, this.getFrozenState());
+                        // It's too hard to scan the model and decide what's changed,
+                        // so now we just rely on tools calling addUserMod()
                         //for(Iterator iter = moves.iterator(); iter.hasNext(); )
                         //    srccoordfile.addHeader(CoordinateFile.SECTION_USER_MOD, iter.next().toString());
                         
@@ -629,50 +630,21 @@ public class ModelManager2 extends Plugin
     }
 //}}}
 
-//{{{ [WORTHLESS] detectMovedResidues
+//{{{ addUserMod
 //##################################################################################################
     /**
-    * Given a model and two different states, we compute whether any atom in a given residue
-    * has different coordinates in the two states or is present in one but not both.
-    * We return a Collection of USER MOD header Strings, one per moved residue.
-    * /
-    public static Collection detectMovedResidues(Model m, ModelState s1, ModelState s2)
+    * It's just too damn hard to figure out all the ways a model might have changed.
+    * So now tools are responsible for calling this function AFTER they change something.
+    * Right now, it doesn't get undone when we undo, but it might in the future.
+    * We could add that capability by storing these in the ModelStatePair class instead,
+    * and then insert them just before saving the file.
+    */
+    public void addUserMod(String msg)
     {
-        ArrayList headers = new ArrayList();
-        for(Iterator ri = m.getResidues().iterator(); ri.hasNext(); )
-        {
-            Residue r = (Residue) ri.next();
-            boolean mcMoved = false, scMoved = false;
-            int created = 0;
-            for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
-            {
-                Atom a = (Atom) ai.next();
-                if(s1.hasState(a) ^ s2.hasState(a)) created++;
-                else
-                {
-                    try
-                    {
-                        AtomState a1 = s1.get(a);
-                        AtomState a2 = s2.get(a);
-                        if(a1.getX() != a2.getX() || a1.getY() != a2.getY() || a1.getZ() != a2.getZ())
-                        {
-                            if(AminoAcid.isBackbone(a)) mcMoved = true;
-                            else                        scMoved = true;
-                        }
-                    }
-                    catch(AtomException ex) {} // neither state defined this Atom
-                }
-            }
-            if(mcMoved || scMoved)
-            {
-                headers.add("USER  MOD Residue moved: "+r
-                    +(mcMoved ? " [backbone]" : "") 
-                    +(scMoved ? " [sidechain]" : "")); 
-            }
-            if(created > 0) headers.add("USER  MOD "+created+" atom(s) created/destroyed in "+r);
-        }
-        return headers;
-    }*/
+        if(!msg.startsWith("USER  "))
+            msg = "USER  MOD "+msg;
+        srccoordfile.addHeader(CoordinateFile.SECTION_USER_MOD, msg);
+    }
 //}}}
 
 //{{{ getModel, getAltConf, getFrozen{State, PDB}

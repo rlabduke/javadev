@@ -315,7 +315,10 @@ public class BackrubWindow implements Remodeler, ChangeListener, WindowListener
         if(reply == JOptionPane.CANCEL_OPTION) return;
         
         if(reply == JOptionPane.YES_OPTION)
+        {
             modelman.requestStateChange(this); // will call this.updateModelState()
+            modelman.addUserMod("Refit backbone of "+ctrRes);
+        }
         else //  == JOptionPane.NO_OPTION
             modelman.unregisterTool(this);
         
