@@ -41,23 +41,25 @@ public class ModelManager2 extends Plugin
     /** Used for undoing model and (possibly) state changes. */
     static class ModelStatePair
     {
-        Model       model;
-        ModelState  state;
-        /** A cache for a PDB representation of state */
-        File        asPDB;
+        Model       model;      // Model we're working on
+        String      stateLabel; // Corresponds to one of the ModelStates stored in model
+        File        asPDB;      // A cache for a PDB representation of said ModelState
         
-        public ModelStatePair(Model m, ModelState s)
+        public ModelStatePair(Model m, String sLabel)
         {
-            model = m;
-            state = s;
-            asPDB = null;
+            model       = m;
+            stateLabel  = sLabel;
+            asPDB       = null;
         }
         
         public Model getModel()
         { return model; }
         
+        public String getAltConf()
+        { return stateLabel; }
+        
         public ModelState getState()
-        { return state; }
+        { return model.getState(stateLabel); }
         
         public File getPDB()
         {
@@ -66,7 +68,7 @@ public class ModelManager2 extends Plugin
                 try {
                     asPDB = File.createTempFile("king", ".pdb");
                     PdbWriter writer = new PdbWriter(asPDB);
-                    writer.writeResidues(model.getResidues(), state);
+                    writer.writeResidues(model.getResidues(), this.getState());
                     writer.close();
                     asPDB.deleteOnExit();
                 } catch(IOException ex)
@@ -79,13 +81,13 @@ public class ModelManager2 extends Plugin
 
 //{{{ Variable definitions
 //##################################################################################################
-    File                    srcfile         = null;
-    CoordinateFile          srccoordfile    = null;
-    Model                   srcmodel        = null;
-    ModelState              srcstate        = null;
-    FastModelOpen           fastModelOpen;
+    // These are all for last file opened/saved, for comparison when modified version is saved
+    File                    srcfile         = null; // only used to display name to user
+    CoordinateFile          srccoordfile    = null; // so we can write ALL models, though we just edited one
+    Model                   srcmodel        = null; // replace this w/ our new one when we write
+    //ModelState              srcstate        = null; // used to see what changed; deprecated
     
-    LinkedList              stateList   = null; // Stack<ModelStatePair>
+    LinkedList              stateList   = null; // Stack<ModelStatePair>, used for undos
     ModelState              moltenState = null;
     File                    moltenPDB   = null;
     
@@ -101,6 +103,7 @@ public class ModelManager2 extends Plugin
     
     SuffixFileFilter        pdbFilter, rotFilter, noeFilter;
     JFileChooser            openChooser, saveChooser, noeChooser;
+    FastModelOpen           fastModelOpen;
     JCheckBox               cbUseSegID;
     boolean                 changedSinceSave = false;
     JDialog                 dialog;
@@ -158,6 +161,7 @@ public class ModelManager2 extends Plugin
         saveChooser = new JFileChooser();
         //XXX-??? saveChooser.addChoosableFileFilter(rotFilter);
         saveChooser.setFileFilter(rotFilter);
+        if(currdir != null) saveChooser.setCurrentDirectory(new File(currdir));
         
         noeChooser = new JFileChooser();
         noeChooser.addChoosableFileFilter(noeFilter);
@@ -254,6 +258,7 @@ public class ModelManager2 extends Plugin
         item.setMnemonic(KeyEvent.VK_N);
         //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, UIMenus.MENU_ACCEL_MASK));
         menu.add(item);
+        menu.addSeparator();
         item = new JMenuItem(new ReflectiveAction("Save PDB file...", null, this, "onSaveFullPDB"));
         item.setMnemonic(KeyEvent.VK_S);
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, UIMenus.MENU_ACCEL_MASK));
@@ -262,6 +267,15 @@ public class ModelManager2 extends Plugin
         menu = new JMenu("Edit");
         menu.setMnemonic(KeyEvent.VK_E);
         menubar.add(menu);
+        item = new JMenuItem(new ReflectiveAction("Choose alt conf...", null, this, "onChooseAltConf"));
+        //item.setMnemonic(KeyEvent.VK_O);
+        //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, UIMenus.MENU_ACCEL_MASK));
+        menu.add(item);
+        item = new JMenuItem(new ReflectiveAction("Create new alt conf...", null, this, "onCreateAltConf"));
+        //item.setMnemonic(KeyEvent.VK_O);
+        //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, UIMenus.MENU_ACCEL_MASK));
+        menu.add(item);
+        menu.addSeparator();
         miUndo = item = new JMenuItem(new ReflectiveAction("Undo last change", null, this, "onUndo"));
         item.setMnemonic(KeyEvent.VK_U);
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, UIMenus.MENU_ACCEL_MASK));
@@ -281,8 +295,15 @@ public class ModelManager2 extends Plugin
     /** One stop shopping to ensure the GUI reflects the current conditions. */
     protected void refreshGUI()
     {
-        if(srcfile != null) lblFileName.setText("File: "+srcfile.getName());
-        else                lblFileName.setText("File not loaded");
+        if(srcfile != null)
+        {
+            String fileLbl = "File: "+srcfile.getName();
+            String alt = getAltConf();
+            if(!alt.equals(" ")) fileLbl = fileLbl+" ["+alt+"]";
+            lblFileName.setText(fileLbl);
+        }
+        else lblFileName.setText("File not loaded");
+        
         lblNumMolten.setText("Residues checked out: "+allMoltenRes.size());
         miUndo.setEnabled( stateList.size() > 1 );
         
@@ -346,10 +367,6 @@ public class ModelManager2 extends Plugin
         Kinemage kin = kMain.getKinemage();
         if(kin != null && kin.atPdbfile != null)
         {
-            // Done once, at create time
-            //String currdir = System.getProperty("user.dir");
-            //if(currdir != null) openChooser.setCurrentDirectory(new File(currdir));
-            
             File f = new File(kin.atPdbfile);
             if(f.exists())
             {
@@ -391,7 +408,6 @@ public class ModelManager2 extends Plugin
         
         // Let user select model
         Model m;
-        ModelState s;
         Collection models = srccoordfile.getModels();
         if(models.size() == 1)
             m = srccoordfile.getFirstModel();
@@ -406,34 +422,72 @@ public class ModelManager2 extends Plugin
                 m = srccoordfile.getFirstModel();
         }
         
-        // Let user select alt conf
-        Collection states = new ArrayList(m.getStates().keySet());
-        if(states.size() == 1)
-            s = m.getState();
+        // Let user select alt conf (iff there's more than one)
+        String altLabel = askAltConf(m, "This file has alternate conformations. Please choose one:");
+        
+        // so we know when we go to save the file
+        srcmodel = m;
+        
+        stateList.clear(); // can't undo loading a new file, b/c we overwrite srcfile and friends
+        setModelAndState(m, altLabel);
+        
+        fastModelOpen.updateList(srcfile.getParentFile(), pdbFilter);
+        
+        refreshGUI();
+    }
+//}}}
+
+//{{{ askAltConf
+//##################################################################################################
+    /** Helper method to ask user which alt conf to use **/
+    String askAltConf(Model m, String question)
+    {
+        ArrayList states = new ArrayList(m.getStates().keySet());
+        if(states.size() == 1) return (String) states.get(0);
         else
         {
             states.remove(" "); // all letters treat this as parent
             Object[] choices = states.toArray();
             String c = (String)JOptionPane.showInputDialog(kMain.getTopWindow(),
-                "This file has alternate conformations. Please choose one:",
+                question,
                 "Choose alt. conf.", JOptionPane.PLAIN_MESSAGE,
                 null, choices, choices[0]);
-            if(c == null)
-                s = m.getState();
-            else
-                s = m.getState( c );
+            if(c == null)   return (String) states.get(0);
+            else            return c;
         }
+    }
+//}}}
+
+//{{{ onChooseAltConf, onCreateAltConf
+//##################################################################################################
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onChooseAltConf(ActionEvent ev)
+    {
+        Model m = this.getModel();
+        if(m == null) return;
+        // Let user select alt conf (iff there's more than one)
+        String altLabel = askAltConf(m, "This file has alternate conformations. Please choose one:");
+        setModelAndState(m, altLabel);
+    }
+    
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onCreateAltConf(ActionEvent ev)
+    {
+        Model m = this.getModel();
+        if(m == null) return;
+        // Let user select alt conf (iff there's more than one)
+        String oldAlt = askAltConf(m, "Choose a state to base your new alternate conformation on:");
+        // Let the user specify a new alt conf ID
+        String newAlt = (String) JOptionPane.showInputDialog(kMain.getTopWindow(),
+            "What label should be used for the new alternate? (e.g. 'X')",
+            "Name alt. conf.", JOptionPane.PLAIN_MESSAGE);
+        if(newAlt == null) return;
         
-        // so we know when we go to save the file
-        srcmodel = m;
-        srcstate = s;
-        
-        //stateList.clear(); // can't undo loading a new file (?)
-        replaceModelAndState(m, s);
-        
-        fastModelOpen.updateList(srcfile.getParentFile(), pdbFilter);
-        
-        refreshGUI();
+        Model newModel = (Model) m.clone();
+        HashMap newStates = new HashMap(newModel.getStates());
+        newStates.put(newAlt, new ModelState(m.getState(oldAlt)));
+        newModel.setStates(newStates);
+        setModelAndState(newModel, newAlt);
     }
 //}}}
 
@@ -481,7 +535,9 @@ public class ModelManager2 extends Plugin
                 name = prefix+".1.pdb";
             }
         }
-        saveChooser.setSelectedFile(new File(openChooser.getCurrentDirectory(), name));
+        // Older code keeps changing directory out from under us!!
+        //saveChooser.setSelectedFile(new File(openChooser.getCurrentDirectory(), name));
+        saveChooser.setSelectedFile(new File(name));
         
         savePDB(true);
     }
@@ -505,36 +561,22 @@ public class ModelManager2 extends Plugin
                     PdbWriter pdbWriter = new PdbWriter(f);
                     if(wholeThing)
                     {
-                        /* Dumb, simple version * /
-                        pdbWriter.writeResidues(
-                            this.getModel().getResidues(), this.getFrozenState() );
-                            
-                        srcfile = f;
-                        changedSinceSave = false;
-                        refreshGUI();
-                        /* Dumb, simple version */
-                        
-                        // Use modified state for modified model,
-                        // default (original) for all other models.
-                        Set states = new UberSet(this.getModel().getStates().values());
-                        states.remove(srcstate); // remove default state
-                        Set newStates = new UberSet();
-                        newStates.add(this.getFrozenState());
-                        newStates.addAll(states);
-                        Map stateMap = new HashMap();
-                        stateMap.put(this.getModel(), newStates);
+                        Model m = this.getModel();
                         
                         // Create a record of what was changed
-                        Collection moves = detectMovedResidues(this.getModel(), srcstate, this.getFrozenState());
-                        for(Iterator iter = moves.iterator(); iter.hasNext(); )
-                            srccoordfile.addHeader(CoordinateFile.SECTION_USER_MOD, iter.next().toString());
+                        //Collection moves = detectMovedResidues(m, srcstate, this.getFrozenState());
+                        //for(Iterator iter = moves.iterator(); iter.hasNext(); )
+                        //    srccoordfile.addHeader(CoordinateFile.SECTION_USER_MOD, iter.next().toString());
                         
-                        // this won't do anything unless e.g. we made a mutation
-                        srccoordfile.replace(srcmodel, this.getModel());
-                        pdbWriter.writeCoordinateFile(srccoordfile, stateMap);
+                        // Sync up the atom-by-atom labels with the global scheme
+                        adjustAltConfLabels(m);
+                        
+                        // Replace the model we started from with the current model
+                        srccoordfile.replace(srcmodel, m);
+                        pdbWriter.writeCoordinateFile(srccoordfile);
                         
                         srcfile             = f;
-                        srcmodel            = this.getModel();
+                        srcmodel            = m;
                         changedSinceSave    = false;
                         refreshGUI();
                     }
@@ -554,13 +596,46 @@ public class ModelManager2 extends Plugin
     }
 //}}}
 
-//{{{ detectMovedResidues
+//{{{ adjustAltConfLabels
+//##################################################################################################
+    /**
+    * Given a Model, we traverse the its ModelStates, looking for AtomStates whose alts don't match.
+    * E.g., an AtomState with alt conf 'A' hiding in ModelState 'B'.
+    * This is done in a smart way, so that if that AtomState were also in ModelState 'A', it is unaffected.
+    */
+    void adjustAltConfLabels(Model m)
+    {
+        CheapSet allAS = new CheapSet(new IdentityHashFunction());
+        for(Iterator msi = m.getStates().keySet().iterator(); msi.hasNext(); )
+        {
+            String altLabel = (String) msi.next();
+            ModelState state = (ModelState) m.getStates().get(altLabel);
+            for(Iterator ri = m.getResidues().iterator(); ri.hasNext(); )
+            {
+                Residue r = (Residue) ri.next();
+                for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
+                {
+                    Atom a = (Atom) ai.next();
+                    try
+                    {
+                        AtomState as = state.get(a);
+                        // If we haven't seen this before, set it's alt ID
+                        if(allAS.add(as)) as.setAltConf(altLabel);
+                    }
+                    catch(AtomException ex) {}
+                }
+            }
+        }
+    }
+//}}}
+
+//{{{ [WORTHLESS] detectMovedResidues
 //##################################################################################################
     /**
     * Given a model and two different states, we compute whether any atom in a given residue
     * has different coordinates in the two states or is present in one but not both.
     * We return a Collection of USER MOD header Strings, one per moved residue.
-    */
+    * /
     public static Collection detectMovedResidues(Model m, ModelState s1, ModelState s2)
     {
         ArrayList headers = new ArrayList();
@@ -597,10 +672,10 @@ public class ModelManager2 extends Plugin
             if(created > 0) headers.add("USER  MOD "+created+" atom(s) created/destroyed in "+r);
         }
         return headers;
-    }
+    }*/
 //}}}
 
-//{{{ getModel, getFrozen{State, PDB}
+//{{{ getModel, getAltConf, getFrozen{State, PDB}
 //##################################################################################################
     /**
     * Returns the Model currently in use.
@@ -610,6 +685,15 @@ public class ModelManager2 extends Plugin
     */
     public Model getModel()
     { return getMSP().getModel(); }
+
+    /**
+    * Returns the identifying label for the alternate conformation currently in use.
+    * If no Model is loaded, the user will be prompted to select one.
+    * Please DO NOT cache this value as it may change.
+    * @throws IllegalStateException if the user refuses to load a model
+    */
+    public String getAltConf()
+    { return getMSP().getAltConf(); }
 
     /**
     * Returns the ModelState currently in use -- the last committed change.
@@ -715,7 +799,15 @@ public class ModelManager2 extends Plugin
     {
         ModelState s = tool.updateModelState( getFrozenState() );
         s = s.createCollapsed(); // reduce lookup time in the future
-        ModelStatePair msp = new ModelStatePair( getModel(), s );
+        
+        // Every permanent change generates a new Model, so that it can
+        // hold the new set of ModelStates (only one of them has changed).
+        // It costs more memory, but not a LOT more, and seems cleaner than other approaches.
+        Model newModel = (Model) this.getModel().clone();
+        HashMap newStates = new HashMap(newModel.getStates());
+        newStates.put(this.getAltConf(), s);
+        newModel.setStates(newStates);
+        ModelStatePair msp = new ModelStatePair(newModel, this.getAltConf());
         stateList.addLast(msp);
         changedSinceSave = true;
         
@@ -724,6 +816,49 @@ public class ModelManager2 extends Plugin
         // -> requestStateRefresh();
         // -> refreshGUI(); // make sure Undo item is up-to-date
     }
+//}}}
+
+//{{{ set/replaceModelAndState, isMolten
+//##################################################################################################
+    /**
+    * Used in place of requestStateChange for a tool to (eg) make a mutation,
+    * changing both the Model and the ModelState.
+    * @throws IllegalStateException if isMolten() == true
+    */
+    public void replaceModelAndState(Model m, ModelState s)
+    {
+        if(isMolten())
+            throw new IllegalStateException("Cannot install new model while old model is molten");
+        
+        // Every permanent change generates a new Model, so that it can
+        // hold the new set of ModelStates (only one of them has changed).
+        // It costs more memory, but not a LOT more, and seems cleaner than other approaches.
+        Model newModel = (Model) m.clone();
+        HashMap newStates = new HashMap(newModel.getStates());
+        newStates.put(this.getAltConf(), s);
+        newModel.setStates(newStates);
+        
+        setModelAndState(newModel, this.getAltConf());
+        changedSinceSave = true;
+    }
+    
+    /**
+    * Installs a new Model and/or changes which alt conf we're working on.
+    * This is the atomic way of changing the frozen state, and can be undone.
+    * The visualizations are updated automatically.
+    */
+    public void setModelAndState(Model m, String altLabel)
+    {
+        ModelStatePair msp = new ModelStatePair(m, altLabel);
+        stateList.addLast(msp);
+        
+        visualizeFrozenModel(); // not done for every refresh
+        requestStateRefresh();
+        refreshGUI(); // make sure Undo item is up-to-date
+    }
+    
+    public boolean isMolten()
+    { return allMoltenRes.size() > 0; }
 //}}}
 
 //{{{ unregisterTool, registerTool
@@ -763,7 +898,7 @@ public class ModelManager2 extends Plugin
     }
 //}}}
 
-//{{{ onUndo, undoChange, replaceModelAndState, isMolten
+//{{{ onUndo, undoChange
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onUndo(ActionEvent ev)
@@ -788,35 +923,6 @@ public class ModelManager2 extends Plugin
         refreshGUI(); // make sure Undo item is up-to-date
         return true;
     }
-    
-    /**
-    * Installs a new Model and ModelState.
-    * This change can be undone, provided that you had
-    * the sense to copy the model object and change THAT
-    * instead of the original.
-    * If we detect the new model is NOT a copy, undo will be disabled.
-    * The visualizations are updated automatically.
-    * @throws IllegalStateException if isMolten() == true
-    */
-    public void replaceModelAndState(Model m, ModelState s)
-    {
-        if(isMolten())
-            throw new IllegalStateException("Cannot install new model while old model is molten");
-        
-        // no undo possible if our current model object has been altered
-        if(stateList.size() >= 1 && m == this.getModel())
-            stateList.clear();
-        
-        ModelStatePair msp = new ModelStatePair(m, s);
-        stateList.addLast(msp);
-        
-        visualizeFrozenModel(); // not done for every refresh
-        requestStateRefresh();
-        refreshGUI(); // make sure Undo item is up-to-date
-    }
-    
-    public boolean isMolten()
-    { return allMoltenRes.size() > 0; }
 //}}}
 
 //{{{ getPlotter

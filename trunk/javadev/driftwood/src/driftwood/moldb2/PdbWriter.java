@@ -169,6 +169,9 @@ public class PdbWriter //extends ... implements ...
 
 //{{{ writeCoordinateFile
 //##################################################################################################
+    public void writeCoordinateFile(CoordinateFile coordFile)
+    { writeCoordinateFile(coordFile, null); }
+    
     /**
     * Writes out a whole group of models, complete with
     * all header information. This function should generate
@@ -182,6 +185,8 @@ public class PdbWriter //extends ... implements ...
     */
     public void writeCoordinateFile(CoordinateFile coordFile, Map modelStates)
     {
+        if(modelStates == null) modelStates = Collections.EMPTY_MAP;
+        
         for(Iterator iter = coordFile.getHeaders().iterator(); iter.hasNext(); )
         {
             String header = iter.next().toString(); // they should already be Strings
@@ -227,7 +232,7 @@ public class PdbWriter //extends ... implements ...
 //##################################################################################################
     private void writeModel(Model model, ModelState[] states)
     {
-        Set outputStates = new HashSet(); // to avoid duplicates
+        Set usedCardNames = new HashSet(); // to avoid duplicate names (inc. alt conf code)
         
         Residue oldRes = null;
         for(Iterator ri = model.getResidues().iterator(); ri.hasNext(); )
@@ -241,23 +246,37 @@ public class PdbWriter //extends ... implements ...
             for(Iterator ai = res.getAtoms().iterator(); ai.hasNext(); )
             {
                 Atom atom = (Atom)ai.next();
+                boolean hasAlts = false;
+                // We want to make sure that Atoms with alts (A, B, C, ...)
+                // don't also get an entry with alt = _
+                // This may not be the "right" place to address this problem, but it works for now.
                 for(int i = 0; i < states.length; i++)
                 {
                     try
                     {
                         AtomState as = states[i].get(atom);
-                        // We want to make sure every atom output has a unique PDB name.
-                        // We're not worried so much about duplicating coordinates (old code).
-                        // Name requirement is important for dealing with alt confs,
-                        // where a single atom (' ') may move in A but not B --
-                        // this led to two ATOM entries with different coords but the same name.
+                        if(! " ".equals(as.getAltConf())) { hasAlts = true; break; }
+                    }
+                    catch(AtomException ex) {} // no state
+                }
+                // We also want to make sure every atom output has a unique PDB name;
+                // we're not worried so much about duplicating coordinates.
+                // Name requirement is important for dealing with alt confs,
+                // where a single atom (' ') may move in A but not B --
+                // this led to two ATOM entries with different coords but the same name.
+                for(int i = 0; i < states.length; i++)
+                {
+                    try
+                    {
+                        AtomState as = states[i].get(atom);
                         String aName = as.getAtom().toString()+as.getAltConf();
-                        //if(!outputStates.contains(as))
-                        if(!outputStates.contains(aName))
+                        if(!hasAlts || !" ".equals(as.getAltConf()))
                         {
-                            //outputStates.add(as);
-                            outputStates.add(aName);
-                            writeAtom(as);
+                            if(!usedCardNames.contains(aName))
+                            {
+                                usedCardNames.add(aName);
+                                writeAtom(as);
+                            }
                         }
                     }
                     catch(AtomException ex) {} // no state
