@@ -58,16 +58,13 @@ public class AlignChains //extends ... implements ...
         double      bestRMSD    = Double.POSITIVE_INFINITY;
         DecimalFormat df = new DecimalFormat("0.000");
         
-        double[] w = new double[len];
-        for(int i = 0; i < len; i++) w[i] = 1;
-        
         for(int i = 0; i <= maxoff; i++)
         {
             int ref_i = (ref.length == len ? 0 : i);
             int mob_i = (mob.length == len ? 0 : i);
             SuperPoser sp = new SuperPoser(ref, ref_i, mob, mob_i, len);
-            Transform R = sp.superpos(w);
-            double rmsd = sp.calcRMSD(R, w);
+            Transform R = sp.superpos();
+            double rmsd = sp.calcRMSD(R);
             if(rmsd < bestRMSD)
             {
                 bestR       = R;

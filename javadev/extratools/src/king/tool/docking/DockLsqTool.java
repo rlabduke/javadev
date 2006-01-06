@@ -185,11 +185,9 @@ public class DockLsqTool extends BasicTool
     {
         Tuple3[] ref = (Tuple3[])pkReference.tupleList.toArray(new Tuple3[pkReference.tupleList.size()]);
         Tuple3[] mob = (Tuple3[])pkMobile.tupleList.toArray(new Tuple3[pkMobile.tupleList.size()]);
-        double[] w = new double[ref.length];
-        Arrays.fill(w, 1.0);
         
         SuperPoser poser = new SuperPoser(ref, mob);
-        Transform t = poser.superpos(w);
+        Transform t = poser.superpos();
         
         Kinemage kin = kMain.getKinemage();
         if(!t.isNaN() && kin != null)

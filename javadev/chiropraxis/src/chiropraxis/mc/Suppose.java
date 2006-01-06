@@ -323,13 +323,11 @@ public class Suppose //extends ... implements ...
         Tuple3[]    sm1     = new Tuple3[m1.length];
         Tuple3[]    sm2     = new Tuple3[m2.length];
         String[]    slabels = new String[labels.length];
-        double[]    w       = new double[len];
         for(i = 0; i < len; i++)
         {
             sm1[i]      = m1[i];
             sm2[i]      = m2[i];
             slabels[i]  = labels[i];
-            w[i]        = 1.0;
         }
 
         // More variables we'll need
@@ -345,8 +343,8 @@ public class Suppose //extends ... implements ...
         for( ; len > 0; len--)
         {
             sp.reset(sm1, 0, sm2, 0, len);
-            R       = sp.superpos(w);
-            rmsd    = sp.calcRMSD(R, w);
+            R       = sp.superpos();
+            rmsd    = sp.calcRMSD(R);
             
             // Find worst-fitting pair
             worstIndex  = -1;
@@ -598,12 +596,10 @@ public class Suppose //extends ... implements ...
 
         // Calculate RMSD for selected subset of atoms
         // We'll use these in a minute to get rmsd for all IWUSDD subsets
-        double[]    w       = new double[len];
-        for(i = 0; i < w.length; i++) w[i] = 1.0;
         int         off     = len - nResToSuperpos;
         SuperPoser  sp      = new SuperPoser(sca1, off, sca2, off, nResToSuperpos);
-        Transform   R       = sp.superpos(w);
-        double      rmsd    = sp.calcRMSD(R, w);        
+        Transform   R       = sp.superpos();
+        double      rmsd    = sp.calcRMSD(R);        
 
         // Kinemage 4 - the Lesk plot of RMSD vs. # of residues included
         output.println("@kinemage 4");
@@ -647,8 +643,8 @@ public class Suppose //extends ... implements ...
         for(i = 0; i < len; i++)
         {
             sp.reset(sca1, i, sca2, i, len-i);
-            R           = sp.superpos(w);
-            rmsd        = sp.calcRMSD(R, w);        
+            R           = sp.superpos();
+            rmsd        = sp.calcRMSD(R);        
             SortItem si = sortedD[i];
             output.println("{rmsd "+df.format(rmsd)+" for "+(len-i)+" res; worst="+si.label+"} "
                 +df.format((len-i-1)*hspace)+" "+df.format(rmsd)+" 0.0");

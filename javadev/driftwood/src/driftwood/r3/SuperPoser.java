@@ -17,7 +17,7 @@ import java.util.*;
 * Actually, you can use it for any set of 3-D points you want
 * to superposition, but protein C-alphas is most common.
 *
-* <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
+* <p>Copyright (C) 2003-2006 by Ian W. Davis. All rights reserved.
 * <br>Begun on Mon Sep 15 10:04:36 EDT 2003
 */
 public class SuperPoser //extends ... implements ...
@@ -30,6 +30,14 @@ public class SuperPoser //extends ... implements ...
     int         len;
     Triple[]    ref;
     Triple[]    mob;
+    /**
+    * This is just the default uniform (1.0) weighting.
+    * Using non-uniform weights, especially zero, raises questions about
+    * how to calculate the centroid, the RMSD, and the superposition itself.
+    * Either these weren't addressed in the paper, or I didn't pick up on it;
+    * either way, the old behavior was probably not correct.
+    */
+    double[]    w;
     Triple      refCentroid;
     Triple      mobCentroid;
 //}}}
@@ -82,10 +90,12 @@ public class SuperPoser //extends ... implements ...
         {
             ref = new Triple[len];
             mob = new Triple[len];
+            w = new double[len];
             for(i = 0; i < len; i++)
             {
                 ref[i] = new Triple( m1[i+off1] );
                 mob[i] = new Triple( m2[i+off2] );
+                w[i] = 1.0;
             }
         }
         else
@@ -94,6 +104,7 @@ public class SuperPoser //extends ... implements ...
             {
                 ref[i].like( m1[i+off1] );
                 mob[i].like( m2[i+off2] );
+                w[i] = 1.0;
             }
         }
         
@@ -110,7 +121,7 @@ public class SuperPoser //extends ... implements ...
 //{{{ get, set for Tuple3
 //##############################################################################
     /** Retrieve the ith component of t: 1 = x, 2 = y, 3 = z. */
-    static public double get(Tuple3 t, int i)
+    static private double get(Tuple3 t, int i)
     {
         switch(i)
         {
@@ -123,7 +134,7 @@ public class SuperPoser //extends ... implements ...
     }
     
     /** Assign the ith component of t: 1 = x, 2 = y, 3 = z. */
-    static public void set(MutableTuple3 t, int i, double val)
+    static private void set(MutableTuple3 t, int i, double val)
     {
         switch(i)
         {
@@ -161,7 +172,7 @@ public class SuperPoser //extends ... implements ...
     * Calculates the weighted root-mean-square deviation between the point sets.
     * The supplied transformation is applied to the the mobile set before calculating.
     */
-    public double calcRMSD(Transform R, double[] w)
+    public double calcRMSD(Transform R)
     {
         double rmsd = 0.0;
         Triple t = new Triple();
@@ -185,10 +196,8 @@ public class SuperPoser //extends ... implements ...
     * <p>See A. D. McLachlan, Acta Cryst (1982) A38, 871-873.
     * Nomenclature remains the same except that r is called "mob" here,
     * and b is called "ref".
-    * @param w the weights assigned to each point pair.
-    *   1 is a good default. 0 will cause problems!
     */
-    public Transform superpos(double[] w)
+    public Transform superpos()
     {
         // Declare all variables
         Transform   V   = new Transform();  // the special 3x3 matrix V (aka U)
@@ -280,10 +289,6 @@ public class SuperPoser //extends ... implements ...
 
         return R;
     }
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
 //}}}
 
 //{{{ empty_code_segment
