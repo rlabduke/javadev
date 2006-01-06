@@ -301,11 +301,9 @@ public class LoopDockingTool extends BasicTool {
 	//System.out.println(ref.length);
         Tuple3[] mob = (Tuple3[])mobileList.toArray(new Tuple3[mobileList.size()]);
 	//System.out.println(mob.length);
-        double[] w = new double[ref.length];
-        Arrays.fill(w, 1.0);
         
         SuperPoser poser = new SuperPoser(ref, mob);
-        Transform t = poser.superpos(w);
+        Transform t = poser.superpos();
         
         Kinemage kin = kMain.getKinemage();
         if(!t.isNaN() && kin != null)

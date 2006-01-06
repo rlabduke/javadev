@@ -41,6 +41,8 @@ UTIL: {{{
   symmetry-expaned PDBs from crystallography. Don't know yet if CIF needs this.
 - fixed PdbWriter to not need a Map of states in order to write a Model
 - PdbWriter will no longer write alt_ for an atom that has altA, altB, etc.
+- added default weights to r3.SuperPoser, and made helper methods private
+- removed public access to point weights period, b/c they may not work
 
 ### 0.74 ###
 - fillInStates code now has the option of creating new ATOMs or not.
