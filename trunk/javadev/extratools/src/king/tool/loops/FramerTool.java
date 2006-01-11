@@ -12,8 +12,14 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import javax.swing.*;
+import java.text.DecimalFormat;
 
 public class FramerTool extends BasicTool {
+
+//{{{ Constants   
+    static final DecimalFormat df = new DecimalFormat("0.000");
+    //static final DecimalFormat intf = new DecimalFormat("0");
+//}}}
 
 //{{{ Variable definitions
 //###############################################################
@@ -110,11 +116,11 @@ public class FramerTool extends BasicTool {
 		KPoint ca1 = (KPoint) caMap.get(new Integer(lowNum + 1));
 		KPoint caN = (KPoint) caMap.get(new Integer(lowNum + numPep + 1));
 		KPoint caN1 = (KPoint) caMap.get(new Integer(lowNum + numPep + 2));
-		KPoint co1 = (KPoint) oxyMap.get(new Integer(lowNum + 1));
+		KPoint co0 = (KPoint) oxyMap.get(new Integer(lowNum));
 		KPoint coN = (KPoint) oxyMap.get(new Integer(lowNum + numPep + 1));
-		System.out.println(lowNum);
-		ArrayList results = Framer.calphaAnalyzeList(ca0, ca1, caN, caN1, co1, coN);
-		System.out.println(KinUtil.getResNumber(ca0.getName()));
+		System.out.print(lowNum + " ");
+		ArrayList results = Framer.calphaAnalyzeList(ca0, ca1, caN, caN1, co0, coN);
+		//System.out.println(KinUtil.getResNumber(ca0.getName()));
 		//oneNResults.ensureCapacity(KinUtil.getResNumber(ca0.getName()));
 		//oneNResults.add(KinUtil.getResNumber(ca0.getName()), results);
 		oneNResults.put(new Integer(KinUtil.getResNumber(ca0.getName())), results);
@@ -226,7 +232,7 @@ public class FramerTool extends BasicTool {
 		    while (resIter.hasNext()) {
 			Double value = (Double) resIter.next();
 			out.print(" ");
-			out.print(value);
+			out.print(df.format(value.doubleValue()));
 			//out.print(" ");
 		    }
 		    out.println("");

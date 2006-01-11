@@ -176,7 +176,7 @@ public class LoopDockingTool extends BasicTool {
 				//} else {
 				//HashSet value = new HashSet();
 				//keepRange(value, Integer.parseInt(exploded[1])-5, Integer.parseInt(exploded[2])+10);
-				int start = Integer.parseInt(exploded[1])-5;
+				int start = Integer.parseInt(exploded[1])-8;
 				String fullName = pdbName + Integer.toString(start);
 				    //pdbKeepMap.put(fullName, value);
 				//HashSet start = new HashSet();
@@ -266,6 +266,8 @@ public class LoopDockingTool extends BasicTool {
 	        mobilePoints = connect.mobilityFinder((AbstractPoint)p);
 		Integer minRes = findMinResidue(mobilePoints);
 		Integer ssStart = (Integer) endColorMap.get(pdbID + minRes.toString());
+		//System.out.println(pdbID);
+		//System.out.println(ssStart);
 		Integer ssEnd = new Integer(ssStart.intValue() + numRestoSuper);
 		if (dockOnStartButton.isSelected()) {
 		    ssEnd = (Integer) startColorMap.get(pdbID + minRes.toString());
