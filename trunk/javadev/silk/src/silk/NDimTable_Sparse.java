@@ -11,6 +11,7 @@ import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
 //import driftwood.*;
+import driftwood.util.Strings;
 //}}}
 /**
 * <code>NDimTable_Sparse</code> uses a special hashtable to handle very large
@@ -327,6 +328,125 @@ public class NDimTable_Sparse extends NDimTable
     }
 //}}}
 
+//{{{ createFromText
+//##################################################################################################
+    /**
+    * Recreates an <i>n</i>-dimensional lookup table of floating point numbers from a file.
+    * See <code>writeText()</code> for details of the format.
+    *
+    * @param input The stream to read from
+    *
+    * @throws IOException if there is a problem reading from the stream
+    * @throws NumberFormatException if there is a mis-formatted number
+    */
+    public static NDimTable createFromText(InputStream input) throws IOException, NumberFormatException
+    {
+        LineNumberReader in = new LineNumberReader(new InputStreamReader(input));
+        NDimTable_Sparse ndt = new NDimTable_Sparse();
+        
+        // Extract our name
+        String s = getLine(in);
+        if(s.startsWith("\"") && s.endsWith("\"")) s = s.substring(1, s.length()-1);
+        ndt.ourName = s;
+
+        // How many dimensions?
+        ndt.nDim = Integer.parseInt(getLine(in));
+
+        // Allocate storage for minVal, maxVal, nBins, doWrap
+        ndt.minVal  = new   double[ndt.nDim];
+        ndt.maxVal  = new   double[ndt.nDim];
+        ndt.nBins   = new     int[ndt.nDim];
+        ndt.doWrap  = new boolean[ndt.nDim];
+
+        // Read them in
+        int i;
+        for(i = 0; i < ndt.nDim; )
+        {
+            s = getLine(in);
+            if(s.equals("lower_bound  upper_bound  number_of_bins  wrapping")) continue;
+            String[] parts  = Strings.explode(s, ' ');
+            ndt.minVal[i]   = Double.parseDouble(parts[0]);
+            ndt.maxVal[i]   = Double.parseDouble(parts[1]);
+            ndt.nBins[i]    = Integer.parseInt(parts[2]);
+            if(parts[3].equalsIgnoreCase("true")
+            || parts[3].equalsIgnoreCase("yes")
+            || parts[3].equalsIgnoreCase("on")
+            || parts[3].equalsIgnoreCase("1"))
+                ndt.doWrap[i] = true;
+            else ndt.doWrap[i] = false;
+            i++;
+        }
+
+        // We no longer know how many real points there were...
+        ndt.realcount = 0;
+
+        // Calculate the bin widths.
+        ndt.wBin = new double[ndt.nDim];
+        for(i = 0; i < ndt.nDim; i++) ndt.wBin[i] = (ndt.maxVal[i] - ndt.minVal[i]) / ndt.nBins[i];
+
+        // Allocate storage for the tgfXXX variables
+        ndt.tgf_start   = new int[ndt.nDim];
+        ndt.tgf_end     = new int[ndt.nDim];
+        ndt.tgf_curr    = new int[ndt.nDim];
+        ndt.tgf_bin_ctr = new double[ndt.nDim];
+
+        // Allocate storage for the vaXXX variables
+        ndt.va_home     = new int[ndt.nDim];
+        ndt.va_home_ctr = new double[ndt.nDim];
+        ndt.va_neighbor = new int[ndt.nDim];
+        ndt.va_current  = new int[ndt.nDim];
+        ndt.va_contrib  = new double[ndt.nDim];
+
+        // Calculate number of entries in lookupTable and allocate it.
+        // Allocate table and initialize it
+        final int maxused = 1000; // just a guess right now
+        ndt.lookupTable = new double[maxused];
+        ndt.indexHash = new long[maxused];
+        ndt.zero();
+        
+        double[]    currPt      = new double[ndt.nDim];
+        int[]       currBin     = new int[ndt.nDim];
+        boolean     valuesFirst = (getLine(in).indexOf("first") != -1);
+        
+        while(true)
+        {
+            s = in.readLine(); if(s == null) break;
+            double val = explodeDoubles(s, currPt, valuesFirst);
+            if(val == 0) continue;
+            ndt.whereIs(currPt, currBin);
+            ndt.setValueAt(currBin, val);
+        }
+        
+        return ndt;
+    }
+    
+    /** Returns a trimmed line, discarding everything up to and including the first colon. */
+    static private String getLine(LineNumberReader in) throws IOException
+    {
+        String s = in.readLine();
+        if(s == null) throw new EOFException("No lines remaining in "+in);
+        if(s.indexOf(':') > 0) s = s.substring(s.indexOf(':')+1);
+        return s.trim();
+    }
+    
+    static private double explodeDoubles(String s, double[] doubles, boolean valueFirst) throws NumberFormatException
+    {
+        String[] strings = Strings.explode(s, ' ');
+        if(valueFirst)
+        {
+            for(int i = 0; i < doubles.length; i++)
+                doubles[i] = Double.parseDouble(strings[i+1]);
+            return Double.parseDouble(strings[0]);
+        }
+        else
+        {
+            for(int i = 0; i < doubles.length; i++)
+                doubles[i] = Double.parseDouble(strings[i]);
+            return Double.parseDouble(strings[doubles.length]);
+        }
+    }
+//}}}
+
 //{{{ writeNDFT
 //##################################################################################################
     /**
@@ -335,75 +455,6 @@ public class NDimTable_Sparse extends NDimTable
     public void writeNDFT(DataOutputStream out) throws IOException
     {
         throw new IOException("Function not implemented");
-    }
-//}}}
-
-//{{{ writeText
-//##################################################################################################
-    /**
-    * Writes out a human-readable version of the data in this table.
-    * Format is self-documenting; lines begining with a hash (#) are comments
-    * @param out            the stream to write to
-    * @param df             the formatting object to use in formatting output, or null for none.
-    * @param valuesFirst    whether the value should come before or after the coords
-    */
-    public void writeText(OutputStream out, DecimalFormat df, boolean valuesFirst)
-    {
-        int         i, j;
-        int[]       binIndices  = new int[nDim];
-        double[]    binCoords   = new double[nDim];
-        PrintStream ps          = new PrintStream(out);
-
-        ps.println("# Table name/description: \""+ourName+"\"");
-        ps.println("# Number of dimensions: "+nDim);
-        ps.println("# For each dimension, 1 to "+nDim+": lower_bound  upper_bound  number_of_bins  wrapping");
-        for(i = 0; i < nDim; i++)
-        { ps.println("#   x"+(i+1)+": "+minVal[i]+" "+maxVal[i]+" "+nBins[i]+" "+doWrap[i]); }
-        if(valuesFirst) ps.println("# List of table coordinates and values. (Value is first number on each line.)");
-        else            ps.println("# List of table coordinates and values. (Value is last number on each line.)");
-        
-        if(df == null)
-        {
-            for(i = 0; i < lookupTable.length; i++)
-            {
-                if(lookupTable[i] == 0) continue; // only print non-zeros; zeros may be undef bins
-                index2bin(i, binIndices);
-                centerOf(binIndices, binCoords);
-                if(valuesFirst)
-                {
-                    ps.print(lookupTable[i]);
-                    for(j = 0; j < nDim; j++) { ps.print(" "); ps.print(binCoords[j]); }
-                    ps.println();
-                }
-                else
-                {
-                    for(j = 0; j < nDim; j++) { ps.print(binCoords[j]); ps.print(" "); }
-                    ps.println(lookupTable[i]);
-                }
-            }
-        }
-        else
-        {
-            for(i = 0; i < lookupTable.length; i++)
-            {
-                if(lookupTable[i] == 0) continue; // only print non-zeros; zeros may be undef bins
-                index2bin(i, binIndices);
-                centerOf(binIndices, binCoords);
-                if(valuesFirst)
-                {
-                    ps.print(df.format(lookupTable[i]));
-                    for(j = 0; j < nDim; j++) { ps.print(" "); ps.print(df.format(binCoords[j])); }
-                    ps.println();
-                }
-                else
-                {
-                    for(j = 0; j < nDim; j++) { ps.print(df.format(binCoords[j])); ps.print(" "); }
-                    ps.println(df.format(lookupTable[i]));
-                }
-            }
-        }
-        
-        ps.flush();
     }
 //}}}
 

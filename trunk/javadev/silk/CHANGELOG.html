@@ -6,12 +6,9 @@
     Write command line help
     Write README, instructions, etc.
     Create SilkGui
-    Add a NDimTable.writeText() with default parameters
     Allow "energy" conversion to be done at user-specified temperature?
  ** Look for other modulo code that suffers from this bug!! (LOTS of % symbols...)
-    Allow NDimTable_Dense to read text files with "x y z 0.0" lines dropped
-        Move writeText() to NDimTable itself (shared impl)
-  * Figure out how hill climb switches should work...
+    Implement hill climbing for dense table
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -22,6 +19,10 @@
   in preparation for trying the 7-D RNA backbone rotamers problem.
 - pre-existing bug in wrapbin() -- this made previous results slightly wrong?
 - finished out most functions in sparse (except i/o); we now allow rehashing
+- made hill climbing separate from the other post-ops; it should always be last
+- allowed NDimTable_Dense to read text files with "x y z 0.0" lines dropped
+- moved writeText() to NDimTable itself
+- tested text read and write for dense and sparse to ensure same results on all
 
 ### 0.84 ###
 - created KarplusTableToNDFT

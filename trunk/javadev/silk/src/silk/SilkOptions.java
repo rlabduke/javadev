@@ -33,7 +33,6 @@ public class SilkOptions //extends ... implements ...
     public static final String      POSTOP_0TO1         = "zero-to-one";
     public static final String      POSTOP_FRACTION     = "convert-to-fraction";
     public static final String      POSTOP_ENERGY       = "energy (-kT ln p_i @ 298K)";
-    public static final String      POSTOP_HILLCLIMB    = "hill climb / label peaks";
     public static final String      OUTPUT_VALUE_LAST   = "text (value last)";
     public static final String      OUTPUT_VALUE_FIRST  = "text (value first)";
     public static final String      OUTPUT_KINEMAGE     = "kinemage";
@@ -84,6 +83,10 @@ public class SilkOptions //extends ... implements ...
     public String       postop      = POSTOP_NONE;
     /** Scale factor to apply to output data (defaults to 1.0) */
     public double       scale       = 1.0;
+    /** After postop and scale, should we squash low values, climb hills, and label the peaks? (defaults to false) */
+    public boolean      hillClimb = false;
+    /** For hill climbing, squash values less than this down to zero. (defaults to 0 -- no squash) */
+    public double       hillSquash = 0.0;
     
     // OUTPUT
     /** A short comment to associate with the output data (defaults to none) */

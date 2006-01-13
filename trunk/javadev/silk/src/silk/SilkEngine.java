@@ -112,20 +112,14 @@ public class SilkEngine //extends ... implements ...
             densityTrace.transformTrueNaturalLog();                 // 0 prob. -> -inf
             densityTrace.scale(-0.0019872 * 298);                   // k_Boltzmann in kcal/mol.K   *   temperature in K
         }
-        else if(options.postop == SilkOptions.POSTOP_HILLCLIMB)
-        {
-            // Convert to fraction excluded
-            double[]    densityValues   = new double[ dataSamples.size() ];
-            Iterator    iter            = dataSamples.iterator();
-            for(int i = 0; i < dataSamples.size(); i++)
-            { densityValues[i] = densityTrace.valueAt(((DataSample)iter.next()).coords); }
-            densityTrace.fractionLessThan(densityValues);
-            // Squash low values to zero
-            densityTrace.squash(0.01);
-            // Label remaining values by hill climbing
-            ((NDimTable_Sparse) densityTrace).classifyByHills();
-        }
+        
         if(options.scale != 1.0) densityTrace.scale(options.scale);
+        
+        if(options.hillClimb)
+        {
+            if(options.hillSquash > 0) densityTrace.squash(options.hillSquash); // squash(0) has no effect
+            ((NDimTable_Sparse) densityTrace).classifyByHills(); // label remaining values by hill climbing
+        }
         
         return densityTrace;
     }
