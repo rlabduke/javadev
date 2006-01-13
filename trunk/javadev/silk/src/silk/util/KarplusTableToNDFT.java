@@ -58,7 +58,7 @@ public class KarplusTableToNDFT //extends ... implements ...
     */
     public void Main() throws IOException
     {
-        NDimTable ndt = new NDimTable_Dense(
+        NDimTable_Dense ndt = new NDimTable_Dense(
             "Tau as a function of phi, psi; after P.A. Karplus (1996)",
             2,
             new double[]    {-180,  -180},

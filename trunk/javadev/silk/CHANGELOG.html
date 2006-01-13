@@ -3,17 +3,18 @@
 ===  TO DO  ==================================================================
 ==============================================================================
     Suport -sigdig flag
-    Write command line help
     Write README, instructions, etc.
     Create SilkGui
     Allow "energy" conversion to be done at user-specified temperature?
+    Add NDimTable.writeNDT() -- a *sparse* binary format
+    Let -wrap be specified per dimension
  ** Look for other modulo code that suffers from this bug!! (LOTS of % symbols...)
-    Implement hill climbing for dense table
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 0.90 ###
 ### 0.90 ###
 - split NDimTable into abstract base class plus _Dense and _Sparse variants
   in preparation for trying the 7-D RNA backbone rotamers problem.
@@ -23,6 +24,14 @@
 - allowed NDimTable_Dense to read text files with "x y z 0.0" lines dropped
 - moved writeText() to NDimTable itself
 - tested text read and write for dense and sparse to ensure same results on all
+- removed writeNDFT() from the public API
+- altered hill climbing code so it could go into NDimTable; tested subclasses
+- timing comparison for "make rota4":
+    DENSE   user    4m05.483s
+    SPARSE  user    4m42.074s
+  Dense is slightly faster, but sparse can handle higher-dimensional data
+  and requires less memory. I think I'll make sparse the default for now.
+- finally wrote help page for SilkCmdLine
 
 ### 0.84 ###
 - created KarplusTableToNDFT
