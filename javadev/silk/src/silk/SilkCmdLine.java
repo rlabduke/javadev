@@ -146,7 +146,7 @@ public class SilkCmdLine //extends ... implements ...
             try
             {
                 DataOutputStream dos = new DataOutputStream(opt.outputSink);
-                densityTrace.writeNDFT(dos);
+                ((NDimTable_Dense) densityTrace).writeNDFT(dos);
                 dos.close();
             }
             catch(IOException ex)
@@ -289,6 +289,7 @@ public class SilkCmdLine //extends ... implements ...
         else if(flag.equals("-wrap"))           opt.wrap = new boolean[] {true};
         else if(flag.equals("-insep"))          opt.inSep = param.charAt(0);
         else if(flag.equals("-sparse"))         opt.sparse = true;
+        else if(flag.equals("-dense"))          opt.sparse = false;
         else if(flag.equals("-weight"))         opt.weight = Integer.parseInt(param);
         else if(flag.equals("-gridsize"))       opt.gridsize = explodeDoubles(param);
         else if(flag.equals("-gridsamples"))    opt.gridsamples = explodeInts(param);

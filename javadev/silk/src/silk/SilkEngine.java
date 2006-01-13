@@ -118,7 +118,7 @@ public class SilkEngine //extends ... implements ...
         if(options.hillClimb)
         {
             if(options.hillSquash > 0) densityTrace.squash(options.hillSquash); // squash(0) has no effect
-            ((NDimTable_Sparse) densityTrace).classifyByHills(); // label remaining values by hill climbing
+            densityTrace.classifyByHills(); // label remaining values by hill climbing
         }
         
         return densityTrace;

@@ -17,7 +17,7 @@ import java.util.*;
 * processing options that Silk supports.
 * It also contains methods for validating the settings.
 *
-* Note that column indices start from 1, not 0.
+* Note that column indices in the input data start from 1, not 0.
 *
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Apr 16 15:42:39 EDT 2003
@@ -59,8 +59,8 @@ public class SilkOptions //extends ... implements ...
     public boolean[]    wrap        = null;
     /** Character to use as a separator when parsing the input file (defaults to space) */
     public char         inSep       = ' ';
-    /** Whether to use sparse or dense data storage. Defaults to dense. */
-    public boolean      sparse = false;
+    /** Whether to use sparse or dense data storage. Defaults to sparse (true). */
+    public boolean      sparse      = true;
     
     // SMOOTHING
     /** Which smoothing operation to carry out on the input data */
@@ -207,8 +207,9 @@ public class SilkOptions //extends ... implements ...
                 throw new IllegalArgumentException("ddhalfwidth must be specified");
         }
         
-        // Output stream
+        // Output
         if(outputSink == null) outputSink = new BufferedOutputStream(System.out);
+        if(outputMode == OUTPUT_NDFT) sparse = false; // must use dense table to write NDFT
     }
 //}}}
 

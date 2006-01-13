@@ -69,36 +69,12 @@ public class NDimTable_Dense extends NDimTable
     // Takes a set of bin numbers and produces a linear offset into lookuptable.
     // If no bin can be found after wrapping is applied, returns -1.
     int bin2index(int[] where)
-    {
-        int which = 0, bin, i;
-        for(i = 0; i < nDim-1; i++)
-        {
-            bin = wrapbin(where[i], i);
-            if(bin < 0 || bin >= nBins[i]) return -1;
-            which += bin;
-            which *= nBins[i+1];
-        }
-        bin = wrapbin(where[i], i);
-        if(bin < 0 || bin >= nBins[i]) return -1;
-        which += bin;
-        return which;
-    }
+    { return (int) bin2long(where); }
 
     // Takes a set of bin numbers and produces a linear offset into lookuptable.
     // If no bin can be found after wrapping is applied, the edge of the table is used.
     int bin2index_limit(int[] where)
-    {
-        int which = 0, bin, i;
-        for(i = 0; i < nDim-1; i++)
-        {
-            bin = Math.min(nBins[i]-1, Math.max(wrapbin(where[i], i), 0));
-            which += bin;
-            which *= nBins[i+1];
-        }
-        bin = Math.min(nBins[i]-1, Math.max(wrapbin(where[i], i), 0));
-        which += bin;
-        return which;
-    }
+    { return (int) bin2long_limit(where); }
 
     // Takes an index into lookuptable and regenerates a set of bin numbers
     // where[] is overwritten

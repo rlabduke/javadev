@@ -124,7 +124,7 @@ abstract public class NDimTable //extends ... implements ...
     {}
 //}}}
 
-//{{{ wrapbin
+//{{{ wrapbin, bin2long, bin2long_limit
 //##################################################################################################
     // A utility function for subclasses.
     // In Java, (-a) % b == -(a % b), unlike a real modulo function.
@@ -143,15 +143,61 @@ abstract public class NDimTable //extends ... implements ...
         }
         else return bin;
     }
+
+    // Takes a set of bin numbers and produces a linear offset into an full-size table.
+    // *** THIS MAY NOT BE A REAL, USABLE OFFSET INTO lookupTable ***
+    // If no bin can be found after wrapping is applied, returns -1.
+    long bin2long(int[] where)
+    {
+        long which = 0;
+        int bin, i;
+        for(i = 0; i < nDim-1; i++)
+        {
+            bin = wrapbin(where[i], i);
+            if(bin < 0 || bin >= nBins[i]) return -1;
+            which += bin;
+            which *= nBins[i+1];
+        }
+        bin = wrapbin(where[i], i);
+        if(bin < 0 || bin >= nBins[i]) return -1;
+        which += bin;
+        return which;
+    }
+
+    // Takes a set of bin numbers and produces a linear offset into an full-size table.
+    // *** THIS MAY NOT BE A REAL, USABLE OFFSET INTO lookupTable ***
+    // If no bin can be found after wrapping is applied, the edge of the table is used.
+    long bin2long_limit(int[] where)
+    {
+        long which = 0;
+        int bin, i;
+        for(i = 0; i < nDim-1; i++)
+        {
+            bin = Math.min(nBins[i]-1, Math.max(wrapbin(where[i], i), 0));
+            which += bin;
+            which *= nBins[i+1];
+        }
+        bin = Math.min(nBins[i]-1, Math.max(wrapbin(where[i], i), 0));
+        which += bin;
+        return which;
+    }
 //}}}
 
-//{{{ [abstract] index2bin, set/addValueAt, valueAt, valueAtLimit
+//{{{ [abstract] index2bin, bin2index, set/addValueAt, valueAt, valueAtLimit
 //##################################################################################################
     /**
     * Takes an index into lookupTable and regenerates a set of bin numbers.
     * @param where      the first nDim slots are overwritten with bin numbers.
     */
     abstract void index2bin(int idx, int[] where);
+    
+    /**
+    * Takes a set of bin indices and converts it into an offset into lookupTable,
+    * or returns -1 if no such bin exists in the table.
+    * In general, this bin is <b>NOT SAFE FOR WRITING INTO</b>
+    * unless it already has a non-zero value.
+    */
+    abstract int bin2index(int[] where);
     
     /**
     * Sets the number of data points in a given bin.
@@ -631,6 +677,100 @@ abstract public class NDimTable //extends ... implements ...
     }
 //}}}
 
+//{{{ classifyByHills, recurseHills, hillsRecurseMaxNeighbor
+//##############################################################################
+    int[] hillTable = null; // holds the labels, since we can't climb in place!
+    
+    /**
+    * Traverses the table, transforming each positive (non-zero) value into
+    * a negative integer label, such that each point is labeled according to
+    * which hill it belongs to.
+    * <p>In an N-dimensional space, each of the 3^N - 1 neighbor points
+    * (ie, diagonal neighbors are included) is queried, and the largest
+    * positive value is followed recursively, until the top is reached.
+    */
+    public void classifyByHills()
+    {
+        tgf_b = 1.0; // used for next unused label
+        hillTable = new int[lookupTable.length];
+        
+        for(int i = 0; i < lookupTable.length; i++)
+            recurseHills(i);
+        
+        for(int i = 0; i < lookupTable.length; i++)
+            lookupTable[i] = hillTable[i];
+        
+        hillTable = null;
+    }
+    
+    private double recurseHills(int idx)
+    {
+        double val = lookupTable[idx], label = hillTable[idx];
+        if(val == 0)    return 0;       // should only happen directly from classifyByHills()
+        if(label != 0)  return label;   // already converted to a label
+        
+        // Does a neighbor have a higher value than this cell?
+        // yes: call recurseHills() on that cell, and use that label
+        // no: give this cell a new label, and return it
+        //
+        // This is recursive with shared (instance) variables, BUT
+        // we get all the goody out of them before this function itself recurses,
+        // so it *should* all be OK...
+        index2bin(idx, va_current);     // best bin so far: this one
+        tgf_a = val;                    // best value so far: this one
+        System.arraycopy(va_current, 0, tgf_curr, 0, nDim); // find current bin, then go one left and one right:
+        for(int i = 0; i < nDim; i++)
+        {
+            tgf_start[i] = tgf_curr[i]-1;   // min bound for loop
+            tgf_end[i]   = tgf_curr[i]+1;   // max bound for loop
+            tgf_curr[i]  = tgf_start[i];    // curr loop indices: start at start
+        }
+        hillsRecurseMaxNeighbor(0);
+        
+        int nextIdx = bin2index(va_current);
+        if(nextIdx == idx) // we're the highest value: we've reached the hill top
+        {
+            label = tgf_b++; // next label is more positive than this one: +1, +2, +3, ...
+            System.err.print("    peak "+((int)label)+":");
+            centerOf(va_current, tgf_pt);
+            for(int i = 0; i < nDim; i++) System.err.print(" "+tgf_pt[i]);
+            System.err.println(" -> "+tgf_a);
+        }
+        else // further up and further in: try the next highest point
+            label = recurseHills(nextIdx);
+        hillTable[idx] = (int) label;
+        return label;
+    }
+    
+    // Use recursion to loop over an unknown number of dimensions.
+    // Uses tgf_start/end/curr for looping; va_current and tgf_a for best found so far.
+    private void hillsRecurseMaxNeighbor(int depth)
+    {
+        // Set up a loop and go down to the next level
+        if(depth < nDim)
+        {
+            for(tgf_curr[depth] = tgf_start[depth]; tgf_curr[depth] <= tgf_end[depth]; tgf_curr[depth]++)
+                hillsRecurseMaxNeighbor(depth+1);
+        }
+        // We're at the bottom -- is this cell better than the current best?
+        else
+        {
+            // Make sure this is a real bin before we get going...
+            if(contains(tgf_curr))
+            {
+                // It's a real bin, or at least it wraps to a real bin.
+                double val = valueAt(tgf_curr);
+                // Have we done better? Using >= means tied neighbors will drift toward higher indices...
+                if(val >= tgf_a)
+                {
+                    tgf_a = val;
+                    System.arraycopy(tgf_curr, 0, va_current, 0, nDim);
+                }
+            }
+        }
+    }
+//}}}
+
 //{{{ zero, squash, scale, normalize, standardize
 //##################################################################################################
     /**
@@ -728,28 +868,6 @@ abstract public class NDimTable //extends ... implements ...
             lookupTable[i] = (n / size);
         }
     }
-//}}}
-
-//{{{ [abstract] writeNDFT
-//##################################################################################################
-    /**
-    * Saves the contents of the table to a file for re-use later.
-    *
-    * First, the name is written out as a C-style string (one byte per character, null terminated).
-    * Then nDim is written, then all of minVal, all of maxVal, all of nBins, and all of doWrap. Next is realcount.
-    * Finally, all of lookupTable is written out. In theory then, any other
-    * application can also read and use this data. Note that high bytes are
-    * written first. Some machines and platforms may need to take this into
-    * account.
-    *
-    * This format is the original binary format used by NDFloatTable and as a result causes
-    * a loss of precision as this class is downcast to the capabilities of NDFloatTable.
-    *
-    * @param out the stream to write to.
-    *
-    * @throws IOException if an IO error occurs.
-    */
-    abstract public void writeNDFT(DataOutputStream out) throws IOException;
 //}}}
 
 //{{{ writeText
