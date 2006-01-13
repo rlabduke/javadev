@@ -33,6 +33,7 @@ public class SilkOptions //extends ... implements ...
     public static final String      POSTOP_0TO1         = "zero-to-one";
     public static final String      POSTOP_FRACTION     = "convert-to-fraction";
     public static final String      POSTOP_ENERGY       = "energy (-kT ln p_i @ 298K)";
+    public static final String      POSTOP_HILLCLIMB    = "hill climb / label peaks";
     public static final String      OUTPUT_VALUE_LAST   = "text (value last)";
     public static final String      OUTPUT_VALUE_FIRST  = "text (value first)";
     public static final String      OUTPUT_KINEMAGE     = "kinemage";
@@ -59,6 +60,8 @@ public class SilkOptions //extends ... implements ...
     public boolean[]    wrap        = null;
     /** Character to use as a separator when parsing the input file (defaults to space) */
     public char         inSep       = ' ';
+    /** Whether to use sparse or dense data storage. Defaults to dense. */
+    public boolean      sparse = false;
     
     // SMOOTHING
     /** Which smoothing operation to carry out on the input data */

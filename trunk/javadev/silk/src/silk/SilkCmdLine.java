@@ -116,6 +116,9 @@ public class SilkCmdLine //extends ... implements ...
         if(opt.weight != 0)
             System.err.println("  Weight in col "+opt.weight);
         
+        if(opt.sparse)  System.err.println("Using sparse data storage");
+        else            System.err.println("Using dense data storage");
+        
         // Operations
         System.err.println("Calculating "+opt.operation+" followed by "+opt.postop+" and scaling by "+opt.scale);
         if(opt.operation != SilkOptions.OP_HISTOGRAM)
@@ -284,6 +287,7 @@ public class SilkCmdLine //extends ... implements ...
         else if(flag.equals("-bounds"))         opt.bounds = explodeDoubles(param);
         else if(flag.equals("-wrap"))           opt.wrap = new boolean[] {true};
         else if(flag.equals("-insep"))          opt.inSep = param.charAt(0);
+        else if(flag.equals("-sparse"))         opt.sparse = true;
         else if(flag.equals("-weight"))         opt.weight = Integer.parseInt(param);
         else if(flag.equals("-gridsize"))       opt.gridsize = explodeDoubles(param);
         else if(flag.equals("-gridsamples"))    opt.gridsamples = explodeInts(param);
@@ -311,6 +315,7 @@ public class SilkCmdLine //extends ... implements ...
         else if(flag.equals("-0to1"))           opt.postop = SilkOptions.POSTOP_0TO1;
         else if(flag.equals("-fraction"))       opt.postop = SilkOptions.POSTOP_FRACTION;
         else if(flag.equals("-energy"))         opt.postop = SilkOptions.POSTOP_ENERGY;
+        else if(flag.equals("-hillclimb"))      opt.postop = SilkOptions.POSTOP_HILLCLIMB;
         else if(flag.equals("-scale"))          opt.scale = Double.parseDouble(param);
         else if(flag.equals("-title"))          opt.title = param;
         else if(flag.equals("-first"))          opt.outputMode = SilkOptions.OUTPUT_VALUE_FIRST;

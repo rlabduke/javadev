@@ -58,9 +58,20 @@ public class SilkEngine //extends ... implements ...
         }
         
         // Create a table of appropriate size
-        NDimTable densityTrace = new NDimTable(options.title,
-            options.nDim, min, max,
-            options.gridsamples, options.wrap);
+        NDimTable densityTrace;
+        if(options.sparse)
+        {
+            densityTrace = new NDimTable_Sparse(options.title,
+                options.nDim, min, max,
+                options.gridsamples, options.wrap,
+                dataSamples.size()); // starting size: one bin per data sample
+        }
+        else
+        {
+            densityTrace = new NDimTable_Dense(options.title,
+                options.nDim, min, max,
+                options.gridsamples, options.wrap);
+        }
         
         // Do first (fixed-width) processing step
         if(options.operation == SilkOptions.OP_HISTOGRAM)
@@ -99,7 +110,20 @@ public class SilkEngine //extends ... implements ...
             //      E_i = -kT ln(p_i) - kT ln Q
             densityTrace.scale( 1.0 / densityTrace.totalCount() );  // convert to probability
             densityTrace.transformTrueNaturalLog();                 // 0 prob. -> -inf
-            densityTrace.scale(-0.0019872 * 298);                    // k_Boltzmann in kcal/mol.K   *   temperature in K
+            densityTrace.scale(-0.0019872 * 298);                   // k_Boltzmann in kcal/mol.K   *   temperature in K
+        }
+        else if(options.postop == SilkOptions.POSTOP_HILLCLIMB)
+        {
+            // Convert to fraction excluded
+            double[]    densityValues   = new double[ dataSamples.size() ];
+            Iterator    iter            = dataSamples.iterator();
+            for(int i = 0; i < dataSamples.size(); i++)
+            { densityValues[i] = densityTrace.valueAt(((DataSample)iter.next()).coords); }
+            densityTrace.fractionLessThan(densityValues);
+            // Squash low values to zero
+            densityTrace.squash(0.01);
+            // Label remaining values by hill climbing
+            ((NDimTable_Sparse) densityTrace).classifyByHills();
         }
         if(options.scale != 1.0) densityTrace.scale(options.scale);
         
@@ -137,12 +161,15 @@ public class SilkEngine //extends ... implements ...
     void traceCosineFixed(NDimTable densityTrace, Collection dataSamples, double halfwidth)
     {
         DataSample sample;
+        int i = 0;
         for(Iterator iter = dataSamples.iterator(); iter.hasNext(); )
         {
             sample = (DataSample)iter.next();
             densityTrace.tallyCosine(sample.coords, halfwidth, sample.weight);
+            if(++i % 100 == 0) System.err.print("\r  "+i+" points have been tallied"); System.err.flush();
         }
         densityTrace.normalize();
+        System.err.println("\r  "+i+" points have been tallied");
     }
 //}}}
 
@@ -155,9 +182,20 @@ public class SilkEngine //extends ... implements ...
     public NDimTable processDensityDependent(NDimTable densityTrace, Collection dataSamples, SilkOptions options)
     {
         // Create a second table of the same size as the first
-        NDimTable trace2 = new NDimTable(densityTrace.getName(),
-            densityTrace.getDimensions(), densityTrace.getMinBounds(), densityTrace.getMaxBounds(),
-            densityTrace.getBins(), densityTrace.getWrap());
+        NDimTable trace2;
+        if(options.sparse)
+        {
+            trace2 = new NDimTable_Sparse(densityTrace.getName(),
+                densityTrace.getDimensions(), densityTrace.getMinBounds(), densityTrace.getMaxBounds(),
+                densityTrace.getBins(), densityTrace.getWrap(),
+                dataSamples.size()); // starting size: one bin per data sample
+        }
+        else
+        {
+            trace2 = new NDimTable_Dense(densityTrace.getName(),
+                densityTrace.getDimensions(), densityTrace.getMinBounds(), densityTrace.getMaxBounds(),
+                densityTrace.getBins(), densityTrace.getWrap());
+        }
 
         // Do second (variable-width) processing step
         DataSample  sample;

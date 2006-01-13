@@ -127,11 +127,11 @@ public class DiveExport extends Plugin
         
         if(p instanceof BallPoint || p instanceof SpherePoint)
         {
-            out.println("ball_"+getPtName(p)+"\t"+df.format(-p.getX())+"\t"+df.format(p.getY())+"\t"+df.format(p.getZ()));
+            out.println("ball_"+getPtName(p)+"\t"+df.format(-p.getX())+"\t"+df.format(p.getY())+"\t"+df.format(p.getZ())+"\t"+p.getName());
         }
         if(p instanceof DotPoint)
         {
-            out.println("dot_"+getPtName(p)+"\t"+df.format(-p.getX())+"\t"+df.format(p.getY())+"\t"+df.format(p.getZ()));
+            out.println("dot_"+getPtName(p)+"\t"+df.format(-p.getX())+"\t"+df.format(p.getY())+"\t"+df.format(p.getZ())+"\t"+p.getName());
         }
         else if(p instanceof VectorPoint)
         {
@@ -139,7 +139,7 @@ public class DiveExport extends Plugin
             if(q != null)
             {
                 out.println("vector_"+getPtName(p)+"\t"+df.format(-q.getX())+"\t"+df.format(q.getY())+"\t"+df.format(q.getZ())+"\t"+
-                    df.format(-p.getX())+"\t"+df.format(p.getY())+"\t"+df.format(p.getZ()));
+                    df.format(-p.getX())+"\t"+df.format(p.getY())+"\t"+df.format(p.getZ())+"\t"+p.getName());
             }
         }
     }
