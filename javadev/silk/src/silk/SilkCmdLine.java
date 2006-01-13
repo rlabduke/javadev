@@ -127,6 +127,7 @@ public class SilkCmdLine //extends ... implements ...
             if(opt.twopass) System.err.println(" ("+opt.ddhalfwidth+" on second pass with lambda="+opt.lambda+")");
             else            System.err.println();
         }
+        if(opt.hillClimb) System.err.println("Squashing values below "+opt.hillSquash+", climbing hills, and labeling peaks");
     }
 //}}}
 
@@ -315,8 +316,12 @@ public class SilkCmdLine //extends ... implements ...
         else if(flag.equals("-0to1"))           opt.postop = SilkOptions.POSTOP_0TO1;
         else if(flag.equals("-fraction"))       opt.postop = SilkOptions.POSTOP_FRACTION;
         else if(flag.equals("-energy"))         opt.postop = SilkOptions.POSTOP_ENERGY;
-        else if(flag.equals("-hillclimb"))      opt.postop = SilkOptions.POSTOP_HILLCLIMB;
         else if(flag.equals("-scale"))          opt.scale = Double.parseDouble(param);
+        else if(flag.equals("-hillclimb"))
+        {
+            opt.hillClimb = true;
+            if(param != null) opt.hillSquash = Double.parseDouble(param);
+        }
         else if(flag.equals("-title"))          opt.title = param;
         else if(flag.equals("-first"))          opt.outputMode = SilkOptions.OUTPUT_VALUE_FIRST;
         else if(flag.equals("-ndft"))           opt.outputMode = SilkOptions.OUTPUT_NDFT;

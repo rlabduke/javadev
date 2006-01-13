@@ -310,29 +310,44 @@ public class NDimTable_Dense extends NDimTable
         for(i = 0; i < ndt.nDim; i++) n_entries *= ndt.nBins[i];
         ndt.lookupTable = new double[n_entries];
         
-        // Determine whether values come first or last.
-        s = getLine(in);
-        if(s.indexOf("last") != -1) // value comes last
+        //{{{ Old code that requires all entries to be present, including zeros
+        //// Determine whether values come first or last.
+        //s = getLine(in);
+        //if(s.indexOf("last") != -1) // value comes last
+        //{
+        //    for(i = 0; i < ndt.lookupTable.length; i++)
+        //    {
+        //        s = in.readLine();
+        //        if(s == null) throw new EOFException("No lines remaining in "+in);
+        //        int x = s.lastIndexOf(' ');
+        //        if(x != -1) s = s.substring(x+1);
+        //        ndt.lookupTable[i] = Double.parseDouble(s);
+        //    }
+        //}
+        //else // value comes first (default)
+        //{
+        //    for(i = 0; i < ndt.lookupTable.length; i++)
+        //    {
+        //        s = in.readLine();
+        //        if(s == null) throw new EOFException("No lines remaining in "+in);
+        //        int x = s.indexOf(' ');
+        //        if(x != -1) s = s.substring(0, x);
+        //        ndt.lookupTable[i] = Double.parseDouble(s);
+        //    }
+        //}
+        //}}} Old code that requires all entries to be present, including zeros
+        
+        double[]    currPt      = new double[ndt.nDim];
+        int[]       currBin     = new int[ndt.nDim];
+        boolean     valuesFirst = (getLine(in).indexOf("first") != -1);
+        
+        while(true)
         {
-            for(i = 0; i < ndt.lookupTable.length; i++)
-            {
-                s = in.readLine();
-                if(s == null) throw new EOFException("No lines remaining in "+in);
-                int x = s.lastIndexOf(' ');
-                if(x != -1) s = s.substring(x+1);
-                ndt.lookupTable[i] = Double.parseDouble(s);
-            }
-        }
-        else // value comes first (default)
-        {
-            for(i = 0; i < ndt.lookupTable.length; i++)
-            {
-                s = in.readLine();
-                if(s == null) throw new EOFException("No lines remaining in "+in);
-                int x = s.indexOf(' ');
-                if(x != -1) s = s.substring(0, x);
-                ndt.lookupTable[i] = Double.parseDouble(s);
-            }
+            s = in.readLine(); if(s == null) break;
+            double val = explodeDoubles(s, currPt, valuesFirst);
+            if(val == 0) continue;
+            ndt.whereIs(currPt, currBin);
+            ndt.setValueAt(currBin, val);
         }
         
         return ndt;
@@ -345,6 +360,23 @@ public class NDimTable_Dense extends NDimTable
         if(s == null) throw new EOFException("No lines remaining in "+in);
         if(s.indexOf(':') > 0) s = s.substring(s.indexOf(':')+1);
         return s.trim();
+    }
+    
+    static private double explodeDoubles(String s, double[] doubles, boolean valueFirst) throws NumberFormatException
+    {
+        String[] strings = Strings.explode(s, ' ');
+        if(valueFirst)
+        {
+            for(int i = 0; i < doubles.length; i++)
+                doubles[i] = Double.parseDouble(strings[i+1]);
+            return Double.parseDouble(strings[0]);
+        }
+        else
+        {
+            for(int i = 0; i < doubles.length; i++)
+                doubles[i] = Double.parseDouble(strings[i]);
+            return Double.parseDouble(strings[doubles.length]);
+        }
     }
 //}}}
 
@@ -383,85 +415,6 @@ public class NDimTable_Dense extends NDimTable
         out.writeInt((int)realcount);                                           // 4 bytes, loss of precision
 
         for(i = 0; i < lookupTable.length; i++) out.writeFloat((float)lookupTable[i]); // nvals*4 bytes, loss of precision
-    }
-//}}}
-
-//{{{ writeText
-//##################################################################################################
-    /**
-    * Writes out a human-readable version of the data in this table.
-    * Format is self-documenting; lines begining with a hash (#) are comments
-    * @param out            the stream to write to
-    * @param df             the formatting object to use in formatting output, or null for none.
-    * @param valuesFirst    whether the value should come before or after the coords
-    */
-    public void writeText(OutputStream out, DecimalFormat df, boolean valuesFirst)
-    {
-        int         i, j;
-        int[]       binIndices  = new int[nDim];
-        double[]    binCoords   = new double[nDim];
-        PrintStream ps          = new PrintStream(out);
-
-        ps.println("# Table name/description: \""+ourName+"\"");
-        ps.println("# Number of dimensions: "+nDim);
-        ps.println("# For each dimension, 1 to "+nDim+": lower_bound  upper_bound  number_of_bins  wrapping");
-        for(i = 0; i < nDim; i++)
-        { ps.println("#   x"+(i+1)+": "+minVal[i]+" "+maxVal[i]+" "+nBins[i]+" "+doWrap[i]); }
-
-        if(df == null)
-        {
-            if(valuesFirst)
-            {
-                ps.println("# List of table coordinates and values. (Value is first number on each line.)");
-                for(i = 0; i < lookupTable.length; i++)
-                {
-                    index2bin(i, binIndices);
-                    centerOf(binIndices, binCoords);
-                    ps.print(lookupTable[i]);
-                    for(j = 0; j < nDim; j++) { ps.print(" "); ps.print(binCoords[j]); }
-                    ps.println();
-                }
-            }
-            else
-            {
-                ps.println("# List of table coordinates and values. (Value is last number on each line.)");
-                for(i = 0; i < lookupTable.length; i++)
-                {
-                    index2bin(i, binIndices);
-                    centerOf(binIndices, binCoords);
-                    for(j = 0; j < nDim; j++) { ps.print(binCoords[j]); ps.print(" "); }
-                    ps.println(lookupTable[i]);
-                }
-            }
-        }
-        else//df != null
-        {
-            if(valuesFirst)
-            {
-                ps.println("# List of table coordinates and values. (Value is first number on each line.)");
-                for(i = 0; i < lookupTable.length; i++)
-                {
-                    index2bin(i, binIndices);
-                    centerOf(binIndices, binCoords);
-                    ps.print(df.format(lookupTable[i]));
-                    for(j = 0; j < nDim; j++) { ps.print(" "); ps.print(df.format(binCoords[j])); }
-                    ps.println();
-                }
-            }
-            else
-            {
-                ps.println("# List of table coordinates and values. (Value is last number on each line.)");
-                for(i = 0; i < lookupTable.length; i++)
-                {
-                    index2bin(i, binIndices);
-                    centerOf(binIndices, binCoords);
-                    for(j = 0; j < nDim; j++) { ps.print(df.format(binCoords[j])); ps.print(" "); }
-                    ps.println(df.format(lookupTable[i]));
-                }
-            }
-        }
-        
-        ps.flush();
     }
 //}}}
 

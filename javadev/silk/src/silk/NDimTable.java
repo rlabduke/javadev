@@ -145,8 +145,14 @@ abstract public class NDimTable //extends ... implements ...
     }
 //}}}
 
-//{{{ set/addValueAt, valueAt, valueAtLimit
+//{{{ [abstract] index2bin, set/addValueAt, valueAt, valueAtLimit
 //##################################################################################################
+    /**
+    * Takes an index into lookupTable and regenerates a set of bin numbers.
+    * @param where      the first nDim slots are overwritten with bin numbers.
+    */
+    abstract void index2bin(int idx, int[] where);
+    
     /**
     * Sets the number of data points in a given bin.
     * You (probably) shouldn't ever be using this.
@@ -724,7 +730,7 @@ abstract public class NDimTable //extends ... implements ...
     }
 //}}}
 
-//{{{ [abstract] writeNDFT, writeText
+//{{{ [abstract] writeNDFT
 //##################################################################################################
     /**
     * Saves the contents of the table to a file for re-use later.
@@ -744,6 +750,13 @@ abstract public class NDimTable //extends ... implements ...
     * @throws IOException if an IO error occurs.
     */
     abstract public void writeNDFT(DataOutputStream out) throws IOException;
+//}}}
+
+//{{{ writeText
+//##################################################################################################
+    /** Writes out data with full precision and values as last field on line. */
+    public void writeText(OutputStream out)
+    { writeText(out, null, false); }
 
     /**
     * Writes out a human-readable version of the data in this table.
@@ -752,7 +765,64 @@ abstract public class NDimTable //extends ... implements ...
     * @param df             the formatting object to use in formatting output, or null for none.
     * @param valuesFirst    whether the value should come before or after the coords
     */
-    abstract public void writeText(OutputStream out, DecimalFormat df, boolean valuesFirst);
+    public void writeText(OutputStream out, DecimalFormat df, boolean valuesFirst)
+    {
+        int         i, j;
+        int[]       binIndices  = new int[nDim];
+        double[]    binCoords   = new double[nDim];
+        PrintStream ps          = new PrintStream(out);
+
+        ps.println("# Table name/description: \""+ourName+"\"");
+        ps.println("# Number of dimensions: "+nDim);
+        ps.println("# For each dimension, 1 to "+nDim+": lower_bound  upper_bound  number_of_bins  wrapping");
+        for(i = 0; i < nDim; i++)
+        { ps.println("#   x"+(i+1)+": "+minVal[i]+" "+maxVal[i]+" "+nBins[i]+" "+doWrap[i]); }
+        if(valuesFirst) ps.println("# List of table coordinates and values. (Value is first number on each line.)");
+        else            ps.println("# List of table coordinates and values. (Value is last number on each line.)");
+        
+        if(df == null)
+        {
+            for(i = 0; i < lookupTable.length; i++)
+            {
+                if(lookupTable[i] == 0) continue; // only print non-zeros; zeros may be undef bins
+                index2bin(i, binIndices);
+                centerOf(binIndices, binCoords);
+                if(valuesFirst)
+                {
+                    ps.print(lookupTable[i]);
+                    for(j = 0; j < nDim; j++) { ps.print(" "); ps.print(binCoords[j]); }
+                    ps.println();
+                }
+                else
+                {
+                    for(j = 0; j < nDim; j++) { ps.print(binCoords[j]); ps.print(" "); }
+                    ps.println(lookupTable[i]);
+                }
+            }
+        }
+        else
+        {
+            for(i = 0; i < lookupTable.length; i++)
+            {
+                if(lookupTable[i] == 0) continue; // only print non-zeros; zeros may be undef bins
+                index2bin(i, binIndices);
+                centerOf(binIndices, binCoords);
+                if(valuesFirst)
+                {
+                    ps.print(df.format(lookupTable[i]));
+                    for(j = 0; j < nDim; j++) { ps.print(" "); ps.print(df.format(binCoords[j])); }
+                    ps.println();
+                }
+                else
+                {
+                    for(j = 0; j < nDim; j++) { ps.print(df.format(binCoords[j])); ps.print(" "); }
+                    ps.println(df.format(lookupTable[i]));
+                }
+            }
+        }
+        
+        ps.flush();
+    }
 //}}}
 
 //{{{ get/set functions
