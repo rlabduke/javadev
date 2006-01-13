@@ -3,7 +3,6 @@ package silk;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.*;
-import driftwood.util.Strings;
 /**
 * <code>NDimTable</code> implements an n-dimensional lookup table of real-number values.
 * The table covers a "rectangular" range; i.e., each dimension <i>d</i>
@@ -28,7 +27,7 @@ import driftwood.util.Strings;
 * <p>Begun on Wed Mar 20 16:47:59 EST 2002
 * <br>Copyright (C) 2002-2004 by Ian W. Davis. All rights reserved.
 */
-public class NDimTable //extends ... implements ...
+abstract public class NDimTable //extends ... implements ...
 {
 //{{{ Static fields
     /**
@@ -94,10 +93,10 @@ public class NDimTable //extends ... implements ...
         nDim = ndim;
 
         // Make copies of all input data
-        minVal = new double[nDim];      System.arraycopy(min, 0, minVal, 0, nDim);
-        maxVal = new double[nDim];      System.arraycopy(max, 0, maxVal, 0, nDim);
-        nBins = new int[nDim];         System.arraycopy(bins, 0, nBins, 0, nDim);
-        doWrap = new boolean[nDim];    System.arraycopy(wrap, 0, doWrap, 0, nDim);
+        minVal  = new double[nDim];     System.arraycopy(min, 0, minVal, 0, nDim);
+        maxVal  = new double[nDim];     System.arraycopy(max, 0, maxVal, 0, nDim);
+        nBins   = new int[nDim];        System.arraycopy(bins, 0, nBins, 0, nDim);
+        doWrap  = new boolean[nDim];    System.arraycopy(wrap, 0, doWrap, 0, nDim);
 
         // Calculate the bin widths.
         wBin = new double[nDim];
@@ -115,262 +114,38 @@ public class NDimTable //extends ... implements ...
         va_neighbor = new int[nDim];
         va_current  = new int[nDim];
         va_contrib  = new double[nDim];
-
-        // Calculate number of entries in lookupTable
-        int n_entries = 1;
-        for(int i = 0; i < nDim; i++) n_entries *= nBins[i];
-
-        // Allocate table and initialize it
-        lookupTable = new double[n_entries];
-        zero();
     }
     
     /**
-    * Creates a new NDimTable without initializing any of its fields.
+    * Creates a NDimTable without initializing any of its fields.
     * For use by functions that reconstruct a table from some stored form.
     */
-    private NDimTable()
+    protected NDimTable()
     {}
 //}}}
 
-//{{{ createFromNDFT
+//{{{ wrapbin
 //##################################################################################################
-    /**
-    * Recreates an <i>n</i>-dimensional lookup table of floating point numbers from a file.
-    * See <code>writeNDFT()</code> for details of the format.
-    *
-    * @param in The stream to read from
-    *
-    * @throws IOException if there is a problem reading from the stream
-    */
-    public static NDimTable createFromNDFT(DataInputStream in) throws IOException
-    {
-        NDimTable ndt = new NDimTable();
-        
-        // Extract our name
-        StringBuffer sb = new StringBuffer();
-        char c;
-        while( (c = (char)in.readUnsignedByte()) != 0 ) sb.append(c);
-        ndt.ourName = sb.toString();
-
-        // How many dimensions?
-        ndt.nDim = in.readInt();
-
-        // Allocate storage for minVal, maxVal, nBins, doWrap
-        ndt.minVal  = new   double[ndt.nDim];
-        ndt.maxVal  = new   double[ndt.nDim];
-        ndt.nBins   = new     int[ndt.nDim];
-        ndt.doWrap  = new boolean[ndt.nDim];
-
-        // Read them in
-        int i;
-        for(i = 0; i < ndt.nDim; i++) ndt.minVal[i] = in.readFloat();
-        for(i = 0; i < ndt.nDim; i++) ndt.maxVal[i] = in.readFloat();
-        for(i = 0; i < ndt.nDim; i++) ndt.nBins[i]  = in.readInt();
-        for(i = 0; i < ndt.nDim; i++) ndt.doWrap[i] = in.readBoolean();
-
-        // Get the number of real points
-        ndt.realcount = in.readInt();
-
-        // Calculate the bin widths.
-        ndt.wBin = new double[ndt.nDim];
-        for(i = 0; i < ndt.nDim; i++) ndt.wBin[i] = (ndt.maxVal[i] - ndt.minVal[i]) / ndt.nBins[i];
-
-        // Allocate storage for the tgfXXX variables
-        ndt.tgf_start   = new int[ndt.nDim];
-        ndt.tgf_end     = new int[ndt.nDim];
-        ndt.tgf_curr    = new int[ndt.nDim];
-        ndt.tgf_bin_ctr = new double[ndt.nDim];
-
-        // Allocate storage for the vaXXX variables
-        ndt.va_home     = new int[ndt.nDim];
-        ndt.va_home_ctr = new double[ndt.nDim];
-        ndt.va_neighbor = new int[ndt.nDim];
-        ndt.va_current  = new int[ndt.nDim];
-        ndt.va_contrib  = new double[ndt.nDim];
-
-        // Calculate number of entries in lookupTable
-        int n_entries = 1;
-        for(i = 0; i < ndt.nDim; i++) n_entries *= ndt.nBins[i];
-
-        // Allocate table and initialize it
-        ndt.lookupTable = new double[n_entries];
-        for(i = 0; i < ndt.lookupTable.length; i++) ndt.lookupTable[i] = in.readFloat();
-        
-        return ndt;
-    }
-//}}}
-
-//{{{ createFromText
-//##################################################################################################
-    /**
-    * Recreates an <i>n</i>-dimensional lookup table of floating point numbers from a file.
-    * See <code>writeText()</code> for details of the format.
-    *
-    * @param input The stream to read from
-    *
-    * @throws IOException if there is a problem reading from the stream
-    * @throws NumberFormatException if there is a mis-formatted number
-    */
-    public static NDimTable createFromText(InputStream input) throws IOException, NumberFormatException
-    {
-        LineNumberReader in = new LineNumberReader(new InputStreamReader(input));
-        NDimTable ndt = new NDimTable();
-        
-        // Extract our name
-        String s = getLine(in);
-        if(s.startsWith("\"") && s.endsWith("\"")) s = s.substring(1, s.length()-1);
-        ndt.ourName = s;
-
-        // How many dimensions?
-        ndt.nDim = Integer.parseInt(getLine(in));
-
-        // Allocate storage for minVal, maxVal, nBins, doWrap
-        ndt.minVal  = new   double[ndt.nDim];
-        ndt.maxVal  = new   double[ndt.nDim];
-        ndt.nBins   = new     int[ndt.nDim];
-        ndt.doWrap  = new boolean[ndt.nDim];
-
-        // Read them in
-        int i;
-        for(i = 0; i < ndt.nDim; )
-        {
-            s = getLine(in);
-            if(s.equals("lower_bound  upper_bound  number_of_bins  wrapping")) continue;
-            String[] parts  = Strings.explode(s, ' ');
-            ndt.minVal[i]   = Double.parseDouble(parts[0]);
-            ndt.maxVal[i]   = Double.parseDouble(parts[1]);
-            ndt.nBins[i]    = Integer.parseInt(parts[2]);
-            if(parts[3].equalsIgnoreCase("true")
-            || parts[3].equalsIgnoreCase("yes")
-            || parts[3].equalsIgnoreCase("on")
-            || parts[3].equalsIgnoreCase("1"))
-                ndt.doWrap[i] = true;
-            else ndt.doWrap[i] = false;
-            i++;
-        }
-
-        // We no longer know how many real points there were...
-        ndt.realcount = 0;
-
-        // Calculate the bin widths.
-        ndt.wBin = new double[ndt.nDim];
-        for(i = 0; i < ndt.nDim; i++) ndt.wBin[i] = (ndt.maxVal[i] - ndt.minVal[i]) / ndt.nBins[i];
-
-        // Allocate storage for the tgfXXX variables
-        ndt.tgf_start   = new int[ndt.nDim];
-        ndt.tgf_end     = new int[ndt.nDim];
-        ndt.tgf_curr    = new int[ndt.nDim];
-        ndt.tgf_bin_ctr = new double[ndt.nDim];
-
-        // Allocate storage for the vaXXX variables
-        ndt.va_home     = new int[ndt.nDim];
-        ndt.va_home_ctr = new double[ndt.nDim];
-        ndt.va_neighbor = new int[ndt.nDim];
-        ndt.va_current  = new int[ndt.nDim];
-        ndt.va_contrib  = new double[ndt.nDim];
-
-        // Calculate number of entries in lookupTable and allocate it.
-        int n_entries = 1;
-        for(i = 0; i < ndt.nDim; i++) n_entries *= ndt.nBins[i];
-        ndt.lookupTable = new double[n_entries];
-        
-        // Determine whether values come first or last.
-        s = getLine(in);
-        if(s.indexOf("last") != -1) // value comes last
-        {
-            for(i = 0; i < ndt.lookupTable.length; i++)
-            {
-                s = in.readLine();
-                if(s == null) throw new EOFException("No lines remaining in "+in);
-                int x = s.lastIndexOf(' ');
-                if(x != -1) s = s.substring(x+1);
-                ndt.lookupTable[i] = Double.parseDouble(s);
-            }
-        }
-        else // value comes first (default)
-        {
-            for(i = 0; i < ndt.lookupTable.length; i++)
-            {
-                s = in.readLine();
-                if(s == null) throw new EOFException("No lines remaining in "+in);
-                int x = s.indexOf(' ');
-                if(x != -1) s = s.substring(0, x);
-                ndt.lookupTable[i] = Double.parseDouble(s);
-            }
-        }
-        
-        return ndt;
-    }
-    
-    /** Returns a trimmed line, discarding everything up to and including the first colon. */
-    static private String getLine(LineNumberReader in) throws IOException
-    {
-        String s = in.readLine();
-        if(s == null) throw new EOFException("No lines remaining in "+in);
-        if(s.indexOf(':') > 0) s = s.substring(s.indexOf(':')+1);
-        return s.trim();
-    }
-//}}}
-
-//{{{ bin <==> index functions, wrapping
-//##################################################################################################
+    // A utility function for subclasses.
     // In Java, (-a) % b == -(a % b), unlike a real modulo function.
     // Wraps an imaginary bin number on a given dimension.
     int wrapbin(int bin, int dim)
     {
-        if(doWrap[dim]) return ( bin < 0 ? nBins[dim] + bin % nBins[dim] : bin % nBins[dim] );
-        else            return bin;
-    }
-
-    // Takes a set of bin numbers and produces a linear offset into lookuptable.
-    // If no bin can be found after wrapping is applied, returns -1.
-    int bin2index(int[] where)
-    {
-        int which = 0, bin, i;
-        for(i = 0; i < nDim-1; i++)
+        // BUG!! This produces [1,nBins] for negative numbers and [0,nBins-1] for positive numbers.
+        //  if(doWrap[dim]) return ( bin < 0 ? nBins[dim] + (bin % nBins[dim]) : bin % nBins[dim] );
+        // Fixed 11 Jan 2006; results before this may be (very slightly) wrong.
+        
+        if(doWrap[dim])
         {
-            bin = wrapbin(where[i], i);
-            if(bin < 0 || bin >= nBins[i]) return -1;
-            which += bin;
-            which *= nBins[i+1];
+            bin = bin % nBins[dim];
+            if(bin < 0) return bin + nBins[dim];
+            else return bin;
         }
-        bin = wrapbin(where[i], i);
-        if(bin < 0 || bin >= nBins[i]) return -1;
-        which += bin;
-        return which;
-    }
-
-    // Takes a set of bin numbers and produces a linear offset into lookuptable.
-    // If no bin can be found after wrapping is applied, the edge of the table is used.
-    int bin2index_limit(int[] where)
-    {
-        int which = 0, bin, i;
-        for(i = 0; i < nDim-1; i++)
-        {
-            bin = Math.min(nBins[i]-1, Math.max(wrapbin(where[i], i), 0));
-            which += bin;
-            which *= nBins[i+1];
-        }
-        bin = Math.min(nBins[i]-1, Math.max(wrapbin(where[i], i), 0));
-        which += bin;
-        return which;
-    }
-
-    // Takes an index into lookuptable and regenerates a set of bin numbers
-    // where[] is overwritten
-    void index2bin(int which, int[] where)
-    {
-        for(int i = nDim-1; i >= 0; i--)
-        {
-            where[i] = which % nBins[i];
-            which -= where[i];
-            which /= nBins[i];
-        }
+        else return bin;
     }
 //}}}
 
-//{{{ get/set value
+//{{{ set/addValueAt, valueAt, valueAtLimit
 //##################################################################################################
     /**
     * Sets the number of data points in a given bin.
@@ -379,36 +154,35 @@ public class NDimTable //extends ... implements ...
     * @param where the bin to affect
     * @param value the value to place in the bin
     */
-    public void setValueAt(int[] where, double value)
-    {
-        lookupTable[bin2index(where)] = value;
-    }
+    abstract public void setValueAt(int[] where, double value);
+
+    /**
+    * Adds to the number of data points in a given bin.
+    * You (probably) shouldn't ever be using this.
+    *
+    * @param where the bin to affect
+    * @param value the value to add to the bin
+    */
+    abstract public void addValueAt(int[] where, double value);
 
     /**
     * Retrieves the number of data points in a given bin.
+    * If no bin can be found after wrapping is applied, an exception is thrown.
+    *
+    * @param where the bin to look in
+    * @return the number of data points in the bin
+    * @throws IndexOutOfBoundsException if no such bin exists in the table
+    */
+    abstract public double valueAt(int[] where);
+
+    /**
+    * Retrieves the number of data points in a given bin.
+    * If no bin can be found after wrapping is applied, the edge of the table is used.
     *
     * @param where the bin to look in
     * @return the number of data points in the bin
     */
-    public double valueAt(int[] where)
-    {
-        return lookupTable[bin2index(where)];
-    }
-
-    /**
-    * Retrieves the greatest number of points found in any one bin.
-    *
-    * @return the maximum value in the table.
-    */
-    public double maxValue()
-    {
-        double max = lookupTable[0];
-        for(int i = 1; i < lookupTable.length; i++)
-        {
-            if(lookupTable[i] > max) max = lookupTable[i];
-        }
-        return max;
-    }
+    abstract public double valueAtLimit(int[] where);
 //}}}
 
 //{{{ interpolated valueAt
@@ -443,12 +217,9 @@ public class NDimTable //extends ... implements ...
         // Initialize va_neighbor[] and va_contrib[]
         for(dim = 0; dim < nDim; dim++)
         {
-            // Use min() and max() to make sure we stay inside the table limits when finding va_neighbors.
+            // getValueAtLimit() makes sure we stay inside the table limits when finding va_neighbors.
             // If we would step outside the table, use the va_home bin instead -- thus there is effectively
             // no interpolation in the specified dimension.
-            //
-            // Now this is done later, implicitly, by bin2index_limit()
-            //
             if(pt[dim] < va_home_ctr[dim]) {
                 va_neighbor[dim] = va_home[dim]-1;
             } else {
@@ -482,15 +253,30 @@ public class NDimTable //extends ... implements ...
                 }
             }
 
-            value += coeff * lookupTable[bin2index_limit(va_current)]; // calc. va_contribution of va_currently selected bin
+            value += coeff * valueAtLimit(va_current); // calc. va_contribution of va_currently selected bin
         }
 
         return value;
     }
 //}}}
 
-//{{{ counting
+//{{{ maxValue, totalCount, realCount
 //##################################################################################################
+    /**
+    * Retrieves the greatest number of points found in any one bin.
+    *
+    * @return the maximum value in the table.
+    */
+    public double maxValue()
+    {
+        double max = lookupTable[0];
+        for(int i = 1; i < lookupTable.length; i++)
+        {
+            if(lookupTable[i] > max) max = lookupTable[i];
+        }
+        return max;
+    }
+
     /**
     * Retrieves the number of points in all bins.
     * @deprecated Use totalCount instead.
@@ -654,7 +440,9 @@ public class NDimTable //extends ... implements ...
     public void tallySimple(double[] pt, double weight)
     {
         realcount += weight;
-        lookupTable[bin2index(whereIs(pt))]++;
+        whereIs(pt, va_current);
+        //addValueAt(va_current, 1); the old code added 1.0 regardless of the weight...
+        addValueAt(va_current, weight);
     }
     
     public void tallySimple(double[] pt)
@@ -725,8 +513,7 @@ public class NDimTable //extends ... implements ...
         else
         {
             // Make sure this is a real bin before we get going...
-            int i = bin2index(tgf_curr);
-            if(i != -1)
+            if(contains(tgf_curr))
             {
                 // It's a real bin, or at least it wraps to a real bin.
                 // Calculate a center for it.
@@ -738,7 +525,7 @@ public class NDimTable //extends ... implements ...
                 if(dist_2 < tgf_mask_2)
                 {
                     double gaussian = tgf_a * Math.exp( -dist_2 / tgf_b_2 );
-                    lookupTable[i] += gaussian;
+                    addValueAt(tgf_curr, gaussian);
                 }
             }
         }
@@ -815,8 +602,7 @@ public class NDimTable //extends ... implements ...
         else
         {
             // Make sure this is a real bin before we get going...
-            int i = bin2index(tgf_curr);
-            if(i != -1)
+            if(contains(tgf_curr))
             {
                 // It's a real bin, or at least it wraps to a real bin.
                 // Calculate a center for it.
@@ -832,14 +618,14 @@ public class NDimTable //extends ... implements ...
                     dist = Math.sqrt(dist);
                     // Function varies from 0 to 2, as in published Rama/C-beta paper
                     double cosine = tgf_a * (Math.cos(dist/tgf_b) + 1.0);
-                    lookupTable[i] += cosine;
+                    addValueAt(tgf_curr, cosine);
                 }
             }
         }
     }
 //}}}
 
-//{{{ zero, scale, normalize, standardize
+//{{{ zero, squash, scale, normalize, standardize
 //##################################################################################################
     /**
     * Zeros out every bin. Good for starting over ;)
@@ -848,6 +634,13 @@ public class NDimTable //extends ... implements ...
     {
         realcount = 0;
         for(int i = 0; i < lookupTable.length; i++) lookupTable[i] = 0.0;
+    }
+    
+    /** Sets bins to zero that have values STRICTLY LESS THAN the cutoff. */
+    public void squash(double cutoff)
+    {
+        for(int i = 0; i < lookupTable.length; i++)
+            if(lookupTable[i] < cutoff) lookupTable[i] = 0.0;
     }
 
     /**
@@ -931,7 +724,7 @@ public class NDimTable //extends ... implements ...
     }
 //}}}
 
-//{{{ writeNDFT
+//{{{ [abstract] writeNDFT, writeText
 //##################################################################################################
     /**
     * Saves the contents of the table to a file for re-use later.
@@ -950,27 +743,8 @@ public class NDimTable //extends ... implements ...
     *
     * @throws IOException if an IO error occurs.
     */
-    public void writeNDFT(DataOutputStream out) throws IOException
-    {
-        out.writeBytes(ourName);                                                // length bytes
-        out.writeByte(0);                                                       // 1 byte
+    abstract public void writeNDFT(DataOutputStream out) throws IOException;
 
-        out.writeInt(nDim);                                                     // 4 bytes
-
-        int i;
-        for(i = 0; i < nDim; i++) out.writeFloat((float)minVal[i]);             // ndim*4 bytes, loss of precision
-        for(i = 0; i < nDim; i++) out.writeFloat((float)maxVal[i]);             // ndim*4 bytes, loss of precision
-        for(i = 0; i < nDim; i++) out.writeInt(nBins[i]);                       // ndim*4 bytes
-        for(i = 0; i < nDim; i++) out.writeBoolean(doWrap[i]);                  // ndim*1 bytes
-
-        out.writeInt((int)realcount);                                           // 4 bytes, loss of precision
-
-        for(i = 0; i < lookupTable.length; i++) out.writeFloat((float)lookupTable[i]); // nvals*4 bytes, loss of precision
-    }
-//}}}
-
-//{{{ writeText
-//##################################################################################################
     /**
     * Writes out a human-readable version of the data in this table.
     * Format is self-documenting; lines begining with a hash (#) are comments
@@ -978,74 +752,7 @@ public class NDimTable //extends ... implements ...
     * @param df             the formatting object to use in formatting output, or null for none.
     * @param valuesFirst    whether the value should come before or after the coords
     */
-    public void writeText(OutputStream out, DecimalFormat df, boolean valuesFirst)
-    {
-        int         i, j;
-        int[]       binIndices  = new int[nDim];
-        double[]    binCoords   = new double[nDim];
-        PrintStream ps          = new PrintStream(out);
-
-        ps.println("# Table name/description: \""+ourName+"\"");
-        ps.println("# Number of dimensions: "+nDim);
-        ps.println("# For each dimension, 1 to "+nDim+": lower_bound  upper_bound  number_of_bins  wrapping");
-        for(i = 0; i < nDim; i++)
-        { ps.println("#   x"+(i+1)+": "+minVal[i]+" "+maxVal[i]+" "+nBins[i]+" "+doWrap[i]); }
-
-        if(df == null)
-        {
-            if(valuesFirst)
-            {
-                ps.println("# List of table coordinates and values. (Value is first number on each line.)");
-                for(i = 0; i < lookupTable.length; i++)
-                {
-                    index2bin(i, binIndices);
-                    centerOf(binIndices, binCoords);
-                    ps.print(lookupTable[i]);
-                    for(j = 0; j < nDim; j++) { ps.print(" "); ps.print(binCoords[j]); }
-                    ps.println();
-                }
-            }
-            else
-            {
-                ps.println("# List of table coordinates and values. (Value is last number on each line.)");
-                for(i = 0; i < lookupTable.length; i++)
-                {
-                    index2bin(i, binIndices);
-                    centerOf(binIndices, binCoords);
-                    for(j = 0; j < nDim; j++) { ps.print(binCoords[j]); ps.print(" "); }
-                    ps.println(lookupTable[i]);
-                }
-            }
-        }
-        else//df != null
-        {
-            if(valuesFirst)
-            {
-                ps.println("# List of table coordinates and values. (Value is first number on each line.)");
-                for(i = 0; i < lookupTable.length; i++)
-                {
-                    index2bin(i, binIndices);
-                    centerOf(binIndices, binCoords);
-                    ps.print(df.format(lookupTable[i]));
-                    for(j = 0; j < nDim; j++) { ps.print(" "); ps.print(df.format(binCoords[j])); }
-                    ps.println();
-                }
-            }
-            else
-            {
-                ps.println("# List of table coordinates and values. (Value is last number on each line.)");
-                for(i = 0; i < lookupTable.length; i++)
-                {
-                    index2bin(i, binIndices);
-                    centerOf(binIndices, binCoords);
-                    for(j = 0; j < nDim; j++) { ps.print(df.format(binCoords[j])); ps.print(" "); }
-                    ps.println(df.format(lookupTable[i]));
-                }
-            }
-        }
-        
-        ps.flush();
-    }
+    abstract public void writeText(OutputStream out, DecimalFormat df, boolean valuesFirst);
 //}}}
 
 //{{{ get/set functions

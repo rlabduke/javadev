@@ -92,8 +92,8 @@ public class RotamerSampler //extends ... implements ...
         // Load tables from disk
         InputStream in1 = new FileInputStream(file1);
         InputStream in2 = new FileInputStream(file2);
-        ndtMain     = NDimTable.createFromText(in1);
-        ndtCheck    = NDimTable.createFromText(in2);
+        ndtMain     = NDimTable_Dense.createFromText(in1);
+        ndtCheck    = NDimTable_Dense.createFromText(in2);
         in1.close();
         in2.close();
         
