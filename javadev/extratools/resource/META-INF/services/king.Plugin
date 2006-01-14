@@ -23,3 +23,4 @@ king.tool.postkin.RamaTool
 king.tool.loops.LoopTool
 king.tool.loops.LoopDockingTool
 king.tool.loops.FramerTool
+king.tool.data_analysis.PlottingTool
