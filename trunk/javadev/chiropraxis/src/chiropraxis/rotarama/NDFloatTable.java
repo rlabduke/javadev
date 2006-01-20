@@ -129,8 +129,17 @@ public class NDFloatTable //extends ... implements ...
     // Wraps an imaginary bin number on a given dimension.
     int wrapbin(int bin, int dim)
     {
-        if(doWrap[dim]) return ( bin < 0 ? nBins[dim] + bin % nBins[dim] : bin % nBins[dim] );
-        else            return bin;
+        // BUG!! This produces [1,nBins] for negative numbers and [0,nBins-1] for positive numbers.
+        //  if(doWrap[dim]) return ( bin < 0 ? nBins[dim] + (bin % nBins[dim]) : bin % nBins[dim] );
+        // Fixed 20 Jan 2006; results before this may be (very slightly) wrong.
+        
+        if(doWrap[dim])
+        {
+            bin = bin % nBins[dim];
+            if(bin < 0) return bin + nBins[dim];
+            else return bin;
+        }
+        else return bin;
     }
 
     // Takes a set of bin numbers and produces a linear offset into lookuptable.

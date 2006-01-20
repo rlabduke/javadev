@@ -8,7 +8,6 @@
     Allow "energy" conversion to be done at user-specified temperature?
     Add NDimTable.writeNDT() -- a *sparse* binary format
     Let -wrap be specified per dimension
- ** Look for other modulo code that suffers from this bug!! (LOTS of % symbols...)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -17,6 +16,10 @@
 ### 0.91 ###
 - added more progress msgs to SilkEngine
 - fixed NullPointer bug in hill-climbing code
+- fixed modulo bug in
+    chiropraxis.rotarama.NDFloatTable
+    driftwood.isosurface.CrystalVertexSource
+    silk.SilkEngine
 
 ### 0.90 ###
 - split NDimTable into abstract base class plus _Dense and _Sparse variants
