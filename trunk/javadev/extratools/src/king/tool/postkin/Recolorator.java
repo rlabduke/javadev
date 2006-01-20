@@ -4,8 +4,10 @@ package king.tool.postkin;
 
 import king.*;
 import king.core.*;
+import king.tool.util.KinUtil;
 
 import java.util.*;
+
 //}}}
 /**
  * <code>Recolorator</code> is an abstract class to allow RecolorTool
@@ -45,6 +47,8 @@ public abstract class Recolorator {
      **/
     
     public int getResNumber(KPoint point) {
+	return KinUtil.getResNumber(point);
+	/*
 	String name = point.getName().trim();
 	String[] uncleanParsed = name.split(" ");
 	String[] parsed = new String[uncleanParsed.length];
@@ -78,15 +82,18 @@ public abstract class Recolorator {
 	}
 
 	return -1;
+	*/
     }
 
     public int getResNumber(KList parentList) {
 	Iterator pointIter = parentList.iterator();
 	KPoint firstPoint = (KPoint) pointIter.next();
-	return getResNumber(firstPoint);
+	return KinUtil.getResNumber(firstPoint);
     }
 
     public String getResName(KPoint point) {
+	return KinUtil.getResName(point);
+	/*
 	String name = point.getName().trim();
 	String[] uncleanParsed = name.split(" ");
 	String[] parsed = new String[uncleanParsed.length];
@@ -103,7 +110,7 @@ public abstract class Recolorator {
 	}
 	return parsed[1];
 	//while ((returnString.equals("")&&
-
+	*/
     }
 
     public int numofResidues() {
