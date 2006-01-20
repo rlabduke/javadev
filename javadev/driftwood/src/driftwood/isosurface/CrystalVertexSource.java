@@ -191,10 +191,12 @@ T = [  0 by cy ]
         i -= aMin; j -= bMin; k -= cMin;
         
         // wrap to the range 0 ... Steps
-        // a mod b == (a<0 ? b+a%b : a%b)
-        i = (i < 0 ? aSteps + i%aSteps : i%aSteps);
-        j = (j < 0 ? bSteps + j%bSteps : j%bSteps);
-        k = (k < 0 ? cSteps + k%cSteps : k%cSteps);
+        // BUG!! This produces [1,steps] for negative numbers and [0,steps-1] for positive numbers.
+        //      a mod b == (a<0 ? b+a%b : a%b)
+        // Fixed 20 Jan 2006; results before this may be (very slightly) wrong.
+        i = i % aSteps; if(i < 0) i += aSteps;
+        j = j % bSteps; if(j < 0) j += bSteps;
+        k = k % cSteps; if(k < 0) k += cSteps;
         
         try
         {

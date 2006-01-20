@@ -252,9 +252,13 @@ public class SilkEngine //extends ... implements ...
                     max = options.bounds[2*i + 1];
                     span = max - min;
                     // In Java, (-a) % b == -(a % b), unlike a real modulo function.
-                    val = sample.coords[i] - min;
-                    if(val < 0) val = span + (val % span);
-                    else        val = (val % span);
+                    // BUG!! Old code produces [1,span] for negative numbers and [0,span-1] for positive numbers.
+                    //      val = sample.coords[i] - min;
+                    //      if(val < 0) val = span + (val % span);
+                    //      else        val = (val % span);
+                    // Fixed 20 Jan 2006; results before this may be (very slightly) wrong.
+                    val = (sample.coords[i] - min) % span;
+                    if(val < 0) val += span;
                     sample.coords[i] = val + min;
                 }
             }//for(each dimension)
