@@ -303,6 +303,21 @@ public class Triple implements MutableTuple3
     }
 //}}}
     
+//{{{ addMult
+//##################################################################################################
+    /**
+    * Adds k*t to this Triple.
+    * Safe to execute on <code>this</code>.
+    */
+    public Triple addMult(double k, Tuple3 t)
+    {
+        x += k * t.getX();
+        y += k * t.getY();
+        z += k * t.getZ();
+        return this;
+    }
+//}}}
+
 //{{{ distance, sqDistance
 //##################################################################################################
     /**
