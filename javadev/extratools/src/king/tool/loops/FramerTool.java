@@ -25,6 +25,9 @@ public class FramerTool extends BasicTool {
 //###############################################################
     TreeMap caMap;
     TreeMap oxyMap;
+    //TreeMap cMap;
+    //TreeMap nitMap;
+    TreeMap bfactMap;
     TreeMap resultsMap; // index is "n" and the element is a map of results
     HashSet includedPoints;
 
@@ -43,6 +46,9 @@ public class FramerTool extends BasicTool {
 	buildGUI();
 	caMap = new TreeMap();
 	oxyMap = new TreeMap();
+	//cMap = new TreeMap();
+	//nitMap = new TreeMap();
+	bfactMap = new TreeMap();
 	includedPoints = new HashSet();
 	resultsMap = new TreeMap();
 	show();
@@ -120,6 +126,10 @@ public class FramerTool extends BasicTool {
 		KPoint coN = (KPoint) oxyMap.get(new Integer(lowNum + numPep + 1));
 		System.out.print(lowNum + " ");
 		ArrayList results = Framer.calphaAnalyzeList(ca0, ca1, caN, caN1, co0, coN);
+
+		//B-factor
+	        Double bfact = (Double) bfactMap.get(new Integer(lowNum));
+		results.add(bfact);
 		//System.out.println(KinUtil.getResNumber(ca0.getName()));
 		//oneNResults.ensureCapacity(KinUtil.getResNumber(ca0.getName()));
 		//oneNResults.add(KinUtil.getResNumber(ca0.getName()), results);
@@ -161,6 +171,8 @@ public class FramerTool extends BasicTool {
 	return true;
     }
 
+    // calculates maximum Bfactor for a given Ca using the ca, c, o, n+1, and ca+1, because framer
+    //   is dealing with peptides.
     public void splitKin(AGE target, TreeMap caMap, TreeMap oxyMap) {
 	//TreeMap caMap = new HashMap();
 	//TreeMap oxyMap = new HashMap();
@@ -173,12 +185,31 @@ public class FramerTool extends BasicTool {
 		includedPoints.add(pt);
 		int resNum = KinUtil.getResNumber(pt);
 		String atomName = KinUtil.getAtomName(pt).toLowerCase();
+		double bVal = KinUtil.getBvalue(pt);
+		double maxBval = 0;
 		if (atomName.equals("ca")) {
 		    caMap.put(new Integer(resNum), pt);
+
+		    if (bfactMap.containsKey(new Integer(resNum))) maxBval = ((Double) bfactMap.get(new Integer(resNum))).doubleValue();
+		    if (bVal > maxBval) bfactMap.put(new Integer(resNum), new Double(bVal));
+		    if (bfactMap.containsKey(new Integer(resNum-1))) maxBval = ((Double) bfactMap.get(new Integer(resNum-1))).doubleValue();
+		    if (bVal > maxBval) bfactMap.put(new Integer(resNum-1), new Double(bVal));
 		}
 		if (atomName.equals("o")) {
 		    oxyMap.put(new Integer(resNum), pt);
-		}    
+		    if (bfactMap.containsKey(new Integer(resNum))) maxBval = ((Double) bfactMap.get(new Integer(resNum))).doubleValue();
+		    if (bVal > maxBval) bfactMap.put(new Integer(resNum), new Double(bVal));
+		}
+		if (atomName.equals("n")) {
+		    if (bfactMap.containsKey(new Integer(resNum-1))) maxBval = ((Double) bfactMap.get(new Integer(resNum-1))).doubleValue();
+		    if (bVal > maxBval) bfactMap.put(new Integer(resNum-1), new Double(bVal));
+		    //nitMap.put(new Integer(resNum), pt));
+		}
+		if (atomName.equals("c")) {
+		    if (bfactMap.containsKey(new Integer(resNum))) maxBval = ((Double) bfactMap.get(new Integer(resNum))).doubleValue();
+		    if (bVal > maxBval) bfactMap.put(new Integer(resNum), new Double(bVal));
+		    //cMap.put(new Integer(resNum), pt);
+		}
 	    }
 	} else {
 	    Iterator iter = target.iterator();

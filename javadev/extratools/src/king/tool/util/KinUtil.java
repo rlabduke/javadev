@@ -49,11 +49,13 @@ public class KinUtil {
 	//    }
 	//}
 	// another pass to see if there are any AAName + int in name.
-	if (parsed[1].length() > 3) {
-	    String parseValue = parsed[1].substring(3);
-	    if (isInteger(parseValue)) {
-		//System.out.print(parseValue + " ");
-		return Integer.parseInt(parseValue);
+	if (parsed.length > 1) {
+	    if (parsed[1].length() > 3) {
+		String parseValue = parsed[1].substring(3);
+		if (isInteger(parseValue)) {
+		    //System.out.print(parseValue + " ");
+		    return Integer.parseInt(parseValue);
+		}
 	    }
 	}
 	// one pass to see if there are any straight up ints in the name
@@ -188,4 +190,22 @@ public class KinUtil {
 	return "UNK";
     }
 
+    public static double getBvalue(KPoint point) {
+	String name = point.getName().trim();
+	return getBvalue(name);
+    }
+
+    public static double getBvalue(String name) {
+	//String[] uncleanParsed = name.split(" ");
+	//String[] parsed = new String[uncleanParsed.length];
+	String[] parsed = Strings.explode(name, " ".charAt(0), false, true);
+	for (int i = 0; i < parsed.length; i++) {
+	    String parseValue = parsed[i];
+	    if (parseValue.charAt(0) == 'B') {
+		String bVal = parseValue.substring(1);
+		return Double.parseDouble(bVal);
+	    }
+	}
+	return 0;
+    }
 }

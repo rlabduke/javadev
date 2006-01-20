@@ -19,7 +19,7 @@ public class PlottingTool extends BasicTool {
 //{{{ Variable definitions
 //##################################################################################################
     ArrayList allPoints;
-    ArrayList drawnPoints;
+    TreeMap drawnPoints;
     JFileChooser filechooser;
 
     TablePane pane;
@@ -95,7 +95,7 @@ public class PlottingTool extends BasicTool {
 	//listMap = new HashMap();
 	//offPoints = new ArrayList();
 	allPoints = new ArrayList();
-	drawnPoints = new ArrayList();
+	drawnPoints = new TreeMap();
 	openFile();
 	buildGUI();
 	
@@ -204,7 +204,7 @@ public class PlottingTool extends BasicTool {
 	int numColumns = comboBoxes.length;
 	int x = -1, y = -1, z = -1, color = -1;
 	for (int i = 0; i < numColumns; i++) {
-	    System.out.print(comboBoxes[i].getSelectedItem());
+	    //System.out.print(comboBoxes[i].getSelectedItem());
 	    String selectedVal = (String) comboBoxes[i].getSelectedItem();
 	    //int x = -1, y = -1, z = -1, color = -1;
 	    if (selectedVal.equals("x")) {
@@ -227,16 +227,97 @@ public class PlottingTool extends BasicTool {
 
     public void createPoints(int x, int y, int z, int color) {
 	drawnPoints.clear();
+	double minColor = 100000;
+	double maxColor = -100000;
 	Iterator iter = allPoints.iterator();
+	while (iter.hasNext()) {
+	    String[] value = (String[]) iter.next();
+	    if (color != -1) {
+		double dColor = Double.parseDouble(value[color]);
+		if (minColor > dColor) {
+		    minColor = dColor;
+		}
+		if (maxColor < dColor) {
+		    maxColor = dColor;
+		}
+	    }
+	}
+	double perDiv = (maxColor-minColor)/10;
+	//System.out.println(maxColor);
+	if (color != -1) {
+	    //double perDiv = (maxColor-minColor)/10;
+	    for (int i = 0; i < 11; i++) {
+		// I'm forced to round the bins because round-off error in calculation of bins causes nullpointerexceptions
+		//  without rounding the bins (and calculations later).
+		Double bin = new Double((double)Math.round((minColor + perDiv * i)*1000)/1000);
+		KList list = new KList(null, bin.toString());
+		list.addMaster(bin.toString());
+		drawnPoints.put(bin, list);
+		//System.out.println(bin);
+	    }
+	    /*
+	    for (double d = minColor; d <= maxColor; d=d+perDiv) {
+		System.out.println(d);
+		Double bin = new Double((double)Math.round(d*1000)/1000);
+		KList list = new KList(null, bin.toString());
+		list.addMaster(bin.toString());
+		drawnPoints.put(bin, list);
+		System.out.println(bin);
+		}*/
+	} else {
+	    drawnPoints.put(new Double(0), new KList());
+	}
+	
+	iter = allPoints.iterator();
 	BallPoint point;
+	//double minColor = 100000;
+	//double maxColor = -100000;
 	while (iter.hasNext()) {
 	    String[] value = (String[]) iter.next();
 	    point = new BallPoint(null, value[0]);
-	    point.setX(Double.parseDouble(value[x]));
-	    point.setY(Double.parseDouble(value[y]));
-	    point.setZ(Double.parseDouble(value[z]));
-	    drawnPoints.add(point);
+	    point.setRadius(2);
+	    if (x != -1) {
+		point.setX(Double.parseDouble(value[x]));
+	    } else {
+		point.setX(0);
+	    }
+	    if (y != -1) {
+		point.setY(Double.parseDouble(value[y]));
+	    } else {
+		point.setY(0);
+	    }
+	    if (z != -1) {
+		point.setZ(Double.parseDouble(value[z]));
+	    } else {
+		point.setZ(0);
+	    }
+	    if (color != -1) {
+		double colValue = Double.parseDouble(value[color]);
+		double binVal = (Math.floor((colValue-minColor)/perDiv) * perDiv)+minColor;
+		double binValRounded = ((double)Math.round(binVal*1000)/1000);
+		//System.out.println(colValue);
+		//System.out.println(binValRounded);
+		KList list = (KList) drawnPoints.get(new Double(binValRounded));
+		list.add(point);
+		point.setOwner(list);
+	    } else {
+		KList list = (KList) drawnPoints.get(new Double(0));
+		list.add(point);
+		point.setOwner(list);
+	    }
+	    //drawnPoints.add(point);
+	    /*
+	    if (color != -1) {
+		double dColor = Double.parseDouble(value[color]);
+		if (minColor > dColor) {
+		    minColor = dColor;
+		}
+		if (maxColor < dColor) {
+		    maxColor = dColor;
+		}
+	    }*/
 	}
+	//System.out.println(minColor + " " + maxColor);
 	plot();
     }
 
@@ -252,18 +333,21 @@ public class PlottingTool extends BasicTool {
 	KSubgroup subgroup = new KSubgroup(group, "test2");
 	subgroup.setHasButton(false);
 	group.add(subgroup);
-	KList list = new KList(subgroup, "test3");
+	//KList list = new KList(subgroup, "test3");
 	//KGroup group = (KGroup) iter.next();
 	//if (group.hasMaster("Data Points")) {
 	//KSubgroup subgroup = (KSubgroup) group.getChildAt(0);
 	//KList list = (KList) subgroup.getChildAt(0);
-	Iterator points = drawnPoints.iterator();
-	while (points.hasNext()) {
-	    KPoint point = (KPoint) points.next();
-	    point.setOwner(list);
-	    list.add(point);
+	Collection lists = drawnPoints.values();
+	Iterator iter = lists.iterator();
+	while (iter.hasNext()) {
+	    KList list = (KList) iter.next();
+	    list.setOwner(subgroup);
+	    subgroup.add(list);
+	    //point.setOwner(list);
+	    //list.add(point);
 	}
-	subgroup.add(list);
+	//subgroup.add(list);
     	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
       
     }
