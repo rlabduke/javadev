@@ -692,6 +692,7 @@ abstract public class NDimTable //extends ... implements ...
     public void classifyByHills()
     {
         tgf_b = 1.0; // used for next unused label
+        tgf_pt = new double[nDim]; // could be null, or someone else's var!
         hillTable = new int[lookupTable.length];
         
         for(int i = 0; i < lookupTable.length; i++)

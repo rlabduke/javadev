@@ -143,12 +143,15 @@ public class SilkEngine //extends ... implements ...
     void traceGaussianFixed(NDimTable densityTrace, Collection dataSamples, double halfwidth)
     {
         DataSample sample;
+        int i = 0;
         for(Iterator iter = dataSamples.iterator(); iter.hasNext(); )
         {
             sample = (DataSample)iter.next();
             densityTrace.tallyGaussian(sample.coords, halfwidth, sample.weight);
+            if(++i % 100 == 0) System.err.print("\r  "+i+" points have been tallied"); System.err.flush();
         }
         densityTrace.normalize();
+        System.err.println("\r  "+i+" points have been tallied");
     }
     
     /** Creates a cosine trace using a fixed mask width */
@@ -193,6 +196,7 @@ public class SilkEngine //extends ... implements ...
 
         // Do second (variable-width) processing step
         DataSample  sample;
+        int i = 0;
         double      density, halfwidth;
         if(options.operation == SilkOptions.OP_GAUSSIAN)
         {
@@ -202,6 +206,7 @@ public class SilkEngine //extends ... implements ...
                 density     = densityTrace.valueAt(sample.coords);
                 halfwidth   = options.ddhalfwidth / Math.pow(density, options.lambda/options.nDim);
                 trace2.tallyGaussian(sample.coords, halfwidth, sample.weight);
+                if(++i % 100 == 0) System.err.print("\r  "+i+" points have been tallied"); System.err.flush();
             }
         }
         else if(options.operation == SilkOptions.OP_COSINE)
@@ -212,11 +217,14 @@ public class SilkEngine //extends ... implements ...
                 density     = densityTrace.valueAt(sample.coords);
                 halfwidth   = options.ddhalfwidth / Math.pow(density, options.lambda/options.nDim);
                 trace2.tallyCosine(sample.coords, halfwidth, sample.weight);
+                if(++i % 100 == 0) System.err.print("\r  "+i+" points have been tallied"); System.err.flush();
+                if(++i % 1 == 0) System.err.print("\r  "+i+" points have been tallied"); System.err.flush();
             }
         }
         else throw new IllegalArgumentException("Illegal operation for two-pass smoothing: "+options.operation);
 
         trace2.normalize();
+        System.err.println("\r  "+i+" points have been tallied");
         return trace2;
     }
 //}}}
