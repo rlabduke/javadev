@@ -8,6 +8,10 @@
     Allow "energy" conversion to be done at user-specified temperature?
     Add NDimTable.writeNDT() -- a *sparse* binary format
     Let -wrap be specified per dimension
+    Make climbHills return a List of peaks
+    Specify bounds for wrapping and bounds for clipping input data separately
+    Allow either input data to be (back)transformed OR anisotropic smoothing
+        -aniso to scale data pts, then resetBounds() (inc. wBins[]) on table
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -20,6 +24,8 @@
     chiropraxis.rotarama.NDFloatTable
     driftwood.isosurface.CrystalVertexSource
     silk.SilkEngine
+  This second bug in Silk only affected the pre-wrapping of data points. Since
+  NDimTable wraps again, the only effect SHOULD be on kinemage plots of points.
 
 ### 0.90 ###
 - split NDimTable into abstract base class plus _Dense and _Sparse variants

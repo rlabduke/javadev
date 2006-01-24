@@ -13,6 +13,7 @@
     VDW, Ball+Stick engines should be separated from their GUIs
         public boolean showXXX = false
         element color map should be pluggable, not from Util
+  * Test PseudoBackbone.bondAllStates() against molecule with alt confs
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -20,6 +21,9 @@
 
 ### 0.11 ###
 - plugin now marks kin as modified on Append, but not on New (may be throwaway)
+- started Ribbons.get(Protein|NucAcid)Contigs()
+- added classes GuidePoint, RibbonPrinter, and RibbonPane
+- updated MainGuiPane to include ribbons option
 
 ### 0.10 ###
 - removed all the justifyLeft()'s from PrekinIDer after profiling showed that

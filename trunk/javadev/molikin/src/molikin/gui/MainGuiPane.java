@@ -78,6 +78,7 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
         
         JButton ballAndStick = new JButton(new ReflectiveAction("New ball & stick", null, this, "onNewBallAndStick"));
         JButton vanDerWaals = new JButton(new ReflectiveAction("New van der Waals", null, this, "onNewVanDerWaals"));
+        JButton ribbons = new JButton(new ReflectiveAction("New ribbons", null, this, "onNewRibbons"));
         JButton removePane = new JButton(new ReflectiveAction("Clear selected", null, this, "onRemovePane"));
         JButton removeAll = new JButton(new ReflectiveAction("Clear all", null, this, "onRemoveAll"));
         
@@ -91,6 +92,7 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
             this.insets(insetSize).hfill(true).weights(1,0).memorize();
             this.addCell(ballAndStick).newRow();
             this.addCell(vanDerWaals).newRow();
+            this.addCell(ribbons).newRow();
             this.addCell(removePane).newRow();
             this.addCell(removeAll).newRow();
             // This acts as "glue" at the bottom to absorb all the extra space.
@@ -199,6 +201,12 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
     public void onNewVanDerWaals(ActionEvent ev)
     {
         addDrawingPane(new VanDerWaalsPane(coordFile, (paneNumber++)+" - van der Waals"));
+    }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onNewRibbons(ActionEvent ev)
+    {
+        addDrawingPane(new RibbonPane(coordFile, (paneNumber++)+" - Ribbons"));
     }
 //}}}
 
