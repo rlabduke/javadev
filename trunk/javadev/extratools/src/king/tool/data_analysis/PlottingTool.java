@@ -18,12 +18,14 @@ public class PlottingTool extends BasicTool {
 
 //{{{ Variable definitions
 //##################################################################################################
-    ArrayList allPoints;
-    TreeMap drawnPoints;
+    ArrayList allPoints; //list of original values from selected file.
+    TreeMap binnedPoints; //points split by bin (color) value.
+    HashMap plottedPoints; //points split by pointID.
     JFileChooser filechooser;
+    JComboBox color1;
 
     TablePane pane;
-    JButton plotButton;
+    JButton plotButton, replotButton;
     JComboBox[] comboBoxes;
 //}}}
 
@@ -46,6 +48,7 @@ public class PlottingTool extends BasicTool {
 //##############################################################################
     private void buildGUI() {
 	
+	dialog = new JDialog(kMain.getTopWindow(), "Data Plotter", false);
 	if (allPoints == null) return;
 	Iterator iter = allPoints.iterator();
 	String[] values = (String[]) iter.next();
@@ -65,6 +68,10 @@ public class PlottingTool extends BasicTool {
 	    JLabel exampleLabel = new JLabel(values[i]);
 	    pane.add(exampleLabel);
 	}
+	color1 = new JComboBox(KPalette.getStandardMap().values().toArray());
+	color1.setSelectedItem(KPalette.blue);
+	pane.add(color1);
+
 	pane.newRow();
 	for(int i = 0; i < numColumns; i++) {
 	    JComboBox comboBox = new JComboBox(axes);
@@ -74,7 +81,12 @@ public class PlottingTool extends BasicTool {
 	plotButton = new JButton(new ReflectiveAction("Plot!", null, this, "onPlot"));
 	pane.add(plotButton);
 	
-
+	replotButton = new JButton(new ReflectiveAction("Replot!", null, this, "onPlot"));
+	replotButton.setEnabled(false);
+	pane.add(replotButton);
+	
+        dialog.addWindowListener(this);
+	dialog.setContentPane(pane);
 
 	
     }
@@ -94,9 +106,12 @@ public class PlottingTool extends BasicTool {
 	    //dataMap = new HashMap();
 	//listMap = new HashMap();
 	//offPoints = new ArrayList();
+	//System.out.println("Starting Plotter");
 	allPoints = new ArrayList();
-	drawnPoints = new TreeMap();
+	binnedPoints = new TreeMap();
+	plottedPoints = new HashMap();
 	openFile();
+
 	buildGUI();
 	
 	    
@@ -152,6 +167,8 @@ public class PlottingTool extends BasicTool {
 		    //offPoints = new ArrayList();
 		    //allPoints = new ArrayList();
 			scanFile(reader);
+			//System.out.println(allPoints.size());
+			reader.close();
 			//}
 
 		    kCanvas.repaint(); // otherwise we get partial-redraw artifacts
@@ -184,6 +201,7 @@ public class PlottingTool extends BasicTool {
 	try {
 	    while((line = reader.readLine())!=null){
 		line = line.trim();
+		//System.out.println(line);
 		String[] values = line.split("\\s");
 		//int numColumns = values.length;
 		//System.out.println(numColumns);
@@ -201,6 +219,7 @@ public class PlottingTool extends BasicTool {
     }
 
     public void onPlot(ActionEvent ev) {
+	replotButton.setEnabled(true);
 	int numColumns = comboBoxes.length;
 	int x = -1, y = -1, z = -1, color = -1;
 	for (int i = 0; i < numColumns; i++) {
@@ -222,11 +241,15 @@ public class PlottingTool extends BasicTool {
 	    //createPoints(x, y, z, color);
 	    //System.out.println(x + y + z);
 	}
-	createPoints(x, y, z, color);
+	if (ev.getSource().equals(plotButton)) {
+	    createPoints(x, y, z, color);
+	} else {
+	    replotPoints(x, y, z, color);
+	}
     }
 
     public void createPoints(int x, int y, int z, int color) {
-	drawnPoints.clear();
+	binnedPoints.clear();
 	double minColor = 100000;
 	double maxColor = -100000;
 	Iterator iter = allPoints.iterator();
@@ -252,7 +275,7 @@ public class PlottingTool extends BasicTool {
 		Double bin = new Double((double)Math.round((minColor + perDiv * i)*1000)/1000);
 		KList list = new KList(null, bin.toString());
 		list.addMaster(bin.toString());
-		drawnPoints.put(bin, list);
+		binnedPoints.put(bin, list);
 		//System.out.println(bin);
 	    }
 	    /*
@@ -261,11 +284,11 @@ public class PlottingTool extends BasicTool {
 		Double bin = new Double((double)Math.round(d*1000)/1000);
 		KList list = new KList(null, bin.toString());
 		list.addMaster(bin.toString());
-		drawnPoints.put(bin, list);
+		binnedPoints.put(bin, list);
 		System.out.println(bin);
 		}*/
 	} else {
-	    drawnPoints.put(new Double(0), new KList());
+	    binnedPoints.put(new Double(0), new KList());
 	}
 	
 	iter = allPoints.iterator();
@@ -275,6 +298,7 @@ public class PlottingTool extends BasicTool {
 	while (iter.hasNext()) {
 	    String[] value = (String[]) iter.next();
 	    point = new BallPoint(null, value[0]);
+	    plottedPoints.put(value[0], point);
 	    point.setRadius(2);
 	    if (x != -1) {
 		point.setX(Double.parseDouble(value[x]));
@@ -297,15 +321,15 @@ public class PlottingTool extends BasicTool {
 		double binValRounded = ((double)Math.round(binVal*1000)/1000);
 		//System.out.println(colValue);
 		//System.out.println(binValRounded);
-		KList list = (KList) drawnPoints.get(new Double(binValRounded));
+		KList list = (KList) binnedPoints.get(new Double(binValRounded));
 		list.add(point);
 		point.setOwner(list);
 	    } else {
-		KList list = (KList) drawnPoints.get(new Double(0));
+		KList list = (KList) binnedPoints.get(new Double(0));
 		list.add(point);
 		point.setOwner(list);
 	    }
-	    //drawnPoints.add(point);
+	    //binnedPoints.add(point);
 	    /*
 	    if (color != -1) {
 		double dColor = Double.parseDouble(value[color]);
@@ -338,7 +362,7 @@ public class PlottingTool extends BasicTool {
 	//if (group.hasMaster("Data Points")) {
 	//KSubgroup subgroup = (KSubgroup) group.getChildAt(0);
 	//KList list = (KList) subgroup.getChildAt(0);
-	Collection lists = drawnPoints.values();
+	Collection lists = binnedPoints.values();
 	Iterator iter = lists.iterator();
 	while (iter.hasNext()) {
 	    KList list = (KList) iter.next();
@@ -350,6 +374,42 @@ public class PlottingTool extends BasicTool {
 	//subgroup.add(list);
     	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
       
+    }
+
+    public void replotPoints(int x, int y, int z, int color) {
+	// x, y, z, and color are array indexes.
+	Iterator iter = allPoints.iterator();
+	while (iter.hasNext()) {
+	    String[] value = (String[]) iter.next();
+	    KPoint point = (KPoint) plottedPoints.get(value[0]);
+	    if (x != -1) {
+		point.setX(Double.parseDouble(value[x]));
+	    } else {
+		point.setX(0);
+	    }
+	    if (y != -1) {
+		point.setY(Double.parseDouble(value[y]));
+	    } else {
+		point.setY(0);
+	    }
+	    if (z != -1) {
+		point.setZ(Double.parseDouble(value[z]));
+	    } else {
+		point.setZ(0);
+	    }
+	}
+	kCanvas.repaint();
+    }
+
+//{{{ xx_click() functions
+//##################################################################################################
+    /** Override this function for (left-button) clicks */
+    public void click(int x, int y, KPoint p, MouseEvent ev)
+    {
+        super.click(x, y, p, ev);    
+	if (p != null) {
+	    p.setColor((KPaint)color1.getSelectedItem());
+	}
     }
 
 //{{{ getHelpAnchor, toString
