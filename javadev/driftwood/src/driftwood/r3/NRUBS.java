@@ -95,8 +95,9 @@ public class NRUBS //extends ... implements ...
     */
     public Tuple3[] spline(Tuple3[] guidePts, int nIntervals)
     {
-        Triple[]    out = new Triple[ nIntervals*(guidePts.length-3) + 1 ];
         double[][]  B   = getB(nIntervals);
+        Triple[]    out = new Triple[ nIntervals*(guidePts.length-3) + 1 ];
+        for(int i = 0; i < out.length; i++) out[i] = new Triple();
         
         for(int i = 0; i < guidePts.length - 3; i++)
             spline(guidePts, i, out, i*nIntervals, B);
