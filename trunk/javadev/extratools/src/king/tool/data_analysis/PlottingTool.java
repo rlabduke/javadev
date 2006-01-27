@@ -3,6 +3,7 @@
 package king.tool.data_analysis;
 import king.*;
 import king.core.*;
+import king.tool.util.KinUtil;
 
 import java.awt.event.*;
 import java.util.*;
@@ -26,6 +27,7 @@ public class PlottingTool extends BasicTool {
 
     TablePane pane;
     JButton plotButton, replotButton;
+    JTextField xMultField, yMultField, zMultField;
     JComboBox[] comboBoxes;
 //}}}
 
@@ -70,7 +72,7 @@ public class PlottingTool extends BasicTool {
 	}
 	color1 = new JComboBox(KPalette.getStandardMap().values().toArray());
 	color1.setSelectedItem(KPalette.blue);
-	pane.add(color1);
+	pane.add(color1, 2, 1);
 
 	pane.newRow();
 	for(int i = 0; i < numColumns; i++) {
@@ -84,6 +86,23 @@ public class PlottingTool extends BasicTool {
 	replotButton = new JButton(new ReflectiveAction("Replot!", null, this, "onPlot"));
 	replotButton.setEnabled(false);
 	pane.add(replotButton);
+
+	pane.newRow();
+	JLabel xLabel = new JLabel("x mult=");
+	xMultField = new JTextField("1", 5);
+	JLabel yLabel = new JLabel("y mult=");
+	yMultField = new JTextField("1", 5);
+	JLabel zLabel = new JLabel("z multi=");
+	zMultField = new JTextField("1", 5);
+	
+	pane.add(xLabel);
+	pane.add(xMultField);
+	
+	pane.add(yLabel);
+	pane.add(yMultField);
+	
+	pane.add(zLabel);
+	pane.add(zMultField);
 	
         dialog.addWindowListener(this);
 	dialog.setContentPane(pane);
@@ -274,6 +293,7 @@ public class PlottingTool extends BasicTool {
 		//  without rounding the bins (and calculations later).
 		Double bin = new Double((double)Math.round((minColor + perDiv * i)*1000)/1000);
 		KList list = new KList(null, bin.toString());
+		list.flags |= KList.NOHILITE;
 		list.addMaster(bin.toString());
 		binnedPoints.put(bin, list);
 		//System.out.println(bin);
@@ -299,7 +319,7 @@ public class PlottingTool extends BasicTool {
 	    String[] value = (String[]) iter.next();
 	    point = new BallPoint(null, value[0]);
 	    plottedPoints.put(value[0], point);
-	    point.setRadius(2);
+	    point.setRadius(1);
 	    if (x != -1) {
 		point.setX(Double.parseDouble(value[x]));
 	    } else {
@@ -384,18 +404,41 @@ public class PlottingTool extends BasicTool {
 	    KPoint point = (KPoint) plottedPoints.get(value[0]);
 	    if (x != -1) {
 		point.setX(Double.parseDouble(value[x]));
+		if (KinUtil.isNumeric(xMultField.getText())) {
+		    point.setX(point.getX() * Double.parseDouble(xMultField.getText()));
+		}
 	    } else {
 		point.setX(0);
 	    }
 	    if (y != -1) {
 		point.setY(Double.parseDouble(value[y]));
+		if (KinUtil.isNumeric(yMultField.getText())) {
+		    point.setY(point.getY() * Double.parseDouble(yMultField.getText()));
+		}
 	    } else {
 		point.setY(0);
 	    }
 	    if (z != -1) {
 		point.setZ(Double.parseDouble(value[z]));
+		if (KinUtil.isNumeric(zMultField.getText())) {
+		    point.setZ(point.getZ() * Double.parseDouble(zMultField.getText()));
+		}
 	    } else {
 		point.setZ(0);
+	    }
+	}
+	kCanvas.repaint();
+    }
+
+    public void onRescale(ActionEvent ev) {
+	Collection points = plottedPoints.values();
+	Iterator iter = points.iterator();
+	while (iter.hasNext()) {
+	    KPoint point = (KPoint) iter.next();
+	    if (KinUtil.isNumeric(xMultField.getText()) && KinUtil.isNumeric(yMultField.getText()) && KinUtil.isNumeric(zMultField.getText())) {
+		point.setDrawX(point.getDrawX() * Double.parseDouble(xMultField.getText()));
+		point.setDrawY(point.getDrawY() * Double.parseDouble(yMultField.getText()));
+		point.setDrawZ(point.getDrawZ() * Double.parseDouble(zMultField.getText()));
 	    }
 	}
 	kCanvas.repaint();
