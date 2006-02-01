@@ -11,7 +11,7 @@ import java.io.*;
 import java.awt.*;
 import javax.swing.*;
 import driftwood.gui.*;
-
+import driftwood.util.Strings;
 
 
 public class PlottingTool extends BasicTool {
@@ -26,7 +26,7 @@ public class PlottingTool extends BasicTool {
     JComboBox color1;
 
     TablePane pane;
-    JButton plotButton, replotButton;
+    JButton plotButton, replotButton, exportButton;
     JTextField xMultField, yMultField, zMultField;
     JComboBox[] comboBoxes;
 //}}}
@@ -92,7 +92,7 @@ public class PlottingTool extends BasicTool {
 	xMultField = new JTextField("1", 5);
 	JLabel yLabel = new JLabel("y mult=");
 	yMultField = new JTextField("1", 5);
-	JLabel zLabel = new JLabel("z multi=");
+	JLabel zLabel = new JLabel("z mult=");
 	zMultField = new JTextField("1", 5);
 	
 	pane.add(xLabel);
@@ -103,6 +103,9 @@ public class PlottingTool extends BasicTool {
 	
 	pane.add(zLabel);
 	pane.add(zMultField);
+
+	exportButton = new JButton(new ReflectiveAction("Export!", null, this, "onExport"));
+	pane.add(exportButton, 2, 1);
 	
         dialog.addWindowListener(this);
 	dialog.setContentPane(pane);
@@ -175,6 +178,10 @@ public class PlottingTool extends BasicTool {
 		if(f != null && f.exists()) {
 		    //dialog.setTitle(f.getName());
 		    BufferedReader reader = new BufferedReader(new FileReader(f));
+		    String delimChoice = askDelimiter(f.getName());
+		    if (delimChoice != null) {
+			scanFile(reader, delimChoice);
+		    }
 		    //String fileChoice = askFileFormat(f.getName());
 		    //System.out.println(fileChoice);
 		    //String angleChoice = "none";
@@ -185,7 +192,7 @@ public class PlottingTool extends BasicTool {
 		    //listMap = new HashMap();
 		    //offPoints = new ArrayList();
 		    //allPoints = new ArrayList();
-			scanFile(reader);
+		    //scanFile(reader);
 			//System.out.println(allPoints.size());
 			reader.close();
 			//}
@@ -210,20 +217,41 @@ public class PlottingTool extends BasicTool {
     
 //}}}
 
+    //{{{ askFormats
+    private String askDelimiter(String f) {
+	Object[] choices = {"Comma (,)", "Semi-colon (;)", "Colon (:)", "Space"};
+	String choice = (String) JOptionPane.showInputDialog(kMain.getTopWindow(), 
+		  "Please indicate the delimiter to use to parse the data.", 
+							     "Choose", JOptionPane.PLAIN_MESSAGE, 
+							     null, choices, "Comma (,)");
+	if (choice.equals("Comma (,)")) {
+	    return ",";
+	} else if (choice.equals("Semi-colon (;)")) {
+	    return ";";
+	} else if (choice.equals("Colon (:)")) {
+	    return ":";
+	} else {
+	    return " ";
+	}
+    }
+    
+    //}}}
+
 //{{{ scanFile
 //##################################################################################################
     /**
      * Does most of the work reading and analyzing the data files.
      **/
-    private void scanFile(BufferedReader reader) {
+    private void scanFile(BufferedReader reader, String delimiter) {
 	String line;
 	try {
 	    while((line = reader.readLine())!=null){
 		line = line.trim();
 		//System.out.println(line);
-		String[] values = line.split("\\s");
+		//String[] values = line.split("\\s");
 		//int numColumns = values.length;
 		//System.out.println(numColumns);
+		String[] values = Strings.explode(line, delimiter.charAt(0), false, true);
 		allPoints.add(values);
 
 
@@ -272,9 +300,10 @@ public class PlottingTool extends BasicTool {
 	double minColor = 100000;
 	double maxColor = -100000;
 	Iterator iter = allPoints.iterator();
-	while (iter.hasNext()) {
-	    String[] value = (String[]) iter.next();
-	    if (color != -1) {
+	if (color != -1) {
+	    while (iter.hasNext()) {
+		String[] value = (String[]) iter.next();
+		//if (color != -1) {
 		double dColor = Double.parseDouble(value[color]);
 		if (minColor > dColor) {
 		    minColor = dColor;
@@ -454,6 +483,68 @@ public class PlottingTool extends BasicTool {
 	    p.setColor((KPaint)color1.getSelectedItem());
 	}
     }
+//}}}
+
+//{{{ onExport
+    public void onExport(ActionEvent ev) {
+	//addAllDataPoints();
+	JFileChooser saveChooser = new JFileChooser();
+	String currdir = System.getProperty("user.dir");
+	if(currdir != null) {
+	    saveChooser.setCurrentDirectory(new File(currdir));
+	}
+	if (saveChooser.APPROVE_OPTION == saveChooser.showSaveDialog(kMain.getTopWindow())) {
+	    File f = saveChooser.getSelectedFile();
+	    if( !f.exists() ||
+                JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+                    "This file exists -- do you want to overwrite it?",
+                    "Overwrite file?", JOptionPane.YES_NO_OPTION)
+                == JOptionPane.YES_OPTION )
+            {
+                saveDataFile(f);
+            }
+	}
+
+    }
+//}}}
+
+//{{{ saveDataFile
+
+    public void saveDataFile(File f) {
+	try {
+	    Writer w = new FileWriter(f);
+	    PrintWriter out = new PrintWriter(new BufferedWriter(w));
+	    //addAllDataPoints();
+	    out.println("@kinemage 0");
+	    //out.println("@group {" + f.getName() + "} dimension=7 wrap=360 select");
+	    //out.println("@balllist {" + f.getName() + "} nohilite");
+	    //Iterator iter = allPoints.iterator();
+	    String[] zeroVal = (String[]) allPoints.get(0);
+	    out.println("@group {" + f.getName() + "} dimension=" + (zeroVal.length - 1) + " wrap=360 select");
+	    out.println("@balllist {" + f.getName() + "} nohilite");
+	    //int length = value.length;
+	    Iterator iter = allPoints.iterator();
+	    while (iter.hasNext()) {
+		String[] value = (String[]) iter.next();
+		out.print("{" + value[0] + "} ");
+		for (int i = 1; i < value.length; i++) {
+		    out.print(value[i]);
+		    if (i != value.length - 1) {
+			out.print(", ");
+		    }
+		}
+		out.println("");
+	    }
+	    out.flush();
+	    w.close();
+
+	} catch (IOException ex) {
+	    JOptionPane.showMessageDialog(kMain.getTopWindow(),
+                "An error occurred while saving the file.",
+                "Sorry!", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+//}}}
 
 //{{{ getHelpAnchor, toString
 //##################################################################################################

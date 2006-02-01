@@ -262,7 +262,7 @@ public class FramerTool extends BasicTool {
 		    Iterator resIter = results.iterator();
 		    while (resIter.hasNext()) {
 			Double value = (Double) resIter.next();
-			out.print(" ");
+			out.print(",");
 			out.print(df.format(value.doubleValue()));
 			//out.print(" ");
 		    }
