@@ -110,6 +110,8 @@ public class Ribbons //extends ... implements ...
                 bvec.likeVector(ca1, ox1);
                 g.cvec.likeCross(avec, bvec).unit();
                 g.dvec.likeCross(g.cvec, avec).unit();
+                g.prevRes = res[i  ];
+                g.nextRes = res[i+1];
                 
                 // Based on Ca(i-1) to Ca(i+2) distance, we may adjust ribbon width
                 // and/or guidepoint position. Ribbon widens in areas of high OR low
@@ -164,6 +166,7 @@ public class Ribbons //extends ... implements ...
             g.xyz.like(ca);
             g.cvec.like(guides[2].cvec);
             g.dvec.like(guides[2].dvec);
+            g.prevRes = g.nextRes = res[0];
             guides[0] = guides[1] = g;
         }
         catch(AtomException ex) {}
@@ -174,6 +177,7 @@ public class Ribbons //extends ... implements ...
             g.xyz.like(ca);
             g.cvec.like(guides[guides.length-3].cvec);
             g.dvec.like(guides[guides.length-3].dvec);
+            g.prevRes = g.nextRes = res[res.length-1];
             guides[guides.length-1] = guides[guides.length-2] = g;
         }
         catch(AtomException ex) {}

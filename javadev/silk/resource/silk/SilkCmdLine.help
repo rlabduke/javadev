@@ -31,6 +31,13 @@ DESCRIBING YOUR DATA
     -wrap               (optional)
         Indicates that for each coordinate, min and max are equivalent. Used
         for angle measurements because 0 degrees == 360 degrees.
+    
+    -crop=#,#,#,#,...   (optional)
+        Causes Silk to ignore input data points that lie outside the specified
+        rectangular region. While -bounds can often be used to the same effect,
+        complications with wrapping sometimes come up. Thus, this is a
+        convenience function for examining subregions of the overall space.
+        Listed in the form min1,max1,min2,max2,...,minN,maxN (like -bounds).
         
     -gridsize=#         (REQUIRED)
     -gridsize=#,#,...
@@ -66,6 +73,12 @@ SMOOTHING OPERATIONS
     -lambda=#           (optional)
         Sets the exponential parameter "lambda" for density-dependent smoothing.
         It defaults to 0.5, which has worked well for our applications.
+        
+    -aniso=#,#,...      (optional)
+        Scales the mask/kernel for the Gaussian or cosine anisotropically in
+        different dimensions, so the final shape is ellipsoidal. For example,
+        a value of 2 means twice as much smoothing in that dimension; a value
+        of 0.5 means half as much smoothing.
         
 POST-PROCESSING
     -ln                 (optional, choose one)

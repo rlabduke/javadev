@@ -57,6 +57,8 @@ public class SilkOptions //extends ... implements ...
     public double[]     bounds      = null;
     /** Whether or not the bounds are wrapped (defaults to false) */
     public boolean[]    wrap        = null;
+    /** Cropping for input data, in the space defined by bounds. (defaults to none) */
+    public double[]     crop        = null;
     /** Character to use as a separator when parsing the input file (defaults to space) */
     public char         inSep       = ' ';
     /** Whether to use sparse or dense data storage. Defaults to sparse (true). */
@@ -67,6 +69,11 @@ public class SilkOptions //extends ... implements ...
     public String       operation   = OP_HISTOGRAM;
     /** The halfwidth to use for Gaussian or cosine smoothing (required for Gaussian, cosine) */
     public double       halfwidth   = 0;
+    /**
+    * Effective per-dimension scaling factors for Gaussian/cosine mask.
+    * Inverse scaling factors for input coords on input; as-is for scaling on output.
+    */
+    public double[]     aniso       = null;
     /** The size of each bin (either this or gridsamples is required) */
     public double[]     gridsize    = null;
     /** The number of bins in each dimension (either this or gridsize is required) */
@@ -135,10 +142,15 @@ public class SilkOptions //extends ... implements ...
         if(bounds == null)  throw new IllegalArgumentException("bounds must be specified");
         else if(bounds.length != 2*nDim)
             throw new IllegalArgumentException("Length mismatch: bounds and nDim");
+        if(crop == null)    crop = (double[]) bounds.clone();
+        else if(crop.length != 2*nDim)
+            throw new IllegalArgumentException("Length mismatch: crop and nDim");
         
         for(int i = 0; i < nDim; i++)
         {
             if(bounds[2*i] >= bounds[2*i + 1])
+                throw new IllegalArgumentException("max bound < min bound in dimension "+i);
+            if(crop[2*i] >= crop[2*i + 1])
                 throw new IllegalArgumentException("max bound < min bound in dimension "+i);
         }
         
@@ -165,6 +177,13 @@ public class SilkOptions //extends ... implements ...
         }
         else if(wrap.length != nDim)
             throw new IllegalArgumentException("Length mismatch: wrap and nDim");
+        
+        // Aniso scaling of data coordinates
+        if(aniso == null)
+        {
+            aniso = new double[nDim];
+            for(int i = 0; i < nDim; i++) aniso[i] = 1.0;
+        }
         
         // Gridsize
         if(gridsize != null)

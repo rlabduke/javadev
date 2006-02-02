@@ -32,6 +32,8 @@ public class BackrubFinder2 //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
+    double rmsdLimit            = 0.10; // Angstroms
+    double backrubAngleLimit    = 10.0; // degrees
 //}}}
 
 //{{{ Constructor(s)
@@ -177,9 +179,8 @@ public class BackrubFinder2 //extends ... implements ...
                 Triple ca4 = new Triple().likeMidpoint(r[2], m[2]);
                 double backrubAngle = Triple.dihedral(ca3r, ca2, ca4, ca3m);
                 
-                //if(rmsd <= 0.05 && Math.abs(backrubAngle) > 20.0)
-                if(rmsd <= 0.05 && Math.abs(backrubAngle) > 10.0)
-                out.println(cas[i][k].getResidue()+","+(i+1)+","+(j+1)+","+df.format(rmsd)+","+df.format(backrubAngle));
+                if(rmsd <= rmsdLimit && Math.abs(backrubAngle) >= backrubAngleLimit)
+                    out.println(cas[i][k].getResidue()+","+(i+1)+","+(j+1)+","+df.format(rmsd)+","+df.format(backrubAngle));
             }
     }
 //}}}
@@ -215,8 +216,8 @@ public class BackrubFinder2 //extends ... implements ...
                 Triple ca4 = new Triple().likeMidpoint(r[2], m[2]);
                 double backrubAngle = Triple.dihedral(ca3r, ca2, ca4, ca3m);
                 
-                if(rmsd <= 0.10 && Math.abs(backrubAngle) > 15.0)
-                out.println(cas[i][k].getResidue()+","+(i+1)+","+(j+1)+","+df.format(rmsd)+","+df.format(backrubAngle));
+                if(rmsd <= rmsdLimit && Math.abs(backrubAngle) >= backrubAngleLimit)
+                    out.println(cas[i][k].getResidue()+","+(i+1)+","+(j+1)+","+df.format(rmsd)+","+df.format(backrubAngle));
             }
     }
 //}}}
@@ -416,6 +417,8 @@ public class BackrubFinder2 //extends ... implements ...
             showHelp(true);
             System.exit(0);
         }
+        else if(flag.equals("-rmsd")) this.rmsdLimit = Double.parseDouble(param);
+        else if(flag.equals("-angle")) this.backrubAngleLimit = Double.parseDouble(param);
         else if(flag.equals("-dummy_option"))
         {
             // handle option here

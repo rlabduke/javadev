@@ -36,7 +36,8 @@ import driftwood.util.Strings;
 public class Residue implements Comparable
 {
 //{{{ Constants
-    static final int NAN_SEQ = Integer.MAX_VALUE;
+    /** Flag value used for sequence number strings that aren't actually integer numbers. */
+    public static final int NAN_SEQ = Integer.MAX_VALUE;
 //}}}
 
 //{{{ Variable definitions
@@ -199,15 +200,21 @@ public class Residue implements Comparable
     }
 //}}}
 
-//{{{ get{SequenceNumber, InsertionCode, Name, CNIT}
+//{{{ get{SequenceNumber/Integer, InsertionCode, Name, CNIT}
 //##################################################################################################
     /**
     * Returns the sequence number of this residue as a non-null String.
+    * Thanks to mmCIF, this doesn't have to be an integer, or even a real number;
+    * it's allowed to be some arbitrary string.
     * Note that insertion codes function to give a sort order
     * within residues that share the same sequence number.
     */
     public String getSequenceNumber()
     { return seqNum; }
+    
+    /** Returns the sequence number as an integer, or NAN_SEQ if it's some non-integer string. */
+    public int getSequenceInteger()
+    { return seqInt; }
     
     /** The default insertion code if none was specified is space (" "). */
     public String getInsertionCode()

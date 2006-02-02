@@ -34,6 +34,8 @@ public class CoordinateFile //extends ... implements ...
     ArrayList           headers;
     Collection          unmodHeaders    = null;
     
+    SecondaryStructure  secondaryStructure = new SecondaryStructure.AllCoil();
+    
     File        file = null;
     String      idCode = null;
 //}}}
@@ -131,6 +133,19 @@ public class CoordinateFile //extends ... implements ...
     /** Sets the ID code associated with these models (e.g. PDB ID). May be null. */
     public void setIdCode(String idCode)
     { this.idCode = idCode; }
+//}}}
+
+//{{{ get/setSecondaryStructure
+//##################################################################################################
+    // These are associated with a CoordinateFile rather than with a Model
+    // because they're defined at the file level for PDB and mmCIF.
+    
+    /** Default assignment marks everything as COIL. */
+    public SecondaryStructure getSecondaryStructure()
+    { return this.secondaryStructure; }
+    
+    public void setSecondaryStructure(SecondaryStructure s)
+    { this.secondaryStructure = s; }
 //}}}
 
 //{{{ empty_code_segment

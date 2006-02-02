@@ -229,6 +229,8 @@ public class PdbReader //extends ... implements ...
                 ex.printStackTrace(SoftLog.err);
             }
         }
+        // This sets up secondary structure assignments
+        rv.setSecondaryStructure(new PdbSecondaryStructure(rv.getHeaders()));
         
         return rv;
     }

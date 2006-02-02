@@ -48,13 +48,18 @@ public class SilkEngine //extends ... implements ...
         // Check to make sure all needed options are in place
         options.fillInMissing();
         
+        // Pre-wrap data, do anisotropic coordinate scaling, crop out unwanted points
+        dataSamples = cleanData(dataSamples, options);
+        
         // Unroll bounds into min and max
-        double[] min = new double[options.nDim];
-        double[] max = new double[options.nDim];
+        double[] min = new double[options.nDim], minOrig = new double[options.nDim];
+        double[] max = new double[options.nDim], maxOrig = new double[options.nDim];
         for(int i = 0; i < options.nDim; i++)
         {
-            min[i] = options.bounds[2*i];
-            max[i] = options.bounds[2*i + 1];
+            minOrig[i]  = options.bounds[2*i];
+            maxOrig[i]  = options.bounds[2*i + 1];
+            min[i]      = options.bounds[2*i] / options.aniso[i];
+            max[i]      = options.bounds[2*i + 1] / options.aniso[i];
         }
         
         // Create a table of appropriate size
@@ -85,6 +90,11 @@ public class SilkEngine //extends ... implements ...
         // Do second (density-dependent) processing step
         if(options.twopass)
             densityTrace = processDensityDependent(densityTrace, dataSamples, options);
+        
+        // Reset table bounds in case of anisotropic smoothing masks. If aniso == 1, no effect.
+        densityTrace.resetBounds(minOrig, maxOrig);
+        // Also reset data coords, as they're needed for convert-to-fraction
+        anisoUnscaleData(dataSamples, options);
         
         // Apply post-smoothing operations
         if(options.postop == SilkOptions.POSTOP_NONE)           {}
@@ -218,7 +228,7 @@ public class SilkEngine //extends ... implements ...
                 halfwidth   = options.ddhalfwidth / Math.pow(density, options.lambda/options.nDim);
                 trace2.tallyCosine(sample.coords, halfwidth, sample.weight);
                 if(++i % 100 == 0) System.err.print("\r  "+i+" points have been tallied"); System.err.flush();
-                if(++i % 1 == 0) System.err.print("\r  "+i+" points have been tallied"); System.err.flush();
+                //if(++i % 1 == 0) System.err.print("\r  "+i+" points have been tallied"); System.err.flush();
             }
         }
         else throw new IllegalArgumentException("Illegal operation for two-pass smoothing: "+options.operation);
@@ -226,6 +236,52 @@ public class SilkEngine //extends ... implements ...
         trace2.normalize();
         System.err.println("\r  "+i+" points have been tallied");
         return trace2;
+    }
+//}}}
+
+//{{{ cleanData, aniso(Un)ScaleData, cropData
+//##################################################################################################
+    /** Crops data points, wraps coordinates, applies aniso scaling. MAY modify input data. */
+    public Collection cleanData(Collection dataSamples, SilkOptions options)
+    {
+        wrapData(dataSamples, options);
+        dataSamples = cropData(dataSamples, options);
+        anisoScaleData(dataSamples, options);
+        return dataSamples;
+    }
+    
+    public void anisoScaleData(Collection dataSamples, SilkOptions options)
+    {
+        for(Iterator iter = dataSamples.iterator(); iter.hasNext(); )
+        {
+            DataSample sample = (DataSample) iter.next();
+            for(int i = 0; i < options.nDim; i++) sample.coords[i] /= options.aniso[i];
+        }
+    }
+    
+    public void anisoUnscaleData(Collection dataSamples, SilkOptions options)
+    {
+        for(Iterator iter = dataSamples.iterator(); iter.hasNext(); )
+        {
+            DataSample sample = (DataSample) iter.next();
+            for(int i = 0; i < options.nDim; i++) sample.coords[i] *= options.aniso[i];
+        }
+    }
+    
+    public Collection cropData(Collection dataSamples, SilkOptions options)
+    {
+        ArrayList croppedSamples = new ArrayList();
+        samples: for(Iterator iter = dataSamples.iterator(); iter.hasNext(); )
+        {
+            DataSample sample = (DataSample) iter.next();
+            for(int i = 0; i < options.nDim; i++)
+            {
+                if(sample.coords[i] < options.crop[2*i]
+                || sample.coords[i] > options.crop[2*i + 1]) continue samples;
+            }
+            croppedSamples.add(sample);
+        }
+        return croppedSamples;
     }
 //}}}
 
