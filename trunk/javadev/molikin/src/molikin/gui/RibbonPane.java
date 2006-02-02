@@ -119,7 +119,7 @@ public class RibbonPane extends TablePane2 implements DrawingPane
         
         this.out = out;
         this.rp = new RibbonPrinter(out);
-        //rp.setCrayon(new AltConfCrayon());
+        rp.setCrayon(new ProteinSecStructCrayon(coordFile.getSecondaryStructure()));
         
         if(cbProtein.isSelected())  printProtein(m, residues, bbColor);
         if(cbNucleic.isSelected())  printNucAcid(m, residues, bbColor);

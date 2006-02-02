@@ -27,6 +27,7 @@ public class RibbonPrinter //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     PrintWriter out;
+    RibbonCrayon crayon = ConstCrayon.NONE;
 //}}}
 
 //{{{ Constructor(s)
@@ -92,13 +93,25 @@ public class RibbonPrinter //extends ... implements ...
             Tuple3[] spline = nrubs.spline(pts, nIntervals);
             for(int i = 0; i < spline.length; i++)
             {
+                int startGuide = (i/nIntervals) + 1;
+                String color = crayon.colorRibbon(guides[startGuide], guides[startGuide+1], i%nIntervals, nIntervals);
                 tmp.like(spline[i]);
-                out.println("{}"+(i==0 ? "P" : "")+" "+tmp.format(df));
+                out.println("{}"+(i==0 ? "P " : "")+color+" "+tmp.format(df));
             }
         }
 
         out.flush();
     }
+//}}}
+
+//{{{ get/setCrayon
+//##############################################################################
+    /** The RibbonCrayon used for coloring these sections. */
+    public RibbonCrayon getCrayon()
+    { return this.crayon; }
+    /** The RibbonCrayon used for coloring these sections. */
+    public void setCrayon(RibbonCrayon c)
+    { this.crayon = c; }
 //}}}
 
 //{{{ empty_code_segment

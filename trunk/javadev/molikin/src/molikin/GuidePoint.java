@@ -10,6 +10,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
+import driftwood.moldb2.*;
 import driftwood.r3.*;
 //}}}
 /**
@@ -31,6 +32,11 @@ public class GuidePoint //extends ... implements ...
     public Triple cvec = new Triple();
     /** Unit vector in the local plane of the ribbon, perpendicular to its overall direction */
     public Triple dvec = new Triple();
+    /**
+    * Residues immediately before and after this guidepoint (never null).
+    * Usually different for proteins, the same for nucleic acids.
+    */
+    public Residue prevRes, nextRes;
 //}}}
 
 //{{{ Constructor(s)

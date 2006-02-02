@@ -13,43 +13,41 @@ import java.util.*;
 import driftwood.moldb2.*;
 //}}}
 /**
-* <code>ConstCrayon</code> is an Atom/BondCrayon that always returns the same
-* string, regardless of input.
+* <code>ProteinSecStructCrayon</code> colors ribbons by secondary structure.
 *
-* <p>Copyright (C) 2005 by Ian W. Davis. All rights reserved.
-* <br>Begun on Fri Sep 30 11:41:50 EDT 2005
+* <p>Copyright (C) 2006 by Ian W. Davis. All rights reserved.
+* <br>Begun on Thu Feb  2 14:14:06 EST 2006
 */
-public class ConstCrayon implements AtomCrayon, BondCrayon, RibbonCrayon
+public class ProteinSecStructCrayon implements RibbonCrayon
 {
 //{{{ Constants
-    /** A crayon that always returns the empty string ("") */
-    public static final ConstCrayon NONE = new ConstCrayon("");
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    String color;
+    SecondaryStructure secStruct;
 //}}}
 
 //{{{ Constructor(s)
 //##############################################################################
-    public ConstCrayon(String color)
+    public ProteinSecStructCrayon(SecondaryStructure secStruct)
     {
         super();
-        this.color = color;
+        this.secStruct = secStruct;
     }
 //}}}
 
-//{{{ colorAtom, colorBond, colorRibbon
+//{{{ empty_code_segment
 //##############################################################################
-    public String colorAtom(AtomState as)
-    { return color; }
-    
-    public String colorBond(AtomState from, AtomState toward)
-    { return color; }
-    
     public String colorRibbon(GuidePoint start, GuidePoint end, int interval, int nIntervals)
-    { return color; }
+    {
+        Residue r = (interval <= nIntervals/2 ? start.nextRes : end.prevRes);
+             if(secStruct.isHelix(r))   return "width4 red";
+        else if(secStruct.isStrand(r))  return "width4 green";
+        else if(secStruct.isTurn(r))    return "sky";
+        else if(secStruct.isCoil(r))    return "white";
+        else                            return "magenta";
+    }
 //}}}
 
 //{{{ empty_code_segment

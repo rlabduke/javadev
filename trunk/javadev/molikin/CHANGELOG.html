@@ -13,7 +13,7 @@
     VDW, Ball+Stick engines should be separated from their GUIs
         public boolean showXXX = false
         element color map should be pluggable, not from Util
-  * Test PseudoBackbone.bondAllStates() against molecule with alt confs
+    Merge BondOptimizer into Bond to save # of classes (?)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -24,6 +24,8 @@
 - started Ribbons.get(Protein|NucAcid)Contigs()
 - added classes GuidePoint, RibbonPrinter, and RibbonPane
 - updated MainGuiPane to include ribbons option
+- added GuidePoint.prevRes and .nextRes
+- added RibbonCrayon and ProteinSecStructCrayon; ribbons are now colored by SS
 
 ### 0.10 ###
 - removed all the justifyLeft()'s from PrekinIDer after profiling showed that

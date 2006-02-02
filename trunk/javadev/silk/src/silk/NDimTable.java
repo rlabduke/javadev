@@ -985,6 +985,23 @@ abstract public class NDimTable //extends ... implements ...
         System.arraycopy(maxVal, 0, retval, 0, nDim);
         return retval;
     }
+    
+    /**
+    * This is NOT for normal use, but if you're clever you can use it to
+    * simulate having anisotropic (ellipsoidal) kernels for the cosine or
+    * Gaussian smoothing functions. (It has no effect for histograms.)
+    * Because the effect is to change how a given bin is translated to
+    * data-space coordinates, you can start with half-size bounds in one
+    * dimension, process the data with that dimension halved, and then expand
+    * the bounds back to normal.  End result: twice as much smoothing in that
+    * dimension.
+    */
+    protected void resetBounds(double[] min, double[] max)
+    {
+        System.arraycopy(min, 0, minVal, 0, nDim);
+        System.arraycopy(max, 0, maxVal, 0, nDim);
+        for(int i = 0; i < nDim; i++) wBin[i] = (maxVal[i] - minVal[i]) / nBins[i];
+    }
 
     /**
     * Gets the number of bins for this table.

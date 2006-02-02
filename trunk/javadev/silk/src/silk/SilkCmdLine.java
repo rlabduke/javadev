@@ -109,9 +109,12 @@ public class SilkCmdLine //extends ... implements ...
             System.err.println("  Label  in col "+opt.label);
         for(int i = 0; i < opt.nDim; i++)
         {
-            System.err.println("  x"+(i+1)+"     in col "+opt.coords[i]
+            System.err.print("  x"+(i+1)+"     in col "+opt.coords[i]
                 +" bounded by ["+opt.bounds[2*i]+", "+opt.bounds[2*i + 1]+"]"
                 +" in "+opt.gridsamples[i]+" bins with wrap="+opt.wrap[i]);
+            if(opt.aniso[i] != 1.0)
+                System.err.print(" with "+opt.aniso[i]+"x smoothing");
+            System.err.println();
         }
         if(opt.weight != 0)
             System.err.println("  Weight in col "+opt.weight);
@@ -287,10 +290,12 @@ public class SilkCmdLine //extends ... implements ...
         else if(flag.equals("-coords"))         opt.coords = explodeInts(param);
         else if(flag.equals("-bounds"))         opt.bounds = explodeDoubles(param);
         else if(flag.equals("-wrap"))           opt.wrap = new boolean[] {true};
+        else if(flag.equals("-crop"))           opt.crop = explodeDoubles(param);
         else if(flag.equals("-insep"))          opt.inSep = param.charAt(0);
         else if(flag.equals("-sparse"))         opt.sparse = true;
         else if(flag.equals("-dense"))          opt.sparse = false;
         else if(flag.equals("-weight"))         opt.weight = Integer.parseInt(param);
+        else if(flag.equals("-aniso"))          opt.aniso = explodeDoubles(param);
         else if(flag.equals("-gridsize"))       opt.gridsize = explodeDoubles(param);
         else if(flag.equals("-gridsamples"))    opt.gridsamples = explodeInts(param);
         else if(flag.equals("-histogram"))

@@ -24,5 +24,13 @@ public class DataSample //extends ... implements ...
     public String       label   = "";
     public double[]     coords  = null;
     public double       weight  = 1.0;
+    
+    public DataSample() {}
+    public DataSample(DataSample that)
+    {
+        this.label  = that.label;
+        this.coords = that.coords;
+        this.weight = that.weight;
+    }
 }//class
 
