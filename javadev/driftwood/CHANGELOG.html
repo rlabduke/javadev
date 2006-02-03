@@ -18,10 +18,11 @@ GUI: {{{
 }}}
 ISOSURFACE: {{{
 }}}
-MOLDB2: {{{
+MOLDB2: {{
     Write PdbUpdater that reads new coords/state into an old model
     Add a class that can WRITE moldb2 data into a StarFile DOM (CifWriter)
     We need an Model.extractAtomStates() function based on AS [identity? name?]
+  * CifReader should use _atom_site.pdbx_PDB_residue_no instead of CIF numbers?
 }}}
 R3: {{{
 }}}
@@ -46,6 +47,8 @@ UTIL: {{{
 - added Triple.addMult() and r3.NRUBS (splines)
 - added Residue.getSequenceInteger()
 - added moldb2.(Pdb)SecondaryStructure; create one in PdbReader
+- added CifSecondaryStructure and moved some functions to SecondaryStructure
+- read struct_sheet_range in addition to struct_conf
 
 ### 0.74 ###
 - fillInStates code now has the option of creating new ATOMs or not.

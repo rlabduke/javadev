@@ -56,8 +56,32 @@ abstract public class SecondaryStructure //extends ... implements ...
     }
 //}}}
 
+//{{{ CLASS: Range
+//##############################################################################
+    /** Describes a start-end range for a helix, sheet, or turn */
+    static class Range
+    {
+        Object  type = COIL;
+        String  chainId;
+        int     initSeqNum, endSeqNum;
+        String  initICode = " ", endICode = " ";
+        
+        public boolean contains(Residue r)
+        {
+            if(!chainId.equals(r.getChain())) return false;
+            int seqNum = r.getSequenceInteger();
+            if(seqNum < initSeqNum || seqNum > endSeqNum) return false;
+            String iCode = r.getInsertionCode();
+            if(seqNum == initSeqNum && iCode.compareTo(initICode) < 0) return false;
+            if(seqNum == endSeqNum  && iCode.compareTo(endICode)  > 0) return false;
+            return true;
+        }
+    }
+//}}}
+
 //{{{ Variable definitions
 //##############################################################################
+    Collection ranges = new ArrayList();
 //}}}
 
 //{{{ Constructor(s)
@@ -68,8 +92,19 @@ abstract public class SecondaryStructure //extends ... implements ...
     }
 //}}}
 
+//{{{ classify
+//##############################################################################
     /** Returns one of the structure category constants defined by this class. */
-    abstract public Object classify(Residue r);
+    public Object classify(Residue res)
+    {
+        for(Iterator iter = ranges.iterator(); iter.hasNext(); )
+        {
+            Range rng = (Range) iter.next();
+            if(rng.contains(res)) return rng.type;
+        }
+        return COIL; // no entry for that residue
+    }
+//}}}
 
 //{{{ isHelix/Strand/Turn/Coil
 //##############################################################################

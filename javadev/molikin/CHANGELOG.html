@@ -13,7 +13,6 @@
     VDW, Ball+Stick engines should be separated from their GUIs
         public boolean showXXX = false
         element color map should be pluggable, not from Util
-    Merge BondOptimizer into Bond to save # of classes (?)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -26,6 +25,8 @@
 - updated MainGuiPane to include ribbons option
 - added GuidePoint.prevRes and .nextRes
 - added RibbonCrayon and ProteinSecStructCrayon; ribbons are now colored by SS
+- added [+] and [-] icons to the MainGuiPane interface
+- merged BondOptimizer code into Bond to reduce total number of classes
 
 ### 0.10 ###
 - removed all the justifyLeft()'s from PrekinIDer after profiling showed that

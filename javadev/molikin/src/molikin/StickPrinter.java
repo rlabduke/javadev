@@ -69,7 +69,7 @@ public class StickPrinter //extends ... implements ...
         // The optimization reduces total bond drawing time by ~20%
         // because it reduces kinemage size by ~15%. Less output, faster code!
         Bond[] b = (Bond[]) selectedBonds.toArray(new Bond[selectedBonds.size()]);
-        BondOptimizer.optimizeBondSequence(b);
+        Bond.optimizeBondSequence(b);
         
         Bond last = new Bond(null, -1, null, -1);
         for(int i = 0; i < b.length; i++)

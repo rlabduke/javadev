@@ -45,6 +45,8 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
     String              idCode;
     int                 paneNumber = 1;
     Collection          paneListData; // holds DrawingPane objects
+    
+    Icon                greenPlus, redMinus;
 //}}}
 
 //{{{ Constructor(s)
@@ -68,6 +70,9 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
 //##############################################################################
     private void buildGUI()
     {
+        greenPlus   = new ImageIcon(getClass().getResource("greenplus.png"));
+        redMinus    = new ImageIcon(getClass().getResource("redminus.png"));
+        
         drawingPaneList = new FatJList(0, 10);
         drawingPaneList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         drawingPaneList.setVisibleRowCount(8);
@@ -76,11 +81,16 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
         drawingCards = new CardLayout();
         drawingPanel = new JPanel(drawingCards);
         
-        JButton ballAndStick = new JButton(new ReflectiveAction("New ball & stick", null, this, "onNewBallAndStick"));
-        JButton vanDerWaals = new JButton(new ReflectiveAction("New van der Waals", null, this, "onNewVanDerWaals"));
-        JButton ribbons = new JButton(new ReflectiveAction("New ribbons", null, this, "onNewRibbons"));
-        JButton removePane = new JButton(new ReflectiveAction("Clear selected", null, this, "onRemovePane"));
-        JButton removeAll = new JButton(new ReflectiveAction("Clear all", null, this, "onRemoveAll"));
+        JButton ballAndStick = new JButton(new ReflectiveAction("Ball & stick", greenPlus, this, "onNewBallAndStick"));
+            ballAndStick.setHorizontalAlignment(JButton.LEFT);
+        JButton vanDerWaals = new JButton(new ReflectiveAction("van der Waals", greenPlus, this, "onNewVanDerWaals"));
+            vanDerWaals.setHorizontalAlignment(JButton.LEFT);
+        JButton ribbons = new JButton(new ReflectiveAction("Ribbons", greenPlus, this, "onNewRibbons"));
+            ribbons.setHorizontalAlignment(JButton.LEFT);
+        JButton removePane = new JButton(new ReflectiveAction("Selected", redMinus, this, "onRemovePane"));
+            removePane.setHorizontalAlignment(JButton.LEFT);
+        JButton removeAll = new JButton(new ReflectiveAction("All", redMinus, this, "onRemoveAll"));
+            removeAll.setHorizontalAlignment(JButton.LEFT);
         
         String bugReporting = "Doesn't work? Send the PDB/CIF file, the kinemage, and a description of your problem to iwd@duke.edu";
         
