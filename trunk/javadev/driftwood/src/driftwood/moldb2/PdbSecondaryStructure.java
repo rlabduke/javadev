@@ -19,37 +19,13 @@ import java.util.*;
 * <p>Copyright (C) 2006 by Ian W. Davis. All rights reserved.
 * <br>Begun on Thu Feb  2 09:45:24 EST 2006
 */
-public class PdbSecondaryStructure extends SecondaryStructure
+class PdbSecondaryStructure extends SecondaryStructure
 {
 //{{{ Constants
 //}}}
 
-//{{{ CLASS: Range
-//##############################################################################
-    /** Describes a start-end range for a helix, sheet, or turn */
-    static class Range
-    {
-        Object  type = COIL;
-        String  chainId;
-        int     initSeqNum, endSeqNum;
-        String  initICode, endICode;
-        
-        public boolean contains(Residue r)
-        {
-            if(!chainId.equals(r.getChain())) return false;
-            int seqNum = r.getSequenceInteger();
-            if(seqNum < initSeqNum || seqNum > endSeqNum) return false;
-            String iCode = r.getInsertionCode();
-            if(seqNum == initSeqNum && iCode.compareTo(initICode) < 0) return false;
-            if(seqNum == endSeqNum  && iCode.compareTo(endICode)  > 0) return false;
-            return true;
-        }
-    }
-//}}}
-
 //{{{ Variable definitions
 //##############################################################################
-    Collection ranges = new ArrayList();
 //}}}
 
 //{{{ Constructor(s)
@@ -127,19 +103,6 @@ public class PdbSecondaryStructure extends SecondaryStructure
         r.initICode = s.substring(24,25);
         r.endICode  = s.substring(35,36);
         return r;
-    }
-//}}}
-
-//{{{ classify
-//##############################################################################
-    public Object classify(Residue res)
-    {
-        for(Iterator iter = ranges.iterator(); iter.hasNext(); )
-        {
-            Range rng = (Range) iter.next();
-            if(rng.contains(res)) return rng.type;
-        }
-        return COIL; // no entry for that residue
     }
 //}}}
 

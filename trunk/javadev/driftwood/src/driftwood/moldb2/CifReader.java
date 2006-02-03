@@ -153,6 +153,8 @@ public class CifReader //extends ... implements ...
             catch(AtomException ex) { ex.printStackTrace(); } // logically unreachable
         }
         
+        coordFile.setSecondaryStructure(new CifSecondaryStructure(db));
+        
         // This little dance makes sure that all alt confs define some state for every atom.
         for(Iterator iter = coordFile.getModels().iterator(); iter.hasNext(); )
         {
