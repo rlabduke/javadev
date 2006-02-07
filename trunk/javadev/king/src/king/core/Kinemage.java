@@ -843,7 +843,7 @@ public class Kinemage extends AGE // implements ...
                 for(liIter = subgroup.iterator(); liIter.hasNext(); )
                 {
                     list = (KList)liIter.next();
-                    if(list.children.size() == 0) liIter.remove();
+                    if(list.children.size() == 0 && list.getInstance() == null) liIter.remove();
                 }//lists
                 if(subgroup.children.size() == 0) suIter.remove();
             }//subgroups
