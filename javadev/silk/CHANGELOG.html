@@ -9,6 +9,9 @@
     Add NDimTable.writeNDT() -- a *sparse* binary format
     Let -wrap be specified per dimension
     Make climbHills return a List of peaks
+        This is a bit hard, because you probably want the peak heights too.
+        Which are gone when you overwrite them with peak labels.
+        Maybe classifyByHills() shouldn't alter the table after all?
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
