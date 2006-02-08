@@ -48,12 +48,12 @@ public class Framer {
 	params[3] = Triple.dihedral(tripco0, tripca0, tripca1, tripcaN);
 	params[4] = Triple.dihedral(tripca0, tripca1, tripcaN, tripcaN1);
 	params[5] = Triple.dihedral(tripca1, tripcaN, tripcaN1, tripcoN);
-	System.out.print(df.format(params[0]) + " ");
-	System.out.print(df.format(params[1]) + " ");
-	System.out.print(df.format(params[2]) + " ");
-	System.out.print(df.format(params[3]) + " ");
-	System.out.print(df.format(params[4]) + " ");	
-	System.out.println(df.format(params[5]));
+	//System.out.print(df.format(params[0]) + " ");
+	//System.out.print(df.format(params[1]) + " ");
+	//System.out.print(df.format(params[2]) + " ");
+	//System.out.print(df.format(params[3]) + " ");
+	//System.out.print(df.format(params[4]) + " ");	
+	//System.out.println(df.format(params[5]));
 	return params;
     }
 
