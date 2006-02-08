@@ -347,7 +347,7 @@ public class PlottingTool extends BasicTool {
 	while (iter.hasNext()) {
 	    String[] value = (String[]) iter.next();
 	    point = new BallPoint(null, value[0]);
-	    plottedPoints.put(value[0], point);
+	    plottedPoints.put(value, point);
 	    point.setRadius(1);
 	    if (x != -1) {
 		point.setX(Double.parseDouble(value[x]));
@@ -430,7 +430,7 @@ public class PlottingTool extends BasicTool {
 	Iterator iter = allPoints.iterator();
 	while (iter.hasNext()) {
 	    String[] value = (String[]) iter.next();
-	    KPoint point = (KPoint) plottedPoints.get(value[0]);
+	    KPoint point = (KPoint) plottedPoints.get(value);
 	    if (x != -1) {
 		point.setX(Double.parseDouble(value[x]));
 		if (KinUtil.isNumeric(xMultField.getText())) {

@@ -31,7 +31,8 @@ public class FramerTool extends BasicTool {
     TreeMap resultsMap; // index is "n" and the element is a map of results
     HashSet includedPoints;
 
-    JButton exportButton;
+    JButton exportButton, doAllButton;
+    JFileChooser filechooser;
     JTextField numField;
     TablePane pane;
 
@@ -54,6 +55,14 @@ public class FramerTool extends BasicTool {
 	show();
     }  
 
+    public void reset() {
+	caMap.clear();
+	oxyMap.clear();
+	bfactMap.clear();
+	includedPoints.clear();
+	resultsMap.clear();
+    }
+
     //{{{ buildGUI
 //##############################################################################
     protected void buildGUI()
@@ -62,11 +71,14 @@ public class FramerTool extends BasicTool {
 	numField = new JTextField("", 5);
 
 	exportButton = new JButton(new ReflectiveAction("Export!", null, this, "onExport"));
-	
+
+	doAllButton = new JButton(new ReflectiveAction("Analyze All Files", null, this, "onDoAll"));
+
 	pane = new TablePane();
 	pane.newRow();
 	pane.add(numField);
 	pane.add(exportButton);
+	pane.add(doAllButton);
 
 	dialog.addWindowListener(this);
 	dialog.setContentPane(pane);
@@ -124,7 +136,7 @@ public class FramerTool extends BasicTool {
 		KPoint caN1 = (KPoint) caMap.get(new Integer(lowNum + numPep + 2));
 		KPoint co0 = (KPoint) oxyMap.get(new Integer(lowNum));
 		KPoint coN = (KPoint) oxyMap.get(new Integer(lowNum + numPep + 1));
-		System.out.print(lowNum + " ");
+		//System.out.print(lowNum + " ");
 		ArrayList results = Framer.calphaAnalyzeList(ca0, ca1, caN, caN1, co0, coN);
 
 		//B-factor
@@ -184,30 +196,32 @@ public class FramerTool extends BasicTool {
 		KPoint pt = (KPoint) iter.next();
 		includedPoints.add(pt);
 		int resNum = KinUtil.getResNumber(pt);
+		//System.out.println("resNum = " + resNum);
 		String atomName = KinUtil.getAtomName(pt).toLowerCase();
 		double bVal = KinUtil.getBvalue(pt);
+		//System.out.print(resNum + " " + bVal + ",");
 		double maxBval = 0;
 		if (atomName.equals("ca")) {
 		    caMap.put(new Integer(resNum), pt);
 
 		    if (bfactMap.containsKey(new Integer(resNum))) maxBval = ((Double) bfactMap.get(new Integer(resNum))).doubleValue();
-		    if (bVal > maxBval) bfactMap.put(new Integer(resNum), new Double(bVal));
+		    if (bVal >= maxBval) bfactMap.put(new Integer(resNum), new Double(bVal));
 		    if (bfactMap.containsKey(new Integer(resNum-1))) maxBval = ((Double) bfactMap.get(new Integer(resNum-1))).doubleValue();
-		    if (bVal > maxBval) bfactMap.put(new Integer(resNum-1), new Double(bVal));
+		    if (bVal >= maxBval) bfactMap.put(new Integer(resNum-1), new Double(bVal));
 		}
 		if (atomName.equals("o")) {
 		    oxyMap.put(new Integer(resNum), pt);
 		    if (bfactMap.containsKey(new Integer(resNum))) maxBval = ((Double) bfactMap.get(new Integer(resNum))).doubleValue();
-		    if (bVal > maxBval) bfactMap.put(new Integer(resNum), new Double(bVal));
+		    if (bVal >= maxBval) bfactMap.put(new Integer(resNum), new Double(bVal));
 		}
 		if (atomName.equals("n")) {
 		    if (bfactMap.containsKey(new Integer(resNum-1))) maxBval = ((Double) bfactMap.get(new Integer(resNum-1))).doubleValue();
-		    if (bVal > maxBval) bfactMap.put(new Integer(resNum-1), new Double(bVal));
+		    if (bVal >= maxBval) bfactMap.put(new Integer(resNum-1), new Double(bVal));
 		    //nitMap.put(new Integer(resNum), pt));
 		}
 		if (atomName.equals("c")) {
 		    if (bfactMap.containsKey(new Integer(resNum))) maxBval = ((Double) bfactMap.get(new Integer(resNum))).doubleValue();
-		    if (bVal > maxBval) bfactMap.put(new Integer(resNum), new Double(bVal));
+		    if (bVal >= maxBval) bfactMap.put(new Integer(resNum), new Double(bVal));
 		    //cMap.put(new Integer(resNum), pt);
 		}
 	    }
@@ -239,10 +253,126 @@ public class FramerTool extends BasicTool {
                 saveDataFile(f);
             }
 	}
-
+	
     }
 //}}}
 
+//{{{ makeFileChooser
+//##################################################################################################
+    void makeFileChooser()
+    {
+	
+        // Make accessory for file chooser
+        TablePane acc = new TablePane();
+
+        // Make actual file chooser -- will throw an exception if we're running as an Applet
+        filechooser = new JFileChooser();
+        String currdir = System.getProperty("user.dir");
+        if(currdir != null) filechooser.setCurrentDirectory(new File(currdir));
+        
+        filechooser.setAccessory(acc);
+        //filechooser.addPropertyChangeListener(this);
+        //filechooser.addChoosableFileFilter(fastaFilter);
+        //filechooser.setFileFilter(fastaFilter);
+    }
+//}}}
+
+//{{{ onDoAll
+    public void onDoAll(ActionEvent ev) {
+
+	if (filechooser == null) makeFileChooser();
+	
+	if(JFileChooser.APPROVE_OPTION == filechooser.showOpenDialog(kMain.getTopWindow())) {
+	    //try {
+	    File f = filechooser.getSelectedFile();
+	    System.out.println(f.getPath() + " : " + f.getName() + " : " + f.getParent());
+	    File[] allFiles = f.getParentFile().listFiles();
+	    //for (int i = 0; i < allFiles.length; i++) {
+	    JFileChooser saveChooser = new JFileChooser();
+	    String currdir = System.getProperty("user.dir");
+	    if(currdir != null) {
+		saveChooser.setCurrentDirectory(new File(currdir));
+	    }
+	    if (saveChooser.APPROVE_OPTION == saveChooser.showSaveDialog(kMain.getTopWindow())) {
+		File saveFile = saveChooser.getSelectedFile();
+		if( !f.exists() ||
+		    JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+						  "This file exists -- do you want to overwrite it?",
+						  "Overwrite file?", JOptionPane.YES_NO_OPTION)
+		    == JOptionPane.YES_OPTION ) 
+		{    
+		    doAll(allFiles, saveFile);
+		}
+	    }
+	}
+    }
+    
+//}}}
+	
+    public void doAll(File[] allFiles, File saveFile) {
+	try {
+	    Writer w = new FileWriter(saveFile);
+	    PrintWriter out = new PrintWriter(new BufferedWriter(w));
+	    for (int i = 0; i < allFiles.length; i++) {
+		File pdbFile = allFiles[i];
+		if (pdbFile.getName().indexOf(".kin") > -1) {
+		    reset();
+		    kMain.getKinIO().loadFile(pdbFile, null);
+		    Kinemage kin = kMain.getKinemage();
+		    kin.getMasterByName("mainchain").setOn(true);
+		    kin.getMasterByName("Calphas").setOn(false);
+		    kin.getMasterByName("rotamer outlie").setOn(false);
+		    AGE kage = (KGroup) kin.getChildAt(0);
+		    while (!(kage instanceof KList)) {
+			kage = (AGE) kage.getChildAt(0);
+		    }
+		    //KGroup group = (KGroup) kin.getChildAt(0);
+		    //KSubgroup sub = (KSubgroup) group.getChildAt(0);
+		    KList list = (KList) kage;
+		    if (list.getName().equals("mc")) {
+			splitKin(list, caMap, oxyMap);
+			if (KinUtil.isNumeric(numField.getText())) {
+			    doKin();
+			}
+			
+			Iterator diffNiter = resultsMap.values().iterator(); // values are HashMaps of results for a given n.
+			while (diffNiter.hasNext()) {
+			    HashMap oneN = (HashMap) diffNiter.next();
+			    TreeSet keys = new TreeSet(oneN.keySet()); // keys are residue number of ca0, the first residue for calc of results
+			    Iterator keysIter = keys.iterator();
+			    while (keysIter.hasNext()) {
+				//out.print(pdbFile.getName().substring(0, 4) + " ");
+				Integer n = (Integer) keysIter.next();
+				ArrayList results = (ArrayList) oneN.get(n);
+				out.print(n);
+				Iterator resIter = results.iterator();
+				while (resIter.hasNext()) {
+				    Double value = (Double) resIter.next();
+				    out.print(",");
+				    out.print(df.format(value.doubleValue()));
+				    //out.print(" ");
+				}
+				out.println("");
+			    }
+			}
+		
+		    } else {
+			System.out.println("list not detected in " + pdbFile);
+		    }
+		
+		    kMain.getTextWindow().setText("");
+		    kMain.getStable().closeCurrent();
+		}
+	    }
+	    out.flush();
+	    w.close();
+	} catch (IOException ex) {
+	    JOptionPane.showMessageDialog(kMain.getTopWindow(),
+					  "An error occurred while saving the file.",
+					  "Sorry!", JOptionPane.ERROR_MESSAGE);
+	}
+    }
+    
 //{{{ saveDataFile
 
     public void saveDataFile(File f) {
@@ -262,6 +392,7 @@ public class FramerTool extends BasicTool {
 		    Iterator resIter = results.iterator();
 		    while (resIter.hasNext()) {
 			Double value = (Double) resIter.next();
+			//System.out.println(n + " " + value);
 			out.print(",");
 			out.print(df.format(value.doubleValue()));
 			//out.print(" ");
