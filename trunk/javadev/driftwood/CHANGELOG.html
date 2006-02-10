@@ -37,6 +37,7 @@ UTIL: {{{
 ==============================================================================
 
 ### 0.75 ###
+### 0.75 ###
 - we now allow redefinition of identically named residues in a PDB file,
   as long as they're separated by 1+ TER cards. This helps in dealing with
   symmetry-expaned PDBs from crystallography. Don't know yet if CIF needs this.
@@ -49,6 +50,7 @@ UTIL: {{{
 - added moldb2.(Pdb)SecondaryStructure; create one in PdbReader
 - added CifSecondaryStructure and moved some functions to SecondaryStructure
 - read struct_sheet_range in addition to struct_conf
+- fixed PdbSecondaryStructure to catch IndexOutOfBoundsException for short lines
 
 ### 0.74 ###
 - fillInStates code now has the option of creating new ATOMs or not.
