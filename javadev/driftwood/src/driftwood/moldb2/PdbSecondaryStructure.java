@@ -66,7 +66,8 @@ class PdbSecondaryStructure extends SecondaryStructure
         r.initSeqNum = Integer.parseInt(s.substring(21,25).trim());
         r.endSeqNum  = Integer.parseInt(s.substring(33,37).trim());
         r.initICode = s.substring(25,26);
-        r.endICode  = s.substring(37,38);
+        if(s.length() >= 38) // if space, may be truncated in non-std file
+            r.endICode = s.substring(37,38);
         return r;
     }
 
@@ -81,7 +82,8 @@ class PdbSecondaryStructure extends SecondaryStructure
         r.initSeqNum = Integer.parseInt(s.substring(22,26).trim());
         r.endSeqNum  = Integer.parseInt(s.substring(33,37).trim());
         r.initICode = s.substring(26,27);
-        r.endICode  = s.substring(37,38);
+        if(s.length() >= 38) // if space, may be truncated in non-std file
+            r.endICode = s.substring(37,38);
         return r;
     }
 
@@ -96,7 +98,8 @@ class PdbSecondaryStructure extends SecondaryStructure
         r.initSeqNum = Integer.parseInt(s.substring(20,24).trim());
         r.endSeqNum  = Integer.parseInt(s.substring(31,35).trim());
         r.initICode = s.substring(24,25);
-        r.endICode  = s.substring(35,36);
+        if(s.length() >= 36) // if space, may be truncated in non-std file
+            r.endICode = s.substring(35,36);
         return r;
     }
 //}}}
