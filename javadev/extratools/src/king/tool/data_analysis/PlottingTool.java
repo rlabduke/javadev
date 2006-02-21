@@ -21,13 +21,15 @@ public class PlottingTool extends BasicTool {
 //##################################################################################################
     ArrayList allPoints; //list of original values from selected file.
     TreeMap binnedPoints; //points split by bin (color) value.
-    HashMap plottedPoints; //points split by pointID.
+    HashMap plottedPoints; //points split by value.
     JFileChooser filechooser;
     JComboBox color1;
 
     TablePane pane;
-    JButton plotButton, replotButton, exportButton;
+    JButton plotButton, replotButton, exportButton, filterButton, resetButton;
     JTextField xMultField, yMultField, zMultField;
+    JTextField xFiltField, yFiltField, zFiltField;
+    JTextField xFiltRange, yFiltRange, zFiltRange;
     JComboBox[] comboBoxes;
 //}}}
 
@@ -106,6 +108,32 @@ public class PlottingTool extends BasicTool {
 
 	exportButton = new JButton(new ReflectiveAction("Export!", null, this, "onExport"));
 	pane.add(exportButton, 2, 1);
+
+	JLabel xLab2 = new JLabel("keep x=");
+	xFiltField = new JTextField("0", 5);
+	xFiltRange = new JTextField("-1", 5);
+	JLabel yLab2 = new JLabel("keep y=");
+	yFiltField = new JTextField("0", 5);
+	yFiltRange = new JTextField("-1", 5);
+	JLabel zLab2 = new JLabel("keep z=");
+	zFiltField = new JTextField("0", 5);
+	zFiltRange = new JTextField("-1", 5);
+
+	filterButton = new JButton(new ReflectiveAction("Filter!", null, this, "onFilter"));
+	resetButton = new JButton(new ReflectiveAction("ResetFilt", null, this, "onReset"));
+
+	pane.newRow();
+	pane.add(xLab2);
+	pane.add(xFiltField);
+	pane.add(xFiltRange);
+	pane.add(yLab2);
+	pane.add(yFiltField);
+	pane.add(yFiltRange);
+	pane.add(zLab2);
+	pane.add(zFiltField);
+	pane.add(zFiltRange);
+	pane.add(filterButton);
+	pane.add(resetButton);
 	
         dialog.addWindowListener(this);
 	dialog.setContentPane(pane);
@@ -297,6 +325,7 @@ public class PlottingTool extends BasicTool {
 
     public void createPoints(int x, int y, int z, int color) {
 	binnedPoints.clear();
+	plottedPoints.clear();
 	double minColor = 100000;
 	double maxColor = -100000;
 	Iterator iter = allPoints.iterator();
@@ -346,20 +375,20 @@ public class PlottingTool extends BasicTool {
 	//double maxColor = -100000;
 	while (iter.hasNext()) {
 	    String[] value = (String[]) iter.next();
-	    point = new BallPoint(null, value[0]);
+	    point = new BallPoint(null, value[0] + " " + value[1]);
 	    plottedPoints.put(value, point);
 	    point.setRadius(1);
-	    if (x != -1) {
+	    if ((x != -1)&&(KinUtil.isNumeric(value[x]))) {
 		point.setX(Double.parseDouble(value[x]));
 	    } else {
 		point.setX(0);
 	    }
-	    if (y != -1) {
+	    if ((y != -1)&&(KinUtil.isNumeric(value[y]))) {
 		point.setY(Double.parseDouble(value[y]));
 	    } else {
 		point.setY(0);
 	    }
-	    if (z != -1) {
+	    if ((z != -1)&&(KinUtil.isNumeric(value[z]))) {
 		point.setZ(Double.parseDouble(value[z]));
 	    } else {
 		point.setZ(0);
@@ -459,6 +488,8 @@ public class PlottingTool extends BasicTool {
 	kCanvas.repaint();
     }
 
+    
+
     public void onRescale(ActionEvent ev) {
 	Collection points = plottedPoints.values();
 	Iterator iter = points.iterator();
@@ -507,6 +538,88 @@ public class PlottingTool extends BasicTool {
 
     }
 //}}}
+
+//{{{ onFilter
+    
+    public void onFilter(ActionEvent ev) {
+	double x, xrange, y, yrange, z, zrange;
+	if ((KinUtil.isNumeric(xFiltField.getText()))&&(KinUtil.isNumeric(xFiltRange.getText()))&& 
+	    (KinUtil.isNumeric(yFiltField.getText()))&&(KinUtil.isNumeric(yFiltRange.getText()))&& 
+	    (KinUtil.isNumeric(zFiltField.getText()))&&(KinUtil.isNumeric(zFiltRange.getText()))) {
+		
+	    x = Double.parseDouble(xFiltField.getText());
+	    xrange = Double.parseDouble(xFiltRange.getText());
+	    y = Double.parseDouble(yFiltField.getText());
+	    yrange = Double.parseDouble(yFiltRange.getText());
+	    z = Double.parseDouble(zFiltField.getText());
+	    zrange = Double.parseDouble(zFiltRange.getText());
+	    filterCoord(x, xrange, y, yrange, z, zrange);
+	} else {
+	    JOptionPane.showMessageDialog(pane, "You have to put numbers in the text boxes!", "Error",
+					  JOptionPane.ERROR_MESSAGE);
+	    
+	}
+
+    }
+
+///}}}
+
+//{{{ filterCoord
+
+    public void filterCoord(double x, double xrange, double y, double yrange, double z, double zrange) {
+	double lowX = x - xrange;
+	double highX = x + xrange;
+	double lowY = y - yrange;
+	double highY = y + yrange;
+	double lowZ = z - zrange;
+	double highZ = z + zrange;
+	
+	Set keys = plottedPoints.keySet();
+	HashMap newPlottedPoints = new HashMap();
+	Iterator iter = keys.iterator();
+	while (iter.hasNext()) {
+	    String[] key = (String[]) iter.next();
+	    KPoint point = (KPoint) plottedPoints.get(key);
+	    double xCoord = point.getX();
+	    double yCoord = point.getY();
+	    double zCoord = point.getZ();
+	    if (xrange != -1) {
+		if ((xCoord >= lowX)&&(xCoord <= highX)) {
+		    newPlottedPoints.put(key, point);
+		} else {
+		    point.setColor(KPalette.invisible);
+		}
+	    }
+	    if (yrange != -1) {
+		if ((yCoord >= lowY)&&(yCoord <= highY)) {
+		    newPlottedPoints.put(key, point);
+		} else {
+		    point.setColor(KPalette.invisible);
+		}
+	    }
+	    if (zrange != -1) {
+		if ((zCoord >= lowZ)&&(zCoord <= highZ)) {
+		    newPlottedPoints.put(key, point);
+		} else {
+		    point.setColor(KPalette.invisible);
+		}
+	    }
+	}
+	//plottedPoints = newPlottedPoints;
+	kCanvas.repaint();
+
+    }
+
+///}}}
+
+    public void onReset(ActionEvent ev) {
+	xFiltField.setText("0");
+	yFiltField.setText("0");
+	zFiltField.setText("0");
+	xFiltRange.setText("-1");
+	yFiltRange.setText("-1");
+	zFiltRange.setText("-1");
+    }
 
 //{{{ saveDataFile
 
