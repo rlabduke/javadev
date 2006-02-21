@@ -311,6 +311,7 @@ public class FramerTool extends BasicTool {
 	
     public void doAll(File[] allFiles, File saveFile) {
 	try {
+	    Integer numPep = Integer.valueOf(numField.getText());
 	    Writer w = new FileWriter(saveFile);
 	    PrintWriter out = new PrintWriter(new BufferedWriter(w));
 	    for (int i = 0; i < allFiles.length; i++) {
@@ -323,6 +324,7 @@ public class FramerTool extends BasicTool {
 		    kin.getMasterByName("Calphas").setOn(false);
 		    kin.getMasterByName("rotamer outlie").setOn(false);
 		    AGE kage = (KGroup) kin.getChildAt(0);
+		    
 		    while (!(kage instanceof KList)) {
 			kage = (AGE) kage.getChildAt(0);
 		    }
@@ -340,8 +342,10 @@ public class FramerTool extends BasicTool {
 			    HashMap oneN = (HashMap) diffNiter.next();
 			    TreeSet keys = new TreeSet(oneN.keySet()); // keys are residue number of ca0, the first residue for calc of results
 			    Iterator keysIter = keys.iterator();
+			    //out.print(pdbFile.getName().substring(0,4) + ",");
 			    while (keysIter.hasNext()) {
 				//out.print(pdbFile.getName().substring(0, 4) + " ");
+				out.print(pdbFile.getName().substring(0,4) + " " + numPep + ",");
 				Integer n = (Integer) keysIter.next();
 				ArrayList results = (ArrayList) oneN.get(n);
 				out.print(n);
@@ -380,6 +384,8 @@ public class FramerTool extends BasicTool {
 	    Writer w = new FileWriter(f);
 	    PrintWriter out = new PrintWriter(new BufferedWriter(w));
 	    //addAllDataPoints();
+	    Kinemage kin = kMain.getKinemage();
+	    String kinName = kin.getName().substring(0,4);
 	    Iterator diffNiter = resultsMap.values().iterator(); // values are HashMaps of results for a given n.
 	    while (diffNiter.hasNext()) {
 		HashMap oneN = (HashMap) diffNiter.next();
@@ -388,6 +394,7 @@ public class FramerTool extends BasicTool {
 		while (keysIter.hasNext()) {
 		    Integer n = (Integer) keysIter.next();
 		    ArrayList results = (ArrayList) oneN.get(n);
+		    out.print(kinName + ",");
 		    out.print(n);
 		    Iterator resIter = results.iterator();
 		    while (resIter.hasNext()) {
