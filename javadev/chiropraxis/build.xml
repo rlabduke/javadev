@@ -136,7 +136,6 @@
 
 <!-- Deploys the executable on the local MolProbity - applies to IWD's machine only  -->
 <target name="deploy-local-mp"  description="Deploy to local MolProbity" depends="build">
-    <copy file="${ant.project.name}.jar" todir="${user.home}/Sites/molprobity/" overwrite="true" failonerror="false"/>
     <copy file="${ant.project.name}.jar" todir="${user.home}/Sites/molprobity3/lib/" overwrite="true" failonerror="false"/>
     <copy file="itext.jar" todir="${user.home}/Sites/molprobity3/lib/" overwrite="true" failonerror="false"/>
 </target>
