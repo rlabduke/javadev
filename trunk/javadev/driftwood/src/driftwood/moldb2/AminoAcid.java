@@ -190,6 +190,10 @@ public class AminoAcid //extends ... implements ...
         n       = state.get( res.getAtom(" N  ") );
         ca      = state.get( res.getAtom(" CA ") );
         c       = state.get( res.getAtom(" C  ") );
+        
+        if(prevC.sqDistance(n) > 4.0)
+            throw new ResidueException("Preceding residue is too far away to be covalently bonded");
+        
         return Triple.dihedral(prevC, n, ca, c);
     }
 
@@ -213,6 +217,10 @@ public class AminoAcid //extends ... implements ...
         ca      = state.get( res.getAtom(" CA ") );
         c       = state.get( res.getAtom(" C  ") );
         nextN   = state.get(next.getAtom(" N  ") );
+        
+        if(c.sqDistance(nextN) > 4.0)
+            throw new ResidueException("Following residue is too far away to be covalently bonded");
+
         return Triple.dihedral(n, ca, c, nextN);
     }
 //}}}

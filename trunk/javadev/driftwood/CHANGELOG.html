@@ -36,7 +36,10 @@ UTIL: {{{
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 0.75 ###
+### 0.76 ###
+- fixed AminoAcid.getPhi/Psi() to check distance to next/prev residue.
+  This prevents spurious Rama outliers at chain breaks.
+
 ### 0.75 ###
 - we now allow redefinition of identically named residues in a PDB file,
   as long as they're separated by 1+ TER cards. This helps in dealing with

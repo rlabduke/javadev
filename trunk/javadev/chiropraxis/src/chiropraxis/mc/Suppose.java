@@ -345,6 +345,7 @@ public class Suppose //extends ... implements ...
             sp.reset(sm1, 0, sm2, 0, len);
             R       = sp.superpos();
             rmsd    = sp.calcRMSD(R);
+            //rmsd    = sp.calcRMSD(R) / Math.sqrt(len); // from Gerstein & Altman 1995 JMB: rmsd grows as square of # of atoms
             
             // Find worst-fitting pair
             worstIndex  = -1;
