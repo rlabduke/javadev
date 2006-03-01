@@ -1,0 +1,29 @@
+SequenceTree is a tool for analyzing the output of multiple protein design runs
+with DEZYMER, where you want to see how much overlap exists between various
+sets of results.  It performs a simple, hierarchical clustering of protein
+sequences and displays the resulting tree in kinemage format.  The
+visualization is most useful with under 1000 sequences total, so one might
+choose only the 100 best-scoring results from each run.
+
+Input sequences are listed in plain text, one per line, in one or more files.
+Contributions from different files are colored with different kinemage
+"aspects", so they can be selectively highlighted in Mage or KiNG:  Use the ]
+and [ keys to cycle.
+
+SequenceTree has no command line options, except -h or -help for this message.
+
+Example:
+    java -Xmx512m -cp chiropraxis.jar chiropraxis.dezymer.SequenceTree
+        GBP*/S*/Rankings/Gmecs/best.seq > gbp_best.kin
+
+Contents of a sample "best.seq" file:
+
+    RHFSKDKKWAWE
+    KDSVMAHRWKAK
+    RHFSKDKKWEAE
+    KDFVSKKRSKAD
+    KDSAEAHRWKAK
+    KDGAEKKRESWW
+    KHFASHKRWEAE
+    ...
+

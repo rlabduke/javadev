@@ -1,0 +1,40 @@
+SequenceSpacer is a tool for understanding the distribution of sequences
+produced by one or more protein design runs in DEZYMER.  It shows clusters of
+very similar designs graphically by dispersing points in a 3-D space, and
+allows easy identification of "unusual" results within the output.  The
+resulting kinemage is most useful when limited to at most a few hundred
+sequences;  beyond that, computation times may be long.
+
+Input sequences are listed in plain text, one per line, in one or more files.
+Contributions from different files are colored with different kinemage
+"aspects", so they can be selectively highlighted in Mage or KiNG:  Use the ]
+and [ keys to cycle.  There is also an animation provided that takes advantage
+of the tranparency features available only in KiNG;  turn on multiple groups to
+see where results from different computations overlap.  Clusters of points
+related by one mutation are identified in the text window with hyperlinked
+views for each.
+
+SequenceSpacer has these command line options:
+    -h or -help         This message.
+    -tries=#            Number of times to try arranging the nodes, starting
+                        from random positions.  Best placement is kept.
+    -power=#.#          Controls relative weighting of sequence similarity vs.
+                        sequence distance.  Default is 1.0.  (experimental)
+    -blosum             Tries to use BLOSUM weights rather than just counting
+                        the number of sequence differences.  (not recommended)
+
+Example:
+    java -Xmx512m -cp chiropraxis.jar chiropraxis.dezymer.SequenceSpacer
+        -tries=5 GBP*/S*/Rankings/Gmecs/best.seq > gbp_best.kin
+
+Contents of a sample "best.seq" file:
+
+    RHFSKDKKWAWE
+    KDSVMAHRWKAK
+    RHFSKDKKWEAE
+    KDFVSKKRSKAD
+    KDSAEAHRWKAK
+    KDGAEKKRESWW
+    KHFASHKRWEAE
+    ...
+
