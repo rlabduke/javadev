@@ -212,11 +212,11 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
     /** Gets called when the dials move. */
     public void stateChanged(ChangeEvent ev)
     {
-        setFeedback();
         // This keeps us from running Probe N times when a rotamer with
         // N angles is selected from the list! (Maybe?)
         if(!isUpdating())
             modelman.requestStateRefresh();
+        setFeedback(); // otherwise, we evaluate the old conformation
     }
     
     /* Gets called when a new rotamer is picked from the list */
