@@ -104,7 +104,7 @@ public class DrawingTool extends BasicTool
 //{{{ Variable definitions
 //##############################################################################
     TablePane2      ui;
-    JRadioButton    rbDoNothing, rbEditList, rbEditPoint, rbMovePoint;
+    JRadioButton    rbDoNothing, rbEditList, rbEditPoint, rbPaintPoints, rbMovePoint;
     JRadioButton    rbLineSegment, rbDottedLine, rbArcSegment,
                     rbBalls, rbLabels, rbDots, rbTriangle;
     JRadioButton    rbPunch, rbPrune, rbAuger, rbSphereCrop;
@@ -118,6 +118,7 @@ public class DrawingTool extends BasicTool
     KPoint          draggedPoint = null;
     KPoint[]        allPoints = null;
     
+    JComboBox       cmPointPaint;
     JTextField      tfShortenLine;
     JCheckBox       cbLabelIsID;
     JTextField      tfNumDots;
@@ -159,6 +160,8 @@ public class DrawingTool extends BasicTool
         buttonGroup.add(rbEditList);
         rbEditPoint = new JRadioButton("Edit point props");
         buttonGroup.add(rbEditPoint);
+        rbPaintPoints = new JRadioButton("Paint points");
+        buttonGroup.add(rbPaintPoints);
         rbMovePoint = new JRadioButton("Move points");
         buttonGroup.add(rbMovePoint);
         
@@ -187,6 +190,15 @@ public class DrawingTool extends BasicTool
         buttonGroup.add(rbSphereCrop);
         
         // Create the extra control panels
+        cmPointPaint = new JComboBox(KPalette.getStandardMap().values().toArray());
+        cmPointPaint.setSelectedItem(KPalette.green);
+        TablePane tpPaintPts = new TablePane();
+        tpPaintPts.addCell(new JLabel("Use color:"));
+        tpPaintPts.addCell(cmPointPaint);
+        FoldingBox fbPaintPts = new FoldingBox(rbPaintPoints, tpPaintPts);
+        fbPaintPts.setAutoPack(true);
+        fbPaintPts.setIndent(10);
+
         tfShortenLine = new JTextField("0.0", 6);
         TablePane tpLineSeg = new TablePane();
         tpLineSeg.addCell(new JLabel("Shorten lines by:"));
@@ -254,8 +266,11 @@ public class DrawingTool extends BasicTool
         ui.addCell(rbDoNothing).newRow();
         ui.addCell(rbEditList).newRow();
         ui.addCell(rbEditPoint).newRow();
+        ui.addCell(rbPaintPoints).newRow();
+            ui.addCell(fbPaintPts).newRow();
         ui.addCell(rbMovePoint).newRow();
         ui.addCell(ui.strut(0,6)).newRow();
+        
         ui.addCell(rbLineSegment).newRow();
             ui.addCell(fbLineSeg).newRow();
         ui.addCell(rbDottedLine).newRow();
@@ -269,6 +284,7 @@ public class DrawingTool extends BasicTool
         ui.addCell(rbTriangle).newRow();
             ui.addCell(fbTriangle).newRow();
         ui.addCell(ui.strut(0,6)).newRow();
+        
         ui.addCell(rbPunch).newRow();
         ui.addCell(rbPrune).newRow();
         ui.addCell(rbAuger).newRow();
@@ -288,6 +304,7 @@ public class DrawingTool extends BasicTool
         if(rbDoNothing.isSelected())            return; // don't mark kin as modified
         else if(rbEditList.isSelected())        doEditList(x, y, p, ev);
         else if(rbEditPoint.isSelected())       doEditPoint(x, y, p, ev);
+        else if(rbPaintPoints.isSelected())     doPaintPoints(x, y, p, ev);
         else if(rbMovePoint.isSelected())       return; // don't mark kin as modified
         else if(rbLineSegment.isSelected())     doLineSegment(x, y, p, ev);
         else if(rbDottedLine.isSelected())      doDottedLine(x, y, p, ev);
@@ -424,6 +441,30 @@ public class DrawingTool extends BasicTool
     public void doEditPoint(int x, int y, KPoint p, MouseEvent ev)
     {
         if(p != null) ptEditor.editPoint(p);
+    }
+//}}}
+
+//{{{ doPaintPoints
+//##############################################################################
+    protected void doPaintPoints(int x, int y, KPoint p, MouseEvent ev)
+    {
+        Engine engine = kCanvas.getEngine();
+        Collection points = engine.pickAll2D(x, y, services.doSuperpick.isSelected(), AUGER_RADIUS);
+        
+        // Painting can't be undone because so many
+        // points following those removed might be modified.
+        
+        // Remove all the points
+        KPaint paintColor = (KPaint) cmPointPaint.getSelectedItem();
+        for(Iterator iter = points.iterator(); iter.hasNext(); )
+        {
+            p = (KPoint) iter.next();
+            p.setColor(paintColor);
+        }
+        
+        Kinemage kin = kMain.getKinemage();
+        if(kin == null) return;
+        kin.signal.signalKinemage(kin, KinemageSignal.APPEARANCE);
     }
 //}}}
 
@@ -1038,14 +1079,14 @@ public class DrawingTool extends BasicTool
     }
 //}}}
 
-//{{{ mouseMoved/Dragged/Exited, overpaintCanvas
+//{{{ mouseMoved/Dragged/Exited, needAugerCircle, overpaintCanvas
 //##################################################################################################
     public void mouseMoved(MouseEvent ev)
     {
         super.mouseMoved(ev);
         lastAugerX = ev.getX();
         lastAugerY = ev.getY();
-        if(rbAuger.isSelected()) // trigger a redraw
+        if(needAugerCircle()) // trigger a redraw
             kCanvas.repaint();
     }
 
@@ -1062,23 +1103,27 @@ public class DrawingTool extends BasicTool
         super.mouseExited(ev);
         // Stop painting the marker at all when mouse leaves drawing area
         lastAugerX = lastAugerY = -1;
-        if(rbAuger.isSelected()) // trigger a redraw
+        if(needAugerCircle()) // trigger a redraw
             kCanvas.repaint();
     }
+    
+    /** Do we need to see the circle that marks area of effect for Auger and similar tools? */
+    boolean needAugerCircle()
+    { return rbAuger.isSelected() || rbPaintPoints.isSelected(); }
     
     /**
     * Called by KinCanvas after all kinemage painting is complete,
     * this gives the tools a chance to write additional info
     * (e.g., point IDs) to the graphics area.
     * <p>We use it as an indication that the canvas has just been
-    * redrawn, so the XOR'd marker for Auger won't need erasing.
+    * redrawn, so we may need to paint the area of effect for Auger.
     * @param painter    the Painter that can paint on the current canvas
     */
     public void overpaintCanvas(Painter painter)
     {
         if(lastAugerX < 0 || lastAugerY < 0) return;
         
-        if(rbAuger.isSelected())
+        if(needAugerCircle())
         {
             double diam = AUGER_RADIUS * 2;
             painter.drawOval(new Color(0xcc0000), lastAugerX, lastAugerY, 0, diam, diam);

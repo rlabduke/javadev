@@ -209,12 +209,15 @@ public class ModelPlotter
     */
     public void createLists()
     {
+        // Added "refit" prefix to master names b/c otherwise these lists
+        // may be switched off unexpectedly when inserted into a kinemage
+        // where the existing masters are already off.
         if(listCa == null)
         {
             listCa = new KList();
             listCa.setName("Calphas");
             listCa.setType(KList.VECTOR);
-            listCa.addMaster("Calphas");    // matches Prekin 6.25
+            listCa.addMaster("refit Calphas");    // matches Prekin 6.25
             listCa.setOn(false);
         }
         if(listMc == null)
@@ -222,30 +225,30 @@ public class ModelPlotter
             listMc = new KList();
             listMc.setName("mc");
             listMc.setType(KList.VECTOR);
-            listMc.addMaster("mainchain");  // matches Prekin 6.25
+            listMc.addMaster("refit mainchain");  // matches Prekin 6.25
         }
         if(listMcH == null)
         {
             listMcH = new KList();
             listMcH.setName("mcH");
             listMcH.setType(KList.VECTOR);
-            listMcH.addMaster("mainchain"); // matches Prekin 6.25
-            listMcH.addMaster("H's");       // matches Prekin 6.25
+            listMcH.addMaster("refit mainchain"); // matches Prekin 6.25
+            listMcH.addMaster("refit H's");       // matches Prekin 6.25
         }
         if(listSc == null)
         {
             listSc = new KList();
             listSc.setName("sc");
             listSc.setType(KList.VECTOR);
-            listSc.addMaster("sidechain");  // matches Prekin 6.25
+            listSc.addMaster("refit sidechain");  // matches Prekin 6.25
         }
         if(listScH == null)
         {
             listScH = new KList();
             listScH.setName("scH");
             listScH.setType(KList.VECTOR);
-            listScH.addMaster("sidechain"); // matches Prekin 6.25
-            listScH.addMaster("H's");       // matches Prekin 6.25
+            listScH.addMaster("refit sidechain"); // matches Prekin 6.25
+            listScH.addMaster("refit H's");       // matches Prekin 6.25
         }
         
         listCa.setWidth(modelWidth);

@@ -143,6 +143,13 @@ public class KingMain implements WindowListener, KinemageSignalSubscriber
         //catch(SecurityException ex) { SoftLog.err.println("Not allowed to activate antialiasing."); }
         // No effect -- must be done using -D from Java cmd line
         
+        // Start in a reasonable directory if launched by double-click / drag-n-drop
+        try {
+            if(System.getProperty("user.dir").equals("/Applications"))
+                System.setProperty("user.dir", System.getProperty("user.home"));
+            //System.err.println("Current dir: "+System.getProperty("user.dir"));
+        } catch(Exception ex) {}//{ ex.printStackTrace(); }
+        
         // This allows JMenus to overlap the JOGL canvas, which stopped
         // happening automatically with the release of Java 1.5.
         JPopupMenu.setDefaultLightWeightPopupEnabled(false);
