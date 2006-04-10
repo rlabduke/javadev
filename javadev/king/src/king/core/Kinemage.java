@@ -179,7 +179,9 @@ public class Kinemage extends AGE // implements ...
             this.add(group);
         }
         
-        this.initAll(); // gets us back to a consistent state
+        // Pass false to avoid removing unused groups, masters in kinemage "this".
+        // Otherwise, (for instance) we may delete the mobile sidechain used by Chiropraxis tools.
+        this.initAll(false); // gets us back to a consistent state
     }
 //}}}
 
@@ -254,19 +256,23 @@ public class Kinemage extends AGE // implements ...
     *<li>initAllViews() -- converts zooms to spans as necessary</li>
     *<li>animate(0) and animate2(0) -- initializes animations</li>
     *</ol>
+    * @param cleanEmpties   if true (the default), remove groups/subgroups/lists
+    *   that contain no points and remove unused masters.
     */
-    public void initAll()
+    public void initAll(boolean cleanEmpties)
     {
-        removeEmptyAGEs();
+        if(cleanEmpties) removeEmptyAGEs();
         calcSize();
         ensureAllMastersExist();
-        removeUnusedMasters();
+        if(cleanEmpties) removeUnusedMasters();
         syncAllMasters();
         initAllViews();
         animate(0);
         if(!hasAnimateGroups())
             animate2(0); // turns off animate group that was just turned on
     }
+    public void initAll()
+    { initAll(true); }
 
     public DefaultTreeModel getTreeModel() { return treeModel; }
     public void insert(MutableTreeNode child, int index)

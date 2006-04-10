@@ -24,7 +24,7 @@ import driftwood.util.SoftLog;
 public class UIMenus //extends ... implements ...
 {
     static final DecimalFormat df = new DecimalFormat("###,###,##0");
-    public static final int MENU_ACCEL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+    public static /*final*/ int MENU_ACCEL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
 //{{{ Variable definitions
 //##################################################################################################
@@ -49,6 +49,10 @@ public class UIMenus //extends ... implements ...
     public UIMenus(KingMain kmain)
     {
         kMain = kmain;
+        
+        // CTRL-x shortcuts are still useful in a Mac browser.
+        // There's no good option for Windows / Linux broswers though.
+        if(kMain.getApplet() != null) MENU_ACCEL_MASK = Event.CTRL_MASK;
         
         // Will throw an exception if we're running as an Applet
         try

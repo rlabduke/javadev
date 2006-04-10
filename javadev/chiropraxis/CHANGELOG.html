@@ -26,6 +26,13 @@
 - started on BackrubFinder2
 - updated Suppose, AlignChains, and BackrubFinder2 to new SuperPoser API
 - bug fix: SidechainRotator gave wrong rotamer evals (from prev. conformation)
+- added "update" button to Probe dots in ModelManager [requested by JSR]
+- bug fix: Probe dots cause mc, sc, H to be turned off? (in multikin)
+    If the masters were already off, mc/sc/H are turned off in molten/frozen.
+    This is a normal part of kinemage merging.
+    We could either (1) not label the rotatable groups with those masters
+    or (2) turn those masters on when we create rotatable groups.
+  I opted for (1), prefixing the rotatable master names with "refit".
 
 ### 0.53 ###
 - started modifying ModelManager2 to allow switching alts and defining new alts

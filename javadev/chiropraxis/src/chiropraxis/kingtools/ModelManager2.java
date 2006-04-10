@@ -182,7 +182,12 @@ public class ModelManager2 extends Plugin
         cbShowProbe.addActionListener(visUpdate);
         tfProbeCmd = new AttentiveTextField("", 25);
         tfProbeCmd.addActionListener(new ReflectiveAction("edit-probe-cmd", null, this, "onEditProbeCmd"));
-        FoldingBox probeBox = new FoldingBox(cbShowProbe, tfProbeCmd);
+        // Button is the same as hitting Return on text field; added for JSR
+        JButton bnRunProbe = new JButton(">");
+        bnRunProbe.addActionListener(new ReflectiveAction("edit-probe-cmd", null, this, "onEditProbeCmd"));
+        TablePane2 probePane = new TablePane2();
+        probePane.hfill(true).addCell(tfProbeCmd).weights(0,0).addCell(bnRunProbe);
+        FoldingBox probeBox = new FoldingBox(cbShowProbe, probePane);
         probeBox.setAutoPack(true);
         probeBox.setIndent(10);
 
