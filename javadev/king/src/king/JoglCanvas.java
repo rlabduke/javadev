@@ -17,7 +17,8 @@ import javax.swing.*;
 import driftwood.r3.*;
 import driftwood.util.*;
 
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
+import javax.media.opengl.glu.*;
 //}}}
 /**
 * <code>JoglCanvas</code> is a wrapper for a Painter that uses
@@ -79,7 +80,8 @@ public class JoglCanvas extends JPanel implements GLEventListener, TransformSign
         capabilities.setSampleBuffers(fsaaNumSamples > 1); // enables/disables full-scene antialiasing (FSAA)
         capabilities.setNumSamples(fsaaNumSamples); // sets number of samples for FSAA (default is 2)
 
-        canvas = GLDrawableFactory.getFactory().createGLCanvas(capabilities);
+        //canvas = GLDrawableFactory.getFactory().createGLCanvas(capabilities);
+        canvas = new GLCanvas(capabilities);
         canvas.addGLEventListener(this); // calls display(), reshape(), etc.
         canvas.addMouseListener(this); // cursor related; see this.mouseEntered().
         toolbox.listenTo(canvas);
@@ -90,10 +92,10 @@ public class JoglCanvas extends JPanel implements GLEventListener, TransformSign
 
 //{{{ init, display, reshape, displayChanged
 //##############################################################################
-    public void init(GLDrawable drawable)
+    public void init(GLAutoDrawable drawable)
     {}
     
-    public void display(GLDrawable drawable)
+    public void display(GLAutoDrawable drawable)
     {
         GL gl = drawable.getGL();
         Kinemage kin = kMain.getKinemage();
@@ -117,29 +119,14 @@ public class JoglCanvas extends JPanel implements GLEventListener, TransformSign
             if(kMain.getCanvas().writeFPS)
                 SoftLog.err.println(timestamp+" ms ("+(timestamp > 0 ? Long.toString(1000/timestamp) : ">1000")
                     +" FPS) - "+engine.getNumberPainted()+" objects painted");
-            
-            // Old code for Graphics2D overlays, now done in one line after engine.render()
-            /*if(toolbox != null)
-            {
-                //timestamp = System.currentTimeMillis();
-                //Graphics2D g2 = setupOverlay();
-                //toolbox.overpaintCanvas(g2); // This is the actual slow step, probably because of the data model.
-                //gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
-                //gl.glEnable(gl.GL_BLEND);
-                //gl.glRasterPos2i(0, -glSize.height);
-                //gl.glDrawPixels(glSize.width, glSize.height, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, getOverlayBytes());
-                toolbox.overpaintCanvas(painter);
-                //timestamp = System.currentTimeMillis() - timestamp;
-                //if(writeFPS)
-                //    SoftLog.err.println(" + "+timestamp+" ms for overpainting");
-            }*/
         }
     }
     
-    public void reshape(GLDrawable drawable, int x, int y, int width, int height)
+    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height)
     {
         GL gl = drawable.getGL();
-        GLU glu = drawable.getGLU();
+        //GLU glu = drawable.getGLU();
+        GLU glu = new GLU();
         
         this.glSize.setSize(width, height);
         gl.glViewport(0, 0, width, height); // left, right, width, height
@@ -148,7 +135,7 @@ public class JoglCanvas extends JPanel implements GLEventListener, TransformSign
         glu.gluOrtho2D(0.0, width, -height, 0.0); // left, right, bottom, top
     }
     
-    public void displayChanged(GLDrawable drawable, boolean modeChnaged, boolean deviceChanged)
+    public void displayChanged(GLAutoDrawable drawable, boolean modeChnaged, boolean deviceChanged)
     {}
 //}}}
 

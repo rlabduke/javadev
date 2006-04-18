@@ -70,12 +70,18 @@
     Allow dragging waters/ions from chiropraxis?
     add per-kinemage viewing transform (aniso axes)
     integrate multichart into KiNG, COOT
+    build pkgs that don't require installing
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 1.51 ###
+### 1.52 ###
+- changed all JOGL calls over the new "JSR" standard
+  Major changes were in several constructors, and location of utilities.
+- JOGL now seems to work on Mac with being in /Library/Java/Extensions
+  I'm not sure why this didn't work before.  Now we need to upgrade Win, Linux.
+
 ### 1.51 ###
 - fixed driftwood.moldb2.PdbSecondaryStucture bug (IndexOutOfBoundsEx)
 - distributed to Rlab
