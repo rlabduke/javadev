@@ -12,8 +12,9 @@ import java.util.*;
 //import javax.swing.*;
 //import driftwood.*;
 
-import net.java.games.jogl.*;
-import net.java.games.jogl.util.GLUT;
+import javax.media.opengl.*;
+import javax.media.opengl.glu.*;
+import com.sun.opengl.util.*; // for GLUT
 //}}}
 /**
 * <code>JoglPainter</code> is a hardware-accelerated Painter that uses
@@ -41,11 +42,12 @@ public class JoglPainter implements Painter
 
 //{{{ Constructor(s)
 //##############################################################################
-    public JoglPainter(GLDrawable drawable)
+    public JoglPainter(GLAutoDrawable drawable)
     {
         super();
         gl = drawable.getGL();
-        glu = drawable.getGLU();
+        //glu = drawable.getGLU();
+        glu = new GLU();
         glut = new GLUT();
         
         // This is necessary for antialiasing, but also for transparent objects.
@@ -212,7 +214,8 @@ public class JoglPainter implements Painter
     {
         setPaint(paint);
         gl.glRasterPos2d(x, -y);
-        glut.glutBitmapString(gl, currFont, label);
+        //glut.glutBitmapString(gl, currFont, label);
+        glut.glutBitmapString(currFont, label);
     }
 //}}}
 
