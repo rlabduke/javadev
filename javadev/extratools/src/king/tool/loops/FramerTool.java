@@ -33,7 +33,7 @@ public class FramerTool extends BasicTool {
 
     JButton exportButton, doAllButton;
     JFileChooser filechooser;
-    JTextField numField;
+    JTextField lowNumField, highNumField;
     TablePane pane;
 
 //}}}
@@ -68,7 +68,8 @@ public class FramerTool extends BasicTool {
     protected void buildGUI()
     {
 	dialog = new JDialog(kMain.getTopWindow(), "Loops", false);
-	numField = new JTextField("", 5);
+	lowNumField = new JTextField("", 5);
+	highNumField = new JTextField("", 5);
 
 	exportButton = new JButton(new ReflectiveAction("Export!", null, this, "onExport"));
 
@@ -76,7 +77,8 @@ public class FramerTool extends BasicTool {
 
 	pane = new TablePane();
 	pane.newRow();
-	pane.add(numField);
+	pane.add(lowNumField);
+	pane.add(highNumField);
 	pane.add(exportButton);
 	pane.add(doAllButton);
 
@@ -98,9 +100,9 @@ public class FramerTool extends BasicTool {
 	    if (!includedPoints.contains(p)) {
 		splitKin(parent, caMap, oxyMap);
 	    }
-	    if (KinUtil.isNumeric(numField.getText())) {
+	    if (KinUtil.isNumeric(lowNumField.getText())&&KinUtil.isNumeric(highNumField.getText())) {
 		/*
-		int numPep = Integer.parseInt(numField.getText());
+		int numPep = Integer.parseInt(lowNumField.getText());
 		int resNum = KinUtil.getResNumber(p);
 		KPoint ca0 = (KPoint) caMap.get(new Integer(resNum - 1));
 		KPoint ca1 = (KPoint) caMap.get(new Integer(resNum));
@@ -111,7 +113,11 @@ public class FramerTool extends BasicTool {
 		//System.out.println(ca0);
 		Framer.calphaAnalyze(ca0, ca1, caN, caN1, co1, coN);
 		*/
-		doKin();
+		int lowNum = Integer.parseInt(lowNumField.getText());
+		int highNum = Integer.parseInt(highNumField.getText());
+		for (int i = lowNum; i <= highNum; i++) {
+		    doKin(i);
+		}
 	    } else {
 	    JOptionPane.showMessageDialog(pane, "You have to put numbers in the text boxes!", "Error",
 						  JOptionPane.ERROR_MESSAGE);
@@ -120,8 +126,8 @@ public class FramerTool extends BasicTool {
 	}
     }
 
-    public void doKin() {
-	int numPep = Integer.parseInt(numField.getText());
+    public void doKin(int numPep) {
+	//int numPep = Integer.parseInt(lowNumField.getText());
 	Set keys = caMap.keySet();
 	Iterator iter = keys.iterator();
 	HashMap oneNResults = new HashMap(); // index is residue "0", and element is ArrayList of the calculations
@@ -141,6 +147,7 @@ public class FramerTool extends BasicTool {
 
 		//B-factor
 	        Double bfact = (Double) bfactMap.get(new Integer(lowNum));
+		//System.out.println(bfact);
 		results.add(bfact);
 		//System.out.println(KinUtil.getResNumber(ca0.getName()));
 		//oneNResults.ensureCapacity(KinUtil.getResNumber(ca0.getName()));
@@ -200,7 +207,7 @@ public class FramerTool extends BasicTool {
 		String atomName = KinUtil.getAtomName(pt).toLowerCase();
 		double bVal = KinUtil.getBvalue(pt);
 		//System.out.print(resNum + " " + bVal + ",");
-		double maxBval = 0;
+		double maxBval = -10000;
 		if (atomName.equals("ca")) {
 		    caMap.put(new Integer(resNum), pt);
 
@@ -311,7 +318,7 @@ public class FramerTool extends BasicTool {
 	
     public void doAll(File[] allFiles, File saveFile) {
 	try {
-	    Integer numPep = Integer.valueOf(numField.getText());
+	    //Integer numPep = Integer.valueOf(lowNumField.getText());
 	    Writer w = new FileWriter(saveFile);
 	    PrintWriter out = new PrintWriter(new BufferedWriter(w));
 	    for (int i = 0; i < allFiles.length; i++) {
@@ -333,30 +340,34 @@ public class FramerTool extends BasicTool {
 		    KList list = (KList) kage;
 		    if (list.getName().equals("mc")) {
 			splitKin(list, caMap, oxyMap);
-			if (KinUtil.isNumeric(numField.getText())) {
-			    doKin();
-			}
-			
-			Iterator diffNiter = resultsMap.values().iterator(); // values are HashMaps of results for a given n.
-			while (diffNiter.hasNext()) {
-			    HashMap oneN = (HashMap) diffNiter.next();
-			    TreeSet keys = new TreeSet(oneN.keySet()); // keys are residue number of ca0, the first residue for calc of results
-			    Iterator keysIter = keys.iterator();
-			    //out.print(pdbFile.getName().substring(0,4) + ",");
-			    while (keysIter.hasNext()) {
-				//out.print(pdbFile.getName().substring(0, 4) + " ");
-				out.print(pdbFile.getName().substring(0,4) + " " + numPep + ",");
-				Integer n = (Integer) keysIter.next();
-				ArrayList results = (ArrayList) oneN.get(n);
-				out.print(n);
-				Iterator resIter = results.iterator();
-				while (resIter.hasNext()) {
-				    Double value = (Double) resIter.next();
-				    out.print(",");
-				    out.print(df.format(value.doubleValue()));
-				    //out.print(" ");
+			if (KinUtil.isNumeric(lowNumField.getText())&&KinUtil.isNumeric(highNumField.getText())) {
+			    int lowNum = Integer.parseInt(lowNumField.getText());
+			    int highNum = Integer.parseInt(highNumField.getText());
+			    for (int numPep = lowNum; numPep <= highNum; numPep++) {
+				doKin(numPep);
+				Iterator diffNiter = resultsMap.values().iterator(); // values are HashMaps of results for a given n.
+				while (diffNiter.hasNext()) {
+				    HashMap oneN = (HashMap) diffNiter.next();
+				    TreeSet keys = new TreeSet(oneN.keySet()); // keys are residue number of ca0, the first residue for calc of results
+				    Iterator keysIter = keys.iterator();
+				    //out.print(pdbFile.getName().substring(0,4) + ",");
+				    while (keysIter.hasNext()) {
+					//out.print(pdbFile.getName().substring(0, 4) + " ");
+					out.print(pdbFile.getName().substring(0,4) + " " + numPep + ",");
+					Integer n = (Integer) keysIter.next();
+					ArrayList results = (ArrayList) oneN.get(n);
+					out.print(n);
+					Iterator resIter = results.iterator();
+					while (resIter.hasNext()) {
+					    Double value = (Double) resIter.next();
+					    out.print(",");
+					    out.print(df.format(value.doubleValue()));
+					    //out.print(" ");
+					}
+					out.println("");
+				    }
 				}
-				out.println("");
+				resultsMap.clear();
 			    }
 			}
 		
