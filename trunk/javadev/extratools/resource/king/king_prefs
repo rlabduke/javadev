@@ -22,3 +22,4 @@ king.tool.loops.LoopTool.menuName = Specialty
 king.tool.loops.LoopDockingTool.menuName = Specialty
 king.tool.loops.FramerTool.menuName = Specialty
 king.tool.data_analysis.PlottingTool.menuName = Specialty
+king.tool.postkin.GeometryPlugin.menuName = Specialty

@@ -30,6 +30,7 @@ public class PlottingTool extends BasicTool {
     JTextField xMultField, yMultField, zMultField;
     JTextField xFiltField, yFiltField, zFiltField;
     JTextField xFiltRange, yFiltRange, zFiltRange;
+    JCheckBox clickColorBox;
     JComboBox[] comboBoxes;
 //}}}
 
@@ -74,7 +75,11 @@ public class PlottingTool extends BasicTool {
 	}
 	color1 = new JComboBox(KPalette.getStandardMap().values().toArray());
 	color1.setSelectedItem(KPalette.blue);
-	pane.add(color1, 2, 1);
+	//pane.add(color1, 2, 1);
+	pane.add(color1);
+	clickColorBox = new JCheckBox("Color on click");
+	clickColorBox.setSelected(false);
+	pane.add(clickColorBox);
 
 	pane.newRow();
 	for(int i = 0; i < numColumns; i++) {
@@ -377,7 +382,7 @@ public class PlottingTool extends BasicTool {
 	    String[] value = (String[]) iter.next();
 	    point = new BallPoint(null, value[0] + " " + value[1]);
 	    plottedPoints.put(value, point);
-	    point.setRadius(1);
+	    point.setRadius((float)0.1);
 	    if ((x != -1)&&(KinUtil.isNumeric(value[x]))) {
 		point.setX(Double.parseDouble(value[x]));
 	    } else {
@@ -511,7 +516,9 @@ public class PlottingTool extends BasicTool {
     {
         super.click(x, y, p, ev);    
 	if (p != null) {
-	    p.setColor((KPaint)color1.getSelectedItem());
+	    if (clickColorBox.isSelected()) {
+		p.setColor((KPaint)color1.getSelectedItem());
+	    }
 	}
     }
 //}}}
