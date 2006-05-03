@@ -175,18 +175,21 @@ public class GeometryPlugin extends Plugin {
 	while (iter.hasNext()) {
 	    Integer key = (Integer) iter.next();
 	    Integer nextKey = new Integer(key.intValue() + 1);
+	    Integer prevKey = new Integer(key.intValue() - 1);
 	    calcDist(key, (KPoint) nitMap.get(key), (KPoint) caMap.get(key));
 	    calcDist(key, (KPoint) caMap.get(key), (KPoint) carbMap.get(key));
 	    calcDist(key, (KPoint) carbMap.get(key), (KPoint) oxyMap.get(key));
-	    if (keys.contains(nextKey)) {
-		calcDist(key, (KPoint) carbMap.get(key), (KPoint) nitMap.get(nextKey));
+	    if (keys.contains(prevKey)) {
+		calcDist(key, (KPoint) carbMap.get(prevKey), (KPoint) nitMap.get(key));
 	    }
 	    calcAngle(key, (KPoint) nitMap.get(key), (KPoint) caMap.get(key), (KPoint) carbMap.get(key));
 	    calcAngle(key, (KPoint) caMap.get(key), (KPoint) carbMap.get(key), (KPoint) oxyMap.get(key));
 	    if (keys.contains(nextKey)) {
 		calcAngle(key, (KPoint)caMap.get(key), (KPoint)carbMap.get(key), (KPoint)nitMap.get(nextKey));
-		calcAngle(key, (KPoint)oxyMap.get(key), (KPoint)carbMap.get(key), (KPoint)nitMap.get(nextKey));
-		calcAngle(key, (KPoint)carbMap.get(key), (KPoint)nitMap.get(nextKey), (KPoint)caMap.get(nextKey));
+	    }
+	    if (keys.contains(prevKey)) {
+		calcAngle(key, (KPoint)oxyMap.get(prevKey), (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key));
+		calcAngle(key, (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key), (KPoint)caMap.get(key));
 	    }
 	}
     }
