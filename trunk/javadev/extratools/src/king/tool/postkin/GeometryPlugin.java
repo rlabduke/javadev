@@ -36,7 +36,7 @@ public class GeometryPlugin extends Plugin {
     HashMap pepAngSD;
     HashMap proAng, proAngSD;
     HashMap glyAng, glyAngSD;
-    KList geomList;
+    KList distList, angList;
 
 //}}}
 
@@ -122,8 +122,10 @@ public class GeometryPlugin extends Plugin {
 	kMain.getKinemage().add(geomGroup);
 	KSubgroup sub = new KSubgroup(geomGroup, "geom");
 	geomGroup.add(sub);
-	geomList = new KList(sub, "geomlist");
-	sub.add(geomList);
+	distList = new KList(sub, "distances");
+	angList = new KList(sub, "angles");
+	sub.add(distList);
+	sub.add(angList);
 	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
 	splitKin(kMain.getKinemage());
 	analyze();
@@ -263,8 +265,8 @@ public class GeometryPlugin extends Plugin {
 	    color = KPalette.red;
 	    distdiff = - distdiff;
 	}
-	BallPoint point = new BallPoint(geomList, name);
-	geomList.add(point);
+	BallPoint point = new BallPoint(distList, name);
+	distList.add(point);
 	point.setColor(color);
 	point.setRadius((float)distdiff);
 	Triple origVector = new Triple().likeVector(trp1, trp2);
@@ -279,23 +281,23 @@ public class GeometryPlugin extends Plugin {
 	//Triple vect2 = new Triple().likeVector(trp2, trp3);
 	//Triple normal = vect1.cross(vect2);
 	Triple normal = new Triple().likeNormal(trp1, trp2, trp3);
-	VectorPoint testNorm = new VectorPoint(geomList, "testNorm", null);
+	VectorPoint testNorm = new VectorPoint(angList, "testNorm", null);
 	//geomList.add(testNorm);
 	testNorm.setXYZ(trp2.getX(), trp2.getY(), trp2.getZ());
-	VectorPoint norm = new VectorPoint(geomList, "norm", testNorm);
+	VectorPoint norm = new VectorPoint(angList, "norm", testNorm);
 	//geomList.add(norm);
 	norm.setXYZ(normal.getX() + trp2.getX(), normal.getY() + trp2.getY(), normal.getZ() + trp2.getZ());
 	Transform rotate = new Transform();
 	//rotate = rotate.likeRotation(normal, idealang - ang);
 	rotate = rotate.likeRotation(testNorm, norm, ang - idealang);
-	VectorPoint prev = new VectorPoint(geomList, name, null);
-	geomList.add(prev);
+	VectorPoint prev = new VectorPoint(angList, name, null);
+	angList.add(prev);
 	prev.setX(trp2.getX());
 	prev.setY(trp2.getY());
 	prev.setZ(trp2.getZ());
-	VectorPoint point = new VectorPoint(geomList, name, prev);
+	VectorPoint point = new VectorPoint(angList, name, prev);
 	point.setColor(KPalette.pink);
-	geomList.add(point);
+	angList.add(point);
 	point.setX(trp3.getX());
 	point.setY(trp3.getY());
 	point.setZ(trp3.getZ());
