@@ -17,8 +17,54 @@ public class KinUtil {
 
 
 
+    // similar to the other getResNumber, but this one is to keep
+    // insertion code info.
+    public static String getResNumString(KPoint point) {
+	String name = point.getName().trim();
+	String[] parsed = Strings.explode(name, " ".charAt(0), false, true);
+	// another pass to see if there are any AAName + int in name.
+	if (parsed.length > 1) {
+	    if (parsed[1].length() > 3) {
+		String parseValue = parsed[1].substring(3);
+		if (isInteger(parseValue)) {
+		    //System.out.print(parseValue + " ");
+		    return parseValue;
+		}
+	    }
+	}
+	// one pass to see if there are any straight up ints in the name
+	for (int i = 0; i < parsed.length; i++) {
+	    String parseValue = parsed[i];
+	    //System.out.println(parseValue + ", " + i);
+	    if (isInteger(parseValue)) {
+		//if (Integer.parseInt(parseValue)>0) { // resnumbers can be neg!?
+		    return parseValue;
+		    //}
+	    }
+	}
+	
+	// for insertions (1a, 1b, 1c, etc).
+	//System.out.println(parsed[3]);
+	//System.out.println(parsed[3].length());
+	for (int i = 0; i < parsed.length; i++) {
+	    if (parsed[i] != null) {
+		String parseValue = parsed[i].substring(0, parsed[i].length()-1);
+		//System.out.println(parseValue + ", " + i);
+		if (isInteger(parseValue)) {
+		    //if (Integer.parseInt(parseValue)>0) {
+			return parsed[i];
+			//}
+		}
+	    }
+	}
+	//if (isNumeric(parsed[3].substring(0, parsed[3].length()-1))) {
+	//    return Integer.parseInt(parsed[3].substring(0, parsed[3].length()-1));
+	//}
 
 
+	return "";
+	
+    }
 
     public static int getResNumber(KPoint point) {
 	String name = point.getName().trim();
