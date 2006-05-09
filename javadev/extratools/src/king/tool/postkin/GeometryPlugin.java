@@ -7,6 +7,8 @@ import king.core.*;
 import king.tool.util.*;
 import driftwood.r3.*;
 import driftwood.gui.*;
+import driftwood.moldb2.Residue;
+import driftwood.data.*;
 
 import java.util.*;
 import javax.swing.*;
@@ -69,6 +71,7 @@ public class GeometryPlugin extends Plugin {
 	proSD.put("cac", new Double(0.020));
 	proSD.put("co", new Double(0.020));
 	proSD.put("cn", new Double(0.019));
+
 	glyLength = new HashMap();
 	glyLength.put("nca", new Double(1.456));
 	glyLength.put("cac", new Double(1.514));
@@ -79,6 +82,7 @@ public class GeometryPlugin extends Plugin {
 	glySD.put("cac", new Double(0.016));
 	glySD.put("co", new Double(0.016));
 	glySD.put("cn", new Double(0.018));
+
 	pepAng = new HashMap();
 	pepAng.put("ncac", new Double(111));
 	pepAng.put("cacn", new Double(117.2));
@@ -138,20 +142,34 @@ public class GeometryPlugin extends Plugin {
 	    while (iter.hasNext()) {
 		KPoint pt = (KPoint) iter.next();
 		if (pt.isOn()) {
-		    int resNum = KinUtil.getResNumber(pt);
+		    //int resNum = KinUtil.getResNumber(pt);
 		    String atomName = KinUtil.getAtomName(pt).toLowerCase();
 		    String resName = KinUtil.getResName(pt).toLowerCase();
+		    String resNum = KinUtil.getResNumString(pt);
+		    String insCode = " ";
+		    if (!KinUtil.isInteger(resNum)) {
+			int numLength = resNum.length();
+			if (numLength > 0) {
+			    insCode = resNum.substring(numLength - 1);
+			    resNum = resNum.substring(0, numLength - 1);
+			}
+		    }
+		    ResidueInfo res = new ResidueInfo(" ", "", resNum, insCode, resName);
 		    if (atomName.equals("ca")) {
-			caMap.put(new Integer(resNum), pt);
+			//caMap.put(new Integer(resNum), pt);
+			caMap.put(res, pt);
 		    }
 		    if (atomName.equals("o")) {
-			oxyMap.put(new Integer(resNum), pt);
+			//oxyMap.put(new Integer(resNum), pt);
+			oxyMap.put(res, pt);
 		    }
 		    if (atomName.equals("n")) {
-			nitMap.put(new Integer(resNum), pt);
+			//nitMap.put(new Integer(resNum), pt);
+			nitMap.put(res, pt);
 		    }
 		    if (atomName.equals("c")) {
-			carbMap.put(new Integer(resNum), pt);
+			//carbMap.put(new Integer(resNum), pt);
+			carbMap.put(res, pt);
 		    }
 		}
 	    }
@@ -172,8 +190,41 @@ public class GeometryPlugin extends Plugin {
 
 
     public void analyze() {
-	TreeSet keys = new TreeSet(caMap.keySet());
+	//TreeSet keys = new TreeSet(caMap.keySet());
+	UberSet keys = new UberSet(caMap.keySet());
+	//System.out.println(keys.size());
 	Iterator iter = keys.iterator();
+	while (iter.hasNext()) {
+	    ResidueInfo key = (ResidueInfo) iter.next();
+	    Integer resNum = Integer.valueOf(key.getSequenceNumber());
+	    System.out.println(key);
+	    calcDist(resNum, (KPoint) nitMap.get(key), (KPoint) caMap.get(key));
+	    calcDist(resNum, (KPoint) caMap.get(key), (KPoint) carbMap.get(key));
+	    calcDist(resNum, (KPoint) carbMap.get(key), (KPoint) oxyMap.get(key));
+	    calcAngle(resNum, (KPoint) nitMap.get(key), (KPoint) caMap.get(key), (KPoint) carbMap.get(key));
+	    calcAngle(resNum, (KPoint) caMap.get(key), (KPoint) carbMap.get(key), (KPoint) oxyMap.get(key));
+	    try {
+		ResidueInfo prevKey = (ResidueInfo) keys.itemBefore(key);
+		int prevNum = Integer.parseInt(prevKey.getSequenceNumber());
+		if (((resNum.intValue()-prevNum) == 0)||((resNum.intValue()-prevNum) == 1)) {
+		    // either insertion codes or normal sequence are ok
+		    calcDist(resNum, (KPoint) carbMap.get(prevKey), (KPoint) nitMap.get(key));
+		    calcAngle(resNum, (KPoint)oxyMap.get(prevKey), (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key));
+		    calcAngle(resNum, (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key), (KPoint)caMap.get(key));
+		}
+	    } catch (NoSuchElementException e) {
+		//System.out.println("Prev key not detected");
+	    }
+	    try {
+		ResidueInfo nextKey = (ResidueInfo) keys.itemAfter(key);
+		int nextNum = Integer.parseInt(nextKey.getSequenceNumber());
+		if (((resNum.intValue()-nextNum) == 0)||((resNum.intValue()-nextNum) == -1)) {
+		    calcAngle(resNum, (KPoint)caMap.get(key), (KPoint)carbMap.get(key), (KPoint)nitMap.get(nextKey));
+		}
+	    } catch (NoSuchElementException e) {
+		//System.out.println("Next key not detected");
+	    }
+	}/*
 	while (iter.hasNext()) {
 	    Integer key = (Integer) iter.next();
 	    Integer nextKey = new Integer(key.intValue() + 1);
@@ -193,7 +244,7 @@ public class GeometryPlugin extends Plugin {
 		calcAngle(key, (KPoint)oxyMap.get(prevKey), (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key));
 		calcAngle(key, (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key), (KPoint)caMap.get(key));
 	    }
-	}
+	}*/
     }
 
     public void calcDist(Integer key, KPoint pt1, KPoint pt2) {
