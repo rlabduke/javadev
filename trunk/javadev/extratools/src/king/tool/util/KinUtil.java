@@ -5,6 +5,8 @@ package king.tool.util;
 import king.*;
 import king.core.*;
 
+import java.util.*;
+
 import driftwood.moldb2.AminoAcid;
 import driftwood.util.Strings;
 
@@ -14,7 +16,13 @@ public class KinUtil {
     public KinUtil() {
     }
 
-
+    
+    public static String getFirstGroupName(Kinemage kin) {
+	Iterator kinIter = kin.iterator();
+	//while (kinIter.hasNext()) {
+	KGroup group = (KGroup) kinIter.next();
+	return group.getName();
+    }
 
 
     // similar to the other getResNumber, but this one is to keep
