@@ -103,11 +103,11 @@ public class GeometryPlugin extends Plugin {
 	proAng.put("ocn", new Double(121.1));
 	proAng.put("cnca", new Double(119.3)); //trans pro only, dunno how to handle cis yet.
 	proAngSD = new HashMap();
-	proAngSD.put("ncac", new Double(26));
-	proAngSD.put("cacn", new Double(28));
-	proAngSD.put("caco", new Double(24));
-	proAngSD.put("ocn", new Double(19));
-	proAngSD.put("cnca", new Double(15));
+	proAngSD.put("ncac", new Double(2.6));
+	proAngSD.put("cacn", new Double(2.8));
+	proAngSD.put("caco", new Double(2.4));
+	proAngSD.put("ocn", new Double(1.9));
+	proAngSD.put("cnca", new Double(1.5));
 
 	glyAng = new HashMap();
 	glyAng.put("ncac", new Double(113.1));
@@ -116,12 +116,14 @@ public class GeometryPlugin extends Plugin {
 	glyAng.put("ocn", new Double(123.2));
 	glyAng.put("cnca", new Double(122.3));
 	glyAngSD = new HashMap();
-	glyAngSD.put("ncac", new Double(25));
-	glyAngSD.put("cacn", new Double(20));
-	glyAngSD.put("caco", new Double(18));
-	glyAngSD.put("ocn", new Double(17));
-	glyAngSD.put("cnca", new Double(21));
-
+	glyAngSD.put("ncac", new Double(2.5));
+	glyAngSD.put("cacn", new Double(2.0));
+	glyAngSD.put("caco", new Double(1.8));
+	glyAngSD.put("ocn", new Double(1.7));
+	glyAngSD.put("cnca", new Double(2.1));
+	
+	System.out.println("Analyzing geometry of " + KinUtil.getFirstGroupName(kMain.getKinemage()));
+	
 	KGroup geomGroup = new KGroup(kMain.getKinemage(), "Geometry");
 	kMain.getKinemage().add(geomGroup);
 	KSubgroup sub = new KSubgroup(geomGroup, "geom");
@@ -197,20 +199,22 @@ public class GeometryPlugin extends Plugin {
 	while (iter.hasNext()) {
 	    ResidueInfo key = (ResidueInfo) iter.next();
 	    Integer resNum = Integer.valueOf(key.getSequenceNumber());
-	    System.out.println(key);
-	    calcDist(resNum, (KPoint) nitMap.get(key), (KPoint) caMap.get(key));
-	    calcDist(resNum, (KPoint) caMap.get(key), (KPoint) carbMap.get(key));
-	    calcDist(resNum, (KPoint) carbMap.get(key), (KPoint) oxyMap.get(key));
-	    calcAngle(resNum, (KPoint) nitMap.get(key), (KPoint) caMap.get(key), (KPoint) carbMap.get(key));
-	    calcAngle(resNum, (KPoint) caMap.get(key), (KPoint) carbMap.get(key), (KPoint) oxyMap.get(key));
+	    String resName = KinUtil.getResName((KPoint) caMap.get(key));
+	    //System.out.println(resName);
+	    calcDist(resNum, resName, (KPoint) nitMap.get(key), (KPoint) caMap.get(key));
+	    calcDist(resNum, resName, (KPoint) caMap.get(key), (KPoint) carbMap.get(key));
+	    calcDist(resNum, resName, (KPoint) carbMap.get(key), (KPoint) oxyMap.get(key));
+	    calcAngle(resNum, resName, (KPoint) nitMap.get(key), (KPoint) caMap.get(key), (KPoint) carbMap.get(key));
+	    calcAngle(resNum, resName, (KPoint) caMap.get(key), (KPoint) carbMap.get(key), (KPoint) oxyMap.get(key));
 	    try {
 		ResidueInfo prevKey = (ResidueInfo) keys.itemBefore(key);
 		int prevNum = Integer.parseInt(prevKey.getSequenceNumber());
+		//System.out.println(prevKey + " " + resNum);
 		if (((resNum.intValue()-prevNum) == 0)||((resNum.intValue()-prevNum) == 1)) {
 		    // either insertion codes or normal sequence are ok
-		    calcDist(resNum, (KPoint) carbMap.get(prevKey), (KPoint) nitMap.get(key));
-		    calcAngle(resNum, (KPoint)oxyMap.get(prevKey), (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key));
-		    calcAngle(resNum, (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key), (KPoint)caMap.get(key));
+		    calcDist(resNum, resName, (KPoint) carbMap.get(prevKey), (KPoint) nitMap.get(key));
+		    calcAngle(resNum, resName, (KPoint)oxyMap.get(prevKey), (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key));
+		    calcAngle(resNum, resName, (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key), (KPoint)caMap.get(key));
 		}
 	    } catch (NoSuchElementException e) {
 		//System.out.println("Prev key not detected");
@@ -219,7 +223,7 @@ public class GeometryPlugin extends Plugin {
 		ResidueInfo nextKey = (ResidueInfo) keys.itemAfter(key);
 		int nextNum = Integer.parseInt(nextKey.getSequenceNumber());
 		if (((resNum.intValue()-nextNum) == 0)||((resNum.intValue()-nextNum) == -1)) {
-		    calcAngle(resNum, (KPoint)caMap.get(key), (KPoint)carbMap.get(key), (KPoint)nitMap.get(nextKey));
+		    calcAngle(resNum, resName, (KPoint)caMap.get(key), (KPoint)carbMap.get(key), (KPoint)nitMap.get(nextKey));
 		}
 	    } catch (NoSuchElementException e) {
 		//System.out.println("Next key not detected");
@@ -247,18 +251,18 @@ public class GeometryPlugin extends Plugin {
 	}*/
     }
 
-    public void calcDist(Integer key, KPoint pt1, KPoint pt2) {
+    public void calcDist(Integer key, String resName, KPoint pt1, KPoint pt2) {
 	//System.out.println(pt1 + " " + pt2);
 	if ((pt1 != null)&&(pt2 != null)) {
 	    String atom1 = KinUtil.getAtomName(pt1).toLowerCase();
 	    String atom2 = KinUtil.getAtomName(pt2).toLowerCase();
-	    String res1 = KinUtil.getResName(pt1).toLowerCase();
+	    //String res1 = KinUtil.getResName(pt1).toLowerCase();
 	    double idealdist;
 	    double sd;
-	    if (res1.equals("pro")) {
+	    if (resName.equals("pro")) {
 		idealdist = ((Double)proLength.get(atom1 + atom2)).doubleValue();
 		sd = ((Double)proSD.get(atom1 + atom2)).doubleValue();
-	    } else if (res1.equals("gly")) {
+	    } else if (resName.equals("gly")) {
 		idealdist = ((Double)glyLength.get(atom1 + atom2)).doubleValue();
 		sd = ((Double)glySD.get(atom1 + atom2)).doubleValue();
 	    } else {
@@ -269,7 +273,7 @@ public class GeometryPlugin extends Plugin {
 	    Triple trip1 = new Triple(pt1);
 	    Triple trip2 = new Triple(pt2);
 	    double dist = trip1.distance(trip2);
-	    if ((dist <= idealdist - 4 * sd)||(dist >= idealdist + 4 * sd)) {
+	    if ((dist <= idealdist - 3 * sd)||(dist >= idealdist + 3 * sd)) {
 		System.out.print("res " + key + " " + atom1 + "-" + atom2 + " ");
 		System.out.print("Distance " + df.format(dist) + " ");
 		System.out.println(df.format((dist - idealdist)/sd) + " sigma off");
@@ -278,18 +282,18 @@ public class GeometryPlugin extends Plugin {
 	}
     }
 
-    public void calcAngle(Integer key, KPoint pt1, KPoint pt2, KPoint pt3) {
+    public void calcAngle(Integer key, String resName, KPoint pt1, KPoint pt2, KPoint pt3) {
 	if ((pt1 != null)&&(pt2 != null)&&(pt3 != null)) {
 	    String atom1 = KinUtil.getAtomName(pt1).toLowerCase();
 	    String atom2 = KinUtil.getAtomName(pt2).toLowerCase();
 	    String atom3 = KinUtil.getAtomName(pt3).toLowerCase();
-	    String res1 = KinUtil.getResName(pt1).toLowerCase();
+	    //String res1 = KinUtil.getResName(pt1).toLowerCase();
 	    double idealAng;
 	    double sd;
-	    if (res1.equals("pro")) {
+	    if (resName.equals("pro")) {
 		idealAng = ((Double)proAng.get(atom1 + atom2 + atom3)).doubleValue();
 		sd = ((Double)proAngSD.get(atom1 + atom2 + atom3)).doubleValue();
-	    } else if (res1.equals("gly")) {
+	    } else if (resName.equals("gly")) {
 		idealAng = ((Double)glyAng.get(atom1 + atom2 + atom3)).doubleValue();
 		sd = ((Double)glyAngSD.get(atom1 + atom2 + atom3)).doubleValue();
 	    } else {
@@ -300,7 +304,7 @@ public class GeometryPlugin extends Plugin {
 	    Triple trip2 = new Triple(pt2);
 	    Triple trip3 = new Triple(pt3);
 	    double ang = Triple.angle(trip1, trip2, trip3);
-	    if ((ang <= idealAng - 4 * sd) || (ang >= idealAng + 4 * sd)) {
+	    if ((ang <= idealAng - 3 * sd) || (ang >= idealAng + 3 * sd)) {
 		System.out.print("res " + key + " " + atom1 + "-" + atom2 + "-" + atom3 + " ");
 		System.out.print("angle " + df.format(ang) + " ");
 		System.out.println(df.format((ang - idealAng)/sd) + " sigma off");
