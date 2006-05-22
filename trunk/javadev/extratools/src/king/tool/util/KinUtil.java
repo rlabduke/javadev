@@ -74,6 +74,11 @@ public class KinUtil {
 	
     }
 
+    public static String getLastString(String name) {
+	String[] parsed = Strings.explode(name, " ".charAt(0), false, true);
+	return parsed[parsed.length - 1];
+    }
+
     public static int getResNumber(KPoint point) {
 	String name = point.getName().trim();
 	return getResNumber(name);
@@ -143,6 +148,21 @@ public class KinUtil {
 
 
 	return -1;
+    }
+
+    public static String getChainID(KPoint point) {
+	String name = point.getName().trim();
+	return getChainID(name);
+    }
+
+    public static String getChainID(String name) {
+	String[] parsed = Strings.explode(name, " ".charAt(0), false, true);
+	if (parsed.length > 2) {
+	    if (parsed[2].length() == 1) {
+		return parsed[2];
+	    }
+	}
+	return " ";
     }
 
     public static boolean isInteger(String s) {
