@@ -11,6 +11,7 @@ import driftwood.moldb2.Residue;
 import driftwood.data.*;
 
 import java.util.*;
+import java.io.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.text.DecimalFormat;
@@ -39,6 +40,7 @@ public class GeometryPlugin extends Plugin {
     HashMap proAng, proAngSD;
     HashMap glyAng, glyAngSD;
     KList distList, angList;
+    JFileChooser filechooser;
 
 //}}}
 
@@ -46,11 +48,12 @@ public class GeometryPlugin extends Plugin {
 	super(tb);
     }
     
-    public void onStart(ActionEvent e) {
+    public void initialize() {
 	caMap = new TreeMap();
 	oxyMap = new TreeMap();
 	nitMap = new TreeMap();
 	carbMap = new TreeMap();
+
 	pepLength = new HashMap();
 	pepLength.put("nca", new Double(1.459));
 	pepLength.put("cac", new Double(1.525));
@@ -61,6 +64,7 @@ public class GeometryPlugin extends Plugin {
 	pepSD.put("cac", new Double(0.026));
 	pepSD.put("co", new Double(0.019));
 	pepSD.put("cn", new Double(0.023));
+
 	proLength = new HashMap();
 	proLength.put("nca", new Double(1.468));
 	proLength.put("cac", new Double(1.524));
@@ -122,8 +126,20 @@ public class GeometryPlugin extends Plugin {
 	glyAngSD.put("ocn", new Double(1.7));
 	glyAngSD.put("cnca", new Double(2.1));
 	
-	System.out.println("Analyzing geometry of " + KinUtil.getFirstGroupName(kMain.getKinemage()));
+    }
+
+    public void reset() {
+	caMap = new TreeMap();
+	oxyMap = new TreeMap();
+	nitMap = new TreeMap();
+	carbMap = new TreeMap();
+    }
+    
+    public void onAnalyzeCurrent(ActionEvent e) {
+	initialize();
 	
+	System.out.println("Analyzing geometry of " + KinUtil.getFirstGroupName(kMain.getKinemage()));
+	//System.out.println("Analyzing geometry of " + pdbFile);
 	KGroup geomGroup = new KGroup(kMain.getKinemage(), "Geometry");
 	kMain.getKinemage().add(geomGroup);
 	KSubgroup sub = new KSubgroup(geomGroup, "geom");
@@ -137,6 +153,101 @@ public class GeometryPlugin extends Plugin {
 	analyze();
     }
 
+    public void onAnalyzeAll(ActionEvent e) {
+	initialize();
+	if (filechooser == null) makeFileChooser();
+	if(JFileChooser.APPROVE_OPTION == filechooser.showOpenDialog(kMain.getTopWindow())) {
+	    //try {
+	    File f = filechooser.getSelectedFile();
+	    System.out.println(f.getPath() + " : " + f.getName() + " : " + f.getParent());
+	    File[] allFiles = f.getParentFile().listFiles();
+	    //for (int i = 0; i < allFiles.length; i++) {
+	    //JFileChooser saveChooser = new JFileChooser();
+	    //String currdir = System.getProperty("user.dir");
+	    //if(currdir != null) {
+	    //	saveChooser.setCurrentDirectory(new File(currdir));
+	    //}
+	    //if (saveChooser.APPROVE_OPTION == saveChooser.showSaveDialog(kMain.getTopWindow())) {
+	    //	File saveFile = saveChooser.getSelectedFile();
+	    //	if( !f.exists() ||
+	    //	    JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+	    //					  "This file exists -- do you want to overwrite it?",
+	    //					  "Overwrite file?", JOptionPane.YES_NO_OPTION)
+	    //	    == JOptionPane.YES_OPTION ) 
+	    //{    
+	    doAll(allFiles);
+		    //	}
+	    //}
+	}
+    }
+
+    public void doAll(File[] allFiles) {
+	//try {
+	    //Integer numPep = Integer.valueOf(lowNumField.getText());
+	    //Writer w = new FileWriter(saveFile);
+	    //PrintWriter out = new PrintWriter(new BufferedWriter(w));
+	    for (int i = 0; i < allFiles.length; i++) {
+		File pdbFile = allFiles[i];
+		if (pdbFile.getName().indexOf(".kin") > -1) {
+		    reset();
+		    kMain.getKinIO().loadFile(pdbFile, null);
+		    Kinemage kin = kMain.getKinemage();
+		    Collection masters = kin.masterList();
+		    Iterator iter = masters.iterator();
+		    while (iter.hasNext()) {
+			MasterGroup mast = (MasterGroup) iter.next();
+			mast.setOn(false);
+		    }
+		    kin.getMasterByName("mainchain").setOn(true);
+		    kin.getMasterByName("chain A").setOn(true);
+		    kin.getMasterByName("alta").setOn(true);
+		    //System.out.println("Analyzing geometry of " + KinUtil.getFirstGroupName(kMain.getKinemage()));
+		    System.out.println("Analyzing geometry of " + pdbFile);
+		    KGroup geomGroup = new KGroup(kMain.getKinemage(), "Geometry");
+		    kMain.getKinemage().add(geomGroup);
+		    KSubgroup sub = new KSubgroup(geomGroup, "geom");
+		    geomGroup.add(sub);
+		    distList = new KList(sub, "distances");
+		    angList = new KList(sub, "angles");
+		    sub.add(distList);
+		    sub.add(angList);
+		    kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+		    splitKin(kMain.getKinemage());
+		    analyze();
+		}
+		kMain.getTextWindow().setText("");
+		kMain.getStable().closeCurrent();
+	    }
+	    //out.flush();
+	    //w.close();
+	    //} catch (IOException ex) {
+	    //    JOptionPane.showMessageDialog(kMain.getTopWindow(),
+	    //				  "An error occurred while saving the file.",
+	    //				  "Sorry!", JOptionPane.ERROR_MESSAGE);
+	    //}
+	
+    }
+
+//{{{ makeFileChooser
+//##################################################################################################
+    void makeFileChooser()
+    {
+	
+        // Make accessory for file chooser
+        TablePane acc = new TablePane();
+
+        // Make actual file chooser -- will throw an exception if we're running as an Applet
+        filechooser = new JFileChooser();
+        String currdir = System.getProperty("user.dir");
+        if(currdir != null) filechooser.setCurrentDirectory(new File(currdir));
+        
+        filechooser.setAccessory(acc);
+        //filechooser.addPropertyChangeListener(this);
+        //filechooser.addChoosableFileFilter(fastaFilter);
+        //filechooser.setFileFilter(fastaFilter);
+    }
+//}}}
+
     public void splitKin(AGE target) {
 
 	if ((target instanceof KList)&&(target.isOn())) {
@@ -148,6 +259,7 @@ public class GeometryPlugin extends Plugin {
 		    String atomName = KinUtil.getAtomName(pt).toLowerCase();
 		    String resName = KinUtil.getResName(pt).toLowerCase();
 		    String resNum = KinUtil.getResNumString(pt);
+		    String chainID = KinUtil.getChainID(pt);
 		    String insCode = " ";
 		    if (!KinUtil.isInteger(resNum)) {
 			int numLength = resNum.length();
@@ -156,7 +268,7 @@ public class GeometryPlugin extends Plugin {
 			    resNum = resNum.substring(0, numLength - 1);
 			}
 		    }
-		    ResidueInfo res = new ResidueInfo(" ", "", resNum, insCode, resName);
+		    ResidueInfo res = new ResidueInfo(chainID, "", resNum, insCode, resName);
 		    if (atomName.equals("ca")) {
 			//caMap.put(new Integer(resNum), pt);
 			caMap.put(res, pt);
@@ -199,22 +311,23 @@ public class GeometryPlugin extends Plugin {
 	while (iter.hasNext()) {
 	    ResidueInfo key = (ResidueInfo) iter.next();
 	    Integer resNum = Integer.valueOf(key.getSequenceNumber());
+	    String resNumFull = key.getSequenceNumber() + key.getInsertionCode() + " " + KinUtil.getLastString(((KPoint) caMap.get(key)).getName()) + " " + key.getChain();
 	    String resName = KinUtil.getResName((KPoint) caMap.get(key));
 	    //System.out.println(resName);
-	    calcDist(resNum, resName, (KPoint) nitMap.get(key), (KPoint) caMap.get(key));
-	    calcDist(resNum, resName, (KPoint) caMap.get(key), (KPoint) carbMap.get(key));
-	    calcDist(resNum, resName, (KPoint) carbMap.get(key), (KPoint) oxyMap.get(key));
-	    calcAngle(resNum, resName, (KPoint) nitMap.get(key), (KPoint) caMap.get(key), (KPoint) carbMap.get(key));
-	    calcAngle(resNum, resName, (KPoint) caMap.get(key), (KPoint) carbMap.get(key), (KPoint) oxyMap.get(key));
+	    calcDist(resNumFull, resName, (KPoint) nitMap.get(key), (KPoint) caMap.get(key));
+	    calcDist(resNumFull, resName, (KPoint) caMap.get(key), (KPoint) carbMap.get(key));
+	    calcDist(resNumFull, resName, (KPoint) carbMap.get(key), (KPoint) oxyMap.get(key));
+	    calcAngle(resNumFull, resName, (KPoint) nitMap.get(key), (KPoint) caMap.get(key), (KPoint) carbMap.get(key));
+	    calcAngle(resNumFull, resName, (KPoint) caMap.get(key), (KPoint) carbMap.get(key), (KPoint) oxyMap.get(key));
 	    try {
 		ResidueInfo prevKey = (ResidueInfo) keys.itemBefore(key);
 		int prevNum = Integer.parseInt(prevKey.getSequenceNumber());
 		//System.out.println(prevKey + " " + resNum);
 		if (((resNum.intValue()-prevNum) == 0)||((resNum.intValue()-prevNum) == 1)) {
 		    // either insertion codes or normal sequence are ok
-		    calcDist(resNum, resName, (KPoint) carbMap.get(prevKey), (KPoint) nitMap.get(key));
-		    calcAngle(resNum, resName, (KPoint)oxyMap.get(prevKey), (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key));
-		    calcAngle(resNum, resName, (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key), (KPoint)caMap.get(key));
+		    calcDist(resNumFull, resName, (KPoint) carbMap.get(prevKey), (KPoint) nitMap.get(key));
+		    calcAngle(resNumFull, resName, (KPoint)oxyMap.get(prevKey), (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key));
+		    calcAngle(resNumFull, resName, (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key), (KPoint)caMap.get(key));
 		}
 	    } catch (NoSuchElementException e) {
 		//System.out.println("Prev key not detected");
@@ -223,7 +336,7 @@ public class GeometryPlugin extends Plugin {
 		ResidueInfo nextKey = (ResidueInfo) keys.itemAfter(key);
 		int nextNum = Integer.parseInt(nextKey.getSequenceNumber());
 		if (((resNum.intValue()-nextNum) == 0)||((resNum.intValue()-nextNum) == -1)) {
-		    calcAngle(resNum, resName, (KPoint)caMap.get(key), (KPoint)carbMap.get(key), (KPoint)nitMap.get(nextKey));
+		    calcAngle(resNumFull, resName, (KPoint)caMap.get(key), (KPoint)carbMap.get(key), (KPoint)nitMap.get(nextKey));
 		}
 	    } catch (NoSuchElementException e) {
 		//System.out.println("Next key not detected");
@@ -251,7 +364,7 @@ public class GeometryPlugin extends Plugin {
 	}*/
     }
 
-    public void calcDist(Integer key, String resName, KPoint pt1, KPoint pt2) {
+    public void calcDist(String key, String resName, KPoint pt1, KPoint pt2) {
 	//System.out.println(pt1 + " " + pt2);
 	if ((pt1 != null)&&(pt2 != null)) {
 	    String atom1 = KinUtil.getAtomName(pt1).toLowerCase();
@@ -273,16 +386,16 @@ public class GeometryPlugin extends Plugin {
 	    Triple trip1 = new Triple(pt1);
 	    Triple trip2 = new Triple(pt2);
 	    double dist = trip1.distance(trip2);
-	    if ((dist <= idealdist - 3 * sd)||(dist >= idealdist + 3 * sd)) {
+	    if ((dist <= idealdist - 4 * sd)||(dist >= idealdist + 4 * sd)) {
 		System.out.print("res " + key + " " + atom1 + "-" + atom2 + " ");
-		System.out.print("Distance " + df.format(dist) + " ");
+		System.out.print("distance " + df.format(dist) + " ");
 		System.out.println(df.format((dist - idealdist)/sd) + " sigma off");
 		drawBall("res "+key+" "+atom1+"-"+atom2, trip1, trip2, dist, idealdist);
 	    }
 	}
     }
 
-    public void calcAngle(Integer key, String resName, KPoint pt1, KPoint pt2, KPoint pt3) {
+    public void calcAngle(String key, String resName, KPoint pt1, KPoint pt2, KPoint pt3) {
 	if ((pt1 != null)&&(pt2 != null)&&(pt3 != null)) {
 	    String atom1 = KinUtil.getAtomName(pt1).toLowerCase();
 	    String atom2 = KinUtil.getAtomName(pt2).toLowerCase();
@@ -304,7 +417,7 @@ public class GeometryPlugin extends Plugin {
 	    Triple trip2 = new Triple(pt2);
 	    Triple trip3 = new Triple(pt3);
 	    double ang = Triple.angle(trip1, trip2, trip3);
-	    if ((ang <= idealAng - 3 * sd) || (ang >= idealAng + 3 * sd)) {
+	    if ((ang <= idealAng - 4 * sd) || (ang >= idealAng + 4 * sd)) {
 		System.out.print("res " + key + " " + atom1 + "-" + atom2 + "-" + atom3 + " ");
 		System.out.print("angle " + df.format(ang) + " ");
 		System.out.println(df.format((ang - idealAng)/sd) + " sigma off");
@@ -361,7 +474,11 @@ public class GeometryPlugin extends Plugin {
     }
 
     public JMenuItem getToolsMenuItem() {
-	return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onStart"));
+	//return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onStart"));
+	JMenu menu = new JMenu("Analyze Geometry");
+	menu.add(new JMenuItem(new ReflectiveAction("Analyze Current", null, this, "onAnalyzeCurrent")));
+	menu.add(new JMenuItem(new ReflectiveAction("Analyze All", null, this, "onAnalyzeAll")));
+	return menu;
     }
     
     public String toString() {
