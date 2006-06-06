@@ -79,6 +79,11 @@ autoRockCycleSteps  = 20
 ### TOOL OPTIONS #####################################################
 ######################################################################
 
+# Resolution of exported images.
+# 1 is pixel-for-pixel, ~ 72 dpi
+# 4 is ~ 300 dpi
+imageExportMultiplier = 4
+
 # Show the command line every time a remote update runs?
 showHelperCommand   = false
 # Dump standard error from *successful* background runs?
