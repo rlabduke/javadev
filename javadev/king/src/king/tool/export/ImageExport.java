@@ -78,21 +78,22 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
 //##############################################################################
     static public void exportImage(KinCanvas kCanvas, String format, File outfile)
         throws IOException
-    { exportImage(kCanvas, format, false, outfile); }
+    { exportImage(kCanvas, format, false, 1, outfile); }
 
-    static public void exportImage(KinCanvas kCanvas, String format, boolean transparentBackground, File outfile)
+    static public void exportImage(KinCanvas kCanvas, String format, boolean transparentBackground, int resol, File outfile)
         throws IOException
     {
         Dimension       dim = kCanvas.getCanvasSize();
         BufferedImage   img;
         if(format.equals("png"))
-            img = new BufferedImage(dim.width, dim.height,
+            img = new BufferedImage(resol*dim.width, resol*dim.height,
             BufferedImage.TYPE_INT_ARGB); // needed so we can get transparency in output
         else
-            img = new BufferedImage(dim.width, dim.height,
+            img = new BufferedImage(resol*dim.width, resol*dim.height,
             BufferedImage.TYPE_INT_BGR); // this avoids color problems with JPEG and gives smaller files (?)
         
         Graphics2D g2 = img.createGraphics();
+        g2.scale(resol, resol);
         if(transparentBackground)
             kCanvas.getEngine().setTransparentBackground();
         kCanvas.paintCanvas(g2, dim, KinCanvas.QUALITY_BEST);
@@ -190,7 +191,7 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
             "This file exists -- do you want to overwrite it?",
             "Overwrite file?", JOptionPane.YES_NO_OPTION))
             {
-                try { exportImage(kMain.getCanvas(), fmt, pngtFilter.equals(filter), f); }
+                try { exportImage(kMain.getCanvas(), fmt, pngtFilter.equals(filter), kMain.getPrefs().getInt("imageExportMultiplier"), f); }
                 catch(IOException ex)
                 {
                     JOptionPane.showMessageDialog(kMain.getTopWindow(),
