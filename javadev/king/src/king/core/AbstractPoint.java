@@ -10,6 +10,7 @@ import java.io.*;
 import java.util.*;
 //import java.util.regex.*;
 import javax.swing.*;
+import driftwood.data.TinyMap;
 import driftwood.r3.*;
 //}}}
 /**
@@ -23,11 +24,16 @@ abstract public class AbstractPoint extends AHEImpl implements KPoint
 {
 //{{{ Constants
     // Bit allocation for 'multi':
-    //   kngpt  points  future  color (no longer used)
-    // skkkkkkkppppppppffffffffcccccccc
+    //   kngpt  points  future  tinymap
+    // skkkkkkkppppppppffffffffmmmmmmmm
     
-    /** A mask for isolating the color bits using AND */
-    //public static final int COLOR_MASK      = 0x000000ff;
+    /** Isolates all the bits used by tinymap */
+    public static final int TINYMAP_AND     = 0xff;
+    /** tinymap keys, 0 - 7 */
+    public static final int ASPECTS_KEY     = (1<<0);
+    public static final int COMMENT_KEY     = (1<<1);
+    public static final int COORDS_KEY      = (1<<2); // for kins with >3 dimensions
+    
     /** If this bit is set, the point is 'live' and should be painted */
     public static final int ON_BIT          = 0x40000000;
     /** If this bit is set, the point will not be picked by a mouse click */
@@ -43,13 +49,12 @@ abstract public class AbstractPoint extends AHEImpl implements KPoint
     float x0 = 0f, y0 = 0f, z0 = 0f; // permanent coords
     float x  = 0f, y  = 0f, z  = 0f; // transformed coords
 
-    KList   parent  = null;         // list that contains this point
-    String  aspects = null;         // aspects (multiple point colors)
-    String  comment = null;         // the <point comment> associated with this point
-    int     pm_mask = 0;            // bit flags for pointmasters 
+    KList       parent  = null;         // list that contains this point
+    Object[]    tmValues = null;        // holds (ASPECTS), <point comments>, etc.
+    int         pm_mask = 0;            // bit flags for pointmasters 
     
     /** Color this point is drawn in; null means take from list */
-    KPaint  color   = null;
+    KPaint      color   = null;
     
     /** higher bits are used as flags */
     public int multi = 0 | ON_BIT;
@@ -172,6 +177,37 @@ abstract public class AbstractPoint extends AHEImpl implements KPoint
     }
 //}}}
 
+//{{{ get/setAllCoords, useCoordsXYZ
+//##################################################################################################
+    /**
+    * Stores an array of coordinates for "high-dimensional" points.
+    * The float[] is stored without cloning and so is subject to overwrite.
+    */
+    public void setAllCoords(float[] coords)
+    { tmPut(COORDS_KEY, coords); }
+    
+    /**
+    * Retrieves the "high-dimensional" coordinates of this point, or null if not set.
+    * The float[] is returned without cloning and so is subject to overwrite.
+    */
+    public float[] getAllCoords()
+    { return (float[]) tmGet(COORDS_KEY); }
+    
+    /**
+    * Copies the high-dimensional coordinates at the specified indices
+    * into this point's (untransformed) X, Y, and Z fields.
+    * If a index is out of range (0-based), it is ignored and the value is not changed.
+    */
+    public void useCoordsXYZ(int xIndex, int yIndex, int zIndex)
+    {
+        float[] coords = this.getAllCoords();
+        if(coords == null) return;
+        if(xIndex < coords.length) this.setX( coords[xIndex] );
+        if(yIndex < coords.length) this.setY( coords[yIndex] );
+        if(zIndex < coords.length) this.setZ( coords[zIndex] );
+    }
+//}}}
+
 //{{{ get/setOwner, get/setPrev, isBreak
 //##################################################################################################
     /** Determines the owner (parent) of this element */
@@ -253,9 +289,9 @@ abstract public class AbstractPoint extends AHEImpl implements KPoint
     /** Sets the color of this point. */
     public void setColor(KPaint c) { color = c; }
     /** Gets the aspect string of this point */
-    public String getAspects() { return aspects; }
+    public String getAspects() { return (String) tmGet(ASPECTS_KEY); }
     /** Sets the aspect string of this point */
-    public void setAspects(String a) { aspects = a; }
+    public void setAspects(String a) { tmPut(ASPECTS_KEY, a); }
     
     /** Gets the line width of this point, if applicable */
     public int getWidth()
@@ -272,10 +308,10 @@ abstract public class AbstractPoint extends AHEImpl implements KPoint
     
     /** Sets the point comment for this point. */
     public void setComment(String cmt)
-    { this.comment = cmt; }
+    { tmPut(COMMENT_KEY, cmt); }
     /** Gets the comment for this point, which defaults to null. */
     public String getComment()
-    { return this.comment; }
+    { return (String) tmGet(COMMENT_KEY); }
 //}}}
 
 //{{{ getDrawingColor
@@ -301,6 +337,7 @@ abstract public class AbstractPoint extends AHEImpl implements KPoint
     {
         KPaint paint = null, tmppaint = null;
         boolean byList = (engine.colorByList && parent != null);
+        String aspects = this.getAspects();
         boolean doAspects = (engine.activeAspect > 0
             && aspects != null
             && aspects.length() >= engine.activeAspect);
@@ -474,6 +511,65 @@ abstract public class AbstractPoint extends AHEImpl implements KPoint
         // The rotation of bits is my own idea
         return (b1 ^ b2 ^ b3);
         /* Old version */
+    }
+//}}}
+
+//{{{ tmGet, tmPut, tmRemove
+//##############################################################################
+    /**
+    * Returns the value associated with the given key,
+    * or null if this map does not contain that key.
+    */
+    Object tmGet(int key)
+    {
+        int keyMap = this.multi & TINYMAP_AND;
+        if(!TinyMap.contains(key, keyMap)) return null;
+        else return tmValues[TinyMap.indexOf(key, keyMap)];
+    }
+    
+    /**
+    * Associates a new value with key and returns the old value,
+    * or null if none was set.
+    */
+    Object tmPut(int key, Object value)
+    {
+        int keyMap = this.multi & TINYMAP_AND;
+        int i = TinyMap.indexOf(key, keyMap);
+        if(TinyMap.contains(key, keyMap))
+        {
+            Object old = tmValues[i];
+            tmValues[i] = value;
+            return old;
+        }
+        else
+        {
+            int tmValues_length = TinyMap.size(keyMap); //tmValues may be null!
+            this.multi |= (1 << key) & TINYMAP_AND;
+            Object[] newvals = new Object[tmValues_length+1];
+            for(int j = 0; j < i; j++) newvals[j] = tmValues[j];
+            newvals[i] = value;
+            for(int j = i; j < tmValues_length; j++) newvals[j+1] = tmValues[j];
+            tmValues = newvals;
+            return null;
+        }
+    }
+    
+    /** Removes the value for the given key, if present. */
+    Object tmRemove(int key)
+    {
+        int keyMap = this.multi & TINYMAP_AND;
+        if(!TinyMap.contains(key, keyMap)) return null;
+        
+        int i = TinyMap.indexOf(key, keyMap);
+        Object old = tmValues[i];
+        
+        this.multi &= ~((1 << key) & TINYMAP_AND);
+        Object[] newvals = new Object[tmValues.length-1];
+        for(int j = 0; j < i; j++) newvals[j] = tmValues[j];
+        for(int j = i+1; j < tmValues.length; j++) newvals[j-1] = tmValues[j];
+        tmValues = newvals;
+        if(tmValues.length == 0) tmValues = null; // just to save space
+        return old;
     }
 //}}}
 

@@ -74,6 +74,11 @@
     constant width font for text window?
     toggle animatable groups? [JNB]
   * change URL for auto-update tool
+    use TinyMap to support multi-D kinemages (keyMap = low 8 bits of multi)
+        KList / AGE needs a "dimension" field
+        Kinemage should have a list of @dimensions {label1} {label2} ... ?
+        Parser must recognize dimension= and store the coords
+        KinWriter should write dimension= for KLists / AGEs
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -86,6 +91,10 @@
   I'm not sure why this didn't work before.  Now we need to upgrade Win, Linux.
 - made KiNG's exported images 4x higher resolution.
   Should be easier to make figures now.
+- added TinyMap methods to AbstractPoint
+- moved aspects and pt comments to TinyMap storage.
+- added get/setAllCoords(), useCoordsXYZ() to KPoint, AbstractPoint, ProxyPoint
+- KinWriter checks getAllCoords() and writes those values if present
 
 ### 1.51 ###
 - fixed driftwood.moldb2.PdbSecondaryStucture bug (IndexOutOfBoundsEx)
