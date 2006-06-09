@@ -284,7 +284,14 @@ public class KinWriter //extends ... implements ...
         if(paint != null && paint != list.getColor())
             out.print(paint+" ");
         
-        out.println(df.format(point.getOrigX())+" "+df.format(point.getOrigY())+" "+df.format(point.getOrigZ()));
+        float[] coords = point.getAllCoords();
+        if(coords == null)
+            out.println(df.format(point.getOrigX())+" "+df.format(point.getOrigY())+" "+df.format(point.getOrigZ()));
+        else
+        {
+            for(int i = 0; i < coords.length; i++) out.print(df.format(coords[i])+" ");
+            out.println();
+        }
     }
 //}}}
 

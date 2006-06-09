@@ -93,6 +93,28 @@ public interface KPoint extends AHE, Cloneable, MutableTuple3
     public void setDrawXYZ(Tuple3 t);
 //}}}
 
+//{{{ get/setAllCoords, useCoordsXYZ
+//##################################################################################################
+    /**
+    * Stores an array of coordinates for "high-dimensional" points.
+    * The float[] is stored without cloning and so is subject to overwrite.
+    */
+    public void setAllCoords(float[] coords);
+    
+    /**
+    * Retrieves the "high-dimensional" coordinates of this point, or null if not set.
+    * The float[] is returned without cloning and so is subject to overwrite.
+    */
+    public float[] getAllCoords();
+    
+    /**
+    * Copies the high-dimensional coordinates at the specified indices
+    * into this point's (untransformed) X, Y, and Z fields.
+    * If a index is out of range (0-based), it is ignored and the value is not changed.
+    */
+    public void useCoordsXYZ(int xIndex, int yIndex, int zIndex);
+//}}}
+
 //{{{ get/setPrev, isBreak
 //##################################################################################################
     /**
