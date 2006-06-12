@@ -186,8 +186,14 @@ public class GeometryPlugin extends Plugin {
 	    //Integer numPep = Integer.valueOf(lowNumField.getText());
 	    //Writer w = new FileWriter(saveFile);
 	    //PrintWriter out = new PrintWriter(new BufferedWriter(w));
+	TreeSet files = new TreeSet();
 	    for (int i = 0; i < allFiles.length; i++) {
 		File pdbFile = allFiles[i];
+		files.add(pdbFile);
+	    }
+	    Iterator fileIter = files.iterator();
+	    while (fileIter.hasNext()) {
+		File pdbFile = (File) fileIter.next();
 		if (pdbFile.getName().indexOf(".kin") > -1) {
 		    reset();
 		    kMain.getKinIO().loadFile(pdbFile, null);
