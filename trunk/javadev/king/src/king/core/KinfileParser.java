@@ -57,6 +57,10 @@ public class KinfileParser //extends ... implements ...
     TreeMap bondRots = null;
     ArrayList closedBondRots = null;
     int nonIntCount = 1;
+    
+    // Used for high-dimensional kinemages
+    int groupDimension      = 3;
+    int subgroupDimension   = 3;
 //}}}
 
 //{{{ Constructor(s), parse
@@ -136,6 +140,7 @@ public class KinfileParser //extends ... implements ...
             else if(s.equals("@prekin"))                token.advanceToKeyword();//ignored
             else if(s.equals("@pdbfile"))               doPdbFile();
             else if(s.equals("@command"))               doCommand();
+            else if(s.equals("@dimensions"))            doDimensions();
             // VIEWS
             else if(s.endsWith("viewid"))               doViewID();
             else if(s.endsWith("zoom"))                 doZoom();
@@ -219,7 +224,7 @@ public class KinfileParser //extends ... implements ...
 
         bondRots = new TreeMap();
         closedBondRots = new ArrayList();
-
+        
         token.advance();
         while(!token.isEOF() && !token.isKeyword())
         {
@@ -261,6 +266,7 @@ public class KinfileParser //extends ... implements ...
         kinemage.add(group);
         subgroup    = null;
         list        = null;
+        groupDimension = 3;
         
         token.advance();
         // Entire @group must be on a single line
@@ -306,6 +312,11 @@ public class KinfileParser //extends ... implements ...
                     }
                     else error(s+" was not followed by an identifier");
                 }
+                else if(s.equals("dimension="))
+                {
+                    if(token.isInteger()) groupDimension = token.getInt();
+                    else error(s+" was not followed by an integer");
+                }
                 else error("Unrecognized property '"+s+" "+token.getString()+"' will be ignored");
                 token.advance(); // past value
             }
@@ -325,6 +336,7 @@ public class KinfileParser //extends ... implements ...
             kinemage.add(group);
             subgroup    = null;
             list        = null;
+            groupDimension = 3;
         }
     }
 //}}}
@@ -337,6 +349,7 @@ public class KinfileParser //extends ... implements ...
         subgroup = new KSubgroup(group, DEFAULT_GROUP_NAME);
         group.add(subgroup);
         list        = null;
+        subgroupDimension = 3;
         
         token.advance();
         // Entire @subgroup must be on a single line
@@ -380,6 +393,11 @@ public class KinfileParser //extends ... implements ...
                     }
                     else error(s+" was not followed by an identifier");
                 }
+                else if(s.equals("dimension="))
+                {
+                    if(token.isInteger()) subgroupDimension = token.getInt();
+                    else error(s+" was not followed by an integer");
+                }
                 else error("Unrecognized property '"+s+" "+token.getString()+"' will be ignored");
                 token.advance(); // past value
             }
@@ -398,6 +416,7 @@ public class KinfileParser //extends ... implements ...
             subgroup.setHasButton(false);
             group.add(subgroup);
             list        = null;
+            subgroupDimension = 3;
         }
     }
 //}}}
@@ -410,6 +429,10 @@ public class KinfileParser //extends ... implements ...
         list = new KList(subgroup, DEFAULT_GROUP_NAME);
         list.setType(kListType);
         subgroup.add(list);
+        
+        list.setDimension(3);
+        if(subgroupDimension != 3)      list.setDimension(subgroupDimension);
+        else if(groupDimension != 3)    list.setDimension(groupDimension);
         
         if(kListType == KList.MARK)     list.setStyle(MarkerPoint.SQUARE_L);
         
@@ -527,6 +550,11 @@ public class KinfileParser //extends ... implements ...
                     if(token.isInteger()) {} // useless property from legacy kins
                     else error("size= was not followed by an integer");
                 }
+                else if(s.equals("dimension="))
+                {
+                    if(token.isInteger()) list.setDimension(token.getInt());
+                    else error(s+" was not followed by an integer");
+                }
                 else error("Unrecognized property '"+s+" "+token.getString()+"' will be ignored");
                 token.advance(); // past value
             }
@@ -539,7 +567,7 @@ public class KinfileParser //extends ... implements ...
         KPoint prevPoint = null;
         while(!token.isEOF() && !token.isKeyword())
         {
-            prevPoint = doPoint(kListType, prevPoint);
+            prevPoint = doPoint(kListType, prevPoint, list.getDimension());
         }
 
         // only stores list as bondRot if bondRot mode is on.
@@ -552,7 +580,7 @@ public class KinfileParser //extends ... implements ...
 //{{{ doPoint
 //##################################################################################################
     /** Only called by doList() */
-    KPoint doPoint(String kListType, KPoint prevPoint) throws IOException
+    KPoint doPoint(String kListType, KPoint prevPoint, int dimension) throws IOException
     {
         KPoint point;
         String defaultPointID;
@@ -570,10 +598,17 @@ public class KinfileParser //extends ... implements ...
         else if(kListType.equals(KList.ARROW))      point = new ArrowPoint(list, defaultPointID, (VectorPoint)prevPoint);
         else throw new IllegalArgumentException("Unrecognized list type '"+kListType+"'");
 
+        float[] allCoords = null;
+        if(dimension > 3)
+        {
+            allCoords = new float[dimension];
+            point.setAllCoords(allCoords);
+        }
+
         boolean pointIdFound    = false;
         int     coordsFound     = 0;
-
-        while(!token.isEOF() && !token.isKeyword() && (!token.isIdentifier() || !pointIdFound) && coordsFound < 3)
+        
+        while(!token.isEOF() && !token.isKeyword() && (!token.isIdentifier() || !pointIdFound) && coordsFound < dimension)
         {
             if(token.isIdentifier())
             {
@@ -582,9 +617,11 @@ public class KinfileParser //extends ... implements ...
             }
             else if(token.isNumber())
             {
-                     if(coordsFound == 0)   point.setX(token.getFloat());
-                else if(coordsFound == 1)   point.setY(token.getFloat());
-                else if(coordsFound == 2)   point.setZ(token.getFloat());
+                float f = token.getFloat();
+                     if(coordsFound == 0)   point.setX(f);
+                else if(coordsFound == 1)   point.setY(f);
+                else if(coordsFound == 2)   point.setZ(f);
+                if(allCoords != null) allCoords[coordsFound] = f;
                 coordsFound++;
             }
             else if(token.isAspect())       point.setAspects(token.getString());
@@ -948,7 +985,7 @@ public class KinfileParser //extends ... implements ...
     }
 //}}}
 
-//{{{ doAspect
+//{{{ doAspect, doDimensions
 //##################################################################################################
     void doAspect() throws IOException
     {
@@ -974,6 +1011,18 @@ public class KinfileParser //extends ... implements ...
         { error("@aspect was not recognized; '"+key+"' is not an integer"); }
         catch(IllegalArgumentException ex)
         { error("@aspect was not followed by an identifier; found '"+token.getString()+"' instead"); }
+    }
+    
+    void doDimensions() throws IOException
+    {
+        checkKinemage();
+        token.advance();
+        if(token.isIdentifier()) while(token.isIdentifier())
+        {
+            kinemage.dimensionNames.add(token.getString());
+            token.advance();
+        }
+        else error("@dimensions was not followed by 1+ identifiers; found '"+token.getString()+"' instead");
     }
 //}}}
 

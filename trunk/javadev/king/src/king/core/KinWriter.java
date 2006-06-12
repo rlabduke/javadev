@@ -108,6 +108,14 @@ public class KinWriter //extends ... implements ...
             writeMaster((MasterGroup)iter.next(), kin);
         }
         
+        if(kin.dimensionNames.size() > 0)
+        {
+            out.print("@dimensions");
+            for(iter = kin.dimensionNames.iterator(); iter.hasNext(); )
+                out.print(" {"+iter.next()+"}");
+            out.println();
+        }
+        
         // etc.
         
         KGroup group;
@@ -226,6 +234,7 @@ public class KinWriter //extends ... implements ...
         {
             out.print(" master= {"+iter.next().toString()+"}");
         }
+        if(list.getDimension() != 3) out.print(" dimension= "+list.getDimension());
         out.println();
 
         KPoint point;
