@@ -49,6 +49,7 @@ public class KList extends AGE implements Cloneable
     public int      width   = 2;
     public int      flags   = 0;        // nohighlight for balls, style for markers, etc
     Object          clipMode = null;    // null for default, else some object key
+    int             dimension = 3;      // for high-dimensional kinemages
     
     // Parameters used for arrowlists; see ArrowPoint for explanation
     // of tine PERPendicular and PARallel components.
@@ -209,6 +210,11 @@ public class KList extends AGE implements Cloneable
     /** Sets the clipping mode for this list. */
     public void setClipMode(Object key)
     { this.clipMode = key; }
+    
+    /** Returns the nominal number of coordinates per point in this list. */
+    public int getDimension() { return this.dimension; }
+    /** Sets the nominal number of coordinates per point in this list. */
+    public void setDimension(int d) { this.dimension = d; }
 //}}}
 
 //{{{ add, clear
