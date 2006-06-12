@@ -118,7 +118,7 @@ public class KinUtil {
 	    }
 	}
 	// one pass to see if there are any straight up ints in the name
-	for (int i = 0; i < parsed.length; i++) {
+	for (int i = parsed.length - 1; i > -1; i--) {
 	    String parseValue = parsed[i];
 	    //System.out.println(parseValue + ", " + i);
 	    if (isInteger(parseValue)) {
