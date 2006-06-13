@@ -141,6 +141,7 @@ public class KinfileParser //extends ... implements ...
             else if(s.equals("@pdbfile"))               doPdbFile();
             else if(s.equals("@command"))               doCommand();
             else if(s.equals("@dimensions"))            doDimensions();
+            else if(s.equals("@dimension"))             doDimensions(); //deprecated
             // VIEWS
             else if(s.endsWith("viewid"))               doViewID();
             else if(s.endsWith("zoom"))                 doZoom();

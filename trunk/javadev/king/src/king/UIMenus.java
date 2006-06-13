@@ -312,6 +312,11 @@ public class UIMenus //extends ... implements ...
             item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, MENU_ACCEL_MASK | KeyEvent.SHIFT_MASK));
             menu.add(item);
             menu.addSeparator();
+            item = new JMenuItem(new ReflectiveAction("Choose viewing axes...", null, this, "onViewChooseAxes"));
+            item.setMnemonic(KeyEvent.VK_C);
+            //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, MENU_ACCEL_MASK | KeyEvent.SHIFT_MASK));
+            menu.add(item);
+            menu.addSeparator();
             
             JMenu currMenu = menu;
             for(int i = 1; viewiter.hasNext(); i++)
@@ -625,6 +630,12 @@ public class UIMenus //extends ... implements ...
     public void onViewEdit(ActionEvent ev)
     {
         viewEditor.editViews();
+    }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onViewChooseAxes(ActionEvent ev)
+    {
+        new AxisChooser(kMain, kMain.getKinemage());
     }
 //}}}
 

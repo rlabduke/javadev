@@ -43,6 +43,8 @@ public class Kinemage extends AGE // implements ...
     // Other information fields often contained in a kinemage
     public String  atPdbfile           = null;
     public String  atCommand           = null;
+    
+    // Collection<String> of labels for high-D kins
     public Collection dimensionNames   = new ArrayList();
     
     KingView        currView    = null;
