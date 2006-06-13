@@ -74,9 +74,8 @@
     constant width font for text window?
     toggle animatable groups? [JNB]
   * change URL for auto-update tool
-    use TinyMap to support multi-D kinemages (keyMap = low 8 bits of multi)
-        Any way to *edit* this from within KiNG?
-    document dimension= #, @dimension, etc.
+    document dimension= #, @dimension(s), etc.
+    @#axischoice # # # (1-based indexes)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -97,6 +96,8 @@
 - KinfileParser can now read dimension= at any level and store it in the list
 - KinWriter writes out dimension= for lists that have it != 3
 - added support for @dimensions to parser, writer, and Kinemage
+- added AxisChooser and Views | Choose axes... menu item
+- allowed @dimension as an alias for @dimensions
 
 ### 1.51 ###
 - fixed driftwood.moldb2.PdbSecondaryStucture bug (IndexOutOfBoundsEx)
