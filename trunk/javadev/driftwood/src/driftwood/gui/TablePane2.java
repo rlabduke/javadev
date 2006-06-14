@@ -224,10 +224,9 @@ public class TablePane2 extends JPanel // implements ...
             gbc.gridheight  = Math.max(1, gridheight);
             
             Component ret = addWithConstraints(c, gbc);
-            gbc = (GridBagConstraints) gbcDefault.clone();
-            
             markCellsAsOccupied(c, gbc);
             gridx++;
+            gbc = (GridBagConstraints) gbcDefault.clone();
             
             return ret;
         }

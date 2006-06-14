@@ -64,15 +64,17 @@
     Add a movieFade() to beanking for doing transitions!
     Use E+H 2000 geometry for Pro?
     Do something about multiple copies of Driftwood classes -- in every JAR
+    Add per-kinemage viewing transform (aniso axes)
+        But you might want to affect some groups and not others, and it makes
+        picking / translating / measuring / etc weird.
+        Better to actually scale the coords using Hierarchy | Transform.
 <!-- Postponed TO DO items }}} -->
     Open PDB in model manager without opening kinemage first?
     Open/save PDB from/to network
     Allow dragging waters/ions from chiropraxis?
-    add per-kinemage viewing transform (aniso axes)
-    integrate multichart into KiNG, COOT
+    integrate multichart into KiNG?
     build pkgs that don't require installing
     constant width font for text window?
-    toggle animatable groups? [JNB]
   * change URL for auto-update tool
     document dimension= #, @dimension(s), etc.
     @#axischoice # # # (1-based indexes)
@@ -80,6 +82,10 @@
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 1.53 ###
+- added drag-n-drop support to JoglCanvas, so now DnD works in OpenGL mode
+- added aniso scaling to Hierarchy | Transform
 
 ### 1.52 ###
 - changed all JOGL calls over the new "JSR" standard

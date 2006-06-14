@@ -311,7 +311,6 @@ public class UIMenus //extends ... implements ...
             item.setMnemonic(KeyEvent.VK_E);
             item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, MENU_ACCEL_MASK | KeyEvent.SHIFT_MASK));
             menu.add(item);
-            menu.addSeparator();
             item = new JMenuItem(new ReflectiveAction("Choose viewing axes...", null, this, "onViewChooseAxes"));
             item.setMnemonic(KeyEvent.VK_C);
             //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, MENU_ACCEL_MASK | KeyEvent.SHIFT_MASK));

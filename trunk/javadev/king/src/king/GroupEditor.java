@@ -68,12 +68,12 @@ public class GroupEditor implements ChangeListener
     // Transform
     JDialog         trDialog;
     boolean         trFirstShow     = true;
-    GridBagPanel    trPanel;
+    TablePane2      trPanel;
     JTextField      trTransX, trTransY, trTransZ; // translate, not transform
     JTextField      trRotX,   trRotY,   trRotZ;
-    JTextField      trScale;
+    JTextField      trScale, trScaleX, trScaleY, trScaleZ;
     JCheckBox       trAboutOrigin;
-    JButton         trBtnTrans, trBtnRot, trBtnScale, trClose;
+    JButton         trBtnTrans, trBtnRot, trBtnAniso, trBtnScale, trClose;
     AGE             trTarget        = null;
     
     boolean acceptChanges = false;
@@ -281,33 +281,45 @@ public class GroupEditor implements ChangeListener
         trRotY      = new JTextField(6);
         trRotZ      = new JTextField(6);
         trScale     = new JTextField(6);
+        trScaleX    = new JTextField(6);
+        trScaleY    = new JTextField(6);
+        trScaleZ    = new JTextField(6);
         
         trBtnTrans  = new JButton(new ReflectiveAction("Translate", null, this, "onTransformTranslate"));
         trBtnRot    = new JButton(new ReflectiveAction("Rotate", null, this, "onTransformRotate"));
+        trBtnAniso  = new JButton(new ReflectiveAction("Stretch", null, this, "onTransformAnisoScale"));
         trBtnScale  = new JButton(new ReflectiveAction("Scale", null, this, "onTransformScale"));
         trClose     = new JButton(new ReflectiveAction("Close", null, this, "onTransformClose"));
         trAboutOrigin = new JCheckBox("Rotate/scale about origin", false);
         
-        trPanel = new GridBagPanel();
-        trPanel.gbc.insets = new Insets(2,2,2,2);
-        trPanel.gbc.weightx = trPanel.gbc.weighty = 1.0;
-        trPanel.add(new JLabel("X"), 0, 0);
-        trPanel.add(new JLabel("Y"), 1, 0);
-        trPanel.add(new JLabel("Z"), 2, 0);
-        trPanel.add(trTransX, 0, 1);
-        trPanel.add(trTransY, 1, 1);
-        trPanel.add(trTransZ, 2, 1);
-        trPanel.add(trRotX, 0, 2);
-        trPanel.add(trRotY, 1, 2);
-        trPanel.add(trRotZ, 2, 2);
-        trPanel.span(2,1).add(new JLabel("Scale factor:"), 0, 3);
-        trPanel.add(trScale, 2, 3);
-        trPanel.span(4,1).add(trAboutOrigin, 0, 4);
-        trPanel.span(4,1).add(trClose, 0, 5);
-        trPanel.gbc.fill = GridBagConstraints.HORIZONTAL;
-        trPanel.add(trBtnTrans, 3, 1);
-        trPanel.add(trBtnRot, 3, 2);
-        trPanel.add(trBtnScale, 3, 3);
+        trPanel = new TablePane2();
+        trPanel.insets(2).weights(1,1).memorize();
+        trPanel.add(new JLabel("X"));
+        trPanel.add(new JLabel("Y"));
+        trPanel.add(new JLabel("Z"));
+        trPanel.newRow();
+        trPanel.add(trTransX);
+        trPanel.add(trTransY);
+        trPanel.add(trTransZ);
+        trPanel.hfill(true).add(trBtnTrans);
+        trPanel.newRow();
+        trPanel.add(trRotX);
+        trPanel.add(trRotY);
+        trPanel.add(trRotZ);
+        trPanel.hfill(true).add(trBtnRot);
+        trPanel.newRow();
+        trPanel.add(trScaleX);
+        trPanel.add(trScaleY);
+        trPanel.add(trScaleZ);
+        trPanel.hfill(true).add(trBtnAniso);
+        trPanel.newRow();
+        trPanel.center().add(new JLabel("Scale factor:"), 2, 1);
+        trPanel.add(trScale);
+        trPanel.hfill(true).add(trBtnScale);
+        trPanel.newRow();
+        trPanel.center().add(trAboutOrigin, 4, 1);
+        trPanel.newRow();
+        trPanel.center().add(trClose, 4, 1);
         
         trDialog.setContentPane(trPanel);
     }
@@ -337,6 +349,9 @@ public class GroupEditor implements ChangeListener
         trRotY.setText("0.0");
         trRotZ.setText("0.0");
         trScale.setText("1.0");
+        trScaleX.setText("1.0");
+        trScaleY.setText("1.0");
+        trScaleZ.setText("1.0");
     }
 //}}}
 
@@ -671,7 +686,40 @@ public class GroupEditor implements ChangeListener
         {
             float s;
             s = Float.parseFloat(trScale.getText().trim());
-            scale(trTarget, x, y, z, s);
+            scale(trTarget, x, y, z, s, s, s);
+            markKinModified(trTarget);
+        }
+        catch(NumberFormatException ex) {}
+        
+        trClearFields();
+        kMain.notifyChange(KingMain.EM_EDIT_FINE);
+    }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onTransformAnisoScale(ActionEvent ev)
+    {
+        float[] bounds = { Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY,
+        Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY };
+        float x, y, z;
+        
+        if(trAboutOrigin.isSelected())
+        {
+            x = y = z = 0;
+        }
+        else
+        {
+            trTarget.calcBoundingBox(bounds);
+            x = (bounds[3] + bounds[0])/2f;
+            y = (bounds[4] + bounds[1])/2f;
+            z = (bounds[5] + bounds[2])/2f;
+        }
+        
+        try
+        {
+            float sx = Float.parseFloat(trScaleX.getText().trim());
+            float sy = Float.parseFloat(trScaleY.getText().trim());
+            float sz = Float.parseFloat(trScaleZ.getText().trim());
+            scale(trTarget, x, y, z, sx, sy, sz);
             markKinModified(trTarget);
         }
         catch(NumberFormatException ex) {}
@@ -748,20 +796,22 @@ public class GroupEditor implements ChangeListener
     * Points are scaled such that (x,y,z) remains fixed in space
     * and other points expand/contract around it.
     */
-    public static void scale(AGE target, float x, float y, float z, float s)
+    public static void scale(AGE target, float x, float y, float z, float sx, float sy, float sz)
     {
         KPoint pt;
         Iterator iter;
         
         if(target instanceof KList)
         {
+            // There's no perfect answer here, but this seems reasonable at least...
+            float s = (float) Math.sqrt((sx*sx + sy*sy + sz*sz)/3.0);
             ((KList)target).radius *= s;
             for(iter = target.iterator(); iter.hasNext(); )
             {
                 pt = (KPoint)iter.next();
-                pt.setOrigX( (pt.getOrigX()-x)*s + x);
-                pt.setOrigY( (pt.getOrigY()-y)*s + y);
-                pt.setOrigZ( (pt.getOrigZ()-z)*s + z);
+                pt.setOrigX( (pt.getOrigX()-x)*sx + x);
+                pt.setOrigY( (pt.getOrigY()-y)*sy + y);
+                pt.setOrigZ( (pt.getOrigZ()-z)*sz + z);
                 if(pt instanceof BallPoint) ((BallPoint)pt).r0 *= s;
             }
         }
@@ -769,7 +819,7 @@ public class GroupEditor implements ChangeListener
         {
             for(iter = target.iterator(); iter.hasNext(); )
             {
-                scale((AGE)iter.next(), x, y, z, s);
+                scale((AGE)iter.next(), x, y, z, sx, sy, sz);
             }
         }
     }
