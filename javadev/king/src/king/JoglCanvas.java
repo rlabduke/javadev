@@ -72,6 +72,9 @@ public class JoglCanvas extends JPanel implements GLEventListener, TransformSign
         this.engine = engine;
         this.toolbox = toolbox;
         
+        // Java 1.4+ only! - adds support for Drag & Drop to the canvas
+        new FileDropHandler(kMain, this);
+        
         // Create and listen to an OpenGL canvas
         GLCapabilities capabilities = new GLCapabilities();
         capabilities.setDoubleBuffered(true); // usually enabled by default, but to be safe...

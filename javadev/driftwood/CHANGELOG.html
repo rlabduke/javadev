@@ -40,6 +40,8 @@ UTIL: {{{
 - fixed AminoAcid.getPhi/Psi() to check distance to next/prev residue.
   This prevents spurious Rama outliers at chain breaks.
 - added data.TinyMap, which will be used for rare kinemage point properties.
+- fixed a bug in TablePane2 where we restored the default GridBag constraints
+  before using the modified ones to mark occupied cells. This leads to overlap.
 
 ### 0.75 ###
 - we now allow redefinition of identically named residues in a PDB file,

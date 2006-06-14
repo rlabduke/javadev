@@ -34,7 +34,7 @@ public class FileDropHandler extends TransferHandler
 
 //{{{ Constructor(s)
 //##############################################################################
-    public FileDropHandler(KingMain kMain, KinCanvas kCanvas)
+    public FileDropHandler(KingMain kMain, JComponent kCanvas)
     {
         super();
         this.kMain = kMain;
