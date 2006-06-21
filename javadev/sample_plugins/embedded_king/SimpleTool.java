@@ -42,32 +42,41 @@ public class SimpleTool extends king.BasicTool
     /** Override this function for (left-button) clicks */
     public void click(int x, int y, KPoint p, MouseEvent ev)
     {
+        // optional:
+        //super.click(x, y, p, ev);
+        
+        if(p != null)
+        {
+            if(p.getColor() == KPalette.hotpink) p.setColor(null);
+            else p.setColor(KPalette.hotpink);
+        }
+        kMain.getKinemage().signal.signalKinemage(kMain.getKinemage(), KinemageSignal.APPEARANCE);
     }
     
     /** Override this function for right-button/shift clicks */
-    //public void s_click(int x, int y, KPoint p, MouseEvent ev)
+    //public void s_click(int x, int y, KPoint p, MouseEvent ev) {}
     /** Override this function for middle-button/control clicks */
-    //public void c_click(int x, int y, KPoint p, MouseEvent ev)
+    //public void c_click(int x, int y, KPoint p, MouseEvent ev) {}
     /** Override this function for shift-control clicks */
-    //public void sc_click(int x, int y, KPoint p, MouseEvent ev)
+    //public void sc_click(int x, int y, KPoint p, MouseEvent ev) {}
 
     /** Override this function for (left-button) drags */
-    //public void drag(int dx, int dy, MouseEvent ev)
+    //public void drag(int dx, int dy, MouseEvent ev) {}
     /** Override this function for right-button/shift drags */
-    //public void s_drag(int dx, int dy, MouseEvent ev)
+    //public void s_drag(int dx, int dy, MouseEvent ev) {}
     /** Override this function for middle-button/control drags */
-    //public void c_drag(int dx, int dy, MouseEvent ev)
+    //public void c_drag(int dx, int dy, MouseEvent ev) {}
     /** Override this function for shift-control drags */
-    //public void sc_drag(int dx, int dy, MouseEvent ev)
+    //public void sc_drag(int dx, int dy, MouseEvent ev) {}
 
     /** Override this function for mouse wheel motion */
-    //public void wheel(int rotation, MouseEvent ev)
+    //public void wheel(int rotation, MouseEvent ev) {}
     /** Override this function for mouse wheel motion with shift down */
-    //public void s_wheel(int rotation, MouseEvent ev)
+    //public void s_wheel(int rotation, MouseEvent ev) {}
     /** Override this function for mouse wheel motion with control down */
-    //public void c_wheel(int rotation, MouseEvent ev)
+    //public void c_wheel(int rotation, MouseEvent ev) {}
     /** Override this function for mouse wheel motion with shift AND control down */
-    //public void sc_wheel(int rotation, MouseEvent ev)
+    //public void sc_wheel(int rotation, MouseEvent ev) {}
 //}}}
 
 //{{{ toString
