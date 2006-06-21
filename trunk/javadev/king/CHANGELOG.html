@@ -78,6 +78,9 @@
   * change URL for auto-update tool
     document dimension= #, @dimension(s), etc.
     @#axischoice # # # (1-based indexes)
+        choice when saving views
+    implement RingLists; can't subclass BallPoint b/c no line shortening
+ ** create sample embedded graphics app (for Homme / Dezymer)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -86,6 +89,9 @@
 ### 1.53 ###
 - added drag-n-drop support to JoglCanvas, so now DnD works in OpenGL mode
 - added aniso scaling to Hierarchy | Transform
+- added machinery for views to store choice of viewing axes
+- fixed some dependency-related bugs for axis selection vs. views
+- made buttons, sliders optional for ContentPane
 
 ### 1.52 ###
 - changed all JOGL calls over the new "JSR" standard

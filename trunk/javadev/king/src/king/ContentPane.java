@@ -25,6 +25,7 @@ public class ContentPane extends JPanel // implements ...
     KingMain kMain = null;
     JScrollPane buttonScroll = null;
     JSplitPane minorSplit = null; // hold buttons and graphics area
+    JSplitPane majorSplit = null; // hold minor split and zoom/clip sliders
 //}}}
 
 //{{{ Constructor
@@ -80,31 +81,50 @@ public class ContentPane extends JPanel // implements ...
 
 //{{{ buildGUI()
 //##################################################################################################
+    /** Defaults to showing both button panel and slider panel */
+    public void buildGUI() { buildGUI(true, true); }
+
     /**
     * Called after the constructor has finished, this starts a cascade that creates all subcomponents and initializes them.
     * After calling this, be sure to call pack() and setVisible(true) to make everything appear on screen.
     */
-    public void buildGUI()
+    public void buildGUI(boolean useButtons, boolean useSliders)
     {
         Container content = this;
-        Component graphicsArea, buttonArea, bottomArea;
-        JSplitPane majorSplit;
+        Component graphicsArea, buttonArea, topArea, bottomArea, totalArea;
         
         // Build major sub-components
         graphicsArea = buildGraphicsArea();
         buttonArea = buildButtons();
         bottomArea = buildBottomArea();
         
-        // Build spliters
-        minorSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, graphicsArea, buttonArea);
-        minorSplit.setOneTouchExpandable(true);
-        minorSplit.setResizeWeight(1.0); // gives all extra space to the left side (graphics)
-        majorSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, minorSplit, bottomArea);
-        majorSplit.setOneTouchExpandable(true);
-        majorSplit.setResizeWeight(1.0); // gives all extra space to the top side (graphics)
+        // Build top component -- horizontal splitter
+        if(useButtons)
+        {
+            minorSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, graphicsArea, buttonArea);
+            minorSplit.setOneTouchExpandable(true);
+            minorSplit.setResizeWeight(1.0); // gives all extra space to the left side (graphics)
+            topArea = minorSplit;
+        }
+        else
+        {
+            minorSplit = null;
+            topArea = graphicsArea;
+        }
         
-        // Assemble sub-components
-        content.add(majorSplit, BorderLayout.CENTER);
+        // Build total GUI -- vertical splitter
+        if(useSliders)
+        {
+            majorSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topArea, bottomArea);
+            majorSplit.setOneTouchExpandable(true);
+            majorSplit.setResizeWeight(1.0); // gives all extra space to the top side (graphics)
+            content.add(majorSplit, BorderLayout.CENTER);
+        }
+        else
+        {
+            majorSplit = null;
+            content.add(topArea, BorderLayout.CENTER);
+        }
     }
 //}}}
 
@@ -119,12 +139,23 @@ public class ContentPane extends JPanel // implements ...
     /** Sets the component that will occupy KinCanvas's usual space */
     public void setGraphicsComponent(Component c)
     {
-        minorSplit.setLeftComponent(c);
+        if(minorSplit == null)
+        {
+            if(majorSplit == null) this.add(c, BorderLayout.CENTER);
+            else majorSplit.setTopComponent(c);
+        }
+        else minorSplit.setLeftComponent(c);
     }
+    
     /** Gets the component currently acting as the drawing surface */
     public Component getGraphicsComponent()
     {
-        return minorSplit.getLeftComponent();
+        if(minorSplit == null)
+        {
+            if(majorSplit == null) return this.getComponents()[0];
+            else return majorSplit.getTopComponent();
+        }
+        else return minorSplit.getLeftComponent();
     }
 //}}}
     
