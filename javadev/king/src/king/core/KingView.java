@@ -3,7 +3,7 @@ package king.core;
 import java.awt.event.*;
 import java.io.*;
 //import java.text.*;
-//import java.util.*;
+import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
@@ -51,6 +51,9 @@ public class KingView
     public float R11 = 1f, R12 = 0f, R13 = 0f, R21 = 0f, R22 = 1f, R23 = 0f, R31 = 0f, R32 = 0f, R33 = 1f;
     /** The center of rotation, in real-space. Call compile() before using them! */
     public float cx = 0f, cy = 0f, cz = 0f;
+    
+    /** 0-based indices of which viewing axes to use when this view is activated. */
+    int[] viewingAxes = null; // null -> don't change axes when selected
     
     // A counter for when this matrix needs to be 'cleaned'
     int nUpdates = 0;
@@ -381,12 +384,73 @@ public class KingView
     }
 //}}}
 
-//{{{ UI (Views menu) interaction
+//{{{ selectedFromMenu, get/setViewingAxes
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void selectedFromMenu(ActionEvent ev)
     {
-        if(parent != null) parent.notifyViewSelected(this);
+        if(parent != null)
+        {
+            parent.notifyViewSelected(this);
+            
+            if(viewingAxes != null)
+                setAxes(parent, viewingAxes[0], viewingAxes[1], viewingAxes[2]);
+        }
     }
+    
+    /**
+    * Stores a set of 0-based indices for the coordinates axes that should be
+    * placed into X, Y, Z when this view is activated.
+    * Indices are stored as an int[3], or null (meaning no change).
+    * This does NOT automatically update the coordinates in the kinemage,
+    * even if called on the currently active view.
+    * Coordinates ARE automatically updated when this view is next chosen from the menu.
+    */
+    public void setViewingAxes(int[] indices)
+    {
+        if(indices == null) this.viewingAxes = null;
+        else this.viewingAxes = (int[]) indices.clone();
+    }
+    
+    /** Returns the value set by setViewingAxes() (may be null) */
+    public int[] getViewingAxes() { return this.viewingAxes; }
+//}}}
+
+//{{{ setAxes, getKinDimension
+//##############################################################################
+    /**
+    * Copies the high-dimensional coordinates at the specified indices
+    * into all point's (untransformed) X, Y, and Z fields.
+    * If a index is out of range (0-based), it is ignored and the value is not changed.
+    */
+    static public void setAxes(Kinemage kin, int xIndex, int yIndex, int zIndex)
+    {
+        for(Iterator gi = kin.iterator(); gi.hasNext(); )
+        {
+            KGroup group = (KGroup) gi.next();
+            for(Iterator si = group.iterator(); si.hasNext(); )
+            {
+                KSubgroup subgroup = (KSubgroup) si.next();
+                for(Iterator li = subgroup.iterator(); li.hasNext(); )
+                {
+                    KList list = (KList) li.next();
+                    // We will miss points with extra coordinates if
+                    // list.dimension wasn't set...
+                    if(list.getDimension() <= 3) continue;
+                    for(Iterator pi = list.iterator(); pi.hasNext(); )
+                    {
+                        KPoint pt = (KPoint) pi.next();
+                        pt.useCoordsXYZ(xIndex, yIndex, zIndex);
+                    }
+                }
+            }
+        }
+        kin.getCurrentView().setViewingAxes(new int[] {xIndex, yIndex, zIndex});
+        kin.signal.signalKinemage(kin, KinemageSignal.APPEARANCE);
+    }
+//}}}
+
+//{{{ empty_code_segment
+//##############################################################################
 //}}}
 }//class

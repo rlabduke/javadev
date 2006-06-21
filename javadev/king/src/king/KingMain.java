@@ -26,6 +26,14 @@ import driftwood.gui.*;
 */
 public class KingMain implements WindowListener, KinemageSignalSubscriber
 {
+    static
+    {
+        // This allows JMenus to overlap the JOGL canvas, which stopped
+        // happening automatically with the release of Java 1.5.
+        // This should happen once, before any KingMains are created.
+        JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+    }
+    
     public static void main(String[] args) { new KingMain(args).Main(); }
     
 //{{{ Event masks
@@ -73,6 +81,9 @@ public class KingMain implements WindowListener, KinemageSignalSubscriber
     
 //{{{ Constructors
 //##################################################################################################
+    /** Simple constructor for embedded apps */
+    public KingMain() { this(new String[] {}); }
+    
     /**
     * Constructor for application
     */
@@ -97,7 +108,7 @@ public class KingMain implements WindowListener, KinemageSignalSubscriber
         prefs           = new KingPrefs();
         theApplet       = plet;
         isAppletFlat    = isFlat;
-
+        
         // Load custom config from URL
         String king_prefs = theApplet.getParameter("king_prefs");
         if(king_prefs != null) try
@@ -109,6 +120,29 @@ public class KingMain implements WindowListener, KinemageSignalSubscriber
         { SoftLog.err.println("<PARAM> king_prefs specified an unresolvable URL."); }
 
         instanceCount++;
+    }
+//}}}
+
+//{{{ createComponents
+//##################################################################################################
+    public void createComponents() { createComponents(true, true); }
+
+    /**
+    * Creates all the major components of a running KiNG instance:
+    * KinStable, ContentPane, KinfileIO, KinCanvas, UIMenus, UIText, KinTree.
+    * Call this after the constructor but before trying to assemble the overall GUI.
+    */
+    public void createComponents(boolean useButtons, boolean useSliders)
+    {
+        kinStable   = new KinStable(this);
+        contentPane = new ContentPane(this);    // doesn't create GUI yet
+        kinIO       = new KinfileIO(this);      // progress dlg. references main window
+        kinCanvas   = new KinCanvas(this);
+        uiMenus     = new UIMenus(this);
+        uiText      = new UIText(this);
+        kinTree     = new KinTree(this);
+
+        contentPane.buildGUI(useButtons, useSliders);
     }
 //}}}
 
@@ -150,10 +184,6 @@ public class KingMain implements WindowListener, KinemageSignalSubscriber
             //System.err.println("Current dir: "+System.getProperty("user.dir"));
         } catch(Exception ex) {}//{ ex.printStackTrace(); }
         
-        // This allows JMenus to overlap the JOGL canvas, which stopped
-        // happening automatically with the release of Java 1.5.
-        JPopupMenu.setDefaultLightWeightPopupEnabled(false);
-        
         // It's just too hard to change this after we've already started up!
         float magnification = prefs.getFloat("fontMagnification");
         if(magnification != 1)
@@ -168,17 +198,10 @@ public class KingMain implements WindowListener, KinemageSignalSubscriber
         if(!SoftLog.replaceSystemStreams())
             SoftLog.err.println("Unable to subvert System.err; some exception traces may be lost.");
         
-        kinStable   = new KinStable(this);
         if(theApplet == null || !isAppletFlat)
-            mainWin = new MainWindow(this);     // doesn't create GUI yet, but other dlgs depend on this one
-        contentPane = new ContentPane(this);    // doesn't create GUI yet
-        kinIO       = new KinfileIO(this);      // progress dlg. references main window
-        kinCanvas   = new KinCanvas(this);
-        uiMenus     = new UIMenus(this);
-        uiText      = new UIText(this);
-        kinTree     = new KinTree(this);
+            mainWin = new MainWindow(this); // doesn't create GUI yet, but other dlgs may depend on this one (?)
+        createComponents(); // actually creates most of the stuff KiNG uses
 
-        contentPane.buildGUI();
         if(theApplet == null || !isAppletFlat)
         {
             mainWin.setContentPane(contentPane);

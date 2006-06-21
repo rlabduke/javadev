@@ -99,7 +99,7 @@ public class AxisChooser //extends ... implements ...
         int xIndex = Math.max(0, xAxisList.getSelectedIndex());
         int yIndex = Math.max(1, yAxisList.getSelectedIndex());
         int zIndex = Math.max(2, zAxisList.getSelectedIndex());
-        setAxes(kin, xIndex, yIndex, zIndex);
+        KingView.setAxes(kin, xIndex, yIndex, zIndex);
     }
 //}}}
 
@@ -107,38 +107,8 @@ public class AxisChooser //extends ... implements ...
 //##############################################################################
 //}}}
 
-//{{{ setAxes, getKinDimension
+//{{{ getKinDimension
 //##############################################################################
-    /**
-    * Copies the high-dimensional coordinates at the specified indices
-    * into all point's (untransformed) X, Y, and Z fields.
-    * If a index is out of range (0-based), it is ignored and the value is not changed.
-    */
-    static public void setAxes(Kinemage kin, int xIndex, int yIndex, int zIndex)
-    {
-        for(Iterator gi = kin.iterator(); gi.hasNext(); )
-        {
-            KGroup group = (KGroup) gi.next();
-            for(Iterator si = group.iterator(); si.hasNext(); )
-            {
-                KSubgroup subgroup = (KSubgroup) si.next();
-                for(Iterator li = subgroup.iterator(); li.hasNext(); )
-                {
-                    KList list = (KList) li.next();
-                    // We will miss points with extra coordinates if
-                    // list.dimension wasn't set...
-                    if(list.getDimension() <= 3) continue;
-                    for(Iterator pi = list.iterator(); pi.hasNext(); )
-                    {
-                        KPoint pt = (KPoint) pi.next();
-                        pt.useCoordsXYZ(xIndex, yIndex, zIndex);
-                    }
-                }
-            }
-        }
-        kin.signal.signalKinemage(kin, KinemageSignal.APPEARANCE);
-    }
-    
     /**
     * Figures out how many axes are present in this kinemage (i.e. its dimension).
     */

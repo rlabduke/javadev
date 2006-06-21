@@ -1,0 +1,15 @@
+#!/bin/sh
+
+if [ ! -e king.jar ]; then
+    echo
+    echo "*** 'king.jar' must exist in this directory! ***"
+    echo
+    exit
+fi
+
+javac -classpath king.jar *.java \
+&& java -cp king.jar:. SimpleApp
+
+#&& jar uvf beanking.jar *.class *.bsh META-INF/services/king.Plugin king/king_prefs \
+#&& cp -v beanking.jar ../../king/plugins/
+

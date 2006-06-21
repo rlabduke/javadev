@@ -618,6 +618,10 @@ public class UIMenus //extends ... implements ...
         if(view == null) return;
         view = (KingView)view.clone();
         view.setID(viewname);
+        
+        // User should choose to save axes positions or not -- for now, not
+        view.setViewingAxes(null);
+        
         Kinemage kin = kMain.getKinemage();
         if(kin == null) return;
         kin.addView(view);
