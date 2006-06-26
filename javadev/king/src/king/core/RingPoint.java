@@ -14,19 +14,21 @@ import java.util.*;
 import driftwood.r3.*;
 //}}}
 /**
-* <code>BallPoint</code> represents a 3-D sphere.
-* It implements Mage balllists.
+* <code>RingPoint</code> represents a screen-oriented annulus around a particular point.
+* Ring size scales up and down like balls; i.e. it's a real size rather than a display size.
+* It implements Mage ringlists.
 *
 * <p>Begun on Sat Apr 27 11:02:02 EDT 2002
 * <br>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
 */
-public class BallPoint extends RingPoint // implements ...
+public class RingPoint extends AbstractPoint // implements ...
 {
 //{{{ Constants
 //}}}
 
 //{{{ Variable definitions
 //##################################################################################################
+    public float r0 = 0f, r = 0f; // radius ( r0 >= 0 => use list radius )
 //}}}
 
 //{{{ Constructor(s)
@@ -37,14 +39,30 @@ public class BallPoint extends RingPoint // implements ...
     * @param list the list that contains this point
     * @param label the pointID of this point
     */
-    public BallPoint(KList list, String label)
+    public RingPoint(KList list, String label)
     {
         super(list, label);
     }
 //}}}
     
+//{{{ get/setRadius
+//##################################################################################################
+    /** Sets the radius of this point, if applicable */
+    public void setRadius(float radius)
+    {
+        if(radius >= 0) r0 = radius;
+    }
+    
+    public float getRadius()
+    { return r0; }
+//}}}
+
 //{{{ signalTransform
 //##################################################################################################
+    /** Rings require a zoom factor, so this throws UnsupportedOperationException */
+    public void signalTransform(Engine engine, Transform xform)
+    { throw new UnsupportedOperationException(this.getClass()+".signalTransform() requires a zoom factor"); }
+    
     /**
     * A call to this method indicates the subscriber
     * should transform its coordinates from model-space
@@ -64,13 +82,29 @@ public class BallPoint extends RingPoint // implements ...
     */
     public void signalTransform(Engine engine, Transform xform, double zoom)
     {
-        // RingPoint signal transform handles most stuff
-        super.signalTransform(engine, xform, zoom);
+        // Don't call super.signalTransform() b/c we do it all here
+        
+        if(r0 <= 0 && parent != null) r = (float)(parent.radius * zoom);
+        else                          r = (float)(r0 * zoom);
+        xform.transform(this, engine.work1);
+        setDrawXYZ(engine.work1);
 
-        // We still need to ask for line shortening, though
-        // Otherwise we create gaps around lines when our pointmaster is off.
-        // If ball is translucent, we should see line going to its center (?)
-        if(!this.getDrawingColor(engine).isInvisible() && (parent == null || parent.alpha > 192)) engine.addShortener(this, r);
+        if(engine.usePerspective)
+        {
+            // multiply radius by perspDist/(perspDist - originalZ)
+            // This is a very subtle effect -- barely notable.
+            r *= (engine.perspDist) / (engine.perspDist - z);
+            
+            // This is the old code -- seems to be wrong. (031017)
+            //r *= (engine.perspDist + z) / engine.perspDist;
+        }
+        
+        // Can't handle (artificial) thickness cues here
+        // b/c engine.widthCue isn't set yet.
+        
+        engine.addPaintable(this, z);
+        
+        // Rings don't do line shortening around them -- the point is to see the center.
     }
 //}}}
 
@@ -86,13 +120,16 @@ public class BallPoint extends RingPoint // implements ...
     */
     public KPoint isPickedBy(float xx, float yy, float radius, boolean objPick)
     {
-        // We have this goofy call to the AbstractPoint implementation
-        // because Java doesn't allow super.super.foo()
-        return _isPickedBy(xx, yy, Math.max(radius, r), objPick);
+        float dx, dy;
+        dx = (x - xx);
+        dy = (y - yy);
 
-        // Balls should always act in "object pick" mode
-        //if(objPick) return super.isPickedBy(xx, yy, Math.max(radius, r), objPick);
-        //else        return super.isPickedBy(xx, yy, radius, objPick);
+        //if( Math.abs( Math.sqrt(dx*dx + dy*dy) - r ) <= radius ) return this;
+        float sqDist = (dx*dx + dy*dy);
+        float minDist = r - radius; if(minDist > 0) minDist *= minDist;
+        float maxDist = r + radius; maxDist *= maxDist;
+        if(minDist <= sqDist && sqDist <= maxDist)  return this;
+        else                                        return null;
     }
 //}}}
 
@@ -108,16 +145,10 @@ public class BallPoint extends RingPoint // implements ...
         if(maincolor.isInvisible()) return;
         int alpha = (parent == null ? 255 : parent.alpha);
         Paint paint = maincolor.getPaint(engine.backgroundMode, 1, engine.colorCue, alpha);
-
-        // We *can* do extra depth cueing hints for balls, but I prefer not to.
-        // It works for small, isolated balls (e.g. waters), but it is confusing
-        // and downright misleading when many balls are close together, because
-        // the sizes of the balls are consistently and substantially inflated.
-        //
-        // We have to do this here b/c now widthCue is set
-        //if(engine.cueThickness) r *= KPalette.widthScale[ engine.widthCue ];
         
-        engine.painter.paintBall(paint, x, y, z, r, ((parent.flags & KList.NOHILITE) == 0));
+        // For now we ignore the linewidth issue
+        double d = 2*r;
+        engine.painter.drawOval(paint, x, y, z, d, d);
     }
 //}}}
 }//class

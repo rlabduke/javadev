@@ -181,6 +181,8 @@ public class KinfileParser //extends ... implements ...
             else if(s.equals("@label"))                 doList(KList.LABEL); //deprecated
             else if(s.equals("@dotlist"))               doList(KList.DOT);
             else if(s.equals("@dot"))                   doList(KList.DOT); //deprecated
+            else if(s.equals("@ringlist"))              doList(KList.RING);
+            else if(s.equals("@ring"))                  doList(KList.RING); //deprecated
             else if(s.equals("@balllist"))              doList(KList.BALL);
             else if(s.equals("@ball"))                  doList(KList.BALL); //deprecated
             else if(s.equals("@spherelist"))            doList(KList.SPHERE);
@@ -594,6 +596,7 @@ public class KinfileParser //extends ... implements ...
         else if(kListType.equals(KList.LABEL))      point = new LabelPoint(list, defaultPointID);
         else if(kListType.equals(KList.TRIANGLE))   point = new TrianglePoint(list, defaultPointID, (TrianglePoint)prevPoint);
         else if(kListType.equals(KList.RIBBON))     point = new TrianglePoint(list, defaultPointID, (TrianglePoint)prevPoint);
+        else if(kListType.equals(KList.RING))       point = new RingPoint(list, defaultPointID);
         else if(kListType.equals(KList.BALL))       point = new BallPoint(list, defaultPointID);
         else if(kListType.equals(KList.SPHERE))     point = new SpherePoint(list, defaultPointID);
         else if(kListType.equals(KList.ARROW))      point = new ArrowPoint(list, defaultPointID, (VectorPoint)prevPoint);

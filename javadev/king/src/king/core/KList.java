@@ -29,6 +29,7 @@ public class KList extends AGE implements Cloneable
     public static final String  LABEL    = "label";
     public static final String  TRIANGLE = "triangle";
     public static final String  RIBBON   = "ribbon";
+    public static final String  RING     = "ring";
     public static final String  BALL     = "ball";
     public static final String  SPHERE   = "sphere";
     public static final String  ARROW    = "arrow";

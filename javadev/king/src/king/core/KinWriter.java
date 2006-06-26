@@ -218,7 +218,7 @@ public class KinWriter //extends ... implements ...
         {
             if(list.width != 2) out.print(" width= "+list.width);
         }
-        else if(list.getType() == KList.BALL || list.getType() == KList.SPHERE)
+        else if(list.getType() == KList.BALL || list.getType() == KList.SPHERE || list.getType() == KList.RING)
         {
             out.print(" radius= "+df.format(list.radius));
             if((list.flags & KList.NOHILITE) != 0) out.print(" nohilite"); 
