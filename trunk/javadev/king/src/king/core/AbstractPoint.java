@@ -469,6 +469,10 @@ abstract public class AbstractPoint extends AHEImpl implements KPoint
     *   Usually <code>this</code>, but maybe not for object picking.
     */
     public KPoint isPickedBy(float xx, float yy, float radius, boolean objPick)
+    { return _isPickedBy(xx, yy, radius, objPick); }
+    
+    // For BallPoint and RingPoint, because Java doesn't allow super.super:
+    KPoint _isPickedBy(float xx, float yy, float radius, boolean objPick)
     {
         float deltax, deltay;
         deltax = (x - xx);

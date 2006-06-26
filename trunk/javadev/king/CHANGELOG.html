@@ -80,6 +80,7 @@
     @#axischoice # # # (1-based indexes)
         choice when saving views
     implement RingLists; can't subclass BallPoint b/c no line shortening
+        needs to deal with line width
  ** create sample embedded graphics app (for Homme / Dezymer)
 
 ==============================================================================
@@ -92,6 +93,8 @@
 - added machinery for views to store choice of viewing axes
 - fixed some dependency-related bugs for axis selection vs. views
 - made buttons, sliders optional for ContentPane
+- added RingPoints and KList.RING
+- added support to KinWriter and KinfileParser
 
 ### 1.52 ###
 - changed all JOGL calls over the new "JSR" standard
