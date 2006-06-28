@@ -178,7 +178,7 @@ public class SelfUpdatePlugin extends Plugin
     {
         try
         {
-            URL updateURL = new URL("http://kinemage.biochem.duke.edu/ftpsite/pub/software/king/.current.java");
+            URL updateURL = new URL("http://kinemage.biochem.duke.edu/downloads/software/king/current");
             URLConnection urlConn = updateURL.openConnection();
             this.totalSize = urlConn.getContentLength();
             this.downloadedSize = 0;

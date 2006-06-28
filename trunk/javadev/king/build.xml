@@ -230,19 +230,19 @@
     <scp file="${dist}/${ant.project.name}-${version}.zip"
         todir="${scp.ftp.username}@${scp.ftp.hostname}:${scp.ftp.path}/${ant.project.name}/${ant.project.name}.${version}.${DSTAMP_SIX}.zip"
         password="${scp.ftp.password}" failonerror="true"/>
+    <!-- Update marker for current version -->
+    <scp file="${resource}/${ant.project.name}/version.props"
+        todir="${scp.ftp.username}@${scp.ftp.hostname}:${scp.ftp.path}/${ant.project.name}/${ant.project.name}.version.props"
+        password="${scp.ftp.password}" failonerror="true"/>
     <!-- Provide a ZIP file for auto-update -->
     <scp file="${dist}/${ant.project.name}-${version}.zip"
-        todir="${scp.ftp.username}@${scp.ftp.hostname}:${scp.ftp.path}/${ant.project.name}/.current.java"
+        todir="${scp.ftp.username}@${scp.ftp.hostname}:${scp.ftp.path}/${ant.project.name}/current"
         password="${scp.ftp.password}" failonerror="true"/>
     <!-- Provide current docs to the web site -->
     <scp todir="${scp.ftp.username}@${scp.ftp.hostname}:${scp.ftp.path}/${ant.project.name}/docs"
         password="${scp.ftp.password}" failonerror="true">
         <fileset dir="${dist}/${ant.project.name}-${version}/doc"/>
     </scp>
-    <!-- Update marker for current version -->
-    <scp file="${resource}/${ant.project.name}/version.props"
-        todir="${scp.www.username}@${scp.www.hostname}:${scp.www.path}/software/${ant.project.name}.version.props"
-        password="${scp.www.password}" failonerror="true"/>
     <!-- Update user manual on web site -->
     <scp file="${resource}/${ant.project.name}/html/king-manual.html"
         todir="${scp.www.username}@${scp.www.hostname}:${scp.www.path}/kinemage/king-manual.html"
