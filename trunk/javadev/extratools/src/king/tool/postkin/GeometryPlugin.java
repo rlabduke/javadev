@@ -39,7 +39,7 @@ public class GeometryPlugin extends Plugin {
     HashMap pepAngSD;
     HashMap proAng, proAngSD;
     HashMap glyAng, glyAngSD;
-    KList distList, angList;
+    KList distList, angList, dihList;
     JFileChooser filechooser;
 
 //}}}
@@ -146,8 +146,10 @@ public class GeometryPlugin extends Plugin {
 	geomGroup.add(sub);
 	distList = new KList(sub, "distances");
 	angList = new KList(sub, "angles");
+	dihList = new KList(sub, "dihedrals");
 	sub.add(distList);
 	sub.add(angList);
+	sub.add(dihList);
 	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
 	splitKin(kMain.getKinemage());
 	analyze();
@@ -215,8 +217,10 @@ public class GeometryPlugin extends Plugin {
 		    geomGroup.add(sub);
 		    distList = new KList(sub, "distances");
 		    angList = new KList(sub, "angles");
+		    dihList = new KList(sub, "dihedrals");
 		    sub.add(distList);
 		    sub.add(angList);
+		    sub.add(dihList);
 		    kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
 		    splitKin(kMain.getKinemage());
 		    analyze();
@@ -334,6 +338,7 @@ public class GeometryPlugin extends Plugin {
 		    calcDist(resNumFull, resName, (KPoint) carbMap.get(prevKey), (KPoint) nitMap.get(key));
 		    calcAngle(resNumFull, resName, (KPoint)oxyMap.get(prevKey), (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key));
 		    calcAngle(resNumFull, resName, (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key), (KPoint)caMap.get(key));
+		    calcPepDihedral(prevKey.getSequenceNumber() + prevKey.getInsertionCode() + " " + resNumFull, resName, (KPoint)caMap.get(prevKey), (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key), (KPoint)caMap.get(key));
 		}
 	    } catch (NoSuchElementException e) {
 		//System.out.println("Prev key not detected");
@@ -431,6 +436,45 @@ public class GeometryPlugin extends Plugin {
 	    }
 	}
     }
+
+    public void calcPepDihedral(String key, String resName, KPoint pt1, KPoint pt2, KPoint pt3, KPoint pt4) {
+	if ((pt1 != null)&&(pt2 != null)&&(pt3 != null)&&(pt4 != null)) {
+	    String atom1 = KinUtil.getAtomName(pt1).toLowerCase();
+	    String atom2 = KinUtil.getAtomName(pt2).toLowerCase();
+	    String atom3 = KinUtil.getAtomName(pt3).toLowerCase();
+	    String atom4 = KinUtil.getAtomName(pt4).toLowerCase();
+	    Triple trip1 = new Triple(pt1);
+	    Triple trip2 = new Triple(pt2);
+	    Triple trip3 = new Triple(pt3);
+	    Triple trip4 = new Triple(pt4);
+	    double dihed = Triple.dihedral(trip1, trip2, trip3, trip4);
+	    if ((dihed < 160)&&(dihed > -160)) {
+		System.out.print("res " + key);// + " - res " + (key.intValue() + 1));
+		System.out.println(" peptide dihedral " + df.format(dihed));
+		drawPep(trip1, trip2, trip3, trip4);
+		//System.out.println(pt1.toString() + pt2.toString() + pt3.toString() + pt4.toString());
+	    }
+	}
+    }
+    
+    public void drawPep(Triple trp1, Triple trp2, Triple trp3, Triple trp4) {
+	VectorPoint p1 = new VectorPoint(dihList, "point 1", null);
+	p1.setXYZ(trp1.getX(), trp1.getY(), trp1.getZ());
+	VectorPoint p3 = new VectorPoint(dihList, "point 3", p1);
+	p3.setXYZ(trp3.getX(), trp3.getY(), trp3.getZ());
+	VectorPoint p2 = new VectorPoint(dihList, "point 2", null);
+	p2.setXYZ(trp2.getX(), trp2.getY(), trp2.getZ());
+	VectorPoint p4 = new VectorPoint(dihList, "point 4", p2);
+	p4.setXYZ(trp4.getX(), trp4.getY(), trp4.getZ());
+	dihList.add(p1);
+	dihList.add(p3);
+	dihList.add(p2);
+	dihList.add(p4);
+	dihList.setColor(KPalette.green);
+	dihList.setWidth(4);
+	
+    }
+		
 
     public void drawBall(String name, Triple trp1, Triple trp2, double dist, double idealdist) {
 	double distdiff = dist - idealdist;
