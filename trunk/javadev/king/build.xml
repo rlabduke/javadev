@@ -247,10 +247,7 @@
     <scp file="${resource}/${ant.project.name}/html/king-manual.html"
         todir="${scp.www.username}@${scp.www.hostname}:${scp.www.path}/kinemage/king-manual.html"
         password="${scp.www.password}" failonerror="true"/>
-    <!-- Copy to old MolProbity, too; new MolProbity will be updated from deploy-local-mp via Subversion -->
-    <scp file="${basedir}/${ant.project.name}.jar"
-        todir="${scp.molprobity.username}@${scp.molprobity.hostname}:${scp.molprobity.path}/"
-        password="${scp.molprobity.password}" failonerror="true"/>
+    <!-- MolProbity 3.x will be updated from deploy-local-mp via Subversion -->
     <echo>*** REMEMBER TO REBUILD THE INSTALL ANYWHERE DISTRIBUTIONS FOR LINUX AND WINDOWS ***</echo>
     <echo>*** REMEMBER TO MAKE A MAC DMG AND UPDATE THE VERSION IN INFO.PLIST ***</echo>
 </target>
