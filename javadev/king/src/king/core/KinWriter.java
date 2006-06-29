@@ -314,6 +314,10 @@ public class KinWriter //extends ... implements ...
         float[] center = view.getCenter();
         out.println("@"+index+"center "+df.format(center[0])+" "+df.format(center[1])+" "+df.format(center[2]));
         
+        int[] axes = view.getViewingAxes();
+        if(axes != null)
+            out.println("@"+index+"axischoice "+(axes[0]+1)+" "+(axes[1]+1)+" "+(axes[2]+1));
+        
         // Writen out Mage-style, for a post-multiplied matrix
         out.print("@"+index+"matrix");
         for(int i = 0; i < 3; i++)

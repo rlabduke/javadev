@@ -368,6 +368,23 @@ public class JoglPainter implements Painter
         setPaint(paint);
         drawOval((x - width/2), (y - height/2), width, height);
     }
+
+    public void drawOval(Paint paint, int linewidth, int widthCue, double x, double y, double z, double width, double height)
+    {
+        setPaint(paint);
+        double startx = (x -  width/2.0 - linewidth/2.0);
+        double starty = (y - height/2.0 - linewidth/2.0);
+        double diamx  = ( width + linewidth);
+        double diamy  = (height + linewidth);
+        for(int i = 0; i < linewidth; i++)
+        {
+            drawOval(startx, starty, diamx, diamy);
+            startx += 1;
+            starty += 1;
+            diamx  -= 2;
+            diamy  -= 2;
+        }
+    }
 //}}}
 
 //{{{ setFont, getLabelWidth/Ascent/Descent

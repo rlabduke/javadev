@@ -151,6 +151,7 @@ public class KinfileParser //extends ... implements ...
             else if(s.endsWith("ztran"))                token.advanceToKeyword(); //ignored
             else if(s.endsWith("center"))               doCenter();
             else if(s.endsWith("matrix"))               doMatrix();
+            else if(s.endsWith("axischoice"))           doAxisChoice();
             // DISPLAY OPTIONS
             else if(s.equals("@whitebackground"))       doWhiteBackground();
             else if(s.equals("@whiteback"))             doWhiteBackground(); //deprecated
@@ -792,7 +793,7 @@ public class KinfileParser //extends ... implements ...
     }
 //}}}
 
-//{{{ do{Center, Matrix}
+//{{{ do{Center, Matrix, AxisChoice}
 //##################################################################################################
     void doCenter() throws IOException
     {
@@ -811,6 +812,29 @@ public class KinfileParser //extends ... implements ...
         }
         catch(IllegalArgumentException ex)
         { error("@center was not followed by 3 numbers; found '"+token.getString()+"' instead"); }
+    }
+
+    void doAxisChoice() throws IOException
+    {
+        KingView view = getView();
+        try
+        {
+            int ix, iy, iz;
+            token.advance(); if(!token.isInteger()) throw new IllegalArgumentException();
+            ix = token.getInt();
+            token.advance(); if(!token.isInteger()) throw new IllegalArgumentException();
+            iy = token.getInt();
+            token.advance(); if(!token.isInteger()) throw new IllegalArgumentException();
+            iz = token.getInt();
+            token.advance();
+            view.setViewingAxes(new int[] {
+                Math.max(ix-1, 0),
+                Math.max(iy-1, 0),
+                Math.max(iz-1, 0)
+            });
+        }
+        catch(IllegalArgumentException ex)
+        { error("@axischoice was not followed by 3 integers; found '"+token.getString()+"' instead"); }
     }
 
     void doMatrix() throws IOException

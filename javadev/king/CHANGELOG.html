@@ -74,13 +74,10 @@
     Allow dragging waters/ions from chiropraxis?
     integrate multichart into KiNG?
     build pkgs that don't require installing
-    constant width font for text window?
     document dimension= #, @dimension(s), etc.
     @#axischoice # # # (1-based indexes)
         choice when saving views
-    implement RingLists; can't subclass BallPoint b/c no line shortening
-        needs to deal with line width
- ** create sample embedded graphics app (for Homme / Dezymer)
+    create sample embedded graphics app (for Homme / Dezymer)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -88,6 +85,10 @@
 
 ### 1.54 ###
 - confirmed that new update URLs work fine
+- added linewidth to RingPoints, but it doesn't look very good
+- decided against monospaced font for the text window; doesn't look good
+- implemented parsing of @_axischoice
+- implemented saving of @_axischoice
 
 ### 1.53 ###
 - added drag-n-drop support to JoglCanvas, so now DnD works in OpenGL mode

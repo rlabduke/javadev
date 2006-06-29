@@ -148,7 +148,18 @@ public class RingPoint extends AbstractPoint // implements ...
         
         // For now we ignore the linewidth issue
         double d = 2*r;
-        engine.painter.drawOval(paint, x, y, z, d, d);
+        engine.painter.drawOval(paint, calcLineWidth(engine), engine.widthCue, x, y, z, d, d);
+    }
+//}}}
+
+//{{{ calcLineWidth
+//##################################################################################################
+    // Default way of finding the right line width to use, given the settings in the engine
+    int calcLineWidth(Engine engine)
+    {
+        if(engine.thinLines)    return 1;
+        else if(parent != null) return parent.width;
+        else                    return 2;
     }
 //}}}
 }//class
