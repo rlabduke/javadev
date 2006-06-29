@@ -285,6 +285,26 @@ public class StandardPainter implements Painter
         g.setPaint(paint);
         if(REALLY_PAINT) g.drawOval((int)(x - width/2), (int)(y - height/2), (int)width, (int)height);
     }
+
+    public void drawOval(Paint paint, int linewidth, int widthCue, double x, double y, double z, double width, double height)
+    {
+        g.setPaint(paint);
+        int startx = (int)(x -  width/2.0 - linewidth/2.0);
+        int starty = (int)(y - height/2.0 - linewidth/2.0);
+        int diamx  = (int)( width + linewidth);
+        int diamy  = (int)(height + linewidth);
+        if(REALLY_PAINT)
+        {
+            for(int i = 0; i < linewidth; i++)
+            {
+                g.drawOval(startx, starty, diamx, diamy);
+                startx += 1;
+                starty += 1;
+                diamx  -= 2;
+                diamy  -= 2;
+            }
+        }
+    }
 //}}}
 
 //{{{ setGraphics, setFont, getLabelWidth/Ascent/Descent

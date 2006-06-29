@@ -53,6 +53,7 @@ public class UIText implements MouseListener
         textarea.setWrapStyleWord(true);
         textarea.addMouseListener(this);
         textarea.setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
+        //textarea.setFont(new Font("Monospaced", Font.PLAIN, (int)Math.round(12 * kMain.getPrefs().getFloat("fontMagnification"))));
         JScrollPane textScroll = new JScrollPane(textarea);
         textScroll.setPreferredSize(new Dimension(500,400));
         new TextCutCopyPasteMenu(textarea);

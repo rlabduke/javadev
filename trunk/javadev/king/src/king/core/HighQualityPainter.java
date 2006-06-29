@@ -155,6 +155,14 @@ public class HighQualityPainter extends StandardPainter
         ellipse1.setFrame((x - width/2), (y - height/2), width, height);
         if(REALLY_PAINT) g.draw(ellipse1);
     }
+
+    public void drawOval(Paint paint, int linewidth, int widthCue, double x, double y, double z, double width, double height)
+    {
+        g.setPaint(paint);
+        g.setStroke(KPalette.pens[linewidth-1][widthCue]);
+        ellipse1.setFrame((x - width/2), (y - height/2), width, height);
+        if(REALLY_PAINT) g.draw(ellipse1);
+    }
 //}}}
 
 //{{{ empty_code_segment
