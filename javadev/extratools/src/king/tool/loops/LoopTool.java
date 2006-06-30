@@ -154,8 +154,10 @@ public class LoopTool extends BasicTool {
 				bFactorMap.put(df.format(Double.parseDouble(exploded[5]))+pdbName, fullName);
 				} else {*/
 				HashSet value = new HashSet();
-				keepRange(value, Integer.parseInt(exploded[1])-8, Integer.parseInt(exploded[2])+8);
-				int startRes = Integer.parseInt(exploded[1])-8;
+				//keepRange(value, Integer.parseInt(exploded[1])-8, Integer.parseInt(exploded[2])+8);
+				//int startRes = Integer.parseInt(exploded[1])-8;
+				keepRange(value, Integer.parseInt(exploded[1]), Integer.parseInt(exploded[2]));
+				int startRes = Integer.parseInt(exploded[1]);
 				String fullName = pdbName + "-" + Integer.toString(startRes);
 				//HashSet fullSet = new HashSet();
 				//fullSet.add(fullName);
@@ -312,8 +314,8 @@ public class LoopTool extends BasicTool {
 	//String pdbName = kMain.getKinemage().atPdbfile.substring(0, 4).toLowerCase();
 	//if (pdbMultiLoopMap.containsKey(pdbName)) {
 	    delete(kMain.getKinemage(), keepSet);
-	    recolor(kMain.getKinemage(), (HashSet) startColorMap.get(pdbName), KPalette.green);
-	    recolor(kMain.getKinemage(), (HashSet) endColorMap.get(pdbName), KPalette.red);
+	    //recolor(kMain.getKinemage(), (HashSet) startColorMap.get(pdbName), KPalette.green);
+	    //recolor(kMain.getKinemage(), (HashSet) endColorMap.get(pdbName), KPalette.red);
 	    rename(kMain.getKinemage(), pdbName);
 	    //} else {
 	    //    JOptionPane.showMessageDialog(kMain.getTopWindow(),

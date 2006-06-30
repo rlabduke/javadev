@@ -29,6 +29,7 @@ public class GeometryPlugin extends Plugin {
     TreeMap oxyMap;
     TreeMap carbMap;
     TreeMap nitMap;
+    HashMap sequenceMap;
     HashMap pepLength;
     HashMap pepSD;
     HashMap proLength;
@@ -53,6 +54,7 @@ public class GeometryPlugin extends Plugin {
 	oxyMap = new TreeMap();
 	nitMap = new TreeMap();
 	carbMap = new TreeMap();
+	sequenceMap = new HashMap();
 
 	pepLength = new HashMap();
 	pepLength.put("nca", new Double(1.459));
@@ -133,6 +135,7 @@ public class GeometryPlugin extends Plugin {
 	oxyMap = new TreeMap();
 	nitMap = new TreeMap();
 	carbMap = new TreeMap();
+	sequenceMap = new HashMap();
     }
     
     public void onAnalyzeCurrent(ActionEvent e) {
@@ -265,20 +268,8 @@ public class GeometryPlugin extends Plugin {
 	    while (iter.hasNext()) {
 		KPoint pt = (KPoint) iter.next();
 		if (pt.isOn()) {
-		    //int resNum = KinUtil.getResNumber(pt);
 		    String atomName = KinUtil.getAtomName(pt).toLowerCase();
-		    String resName = KinUtil.getResName(pt).toLowerCase();
-		    String resNum = KinUtil.getResNumString(pt);
-		    String chainID = KinUtil.getChainID(pt);
-		    String insCode = " ";
-		    if (!KinUtil.isInteger(resNum)) {
-			int numLength = resNum.length();
-			if (numLength > 0) {
-			    insCode = resNum.substring(numLength - 1);
-			    resNum = resNum.substring(0, numLength - 1);
-			}
-		    }
-		    ResidueInfo res = new ResidueInfo(chainID, "", resNum, insCode, resName);
+		    ResidueInfo res = makeResidueInfo(pt);
 		    if (atomName.equals("ca")) {
 			//caMap.put(new Integer(resNum), pt);
 			caMap.put(res, pt);
@@ -289,6 +280,18 @@ public class GeometryPlugin extends Plugin {
 		    }
 		    if (atomName.equals("n")) {
 			//nitMap.put(new Integer(resNum), pt);
+			if (pt instanceof VectorPoint) { 
+			    // to figure out sequence order from connectivity; insertions codes are stupid.
+			    VectorPoint nit = (VectorPoint) pt;
+			    VectorPoint prev = (VectorPoint) nit.getPrev();
+			    if (prev != null) {
+				String prevAtomName = KinUtil.getAtomName(prev).toLowerCase();
+				if (prevAtomName.equals("c")) {
+				    ResidueInfo prevRes = makeResidueInfo(prev);
+				    sequenceMap.put(prevRes, res);
+				}
+			    }
+			}
 			nitMap.put(res, pt);
 		    }
 		    if (atomName.equals("c")) {
@@ -312,7 +315,53 @@ public class GeometryPlugin extends Plugin {
 	}
     }
 
+    public ResidueInfo makeResidueInfo(KPoint pt) {
+	String atomName = KinUtil.getAtomName(pt).toLowerCase();
+	String resName = KinUtil.getResName(pt).toLowerCase();
+	String resNum = KinUtil.getResNumString(pt);
+	String chainID = KinUtil.getChainID(pt);
+	String insCode = " ";
+	if (!KinUtil.isInteger(resNum)) {
+	    int numLength = resNum.length();
+	    if (numLength > 0) {
+		insCode = resNum.substring(numLength - 1);
+		resNum = resNum.substring(0, numLength - 1);
+	    }
+	}
+	return new ResidueInfo(chainID, "", resNum, insCode, resName);
+    }
 
+    public void analyze() {
+	Set keys = sequenceMap.keySet();
+	Iterator iter = keys.iterator();
+	while (iter.hasNext()) {
+	    ResidueInfo prevRes = (ResidueInfo) iter.next();
+	    ResidueInfo res = (ResidueInfo) sequenceMap.get(prevRes);
+	    //System.out.println(prevRes);
+	    //System.out.println(res);
+	    if (caMap.containsKey(res)) {
+		Integer resNum = Integer.valueOf(res.getSequenceNumber());
+		String resSeq = (res.getSequenceNumber() + res.getInsertionCode()).trim();
+		String resNumFull = res.getSequenceNumber() + res.getInsertionCode() + " " + KinUtil.getLastString(((KPoint) caMap.get(res)).getName()) + " " + res.getChain();
+		String resName = KinUtil.getResName((KPoint) caMap.get(res));
+		//System.out.println(resName);
+		calcDist(resNumFull, resName, (KPoint) nitMap.get(res), (KPoint) caMap.get(res));
+		calcDist(resNumFull, resName, (KPoint) caMap.get(res), (KPoint) carbMap.get(res));
+		calcDist(resNumFull, resName, (KPoint) carbMap.get(res), (KPoint) oxyMap.get(res));
+		calcAngle(resNumFull, resName, (KPoint) nitMap.get(res), (KPoint) caMap.get(res), (KPoint) carbMap.get(res));
+		calcAngle(resNumFull, resName, (KPoint) caMap.get(res), (KPoint) carbMap.get(res), (KPoint) oxyMap.get(res));
+		calcDist(resNumFull, resName, (KPoint) carbMap.get(prevRes), (KPoint) nitMap.get(res));
+		calcAngle(resNumFull, resName, (KPoint)oxyMap.get(prevRes), (KPoint)carbMap.get(prevRes), (KPoint)nitMap.get(res));
+		calcAngle(resNumFull, resName, (KPoint)carbMap.get(prevRes), (KPoint)nitMap.get(res), (KPoint)caMap.get(res));
+		calcPepDihedral(prevRes.getSequenceNumber() + prevRes.getInsertionCode() + " " + resNumFull, resName, (KPoint)caMap.get(prevRes), (KPoint)carbMap.get(prevRes), (KPoint)nitMap.get(res), (KPoint)caMap.get(res));
+		if (sequenceMap.containsKey(res)) { //Ideally, if there is a CA, there will be a mapping in seqMap.
+		    ResidueInfo nextRes = (ResidueInfo) sequenceMap.get(res);
+		    calcAngle(resNumFull, resName, (KPoint)caMap.get(res), (KPoint)carbMap.get(res), (KPoint)nitMap.get(nextRes));
+		}
+	    }
+	}
+    }
+    /*
     public void analyze() {
 	//TreeSet keys = new TreeSet(caMap.keySet());
 	UberSet keys = new UberSet(caMap.keySet());
@@ -321,6 +370,7 @@ public class GeometryPlugin extends Plugin {
 	while (iter.hasNext()) {
 	    ResidueInfo key = (ResidueInfo) iter.next();
 	    Integer resNum = Integer.valueOf(key.getSequenceNumber());
+	    String resSeq = (key.getSequenceNumber() + key.getInsertionCode()).trim();
 	    String resNumFull = key.getSequenceNumber() + key.getInsertionCode() + " " + KinUtil.getLastString(((KPoint) caMap.get(key)).getName()) + " " + key.getChain();
 	    String resName = KinUtil.getResName((KPoint) caMap.get(key));
 	    //System.out.println(resName);
@@ -331,10 +381,12 @@ public class GeometryPlugin extends Plugin {
 	    calcAngle(resNumFull, resName, (KPoint) caMap.get(key), (KPoint) carbMap.get(key), (KPoint) oxyMap.get(key));
 	    try {
 		ResidueInfo prevKey = (ResidueInfo) keys.itemBefore(key);
-		int prevNum = Integer.parseInt(prevKey.getSequenceNumber());
+		String prevSeq = (prevKey.getSequenceNumber() + prevKey.getInsertionCode()).trim();
+		//int prevNum = Integer.parseInt(prevKey.getSequenceNumber());
 		//System.out.println(prevKey + " " + resNum);
 		if (((resNum.intValue()-prevNum) == 0)||((resNum.intValue()-prevNum) == 1)) {
 		    // either insertion codes or normal sequence are ok
+		
 		    calcDist(resNumFull, resName, (KPoint) carbMap.get(prevKey), (KPoint) nitMap.get(key));
 		    calcAngle(resNumFull, resName, (KPoint)oxyMap.get(prevKey), (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key));
 		    calcAngle(resNumFull, resName, (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key), (KPoint)caMap.get(key));
@@ -352,28 +404,8 @@ public class GeometryPlugin extends Plugin {
 	    } catch (NoSuchElementException e) {
 		//System.out.println("Next key not detected");
 	    }
-	}/*
-	while (iter.hasNext()) {
-	    Integer key = (Integer) iter.next();
-	    Integer nextKey = new Integer(key.intValue() + 1);
-	    Integer prevKey = new Integer(key.intValue() - 1);
-	    calcDist(key, (KPoint) nitMap.get(key), (KPoint) caMap.get(key));
-	    calcDist(key, (KPoint) caMap.get(key), (KPoint) carbMap.get(key));
-	    calcDist(key, (KPoint) carbMap.get(key), (KPoint) oxyMap.get(key));
-	    if (keys.contains(prevKey)) {
-		calcDist(key, (KPoint) carbMap.get(prevKey), (KPoint) nitMap.get(key));
-	    }
-	    calcAngle(key, (KPoint) nitMap.get(key), (KPoint) caMap.get(key), (KPoint) carbMap.get(key));
-	    calcAngle(key, (KPoint) caMap.get(key), (KPoint) carbMap.get(key), (KPoint) oxyMap.get(key));
-	    if (keys.contains(nextKey)) {
-		calcAngle(key, (KPoint)caMap.get(key), (KPoint)carbMap.get(key), (KPoint)nitMap.get(nextKey));
-	    }
-	    if (keys.contains(prevKey)) {
-		calcAngle(key, (KPoint)oxyMap.get(prevKey), (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key));
-		calcAngle(key, (KPoint)carbMap.get(prevKey), (KPoint)nitMap.get(key), (KPoint)caMap.get(key));
-	    }
-	}*/
-    }
+	}
+    }*/
 
     public void calcDist(String key, String resName, KPoint pt1, KPoint pt2) {
 	//System.out.println(pt1 + " " + pt2);
