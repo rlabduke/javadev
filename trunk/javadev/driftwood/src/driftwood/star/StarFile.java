@@ -63,11 +63,11 @@ public class StarFile //extends ... implements ...
 //##############################################################################
     /**
     * Adds the data block, displacing any former data blocks of the same name
-    * (as returned by toString).
+    * (as returned by getName).
     * Returns the previous block of the same name, or null if none.
     */
     public DataBlock addDataBlock(DataBlock block)
-    { return (DataBlock) dataBlocks.put(block.toString(), block); }
+    { return (DataBlock) dataBlocks.put(block.getName(), block); }
     
     /** Removes the named data block if it's part of this file. */
     public DataBlock removeDataBlock(String blockName)

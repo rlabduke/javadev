@@ -47,10 +47,14 @@ public class DataCell //extends ... implements ...
     }
 //}}}
 
-//{{{ toString, clear, removeItem
+//{{{ toString, getName, clear, removeItem
 //##############################################################################
     /** Returns the name of this data cell. */
     public String toString()
+    { return getName(); }
+    
+    /** Returns the name of this data cell. */
+    public String getName()
     { return name; }
     
     /** Removes all data items from this cell. */

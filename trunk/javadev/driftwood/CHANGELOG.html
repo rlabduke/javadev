@@ -28,6 +28,8 @@ R3: {{{
 }}}
 STAR: {{{
     Add StarWriter
+    Make StarReader more robust to errors (unnamed data_ and save_, etc)
+        See email on 7/24/06 from John Westbrook
 }}}
 UTIL: {{{
 }}}
@@ -42,6 +44,10 @@ UTIL: {{{
 - added data.TinyMap, which will be used for rare kinemage point properties.
 - fixed a bug in TablePane2 where we restored the default GridBag constraints
   before using the modified ones to mark occupied cells. This leads to overlap.
+- fixed typo bug in star.StarTokenizer re: ending save frames
+- fixed bug in StarReader (didn't skip end-of-save-frame tokens)
+- made it possible to repeat a save frame (new data add or overwrite)
+- added DataCell.getName() -- using toString() was unsafe for future
 
 ### 0.75 ###
 - we now allow redefinition of identically named residues in a PDB file,

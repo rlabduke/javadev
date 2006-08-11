@@ -63,7 +63,7 @@ public class DataBlock extends DataCell
     
     /** Adds the specified save frame. All save frames must have unique names. */
     public DataCell addSaveFrame(DataCell sf)
-    { return (DataCell) saveFrames.put(sf.toString(), sf); }
+    { return (DataCell) saveFrames.put(sf.getName(), sf); }
 //}}}
 
 //{{{ getItemNames, getItem, getSingleItem

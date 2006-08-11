@@ -74,10 +74,13 @@
     Allow dragging waters/ions from chiropraxis?
     integrate multichart into KiNG?
     build pkgs that don't require installing
-    document dimension= #, @dimension(s), etc.
-    @#axischoice # # # (1-based indexes)
-        choice when saving views
-    create sample embedded graphics app (for Homme / Dezymer)
+    choose to save viewing axes with saved view, or not
+  * new Mac release with proper JOGL libs; check Win and Linux pkgs too.
+    DiVE export: VRML97 ?
+  * static colors for BEC
+        @hsvcolo[u]r {MyColor} BlackHue BlackSat BlackVal [WhiteHue [WhiteSat [WhiteVal]]]
+        Need to be able to save them back out again!
+        Need to be documented
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -89,6 +92,11 @@
 - decided against monospaced font for the text window; doesn't look good
 - implemented parsing of @_axischoice
 - implemented saving of @_axischoice
+- updated docs with high-D stuff and @ringlist
+- changed DiVE export to backslash delimited
+- added triangles, labels, width/radius to DiVE export
+- hacked KPaint to allow for arbitrarily named, lightweight paint colors
+- added @hsvcolo[u]r keyword to KinfileParser
 
 ### 1.53 ###
 - added drag-n-drop support to JoglCanvas, so now DnD works in OpenGL mode
