@@ -120,6 +120,7 @@ public class DiveExport extends Plugin
 
 //{{{ savePoint
 //##############################################################################
+    /** Backslash delimited, must invert X-axis b/c DiVE has opposite handedness? */
     public void savePoint(PrintStream out, KPoint p) throws IOException
     {
         KList list = (KList) p.getOwner();
@@ -127,21 +128,40 @@ public class DiveExport extends Plugin
         
         if(p instanceof BallPoint || p instanceof SpherePoint)
         {
-            out.println("ball_"+getPtName(p)+"\t"+df.format(-p.getX())+"\t"+df.format(p.getY())+"\t"+df.format(p.getZ())+"\t"+p.getName());
+            out.println("ball_"+getPtName(p)+"\\"+df.format(-p.getX())+"\\"+df.format(p.getY())+"\\"+df.format(p.getZ())+"\\"+p.getName()+"\\"+df.format(getRadius(list, p)));
         }
-        if(p instanceof DotPoint)
+        else if(p instanceof DotPoint)
         {
-            out.println("dot_"+getPtName(p)+"\t"+df.format(-p.getX())+"\t"+df.format(p.getY())+"\t"+df.format(p.getZ())+"\t"+p.getName());
+            out.println("dot_"+getPtName(p)+"\\"+df.format(-p.getX())+"\\"+df.format(p.getY())+"\\"+df.format(p.getZ())+"\\"+p.getName()+"\\"+getWidth(list, p));
         }
-        else if(p instanceof VectorPoint)
+        else if(p instanceof LabelPoint)
+        {
+            out.println("label_"+getPtName(p)+"\\"+df.format(-p.getX())+"\\"+df.format(p.getY())+"\\"+df.format(p.getZ())+"\\"+p.getName());
+        }
+        else if(p instanceof VectorPoint || p instanceof ArrowPoint)
         {
             KPoint q = p.getPrev();
             if(q != null)
             {
-                out.println("vector_"+getPtName(p)+"\t"+df.format(-q.getX())+"\t"+df.format(q.getY())+"\t"+df.format(q.getZ())+"\t"+
-                    df.format(-p.getX())+"\t"+df.format(p.getY())+"\t"+df.format(p.getZ())+"\t"+p.getName());
+                out.println("vector_"+getPtName(p)+"\\"+df.format(-q.getX())+"\\"+df.format(q.getY())+"\\"+df.format(q.getZ())+"\\"+
+                    df.format(-p.getX())+"\\"+df.format(p.getY())+"\\"+df.format(p.getZ())+"\\"+p.getName()+"\\"+getWidth(list, p));
             }
         }
+        else if(p instanceof TrianglePoint)
+        {
+            KPoint q = p.getPrev();
+            if(q != null)
+            {
+                KPoint r = q.getPrev();
+                if(r != null)
+                {
+                    out.println("triangle_"+getPtName(p)+"\\"+df.format(-r.getX())+"\\"+df.format(r.getY())+"\\"+df.format(r.getZ())+"\\"+
+                        df.format(-q.getX())+"\\"+df.format(q.getY())+"\\"+df.format(q.getZ())+"\\"+
+                        df.format(-p.getX())+"\\"+df.format(p.getY())+"\\"+df.format(p.getZ())+"\\"+p.getName());
+                }
+            }
+        }
+        //else
     }
 //}}}
 
@@ -158,7 +178,23 @@ public class DiveExport extends Plugin
         }
         else return "X";
         */
-        return p.getDrawingColor().toString();
+        KPaint color = p.getDrawingColor();
+        while(color.isAlias()) color = color.getAlias();
+        return color.toString();
+    }
+    
+    int getWidth(KList list, KPoint p)
+    {
+        int w = p.getWidth();
+        if(w != 0) return w;
+        else return list.getWidth();
+    }
+    
+    float getRadius(KList list, KPoint p)
+    {
+        float r = p.getRadius();
+        if(r != 0) return r;
+        else return list.getRadius();
     }
 //}}}
 

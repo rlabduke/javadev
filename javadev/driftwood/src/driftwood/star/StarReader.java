@@ -114,9 +114,17 @@ public class StarReader //extends ... implements ...
             else if(token.isSaveStart())
             {
                 DataCell frame = new DataCell(token.getString());
-                if(block.addSaveFrame(frame) != null)
-                    throw new ParseException("[line "+(input.getLineNumber()+1)+"] "
-                    +"Repeated save frame name: save_"+frame, input.getLineNumber()+1);
+                DataCell oldframe = block.addSaveFrame(frame);
+                
+                // Technically, it is NOT legal to repeat a save frame name
+                // in a STAR file, but PDB dictionaries do it anyway...
+                if(oldframe != null)
+                {
+                    frame = oldframe;
+                    //System.err.println("[line "+(input.getLineNumber()+1)+"] Repeated save frame name: save_"+frame);
+                    //throw new ParseException("[line "+(input.getLineNumber()+1)+"] "
+                    //    +"Repeated save frame name: save_"+frame, input.getLineNumber()+1);
+                }
                 token.advance();
                 doSaveFrame(frame);
             }
@@ -144,6 +152,8 @@ public class StarReader //extends ... implements ...
                 throw new ParseException("[line "+(input.getLineNumber()+1)+"] "
                 +"Illegal token type '"+token.getType()+"' in save frame", input.getLineNumber()+1);
         }
+        
+        if(token.isSaveEnd()) token.advance(); // skip the stop token
     }
 //}}}
 

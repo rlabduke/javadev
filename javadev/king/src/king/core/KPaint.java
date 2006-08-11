@@ -19,7 +19,7 @@ import java.util.*;
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Jun 25 14:37:56 EDT 2003
 */
-public class KPaint //extends ... implements ...
+abstract public class KPaint //extends ... implements ...
 {
 //{{{ Constants
     /** The nominal "black" color to be used as a background, etc. */
@@ -80,8 +80,6 @@ public class KPaint //extends ... implements ...
 //##################################################################################################
     String          name;
     KPaint          aliasOf;
-    Paint[][]       paints;
-    Paint[][]       paintsBackup; // Usually == to paints. See setContrast().
     boolean         isInvisible;
 //}}}
 
@@ -90,7 +88,7 @@ public class KPaint //extends ... implements ...
     /**
     * Constructor -- use create___() functions instead
     */
-    private KPaint()
+    KPaint()
     {
     }
 //}}}
@@ -106,7 +104,7 @@ public class KPaint //extends ... implements ...
         if(name == null)
             throw new NullPointerException("Must give paint a name");
         
-        KPaint p        = new KPaint();
+        HeavyKPaint p   = new HeavyKPaint();
         p.name          = name;
         p.aliasOf       = null;
         p.paints        = new Paint[N_BACKGROUNDS][];
@@ -145,6 +143,28 @@ public class KPaint //extends ... implements ...
     { return new Color(Color.HSBtoRGB(hue, sat, val)); }
 //}}}
 
+//{{{ createLightweightHSV
+//##################################################################################################
+    /**
+    * Creates a new color definition based on hue (0-360), saturation (0-100),
+    * and relative value (0-100; usually 75-100).
+    */
+    static public KPaint createLightweightHSV(String name, float bHue, float bSat, float bVal, float wHue, float wSat, float wVal)
+    {
+        if(name == null)
+            throw new NullPointerException("Must give paint a name");
+        
+        KPaint p = new LightKPaint(bHue / 360f, bSat / 100f, bVal / 100f,
+            wHue / 360f, wSat / 100f, wVal / 100f);
+        
+        p.name          = name;
+        p.aliasOf       = null;
+        p.isInvisible   = false;
+        
+        return p;
+    }
+//}}}
+
 //{{{ createSolid
 //##################################################################################################
     /**
@@ -157,7 +177,7 @@ public class KPaint //extends ... implements ...
         if(solid == null)
             throw new NullPointerException("Must provide a valid Paint");
         
-        KPaint p        = new KPaint();
+        HeavyKPaint p   = new HeavyKPaint();
         p.name          = name;
         p.aliasOf       = null;
         p.paints        = new Paint[N_BACKGROUNDS][COLOR_LEVELS];
@@ -184,12 +204,13 @@ public class KPaint //extends ... implements ...
         if(target == null)
             throw new NullPointerException("Must give paint alias an existing paint to reference");
         
-        KPaint p        = new KPaint();
+        HeavyKPaint t   = (HeavyKPaint) target;
+        HeavyKPaint p   = new HeavyKPaint();
         p.name          = name;
-        p.aliasOf       = target;
-        p.paints        = target.paints;
+        p.aliasOf       = t;
+        p.paints        = t.paints;
         p.paintsBackup  = p.paints;
-        p.isInvisible   = target.isInvisible;
+        p.isInvisible   = t.isInvisible;
         
         return p;
     }
@@ -230,17 +251,19 @@ public class KPaint //extends ... implements ...
     */
     public Paint getPaint(int backgroundMode, double dotprod, int depth, int alpha)
     {
+        Paint basePaint = getPaint(backgroundMode, depth);
+        
         if(dotprod < 0) dotprod = -dotprod;
         if(dotprod > 1) dotprod = 1;
         
         if(dotprod == 1 && alpha == 255)
-            return getPaint(backgroundMode, depth);
+            return basePaint;
 
         try
         {
             double weight = AMBIENT_COEFF + (DIFFUSE_COEFF*dotprod);
             return blendColors(
-                (Color)paints[backgroundMode][depth], weight,
+                (Color)basePaint, weight,
                 SHADE_BACKGROUNDS[backgroundMode][depth], (1-weight),
                 alpha);
         }
@@ -249,7 +272,7 @@ public class KPaint //extends ... implements ...
             // Cast will only fail for the Invisible color, which
             // uses a gradient paint. BUT we should never be calling
             // this method if we already know our paint is invisible!
-            return paints[backgroundMode][depth];
+            return basePaint;
         }
     }
     
@@ -259,10 +282,7 @@ public class KPaint //extends ... implements ...
     * @param backgroundMode one of BLACK_COLOR, WHITE_COLOR, BLACK_MONO, or WHITE_MONO.
     * @param depth the depth cue number, from 0 (far away) to COLOR_LEVELS-1 (near by).
     */
-    public Paint getPaint(int backgroundMode, int depth)
-    {
-        return paints[backgroundMode][depth];
-    }
+    abstract public Paint getPaint(int backgroundMode, int depth);
     
     /**
     * Returns the set of depth-cued Paint objects to use for rendering,
@@ -270,10 +290,7 @@ public class KPaint //extends ... implements ...
     * assuming direct lighting of the surface and no transparency.
     * @param backgroundMode one of BLACK_COLOR, WHITE_COLOR, BLACK_MONO, or WHITE_MONO.
     */
-    public Paint[] getPaints(int backgroundMode)
-    {
-        return paints[backgroundMode];
-    }
+    abstract public Paint[] getPaints(int backgroundMode);
 //}}}
 
 //{{{ blendColors, makeMonochrome
@@ -312,14 +329,26 @@ public class KPaint //extends ... implements ...
     {
         Color[] targ = new Color[src.length];
         for(int i = 0; i < src.length; i++)
-        {
-            Color sc = src[i];
-            float gray = (0.297f*sc.getRed() + 0.589f*sc.getGreen() + 0.114f*sc.getBlue()) / 255f;
-            if(gray < 0) gray = 0;
-            if(gray > 1) gray = 1;
-            targ[i] = new Color(gray, gray, gray, sc.getAlpha()/255f);
-        }
+            targ[i] = makeMonochrome(src[i]);
         return targ;
+    }
+    
+    /**
+    * Translates a color into monochrome.
+    * The formula used was taken from the POV-Ray documentation:
+    * <code>gray value = Red*29.7% + Green*58.9% + Blue*11.4%</code>.
+    * Presumably this roughly matches the response of B&amp;W film,
+    * based on some articles I've read elsewhere.
+    * <p>See also http://www.poynton.com/notes/colour_and_gamma/GammaFAQ.html,
+    * which offers this equation: Y(709) = 0.2126*R + 0.7152*G + 0.0722*B.
+    * However, using it directly here would probably be out of context...
+    */
+    static Color makeMonochrome(Color sc)
+    {
+        float gray = (0.297f*sc.getRed() + 0.589f*sc.getGreen() + 0.114f*sc.getBlue()) / 255f;
+        if(gray < 0) gray = 0;
+        if(gray > 1) gray = 1;
+        return new Color(gray, gray, gray, sc.getAlpha()/255f);
     }
 //}}}
 
@@ -347,7 +376,7 @@ public class KPaint //extends ... implements ...
     * Remember to convert from the [0,1] scale to the [0,360] / [0,100] scale!
     */
     public Paint getBlackExemplar()
-    { return paints[BLACK_COLOR][COLOR_LEVELS-1]; }
+    { return getPaint(BLACK_COLOR, COLOR_LEVELS-1); }
 
     /**
     * Returns the most typical paint for this named color.
@@ -356,7 +385,7 @@ public class KPaint //extends ... implements ...
     * Remember to convert from the [0,1] scale to the [0,360] / [0,100] scale!
     */
     public Paint getWhiteExemplar()
-    { return paints[WHITE_COLOR][COLOR_LEVELS-1]; }
+    { return getPaint(WHITE_COLOR, COLOR_LEVELS-1); }
 //}}}
 
 //{{{ isInvisible, isAlias, getAlias, toString
@@ -393,7 +422,91 @@ public class KPaint //extends ... implements ...
     * See http://www.sgi.com/misc/grafica/interp/ or
     * P. Haeberli and D. Voorhies. Image Processing by Linear Interpolation and
     * Extrapolation. IRIS Universe Magazine No. 28, Silicon Graphics, Aug, 1994.
+    * 
+    * Only implemented for HeavyKPaint.
     */
+    public void setContrast(double alpha) {}
+//}}}
+
+//{{{ empty_code_segment
+//##################################################################################################
+//}}}
+}//class
+
+/** A lightweight paint class for user-defined colors. */
+class LightKPaint extends KPaint //{{{
+{
+    float bHue, bSat, bVal;
+    float wHue, wSat, wVal;
+    
+    public LightKPaint(float bHue, float bSat, float bVal, float wHue, float wSat, float wVal)
+    {
+        super();
+        this.bHue = bHue;
+        this.wHue = wHue;
+        this.bSat = bSat;
+        this.wSat = wSat;
+        this.bVal = bVal;
+        this.wVal = wVal;
+    }
+    
+    public Paint getPaint(int backgroundMode, int depth)
+    {
+        double modHue, modSat, modVal;
+        Color color;
+        // Interpolation coefficient determined by depth
+        double d = (double)depth / (double)(COLOR_LEVELS-1);
+        
+        if(backgroundMode == WHITE_COLOR || backgroundMode == WHITE_MONO)
+        {
+            modHue = wHue;
+            // Saturation interpolated from sat*WSAT at the back to sat*1.0 at the front
+            modSat = wSat * ((1-d)*WSAT + (d)*1);
+            // Value interpolated from a blend of val and pure white at the back
+            // to plain old val at the front.
+            modVal = (1-d)*(WVAL*wVal + (1f-WVAL)*1f) + (d)*wVal;
+        }
+        else // BLACK_COLOR || BLACK_MONO
+        {
+            modHue = bHue;
+            // Saturation is unchanged
+            modSat = bSat;
+            // Value interpolated from val*BVAL at the back to val*1.0 at the front
+            modVal = bVal * ((1-d)*BVAL + (d)*1);
+        }
+        
+        color = new Color(Color.HSBtoRGB((float) modHue, (float) modSat, (float) modVal));
+        if(backgroundMode == WHITE_MONO || backgroundMode == BLACK_MONO)
+            color = makeMonochrome(color);
+        
+        return color;
+    }
+    
+    public Paint[] getPaints(int backgroundMode)
+    {
+        Paint[] paints = new Paint[COLOR_LEVELS];
+        for(int i = 0; i < COLOR_LEVELS; i++)
+            paints[i] = getPaint(backgroundMode, i);
+        return paints;
+    }
+}//}}}
+
+/** A memory-intensive (~2500 bytes) paint class for built-in colors. */
+class HeavyKPaint extends KPaint //{{{
+{
+    Paint[][]       paints;
+    Paint[][]       paintsBackup; // Usually == to paints. See setContrast().
+
+    public Paint getPaint(int backgroundMode, int depth)
+    {
+        return paints[backgroundMode][depth];
+    }
+    
+    public Paint[] getPaints(int backgroundMode)
+    {
+        return paints[backgroundMode];
+    }
+    
     public void setContrast(double alpha)
     {
         this.paints = new Paint[N_BACKGROUNDS][COLOR_LEVELS];
@@ -423,10 +536,4 @@ public class KPaint //extends ... implements ...
             }
         }
     }
-//}}}
-
-//{{{ empty_code_segment
-//##################################################################################################
-//}}}
-}//class
-
+}//}}}

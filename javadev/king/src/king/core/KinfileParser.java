@@ -170,6 +170,8 @@ public class KinfileParser //extends ... implements ...
             else if(s.equals("@master"))                doMaster();
             else if(s.equals("@pointmaster"))           doPointmaster();
             else if(s.equals("@colorset"))              doColorset();
+            else if(s.equals("@hsvcolor"))              doHsvColor();
+            else if(s.equals("@hsvcolour"))             doHsvColor();
             // KINEMAGES, GROUPS, AND SUBGROUPS
             else if(s.equals("@kinemage"))              doKinemage();
             else if(s.equals("@group"))                 doGroup();
@@ -924,7 +926,7 @@ public class KinfileParser //extends ... implements ...
     }
 //}}}
 
-//{{{ doColorset
+//{{{ do{Colorset, HsvColor}
 //##################################################################################################
     void doColorset() throws IOException
     {
@@ -944,6 +946,44 @@ public class KinfileParser //extends ... implements ...
         }
         catch(IllegalArgumentException ex)
         { error("@colorset was not followed by an identifier and a recognized color; found '"+token.getString()+"' instead"); }
+    }
+    
+    void doHsvColor() throws IOException
+    {
+        checkKinemage();
+        try
+        {
+            String colorName;
+            float bHue, bSat, bVal, wHue, wSat, wVal;
+            token.advance(); if(!token.isIdentifier()) throw new IllegalArgumentException();
+            colorName = token.getString();
+            
+            token.advance(); if(!token.isNumber()) throw new IllegalArgumentException();
+            bHue = wHue = token.getFloat();
+            token.advance(); if(!token.isNumber()) throw new IllegalArgumentException();
+            bSat = wSat = token.getFloat();
+            token.advance(); if(!token.isNumber()) throw new IllegalArgumentException();
+            bVal = wVal = token.getFloat();
+
+            token.advance(); if(token.isNumber())
+            {
+                wHue = token.getFloat();
+                token.advance(); if(token.isNumber())
+                {
+                    wSat = token.getFloat();
+                    token.advance(); if(token.isNumber())
+                    {
+                        wVal = token.getFloat();
+                        token.advance();
+                    }
+                }
+            }
+
+            KPaint paint = KPaint.createLightweightHSV(colorName, bHue, bSat, bVal, wHue, wSat, wVal);
+            kinemage.addPaint(paint);
+        }
+        catch(IllegalArgumentException ex)
+        { error("@hsvcolor was not followed by an identifier and 3 - 6 numbers; found '"+token.getString()+"' instead"); }
     }
 //}}}
 

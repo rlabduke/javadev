@@ -321,7 +321,7 @@ public class StarTokenizer //extends ... implements ...
     { return (type == TYPE_SAVE_START); }
     /** Returns true if the current token is the end of a save_ block */
     public boolean isSaveEnd()
-    { return (type == TYPE_SAVE_START); }
+    { return (type == TYPE_SAVE_END); }
     /** Returns true if the current token is the start of a loop_ */
     public boolean isLoopStart()
     { return (type == TYPE_LOOP_START); }
