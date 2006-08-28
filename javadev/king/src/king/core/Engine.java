@@ -159,18 +159,21 @@ public class Engine //extends ... implements ...
         
         if(useStereo)
         {
-            int         halfwidth   = Math.max(0, bounds.width/2 - 10);
-            KingView    altview     = (KingView)view.clone();
-            altview.rotateY(stereoRotation);
+            int halfwidth = Math.max(0, bounds.width/2 - 10);
+            // This way, toggling cross-eye vs wall-eye just swaps the two images!
+            // This makes figure-making much easier, as you can easily do both versions.
+            KingView leftView = (KingView)view.clone(), rightView = (KingView)view.clone();
+            if(stereoRotation < 0)  leftView.rotateY(stereoRotation);
+            else                    rightView.rotateY(-stereoRotation);
 
             Rectangle clipRgn = new Rectangle();
             clipRgn.setBounds(  bounds.x, bounds.y, halfwidth, bounds.height);
             painter.setViewport(bounds.x, bounds.y, halfwidth, bounds.height);
-            renderLoop(subscriber, altview, clipRgn);
+            renderLoop(subscriber,  leftView, clipRgn);
             
             clipRgn.setBounds(  (bounds.x + bounds.width - halfwidth), bounds.y, halfwidth, bounds.height);
             painter.setViewport((bounds.x + bounds.width - halfwidth), bounds.y, halfwidth, bounds.height);
-            renderLoop(subscriber,    view, clipRgn);
+            renderLoop(subscriber, rightView, clipRgn);
         
             // Have to re-activate all of the screen for drawing during overpaint
             painter.setViewport(bounds.x, bounds.y, bounds.width, bounds.height);
