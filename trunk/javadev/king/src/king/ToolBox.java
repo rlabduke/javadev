@@ -28,7 +28,7 @@ import driftwood.util.*;
 * One fully-qualified class name is given per line, and nothing else.
 *
 * <p>Likewise, the submenu of Tools that a plugin belongs to, if any, is determined
-* in the preferences file by the <i>classname<i><code>.menuName</code> property.
+* in the preferences file by the <i>classname</i><code>.menuName</code> property.
 * The special values <code>&lt;main menu&gt;</code> and <code>&lt;not shown&gt;</code>
 * put the plugin in the main Tools menu or don't put in anywhere at all, respectively.
 * KingPrefs scans all jars for files named <code>king/king_prefs</code>,
