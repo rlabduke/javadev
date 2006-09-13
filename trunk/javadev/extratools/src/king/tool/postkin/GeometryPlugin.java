@@ -40,6 +40,7 @@ public class GeometryPlugin extends Plugin {
     HashMap pepAngSD;
     HashMap proAng, proAngSD;
     HashMap glyAng, glyAngSD;
+    //HashMap cisProAng, cisProAngSD;
     KList distList, angList, dihList;
     JFileChooser filechooser;
 
@@ -108,12 +109,14 @@ public class GeometryPlugin extends Plugin {
 	proAng.put("caco", new Double(120.2));
 	proAng.put("ocn", new Double(121.1));
 	proAng.put("cnca", new Double(119.3)); //trans pro only, dunno how to handle cis yet.
+	proAng.put("ciscnca", new Double(127.0));
 	proAngSD = new HashMap();
 	proAngSD.put("ncac", new Double(2.6));
 	proAngSD.put("cacn", new Double(2.8));
 	proAngSD.put("caco", new Double(2.4));
 	proAngSD.put("ocn", new Double(1.9));
 	proAngSD.put("cnca", new Double(1.5));
+	proAngSD.put("ciscnca", new Double(2.4));
 
 	glyAng = new HashMap();
 	glyAng.put("ncac", new Double(113.1));
@@ -150,12 +153,17 @@ public class GeometryPlugin extends Plugin {
 	distList = new KList(sub, "distances");
 	angList = new KList(sub, "angles");
 	dihList = new KList(sub, "dihedrals");
+	distList.setType(KList.VECTOR);
+	angList.setType(KList.VECTOR);
+	dihList.setType(KList.VECTOR);
+	sub.setHasButton(false);
 	sub.add(distList);
 	sub.add(angList);
 	sub.add(dihList);
-	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
 	splitKin(kMain.getKinemage());
 	analyze();
+	kMain.getKinemage().setModified(true);
+	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
     }
 
     public void onAnalyzeAll(ActionEvent e) {
@@ -270,6 +278,7 @@ public class GeometryPlugin extends Plugin {
 		if (pt.isOn()) {
 		    String atomName = KinUtil.getAtomName(pt).toLowerCase();
 		    ResidueInfo res = makeResidueInfo(pt);
+		    //System.out.println(res);
 		    if (atomName.equals("ca")) {
 			//caMap.put(new Integer(resNum), pt);
 			caMap.put(res, pt);
@@ -290,6 +299,9 @@ public class GeometryPlugin extends Plugin {
 				    ResidueInfo prevRes = makeResidueInfo(prev);
 				    sequenceMap.put(prevRes, res);
 				}
+			    } else {
+				ResidueInfo fakePrev = new ResidueInfo("X", "", "-100", "Z", "ZZZ");
+				sequenceMap.put(fakePrev, res);
 			    }
 			}
 			nitMap.put(res, pt);
@@ -332,17 +344,18 @@ public class GeometryPlugin extends Plugin {
     }
 
     public void analyze() {
-	Set keys = sequenceMap.keySet();
+	TreeSet keys = new TreeSet(sequenceMap.keySet());
 	Iterator iter = keys.iterator();
 	while (iter.hasNext()) {
 	    ResidueInfo prevRes = (ResidueInfo) iter.next();
 	    ResidueInfo res = (ResidueInfo) sequenceMap.get(prevRes);
+	    //System.out.println(prevRes + ":" + res);
 	    //System.out.println(prevRes);
 	    //System.out.println(res);
 	    if (caMap.containsKey(res)) {
 		Integer resNum = Integer.valueOf(res.getSequenceNumber());
 		String resSeq = (res.getSequenceNumber() + res.getInsertionCode()).trim();
-		String resNumFull = res.getSequenceNumber() + res.getInsertionCode() + " " + KinUtil.getLastString(((KPoint) caMap.get(res)).getName()) + " " + res.getChain();
+		String resNumFull = (res.getSequenceNumber() + res.getInsertionCode()).trim() + ":" + KinUtil.getLastString(((KPoint) caMap.get(res)).getName()) + ":" + res.getChain().trim();
 		String resName = KinUtil.getResName((KPoint) caMap.get(res));
 		//System.out.println(resName);
 		calcDist(resNumFull, resName, (KPoint) nitMap.get(res), (KPoint) caMap.get(res));
@@ -350,10 +363,13 @@ public class GeometryPlugin extends Plugin {
 		calcDist(resNumFull, resName, (KPoint) carbMap.get(res), (KPoint) oxyMap.get(res));
 		calcAngle(resNumFull, resName, (KPoint) nitMap.get(res), (KPoint) caMap.get(res), (KPoint) carbMap.get(res));
 		calcAngle(resNumFull, resName, (KPoint) caMap.get(res), (KPoint) carbMap.get(res), (KPoint) oxyMap.get(res));
-		calcDist(resNumFull, resName, (KPoint) carbMap.get(prevRes), (KPoint) nitMap.get(res));
-		calcAngle(resNumFull, resName, (KPoint)oxyMap.get(prevRes), (KPoint)carbMap.get(prevRes), (KPoint)nitMap.get(res));
-		calcAngle(resNumFull, resName, (KPoint)carbMap.get(prevRes), (KPoint)nitMap.get(res), (KPoint)caMap.get(res));
-		calcPepDihedral(prevRes.getSequenceNumber() + prevRes.getInsertionCode() + " " + resNumFull, resName, (KPoint)caMap.get(prevRes), (KPoint)carbMap.get(prevRes), (KPoint)nitMap.get(res), (KPoint)caMap.get(res));
+		if (caMap.containsKey(prevRes)) {
+		    calcDist(resNumFull, resName, (KPoint) carbMap.get(prevRes), (KPoint) nitMap.get(res));
+		    calcAngle(resNumFull, resName, (KPoint)oxyMap.get(prevRes), (KPoint)carbMap.get(prevRes), (KPoint)nitMap.get(res));
+		    calcAngle(resNumFull, resName, (KPoint)carbMap.get(prevRes), (KPoint)nitMap.get(res), (KPoint)caMap.get(res), (KPoint)caMap.get(prevRes)); //this calcs the c-n-ca angle; the previous res' ca is to check to see if the peptide is a cis peptide
+		    //calcPepDihedral(prevRes.getSequenceNumber() + prevRes.getInsertionCode() + " " + resNumFull, resName, (KPoint)caMap.get(prevRes), (KPoint)carbMap.get(prevRes), (KPoint)nitMap.get(res), (KPoint)caMap.get(res));
+		    calcPepDihedral(resNumFull, resName, (KPoint)caMap.get(prevRes), (KPoint)carbMap.get(prevRes), (KPoint)nitMap.get(res), (KPoint)caMap.get(res));
+		}
 		if (sequenceMap.containsKey(res)) { //Ideally, if there is a CA, there will be a mapping in seqMap.
 		    ResidueInfo nextRes = (ResidueInfo) sequenceMap.get(res);
 		    calcAngle(resNumFull, resName, (KPoint)caMap.get(res), (KPoint)carbMap.get(res), (KPoint)nitMap.get(nextRes));
@@ -430,9 +446,10 @@ public class GeometryPlugin extends Plugin {
 	    Triple trip2 = new Triple(pt2);
 	    double dist = trip1.distance(trip2);
 	    if ((dist <= idealdist - 4 * sd)||(dist >= idealdist + 4 * sd)) {
-		System.out.print("res " + key + " " + atom1 + "-" + atom2 + " ");
-		System.out.print("distance " + df.format(dist) + " ");
-		System.out.println(df.format((dist - idealdist)/sd) + " sigma off");
+		//System.out.print("res " + key + " " + atom1 + "-" + atom2 + " ");
+		//System.out.print("distance " + df.format(dist) + " ");
+		//System.out.println(df.format((dist - idealdist)/sd) + " sigma off");
+		System.out.println(key + ":" + atom1 + "-" + atom2 + ":" + df.format(dist) + ":" + df.format((dist - idealdist)/sd));
 		drawBall("res "+key+" "+atom1+"-"+atom2, trip1, trip2, dist, idealdist);
 	    }
 	}
@@ -452,6 +469,9 @@ public class GeometryPlugin extends Plugin {
 	    } else if (resName.equals("gly")) {
 		idealAng = ((Double)glyAng.get(atom1 + atom2 + atom3)).doubleValue();
 		sd = ((Double)glyAngSD.get(atom1 + atom2 + atom3)).doubleValue();
+	    } else if (resName.equals("cispro")) {
+		idealAng = ((Double)proAng.get("cis" + atom1 + atom2 + atom3)).doubleValue();
+		sd = ((Double)proAngSD.get("cis" + atom1 + atom2 + atom3)).doubleValue();
 	    } else {
 		idealAng = ((Double)pepAng.get(atom1 + atom2 + atom3)).doubleValue();
 		sd = ((Double)pepAngSD.get(atom1 + atom2 + atom3)).doubleValue();
@@ -461,11 +481,29 @@ public class GeometryPlugin extends Plugin {
 	    Triple trip3 = new Triple(pt3);
 	    double ang = Triple.angle(trip1, trip2, trip3);
 	    if ((ang <= idealAng - 4 * sd) || (ang >= idealAng + 4 * sd)) {
-		System.out.print("res " + key + " " + atom1 + "-" + atom2 + "-" + atom3 + " ");
-		System.out.print("angle " + df.format(ang) + " ");
-		System.out.println(df.format((ang - idealAng)/sd) + " sigma off");
+		//System.out.print("res " + key + " " + atom1 + "-" + atom2 + "-" + atom3 + " ");
+		//System.out.print("angle " + df.format(ang) + " ");
+		//System.out.println(df.format((ang - idealAng)/sd) + " sigma off");
+		System.out.println(key + ":" + atom1 + "-" + atom2 + "-" + atom3 + ":" + df.format(ang) + ":" + df.format((ang - idealAng)/sd));
 		drawLine("res "+key+" "+atom1+"-"+atom2+"-"+atom3, trip1, trip2, trip3, ang, idealAng);
 	    }
+	}
+    }
+
+    public void calcAngle(String key, String resName, KPoint pt1, KPoint pt2, KPoint pt3, KPoint cisPt) {
+	double dihed = 180;
+	if ((pt1 != null)&&(pt2 != null)&&(pt3 != null)&&(cisPt != null)) {
+	    //System.out.println("calcing for cispeptides");
+	    Triple trip1 = new Triple(pt1);
+	    Triple trip2 = new Triple(pt2);
+	    Triple trip3 = new Triple(pt3);
+	    Triple trip4 = new Triple(cisPt);
+	    dihed = Triple.dihedral(cisPt, trip1, trip2, trip3);
+	}
+	if ((dihed < 30) && (dihed > -30) && (resName.equals("pro"))) {
+	    calcAngle(key, "cispro", pt1, pt2, pt3);
+	} else {
+	    calcAngle(key, resName, pt1, pt2, pt3);
 	}
     }
 
@@ -480,23 +518,26 @@ public class GeometryPlugin extends Plugin {
 	    Triple trip3 = new Triple(pt3);
 	    Triple trip4 = new Triple(pt4);
 	    double dihed = Triple.dihedral(trip1, trip2, trip3, trip4);
-	    if ((dihed < 160)&&(dihed > -160)) {
-		System.out.print("res " + key);// + " - res " + (key.intValue() + 1));
-		System.out.println(" peptide dihedral " + df.format(dihed));
+	    if (((dihed < 160)&&(dihed > 30))||((dihed > -160)&&(dihed < -30))) {
+		//System.out.print("res " + key);// + " - res " + (key.intValue() + 1));
+		//System.out.println(" peptide dihedral " + df.format(dihed));
+		System.out.println(key + ":ca-c-n-ca:" + df.format(dihed));
 		drawPep(trip1, trip2, trip3, trip4);
 		//System.out.println(pt1.toString() + pt2.toString() + pt3.toString() + pt4.toString());
 	    }
+	} else {
+	    //System.out.println(pt1 + ":" + pt2 + ":" + pt3 + ":" + pt4);
 	}
     }
     
     public void drawPep(Triple trp1, Triple trp2, Triple trp3, Triple trp4) {
-	VectorPoint p1 = new VectorPoint(dihList, "point 1", null);
+	VectorPoint p1 = new VectorPoint(dihList, "ca 1", null);
 	p1.setXYZ(trp1.getX(), trp1.getY(), trp1.getZ());
-	VectorPoint p3 = new VectorPoint(dihList, "point 3", p1);
+	VectorPoint p3 = new VectorPoint(dihList, "n 2", p1);
 	p3.setXYZ(trp3.getX(), trp3.getY(), trp3.getZ());
-	VectorPoint p2 = new VectorPoint(dihList, "point 2", null);
+	VectorPoint p2 = new VectorPoint(dihList, "c 1", null);
 	p2.setXYZ(trp2.getX(), trp2.getY(), trp2.getZ());
-	VectorPoint p4 = new VectorPoint(dihList, "point 4", p2);
+	VectorPoint p4 = new VectorPoint(dihList, "ca 2", p2);
 	p4.setXYZ(trp4.getX(), trp4.getY(), trp4.getZ());
 	dihList.add(p1);
 	dihList.add(p3);

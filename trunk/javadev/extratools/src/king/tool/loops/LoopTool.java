@@ -24,11 +24,12 @@ public class LoopTool extends BasicTool {
 
 //{{{ Variable definitions
 //##############################################################################
-    HashSet keptSet;
+    HashSet keptSet; 
     HashMap startColorMap, endColorMap;
-    HashMap pdbKeepMap;
-    HashMap pdbMultiLoopMap;
-    TreeMap bFactorMap;
+    HashMap pdbKeepMap; // full name -> hashset of integers to keep
+    HashMap pdbMultiLoopMap; // full name (pdbName + startResidue#) -> pdbName
+    HashMap chainMap; // fullName -> chainID
+    TreeMap bFactorMap; // bfactor + pdbName -> fullName (to do files in order of bfactor)
     JButton delButton, keepButton, removeButton, openButton, delFromFileButton, doAllButton;
     JTextField lowNumField, highNumField;
     TablePane pane;
@@ -92,6 +93,7 @@ public class LoopTool extends BasicTool {
 	endColorMap = new HashMap();
 	bFactorMap = new TreeMap();
 	pdbMultiLoopMap = new HashMap();
+	chainMap = new HashMap();
 	//colorator = new RecolorNonRibbon();
 	show();
     }   
@@ -130,63 +132,44 @@ public class LoopTool extends BasicTool {
 		    try {
 			while ((line = reader.readLine())!=null) {
 			    String[] exploded = Strings.explode(line, ',', false, true);
-			    //System.out.print(exploded[0]+ " ");
-			    //System.out.println(exploded[1]+ " " + exploded[2]);
 			    String pdbName = exploded[0];
 			    pdbName = pdbName.toLowerCase();
-			    //System.out.print(pdbName);
-			    //pdbName = pdbName.toLowerCase();
-			    /*
-			    if (pdbMultiLoopMap.containsKey(pdbName)) {
-				//HashSet fullSet = (HashSet) pdbMultiLoopMap.get(pdbName);
-				HashSet startSet = (HashSet) startColorMap.get(pdbName);
-				HashSet endSet = (HashSet) endColorMap.get(pdbName);
-				HashSet value = new HashSet();
-				keepRange(value, Integer.parseInt(exploded[1])-5, Integer.parseInt(exploded[2])+10);
-				int start = Integer.parseInt(exploded[1])-5;
-				String fullName = pdbName + Integer.toString(start);
-				//fullSet.add(fullName);
-				pdbKeepMap.put(fullName, value);
-				startSet.add(Integer.parseInt(exploded[1]));
-				startSet.add(Integer.parseInt(exploded[1])+1);
-				endSet.add(Integer.parseInt(exploded[2]));
-				endSet.add(Integer.parseInt(exploded[2])+1);
-				bFactorMap.put(df.format(Double.parseDouble(exploded[5]))+pdbName, fullName);
-				} else {*/
-				HashSet value = new HashSet();
-				//keepRange(value, Integer.parseInt(exploded[1])-8, Integer.parseInt(exploded[2])+8);
-				//int startRes = Integer.parseInt(exploded[1])-8;
-				keepRange(value, Integer.parseInt(exploded[1]), Integer.parseInt(exploded[2]));
-				int startRes = Integer.parseInt(exploded[1]);
-				String fullName = pdbName + "-" + Integer.toString(startRes);
-				//HashSet fullSet = new HashSet();
-				//fullSet.add(fullName);
-				pdbMultiLoopMap.put(fullName, pdbName);
-				pdbKeepMap.put(fullName, value);
-				HashSet start = new HashSet();
-				HashSet end = new HashSet();
-				if (startColorMap.containsKey(pdbName)) {
-				    start = (HashSet) startColorMap.get(pdbName);
-				    end = (HashSet) endColorMap.get(pdbName);
-				}
-				int loopStart = Integer.parseInt(exploded[1]);
-				int loopEnd = Integer.parseInt(exploded[2]);
-				for (int i = loopStart-8; i <= loopStart; i++) {
-				    int resToColor = i;
-				    start.add(new Integer(resToColor));
-				    //start.add(new Integer(exploded[1]));
-				}
-				//start.add(new Integer(Integer.parseInt(exploded[1])+1));
-				for (int i = loopEnd; i <= loopEnd + 8; i++) {
-				    int resToColor = i;
-				    end.add(new Integer(resToColor));
-				    //end.add(new Integer(exploded[2]));
-				}
-				//end.add(new Integer(Integer.parseInt(exploded[2])+1));
-				startColorMap.put(pdbName, start);
-				endColorMap.put(pdbName, end);
-			        bFactorMap.put(df.format(Double.parseDouble(exploded[5]))+pdbName, fullName);
-				//}
+			    HashSet value = new HashSet();
+			    //keepRange(value, Integer.parseInt(exploded[1])-8, Integer.parseInt(exploded[2])+8);
+			    //int startRes = Integer.parseInt(exploded[1])-8;
+			    keepRange(value, Integer.parseInt(exploded[1]), Integer.parseInt(exploded[2]));
+			    int startRes = Integer.parseInt(exploded[1]);
+			    String fullName = pdbName + "-" + Integer.toString(startRes);
+			    //HashSet fullSet = new HashSet();
+			    //fullSet.add(fullName);
+			    pdbMultiLoopMap.put(fullName, pdbName);
+			    pdbKeepMap.put(fullName, value);
+			    HashSet start = new HashSet();
+			    HashSet end = new HashSet();
+			    if (startColorMap.containsKey(pdbName)) {
+				start = (HashSet) startColorMap.get(pdbName);
+				end = (HashSet) endColorMap.get(pdbName);
+			    }
+			    int loopStart = Integer.parseInt(exploded[1]);
+			    int loopEnd = Integer.parseInt(exploded[2]);
+			    for (int i = loopStart-8; i <= loopStart; i++) {
+				int resToColor = i;
+				start.add(new Integer(resToColor));
+				//start.add(new Integer(exploded[1]));
+			    }
+			    //start.add(new Integer(Integer.parseInt(exploded[1])+1));
+			    for (int i = loopEnd; i <= loopEnd + 8; i++) {
+				int resToColor = i;
+				end.add(new Integer(resToColor));
+				//end.add(new Integer(exploded[2]));
+			    }
+			    //end.add(new Integer(Integer.parseInt(exploded[2])+1));
+			    startColorMap.put(pdbName, start);
+			    endColorMap.put(pdbName, end);
+			    bFactorMap.put(df.format(Double.parseDouble(exploded[5]))+pdbName, fullName);
+			    String chainID = exploded[3].toLowerCase();
+			    chainMap.put(fullName, chainID);
+			    //}
 			}
 		    } catch (IOException ex) {
 			JOptionPane.showMessageDialog(kMain.getTopWindow(),
@@ -398,7 +381,8 @@ public class LoopTool extends BasicTool {
 	    while (iter.hasNext()) {
 		KPoint pt = (KPoint) iter.next();
 		int resNum = KinUtil.getResNumber(pt);
-		if (!keepSet.contains(new Integer(resNum))) {
+		String ptChain = KinUtil.getChainID(pt).toLowerCase();
+		if ((!keepSet.contains(new Integer(resNum)))){//||(!chainID.equals(ptChain))) {
 		    iter.remove();
 		} else if ((keepSet.contains(new Integer(resNum)))&&(!keepSet.contains(new Integer(resNum-1)))) {
 		    if (pt instanceof VectorPoint) {
