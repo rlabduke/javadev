@@ -293,6 +293,9 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
 		//String pointID = point.getName().trim();
 		//String aa = pointID.substring(4, 7);
 		String aa = getResName(point);
+		if (aa.length()==4) {
+		    aa = aa.substring(1);
+		}
 		aaText = aaText.concat(AminoAcid.translate(aa));
 	    } else {
 		aaText = aaText.concat("-");

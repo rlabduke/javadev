@@ -220,23 +220,89 @@ public class KinFudgerTool extends BasicTool {
 //{{{ xx_drag() functions
 //##################################################################################################
     /** Override this function for (left-button) drags */
-    public void drag(int dx, int dy, MouseEvent ev)
+    public void drag(int dx, int dy, MouseEvent ev) {
+	//System.out.println(dx + ";" + dy);
+	KingView v = kMain.getView();
+	if(v != null && draggedPoint != null) {
+
+	    Dimension dim = kCanvas.getCanvasSize();
+
+	    float[] xVector = v.translateRotated(1, 0, 0, Math.min(dim.width, dim.height));
+	    float[] yVector = v.translateRotated(0, -1, 0, Math.min(dim.width, dim.height));
+
+	    VectorPoint startAxis = new VectorPoint(null, "start", null);
+	    startAxis.setXYZ(draggedPoint.getX(), draggedPoint.getY(), draggedPoint.getZ());
+	    VectorPoint xAxis = new VectorPoint(null, "xAxis", startAxis);
+	    xAxis.setXYZ(draggedPoint.getX() + xVector[0], draggedPoint.getY() + xVector[1], draggedPoint.getZ() + xVector[2]);
+	    VectorPoint yAxis = new VectorPoint(null, "yAxis", startAxis);
+	    yAxis.setXYZ(draggedPoint.getX() + yVector[0], draggedPoint.getY() + yVector[1], draggedPoint.getZ() + yVector[2]);
+
+	    float xRotAmount = ((float)(2.0*Math.PI) * dx / 3f);
+	    Transform xRotate = new Transform();
+	    xRotate = xRotate.likeRotation(draggedPoint, yAxis, xRotAmount);
+
+	    float yRotAmount = ((float)(2.0*Math.PI) * dy / 3f);
+	    Transform yRotate = new Transform();
+	    yRotate = yRotate.likeRotation(draggedPoint, xAxis, yRotAmount);
+	    //System.out.println("new axis calced");
+	    
+	    HashSet tempSet = new HashSet();  // for storing new, moved coords temporarily for mobilePoints
+	    Kinemage kin = kMain.getKinemage();
+	    Iterator iter = kin.iterator();
+	    while (iter.hasNext()) {
+		KGroup group = (KGroup) iter.next();
+		if (group.isOn()) {
+		    Iterator groupIters = group.iterator();
+		    while (groupIters.hasNext()) {
+			KSubgroup sub = (KSubgroup) groupIters.next();
+			Iterator subIters = sub.iterator();
+			while (subIters.hasNext()) {
+			    KList list = (KList) subIters.next();
+			    Iterator listIter = list.iterator();
+			    while (listIter.hasNext()) {
+				AbstractPoint point = (AbstractPoint) listIter.next();
+				if (mobilePoints.contains(point)) {
+				    xRotate.transform(point);
+				    yRotate.transform(point);
+				    tempSet.add(clonePoint(point));
+				}
+				
+			    }
+			}
+		    }
+		}
+	    }
+	    mobilePoints.clear();
+	    mobilePoints.addAll(tempSet);
+
+	    kCanvas.repaint();
+	}
+	else super.drag(dx, dy, ev);
+
+    }
+
+    /** Override this function for right-button/shift drags */
+    public void s_drag(int dx, int dy, MouseEvent ev)
     {
         KingView v = kMain.getView();
         if(v != null && draggedPoint != null)
         {
 
 	    Dimension dim = kCanvas.getCanvasSize();
-	    float[] center = v.getCenter();
-	    float[] offset = v.translateRotated(ev.getX() - dim.width/2, dim.height/2 - ev.getY(), 0, Math.min(dim.width, dim.height));
+	    //float[] center = v.getCenter();
+	    //float[] offset = v.translateRotated(ev.getX() - dim.width/2, dim.height/2 - ev.getY(), 0, Math.min(dim.width, dim.height));
 	    Triple origCoord = new Triple().like(draggedPoint);
 	    //System.out.println(origCoord);
-	    origCoord = (new Triple(center[0]+offset[0], center[1]+offset[1], center[2]+offset[2])).sub(origCoord);
+	    //origCoord = (new Triple(center[0]+offset[0], center[1]+offset[1], center[2]+offset[2])).sub(origCoord);
 	    //System.out.println(origCoord);
-
-	    draggedPoint.setX(draggedPoint.getX() + origCoord.getX());
-	    draggedPoint.setY(draggedPoint.getY() + origCoord.getY());
-	    draggedPoint.setZ(draggedPoint.getZ() + origCoord.getZ());  
+	    float[] offset = v.translateRotated(dx, -dy, 0, Math.min(dim.width, dim.height));
+	    
+	    //draggedPoint.setX(draggedPoint.getX() + origCoord.getX());
+	    //draggedPoint.setY(draggedPoint.getY() + origCoord.getY());
+	    //draggedPoint.setZ(draggedPoint.getZ() + origCoord.getZ());  
+	    draggedPoint.setX(draggedPoint.getX() + offset[0]);
+	    draggedPoint.setY(draggedPoint.getY() + offset[1]);
+	    draggedPoint.setZ(draggedPoint.getZ() + offset[2]);  
 
 	    HashSet tempSet = new HashSet();  // for storing new, moved coords temporarily for mobilePoints
 	    Kinemage kin = kMain.getKinemage();
@@ -256,9 +322,12 @@ public class KinFudgerTool extends BasicTool {
 				if (mobilePoints.contains(point)) {
 				    //System.out.println("Moving: " + point);
 				    //mobilePoints.remove(point);
-				    point.setX(point.getX() + origCoord.getX());
-				    point.setY(point.getY() + origCoord.getY());
-				    point.setZ(point.getZ() + origCoord.getZ());  
+				    //point.setX(point.getX() + origCoord.getX());
+				    //point.setY(point.getY() + origCoord.getY());
+				    //point.setZ(point.getZ() + origCoord.getZ());  
+				    point.setX(point.getX() + offset[0]);
+				    point.setY(point.getY() + offset[1]);
+				    point.setZ(point.getZ() + offset[2]);
 				    tempSet.add(clonePoint(point));
 				}
 				
@@ -272,7 +341,7 @@ public class KinFudgerTool extends BasicTool {
 
 	    kCanvas.repaint();
 	}
-        else super.drag(dx, dy, ev);
+        else super.s_drag(dx, dy, ev);
     }
 //}}}
 

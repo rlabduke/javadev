@@ -106,6 +106,9 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
 		ArrayList list = (ArrayList) structMap.get(new Integer(i));
 		KPoint point = (KPoint) list.get(0);
 		String aa = getResName(point);
+		if (aa.length()==4) {
+		    aa = aa.substring(1);
+		}
 		aaText = aaText.concat(AminoAcid.translate(aa));
 	    } else {
 		aaText = aaText.concat("-");

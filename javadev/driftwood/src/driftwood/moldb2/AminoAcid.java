@@ -117,7 +117,7 @@ public class AminoAcid //extends ... implements ...
  **/
     static public String translate(String code) {
         String trans = "";
-        if (code.length()==3) {
+        if (code.length()>=3) {
             if (threeToOneLetter.containsKey(code)) {
                 trans = (String) threeToOneLetter.get(code);
             } else {
