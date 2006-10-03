@@ -153,7 +153,7 @@ public class GeometryPlugin extends Plugin {
 	distList = new KList(sub, "distances");
 	angList = new KList(sub, "angles");
 	dihList = new KList(sub, "dihedrals");
-	distList.setType(KList.VECTOR);
+	distList.setType(KList.BALL);
 	angList.setType(KList.VECTOR);
 	dihList.setType(KList.VECTOR);
 	sub.setHasButton(false);
@@ -227,8 +227,11 @@ public class GeometryPlugin extends Plugin {
 		    KSubgroup sub = new KSubgroup(geomGroup, "geom");
 		    geomGroup.add(sub);
 		    distList = new KList(sub, "distances");
+		    distList.setType(KList.BALL);
 		    angList = new KList(sub, "angles");
+		    angList.setType(KList.VECTOR);
 		    dihList = new KList(sub, "dihedrals");
+		    dihList.setType(KList.VECTOR);
 		    sub.add(distList);
 		    sub.add(angList);
 		    sub.add(dihList);
