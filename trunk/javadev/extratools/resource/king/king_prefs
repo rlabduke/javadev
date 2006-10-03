@@ -24,3 +24,4 @@ king.tool.loops.FramerTool.menuName = Specialty
 king.tool.data_analysis.PlottingTool.menuName = Specialty
 king.tool.postkin.GeometryPlugin.menuName = Specialty
 king.tool.rnaxtal.RNAExtractTool.menuName = Specialty
+king.tool.postkin.RMSDTool.menuName = Specialty
