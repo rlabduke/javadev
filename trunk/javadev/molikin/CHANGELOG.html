@@ -6,17 +6,31 @@
         1ACX - weird geom leads to weird bonding patterns
         We could modify AtomGroup.connectHeavyAtoms()
         to keep only the N shortest bonds...
-    Deal with NMR 'Q' atoms in AtomGraph (how -- what did I mean?)
     color by residue type (each AA, base, etc has its own color)
     How to draw: only A alts? only atoms with B -lt 30? Q -gt 0.66?
-        Create new Model with edited ModelStates
+        Use custom Crayon.shouldPrint() or create new Model (not recommended)
+        But how to do the GUI?
+    RibbonPrinter doesn't honor Crayon.shouldPrint()
     VDW, Ball+Stick, Ribbon engines should be separated from their GUIs
         public boolean showXXX = false
         element color map should be pluggable, not from Util
+    The case for ribbon to ball-and-stick communication:
+        BnS sidechains should draw to a ribbon guidepoint -- which residues,
+        and how to get out the guidepoint coordinates?
+    Is the guidepoint offset also only applied for 3+ consec. residues,
+        or is that limit just applied for ribbon width?
+    H checkbox should be disabled when no H are present!
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 0.12 ###
+- changed how Crayons work, to allow them to also filter atoms/bonds
+- changed StickPrinter to honor Crayon.shouldPrint()
+- matched AltConfCrayon and ProteinSecStructCrayon to the new Crayon interface
+- changed ConstCrayon to the new Crayon interface
+- changed extra digits in ___Printer classes to be optional 
 
 ### 0.11 ###
 - plugin now marks kin as modified on Append, but not on New (may be throwaway)

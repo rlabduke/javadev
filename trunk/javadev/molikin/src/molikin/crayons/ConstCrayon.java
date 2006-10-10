@@ -1,6 +1,7 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
-package molikin;
+package molikin.crayons;
+import molikin.*;
 
 //import java.awt.*;
 //import java.awt.event.*;
@@ -19,16 +20,17 @@ import driftwood.moldb2.*;
 * <p>Copyright (C) 2005 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri Sep 30 11:41:50 EDT 2005
 */
-public class ConstCrayon implements AtomCrayon, BondCrayon, RibbonCrayon
+public class ConstCrayon extends AbstractCrayon implements AtomCrayon, BondCrayon, RibbonCrayon
 {
 //{{{ Constants
     /** A crayon that always returns the empty string ("") */
-    public static final ConstCrayon NONE = new ConstCrayon("");
+    public static final ConstCrayon NONE = new ConstCrayon(null);
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    String color;
+    String kinString = null;
+    String color = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -40,16 +42,25 @@ public class ConstCrayon implements AtomCrayon, BondCrayon, RibbonCrayon
     }
 //}}}
 
-//{{{ colorAtom, colorBond, colorRibbon
+//{{{ getKinString, forAtom/Bond/Ribbon
 //##############################################################################
-    public String colorAtom(AtomState as)
-    { return color; }
+    public String getKinString()
+    {
+        if(kinString == null) kinString = super.getKinString();
+        return kinString;
+    }
     
-    public String colorBond(AtomState from, AtomState toward)
+    public void forAtom(AtomState as) {}
+    public void forBond(AtomState from, AtomState toward) {}
+    public void forRibbon(GuidePoint start, GuidePoint end, int interval, int nIntervals) {}
+//}}}
+
+//{{{ get/setColor
+//##############################################################################
+    public String getColor()
     { return color; }
-    
-    public String colorRibbon(GuidePoint start, GuidePoint end, int interval, int nIntervals)
-    { return color; }
+    public void setColor(String s)
+    { this.color = s; }
 //}}}
 
 //{{{ empty_code_segment

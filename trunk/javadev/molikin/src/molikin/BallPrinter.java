@@ -22,13 +22,13 @@ import driftwood.moldb2.*;
 public class BallPrinter //extends ... implements ...
 {
 //{{{ Constants
-    static final DecimalFormat df = new DecimalFormat("0.000");
+    static final DecimalFormat df = new DecimalFormat("0.###");
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
     PrintWriter out;
-    AtomCrayon  crayon  = ConstCrayon.NONE;
+    AtomCrayon  crayon  = molikin.crayons.ConstCrayon.NONE;
     AtomIDer    ider    = new PrekinIDer();
 //}}}
 
@@ -53,9 +53,10 @@ public class BallPrinter //extends ... implements ...
         for(Iterator iter = atoms.iterator(); iter.hasNext(); )
         {
             AtomState curr = (AtomState) iter.next();
-            if(res == null || res.contains(curr.getResidue()))
+            crayon.forAtom(curr);
+            if(crayon.shouldPrint() && (res == null || res.contains(curr.getResidue())))
             {
-                out.println("{"+ider.identifyAtom(curr)+"}"+crayon.colorAtom(curr)+" "+curr.format(df));
+                out.println("{"+ider.identifyAtom(curr)+"}"+crayon.getKinString()+" "+curr.format(df));
             }
         }
         

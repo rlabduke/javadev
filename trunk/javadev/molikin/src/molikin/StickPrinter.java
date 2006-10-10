@@ -23,13 +23,13 @@ import driftwood.r3.Triple;
 public class StickPrinter //extends ... implements ...
 {
 //{{{ Constants
-    static final DecimalFormat df = new DecimalFormat("0.000");
+    static final DecimalFormat df = new DecimalFormat("0.###");
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
     PrintWriter out;
-    BondCrayon  crayon  = ConstCrayon.NONE;
+    BondCrayon  crayon  = molikin.crayons.ConstCrayon.NONE;
     AtomIDer    ider    = new PrekinIDer();
     
     boolean halfbonds = false; // draw half bonds instead of whole ones
@@ -71,28 +71,9 @@ public class StickPrinter //extends ... implements ...
         Bond[] b = (Bond[]) selectedBonds.toArray(new Bond[selectedBonds.size()]);
         Bond.optimizeBondSequence(b);
         
-        Bond last = new Bond(null, -1, null, -1);
-        for(int i = 0; i < b.length; i++)
-        {
-            Bond curr = b[i];
-            String higherColor = crayon.colorBond(curr.higher, curr.lower);
-            
-            if(curr.lower != last.higher)
-                out.print("{"+ider.identifyAtom(curr.lower)+"}P "+curr.lower.format(df)+" ");
-            if(halfbonds) // insignificant speed penalty to check in-line
-            {
-                // Draw the midpoint only if we change color / pointmasters / etc.
-                // Is this really wise? It might make editing harder later on...
-                String lowerColor = crayon.colorBond(curr.lower, curr.higher);
-                if(!lowerColor.equals(higherColor))
-                {
-                    midpoint.likeMidpoint(curr.lower, curr.higher);
-                    out.print("{mid}U "+lowerColor+" "+midpoint.format(df)+" ");
-                }
-            }
-            out.println("{"+ider.identifyAtom(curr.higher)+"}L "+higherColor+" "+curr.higher.format(df));
-            last = curr;
-        }
+        if(halfbonds)   halfBondsImpl(b);
+        else            wholeBondsImpl(b);
+        
         out.flush();
         
         //time = System.currentTimeMillis() - time;
@@ -104,6 +85,69 @@ public class StickPrinter //extends ... implements ...
     
     public void printSticks(Collection bonds)
     { printSticks(bonds, null, null, null, null); }
+//}}}
+
+//{{{ wholeBondsImpl
+//##############################################################################
+    void wholeBondsImpl(Bond[] b)
+    {
+        Bond last = new Bond(null, -1, null, -1);
+        for(int i = 0; i < b.length; i++)
+        {
+            Bond curr = b[i];
+            crayon.forBond(curr.lower, curr.higher);
+            // This may cause inefficiencies by introducing breaks into the
+            // carefully ordered series of bonds, but we'll live with it.
+            if(!crayon.shouldPrint()) continue;
+            
+            if(curr.lower != last.higher)
+                out.print("{"+ider.identifyAtom(curr.lower)+"}P "+curr.lower.format(df)+" ");
+            out.println("{"+ider.identifyAtom(curr.higher)+"}L "+crayon.getKinString()+" "+curr.higher.format(df));
+            last = curr;
+        }
+    }
+//}}}
+
+//{{{ halfBondsImpl
+//##############################################################################
+    void halfBondsImpl(Bond[] b)
+    {
+        Bond last = new Bond(null, -1, null, -1);
+        for(int i = 0; i < b.length; i++)
+        {
+            Bond curr = b[i];
+            midpoint.likeMidpoint(curr.lower, curr.higher);
+            
+            // Filtering bonds at the Crayon level will be somewhat inefficient,
+            // because introduces breaks into the carefully-ordered Bonds.
+            // However, it gives enough extra flexibility it's probably worth it!
+
+            crayon.forBond(curr.lower, curr.higher);
+            boolean doLowerHalf = crayon.shouldPrint();
+            String lowerColor = crayon.getKinString();
+            crayon.forBond(curr.higher, curr.lower);
+            boolean doHigherHalf = crayon.shouldPrint();
+            String higherColor = crayon.getKinString();
+
+            if(doLowerHalf)
+            {
+                if(curr.lower != last.higher)
+                    out.print("{"+ider.identifyAtom(curr.lower)+"}P "+curr.lower.format(df)+" ");
+                // Only draw midpoint if color/attributes change.
+                // May decide later that we should always draw midpoint, regardless.
+                if(!lowerColor.equals(higherColor))
+                    out.print("{mid}U "+lowerColor+" "+midpoint.format(df)+" ");
+            }
+
+            if(doHigherHalf)
+            {
+                if(!doLowerHalf)
+                    out.print("{mid}P U "+midpoint.format(df)+" ");
+                out.println("{"+ider.identifyAtom(curr.higher)+"}L "+higherColor+" "+curr.higher.format(df));
+                last = curr;
+            }
+        }
+    }
 //}}}
 
 //{{{ get/setHalfBonds, get/setCrayon, get/setAtomIDer

@@ -2,6 +2,7 @@
 //{{{ Package, imports
 package molikin.gui;
 import molikin.*;
+import molikin.crayons.*;
 
 import java.awt.*;
 import java.awt.event.*;
