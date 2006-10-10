@@ -160,6 +160,11 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
         bestWriter.setOutput(output);
         IIOImage image = new IIOImage(img, null, null);
         bestWriter.write(null, image, bestWriteParam);
+        // These two lines copied from javax.imageio.ImageIO.write()
+        // in hopes of writing out complete JPEGs under Windows
+        output.flush();
+        bestWriter.dispose();
+        output.close();
     }
 //}}}
 
