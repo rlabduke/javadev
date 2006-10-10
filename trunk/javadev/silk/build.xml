@@ -1,5 +1,5 @@
 <!-- (jEdit options) :folding=explicit:collapseFolds=1: -->
-<project name="silk" default="main" basedir=".">
+<project name="silk" default="deploy-local" basedir=".">
 <description>Smooth-As-Silk data processing filter</description>
 
 <!-- global properties that we always want defined {{{ -->
@@ -12,22 +12,17 @@
     <tstamp>
         <format property="DSTAMP_SIX" pattern="yyMMdd"/>
     </tstamp>
-    <propertyfile file="${resource}/${ant.project.name}/version.props">
+    <propertyfile file="${resource}/${ant.project.name}/buildnum.props">
         <entry key="buildnum" value="${DSTAMP}.${TSTAMP}"/>
     </propertyfile>
+    <property file="${resource}/${ant.project.name}/buildnum.props"/>
     <property file="${resource}/${ant.project.name}/version.props"/>
 </target>
-<!-- Defines properties needed to use ANTSCP -->
+<!-- Defines properties needed to use SCP -->
 <target name="init-scp">
     <property file="../lib/scp.props"/>
-    <taskdef name="antscp"
-             classname="net.ericalexander.antscp.AntSCP"
-             classpath="../lib/ant-tasks/AntSCP.jar:../lib/ant-tasks/ISNetworksMindTermSCP.jar"/>
 </target>
 <!-- }}} -->
-
-<!-- The default target for this project - just an alias to some other target -->
-<target name="main"  description="Do 'deploy-local'" depends="deploy-local"/>
 
 <!-- build, compile {{{ -->
 <!-- Bundles up all needed class and resource files into a JAR -->
@@ -72,17 +67,9 @@
          <zipfileset dir="${dist}" includes="${ant.project.name}-${version}-src/"/>
          <zipfileset dir="../driftwood/dist/" includes="driftwood-*-src/"/>
     </zip>
-    <tar destfile="${dist}/${ant.project.name}-${version}-src.tgz" compression="gzip">
-         <tarfileset dir="${dist}" includes="${ant.project.name}-${version}-src/"/>
-         <tarfileset dir="../driftwood/dist/" includes="driftwood-*-src/"/>
-    </tar>
     <zip basedir="${dist}"
          destfile="${dist}/${ant.project.name}-${version}.zip"
          includes="${ant.project.name}-${version}/"/>
-    <tar basedir="${dist}"
-         destfile="${dist}/${ant.project.name}-${version}.tgz"
-         includes="${ant.project.name}-${version}/"
-         compression="gzip"/>
 </target>
 
 <!-- Makes the source code distribution -->
@@ -140,35 +127,6 @@
 <!-- Deploys the executable on the local system -->
 <target name="deploy-local"  description="Build class files and copy to ~/bin" depends="build">
     <copy file="${ant.project.name}.jar" todir="${user.home}/rlab/validation/top500-angles/lib/" overwrite="true" failonerror="false"/>
-</target>
-
-<!-- Deploys the executable for the whole lab -->
-<target name="deploy-rlab"  description="Deploy locally and to cluster" depends="dist,init-scp,deploy-local">
-    <antscp remoteUserName="${scp.src.username}" remoteHost="${scp.src.hostname}" remotePassword="${scp.src.password}"
-            localFile="${basedir}/${ant.project.name}.jar"
-            remoteFile="${scp.src.jarpath}/${ant.project.name}.jar"/>
-    <antscp remoteUserName="${scp.src.username}" remoteHost="${scp.src.hostname}" remotePassword="${scp.src.password}"
-            localFile="${dist}/${ant.project.name}-${version}-src.tgz"
-            remoteFile="${scp.src.srcpath}/${ant.project.name}-${version}-src.tgz"/>
-</target>
-
-<!-- Deploys the exe and src for the public at large -->
-<target name="deploy-world"  description="Deploy to public servers" depends="dist,init-scp,deploy-local,deploy-rlab">
-    <!-- Copy to FTP site for distribution -->
-    <antscp remoteUserName="${scp.ftp.username}" remoteHost="${scp.ftp.hostname}" remotePassword="${scp.ftp.password}"
-            localFile="${dist}/${ant.project.name}-${version}-src.zip"
-            remoteFile="${scp.ftp.path}/${ant.project.name}/${ant.project.name}.${version}.${DSTAMP_SIX}.src.zip"/>
-    <antscp remoteUserName="${scp.ftp.username}" remoteHost="${scp.ftp.hostname}" remotePassword="${scp.ftp.password}"
-            localFile="${dist}/${ant.project.name}-${version}-src.tgz"
-            remoteFile="${scp.ftp.path}/${ant.project.name}/${ant.project.name}.${version}.${DSTAMP_SIX}.src.tgz"/>
-    <antscp remoteUserName="${scp.ftp.username}" remoteHost="${scp.ftp.hostname}" remotePassword="${scp.ftp.password}"
-            localFile="${dist}/${ant.project.name}-${version}.zip"
-            remoteFile="${scp.ftp.path}/${ant.project.name}/${ant.project.name}.${version}.${DSTAMP_SIX}.zip"/>
-    <antscp remoteUserName="${scp.ftp.username}" remoteHost="${scp.ftp.hostname}" remotePassword="${scp.ftp.password}"
-            localFile="${dist}/${ant.project.name}-${version}.tgz"
-            remoteFile="${scp.ftp.path}/${ant.project.name}/${ant.project.name}.${version}.${DSTAMP_SIX}.tgz"/>
-    <echo>*** REMEBER TO UPDATE THE .current.___ SYMLINKS IN ${scp.ftp.path}/${ant.project.name} AS ${scp.ftp.username}@${scp.ftp.hostname} ***</echo>
-    <echo>Also remember to increment the minor version number in version.props and in CHANGELOG.</echo>
 </target>
 <!-- }}} -->
 </project>
