@@ -23,6 +23,7 @@ MOLDB2: {{
     Add a class that can WRITE moldb2 data into a StarFile DOM (CifWriter)
     We need an Model.extractAtomStates() function based on AS [identity? name?]
   * CifReader should use _atom_site.pdbx_PDB_residue_no instead of CIF numbers?
+  ? Why does AminoAcid.translate() return lower case three-letter codes?
 }}}
 R3: {{{
 }}}
@@ -48,6 +49,7 @@ UTIL: {{{
 - fixed bug in StarReader (didn't skip end-of-save-frame tokens)
 - made it possible to repeat a save frame (new data add or overwrite)
 - added DataCell.getName() -- using toString() was unsafe for future
+- reformatted code in moldb2.AminoAcid to match Ian's code style
 
 ### 0.75 ###
 - we now allow redefinition of identically named residues in a PDB file,

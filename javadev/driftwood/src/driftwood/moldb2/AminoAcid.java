@@ -44,7 +44,8 @@ public class AminoAcid //extends ... implements ...
     private static final Map threeToOneLetter;
     private static final Map oneToThreeLetter;
 
-    static {
+    static
+    {
         Map map = new HashMap();
         map.put("gly", "G");
         map.put("ala", "A");
@@ -110,25 +111,27 @@ public class AminoAcid //extends ... implements ...
 
 //{{{ translate
 //##################################################################################################
-/**
- * Returns the translation of the amino acid name, either from one letter to 
- * three letters, or vice versa.  Returns "X" if three letter code is unknown, 
- * or "unk" if one letter code is unknown.
- **/
-    static public String translate(String code) {
+    /**
+    * Returns the translation of the amino acid name, either from one letter to 
+    * three letters, or vice versa.  Returns "X" if three letter code is unknown, 
+    * or "unk" if one letter code is unknown.
+    */
+    static public String translate(String code)
+    {
         String trans = "";
-        if (code.length()>=3) {
-            if (threeToOneLetter.containsKey(code)) {
+        if(code.length() >= 3)
+        {
+            if(threeToOneLetter.containsKey(code))
                 trans = (String) threeToOneLetter.get(code);
-            } else {
+            else
                 trans = "X";
-            } 
-        } else {
-            if (oneToThreeLetter.containsKey(code)) {
+        }
+        else
+        {
+            if(oneToThreeLetter.containsKey(code))
                 trans = (String) oneToThreeLetter.get(code);
-            } else {
+            else
                 trans = "unk";
-            }
         }
         return trans;
     }
