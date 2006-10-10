@@ -22,6 +22,11 @@ public class RibbonPrinter //extends ... implements ...
 {
 //{{{ Constants
     static final DecimalFormat df = new DecimalFormat("0.###");
+    // From PKININIT.c
+    static final double ribwidcoil      = 1.0; 
+    static final double ribwidalpha     = 2.0;
+    static final double ribwidbeta      = 2.2;
+    static final double ribwidnucleic   = 3.0;
 //}}}
 
 //{{{ Variable definitions
@@ -51,7 +56,7 @@ public class RibbonPrinter //extends ... implements ...
 
         out.println("@balllist {guide points} color= red radius= 0.20 master= {guidepts}");
         for(int i = 0; i < guides.length; i++)
-            out.println("{guide point} "+guides[i].xyz.format(df));
+            out.println("{guide point off="+df.format(guides[i].offsetFactor)+" wid="+df.format(guides[i].widthFactor)+"} "+guides[i].xyz.format(df));
 
         out.println("@vectorlist {c vectors} color= green master= {guidepts}");
         for(int i = 0; i < guides.length; i++)
@@ -71,13 +76,28 @@ public class RibbonPrinter //extends ... implements ...
     }
 //}}}
 
-//{{{ printUniformFiveLine
+//{{{ printOne/Two/Three/FiveLine
+//##############################################################################
+    public void printOneLine(GuidePoint[] guides, int nIntervals, boolean variableWidth)
+    { printNLineImpl(guides, nIntervals, variableWidth, 0, 99); }
+    
+    public void printTwoLine(GuidePoint[] guides, int nIntervals, boolean variableWidth)
+    { printNLineImpl(guides, nIntervals, variableWidth, -1, 2); }
+    
+    public void printThreeLine(GuidePoint[] guides, int nIntervals, boolean variableWidth)
+    { printNLineImpl(guides, nIntervals, variableWidth, -1, 1); }
+    
+    public void printFiveLine(GuidePoint[] guides, int nIntervals, boolean variableWidth)
+    { printNLineImpl(guides, nIntervals, variableWidth, -1, 0.5); }
+//}}}
+
+//{{{ printNLineImpl
 //##############################################################################
     /**
-    * For debugging purposes, displays a 5-skein ribbon of uniform width.
+    * Displays an N-skein ribbon of uniform or variable width.
     * Only points are generated; the client is responsible for writing "@vectorlist ...".
     */
-    public void printUniformFiveLine(GuidePoint[] guides, int nIntervals)
+    public void printNLineImpl(GuidePoint[] guides, int nIntervals, boolean variableWidth, double strandStart, double strandStride)
     {
         int         len     = guides.length;
         NRUBS       nrubs   = new NRUBS();
@@ -85,20 +105,26 @@ public class RibbonPrinter //extends ... implements ...
         Triple[]    pts     = new Triple[len];
         for(int i = 0; i < len; i++) pts[i] = new Triple();
         
-        final double halfWidth = 1.0;
-        for(double strand = -1; strand <= 1; strand+=0.5)
+        for(double strand = strandStart; strand <= 1; strand+=strandStride)
         {
             for(int i = 0; i < len; i++)
+            {
+                double ribwid = (guides[i].offsetFactor > 0 ? ribwidalpha : ribwidbeta);
+                double halfWidth = 0.5 * (ribwidcoil + guides[i].widthFactor*(ribwid - ribwidcoil));
+                if(!variableWidth) halfWidth = 1.0;
                 pts[i].like(guides[i].xyz).addMult(strand*halfWidth, guides[i].dvec);
+            }
             Tuple3[] spline = nrubs.spline(pts, nIntervals);
+            boolean isBreak = true;
             for(int i = 0; i < spline.length; i++)
             {
                 int startGuide = (i/nIntervals) + 1;
                 crayon.forRibbon(guides[startGuide], guides[startGuide+1], i%nIntervals, nIntervals);
                 // For this to make sense, we have to be able to restart line if there's a break
-                //if(!crayon.shouldPrint()) continue;
+                if(!crayon.shouldPrint()) { isBreak = true; continue; }
                 tmp.like(spline[i]); // because Tuple3 doesn't have a format() method
-                out.println("{}"+(i==0 ? "P " : "")+crayon.getKinString()+" "+tmp.format(df));
+                out.println("{}"+(isBreak ? "P " : "")+crayon.getKinString()+" "+tmp.format(df));
+                isBreak = false;
             }
         }
 

@@ -117,10 +117,14 @@ public class Ribbons //extends ... implements ...
                 // and/or guidepoint position. Ribbon widens in areas of high OR low
                 // curvature (alpha/beta, respectively). This is only a preliminary
                 // estimate -- it's applied only for 3+ residues in a row. (checked below)
+                //
                 // For high curvature ONLY (alpha), we offset the guidepoint
-                // outwards to make the spline track the helix. Offset vector goes from
-                // the midpoint of Ca(i-1) to Ca(i+2) thru the current guide point
+                // outwards to make the spline track the chain (esp. helix);
+                // this is done for each and does not require 3+ in a row.
+                // Offset vector goes from the midpoint of Ca(i-1) to Ca(i+2)
+                // thru the current guide point
                 // (which is the midpoint of Ca(i) and Ca(i+1)).
+                //
                 //  CA-CA DIST  WIDTH FACTOR    OFFSET FACTOR   NOTE
                 //  ==========  ============    =============   ====
                 //  5.0         1               1               ~limit for curled-up protein
@@ -136,27 +140,42 @@ public class Ribbons //extends ... implements ...
                 {
                     AtomState ca0 = state.get(res[i-1].getAtom(" CA "));
                     AtomState ca3 = state.get(res[i+2].getAtom(" CA "));
-                    double widthFactor, offsetFactor;
                     double cacaDist = ca0.distance(ca3);
                     if(cacaDist < 7)
                     {
-                        widthFactor = offsetFactor = Math.min(1.5, 7-cacaDist) / 1.5;
+                        g.widthFactor = g.offsetFactor = Math.min(1.5, 7-cacaDist) / 1.5;
                         midpt.likeMidpoint(ca0, ca3);
                         offsetVec.likeVector(midpt, g.xyz).unit();
-                        g.xyz.addMult(maxOffset*offsetFactor, offsetVec);
+                        g.xyz.addMult(maxOffset*g.offsetFactor, offsetVec);
                     }
                     else if(cacaDist > 9)
                     {
-                        widthFactor = offsetFactor = Math.min(1.5, cacaDist-9) / 1.5;
-                        offsetFactor = 0;
+                        g.widthFactor = Math.min(1.5, cacaDist-9) / 1.5;
+                        g.offsetFactor = 0;
                     }
                     else
-                        widthFactor = offsetFactor = 0;
+                        g.widthFactor = g.offsetFactor = 0;
                 }
             }
             catch(AtomException ex) {}
         }
         //}}} Make normal guidepoints at middle of peptides
+        
+        //{{{ Check on widthFactors -- only apply for 3+ in a row > 0
+        for(int i = 2; i < guides.length-2; )
+        {
+            // Scan to find first widened guidepoint:
+            if(guides[i].widthFactor == 0) { i++; continue; }
+            // Scan to find last widened guidepoint:
+            int firstWide = i, nextThin = i+1;
+            while(nextThin < guides.length-2 && guides[nextThin].widthFactor != 0) nextThin++;
+            // If the span is less than 3, set them all back to zero:
+            if(nextThin - firstWide < 3)
+                for(int j = firstWide; j < nextThin; j++) //guides[j].widthFactor = 0;
+            {System.err.println(guides[j].widthFactor+" -> 0 ["+j+"]"); guides[j].widthFactor = 0;}
+            i = nextThin;
+        }
+        //}}}
         
         //{{{ Make dummy guidepoints at beginning and end
         try
@@ -166,6 +185,8 @@ public class Ribbons //extends ... implements ...
             g.xyz.like(ca);
             g.cvec.like(guides[2].cvec);
             g.dvec.like(guides[2].dvec);
+            g.offsetFactor = guides[2].offsetFactor;
+            g.widthFactor = guides[2].widthFactor;
             g.prevRes = g.nextRes = res[0];
             guides[0] = guides[1] = g;
         }
@@ -177,6 +198,8 @@ public class Ribbons //extends ... implements ...
             g.xyz.like(ca);
             g.cvec.like(guides[guides.length-3].cvec);
             g.dvec.like(guides[guides.length-3].dvec);
+            g.offsetFactor = guides[guides.length-3].offsetFactor;
+            g.widthFactor = guides[guides.length-3].widthFactor;
             g.prevRes = g.nextRes = res[res.length-1];
             guides[guides.length-1] = guides[guides.length-2] = g;
         }

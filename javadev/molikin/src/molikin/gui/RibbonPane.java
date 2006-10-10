@@ -148,8 +148,15 @@ public class RibbonPane extends TablePane2 implements DrawingPane
             GuidePoint[] guides = ribbons.makeProteinGuidepoints(contig, state);
             if(cbUntwistRibbons.isSelected()) ribbons.untwistRibbon(guides);
             rp.printGuidepoints(guides);
-            out.println("@vectorlist {protein ribbon} color= "+bbColor+" master= {protein} master= {ribbon}");
-            rp.printUniformFiveLine(guides, 4);
+            
+            out.println("@vectorlist {protein ribbon5} color= "+bbColor+" master= {protein} master= {ribbon}");
+            rp.printFiveLine(guides, 4, true);
+            //out.println("@vectorlist {protein ribbon3} color= "+bbColor+" master= {protein} master= {ribbon}");
+            //rp.printThreeLine(guides, 4, true);
+            //out.println("@vectorlist {protein ribbon2} color= "+bbColor+" master= {protein} master= {ribbon}");
+            //rp.printTwoLine(guides, 4, true);
+            //out.println("@vectorlist {protein ribbon1} color= "+bbColor+" master= {protein} master= {ribbon}");
+            //rp.printOneLine(guides, 4, true);
         }
     }
 //}}}
