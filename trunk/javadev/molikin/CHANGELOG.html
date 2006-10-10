@@ -17,8 +17,6 @@
     The case for ribbon to ball-and-stick communication:
         BnS sidechains should draw to a ribbon guidepoint -- which residues,
         and how to get out the guidepoint coordinates?
-    Is the guidepoint offset also only applied for 3+ consec. residues,
-        or is that limit just applied for ribbon width?
     H checkbox should be disabled when no H are present!
 
 ==============================================================================
@@ -30,7 +28,9 @@
 - changed StickPrinter to honor Crayon.shouldPrint()
 - matched AltConfCrayon and ProteinSecStructCrayon to the new Crayon interface
 - changed ConstCrayon to the new Crayon interface
-- changed extra digits in ___Printer classes to be optional 
+- changed extra digits in ___Printer classes to be optional
+- added variable width output to skeined ribbons
+- added methods for 1, 2, 3, and 5-skeined ribbons
 
 ### 0.11 ###
 - plugin now marks kin as modified on Append, but not on New (may be throwaway)

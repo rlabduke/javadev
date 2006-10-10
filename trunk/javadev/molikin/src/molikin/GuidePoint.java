@@ -33,6 +33,16 @@ public class GuidePoint //extends ... implements ...
     /** Unit vector in the local plane of the ribbon, perpendicular to its overall direction */
     public Triple dvec = new Triple();
     /**
+    * Offset factor needed to pull spline through guidepoints.
+    * Already applied; does not depend on neighbors (unlike width).
+    */
+    public double offsetFactor = 0;
+    /**
+    * Suggested ribbon width modifier, from 0 (skinniest) to 1 (fattest).
+    * This is based on low/high curvature of 3+ residues in a row.
+    */
+    public double widthFactor = 0;
+    /**
     * Residues immediately before and after this guidepoint (never null).
     * Usually different for proteins, the same for nucleic acids.
     */
@@ -45,10 +55,6 @@ public class GuidePoint //extends ... implements ...
     {
         super();
     }
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
 //}}}
 
 //{{{ empty_code_segment
