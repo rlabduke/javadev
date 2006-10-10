@@ -8,20 +8,16 @@ import driftwood.moldb2.*;
 * <p>Copyright (C) 2005 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri Sep 30 11:27:47 EDT 2005
 */
-public interface RibbonCrayon //extends ... implements ...
+public interface RibbonCrayon extends Crayon
 {
     /**
-    * Customizes the rendering of a kinemage point by returning a string
-    * that includes color, width/radius, pointmasters, aspects, etc.
+    * Customizes the rendering of a kinemage point.
     * @param start      the GuidePoint at the start of this span
     * @param end        the GuidePoint at the end of this span
     * @param interval   a number from 0 (start) to nIntervals (end), inclusive
     * @param nIntervals the number of pieces this section of ribbon is broken into
-    * @return           a valid kinemage string, or "" for nothing.
-    *   Null is NOT a valid return value and will cause problems.
-    *   Leading/trailing spaces are not necessary.
     */
-    public String colorRibbon(GuidePoint start, GuidePoint end, int interval, int nIntervals);
+    public void forRibbon(GuidePoint start, GuidePoint end, int interval, int nIntervals);
     
 }//class
 

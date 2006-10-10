@@ -1,6 +1,7 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
-package molikin;
+package molikin.crayons;
+import molikin.*;
 
 //import java.awt.*;
 //import java.awt.event.*;
@@ -18,13 +19,14 @@ import driftwood.moldb2.*;
 * <p>Copyright (C) 2005 by Ian W. Davis. All rights reserved.
 * <br>Begun on Thu Nov 10 10:50:17 EST 2005
 */
-public class AltConfCrayon implements AtomCrayon, BondCrayon
+public class AltConfCrayon extends AbstractCrayon implements AtomCrayon, BondCrayon
 {
 //{{{ Constants
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
+    String altconf = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -35,35 +37,35 @@ public class AltConfCrayon implements AtomCrayon, BondCrayon
     }
 //}}}
 
-//{{{ colorAtom
+//{{{ forAtom, forBond, getPointmasters
 //##############################################################################
-    public String colorAtom(AtomState as)
+    public void forAtom(AtomState as)
     {
         String alt = as.getAltConf();
-        if(alt.equals(" ")) return "";
-        else return "'"+Character.toLowerCase(alt.charAt(0))+"'";
+        if(alt.equals(" ")) altconf = null;
+        else altconf = String.valueOf(Character.toLowerCase(alt.charAt(0)));
     }
-//}}}
-
-//{{{ colorBond
-//##############################################################################
-    public String colorBond(AtomState from, AtomState toward)
+    
+    public void forBond(AtomState from, AtomState toward)
     {
         String altf = from.getAltConf();
         String altt = toward.getAltConf();
         if(altf.equals(" "))
         {
-            if(altt.equals(" ")) return "";
-            else return "'"+Character.toLowerCase(altt.charAt(0))+"'";
+            if(altt.equals(" ")) altconf = null;
+            else altconf = String.valueOf(Character.toLowerCase(altt.charAt(0)));
         }
         else // altf != " "
         {
-            if(altt.equals(" ")) return "'"+Character.toLowerCase(altf.charAt(0))+"'";
+            if(altt.equals(" ")) altconf = String.valueOf(Character.toLowerCase(altf.charAt(0)));
             // From and Toward should never belong to two different, non-blank alts.
             // But just in case:
-            else return "'"+Character.toLowerCase(altf.charAt(0))+Character.toLowerCase(altt.charAt(0))+"'";
+            else altconf = ""+Character.toLowerCase(altf.charAt(0))+Character.toLowerCase(altt.charAt(0));
         }
     }
+    
+    public String getPointmasters()
+    { return altconf; }
 //}}}
 
 //{{{ empty_code_segment

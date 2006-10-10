@@ -1,6 +1,7 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
-package molikin;
+package molikin.crayons;
+import molikin.*;
 
 //import java.awt.*;
 //import java.awt.event.*;
@@ -18,7 +19,7 @@ import driftwood.moldb2.*;
 * <p>Copyright (C) 2006 by Ian W. Davis. All rights reserved.
 * <br>Begun on Thu Feb  2 14:14:06 EST 2006
 */
-public class ProteinSecStructCrayon implements RibbonCrayon
+public class ProteinSecStructCrayon extends AbstractCrayon implements RibbonCrayon
 {
 //{{{ Constants
 //}}}
@@ -26,6 +27,8 @@ public class ProteinSecStructCrayon implements RibbonCrayon
 //{{{ Variable definitions
 //##############################################################################
     SecondaryStructure secStruct;
+    int width = 0;
+    String color = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -37,21 +40,26 @@ public class ProteinSecStructCrayon implements RibbonCrayon
     }
 //}}}
 
-//{{{ empty_code_segment
+//{{{ colorRibbon
 //##############################################################################
-    public String colorRibbon(GuidePoint start, GuidePoint end, int interval, int nIntervals)
+    public void forRibbon(GuidePoint start, GuidePoint end, int interval, int nIntervals)
     {
         Residue r = (interval <= nIntervals/2 ? start.nextRes : end.prevRes);
-             if(secStruct.isHelix(r))   return "width4 red";
-        else if(secStruct.isStrand(r))  return "width4 green";
-        else if(secStruct.isTurn(r))    return "sky";
-        else if(secStruct.isCoil(r))    return "white";
-        else                            return "magenta";
+             if(secStruct.isHelix(r))   { width = 4; color = "red"; }
+        else if(secStruct.isStrand(r))  { width = 4; color = "green"; }
+        else if(secStruct.isTurn(r))    { width = 0; color = "sky"; }
+        else if(secStruct.isCoil(r))    { width = 0; color = "white"; }
+        else                            { width = 0; color = "magenta"; }
     }
 //}}}
 
-//{{{ empty_code_segment
+//{{{ getColor, getWidth
 //##############################################################################
+    public String getColor()
+    { return color; }
+    
+    public int getWidth()
+    { return width; }
 //}}}
 }//class
 

@@ -21,13 +21,13 @@ import driftwood.r3.*;
 public class RibbonPrinter //extends ... implements ...
 {
 //{{{ Constants
-    static final DecimalFormat df = new DecimalFormat("0.000");
+    static final DecimalFormat df = new DecimalFormat("0.###");
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
     PrintWriter out;
-    RibbonCrayon crayon = ConstCrayon.NONE;
+    RibbonCrayon crayon = molikin.crayons.ConstCrayon.NONE;
 //}}}
 
 //{{{ Constructor(s)
@@ -94,9 +94,11 @@ public class RibbonPrinter //extends ... implements ...
             for(int i = 0; i < spline.length; i++)
             {
                 int startGuide = (i/nIntervals) + 1;
-                String color = crayon.colorRibbon(guides[startGuide], guides[startGuide+1], i%nIntervals, nIntervals);
-                tmp.like(spline[i]);
-                out.println("{}"+(i==0 ? "P " : "")+color+" "+tmp.format(df));
+                crayon.forRibbon(guides[startGuide], guides[startGuide+1], i%nIntervals, nIntervals);
+                // For this to make sense, we have to be able to restart line if there's a break
+                //if(!crayon.shouldPrint()) continue;
+                tmp.like(spline[i]); // because Tuple3 doesn't have a format() method
+                out.println("{}"+(i==0 ? "P " : "")+crayon.getKinString()+" "+tmp.format(df));
             }
         }
 
