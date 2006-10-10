@@ -132,6 +132,53 @@ public class RibbonPrinter //extends ... implements ...
     }
 //}}}
 
+//{{{ printFlatRibbon
+//##############################################################################
+    /**
+    * Displays a triangulated ribbon of uniform or variable width.
+    * Only points are generated; the client is responsible for writing "@ribbonlist ...".
+    */
+    public void printFlatRibbon(GuidePoint[] guides, int nIntervals, boolean variableWidth)
+    {
+        int         len     = guides.length;
+        NRUBS       nrubs   = new NRUBS();
+        Triple      tmp     = new Triple();
+        Triple[]    pts1    = new Triple[len];
+        Triple[]    pts2    = new Triple[len];
+        for(int i = 0; i < len; i++)
+        {
+            pts1[i] = new Triple();
+            pts2[i] = new Triple();
+        }
+        
+        for(int i = 0; i < len; i++)
+        {
+            double ribwid = (guides[i].offsetFactor > 0 ? ribwidalpha : ribwidbeta);
+            double halfWidth = 0.5 * (ribwidcoil + guides[i].widthFactor*(ribwid - ribwidcoil));
+            if(!variableWidth) halfWidth = 1.0;
+            pts1[i].like(guides[i].xyz).addMult( halfWidth, guides[i].dvec);
+            pts2[i].like(guides[i].xyz).addMult(-halfWidth, guides[i].dvec);
+        }
+        Tuple3[] spline1 = nrubs.spline(pts1, nIntervals);
+        Tuple3[] spline2 = nrubs.spline(pts2, nIntervals);
+        boolean isBreak = true;
+        for(int i = 0; i < spline1.length; i++)
+        {
+            int startGuide = (i/nIntervals) + 1;
+            crayon.forRibbon(guides[startGuide], guides[startGuide+1], i%nIntervals, nIntervals);
+            // For this to make sense, we have to be able to restart line if there's a break
+            if(!crayon.shouldPrint()) { isBreak = true; continue; }
+            tmp.like(spline1[i]); // because Tuple3 doesn't have a format() method
+            out.println("{}"+(isBreak ? "X " : "")+crayon.getKinString()+" "+tmp.format(df));
+            tmp.like(spline2[i]);
+            out.println("{}"+crayon.getKinString()+" "+tmp.format(df));
+            isBreak = false;
+        }
+
+        out.flush();
+    }
+//}}}
+
 //{{{ get/setCrayon
 //##############################################################################
     /** The RibbonCrayon used for coloring these sections. */
