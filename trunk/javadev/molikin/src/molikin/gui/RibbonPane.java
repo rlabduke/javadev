@@ -2,7 +2,7 @@
 //{{{ Package, imports
 package molikin.gui;
 import molikin.*;
-import molikin.crayons.*;
+import molikin.logic.RibbonLogic;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -32,9 +32,6 @@ public class RibbonPane extends TablePane2 implements DrawingPane
 //##############################################################################
     CoordinateFile  coordFile;
     String          title;
-    
-    PrintWriter     out = null;
-    RibbonPrinter   rp  = null;
     
     SelectorPane    selector;
     JCheckBox       cbProtein, cbNucleic;
@@ -118,53 +115,12 @@ public class RibbonPane extends TablePane2 implements DrawingPane
         Set residues = selector.getSelectedResidues(chainRes);
         if(residues.size() == 0) return;
         
-        this.out = out;
-        this.rp = new RibbonPrinter(out);
-        rp.setCrayon(new ProteinSecStructCrayon(coordFile.getSecondaryStructure()));
-        
-        if(cbProtein.isSelected())  printProtein(m, residues, bbColor);
-        if(cbNucleic.isSelected())  printNucAcid(m, residues, bbColor);
-        
-        this.out.flush();
-        this.out = null;
-        this.rp = null;
-    }
-//}}}
-
-//{{{ printProtein
-//##############################################################################
-    void printProtein(Model model, Set selectedRes, String bbColor)
-    {
-        DataCache       data    = DataCache.getDataFor(model);
-        ResClassifier   resC    = data.getResClassifier();
-        ModelState      state   = model.getState();
-        
-        Ribbons ribbons = new Ribbons();
-        Collection contigs = ribbons.getProteinContigs(selectedRes, state, resC);
-        for(Iterator iter = contigs.iterator(); iter.hasNext(); )
-        {
-            Collection contig = (Collection) iter.next();
-            if(contig.size() < 2) continue; // too small to use!
-            GuidePoint[] guides = ribbons.makeProteinGuidepoints(contig, state);
-            if(cbUntwistRibbons.isSelected()) ribbons.untwistRibbon(guides);
-            rp.printGuidepoints(guides);
-            
-            out.println("@vectorlist {protein ribbon5} color= "+bbColor+" master= {protein} master= {ribbon}");
-            rp.printFiveLine(guides, 4, true);
-            //out.println("@vectorlist {protein ribbon3} color= "+bbColor+" master= {protein} master= {ribbon}");
-            //rp.printThreeLine(guides, 4, true);
-            //out.println("@vectorlist {protein ribbon2} color= "+bbColor+" master= {protein} master= {ribbon}");
-            //rp.printTwoLine(guides, 4, true);
-            //out.println("@vectorlist {protein ribbon1} color= "+bbColor+" master= {protein} master= {ribbon}");
-            //rp.printOneLine(guides, 4, true);
-        }
-    }
-//}}}
-
-//{{{ printNucAcid
-//##############################################################################
-    void printNucAcid(Model model, Set selectedRes, String bbColor)
-    {
+        RibbonLogic logic = new RibbonLogic();
+        logic.secondaryStructure    = coordFile.getSecondaryStructure();
+        logic.doProtein             = cbProtein.isSelected();
+        logic.doNucleic             = cbNucleic.isSelected();
+        logic.doUntwistRibbons      = cbUntwistRibbons.isSelected();
+        logic.printKinemage(out, m, residues, bbColor);
     }
 //}}}
 

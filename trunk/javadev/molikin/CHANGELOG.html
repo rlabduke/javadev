@@ -17,6 +17,7 @@
     The case for ribbon to ball-and-stick communication:
         BnS sidechains should draw to a ribbon guidepoint -- which residues,
         and how to get out the guidepoint coordinates?
+        Sidechains should just generate the guidepoints for themselves!
     H checkbox should be disabled when no H are present!
 
 ==============================================================================
@@ -31,6 +32,9 @@
 - changed extra digits in ___Printer classes to be optional
 - added variable width output to skeined ribbons
 - added methods for 1, 2, 3, and 5-skeined ribbons
+- moved drawing logic from gui.RibbonPane into logic.RibbonLogic.
+  This will facilitate building a command-line UI later on.
+- set black-edged ribbons as the default output of RibbonLogic
 
 ### 0.11 ###
 - plugin now marks kin as modified on Append, but not on New (may be throwaway)
