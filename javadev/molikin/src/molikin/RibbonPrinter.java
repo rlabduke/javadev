@@ -22,17 +22,18 @@ public class RibbonPrinter //extends ... implements ...
 {
 //{{{ Constants
     static final DecimalFormat df = new DecimalFormat("0.###");
-    // From PKININIT.c
-    static final double ribwidcoil      = 1.0; 
-    static final double ribwidalpha     = 2.0;
-    static final double ribwidbeta      = 2.2;
-    static final double ribwidnucleic   = 3.0;
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
     PrintWriter out;
     RibbonCrayon crayon = molikin.crayons.ConstCrayon.NONE;
+
+    // From PKININIT.c (ribwidalpha, ribwidbeta, ribwidcoil)
+    double widthAlpha   = 2.0;
+    double widthBeta    = 2.2;
+    double widthCoil    = 1.0;
+    double widthDefault = 2.0;
 //}}}
 
 //{{{ Constructor(s)
@@ -109,9 +110,9 @@ public class RibbonPrinter //extends ... implements ...
         {
             for(int i = 0; i < len; i++)
             {
-                double ribwid = (guides[i].offsetFactor > 0 ? ribwidalpha : ribwidbeta);
-                double halfWidth = 0.5 * (ribwidcoil + guides[i].widthFactor*(ribwid - ribwidcoil));
-                if(!variableWidth) halfWidth = 1.0;
+                double ribwid = (guides[i].offsetFactor > 0 ? widthAlpha : widthBeta);
+                double halfWidth = 0.5 * (widthCoil + guides[i].widthFactor*(ribwid - widthCoil));
+                if(!variableWidth) halfWidth = widthDefault / 2.0;
                 pts[i].like(guides[i].xyz).addMult(strand*halfWidth, guides[i].dvec);
             }
             Tuple3[] spline = nrubs.spline(pts, nIntervals);
@@ -153,9 +154,9 @@ public class RibbonPrinter //extends ... implements ...
         
         for(int i = 0; i < len; i++)
         {
-            double ribwid = (guides[i].offsetFactor > 0 ? ribwidalpha : ribwidbeta);
-            double halfWidth = 0.5 * (ribwidcoil + guides[i].widthFactor*(ribwid - ribwidcoil));
-            if(!variableWidth) halfWidth = 1.0;
+            double ribwid = (guides[i].offsetFactor > 0 ? widthAlpha : widthBeta);
+            double halfWidth = 0.5 * (widthCoil + guides[i].widthFactor*(ribwid - widthCoil));
+            if(!variableWidth) halfWidth = widthDefault / 2.0;
             pts1[i].like(guides[i].xyz).addMult( halfWidth, guides[i].dvec);
             pts2[i].like(guides[i].xyz).addMult(-halfWidth, guides[i].dvec);
         }
@@ -179,7 +180,7 @@ public class RibbonPrinter //extends ... implements ...
     }
 //}}}
 
-//{{{ get/setCrayon
+//{{{ get/setCrayon, setWidth
 //##############################################################################
     /** The RibbonCrayon used for coloring these sections. */
     public RibbonCrayon getCrayon()
@@ -187,6 +188,20 @@ public class RibbonPrinter //extends ... implements ...
     /** The RibbonCrayon used for coloring these sections. */
     public void setCrayon(RibbonCrayon c)
     { this.crayon = c; }
+    
+    /** Sets the width for constant-width ribbons.  Default is 2.0. */
+    public void setWidth(double w)
+    { this.widthDefault = w; }
+    /**
+    * Sets the width for variable-width ribbons.
+    * Default is (2.0, 2.2, 1.0) for protein and (3.0, 3.0, 3.0) for nucleic acids.
+    */
+    public void setWidth(double alpha, double beta, double coil)
+    {
+        this.widthAlpha = alpha;
+        this.widthBeta  = beta;
+        this.widthCoil  = coil;
+    }
 //}}}
 
 //{{{ empty_code_segment

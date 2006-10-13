@@ -95,7 +95,7 @@ public class StickPrinter //extends ... implements ...
         for(int i = 0; i < b.length; i++)
         {
             Bond curr = b[i];
-            crayon.forBond(curr.lower, curr.higher);
+            crayon.forBond(curr.higher, curr.lower);
             // This may cause inefficiencies by introducing breaks into the
             // carefully ordered series of bonds, but we'll live with it.
             if(!crayon.shouldPrint()) continue;

@@ -81,7 +81,6 @@
         @hsvcolo[u]r {MyColor} BlackHue BlackSat BlackVal [WhiteHue [WhiteSat [WhiteVal]]]
         Need to be able to save them back out again!
         Need to be documented
-  * Ribbon normal coloring seems to be broken... doh
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -100,6 +99,8 @@
 - added @hsvcolo[u]r keyword to KinfileParser
 - changed stereo code so cross/wall-eye toggle just swaps the images
 - hacked on image export code -- JPEGs on Windows were not closed out
+- changed ribbon coloring to match lighting AND *depth cue* between paired
+  triangles, so now they really copy Mage's intent.  Code is ugly, though.
 
 ### 1.53 ###
 - added drag-n-drop support to JoglCanvas, so now DnD works in OpenGL mode

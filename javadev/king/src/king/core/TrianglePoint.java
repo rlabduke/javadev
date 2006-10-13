@@ -145,27 +145,43 @@ public class TrianglePoint extends AbstractPoint // implements ...
         KPaint maincolor = getDrawingColor(engine);
         if(from == null || from.from == null || maincolor.isInvisible()) return;
         
-        // If this is a ribbon list, color the triangles in pairs
         TrianglePoint A, B, C = from.from.from;
+        int colorCue = engine.colorCue;
+        // If this is a ribbon list, color the triangles in pairs (code for dependent triangles)
         if((multi & SEQ_EVEN_BIT) != 0 && parent != null && parent.getType() == KList.RIBBON && C != null)
         {
             A = from;
             B = from.from;
             //C = from.from.from; -- already set
+            // We must match depth cueing AND lighting angle if we want ribbons to look uniform
+            // This is a huge pain in the butt -- code derived from signalTransform().
+            double triangleZ;
+            if(A.z < B.z)
+            {
+                if(B.z < C.z)   triangleZ = (A.z + B.z)/2.0;
+                else            triangleZ = (A.z + C.z)/2.0;
+            }
+            else
+            {
+                if(A.z < C.z)   triangleZ = (A.z + B.z)/2.0;
+                else            triangleZ = (B.z + C.z)/2.0;
+            }
+            // wrong, too simple:
+            //colorCue = (int)Math.floor(KPaint.COLOR_LEVELS * (triangleZ - engine.clipBack) / engine.clipDepth);
+            // right, multiple round off:
+            int i = (int)(engine.TOP_LAYER*(triangleZ-engine.clipBack)/engine.clipDepth);
+            colorCue = (KPaint.COLOR_LEVELS*i)/(engine.TOP_LAYER+1); // int division (floor)
+            if(colorCue < 0) colorCue = 0;
+            else if(colorCue >= KPaint.COLOR_LEVELS) colorCue = KPaint.COLOR_LEVELS-1;
         }
+        // Otherwise, color each triangle individually (also independent triangles in ribbons)
         else
         {
             A = this;
             B = from;
             C = from.from;
+            //colorCue = engine.colorCue; -- already set
         }
-        /* Older formulation?
-        TrianglePoint A, B, C = null;
-        A = from;
-        B = from.from;
-        // If this is a ribbon list, color the triangles in pairs
-        if((multi & SEQ_EVEN_BIT) != 0 && parent != null && parent.getType() == KList.RIBBON) C = from.from.from;
-        if(C == null) C = this;*/
 
         // Do dot product of surface normal with lighting vector
         // to determine diffuse lighting.
@@ -176,7 +192,7 @@ public class TrianglePoint extends AbstractPoint // implements ...
         engine.work1.cross(engine.work2).unit();
         double dotprod = engine.work1.dot(engine.lightingVector);
         int alpha = (parent == null ? 255 : parent.alpha);
-        Paint paint = maincolor.getPaint(engine.backgroundMode, dotprod, engine.colorCue, alpha);
+        Paint paint = maincolor.getPaint(engine.backgroundMode, dotprod, colorCue, alpha);
         
         engine.painter.paintTriangle(paint,
             x, y, z,
