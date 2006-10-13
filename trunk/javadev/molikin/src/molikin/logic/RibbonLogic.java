@@ -34,7 +34,7 @@ public class RibbonLogic
     RibbonPrinter   rp  = null;
     
     public boolean              doProtein, doNucleic;
-    public boolean              doUntwistRibbons;
+    public boolean              doUntwistRibbons, doDnaStyle;
     public SecondaryStructure   secondaryStructure = null;
 //}}}
 
@@ -103,6 +103,36 @@ public class RibbonLogic
 //##############################################################################
     void printNucAcid(Model model, Set selectedRes, String bbColor)
     {
+        DataCache       data    = DataCache.getDataFor(model);
+        ResClassifier   resC    = data.getResClassifier();
+        ModelState      state   = model.getState();
+        
+        Ribbons ribbons = new Ribbons();
+        Collection contigs = ribbons.getNucleicAcidContigs(selectedRes, state, resC);
+        for(Iterator iter = contigs.iterator(); iter.hasNext(); )
+        {
+            Collection contig = (Collection) iter.next();
+            if(contig.size() < 2) continue; // too small to use!
+            GuidePoint[] guides = ribbons.makeNucleicAcidGuidepoints(contig, state);
+            // Makes very little difference for nucleic acid, but occasionally does.
+            if(doUntwistRibbons) ribbons.untwistRibbon(guides);
+            if(doDnaStyle) ribbons.swapEdgeAndFace(guides);
+            
+            //rp.printGuidepoints(guides);
+            
+            //rp.setCrayon(ConstCrayon.NONE);
+            //out.println("@vectorlist {nucleic acid ribbon} color= "+bbColor+" master= {nucleic acid} master= {ribbon}");
+            //rp.printThreeLine(guides, 4, true);
+            
+            out.println("@ribbonlist {nucleic acid ribbon} color= "+bbColor+" master= {nucleic acid} master= {ribbon}");
+            rp.printFlatRibbon(guides, 4, true);
+            //
+            //out.println("@vectorlist {nucleic acid ribbon edges} color= deadblack master= {nucleic acid} master= {ribbon}");
+            //RibbonCrayon c = rp.getCrayon();
+            //rp.setCrayon(ConstCrayon.NONE);
+            //rp.printTwoLine(guides, 4, true);
+            //rp.setCrayon(c);
+        }
     }
 //}}}
 

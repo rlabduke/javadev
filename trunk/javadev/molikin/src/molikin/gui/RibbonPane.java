@@ -35,7 +35,7 @@ public class RibbonPane extends TablePane2 implements DrawingPane
     
     SelectorPane    selector;
     JCheckBox       cbProtein, cbNucleic;
-    JCheckBox       cbUntwistRibbons;
+    JCheckBox       cbUntwistRibbons, cbDnaStyle;
     JComboBox       cmColorBy;
 //}}}
 
@@ -59,9 +59,9 @@ public class RibbonPane extends TablePane2 implements DrawingPane
         
         cbProtein   = new JCheckBox("protein", true);
         cbNucleic   = new JCheckBox("nucleic acids", true);
-            cbNucleic.setEnabled(false);
         
-        cbUntwistRibbons = new JCheckBox("untwist ribbons", true);
+        cbUntwistRibbons    = new JCheckBox("untwist ribbons", true);
+        cbDnaStyle          = new JCheckBox("DNA-style, not RNA", false);
         
         cmColorBy   = new JComboBox(new String[] {"secondary structure", "B factor", "occupancy"});
             cmColorBy.setEnabled(false);
@@ -77,7 +77,7 @@ public class RibbonPane extends TablePane2 implements DrawingPane
         this.addCell(cbProtein).skip().newRow();
         this.addCell(cbNucleic).skip().newRow();
         this.addCell(this.strut(0,6)).newRow();
-        this.addCell(cbUntwistRibbons).skip().newRow();
+        this.addCell(cbDnaStyle).addCell(cbUntwistRibbons).newRow();
         this.addCell(this.strut(0,6)).newRow();
         
         this.setBorder( BorderFactory.createTitledBorder(null, "Ribbons") );
@@ -120,6 +120,7 @@ public class RibbonPane extends TablePane2 implements DrawingPane
         logic.doProtein             = cbProtein.isSelected();
         logic.doNucleic             = cbNucleic.isSelected();
         logic.doUntwistRibbons      = cbUntwistRibbons.isSelected();
+        logic.doDnaStyle            = cbDnaStyle.isSelected();
         logic.printKinemage(out, m, residues, bbColor);
     }
 //}}}
