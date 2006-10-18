@@ -7,10 +7,7 @@
         We could modify AtomGroup.connectHeavyAtoms()
         to keep only the N shortest bonds...
     color by residue type (each AA, base, etc has its own color)
-    How to draw: only A alts? only atoms with B -lt 30? Q -gt 0.66?
-        Use custom Crayon.shouldPrint() or create new Model (not recommended)
-        But how to do the GUI?
-    RibbonPrinter doesn't honor Crayon.shouldPrint()
+    GUI for: only A alts? only atoms with B -lt 30? Q -gt 0.66?
     VDW, Ball+Stick, Ribbon engines should be separated from their GUIs
         public boolean showXXX = false
         element color map should be pluggable, not from Util
@@ -19,15 +16,16 @@
         and how to get out the guidepoint coordinates?
         Sidechains should just generate the guidepoints for themselves!
     H checkbox should be disabled when no H are present!
-    Black ribbon edges need a more careful crayon
-    Nucleic acid ribbons should be wider (3? 2?)
-    Disulfides: collect Cys residues; bondsBetween(Cys, sc, Cys, sc);
-        collect all residues in those bonds; draw sc in yellow
+    Cys-Cys aren't connected when they're in different chains
+    Need crayon that colors Cys-S---S-Cys bonds yellow
     Fancy ribbons need pointIDs (pointIDs should include file name)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 0.13 ###
+- added option to draw disulfides all in yellow
 
 ### 0.12 ###
 - changed how Crayons work, to allow them to also filter atoms/bonds

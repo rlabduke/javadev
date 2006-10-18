@@ -10,6 +10,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.regex.*;
 //import javax.swing.*;
+import driftwood.data.CheapSet;
 import driftwood.moldb2.*;
 //}}}
 /**
@@ -381,6 +382,30 @@ public class Util //extends ... implements ...
             out.add(curr);
         }
         return out;
+    }
+//}}}
+
+//{{{ selectDisulfideResidues
+//##############################################################################
+    /**
+    * Returns the subset of residues which are involved in a S--S bond.
+    * You can use the retainAll() method of Set to exclude certain residues later.
+    * @param allBonds   a Collection of Bonds
+    * @return a Set of Residues (may be empty, never null)
+    */
+    static public Set selectDisulfideResidues(Collection allBonds)
+    {
+        Set ssRes = new CheapSet();
+        for(Iterator iter = allBonds.iterator(); iter.hasNext(); )
+        {
+            Bond bond = (Bond) iter.next();
+            if(bond.lower.getElement().equals("S") && bond.higher.getElement().equals("S"))
+            {
+                ssRes.add(bond.lower.getResidue());
+                ssRes.add(bond.higher.getResidue());
+            }
+        }
+        return ssRes;
     }
 //}}}
 
