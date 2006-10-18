@@ -39,7 +39,7 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
     
     SelectorPane    selector;
     JCheckBox       cbProtein, cbNucleic, cbHets, cbIons, cbWater;
-    JCheckBox       cbPseudoBB, cbBackbone, cbSidechains, cbHydrogens;
+    JCheckBox       cbPseudoBB, cbBackbone, cbSidechains, cbHydrogens, cbDisulfides;
     JCheckBox       cbBallsOnCarbon, cbBallsOnAtoms;
     JComboBox       cmColorBy;
 //}}}
@@ -72,6 +72,7 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
         cbBackbone      = new JCheckBox("backbone", false);
         cbSidechains    = new JCheckBox("sidechain", false);
         cbHydrogens     = new JCheckBox("hydrogens", false);
+        cbDisulfides    = new JCheckBox("disulfides", false);
         
         cbBallsOnCarbon     = new JCheckBox("balls on C atoms too", false);
         cbBallsOnAtoms      = new JCheckBox("balls on N, O, P, etc.", false);
@@ -90,8 +91,8 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
         this.addCell(cbProtein).addCell(cbPseudoBB).newRow();
         this.addCell(cbNucleic).addCell(cbBackbone).newRow();
         this.addCell(cbHets).addCell(cbSidechains).newRow();
-        this.addCell(cbIons).addCell(cbHydrogens).newRow();
-        this.addCell(cbWater).skip().newRow();
+        this.addCell(cbIons).addCell(cbDisulfides).newRow();
+        this.addCell(cbWater).addCell(cbHydrogens).newRow();
         this.addCell(this.strut(0,6)).newRow();
         this.addCell(cbBallsOnAtoms).addCell(cbBallsOnCarbon).newRow();
         
@@ -208,6 +209,27 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
                     printAtomBalls(atomC.scHeavy, proteinRes,
                         (cbBallsOnCarbon.isSelected() ? "cyan" : null),
                         "master= {protein} master= {sidechains}");
+                }
+            }
+        }
+        if(cbDisulfides.isSelected())
+        {
+            Set ssRes = Util.selectDisulfideResidues(bonds);
+            ssRes.retainAll(proteinRes);
+            if(atomC.scHeavy.size() > 0 && ssRes.size() > 0)
+            {
+                out.println("@vectorlist {protein ss} color= yellow master= {protein} master= {disulfides}");
+                sp.printSticks(bonds, atomC.scHeavy, atomC.bioHeavy, ssRes, null);
+                if(cbHydrogens.isSelected() && atomC.scHydro.size() > 0)
+                {
+                    out.println("@vectorlist {protein ssH} color= gray master= {protein} master= {disulfides} master= {Hs}");
+                    sp.printSticks(bonds, atomC.scHydro, atomC.bioHeavy, ssRes, ssRes);
+                }
+                if(cbBallsOnAtoms.isSelected())
+                {
+                    printAtomBalls(atomC.scHeavy, ssRes,
+                        (cbBallsOnCarbon.isSelected() ? "cyan" : null),
+                        "master= {protein} master= {disulfides}");
                 }
             }
         }
