@@ -21,9 +21,9 @@
     H checkbox should be disabled when no H are present!
     Black ribbon edges need a more careful crayon
     Nucleic acid ribbons should be wider (3? 2?)
-  * Fancy ribbons must use crayons and colorsets
     Disulfides: collect Cys residues; bondsBetween(Cys, sc, Cys, sc);
         collect all residues in those bonds; draw sc in yellow
+    Fancy ribbons need pointIDs (pointIDs should include file name)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -44,6 +44,10 @@
 - got nucleic acid ribbons working
 - nucleic acid ribbons now match Prekin for B. Golden's "twort" structure
 - protein ribbons still match Prekin for 1UBQ
+- removed ProteinSecStructCrayon
+- changed arguements for RibbonCrayons
+- fancy ribbon now uses crayons, though not for breaks
+- fancy ribbons now use colorsets
 
 ### 0.11 ###
 - plugin now marks kin as modified on Append, but not on New (may be throwaway)

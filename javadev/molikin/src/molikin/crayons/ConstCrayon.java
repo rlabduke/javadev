@@ -12,6 +12,7 @@ import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
 import driftwood.moldb2.*;
+import driftwood.r3.*;
 //}}}
 /**
 * <code>ConstCrayon</code> is an Atom/BondCrayon that always returns the same
@@ -52,7 +53,7 @@ public class ConstCrayon extends AbstractCrayon implements AtomCrayon, BondCrayo
     
     public void forAtom(AtomState as) {}
     public void forBond(AtomState from, AtomState toward) {}
-    public void forRibbon(GuidePoint start, GuidePoint end, int interval, int nIntervals) {}
+    public void forRibbon(Tuple3 point, GuidePoint start, GuidePoint end, int interval, int nIntervals) {}
 //}}}
 
 //{{{ get/setColor
