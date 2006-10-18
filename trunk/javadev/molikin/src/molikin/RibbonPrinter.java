@@ -29,6 +29,8 @@ public class RibbonPrinter //extends ... implements ...
 //##############################################################################
     PrintWriter out;
     RibbonCrayon crayon = molikin.crayons.ConstCrayon.NONE;
+    
+    Triple tmp = new Triple();
 
     // From PKININIT.c (ribwidalpha, ribwidbeta, ribwidcoil)
     double widthAlpha   = 2.0;
@@ -103,7 +105,6 @@ public class RibbonPrinter //extends ... implements ...
     {
         int         len     = guides.length;
         NRUBS       nrubs   = new NRUBS();
-        Triple      tmp     = new Triple();
         Triple[]    pts     = new Triple[len];
         for(int i = 0; i < len; i++) pts[i] = new Triple();
         
@@ -121,7 +122,7 @@ public class RibbonPrinter //extends ... implements ...
             for(int i = 0; i < spline.length; i++)
             {
                 int startGuide = (i/nIntervals) + 1;
-                crayon.forRibbon(guides[startGuide], guides[startGuide+1], i%nIntervals, nIntervals);
+                crayon.forRibbon(spline[i], guides[startGuide], guides[startGuide+1], i%nIntervals, nIntervals);
                 // For this to make sense, we have to be able to restart line if there's a break
                 if(!crayon.shouldPrint()) { isBreak = true; continue; }
                 tmp.like(spline[i]); // because Tuple3 doesn't have a format() method
@@ -144,7 +145,6 @@ public class RibbonPrinter //extends ... implements ...
     {
         int         len     = guides.length;
         NRUBS       nrubs   = new NRUBS();
-        Triple      tmp     = new Triple();
         Triple[]    pts1    = new Triple[len];
         Triple[]    pts2    = new Triple[len];
         for(int i = 0; i < len; i++)
@@ -167,7 +167,8 @@ public class RibbonPrinter //extends ... implements ...
         for(int i = 0; i < spline1.length; i++)
         {
             int startGuide = (i/nIntervals) + 1;
-            crayon.forRibbon(guides[startGuide], guides[startGuide+1], i%nIntervals, nIntervals);
+            tmp.likeMidpoint(spline1[i], spline2[i]);
+            crayon.forRibbon(tmp, guides[startGuide], guides[startGuide+1], i%nIntervals, nIntervals);
             // For this to make sense, we have to be able to restart line if there's a break
             if(!crayon.shouldPrint()) { isBreak = true; continue; }
             tmp.like(spline1[i]); // because Tuple3 doesn't have a format() method
@@ -215,7 +216,7 @@ public class RibbonPrinter //extends ... implements ...
     }
 //}}}
 
-//{{{ printFancyRibbon
+//{{{ printFancyRibbon, printFancy
 //##############################################################################
     /**
     * Displays a triangulated ribbon of with arrowheads, etc.
@@ -228,7 +229,6 @@ public class RibbonPrinter //extends ... implements ...
         final int   nIntervals = 4;
         int         len     = guides.length;
         NRUBS       nrubs   = new NRUBS();
-        Triple      tmp     = new Triple();
         
         // Seven stands of guidepoints: coil, alpha, beta, (beta arrowheads, see below)
         double[] halfWidths = {0, -widthAlpha/2, widthAlpha/2, -widthBeta/2, widthBeta/2, -widthBeta, widthBeta};
@@ -305,87 +305,74 @@ public class RibbonPrinter //extends ... implements ...
                 out.println("@ribbonlist {fancy helix} "+listAlpha);
                 for(int i = ribElement.start; i < ribElement.end; i++)
                 {
-                    tmp.like(splinepts[1][i]);
-                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
-                    tmp.like(splinepts[2][i]);
-                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                    printFancy(guides, splinepts[1], i);
+                    printFancy(guides, splinepts[2], i);
                 }
-                tmp.like(splinepts[0][ribElement.end]);
-                out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                printFancy(guides, splinepts[0], ribElement.end); // angled tip at end of helix
                 out.println("@vectorlist {fancy helix edges} width= 1 "+listAlpha+" color= deadblack");
-                tmp.like(splinepts[0][ribElement.start]);
-                out.println("{}P "/*+crayon.getKinString()*/+" "+tmp.format(df));
+                // black edge, left side
+                printFancy(guides, splinepts[0], ribElement.start, true);
                 for(int i = ribElement.start; i < ribElement.end; i++)
-                {
-                    tmp.like(splinepts[1][i]);
-                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
-                }
-                tmp.like(splinepts[0][ribElement.end]);
-                out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
-                tmp.like(splinepts[0][ribElement.start]);
-                out.println("{}P "/*+crayon.getKinString()*/+" "+tmp.format(df));
+                    printFancy(guides, splinepts[1], i);
+                printFancy(guides, splinepts[0], ribElement.end);
+                // black edge, right side
+                printFancy(guides, splinepts[0], ribElement.start, true);
                 for(int i = ribElement.start; i < ribElement.end; i++)
-                {
-                    tmp.like(splinepts[2][i]);
-                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
-                }
-                tmp.like(splinepts[0][ribElement.end]);
-                out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                    printFancy(guides, splinepts[2], i);
+                printFancy(guides, splinepts[0], ribElement.end);
             } //}}}
             else if(ribElement.type == SecondaryStructure.STRAND) //{{{
             {
                 out.println("@ribbonlist {fancy sheet} "+listBeta);
                 for(int i = ribElement.start; i < ribElement.end-1; i++)
                 {
-                    tmp.like(splinepts[3][i]);
-                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
-                    tmp.like(splinepts[4][i]);
-                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                    printFancy(guides, splinepts[3], i);
+                    printFancy(guides, splinepts[4], i);
                 }
                 // Ending *exactly* like this is critical to avoiding a break
                 // between the arrow body and arrow head!
-                tmp.like(splinepts[5][ribElement.end-2]);
-                out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
-                tmp.like(splinepts[6][ribElement.end-2]);
-                out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
-                tmp.like(splinepts[0][ribElement.end]);
-                out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                printFancy(guides, splinepts[5], ribElement.end-2);
+                printFancy(guides, splinepts[6], ribElement.end-2);
+                printFancy(guides, splinepts[0], ribElement.end);
                 out.println("@vectorlist {fancy sheet edges} width= 1 "+listBeta+" color= deadblack");
-                tmp.like(splinepts[0][ribElement.start]);
-                out.println("{}P "/*+crayon.getKinString()*/+" "+tmp.format(df));
+                // black edge, left side
+                printFancy(guides, splinepts[0], ribElement.start, true);
                 for(int i = ribElement.start; i < ribElement.end-1; i++)
-                {
-                    tmp.like(splinepts[3][i]);
-                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
-                }
-                tmp.like(splinepts[5][ribElement.end-2]);
-                out.println("{} "/*+crayon.getKinString()*/+" "+tmp.format(df));
-                tmp.like(splinepts[0][ribElement.end]);
-                out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
-                tmp.like(splinepts[0][ribElement.start]);
-                out.println("{}P "/*+crayon.getKinString()*/+" "+tmp.format(df));
+                    printFancy(guides, splinepts[3], i);
+                printFancy(guides, splinepts[5], ribElement.end-2);
+                printFancy(guides, splinepts[0], ribElement.end);
+                // black edge, right side
+                printFancy(guides, splinepts[0], ribElement.start, true);
                 for(int i = ribElement.start; i < ribElement.end-1; i++)
-                {
-                    tmp.like(splinepts[4][i]);
-                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
-                }
-                tmp.like(splinepts[6][ribElement.end-2]);
-                out.println("{} "/*+crayon.getKinString()*/+" "+tmp.format(df));
-                tmp.like(splinepts[0][ribElement.end]);
-                out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                    printFancy(guides, splinepts[4], i);
+                printFancy(guides, splinepts[6], ribElement.end-2);
+                printFancy(guides, splinepts[0], ribElement.end);
             } //}}}
             else // COIL {{{
             {
-                out.println("@vectorlist {fancy coil} color= sky "+listCoil);
+                out.println("@vectorlist {fancy coil} "+listCoil);
                 for(int i = ribElement.start; i <= ribElement.end; i++)
-                {
-                    tmp.like(splinepts[0][i]);
-                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
-                }
+                    printFancy(guides, splinepts[0], i);
             } //}}}
         }
 
         out.flush();
+    }
+    
+    private void printFancy(GuidePoint[] guides, Tuple3[] splines, int i)
+    { printFancy(guides, splines, i, false); }
+    
+    private void printFancy(GuidePoint[] guides, Tuple3[] splines, int i, boolean lineBreak)
+    {
+        int nIntervals = (splines.length - 1) / (guides.length - 3);
+        int startGuide = (i / nIntervals) + 1;
+        tmp.like(splines[i]); // because Tuple3 doesn't have a format() command
+        out.print("{}");
+        if(lineBreak) out.print("P ");
+        crayon.forRibbon(splines[i], guides[startGuide], guides[startGuide+1], i % nIntervals, nIntervals);
+        out.print(crayon.getKinString());
+        out.print(" ");
+        out.println(tmp.format(df));
     }
 //}}}
 

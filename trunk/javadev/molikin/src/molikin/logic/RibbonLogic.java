@@ -53,11 +53,14 @@ public class RibbonLogic
     {
         this.out = out;
         this.rp = new RibbonPrinter(out);
-        if(secondaryStructure != null)
-            rp.setCrayon(new ProteinSecStructCrayon(secondaryStructure));
         
-        if(doProtein)   printProtein(m, residues, bbColor);
-        if(doNucleic)   printNucAcid(m, residues, bbColor);
+        String chainID = "_";
+        if(residues.size() > 0)
+            chainID = ((Residue) residues.iterator().next()).getChain().trim();
+        if(chainID.equals("")) chainID = "_";
+        
+        if(doProtein)   printProtein(m, residues, chainID, bbColor);
+        if(doNucleic)   printNucAcid(m, residues, chainID, bbColor);
         
         this.out.flush();
         this.out = null;
@@ -67,7 +70,7 @@ public class RibbonLogic
 
 //{{{ printProtein
 //##############################################################################
-    void printProtein(Model model, Set selectedRes, String bbColor)
+    void printProtein(Model model, Set selectedRes, String chainID, String bbColor)
     {
         DataCache       data    = DataCache.getDataFor(model);
         ResClassifier   resC    = data.getResClassifier();
@@ -75,6 +78,23 @@ public class RibbonLogic
         
         Ribbons ribbons = new Ribbons();
         Collection contigs = ribbons.getProteinContigs(selectedRes, state, resC);
+        
+        if(contigs.size() > 0 && secondaryStructure != null)
+        {
+            if(bbColor.equals("white"))
+            {
+                out.println("@colorset {alph"+chainID+"} red");
+                out.println("@colorset {beta"+chainID+"} lime");
+                out.println("@colorset {coil"+chainID+"} white");
+            }
+            else
+            {
+                out.println("@colorset {alph"+chainID+"} "+bbColor);
+                out.println("@colorset {beta"+chainID+"} "+bbColor);
+                out.println("@colorset {coil"+chainID+"} "+bbColor);
+            }
+        }
+        
         for(Iterator iter = contigs.iterator(); iter.hasNext(); )
         {
             Collection contig = (Collection) iter.next();
@@ -87,9 +107,9 @@ public class RibbonLogic
             if(secondaryStructure != null)
             {
                 rp.printFancyRibbon(guides, secondaryStructure, 2, 2.2,
-                    "color= red master= {protein} master= {ribbon} master= {alpha}",
-                    "color= lime master= {protein} master= {ribbon} master= {beta}",
-                    "width= 4 color= "+bbColor+" master= {protein} master= {ribbon} master= {coil}");
+                    "color= {alph"+chainID+"} master= {protein} master= {ribbon} master= {alpha}",
+                    "color= {beta"+chainID+"} master= {protein} master= {ribbon} master= {beta}",
+                    "width= 4 color= {coil"+chainID+"} master= {protein} master= {ribbon} master= {coil}");
             }
             else
             {
@@ -104,7 +124,7 @@ public class RibbonLogic
 
 //{{{ printNucAcid
 //##############################################################################
-    void printNucAcid(Model model, Set selectedRes, String bbColor)
+    void printNucAcid(Model model, Set selectedRes, String chainID, String bbColor)
     {
         DataCache       data    = DataCache.getDataFor(model);
         ResClassifier   resC    = data.getResClassifier();
@@ -112,6 +132,21 @@ public class RibbonLogic
         
         Ribbons ribbons = new Ribbons();
         Collection contigs = ribbons.getNucleicAcidContigs(selectedRes, state, resC);
+        
+        if(contigs.size() > 0 && secondaryStructure != null)
+        {
+            if(bbColor.equals("white"))
+            {
+                out.println("@colorset {nucl"+chainID+"} lime");
+                out.println("@colorset {ncoi"+chainID+"} white");
+            }
+            else
+            {
+                out.println("@colorset {nucl"+chainID+"} "+bbColor);
+                out.println("@colorset {ncoi"+chainID+"} "+bbColor);
+            }
+        }
+        
         for(Iterator iter = contigs.iterator(); iter.hasNext(); )
         {
             Collection contig = (Collection) iter.next();
@@ -128,9 +163,9 @@ public class RibbonLogic
             if(secondaryStructure != null)
             {
                 rp.printFancyRibbon(guides, secondaryStructure, 3.0, 3.0,
-                    "color= red master= {nucleic acid} master= {ribbon} master= {RNA helix?}",
-                    "color= lime master= {nucleic acid} master= {ribbon} master= {A-form}",
-                    "width= 4 color= "+bbColor+" master= {nucleic acid} master= {ribbon} master= {coil}");
+                    "color= {nucl"+chainID+"} master= {nucleic acid} master= {ribbon} master= {RNA helix?}",
+                    "color= {nucl"+chainID+"} master= {nucleic acid} master= {ribbon} master= {A-form}",
+                    "width= 4 color= {ncoi"+chainID+"} master= {nucleic acid} master= {ribbon} master= {coil}");
             }
             else
             {
