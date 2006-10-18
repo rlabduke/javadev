@@ -74,7 +74,7 @@ class CifSecondaryStructure extends SecondaryStructure
             try {
                 r.initSeqNum = Integer.parseInt(((String) ssBegLabelSeqId.get(i)).trim());
                 r.endSeqNum  = Integer.parseInt(((String) ssEndLabelSeqId.get(i)).trim());
-                ranges.add(r);
+                addRange(r);
             } catch(NumberFormatException ex)
             { System.err.println("Non-numeric sequence numbers (row "+(i+1)+")"); }
         }
@@ -112,7 +112,7 @@ class CifSecondaryStructure extends SecondaryStructure
             try {
                 r.initSeqNum = Integer.parseInt(((String) ssBegLabelSeqId.get(i)).trim());
                 r.endSeqNum  = Integer.parseInt(((String) ssEndLabelSeqId.get(i)).trim());
-                ranges.add(r);
+                addRange(r);
             } catch(NumberFormatException ex)
             { System.err.println("Non-numeric sequence numbers (row "+(i+1)+")"); }
         }

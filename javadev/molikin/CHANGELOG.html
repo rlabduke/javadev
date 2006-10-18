@@ -20,6 +20,10 @@
         Sidechains should just generate the guidepoints for themselves!
     H checkbox should be disabled when no H are present!
     Black ribbon edges need a more careful crayon
+    Nucleic acid ribbons should be wider (3? 2?)
+  * Fancy ribbons must use crayons and colorsets
+    Disulfides: collect Cys residues; bondsBetween(Cys, sc, Cys, sc);
+        collect all residues in those bonds; draw sc in yellow
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -38,6 +42,8 @@
 - set black-edged ribbons as the default output of RibbonLogic
 - fixed higher/lower in wholebond printer
 - got nucleic acid ribbons working
+- nucleic acid ribbons now match Prekin for B. Golden's "twort" structure
+- protein ribbons still match Prekin for 1UBQ
 
 ### 0.11 ###
 - plugin now marks kin as modified on Append, but not on New (may be throwaway)

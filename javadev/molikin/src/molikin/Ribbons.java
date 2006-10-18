@@ -104,15 +104,18 @@ public class Ribbons //extends ... implements ...
                     if(phos1 == null) phos1 = prevRes.getAtom(" O5*");
                     if(phos1 == null) phos1 = prevRes.getAtom(" O5'");
                     AtomState prevP = state.get(phos1);
-                    AtomState currP = state.get(currRes.getAtom(" P  "));
+                    // Critical when two nucleic contigs appear back-to-back -- can't assume there's a P
+                    Atom phos2 = currRes.getAtom(" P  ");
+                    if(phos2 == null) phos2 = currRes.getAtom(" O5*");
+                    if(phos2 == null) phos2 = currRes.getAtom(" O5'");
+                    AtomState currP = state.get(phos2);
                     if(currP.sqDistance(prevP) < maxPP*maxPP && currRes.getChain().equals(prevRes.getChain()))
                     {
                         currContig.add(currRes);
                     }
                     else
                     {
-                        if(currContig.size() > 0) allContigs.add(currContig);
-                        currContig = new ArrayList();
+                        if(currContig.size() > 0) { allContigs.add(currContig); currContig = new ArrayList(); }
                         currContig.add(currRes);
                     }
                     prevRes = currRes;
@@ -215,8 +218,8 @@ public class Ribbons //extends ... implements ...
             while(nextThin < guides.length-2 && guides[nextThin].widthFactor != 0) nextThin++;
             // If the span is less than 3, set them all back to zero:
             if(nextThin - firstWide < 3)
-                for(int j = firstWide; j < nextThin; j++) //guides[j].widthFactor = 0;
-            {System.err.println(guides[j].widthFactor+" -> 0 ["+j+"]"); guides[j].widthFactor = 0;}
+                for(int j = firstWide; j < nextThin; j++) guides[j].widthFactor = 0;
+            //{System.err.println(guides[j].widthFactor+" -> 0 ["+j+"]"); guides[j].widthFactor = 0;}
             i = nextThin;
         }
         //}}}
@@ -295,8 +298,11 @@ public class Ribbons //extends ... implements ...
                 bvec.likeVector(c3, c1);
                 g.cvec.likeCross(avec, bvec).unit();
                 g.dvec.likeCross(g.cvec, avec).unit();
-                g.prevRes = g.nextRes = res[i]; // both really "this" res
-                
+                //g.prevRes = g.nextRes = res[i]; // both really "this" res
+                // This makes the fancy (arrowheaded) ribbon code work right
+                g.prevRes = res[i  ];
+                g.nextRes = res[i+1];
+
                 // Based on P(i-1) to P(i+1) or P(i) to P(i+2) distance, we may offset guide points.
                 // For areas of high curvature, the guide point is offset towards the C4'
               
@@ -354,12 +360,18 @@ public class Ribbons //extends ... implements ...
         catch(AtomException ex) {}
         try
         {
-            // 3' guide point is 2/3 of the way to the O3' from the last guide point
+            // Prekin: 3' guide point is 2/3 of the way to the O3' from the last guide point
+            //g = new GuidePoint();
+            //Atom oxygen3 = res[res.length-1].getAtom(" O3*");
+            //if(oxygen3 == null) oxygen3 = res[res.length-1].getAtom(" O3'");
+            //AtomState o3 = state.get(oxygen3);
+            //g.xyz.like(guides[guides.length-3].xyz).addMult(2, o3).div(3);
+            // IWD: 3' guide point is C3'
             g = new GuidePoint();
-            Atom oxygen3 = res[res.length-1].getAtom(" O3*");
-            if(oxygen3 == null) oxygen3 = res[res.length-1].getAtom(" O3'");
-            AtomState o3 = state.get(oxygen3);
-            g.xyz.like(guides[guides.length-3].xyz).addMult(2, o3).div(3);
+            Atom carbon3 = res[res.length-1].getAtom(" C3*");
+            if(carbon3 == null) carbon3 = res[res.length-1].getAtom(" C3'");
+            AtomState c3 = state.get(carbon3);
+            g.xyz.like(c3);
             g.cvec.like(guides[guides.length-3].cvec);
             g.dvec.like(guides[guides.length-3].dvec);
             g.offsetFactor = guides[guides.length-3].offsetFactor;

@@ -59,8 +59,9 @@ abstract public class SecondaryStructure //extends ... implements ...
 //{{{ CLASS: Range
 //##############################################################################
     /** Describes a start-end range for a helix, sheet, or turn */
-    static class Range
+    public static class Range
     {
+        int     rangeIndex = 0;
         Object  type = COIL;
         String  chainId;
         int     initSeqNum, endSeqNum;
@@ -76,12 +77,18 @@ abstract public class SecondaryStructure //extends ... implements ...
             if(seqNum == endSeqNum  && iCode.compareTo(endICode)  > 0) return false;
             return true;
         }
+        
+        public Object getType()
+        { return type; }
+        
+        public int getIndex()
+        { return rangeIndex; }
     }
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    Collection ranges = new ArrayList();
+    private Collection ranges = new ArrayList();
 //}}}
 
 //{{{ Constructor(s)
@@ -92,17 +99,31 @@ abstract public class SecondaryStructure //extends ... implements ...
     }
 //}}}
 
-//{{{ classify
+//{{{ add/getRange, classify
 //##############################################################################
-    /** Returns one of the structure category constants defined by this class. */
-    public Object classify(Residue res)
+    protected void addRange(Range r)
+    {
+        ranges.add(r);
+        r.rangeIndex = ranges.size();
+    }
+    
+    /** Returns a Range object denoting a secondary structure element (helix, strand, etc) or null for none. */
+    public Range getRange(Residue res)
     {
         for(Iterator iter = ranges.iterator(); iter.hasNext(); )
         {
             Range rng = (Range) iter.next();
-            if(rng.contains(res)) return rng.type;
+            if(rng.contains(res)) return rng;
         }
-        return COIL; // no entry for that residue
+        return null; // no entry for that residue
+    }
+
+    /** Returns one of the structure category constants defined by this class. */
+    public Object classify(Residue res)
+    {
+        Range rng = getRange(res);
+        if(rng != null) return rng.getType();
+        else return COIL;
     }
 //}}}
 

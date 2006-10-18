@@ -84,17 +84,20 @@ public class RibbonLogic
             
             //rp.printGuidepoints(guides);
             
-            //out.println("@vectorlist {protein ribbon5} color= "+bbColor+" master= {protein} master= {ribbon}");
-            //rp.printFiveLine(guides, 4, true);
-            
-            out.println("@ribbonlist {protein ribbon} color= "+bbColor+" master= {protein} master= {ribbon}");
-            rp.printFlatRibbon(guides, 4, true);
-            
-            out.println("@vectorlist {protein ribbon edges} color= deadblack master= {protein} master= {ribbon}");
-            RibbonCrayon c = rp.getCrayon();
-            rp.setCrayon(ConstCrayon.NONE);
-            rp.printTwoLine(guides, 4, true);
-            rp.setCrayon(c);
+            if(secondaryStructure != null)
+            {
+                rp.printFancyRibbon(guides, secondaryStructure, 2, 2.2,
+                    "color= red master= {protein} master= {ribbon} master= {alpha}",
+                    "color= lime master= {protein} master= {ribbon} master= {beta}",
+                    "width= 4 color= "+bbColor+" master= {protein} master= {ribbon} master= {coil}");
+            }
+            else
+            {
+                out.println("@ribbonlist {protein ribbon} color= "+bbColor+" master= {protein} master= {ribbon}");
+                rp.printFlatRibbon(guides, 4, true);
+                //out.println("@vectorlist {protein ribbon} color= "+bbColor+" master= {protein} master= {ribbon}");
+                //rp.printFiveLine(guides, 4, true);
+            }
         }
     }
 //}}}
@@ -112,6 +115,8 @@ public class RibbonLogic
         for(Iterator iter = contigs.iterator(); iter.hasNext(); )
         {
             Collection contig = (Collection) iter.next();
+            //Residue[] res = (Residue[]) contig.toArray(new Residue[contig.size()]);
+            //System.err.println(res[0]+" --> "+res[res.length-1]);
             if(contig.size() < 2) continue; // too small to use!
             GuidePoint[] guides = ribbons.makeNucleicAcidGuidepoints(contig, state);
             // Makes very little difference for nucleic acid, but occasionally does.
@@ -120,12 +125,23 @@ public class RibbonLogic
             
             //rp.printGuidepoints(guides);
             
-            //rp.setCrayon(ConstCrayon.NONE);
-            //out.println("@vectorlist {nucleic acid ribbon} color= "+bbColor+" master= {nucleic acid} master= {ribbon}");
-            //rp.printThreeLine(guides, 4, true);
+            if(secondaryStructure != null)
+            {
+                rp.printFancyRibbon(guides, secondaryStructure, 3.0, 3.0,
+                    "color= red master= {nucleic acid} master= {ribbon} master= {RNA helix?}",
+                    "color= lime master= {nucleic acid} master= {ribbon} master= {A-form}",
+                    "width= 4 color= "+bbColor+" master= {nucleic acid} master= {ribbon} master= {coil}");
+            }
+            else
+            {
+                out.println("@ribbonlist {nucleic acid ribbon} color= "+bbColor+" master= {nucleic acid} master= {ribbon}");
+                rp.printFlatRibbon(guides, 4, true);
+                //out.println("@vectorlist {nucleic acid ribbon} color= "+bbColor+" master= {nucleic acid} master= {ribbon}");
+                //rp.printFiveLine(guides, 4, true);
+            }
             
-            out.println("@ribbonlist {nucleic acid ribbon} color= "+bbColor+" master= {nucleic acid} master= {ribbon}");
-            rp.printFlatRibbon(guides, 4, true);
+            //out.println("@ribbonlist {nucleic acid ribbon} color= "+bbColor+" master= {nucleic acid} master= {ribbon}");
+            //rp.printFlatRibbon(guides, 4, true);
             //
             //out.println("@vectorlist {nucleic acid ribbon edges} color= deadblack master= {nucleic acid} master= {ribbon}");
             //RibbonCrayon c = rp.getCrayon();

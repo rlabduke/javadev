@@ -50,6 +50,9 @@ UTIL: {{{
 - made it possible to repeat a save frame (new data add or overwrite)
 - added DataCell.getName() -- using toString() was unsafe for future
 - reformatted code in moldb2.AminoAcid to match Ian's code style
+- added lower-level spline interface to r3.NRUBS
+- elaborated on moldb2.SecondaryStructure so you can tell apart e.g. two
+  strands that run into each other (this happens in RNA, for instance).
 
 ### 0.75 ###
 - we now allow redefinition of identically named residues in a PDB file,
