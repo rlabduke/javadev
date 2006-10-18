@@ -44,8 +44,9 @@ public class GuidePoint //extends ... implements ...
     public double widthFactor = 0;
     /**
     * Residues immediately before and after this guidepoint (never null).
-    * Usually different residues for proteins, the same one for nucleic acids.
-    * (Protein guides fall between residues; nucleic guides fall in middle of residue.)
+    * Usually different residues for proteins and for nucleic acids, except at chain ends.
+    * For nucleic acids, prevRes is the residue centered on the guide point and nextRes is the one after.
+    * (Protein guides fall between residues; nucleic guides fall in middle of a residue.)
     */
     public Residue prevRes, nextRes;
 //}}}

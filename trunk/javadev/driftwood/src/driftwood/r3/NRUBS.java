@@ -104,6 +104,17 @@ public class NRUBS //extends ... implements ...
         
         return out;
     }
+    
+    /**
+    * Generates interpolated points between two guide points (guideStart and guideStart+1),
+    * and stores them in splineOut at splineStart through splineStart+nIntervals.
+    * (Yes, that's right: it calculates nIntervals+1 points.)
+    */
+    public void spline(Tuple3[] guidePts, int guideStart, MutableTuple3[] splineOut, int splineStart, int nIntervals)
+    {
+        double[][] B = getB(nIntervals);
+        spline(guidePts, guideStart, splineOut, splineStart, B);
+    }
 //}}}
 
 //{{{ spline [workhorse]

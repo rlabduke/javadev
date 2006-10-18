@@ -38,9 +38,9 @@ class PdbSecondaryStructure extends SecondaryStructure
             String s = (String) iter.next();
             try
             {
-                     if(s.startsWith("HELIX ")) ranges.add(forHelix(s));
-                else if(s.startsWith("SHEET ")) ranges.add(forSheet(s));
-                else if(s.startsWith("TURN  ")) ranges.add(forTurn(s));
+                     if(s.startsWith("HELIX ")) addRange(forHelix(s));
+                else if(s.startsWith("SHEET ")) addRange(forSheet(s));
+                else if(s.startsWith("TURN  ")) addRange(forTurn(s));
             }
             catch(NumberFormatException ex)
             { System.err.println("Non-numeric sequence numbers: "+s); }

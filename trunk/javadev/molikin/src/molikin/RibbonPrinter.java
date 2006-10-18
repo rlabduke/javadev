@@ -11,6 +11,7 @@ import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
 import driftwood.r3.*;
+import driftwood.moldb2.*;
 //}}}
 /**
 * <code>RibbonPrinter</code> prints various ribbon representations.
@@ -174,6 +175,214 @@ public class RibbonPrinter //extends ... implements ...
             tmp.like(spline2[i]);
             out.println("{}"+crayon.getKinString()+" "+tmp.format(df));
             isBreak = false;
+        }
+
+        out.flush();
+    }
+//}}}
+
+//{{{ CLASS: RibbonElement
+//##############################################################################
+    static class RibbonElement
+    {
+        int start = 0, end = 0;
+        Object type = SecondaryStructure.COIL;
+        SecondaryStructure.Range range = null;
+        
+        public RibbonElement() {}
+        
+        public RibbonElement(RibbonElement that)
+        { this.like(that); }
+        
+        public RibbonElement(SecondaryStructure.Range range)
+        {
+            this.range = range;
+            if(range == null) type = SecondaryStructure.COIL;
+            else type = range.getType();
+            if(type == SecondaryStructure.TURN) type = SecondaryStructure.COIL;
+        }
+        
+        public boolean sameSSE(RibbonElement that)
+        { return (this.type == that.type && this.range == that.range); }
+        
+        public void like(RibbonElement that)
+        {
+            this.start  = that.start;
+            this.end    = that.end;
+            this.type   = that.type;
+            this.range  = that.range;
+        }
+    }
+//}}}
+
+//{{{ printFancyRibbon
+//##############################################################################
+    /**
+    * Displays a triangulated ribbon of with arrowheads, etc.
+    * Several lists are generated, but with additional parameters specified below.
+    */
+    public void printFancyRibbon(GuidePoint[] guides, SecondaryStructure secStruct,
+        double widthAlpha, double widthBeta, String listAlpha, String listBeta, String listCoil)
+    {
+        // Data allocation, splining {{{
+        final int   nIntervals = 4;
+        int         len     = guides.length;
+        NRUBS       nrubs   = new NRUBS();
+        Triple      tmp     = new Triple();
+        
+        // Seven stands of guidepoints: coil, alpha, beta, (beta arrowheads, see below)
+        double[] halfWidths = {0, -widthAlpha/2, widthAlpha/2, -widthBeta/2, widthBeta/2, -widthBeta, widthBeta};
+        Triple[][] guidepts = new Triple[halfWidths.length][guides.length];
+        for(int i = 0; i < guidepts.length; i++)
+            for(int j = 0; j < guidepts[i].length; j++)
+                guidepts[i][j] = new Triple(guides[j].xyz).addMult(halfWidths[i], guides[j].dvec);
+        // Seven strands of interpolated points
+        Tuple3[][] splinepts = new Tuple3[halfWidths.length][];
+        for(int i = 0; i < halfWidths.length; i++)
+            splinepts[i] = nrubs.spline(guidepts[i], nIntervals);
+        // I'm pretty sure this isn't needed now:
+        // Arrow heads -- can't just spline some offset guidepoints
+        // or there's a small break between the arrow body and arrow head.
+        //splinepts[halfWidths.length  ] = new Triple[ splinepts[0].length ];
+        //splinepts[halfWidths.length+1] = new Triple[ splinepts[0].length ];
+        //for(int i = 0; i < splinepts[0].length; i++)
+        //{
+        //    splinepts[halfWidths.length  ][i] = new Triple().likeVector(splinepts[4][i], splinepts[3][i]).div(2).add(splinepts[3][i]);
+        //    splinepts[halfWidths.length+1][i] = new Triple().likeVector(splinepts[3][i], splinepts[4][i]).div(2).add(splinepts[4][i]);
+        //}
+        // Data allocation, splining }}}
+        
+        // Discovery of ribbon elements: ribbons, ropes, and arrows {{{
+        ArrayList ribbonElements = new ArrayList();
+        RibbonElement ribElement = new RibbonElement();
+        ribbonElements.add(ribElement);
+        ribElement.type = null;
+        
+        for(int i = 0; i < guides.length-3; i++)
+        {
+            GuidePoint g1 = guides[i+1], g2 = guides[i+2];
+            // These two won't really be ribbon elements; we're just reusing the class for convenience.
+            RibbonElement currSS = new RibbonElement(secStruct.getRange(g1.nextRes));
+            RibbonElement nextSS = new RibbonElement(secStruct.getRange(g2.nextRes));
+            // Otherwise, we get one unit of coil before alpha or beta at start
+            if(ribElement.type == null) ribElement.like(currSS);
+            
+            if(!ribElement.sameSSE(currSS)) // helix / sheet starting
+            {
+                if(currSS.type == SecondaryStructure.HELIX
+                || currSS.type == SecondaryStructure.STRAND)
+                {
+                    ribElement.end = nIntervals*i + 1;
+                    ribbonElements.add(ribElement = new RibbonElement(currSS));
+                    // Every helix / sheet starts from coil; see below
+                    ribElement.start = nIntervals*i + 1;
+                }
+            }
+            if(!ribElement.sameSSE(nextSS)) // helix / sheet ending
+            {
+                if(currSS.type == SecondaryStructure.HELIX
+                || currSS.type == SecondaryStructure.STRAND)
+                {
+                    int end = nIntervals*i + 0;
+                    if(currSS.type == SecondaryStructure.STRAND) end += nIntervals - 1;
+                    ribElement.end = end;
+                    ribbonElements.add(ribElement = new RibbonElement());
+                    // Every helix / sheet flows into coil
+                    ribElement.type = SecondaryStructure.COIL;
+                    ribElement.start = end;
+                }
+            }
+        }
+        ribElement.end = splinepts[0].length-1;
+        // Discovery of ribbon elements: ribbons, ropes, and arrows }}}
+        
+        for(Iterator iter = ribbonElements.iterator(); iter.hasNext(); )
+        {
+            ribElement = (RibbonElement) iter.next();
+            //System.err.println(ribElement.type+"    ["+ribElement.start+", "+ribElement.end+"]");
+            if(ribElement.type == SecondaryStructure.HELIX) //{{{
+            {
+                out.println("@ribbonlist {fancy helix} "+listAlpha);
+                for(int i = ribElement.start; i < ribElement.end; i++)
+                {
+                    tmp.like(splinepts[1][i]);
+                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                    tmp.like(splinepts[2][i]);
+                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                }
+                tmp.like(splinepts[0][ribElement.end]);
+                out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                out.println("@vectorlist {fancy helix edges} width= 1 "+listAlpha+" color= deadblack");
+                tmp.like(splinepts[0][ribElement.start]);
+                out.println("{}P "/*+crayon.getKinString()*/+" "+tmp.format(df));
+                for(int i = ribElement.start; i < ribElement.end; i++)
+                {
+                    tmp.like(splinepts[1][i]);
+                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                }
+                tmp.like(splinepts[0][ribElement.end]);
+                out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                tmp.like(splinepts[0][ribElement.start]);
+                out.println("{}P "/*+crayon.getKinString()*/+" "+tmp.format(df));
+                for(int i = ribElement.start; i < ribElement.end; i++)
+                {
+                    tmp.like(splinepts[2][i]);
+                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                }
+                tmp.like(splinepts[0][ribElement.end]);
+                out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+            } //}}}
+            else if(ribElement.type == SecondaryStructure.STRAND) //{{{
+            {
+                out.println("@ribbonlist {fancy sheet} "+listBeta);
+                for(int i = ribElement.start; i < ribElement.end-1; i++)
+                {
+                    tmp.like(splinepts[3][i]);
+                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                    tmp.like(splinepts[4][i]);
+                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                }
+                // Ending *exactly* like this is critical to avoiding a break
+                // between the arrow body and arrow head!
+                tmp.like(splinepts[5][ribElement.end-2]);
+                out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                tmp.like(splinepts[6][ribElement.end-2]);
+                out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                tmp.like(splinepts[0][ribElement.end]);
+                out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                out.println("@vectorlist {fancy sheet edges} width= 1 "+listBeta+" color= deadblack");
+                tmp.like(splinepts[0][ribElement.start]);
+                out.println("{}P "/*+crayon.getKinString()*/+" "+tmp.format(df));
+                for(int i = ribElement.start; i < ribElement.end-1; i++)
+                {
+                    tmp.like(splinepts[3][i]);
+                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                }
+                tmp.like(splinepts[5][ribElement.end-2]);
+                out.println("{} "/*+crayon.getKinString()*/+" "+tmp.format(df));
+                tmp.like(splinepts[0][ribElement.end]);
+                out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                tmp.like(splinepts[0][ribElement.start]);
+                out.println("{}P "/*+crayon.getKinString()*/+" "+tmp.format(df));
+                for(int i = ribElement.start; i < ribElement.end-1; i++)
+                {
+                    tmp.like(splinepts[4][i]);
+                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                }
+                tmp.like(splinepts[6][ribElement.end-2]);
+                out.println("{} "/*+crayon.getKinString()*/+" "+tmp.format(df));
+                tmp.like(splinepts[0][ribElement.end]);
+                out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+            } //}}}
+            else // COIL {{{
+            {
+                out.println("@vectorlist {fancy coil} color= sky "+listCoil);
+                for(int i = ribElement.start; i <= ribElement.end; i++)
+                {
+                    tmp.like(splinepts[0][i]);
+                    out.println("{}"/*+crayon.getKinString()*/+" "+tmp.format(df));
+                }
+            } //}}}
         }
 
         out.flush();
