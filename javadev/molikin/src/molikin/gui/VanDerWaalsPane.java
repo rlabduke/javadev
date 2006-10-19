@@ -71,8 +71,11 @@ public class VanDerWaalsPane extends TablePane2 implements DrawingPane
         
         cbUseSpheres    = new JCheckBox("use spheres?", false);
         
-        cmColorBy   = new JComboBox(new String[] {"element", "B factor", "occupancy"});
-            cmColorBy.setEnabled(false);
+        cmColorBy   = new JComboBox(new Object[] {
+            VanDerWaalsLogic.COLOR_BY_ELEMENT,
+            VanDerWaalsLogic.COLOR_BY_B_FACTOR,
+            VanDerWaalsLogic.COLOR_BY_OCCUPANCY
+        });
         
         this.hfill(true).vfill(true).addCell(selector, 2, 1).newRow();
         this.weights(1,0).memorize();
@@ -133,6 +136,7 @@ public class VanDerWaalsPane extends TablePane2 implements DrawingPane
         logic.doSidechains  = this.cbSidechains.isSelected();
         logic.doHydrogens   = this.cbHydrogens.isSelected();
         logic.doUseSpheres  = this.cbUseSpheres.isSelected();
+        logic.colorBy       = this.cmColorBy.getSelectedItem();
         logic.printKinemage(out, m, residues, bbColor);
     }
 //}}}

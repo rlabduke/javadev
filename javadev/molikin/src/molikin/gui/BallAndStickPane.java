@@ -74,8 +74,12 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
         cbBallsOnCarbon     = new JCheckBox("balls on C atoms too", false);
         cbBallsOnAtoms      = new JCheckBox("balls on N, O, P, etc.", false);
         
-        cmColorBy   = new JComboBox(new String[] {"backbone / sidechain", "element (half bonds)", "B factor", "occupancy"});
-            cmColorBy.setEnabled(false);
+        cmColorBy   = new JComboBox(new Object[] {
+            BallAndStickLogic.COLOR_BY_MC_SC,
+            //BallAndStickLogic.COLOR_BY_ELEMENT,
+            BallAndStickLogic.COLOR_BY_B_FACTOR,
+            BallAndStickLogic.COLOR_BY_OCCUPANCY
+        });
         
         this.hfill(true).vfill(true).addCell(selector, 2, 1).newRow();
         this.weights(1,0).memorize();
@@ -141,6 +145,7 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
         logic.doDisulfides      = this.cbDisulfides.isSelected();
         logic.doBallsOnCarbon   = this.cbBallsOnCarbon.isSelected();
         logic.doBallsOnAtoms    = this.cbBallsOnAtoms.isSelected();
+        logic.colorBy           = this.cmColorBy.getSelectedItem();
         logic.printKinemage(out, m, residues, bbColor);
     }
 //}}}
