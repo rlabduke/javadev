@@ -75,6 +75,21 @@ public class MolikinWindow //extends ... implements ...
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setContentPane(guiPane);
         frame.pack();
+        
+        // Position this window just right of the main window,
+        // so we can find it again after creating a kinemage.
+        Container w = kMain.getContentContainer();
+        if(w != null)
+        {
+            Point p = w.getLocation();
+            Dimension dimDlg = frame.getSize();
+            Dimension dimWin = w.getSize();
+            //p.x += dimWin.width - (dimDlg.width / 2) ;
+            p.x += dimWin.width - dimDlg.width + 64;
+            p.y += (dimWin.height - dimDlg.height) / 2;
+            frame.setLocation(p);
+        }
+        
         frame.setVisible(true);
     }
     
