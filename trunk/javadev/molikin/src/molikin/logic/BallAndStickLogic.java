@@ -26,6 +26,10 @@ import driftwood.moldb2.*;
 public class BallAndStickLogic
 {
 //{{{ Constants
+    public static final Object COLOR_BY_MC_SC       = "backbone / sidechain";
+    public static final Object COLOR_BY_ELEMENT     = "element";
+    public static final Object COLOR_BY_B_FACTOR    = "B factor";
+    public static final Object COLOR_BY_OCCUPANCY   = "occupancy";
 //}}}
 
 //{{{ Variable definitions
@@ -37,6 +41,7 @@ public class BallAndStickLogic
     public boolean  doProtein, doNucleic, doHets, doIons, doWater;
     public boolean  doPseudoBB, doBackbone, doSidechains, doHydrogens, doDisulfides;
     public boolean  doBallsOnCarbon, doBallsOnAtoms;
+    public Object   colorBy = COLOR_BY_MC_SC;
 //}}}
 
 //{{{ Constructor(s)
@@ -54,10 +59,28 @@ public class BallAndStickLogic
     {
         this.out = out;
         this.sp = new StickPrinter(out);
-        sp.setCrayon(new AltConfCrayon());
         this.bp = new BallPrinter(out);
-        bp.setCrayon(new AltConfCrayon());
         
+        if(colorBy == COLOR_BY_MC_SC)
+        {
+            sp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new DisulfideCrayon()));
+            bp.setCrayon(new AltConfCrayon());
+        }
+        else if(colorBy == COLOR_BY_B_FACTOR)
+        {
+            sp.setHalfBonds(true);
+            sp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new BfactorCrayon()));
+            bp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new BfactorCrayon()));
+        }
+        else if(colorBy == COLOR_BY_OCCUPANCY)
+        {
+            sp.setHalfBonds(true);
+            sp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new OccupancyCrayon()));
+            bp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new OccupancyCrayon()));
+        }
+        //else if(colorBy == COLOR_BY_ELEMENT)
+        else throw new UnsupportedOperationException();
+
         if(doProtein)  printProtein(m, residues, bbColor);
         if(doNucleic)  printNucAcid(m, residues, bbColor);
         if(doHets)     printHets(m, residues);

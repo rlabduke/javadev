@@ -27,6 +27,9 @@ public class VanDerWaalsLogic
 {
 //{{{ Constants
     static final DecimalFormat df2 = new DecimalFormat("0.0#");
+    public static final Object COLOR_BY_ELEMENT     = "element";
+    public static final Object COLOR_BY_B_FACTOR    = "B factor";
+    public static final Object COLOR_BY_OCCUPANCY   = "occupancy";
 //}}}
 
 //{{{ Variable definitions
@@ -34,8 +37,9 @@ public class VanDerWaalsLogic
     PrintWriter     out = null;
     BallPrinter     bp  = null;
     
-    public boolean doProtein, doNucleic, doHets, doIons, doWater;
-    public boolean doBackbone, doSidechains, doHydrogens, doUseSpheres;
+    public boolean  doProtein, doNucleic, doHets, doIons, doWater;
+    public boolean  doBackbone, doSidechains, doHydrogens, doUseSpheres;
+    public Object   colorBy = COLOR_BY_ELEMENT;
 //}}}
 
 //{{{ Constructor(s)
@@ -55,6 +59,14 @@ public class VanDerWaalsLogic
         this.bp = new BallPrinter(out);
         bp.setCrayon(new AltConfCrayon());
         
+        if(colorBy == COLOR_BY_ELEMENT)
+            bp.setCrayon(new AltConfCrayon());
+        else if(colorBy == COLOR_BY_B_FACTOR)
+            bp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new BfactorCrayon()));
+        else if(colorBy == COLOR_BY_OCCUPANCY)
+            bp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new OccupancyCrayon()));
+        else throw new UnsupportedOperationException();
+
         if(doProtein)  printProtein(m, residues, bbColor);
         if(doNucleic)  printNucAcid(m, residues, bbColor);
         if(doHets)     printHets(m, residues);
@@ -220,8 +232,8 @@ public class VanDerWaalsLogic
             Collection atoms = (Collection) elementsToAtoms.get(element);
             String color = Util.getElementColor(element);
             double radius = Util.getVdwRadius(element);
-            if(doUseSpheres)   out.print("@spherelist");
-            else                            out.print("@balllist");
+            if(doUseSpheres)    out.print("@spherelist");
+            else                out.print("@balllist");
             out.println(" {"+element+" vdW} color= "+color+" radius= "+df2.format(radius)+" master= {"+element+"} master= {vdW} "+masters);
             bp.printBalls(atoms);
         }
