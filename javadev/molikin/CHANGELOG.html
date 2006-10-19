@@ -8,9 +8,7 @@
         to keep only the N shortest bonds...
     color by residue type (each AA, base, etc has its own color)
     GUI for: only A alts? only atoms with B -lt 30? Q -gt 0.66?
-    VDW, Ball+Stick, Ribbon engines should be separated from their GUIs
-        public boolean showXXX = false
-        element color map should be pluggable, not from Util
+    Element color map should be pluggable, not from Util
     The case for ribbon to ball-and-stick communication:
         BnS sidechains should draw to a ribbon guidepoint -- which residues,
         and how to get out the guidepoint coordinates?
@@ -28,6 +26,7 @@
 - added option to draw disulfides all in yellow
 - disulfides as part of general sc drawing now can cross chains
 - MolikinWindow is now better positioned relative to the main KiNG window
+- moved ball-and-stick and VDW rendering into ___Logic classes.
 
 ### 0.12 ###
 - changed how Crayons work, to allow them to also filter atoms/bonds
