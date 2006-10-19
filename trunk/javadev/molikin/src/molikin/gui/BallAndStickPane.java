@@ -194,10 +194,10 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
         {
             if(atomC.scHeavy.size() > 0)
             {
-                // includes disulfides, for now
                 out.println("@vectorlist {protein sc} color= cyan master= {protein} master= {sidechains}");
-                // to scHeavy if we want stubs to ribbon instead
-                sp.printSticks(bonds, atomC.scHeavy, atomC.bioHeavy, proteinRes, proteinRes);
+                // to scHeavy instead of bioHeavy if we want to end at CB and add stubs to ribbon instead
+                // to resC.proteinRes allows disulfides to cross over chains
+                sp.printSticks(bonds, atomC.scHeavy, atomC.bioHeavy, proteinRes, resC.proteinRes);
                 if(cbHydrogens.isSelected() && atomC.scHydro.size() > 0)
                 {
                     out.println("@vectorlist {protein scH} color= gray master= {protein} master= {sidechains} master= {Hs}");
