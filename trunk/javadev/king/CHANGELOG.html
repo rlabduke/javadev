@@ -75,13 +75,11 @@
     integrate multichart into KiNG?
     build pkgs that don't require installing
     choose to save viewing axes with saved view, or not
-  * new Mac release with proper JOGL libs; check Win and Linux pkgs too.
     DiVE export: VRML97 ?
   * static colors for BEC
         @hsvcolo[u]r {MyColor} BlackHue BlackSat BlackVal [WhiteHue [WhiteSat [WhiteVal]]]
         Need to be able to save them back out again!
         Need to be documented
-    add "Edit group" and "Edit subgroup" properties to Edit Draw
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -102,6 +100,8 @@
 - hacked on image export code -- JPEGs on Windows were not closed out
 - changed ribbon coloring to match lighting AND *depth cue* between paired
   triangles, so now they really copy Mage's intent.  Code is ugly, though.
+- added Edit Group, Edit Subgroup, and Reveal in Hierarchy to the DrawingTool
+- updated to JSR JOGL 1.0.0 (Mac, Linux, Windows)
 
 ### 1.53 ###
 - added drag-n-drop support to JoglCanvas, so now DnD works in OpenGL mode

@@ -256,6 +256,24 @@ public class KinTree //extends ... implements ...
     }
 //}}}
 
+//{{{ reveal, getTreePath
+//##################################################################################################
+    /** Makes sure the given AGE is visible in the tree window */
+    public void reveal(AGE target)
+    {
+        TreePath path = getTreePath(target);
+        tree.scrollPathToVisible(path);
+        tree.setSelectionPath(path);
+    }
+    
+    private TreePath getTreePath(TreeNode leaf)
+    {
+        TreeNode parent = leaf.getParent();
+        if(parent == null) return new TreePath(leaf);
+        else return getTreePath(parent).pathByAddingChild(leaf);
+    }
+//}}}
+
 //{{{ notifyChange, getTree
 //##################################################################################################
     // Called by KingMain when something happens.

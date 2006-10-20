@@ -104,7 +104,8 @@ public class DrawingTool extends BasicTool
 //{{{ Variable definitions
 //##############################################################################
     TablePane2      ui;
-    JRadioButton    rbDoNothing, rbEditList, rbEditPoint, rbPaintPoints, rbMovePoint;
+    JRadioButton    rbDoNothing, rbRevealList, rbEditGroup, rbEditSubgroup, rbEditList,
+                    rbEditPoint, rbPaintPoints, rbMovePoint;
     JRadioButton    rbLineSegment, rbDottedLine, rbArcSegment,
                     rbBalls, rbLabels, rbDots, rbTriangle;
     JRadioButton    rbPunch, rbPrune, rbAuger, rbSphereCrop;
@@ -156,6 +157,12 @@ public class DrawingTool extends BasicTool
         // Build all the radio buttons for different drawing modes
         rbDoNothing = new JRadioButton("Do nothing (navigate)");
         buttonGroup.add(rbDoNothing);
+        rbRevealList = new JRadioButton("Reveal in hierarchy");
+        buttonGroup.add(rbRevealList);
+        rbEditGroup = new JRadioButton("Edit group props");
+        buttonGroup.add(rbEditGroup);
+        rbEditSubgroup = new JRadioButton("Edit subgroup props");
+        buttonGroup.add(rbEditSubgroup);
         rbEditList = new JRadioButton("Edit list props");
         buttonGroup.add(rbEditList);
         rbEditPoint = new JRadioButton("Edit point props");
@@ -264,6 +271,9 @@ public class DrawingTool extends BasicTool
         ui = new TablePane2();
         ui.hfill(true).vfill(true).insets(0,1,0,1).memorize();
         ui.addCell(rbDoNothing).newRow();
+        ui.addCell(rbRevealList).newRow();
+        ui.addCell(rbEditGroup).newRow();
+        ui.addCell(rbEditSubgroup).newRow();
         ui.addCell(rbEditList).newRow();
         ui.addCell(rbEditPoint).newRow();
         ui.addCell(rbPaintPoints).newRow();
@@ -302,6 +312,9 @@ public class DrawingTool extends BasicTool
     {
         super.click(x, y, p, ev);
         if(rbDoNothing.isSelected())            return; // don't mark kin as modified
+        else if(rbRevealList.isSelected())      doRevealList(x, y, p, ev);
+        else if(rbEditGroup.isSelected())       doEditGroup(x, y, p, ev);
+        else if(rbEditSubgroup.isSelected())    doEditSubgroup(x, y, p, ev);
         else if(rbEditList.isSelected())        doEditList(x, y, p, ev);
         else if(rbEditPoint.isSelected())       doEditPoint(x, y, p, ev);
         else if(rbPaintPoints.isSelected())     doPaintPoints(x, y, p, ev);
@@ -423,21 +436,50 @@ public class DrawingTool extends BasicTool
     }
 //}}}
 
-//{{{ doEditList
+//{{{ doRevealList, doEditGroup/Subgroup/List/Point
 //##############################################################################
+    public void doRevealList(int x, int y, KPoint p, MouseEvent ev)
+    {
+        if(p == null) return;
+        KList list = (KList)p.getOwner();
+        if(list == null) return;
+        kMain.getKinTree().reveal(list);
+        kMain.getKinTree().show();
+    }
+
+    public void doEditGroup(int x, int y, KPoint p, MouseEvent ev)
+    {
+        if(p == null) return;
+        KList list = (KList)p.getOwner();
+        if(list == null) return;
+        KSubgroup subgroup = (KSubgroup)list.getOwner();
+        if(subgroup == null) return;
+        KGroup group = (KGroup)subgroup.getOwner();
+        if(group == null) return;
+        if(grEditor.editGroup(group))
+            kMain.notifyChange(KingMain.EM_EDIT_GROSS);
+    }
+    
+    public void doEditSubgroup(int x, int y, KPoint p, MouseEvent ev)
+    {
+        if(p == null) return;
+        KList list = (KList)p.getOwner();
+        if(list == null) return;
+        KSubgroup subgroup = (KSubgroup)list.getOwner();
+        if(subgroup == null) return;
+        if(grEditor.editSubgroup(subgroup))
+            kMain.notifyChange(KingMain.EM_EDIT_GROSS);
+    }
+    
     public void doEditList(int x, int y, KPoint p, MouseEvent ev)
     {
-        if(p != null)
-        {
-            KList list = (KList)p.getOwner();
-            if(list != null && grEditor.editList(list))
-                kMain.notifyChange(KingMain.EM_EDIT_GROSS);
-        }
+        if(p == null) return;
+        KList list = (KList)p.getOwner();
+        if(list == null) return;
+        if(grEditor.editList(list))
+            kMain.notifyChange(KingMain.EM_EDIT_GROSS);
     }
-//}}}
 
-//{{{ doEditPoint
-//##############################################################################
     public void doEditPoint(int x, int y, KPoint p, MouseEvent ev)
     {
         if(p != null) ptEditor.editPoint(p);
