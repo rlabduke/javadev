@@ -173,7 +173,7 @@ public class LibraryFilterer {
     }
 
     public void writePdbFile(CoordinateFile coodFile) {
-	File pdbOut = new File("C:/docs/labwork/modeling/terwilleger/tripepTop500_pdblib2/tripepTop500_rmsdfilter.pdb");
+	File pdbOut = new File("C:/docs/labwork/modeling/terwilliger/tripepTop500_pdblib2/tripepTop500_rmsdfilter.pdb");
 	try {
 	    PdbWriter writer = new PdbWriter(pdbOut);
 	    writer.writeCoordinateFile(coodFile);

@@ -20,7 +20,7 @@ public class PdbSuperimposer {
 	    System.out.println("reading in file");
 	    PdbReader reader = new PdbReader();
 	    reader.setUseSegID(false);
-	    File pdb = new File("C:/docs/labwork/modeling/terwilleger/tripepTop500_pdblib2/tripepTop500_4endmdl.pdb");
+	    File pdb = new File("C:/docs/labwork/modeling/terwilliger/tripepTop500_pdblib2/tripepTop500_4endmdl.pdb");
 	    //File pdb = new File("C:/docs/labwork/modeling/terwilleger/tripepTop500_pdblib2/test1.pdb");
 	    CoordinateFile coodFile = reader.read(pdb);
 	    CoordinateFile cleanFile = new CoordinateFile();
@@ -49,7 +49,7 @@ public class PdbSuperimposer {
 		    cleanFile.add(mod);
 		    //System.out.println("model written");
 		    ModelState modState = mod.getState();
-		    Residue modRes = getFirstResidue(mod);
+		    Residue modRes = getLastResidue(mod);
 		    try {
 			modCA = modState.get(modRes.getAtom(" CA "));
 			modC = modState.get(modRes.getAtom(" C  "));
@@ -145,7 +145,7 @@ public class PdbSuperimposer {
     }
 
     public void writePdbFile(CoordinateFile coodFile) {
-	File pdbOut = new File("C:/docs/labwork/modeling/terwilleger/tripepTop500_pdblib2/tripepTop500_4superNterm.pdb");
+	File pdbOut = new File("C:/docs/labwork/modeling/terwilliger/tripepTop500_pdblib2/tripepTop500_4superCterm.pdb");
 	try {
 	    PdbWriter writer = new PdbWriter(pdbOut);
 	    writer.writeCoordinateFile(coodFile);
