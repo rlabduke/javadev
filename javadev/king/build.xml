@@ -99,7 +99,7 @@
 <!-- dist, dist-src, dist-exe {{{ -->
 <!-- Makes .zip files from the ${dist} directory -->
 <target name="dist" description="Generate the distributions" depends="init,clean,build,dist-src,dist-exe">
-    <zip destfile="${dist}/${ant.project.name}-${version}-src.zip">
+    <zip destfile="${dist}/${ant.project.name}.${version}.${DSTAMP_SIX}.src.zip">
         <zipfileset dir="${dist}" includes="${ant.project.name}-${version}-src/"/>
         <zipfileset dir="${dist}" includes="javadocs/"/>
         <zipfileset dir="../driftwood/dist/" includes="driftwood-*-src/"/>
@@ -112,7 +112,7 @@
         </zipfileset>
     </zip>
     <zip basedir="${dist}"
-         destfile="${dist}/${ant.project.name}-${version}.zip"
+         destfile="${dist}/${ant.project.name}.${version}.${DSTAMP_SIX}.zip"
          includes="${ant.project.name}-${version}/"/>
 </target>
 
@@ -139,7 +139,7 @@
     <mkdir dir="${dist}/javadocs"/>
     <javadoc packagenames="driftwood.*,Jama.*,king.*"
         sourcepath="src:../driftwood/src"
-        classpath="../lib:../lib/iText/itext-1.02b.jar"
+        classpath="../lib:../lib/iText/itext-1.02b.jar:../lib/jogl/jogl.jar"
         destdir="${dist}/javadocs" access="protected" source="1.4"
         breakiterator="true" noqualifier="all"
         version="true" use="true" author="true"
@@ -194,7 +194,7 @@
 </target>
 <!-- }}} -->
 
-<!-- deploy-local, deploy-rlab, deploy-world {{{ -->
+<!-- deploy-local {{{ -->
 <!-- Deploys the executable on the local system - applies to IWD's machine only  -->
 <target name="deploy-local"  description="Deploy to ~/bin" depends="build">
     <copy file="${ant.project.name}.jar" todir="/Applications/KiNG.app/Contents/Resources/Java/" overwrite="true" failonerror="false"/>
@@ -207,49 +207,6 @@
 <!-- Deploys the executable on the local MolProbity - applies to IWD's machine only  -->
 <target name="deploy-local-mp"  description="Deploy to local MolProbity 3" depends="build">
     <copy file="${ant.project.name}.jar" todir="${user.home}/Sites/molprobity3/public_html/" overwrite="true" failonerror="false"/>
-</target>
-
-<!-- Deploys the executable for the whole lab - applies to IWD's machine only  -->
-<target name="deploy-rlab"  description="Deploy locally and to cluster" depends="dist,init-scp,deploy-local">
-    <copy file="${dist}/${ant.project.name}-${version}-src.zip" todir="${user.home}/ark/old-versions/${ant.project.name}/" overwrite="false" failonerror="false"/>
-    <scp todir="${scp.src.username}@${scp.src.hostname}:${scp.src.jarpath}/"
-        password="${scp.src.password}" failonerror="true">
-        <fileset dir="${basedir}">
-            <include name="*.jar" />
-            <include name="plugins/" />
-        </fileset>
-    </scp>
-</target>
-
-<!-- Deploys the exe and src for the public at large - applies to IWD's machine only  -->
-<target name="deploy-world"  description="Deploy everywhere" depends="dist,init-scp,deploy-local,deploy-local-mp,deploy-rlab">
-    <!-- Copy to FTP site for distribution -->
-    <scp file="${dist}/${ant.project.name}-${version}-src.zip"
-        todir="${scp.ftp.username}@${scp.ftp.hostname}:${scp.ftp.path}/${ant.project.name}/${ant.project.name}.${version}.${DSTAMP_SIX}.src.zip"
-        password="${scp.ftp.password}" failonerror="true"/>
-    <scp file="${dist}/${ant.project.name}-${version}.zip"
-        todir="${scp.ftp.username}@${scp.ftp.hostname}:${scp.ftp.path}/${ant.project.name}/${ant.project.name}.${version}.${DSTAMP_SIX}.zip"
-        password="${scp.ftp.password}" failonerror="true"/>
-    <!-- Update marker for current version -->
-    <scp file="${resource}/${ant.project.name}/version.props"
-        todir="${scp.ftp.username}@${scp.ftp.hostname}:${scp.ftp.path}/${ant.project.name}/${ant.project.name}.version.props"
-        password="${scp.ftp.password}" failonerror="true"/>
-    <!-- Provide a ZIP file for auto-update -->
-    <scp file="${dist}/${ant.project.name}-${version}.zip"
-        todir="${scp.ftp.username}@${scp.ftp.hostname}:${scp.ftp.path}/${ant.project.name}/current"
-        password="${scp.ftp.password}" failonerror="true"/>
-    <!-- Provide current docs to the web site -->
-    <scp todir="${scp.ftp.username}@${scp.ftp.hostname}:${scp.ftp.path}/${ant.project.name}/docs"
-        password="${scp.ftp.password}" failonerror="true">
-        <fileset dir="${dist}/${ant.project.name}-${version}/doc"/>
-    </scp>
-    <!-- Update user manual on web site -->
-    <scp file="${resource}/${ant.project.name}/html/king-manual.html"
-        todir="${scp.www.username}@${scp.www.hostname}:${scp.www.path}/kinemage/king-manual.html"
-        password="${scp.www.password}" failonerror="true"/>
-    <!-- MolProbity 3.x will be updated from deploy-local-mp via Subversion -->
-    <echo>*** REMEMBER TO REBUILD THE INSTALL ANYWHERE DISTRIBUTIONS FOR LINUX AND WINDOWS ***</echo>
-    <echo>*** REMEMBER TO MAKE A MAC DMG AND UPDATE THE VERSION IN INFO.PLIST ***</echo>
 </target>
 <!-- }}} -->
 </project>

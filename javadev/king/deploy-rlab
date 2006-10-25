@@ -1,0 +1,15 @@
+#!/bin/bash
+set verbose
+##############################################################################
+# MUST RUN ant dist BEFORE THIS SCRIPT!
+##############################################################################
+
+# Save current working directory
+pushd .
+cd dist/king-?.?? || { popd; echo "Can't find dist/"; exit; }
+
+# Update cluster executable:
+scp -r *.jar plugins/ srcer@richardsons.biochem.duke.edu:jars/
+
+# Restore current working directory
+popd

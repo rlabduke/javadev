@@ -1,0 +1,30 @@
+#!/bin/bash
+set verbose
+##############################################################################
+# MUST RUN ant dist BEFORE THIS SCRIPT!
+##############################################################################
+
+# First, update Rlab's copy:
+./deploy-rlab
+
+# Copy src, jars to download site for distribution:
+scp dist/king.?.??.??????*.zip www@kinemage.biochem.duke.edu:/var/www/html/downloads/software/king/
+
+# Provide ZIP for auto-update:
+scp dist/king.?.??.??????.zip www@kinemage.biochem.duke.edu:/var/www/html/downloads/software/king/current
+
+# Update marker for auto-update:
+scp resource/king/version.props www@kinemage.biochem.duke.edu:/var/www/html/downloads/software/king/king.version.props
+
+# Update docs on website:
+scp -r dist/king-?.??/doc/. www@kinemage.biochem.duke.edu:/var/www/html/downloads/software/king/docs
+
+# Update manual on website:
+scp resource/king/html/king-manual.html www@kinemage.biochem.duke.edu:/var/www/html/kinemage/king-manual.html
+
+#
+# MolProbity will be updated separately, with a new king.jar in Subversion.
+#
+
+echo "*** REMEMBER TO REBUILD THE WINDOW AND LINUX BUNDLES ***"
+echo "*** REMEMBER TO MAKE A MAC DMG AND UPDATE THE VERSION NUMBER IN INFO.PLIST ***"
