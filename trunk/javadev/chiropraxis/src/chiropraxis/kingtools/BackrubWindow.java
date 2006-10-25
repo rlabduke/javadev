@@ -124,7 +124,7 @@ public class BackrubWindow implements Remodeler, ChangeListener, WindowListener
         res3Labels = new JLabel[] { new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel() };
         
         cbIdealizeSC = new JCheckBox(new ReflectiveAction("Idealize sidechains", null, this, "onToggleIdealSC"));
-        cbIdealizeSC.setSelected(true);
+        cbIdealizeSC.setSelected(false); // 25 Oct 06: changed by mandate from JSR
         
         toolpane = new TablePane2();
         toolpane.skip();
