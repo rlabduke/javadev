@@ -58,7 +58,9 @@ public class Geometer {
     public Geometer(File[] files) {
 	readGeomFile();
 	//System.out.println(files[0]);
-	analyzePdbFile(files[0]);
+	for (int i = 0; i < files.length; i++) {
+	    analyzePdbFile(files[i]);
+	}
     }
 //}}}
 
@@ -116,6 +118,7 @@ public class Geometer {
 	PdbReader reader = new PdbReader();
 	try {
 	    CoordinateFile coordFile = reader.read(pdb);
+	    System.out.println(coordFile.getIdCode());
 	    Iterator models = (coordFile.getModels()).iterator();
 	    while (models.hasNext()) {
 		//System.out.print(".");
@@ -146,32 +149,57 @@ public class Geometer {
 	    Iterator residues = (mod.getResidues()).iterator();
 	    while (residues.hasNext()) {
 		Residue res = (Residue) residues.next();
-		AtomState nit = modState.get(res.getAtom(" N  "));
-		AtomState ca = modState.get(res.getAtom(" CA "));
-		AtomState carb = modState.get(res.getAtom(" C  "));
-		AtomState oxy = modState.get(res.getAtom(" O  "));
-		calcDist(res, nit, ca);
-		calcDist(res, ca, carb);
-		calcDist(res, carb, oxy);
-		calcAngle(res, nit, ca, carb);
-		calcAngle(res, ca, carb, oxy);
-		if (prevRes != null) {
-		    calcDist(res, prevCarb, nit);
-		    calcAngle(res, prevOxy, prevCarb, nit);
-		    calcAngle(res, prevCarb, nit, ca, prevCa);
-		    calcPepDihedral(res, prevCa, prevCarb, nit, ca);
-		    calcAngle(prevRes, prevCa, prevCarb, nit); //this angle goes with the previous residue, which is why it gets passed prevRes.
+		if (Geometer.isBackboneComplete(res)) {  // To avoid errors when PDB have DNA, RNA, etc.  
+		    AtomState nit = modState.get(res.getAtom(" N  "));
+		    AtomState ca = modState.get(res.getAtom(" CA "));
+		    AtomState carb = modState.get(res.getAtom(" C  "));
+		    AtomState oxy = modState.get(res.getAtom(" O  "));
+		    calcDist(res, nit, ca);
+		    calcDist(res, ca, carb);
+		    calcDist(res, carb, oxy);
+		    calcAngle(res, nit, ca, carb);
+		    calcAngle(res, ca, carb, oxy);
+		    // Avoids errors where residues in different chains were getting compared.
+		    if ((prevRes != null)&&(prevRes.getChain().equals(res.getChain()))) {
+			calcDist(res, prevCarb, nit);
+			calcAngle(res, prevOxy, prevCarb, nit);
+			calcAngle(res, prevCarb, nit, ca, prevCa);
+			calcPepDihedral(res, prevCa, prevCarb, nit, ca);
+			calcAngle(prevRes, prevCa, prevCarb, nit); //this angle goes with the previous residue, which is why it gets passed prevRes.
+		    } else {
+			prevRes = null;
+			prevCarb = null;
+			prevOxy = null;
+			prevCa = null;
+		    }
+		    prevRes = res;
+		    prevCarb = carb;
+		    prevOxy = oxy;
+		    prevCa = ca;
+		} else {
+		    prevRes = null;
+		    prevCarb = null;
+		    prevOxy = null;
+		    prevCa = null;
 		}
-		prevRes = res;
-		prevCarb = carb;
-		prevOxy = oxy;
-		prevCa = ca;
 		
 	    }
 	} catch (AtomException ae) {
-	    System.err.println("Problem with atom in model " + mod.toString());
+	    System.err.println("Problem with atom " + ae.getMessage() + " in model " + mod.toString());
 	}
     }	
+//}}}
+
+//{{{ isBackboneComplete
+//###############################################################
+    /**
+     * Simple test to see whether all the protein backbone atoms are in a
+     * Residue.  
+     **/
+    public static boolean isBackboneComplete(Residue res) {
+	
+	return ((res.getAtom(" N  ")!=null)&&(res.getAtom(" CA ")!=null)&&(res.getAtom(" C  ")!=null)&&(res.getAtom(" O  ")!=null));
+    }
 //}}}
 
 //{{{ calcDist
