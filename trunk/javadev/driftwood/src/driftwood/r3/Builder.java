@@ -372,6 +372,32 @@ I have a tendency to make things too complicated on the first pass. :)
         }
         return new Triple[] { min, max };
     }
+    
+    /**
+    * Calculates the bounding box along X, Y, and Z for a set of Tuple3's,
+    * treating each one as a sphere of a particular radius.
+    * @return an array containing the minimum point in [0] and the maximum in [1]
+    */
+    static public Triple[] makeBoundingBox(Collection centers, double[] radii)
+    {
+        if(centers.size() != radii.length)
+            throw new IllegalArgumentException("Must have a radius for every sphere");
+        Triple min = new Triple(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+        Triple max = new Triple(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
+        int i = 0;
+        for(Iterator iter = centers.iterator(); iter.hasNext(); i++)
+        {
+            Tuple3 t = (Tuple3) iter.next();
+            double r = radii[i];
+            min.setX( Math.min(min.getX(), t.getX()-r) );
+            min.setY( Math.min(min.getY(), t.getY()-r) );
+            min.setZ( Math.min(min.getZ(), t.getZ()-r) );
+            max.setX( Math.max(max.getX(), t.getX()+r) );
+            max.setY( Math.max(max.getY(), t.getY()+r) );
+            max.setZ( Math.max(max.getZ(), t.getZ()+r) );
+        }
+        return new Triple[] { min, max };
+    }
 //}}}
 
 //{{{ empty_code_segment
