@@ -79,14 +79,21 @@
   * static colors for BEC
         @hsvcolo[u]r {MyColor} BlackHue BlackSat BlackVal [WhiteHue [WhiteSat [WhiteVal]]]
         Need to be able to save them back out again!
-        Need to be documented
+        Need to be documented (360,100,100)
     open pdb/map dialog boxes (initial dir) with Mac double-click startup
+    Edit view menu: list action (double click/enter) should go to view
+    Tool to do "ray tracing" / "fake skylight" lighting calc. for balls/spheres -> set pt colors
+    Add "ParaPoint" and assoc. tool for parallel coordinate plots
+        How to handle group/subgroup/list on-off checks?  Swap out list children and views
+ ** exclude license, readme, doc/ from KiNG.app
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 1.55 ###
+### 1.56 ###
+- set kMain to null in Kinglet.stop() to encourage garbage collection
+
 ### 1.55 ###
 - replaced deploy-{rlab,world} targets with shell scripts
 - updates to KiNG's build.xml to work better with the shell scripts

@@ -70,6 +70,7 @@ public class Kinglet extends JApplet implements MouseListener
     public void stop()
     {
         if(kMain != null) kMain.shutdown();
+        kMain = null; // so it can be GC'd
     }
 
     public void mouseEntered(MouseEvent ev)     {}

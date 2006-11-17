@@ -5,6 +5,7 @@ king.tool.export.DiveExport.menuName = <export>
 king.tool.export.Vrml97Writer.menuName = <not shown>
 king.tool.export.XknWriter.menuName = <not shown>
 king.tool.draw.LathePlugin.menuName = Kin editing
+king.tool.draw.SkylightPlugin.menuName = Kin editing
 king.tool.data_analysis.CrossWindowPickTool.menuName = Specialty
 king.tool.data_analysis.AutoBondRotDataTool.menuName = Specialty
 king.tool.docking.Dock3On3Tool.menuName = Kin editing
