@@ -357,7 +357,7 @@ public class KingMain implements WindowListener, KinemageSignalSubscriber
             evmask |= EM_ON_OFF | EM_DISPLAY | EM_NEWVIEW | EM_EDIT_FINE;
             //evmask |= EM_ON_OFF | EM_DISPLAY | EM_EDIT_FINE;
         if((bitmask & STRUCTURE) != 0)
-            evmask |= EM_SWITCH; // force menus to be remade
+            evmask |= EM_SWITCH | EM_EDIT_GROSS; // force menus to be remade
         
         if(evmask != 0) this.notifyChange(evmask);
     }

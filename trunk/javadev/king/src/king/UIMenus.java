@@ -315,6 +315,10 @@ public class UIMenus //extends ... implements ...
             item.setMnemonic(KeyEvent.VK_C);
             //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, MENU_ACCEL_MASK | KeyEvent.SHIFT_MASK));
             menu.add(item);
+            item = new JMenuItem(new ReflectiveAction("Parallel coordinates", null, this, "onViewParallelCoords"));
+            item.setMnemonic(KeyEvent.VK_P);
+            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_SLASH, 0));
+            menu.add(item);
             menu.addSeparator();
             
             JMenu currMenu = menu;
@@ -619,8 +623,10 @@ public class UIMenus //extends ... implements ...
         view = (KingView)view.clone();
         view.setID(viewname);
         
-        // User should choose to save axes positions or not -- for now, not
-        view.setViewingAxes(null);
+        // User should choose to save axes positions or not (?)
+        // If the data is high-D data, views only really make sense
+        // in the context of the dimensions that were being viewed!
+        //view.setViewingAxes(null);
         
         Kinemage kin = kMain.getKinemage();
         if(kin == null) return;
@@ -639,6 +645,22 @@ public class UIMenus //extends ... implements ...
     public void onViewChooseAxes(ActionEvent ev)
     {
         new AxisChooser(kMain, kMain.getKinemage());
+    }
+    
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onViewParallelCoords(ActionEvent ev)
+    {
+        Kinemage kin = kMain.getKinemage();
+        if(kin == null) return;
+        String key = ParaParams.class.getName()+".instance";
+        ParaParams params = (ParaParams) kin.metadata.get(key);
+        if(params == null)
+        {
+            params = new ParaParams(kin);
+            kin.metadata.put(key, params);
+        }
+        params.swap();
+        kin.signal.signalKinemage(kin, KinemageSignal.STRUCTURE | KinemageSignal.APPEARANCE);
     }
 //}}}
 

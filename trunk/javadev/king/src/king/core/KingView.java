@@ -416,7 +416,7 @@ public class KingView
     public int[] getViewingAxes() { return this.viewingAxes; }
 //}}}
 
-//{{{ setAxes, getKinDimension
+//{{{ setAxes
 //##############################################################################
     /**
     * Copies the high-dimensional coordinates at the specified indices
