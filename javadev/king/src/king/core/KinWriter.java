@@ -2,7 +2,7 @@
 //{{{ Package, imports
 package king.core;
 
-//import java.awt.*;
+import java.awt.Color;
 //import java.awt.event.*;
 import java.io.*;
 //import java.net.*;
@@ -87,7 +87,17 @@ public class KinWriter //extends ... implements ...
             if(paint.isAlias())
                 out.println("@colorset {"+paint+"} "+paint.getAlias());
             else
-                out.println("< Couldn't save new color "+paint+" >");
+            {
+                //out.println("< Couldn't save new color "+paint+" >");
+                out.print("@hsvcolor {"+paint+"}");
+                Color color = (Color) paint.getBlackExemplar();
+                float[] hsv = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(),  null);
+                out.print(" "+df.format(360*hsv[0])+" "+df.format(100*hsv[1])+" "+df.format(100*hsv[2]));
+                color = (Color) paint.getWhiteExemplar();
+                hsv = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(),  null);
+                out.print(" "+df.format(360*hsv[0])+" "+df.format(100*hsv[1])+" "+df.format(100*hsv[2]));
+                out.println();
+            }
         }
         
         Aspect aspect;

@@ -74,17 +74,12 @@
     Allow dragging waters/ions from chiropraxis?
     integrate multichart into KiNG?
     build pkgs that don't require installing
-    choose to save viewing axes with saved view, or not
-        how is this specified in kinemage format?
     DiVE export: VRML97 ?
-  * static colors for BEC
-        @hsvcolo[u]r {MyColor} BlackHue BlackSat BlackVal [WhiteHue [WhiteSat [WhiteVal]]]
-        Need to be able to save them back out again!
-        Need to be documented (360,100,100)
     open pdb/map dialog boxes (initial dir) with Mac double-click startup
     Edit view menu: list action (double click/enter) should go to view
  ** exclude license, readme, doc/ from KiNG.app
     Applet: isTrusted PARAM, check file access (or WebStart instead?)
+    Implement @dimminmax and better checking in ParaParams
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -96,6 +91,10 @@
 - added Overview view to menu when switching into parallel coordinates
 - added axes and labels for parallel coordinates plot
 - changed Views | Save to always save which dimensions are active
+- found out that viewing axis choices are already read and written -- yay me
+- added code to write out custom HSV colors
+- added documentation for @hsvcolo[u]r and @dimminmax (not implemented yet)
+  This concludes the basic work of adding custom colors.
 
 ### 1.55 ###
 - replaced deploy-{rlab,world} targets with shell scripts
