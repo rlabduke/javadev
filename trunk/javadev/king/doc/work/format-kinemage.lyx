@@ -1,4 +1,4 @@
-#LyX 1.4.1 created this file. For more info see http://www.lyx.org/
+#LyX 1.4.3 created this file. For more info see http://www.lyx.org/
 \lyxformat 245
 \begin_document
 \begin_header
@@ -1853,6 +1853,32 @@ colorset
 \end_layout
 
 \begin_layout Standard
+It is also possible to define custom colors that are not part of the default
+ kinemage palette.
+ They are specified in terms of hue, saturation, and value (HSV).
+ Hue ranges from 0 (red) to 360 (also red) degrees; saturation ranges from
+ 0 (grayscale) to 100 (intense color); and value ranges from 0 (black) to
+ 100 (full brightness).
+ It is possible to give different definitions for white vs.
+ black background, as is done for most kinemage colors, but if the specification
+ for white background is left off, the same color will be used on both black
+ and white.
+ For example,
+\end_layout
+
+\begin_layout LyX-Code
+@hsvcolor {Evergreen} 120 70 30
+\end_layout
+
+\begin_layout LyX-Code
+@hsvcolor {Smoke} 0 0 80 0 0 20
+\end_layout
+
+\begin_layout LyX-Code
+@hsvcolor {Graphite} 0 0 20 0 0 80
+\end_layout
+
+\begin_layout Standard
 Since color schemes are so important to visualization, it is sometimes useful
  to have multiple color schemes within one kinemage.
  For example, a map might be colored by elevation, by rainfall, or by population
@@ -2297,6 +2323,18 @@ dimension=
 .
 \end_layout
 
+\begin_layout Description
+@dimminmax\InsetSpace ~
+MIN1\InsetSpace ~
+MAX1\InsetSpace ~
+MIN2\InsetSpace ~
+MAX2\InsetSpace ~
+...
+ specifies the minimum and maximum values for a high-dimensional kinemage.
+ These ranges are not enforced on individual points, but are used for scaling
+ the axes when displaying parallel coordinates.
+\end_layout
+
 \begin_layout Subsection
 Kinemage text hyperlinks
 \end_layout
@@ -2461,6 +2499,10 @@ gray grey
 \end_layout
 
 \begin_layout Description
+@hsvcolor @hsvcolour
+\end_layout
+
+\begin_layout Description
 L l D d 
 \emph on
 (the unneccessary point flag: L for Line-to, D for Draw-to)
@@ -2519,7 +2561,7 @@ sky skyblue
 \begin_layout Description
 U u 
 \emph on
-(the point flag)
+(the point flag for Unpickable)
 \end_layout
 
 \begin_layout Description
