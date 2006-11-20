@@ -75,6 +75,7 @@
     integrate multichart into KiNG?
     build pkgs that don't require installing
     choose to save viewing axes with saved view, or not
+        how is this specified in kinemage format?
     DiVE export: VRML97 ?
   * static colors for BEC
         @hsvcolo[u]r {MyColor} BlackHue BlackSat BlackVal [WhiteHue [WhiteSat [WhiteVal]]]
@@ -82,10 +83,8 @@
         Need to be documented (360,100,100)
     open pdb/map dialog boxes (initial dir) with Mac double-click startup
     Edit view menu: list action (double click/enter) should go to view
-    Tool to do "ray tracing" / "fake skylight" lighting calc. for balls/spheres -> set pt colors
-    Add "ParaPoint" and assoc. tool for parallel coordinate plots
-        How to handle group/subgroup/list on-off checks?  Swap out list children and views
  ** exclude license, readme, doc/ from KiNG.app
+    Applet: isTrusted PARAM, check file access (or WebStart instead?)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -93,6 +92,10 @@
 
 ### 1.56 ###
 - set kMain to null in Kinglet.stop() to encourage garbage collection
+- added ParaPoint and ParaParams to implement parallel coordinates
+- added Overview view to menu when switching into parallel coordinates
+- added axes and labels for parallel coordinates plot
+- changed Views | Save to always save which dimensions are active
 
 ### 1.55 ###
 - replaced deploy-{rlab,world} targets with shell scripts
