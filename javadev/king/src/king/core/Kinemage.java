@@ -10,6 +10,7 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.tree.*;
 import driftwood.data.*;
+import java.util.List;
 //}}}
 /**
 * <code>Kinemage</code> is the top-level container that holds one whole kinemage worth of data.
@@ -46,6 +47,8 @@ public class Kinemage extends AGE // implements ...
     
     // Collection<String> of labels for high-D kins
     public Collection dimensionNames   = new ArrayList();
+    // Collection<Number> of min,max,min,max,... for high-D kins
+    public List dimensionMinMax        = new ArrayList();
     
     KingView        currView    = null;
     java.util.List  viewList    = new ArrayList();

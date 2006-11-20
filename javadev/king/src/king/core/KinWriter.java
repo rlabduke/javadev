@@ -125,6 +125,13 @@ public class KinWriter //extends ... implements ...
                 out.print(" {"+iter.next()+"}");
             out.println();
         }
+        if(kin.dimensionMinMax.size() > 0)
+        {
+            out.print("@dimminmax");
+            for(iter = kin.dimensionMinMax.iterator(); iter.hasNext(); )
+                out.print(" "+df.format(((Number)iter.next()).doubleValue()));
+            out.println();
+        }
         
         // etc.
         
