@@ -30,6 +30,7 @@ public class ParaParams //extends ... implements ...
     int         numDim;
     double[]    min;
     double[]    max;
+    double[]    range;
     Map         normalChildren;
     Map         parallelChildren;
     KingView    normalView;
@@ -43,14 +44,19 @@ public class ParaParams //extends ... implements ...
     public ParaParams(Kinemage kin)
     {
         super();
-        this.kin = kin;
-        this.numDim = kin.dimensionNames.size();
-        this.min = new double[numDim];
-        this.max = new double[numDim];
+        this.kin    = kin;
+        this.numDim = Math.max(2, kin.dimensionNames.size()); // if less, denom -> 0
+        this.min    = new double[numDim];
+        this.max    = new double[numDim];
+        this.range  = new double[numDim];
+        List minmax = kin.dimensionMinMax;
         for(int i = 0; i < numDim; i++)
         {
-            min[i] = 0;
-            max[i] = 360;
+            if(minmax.size() > 2*i)     min[i] = ((Number) minmax.get(2*i)).doubleValue();
+            else                        min[i] = 0;
+            if(minmax.size() > 2*i + 1) max[i] = ((Number) minmax.get(2*i + 1)).doubleValue();
+            else                        max[i] = 360;
+            range[i] = max[i] - min[i];
         }
         
         this.normalChildren = new HashMap();
@@ -65,7 +71,7 @@ public class ParaParams //extends ... implements ...
     }
 //}}}
 
-//{{{ getMin/Max/NumDim
+//{{{ getMin/Max/Range/NumDim
 //##############################################################################
     /** Returns the minimum value to be shown on axis i */
     public double getMin(int dimension_i)
@@ -75,6 +81,10 @@ public class ParaParams //extends ... implements ...
     public double getMax(int dimension_i)
     { return this.max[dimension_i]; }
     
+    /** Returns max[i] - min[i] */
+    public double getRange(int dimension_i)
+    { return this.range[dimension_i]; }
+
     /** Returns the total number of dimension axes to be displayed */
     public int getNumDim()
     { return this.numDim; }
@@ -166,6 +176,10 @@ public class ParaParams //extends ... implements ...
             KPoint normalPt = (KPoint) iter.next();
             float[] allCoords = normalPt.getAllCoords();
             if(allCoords == null) continue;
+            if(normalPt instanceof MarkerPoint
+            || normalPt instanceof ProxyPoint
+            || normalPt instanceof VectorPoint
+            || normalPt instanceof TrianglePoint) continue;
             ParaPoint ppLast = null;
             for(int i = 0; i < allCoords.length; i++)
             {
@@ -220,14 +234,17 @@ public class ParaParams //extends ... implements ...
             LabelPoint l1 = new LabelPoint(labelList, dimNames[i]);
             l1.setXYZ((double)i / (double)(numDim-1), 1.05, 0);
             l1.setUnpickable(true);
+            l1.setHorizontalAlignment(LabelPoint.CENTER);
             labelList.add(l1);
             l1 = new LabelPoint(labelList, df.format(max[i]));
             l1.setXYZ((double)i / (double)(numDim-1), 1.02, 0);
             l1.setUnpickable(true);
+            l1.setHorizontalAlignment(LabelPoint.CENTER);
             labelList.add(l1);
             l1 = new LabelPoint(labelList, df.format(min[i]));
             l1.setXYZ((double)i / (double)(numDim-1), -0.03, 0);
             l1.setUnpickable(true);
+            l1.setHorizontalAlignment(LabelPoint.CENTER);
             labelList.add(l1);
         }
         

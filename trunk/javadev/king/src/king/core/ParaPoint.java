@@ -59,7 +59,7 @@ public class ParaPoint extends VectorPoint
             throw new IllegalArgumentException("Not enough coordinates in proxy to support parallel coords");
         
         this.x0 = (float) (1.0 * dimIdx / (params.getNumDim() - 1)); // [0, 1]
-        this.y0 = (float) ((allCoords[dimIdx] - params.getMin(dimIdx)) / (params.getMax(dimIdx) - params.getMin(dimIdx))); // [0, 1]
+        this.y0 = (float) ((allCoords[dimIdx] - params.getMin(dimIdx)) / params.getRange(dimIdx)); // [0, 1]
         this.z0 = 0; // may use this for something later, not now
     }
 //}}}

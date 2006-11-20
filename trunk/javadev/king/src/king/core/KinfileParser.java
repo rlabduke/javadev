@@ -142,6 +142,7 @@ public class KinfileParser //extends ... implements ...
             else if(s.equals("@command"))               doCommand();
             else if(s.equals("@dimensions"))            doDimensions();
             else if(s.equals("@dimension"))             doDimensions(); //deprecated
+            else if(s.equals("@dimminmax"))             doDimMinMax();
             // VIEWS
             else if(s.endsWith("viewid"))               doViewID();
             else if(s.endsWith("zoom"))                 doZoom();
@@ -1053,7 +1054,7 @@ public class KinfileParser //extends ... implements ...
     }
 //}}}
 
-//{{{ doAspect, doDimensions
+//{{{ doAspect
 //##################################################################################################
     void doAspect() throws IOException
     {
@@ -1080,7 +1081,10 @@ public class KinfileParser //extends ... implements ...
         catch(IllegalArgumentException ex)
         { error("@aspect was not followed by an identifier; found '"+token.getString()+"' instead"); }
     }
-    
+//}}}
+
+//{{{ doDimensions, doDimMinMax
+//##################################################################################################
     void doDimensions() throws IOException
     {
         checkKinemage();
@@ -1091,6 +1095,18 @@ public class KinfileParser //extends ... implements ...
             token.advance();
         }
         else error("@dimensions was not followed by 1+ identifiers; found '"+token.getString()+"' instead");
+    }
+
+    void doDimMinMax() throws IOException
+    {
+        checkKinemage();
+        token.advance();
+        if(token.isNumber()) while(token.isNumber())
+        {
+            kinemage.dimensionMinMax.add(new Double(token.getDouble()));
+            token.advance();
+        }
+        else error("@dimminmax was not followed by 1+ numbers; found '"+token.getString()+"' instead");
     }
 //}}}
 
