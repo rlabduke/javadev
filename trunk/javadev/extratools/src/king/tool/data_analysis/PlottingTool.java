@@ -26,12 +26,15 @@ public class PlottingTool extends BasicTool {
     JComboBox color1;
 
     TablePane pane;
-    JButton plotButton, replotButton, exportButton, filterButton, resetButton;
+    JButton plotButton, exportButton, parallelButton, filterButton, resetButton;
     JTextField xMultField, yMultField, zMultField;
     JTextField xFiltField, yFiltField, zFiltField;
     JTextField xFiltRange, yFiltRange, zFiltRange;
     JCheckBox clickColorBox;
-    JComboBox[] comboBoxes;
+    //JComboBox[] comboBoxes;
+    //JRadioButton[] xButtons, yButtons, zButtons;
+    //ButtonGroup xGroup, yGroup, zGroup;
+    FatJList labelList, xList, yList, zList, colorList;
 //}}}
 
 //{{{ Constructor(s)
@@ -42,10 +45,6 @@ public class PlottingTool extends BasicTool {
     public PlottingTool(ToolBox tb)
     {
         super(tb);
-        
-	//buildGUI();
-        //makeFileFilters();
-	
     }
 //}}}
 
@@ -66,79 +65,135 @@ public class PlottingTool extends BasicTool {
 	pane.add(infoLabel, numColumns, 1);
 	pane.newRow();
 
-	comboBoxes = new JComboBox[numColumns];
+	//comboBoxes = new JComboBox[numColumns];
+	//xButtons = new JRadioButton[numColumns];
+	//yButtons = new JRadioButton[numColumns];
+	//zButtons = new JRadioButton[numColumns];
 	
-	String[] axes = {"", "x", "y", "z", "color"};
+
+	String[] axLabels = new String[numColumns];
+	//axLabels[0] = "Axis 0";
 	for(int i = 0; i < numColumns; i++) {
-	    JLabel exampleLabel = new JLabel(values[i]);
-	    pane.add(exampleLabel);
+	    //pane.newRow();
+	    axLabels[i] = "Axis " + i;
+	    //pane.add(new JLabel(values[i]));
 	}
+	//pane.add(new JLabel(values[0]));
+	labelList = new FatJList(0, 10);
+	labelList.setListData(values);
+	labelList.setVisibleRowCount(numColumns + 3);
+
+	xList = new FatJList(0, 10);
+	xList.setListData(axLabels);
+	xList.setVisibleRowCount(numColumns + 3);
+
+	yList = new FatJList(0, 10);
+	yList.setListData(axLabels);
+	yList.setVisibleRowCount(numColumns + 3);
+
+	zList = new FatJList(0, 10);
+	zList.setListData(axLabels);
+	zList.setVisibleRowCount(numColumns + 3);
+
+	colorList = new FatJList(0, 10);
+	colorList.setListData(axLabels);
+	colorList.setVisibleRowCount(numColumns + 3);
+
+	plotButton = new JButton(new ReflectiveAction("Plot!", null, this, "onPlot"));
+
 	color1 = new JComboBox(KPalette.getStandardMap().values().toArray());
 	color1.setSelectedItem(KPalette.blue);
 	//pane.add(color1, 2, 1);
-	pane.add(color1);
+
 	clickColorBox = new JCheckBox("Color on click");
 	clickColorBox.setSelected(false);
-	pane.add(clickColorBox);
 
-	pane.newRow();
-	for(int i = 0; i < numColumns; i++) {
-	    JComboBox comboBox = new JComboBox(axes);
-	    comboBoxes[i] = comboBox;
-	    pane.add(comboBox);
-	}
-	plotButton = new JButton(new ReflectiveAction("Plot!", null, this, "onPlot"));
-	pane.add(plotButton);
+	exportButton = new JButton(new ReflectiveAction("Export!", null, this, "onExport"));
+	parallelButton = new JButton(new ReflectiveAction("Parallel!", null, this, "onPlotParallel"));
 	
-	replotButton = new JButton(new ReflectiveAction("Replot!", null, this, "onPlot"));
-	replotButton.setEnabled(false);
-	pane.add(replotButton);
+	pane.newRow();
+	pane.add(new JLabel(" Row 1"));
+	pane.add(new JLabel(" X axis"));
+	pane.add(new JLabel(" Y axis"));
+	pane.add(new JLabel(" Z axis"));
+	pane.add(new JLabel(" color"));
+	pane.newRow();
+	pane.add(new JScrollPane(labelList), 1, 5);
+	pane.add(new JScrollPane(xList), 1, 5);
+	pane.add(new JScrollPane(yList), 1, 5);
+	pane.add(new JScrollPane(zList), 1, 5);
+	pane.add(new JScrollPane(colorList), 1, 5);
+
+	pane.hfill(true).addCell(plotButton);
+	pane.newRow();
+	pane.addCell(parallelButton);
+	pane.newRow();
+	pane.addCell(exportButton);
+	pane.newRow();
+	pane.add(color1, 2, 1);
+	pane.newRow();
+	pane.add(clickColorBox, 2, 1);
+	pane.newRow();
+	//for(int i = 0; i < numColumns; i++) {
+	    //xButtons[i] = new 
+	    //JComboBox comboBox = new JComboBox(axes);
+	    //comboBoxes[i] = comboBox;
+	    //pane.add(comboBox);
+	//}
+
+	
+	//replotButton = new JButton(new ReflectiveAction("Replot!", null, this, "onPlot"));
+	//replotButton.setEnabled(false);
+	//pane.add(replotButton);
 
 	pane.newRow();
 	JLabel xLabel = new JLabel("x mult=");
-	xMultField = new JTextField("1", 5);
+	xMultField = new JTextField("1", 4);
 	JLabel yLabel = new JLabel("y mult=");
-	yMultField = new JTextField("1", 5);
+	yMultField = new JTextField("1", 4);
 	JLabel zLabel = new JLabel("z mult=");
-	zMultField = new JTextField("1", 5);
-	
-	pane.add(xLabel);
-	pane.add(xMultField);
-	
-	pane.add(yLabel);
-	pane.add(yMultField);
-	
-	pane.add(zLabel);
-	pane.add(zMultField);
+	zMultField = new JTextField("1", 4);
 
-	exportButton = new JButton(new ReflectiveAction("Export!", null, this, "onExport"));
-	pane.add(exportButton, 2, 1);
 
 	JLabel xLab2 = new JLabel("keep x=");
-	xFiltField = new JTextField("0", 5);
-	xFiltRange = new JTextField("-1", 5);
+	xFiltField = new JTextField("0", 4);
+	xFiltRange = new JTextField("-1", 4);
 	JLabel yLab2 = new JLabel("keep y=");
-	yFiltField = new JTextField("0", 5);
-	yFiltRange = new JTextField("-1", 5);
+	yFiltField = new JTextField("0", 4);
+	yFiltRange = new JTextField("-1", 4);
 	JLabel zLab2 = new JLabel("keep z=");
-	zFiltField = new JTextField("0", 5);
-	zFiltRange = new JTextField("-1", 5);
+	zFiltField = new JTextField("0", 4);
+	zFiltRange = new JTextField("-1", 4);
 
 	filterButton = new JButton(new ReflectiveAction("Filter!", null, this, "onFilter"));
 	resetButton = new JButton(new ReflectiveAction("ResetFilt", null, this, "onReset"));
+		
+	pane.add(xLabel);
+	pane.add(xMultField);
 
-	pane.newRow();
 	pane.add(xLab2);
 	pane.add(xFiltField);
 	pane.add(xFiltRange);
+	
+	pane.newRow();
+	pane.add(yLabel);
+	pane.add(yMultField);
+
 	pane.add(yLab2);
 	pane.add(yFiltField);
 	pane.add(yFiltRange);
+
+	pane.add(filterButton);
+	pane.newRow();
+	pane.add(zLabel);
+	pane.add(zMultField);
+
 	pane.add(zLab2);
 	pane.add(zFiltField);
 	pane.add(zFiltRange);
-	pane.add(filterButton);
+
 	pane.add(resetButton);
+	//pane.hfill(true);
 	
         dialog.addWindowListener(this);
 	dialog.setContentPane(pane);
@@ -151,25 +206,12 @@ public class PlottingTool extends BasicTool {
 //##################################################################################################
     public void start()
     {
-        //if(kMain.getKinemage() == null) return;
-
-        //try
-        //{
-	//buildGUI();
-            //if(kMain.getApplet() != null)   openMapURL();
-            //else                            openMapFile();
-	    //dataMap = new HashMap();
-	//listMap = new HashMap();
-	//offPoints = new ArrayList();
-	//System.out.println("Starting Plotter");
 	allPoints = new ArrayList();
 	binnedPoints = new TreeMap();
 	plottedPoints = new HashMap();
 	openFile();
 
-	buildGUI();
-	
-	    
+	buildGUI();    
 	show();
 	    
     }
@@ -190,9 +232,7 @@ public class PlottingTool extends BasicTool {
         if(currdir != null) filechooser.setCurrentDirectory(new File(currdir));
         
         filechooser.setAccessory(acc);
-        //filechooser.addPropertyChangeListener(this);
-        //filechooser.addChoosableFileFilter(fastaFilter);
-        //filechooser.setFileFilter(fastaFilter);
+
     }
 //}}}
 
@@ -215,20 +255,8 @@ public class PlottingTool extends BasicTool {
 		    if (delimChoice != null) {
 			scanFile(reader, delimChoice);
 		    }
-		    //String fileChoice = askFileFormat(f.getName());
-		    //System.out.println(fileChoice);
-		    //String angleChoice = "none";
-		    //if (fileChoice.equals("First")) {
-		    //angleChoice = askAngleFormat(f.getName());
-		    //}
-		    //if ((fileChoice != null)&&(angleChoice != null)) {
-		    //listMap = new HashMap();
-		    //offPoints = new ArrayList();
-		    //allPoints = new ArrayList();
-		    //scanFile(reader);
-			//System.out.println(allPoints.size());
-			reader.close();
-			//}
+		    reader.close();
+			
 
 		    kCanvas.repaint(); // otherwise we get partial-redraw artifacts
 		}
@@ -280,12 +308,11 @@ public class PlottingTool extends BasicTool {
 	try {
 	    while((line = reader.readLine())!=null){
 		line = line.trim();
-		//System.out.println(line);
-		//String[] values = line.split("\\s");
-		//int numColumns = values.length;
-		//System.out.println(numColumns);
-		String[] values = Strings.explode(line, delimiter.charAt(0), false, true);
-		allPoints.add(values);
+		String[] strings = Strings.explode(line, delimiter.charAt(0), false, true);
+		//for (int i = 0; i < strings.length; i++) {
+		
+		//float[] values = new float[strings.length];
+		allPoints.add(strings);
 
 
 	    }
@@ -299,29 +326,25 @@ public class PlottingTool extends BasicTool {
     }
 
     public void onPlot(ActionEvent ev) {
-	replotButton.setEnabled(true);
-	int numColumns = comboBoxes.length;
+	//replotButton.setEnabled(true);
+	//int numColumns = comboBoxes.length;
 	int x = -1, y = -1, z = -1, color = -1;
-	for (int i = 0; i < numColumns; i++) {
+	x = xList.getSelectedIndex();
+	y = yList.getSelectedIndex();
+	z = zList.getSelectedIndex();
+	color = colorList.getSelectedIndex();
+	//for (int i = 0; i < numColumns; i++) {
 	    //System.out.print(comboBoxes[i].getSelectedItem());
-	    String selectedVal = (String) comboBoxes[i].getSelectedItem();
+	    //String selectedVal = (String) comboBoxes[i].getSelectedItem();
 	    //int x = -1, y = -1, z = -1, color = -1;
-	    if (selectedVal.equals("x")) {
-		x = i;
-	    }
-	    if (selectedVal.equals("y")) {
-		y = i;
-	    }
-	    if (selectedVal.equals("z")) {
-		z = i;
-	    }
-	    if (selectedVal.equals("color")) {
-		color = i;
-	    }
+	    //if (selectedVal.equals("x")) x = i;
+	    //if (selectedVal.equals("y")) y = i;
+	    //if (selectedVal.equals("z")) z = i;
+	    //if (selectedVal.equals("color")) color = i;
 	    //createPoints(x, y, z, color);
 	    //System.out.println(x + y + z);
-	}
-	if (ev.getSource().equals(plotButton)) {
+	//}
+	if (plotButton.getText().equals("Plot!")) {
 	    createPoints(x, y, z, color);
 	} else {
 	    replotPoints(x, y, z, color);
@@ -329,12 +352,32 @@ public class PlottingTool extends BasicTool {
     }
 
     public void createPoints(int x, int y, int z, int color) {
+	plotButton.setText("Replot!");
 	binnedPoints.clear();
 	plottedPoints.clear();
+
+	String[] firstVal = (String[]) allPoints.get(0);
+	ArrayList dimNames = new ArrayList();
+	for (int i = 1; i < firstVal.length; i++) {
+	    dimNames.add(firstVal[i]);
+	}
+
+	int numInd = 0;
+	for (int i = 0; i < firstVal.length; i++) {
+	    if (KinUtil.isNumeric(firstVal[i])) numInd++;
+	}
+	Integer[] dimMinMax = new Integer[(firstVal.length-1) * 2];
+	for (int i = 0; i < dimMinMax.length; i = i+2) {
+	    dimMinMax[i] = new Integer(1000000);
+	}
+	for (int i = 1; i < dimMinMax.length; i = i+2) {
+	    dimMinMax[i] = new Integer(-1000000);
+	}
+
 	double minColor = 100000;
 	double maxColor = -100000;
-	Iterator iter = allPoints.iterator();
 	if (color != -1) {
+	    Iterator iter = allPoints.iterator();
 	    while (iter.hasNext()) {
 		String[] value = (String[]) iter.next();
 		//if (color != -1) {
@@ -348,56 +391,32 @@ public class PlottingTool extends BasicTool {
 	    }
 	}
 	double perDiv = (maxColor-minColor)/10;
-	//System.out.println(maxColor);
-	if (color != -1) {
-	    //double perDiv = (maxColor-minColor)/10;
-	    for (int i = 0; i < 11; i++) {
-		// I'm forced to round the bins because round-off error in calculation of bins causes nullpointerexceptions
-		//  without rounding the bins (and calculations later).
-		Double bin = new Double((double)Math.round((minColor + perDiv * i)*1000)/1000);
-		KList list = new KList(null, bin.toString());
-		list.flags |= KList.NOHILITE;
-		list.addMaster(bin.toString());
-		binnedPoints.put(bin, list);
-		//System.out.println(bin);
-	    }
-	    /*
-	    for (double d = minColor; d <= maxColor; d=d+perDiv) {
-		System.out.println(d);
-		Double bin = new Double((double)Math.round(d*1000)/1000);
-		KList list = new KList(null, bin.toString());
-		list.addMaster(bin.toString());
-		binnedPoints.put(bin, list);
-		System.out.println(bin);
-		}*/
-	} else {
-	    binnedPoints.put(new Double(0), new KList());
-	}
+	createBins(numInd, minColor, maxColor, perDiv, color);
 	
-	iter = allPoints.iterator();
+	Iterator iter = allPoints.iterator();
 	BallPoint point;
 	//double minColor = 100000;
 	//double maxColor = -100000;
+
 	while (iter.hasNext()) {
 	    String[] value = (String[]) iter.next();
+	    float[] floats = new float[numInd];
+	    int floatInd = 0;
+	    for (int i = 0; i < value.length; i++) {
+		if (KinUtil.isNumeric(value[i])) {
+		    floats[floatInd] = Float.parseFloat(value[i]);
+		    updateMinMax(dimMinMax, floatInd, floats[floatInd]);
+		    floatInd++;
+		}
+	    }
 	    point = new BallPoint(null, value[0] + " " + value[1]);
 	    plottedPoints.put(value, point);
 	    point.setRadius((float)0.1);
-	    if ((x != -1)&&(KinUtil.isNumeric(value[x]))) {
-		point.setX(Double.parseDouble(value[x]));
-	    } else {
-		point.setX(0);
-	    }
-	    if ((y != -1)&&(KinUtil.isNumeric(value[y]))) {
-		point.setY(Double.parseDouble(value[y]));
-	    } else {
-		point.setY(0);
-	    }
-	    if ((z != -1)&&(KinUtil.isNumeric(value[z]))) {
-		point.setZ(Double.parseDouble(value[z]));
-	    } else {
-		point.setZ(0);
-	    }
+	    point.setAllCoords(floats);
+	    if (x == -1) point.setX(0);
+	    if (y == -1) point.setY(0);
+	    if (z == -1) point.setZ(0);
+	    point.useCoordsXYZ(x-1, y-1, z-1); // since the first value is a string identifier, indices are off by 1
 	    if (color != -1) {
 		double colValue = Double.parseDouble(value[color]);
 		double binVal = (Math.floor((colValue-minColor)/perDiv) * perDiv)+minColor;
@@ -412,24 +431,15 @@ public class PlottingTool extends BasicTool {
 		list.add(point);
 		point.setOwner(list);
 	    }
-	    //binnedPoints.add(point);
-	    /*
-	    if (color != -1) {
-		double dColor = Double.parseDouble(value[color]);
-		if (minColor > dColor) {
-		    minColor = dColor;
-		}
-		if (maxColor < dColor) {
-		    maxColor = dColor;
-		}
-	    }*/
 	}
 	//System.out.println(minColor + " " + maxColor);
-	plot();
+	plot(dimNames, dimMinMax);
     }
 
-    public void plot() {
+    public void plot(Collection dimNames, Integer[] dimMinMax) {
 	Kinemage kin = kMain.getKinemage();
+	kin.dimensionNames.addAll(dimNames);
+	kin.dimensionMinMax.addAll(Arrays.asList(dimMinMax));
 	kin.getMasterByName("Data Points");
 	//Iterator iter = kin.iterator();
 	//while (iter.hasNext()) {
@@ -440,23 +450,48 @@ public class PlottingTool extends BasicTool {
 	KSubgroup subgroup = new KSubgroup(group, "test2");
 	subgroup.setHasButton(false);
 	group.add(subgroup);
-	//KList list = new KList(subgroup, "test3");
-	//KGroup group = (KGroup) iter.next();
-	//if (group.hasMaster("Data Points")) {
-	//KSubgroup subgroup = (KSubgroup) group.getChildAt(0);
-	//KList list = (KList) subgroup.getChildAt(0);
 	Collection lists = binnedPoints.values();
 	Iterator iter = lists.iterator();
 	while (iter.hasNext()) {
 	    KList list = (KList) iter.next();
 	    list.setOwner(subgroup);
 	    subgroup.add(list);
-	    //point.setOwner(list);
-	    //list.add(point);
+
 	}
-	//subgroup.add(list);
     	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
       
+    }
+
+    public void createBins(int numInd, double minColor, double maxColor, double perDiv, int color) {
+	//System.out.println(maxColor);
+	if (color != -1) {
+	    //double perDiv = (maxColor-minColor)/10;
+	    for (int i = 0; i < 11; i++) {
+		// I'm forced to round the bins because round-off error in calculation of bins causes nullpointerexceptions
+		//  without rounding the bins (and calculations later).
+		Double bin = new Double((double)Math.round((minColor + perDiv * i)*1000)/1000);
+		KList list = new KList(null, bin.toString());
+		list.flags |= KList.NOHILITE;
+		list.setType(KList.BALL);
+		list.addMaster(bin.toString());
+		list.setDimension(numInd);
+		binnedPoints.put(bin, list);
+		//System.out.println(bin);
+	    }
+	} else {
+	    KList list = new KList(null, "multi-dim points");
+	    list.flags |= KList.NOHILITE;
+	    list.setType(KList.BALL);
+	    list.setDimension(numInd);
+	    binnedPoints.put(new Double(0), list);
+	}
+    }
+
+    public void updateMinMax(Integer[] dimMinMax, int index, float value) {
+	int min = dimMinMax[index*2].intValue();
+	int max = dimMinMax[index*2 + 1].intValue();
+	if (min > value) dimMinMax[index*2] = new Integer((int)Math.floor((double)value));
+	if (max < value) dimMinMax[index*2+1] = new Integer((int)Math.ceil((double)value));
     }
 
     public void replotPoints(int x, int y, int z, int color) {
@@ -465,35 +500,63 @@ public class PlottingTool extends BasicTool {
 	while (iter.hasNext()) {
 	    String[] value = (String[]) iter.next();
 	    KPoint point = (KPoint) plottedPoints.get(value);
-	    if (x != -1) {
-		point.setX(Double.parseDouble(value[x]));
-		if (KinUtil.isNumeric(xMultField.getText())) {
-		    point.setX(point.getX() * Double.parseDouble(xMultField.getText()));
-		}
-	    } else {
-		point.setX(0);
+	    if (x == -1) point.setX(0);
+	    if (y == -1) point.setY(0);
+	    if (z == -1) point.setZ(0);
+	    point.useCoordsXYZ(x-1, y-1, z-1); // since the first value is a string identifier, indices are off by 1
+	    if (KinUtil.isNumeric(xMultField.getText())) {
+		point.setX(point.getX() * Double.parseDouble(xMultField.getText()));
 	    }
-	    if (y != -1) {
-		point.setY(Double.parseDouble(value[y]));
-		if (KinUtil.isNumeric(yMultField.getText())) {
-		    point.setY(point.getY() * Double.parseDouble(yMultField.getText()));
-		}
-	    } else {
-		point.setY(0);
+	    if (KinUtil.isNumeric(yMultField.getText())) {
+		point.setY(point.getY() * Double.parseDouble(yMultField.getText()));
 	    }
-	    if (z != -1) {
-		point.setZ(Double.parseDouble(value[z]));
-		if (KinUtil.isNumeric(zMultField.getText())) {
-		    point.setZ(point.getZ() * Double.parseDouble(zMultField.getText()));
-		}
-	    } else {
-		point.setZ(0);
+	    if (KinUtil.isNumeric(zMultField.getText())) {
+		point.setZ(point.getZ() * Double.parseDouble(zMultField.getText()));
 	    }
 	}
 	kCanvas.repaint();
     }
 
-    
+    public void onPlotParallel(ActionEvent ev) {
+	Kinemage kin = kMain.getKinemage();
+	KGroup group = new KGroup(kin, "parallel");
+	kin.add(group);
+	KSubgroup subgroup = new KSubgroup(group, "partest");
+	subgroup.setHasButton(false);
+	group.add(subgroup);
+	Iterator iter = allPoints.iterator();
+	while (iter.hasNext()) {
+	    String[] value = (String[]) iter.next();
+	    if (value.length > 0) {
+		int[] order = {2, 5, 3, 6, 4, 7, 2};
+		KList list = makeList(value, order);
+		subgroup.add(list);
+		list.setOwner(subgroup);
+		list.setWidth(1);
+		list.alpha = 128;
+		list.setHasButton(false);
+	    }
+	}
+	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+	
+    }
+
+    public KList makeList(String[] value, int[] order) {
+	KList list = new KList();
+	list.setName(value[0]);
+	VectorPoint prevPoint = null;
+	for (int i = 0; i < order.length; i++) {
+	    String coord = value[order[i]];
+	    VectorPoint point = new VectorPoint(list, coord, prevPoint);
+	    point.setXYZ(i*100, Double.parseDouble(coord), Double.parseDouble(value[8])*5);
+	    list.add(point);
+	    prevPoint = point;
+	    list.setColor(KPaint.createLightweightHSV("blue", 240, 100 - (Float.parseFloat(value[8]))/2,100,240,100 - (Float.parseFloat(value[8]))/2,100));
+	}
+	
+	return list;
+    }
+	    
 
     public void onRescale(ActionEvent ev) {
 	Collection points = plottedPoints.values();
@@ -508,6 +571,8 @@ public class PlottingTool extends BasicTool {
 	}
 	kCanvas.repaint();
     }
+
+    
 
 //{{{ xx_click() functions
 //##################################################################################################
