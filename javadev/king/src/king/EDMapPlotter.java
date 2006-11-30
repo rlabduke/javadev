@@ -23,7 +23,7 @@ import driftwood.isosurface.*;
 public class EDMapPlotter implements EdgePlotter
 {
 //{{{ Constants
-    DecimalFormat df2 = new DecimalFormat("0.##");
+    DecimalFormat df2 = driftwood.util.Strings.usDecimalFormat("0.##");
 //}}}
 
 //{{{ Variable definitions

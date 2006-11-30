@@ -26,7 +26,7 @@ import driftwood.moldb2.*;
 public class VanDerWaalsLogic
 {
 //{{{ Constants
-    static final DecimalFormat df2 = new DecimalFormat("0.0#");
+    static final DecimalFormat df2 = driftwood.util.Strings.usDecimalFormat("0.0#");
     public static final Object COLOR_BY_ELEMENT     = "element";
     public static final Object COLOR_BY_B_FACTOR    = "B factor";
     public static final Object COLOR_BY_OCCUPANCY   = "occupancy";

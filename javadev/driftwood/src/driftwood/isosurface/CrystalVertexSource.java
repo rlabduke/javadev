@@ -349,7 +349,7 @@ T = [  0 by cy ]
     /** Returns a kinemage format trace of a, b, and c */
     public String kinUnitCell()
     {
-        DecimalFormat df = new DecimalFormat("0.###");
+        DecimalFormat df = driftwood.util.Strings.usDecimalFormat("0.###");
         return "@vectorlist {unit cell axes} color= gray\n"+
         "{a}P 0 0 0 {a} "+df.format(tax)+" 0 0\n"+
         "{b}P 0 0 0 {b} "+df.format(tbx)+" "+df.format(tby)+" 0\n"+
