@@ -73,13 +73,25 @@
     Open/save PDB from/to network
     Allow dragging waters/ions from chiropraxis?
     integrate multichart into KiNG?
-    build pkgs that don't require installing
     DiVE export: VRML97 ?
     open pdb/map dialog boxes (initial dir) with Mac double-click startup
     Edit view menu: list action (double click/enter) should go to view
  ** exclude license, readme, doc/ from KiNG.app
     Applet: isTrusted PARAM, check file access (or WebStart instead?)
-    Implement @dimminmax and better checking in ParaParams
+    axes not set for initial view when kin is loaded
+    document slash in list of shortcuts (HTML)
+    PC picking: forward and brightest color (depth cueing)
+    
+Multi-kin of 1UBQ in parallel coords mode:
+Exception in thread "AWT-EventQueue-3" java.lang.NullPointerException
+	at sun.font.FontDesignMetrics.stringWidth(FontDesignMetrics.java:281)
+	at king.core.StandardPainter.getLabelWidth(StandardPainter.java:330)
+	at king.core.LabelPoint.paintStandard(LabelPoint.java:58)
+	at king.core.Engine.renderLoop(Engine.java:239)
+	at king.core.Engine.render(Engine.java:183)
+	at king.KinCanvas.paintCanvas(KinCanvas.java:251)
+	at king.KinCanvas.paintComponent(KinCanvas.java:200)
+
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -96,6 +108,15 @@
 - added documentation for @hsvcolo[u]r and @dimminmax (not implemented yet)
   This concludes the basic work of adding custom colors.
 - added parsing and saving for @dimminmax
+- many functions do not work properly outside the US, because Java tries to
+  localize number formatting.  For instance, in Germany it uses commas instead
+  of decimal points when saving kinemages.  Since KiNG thinks commas are
+  whitespace, this destroys the kinemage.  Using Molikin is impossible.
+  This will also be a problem for saving PDB files, etc.
+- this can be worked around on the command line
+  (java -Duser.country=US -Duser.language=en ...)
+  or by setting the default locale when KiNG starts (Locale.setDefault()).
+  That seems to work even running as an applet, despite the security manager.
 
 ### 1.55 ###
 - replaced deploy-{rlab,world} targets with shell scripts

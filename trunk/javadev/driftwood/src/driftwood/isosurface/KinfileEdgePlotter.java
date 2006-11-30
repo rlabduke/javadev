@@ -21,8 +21,8 @@ import java.util.*;
 public class KinfileEdgePlotter implements EdgePlotter
 {
 //{{{ Constants
-    static DecimalFormat df4    = new DecimalFormat("0.####");
-    static DecimalFormat dfe4   = new DecimalFormat("0.####E0");
+    static DecimalFormat df4    = driftwood.util.Strings.usDecimalFormat("0.####");
+    static DecimalFormat dfe4   = driftwood.util.Strings.usDecimalFormat("0.####E0");
 //}}}
 
 //{{{ Variable definitions

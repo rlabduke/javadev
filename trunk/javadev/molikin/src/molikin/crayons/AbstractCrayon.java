@@ -26,7 +26,7 @@ import driftwood.moldb2.*;
 public abstract class AbstractCrayon implements Crayon
 {
 //{{{ Constants
-    static final DecimalFormat df = new DecimalFormat("0.####");
+    static final DecimalFormat df = driftwood.util.Strings.usDecimalFormat("0.####");
 //}}}
 
 //{{{ Variable definitions

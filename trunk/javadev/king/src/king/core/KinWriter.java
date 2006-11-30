@@ -20,7 +20,7 @@ import java.util.*;
 public class KinWriter //extends ... implements ...
 {
 //{{{ Constants
-    static final DecimalFormat df = new DecimalFormat("0.####");
+    static final DecimalFormat df = driftwood.util.Strings.usDecimalFormat("0.####");
 //}}}
 
 //{{{ Variable definitions

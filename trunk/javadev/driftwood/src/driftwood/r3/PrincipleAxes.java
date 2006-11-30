@@ -161,7 +161,7 @@ public class PrincipleAxes //extends ... implements ...
     */
     public String getKinView(String viewID, String viewLabel)
     {
-        DecimalFormat df = new DecimalFormat("0.0###");
+        DecimalFormat df = driftwood.util.Strings.usDecimalFormat("0.0###");
         StringBuffer out = new StringBuffer();
         out.append("@").append(viewID).append("viewid {").append(viewLabel).append("}\n");
         

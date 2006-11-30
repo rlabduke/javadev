@@ -23,7 +23,7 @@ import driftwood.util.*;
 public class PrekinIDer implements AtomIDer
 {
 //{{{ Constants
-    static final DecimalFormat df2 = new DecimalFormat("0.00");
+    static final DecimalFormat df2 = driftwood.util.Strings.usDecimalFormat("0.00");
 //}}}
 
 //{{{ Variable definitions

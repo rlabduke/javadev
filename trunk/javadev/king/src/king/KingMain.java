@@ -89,6 +89,12 @@ public class KingMain implements WindowListener, KinemageSignalSubscriber
     */
     public KingMain(String[] args)
     {
+        // This prevents number formatting problems when writing kins in
+        // e.g. Germany. Kludgy, but KiNG isn't internationalized anyway.
+        // Ideally, this will go away one day.
+        try { Locale.setDefault(Locale.US); }
+        catch(SecurityException ex) { SoftLog.err.println("Can't change to US locale; numbers may be garbled on kinemage write."); }
+        
         prefs = new KingPrefs();
         if(prefs.getBoolean("checkNewVersion"))
         {

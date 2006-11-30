@@ -6,6 +6,7 @@ package driftwood.util;
 //import java.awt.event.*;
 import java.io.*;
 import java.net.*;
+import java.text.NumberFormat;
 import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
@@ -369,6 +370,29 @@ public class Strings //extends ... implements ...
             }
         }
         return 0;
+    }
+//}}}
+
+//{{{ usDecimalFormat
+//##################################################################################################
+    /**
+    * Produces a DecimalFormat object in the en_US Locale, so it uses dots
+    * for decimal separators, etc.
+    * Otherwise, new DecimalFormat(...) may use commas as decimal points, etc.
+    * See the Java Tutorial's Internationalization trail for more details.
+    * @param pattern    a formatting string that follows the rules described
+    *   in the javadoc for DecimalFormat (i.e. not a "localized" pattern).
+    */
+    static public DecimalFormat usDecimalFormat(String pattern)
+    {
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
+        if(nf instanceof DecimalFormat)
+        {
+            DecimalFormat df = (DecimalFormat) nf;
+            df.applyPattern(pattern);
+            return df;
+        }
+        else return new DecimalFormat(pattern); // oops!  do the best we can...
     }
 //}}}
 

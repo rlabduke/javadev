@@ -30,8 +30,8 @@ import driftwood.util.Strings;
 public class PdbWriter //extends ... implements ...
 {
 //{{{ Constants
-    static final DecimalFormat df2 = new DecimalFormat("0.00");
-    static final DecimalFormat df3 = new DecimalFormat("0.000");
+    static final DecimalFormat df2 = driftwood.util.Strings.usDecimalFormat("0.00");
+    static final DecimalFormat df3 = driftwood.util.Strings.usDecimalFormat("0.000");
 //}}}
 
 //{{{ Variable definitions

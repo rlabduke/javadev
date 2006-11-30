@@ -27,7 +27,6 @@ import driftwood.moldb2.*;
 public class VanDerWaalsPane extends TablePane2 implements DrawingPane
 {
 //{{{ Constants
-    static final DecimalFormat df2 = new DecimalFormat("0.0#");
 //}}}
 
 //{{{ Variable definitions
