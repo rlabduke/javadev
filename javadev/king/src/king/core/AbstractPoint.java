@@ -202,9 +202,9 @@ abstract public class AbstractPoint extends AHEImpl implements KPoint
     {
         float[] coords = this.getAllCoords();
         if(coords == null) return;
-        if(xIndex < coords.length) this.setX( coords[xIndex] );
-        if(yIndex < coords.length) this.setY( coords[yIndex] );
-        if(zIndex < coords.length) this.setZ( coords[zIndex] );
+        if((xIndex >= 0) && (xIndex < coords.length)) this.setX( coords[xIndex] );
+        if((yIndex >= 0) && (yIndex < coords.length)) this.setY( coords[yIndex] );
+        if((zIndex >= 0) && (zIndex < coords.length)) this.setZ( coords[zIndex] );
     }
 //}}}
 
