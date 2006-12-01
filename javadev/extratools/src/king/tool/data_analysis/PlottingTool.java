@@ -356,17 +356,22 @@ public class PlottingTool extends BasicTool {
 	binnedPoints.clear();
 	plottedPoints.clear();
 
+	// figure out dimension names
 	String[] firstVal = (String[]) allPoints.get(0);
+	String[] secVal = (String[]) allPoints.get(1);
 	ArrayList dimNames = new ArrayList();
 	for (int i = 1; i < firstVal.length; i++) {
 	    dimNames.add(firstVal[i]);
 	}
 
+	// count number of numeric dimensions
 	int numInd = 0;
-	for (int i = 0; i < firstVal.length; i++) {
-	    if (KinUtil.isNumeric(firstVal[i])) numInd++;
+	for (int i = 0; i < secVal.length; i++) {
+	    if (KinUtil.isNumeric(secVal[i])) numInd++;
 	}
-	Integer[] dimMinMax = new Integer[(firstVal.length-1) * 2];
+
+	// initialize dimension min-max array
+	Integer[] dimMinMax = new Integer[numInd * 2];
 	for (int i = 0; i < dimMinMax.length; i = i+2) {
 	    dimMinMax[i] = new Integer(1000000);
 	}
@@ -374,25 +379,34 @@ public class PlottingTool extends BasicTool {
 	    dimMinMax[i] = new Integer(-1000000);
 	}
 
+	// create bins for the points
 	double minColor = 100000;
 	double maxColor = -100000;
+	ArrayList colors = new ArrayList();
 	if (color != -1) {
 	    Iterator iter = allPoints.iterator();
 	    while (iter.hasNext()) {
 		String[] value = (String[]) iter.next();
 		//if (color != -1) {
-		double dColor = Double.parseDouble(value[color]);
-		if (minColor > dColor) {
-		    minColor = dColor;
-		}
-		if (maxColor < dColor) {
-		    maxColor = dColor;
+		//System.out.println(value[color]);
+		if (value.length == firstVal.length) {
+		    if (KinUtil.isNumeric(value[color])) {
+			double dColor = Double.parseDouble(value[color]);
+			if (minColor > dColor) {
+			    minColor = dColor;
+			}
+			if (maxColor < dColor) {
+			    maxColor = dColor;
+			}
+			colors.add(new Double(value[color]));
+		    }
 		}
 	    }
 	}
 	double perDiv = (maxColor-minColor)/10;
-	createBins(numInd, minColor, maxColor, perDiv, color);
-	
+	//createBins(numInd, minColor, maxColor, perDiv, color);
+	createBins(numInd, colors, color);
+
 	Iterator iter = allPoints.iterator();
 	BallPoint point;
 	//double minColor = 100000;
@@ -402,34 +416,48 @@ public class PlottingTool extends BasicTool {
 	    String[] value = (String[]) iter.next();
 	    float[] floats = new float[numInd];
 	    int floatInd = 0;
+	    // one pass to see if number of numeric values matches number of dimensions
 	    for (int i = 0; i < value.length; i++) {
 		if (KinUtil.isNumeric(value[i])) {
-		    floats[floatInd] = Float.parseFloat(value[i]);
-		    updateMinMax(dimMinMax, floatInd, floats[floatInd]);
 		    floatInd++;
 		}
 	    }
-	    point = new BallPoint(null, value[0] + " " + value[1]);
-	    plottedPoints.put(value, point);
-	    point.setRadius((float)0.1);
-	    point.setAllCoords(floats);
-	    if (x == -1) point.setX(0);
-	    if (y == -1) point.setY(0);
-	    if (z == -1) point.setZ(0);
-	    point.useCoordsXYZ(x-1, y-1, z-1); // since the first value is a string identifier, indices are off by 1
-	    if (color != -1) {
-		double colValue = Double.parseDouble(value[color]);
-		double binVal = (Math.floor((colValue-minColor)/perDiv) * perDiv)+minColor;
-		double binValRounded = ((double)Math.round(binVal*1000)/1000);
-		//System.out.println(colValue);
-		//System.out.println(binValRounded);
-		KList list = (KList) binnedPoints.get(new Double(binValRounded));
-		list.add(point);
-		point.setOwner(list);
-	    } else {
-		KList list = (KList) binnedPoints.get(new Double(0));
-		list.add(point);
-		point.setOwner(list);
+	    // if they don't match, then this line is not made into a point
+	    if (floatInd == numInd) {
+		floatInd = 0;
+		for (int i = 0; i < value.length; i++) {
+		    if (KinUtil.isNumeric(value[i])) {
+			floats[floatInd] = Float.parseFloat(value[i]);
+			updateMinMax(dimMinMax, floatInd, floats[floatInd]);
+			floatInd++;
+		    }
+		}
+		    
+		point = new BallPoint(null, value[0] + " " + value[1]);
+		plottedPoints.put(value, point);
+		point.setRadius((float)0.1);
+		point.setAllCoords(floats);
+		if (x == -1) point.setX(0);
+		if (y == -1) point.setY(0);
+		if (z == -1) point.setZ(0);
+		point.useCoordsXYZ(x-1, y-1, z-1); // since the first value is a string identifier, indices are off by 1
+		if (color != -1) {
+		    Iterator keys = binnedPoints.keySet().iterator();
+		    Double binValue = null;
+		    while (keys.hasNext()) {
+			Double key = (Double) keys.next();
+			if (key.compareTo(new Double(value[color])) <= 0) {
+			    binValue = key;
+			}
+		    }
+		    KList list = (KList) binnedPoints.get(binValue);
+		    list.add(point);
+		    point.setOwner(list);
+		} else {
+		    KList list = (KList) binnedPoints.get(new Double("0"));
+		    list.add(point);
+		    point.setOwner(list);
+		}
 	    }
 	}
 	//System.out.println(minColor + " " + maxColor);
@@ -460,6 +488,33 @@ public class PlottingTool extends BasicTool {
 	}
     	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
       
+    }
+
+    public void createBins(int numInd, ArrayList colors, int color) {
+	if (color != -1) {
+	    Collections.sort(colors);
+	    //System.out.println((String)colors.get(0) + (String) colors.get(1));
+	    int size = colors.size();
+	    double sizePerBin = size/10;
+	    //double minColor = Double.parseDouble(colors.get(0));
+	    for (int i = 0; i < 10; i++) {
+		Double bin = (Double)colors.get((int)Math.floor(sizePerBin * i));
+		//System.out.println(bin);
+		//bin = new Double(Math.floor(bin.doubleValue()));
+		KList list = new KList(null, bin.toString());
+		list.flags |= KList.NOHILITE;
+		list.setType(KList.BALL);
+		list.addMaster(bin.toString());
+		list.setDimension(numInd);
+		binnedPoints.put(bin, list);
+	    }
+	} else {
+	    KList list = new KList(null, "multi-dim points");
+	    list.flags |= KList.NOHILITE;
+	    list.setType(KList.BALL);
+	    list.setDimension(numInd);
+	    binnedPoints.put(new Double("0"), list);
+	}
     }
 
     public void createBins(int numInd, double minColor, double maxColor, double perDiv, int color) {
