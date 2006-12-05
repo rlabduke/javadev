@@ -79,6 +79,9 @@ public class PlottingTool extends BasicTool {
 	    //pane.add(new JLabel(values[i]));
 	}
 	//pane.add(new JLabel(values[0]));
+	if (numColumns > 20) {
+	    numColumns = 20;
+	}
 	labelList = new FatJList(0, 10);
 	labelList.setListData(values);
 	labelList.setVisibleRowCount(numColumns + 3);
@@ -118,13 +121,13 @@ public class PlottingTool extends BasicTool {
 	pane.add(new JLabel(" Z axis"));
 	pane.add(new JLabel(" color"));
 	pane.newRow();
-	pane.add(new JScrollPane(labelList), 1, 5);
+	pane.vfill(true).hfill(true).add(new JScrollPane(labelList), 1, 5);
 	pane.add(new JScrollPane(xList), 1, 5);
 	pane.add(new JScrollPane(yList), 1, 5);
 	pane.add(new JScrollPane(zList), 1, 5);
 	pane.add(new JScrollPane(colorList), 1, 5);
 
-	pane.hfill(true).addCell(plotButton);
+	pane.vfill(false).hfill(true).addCell(plotButton);
 	pane.newRow();
 	pane.addCell(parallelButton);
 	pane.newRow();
