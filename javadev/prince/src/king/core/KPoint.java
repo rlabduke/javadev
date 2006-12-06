@@ -190,10 +190,10 @@ public interface KPoint extends AHE, Cloneable, MutableTuple3
 //{{{ paint2D, isPickedBy
 //##################################################################################################
     /**
-    * Renders this Paintable to the specified graphics surface,
+    * Renders this point to the specified graphics surface,
     * using the display settings from engine.
     */
-    public void paint2D(Engine engine);
+    public void paint2D(Engine2D engine);
 
     /**
     * Returns true if the specified pick hits this point, else returns false
