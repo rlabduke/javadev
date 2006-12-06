@@ -22,6 +22,7 @@ import java.util.*;
 public class DataSample //extends ... implements ...
 {
     public String       label   = "";
+    public String       color   = "";
     public double[]     coords  = null;
     public double       weight  = 1.0;
     
@@ -29,6 +30,7 @@ public class DataSample //extends ... implements ...
     public DataSample(DataSample that)
     {
         this.label  = that.label;
+        this.color  = that.color;
         this.coords = that.coords;
         this.weight = that.weight;
     }

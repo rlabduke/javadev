@@ -46,14 +46,14 @@ public class KinfilePlotter //extends ... implements ...
     public void plot1D(OutputStream out, Collection dataSamples)
     {
         PrintStream ps = new PrintStream(out);
-        ps.println("@group {data} dominant");
+        ps.println("@group {data} dominant animate");
         ps.println("@subgroup {1-D data}");
         ps.println("@dotlist {"+dataSamples.size()+" pts}");
         DataSample sample;
         for(Iterator iter = dataSamples.iterator(); iter.hasNext(); )
         {
             sample = (DataSample)iter.next();
-            ps.println("{"+sample.label+"} "+df.format(sample.coords[0])+" 0 0");
+            ps.println("{"+sample.label+"}"+sample.color+" "+df.format(sample.coords[0])+" 0 0");
         }
         ps.flush();
     }
@@ -65,14 +65,14 @@ public class KinfilePlotter //extends ... implements ...
     public void plot2D(OutputStream out, Collection dataSamples)
     {
         PrintStream ps = new PrintStream(out);
-        ps.println("@group {data} dominant");
+        ps.println("@group {data} dominant animate");
         ps.println("@subgroup {2-D data}");
         ps.println("@dotlist {"+dataSamples.size()+" pts}");
         DataSample sample;
         for(Iterator iter = dataSamples.iterator(); iter.hasNext(); )
         {
             sample = (DataSample)iter.next();
-            ps.println("{"+sample.label+"} "+df.format(sample.coords[0])+" "+df.format(sample.coords[1])+" 0");
+            ps.println("{"+sample.label+"}"+sample.color+" "+df.format(sample.coords[0])+" "+df.format(sample.coords[1])+" 0");
         }
         ps.flush();
     }
@@ -84,14 +84,14 @@ public class KinfilePlotter //extends ... implements ...
     public void plot3D(OutputStream out, Collection dataSamples)
     {
         PrintStream ps = new PrintStream(out);
-        ps.println("@group {data} dominant");
+        ps.println("@group {data} dominant animate");
         ps.println("@subgroup {3-D data}");
         ps.println("@dotlist {"+dataSamples.size()+" pts}");
         DataSample sample;
         for(Iterator iter = dataSamples.iterator(); iter.hasNext(); )
         {
             sample = (DataSample)iter.next();
-            ps.println("{"+sample.label+"} "+df.format(sample.coords[0])+" "+df.format(sample.coords[1])+" "+df.format(sample.coords[2]));
+            ps.println("{"+sample.label+"}"+sample.color+" "+df.format(sample.coords[0])+" "+df.format(sample.coords[1])+" "+df.format(sample.coords[2]));
         }
         ps.flush();
     }

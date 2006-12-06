@@ -55,6 +55,7 @@ public class ResRanger //extends ... implements ...
             catch(NumberFormatException ex)
             {
                 ins = r.getSequenceNumber().trim() + r.getInsertionCode().trim();
+                callme = num+ins;
             }
         }
         
