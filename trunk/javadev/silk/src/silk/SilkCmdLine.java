@@ -178,6 +178,9 @@ public class SilkCmdLine //extends ... implements ...
             else if(opt.nDim == 2)
             {
                 ps.println("@flat");
+                // Experimental attempt at even sampling via modified k-means
+                //KMeans kMeans = new KMeans(opt);
+                //kMeans.findClusters(data, 100, plotter);
                 plotter.plot2D(opt.outputSink, data);
             }
             else if(opt.nDim == 3)
