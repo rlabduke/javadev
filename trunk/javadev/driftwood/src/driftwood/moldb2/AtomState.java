@@ -136,7 +136,7 @@ public class AtomState extends Triple implements Cloneable
     { occupancy = (float)q; }
     
     /** Extra, unstructure information stored past column 80 in the original PDB file.  Not null. */
-    public void getPast80(String s)
+    public void setPast80(String s)
     { past80 = s; }
 //}}}
 

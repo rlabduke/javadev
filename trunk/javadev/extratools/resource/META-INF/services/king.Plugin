@@ -8,6 +8,7 @@ king.tool.views.ViewpointPlugin
 king.tool.views.ClipPlanesPlugin
 king.tool.draw.LathePlugin
 king.tool.draw.SkylightPlugin
+king.tool.postkin.ColorGrouperPlugin
 
 # Tools
 king.tool.docking.Dock3On3Tool
