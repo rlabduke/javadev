@@ -18,7 +18,7 @@ import java.util.*;
 * <p>Copyright (C) 2002-2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Oct  2 10:50:32 EDT 2002
 */
-abstract public class AHEImpl implements AHE
+abstract public class AHEImpl<P extends AGE> implements AHE<P>
 {
 //{{{ Variable definitions
 //##################################################################################################

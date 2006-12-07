@@ -17,7 +17,7 @@ import java.util.*;
 * <p>Copyright (C) 2002-2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Oct  2 12:10:01 EDT 2002
 */
-public class KGroup extends AGE<AGE> implements Cloneable
+public class KGroup extends AGE<AGE,AGE> implements Cloneable
 {
 //{{{ Variable definitions
 //##################################################################################################

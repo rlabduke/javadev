@@ -44,7 +44,6 @@
         </fileset>
         <!-- iText library is in a separate JAR -->
     </jar>
-    <copy file="resource/king/king_prefs" tofile="${basedir}/doc/dot_king_prefs.txt" overwrite="true"/>
 </target>
 
 <!-- Compiles all .java files for this package -->
