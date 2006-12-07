@@ -41,6 +41,7 @@ public class AtomState extends Triple implements Cloneable
     float       charge          = 0;
     float       bfactor         = 0;
     float       occupancy       = 0;
+    String      past80          = "";
 //}}}
 
 //{{{ Constructor(s)
@@ -76,7 +77,7 @@ public class AtomState extends Triple implements Cloneable
     }
 //}}}
 
-//{{{ get{Atom, Serial, AltConf, Charge, TempFactor, Occupancy}
+//{{{ get{Atom, Serial, AltConf, Charge, TempFactor, Occupancy, Past80}
 //##################################################################################################
     public Atom getAtom()
     { return atom; }
@@ -95,6 +96,10 @@ public class AtomState extends Triple implements Cloneable
     
     public double getOccupancy()
     { return occupancy; }
+    
+    /** Extra, unstructure information stored past column 80 in the original PDB file.  Not null. */
+    public String getPast80()
+    { return past80; }
 //}}}
 
 //{{{ getName, getElement, getResidue, isHet
@@ -116,7 +121,7 @@ public class AtomState extends Triple implements Cloneable
     { return atom.isHet(); }
 //}}}
 
-//{{{ set{AltConf, Charge, TempFactor, Occupancy}
+//{{{ set{AltConf, Charge, TempFactor, Occupancy, Past80}
 //##################################################################################################
     public void setAltConf(String alt)
     { altconf = alt; }
@@ -129,6 +134,10 @@ public class AtomState extends Triple implements Cloneable
     
     public void setOccupancy(double q)
     { occupancy = (float)q; }
+    
+    /** Extra, unstructure information stored past column 80 in the original PDB file.  Not null. */
+    public void getPast80(String s)
+    { past80 = s; }
 //}}}
 
 //{{{ clone, cloneFor

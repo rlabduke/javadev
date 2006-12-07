@@ -280,6 +280,10 @@ public class PdbReader //extends ... implements ...
             else if(s.charAt(79) == '+')    state.setCharge(s.charAt(78) - '0');
             // else do nothing -- sometimes this field is used for other purposes (?)
         }
+        if(s.length() > 80)
+        {
+            state.setPast80(intern(s.substring(80)));
+        }
     }
 //}}}
 
