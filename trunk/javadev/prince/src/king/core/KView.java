@@ -2,12 +2,9 @@
 //{{{ Package, imports
 package king.core;
 
-import java.awt.event.*;
 import java.io.*;
 //import java.text.*;
 import java.util.*;
-import javax.swing.*;
-import javax.swing.event.*;
 //}}}
 /**
 * <code>KView</code> holds a rotation matrix that specifies the current view or some saved view.
@@ -106,7 +103,7 @@ public class KView
 //{{{ Matrix math routines
 //##################################################################################################
     // Multiplies two 3x3 matrices
-    float[][] mmult(float[][] A, float[][] B)
+    static protected float[][] mmult(float[][] A, float[][] B)
     {
         float[][] R = new float[3][3];
         int i, j, k;
@@ -127,7 +124,7 @@ public class KView
     }
     
     // Multiplies a 3x3 matrix with a 3x1 vector
-    float[] mmult(float[][] A, float[] X)
+    static protected float[] mmult(float[][] A, float[] X)
     {
         float[] R = new float[3];
         int i, j;
@@ -161,7 +158,7 @@ public class KView
     * but without using what they call a World Up vector, since we're in a molecule & that doesn't mean anything.
     * I call the rows X*, Y*, and Z*, as per (3) above
     */
-    void normalize(float[][] A)
+    static protected void normalize(float[][] A)
     {
         float mag;
         
@@ -186,7 +183,7 @@ public class KView
     }
     
     // Constructs the transpose of a 3x3 matrix
-    float[][] transpose(float[][] A)
+    static protected float[][] transpose(float[][] A)
     {
         float[][] R = new float[3][3];
         int i, j;
@@ -267,7 +264,7 @@ public class KView
     }
 //}}}
 
-//{{{ get/set/adjust functions
+//{{{ setID, setMatrix, setZoom, get/setSpan
 //##################################################################################################
     /**
     * Sets the label used to identify this view.
@@ -292,13 +289,18 @@ public class KView
     *
     * @param z the desired zoom
     */
-    public synchronized void setZoom(float z) { zoom = z; span = 0f; }
+    public synchronized void setZoom(float z)
+    {
+        zoom = z;
+        span = 0f;
+        //span = getSpan(); // so span will be calc'd immediately with current kin size
+    }
     
     /**
     * Gets the span of this view,
     * i.e., the desired width of the graphics area in model units.
     */
-    public float getSpan()
+    public synchronized float getSpan()
     {
         if(span <= 0f)
         {
@@ -314,7 +316,10 @@ public class KView
     * will set the zoom such that an object s units across fits on screen.
     */
     public synchronized void setSpan(float s) { span = s; }
-    
+//}}}
+
+//{{{ get/setClip, get/setCenter
+//##################################################################################################
     /**
     * Returns the current clip factor.
     * @return the current clip
@@ -356,7 +361,10 @@ public class KView
         center[1] = y;
         center[2] = z;
     }
-    
+//}}}
+
+//{{{ translateRotated, viewTranslateRotated
+//##################################################################################################
     /**
     * Given a pixel offset in rotated and scaled coordinates, calculate an offset in "real" coordinates.
     * If x and y are taken from screen coordinates, remember to invert y!
@@ -386,20 +394,8 @@ public class KView
     }
 //}}}
 
-//{{{ selectedFromMenu, get/setViewingAxes
+//{{{ get/set/activateViewingAxes
 //##################################################################################################
-    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void selectedFromMenu(ActionEvent ev)
-    {
-        if(parent != null)
-        {
-            parent.notifyViewSelected(this);
-            
-            if(viewingAxes != null)
-                setAxes(parent, viewingAxes[0], viewingAxes[1], viewingAxes[2]);
-        }
-    }
-    
     /**
     * Stores a set of 0-based indices for the coordinates axes that should be
     * placed into X, Y, Z when this view is activated.
@@ -416,39 +412,23 @@ public class KView
     
     /** Returns the value set by setViewingAxes() (may be null) */
     public int[] getViewingAxes() { return this.viewingAxes; }
-//}}}
-
-//{{{ setAxes
-//##############################################################################
+    
     /**
     * Copies the high-dimensional coordinates at the specified indices
     * into all point's (untransformed) X, Y, and Z fields.
     * If a index is out of range (0-based), it is ignored and the value is not changed.
     */
-    static public void setAxes(Kinemage kin, int xIndex, int yIndex, int zIndex)
+    public void activateViewingAxes(int xIndex, int yIndex, int zIndex)
     {
-        for(Iterator gi = kin.iterator(); gi.hasNext(); )
+        for(KList list : KIterator.allLists(parent))
         {
-            KGroup group = (KGroup) gi.next();
-            for(Iterator si = group.iterator(); si.hasNext(); )
-            {
-                KSubgroup subgroup = (KSubgroup) si.next();
-                for(Iterator li = subgroup.iterator(); li.hasNext(); )
-                {
-                    KList list = (KList) li.next();
-                    // We will miss points with extra coordinates if
-                    // list.dimension wasn't set...
-                    if(list.getDimension() <= 3) continue;
-                    for(Iterator pi = list.iterator(); pi.hasNext(); )
-                    {
-                        KPoint pt = (KPoint) pi.next();
-                        pt.useCoordsXYZ(xIndex, yIndex, zIndex);
-                    }
-                }
-            }
+            // We will miss points with extra coordinates if
+            // list.dimension wasn't set...
+            if(list.getDimension() <= 3) continue;
+            for(KPoint pt : list)
+                pt.useCoordsXYZ(xIndex, yIndex, zIndex);
         }
-        kin.getCurrentView().setViewingAxes(new int[] {xIndex, yIndex, zIndex});
-        kin.signal.signalKinemage(kin, KinemageSignal.APPEARANCE);
+        parent.fireKinChanged(AHE.CHANGE_POINT_COORDINATES);
     }
 //}}}
 

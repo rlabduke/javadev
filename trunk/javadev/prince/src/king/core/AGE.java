@@ -16,7 +16,7 @@ import driftwood.r3.*;
 * <p>Copyright (C) 2002-2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Oct  2 10:50:36 EDT 2002
 */
-abstract public class AGE<T extends AHE> extends AHEImpl
+abstract public class AGE<P extends AGE, C extends AHE> extends AHEImpl<P> implements Iterable<C>
 {
 //{{{ Constants
     protected static final int FLAG_ON              = (1<<0);
@@ -35,8 +35,8 @@ abstract public class AGE<T extends AHE> extends AHEImpl
 
 //{{{ Variable definitions
 //##################################################################################################
-    protected AGE<? extends AGE>    parent      = null;
-    protected ArrayList<T>          children    = new ArrayList<T>();
+    protected P                     parent      = null;
+    protected ArrayList<C>          children    = new ArrayList<C>();
     protected Collection<String>    masters     = null;
     protected Transform             transform   = null;
     protected int                   flags       = FLAG_ON;
@@ -50,14 +50,14 @@ abstract public class AGE<T extends AHE> extends AHEImpl
     }
 //}}}
 
-//{{{ clone
+//{{{ clone, get/setParent
 //##################################################################################################
     /**
     * Creates a deep copy of this AGE and all its children,
     * including make full copies of all the points.
     * Not all AGEs implement Cloneable, so this operation could fail.
     */
-    public AGE<T> clone() throws CloneNotSupportedException
+    public AGE<P,C> clone() throws CloneNotSupportedException
     { return clone(true); }
     
     /**
@@ -66,28 +66,50 @@ abstract public class AGE<T extends AHE> extends AHEImpl
     * @param clonePoints whether to clone even the individual points,
     *   or whether we should use instance= at the list level instead.
     */
-    public AGE<T> clone(boolean clonePoints) throws CloneNotSupportedException
-    { return (AGE<T>) super.clone(); }
-//}}}
-
-//{{{ get/setParent, add, clear, getChildren
-//##################################################################################################
-    public AGE<? extends AGE> getParent()
+    public AGE<P,C> clone(boolean clonePoints) throws CloneNotSupportedException
+    { return (AGE<P,C>) super.clone(); }
+    
+    public P getParent()
     { return parent; }
     
-    public void setParent(AGE owner)
+    public void setParent(P owner)
     {
-        parent = (AGE<? extends AGE>) owner;
+        parent = owner;
     }
-    
+//}}}
+
+//{{{ add, replace, clear, getChildren, iterator
+//##################################################################################################
     /** Adds a child to this element */
-    public void add(T child)
+    public void add(C child)
     {
         if(child.getParent() == null)
             child.setParent(this);
         children.add(child);
         if(child instanceof AGE)    fireKinChanged(CHANGE_TREE_CONTENTS);
         else                        fireKinChanged(CHANGE_POINT_CONTENTS);
+    }
+    
+    /**
+    * Replaces oldChild with newChild, or performs an add()
+    * of newChild if oldChild couldn't be found as part of the kinemage.
+    * This is very useful for things like Mage's Remote Update.
+    * @return the group actually replaced, or null for none
+    */
+    public C replace(C oldChild, C newChild)
+    {
+        int idx = children.indexOf(oldChild);
+        if(idx == -1)
+        {
+            add(newChild);
+            return null;
+        }
+        else
+        {
+            if(newChild.getParent() == null)
+                newChild.setParent(this);
+            return children.set(idx, newChild);
+        }
     }
     
     /** Removes all children from this element */
@@ -98,8 +120,11 @@ abstract public class AGE<T extends AHE> extends AHEImpl
     * Returns the actual object that holds the children.
     * If you modify it, you must call fireKinChanged() yourself.
     */
-    public ArrayList<T> getChildren()
+    public ArrayList<C> getChildren()
     { return children; }
+    
+    public Iterator<C> iterator()
+    { return getChildren().iterator(); }
 //}}}
 
 //{{{ setName, is/setOn, (set)hasButton
@@ -191,7 +216,7 @@ abstract public class AGE<T extends AHE> extends AHEImpl
         
         // Not using iterators speeds this up by a few tens of ms
         // Java 1.5 can do this automatically for Lists that implement RandomAccess
-        for(T child : children) child.doTransform(engine, xform);
+        for(C child : children) child.doTransform(engine, xform);
     }
     
     /** Returns the extra Transform applied to points below this element (may be null) */
@@ -204,13 +229,13 @@ abstract public class AGE<T extends AHE> extends AHEImpl
 
     public void calcBoundingBox(float[] bound)
     {
-        for(T child : children) child.calcBoundingBox(bound);
+        for(C child : children) child.calcBoundingBox(bound);
     }
     
     public float calcRadiusSq(float[] center)
     {
         float max = 0f;
-        for(T child : children) max = Math.max(max, child.calcRadiusSq(center));
+        for(C child : children) max = Math.max(max, child.calcRadiusSq(center));
         return max;
     }
 //}}}

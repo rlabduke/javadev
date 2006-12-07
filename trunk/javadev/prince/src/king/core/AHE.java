@@ -17,7 +17,7 @@ import java.util.*;
 * <p>Copyright (C) 2002-2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Oct  2 10:50:32 EDT 2002
 */
-public interface AHE extends Transformable
+public interface AHE<P extends AGE> extends Transformable
 {
     /** "Everything" has changed (if you're not sure which one(s) to use, try this) */
     public static final int CHANGE_EVERYTHING           = ~0;
@@ -31,7 +31,8 @@ public interface AHE extends Transformable
     /** The set of masters controlling a group/subgroup/list has changed */
     public static final int CHANGE_TREE_MASTERS         = (1<<3);
     /** Something / everything has changed about a group/subgroup/list */
-    public static final int CHANGE_TREE                 = 0x000000ff;
+    public static final int CHANGE_TREE                 = CHANGE_TREE_CONTENTS | CHANGE_TREE_PROPERTIES
+                                                        | CHANGE_TREE_ON_OFF | CHANGE_TREE_MASTERS;
     
     /** A point has been added to / removed from the kinemage */
     public static final int CHANGE_POINT_CONTENTS       = (1<<8);
@@ -41,11 +42,24 @@ public interface AHE extends Transformable
     public static final int CHANGE_POINT_ON_OFF         = (1<<10);
     /** The set of masters controlling a point has changed */
     public static final int CHANGE_POINT_MASTERS        = (1<<11);
+    /** The set of masters controlling a point has changed */
+    public static final int CHANGE_POINT_COORDINATES    = (1<<12);
     /** Something / everything has changed about a point */
-    public static final int CHANGE_POINT                = 0x0000ff00;
+    public static final int CHANGE_POINT                = CHANGE_POINT_CONTENTS | CHANGE_POINT_PROPERTIES
+                                                        | CHANGE_POINT_ON_OFF | CHANGE_POINT_MASTERS
+                                                        | CHANGE_POINT_COORDINATES;
 
     /** List properties have changed */
     public static final int CHANGE_LIST_PROPERTIES      = CHANGE_TREE_PROPERTIES | CHANGE_POINT_PROPERTIES;
+    
+    /** The set of views in the kinemage has changed */
+    public static final int CHANGE_VIEWS_LIST           = (1<<16);
+    /** The set of masters in the kinemage has changed */
+    public static final int CHANGE_MASTERS_LIST         = (1<<17);
+    /** The set of aspects in the kinemage has changed */
+    public static final int CHANGE_ASPECTS_LIST         = (1<<18);
+    /** The metadata in the kinemage has changed. This may have to be fired manually by clients. */
+    public static final int CHANGE_KIN_METADATA         = (1<<19);
 
 
 
@@ -54,9 +68,9 @@ public interface AHE extends Transformable
     /** Sets the name of this element */
     public void setName(String nm);
     /** Determines the owner (parent) of this element */
-    public AGE getParent();
+    public P getParent();
     /** Establishes the owner (parent) of this element */
-    public void setParent(AGE owner);
+    public void setParent(P owner);
     /** Retrieves the Kinemage object at the top of this hierarchy, or null if none. */
     public Kinemage getKinemage();
     /**

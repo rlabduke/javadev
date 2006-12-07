@@ -15,7 +15,7 @@ import driftwood.r3.*;
 * <p>Copyright (C) 2002-2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Oct  2 12:37:31 EDT 2002
 */
-public class KList extends AGE<KPoint> implements Cloneable
+public class KList extends AGE<KGroup,KPoint> implements Cloneable
 {
 //{{{ Constants
     public enum Type { vector, dot, mark, label, triangle, ribbon, ring, ball, sphere, arrow }

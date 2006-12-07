@@ -391,8 +391,8 @@ abstract public class Engine //extends ... implements ...
     /** Takes needed display settings from the kinemage */
     public void syncToKin(Kinemage kin)
     {
-        if(kin.currAspect == null) this.activeAspect = 0;
-        else this.activeAspect = kin.currAspect.getIndex().intValue();
+        //if(kin.currAspect == null) this.activeAspect = 0;
+        //else this.activeAspect = kin.currAspect.getIndex().intValue();
         
         this.usePerspective     = kin.atPerspective;
         this.cueThickness       = ! kin.atOnewidth;
