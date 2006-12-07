@@ -132,6 +132,7 @@ public class PdbWriter //extends ... implements ...
             if(as.getCharge() == 0.0)   sb.append("  ");
             else if(as.getCharge() > 0) sb.append(((int)as.getCharge())+"+");
             else                        sb.append(((int)as.getCharge())+"-");
+            sb.append(as.getPast80()); // "stuff" past column 80
             
             out.println(sb);
             out.flush();
