@@ -54,7 +54,7 @@ public class VectorPoint extends AbstractPoint // implements ...
         from = (VectorPoint)pt;
     }
     
-    public KPoint getPrev()
+    public VectorPoint getPrev()
     { return from; }
     
     public boolean isBreak()

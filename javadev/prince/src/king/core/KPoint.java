@@ -24,7 +24,7 @@ public interface KPoint extends AHE<KList>, Cloneable, MutableTuple3
 
 //{{{ clone
 //##################################################################################################
-    public Object clone();
+    public KPoint clone();
 //}}}
 
 //{{{ get/setX/Y/Z

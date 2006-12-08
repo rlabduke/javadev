@@ -88,6 +88,9 @@ public class Kinemage extends AGE<Kinemage,KGroup> // implements ...
         allColorMap = (Map<String,KPaint>) new UberMap(KPalette.getFullMap());
         newColorMap = (Map<String,KPaint>) new UberMap();
     }
+
+    public Kinemage()
+    { this(""); }
 //}}}
 
 //{{{ appendKinemage

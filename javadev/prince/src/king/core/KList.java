@@ -12,45 +12,66 @@ import driftwood.r3.*;
 /**
 * <code>KList</code> implements the concept of a list in a kinemage.
 *
+* <p>In principle, we could generify this class to
+* <code>KList&lt;C extends KPoint&gt; extends AGE&lt:KGroup,C&gt;</code>,
+* but due to what I see as a bug in Sun's compiler, references to
+* <code>KList</code> are then treated as <code>KList&lt;Object&gt;</code>
+* (which isn't even legal!) rather than as <code>KList&lt;? extends KPoint&gt;</code>.
+* All the extra typing probably isn't worth it;
+* there are very few cases where you would actually get improved type safety,
+* because almost all functions operate on lists of any kind of point.
+*
+* <p>Designating the type of a list has actually turned out to be very hard.
+* Using an enum is not suitable, as the set of list types must be able to
+* grow as third parties define new point types.
+* Using the Class of the point type is possible, but translating it to a string
+* for output is problematic, and some point types are used to implement
+* more than one type of kinemage list (eg TrianglePoint for triangle- and ribbon-lists).
+* So I've fallen back on plain old Strings, which aren't type safe, but are flexible.
+*
 * <p>Copyright (C) 2002-2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Oct  2 12:37:31 EDT 2002
 */
 public class KList extends AGE<KGroup,KPoint> implements Cloneable
 {
 //{{{ Constants
-    public enum Type { vector, dot, mark, label, triangle, ribbon, ring, ball, sphere, arrow }
+    public static final String  VECTOR   = "vector";
+    public static final String  DOT      = "dot";
+    public static final String  MARK     = "mark";
+    public static final String  LABEL    = "label";
+    public static final String  TRIANGLE = "triangle";
+    public static final String  RIBBON   = "ribbon";
+    public static final String  RING     = "ring";
+    public static final String  BALL     = "ball";
+    public static final String  SPHERE   = "sphere";
+    public static final String  ARROW    = "arrow";
 //}}}
 
 //{{{ Variable definitions
 //##################################################################################################
+    protected String    type;                   // type of object represented by this list
     protected KList     instance    = null;     // the list that this one is an instance= {xxx} of (usually null)
-    protected Type      type;                   // type of object represented by this list
     
     protected KPaint    color       = KPalette.defaultColor;
     protected int       alpha       = 255;      // 255 = opaque, 0 = fully transparent
     protected float     radius      = 0.2f;     // seems to be default in Mage; also used for arrow tine length (radius=)
+    protected float     angle       = 20f;      // for ArrowPoints
     protected int       width       = 2;
     protected int       style       = 0;        // style for MarkerPoints; could be alignment for labels
     protected Object    clipMode    = null;     // null for default, else some object key
     protected int       dimension   = 3;        // for high-dimensional kinemages
-    
-    // Parameters used for arrowlists; see ArrowPoint for explanation
-    // of tine PERPendicular and PARallel components.
-    protected float     angle       = 20f;
-    protected float     tinePerp    = (float)(radius * Math.sin(Math.toRadians(angle)));
-    protected float     tinePar     = (float)(radius * Math.cos(Math.toRadians(angle)));
 //}}}
 
 //{{{ Constructor(s)
 //##################################################################################################
     /** Creates a new KList of the specified type with an empty name. */
-    public KList(Type type)
+    public KList(String type)
     {
         this(type, "");
     }
 
     /** Creates a new KList with the specified name. */
-    public KList(Type type, String nm)
+    public KList(String type, String nm)
     {
         super();
         this.type = type;
@@ -140,7 +161,7 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
 //{{{ get/set{Type, Color, Width, Radius, Alpha}
 //##################################################################################################
     /** Determines the type of points held by this list */
-    public Type getType()
+    public String getType()
     { return type; }
     
     /** Determines the default color of points held by this list */
@@ -169,9 +190,7 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
     { return radius; }
     public void setRadius(float r)
     {
-        radius      = r;
-        tinePerp    = (float)(radius * Math.sin(Math.toRadians(angle)));
-        tinePar     = (float)(radius * Math.cos(Math.toRadians(angle)));
+        radius = r;
         fireKinChanged(CHANGE_LIST_PROPERTIES);
     }
     
@@ -183,16 +202,14 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
     { alpha = a; }
 //}}}
 
-//{{{ get/set{Angle, Style, ClipMode, Dimension}
+//{{{ get/set{Angle, Style, ClipMode, Dimension, NoHighlight}
 //##################################################################################################
     /** For use with ArrowPoint */
     public float getAngle()
     { return angle; }
     public void setAngle(float a)
     {
-        angle       = a;
-        tinePerp    = (float)(radius * Math.sin(Math.toRadians(angle)));
-        tinePar     = (float)(radius * Math.cos(Math.toRadians(angle)));
+        angle = a;
         fireKinChanged(CHANGE_LIST_PROPERTIES);
     }
     
@@ -222,6 +239,18 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
     {
         this.dimension = d;
         fireKinChanged(CHANGE_LIST_PROPERTIES);
+    }
+    
+    /** Indicates whether BallPoints should have their highlights supressed. */
+    public boolean getNoHighlight()
+    { return (flags & FLAG_NOHILITE) == FLAG_NOHILITE; }
+    /** Sets whether BallPoints should have their highlights supressed. */
+    public void setNoHighlight(boolean b)
+    {
+        int oldFlags = flags;
+        if(b)   flags |= FLAG_NOHILITE;
+        else    flags &= ~FLAG_NOHILITE;
+        if(flags != oldFlags) fireKinChanged(CHANGE_TREE_PROPERTIES);
     }
 //}}}
 
