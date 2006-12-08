@@ -1,6 +1,7 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
-package king.core;
+package king.painters;
+import king.core.*;
 
 import java.awt.*;
 import java.awt.geom.*;

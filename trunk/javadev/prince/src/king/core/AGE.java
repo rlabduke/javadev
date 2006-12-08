@@ -80,7 +80,7 @@ abstract public class AGE<P extends AGE, C extends AHE> extends AHEImpl<P> imple
     /** Adds a child to this element */
     public void add(C child)
     {
-        if(child.getParent() == null)
+        //if(child.getParent() == null) -- I think you always want this behavior
             child.setParent(this);
         children.add(child);
         if(child instanceof AGE)    fireKinChanged(CHANGE_TREE_CONTENTS);
@@ -103,7 +103,7 @@ abstract public class AGE<P extends AGE, C extends AHE> extends AHEImpl<P> imple
         }
         else
         {
-            if(newChild.getParent() == null)
+            //if(newChild.getParent() == null)
                 newChild.setParent(this);
             return children.set(idx, newChild);
         }
