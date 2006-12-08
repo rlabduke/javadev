@@ -137,7 +137,7 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
     }
 //}}}
 
-//{{{ get/set{Type, Color, Width, Radius}
+//{{{ get/set{Type, Color, Width, Radius, Alpha}
 //##################################################################################################
     /** Determines the type of points held by this list */
     public Type getType()
@@ -174,6 +174,13 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
         tinePar     = (float)(radius * Math.cos(Math.toRadians(angle)));
         fireKinChanged(CHANGE_LIST_PROPERTIES);
     }
+    
+    /** Gets the translucency of points in this list, from 0 (invisible) to 255 (opaque). */
+    public int getAlpha()
+    { return alpha; }
+    /** Sets the translucency of points in this list, from 0 (invisible) to 255 (opaque). */
+    public void setAlpha(int a)
+    { alpha = a; }
 //}}}
 
 //{{{ get/set{Angle, Style, ClipMode, Dimension}
