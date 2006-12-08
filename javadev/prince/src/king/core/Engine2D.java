@@ -25,11 +25,6 @@ public class Engine2D extends Engine
     public boolean      useStereo       = false;
     public float        stereoRotation  = 0;
     
-    // READ/WRITE: Shared "scratch" objects that points can use
-    public Triple       work1           = new Triple();
-    public Triple       work2           = new Triple();
-    public Dimension    dim1            = new Dimension();
-    
     Font                bigFont, smallFont;
     Rectangle           canvasRect = new Rectangle();
     boolean             transparentBackground = false; // used only for certain export features
@@ -169,7 +164,7 @@ public class Engine2D extends Engine
                     pt.paint2D(this);
                 else // see setActingParent() for an explanation
                 {
-                    AGE oldPnt = pt.getParent();
+                    KList oldPnt = pt.getParent();
                     pt.setParent(l);
                     pt.paint2D(this);
                     pt.setParent(oldPnt);

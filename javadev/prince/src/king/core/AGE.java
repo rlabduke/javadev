@@ -28,9 +28,6 @@ abstract public class AGE<P extends AGE, C extends AHE> extends AHEImpl<P> imple
     protected static final int FLAG_ANIMATE         = (1<<8);
     protected static final int FLAG_2ANIMATE        = (1<<9);
     protected static final int FLAG_NOHILITE        = (1<<10);
-    
-    // Bits 12 thru 31 are going to be used for MarkerPoint styles
-    protected static final int MASK_MARKER_STYLES   = 0xfffff000;
 //}}}
 
 //{{{ Variable definitions
