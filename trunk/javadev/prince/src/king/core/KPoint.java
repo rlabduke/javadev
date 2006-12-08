@@ -17,7 +17,7 @@ import driftwood.r3.*;
 * <p>Copyright (C) 2002-2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Oct  2 12:57:57 EDT 2002
 */
-public interface KPoint extends AHE, Cloneable, MutableTuple3
+public interface KPoint extends AHE<KList>, Cloneable, MutableTuple3
 {
 //{{{ Constants
 //}}}

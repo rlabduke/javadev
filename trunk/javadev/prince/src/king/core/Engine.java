@@ -68,6 +68,11 @@ abstract public class Engine //extends ... implements ...
     public boolean      whiteBackground = false;
     public boolean      colorByList     = false;
     
+    // READ/WRITE: Shared "scratch" objects that points can use
+    public Triple       work1           = new Triple();
+    public Triple       work2           = new Triple();
+    public Dimension    dim1            = new Dimension();
+    
     // FOR USE BY ENGINE ONLY
     ArrayList<KPoint>[]         zbuffer;
     HashMap<KPoint, Double>     ballmap;                // for line shortening

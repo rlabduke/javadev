@@ -30,6 +30,7 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
     protected int       alpha       = 255;      // 255 = opaque, 0 = fully transparent
     protected float     radius      = 0.2f;     // seems to be default in Mage; also used for arrow tine length (radius=)
     protected int       width       = 2;
+    protected int       style       = 0;        // style for MarkerPoints; could be alignment for labels
     protected Object    clipMode    = null;     // null for default, else some object key
     protected int       dimension   = 3;        // for high-dimensional kinemages
     
@@ -190,10 +191,10 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
     
     /** For use with MarkerPoint */
     public int getStyle()
-    { return (flags & MASK_MARKER_STYLES); }
+    { return style; }
     public void setStyle(int s)
     {
-        flags = (s & MASK_MARKER_STYLES) | (flags & ~MASK_MARKER_STYLES);
+        style = s;
         fireKinChanged(CHANGE_LIST_PROPERTIES);
     }
     
