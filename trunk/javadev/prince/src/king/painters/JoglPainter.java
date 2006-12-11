@@ -37,9 +37,9 @@ public class JoglPainter implements Painter
     GLUT        glut;
     Rectangle   clipRgn     = new Rectangle();
     int         currFont    = GLUT.BITMAP_HELVETICA_12;
-    int[]       xPoints     = new int[6];
-    int[]       yPoints     = new int[6];
-    float[]     circle4, circle8, circle16, circle32;
+    double[]    xPoints     = new double[6];
+    double[]    yPoints     = new double[6];
+    double[]    circle4, circle8, circle16, circle32;
 //}}}
 
 //{{{ Constructor(s)
@@ -78,22 +78,22 @@ public class JoglPainter implements Painter
 
 //{{{ makeCircle, fillOval, drawOval
 //##############################################################################
-    float[] makeCircle(int nVertices)
+    double[] makeCircle(int nVertices)
     {
-        float[] c = new float[2*nVertices];
+        double[] c = new double[2*nVertices];
         for(int i = 0; i < nVertices; i++)
         {
             double angle = 2 * Math.PI * (double)i / (double)nVertices;
             // The /2 is a correction for using diameter instead of radius in fillOval()
-            c[2*i]      = (float)(Math.cos(angle) / 2);
-            c[2*i+1]    = (float)(Math.sin(angle) / 2);
+            c[2*i]      = (Math.cos(angle) / 2);
+            c[2*i+1]    = (Math.sin(angle) / 2);
         }
         return c;
     }
     
     void fillOval(double x, double y, double width, double height)
     {
-        float[] circle;
+        double[] circle;
         double diam = (width > height ? width : height);
         if(diam <= 3)       circle = circle4;
         else if(diam <= 8)  circle = circle8;
@@ -105,14 +105,14 @@ public class JoglPainter implements Painter
         gl.glBegin(gl.GL_POLYGON);
         for(int i = 0; i < circle.length; i+=2)
         {
-            gl.glVertex2i((int)(cx + width*circle[i]), -(int)(cy + height*circle[i+1]));
+            gl.glVertex2d((cx + width*circle[i]), -(cy + height*circle[i+1]));
         }
         gl.glEnd();
     }
     
     void drawOval(double x, double y, double width, double height)
     {
-        float[] circle;
+        double[] circle;
         double diam = (width > height ? width : height);
         if(diam <= 3)       circle = circle4;
         else if(diam <= 8)  circle = circle8;
@@ -124,7 +124,7 @@ public class JoglPainter implements Painter
         gl.glBegin(gl.GL_LINE_LOOP);
         for(int i = 0; i < circle.length; i+=2)
         {
-            gl.glVertex2i((int)(cx + width*circle[i]), -(int)(cy + height*circle[i+1]));
+            gl.glVertex2d((cx + width*circle[i]), -(cy + height*circle[i+1]));
         }
         gl.glEnd();
     }
@@ -132,26 +132,26 @@ public class JoglPainter implements Painter
 
 //{{{ drawLine, fillRect, drawRect
 //##############################################################################
-    void drawLine(int x1, int y1, int x2, int y2)
+    void drawLine(double x1, double y1, double x2, double y2)
     {
         gl.glBegin(gl.GL_LINES);
-        gl.glVertex2i(x1, -y1);
-        gl.glVertex2i(x2, -y2);
+        gl.glVertex2d(x1, -y1);
+        gl.glVertex2d(x2, -y2);
         gl.glEnd();
     }
     
-    void fillRect(int x, int y, int width, int height)
+    void fillRect(double x, double y, double width, double height)
     {
-        gl.glRecti(x, -y, x+width, -(y+height));
+        gl.glRectd(x, -y, x+width, -(y+height));
     }
     
-    void drawRect(int x, int y, int width, int height)
+    void drawRect(double x, double y, double width, double height)
     {
         gl.glBegin(gl.GL_LINE_LOOP);
-        gl.glVertex2i(x, -y);
-        gl.glVertex2i(x, -(y+height));
-        gl.glVertex2i(x+width, -(y+height));
-        gl.glVertex2i(x+width, -y);
+        gl.glVertex2d(x, -y);
+        gl.glVertex2d(x, -(y+height));
+        gl.glVertex2d(x+width, -(y+height));
+        gl.glVertex2d(x+width, -y);
         gl.glEnd();
     }
 //}}}
@@ -160,7 +160,7 @@ public class JoglPainter implements Painter
 //##################################################################################################
     public void paintBall(Paint paint, double x, double y, double z, double r, boolean showHighlight)
     {
-        int d = (int)(2.0*r + 0.5);
+        double d = (2.0*r);
         if(d < 2) d = 2; // make sure balls don't disappear
         
         // one disk
@@ -201,7 +201,7 @@ public class JoglPainter implements Painter
         double off = width/2;
         setPaint(paint);
         if(width == 1)
-            fillRect((int)(x-off), (int)(y-off), width, width);
+            fillRect((x-off), (y-off), width, width);
         else
         {
             width += 1; // not big enough otherwise
@@ -225,8 +225,8 @@ public class JoglPainter implements Painter
 //##################################################################################################
     public void paintMarker(Paint paint, double x, double y, double z, int width, int paintStyle)
     {
-        int cx = (int)x, cy = (int)y;
-        int one = width, two = 2*width, three = 3*width, four = 4*width, five = 5*width,
+        double cx = x, cy = y;
+        double one = width, two = 2*width, three = 3*width, four = 4*width, five = 5*width,
             six = 6*width, seven = 7*width, ten = 10*width, eleven = 11*width;
         this.setPaint(paint);
         
@@ -272,7 +272,7 @@ public class JoglPainter implements Painter
 //##################################################################################################
     public void paintSphereDisk(Paint paint, double x, double y, double z, double r)
     {
-        int d = (int)(2.0*r + 0.5);
+        double d = (2.0*r);
         if(d < 2) d = 2; // make sure balls don't disappear
         
         // one disk
@@ -290,9 +290,9 @@ public class JoglPainter implements Painter
     {
         setPaint(paint);
         gl.glBegin(GL.GL_TRIANGLES);
-        gl.glVertex2i((int)x1, -(int)y1);
-        gl.glVertex2i((int)x2, -(int)y2);
-        gl.glVertex2i((int)x3, -(int)y3);
+        gl.glVertex2d(x1, -y1);
+        gl.glVertex2d(x2, -y2);
+        gl.glVertex2d(x3, -y3);
         gl.glEnd();
     }
 //}}}
@@ -304,16 +304,16 @@ public class JoglPainter implements Painter
         double x2, double y2, double z2)
     {
         setPaint(paint);
-        prettyLine((int)x1, (int)y1, (int)x2, (int)y2, KPalette.lineWidths[width-1][widthCue]);
+        prettyLine(x1, y1, x2, y2, KPalette.lineWidths[width-1][widthCue]);
     }
 //}}}
 
 //{{{ prettyLine
 //##################################################################################################
     /** Draws a thick line with nice ends, using fillPolygon(). Slightly slower (30-35%) than fastLine(). */
-    void prettyLine(int x1, int y1, int x2, int y2, int width)
+    void prettyLine(double x1, double y1, double x2, double y2, double width)
     {
-        int s, e, abs_x2_x1, abs_y2_y1;
+        double s, e, abs_x2_x1, abs_y2_y1;
         s = -width / 2; // Start offset
         e = s + width;  // End offset
         abs_x2_x1 = Math.abs(x2 - x1);
@@ -353,12 +353,12 @@ public class JoglPainter implements Painter
         }
         
         gl.glBegin(GL.GL_POLYGON);
-        gl.glVertex2i((int)xPoints[0], -(int)yPoints[0]);
-        gl.glVertex2i((int)xPoints[1], -(int)yPoints[1]);
-        gl.glVertex2i((int)xPoints[2], -(int)yPoints[2]);
-        gl.glVertex2i((int)xPoints[3], -(int)yPoints[3]);
-        gl.glVertex2i((int)xPoints[4], -(int)yPoints[4]);
-        gl.glVertex2i((int)xPoints[5], -(int)yPoints[5]);
+        gl.glVertex2d(xPoints[0], -yPoints[0]);
+        gl.glVertex2d(xPoints[1], -yPoints[1]);
+        gl.glVertex2d(xPoints[2], -yPoints[2]);
+        gl.glVertex2d(xPoints[3], -yPoints[3]);
+        gl.glVertex2d(xPoints[4], -yPoints[4]);
+        gl.glVertex2d(xPoints[5], -yPoints[5]);
         gl.glEnd();
     }
 //}}}
