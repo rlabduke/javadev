@@ -19,9 +19,11 @@ import javax.media.opengl.glu.*;
 */
 public class JoglTumblingObject extends JFrame implements ActionListener, GLEventListener
 {
+    final boolean       use3d   = true;
     Kinemage            kin     = null;
     KView               view    = null;
-    Engine2D            engine  = null;
+    Engine2D            engine2 = null;
+    JoglEngine3D        engine3 = null;
     GLCanvas            canvas  = null;
     Dimension           glSize  = new Dimension();
     Timer               timer   = null;
@@ -35,9 +37,10 @@ public class JoglTumblingObject extends JFrame implements ActionListener, GLEven
         kin = createKinemage();
         view = new KView(kin);
         view.setSpan(1.2f * view.getSpan());
-        engine = new Engine2D();
-        engine.usePerspective = true;
-        engine.cueThickness = true;
+        engine2 = new Engine2D();
+        engine2.usePerspective = true;
+        engine3 = new JoglEngine3D();
+        engine3.usePerspective = true;
         
         // Create and listen to an OpenGL canvas
         GLCapabilities capabilities = new GLCapabilities();
@@ -67,9 +70,11 @@ public class JoglTumblingObject extends JFrame implements ActionListener, GLEven
             KPaint.createLightweightHSV("silver", 240, 3, 90, 240, 3, 10) };
         for(int c = 0; c < colors.length; c++)
         {
-            KList list = new KList(KList.VECTOR);
+            //KList list = new KList(KList.VECTOR);
+            KList list = new KList(KList.BALL);
             list.setColor(colors[c]);
             list.setWidth(4);
+            list.setRadius(0.05f);
             g.add(list);
             double offset = (2.0 * Math.PI * c) / colors.length;
             VectorPoint prevPt = null;
@@ -77,10 +82,11 @@ public class JoglTumblingObject extends JFrame implements ActionListener, GLEven
             {
                 double r = 1 - Math.abs(y);
                 double theta = (2.0 * Math.PI * y) + offset;
-                VectorPoint pt = new VectorPoint("", prevPt);
+                //VectorPoint pt = new VectorPoint("", prevPt);
+                BallPoint pt = new BallPoint("");
                 pt.setXYZ(r * Math.cos(theta), y, r * Math.sin(theta));
                 list.add(pt);
-                prevPt = pt;
+                //prevPt = pt;
             }
         }
         
@@ -98,9 +104,15 @@ public class JoglTumblingObject extends JFrame implements ActionListener, GLEven
     
     public void display(GLAutoDrawable drawable)
     {
-        GL gl = drawable.getGL();
-        JoglPainter painter = new JoglPainter(drawable);
-        engine.render(kin, view, new Rectangle(this.glSize), painter);
+        if(use3d)
+        {
+            engine3.render(kin, view, new Rectangle(this.glSize), drawable.getGL());
+        }
+        else
+        {
+            JoglPainter painter = new JoglPainter(drawable);
+            engine2.render(kin, view, new Rectangle(this.glSize), painter);
+        }
     }
     
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height)

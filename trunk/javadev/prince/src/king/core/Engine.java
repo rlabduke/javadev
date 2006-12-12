@@ -81,9 +81,9 @@ abstract public class Engine //extends ... implements ...
     // See setActingParent() for a description of the stupid hijinks we're pulling here.
     
     // Things needed to support multiple clipping planes:
-    double              viewClipBack    = -1;
-    double              viewClipFront   = 1;
-    double              viewClipScaling = 1;
+    protected double    viewClipBack    = -1;
+    protected double    viewClipFront   = 1;
+    protected double    viewClipScaling = 1;
     // Objects used as keys are just arbitrary identifiers (can be "new Object()", for instance)
     Map<Object, Double> frontClipMap    = new HashMap<Object, Double>();
     Map<Object, Double> backClipMap     = new HashMap<Object, Double>();
