@@ -95,32 +95,8 @@ public class JoglEngine3D extends Engine
         gl.glEnable(gl.GL_POINT_SMOOTH);
         gl.glEnable(gl.GL_LINE_SMOOTH);
         
-
         // Lighting for spheres, ribbons, etc
-        // Direction is relative to transformed coordinate space in which observer is defined.
-        // We don't want the light rotating with the model!
-        gl.glMatrixMode(GL.GL_MODELVIEW);
-        gl.glPushMatrix();
-        gl.glLoadIdentity();
-        gl.glEnable(GL.GL_LIGHTING);
-        gl.glEnable(GL.GL_LIGHT0);
-        // Directional light source, such that rays from given position shine thru the origin.
-        gl.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, new float[] {0.5f, 0.5f, 0.5f, 1}, 0);
-        gl.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, new float[] {4, 4, 4, 1}, 0);
-        gl.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, new float[] {10, 10, 10, 10}, 0);
-        gl.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, new float[] {-(float)lightingVector.getX(), -(float)lightingVector.getY(), -(float)lightingVector.getZ(), 0}, 0);
-        //gl.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, new float[] {0.2f, 0.2f, 0.2f, 1}, 0);
-        gl.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, new float[] {0, 0, 0, 1}, 0);
-        gl.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_FALSE);
-        gl.glLightModeli(GL.GL_LIGHT_MODEL_TWO_SIDE, GL.GL_TRUE); // will be needed for ribbons!
-        // Base material
-        gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, new float[] {1,0,0,1}, 0);
-        gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, new float[] {1,0,0,1}, 0);
-        gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_SPECULAR, new float[] {1,1,1,1}, 0);
-        gl.glMaterialf(GL.GL_FRONT_AND_BACK, GL.GL_SHININESS, 127f);
-        gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT_AND_DIFFUSE); // seems not to work?
-        gl.glEnable(GL.GL_COLOR_MATERIAL);
-        gl.glPopMatrix();
+        setupLighting();
 
         // Projection and model-view matrix, and fog
         setupTransforms(view, bounds);
@@ -150,6 +126,83 @@ public class JoglEngine3D extends Engine
         if(ballDL != 0) gl.glDeleteLists(ballDL, 1);
     }    
 //}}}
+
+//{{{ setupLighting
+//##############################################################################
+    protected void setupLighting()
+    {
+        // Direction is relative to transformed coordinate space in which observer is defined.
+        // We don't want the light rotating with the model!
+        gl.glMatrixMode(GL.GL_MODELVIEW);
+        gl.glPushMatrix();
+        gl.glLoadIdentity();
+        // Lighting is enabled only for specific objects, because lines and points
+        // only are affected by ambient lighting components.
+        //gl.glEnable(GL.GL_LIGHTING);
+        // Correctly scaled normals are essential for lighting!
+        gl.glEnable(GL.GL_NORMALIZE);
+        gl.glEnable(GL.GL_LIGHT0);
+        
+        float I = 1.0f;        // overal intensity
+        float a = 0.3f * I;     // ambient
+        float d = 0.8f * I;     // diffuse
+        float s = 1.0f * I;     // specular (doesn't seem to work?)
+        gl.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, new float[] {a, a, a, 1}, 0);
+        gl.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, new float[] {d, d, d, 1}, 0);
+        //gl.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, new float[] {s, s, s, 1}, 0);
+
+        // Directional light source; vector indicates light direction.
+        Triple lv = this.lightingVector;
+        gl.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION,
+            new float[] {-(float)lv.getX(), -(float)lv.getY(), -(float)lv.getZ(), 0}, 0);
+        gl.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, new float[] {0, 0, 0, 1}, 0); // default is ???
+        gl.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_FALSE); // supposedly more efficient
+        gl.glLightModeli(GL.GL_LIGHT_MODEL_TWO_SIDE, GL.GL_TRUE); // will be needed for ribbons!
+        
+        // Base material
+        gl.glEnable(GL.GL_COLOR_MATERIAL); // color will be taken from color statements
+        gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT_AND_DIFFUSE); // must be enabled to work!
+        //gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, new float[] {1,0,0,1}, 0);
+        //gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, new float[] {1,0,0,1}, 0);
+        gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_SPECULAR, new float[] {1,1,1,1}, 0);
+        gl.glMaterialf(GL.GL_FRONT_AND_BACK, GL.GL_SHININESS, 80f);
+        gl.glPopMatrix();
+    }
+//}}}
+
+//{{{ NOTES ON THE COORDINATE SYSTEM
+/*##############################################################################
+KiNG uses a right-handed coordinate system, like Mage.
+If +X is right and +Y is up, then +Z is toward you and -Z is into the screen.
+OpenGL also uses a right-handed coordinate system (thankfully).
+
+The result of all the usual transformations in KiNG is to leave
+the center of view at the origin, scaled so that 1 unit = 1 pixel. 
+The observer is on the +Z axis, about 2000 pixels (~27") away from the origin.
+
+In OpenGL, the observer is always at the origin, and the view is always down
+the -Z axis (same direction as KiNG expects, actually).
+To simulate any other arrangement, the model should be transformed appropriately.
+It may be possible to transform the projection matrix instead.  I dunno.
+
+Scheme for rendering in the DiVE:
+(do these in reverse order as the "first" (last applied) components of the modelview matrix)
+    center on the observer
+    rotate the screen to the front
+        one Triple per edge
+        can use these to calculate top,bottom,left,right for glFrustum()
+        each screen defines a coordinate frame (right, up, front vectors)
+        these make a rotation matrix; default screen gives identity matrix
+        either this matrix or its transpose (=inverse) is our desired rotation
+            desired rotation matrix is:
+            [ rightX  rightY  rightZ ]
+            [    upX     upY     upZ ]
+            [ frontX  frontY  frontZ ]
+    un-center on the observer
+
+- if observer is null, observer = (0, 0, perspDist)
+- default screen is at (0,0,0) with up (0,1,0), right (1,0,0), and front (0,0,1)
+}}}*/
 
 //{{{ setupTransforms
 //##################################################################################################
@@ -190,6 +243,8 @@ public class JoglEngine3D extends Engine
         gl.glViewport(bounds.x, bounds.y, bounds.width, bounds.height);
 
         // Projection matrix
+        // Goal is to transform visible points into the cube from (-1,-1,-1) to (+1,+1,+1)
+        // Anything outside that cube after applying this matrix gets clipped!
         double near     = perspDist - viewClipScaling*viewClipFront;
         double far      = perspDist - viewClipScaling*viewClipBack;
         double right    = (width/2) * (near / perspDist);
@@ -203,6 +258,24 @@ public class JoglEngine3D extends Engine
         // but are Z coords for glOrtho (although they're then negated!).
         if(usePerspective)  gl.glFrustum(left, right, bottom, top, near, far);
         else                gl.glOrtho(left, right, bottom, top, near, far);
+        // Can do other view translation/rotation here, but it screws up the lighting!
+        // Do it at the "end" of the model-view sequence instead (i.e. first calls)
+        
+        /*{{{ The Syzygy way -- this sucks -- too hard to understand
+        double[] matrix = new double[16];
+        gl.glGetDoublev(GL.GL_PROJECTION_MATRIX, matrix, 0);
+        printMatrix("Standard", matrix);
+        // This one works, but is weird (normal, clipping)
+        //matrix = ar_frustumMatrix(new Triple(0, 0, -perspDist), new Triple(0,0,-1), new Triple(0,1,0), new Triple(0,0,0),
+        //    width/2, height/2, near, -viewClipScaling*viewClipBack);
+        // Equivalent to the one above:
+        //matrix = ar_frustumMatrix(new Triple(0, 0, 0), new Triple(0,0,-1), new Triple(0,1,0), new Triple(0, 0, perspDist),
+        //    width/2, height/2, near, -viewClipScaling*viewClipBack);
+        matrix = ar_frustumMatrix(new Triple(0, 0, 0), new Triple(-1,0,0), new Triple(0,1,0), new Triple(perspDist, 0, 0),
+            width/2, height/2, near, -viewClipScaling*viewClipBack);
+        printMatrix("Syzygy", matrix);
+        gl.glLoadMatrixd(matrix, 0);
+        }}}*/
 
         // Model-view matrix
         // Transforms are applied to the points in the REVERSE of the order specified.
@@ -223,6 +296,15 @@ public class JoglEngine3D extends Engine
         double farFog = (far - 0.36*near) / (1 - 0.36);
         gl.glFogf(GL.GL_FOG_END, (float) (farFog));
         gl.glFogfv(GL.GL_FOG_COLOR, clearColor, 0);
+    }
+    
+    void printMatrix(String label, double[] m)
+    {
+        System.err.println(label);
+        System.err.printf("%10g %10g %10g %10g \n", m[0], m[4], m[ 8], m[12]);
+        System.err.printf("%10g %10g %10g %10g \n", m[1], m[5], m[ 9], m[13]);
+        System.err.printf("%10g %10g %10g %10g \n", m[2], m[6], m[10], m[14]);
+        System.err.printf("%10g %10g %10g %10g \n", m[3], m[7], m[11], m[15]);
     }
 //}}}
 
@@ -269,6 +351,9 @@ public class JoglEngine3D extends Engine
 //##############################################################################
     protected void doBallList(KList list)
     {
+        // Radius cutoffs in pixels for different levels of detail
+        final double r1 = 4.0 / zoom3D, r2 = 12.0 / zoom3D, r3 = 128.0 / zoom3D;
+        
         KPaint listColor = list.getColor();
         setPaint(listColor);
         double radius = list.getRadius();
@@ -277,7 +362,10 @@ public class JoglEngine3D extends Engine
             gl.glPushMatrix();
             gl.glTranslated(p.getX(), p.getY(), p.getZ());
             gl.glScaled(radius, radius, radius);
-            drawSphere(2);
+            if(radius <= r1)        drawSphere(0);
+            else if(radius <= r2)   drawSphere(1);
+            else if(radius <= r3)   drawSphere(2);
+            else                    drawSphere(3);
             gl.glPopMatrix();
         }
     }
@@ -298,10 +386,12 @@ public class JoglEngine3D extends Engine
                 for(int i = 0; i <= maxDepth; i++)
                 {
                     gl.glNewList(ballDL+i, GL.GL_COMPILE);
+                    gl.glEnable(GL.GL_LIGHTING); // lines and points aren't lit
                     gl.glBegin(GL.GL_TRIANGLES);
                     for(int[] face : icosFaces)
                         drawSphereFace(icosVerts[face[0]], icosVerts[face[1]], icosVerts[face[2]], i);
                     gl.glEnd();
+                    gl.glDisable(GL.GL_LIGHTING);
                     gl.glEndList();
                 }
             }
@@ -312,10 +402,12 @@ public class JoglEngine3D extends Engine
         // else special case: render it the slow way
         else
         {
+            gl.glEnable(GL.GL_LIGHTING); // lines and points aren't lit
             gl.glBegin(GL.GL_TRIANGLES);
             for(int[] face : icosFaces)
                 drawSphereFace(icosVerts[face[0]], icosVerts[face[1]], icosVerts[face[2]], depth);
             gl.glEnd();
+            gl.glDisable(GL.GL_LIGHTING);
         }
     }
     
@@ -347,22 +439,6 @@ public class JoglEngine3D extends Engine
     }
 //}}}
 
-//{{{ empty_code_segment
-//##############################################################################
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
-//}}}
-
 //{{{ setPaint
 //##############################################################################
     void setPaint(KPaint p)
@@ -370,7 +446,7 @@ public class JoglEngine3D extends Engine
         try
         {
             Color c = (Color) (whiteBackground ? p.getWhiteExemplar() : p.getBlackExemplar());
-            gl.glColor4f( c.getRed()/255f, c.getGreen()/255f, c.getBlue()/255f, c.getAlpha()/255f);
+            gl.glColor4f( c.getRed()/255f, c.getGreen()/255f, c.getBlue()/255f, c.getAlpha()/255f );
         }
         catch(ClassCastException ex)
         {
@@ -378,6 +454,93 @@ public class JoglEngine3D extends Engine
             System.err.println("JoglPainter: tried painting with non-Color type of Paint");
         }
     }
+//}}}
+
+//{{{ ar_frustumMatrix
+//##############################################################################
+    /**
+    * I believe that all units are in the transformed space,
+    * which makes them pixels in this case.
+    * On a standard display, 72 pixels = 1 inch.
+    *
+    * This really only cares about the angle between the screenNormal and the
+    * screenCenter-eyePosition vector.  Putting the screen at a nominal location
+    * of (1,0,0) vs. (0,0,1) doesn't actually rotate the object to view from
+    * a different side as one might expect.
+    *
+    * @param screenCenter   (what it sounds like)
+    * @param screenNormal   unit vector, e.g. (0,0,1), points AWAY from viewer
+    * @param screenUp       unit vector, e.g. (0,1,0)
+    * @param eyePosition    (what it sounds like)
+    * @param halfWidth      of the screen surface
+    * @param halfHeight     of the screen surface
+    * @param nearClip       positive distance from eyeball to front clipping plane
+    * @param farClip        positive distance from screen to back clipping plane
+    *
+    * Taken from Syzygy (BSD license), /src/math/arMath.cpp
+    */
+    protected double[] ar_frustumMatrix(
+        Triple screenCenter, Triple screenNormal, Triple screenUp, Triple eyePosition, 
+        double halfWidth,  double halfHeight, double nearClip,  double farClip)
+    {
+        /// copypaste start
+        if(screenNormal.mag() <= 0)
+            return null; // error
+        final Triple zHat = new Triple(screenNormal).unit();
+        final Triple xHat = new Triple(zHat).cross(screenUp).unit();
+        final Triple yHat = new Triple(xHat).cross(zHat);
+        /// copypaste end
+        
+        final Triple rightEdge  = new Triple(screenCenter).addMult( halfWidth, xHat);
+        final Triple leftEdge   = new Triple(screenCenter).addMult(-halfWidth, xHat);
+        final Triple topEdge    = new Triple(screenCenter).addMult( halfHeight, yHat);
+        final Triple botEdge    = new Triple(screenCenter).addMult(-halfHeight, yHat);
+        
+        // double zEye = (eyePosition - headPosition) % zHat; // '%' = dot product
+        double screenDistance = new Triple(screenCenter).sub(eyePosition).dot(zHat);
+        if (screenDistance == 0)
+            return null; // error
+        
+        final double nearFrust  = nearClip;
+        final double distScale  = nearFrust / screenDistance;
+        final double rightFrust = distScale*(new Triple(rightEdge).sub(eyePosition).dot(xHat));
+        final double leftFrust  = distScale*(new Triple(leftEdge ).sub(eyePosition).dot(xHat));
+        final double topFrust   = distScale*(new Triple(topEdge  ).sub(eyePosition).dot(yHat));
+        final double botFrust   = distScale*(new Triple(botEdge  ).sub(eyePosition).dot(yHat));
+        final double farFrust   = screenDistance + farClip;
+        
+        if (rightFrust == leftFrust || topFrust == botFrust || nearFrust == farFrust)
+            return null; // error
+        
+        // this is necessary because g++ 2.96 is messed up.
+        //double funnyElement = (nearFrust+farFrust)/(nearFrust-farFrust);
+        //double[] result = new double[] {
+        //(2*nearFrust)/(rightFrust-leftFrust),   0,                                  (rightFrust+leftFrust)/(rightFrust-leftFrust),  0,
+        //0,                                      (2*nearFrust)/(topFrust-botFrust),  (topFrust+botFrust)/(topFrust-botFrust),        0,
+        //0,                                      0,                                  funnyElement,                                   2*nearFrust*farFrust/(nearFrust-farFrust),
+        //0,                                      0,                                  -1,                                             0 };
+        
+        // OpenGL order is transposed vs. what any normal person would do.
+        // Coordinate system handedness change may require inverting sign on off-diagonal elements of third row and third column (?)
+        double[] result = new double[] {
+        (2*nearFrust)/(rightFrust-leftFrust),           0,                                          0,                                          0,
+        0,                                              (2*nearFrust)/(topFrust-botFrust),          0,                                          0,
+        (rightFrust+leftFrust)/(rightFrust-leftFrust),  (topFrust+botFrust)/(topFrust-botFrust),    (nearFrust+farFrust)/(nearFrust-farFrust),  -1,
+        0,                                              0,                                          2*nearFrust*farFrust/(nearFrust-farFrust),  0 };
+        return result;
+    }
+//}}}
+
+//{{{ empty_code_segment
+//##############################################################################
+//}}}
+
+//{{{ empty_code_segment
+//##############################################################################
+//}}}
+
+//{{{ empty_code_segment
+//##############################################################################
 //}}}
 
 //{{{ empty_code_segment
