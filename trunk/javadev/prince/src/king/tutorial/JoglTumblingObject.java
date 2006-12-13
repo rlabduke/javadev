@@ -57,7 +57,7 @@ public class JoglTumblingObject extends JFrame implements ActionListener, GLEven
         this.show();
 
         timer = new Timer(1000 / 30, this);
-        timer.start();
+        //timer.start();
     }
     
     Kinemage createKinemage()
@@ -68,13 +68,31 @@ public class JoglTumblingObject extends JFrame implements ActionListener, GLEven
         
         KPaint[] colors = { KPalette.red, KPalette.green, KPalette.gold,
             KPaint.createLightweightHSV("silver", 240, 3, 90, 240, 3, 10) };
+        
         for(int c = 0; c < colors.length; c++)
         {
-            //KList list = new KList(KList.VECTOR);
             KList list = new KList(KList.BALL);
+            //list.setOn(false);
+            list.setColor(colors[c]);
+            list.setRadius(0.1f);
+            g.add(list);
+            double offset = (2.0 * Math.PI * c) / colors.length;
+            for(double y = -1; y <= 1.001; y += list.getRadius())
+            {
+                double r = 1 - Math.abs(y);
+                double theta = (2.0 * Math.PI * y) + offset;
+                BallPoint pt = new BallPoint("");
+                pt.setXYZ(r * Math.cos(theta), y, r * Math.sin(theta));
+                list.add(pt);
+            }
+        }
+        
+        for(int c = 0; c < colors.length; c++)
+        {
+            KList list = new KList(KList.VECTOR);
+            //list.setOn(false);
             list.setColor(colors[c]);
             list.setWidth(4);
-            list.setRadius(0.05f);
             g.add(list);
             double offset = (2.0 * Math.PI * c) / colors.length;
             VectorPoint prevPt = null;
@@ -82,11 +100,10 @@ public class JoglTumblingObject extends JFrame implements ActionListener, GLEven
             {
                 double r = 1 - Math.abs(y);
                 double theta = (2.0 * Math.PI * y) + offset;
-                //VectorPoint pt = new VectorPoint("", prevPt);
-                BallPoint pt = new BallPoint("");
+                VectorPoint pt = new VectorPoint("", prevPt);
                 pt.setXYZ(r * Math.cos(theta), y, r * Math.sin(theta));
                 list.add(pt);
-                //prevPt = pt;
+                prevPt = pt;
             }
         }
         
