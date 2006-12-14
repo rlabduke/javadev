@@ -38,7 +38,8 @@ public class JoglDiveDebug extends JFrame implements ActionListener
             canvas.addGLEventListener(this); // calls display(), reshape(), etc.
             engine = new JoglEngine3D();
             engine.usePerspective = true;
-            engine.clippingMultiplier = 100;
+            engine.setFont(18);
+            engine.caveClipping = true;
         }
         
         public void init(GLAutoDrawable drawable)
@@ -82,6 +83,8 @@ public class JoglDiveDebug extends JFrame implements ActionListener
         kin = createKinemage();
         view = new KView(kin);
         view.setSpan(1.2f * view.getSpan());
+        //view.setClip(3); // extra depth
+        //view.setCenter(0, 0, 2);
         
         createScreens();
         Container cp = new Panel();
@@ -150,6 +153,10 @@ public class JoglDiveDebug extends JFrame implements ActionListener
         e.screenNormalVec = new Triple(1, 0, 0);
         c = s.canvas;
         c.setBounds(0*size, 1*size, size, size);
+        
+        // Top and bottom have very unusual "up" vectors.
+        // I'm not sure why these values are the right answers,
+        // but they produce the expected results.
 
         // top
         s = screens[3] = new Screen(capabilities);
@@ -228,6 +235,42 @@ public class JoglDiveDebug extends JFrame implements ActionListener
                 prevPt = pt;
             }
         }
+        
+        KList list = new KList(KList.TRIANGLE);
+        list.setOn(false);
+        list.setColor(KPalette.gray);
+        g.add(list);
+        TrianglePoint prevPt = null;
+        for(double y = -1; y <= 1.001; y += 0.02)
+        {
+            double r = 1 - Math.abs(y);
+            double theta = (2.0 * Math.PI * y);
+            TrianglePoint pt = new TrianglePoint("", prevPt);
+            pt.setXYZ(r * Math.cos(theta), y-0.1, r * Math.sin(theta));
+            list.add(pt);
+            prevPt = pt;
+            pt = new TrianglePoint("", prevPt);
+            pt.setXYZ(r * Math.cos(theta), y+0.1, r * Math.sin(theta));
+            list.add(pt);
+            prevPt = pt;
+        }
+        
+        list = new KList(KList.LABEL);
+        //list.setOn(false);
+        list.setColor(KPalette.deadwhite);
+        g.add(list);
+        LabelPoint l1 = new LabelPoint("X-axis");
+        l1.setXYZ(0.5, 0, 0);
+        l1.setColor(KPalette.pinktint);
+        list.add(l1);
+        LabelPoint l2 = new LabelPoint("Y-axis");
+        l2.setXYZ(0, 0.5, 0);
+        l2.setColor(KPalette.greentint);
+        list.add(l2);
+        LabelPoint l3 = new LabelPoint("Z-axis");
+        l3.setXYZ(0, 0, 0.5);
+        l3.setColor(KPalette.bluetint);
+        list.add(l3);
         
         return k;
     }

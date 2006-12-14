@@ -18,7 +18,21 @@ import javax.media.opengl.glu.*;
 import com.sun.opengl.util.*; // for GLUT
 //}}}
 /**
-* <code>JoglEngine3D</code> has not yet been documented.
+* <code>JoglEngine3D</code> is a kinemage renderer that uses "real" OpenGL
+* calls to render a 3-dimensional image of the scene.
+* It does not support all possible options in the kinemage format, so it
+* should only be used in cases where it has to be (e.g. a CAVE setting).
+*
+* <p>Features that are not currently supported:
+* <ul>
+* <li>Some types of points (arrows, markers, rings -- rendered as dots)</li>
+* <li>Depth cueing by line width</li>
+* <li>Translucency</li>
+* <li>Instanced lists (instance=)</li>
+* <li>Per-group or per-list transformations</li>
+* <li></li>
+* <li>... other things I've forgotten ...</li>
+* </ul>
 *
 * <p>Copyright (C) 2006 by Ian W. Davis. All rights reserved.
 * <br>Begun on Tue Dec 12 09:21:44 EST 2006
@@ -37,13 +51,14 @@ public class JoglEngine3D extends Engine
     /** Unit vector defining the screen / world "up"; needs not be orthogonal to screen normal but should be close */
     public Triple       screenUpVec         = new Triple(0, 1, 0);
     
-    /** Set to 1 for "normal" clipping; set to much greater for DiVE style clipping */
-    public double       clippingMultiplier  = 1;
+    /** If set, clipping volume always starts very close to the eye, instead of around the screen */
+    public boolean      caveClipping = false;
 
     protected GL        gl;
     protected GLU       glu;
     protected GLUT      glut;
     protected float[]   clearColor;
+    protected int       currFont = GLUT.BITMAP_HELVETICA_12;
     
     protected Triple[]  icosVerts;
     protected int[][]   icosFaces;
@@ -141,12 +156,12 @@ public class JoglEngine3D extends Engine
             String type = list.getType();
             if(KList.VECTOR.equals(type))           doVectorList(list);
             else if(KList.DOT.equals(type))         doDotList(list);
-            else if(KList.RIBBON.equals(type))      doDotList(list);
+            else if(KList.RIBBON.equals(type))      doTriangleList(list, true);
             else if(KList.BALL.equals(type))        doBallList(list);
             else if(KList.SPHERE.equals(type))      doBallList(list);
-            else if(KList.TRIANGLE.equals(type))    doDotList(list);
+            else if(KList.TRIANGLE.equals(type))    doTriangleList(list, false);
             else if(KList.MARK.equals(type))        doDotList(list);
-            else if(KList.LABEL.equals(type))       doDotList(list);
+            else if(KList.LABEL.equals(type))       doLabelList(list);
             else if(KList.RING.equals(type))        doDotList(list);
             else if(KList.ARROW.equals(type))       doDotList(list);
             else                                    doDotList(list);
@@ -189,10 +204,10 @@ public class JoglEngine3D extends Engine
         float I = 1.0f;        // overal intensity
         float a = 0.3f * I;     // ambient
         float d = 0.8f * I;     // diffuse
-        float s = 1.0f * I;     // specular (doesn't seem to work?)
+        float s = 0.0f * I;     // specular (doesn't seem to work?)
         gl.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, new float[] {a, a, a, 1}, 0);
         gl.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, new float[] {d, d, d, 1}, 0);
-        //gl.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, new float[] {s, s, s, 1}, 0);
+        gl.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, new float[] {s, s, s, 1}, 0);
 
         // Directional light source; vector indicates light direction.
         Triple lv = this.lightingVector;
@@ -353,15 +368,24 @@ Scheme for rendering in the DiVE:
         R.prepend( new Transform().likeTranslation(negEyePos) );
         // Find position of screen center in the new scheme -- it will be somewhere on the -Z axis
         Triple scrCtr = (Triple) R.transform(this.screenCenterPos, new Triple());
+        final double minClipDist = size/20;
         double scrDist      = (-scrCtr.getZ());
-        double near         = Math.max(scrDist - clippingMultiplier*viewClipScaling*viewClipFront, size/20);
-        double far          = Math.max(scrDist - clippingMultiplier*viewClipScaling*viewClipBack, size/10);
+        double near         = Math.max(scrDist - viewClipScaling*viewClipFront, minClipDist);
+        double far          = Math.max(scrDist - viewClipScaling*viewClipBack, 2*minClipDist);
         double frontWidth   = width * (near / scrDist);
         double frontHeight  = height * (near / scrDist);
         double right        = scrCtr.getX() + (frontWidth / 2);
         double left         = scrCtr.getX() - (frontWidth / 2);
         double top          = scrCtr.getY() + (frontHeight / 2);
         double bottom       = scrCtr.getY() - (frontHeight / 2);
+        if(caveClipping)
+        {
+            // Slide the clipping planes forward to very near the observer.
+            // Can't be AT the observer because transform is undef.
+            double offset = near - minClipDist;
+            near -= offset;
+            far  -= offset;
+        }
         // l,r,b,t apply at distance "near" and are X,Y coords
         // near and far are (positive) distances from the camera for glFrustum
         // but are Z coords for glOrtho (although they're then negated!).
@@ -441,6 +465,9 @@ Scheme for rendering in the DiVE:
     * @param farClip        positive distance from screen to back clipping plane
     *
     * Taken from Syzygy (BSD license), /src/math/arMath.cpp
+    *
+    * The derivation of this matrix (as produced by glFrustum()) is also listed
+    * in Appendix G of the OpenGL Programming Guide!
     */
     protected double[] ar_frustumMatrix(
         Triple screenCenter, Triple screenNormal, Triple screenUp, Triple eyePosition, 
@@ -498,10 +525,12 @@ Scheme for rendering in the DiVE:
 //##############################################################################
     protected void doVectorList(KList list)
     {
-        KPaint listColor = list.getColor();
-        setPaint(listColor);
-        // The +0.5 makes it closer to other KiNG rendering modes
-        gl.glLineWidth(list.getWidth()+0.5f);
+        KPaint currColor = list.getColor();
+        if(currColor.isInvisible()) return;
+        setPaint(currColor);
+        int currWidth = list.getWidth();
+        // The +0.5 makes it closer to other KiNG rendering modes (?)
+        gl.glLineWidth(currWidth+0.5f);
         gl.glBegin(GL.GL_LINE_STRIP);
         for(KPoint p : list.getChildren())
         {
@@ -510,6 +539,23 @@ Scheme for rendering in the DiVE:
                 gl.glEnd();
                 gl.glBegin(GL.GL_LINE_STRIP);
             }
+            
+            KPaint ptColor = p.getDrawingColor(this);
+            if(ptColor.isInvisible()) continue;
+            // Supposedly it's good to minimize the number of color changes
+            if(ptColor != currColor)
+            {
+                setPaint(ptColor);
+                currColor = ptColor;
+            }
+            
+            int ptWidth = calcLineWidth(p, list);
+            if(ptWidth != currWidth)
+            {
+                gl.glLineWidth(ptWidth+0.5f);
+                currWidth = ptWidth;
+            }
+            
             gl.glVertex3d(p.getX(), p.getY(), p.getZ());
         }
         gl.glEnd();
@@ -520,13 +566,31 @@ Scheme for rendering in the DiVE:
 //##############################################################################
     protected void doDotList(KList list)
     {
-        KPaint listColor = list.getColor();
-        setPaint(listColor);
-        // The +0.5 makes it closer to other KiNG rendering modes
-        gl.glPointSize(list.getWidth()+0.5f);
+        KPaint currColor = list.getColor();
+        if(currColor.isInvisible()) return;
+        setPaint(currColor);
+        int currWidth = list.getWidth();
+        // The +0.5 makes it closer to other KiNG rendering modes (?)
+        gl.glLineWidth(currWidth+0.5f);
         gl.glBegin(GL.GL_POINTS);
         for(KPoint p : list.getChildren())
         {
+            KPaint ptColor = p.getDrawingColor(this);
+            if(ptColor.isInvisible()) continue;
+            // Supposedly it's good to minimize the number of color changes
+            if(ptColor != currColor)
+            {
+                setPaint(ptColor);
+                currColor = ptColor;
+            }
+            
+            int ptWidth = calcLineWidth(p, list);
+            if(ptWidth != currWidth)
+            {
+                gl.glLineWidth(ptWidth+0.5f);
+                currWidth = ptWidth;
+            }
+            
             gl.glVertex3d(p.getX(), p.getY(), p.getZ());
         }
         gl.glEnd();
@@ -540,11 +604,24 @@ Scheme for rendering in the DiVE:
         // Radius cutoffs in pixels for different levels of detail
         final double r1 = 4.0 / zoom3D, r2 = 12.0 / zoom3D, r3 = 128.0 / zoom3D;
         
-        KPaint listColor = list.getColor();
-        setPaint(listColor);
-        double radius = list.getRadius();
+        KPaint currColor = list.getColor();
+        if(currColor.isInvisible()) return;
+        setPaint(currColor);
+        double listRadius = list.getRadius();
         for(KPoint p : list.getChildren())
         {
+            KPaint ptColor = p.getDrawingColor(this);
+            if(ptColor.isInvisible()) continue;
+            // Supposedly it's good to minimize the number of color changes
+            if(ptColor != currColor)
+            {
+                setPaint(ptColor);
+                currColor = ptColor;
+            }
+            
+            double radius = p.getRadius();
+            if(radius == 0) radius = listRadius;
+            
             gl.glPushMatrix();
             gl.glTranslated(p.getX(), p.getY(), p.getZ());
             gl.glScaled(radius, radius, radius);
@@ -625,9 +702,88 @@ Scheme for rendering in the DiVE:
     }
 //}}}
 
-//{{{ setPaint
+//{{{ doLabelList
 //##############################################################################
-    void setPaint(KPaint p)
+    protected void doLabelList(KList list)
+    {
+        KPaint currColor = list.getColor();
+        if(currColor.isInvisible()) return;
+        setPaint(currColor);
+        for(KPoint p : list.getChildren())
+        {
+            KPaint ptColor = p.getDrawingColor(this);
+            if(ptColor.isInvisible()) continue;
+            // Supposedly it's good to minimize the number of color changes
+            if(ptColor != currColor)
+            {
+                setPaint(ptColor);
+                currColor = ptColor;
+            }
+            
+            gl.glRasterPos3d(p.getX(), p.getY(), p.getZ());
+            glut.glutBitmapString(currFont, p.getName());
+        }
+    }
+//}}}
+
+//{{{ doTriangleList
+//##############################################################################
+    protected void doTriangleList(KList list, boolean ribbonNormals)
+    {
+        KPaint currColor = list.getColor();
+        if(currColor.isInvisible()) return;
+        setPaint(currColor);
+        gl.glEnable(GL.GL_LIGHTING); // lines and points aren't lit
+        gl.glBegin(GL.GL_TRIANGLE_STRIP);
+        KPoint from = null, fromfrom = null;
+        boolean flipNormal = false; // to get consistent normals -- not really needed
+        for(KPoint p : list.getChildren())
+        {
+            if(p.isBreak())
+            {
+                gl.glEnd();
+                from = fromfrom = null;
+                flipNormal = false;
+                gl.glBegin(GL.GL_TRIANGLE_STRIP);
+            }
+            
+            KPaint ptColor = p.getDrawingColor(this);
+            if(ptColor.isInvisible()) continue;
+            // Supposedly it's good to minimize the number of color changes
+            if(ptColor != currColor)
+            {
+                setPaint(ptColor);
+                currColor = ptColor;
+            }
+            
+            if(from != null && fromfrom != null)
+            {
+                work2.likeVector(fromfrom, from);
+                work1.likeVector(from, p);
+                work1.cross(work2);
+                // not normalized, but has to be re-normalized by OpenGL anyway
+                if(flipNormal)
+                {
+                    if(!ribbonNormals) gl.glNormal3d(-work1.getX(), -work1.getY(), -work1.getZ());
+                    // for ribbons, just use the previous normal on every other triangle 
+                }
+                else gl.glNormal3d(work1.getX(), work1.getY(), work1.getZ());
+            }
+            
+            gl.glVertex3d(p.getX(), p.getY(), p.getZ());
+            
+            fromfrom = from;
+            from = p;
+            flipNormal = !flipNormal;
+        }
+        gl.glEnd();
+        gl.glDisable(GL.GL_LIGHTING);
+    }
+//}}}
+
+//{{{ setPaint, calcLineWidth
+//##############################################################################
+    protected void setPaint(KPaint p)
     {
         try
         {
@@ -640,18 +796,43 @@ Scheme for rendering in the DiVE:
             System.err.println("JoglPainter: tried painting with non-Color type of Paint");
         }
     }
+    
+    protected int calcLineWidth(KPoint point, KList parent)
+    {
+        int wid = point.getWidth();
+        if(this.thinLines)      return 1;
+        else if(wid > 0)        return wid;
+        else if(parent != null) return parent.getWidth();
+        else                    return 2;
+    }
+
 //}}}
 
-//{{{ empty_code_segment
+//{{{ setFont, getLabelWidth/Ascent/Descent
 //##############################################################################
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
+    public void setFont(Font f)
+    { setFont(f.getSize()); }
+    
+    public void setFont(int sz)
+    {
+        if(sz <= 10)        currFont = GLUT.BITMAP_HELVETICA_10;
+        else if(sz <= 14)   currFont = GLUT.BITMAP_HELVETICA_12;
+        else                currFont = GLUT.BITMAP_HELVETICA_18;
+    }
+    
+    protected int getLabelWidth(String s)
+    { return glut.glutBitmapLength(currFont, s); }
+    
+    protected int getLabelAscent(String s)
+    {
+        if(currFont == GLUT.BITMAP_HELVETICA_10)        return 10;
+        else if(currFont == GLUT.BITMAP_HELVETICA_12)   return 12;
+        else if(currFont == GLUT.BITMAP_HELVETICA_18)   return 18;
+        else                                            return 1;
+    }
+    
+    protected int getLabelDescent(String s)
+    { return getLabelAscent(s)/4; }
 //}}}
 
 //{{{ empty_code_segment
