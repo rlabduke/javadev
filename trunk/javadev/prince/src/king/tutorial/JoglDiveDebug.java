@@ -1,8 +1,11 @@
+// (jEdit options) :folding=explicit:collapseFolds=1:
+//{{{ Package, imports
 package king.tutorial;
 
 import king.core.*;
 import king.points.*;
 import king.painters.*;
+import driftwood.r3.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -11,6 +14,7 @@ import javax.swing.Timer;
 
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
+//}}}
 /**
 * <code>JoglDiveDebug</code> is used for testing out rendering methods for
 * the Duke DiVE (6-sided VR cave).
@@ -18,15 +22,55 @@ import javax.media.opengl.glu.*;
 * <p>Copyright (C) 2006 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri Dec  8 13:27:16 EST 2006
 */
-public class JoglDiveDebug extends JFrame implements ActionListener, GLEventListener
+public class JoglDiveDebug extends JFrame implements ActionListener
 {
+//{{{ CLASS: Screen
+//##############################################################################
+    public class Screen implements GLEventListener
+    {
+        public GLCanvas         canvas  = null;
+        public JoglEngine3D     engine  = null;
+        public Dimension        glSize  = new Dimension();
+        
+        public Screen(GLCapabilities capabilities)
+        {
+            canvas = new GLCanvas(capabilities);
+            canvas.addGLEventListener(this); // calls display(), reshape(), etc.
+            engine = new JoglEngine3D();
+            engine.usePerspective = true;
+            engine.clippingMultiplier = 100;
+        }
+        
+        public void init(GLAutoDrawable drawable)
+        {}
+        
+        public void display(GLAutoDrawable drawable)
+        {
+            GL gl = drawable.getGL();
+            engine.render(kin, view, new Rectangle(glSize), gl, eyePos);
+        }
+        
+        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height)
+        {
+            this.glSize.setSize(width, height);
+        }
+        
+        public void displayChanged(GLAutoDrawable drawable, boolean modeChnaged, boolean deviceChanged)
+        {}
+    }
+//}}}
+
+//{{{ Variable definitions
+//##############################################################################
     Kinemage            kin     = null;
     KView               view    = null;
-    JoglEngine3D        engine3 = null;
-    GLCanvas            canvas  = null;
-    Dimension           glSize  = new Dimension();
+    Triple              eyePos  = new Triple(0, 0, 0);
+    Screen[]            screens = null;
     Timer               timer   = null;
+//}}}
 
+//{{{ main, Constructor(s)
+//##############################################################################
     static public void main(String[] args) { new JoglDiveDebug(); }
     
     public JoglDiveDebug()
@@ -38,20 +82,14 @@ public class JoglDiveDebug extends JFrame implements ActionListener, GLEventList
         kin = createKinemage();
         view = new KView(kin);
         view.setSpan(1.2f * view.getSpan());
-        engine3 = new JoglEngine3D();
-        engine3.usePerspective = true;
         
-        // Create and listen to an OpenGL canvas
-        GLCapabilities capabilities = new GLCapabilities();
-        capabilities.setDoubleBuffered(true); // usually enabled by default, but to be safe...
-        int fsaaNumSamples = 4;
-        capabilities.setSampleBuffers(fsaaNumSamples > 1); // enables/disables full-scene antialiasing (FSAA)
-        capabilities.setNumSamples(fsaaNumSamples); // sets number of samples for FSAA (default is 2)
-        canvas = new GLCanvas(capabilities);
-        canvas.addGLEventListener(this); // calls display(), reshape(), etc.
-        canvas.setPreferredSize(new Dimension(400,400));
-        this.getContentPane().add(canvas);
-        
+        createScreens();
+        Container cp = new Panel();
+        cp.setLayout(null);
+        for(Screen s : screens)
+            if(s != null) cp.add(s.canvas);
+        this.setContentPane(cp);
+
         this.pack();
         this.show();
         
@@ -69,7 +107,81 @@ public class JoglDiveDebug extends JFrame implements ActionListener, GLEventList
         timer = new Timer(1000 / 30, this);
         timer.start();
     }
+//}}}
     
+//{{{ createScreens
+//##############################################################################
+    void createScreens()
+    {
+        // Set up parameters for rendering
+        GLCapabilities capabilities = new GLCapabilities();
+        capabilities.setDoubleBuffered(true); // usually enabled by default, but to be safe...
+        int fsaaNumSamples = 4;
+        capabilities.setSampleBuffers(fsaaNumSamples > 1); // enables/disables full-scene antialiasing (FSAA)
+        capabilities.setNumSamples(fsaaNumSamples); // sets number of samples for FSAA (default is 2)
+
+        // Allocate screens[]
+        this.screens = new Screen[6];
+        Screen s;
+        GLCanvas c;
+        JoglEngine3D e;
+        final int size = 400;
+        
+        // center / straight ahead
+        s = screens[0] = new Screen(capabilities);
+        e = s.engine;
+        e.screenCenterPos = new Triple(0, 0, -size/2.0);
+        e.screenNormalVec = new Triple(0, 0, 1);
+        c = s.canvas;
+        c.setBounds(1*size, 1*size, size, size);
+
+        // right
+        s = screens[1] = new Screen(capabilities);
+        e = s.engine;
+        e.screenCenterPos = new Triple(size/2.0, 0, 0);
+        e.screenNormalVec = new Triple(-1, 0, 0);
+        c = s.canvas;
+        c.setBounds(2*size, 1*size, size, size);
+
+        // left
+        s = screens[2] = new Screen(capabilities);
+        e = s.engine;
+        e.screenCenterPos = new Triple(-size/2.0, 0, 0);
+        e.screenNormalVec = new Triple(1, 0, 0);
+        c = s.canvas;
+        c.setBounds(0*size, 1*size, size, size);
+
+        // top
+        s = screens[3] = new Screen(capabilities);
+        e = s.engine;
+        e.screenCenterPos = new Triple(0, size/2.0, 0);
+        e.screenNormalVec = new Triple(0, -1, 0);
+        e.screenUpVec     = new Triple(0, 0, 1); // can't be || to normal
+        c = s.canvas;
+        c.setBounds(1*size, 0*size, size, size);
+
+        // bottom
+        s = screens[4] = new Screen(capabilities);
+        e = s.engine;
+        e.screenCenterPos = new Triple(0, -size/2.0, 0);
+        e.screenNormalVec = new Triple(0, 1, 0);
+        e.screenUpVec     = new Triple(0, 0, -1); // can't be || to normal
+        c = s.canvas;
+        c.setBounds(1*size, 2*size, size, size);
+
+        // back
+        s = screens[5] = new Screen(capabilities);
+        e = s.engine;
+        e.screenCenterPos = new Triple(0, 0, size/2.0);
+        e.screenNormalVec = new Triple(0, 0, -1);
+        e.screenUpVec     = new Triple(0, 1, 0);
+        c = s.canvas;
+        c.setBounds(3*size, 1*size, size, size);
+    }
+//}}}
+
+//{{{ createKinemage
+//##############################################################################
     Kinemage createKinemage()
     {
         Kinemage k = new Kinemage();
@@ -119,27 +231,20 @@ public class JoglDiveDebug extends JFrame implements ActionListener, GLEventList
         
         return k;
     }
+//}}}
 
+//{{{ actionPerformed
+//##############################################################################
     public void actionPerformed(ActionEvent ev)
     {
         view.rotateY( (float) Math.toRadians(1.0) );
-        canvas.repaint();
+        for(Screen s : screens)
+            if(s != null) s.canvas.repaint();
     }
-    
-    public void init(GLAutoDrawable drawable)
-    {}
-    
-    public void display(GLAutoDrawable drawable)
-    {
-        engine3.render(kin, view, new Rectangle(this.glSize), drawable.getGL());
-    }
-    
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height)
-    {
-        this.glSize.setSize(width, height);
-    }
-    
-    public void displayChanged(GLAutoDrawable drawable, boolean modeChnaged, boolean deviceChanged)
-    {}
+//}}}
+
+//{{{ empty_code_segment
+//##############################################################################
+//}}}
 }//class
 

@@ -36,6 +36,9 @@ public class JoglEngine3D extends Engine
     public Triple       screenNormalVec     = new Triple(0, 0, 1);
     /** Unit vector defining the screen / world "up"; needs not be orthogonal to screen normal but should be close */
     public Triple       screenUpVec         = new Triple(0, 1, 0);
+    
+    /** Set to 1 for "normal" clipping; set to much greater for DiVE style clipping */
+    public double       clippingMultiplier  = 1;
 
     protected GL        gl;
     protected GLU       glu;
@@ -87,7 +90,7 @@ public class JoglEngine3D extends Engine
     * @param eyePosition    location of the observer's eyeball in the arbitrary world frame,
     *   measured in pixels (1/72" for most displays).  Interacts with screen position/orientation.
     */
-    public void render(AGE xformable, KView view, Rectangle bounds, GL gl, Triple eyePosition)
+    public void render(AGE xformable, KView view, Rectangle bounds, GL gl, Tuple3 eyePosition)
     {
         // init GL
         this.gl     = gl;
@@ -117,6 +120,7 @@ public class JoglEngine3D extends Engine
 
         // Clear background
         // This must happen AFTER the viewport is set in setupTransforms
+        // Actually, for some reason this clears the whole screen, not just my viewport
         gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
         gl.glEnable(GL.GL_DEPTH_TEST);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
@@ -220,7 +224,7 @@ Scheme for rendering in the DiVE:
 
 //{{{ setupTransforms
 //##################################################################################################
-    protected void setupTransforms(KView view, Rectangle bounds, Triple eyePosition)
+    protected void setupTransforms(KView view, Rectangle bounds, Tuple3 eyePosition)
     {
         double width, height, size, xOff, yOff;
         width   = bounds.getWidth();
@@ -325,8 +329,8 @@ Scheme for rendering in the DiVE:
         // Find position of screen center in the new scheme -- it will be somewhere on the -Z axis
         Triple scrCtr = (Triple) R.transform(this.screenCenterPos, new Triple());
         double scrDist      = (-scrCtr.getZ());
-        double near         = Math.max(scrDist - viewClipScaling*viewClipFront, 100);
-        double far          = Math.max(scrDist - viewClipScaling*viewClipBack, 200);
+        double near         = Math.max(scrDist - clippingMultiplier*viewClipScaling*viewClipFront, size/20);
+        double far          = Math.max(scrDist - clippingMultiplier*viewClipScaling*viewClipBack, size/10);
         double frontWidth   = width * (near / scrDist);
         double frontHeight  = height * (near / scrDist);
         double right        = scrCtr.getX() + (frontWidth / 2);
