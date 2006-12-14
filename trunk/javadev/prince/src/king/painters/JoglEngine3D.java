@@ -30,6 +30,13 @@ public class JoglEngine3D extends Engine
 
 //{{{ Variable definitions
 //##############################################################################
+    /** Location of the screen center in some arbitrary world frame, measured in pixels (1/72" for most displays) */
+    public Triple       screenCenterPos     = new Triple(0, 0, 0);
+    /** Unit vector defining the screen normal; points TOWARD the observer */
+    public Triple       screenNormalVec     = new Triple(0, 0, 1);
+    /** Unit vector defining the screen / world "up"; needs not be orthogonal to screen normal but should be close */
+    public Triple       screenUpVec         = new Triple(0, 1, 0);
+
     protected GL        gl;
     protected GLU       glu;
     protected GLUT      glut;
@@ -67,13 +74,20 @@ public class JoglEngine3D extends Engine
 
 //{{{ render
 //##################################################################################################
+    /** Renders with the observer at (0, 0, perspDist) -- perfect for viewing the default screen. */
+    public void render(AGE xformable, KView view, Rectangle bounds, GL gl)
+    { render(xformable, view, bounds, gl, new Triple(0, 0, perspDist)); }
+
     /**
     * Transforms the given Transformable and renders it to a graphics context.
     * @param xformable      the Transformable that will be transformed and rendered
     * @param view           a KView representing the current rotation/zoom/clip
     * @param bounds         the bounds of the area to render to.
+    * @param gl             the OpenGL graphics context
+    * @param eyePosition    location of the observer's eyeball in the arbitrary world frame,
+    *   measured in pixels (1/72" for most displays).  Interacts with screen position/orientation.
     */
-    public void render(AGE xformable, KView view, Rectangle bounds, GL gl)
+    public void render(AGE xformable, KView view, Rectangle bounds, GL gl, Triple eyePosition)
     {
         // init GL
         this.gl     = gl;
@@ -99,9 +113,10 @@ public class JoglEngine3D extends Engine
         setupLighting();
 
         // Projection and model-view matrix, and fog
-        setupTransforms(view, bounds);
+        setupTransforms(view, bounds, eyePosition);
 
         // Clear background
+        // This must happen AFTER the viewport is set in setupTransforms
         gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
         gl.glEnable(GL.GL_DEPTH_TEST);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
@@ -181,9 +196,9 @@ the center of view at the origin, scaled so that 1 unit = 1 pixel.
 The observer is on the +Z axis, about 2000 pixels (~27") away from the origin.
 
 In OpenGL, the observer is always at the origin, and the view is always down
-the -Z axis (same direction as KiNG expects, actually).
+the -Z axis (same direction as KiNG expects, actually, just translated in Z).
 To simulate any other arrangement, the model should be transformed appropriately.
-It may be possible to transform the projection matrix instead.  I dunno.
+(Transforming the projection matrix instead is possible but causes artifacts.)
 
 Scheme for rendering in the DiVE:
 (do these in reverse order as the "first" (last applied) components of the modelview matrix)
@@ -198,7 +213,6 @@ Scheme for rendering in the DiVE:
             [ rightX  rightY  rightZ ]
             [    upX     upY     upZ ]
             [ frontX  frontY  frontZ ]
-    un-center on the observer
 
 - if observer is null, observer = (0, 0, perspDist)
 - default screen is at (0,0,0) with up (0,1,0), right (1,0,0), and front (0,0,1)
@@ -206,7 +220,7 @@ Scheme for rendering in the DiVE:
 
 //{{{ setupTransforms
 //##################################################################################################
-    protected void setupTransforms(KView view, Rectangle bounds)
+    protected void setupTransforms(KView view, Rectangle bounds, Triple eyePosition)
     {
         double width, height, size, xOff, yOff;
         width   = bounds.getWidth();
@@ -242,6 +256,7 @@ Scheme for rendering in the DiVE:
         // where within the window (pixel coords) the image will be drawn.
         gl.glViewport(bounds.x, bounds.y, bounds.width, bounds.height);
 
+        /*{{{ The original code (which works for the standard observer, standard screen)
         // Projection matrix
         // Goal is to transform visible points into the cube from (-1,-1,-1) to (+1,+1,+1)
         // Anything outside that cube after applying this matrix gets clipped!
@@ -260,6 +275,7 @@ Scheme for rendering in the DiVE:
         else                gl.glOrtho(left, right, bottom, top, near, far);
         // Can do other view translation/rotation here, but it screws up the lighting!
         // Do it at the "end" of the model-view sequence instead (i.e. first calls)
+        }}}*/
         
         /*{{{ The Syzygy way -- this sucks -- too hard to understand
         double[] matrix = new double[16];
@@ -277,15 +293,79 @@ Scheme for rendering in the DiVE:
         gl.glLoadMatrixd(matrix, 0);
         }}}*/
 
+        // Projection matrix
+        // Goal is to transform visible points into the cube from (-1,-1,-1) to (+1,+1,+1)
+        // Anything outside that cube after applying this matrix gets clipped!
+        gl.glMatrixMode(GL.GL_PROJECTION);  
+        gl.glLoadIdentity();
+        // Calculate the unit vectors that form a local coordinate frame for the screen.
+        // We want the rotation that will bring them to match the default screen,
+        // because OpenGl always has the observer at the origin looking down -Z.
+        // These are the screen normal (z), right (x), and up (y) vectors.
+        Triple zHat = new Triple(this.screenNormalVec).unit();
+        // Results will be nonsensical if screen normal is pointed away from the observer.
+        // That should mean s/he shouldn't be able to see it anyway, but just in case,
+        // we'll render on the back side of the screen.
+        Triple scrToEye = new Triple().likeVector(screenCenterPos, eyePosition);
+        if(scrToEye.dot(zHat) < 0) zHat.neg();
+        // Build orthogonal up and right vectors via cross products
+        Triple xHat = new Triple(this.screenUpVec).cross(zHat).unit();
+        Triple yHat = new Triple(zHat).cross(xHat);
+        // Check for yourself: R*xHat = (1,0,0); R*yHat = (0,1,0); R*zHat = (0,0,1)
+        Transform R = new Transform().likeMatrix(
+            xHat.getX(), xHat.getY(), xHat.getZ(),
+            yHat.getX(), yHat.getY(), yHat.getZ(),
+            zHat.getX(), zHat.getY(), zHat.getZ());
+    //System.err.println(R.transform(xHat, new Triple()));
+    //System.err.println(R.transform(yHat, new Triple()));
+    //System.err.println(R.transform(zHat, new Triple()));
+        // Rotation should be centered around the observer
+        Triple negEyePos = new Triple(eyePosition).neg();
+        R.prepend( new Transform().likeTranslation(negEyePos) );
+        // Find position of screen center in the new scheme -- it will be somewhere on the -Z axis
+        Triple scrCtr = (Triple) R.transform(this.screenCenterPos, new Triple());
+        double scrDist      = (-scrCtr.getZ());
+        double near         = Math.max(scrDist - viewClipScaling*viewClipFront, 100);
+        double far          = Math.max(scrDist - viewClipScaling*viewClipBack, 200);
+        double frontWidth   = width * (near / scrDist);
+        double frontHeight  = height * (near / scrDist);
+        double right        = scrCtr.getX() + (frontWidth / 2);
+        double left         = scrCtr.getX() - (frontWidth / 2);
+        double top          = scrCtr.getY() + (frontHeight / 2);
+        double bottom       = scrCtr.getY() - (frontHeight / 2);
+        // l,r,b,t apply at distance "near" and are X,Y coords
+        // near and far are (positive) distances from the camera for glFrustum
+        // but are Z coords for glOrtho (although they're then negated!).
+        if(usePerspective)  gl.glFrustum(left, right, bottom, top, near, far);
+        else                gl.glOrtho(left, right, bottom, top, near, far);
+        // Can do other view translation/rotation here, but it screws up the lighting!
+        // Do it at the "end" of the model-view sequence instead (i.e. first calls)
+    //double[] matrix = new double[16];
+    //gl.glGetDoublev(GL.GL_PROJECTION_MATRIX, matrix, 0);
+    //printMatrix("Standard", matrix);
+        
         // Model-view matrix
         // Transforms are applied to the points in the REVERSE of the order specified.
         // i.e. glMultMatrixd() is a post-multiply operation.
         // It is VERY IMPORTANT that we leave the model-view matrix as the active one!
         gl.glMatrixMode(GL.GL_MODELVIEW);  
         gl.glLoadIdentity();
-        gl.glTranslated(0, 0, -perspDist); // move camera back to viewing position
+        // Move the world like we moved the screen, so we see what was behind it.
+        // Remember OpenGL lists elements top-to-bottom, then left-to-right.
+        gl.glMultMatrixd(new double[] {
+            R.get(1,1), R.get(2,1), R.get(3,1), R.get(4,1),
+            R.get(1,2), R.get(2,2), R.get(3,2), R.get(4,2),
+            R.get(1,3), R.get(2,3), R.get(3,3), R.get(4,3),
+            R.get(1,4), R.get(2,4), R.get(3,4), R.get(4,4)
+            }, 0);
+        //gl.glTranslated(0, 0, -perspDist); // move camera back to viewing position
         // rotate: down the first col, then down the second col, etc.
-        gl.glMultMatrixd(new double[] {R11, R21, R31, 0, R12, R22, R32, 0, R13, R23, R33, 0,   0, 0, 0, 1}, 0);
+        gl.glMultMatrixd(new double[] {
+            R11, R21, R31, 0,
+            R12, R22, R32, 0,
+            R13, R23, R33, 0,
+            0,   0,   0,   1
+            }, 0);
         gl.glScaled(zoom3D, zoom3D, zoom3D); // scale
         gl.glTranslated(-cx, -cy, -cz); // center
         
@@ -298,13 +378,88 @@ Scheme for rendering in the DiVE:
         gl.glFogfv(GL.GL_FOG_COLOR, clearColor, 0);
     }
     
-    void printMatrix(String label, double[] m)
+    private void printMatrix(String label, double[] m)
     {
         System.err.println(label);
         System.err.printf("%10g %10g %10g %10g \n", m[0], m[4], m[ 8], m[12]);
         System.err.printf("%10g %10g %10g %10g \n", m[1], m[5], m[ 9], m[13]);
         System.err.printf("%10g %10g %10g %10g \n", m[2], m[6], m[10], m[14]);
         System.err.printf("%10g %10g %10g %10g \n", m[3], m[7], m[11], m[15]);
+    }
+//}}}
+
+//{{{ ar_frustumMatrix [NOT USED]
+//##############################################################################
+    /**
+    * I believe that all units are in the transformed space,
+    * which makes them pixels in this case.
+    * On a standard display, 72 pixels = 1 inch.
+    *
+    * This really only cares about the angle between the screenNormal and the
+    * screenCenter-eyePosition vector.  Putting the screen at a nominal location
+    * of (1,0,0) vs. (0,0,1) doesn't actually rotate the object to view from
+    * a different side as one might expect.
+    *
+    * @param screenCenter   (what it sounds like)
+    * @param screenNormal   unit vector, e.g. (0,0,1), points AWAY from viewer
+    * @param screenUp       unit vector, e.g. (0,1,0)
+    * @param eyePosition    (what it sounds like)
+    * @param halfWidth      of the screen surface
+    * @param halfHeight     of the screen surface
+    * @param nearClip       positive distance from eyeball to front clipping plane
+    * @param farClip        positive distance from screen to back clipping plane
+    *
+    * Taken from Syzygy (BSD license), /src/math/arMath.cpp
+    */
+    protected double[] ar_frustumMatrix(
+        Triple screenCenter, Triple screenNormal, Triple screenUp, Triple eyePosition, 
+        double halfWidth,  double halfHeight, double nearClip,  double farClip)
+    {
+        /// copypaste start
+        if(screenNormal.mag() <= 0)
+            return null; // error
+        final Triple zHat = new Triple(screenNormal).unit();
+        final Triple xHat = new Triple(zHat).cross(screenUp).unit();
+        final Triple yHat = new Triple(xHat).cross(zHat);
+        /// copypaste end
+        
+        final Triple rightEdge  = new Triple(screenCenter).addMult( halfWidth, xHat);
+        final Triple leftEdge   = new Triple(screenCenter).addMult(-halfWidth, xHat);
+        final Triple topEdge    = new Triple(screenCenter).addMult( halfHeight, yHat);
+        final Triple botEdge    = new Triple(screenCenter).addMult(-halfHeight, yHat);
+        
+        // double zEye = (eyePosition - headPosition) % zHat; // '%' = dot product
+        double screenDistance = new Triple(screenCenter).sub(eyePosition).dot(zHat);
+        if (screenDistance == 0)
+            return null; // error
+        
+        final double nearFrust  = nearClip;
+        final double distScale  = nearFrust / screenDistance;
+        final double rightFrust = distScale*(new Triple(rightEdge).sub(eyePosition).dot(xHat));
+        final double leftFrust  = distScale*(new Triple(leftEdge ).sub(eyePosition).dot(xHat));
+        final double topFrust   = distScale*(new Triple(topEdge  ).sub(eyePosition).dot(yHat));
+        final double botFrust   = distScale*(new Triple(botEdge  ).sub(eyePosition).dot(yHat));
+        final double farFrust   = screenDistance + farClip;
+        
+        if (rightFrust == leftFrust || topFrust == botFrust || nearFrust == farFrust)
+            return null; // error
+        
+        // this is necessary because g++ 2.96 is messed up.
+        //double funnyElement = (nearFrust+farFrust)/(nearFrust-farFrust);
+        //double[] result = new double[] {
+        //(2*nearFrust)/(rightFrust-leftFrust),   0,                                  (rightFrust+leftFrust)/(rightFrust-leftFrust),  0,
+        //0,                                      (2*nearFrust)/(topFrust-botFrust),  (topFrust+botFrust)/(topFrust-botFrust),        0,
+        //0,                                      0,                                  funnyElement,                                   2*nearFrust*farFrust/(nearFrust-farFrust),
+        //0,                                      0,                                  -1,                                             0 };
+        
+        // OpenGL order is transposed vs. what any normal person would do.
+        // Coordinate system handedness change may require inverting sign on off-diagonal elements of third row and third column (?)
+        double[] result = new double[] {
+        (2*nearFrust)/(rightFrust-leftFrust),           0,                                          0,                                          0,
+        0,                                              (2*nearFrust)/(topFrust-botFrust),          0,                                          0,
+        (rightFrust+leftFrust)/(rightFrust-leftFrust),  (topFrust+botFrust)/(topFrust-botFrust),    (nearFrust+farFrust)/(nearFrust-farFrust),  -1,
+        0,                                              0,                                          2*nearFrust*farFrust/(nearFrust-farFrust),  0 };
+        return result;
     }
 //}}}
 
@@ -453,81 +608,6 @@ Scheme for rendering in the DiVE:
             ex.printStackTrace();
             System.err.println("JoglPainter: tried painting with non-Color type of Paint");
         }
-    }
-//}}}
-
-//{{{ ar_frustumMatrix
-//##############################################################################
-    /**
-    * I believe that all units are in the transformed space,
-    * which makes them pixels in this case.
-    * On a standard display, 72 pixels = 1 inch.
-    *
-    * This really only cares about the angle between the screenNormal and the
-    * screenCenter-eyePosition vector.  Putting the screen at a nominal location
-    * of (1,0,0) vs. (0,0,1) doesn't actually rotate the object to view from
-    * a different side as one might expect.
-    *
-    * @param screenCenter   (what it sounds like)
-    * @param screenNormal   unit vector, e.g. (0,0,1), points AWAY from viewer
-    * @param screenUp       unit vector, e.g. (0,1,0)
-    * @param eyePosition    (what it sounds like)
-    * @param halfWidth      of the screen surface
-    * @param halfHeight     of the screen surface
-    * @param nearClip       positive distance from eyeball to front clipping plane
-    * @param farClip        positive distance from screen to back clipping plane
-    *
-    * Taken from Syzygy (BSD license), /src/math/arMath.cpp
-    */
-    protected double[] ar_frustumMatrix(
-        Triple screenCenter, Triple screenNormal, Triple screenUp, Triple eyePosition, 
-        double halfWidth,  double halfHeight, double nearClip,  double farClip)
-    {
-        /// copypaste start
-        if(screenNormal.mag() <= 0)
-            return null; // error
-        final Triple zHat = new Triple(screenNormal).unit();
-        final Triple xHat = new Triple(zHat).cross(screenUp).unit();
-        final Triple yHat = new Triple(xHat).cross(zHat);
-        /// copypaste end
-        
-        final Triple rightEdge  = new Triple(screenCenter).addMult( halfWidth, xHat);
-        final Triple leftEdge   = new Triple(screenCenter).addMult(-halfWidth, xHat);
-        final Triple topEdge    = new Triple(screenCenter).addMult( halfHeight, yHat);
-        final Triple botEdge    = new Triple(screenCenter).addMult(-halfHeight, yHat);
-        
-        // double zEye = (eyePosition - headPosition) % zHat; // '%' = dot product
-        double screenDistance = new Triple(screenCenter).sub(eyePosition).dot(zHat);
-        if (screenDistance == 0)
-            return null; // error
-        
-        final double nearFrust  = nearClip;
-        final double distScale  = nearFrust / screenDistance;
-        final double rightFrust = distScale*(new Triple(rightEdge).sub(eyePosition).dot(xHat));
-        final double leftFrust  = distScale*(new Triple(leftEdge ).sub(eyePosition).dot(xHat));
-        final double topFrust   = distScale*(new Triple(topEdge  ).sub(eyePosition).dot(yHat));
-        final double botFrust   = distScale*(new Triple(botEdge  ).sub(eyePosition).dot(yHat));
-        final double farFrust   = screenDistance + farClip;
-        
-        if (rightFrust == leftFrust || topFrust == botFrust || nearFrust == farFrust)
-            return null; // error
-        
-        // this is necessary because g++ 2.96 is messed up.
-        //double funnyElement = (nearFrust+farFrust)/(nearFrust-farFrust);
-        //double[] result = new double[] {
-        //(2*nearFrust)/(rightFrust-leftFrust),   0,                                  (rightFrust+leftFrust)/(rightFrust-leftFrust),  0,
-        //0,                                      (2*nearFrust)/(topFrust-botFrust),  (topFrust+botFrust)/(topFrust-botFrust),        0,
-        //0,                                      0,                                  funnyElement,                                   2*nearFrust*farFrust/(nearFrust-farFrust),
-        //0,                                      0,                                  -1,                                             0 };
-        
-        // OpenGL order is transposed vs. what any normal person would do.
-        // Coordinate system handedness change may require inverting sign on off-diagonal elements of third row and third column (?)
-        double[] result = new double[] {
-        (2*nearFrust)/(rightFrust-leftFrust),           0,                                          0,                                          0,
-        0,                                              (2*nearFrust)/(topFrust-botFrust),          0,                                          0,
-        (rightFrust+leftFrust)/(rightFrust-leftFrust),  (topFrust+botFrust)/(topFrust-botFrust),    (nearFrust+farFrust)/(nearFrust-farFrust),  -1,
-        0,                                              0,                                          2*nearFrust*farFrust/(nearFrust-farFrust),  0 };
-        return result;
     }
 //}}}
 
