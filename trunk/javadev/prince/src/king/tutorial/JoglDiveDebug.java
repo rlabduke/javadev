@@ -12,33 +12,32 @@ import javax.swing.Timer;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
 /**
-* <code>JoglTumblingObject</code> creates a decorative spiral ornament and sets it rotating.
+* <code>JoglDiveDebug</code> is used for testing out rendering methods for
+* the Duke DiVE (6-sided VR cave).
 *
 * <p>Copyright (C) 2006 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri Dec  8 13:27:16 EST 2006
 */
-public class JoglTumblingObject extends JFrame implements ActionListener, GLEventListener
+public class JoglDiveDebug extends JFrame implements ActionListener, GLEventListener
 {
-    final boolean       use3d   = true;
     Kinemage            kin     = null;
     KView               view    = null;
-    Engine2D            engine2 = null;
     JoglEngine3D        engine3 = null;
     GLCanvas            canvas  = null;
     Dimension           glSize  = new Dimension();
     Timer               timer   = null;
 
-    static public void main(String[] args) { new JoglTumblingObject(); }
+    static public void main(String[] args) { new JoglDiveDebug(); }
     
-    public JoglTumblingObject()
+    public JoglDiveDebug()
     {
-        super("JoglTumblingObject");
+        super("JoglDiveDebug");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setUndecorated(true); // no window border or controls
+        
         kin = createKinemage();
         view = new KView(kin);
         view.setSpan(1.2f * view.getSpan());
-        engine2 = new Engine2D();
-        engine2.usePerspective = true;
         engine3 = new JoglEngine3D();
         engine3.usePerspective = true;
         
@@ -55,6 +54,17 @@ public class JoglTumblingObject extends JFrame implements ActionListener, GLEven
         
         this.pack();
         this.show();
+        
+        // Only way to hide the mouse cursor in Java -- make it transparent.
+        int[] pixels = new int[16 * 16];
+        Image image = Toolkit.getDefaultToolkit().createImage(new java.awt.image.MemoryImageSource(16, 16, pixels, 0, 16));
+        Cursor transparentCursor = Toolkit.getDefaultToolkit().createCustomCursor(image, new Point(0, 0), "invisiblecursor");
+        this.setCursor(transparentCursor);
+        
+        // Puts the window in full screen mode.  Seems to work OK with JOGL.
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice gd = ge.getDefaultScreenDevice();
+        gd.setFullScreenWindow(this); // should be done after becoming visible
 
         timer = new Timer(1000 / 30, this);
         timer.start();
@@ -121,15 +131,7 @@ public class JoglTumblingObject extends JFrame implements ActionListener, GLEven
     
     public void display(GLAutoDrawable drawable)
     {
-        if(use3d)
-        {
-            engine3.render(kin, view, new Rectangle(this.glSize), drawable.getGL());
-        }
-        else
-        {
-            JoglPainter painter = new JoglPainter(drawable);
-            engine2.render(kin, view, new Rectangle(this.glSize), painter);
-        }
+        engine3.render(kin, view, new Rectangle(this.glSize), drawable.getGL());
     }
     
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height)
