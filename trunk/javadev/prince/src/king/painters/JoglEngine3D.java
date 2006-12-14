@@ -48,10 +48,10 @@ public class JoglEngine3D extends Engine
     protected Triple[]  icosVerts;
     protected int[][]   icosFaces;
     
-    protected int       ballDL; // display lists for rendering balls
+    protected int       ballDL = 0; // display lists for rendering balls
 //}}}
 
-//{{{ Constructor(s)
+//{{{ Constructor(s), cleanup
 //##############################################################################
     public JoglEngine3D()
     {
@@ -72,6 +72,17 @@ public class JoglEngine3D extends Engine
             {7,10,3}, {7,6,10}, {7,11,6}, {11,0,6}, {0,1,6},
             {6,1,10}, {9,0,11}, {9,11,2}, {9,2,5}, {7,2,11}
         };
+    }
+    
+    /** Please call this before discarding the Engine object to release OpenGL resources! */
+    public void cleanup(GL gl)
+    {
+        // clean up display lists
+        if(ballDL != 0)
+        {
+            gl.glDeleteLists(ballDL, 1);
+            ballDL = 0;
+        }
     }
 //}}}
 
@@ -97,8 +108,8 @@ public class JoglEngine3D extends Engine
         this.glu    = new GLU();
         this.glut   = new GLUT();
         
-        // I don't think display lists hold from one render pass to another
-        this.ballDL = 0;
+        // Display lists DO hold from one render pass to another
+        //this.ballDL = 0;
         
         if(whiteBackground) clearColor = new float[] {1, 1, 1, 1};
         else                clearColor = new float[] {0, 0, 0, 1};
@@ -112,11 +123,11 @@ public class JoglEngine3D extends Engine
         gl.glEnable(gl.GL_POINT_SMOOTH);
         gl.glEnable(gl.GL_LINE_SMOOTH);
         
-        // Lighting for spheres, ribbons, etc
-        setupLighting();
-
         // Projection and model-view matrix, and fog
-        setupTransforms(view, bounds, eyePosition);
+        Transform R = setupTransforms(view, bounds, eyePosition);
+
+        // Lighting for spheres, ribbons, etc
+        setupLighting(R);
 
         // Clear background
         // This must happen AFTER the viewport is set in setupTransforms
@@ -141,20 +152,33 @@ public class JoglEngine3D extends Engine
             else                                    doDotList(list);
         }
         
-        // clean up GL
-        if(ballDL != 0) gl.glDeleteLists(ballDL, 1);
+        // Cleaning up and re-allocating display lists all the time
+        // slows the app down a LOT after a while.
+        // I can't tell if it's Java memory churn or OpenGL, but the effect is big.
+        // Now this is handled in the cleanup() function.
+        //
+        // clean up display lists
+        //if(ballDL != 0) gl.glDeleteLists(ballDL, 1);
     }    
 //}}}
 
 //{{{ setupLighting
 //##############################################################################
-    protected void setupLighting()
+    protected void setupLighting(Transform R)
     {
         // Direction is relative to transformed coordinate space in which observer is defined.
         // We don't want the light rotating with the model!
         gl.glMatrixMode(GL.GL_MODELVIEW);
         gl.glPushMatrix();
         gl.glLoadIdentity();
+        // If we've rotated the world for a nonstandard screen position,
+        // we need to move the light as well.
+        gl.glMultMatrixd(new double[] {
+            R.get(1,1), R.get(2,1), R.get(3,1), R.get(4,1),
+            R.get(1,2), R.get(2,2), R.get(3,2), R.get(4,2),
+            R.get(1,3), R.get(2,3), R.get(3,3), R.get(4,3),
+            R.get(1,4), R.get(2,4), R.get(3,4), R.get(4,4)
+            }, 0);
         // Lighting is enabled only for specific objects, because lines and points
         // only are affected by ambient lighting components.
         //gl.glEnable(GL.GL_LIGHTING);
@@ -224,7 +248,8 @@ Scheme for rendering in the DiVE:
 
 //{{{ setupTransforms
 //##################################################################################################
-    protected void setupTransforms(KView view, Rectangle bounds, Tuple3 eyePosition)
+    /** Returns the screen positioning transform (needed for light positioning) */
+    protected Transform setupTransforms(KView view, Rectangle bounds, Tuple3 eyePosition)
     {
         double width, height, size, xOff, yOff;
         width   = bounds.getWidth();
@@ -380,6 +405,8 @@ Scheme for rendering in the DiVE:
         double farFog = (far - 0.36*near) / (1 - 0.36);
         gl.glFogf(GL.GL_FOG_END, (float) (farFog));
         gl.glFogfv(GL.GL_FOG_COLOR, clearColor, 0);
+        
+        return R;
     }
     
     private void printMatrix(String label, double[] m)
