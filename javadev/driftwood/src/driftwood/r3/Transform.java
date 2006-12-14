@@ -438,17 +438,19 @@ public class Transform //extends ... implements ...
     * In other words, every point must be defined in relation to an origin,
     * whether implicit or explicit, but vectors are independent of the
     * definition of the origin.
+    * @return p, the transformed point (for convenience)
     */
-    public void transform(MutableTuple3 p)
+    public MutableTuple3 transform(MutableTuple3 p)
     {
-        transform(p, p);
+        return transform(p, p);
     }
     
     /**
     * Transforms the given Tuple3 and places the result in pOut, treating it like a point.
+    * @return pOut, the transformed point (for convenience)
     * @see #transform(MutableTuple3)
     */
-    public void transform(Tuple3 pIn, MutableTuple3 pOut)
+    public MutableTuple3 transform(Tuple3 pIn, MutableTuple3 pOut)
     {
         double x0, y0, z0, wH;
         x0 = pIn.getX();
@@ -459,22 +461,23 @@ public class Transform //extends ... implements ...
             (m11*x0 + m12*y0 + m13*z0 + m14) / wH,
             (m21*x0 + m22*y0 + m23*z0 + m24) / wH,
             (m31*x0 + m32*y0 + m33*z0 + m34) / wH);
+        return pOut;
     }
 
     /**
     * Transforms the given MutableTuple3 in place, treating it like a vector.
     * @see #transform(MutableTuple3)
     */
-    public void transformVector(MutableTuple3 v)
+    public MutableTuple3 transformVector(MutableTuple3 v)
     {
-        transformVector(v, v);
+        return transformVector(v, v);
     }
     
     /**
     * Transforms the given Tuple3 and places the result in vOut, treating it like a vector.
     * @see #transform(MutableTuple3)
     */
-    public void transformVector(Tuple3 vIn, MutableTuple3 vOut)
+    public MutableTuple3 transformVector(Tuple3 vIn, MutableTuple3 vOut)
     {
         double x0, y0, z0, wH;
         x0 = vIn.getX();
@@ -485,6 +488,7 @@ public class Transform //extends ... implements ...
             (m11*x0 + m12*y0 + m13*z0) / wH,
             (m21*x0 + m22*y0 + m23*z0) / wH,
             (m31*x0 + m32*y0 + m33*z0) / wH);
+        return vOut;
     }
 //}}}
 
