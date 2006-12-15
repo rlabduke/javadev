@@ -281,6 +281,29 @@ public class Strings //extends ... implements ...
     }
 //}}}
 
+//{{{ explodeInts, explodeDoubles
+//##################################################################################################
+    /** Explodes a string, then calls Integer.parseInt() on each fragment. */
+    public static int[] explodeInts(String s, char separator) throws NumberFormatException
+    {
+        String[]    strings = explode(s, separator, false, true);
+        int[]       ints    = new int[strings.length];
+        for(int i = 0; i < strings.length; i++)
+            ints[i] = Integer.parseInt(strings[i]);
+        return ints;
+    }
+    
+    /** Explodes a string, then calls Integer.parseInt() on each fragment. */
+    public static double[] explodeDoubles(String s, char separator) throws NumberFormatException
+    {
+        String[]    strings = explode(s, separator, false, true);
+        double[]    doubles = new double[strings.length];
+        for(int i = 0; i < strings.length; i++)
+            doubles[i] = Double.parseDouble(strings[i]);
+        return doubles;
+    }
+//}}}
+
 //{{{ expandVariables
 //##################################################################################################
     /**

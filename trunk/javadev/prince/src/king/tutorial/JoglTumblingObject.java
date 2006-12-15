@@ -137,7 +137,7 @@ public class JoglTumblingObject extends JFrame implements ActionListener, GLEven
         this.glSize.setSize(width, height);
     }
     
-    public void displayChanged(GLAutoDrawable drawable, boolean modeChnaged, boolean deviceChanged)
+    public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged)
     {}
 }//class
 

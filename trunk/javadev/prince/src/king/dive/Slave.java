@@ -2,31 +2,61 @@
 //{{{ Package, imports
 package king.dive;
 
-//import java.awt.*;
-//import java.awt.event.*;
-import java.io.*;
-import java.net.URL;
-import java.text.DecimalFormat;
-import java.util.*;
-//import java.util.regex.*;
-//import javax.swing.*;
+import king.core.*;
+import king.points.*;
+import king.painters.*;
+import driftwood.r3.*;
 import driftwood.util.*;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.util.*;
+import javax.swing.*;
+import javax.swing.Timer;
+
+import javax.media.opengl.*;
+import javax.media.opengl.glu.*;
 //}}}
 /**
-* <code>Slave</code> has not yet been documented.
+* <code>Slave</code> renders a particular view, coordinated by Commands from a Master.
 *
 * <p>Copyright (C) 2006 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri Dec 15 08:03:06 EST 2006
 */
-public class Slave //extends ... implements ...
+public class Slave implements GLEventListener
 {
 //{{{ Constants
+//}}}
+
+//{{{ CLASS: CommandRunner
+//##############################################################################
+    class CommandRunner implements Runnable
+    {
+        Command cmd;
+        
+        public CommandRunner(Command cmd)
+        { this.cmd = cmd; }
+        
+        public void run()
+        { cmd.doCommand(Slave.this); }
+    }
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
     Props props;
     ObjectLink<String,Command> link;
+    
+    Kinemage        kin = null;
+    KView           view = null;
+    Triple          leftEyePos;
+    Triple          rightEyePos;
+    
+    JFrame          frame   = null;
+    GLCanvas        canvas  = null;
+    JoglEngine3D    engine  = null;
+    Dimension       glSize  = new Dimension();
 //}}}
 
 //{{{ Constructor(s)
@@ -41,8 +71,188 @@ public class Slave //extends ... implements ...
     }
 //}}}
 
+//{{{ initGraphics
+//##############################################################################
+    void initGraphics()
+    {
+        // Set up parameters for rendering
+        GLCapabilities capabilities = new GLCapabilities();
+        capabilities.setDoubleBuffered(true); // usually enabled by default, but to be safe...
+        int fsaaNumSamples = props.getInt("slave.fsaa_samples");
+        capabilities.setSampleBuffers(fsaaNumSamples > 1); // enables/disables full-scene antialiasing (FSAA)
+        capabilities.setNumSamples(fsaaNumSamples); // sets number of samples for FSAA (default is 2)
+
+        canvas = new GLCanvas(capabilities);
+        canvas.addGLEventListener(this); // calls display(), reshape(), etc.
+        engine = new JoglEngine3D();
+        engine.usePerspective = true;
+        engine.setFont(18);
+        engine.caveClipping = props.getBoolean("is_cave");
+        engine.screenCenterPos  = getTriple(props, "slave.screen_center_px");
+        engine.screenNormalVec  = getTriple(props, "slave.screen_normal_vec");
+        engine.screenUpVec      = getTriple(props, "slave.screen_up_vec");
+        
+        frame = new JFrame(this.getClass().getName());
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.getContentPane().add(canvas);
+        frame.setUndecorated(props.getBoolean("slave.full_screen"));
+        frame.pack();
+        frame.show();
+        
+        if(props.getBoolean("slave.hide_mouse"))
+        {
+            // Only way to hide the mouse cursor in Java -- make it transparent.
+            int[] pixels = new int[16 * 16];
+            Image image = Toolkit.getDefaultToolkit().createImage(new java.awt.image.MemoryImageSource(16, 16, pixels, 0, 16));
+            Cursor transparentCursor = Toolkit.getDefaultToolkit().createCustomCursor(image, new Point(0, 0), "invisiblecursor");
+            frame.setCursor(transparentCursor);
+        }
+        
+        if(props.getBoolean("slave.full_screen"))
+        {
+            // Puts the window in full screen mode.  Seems to work OK with JOGL.
+            int whichScreen = props.getInt("slave.which_screen");
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            GraphicsDevice[] gds = ge.getScreenDevices();
+            GraphicsDevice gd = ge.getDefaultScreenDevice();
+            if(0 <= whichScreen && whichScreen < gds.length)
+                gd = gds[whichScreen];
+            gd.setFullScreenWindow(frame); // should be done after becoming visible
+        }
+    }
+//}}}
+
+//{{{ init, display, reshape, displayChanged
+//##############################################################################
+    public void init(GLAutoDrawable drawable)
+    {}
+    
+    public void display(GLAutoDrawable drawable)
+    {
+        GL gl = drawable.getGL();
+        engine.render(kin, view, new Rectangle(glSize), gl, leftEyePos);
+    }
+    
+    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height)
+    {
+        this.glSize.setSize(width, height);
+    }
+    
+    public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged)
+    {}
+//}}}
+
+//{{{ createKinemage
+//##############################################################################
+    Kinemage createKinemage()
+    {
+        Kinemage k = new Kinemage();
+        KGroup g = new KGroup();
+        k.add(g);
+        
+        KPaint[] colors = { KPalette.red, KPalette.green, KPalette.gold,
+            KPaint.createLightweightHSV("silver", 240, 3, 90, 240, 3, 10) };
+        
+        for(int c = 0; c < colors.length; c++)
+        {
+            KList list = new KList(KList.BALL);
+            //list.setOn(false);
+            list.setColor(colors[c]);
+            list.setRadius(0.1f);
+            g.add(list);
+            double offset = (2.0 * Math.PI * c) / colors.length;
+            for(double y = -1; y <= 1.001; y += list.getRadius())
+            {
+                double r = 1 - Math.abs(y);
+                double theta = (2.0 * Math.PI * y) + offset;
+                BallPoint pt = new BallPoint("");
+                pt.setXYZ(r * Math.cos(theta), y, r * Math.sin(theta));
+                list.add(pt);
+            }
+        }
+        
+        for(int c = 0; c < colors.length; c++)
+        {
+            KList list = new KList(KList.VECTOR);
+            //list.setOn(false);
+            list.setColor(colors[c]);
+            list.setWidth(4);
+            g.add(list);
+            double offset = (2.0 * Math.PI * c) / colors.length;
+            VectorPoint prevPt = null;
+            for(double y = -1; y <= 1.001; y += 0.02)
+            {
+                double r = 1 - Math.abs(y);
+                double theta = (2.0 * Math.PI * y) + offset;
+                VectorPoint pt = new VectorPoint("", prevPt);
+                pt.setXYZ(r * Math.cos(theta), y, r * Math.sin(theta));
+                list.add(pt);
+                prevPt = pt;
+            }
+        }
+        
+        KList list = new KList(KList.TRIANGLE);
+        list.setOn(false);
+        list.setColor(KPalette.gray);
+        g.add(list);
+        TrianglePoint prevPt = null;
+        for(double y = -1; y <= 1.001; y += 0.02)
+        {
+            double r = 1 - Math.abs(y);
+            double theta = (2.0 * Math.PI * y);
+            TrianglePoint pt = new TrianglePoint("", prevPt);
+            pt.setXYZ(r * Math.cos(theta), y-0.1, r * Math.sin(theta));
+            list.add(pt);
+            prevPt = pt;
+            pt = new TrianglePoint("", prevPt);
+            pt.setXYZ(r * Math.cos(theta), y+0.1, r * Math.sin(theta));
+            list.add(pt);
+            prevPt = pt;
+        }
+        
+        list = new KList(KList.LABEL);
+        //list.setOn(false);
+        list.setColor(KPalette.deadwhite);
+        g.add(list);
+        LabelPoint l1 = new LabelPoint("X-axis");
+        l1.setXYZ(0.5, 0, 0);
+        l1.setColor(KPalette.pinktint);
+        list.add(l1);
+        LabelPoint l2 = new LabelPoint("Y-axis");
+        l2.setXYZ(0, 0.5, 0);
+        l2.setColor(KPalette.greentint);
+        list.add(l2);
+        LabelPoint l3 = new LabelPoint("Z-axis");
+        l3.setXYZ(0, 0, 0.5);
+        l3.setColor(KPalette.bluetint);
+        list.add(l3);
+        
+        return k;
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##############################################################################
+//}}}
+
+//{{{ empty_code_segment
+//##############################################################################
+//}}}
+
+//{{{ empty_code_segment
+//##############################################################################
+//}}}
+
+//{{{ getTriple
+//##############################################################################
+    public static Triple getTriple(Props p, String name) throws NumberFormatException
+    {
+        String s = p.getString(name);
+        double[] d = Strings.explodeDoubles(s, ' ');
+        if(d.length < 3)
+            throw new NumberFormatException("Not enough numbers in '"+name+"'");
+        return new Triple(d[0], d[1], d[2]);
+    }
 //}}}
 
 //{{{ Main, main
@@ -59,9 +269,18 @@ public class Slave //extends ... implements ...
                     link    = new ObjectLink<String,Command>(host, port);
             System.out.println("Connected to master at "+host+":"+port);
             
+            this.kin = createKinemage();
+            // These are default values that will be quickly overwritten.
+            this.view = new KView(kin);
+            this.leftEyePos = getTriple(props, "master.observer_left_eye_px");
+            this.rightEyePos = getTriple(props, "master.observer_right_eye_px");
+            
+            initGraphics();
+            
             while(true)
             {
                 Command cmd = link.getBlocking();
+                SwingUtilities.invokeLater( new CommandRunner(cmd) );
             }
             
         }
