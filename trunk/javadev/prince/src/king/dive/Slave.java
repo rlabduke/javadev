@@ -10,7 +10,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
-//import driftwood.*;
+import driftwood.util.*;
 //}}}
 /**
 * <code>Slave</code> has not yet been documented.
@@ -25,6 +25,8 @@ public class Slave //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
+    Props props;
+    ObjectLink<String,Command> link;
 //}}}
 
 //{{{ Constructor(s)
@@ -32,6 +34,10 @@ public class Slave //extends ... implements ...
     public Slave()
     {
         super();
+        Props defaultProps = new Props();
+        try { defaultProps.load( getClass().getResourceAsStream("default.props") ); }
+        catch(IOException ex) { ex.printStackTrace(); }
+        this.props = new Props(defaultProps);
     }
 //}}}
 
@@ -48,30 +54,19 @@ public class Slave //extends ... implements ...
     {
         try
         {
-            ObjectLink link = new ObjectLink("localhost", 1681);
-            long time = System.nanoTime();
-            listen(link);
-            say("Hola Master. Me llamo Slave.", link);
-            listen(link);
-            say("Muy bien, gracias.", link);
-            listen(link);
-            say("Vale, adios.", link);
-            time = System.nanoTime() - time;
-            System.out.println("Elapsed time: "+time+" ns");
-            link.disconnect();
+            String  host    = props.getString("master.host");
+            int     port    = props.getInt("master.port");
+                    link    = new ObjectLink<String,Command>(host, port);
+            System.out.println("Connected to master at "+host+":"+port);
+            
+            while(true)
+            {
+                Command cmd = link.getBlocking();
+            }
+            
         }
         catch(Exception ex) { ex.printStackTrace(); }
-    }
-    
-    void say(String msg, ObjectLink link) throws IOException
-    {
-        link.put(msg);
-        System.out.println(">> "+msg);
-    }
-    
-    void listen(ObjectLink link) throws Exception
-    {
-        System.out.println(link.getBlocking());
+        finally { if(link != null) link.disconnect(); }
     }
 
     public static void main(String[] args)

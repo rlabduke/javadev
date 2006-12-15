@@ -29,7 +29,7 @@ import java.util.*;
 * <p>Copyright (C) 2002 by Ian W. Davis. All rights reserved.
 * <br>Begun on Mon Sep  9 09:33:59 EDT 2002
 */
-public class Triple implements MutableTuple3
+public class Triple implements MutableTuple3, Serializable
 {
 //{{{ Variable definitions
 //##################################################################################################

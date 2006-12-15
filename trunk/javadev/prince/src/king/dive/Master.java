@@ -5,15 +5,16 @@ package king.dive;
 //import java.awt.*;
 //import java.awt.event.*;
 import java.io.*;
-import java.net.URL;
+import java.net.*;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.*;
 //import java.util.regex.*;
 //import javax.swing.*;
-//import driftwood.*;
+import driftwood.util.*;
 //}}}
 /**
-* <code>Master</code> has not yet been documented.
+* <code>Master</code> distributes Commands to a bunch of Slaves for rendering.
 *
 * <p>Copyright (C) 2006 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri Dec 15 08:03:06 EST 2006
@@ -25,6 +26,8 @@ public class Master //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
+    Props props;
+    Collection<ObjectLink<Command,String>> slaveLinks = new ArrayList<ObjectLink<Command,String>>();
 //}}}
 
 //{{{ Constructor(s)
@@ -32,6 +35,23 @@ public class Master //extends ... implements ...
     public Master()
     {
         super();
+        Props defaultProps = new Props();
+        try { defaultProps.load( getClass().getResourceAsStream("default.props") ); }
+        catch(IOException ex) { ex.printStackTrace(); }
+        this.props = new Props(defaultProps);
+    }
+//}}}
+
+//{{{ sendCommand
+//##############################################################################
+    public void sendCommand(Command c)
+    {
+        for(ObjectLink<Command,String> link : slaveLinks)
+        {
+            try { link.put(c); }
+            catch(IOException ex)
+            { System.out.println("Error commanding slave: "+ex.getMessage()); }
+        }
     }
 //}}}
 
@@ -46,32 +66,33 @@ public class Master //extends ... implements ...
     */
     public void Main()
     {
+        int port = props.getInt("master.port");
+        System.out.println("Listening for slaves on port "+port);
+        
+        ServerSocket server = null;
         try
         {
-            ObjectLink link = new ObjectLink(1681);
-            long time = System.nanoTime();
-            say("Hello, my name is Master.", link);
-            listen(link);
-            say("How do you do, Slave.", link);
-            listen(link);
-            say("Well, I must be going.", link);
-            listen(link);
-            time = System.nanoTime() - time;
-            System.out.println("Elapsed time: "+time+" ns");
-            link.disconnect();
+            server = new ServerSocket(port);
+            while(true)
+            {
+                Socket socket = server.accept();
+                try
+                {
+                    ObjectLink<Command,String> link = new ObjectLink<Command,String>(socket);
+                    slaveLinks.add(link);
+                }
+                catch(IOException ex)
+                { System.err.println("Failed to connect with slave: "+ex.getMessage()); }
+            }
         }
-        catch(Exception ex) { ex.printStackTrace(); }
-    }
-    
-    void say(String msg, ObjectLink link) throws IOException
-    {
-        link.put(msg);
-        System.out.println(">> "+msg);
-    }
-    
-    void listen(ObjectLink link) throws Exception
-    {
-        System.out.println(link.getBlocking());
+        catch(IOException ex)
+        { ex.printStackTrace(); }
+        finally
+        {
+            for(ObjectLink<Command,String> link : slaveLinks)
+                link.disconnect();
+            try { if(server != null) server.close(); } catch(IOException ex) {}
+        }
     }
 
     public static void main(String[] args)

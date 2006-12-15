@@ -31,9 +31,11 @@ public class JoglDiveDebug extends JFrame implements ActionListener
         public GLCanvas         canvas  = null;
         public JoglEngine3D     engine  = null;
         public Dimension        glSize  = new Dimension();
+        String                  label;
         
-        public Screen(GLCapabilities capabilities)
+        public Screen(GLCapabilities capabilities, String label)
         {
+            this.label = label;
             canvas = new GLCanvas(capabilities);
             canvas.addGLEventListener(this); // calls display(), reshape(), etc.
             engine = new JoglEngine3D();
@@ -47,6 +49,7 @@ public class JoglDiveDebug extends JFrame implements ActionListener
         
         public void display(GLAutoDrawable drawable)
         {
+            //System.err.println(label);
             GL gl = drawable.getGL();
             engine.render(kin, view, new Rectangle(glSize), gl, eyePos);
         }
@@ -83,10 +86,11 @@ public class JoglDiveDebug extends JFrame implements ActionListener
         kin = createKinemage();
         view = new KView(kin);
         view.setSpan(1.2f * view.getSpan());
-        //view.setClip(3); // extra depth
+        view.setClip(3); // extra depth
         //view.setCenter(0, 0, 2);
         
-        createScreens();
+        //createScreens();
+        createAltScreens();
         Container cp = new Panel();
         cp.setLayout(null);
         for(Screen s : screens)
@@ -114,6 +118,7 @@ public class JoglDiveDebug extends JFrame implements ActionListener
     
 //{{{ createScreens
 //##############################################################################
+    /** 6 walls of a CAVE -- unfolded cube */
     void createScreens()
     {
         // Set up parameters for rendering
@@ -128,10 +133,10 @@ public class JoglDiveDebug extends JFrame implements ActionListener
         Screen s;
         GLCanvas c;
         JoglEngine3D e;
-        final int size = 400;
+        final int size = 300;
         
         // center / straight ahead
-        s = screens[0] = new Screen(capabilities);
+        s = screens[0] = new Screen(capabilities, "front");
         e = s.engine;
         e.screenCenterPos = new Triple(0, 0, -size/2.0);
         e.screenNormalVec = new Triple(0, 0, 1);
@@ -139,7 +144,7 @@ public class JoglDiveDebug extends JFrame implements ActionListener
         c.setBounds(1*size, 1*size, size, size);
 
         // right
-        s = screens[1] = new Screen(capabilities);
+        s = screens[1] = new Screen(capabilities, "right");
         e = s.engine;
         e.screenCenterPos = new Triple(size/2.0, 0, 0);
         e.screenNormalVec = new Triple(-1, 0, 0);
@@ -147,7 +152,7 @@ public class JoglDiveDebug extends JFrame implements ActionListener
         c.setBounds(2*size, 1*size, size, size);
 
         // left
-        s = screens[2] = new Screen(capabilities);
+        s = screens[2] = new Screen(capabilities, "left");
         e = s.engine;
         e.screenCenterPos = new Triple(-size/2.0, 0, 0);
         e.screenNormalVec = new Triple(1, 0, 0);
@@ -159,7 +164,7 @@ public class JoglDiveDebug extends JFrame implements ActionListener
         // but they produce the expected results.
 
         // top
-        s = screens[3] = new Screen(capabilities);
+        s = screens[3] = new Screen(capabilities, "top");
         e = s.engine;
         e.screenCenterPos = new Triple(0, size/2.0, 0);
         e.screenNormalVec = new Triple(0, -1, 0);
@@ -168,7 +173,7 @@ public class JoglDiveDebug extends JFrame implements ActionListener
         c.setBounds(1*size, 0*size, size, size);
 
         // bottom
-        s = screens[4] = new Screen(capabilities);
+        s = screens[4] = new Screen(capabilities, "bottom");
         e = s.engine;
         e.screenCenterPos = new Triple(0, -size/2.0, 0);
         e.screenNormalVec = new Triple(0, 1, 0);
@@ -177,13 +182,69 @@ public class JoglDiveDebug extends JFrame implements ActionListener
         c.setBounds(1*size, 2*size, size, size);
 
         // back
-        s = screens[5] = new Screen(capabilities);
+        s = screens[5] = new Screen(capabilities, "back");
         e = s.engine;
         e.screenCenterPos = new Triple(0, 0, size/2.0);
         e.screenNormalVec = new Triple(0, 0, -1);
         e.screenUpVec     = new Triple(0, 1, 0);
         c = s.canvas;
         c.setBounds(3*size, 1*size, size, size);
+    }
+//}}}
+
+//{{{ createAltScreens
+//##############################################################################
+    /** 5 screens side-by-side -- tiled wall display */
+    void createAltScreens()
+    {
+        // Set up parameters for rendering
+        GLCapabilities capabilities = new GLCapabilities();
+        capabilities.setDoubleBuffered(true); // usually enabled by default, but to be safe...
+        int fsaaNumSamples = 4;
+        capabilities.setSampleBuffers(fsaaNumSamples > 1); // enables/disables full-scene antialiasing (FSAA)
+        capabilities.setNumSamples(fsaaNumSamples); // sets number of samples for FSAA (default is 2)
+
+        // Allocate screens[]
+        this.screens = new Screen[6];
+        Screen s;
+        GLCanvas c;
+        JoglEngine3D e;
+        final int size = 300;
+        
+        // center / straight ahead
+        s = screens[0] = new Screen(capabilities, "front");
+        e = s.engine;
+        e.screenCenterPos = new Triple(0, 0, -size/2.0);
+        c = s.canvas;
+        c.setBounds(1*size, 1*size, size, size);
+
+        // right
+        s = screens[1] = new Screen(capabilities, "right");
+        e = s.engine;
+        e.screenCenterPos = new Triple(size, 0, -size/2.0);
+        c = s.canvas;
+        c.setBounds(2*size, 1*size, size, size);
+
+        // left
+        s = screens[2] = new Screen(capabilities, "left");
+        e = s.engine;
+        e.screenCenterPos = new Triple(-size, 0, -size/2.0);
+        c = s.canvas;
+        c.setBounds(0*size, 1*size, size, size);
+        
+        // top
+        s = screens[3] = new Screen(capabilities, "top");
+        e = s.engine;
+        e.screenCenterPos = new Triple(0, size, -size/2.0);
+        c = s.canvas;
+        c.setBounds(1*size, 0*size, size, size);
+
+        // bottom
+        s = screens[4] = new Screen(capabilities, "bottom");
+        e = s.engine;
+        e.screenCenterPos = new Triple(0, -size, -size/2.0);
+        c = s.canvas;
+        c.setBounds(1*size, 2*size, size, size);
     }
 //}}}
 

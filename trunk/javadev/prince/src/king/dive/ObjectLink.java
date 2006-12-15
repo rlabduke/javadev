@@ -18,10 +18,12 @@ import java.util.concurrent.*;
 * back and forth over a TCP connection.
 * It does allocate a background thread to do its work, so it's not cheap...
 *
+* <p>In the declaration, S is the type to be Sent, and R is the type to be Received.
+*
 * <p>Copyright (C) 2006 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri Dec 15 08:14:25 EST 2006
 */
-public class ObjectLink //extends ... implements ...
+public class ObjectLink <S extends Serializable, R extends Serializable> //extends ... implements ...
 {
 //{{{ Constants
 //}}}
@@ -164,7 +166,7 @@ public class ObjectLink //extends ... implements ...
     *   guaranteed that exceptions will not be "lost" by this mechanism.
     *   See ObjectInput.readObject() for a list of possible exceptions.
     */
-    public Object get() throws Exception
+    public R get() throws Exception
     {
         if(recvEx != null)
         {
@@ -172,11 +174,11 @@ public class ObjectLink //extends ... implements ...
             recvEx = null;
             throw ex;
         }
-        return recvQueue.poll();
+        return (R) recvQueue.poll();
     }
     
     /** Like get(), but doesn't return until an object is available. */
-    public Object getBlocking() throws Exception
+    public R getBlocking() throws Exception
     {
         if(recvEx != null)
         {
@@ -184,7 +186,7 @@ public class ObjectLink //extends ... implements ...
             recvEx = null;
             throw ex;
         }
-        return recvQueue.take();
+        return (R)recvQueue.take();
     }
     
     /**
@@ -194,7 +196,7 @@ public class ObjectLink //extends ... implements ...
     *   object to the stream.  Unlike get(), this method blocks until the object
     *   is sent, so any exception comes directly from sending this object.
     */
-    public void put(Serializable o) throws IOException
+    public void put(S o) throws IOException
     { send(o); }
 //}}}
 
