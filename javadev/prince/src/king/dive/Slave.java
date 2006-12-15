@@ -130,7 +130,8 @@ public class Slave implements GLEventListener
     public void display(GLAutoDrawable drawable)
     {
         GL gl = drawable.getGL();
-        engine.render(kin, view, new Rectangle(glSize), gl, leftEyePos);
+        Triple eyePos = new Triple().likeMidpoint(leftEyePos, rightEyePos);
+        engine.render(kin, view, new Rectangle(glSize), gl, eyePos);
     }
     
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height)
@@ -389,6 +390,8 @@ public class Slave implements GLEventListener
     void interpretArg(String arg)
     {
         // Handle files, etc. here
+        try { props.load(new FileInputStream(arg)); }
+        catch(IOException ex) { throw new IllegalArgumentException("Can't read properties from file '"+arg+"'"); }
     }
     
     void interpretFlag(String flag, String param)

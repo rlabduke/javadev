@@ -203,6 +203,8 @@ public class Master //extends ... implements ...
     void interpretArg(String arg)
     {
         // Handle files, etc. here
+        try { props.load(new FileInputStream(arg)); }
+        catch(IOException ex) { throw new IllegalArgumentException("Can't read properties from file '"+arg+"'"); }
     }
     
     void interpretFlag(String flag, String param)
