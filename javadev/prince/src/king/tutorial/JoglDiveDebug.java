@@ -59,7 +59,7 @@ public class JoglDiveDebug extends JFrame implements ActionListener
             this.glSize.setSize(width, height);
         }
         
-        public void displayChanged(GLAutoDrawable drawable, boolean modeChnaged, boolean deviceChanged)
+        public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged)
         {}
     }
 //}}}

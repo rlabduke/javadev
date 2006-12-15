@@ -27,7 +27,8 @@ public class Master //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     Props props;
-    Collection<ObjectLink<Command,String>> slaveLinks = new ArrayList<ObjectLink<Command,String>>();
+    Collection<ObjectLink<Command,String>> slaveLinks
+        = Collections.synchronizedCollection(new ArrayList<ObjectLink<Command,String>>());
 //}}}
 
 //{{{ Constructor(s)
@@ -46,11 +47,15 @@ public class Master //extends ... implements ...
 //##############################################################################
     public void sendCommand(Command c)
     {
-        for(ObjectLink<Command,String> link : slaveLinks)
+        for(Iterator<ObjectLink<Command,String>> iter = slaveLinks.iterator(); iter.hasNext(); )
         {
+            ObjectLink<Command,String> link = iter.next();
             try { link.put(c); }
             catch(IOException ex)
-            { System.out.println("Error commanding slave: "+ex.getMessage()); }
+            {
+                System.out.println("Error commanding slave: "+ex.getMessage());
+                iter.remove();
+            }
         }
     }
 //}}}
@@ -66,13 +71,15 @@ public class Master //extends ... implements ...
     */
     public void Main()
     {
-        int port = props.getInt("master.port");
-        System.out.println("Listening for slaves on port "+port);
-        
         ServerSocket server = null;
         try
         {
+            int port = props.getInt("master.port");
             server = new ServerSocket(port);
+            System.out.println("Listening for slaves on port "+port);
+            
+            new MasterGUI(this);
+            
             while(true)
             {
                 Socket socket = server.accept();
