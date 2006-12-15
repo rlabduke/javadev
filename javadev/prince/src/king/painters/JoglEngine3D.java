@@ -366,18 +366,18 @@ Scheme for rendering in the DiVE:
         // Rotation should be centered around the observer
         Triple negEyePos = new Triple(eyePosition).neg();
         R.prepend( new Transform().likeTranslation(negEyePos) );
-        // Find position of screen center in the new scheme -- it will be somewhere on the -Z axis
+    //System.err.println(R);
+        // Find position of screen center in the new scheme.
+        // Screen Z < 0 and screen is normal to Z axis, but may be shifted to side or up/down.
         Triple scrCtr = (Triple) R.transform(this.screenCenterPos, new Triple());
         final double minClipDist = size/20;
-        double scrDist      = (-scrCtr.getZ());
-        double near         = Math.max(scrDist - viewClipScaling*viewClipFront, minClipDist);
-        double far          = Math.max(scrDist - viewClipScaling*viewClipBack, 2*minClipDist);
-        double frontWidth   = width * (near / scrDist);
-        double frontHeight  = height * (near / scrDist);
-        double right        = scrCtr.getX() + (frontWidth / 2);
-        double left         = scrCtr.getX() - (frontWidth / 2);
-        double top          = scrCtr.getY() + (frontHeight / 2);
-        double bottom       = scrCtr.getY() - (frontHeight / 2);
+        double scrDistZ     = (-scrCtr.getZ());
+        double near         = Math.max(scrDistZ - viewClipScaling*viewClipFront, minClipDist);
+        double far          = Math.max(scrDistZ - viewClipScaling*viewClipBack, 2*minClipDist);
+        double right        = (scrCtr.getX() + (width  / 2)) * (near / scrDistZ);
+        double left         = (scrCtr.getX() - (width  / 2)) * (near / scrDistZ);
+        double top          = (scrCtr.getY() + (height / 2)) * (near / scrDistZ);
+        double bottom       = (scrCtr.getY() - (height / 2)) * (near / scrDistZ);
         if(caveClipping)
         {
             // Slide the clipping planes forward to very near the observer.
@@ -386,6 +386,11 @@ Scheme for rendering in the DiVE:
             near -= offset;
             far  -= offset;
         }
+    //System.err.println("scrCtr = "+scrCtr);
+    //System.err.println("top = "+top+"; bottom = "+bottom);
+    //System.err.println("left = "+left+"; right = "+right);
+    //System.err.println("near = "+near+"; far = "+far);
+        // l,r,b,t apply at distance "near" and are X,Y coords
         // l,r,b,t apply at distance "near" and are X,Y coords
         // near and far are (positive) distances from the camera for glFrustum
         // but are Z coords for glOrtho (although they're then negated!).

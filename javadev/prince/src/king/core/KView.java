@@ -21,7 +21,7 @@ import java.util.*;
 * <p>Begun on Thu May 23 21:08:29 EDT 2002
 * <br>Copyright (C) 2002-2007 by Ian W. Davis. All rights reserved.
 */
-public class KView
+public class KView implements Serializable
 {
 //{{{ Static fields
     static final int N_UPDATES_ALLOWED = 100;
@@ -29,22 +29,29 @@ public class KView
 
 //{{{ Variable definitions
 //##################################################################################################
-    Kinemage parent = null;
+    /**
+    * When serializing a view, the kinemage is excluded as it would contribute
+    * a great deal of bulk to the serialization, when it might not be warranted.
+    * If Kinemage itself ever becomes Serializable (which I doubt),
+    * this might be the general pattern: parents are marked transient, and
+    * upon de-serialization parents are responsible for calling setParent() on children.
+    */
+    transient protected Kinemage parent = null;
     
     // The label used on the View menu
-    String ID = "Unnamed view";
+    protected String ID = "Unnamed view";
     
     // The rotation matrix
     public float[][] xform  = { {1f, 0f, 0f}, {0f, 1f, 0f}, {0f, 0f, 1f} };
     // Coordinates (in real-space) of the center of rotation
-    float[] center = null;
+    protected float[] center = null;
     
     /** The zooming factor */
-    float zoom = 0f;
+    protected float zoom = 0f;
     /** The span factor, an alternate representation of zoom. */
-    float span = 0f;
+    protected float span = 0f;
     /** The clipping factor */
-    float clip = 1f;
+    protected float clip = 1f;
 
     /** The elements of the transformation matrix, in real-space. Call compile() before using them! */
     public float R11 = 1f, R12 = 0f, R13 = 0f, R21 = 0f, R22 = 1f, R23 = 0f, R31 = 0f, R32 = 0f, R33 = 1f;
@@ -52,15 +59,17 @@ public class KView
     public float cx = 0f, cy = 0f, cz = 0f;
     
     /** 0-based indices of which viewing axes to use when this view is activated. */
-    int[] viewingAxes = null; // null -> don't change axes when selected
+    protected int[] viewingAxes = null; // null -> don't change axes when selected
     
     // A counter for when this matrix needs to be 'cleaned'
-    int nUpdates = 0;
-    
+    protected int nUpdates = 0;
 //}}}
 
-//{{{ Constructors & clone()
+//{{{ Constructors, clone
 //##################################################################################################
+    /** Used by the serialization mechanism. */
+    private KView() { super(); }
+    
     /**
     * Constructor
     */
@@ -70,7 +79,7 @@ public class KView
     }
 
     /** Duplicates this object */
-    public synchronized Object clone()
+    public synchronized KView clone()
     {
         KView ret = new KView(parent);
         ret.ID = ID;
@@ -87,7 +96,7 @@ public class KView
     }
 //}}}
 
-//{{{ get/setName(), toString()
+//{{{ get/setName, toString
 //##################################################################################################
     /** Gets the name of this element */
     public String getName()
@@ -100,7 +109,7 @@ public class KView
     { return getName(); }
 //}}}
 
-//{{{ Matrix math routines
+//{{{ mmult, normalize, transpose
 //##################################################################################################
     // Multiplies two 3x3 matrices
     static protected float[][] mmult(float[][] A, float[][] B)
@@ -196,7 +205,7 @@ public class KView
     
 //}}} Matrix math routines
 
-//{{{ Compositing (compile())
+//{{{ compile
 //##################################################################################################
     /**
     * Updates this view's public fields to reflect the current internal state.
@@ -219,7 +228,7 @@ public class KView
     
 //}}}
 
-//{{{ Rotation functions
+//{{{ rotateX/Y/Z
 //##################################################################################################
     /**
     * Rotates about the axis defined as 'x' by the basis of this tranform.
