@@ -27,6 +27,7 @@ public class PlottingTool extends BasicTool {
 
     TablePane pane;
     JButton plotButton, exportButton, parallelButton, filterButton, resetButton;
+    JTextField numBinsField;
     JTextField xMultField, yMultField, zMultField;
     JTextField xFiltField, yFiltField, zFiltField;
     JTextField xFiltRange, yFiltRange, zFiltRange;
@@ -113,25 +114,30 @@ public class PlottingTool extends BasicTool {
 
 	exportButton = new JButton(new ReflectiveAction("Export!", null, this, "onExport"));
 	parallelButton = new JButton(new ReflectiveAction("Parallel!", null, this, "onPlotParallel"));
+	numBinsField = new JTextField("10", 4);
 	
 	pane.newRow();
 	pane.add(new JLabel(" Row 1"));
 	pane.add(new JLabel(" X axis"));
 	pane.add(new JLabel(" Y axis"));
 	pane.add(new JLabel(" Z axis"));
-	pane.add(new JLabel(" color"));
+	pane.add(new JLabel(" bins"));
 	pane.newRow();
-	pane.vfill(true).hfill(true).add(new JScrollPane(labelList), 1, 5);
-	pane.add(new JScrollPane(xList), 1, 5);
-	pane.add(new JScrollPane(yList), 1, 5);
-	pane.add(new JScrollPane(zList), 1, 5);
-	pane.add(new JScrollPane(colorList), 1, 5);
+	pane.vfill(true).hfill(true).add(new JScrollPane(labelList), 1, 7);
+	pane.add(new JScrollPane(xList), 1, 7);
+	pane.add(new JScrollPane(yList), 1, 7);
+	pane.add(new JScrollPane(zList), 1, 7);
+	pane.add(new JScrollPane(colorList), 1, 7);
 
 	pane.vfill(false).hfill(true).addCell(plotButton);
 	pane.newRow();
 	pane.addCell(parallelButton);
 	pane.newRow();
 	pane.addCell(exportButton);
+	pane.newRow();
+	pane.add(new JLabel("# of Bins:"));
+	pane.newRow();
+	pane.add(numBinsField);
 	pane.newRow();
 	pane.add(color1, 2, 1);
 	pane.newRow();
@@ -406,7 +412,7 @@ public class PlottingTool extends BasicTool {
 		}
 	    }
 	}
-	double perDiv = (maxColor-minColor)/10;
+	//double perDiv = (maxColor-minColor)/10;
 	//createBins(numInd, minColor, maxColor, perDiv, color);
 	createBins(numInd, colors, color);
 
@@ -495,21 +501,28 @@ public class PlottingTool extends BasicTool {
 
     public void createBins(int numInd, ArrayList colors, int color) {
 	if (color != -1) {
-	    Collections.sort(colors);
-	    //System.out.println((String)colors.get(0) + (String) colors.get(1));
-	    int size = colors.size();
-	    double sizePerBin = size/10;
-	    //double minColor = Double.parseDouble(colors.get(0));
-	    for (int i = 0; i < 10; i++) {
-		Double bin = (Double)colors.get((int)Math.floor(sizePerBin * i));
-		//System.out.println(bin);
-		//bin = new Double(Math.floor(bin.doubleValue()));
-		KList list = new KList(null, bin.toString());
-		list.flags |= KList.NOHILITE;
-		list.setType(KList.BALL);
-		list.addMaster(bin.toString());
-		list.setDimension(numInd);
-		binnedPoints.put(bin, list);
+	    if (KinUtil.isNumeric(numBinsField.getText())) {
+		int numBins = Integer.parseInt(numBinsField.getText());
+		Collections.sort(colors);
+		//System.out.println((String)colors.get(0) + (String) colors.get(1));
+		int size = colors.size();
+		double sizePerBin = size/numBins;
+		//double sizePerBin = size/10;
+		//double minColor = Double.parseDouble(colors.get(0));
+		//for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < numBins; i++) {
+		    Double bin = (Double)colors.get((int)Math.floor(sizePerBin * i));
+		    //System.out.println(bin);
+		    //bin = new Double(Math.floor(bin.doubleValue()));
+		    KList list = new KList(null, bin.toString());
+		    list.flags |= KList.NOHILITE;
+		    list.setType(KList.BALL);
+		    list.addMaster(bin.toString());
+		    list.setDimension(numInd);
+		    binnedPoints.put(bin, list);
+		}
+	    } else {
+		JOptionPane.showMessageDialog(pane, "Ploease put a number in the 'number of bins' field.", "Error", JOptionPane.ERROR_MESSAGE);
 	    }
 	} else {
 	    KList list = new KList(null, "multi-dim points");
