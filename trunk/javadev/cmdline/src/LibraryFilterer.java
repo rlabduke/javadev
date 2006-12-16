@@ -15,22 +15,24 @@ public class LibraryFilterer {
 	} else {
 	    File[] inputs = new File[args.length];
 	    for (int i = 0; i < args.length; i++) {
-		inputs[i] = new File(System.getProperty("user.dir") + "/" +  args[i]);
+		inputs[i] = new File(System.getProperty("user.dir") + "/" + args[i]);
 		System.out.println(inputs[i]);
 	    }
-	    LibraryFilterer filterer = new LibraryFilterer(inputs);
+	    File outFile = new File(System.getProperty("user.dir") + "/" + args[0] + ".rmsd.pdb");
+	    LibraryFilterer filterer = new LibraryFilterer(inputs, outFile);
 	}
+
 	long endTime = System.currentTimeMillis();
 	System.out.println((endTime - startTime)/1000 + " seconds to generate library");
     }
     
-    public LibraryFilterer(File[] files) {
+    public LibraryFilterer(File[] files, File outFile) {
 	CoordinateFile cleanFile = new CoordinateFile();
 	for (int i = 0; i < files.length; i++) {
 	    System.out.println("Reading new file");
 	    filterFileByRMSD(files[i], cleanFile);
 	}
-	writePdbFile(cleanFile);
+	writePdbFile(cleanFile, outFile);
 
     }
 
@@ -86,13 +88,13 @@ public class LibraryFilterer {
 		Iterator cleanIter = (cleanFile.getModels()).iterator();
 		    //    double dist = 1;
 		double rmsd = 1;
-		while ((cleanIter.hasNext())&&(rmsd > 0.5)) {
+		while ((cleanIter.hasNext())&&(rmsd > 0.55)) {
 		    Model cleanMod = (Model) cleanIter.next();
 			//AtomState cleanC = getThirdCarb(cleanMod);
 		    rmsd = calcBackboneRMSD(mod, cleanMod);
 			//dist = modC.distance(cleanC);
 		}
-		if (rmsd > 0.5) {
+		if (rmsd > 0.55) {
 		    cleanFile.add(mod);
 		    System.out.print(".");
 		}
@@ -172,10 +174,10 @@ public class LibraryFilterer {
 	              //have already had C's found.
     }
 
-    public void writePdbFile(CoordinateFile coodFile) {
-	File pdbOut = new File("C:/docs/labwork/modeling/terwilliger/tripepTop500_pdblib2/tripepTop500_rmsdfilter.pdb");
+    public void writePdbFile(CoordinateFile coodFile, File outFile) {
+	//File pdbOut = new File("C:/docs/labwork/modeling/terwilliger/tripepTop500_pdblib2/tripepTop500_rmsdfilter.pdb");
 	try {
-	    PdbWriter writer = new PdbWriter(pdbOut);
+	    PdbWriter writer = new PdbWriter(outFile);
 	    writer.writeCoordinateFile(coodFile);
 	    writer.close();
 	} catch (IOException e) {

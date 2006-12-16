@@ -20,7 +20,7 @@ public class PdbSuperimposer {
 	    System.out.println("reading in file");
 	    PdbReader reader = new PdbReader();
 	    reader.setUseSegID(false);
-	    File pdb = new File("C:/docs/labwork/modeling/terwilliger/tripepTop500_pdblib2/tripepTop500_4endmdl.pdb");
+	    File pdb = new File("C:/docs/labwork/modeling/terwilliger/tripepTop500v2/tripepTop500_filtered-endmdl.pdb");
 	    //File pdb = new File("C:/docs/labwork/modeling/terwilleger/tripepTop500_pdblib2/test1.pdb");
 	    CoordinateFile coodFile = reader.read(pdb);
 	    CoordinateFile cleanFile = new CoordinateFile();
@@ -49,9 +49,11 @@ public class PdbSuperimposer {
 		    cleanFile.add(mod);
 		    //System.out.println("model written");
 		    ModelState modState = mod.getState();
-		    Residue modRes = getLastResidue(mod);
+		    Residue modRes = getFirstResidue(mod);
+		    //System.out.println(modState + " " +  modRes);
 		    try {
 			modCA = modState.get(modRes.getAtom(" CA "));
+			//System.out.println(modCA);
 			modC = modState.get(modRes.getAtom(" C  "));
 			modO = modState.get(modRes.getAtom(" O  "));
 			//System.out.println(refCA.toString() + refC.toString() + refO.toString());
@@ -117,9 +119,29 @@ public class PdbSuperimposer {
 	ModelState modState = mod.getState();
 	Iterator residues = (mod.getResidues()).iterator();
 	//boolean complete = true;
+	Residue tempRes = null;
+	int resCount = 0;
 	while (residues.hasNext()) {
 	    Residue res = (Residue) residues.next();
-	    if (!PdbSuperimposer.isBackboneComplete(res)) return false;
+	    if (!PdbSuperimposer.isBackboneComplete(res)) {
+		try { 
+		    AtomState notComp = modState.get(res.getAtom(" N  "));
+		    System.out.println(notComp);
+		    //return false;
+		} catch (AtomException ae) {
+		}
+		return false;
+	    }
+	    resCount++;
+	    tempRes = res;
+	}
+	if (resCount < 3) {
+	    try {
+		AtomState modCA = modState.get(tempRes.getAtom(" CA "));
+		System.out.println("Model " + modCA + " has " + resCount + " residues");
+	    } catch (AtomException ae) {
+	    }
+	    return false;
 	}
 	return true;
     }
@@ -138,14 +160,14 @@ public class PdbSuperimposer {
 	if (atomTotal == 15) {
 	    return true;
 	} else {
-	    System.out.println("Residue: " + res.getName() + " not complete");
+	    System.out.println("Residue: " + res + " not complete");
 	    return false;
 	}
 		
     }
 
     public void writePdbFile(CoordinateFile coodFile) {
-	File pdbOut = new File("C:/docs/labwork/modeling/terwilliger/tripepTop500_pdblib2/tripepTop500_4superCterm.pdb");
+	File pdbOut = new File("C:/docs/labwork/modeling/terwilliger/tripepTop500v2/tripepTop500_filtered-endmdl-ntermsup.pdb");
 	try {
 	    PdbWriter writer = new PdbWriter(pdbOut);
 	    writer.writeCoordinateFile(coodFile);
