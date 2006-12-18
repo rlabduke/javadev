@@ -199,7 +199,7 @@ public class MasterGroup extends AGE<Kinemage,AHE> // implements ...
     }
 //}}}
 
-//{{{ addMaster, removeMaster, getMasters
+//{{{ add/removeMaster, getMasters, get/setIndent
 //##################################################################################################
     /** Not supported */
     public void addMaster(String masterName)
@@ -212,5 +212,11 @@ public class MasterGroup extends AGE<Kinemage,AHE> // implements ...
     /** Not supported */
     public Collection<String> getMasters()
     { throw new UnsupportedOperationException("Not supported by MasterGroup"); }
+    
+    public boolean getIndent()
+    { return this.indent; }
+    
+    public void setIndent(boolean b)
+    { this.indent = b; }
 //}}}
 }//class

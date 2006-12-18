@@ -92,7 +92,21 @@ public class Slave implements GLEventListener
         engine.screenNormalVec  = getTriple(props, "slave.screen_normal_vec");
         engine.screenUpVec      = getTriple(props, "slave.screen_up_vec");
         
-        frame = new JFrame(this.getClass().getName());
+        // Figure out which display device to create the window on.
+        int whichScreen = props.getInt("slave.which_screen");
+        int whichConfig = props.getInt("slave.which_subscreen");
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice[] gds = ge.getScreenDevices();
+        GraphicsDevice gd = ge.getDefaultScreenDevice();
+        if(0 <= whichScreen && whichScreen < gds.length)
+            gd = gds[whichScreen];
+        // A GraphicsConfiguration is a sub-section of a physical display, like a virtual desktop
+        GraphicsConfiguration gc = gd.getDefaultConfiguration();
+        GraphicsConfiguration[] gcs = gd.getConfigurations();
+        if(0 <= whichConfig && whichConfig < gcs.length)
+            gc = gcs[whichConfig];
+        
+        frame = new JFrame(this.getClass().getName(), gc);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(canvas);
         frame.setUndecorated(props.getBoolean("slave.full_screen"));
@@ -111,13 +125,17 @@ public class Slave implements GLEventListener
         if(props.getBoolean("slave.full_screen"))
         {
             // Puts the window in full screen mode.  Seems to work OK with JOGL.
-            int whichScreen = props.getInt("slave.which_screen");
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            GraphicsDevice[] gds = ge.getScreenDevices();
-            GraphicsDevice gd = ge.getDefaultScreenDevice();
-            if(0 <= whichScreen && whichScreen < gds.length)
-                gd = gds[whichScreen];
-            gd.setFullScreenWindow(frame); // should be done after becoming visible
+            // However, true full screen exclusive mode doesn't work on the Mac
+            // for anything but the primary display.
+            // However, on the primary display, it's needed to cover the Dock
+            // and menu bar.
+            if(props.getBoolean("slave.full_screen_exclusive"))
+                gd.setFullScreenWindow(frame); // should be done after becoming visible
+            else
+            {
+                frame.setBounds(gc.getBounds());
+                frame.setAlwaysOnTop(true);
+            }
         }
     }
 //}}}

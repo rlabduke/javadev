@@ -65,8 +65,8 @@ public class Kinemage extends AGE<Kinemage,KGroup> // implements ...
     /** For tracking whether edits have been saved */
     protected boolean modified = false;
 
-    /** For storing bondRots */
-    Collection bondRots = null;
+    /** For storing BondRots */
+    protected Collection<BondRot> bondRots = null;
     
     /** Flags set since the last time someone queried changes. */
     protected int outerEventFlags = 0;
@@ -629,10 +629,10 @@ public class Kinemage extends AGE<Kinemage,KGroup> // implements ...
 
 //{{{ get/setBondRots
 //##################################################################################################
-    public void setBondRots(Collection br)
+    public void setBondRots(Collection<BondRot> br)
     { bondRots = br; }
 
-    public Collection getBondRots()
+    public Collection<BondRot> getBondRots()
     { return bondRots; }
 //}}}
 
