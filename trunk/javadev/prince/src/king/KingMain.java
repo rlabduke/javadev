@@ -44,7 +44,7 @@ public class KingMain implements WindowListener
     static int instanceCount = 0;
 
     KingPrefs           prefs           = null;
-    //KinStable           kinStable       = null;
+    KinStable           kinStable       = null;
     //KinfileIO           kinIO           = null;
     //KinCanvas           kinCanvas       = null;
     //UIMenus             uiMenus         = null;
@@ -57,6 +57,8 @@ public class KingMain implements WindowListener
     
     ArrayList           filesToOpen     = null;
     boolean             doMerge         = true;
+    
+    Set<KMessage.Subscriber> subscribers = new LinkedHashSet<KMessage.Subscriber>();
 //}}}
     
 //{{{ Constructors
@@ -120,7 +122,7 @@ public class KingMain implements WindowListener
     */
     public void createComponents(boolean useButtons, boolean useSliders)
     {
-        //kinStable   = new KinStable(this);
+        kinStable   = new KinStable(this);
         //contentPane = new ContentPane(this);    // doesn't create GUI yet
         //kinIO       = new KinfileIO(this);      // progress dlg. references main window
         //kinCanvas   = new KinCanvas(this);
@@ -327,8 +329,27 @@ public class KingMain implements WindowListener
     }
 //}}}
 
-//{{{ notifyChange
+//{{{ notifyChange; publish, (un)subscribe
 //##################################################################################################
+    /** Sign up to receive event messages from KiNG */
+    public void subscribe(KMessage.Subscriber listener)
+    { subscribers.add(listener); }
+    
+    /** Stop receiving event messages from KiNG */
+    public void unsubscribe(KMessage.Subscriber listener)
+    { subscribers.remove(listener); }
+    
+    /**
+    * Distribute the message to all current subscribers.
+    * This method runs synchronously, in the current Thread:
+    * it does not return until all subscribers have reacted.
+    */
+    public void publish(KMessage msg)
+    {
+        for(KMessage.Subscriber subscriber : subscribers)
+            subscriber.deliverMessage(msg);
+    }
+    
     /**
     * Notifies all existing sub-components of a change to the state of the program.
     * Only notifies components directly owned by KingMain;
@@ -358,7 +379,7 @@ public class KingMain implements WindowListener
     //public Frame getTopWindow() { return mainWin; }
     
     /** Returns the data model that holds all data for this session (never null) */
-    //public KinStable getStable() { return kinStable; }
+    public KinStable getStable() { return kinStable; }
     
     /** Returns the kinemage reader/writer (never null) */
     //public KinfileIO getKinIO() { return kinIO; }
@@ -390,10 +411,10 @@ public class KingMain implements WindowListener
     //}
 
     /** Convenience function for getStable().getKinemage() (may be null) */
-    //public Kinemage getKinemage()
-    //{
-    //    return kinStable.getKinemage();
-    //}
+    public Kinemage getKinemage()
+    {
+        return kinStable.getKinemage();
+    }
 
     /** Convenience function for getStable().getKinemage().getCurrentView() (may be null) */
     //public KingView getView()
@@ -454,5 +475,9 @@ public class KingMain implements WindowListener
     public void windowDeiconified(WindowEvent ev) {}
     public void windowIconified(WindowEvent ev)   {}
     public void windowOpened(WindowEvent ev)      {}
+//}}}
+
+//{{{ empty_code_segment
+//##############################################################################
 //}}}
 }//class

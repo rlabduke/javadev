@@ -202,13 +202,18 @@ public class Kinemage extends AGE<Kinemage,KGroup> // implements ...
 
 //{{{ fire/queryKinChanged
 //##################################################################################################
+    protected static final int DIRTY_MASTERS =
+        CHANGE_TREE_CONTENTS | CHANGE_TREE_MASTERS | CHANGE_POINT_CONTENTS | CHANGE_POINT_MASTERS | CHANGE_MASTERS_LIST;
+    protected static final int DIRTY_SIZE =
+        CHANGE_TREE_CONTENTS | CHANGE_POINT_CONTENTS | CHANGE_POINT_COORDINATES;
+
     public void fireKinChanged(int eventFlags)
     {
         this.outerEventFlags |= eventFlags;
         
-        if((eventFlags & (CHANGE_TREE_CONTENTS | CHANGE_TREE_MASTERS | CHANGE_POINT_CONTENTS | CHANGE_POINT_MASTERS | CHANGE_MASTERS_LIST)) != 0)
+        if((eventFlags & DIRTY_MASTERS) != 0)
             dirtyMasters = true;
-        if((eventFlags & (CHANGE_TREE_CONTENTS | CHANGE_POINT_CONTENTS | CHANGE_POINT_COORDINATES)) != 0)
+        if((eventFlags & DIRTY_SIZE) != 0)
             dirtySize = true;
     }
     

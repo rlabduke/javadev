@@ -1,6 +1,7 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
 package king;
+import king.core.*;
 
 //import java.awt.*;
 //import java.awt.event.*;
@@ -29,58 +30,69 @@ public class KMessage //extends ... implements ...
     }
     
 //{{{ Constants
+    /** A new kinemage has been loaded from disk */
+    public static final long KIN_LOADED         = (1L<<0);
     /** A different kinemage has become the currently active one */
-    public static final long KIN_SWITCHED       = (1L<<0);
+    public static final long KIN_SWITCHED       = (1L<<1);
     /** A kinemage (presumably the current one) has been closed */
-    public static final long KIN_CLOSED         = (1L<<1);
+    public static final long KIN_CLOSED         = (1L<<2);
     /** All open kinemages have been closed */
-    public static final long ALL_CLOSED         = (1L<<2);
+    public static final long ALL_CLOSED         = (1L<<3);
     /** The KingPrefs object has been updated */
-    public static final long PREFS_CHANGED      = (1L<<3);
+    public static final long PREFS_CHANGED      = (1L<<4);
     /** The current viewpoint has been altered: center moved, zoom changed, rotated, etc */
-    public static final long VIEW_MOVED         = (1L<<4);
+    public static final long VIEW_MOVED         = (1L<<5);
     /** A totally different viewpoint has been selected from the Views menu */
-    public static final long VIEW_SELECTED      = (1L<<5);
+    public static final long VIEW_SELECTED      = (1L<<6);
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    protected Object    source;
-    protected int       kinChanges;
-    protected long      progChanges;
+    protected Object    source      = null;
+    protected Kinemage  kinemage    = null;
+    protected int       kinChanges  = 0;
+    protected long      progChanges = 0;
 //}}}
 
 //{{{ Constructor(s)
 //##############################################################################
     public KMessage(Object source)
-    { this(source, 0, 0); }
+    { this(source, 0); }
     
-    public KMessage(Object source, int kinChanges, long progChanges)
+    /** "source" must not ever be a Kinemage, as a safety measure */
+    public KMessage(Object source, long progChanges)
     {
         super();
+        if(source instanceof Kinemage)
+            throw new IllegalArgumentException("Source object for program-type events cannot be a Kinemage");
+        
         this.source         = source;
-        this.kinChanges     = kinChanges;
         this.progChanges    = progChanges;
+    }
+
+    public KMessage(Kinemage kinemage, int kinChanges)
+    {
+        super();
+        this.kinemage       = kinemage;
+        this.kinChanges     = kinChanges;
     }
 //}}}
 
-//{{{ getSource, get/set{Kinemage, Program}Changes
+//{{{ getSource/Kinemage/{Kinemage, Program}Changes
 //##############################################################################
-    /** Returns the "source" or originator of this message. */
+    /** Returns the "source" or originator of this message. (May be null.) */
     public Object getSource()
     { return this.source; }
+    
+    /** Returns the kinemage to which the event flags apply, if this is a kinemage message. (May be null.) */
+    public Kinemage getKinemage()
+    { return this.kinemage; }
     
     public int getKinemageChanges()
     { return this.kinChanges; }
     
-    public void setKinemageChanges(int c)
-    { this.kinChanges = c; }
-    
     public long getProgramChanges()
     { return this.progChanges; }
-    
-    public void setProgramChanges(long c)
-    { this.progChanges = c; }
 //}}}
 
 //{{{ empty_code_segment
