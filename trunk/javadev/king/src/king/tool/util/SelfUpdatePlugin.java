@@ -14,6 +14,7 @@ import java.util.zip.*;
 import javax.swing.*;
 import driftwood.gui.*;
 import driftwood.util.*;
+import king.ReflectiveRunnable;
 
 import javax.swing.Timer; // not java.util.Timer
 //}}}
