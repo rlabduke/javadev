@@ -42,7 +42,7 @@ public class KinStable implements ListSelectionListener, KMessage.Subscriber, Ac
         kMain = kmain;
         children = new ArrayList<Kinemage>();
         
-        kinChooser = new JList();
+        kinChooser = new JList(new DefaultListModel()); // must specify or get a ClassCastEx later!
         kinChooser.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         kinChooser.setVisibleRowCount(4);
         kinChooser.setFixedCellWidth(100);

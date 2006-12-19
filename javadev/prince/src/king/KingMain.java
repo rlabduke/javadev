@@ -45,17 +45,17 @@ public class KingMain implements WindowListener
 
     KingPrefs           prefs           = null;
     KinStable           kinStable       = null;
-    //KinfileIO           kinIO           = null;
+    KinfileIO           kinIO           = null;
     //KinCanvas           kinCanvas       = null;
     //UIMenus             uiMenus         = null;
-    //UIText              uiText          = null;
+    UIText              uiText          = null;
     //KinTree             kinTree         = null;
-    //MainWindow          mainWin         = null;
-    //ContentPane         contentPane     = null;
+    MainWindow          mainWin         = null;
+    ContentPane         contentPane     = null;
     JApplet             theApplet       = null;
     boolean             isAppletFlat    = true;
     
-    ArrayList           filesToOpen     = null;
+    ArrayList<File>     filesToOpen     = null;
     boolean             doMerge         = true;
     
     Set<KMessage.Subscriber> subscribers = new LinkedHashSet<KMessage.Subscriber>();
@@ -123,14 +123,14 @@ public class KingMain implements WindowListener
     public void createComponents(boolean useButtons, boolean useSliders)
     {
         kinStable   = new KinStable(this);
-        //contentPane = new ContentPane(this);    // doesn't create GUI yet
-        //kinIO       = new KinfileIO(this);      // progress dlg. references main window
+        contentPane = new ContentPane(this);    // doesn't create GUI yet
+        kinIO       = new KinfileIO(this);      // progress dlg. references main window
         //kinCanvas   = new KinCanvas(this);
         //uiMenus     = new UIMenus(this);
-        //uiText      = new UIText(this);
+        uiText      = new UIText(this);
         //kinTree     = new KinTree(this);
         //
-        //contentPane.buildGUI(useButtons, useSliders);
+        contentPane.buildGUI(useButtons, useSliders);
     }
 //}}}
 
@@ -141,8 +141,8 @@ public class KingMain implements WindowListener
     */
     public void shutdown()
     {
-        //if(uiText != null)      uiText.shutdown();
-        //if(mainWin != null)     mainWin.shutdown();
+        if(uiText != null)      uiText.shutdown();
+        if(mainWin != null)     mainWin.shutdown();
         //if(kinCanvas != null)   kinCanvas.shutdown();
         
         instanceCount--;
@@ -186,25 +186,25 @@ public class KingMain implements WindowListener
         if(!SoftLog.replaceSystemStreams())
             SoftLog.err.println("Unable to subvert System.err; some exception traces may be lost.");
         
-        //if(theApplet == null || !isAppletFlat)
-        //    mainWin = new MainWindow(this); // doesn't create GUI yet, but other dlgs may depend on this one (?)
+        if(theApplet == null || !isAppletFlat)
+            mainWin = new MainWindow(this); // doesn't create GUI yet, but other dlgs may depend on this one (?)
         createComponents(); // actually creates most of the stuff KiNG uses
 
         if(theApplet == null || !isAppletFlat)
         {
-            //mainWin.setContentPane(contentPane);
+            mainWin.setContentPane(contentPane);
             //mainWin.setJMenuBar(uiMenus.getMenuBar());
-            //mainWin.addWindowListener(this);
-            //mainWin.pack();
-            //mainWin.setVisible(true);
-            //if(prefs.getBoolean("textOpenOnStart"))
-            //    uiText.cascadeBehind(mainWin);
+            mainWin.addWindowListener(this);
+            mainWin.pack();
+            mainWin.setVisible(true);
+            if(prefs.getBoolean("textOpenOnStart"))
+                uiText.cascadeBehind(mainWin);
         }
         else
         {
             //kinCanvas.setPreferredSize(null);   // so we don't crowd off other components
             //kinCanvas.setMinimumSize(null);
-            //theApplet.setContentPane(contentPane);
+            theApplet.setContentPane(contentPane);
             //theApplet.setJMenuBar(uiMenus.getMenuBar());
             //theApplet.validate();
             // make sure text window gets opened as needed
@@ -244,13 +244,13 @@ public class KingMain implements WindowListener
         if(filesToOpen == null || filesToOpen.size() <= 0) return;
         
         Kinemage kin = null;
-        if(doMerge && filesToOpen.size() > 1) kin = new Kinemage(KinfileParser.DEFAULT_KINEMAGE_NAME+"1");
+        if(doMerge && filesToOpen.size() > 1)
+            kin = new Kinemage(KinfileParser.DEFAULT_KINEMAGE_NAME+"1");
         
-        //KinfileIO io = this.getKinIO();
-        //for(Iterator iter = filesToOpen.iterator(); iter.hasNext(); )
-        //{ io.loadFile((File)iter.next(), kin); }
-        //
-        //if(kin != null) this.getStable().append(Arrays.asList(new Kinemage[] {kin}));
+        for(File f : filesToOpen)
+            kinIO.loadFile(f, kin);
+        
+        if(kin != null) this.getStable().append(Arrays.asList(new Kinemage[] {kin}));
     }
 //}}}
 
@@ -370,19 +370,19 @@ public class KingMain implements WindowListener
 //{{{ getXXX functions
 //##################################################################################################
     /** Returns the object holding our content: either a JFrame or a JApplet. Never null. */
-    //public Container getContentContainer() { return (mainWin == null ? (Container)theApplet : (Container)mainWin); }
+    public Container getContentContainer() { return (mainWin == null ? (Container)theApplet : (Container)mainWin); }
     
     /** Returns the ContentPane object that holds all the GUI elements. Never null. */
-    //public ContentPane getContentPane() { return contentPane; }
+    public ContentPane getContentPane() { return contentPane; }
     
     /** Returns the top-level window, if there is one; null otherwise. */
-    //public Frame getTopWindow() { return mainWin; }
+    public Frame getTopWindow() { return mainWin; }
     
     /** Returns the data model that holds all data for this session (never null) */
     public KinStable getStable() { return kinStable; }
     
     /** Returns the kinemage reader/writer (never null) */
-    //public KinfileIO getKinIO() { return kinIO; }
+    public KinfileIO getKinIO() { return kinIO; }
     
     /** Returns the active drawing canvas (never null) */
     //public KinCanvas getCanvas() { return kinCanvas; }
@@ -394,7 +394,7 @@ public class KingMain implements WindowListener
     //public UIMenus getMenus() { return uiMenus; }
     
     /** Returns the text storage/edit/display system (never null) */
-    //public UIText getTextWindow() { return uiText; }
+    public UIText getTextWindow() { return uiText; }
     
     /** Returns the tree controller (may be null) */
     //public KinTree getKinTree() { return kinTree; }
@@ -423,6 +423,7 @@ public class KingMain implements WindowListener
     //    if(kin == null) return null;
     //    return kin.getCurrentView();
     //}
+    public void setView(KView view) { }
 //}}}
     
 //{{{ parseArguments
@@ -430,7 +431,7 @@ public class KingMain implements WindowListener
     // Interpret command-line arguments
     void parseArguments(String[] args)
     {
-        filesToOpen = new ArrayList();
+        filesToOpen = new ArrayList<File>();
         
         String arg;
         for(int i = 0; i < args.length; i++)

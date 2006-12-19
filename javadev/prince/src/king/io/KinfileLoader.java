@@ -1,6 +1,6 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
-package king;
+package king.io;
 import king.io.*;
 
 //import java.awt.*;

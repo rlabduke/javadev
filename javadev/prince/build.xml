@@ -99,7 +99,6 @@
         <zipfileset dir="../chiropraxis/dist/" includes="chiropraxis-*-src/"/>
         <zipfileset dir="../extratools/dist/" includes="extratools-*-src/"/>
         <zipfileset dir="../lib/" prefix="lib/">
-            <include name="gnu/regexp/"/>
             <include name="iText/*.jar"/>
             <include name="jogl/*.jar"/>
         </zipfileset>

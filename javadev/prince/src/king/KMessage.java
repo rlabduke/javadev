@@ -95,6 +95,15 @@ public class KMessage //extends ... implements ...
     { return this.progChanges; }
 //}}}
 
+//{{{ toString
+//##############################################################################
+    public String toString()
+    {
+        return "[kinChanges="+Integer.toHexString(kinChanges)
+            +",progChanges="+Long.toHexString(progChanges)+"]";
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##############################################################################
 //}}}
