@@ -257,8 +257,16 @@ Scheme for rendering in the DiVE:
             [    upX     upY     upZ ]
             [ frontX  frontY  frontZ ]
 
-- if observer is null, observer = (0, 0, perspDist)
+- default observer is = (0, 0, perspDist)
 - default screen is at (0,0,0) with up (0,1,0), right (1,0,0), and front (0,0,1)
+
+This works because the current "center" (taken from the KView; center of rotation)
+is always at the origin (0,0,0); the position of the observer and the position
+of the screen are always relative to this.
+
+Thus a screen at (0,0,0) and observer at (0,0,perspDist) mimic the normal KiNG
+arrangement, with the center of rotation fixed at the center of the screen,
+in the plane of the screen.
 }}}*/
 
 //{{{ setupTransforms
