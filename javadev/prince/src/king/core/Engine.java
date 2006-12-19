@@ -383,30 +383,6 @@ abstract public class Engine //extends ... implements ...
     }
 //}}}
 
-//{{{ updatePrefs, syncToKin
-//##################################################################################################
-    // Called by KingMain when something happens.
-    // Shouldn't be called directly under normal circumstances.
-    public void updatePrefs(Props prefs)
-    {
-        this.setPickingRadius( prefs.getDouble("pickingRadius") );
-        useObjPicking = prefs.getBoolean("pickObjects");
-    }
-    
-    /** Takes needed display settings from the kinemage */
-    public void syncToKin(Kinemage kin)
-    {
-        //if(kin.currAspect == null) this.activeAspect = 0;
-        //else this.activeAspect = kin.currAspect.getIndex().intValue();
-        
-        this.usePerspective     = kin.atPerspective;
-        this.cueThickness       = ! kin.atOnewidth;
-        this.thinLines          = kin.atThinline;
-        this.whiteBackground    = kin.atWhitebackground;
-        this.colorByList        = kin.atListcolordominant;
-    }
-//}}}
-
 //{{{ pickPoint, setPickingRadius
 //##################################################################################################
     /**

@@ -24,8 +24,8 @@ public class Engine2D extends Engine
     public Painter      painter         = null;
     public boolean      useStereo       = false;
     public float        stereoRotation  = 0;
+    public Font         bigFont, smallFont;
     
-    Font                bigFont, smallFont;
     Rectangle           canvasRect = new Rectangle();
     boolean             transparentBackground = false; // used only for certain export features
 //}}}
@@ -172,17 +172,6 @@ public class Engine2D extends Engine
             }
         }
     }    
-//}}}
-
-//{{{ updatePrefs
-//##################################################################################################
-    public void updatePrefs(Props prefs)
-    {
-        super.updatePrefs(prefs);
-        stereoRotation  = (float)Math.toRadians(prefs.getDouble("stereoAngle"));
-        bigFont         = new Font("SansSerif", Font.PLAIN, prefs.getInt("fontSizeBig"));
-        smallFont       = new Font("SansSerif", Font.PLAIN, prefs.getInt("fontSizeSmall"));
-    }
 //}}}
 
 //{{{ getCanvasSize, setTransparentBackground

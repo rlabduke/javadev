@@ -95,6 +95,15 @@ public class KMessage //extends ... implements ...
     { return this.progChanges; }
 //}}}
 
+//{{{ testKin/Prog
+//##############################################################################
+    public boolean testKin(int mask)
+    { return (this.kinChanges & mask) != 0; }
+    
+    public boolean testProg(long mask)
+    { return (this.progChanges & mask) != 0; }
+//}}}
+
 //{{{ toString
 //##############################################################################
     public String toString()

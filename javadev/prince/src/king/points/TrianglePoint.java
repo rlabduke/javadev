@@ -47,7 +47,7 @@ public class TrianglePoint extends AbstractPoint // implements ...
 //##################################################################################################
     public void doTransform(Engine engine, Transform xform, double zoom)
     {
-        // Don't call super.signalTransform() b/c we do it all here
+        // Don't call super.doTransform() b/c we do it all here
         
         xform.transform(this, engine.work1);
         setDrawXYZ(engine.work1);
@@ -123,7 +123,7 @@ public class TrianglePoint extends AbstractPoint // implements ...
             B = from.from;
             //C = from.from.from; -- already set
             // We must match depth cueing AND lighting angle if we want ribbons to look uniform
-            // This is a huge pain in the butt -- code derived from signalTransform().
+            // This is a huge pain in the butt -- code derived from doTransform().
             double triangleZ;
             if(A.z < B.z)
             {
