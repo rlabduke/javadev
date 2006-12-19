@@ -75,7 +75,7 @@ public class VectorPoint extends AbstractPoint // implements ...
 //##################################################################################################
     public void doTransform(Engine engine, Transform xform, double zoom)
     {
-        // Don't call super.signalTransform() b/c we do it all here
+        // Don't call super.doTransform() b/c we do it all here
         
         xform.transform(this, engine.work1);
         setDrawXYZ(engine.work1);

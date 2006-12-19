@@ -46,7 +46,7 @@ public class KingMain implements WindowListener
     KingPrefs           prefs           = null;
     KinStable           kinStable       = null;
     KinfileIO           kinIO           = null;
-    //KinCanvas           kinCanvas       = null;
+    KinCanvas           kinCanvas       = null;
     //UIMenus             uiMenus         = null;
     UIText              uiText          = null;
     //KinTree             kinTree         = null;
@@ -125,7 +125,7 @@ public class KingMain implements WindowListener
         kinStable   = new KinStable(this);
         contentPane = new ContentPane(this);    // doesn't create GUI yet
         kinIO       = new KinfileIO(this);      // progress dlg. references main window
-        //kinCanvas   = new KinCanvas(this);
+        kinCanvas   = new KinCanvas(this);
         //uiMenus     = new UIMenus(this);
         uiText      = new UIText(this);
         //kinTree     = new KinTree(this);
@@ -143,7 +143,6 @@ public class KingMain implements WindowListener
     {
         if(uiText != null)      uiText.shutdown();
         if(mainWin != null)     mainWin.shutdown();
-        //if(kinCanvas != null)   kinCanvas.shutdown();
         
         instanceCount--;
         if(instanceCount <= 0 && theApplet == null)
@@ -202,11 +201,11 @@ public class KingMain implements WindowListener
         }
         else
         {
-            //kinCanvas.setPreferredSize(null);   // so we don't crowd off other components
-            //kinCanvas.setMinimumSize(null);
+            kinCanvas.setPreferredSize(null);   // so we don't crowd off other components
+            kinCanvas.setMinimumSize(null);
             theApplet.setContentPane(contentPane);
             //theApplet.setJMenuBar(uiMenus.getMenuBar());
-            //theApplet.validate();
+            theApplet.validate();
             // make sure text window gets opened as needed
         }
         
@@ -385,7 +384,7 @@ public class KingMain implements WindowListener
     public KinfileIO getKinIO() { return kinIO; }
     
     /** Returns the active drawing canvas (never null) */
-    //public KinCanvas getCanvas() { return kinCanvas; }
+    public KinCanvas getCanvas() { return kinCanvas; }
     
     /** Returns the applet this was spawned from (may be null) */
     public JApplet getApplet() { return theApplet; }
@@ -417,13 +416,12 @@ public class KingMain implements WindowListener
     }
 
     /** Convenience function for getStable().getKinemage().getCurrentView() (may be null) */
-    //public KingView getView()
-    //{
-    //    Kinemage kin = kinStable.getKinemage();
-    //    if(kin == null) return null;
-    //    return kin.getCurrentView();
-    //}
-    public void setView(KView view) { } // ultimate call needs to notify everyone
+    public KView getView()
+    {
+        if(kinCanvas == null) return null;
+        else return kinCanvas.getCurrentView();
+    }
+    public void setView(KView view) { kinCanvas.setCurrentView(view); } // ultimate call needs to notify everyone
 //}}}
     
 //{{{ parseArguments

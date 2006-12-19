@@ -311,7 +311,7 @@ public class Kinemage extends AGE<Kinemage,KGroup> // implements ...
 
 //{{{ addView, getViewList, initAllViews
 //##################################################################################################
-    /** For use creating new views inside the application. Note: doesn't add v to the viewMap. */
+    /** For use creating new views inside the application. */
     public void addView(KView v)
     {
         viewList.add(v);
