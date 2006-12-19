@@ -52,6 +52,7 @@ public class Slave implements GLEventListener
     KView           view = null;
     Triple          leftEyePos;
     Triple          rightEyePos;
+    boolean         wantStereo;
     
     JFrame          frame   = null;
     GLCanvas        canvas  = null;
@@ -81,6 +82,9 @@ public class Slave implements GLEventListener
         int fsaaNumSamples = props.getInt("slave.fsaa_samples");
         capabilities.setSampleBuffers(fsaaNumSamples > 1); // enables/disables full-scene antialiasing (FSAA)
         capabilities.setNumSamples(fsaaNumSamples); // sets number of samples for FSAA (default is 2)
+        // Trying to set stereo when your graphics card doesn't support it
+        // leads to a segfault (OS X) or a GLException (Linux).
+        capabilities.setStereo(wantStereo);
 
         canvas = new GLCanvas(capabilities);
         canvas.addGLEventListener(this); // calls display(), reshape(), etc.
@@ -148,8 +152,22 @@ public class Slave implements GLEventListener
     public void display(GLAutoDrawable drawable)
     {
         GL gl = drawable.getGL();
-        Triple eyePos = new Triple().likeMidpoint(leftEyePos, rightEyePos);
-        engine.render(kin, view, new Rectangle(glSize), gl, eyePos);
+        
+        int[] canDoStereo = new int[1];
+        gl.glGetIntegerv(GL.GL_STEREO, canDoStereo, 0);
+        if(wantStereo && canDoStereo[0] == GL.GL_TRUE)
+        {
+            // Trying this if it's not supported would probably throw a GLException
+            gl.glDrawBuffer(GL.GL_BACK_RIGHT);
+            engine.render(kin, view, new Rectangle(glSize), gl, rightEyePos);
+            gl.glDrawBuffer(GL.GL_BACK_LEFT);
+            engine.render(kin, view, new Rectangle(glSize), gl, leftEyePos);
+        }
+        else
+        {
+            Triple eyePos = new Triple().likeMidpoint(leftEyePos, rightEyePos);
+            engine.render(kin, view, new Rectangle(glSize), gl, eyePos);
+        }
     }
     
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height)
@@ -293,6 +311,7 @@ public class Slave implements GLEventListener
             this.view = new KView(kin);
             this.leftEyePos = getTriple(props, "master.observer_left_eye_px");
             this.rightEyePos = getTriple(props, "master.observer_right_eye_px");
+            this.wantStereo = props.getBoolean("slave.use_stereo");
             
             initGraphics();
             

@@ -423,7 +423,7 @@ public class KingMain implements WindowListener
     //    if(kin == null) return null;
     //    return kin.getCurrentView();
     //}
-    public void setView(KView view) { }
+    public void setView(KView view) { } // ultimate call needs to notify everyone
 //}}}
     
 //{{{ parseArguments

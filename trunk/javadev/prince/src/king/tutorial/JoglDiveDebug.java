@@ -51,6 +51,16 @@ public class JoglDiveDebug extends JFrame implements ActionListener
         {
             //System.err.println(label);
             GL gl = drawable.getGL();
+            
+            //byte[] b = new byte[1];
+            //gl.glGetBooleanv(GL.GL_STEREO, b, 0);
+            //gl.glGetBooleanv(GL.GL_DOUBLEBUFFER, b, 0);
+            //System.err.println(b[0]);
+            
+            //int[] i = new int[1];
+            //gl.glGetIntegerv(GL.GL_DRAW_BUFFER, i, 0);
+            //System.err.println(i[0]+" === "+GL.GL_BACK_LEFT+" =/= "+GL.GL_BACK_RIGHT);
+            
             engine.render(kin, view, new Rectangle(glSize), gl, eyePos);
         }
         
@@ -71,6 +81,7 @@ public class JoglDiveDebug extends JFrame implements ActionListener
     Triple              eyePos  = new Triple(0, 0, 0);
     Screen[]            screens = null;
     Timer               timer   = null;
+    boolean             stereo  = false;
 //}}}
 
 //{{{ main, Constructor(s)
@@ -127,6 +138,7 @@ public class JoglDiveDebug extends JFrame implements ActionListener
         int fsaaNumSamples = 4;
         capabilities.setSampleBuffers(fsaaNumSamples > 1); // enables/disables full-scene antialiasing (FSAA)
         capabilities.setNumSamples(fsaaNumSamples); // sets number of samples for FSAA (default is 2)
+        capabilities.setStereo(stereo);
 
         // Allocate screens[]
         this.screens = new Screen[6];
@@ -203,6 +215,7 @@ public class JoglDiveDebug extends JFrame implements ActionListener
         int fsaaNumSamples = 4;
         capabilities.setSampleBuffers(fsaaNumSamples > 1); // enables/disables full-scene antialiasing (FSAA)
         capabilities.setNumSamples(fsaaNumSamples); // sets number of samples for FSAA (default is 2)
+        capabilities.setStereo(stereo);
 
         // Allocate screens[]
         this.screens = new Screen[6];
