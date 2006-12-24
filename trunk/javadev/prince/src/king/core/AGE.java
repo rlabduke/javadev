@@ -109,6 +109,17 @@ abstract public class AGE<P extends AGE, C extends AHE> extends AHEImpl<P> imple
         }
     }
     
+    /** Removes a child from this element */
+    public void remove(C child)
+    {
+        boolean removed = children.remove(child);
+        if(!removed) return;
+        if(child.getParent() == this)
+            child.setParent(null);
+        if(child instanceof AGE)    fireKinChanged(CHANGE_TREE_CONTENTS);
+        else                        fireKinChanged(CHANGE_POINT_CONTENTS);
+    }
+    
     /** Removes all children from this element */
     public void clear()
     { children.clear(); }

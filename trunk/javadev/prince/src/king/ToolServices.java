@@ -22,6 +22,11 @@ import java.util.List;
  * There is one ToolServices object in each ToolBox, and all the Tools in that ToolBox
  * should use it for their interactions.
  *
+ * <p>There are still some calls to KinCanvas.repaint() in this class,
+ * but for the moment I think they're legit.
+ * One instance of this class is tightly coupled to a particular canvas,
+ * and only the canvas needs to know that some tool wants a point picked.
+ *
  * <p>Begun on Fri Jun 21 09:30:40 EDT 2002
  * <br>Copyright (C) 2002-2007 by Ian W. Davis. All rights reserved.
 */
@@ -275,7 +280,7 @@ public class ToolServices implements Transformable
         if(v == null || p == null) return;
         
         v.setCenter((float)p.getX(), (float)p.getY(), (float)p.getZ());
-        kCanvas.repaint();
+        kMain.publish(new KMessage(this, KMessage.VIEW_MOVED));
     }
 //}}}
 
@@ -289,7 +294,7 @@ public class ToolServices implements Transformable
         
         v.rotateX((float)(2.0*Math.PI) * dy / 600f);
         v.rotateY((float)(2.0*Math.PI) * dx / 600f);
-        kCanvas.repaint();
+        kMain.publish(new KMessage(this, KMessage.VIEW_MOVED));
     }
 
     /** Given a distance in pixels, does pinwheel rotation */
@@ -299,7 +304,7 @@ public class ToolServices implements Transformable
         if(v == null) return;
 
         v.rotateZ((float)(-2.0*Math.PI) * dist / 600f);
-        kCanvas.repaint();
+        kMain.publish(new KMessage(this, KMessage.VIEW_MOVED));
     }
 //}}}
 
@@ -313,7 +318,7 @@ public class ToolServices implements Transformable
         
         Dimension dim = kCanvas.getCanvasSize();
         v.viewTranslateRotated(dx, -dy, 0, (dim.width < dim.height ? dim.width : dim.height));
-        kCanvas.repaint();
+        kMain.publish(new KMessage(this, KMessage.VIEW_MOVED));
     }
 
     /** Given an offset in pixels, does translation into/out of the screen */
@@ -324,7 +329,7 @@ public class ToolServices implements Transformable
         
         Dimension dim = kCanvas.getCanvasSize();
         v.viewTranslateRotated(0, 0, d, (dim.width < dim.height ? dim.width : dim.height));
-        kCanvas.repaint();
+        kMain.publish(new KMessage(this, KMessage.VIEW_MOVED));
     }
 //}}}
 

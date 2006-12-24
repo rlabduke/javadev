@@ -42,6 +42,7 @@ public class KingMain implements WindowListener
     // Used for counting # of clones still alive, so we don't
     // call System.exit() prematurely!
     static int instanceCount = 0;
+    public static /*final*/ int MENU_ACCEL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
     KingPrefs           prefs           = null;
     KinStable           kinStable       = null;
@@ -49,7 +50,7 @@ public class KingMain implements WindowListener
     KinCanvas           kinCanvas       = null;
     //UIMenus             uiMenus         = null;
     UIText              uiText          = null;
-    //KinTree             kinTree         = null;
+    KinTree             kinTree         = null;
     MainWindow          mainWin         = null;
     ContentPane         contentPane     = null;
     JApplet             theApplet       = null;
@@ -128,8 +129,8 @@ public class KingMain implements WindowListener
         kinCanvas   = new KinCanvas(this);
         //uiMenus     = new UIMenus(this);
         uiText      = new UIText(this);
-        //kinTree     = new KinTree(this);
-        //
+        kinTree     = new KinTree(this);
+        
         contentPane.buildGUI(useButtons, useSliders);
     }
 //}}}
@@ -163,6 +164,10 @@ public class KingMain implements WindowListener
         //try { System.setProperty("apple.awt.antialiasing", "on"); }
         //catch(SecurityException ex) { SoftLog.err.println("Not allowed to activate antialiasing."); }
         // No effect -- must be done using -D from Java cmd line
+        
+        // CTRL-x shortcuts are still useful in a Mac browser.
+        // There's no good option for Windows / Linux broswers though.
+        if(isApplet()) MENU_ACCEL_MASK = Event.CTRL_MASK;
         
         // Start in a reasonable directory if launched by double-click / drag-n-drop
         try {
@@ -328,7 +333,7 @@ public class KingMain implements WindowListener
     }
 //}}}
 
-//{{{ notifyChange; publish, (un)subscribe
+//{{{ publish, (un)subscribe
 //##################################################################################################
     /** Sign up to receive event messages from KiNG */
     public void subscribe(KMessage.Subscriber listener)
@@ -347,22 +352,6 @@ public class KingMain implements WindowListener
     {
         for(KMessage.Subscriber subscriber : subscribers)
             subscriber.deliverMessage(msg);
-    }
-    
-    /**
-    * Notifies all existing sub-components of a change to the state of the program.
-    * Only notifies components directly owned by KingMain;
-    * for instance KinCanvas is reponsible for propagating this to Engine.
-    * @param event_mask the bitwise OR of the flag(s) representing the change
-    */    
-    public void notifyChange(int event_mask)
-    {
-        //if(kinStable    != null) kinStable.notifyChange(event_mask);
-        //if(contentPane  != null) contentPane.notifyChange(event_mask);
-        //if(kinIO        != null) kinIO.notifyChange(event_mask);
-        //if(kinCanvas    != null) kinCanvas.notifyChange(event_mask);
-        //if(uiMenus      != null) uiMenus.notifyChange(event_mask);
-        //if(kinTree      != null) kinTree.notifyChange(event_mask);
     }
 //}}}
 
@@ -396,18 +385,10 @@ public class KingMain implements WindowListener
     public UIText getTextWindow() { return uiText; }
     
     /** Returns the tree controller (may be null) */
-    //public KinTree getKinTree() { return kinTree; }
+    public KinTree getKinTree() { return kinTree; }
     
     /** Returns the preferences storage object */
     public KingPrefs getPrefs() { return prefs; }
-    
-    /** Convenience function for getStable().getKinemage().getTreeModel() (may be null) */
-    //public DefaultTreeModel getTreeModel()
-    //{
-    //    Kinemage kin = kinStable.getKinemage();
-    //    if(kin == null) return null;
-    //    return kin.getTreeModel();
-    //}
 
     /** Convenience function for getStable().getKinemage() (may be null) */
     public Kinemage getKinemage()
@@ -415,13 +396,42 @@ public class KingMain implements WindowListener
         return kinStable.getKinemage();
     }
 
-    /** Convenience function for getStable().getKinemage().getCurrentView() (may be null) */
+    /** Convenience function for getCanvas().getCurrentView() (may be null) */
     public KView getView()
     {
         if(kinCanvas == null) return null;
         else return kinCanvas.getCurrentView();
     }
-    public void setView(KView view) { kinCanvas.setCurrentView(view); } // ultimate call needs to notify everyone
+    /** Convenience for getCanvas().setCurrentView() */
+    public void setView(KView view)
+    { if(kinCanvas != null) kinCanvas.setCurrentView(view); }
+    
+    /**
+    * Returns true if KiNG is running as an applet.
+    * However, it could be a *trusted* applet, so you are probably
+    * are more interested in isTrusted() instead.
+    */
+    public boolean isApplet()
+    { return getApplet() != null; }
+    
+    /**
+    * Returns true if this code is allowed to access the filesystem,
+    * open arbitrary URLs, etc -- all the things (unsigned) applets
+    * can't do and ordinary Java desktop applications can.
+    */
+    public boolean isTrusted()
+    {
+        // need a better implementation later
+        //return isApplet();
+        
+        // I'm not sure whether signed applets get AllPermission or not.
+        // I know that applications do with Sun's Java 1.5.x
+        SecurityManager sm = System.getSecurityManager();
+        if(sm == null) return true;
+        try { sm.checkPermission(new java.security.AllPermission()); }
+        catch(SecurityException ex) { return false; }
+        return true;
+    }
 //}}}
     
 //{{{ parseArguments

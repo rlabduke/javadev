@@ -154,8 +154,13 @@ abstract public class Plugin //extends ... implements ...
     * Returns true if and only if this plugin is safe to instantiate when
     * KiNG is running as an applet in a web browser.
     * Plugins that access the file system or arbitrary URLs (among other things)
-    * should override this method to return true.
-    * @return the default value of false
+    * should override this method to return false.
+    *
+    * The name is a bit misleading, because plugins that return false will
+    * still be loaded if we're running as a *signed* applet, where they will
+    * have normal full permissions.
+    *
+    * @return the default value of true
     */
     static public boolean isAppletSafe()
     {

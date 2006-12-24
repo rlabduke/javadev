@@ -18,7 +18,7 @@ import driftwood.gui.*;
 * <code>ColorPicker</code> is a graphical color picker
 * for KPaint objects.
 *
-* <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
+* <p>Copyright (C) 2003-2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Thu Jun 26 11:46:23 EDT 2003
 */
 public class ColorPicker extends TablePane2 implements MouseListener
