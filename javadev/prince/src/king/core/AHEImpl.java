@@ -53,7 +53,7 @@ abstract public class AHEImpl<P extends AGE> implements AHE<P>
         while(parent != null)
         {
             depth++;
-            parent = getParent();
+            parent = parent.getParent();
         }
         return depth;
     }

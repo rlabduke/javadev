@@ -24,7 +24,7 @@ import driftwood.util.*;
 * It also allows files to be opened in a background thread
 * while a progress bar is displayed, thus enhancing the user experience.
 *
-* <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
+* <p>Copyright (C) 2003-2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Thu Apr 10 14:38:35 EDT 2003
 */
 public class KinfileIO implements KinfileLoader.Listener, ListSelectionListener
@@ -173,15 +173,6 @@ public class KinfileIO implements KinfileLoader.Listener, ListSelectionListener
         progDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         progDialog.getContentPane().add(progBar, BorderLayout.SOUTH);
         progDialog.getContentPane().add(labelNote, BorderLayout.NORTH);
-    }
-//}}}
-
-//{{{ notifyChange
-//##################################################################################################
-    // Called by KingMain when something happens.
-    // Shouldn't be called directly under normal circumstances.
-    void notifyChange(int event_mask)
-    {
     }
 //}}}
 

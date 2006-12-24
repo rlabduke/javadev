@@ -77,7 +77,7 @@ public class KinStable implements ListSelectionListener, KMessage.Subscriber, Ac
     }
 //}}}
 
-//{{{ notifyChange, deliverMessage
+//{{{ deliverMessage
 //##############################################################################
     public void deliverMessage(KMessage msg)
     {

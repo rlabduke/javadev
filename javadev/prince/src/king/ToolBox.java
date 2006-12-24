@@ -320,7 +320,8 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
         }
         catch(Throwable t)
         {
-            t.printStackTrace(SoftLog.err);
+            //t.printStackTrace(SoftLog.err);
+            SoftLog.err.println(t.getClass().getSimpleName()+": "+t.getMessage());
             return false; // can't load because of a reflection error
         }
     }
@@ -494,7 +495,7 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
     static final long RESET_TOOL = KMessage.KIN_SWITCHED | KMessage.KIN_CLOSED | KMessage.ALL_CLOSED;
     public void deliverMessage(KMessage msg)
     {
-        if(msg.testProg(RESET_TOOL) != 0)
+        if(msg.testProg(RESET_TOOL))
         {
             services.clearEverything();
             activeTool.reset();

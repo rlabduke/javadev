@@ -16,7 +16,7 @@ import driftwood.gui.*;
 * <code>UIText</code> is the kinemage text manager.
 * It takes care of displaying and editing the text.
 *
-* <p>Copyright (C) 2002-2004 by Ian W. Davis. All rights reserved.
+* <p>Copyright (C) 2002-2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Sun Jun  9 19:06:25 EDT 2002
 */
 public class UIText implements MouseListener
@@ -33,7 +33,7 @@ public class UIText implements MouseListener
     * @see UIText#addHypertextListener(HypertextListener)
     * @see UIText#removeHypertextListener(HypertextListener)
     *
-    * <p>Copyright (C) 2004 by Ian W. Davis. All rights reserved.
+    * <p>Copyright (C) 2004-2007 by Ian W. Davis. All rights reserved.
     * <br>Begun on Fri Jul 16 11:47:37 EDT 2004
     */
     public interface HypertextListener //extends ... implements ...

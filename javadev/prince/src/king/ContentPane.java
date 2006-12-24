@@ -93,11 +93,11 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
         Kinemage kin = kMain.getKinemage();
         if(kin == null)
             setButtons(Box.createVerticalBox());
-        else if(msg.testProg(REBUILD_BUTTONS_P) != 0)
+        else if(msg.testProg(REBUILD_BUTTONS_P))
             setButtons(rebuildButtons(kin));
-        else if(msg.testKin(REBUILD_BUTTONS_K) != 0)
+        else if(msg.testKin(REBUILD_BUTTONS_K))
             setButtons(rebuildButtons(kin));
-        else if(msg.testKin(RESYNC_BUTTONS) != 0)
+        else if(msg.testKin(RESYNC_BUTTONS))
             resyncButtons();
     }
 //}}}
@@ -117,7 +117,7 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
         Component graphicsArea, buttonArea, topArea, bottomArea, totalArea;
         
         // Build major sub-components
-        graphicsArea = new JPanel(); //kMain.getCanvas();
+        graphicsArea = kMain.getCanvas();
         buttonArea = buildButtons();
         bottomArea = buildBottomArea();
         
@@ -277,40 +277,33 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
     // Assembles the area that holds depth clipping, show markers, pickcenter, etc.
     Component buildBottomArea()
     {
-        //JLabel zoomLabel = new JLabel("Zoom"); 
-        //JSlider zoomSlider = new JSlider(kMain.getCanvas().getZoomModel());
-        //JLabel clipLabel = new JLabel("Clipping"); 
-        //JSlider clipSlider = new JSlider(kMain.getCanvas().getClipModel());
-        //
-        //JButton hierarchyButton = new JButton(new ReflectiveAction("Show hierarchy", null, this, "onShowHierarchy"));
-        //hierarchyButton.setToolTipText("Show an editable tree view of the kinemage");
-        //
-        //GridBagPanel bottomPane = new GridBagPanel();
+        JLabel zoomLabel = new JLabel("Zoom"); 
+        JSlider zoomSlider = new JSlider(kMain.getCanvas().getZoomModel());
+        JLabel clipLabel = new JLabel("Clipping"); 
+        JSlider clipSlider = new JSlider(kMain.getCanvas().getClipModel());
+        
+        JButton hierarchyButton = new JButton(new ReflectiveAction("Show hierarchy", null, this, "onShowHierarchy"));
+        hierarchyButton.setToolTipText("Show an editable tree view of the kinemage");
+        
+        TablePane2 bottomPane = new TablePane2();
         //bottomPane.setBorder( BorderFactory.createEmptyBorder(4,1,2,1) ); //TLBR
-        //// zoom & clip
-        //bottomPane.gbc.insets = new Insets(0, 3, 0, 1); //TLBR
-        //bottomPane.add(zoomLabel, 0, 0);
-        //bottomPane.add(clipLabel, 0, 1);
-        //bottomPane.gbc.insets = new Insets(0, 1, 0, 3); //TLBR
-        //bottomPane.add(zoomSlider, 1, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, 1.0, 0.0);
-        //bottomPane.add(clipSlider, 1, 1, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, 1.0, 0.0);
-        //// pickcenter and markers
-        //bottomPane.gbc.insets = new Insets(0, 3, 0, 3); //TLBR
-        //bottomPane.gbc.fill = GridBagConstraints.HORIZONTAL;
-        //bottomPane.gbc.weightx = 0.01;
-        //bottomPane.add(kMain.getCanvas().getPickcenterButton(), 2, 0, 1, 1);
-        //bottomPane.add(kMain.getCanvas().getMarkersButton(), 2, 1, 1, 1);
-        //// text & tools
-        //if(kMain.getTextWindow() != null)
-        //{
-        //    JButton textButton = kMain.getTextWindow().getButton();
-        //    textButton.setToolTipText("Display/edit the textual annotation of this kinemage");
-        //    bottomPane.add(textButton, 3, 0, 1, 1);
-        //}
-        //bottomPane.add(hierarchyButton, 3, 1, 1, 1);
-        //
-        //return bottomPane;
-        return new JPanel();
+        bottomPane.weights(0,1).insets(1).hfill(true).memorize();
+        bottomPane.addCell(zoomLabel).weights(1,1).addCell(zoomSlider);
+        bottomPane.addCell(kMain.getCanvas().getPickcenterButton());
+        if(kMain.getTextWindow() != null)
+        {
+            JButton textButton = kMain.getTextWindow().getButton();
+            textButton.setToolTipText("Display/edit the textual annotation of this kinemage");
+            bottomPane.addCell(textButton);
+        }
+        else bottomPane.skip();
+        bottomPane.newRow();
+        bottomPane.addCell(clipLabel).weights(1,1).addCell(clipSlider);
+        bottomPane.addCell(kMain.getCanvas().getMarkersButton());
+        bottomPane.addCell(hierarchyButton);
+        bottomPane.newRow();
+        
+        return bottomPane;
     }
 //}}}
 
@@ -395,8 +388,8 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onShowHierarchy(ActionEvent ev)
     {
-        //KinTree win = kMain.getKinTree();
-        //if(win != null) win.show();
+        KinTree win = kMain.getKinTree();
+        if(win != null) win.show();
     }
 //}}}
 

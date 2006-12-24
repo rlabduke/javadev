@@ -26,7 +26,7 @@ import java.util.List;
 * <p>Begun on Mon Apr 22 17:19:48 EDT 2002
 * <br>Copyright (C) 2002-2007 by Ian W. Davis. All rights reserved.
 */
-public class KinCanvas extends JComponent implements Transformable, ChangeListener, Printable
+public class KinCanvas extends JComponent implements KMessage.Subscriber, Transformable, ChangeListener, Printable
 {
 //{{{ Static fields
     static final double LOG_2 = Math.log(2.0);
@@ -131,6 +131,8 @@ public class KinCanvas extends JComponent implements Transformable, ChangeListen
             }
             catch(Throwable t) {}//{ t.printStackTrace(SoftLog.err); }
         }
+        
+        kMain.subscribe(this);
     }
 //}}}
     
@@ -156,27 +158,28 @@ public class KinCanvas extends JComponent implements Transformable, ChangeListen
     }
 //}}}
 
-//{{{ notifyChange
+//{{{ deliverMessage
 //##################################################################################################
-    // Called by KingMain when something happens.
-    // Shouldn't be called directly under normal circumstances.
-    void notifyChange(int event_mask)
+    public void deliverMessage(KMessage msg)
     {
         // Notify children
+        Kinemage kin = kMain.getKinemage();
         if(engine != null)
         {
-            if((event_mask & KingMain.EM_PREFS) != 0)
+            if(msg.testProg(KMessage.PREFS_CHANGED))
                 updatePrefs(engine, kMain.getPrefs());
-            if((event_mask & (KingMain.EM_CLOSE|KingMain.EM_CLOSEALL)) != 0)
+            if(msg.testProg(KMessage.KIN_CLOSED | KMessage.ALL_CLOSED))
                 engine.flushZBuffer(); // prevents memory leaks
+            if(kin != null && msg.testProg(KMessage.KIN_SWITCHED))
+                syncToKin(engine, kin);
         }
-        if(toolbox != null) toolbox.notifyChange(event_mask);
+        //if(toolbox != null) toolbox.notifyChange(event_mask);
 
         // Take care of yourself
-        if(event_mask != 0) this.repaint();
+        this.repaint();
         
         KView view = kMain.getView();
-        if(view != null && (event_mask & (KingMain.EM_NEWVIEW | KingMain.EM_SWITCH)) != 0)
+        if(view != null && msg.testProg(KMessage.KIN_SWITCHED | KMessage.VIEW_SELECTED))
         {
             double viewspan = view.getSpan();
             double kinspan  = kMain.getKinemage().getSpan();
@@ -424,6 +427,20 @@ public class KinCanvas extends JComponent implements Transformable, ChangeListen
         
         return (Aspect) kin.metadata.get(currAspectKey);
     }
+
+    /**
+    * Assigns a new aspect object as the current one
+    * (null is also OK) and notifies all listeners.
+    */
+    public void setCurrentAspect(Aspect aspect)
+    {
+        Kinemage kin = kMain.getKinemage();
+        if(kin == null) return;
+        
+        kin.metadata.put(currAspectKey, aspect);
+        kMain.publish(new KMessage(this, KMessage.DISPLAY_OPTIONS));
+    }
+    
 //}}}
 
 //{{{ stateChanged
@@ -438,13 +455,13 @@ public class KinCanvas extends JComponent implements Transformable, ChangeListen
             double kinspan = kMain.getKinemage().getSpan();
             double newspan = kinspan / Math.pow(2, (double)zoommodel.getValue() / (double)SLIDER_SCALE);
             view.setSpan((float)newspan);
-            this.repaint();
+            kMain.publish(new KMessage(this, KMessage.VIEW_MOVED));
         }
         else if(ev.getSource() == clipmodel)
         {
             double newclip = (double)clipmodel.getValue() / 200.0;
             view.setClip((float)newclip);
-            this.repaint();
+            kMain.publish(new KMessage(this, KMessage.VIEW_MOVED));
         }
     }
 //}}}
