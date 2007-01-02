@@ -48,7 +48,7 @@ public class KingMain implements WindowListener
     KinStable           kinStable       = null;
     KinfileIO           kinIO           = null;
     KinCanvas           kinCanvas       = null;
-    //UIMenus             uiMenus         = null;
+    UIMenus             uiMenus         = null;
     UIText              uiText          = null;
     KinTree             kinTree         = null;
     MainWindow          mainWin         = null;
@@ -127,7 +127,7 @@ public class KingMain implements WindowListener
         contentPane = new ContentPane(this);    // doesn't create GUI yet
         kinIO       = new KinfileIO(this);      // progress dlg. references main window
         kinCanvas   = new KinCanvas(this);
-        //uiMenus     = new UIMenus(this);
+        uiMenus     = new UIMenus(this);
         uiText      = new UIText(this);
         kinTree     = new KinTree(this);
         
@@ -197,7 +197,7 @@ public class KingMain implements WindowListener
         if(theApplet == null || !isAppletFlat)
         {
             mainWin.setContentPane(contentPane);
-            //mainWin.setJMenuBar(uiMenus.getMenuBar());
+            mainWin.setJMenuBar(uiMenus.getMenuBar());
             mainWin.addWindowListener(this);
             mainWin.pack();
             mainWin.setVisible(true);
@@ -209,7 +209,7 @@ public class KingMain implements WindowListener
             kinCanvas.setPreferredSize(null);   // so we don't crowd off other components
             kinCanvas.setMinimumSize(null);
             theApplet.setContentPane(contentPane);
-            //theApplet.setJMenuBar(uiMenus.getMenuBar());
+            theApplet.setJMenuBar(uiMenus.getMenuBar());
             theApplet.validate();
             // make sure text window gets opened as needed
         }
@@ -244,6 +244,8 @@ public class KingMain implements WindowListener
             kinIO.loadFile(f, kin);
         
         if(kin != null) this.getStable().append(Arrays.asList(new Kinemage[] {kin}));
+        
+        this.publish(new KMessage(this, KMessage.KING_STARTUP));
     }
 //}}}
 
@@ -254,12 +256,6 @@ public class KingMain implements WindowListener
     */
     public void appletLoadFiles()
     {
-        /*
-        KinCanvas kCanvas = this.getCanvas();
-        ToolBox toolbox;
-        if(kCanvas == null) toolbox = null;
-        else toolbox = kCanvas.getToolBox();
-
         try
         {
             URL kinURL = getAppletKinURL();
@@ -267,6 +263,14 @@ public class KingMain implements WindowListener
         }
         catch(MalformedURLException ex)
         { SoftLog.err.println("<PARAM> kinSource specified an unresolvable URL."); }
+
+        this.publish(new KMessage(this, KMessage.KING_STARTUP));
+        
+        /*
+        KinCanvas kCanvas = this.getCanvas();
+        ToolBox toolbox;
+        if(kCanvas == null) toolbox = null;
+        else toolbox = kCanvas.getToolBox();
 
         // Try multiple names for this parameter
         boolean isOmap = false;
@@ -365,7 +369,7 @@ public class KingMain implements WindowListener
     public KinCanvas getCanvas() { return kinCanvas; }
     
     /** Returns the collection of UI actions and menus that manage user input (may be null) */
-    //public UIMenus getMenus() { return uiMenus; }
+    public UIMenus getMenus() { return uiMenus; }
     
     /** Returns the text storage/edit/display system (never null) */
     public UIText getTextWindow() { return uiText; }
@@ -466,8 +470,8 @@ public class KingMain implements WindowListener
     public void windowClosed(WindowEvent ev)      {}
     public void windowClosing(WindowEvent ev)
     {
-        //if(uiMenus != null)     uiMenus.onFileExit(null);
-        //else                    shutdown();
+        if(uiMenus != null)     uiMenus.onFileExit(null);
+        else                    shutdown();
     }
     public void windowDeactivated(WindowEvent ev) {}
     public void windowDeiconified(WindowEvent ev) {}
