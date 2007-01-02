@@ -51,6 +51,7 @@ public class RingPoint extends AbstractPoint // implements ...
     public void setRadius(float radius)
     {
         if(radius >= 0) r0 = radius;
+        fireKinChanged(CHANGE_POINT_PROPERTIES);
     }
     
     public float getRadius()

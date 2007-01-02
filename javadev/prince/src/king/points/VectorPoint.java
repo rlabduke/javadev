@@ -68,6 +68,7 @@ public class VectorPoint extends AbstractPoint // implements ...
         if(w > 7)       width = 7;
         else if(w < 0)  width = 0;
         else            width = w;
+        fireKinChanged(CHANGE_POINT_PROPERTIES);
     }
 //}}}
 

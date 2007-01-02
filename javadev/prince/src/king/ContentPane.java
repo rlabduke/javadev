@@ -217,7 +217,14 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
 
     void ageButtons(AGE age, Container cont)
     {
-        JCheckBox cbox = new JCheckBox(age.getName(), age.isOn());
+        String name = age.getName();
+        if(age instanceof KGroup)
+        {
+            KGroup group = (KGroup) age;
+            if(group.isAnimate()) name = "* "+name;
+            else if(group.is2Animate()) name = "% "+name;
+        }
+        JCheckBox cbox = new JCheckBox(name, age.isOn());
         if(age.hasButton())
         {
             cbox.addActionListener(new ButtonListener(cbox, age));
