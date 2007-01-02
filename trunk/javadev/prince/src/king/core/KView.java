@@ -423,12 +423,18 @@ public class KView implements Serializable
     public int[] getViewingAxes() { return this.viewingAxes; }
     
     /**
-    * Copies the high-dimensional coordinates at the specified indices
+    * Copies the high-dimensional coordinates at this view's indices
     * into all point's (untransformed) X, Y, and Z fields.
     * If a index is out of range (0-based), it is ignored and the value is not changed.
     */
-    public void activateViewingAxes(int xIndex, int yIndex, int zIndex)
+    public void activateViewingAxes()
     {
+        if(this.viewingAxes == null) return;
+        
+        int xIndex = viewingAxes[0];
+        int yIndex = viewingAxes[1];
+        int zIndex = viewingAxes[2];
+        
         for(KList list : KIterator.allLists(parent))
         {
             // We will miss points with extra coordinates if

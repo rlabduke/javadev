@@ -79,7 +79,7 @@ public class MarkerPoint extends AbstractPoint // implements ...
 //{{{ get/setStyle
 //##################################################################################################
     public int getStyle() { return style; }
-    public void setStyle(int s) { style = s; }
+    public void setStyle(int s) { style = s; fireKinChanged(CHANGE_POINT_PROPERTIES); }
 //}}}
 
 //{{{ paint2D

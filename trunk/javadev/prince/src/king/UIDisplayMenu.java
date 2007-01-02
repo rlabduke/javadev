@@ -23,7 +23,7 @@ import java.util.List;
 * <p>Copyright (C) 2003-2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Mon May 26 12:30:25 EDT 2003
 */
-public class UIDisplayMenu //extends ... implements ...
+public class UIDisplayMenu implements KMessage.Subscriber
 {
 //{{{ Constants
 //}}}
@@ -104,6 +104,20 @@ public class UIDisplayMenu //extends ... implements ...
         rockMaxSteps    = kMain.prefs.getInt("autoRockCycleSteps") / 2;
         rockStepCount   = rockMaxSteps / 2;
         rockStepSize    = (float)Math.toRadians(2.0 * kMain.prefs.getDouble("autoRockDegrees") / (double)rockMaxSteps);
+        
+        kMain.subscribe(this);
+    }
+//}}}
+
+//{{{ deliverMessage
+//##################################################################################################
+    static final long SYNC_CHECKBOXES = KMessage.DISPLAY_OPTIONS | KMessage.KIN_SWITCHED;
+    public void deliverMessage(KMessage msg)
+    {
+        if(msg.getSource() != this && msg.testProg(SYNC_CHECKBOXES))
+        {
+            syncCheckboxes();
+        }
     }
 //}}}
 
@@ -205,7 +219,8 @@ public class UIDisplayMenu //extends ... implements ...
 //{{{ syncCheckboxes
 //##################################################################################################
     /**
-    * Adjusts the selection state of checkboxes in the Display menu to match parameters in the engine
+    * Adjusts the selection state of checkboxes in the Display menu
+    * to match parameters in the engine and the kinemage.
     */
     void syncCheckboxes()
     {

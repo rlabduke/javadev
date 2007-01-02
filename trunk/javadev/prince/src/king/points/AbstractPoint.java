@@ -89,14 +89,15 @@ abstract public class AbstractPoint extends AHEImpl<KList> implements KPoint
     public double getZ()
     { return z0; }
 
-    public void setX(double xx) { x0 = (float)xx; }
-    public void setY(double yy) { y0 = (float)yy; }
-    public void setZ(double zz) { z0 = (float)zz; }
+    public void setX(double xx) { x0 = (float)xx; fireKinChanged(CHANGE_POINT_COORDINATES); }
+    public void setY(double yy) { y0 = (float)yy; fireKinChanged(CHANGE_POINT_COORDINATES); }
+    public void setZ(double zz) { z0 = (float)zz; fireKinChanged(CHANGE_POINT_COORDINATES); }
     public void setXYZ(double xx, double yy, double zz)
     {
         x0 = (float)xx;
         y0 = (float)yy;
         z0 = (float)zz;
+        fireKinChanged(CHANGE_POINT_COORDINATES);
     }
 //}}}
 
@@ -143,6 +144,7 @@ abstract public class AbstractPoint extends AHEImpl<KList> implements KPoint
     public void setParent(KList owner)
     {
         parent = owner;
+        fireKinChanged(CHANGE_POINT_PROPERTIES);
     }
 
     public void setPrev(KPoint pt)
@@ -155,6 +157,7 @@ abstract public class AbstractPoint extends AHEImpl<KList> implements KPoint
             else                                multi |= SEQ_EVEN_BIT;  // turn on
         }
         else                                    multi &= ~SEQ_EVEN_BIT; // turn off
+        fireKinChanged(CHANGE_POINT_PROPERTIES);
     }
     
     public KPoint getPrev()
@@ -172,6 +175,7 @@ abstract public class AbstractPoint extends AHEImpl<KList> implements KPoint
     {
         if(paint)   multi |=    ON_BIT;
         else        multi &=   ~ON_BIT;
+        fireKinChanged(CHANGE_POINT_ON_OFF);
     }
     
     public boolean isUnpickable()
@@ -180,6 +184,7 @@ abstract public class AbstractPoint extends AHEImpl<KList> implements KPoint
     {
         if(b)   multi |=    UNPICKABLE;
         else    multi &=   ~UNPICKABLE;
+        fireKinChanged(CHANGE_POINT_PROPERTIES);
     }
 
     public boolean isGhost()
@@ -188,11 +193,12 @@ abstract public class AbstractPoint extends AHEImpl<KList> implements KPoint
     {
         if(b)   multi |=    GHOST_BIT;
         else    multi &=   ~GHOST_BIT;
+        fireKinChanged(CHANGE_POINT_PROPERTIES);
     }
 
     public KPaint getColor()
     { return color; }
-    public void setColor(KPaint c) { color = c; }
+    public void setColor(KPaint c) { color = c; fireKinChanged(CHANGE_POINT_PROPERTIES); }
     
     public String getAspects() { return (String) tmGet(ASPECTS_KEY); }
     public void setAspects(String a) { tmPut(ASPECTS_KEY, a); }
@@ -275,7 +281,7 @@ abstract public class AbstractPoint extends AHEImpl<KList> implements KPoint
     { return pm_mask; }
     
     public void setPmMask(int mask)
-    { this.pm_mask = mask; }
+    { this.pm_mask = mask; fireKinChanged(CHANGE_POINT_MASTERS); }
 //}}}
     
 //{{{ calcBoundingBox, calcRadiusSq
@@ -386,6 +392,7 @@ abstract public class AbstractPoint extends AHEImpl<KList> implements KPoint
         {
             Object old = tmValues[i];
             tmValues[i] = value;
+            fireKinChanged(CHANGE_POINT_PROPERTIES);
             return old;
         }
         else
@@ -397,6 +404,7 @@ abstract public class AbstractPoint extends AHEImpl<KList> implements KPoint
             newvals[i] = value;
             for(int j = i; j < tmValues_length; j++) newvals[j+1] = tmValues[j];
             tmValues = newvals;
+            fireKinChanged(CHANGE_POINT_PROPERTIES);
             return null;
         }
     }

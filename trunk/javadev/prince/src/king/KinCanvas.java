@@ -132,6 +132,9 @@ public class KinCanvas extends JComponent implements KMessage.Subscriber, Transf
             catch(Throwable t) {}//{ t.printStackTrace(SoftLog.err); }
         }
         
+        // Java 1.4+ only! - adds support for Drag & Drop to the canvas
+        new FileDropHandler(kMain, this);
+
         kMain.subscribe(this);
     }
 //}}}
@@ -148,7 +151,7 @@ public class KinCanvas extends JComponent implements KMessage.Subscriber, Transf
     }
     
     /** Takes needed display settings from the kinemage */
-    void syncToKin(Engine engine, Kinemage kin)
+    public static void syncToKin(Engine engine, Kinemage kin)
     {
         engine.usePerspective   = kin.atPerspective;
         engine.cueThickness     = ! kin.atOnewidth;
@@ -496,7 +499,7 @@ public class KinCanvas extends JComponent implements KMessage.Subscriber, Transf
     {
         // Try to create a JOGL painter, via reflection
         Class joglClass = Class.forName("king.JoglCanvas");
-        Constructor joglConstr = joglClass.getConstructor(new Class[] { KingMain.class, Engine.class, ToolBox.class });
+        Constructor joglConstr = joglClass.getConstructor(new Class[] { KingMain.class, Engine2D.class, ToolBox.class });
         joglCanvas = (Component)joglConstr.newInstance(new Object[] { kMain, engine, toolbox });
         joglAction = new ReflectiveAction(null, null, joglCanvas, "requestRepaint");
     }

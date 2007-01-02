@@ -72,6 +72,7 @@ public class LabelPoint extends AbstractPoint // implements ...
     public void setHorizontalAlignment(int align)
     {
         multi = (multi & HALIGN_MASK) | align;
+        fireKinChanged(CHANGE_POINT_PROPERTIES);
     }
 //}}}
 

@@ -34,14 +34,13 @@ public class KinTree implements KMessage.Subscriber
     JFrame      frame;
     JTree       tree;
     JPopupMenu  menu;
-    //GroupEditor groupEditor;
+    GroupEditor groupEditor;
 
     ReflectiveAction acNew, acDelete, acProperties, acTransform, acVisible,
         acCut, acCopy, acPaste, acUp, acDown;
 
     AGE         clipboard = null;       // destination for cut/paste events
     int         clipboardDepth = -1;    // previous getDepth() value for cut object
-    boolean     didEdit     = false;    // did this component initiate the edit?
 //}}}
 
 //{{{ Constructors
@@ -72,7 +71,7 @@ public class KinTree implements KMessage.Subscriber
         buildMenu();
         buildGUI();
         
-        //groupEditor = new GroupEditor(kMain, frame);
+        groupEditor = new GroupEditor(kMain, frame);
         
         kMain.subscribe(this);
     }
@@ -394,7 +393,6 @@ public class KinTree implements KMessage.Subscriber
         if(node == null || ! (node instanceof AGE)) return;
         
         boolean changed = false;
-        /*
         if(node instanceof Kinemage)
         {
             changed = groupEditor.editKinemage((Kinemage)node);
@@ -417,13 +415,6 @@ public class KinTree implements KMessage.Subscriber
             "You can't edit this object's properties.",
             "Sorry!", JOptionPane.INFORMATION_MESSAGE);
         }
-        
-        if(changed) 
-        {
-            didEdit = true;
-            kMain.notifyChange(KingMain.EM_ON_OFF | KingMain.EM_EDIT_GROSS);
-        }
-        */
     }
 //}}}
 
@@ -437,10 +428,7 @@ public class KinTree implements KMessage.Subscriber
         if(path == null) return;
         Object node = path.getLastPathComponent();
         if(node == null || ! (node instanceof AGE)) return;
-        //groupEditor.transform((AGE)node);
-        
-        // Unnecessary -- occurs when command is exec'd.
-        //kMain.notifyChange(KingMain.EM_EDIT_FINE);
+        groupEditor.transform((AGE)node);
     }
 //}}}
 
@@ -477,9 +465,6 @@ public class KinTree implements KMessage.Subscriber
                 if(k != null) k.setModified(true);
             }
         }
-        
-        didEdit = true;
-        //kMain.notifyChange(KingMain.EM_EDIT_GROSS);
     }
 //}}}
 
@@ -509,9 +494,6 @@ public class KinTree implements KMessage.Subscriber
                 if(k != null) k.setModified(true);
             }
         }
-        
-        didEdit = true;
-        //kMain.notifyChange(KingMain.EM_EDIT_GROSS);
     }
 //}}}
 
@@ -611,9 +593,6 @@ public class KinTree implements KMessage.Subscriber
             catch(CloneNotSupportedException ex)    { ex.printStackTrace(SoftLog.err); }
             catch(ClassCastException ex)            { ex.printStackTrace(SoftLog.err); }
         }
-        
-        didEdit = true;
-        //kMain.notifyChange(KingMain.EM_EDIT_GROSS);
     }
 //}}}
 
@@ -642,8 +621,6 @@ public class KinTree implements KMessage.Subscriber
 
         Kinemage k = kMain.getKinemage();
         if(k != null) k.setModified(true);
-        didEdit = true;
-        //kMain.notifyChange(KingMain.EM_EDIT_GROSS);
     }
 
     /** Moves the selected group/subgroup/list "down" the list of buttons. */
@@ -669,8 +646,6 @@ public class KinTree implements KMessage.Subscriber
 
         Kinemage k = kMain.getKinemage();
         if(k != null) k.setModified(true);
-        didEdit = true;
-        //kMain.notifyChange(KingMain.EM_EDIT_GROSS);
     }
 //}}}
 
@@ -693,8 +668,6 @@ public class KinTree implements KMessage.Subscriber
             tree.setSelectionPath(path.pathByAddingChild(group));
             Kinemage k = kMain.getKinemage();
             if(k != null) k.setModified(true);
-            didEdit = true;
-            //kMain.notifyChange(KingMain.EM_EDIT_GROSS);
         }
         else if(node instanceof KGroup && node.getDepth() == 1)
         {
@@ -703,8 +676,6 @@ public class KinTree implements KMessage.Subscriber
             tree.setSelectionPath(path.pathByAddingChild(subgroup));
             Kinemage k = kMain.getKinemage();
             if(k != null) k.setModified(true);
-            didEdit = true;
-            //kMain.notifyChange(KingMain.EM_EDIT_GROSS);
         }
         else
         {

@@ -214,24 +214,13 @@ public class KingMain implements WindowListener
             // make sure text window gets opened as needed
         }
         
-        // Drag & Drop support for opening kinemages
-        if(theApplet == null)
-        {
-            // Mac OS X only! - adds support for Drag & Drop to Dock icon and for program launch
-            try {
-                //MacDropTarget.bindTo(this);
-                Class macDropClass = Class.forName("king.MacDropTarget");
-                Method bindTo = macDropClass.getMethod("bindTo", new Class[] {KingMain.class});
-                bindTo.invoke(null, new Object[] {this});
-            } catch(Throwable t) {}
-            // Java 1.4+ only! - adds support for Drag & Drop to KinCanvas
-            //try {
-            //    //new FileDropHandler(this, kinCanvas);
-            //    Class dropClass = Class.forName("king.FileDropHandler");
-            //    Constructor dropConstr = dropClass.getConstructor(new Class[] { KingMain.class, KinCanvas.class });
-            //    dropConstr.newInstance(new Object[] { this, kinCanvas });
-            //} catch(Throwable t) {}
-        }
+        // Mac OS X only! - adds support for Drag & Drop to Dock icon and for program launch
+        try {
+            //MacDropTarget.bindTo(this);
+            Class macDropClass = Class.forName("king.MacDropTarget");
+            Method bindTo = macDropClass.getMethod("bindTo", new Class[] {KingMain.class});
+            bindTo.invoke(null, new Object[] {this});
+        } catch(Throwable t) {}
 
         if(theApplet == null)
             SwingUtilities.invokeLater(new ReflectiveRunnable(this, "loadFiles"));
@@ -375,9 +364,6 @@ public class KingMain implements WindowListener
     /** Returns the active drawing canvas (never null) */
     public KinCanvas getCanvas() { return kinCanvas; }
     
-    /** Returns the applet this was spawned from (may be null) */
-    public JApplet getApplet() { return theApplet; }
-    
     /** Returns the collection of UI actions and menus that manage user input (may be null) */
     //public UIMenus getMenus() { return uiMenus; }
     
@@ -405,6 +391,9 @@ public class KingMain implements WindowListener
     /** Convenience for getCanvas().setCurrentView() */
     public void setView(KView view)
     { if(kinCanvas != null) kinCanvas.setCurrentView(view); }
+    
+    /** Returns the applet this was spawned from (may be null) */
+    public JApplet getApplet() { return theApplet; }
     
     /**
     * Returns true if KiNG is running as an applet.
