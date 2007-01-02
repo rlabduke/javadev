@@ -175,7 +175,7 @@ public class KIterator<T extends AHE> implements Iterable<T>, Iterator<T>
     { return this; }
 //}}}
 
-//{{{ allLists/Points/NonPoints, visibleLists
+//{{{ allLists/Points/NonPoints, visibleLists/Points
 //##################################################################################################
     public static KIterator<KList> allLists(AGE top)
     { return new KIterator<KList>(top, KIterator.Opts.LIST); }
@@ -188,6 +188,9 @@ public class KIterator<T extends AHE> implements Iterable<T>, Iterator<T>
 
     public static KIterator<KList> visibleLists(AGE top)
     { return new KIterator<KList>(top, KIterator.Opts.LIST, KIterator.Opts.VISIBLE_ONLY); }
+
+    public static KIterator<KPoint> visiblePoints(AGE top)
+    { return new KIterator<KPoint>(top, KIterator.Opts.POINT, KIterator.Opts.VISIBLE_ONLY); }
 //}}}
 
 //{{{ empty_code_segment

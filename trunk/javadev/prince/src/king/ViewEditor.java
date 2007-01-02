@@ -43,7 +43,7 @@ public class ViewEditor //extends ... implements ...
         kMain = kmain;
         
         dialog = new JDialog(kMain.getTopWindow(), "Edit views", true);
-        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         
         list = new FatJList(0, 20);
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
