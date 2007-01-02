@@ -234,16 +234,17 @@ public class KingMain implements WindowListener
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void loadFiles()
     {
-        if(filesToOpen == null || filesToOpen.size() <= 0) return;
-        
-        Kinemage kin = null;
-        if(doMerge && filesToOpen.size() > 1)
-            kin = new Kinemage(KinfileParser.DEFAULT_KINEMAGE_NAME+"1");
-        
-        for(File f : filesToOpen)
-            kinIO.loadFile(f, kin);
-        
-        if(kin != null) this.getStable().append(Arrays.asList(new Kinemage[] {kin}));
+        if(filesToOpen != null && filesToOpen.size() > 0)
+        {
+            Kinemage kin = null;
+            if(doMerge && filesToOpen.size() > 1)
+                kin = new Kinemage(KinfileParser.DEFAULT_KINEMAGE_NAME+"1");
+            
+            for(File f : filesToOpen)
+                kinIO.loadFile(f, kin);
+            
+            if(kin != null) this.getStable().append(Arrays.asList(new Kinemage[] {kin}));
+        }
         
         this.publish(new KMessage(this, KMessage.KING_STARTUP));
     }
@@ -265,50 +266,6 @@ public class KingMain implements WindowListener
         { SoftLog.err.println("<PARAM> kinSource specified an unresolvable URL."); }
 
         this.publish(new KMessage(this, KMessage.KING_STARTUP));
-        
-        /*
-        KinCanvas kCanvas = this.getCanvas();
-        ToolBox toolbox;
-        if(kCanvas == null) toolbox = null;
-        else toolbox = kCanvas.getToolBox();
-
-        // Try multiple names for this parameter
-        boolean isOmap = false;
-        String mapsrc = theApplet.getParameter("xmap");
-        if(mapsrc == null) { mapsrc = theApplet.getParameter("omap"); isOmap = true; }
-        
-        if(mapsrc != null && toolbox != null)
-        {
-            try
-            {
-                URL mapURL = new URL(theApplet.getDocumentBase(), mapsrc);
-                
-                CrystalVertexSource map;
-                if(isOmap)
-                { map = new OMapVertexSource(mapURL.openStream()); }
-                else
-                { map = new XplorVertexSource(mapURL.openStream()); }
-                
-                new EDMapWindow(toolbox, map, mapURL.getFile());
-            }
-            catch(MalformedURLException ex)
-            { SoftLog.err.println("<PARAM> xmap/omap specified an unresolvable URL."); }
-            catch(IOException ex)
-            {
-                JOptionPane.showMessageDialog(this.getTopWindow(),
-                    "An I/O error occurred while loading the file:\n"+ex.getMessage(),
-                    "Sorry!", JOptionPane.ERROR_MESSAGE);
-                ex.printStackTrace(SoftLog.err);
-            }
-            catch(IllegalArgumentException ex)
-            {
-                JOptionPane.showMessageDialog(this.getTopWindow(),
-                    "Wrong map format was chosen, or map is corrupt:\n"+ex.getMessage(),
-                    "Sorry!", JOptionPane.ERROR_MESSAGE);
-                ex.printStackTrace(SoftLog.err);
-            }
-        }
-        */
     }
     
     /** Returns the URL of the primary kinemage this applet was invoked to show, or null for none. */
@@ -343,7 +300,11 @@ public class KingMain implements WindowListener
     */
     public void publish(KMessage msg)
     {
-        for(KMessage.Subscriber subscriber : subscribers)
+        // I hate to do this for the overhead (which is in reality probably quite small),
+        // but it's necessary to avoid ConcurrentModificationExceptions if someone
+        // tries to unsubscribe as a result of receiving an event (like EDMapPlugin does).
+        KMessage.Subscriber[] s = subscribers.toArray(new KMessage.Subscriber[subscribers.size()]);
+        for(KMessage.Subscriber subscriber : s)
             subscriber.deliverMessage(msg);
     }
 //}}}
@@ -445,7 +406,7 @@ public class KingMain implements WindowListener
                     SoftLog.err.println("Help not available. Sorry!");
                     System.exit(0);
                 } else if(arg.equals("-version")) {
-                    SoftLog.err.println("KingMain, version "+getPrefs().getString("version")+"\nCopyright (C) 2002-2003 by Ian W. Davis");
+                    SoftLog.err.println("KingMain, version "+getPrefs().getString("version")+"\nCopyright (C) 2002-2007 by Ian W. Davis");
                     System.exit(0);
                 } else if(arg.equals("-m") || arg.equals("-merge")) {
                     doMerge = true;
