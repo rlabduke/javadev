@@ -46,6 +46,8 @@ public class KMessage //extends ... implements ...
     public static final long VIEW_SELECTED      = (1L<<6);
     /** The rendering options have changed (background color, etc) */
     public static final long DISPLAY_OPTIONS    = (1L<<6);
+    /** The program has started up and initial kinemages have been loaded. */
+    public static final long KING_STARTUP       = (1L<<7);
 //}}}
 
 //{{{ Variable definitions
