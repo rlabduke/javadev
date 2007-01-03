@@ -353,7 +353,7 @@ public class KinCanvas extends JComponent implements KMessage.Subscriber, Transf
     { return engine.getCanvasSize(); };
     
     /** Returns the drawing engine this canvas uses for rendering. */
-    public Engine getEngine() { return engine; }
+    public Engine2D getEngine() { return engine; }
     
     /** Returns the toolbox used for interacting with this canvas. */
     public ToolBox getToolBox() { return toolbox; }

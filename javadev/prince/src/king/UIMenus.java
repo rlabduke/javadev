@@ -221,8 +221,8 @@ public class UIMenus implements KMessage.Subscriber
         JMenu menu = fileMenu;
         menu.removeAll();
         
-        JApplet applet = kMain.getApplet();
-        if(applet == null) // => not in an applet
+        boolean trusted = kMain.isTrusted();
+        if(!kMain.isApplet())
         {
             item = new JMenuItem(new ReflectiveAction("New KiNG window", null, this, "onFileNewKing"));
             item.setMnemonic(KeyEvent.VK_N);
@@ -230,15 +230,35 @@ public class UIMenus implements KMessage.Subscriber
             menu.add(item);
             menu.addSeparator();
         }
-        item = new JMenuItem(new ReflectiveAction("Open...", null, this, "onFileOpen"));
-        item.setMnemonic(KeyEvent.VK_O);
-        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, kMain.MENU_ACCEL_MASK));
-        menu.add(item);
-        item = new JMenuItem(new ReflectiveAction("Append...", null, this, "onFileMerge"));
-        item.setMnemonic(KeyEvent.VK_A);
-        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, kMain.MENU_ACCEL_MASK));
-        menu.add(item);
-        if(applet == null) // not in an applet
+        if(trusted)
+        {
+            item = new JMenuItem(new ReflectiveAction("Open file...", null, this, "onFileOpen"));
+            item.setMnemonic(KeyEvent.VK_O);
+            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, kMain.MENU_ACCEL_MASK));
+            menu.add(item);
+        }
+        if(kMain.isApplet())
+        {
+            item = new JMenuItem(new ReflectiveAction("Open URL...", null, this, "onFileOpenURL"));
+            if(!trusted) item.setMnemonic(KeyEvent.VK_O);
+            if(!trusted) item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, kMain.MENU_ACCEL_MASK));
+            menu.add(item);
+        }
+        if(trusted)
+        {
+            item = new JMenuItem(new ReflectiveAction("Append file...", null, this, "onFileMerge"));
+            item.setMnemonic(KeyEvent.VK_A);
+            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, kMain.MENU_ACCEL_MASK));
+            menu.add(item);
+        }
+        if(kMain.isApplet())
+        {
+            item = new JMenuItem(new ReflectiveAction("Append URL...", null, this, "onFileMergeURL"));
+            if(!trusted) item.setMnemonic(KeyEvent.VK_A);
+            if(!trusted) item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, kMain.MENU_ACCEL_MASK));
+            menu.add(item);
+        }
+        if(trusted)
         {
             KinCanvas kCanvas = kMain.getCanvas();
             if(kCanvas != null)
@@ -264,14 +284,21 @@ public class UIMenus implements KMessage.Subscriber
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, kMain.MENU_ACCEL_MASK));
         menu.add(item);
         menu.addSeparator();
-        if(applet == null || applet.getParameter("kinfileSaveHandler") != null)
+        if(trusted)
         {
             item = new JMenuItem(new ReflectiveAction("Save as...", null, this, "onFileSaveAs"));
             item.setMnemonic(KeyEvent.VK_S);
             item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, kMain.MENU_ACCEL_MASK));
             menu.add(item);
         }
-        if(applet == null) // => not in an applet
+        if(kMain.isApplet() && kMain.getApplet().getParameter("kinfileSaveHandler") != null)
+        {
+            item = new JMenuItem(new ReflectiveAction("Network save...", null, this, "onFileSaveAsURL"));
+            if(!trusted) item.setMnemonic(KeyEvent.VK_S);
+            if(!trusted) item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, kMain.MENU_ACCEL_MASK));
+            menu.add(item);
+        }
+        if(trusted)
         {
             KinCanvas kCanvas = kMain.getCanvas();
             if(kCanvas != null)
@@ -294,7 +321,7 @@ public class UIMenus implements KMessage.Subscriber
         item.setMnemonic(KeyEvent.VK_P);
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, kMain.MENU_ACCEL_MASK));
         menu.add(item);
-        if(applet == null) // => not in an applet
+        if(!kMain.isApplet())
         {
             menu.addSeparator();
             item = new JMenuItem(new ReflectiveAction("Exit", null, this, "onFileExit"));
@@ -448,8 +475,14 @@ public class UIMenus implements KMessage.Subscriber
     public void onFileOpen(ActionEvent ev)
     {
         KinfileIO io = kMain.getKinIO();
-        if(kMain.getApplet() != null)   io.askLoadURL(null);
-        else                            io.askLoadFile(null);
+        io.askLoadFile(null);
+    }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onFileOpenURL(ActionEvent ev)
+    {
+        KinfileIO io = kMain.getKinIO();
+        if(kMain.isApplet()) io.askLoadURL(null);
     }
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
@@ -460,19 +493,28 @@ public class UIMenus implements KMessage.Subscriber
         if(kin == null)
         {
             kin = new Kinemage(KinfileParser.DEFAULT_KINEMAGE_NAME+"1");
-            boolean success = false;
-            if(kMain.getApplet() != null)   success = io.askLoadURL(kin);
-            else                            success = io.askLoadFile(kin);
-            
-            if(success)
+            if(io.askLoadFile(kin))
                 kMain.getStable().append(Arrays.asList(new Kinemage[] {kin}));
             // This way we don't create an empty if append is canceled
         }
         else
+            io.askLoadFile(kin);
+    }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onFileMergeURL(ActionEvent ev)
+    {
+        KinfileIO io = kMain.getKinIO();
+        Kinemage kin = kMain.getKinemage();
+        if(kin == null)
         {
-            if(kMain.getApplet() != null)   io.askLoadURL(kin);
-            else                            io.askLoadFile(kin);
+            kin = new Kinemage(KinfileParser.DEFAULT_KINEMAGE_NAME+"1");
+            if(kMain.isApplet() && io.askLoadURL(kin))
+                kMain.getStable().append(Arrays.asList(new Kinemage[] {kin}));
+            // This way we don't create an empty if append is canceled
         }
+        else if(kMain.isApplet())
+            io.askLoadURL(kin);
     }
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
@@ -514,34 +556,37 @@ public class UIMenus implements KMessage.Subscriber
     public void onFileSaveAs(ActionEvent ev)
     {
         KinfileIO io = kMain.getKinIO();
-        if(kMain.getApplet() != null)   io.askSaveURL();
-        else
+        int numKins = kMain.getStable().getKins().size();
+        if(numKins > 1)
         {
-            int numKins = kMain.getStable().getKins().size();
-            if(numKins > 1)
-            {
-                JRadioButton btnBoth = new JRadioButton((numKins == 2 ? "Save both in one file" : "Save all "+numKins+" in one file"), true);
-                JRadioButton btnCurr = new JRadioButton("Save only the currently selected kinemage", false);
-                ButtonGroup btnGroup = new ButtonGroup();
-                btnGroup.add(btnBoth);
-                btnGroup.add(btnCurr);
-                
-                int result = JOptionPane.showConfirmDialog(kMain.getTopWindow(),
-                    new Object[] {
-                        "There are currently "+numKins+" open kinemages.",
-                        "What do you want to do?",
-                        btnBoth,
-                        btnCurr
-                    },
-                    "Saving multiple kinemages",
-                    JOptionPane.OK_CANCEL_OPTION,
-                    JOptionPane.QUESTION_MESSAGE);
-                if(result == JOptionPane.NO_OPTION || result == JOptionPane.CANCEL_OPTION) {}
-                else if(btnBoth.isSelected())   io.askSaveFile();
-                else if(btnCurr.isSelected())   io.askSaveFile(kMain.getKinemage());
-            }
-            else io.askSaveFile();
+            JRadioButton btnBoth = new JRadioButton((numKins == 2 ? "Save both in one file" : "Save all "+numKins+" in one file"), true);
+            JRadioButton btnCurr = new JRadioButton("Save only the currently selected kinemage", false);
+            ButtonGroup btnGroup = new ButtonGroup();
+            btnGroup.add(btnBoth);
+            btnGroup.add(btnCurr);
+            
+            int result = JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+                new Object[] {
+                    "There are currently "+numKins+" open kinemages.",
+                    "What do you want to do?",
+                    btnBoth,
+                    btnCurr
+                },
+                "Saving multiple kinemages",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+            if(result == JOptionPane.NO_OPTION || result == JOptionPane.CANCEL_OPTION) {}
+            else if(btnBoth.isSelected())   io.askSaveFile();
+            else if(btnCurr.isSelected())   io.askSaveFile(kMain.getKinemage());
         }
+        else io.askSaveFile();
+    }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onFileSaveAsURL(ActionEvent ev)
+    {
+        KinfileIO io = kMain.getKinIO();
+        if(kMain.isApplet()) io.askSaveURL();
     }
 
     // This might throw a SecurityException, if the user denies us permission...

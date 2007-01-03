@@ -198,27 +198,27 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         && !slider2.getValueIsAdjusting())
         {
             updateMesh();
-            kCanvas.repaint();
+            kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
         }
     }
     
     public void actionPerformed(ActionEvent ev)
     {
-        kCanvas.repaint();
+        kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
     }
     
     // target of reflection
     public void onTriangles(ActionEvent ev)
     {
         updateMesh();
-        kCanvas.repaint();
+        kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
     }
     
     // target of reflection
     public void onCoarseMesh(ActionEvent ev)
     {
         updateMesh();
-        kCanvas.repaint();
+        kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
     }
     
     double calcSliderValue(JSlider slider)
@@ -341,7 +341,7 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         color2.setSelectedItem(KPalette.purple);
         
         updateMesh();
-        kCanvas.repaint();
+        kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
     }
     
     // Preset values for Fo-Fc (difference) maps
@@ -356,7 +356,7 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         label2.setSelected(true);
         
         updateMesh();
-        kCanvas.repaint();
+        kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
     }
 //}}}
     
@@ -367,7 +367,7 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
     {
         dialog.dispose();
         parent.transformables.remove(this);
-        kCanvas.repaint();
+        kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
     }
     
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME

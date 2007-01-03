@@ -85,8 +85,8 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
 //{{{ deliverMessage
 //##################################################################################################
     static final long REBUILD_BUTTONS_P = KMessage.KIN_SWITCHED | KMessage.KIN_CLOSED | KMessage.ALL_CLOSED;
-    static final int  REBUILD_BUTTONS_K = AHE.CHANGE_TREE_PROPERTIES; // e.g. mark group as animate
-    static final int  RESYNC_BUTTONS = AHE.CHANGE_TREE_CONTENTS | AHE.CHANGE_TREE_ON_OFF;
+    static final int  REBUILD_BUTTONS_K = AHE.CHANGE_TREE_CONTENTS | AHE.CHANGE_TREE_PROPERTIES; // e.g. mark group as animate
+    static final int  RESYNC_BUTTONS = AHE.CHANGE_TREE_ON_OFF;
     
     public void deliverMessage(KMessage msg)
     {
@@ -236,7 +236,7 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
             AlignBox subbox = new AlignBox(BoxLayout.Y_AXIS);
             subbox.setAlignmentX(Component.LEFT_ALIGNMENT);
             for(Object ahe : age)
-                ageButtons((AGE) ahe, cont);
+                ageButtons((AGE) ahe, subbox);
             
             IndentBox ibox;
             if(age.isCollapsible()) ibox = new FoldingBox(cbox, subbox);

@@ -75,7 +75,7 @@ abstract public class AGE<P extends AGE, C extends AHE> extends AHEImpl<P> imple
     }
 //}}}
 
-//{{{ add, replace, clear, getChildren, iterator
+//{{{ add, replace, remove, clear, getChildren, iterator
 //##################################################################################################
     /** Adds a child to this element */
     public void add(C child)

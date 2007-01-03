@@ -449,18 +449,17 @@ abstract public class Engine //extends ... implements ...
 //##################################################################################################
     /**
     * Finds all points within the specified radius of the given coordinates.
-    * All coordinates are device coordinates -- i.e., coordinates in the transformed space.
-    * The units, therefore, are pixels.
+    * The coordinates are original, untransformed coordinates -- not device coordinates.
     * @return all the KPoints that were selected
-    * /
+    */
     public Collection pickAll3D(double xcoord, double ycoord, double zcoord, boolean superpick, double radius)
     {
         // Iterate over all levels and all points in each level, searching for "the one"
-        int         i, j, end_j;        // loop over z-buffer
-        ArrayList   zb;                 // == zbuffer[i], saves array lookups
-        KPoint      p;
-        ArrayList   found = new ArrayList();
-        double      r2 = radius*radius;
+        int                 i, j, end_j;    // loop over z-buffer
+        ArrayList           zb;             // == zbuffer[i], saves array lookups
+        KPoint              p;
+        ArrayList<KPoint>   found = new ArrayList<KPoint>();
+        double              r2 = radius*radius;
         
         // Note: looping front to back, rather than back to front as in render()
         // start layer == (int)(TOP_LAYER*(zcoord-clipBack)/clipDepth)
@@ -472,9 +471,9 @@ abstract public class Engine //extends ... implements ...
             for(j = 0; j < end_j; j++)
             {
                 p = (KPoint)zb.get(j);
-                double dx = p.getDrawX() - xcoord;
-                double dy = p.getDrawY() - ycoord;
-                double dz = p.getDrawZ() - zcoord;
+                double dx = p.getX() - xcoord;
+                double dy = p.getY() - ycoord;
+                double dz = p.getZ() - zcoord;
                 // Using getDrawingColor() checks for invisible, aspect-invisible, *and* off points
                 if((dx*dx + dy*dy + dz*dz) <= r2 && (!p.isUnpickable() || superpick) && !p.getDrawingColor(this).isInvisible())
                     found.add(p);
@@ -482,7 +481,6 @@ abstract public class Engine //extends ... implements ...
         }
         return found;
     }
-    */
 //}}}
 
 //{{{ pickAll2D

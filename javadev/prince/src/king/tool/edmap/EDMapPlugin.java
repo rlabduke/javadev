@@ -62,7 +62,7 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
     {
         if(msg.testProg(KMessage.KING_STARTUP))
         {
-            System.err.println("Might try to load maps now");
+            //System.err.println("Might try to load maps now");
             kMain.unsubscribe(this);
             
             JApplet applet = kMain.getApplet();
@@ -334,7 +334,7 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
                 else throw new IllegalArgumentException("Map type not specified");
                 
                 EDMapWindow win = new EDMapWindow(parent, map, f.getName());
-                kCanvas.repaint(); // otherwise we get partial-redraw artifacts
+                kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
             }
         }
     }
@@ -364,7 +364,7 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
             else throw new IllegalArgumentException("Map type not specified");
             
             EDMapWindow win = new EDMapWindow(parent, map, mapURL.getFile());
-            kCanvas.repaint(); // otherwise we get partial-redraw artifacts
+            kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
         }
     }
     
