@@ -47,11 +47,11 @@ public class SpherePoint extends BallPoint
     * DiskProxyPoint is used to represent one disk in the stack for drawing and
     * picking purposes only.
     */
-    static class DiskProxyPoint extends ProxyPoint
+    public static class DiskProxyPoint extends ProxyPoint
     {
         int diskLevel;
         
-        public DiskProxyPoint(BallPoint proxyFor, int diskLevel)
+        protected DiskProxyPoint(BallPoint proxyFor, int diskLevel)
         {
             super(proxyFor);
             this.diskLevel = diskLevel;

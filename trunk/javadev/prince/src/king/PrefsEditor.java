@@ -62,7 +62,7 @@ public class PrefsEditor //extends ... implements ...
         btnDone     = new JButton(new ReflectiveAction("Close", null, this, "onDone"));
         btnDefaults = new JButton(new ReflectiveAction("Reset to defaults", null, this, "onDefaults"));
         btnSave     = new JButton(new ReflectiveAction("Save to disk", null, this, "onSave"));
-        if(kMain.getApplet() != null) btnSave.setEnabled(false);
+        if(!kMain.isTrusted()) btnSave.setEnabled(false);
         
         Component generalPane = buildGeneralPane();
         Component pluginPane = buildPluginsPane();

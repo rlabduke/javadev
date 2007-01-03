@@ -83,47 +83,6 @@ public class KinStable implements ListSelectionListener, KMessage.Subscriber, Ac
     {
         // doesn't react to messages because all updates are made in appropriate functions
     }
-
-    // Called by KingMain when something happens.
-    // Shouldn't be called directly under normal circumstances.
-    /*void notifyChange(int event_mask)
-    {
-        // Take care of yourself
-        
-        // Notify children
-        Kinemage    kin     = this.getKinemage();
-        KinCanvas   canvas  = kMain.getCanvas();
-        Engine      engine  = (canvas==null? null : canvas.getEngine());
-        
-        if((event_mask & KingMain.EM_SWITCH) != 0
-            && kin != null && engine != null)
-        {
-            canvas.getToolBox().services.doFlatland.setSelected(kin.atFlat);
-            engine.whiteBackground  = kin.atWhitebackground;
-            engine.usePerspective   = kin.atPerspective;
-            engine.colorByList      = kin.atListcolordominant;
-            
-            if(kin.atOnewidth)
-            {
-                engine.cueThickness = false;
-                engine.thinLines    = false;
-            }
-            else if(kin.atThinline)
-            {
-                engine.cueThickness = false;
-                engine.thinLines    = true;
-            }
-            else
-            {
-                //engine.cueThickness = true;
-                engine.thinLines    = false;
-            }
-            
-            UIMenus menus = kMain.getMenus();
-            if(menus != null) menus.displayMenu.syncCheckboxes();
-            // canvas will redraw itself in a moment, anyway...
-        }
-    }*/
 //}}}
 
 //{{{ closeAll, closeCurrent, append

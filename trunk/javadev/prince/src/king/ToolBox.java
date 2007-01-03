@@ -129,11 +129,10 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
         ClassLoader defaultLoader = this.getClass().getClassLoader();
         try
         {
-            JApplet applet = kMain.getApplet();
             ArrayList urls = new ArrayList();
             
             // Case: we're running in an applet
-            if(applet != null)
+            if(!kMain.isTrusted())
             {
                 /***************************************************************
                 * Throws an exception if we create a class loader...
@@ -307,7 +306,7 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
             Class pluginClass = Class.forName(className, true, pluginClassLoader);
             Method appletSafe = pluginClass.getMethod("isAppletSafe", new Class[] {});
             Boolean safe = (Boolean) appletSafe.invoke(null, new Object[] {});
-            if(kMain.getApplet() != null && safe.booleanValue() == false)
+            if(!kMain.isTrusted() && safe.booleanValue() == false)
                 return false; // can't load because we're not applet safe
             Method getDepend = pluginClass.getMethod("getDependencies", new Class[] {});
             Collection deps = (Collection) getDepend.invoke(null, new Object[] {});
