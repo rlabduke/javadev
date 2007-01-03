@@ -105,6 +105,34 @@ public class KinTreeModel implements TreeModel
     }
 //}}}
 
+//{{{ memorize/restoreVisibility
+//##################################################################################################
+    public static Collection<TreePath> memorizeVisibility(JTree tree)
+    { return memorizeVisibility(tree, new TreePath(tree.getModel().getRoot()), null); }
+    
+    public static Collection<TreePath> memorizeVisibility(JTree tree, TreePath path, Collection<TreePath> visible)
+    {
+        if(visible == null) visible = new HashSet<TreePath>();
+        if(tree.isVisible(path)) visible.add(path);
+        
+        TreeModel model = tree.getModel();
+        Object node = path.getLastPathComponent();
+        if(!model.isLeaf(node))
+        {
+            int size = model.getChildCount(node);
+            for(int i = 0; i < size; i++)
+                memorizeVisibility(tree, path.pathByAddingChild(model.getChild(node, i)), visible);
+        }
+        return visible;
+    }
+    
+    public static void restoreVisibility(JTree tree, Collection<TreePath> visible)
+    {
+        for(TreePath path : visible)
+            tree.makeVisible(path);
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##############################################################################
 //}}}

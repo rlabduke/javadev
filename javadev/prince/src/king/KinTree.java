@@ -310,9 +310,9 @@ public class KinTree implements KMessage.Subscriber
                 
                 TreePath selPath = tree.getSelectionPath();
                 int[] selRow = tree.getSelectionRows();
-                Collection<TreePath> vis = memorizeVisibility(tree, new TreePath(tree.getModel().getRoot()), null);
+                Collection<TreePath> vis = KinTreeModel.memorizeVisibility(tree);
                 ((KinTreeModel)m).kinChanged(true);
-                restoreVisibility(tree, vis);
+                KinTreeModel.restoreVisibility(tree, vis);
                 // Select the same node as before, if it's still there
                 if(selPath != null && tree.getRowForPath(selPath) != -1)
                     tree.setSelectionPath(selPath);
@@ -341,31 +341,6 @@ public class KinTree implements KMessage.Subscriber
     }
 
     public JTree getTree() { return tree; }
-//}}}
-
-//{{{ memorize/restoreVisibility
-//##################################################################################################
-    public static Collection<TreePath> memorizeVisibility(JTree tree, TreePath path, Collection<TreePath> visible)
-    {
-        if(visible == null) visible = new HashSet<TreePath>();
-        if(tree.isVisible(path)) visible.add(path);
-        
-        TreeModel model = tree.getModel();
-        Object node = path.getLastPathComponent();
-        if(!model.isLeaf(node))
-        {
-            int size = model.getChildCount(node);
-            for(int i = 0; i < size; i++)
-                memorizeVisibility(tree, path.pathByAddingChild(model.getChild(node, i)), visible);
-        }
-        return visible;
-    }
-    
-    public static void restoreVisibility(JTree tree, Collection<TreePath> visible)
-    {
-        for(TreePath path : visible)
-            tree.makeVisible(path);
-    }
 //}}}
 
 //{{{ onToggleVisibility
