@@ -58,6 +58,7 @@
          <exclude name="**/old/"/>
          <exclude name="**/Mac*.java"/>
          <exclude name="**/Jogl*.java"/>
+         <exclude name="**/dive/"/>
          <classpath>
             <pathelement location="../driftwood/build"/>
             <pathelement location="itext.jar"/>             <!-- Required for PDF export -->
@@ -80,6 +81,7 @@
 <target name="compile-jogl" depends="init,compile">
     <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" failonerror="false" target="1.5" source="1.5">
          <include name="**/Jogl*.java"/>
+         <include name="**/dive/"/>
          <classpath>
             <pathelement location="${build}"/>
             <pathelement location="../driftwood/build"/>

@@ -72,10 +72,7 @@ public class DrawingTool extends BasicTool
         /** Triggers the undo action */
         public void undo()
         {
-            ArrayList<KPoint> listKids = list.getChildren();
-            listKids.clear();
-            listKids.addAll(this.children);
-            list.fireKinChanged(AHE.CHANGE_POINT_CONTENTS);
+            list.setChildren(this.children);
             if(modPoint != null) modPoint.setPrev(modPrev);
         }
     }
