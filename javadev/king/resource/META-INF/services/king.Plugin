@@ -1,5 +1,5 @@
 # Standard plugins
-king.EDMapPlugin
+king.tool.edmap.EDMapPlugin
 king.tool.export.ImageExport
 king.tool.export.PdfExport
 king.tool.util.SelfUpdatePlugin

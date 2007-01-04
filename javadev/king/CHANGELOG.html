@@ -76,10 +76,7 @@
     DiVE export: VRML97 ?
     open pdb/map dialog boxes (initial dir) with Mac double-click startup
     Edit view menu: list action (double click/enter) should go to view
-    Applet: isTrusted PARAM, check file access (or WebStart instead?)
     axes not set for initial view when kin is loaded
-    document slash in list of shortcuts (HTML)
-    PC picking: forward and brightest color (depth cueing)
     
 Multi-kin of 1UBQ in parallel coords mode:
 Exception in thread "AWT-EventQueue-3" java.lang.NullPointerException
@@ -96,7 +93,88 @@ Exception in thread "AWT-EventQueue-3" java.lang.NullPointerException
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 1.60 ###
+### 2.00 ###
+- moved over highly modified code from the "prince" project.
+  A summary of the changes:
+- TARGET LANGUAGE IS NOW JAVA 1.5:
+  - features that were previously loaded by reflection to avoid breaking 1.3
+    (mouse wheel listener, drag-and-drop) are now part of the mainstream.
+  - the kinemage data structures use generics where appropriate
+  - the enhanced for loop is used heavily
+- PACKAGES WERE REORGANIZED:
+  - concrete implementations of KPoint (VectorPoint, etc) moved to king.points
+  - kinemage I/O code (KinfileParser, etc) moved to king.io
+  - drawing code and Painters moved to king.painters
+- KINEMAGE DATA STRUCTURES (Kinemage, KGroup, etc) HAVE BEEN ENHANCED:
+  - most changes are detected automatically and tallied in the Kinemage;
+    a separate mechanism checks for changes periodically and notifies KiNG.
+  - KSubgroup has been eliminated; KGroup now fills both rolls.
+    If KGroup.getDepth() == 1, it is a "real" @group. 2 is a @subgroup, etc
+  - we are positioned to support "sub-subgroups" but do not yet do so
+  - constructors have changed for KGroup, KList, and KPoints to not specify
+    the parent explicitly; see next item. KList now must have type specified.
+  - explicit calls to setOwner (now setParent) are not usually necessary;
+    this is done for the child in response to calling add() on the parent.
+  - parts of the kinemage hierarchy no longer implement MutableTreeNode;
+    there is now a custom KinTreeModel that manages viewing as a JTree.
+  - parts of the kinemage hierarchy no longer have a JCheckBox that has to be
+    managed; the button panel is now totally owned by ContentPane
+  - any group, subgroup, or list may have a Transform attached to it that
+    dynamically changes how it is drawn to screen; this affects only the
+    drawing X,Y,Z and not the "original" X,Y,Z (and thus not distances, etc)
+    [this feature hasn't been tested yet]
+- WE'RE MOVING TOWARD MULTIPLE VIEWS OF ONE KINEMAGE (BUT NOT THERE YET):
+  - the current KView and currently selected Aspect are now a property of
+    a KinCanvas/Kinemage pair instead of a Kinemage (functions in KinCanvas)
+  - stereo is at the moment still implemented by a single canvas, not two;
+    one day we might change this (so both sides would be pickable)
+  - picking could be made multi-view safe by doing a transform (not necessarily
+    drawing) again for the particular canvas before picking, but those changes
+    have not yet been made in the KiNG code that does the picking
+  - button and master on/off state is still considered fundamentally a property
+    of the kinemage, and so it has to be the same for all views still.
+- SIGNALING AND MESSAGING WITHIN KING HAS BEEN IMPROVED:
+  - notifyChange(EV_*) and KinemageSignal are now replaced by KMessage,
+    KMessage.Subscriber, and KingMain.subscribe/unsubscribe
+  - new events (like KMessage.KING_STARTUP) may be of interest to tools
+  - messages about changes in the kinemage should now happen automatically
+  - calls to KinCanvas.repaint() should no longer be necessary
+- KING AS AN APPLET SHOULD BE MORE CAPABLE (WHEN SIGNED):
+  - turns out that signing applets can be done effectively without having to
+    buy a real certificate from VeriSign.
+  - a signed applet can read/write local disk and therefore do rebuilding, etc
+  - most tests to see if we're running as an applet should instead check
+    KingMain.isTrusted; the current implementation may not be optimal though
+- PARALLEL COORDINATES HAS SEEN MODEST IMPROVEMENTS:
+  - saving kinemage while in parallel mode is now safe
+  - picking goes between normal and parallel modes; picked line is highlighted
+- SOME THINGS WERE RENAMED OR DROPPED ALTOGETHER:
+  - TransformSignalSubscriber.signalTransform became Transformable.doTransform
+  - KingView became KView (breaks lots of code!)
+  - RecursivePointIterator became KIterator, with improvements
+  - KPoint.get/setOrigX,Y,Z were dropped in favor of get/setX,Y,Z
+  - AHE.get/setOwner became get/setParent, to fit parent/child naming scheme
+  - GridBagPanel was dropped in favor of driftwood.gui.TablePane2
+  - the GNU regexp libraries were dropped in favor of java.util.regex.*
+  - KSubgroup has been dropped in favor of KGroup (see above)
+  - KPoint.isTotallyOn was dropped because it was redundant with isVisible
+  - KGroup.is/setRecessiveOn became is/setCollapsible as the latter is now
+    the preferred form in kinemage files
+  - MageHypertexter and MageHypertextListener became MageHypertext and
+    UIText.HypertextListener
+  - KPaint switched from java.awt.Paints to java.awt.Colors; only "invisible"
+    was affected and it eliminated a lot of dangerous casts
+  - the EDMap* classes were moved into king.tool.edmap where they belonged
+  - KinLoadListener became king.io.KinfileLoader.Listener
+  - KinWriter became KinfileWriter to be consistent with the other I/O classes
+- SPACE WAS CREATED FOR TUTORIAL CODE AND HTML:
+  - one of the goals was to make king.core into a toolkit for 3-D graphics
+    that could be used by programs other than KiNG proper
+  - tutorials on how to use king.core are in king/tutorial/ (HTML) and in
+    king/src/king/tutorial/ (Java code)
+  - hopefully, future releases will see sample plugins here as well, etc,
+    though we have to be careful not to clutter the JAR file too much
+
 ### 1.60 ###
 - Final release of KiNG 1.x series.  No other changes.
 
