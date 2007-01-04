@@ -7,12 +7,13 @@ import king.points.*;
 //import java.awt.*;
 //import java.awt.event.*;
 import java.io.*;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
-//import driftwood.*;
+import driftwood.r3.Transform;
 //}}}
 /**
 * <code>ParaParams</code> manages switching a kinemage in and out of
@@ -21,9 +22,33 @@ import java.util.*;
 * <p>Copyright (C) 2006 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri Nov 17 11:35:12 EST 2006
 */
-public class ParaParams //extends ... implements ...
+public class ParaParams implements KMessage.Subscriber, Transformable
 {
 //{{{ Constants
+//}}}
+
+//{{{ CLASS: WeakTransformable
+//##############################################################################
+    static class WeakTransformable implements Transformable
+    {
+        WeakReference<Transformable> ref;
+        ToolBox toolbox;
+        
+        public WeakTransformable(ToolBox toolbox, Transformable tr)
+        {
+            this.toolbox = toolbox;
+            this.ref = new WeakReference<Transformable>(tr);
+        }
+        
+        public void doTransform(Engine engine, Transform xform)
+        {
+            Transformable tr = this.ref.get();
+            if(tr == null)
+                toolbox.transformables.remove(this);
+            else
+                tr.doTransform(engine, xform);
+        }
+    }
 //}}}
 
 //{{{ Variable definitions
@@ -72,6 +97,10 @@ public class ParaParams //extends ... implements ...
         parallelView.setSpan(1.2f);
         parallelView.setName("PC Overview");
         kin.addView((KView) parallelView.clone());
+        
+        kMain.subscribe( new KMessage.WeakSubscriber(kMain, this) );
+        ToolBox toolbox = kMain.getCanvas().getToolBox();
+        toolbox.transformables.add( new WeakTransformable(toolbox, this) );
     }
 //}}}
 
@@ -152,6 +181,12 @@ public class ParaParams //extends ... implements ...
         normalView.setViewingAxes(parallelView.getViewingAxes());
         kMain.getCanvas().setCurrentView(kin, normalView);
         inParallelMode = false;
+
+        // Carry over picking information
+        ToolServices services = kMain.getCanvas().getToolBox().services;
+        KPoint picked = services.getLastPicked(0);
+        if(picked != null && picked instanceof ParaPoint)
+            services.pick( ((ParaPoint) picked).proxyFor );
     }
 //}}}
 
@@ -233,6 +268,49 @@ public class ParaParams //extends ... implements ...
             l1.setHorizontalAlignment(LabelPoint.CENTER);
             labelList.add(l1);
         }
+    }
+//}}}
+
+//{{{ deliverMessage, doTransform
+//##############################################################################
+    public void deliverMessage(KMessage msg)
+    {
+        if(msg.testProg(KMessage.PRE_KIN_SAVE))
+        {
+            // Otherwise, we could save the temporary PC representation instead!
+            this.fromParallelCoords();
+        }
+    }
+    
+    public void doTransform(Engine engine, Transform xform)
+    {
+        if(kMain.getKinemage() != this.kin) return; // only active when this kin is
+        if(!inParallelMode) return; // only when in PC mode
+        
+        ToolServices services = kMain.getCanvas().getToolBox().services;
+        if(!services.doMarkers.isSelected()) return; // only do this if markers are active
+        
+        KPoint picked = services.getLastPicked(0);
+        if(picked == null) return; // only if something is picked
+        if(picked instanceof ParaPoint)
+            picked = ((ParaPoint) picked).proxyFor;
+        
+        KList marker1 = new KList(KList.VECTOR);
+        marker1.setWidth(4);
+        if(engine.whiteBackground)  marker1.setColor(KPalette.deadblack);
+        else                        marker1.setColor(KPalette.deadwhite);
+        
+        VectorPoint prev = null;
+        for(KPoint p : parallelChildren.get(picked.getParent()))
+        {
+            if(((ParaPoint)p).proxyFor != picked) continue;
+            VectorPoint v = new VectorPoint(p.getName(), prev);
+            v.setXYZ(p.getX(), p.getY(), p.getZ());
+            marker1.add(v);
+            prev = v;
+        }
+        
+        marker1.doTransform(engine, xform);
     }
 //}}}
 

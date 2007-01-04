@@ -461,6 +461,10 @@ public class KinfileIO implements KinfileLoader.Listener, ListSelectionListener
     /** Like askSaveFile, but doesn't ask */
     public void saveFile(File f, Collection kinsToSave)
     {
+        // Notify the world that we're about to save this kinemage.
+        // Things like parallel coordinates should get their houses in order.
+        kMain.publish(new KMessage(this, KMessage.PRE_KIN_SAVE));
+
         // Don't write out empty groups/subgroups/lists or useless masters
         for(Iterator iter = kinsToSave.iterator(); iter.hasNext(); )
         {

@@ -61,24 +61,26 @@ public class KMessage //extends ... implements ...
 //}}}
 
 //{{{ Constants
-    /** A new kinemage has been loaded from disk */
-    public static final long KIN_LOADED         = (1L<<0);
-    /** A different kinemage has become the currently active one */
-    public static final long KIN_SWITCHED       = (1L<<1);
-    /** A kinemage (presumably the current one) has been closed */
-    public static final long KIN_CLOSED         = (1L<<2);
-    /** All open kinemages have been closed */
-    public static final long ALL_CLOSED         = (1L<<3);
-    /** The KingPrefs object has been updated */
-    public static final long PREFS_CHANGED      = (1L<<4);
-    /** The current viewpoint has been altered: center moved, zoom changed, rotated, etc */
-    public static final long VIEW_MOVED         = (1L<<5);
-    /** A totally different viewpoint has been selected from the Views menu */
-    public static final long VIEW_SELECTED      = (1L<<6);
-    /** The rendering options have changed (background color, etc) */
-    public static final long DISPLAY_OPTIONS    = (1L<<6);
     /** The program has started up and initial kinemages have been loaded. */
-    public static final long KING_STARTUP       = (1L<<7);
+    public static final long KING_STARTUP       = (1L<<0);
+    /** A new kinemage has been loaded from disk */
+    public static final long KIN_LOADED         = (1L<<1);
+    /** A different kinemage has become the currently active one */
+    public static final long KIN_SWITCHED       = (1L<<2);
+    /** A kinemage (presumably the current one) has been closed */
+    public static final long KIN_CLOSED         = (1L<<3);
+    /** All open kinemages have been closed */
+    public static final long ALL_CLOSED         = (1L<<4);
+    /** We're preparing to save one or more open kinemages. */
+    public static final long PRE_KIN_SAVE       = (1L<<5);
+    /** The KingPrefs object has been updated */
+    public static final long PREFS_CHANGED      = (1L<<6);
+    /** The current viewpoint has been altered: center moved, zoom changed, rotated, etc */
+    public static final long VIEW_MOVED         = (1L<<7);
+    /** A totally different viewpoint has been selected from the Views menu */
+    public static final long VIEW_SELECTED      = (1L<<8);
+    /** The rendering options have changed (background color, etc) */
+    public static final long DISPLAY_OPTIONS    = (1L<<9);
 //}}}
 
 //{{{ Variable definitions
