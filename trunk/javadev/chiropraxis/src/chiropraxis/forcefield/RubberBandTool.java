@@ -17,6 +17,8 @@ import driftwood.util.*;
 
 import king.*;
 import king.core.*;
+
+import driftwood.util.ReflectiveRunnable;
 //}}}
 /**
 * <code>RubberBandTool</code> is a toy version of Sculpt for KiNG.
