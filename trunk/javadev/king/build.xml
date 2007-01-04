@@ -25,10 +25,6 @@
         </and>
     </condition>
 </target>
-<!-- Defines properties needed to use SCP -->
-<target name="init-scp">
-    <property file="../lib/scp.props"/>
-</target>
 <!-- }}} -->
 
 <!-- build, compile, compile-mac, compile-jogl {{{ -->
@@ -46,7 +42,6 @@
         <fileset dir="../driftwood/resource/">
            <!--<exclude name="driftwood/moldb*/"/>-->
         </fileset>
-        <fileset dir="../lib/" includes="gnu/regexp/"/>
         <!-- iText library is in a separate JAR -->
     </jar>
     <copy file="resource/king/king_prefs" tofile="${basedir}/doc/dot_king_prefs.txt" overwrite="true"/>
@@ -59,14 +54,14 @@
     </ant>
     <copy file="../lib/iText/itext-1.02b.jar" tofile="${basedir}/itext.jar" failonerror="false"/>
     <mkdir dir="${build}"/>
-    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" target="1.3" source="1.3">
+    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" target="1.5" source="1.5">
          <include name="**/*.java"/>
          <exclude name="**/old/"/>
          <exclude name="**/Mac*.java"/>
          <exclude name="**/Jogl*.java"/>
+         <exclude name="**/dive/"/>
          <classpath>
             <pathelement location="../driftwood/build"/>
-            <pathelement location="../lib"/>
             <pathelement location="itext.jar"/>             <!-- Required for PDF export -->
          </classpath>
     </javac>
@@ -74,7 +69,7 @@
 
 <!-- Compiles .java files that only work on the Mac -->
 <target name="compile-mac" depends="init,compile" if="isMacOSX">
-    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" target="1.3" source="1.3">
+    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" target="1.5" source="1.5">
          <include name="**/Mac*.java"/>
          <classpath>
             <pathelement location="${build}"/>
@@ -85,8 +80,9 @@
 
 <!-- Compiles .java files that only work with JOGL installed -->
 <target name="compile-jogl" depends="init,compile">
-    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" failonerror="false" target="1.3" source="1.3">
+    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" failonerror="false" target="1.5" source="1.5">
          <include name="**/Jogl*.java"/>
+         <include name="**/dive/"/>
          <classpath>
             <pathelement location="${build}"/>
             <pathelement location="../driftwood/build"/>
@@ -106,7 +102,6 @@
         <zipfileset dir="../chiropraxis/dist/" includes="chiropraxis-*-src/"/>
         <zipfileset dir="../extratools/dist/" includes="extratools-*-src/"/>
         <zipfileset dir="../lib/" prefix="lib/">
-            <include name="gnu/regexp/"/>
             <include name="iText/*.jar"/>
             <include name="jogl/*.jar"/>
         </zipfileset>
@@ -182,15 +177,6 @@
     <ant antfile="../driftwood/build.xml" inheritAll="false" target="clean">
         <!-- inherited properties go here -->
     </ant>
-</target>
-
-<!-- Bundles this code and saves it locally - simple version control -->
-<target name="backup" depends="init,clean" description="Backs up this project on IWD's machine">
-    <tstamp/>
-    <mkdir dir="${user.home}/ark/old-versions/${ant.project.name}"/>
-    <jar jarfile="${user.home}/ark/old-versions/${ant.project.name}/${ant.project.name}-${version}.${buildnum}.jar" index="true">
-        <fileset dir="${basedir}"/>
-    </jar>
 </target>
 <!-- }}} -->
 
