@@ -257,7 +257,7 @@ public class ModelManager2 extends Plugin
         menubar.add(menu);
         item = new JMenuItem(new ReflectiveAction("Open PDB file...", null, this, "onOpenPDB"));
         item.setMnemonic(KeyEvent.VK_O);
-        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, UIMenus.MENU_ACCEL_MASK));
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KingMain.MENU_ACCEL_MASK));
         menu.add(item);
         item = new JMenuItem(new ReflectiveAction("Open NOE file...", null, this, "onOpenNOE"));
         item.setMnemonic(KeyEvent.VK_N);
@@ -266,7 +266,7 @@ public class ModelManager2 extends Plugin
         menu.addSeparator();
         item = new JMenuItem(new ReflectiveAction("Save PDB file...", null, this, "onSaveFullPDB"));
         item.setMnemonic(KeyEvent.VK_S);
-        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, UIMenus.MENU_ACCEL_MASK));
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KingMain.MENU_ACCEL_MASK));
         menu.add(item);
         
         menu = new JMenu("Edit");
@@ -283,7 +283,7 @@ public class ModelManager2 extends Plugin
         menu.addSeparator();
         miUndo = item = new JMenuItem(new ReflectiveAction("Undo last change", null, this, "onUndo"));
         item.setMnemonic(KeyEvent.VK_U);
-        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, UIMenus.MENU_ACCEL_MASK));
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KingMain.MENU_ACCEL_MASK));
         menu.add(item);
 
         menu = new JMenu("Help");
@@ -930,10 +930,8 @@ public class ModelManager2 extends Plugin
             plotter.modelWidth      = width;
             
             KGroup group = plotter.createGroup(name);
-            group.setOwner(kin);
             kin.add(group);
             kin.metadata.put(key, plotter);
-            kMain.notifyChange(KingMain.EM_EDIT_GROSS);
         }
         
         return plotter;

@@ -3,6 +3,7 @@
 package chiropraxis.kingtools;
 import king.*;
 import king.core.*;
+import king.points.BallPoint;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -64,7 +65,7 @@ public class HingeTool extends ModelingTool implements Remodeler, ChangeListener
         super(tb);
         anchor1 = anchor2 = null;
         
-        anchorList = new KList();
+        anchorList = new KList(KList.BALL);
         
         buildGUI();
     }
@@ -186,7 +187,7 @@ public class HingeTool extends ModelingTool implements Remodeler, ChangeListener
         {
             ModelState state = modelman.getMoltenState();
             Residue newRes = this.getResidueNearest(modelman.getModel(), state,
-                p.getOrigX(), p.getOrigY(), p.getOrigZ());
+                p.getX(), p.getY(), p.getZ());
             if(anchor1 == null)
             {
                 anchor1 = newRes;
@@ -212,11 +213,11 @@ public class HingeTool extends ModelingTool implements Remodeler, ChangeListener
         try
         {
             AtomState cas = state.get(ca);
-            BallPoint mark = new BallPoint(anchorList, "C-alpha axis endpoint");
+            BallPoint mark = new BallPoint("C-alpha axis endpoint");
             mark.r0 = 0.3f;
-            mark.setOrigX(cas.getX());
-            mark.setOrigY(cas.getY());
-            mark.setOrigZ(cas.getZ());
+            mark.setX(cas.getX());
+            mark.setY(cas.getY());
+            mark.setZ(cas.getZ());
             anchorList.add(mark);
             kCanvas.repaint();
         }
@@ -417,29 +418,6 @@ public class HingeTool extends ModelingTool implements Remodeler, ChangeListener
     }
 //}}}
 
-//{{{ signalTransform
-//##################################################################################################
-    /**
-    * A call to this method indicates the subscriber
-    * should transform its coordinates from model-space
-    * to display-space and optionally add one or more
-    * KPoints to the supplied Engine using addPaintable().
-    *
-    * <p>This method will be called in response to TransformSignal.signalTransform().
-    *
-    * @param engine     the Engine object describing the
-    *   dimensions and properties of the space to be painted.
-    * @param xform      the Transform to apply.
-    *   The subscriber must not modify the original Transform it
-    *   receives! Subscibers may, however, copy and modify the
-    *   Transform(s) they pass to internal substructures.
-    */
-    public void signalTransform(Engine engine, Transform xform)
-    {
-        anchorList.signalTransform(engine, xform);
-    }
-//}}}
-    
 //{{{ empty_code_segment
 //##################################################################################################
 //}}}

@@ -109,7 +109,7 @@ public class SswingTool extends ModelingTool
         {
             ModelState state = modelman.getMoltenState();
             targetRes = this.getResidueNearest(modelman.getModel(), state,
-                p.getOrigX(), p.getOrigY(), p.getOrigZ());
+                p.getX(), p.getY(), p.getZ());
             
             // Check for map file
             if(ccp4MapFile == null) onChooseMap(null);

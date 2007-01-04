@@ -96,7 +96,7 @@ public class ScMutTool  extends ModelingTool
             Model       model   = modelman.getModel();
             ModelState  state   = modelman.getFrozenState();
             Residue     orig    = this.getResidueNearest(model, state,
-                p.getOrigX(), p.getOrigY(), p.getOrigZ());
+                p.getX(), p.getY(), p.getZ());
             
             if(orig != null)
                 askMutateResidue(model, orig, state);
