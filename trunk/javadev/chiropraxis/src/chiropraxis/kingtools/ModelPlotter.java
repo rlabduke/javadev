@@ -3,6 +3,7 @@
 package chiropraxis.kingtools;
 import king.*;
 import king.core.*;
+import king.points.*;
 
 //import java.awt.*;
 //import java.awt.event.*;
@@ -188,11 +189,11 @@ public class ModelPlotter
         +(atomState.getTempFactor() > 1 ? " B"+df2.format(atomState.getTempFactor()) : "");
         
         if(!lineto) prev = null;
-        VectorPoint p = new VectorPoint(list, name, prev);
+        VectorPoint p = new VectorPoint(name, prev);
         
-        p.setOrigX(atomState.getX());
-        p.setOrigY(atomState.getY());
-        p.setOrigZ(atomState.getZ());
+        p.setX(atomState.getX());
+        p.setY(atomState.getY());
+        p.setZ(atomState.getZ());
         
         list.add(p);
         prev = p;
@@ -214,39 +215,34 @@ public class ModelPlotter
         // where the existing masters are already off.
         if(listCa == null)
         {
-            listCa = new KList();
+            listCa = new KList(KList.VECTOR);
             listCa.setName("Calphas");
-            listCa.setType(KList.VECTOR);
             listCa.addMaster("refit Calphas");    // matches Prekin 6.25
             listCa.setOn(false);
         }
         if(listMc == null)
         {
-            listMc = new KList();
+            listMc = new KList(KList.VECTOR);
             listMc.setName("mc");
-            listMc.setType(KList.VECTOR);
             listMc.addMaster("refit mainchain");  // matches Prekin 6.25
         }
         if(listMcH == null)
         {
-            listMcH = new KList();
+            listMcH = new KList(KList.VECTOR);
             listMcH.setName("mcH");
-            listMcH.setType(KList.VECTOR);
             listMcH.addMaster("refit mainchain"); // matches Prekin 6.25
             listMcH.addMaster("refit H's");       // matches Prekin 6.25
         }
         if(listSc == null)
         {
-            listSc = new KList();
+            listSc = new KList(KList.VECTOR);
             listSc.setName("sc");
-            listSc.setType(KList.VECTOR);
             listSc.addMaster("refit sidechain");  // matches Prekin 6.25
         }
         if(listScH == null)
         {
-            listScH = new KList();
+            listScH = new KList(KList.VECTOR);
             listScH.setName("scH");
-            listScH.setType(KList.VECTOR);
             listScH.addMaster("refit sidechain"); // matches Prekin 6.25
             listScH.addMaster("refit H's");       // matches Prekin 6.25
         }
@@ -279,22 +275,17 @@ public class ModelPlotter
         group.setName(name);
         group.setDominant(true);
         
-        KSubgroup subMc = new KSubgroup(group, "mainchain");
+        KGroup subMc = new KGroup("mainchain");
         group.add(subMc);
-        KSubgroup subSc = new KSubgroup(group, "sidechain");
+        KGroup subSc = new KGroup("sidechain");
         group.add(subSc);
         
         subMc.add(listMc);
-        listMc.setOwner(subMc);
         subMc.add(listMcH);
-        listMcH.setOwner(subMc);
         subMc.add(listCa);
-        listCa.setOwner(subMc);
         
         subSc.add(listSc);
-        listSc.setOwner(subSc);
         subSc.add(listScH);
-        listScH.setOwner(subSc);
         
         return group;
     }
@@ -303,26 +294,21 @@ public class ModelPlotter
     * Creates a (dominant) subgroup that owns this plotter's lists.
     * Unlike createLists, a new object is created every time.
     */
-    public KSubgroup createSubgroup(String name)
+    public KGroup createSubgroup(String name)
     {
         if(listMc == null || listMcH == null
         || listSc == null || listScH == null) createLists();
         
-        KSubgroup subgroup = new KSubgroup();
+        KGroup subgroup = new KGroup();
         subgroup.setName(name);
         subgroup.setDominant(true);
         
         subgroup.add(listMc);
-        listMc.setOwner(subgroup);
         subgroup.add(listMcH);
-        listMcH.setOwner(subgroup);
         subgroup.add(listCa);
-        listCa.setOwner(subgroup);
         
         subgroup.add(listSc);
-        listSc.setOwner(subgroup);
         subgroup.add(listScH);
-        listScH.setOwner(subgroup);
         
         return subgroup;
     }

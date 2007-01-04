@@ -3,6 +3,7 @@
 package chiropraxis.kingtools;
 import king.*;
 import king.core.*;
+import king.io.*;
 
 import java.awt.*;
 //import java.awt.event.*;
@@ -189,7 +190,7 @@ public class BgKinRunner implements Runnable
             if(resCommas.length() > 0) resCommas.append(",");
             resCommas.append(res.getSequenceNumber());
         }
-        float[] ctr = kin.getCurrentView().getCenter();
+        float[] ctr = kMain.getView().getCenter();
         String viewCtr = ctr[0]+", "+ctr[1]+", "+ctr[2];
         Triple[] bbox = getBoundingBox(residues, state);
         double radius = bbox[1].mag() + 5.0;
@@ -326,15 +327,13 @@ public class BgKinRunner implements Runnable
             {
                 KGroup newGroup = (KGroup)iter.next();
                 //newGroup.setDominant(true);  // we don't need to see 1-->2, 2-->1
-                newGroup.setOwner(kin);      // have to make sure we know who our parent is
+                newGroup.setParent(kin);      // have to make sure we know who our parent is
                 
                 // append kinemage creates all the masters we need
                 if(oldGroup == null)    kin.appendKinemage(newKin);
                 else                    kin.replace(oldGroup, newGroup);
                 oldGroup = newGroup;
                 newKin = null;
-                
-                kMain.notifyChange(KingMain.EM_EDIT_GROSS);
             }
         }
     }

@@ -94,7 +94,7 @@ public class BackrubTool extends ModelingTool
             Model model = modelman.getModel();
             ModelState state = modelman.getMoltenState();
             Residue ctrRes = this.getResidueNearest(model, state,
-                p.getOrigX(), p.getOrigY(), p.getOrigZ());
+                p.getX(), p.getY(), p.getZ());
             try { new BackrubWindow(kMain, ctrRes, modelman); }
             catch(IllegalArgumentException ex)
             {

@@ -17,6 +17,7 @@ import driftwood.util.*;
 
 import king.*;
 import king.core.*;
+import king.points.*;
 
 import driftwood.util.ReflectiveRunnable;
 //}}}
@@ -105,14 +106,14 @@ public class RubberBandTool extends BasicTool implements Runnable, ChangeListene
 //##############################################################################
     KList makeRandomConf(int howmany)
     {
-        KList list = new KList();
+        KList list = new KList(KList.VECTOR);
         list.setName("rubber band");
         list.setColor(KPalette.pinktint);
         
         VectorPoint prev = null;
         for(int i = 0; i < howmany; i++)
         {
-            VectorPoint p = new VectorPoint(list, "pt "+i, prev);
+            VectorPoint p = new VectorPoint("pt "+i, prev);
             p.setXYZ(10*Math.random(), 10*Math.random(), 10*Math.random());
             //p.setColor(colors[colors.length*i / howmany]);
             list.add(p);
@@ -128,7 +129,7 @@ public class RubberBandTool extends BasicTool implements Runnable, ChangeListene
     StateManager makeState(KList klist)
     {
         int i;
-        ArrayList points = new ArrayList(klist.children);
+        ArrayList points = new ArrayList(klist.getChildren());
         points.add(this.endpoint0);
         points.add(this.endpoint1);
         points.add(this.mouseTug);
@@ -168,15 +169,14 @@ public class RubberBandTool extends BasicTool implements Runnable, ChangeListene
         Kinemage kin = kMain.getKinemage();
         if(kin == null) return;
         
-        KGroup group = new KGroup(kin, "RubberBand");
+        KGroup group = new KGroup("RubberBand");
         group.setDominant(true);
-        KSubgroup subgroup = new KSubgroup(group, "");
+        KGroup subgroup = new KGroup("");
         group.add(subgroup);
-        this.rubberBand.setOwner(subgroup);
+        this.rubberBand.setParent(subgroup);
         subgroup.add(rubberBand);
         
         kin.add(group);
-        kMain.notifyChange(KingMain.EM_EDIT_GROSS);
     }
 //}}}
 
@@ -233,13 +233,13 @@ public class RubberBandTool extends BasicTool implements Runnable, ChangeListene
         
         int nPoints = 0;
         Triple centroid = new Triple();
-        for(Iterator iter = rubberBand.children.iterator(); iter.hasNext(); nPoints++)
+        for(Iterator iter = rubberBand.iterator(); iter.hasNext(); nPoints++)
         {
             KPoint p = (KPoint) iter.next();
             centroid.add(p);
         }
         centroid.mult( 1.0/nPoints );
-        for(Iterator iter = rubberBand.children.iterator(); iter.hasNext(); )
+        for(Iterator iter = rubberBand.iterator(); iter.hasNext(); )
         {
             KPoint p = (KPoint) iter.next();
             int index = (int) Math.min(colors.length-1, 3*centroid.distance(p));
@@ -289,7 +289,7 @@ public class RubberBandTool extends BasicTool implements Runnable, ChangeListene
     /** Override this function for (left-button) drags */
     public void drag(int dx, int dy, MouseEvent ev)
     {
-        KingView v = kMain.getView();
+        KView v = kMain.getView();
         if(v != null && draggedPoint != null)
         {
             Dimension dim = kCanvas.getCanvasSize();
@@ -322,7 +322,7 @@ public class RubberBandTool extends BasicTool implements Runnable, ChangeListene
         else
         {
             mouseTug.like(draggedPoint);
-            int i = rubberBand.children.indexOf(draggedPoint);
+            int i = rubberBand.getChildren().indexOf(draggedPoint);
             int j = stateMan.getIndex(mouseTug);
             if(i != -1 && j != -1) synchronized(stateMan)
             {

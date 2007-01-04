@@ -3,6 +3,7 @@
 package chiropraxis.kingtools;
 import king.*;
 import king.core.*;
+import king.points.BallPoint;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -70,7 +71,7 @@ public class BackrubWindow implements Remodeler, ChangeListener, WindowListener
         this.kCanvas = kMain.getCanvas();
         this.modelman = mm;
         this.ctrRes = target;
-        this.anchorList = new KList();
+        this.anchorList = new KList(KList.BALL);
         anchorList.setColor( KPalette.peach );
         
         buildGUI(kMain.getTopWindow());
@@ -181,11 +182,11 @@ public class BackrubWindow implements Remodeler, ChangeListener, WindowListener
         try
         {
             AtomState cas = state.get(ca);
-            BallPoint mark = new BallPoint(anchorList, "C-alpha axis endpoint");
+            BallPoint mark = new BallPoint("C-alpha axis endpoint");
             mark.r0 = 0.3f;
-            mark.setOrigX(cas.getX());
-            mark.setOrigY(cas.getY());
-            mark.setOrigZ(cas.getZ());
+            mark.setX(cas.getX());
+            mark.setY(cas.getY());
+            mark.setZ(cas.getZ());
             anchorList.add(mark);
             kCanvas.repaint();
         }
@@ -341,29 +342,6 @@ public class BackrubWindow implements Remodeler, ChangeListener, WindowListener
             new SidechainRotator(kMain, ctrRes, modelman);
         }
         catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
-    }
-//}}}
-
-//{{{ signalTransform
-//##################################################################################################
-    /**
-    * A call to this method indicates the subscriber
-    * should transform its coordinates from model-space
-    * to display-space and optionally add one or more
-    * KPoints to the supplied Engine using addPaintable().
-    *
-    * <p>This method will be called in response to TransformSignal.signalTransform().
-    *
-    * @param engine     the Engine object describing the
-    *   dimensions and properties of the space to be painted.
-    * @param xform      the Transform to apply.
-    *   The subscriber must not modify the original Transform it
-    *   receives! Subscibers may, however, copy and modify the
-    *   Transform(s) they pass to internal substructures.
-    */
-    public void signalTransform(Engine engine, Transform xform)
-    {
-        anchorList.signalTransform(engine, xform);
     }
 //}}}
 
