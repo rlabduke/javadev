@@ -75,7 +75,7 @@ abstract public class AGE<P extends AGE, C extends AHE> extends AHEImpl<P> imple
     }
 //}}}
 
-//{{{ add, replace, remove, clear, getChildren, iterator
+//{{{ add, replace, remove, clear, get/setChildren, iterator
 //##################################################################################################
     /** Adds a child to this element */
     public void add(C child)
@@ -130,6 +130,19 @@ abstract public class AGE<P extends AGE, C extends AHE> extends AHEImpl<P> imple
     */
     public ArrayList<C> getChildren()
     { return children; }
+    
+    /**
+    * Replaces the current list of children with the provided one.
+    * Uses the actual object passed in; does not make a copy.
+    * Does NOT call setParent() on all of the new children --
+    * you have to do that yourself, if necessary.
+    * Fires appropriate change events automatically.
+    */
+    public void setChildren(ArrayList<C> children)
+    {
+        this.children = children;
+        fireKinChanged(CHANGE_TREE_CONTENTS | CHANGE_POINT_CONTENTS);
+    }        
     
     public Iterator<C> iterator()
     { return getChildren().iterator(); }

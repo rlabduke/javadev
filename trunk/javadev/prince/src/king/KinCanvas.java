@@ -391,8 +391,10 @@ public class KinCanvas extends JComponent implements KMessage.Subscriber, Transf
     * if there is no current kinemage.
     */
     public KView getCurrentView()
+    { return getCurrentView(kMain.getKinemage()); }
+
+    public KView getCurrentView(Kinemage kin)
     {
-        Kinemage kin = kMain.getKinemage();
         if(kin == null) return null;
         
         KView view = (KView) kin.metadata.get(currViewKey);
@@ -402,7 +404,7 @@ public class KinCanvas extends JComponent implements KMessage.Subscriber, Transf
             if(views.size() < 1)
                 kin.addView( new KView(kin) );
             view = views.get(0);
-            setCurrentView(view);
+            setCurrentView(kin, view);
         }
         return view;
     }
@@ -414,8 +416,10 @@ public class KinCanvas extends JComponent implements KMessage.Subscriber, Transf
     * modifications don't change the original.
     */
     public void setCurrentView(KView view)
+    { setCurrentView(kMain.getKinemage(), view); }
+    
+    public void setCurrentView(Kinemage kin, KView view)
     {
-        Kinemage kin = kMain.getKinemage();
         if(kin == null) return;
         
         kin.metadata.put(currViewKey, view.clone());

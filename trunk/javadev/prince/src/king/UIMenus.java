@@ -711,17 +711,16 @@ public class UIMenus implements KMessage.Subscriber
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onViewParallelCoords(ActionEvent ev)
     {
-        //Kinemage kin = kMain.getKinemage();
-        //if(kin == null) return;
-        //String key = ParaParams.class.getName()+".instance";
-        //ParaParams params = (ParaParams) kin.metadata.get(key);
-        //if(params == null)
-        //{
-        //    params = new ParaParams(kin);
-        //    kin.metadata.put(key, params);
-        //}
-        //params.swap();
-        //kin.signal.signalKinemage(kin, KinemageSignal.STRUCTURE | KinemageSignal.APPEARANCE);
+        Kinemage kin = kMain.getKinemage();
+        if(kin == null) return;
+        String key = ParaParams.class.getName()+".instance";
+        ParaParams params = (ParaParams) kin.metadata.get(key);
+        if(params == null)
+        {
+            params = new ParaParams(kMain, kin);
+            kin.metadata.put(key, params);
+        }
+        params.swap();
     }
 //}}}
 
@@ -859,10 +858,11 @@ public class UIMenus implements KMessage.Subscriber
 
 //{{{ deliverMessage
 //##################################################################################################
-    static final long REDO_MENUS = KMessage.KIN_SWITCHED | KMessage.KIN_CLOSED | KMessage.ALL_CLOSED;
+    static final long REDO_MENUS_P = KMessage.KIN_SWITCHED | KMessage.KIN_CLOSED | KMessage.ALL_CLOSED;
+    static final int REDO_MENUS_K = AHE.CHANGE_VIEWS_LIST | AHE.CHANGE_MASTERS_LIST;
     public void deliverMessage(KMessage msg)
     {
-        if(msg.testProg(REDO_MENUS))
+        if(msg.testProg(REDO_MENUS_P) || msg.testKin(REDO_MENUS_K))
         {
             rebuildViewsMenu();
             displayMenu.rebuildAspectsMenu();

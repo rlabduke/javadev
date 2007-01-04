@@ -6,6 +6,7 @@ import king.core.*;
 //import java.awt.*;
 //import java.awt.event.*;
 import java.io.*;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -29,6 +30,36 @@ public class KMessage //extends ... implements ...
         public void deliverMessage(KMessage msg);
     }
     
+//{{{ CLASS: WeakSubscriber
+//##############################################################################
+    /**
+    * Allows one to sign up as a subscriber with KingMain, but
+    * be automatically unsubscribed when time comes to be GC'd.
+    * Example:
+    *   kMain.subscribe( new WeakSubscriber(kMain, realSubscriber) )
+    */
+    public static class WeakSubscriber implements Subscriber
+    {
+        WeakReference<Subscriber> ref;
+        KingMain kMain;
+        
+        public WeakSubscriber(KingMain kMain, Subscriber sub)
+        {
+            this.kMain = kMain;
+            this.ref = new WeakReference<Subscriber>(sub);
+        }
+        
+        public void deliverMessage(KMessage msg)
+        {
+            Subscriber sub = this.ref.get();
+            if(sub == null)
+                kMain.unsubscribe(this);
+            else
+                sub.deliverMessage(msg);
+        }
+    }
+//}}}
+
 //{{{ Constants
     /** A new kinemage has been loaded from disk */
     public static final long KIN_LOADED         = (1L<<0);
