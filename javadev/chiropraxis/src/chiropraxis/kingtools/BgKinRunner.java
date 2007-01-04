@@ -16,6 +16,7 @@ import javax.swing.*;
 import driftwood.moldb2.*;
 import driftwood.r3.*;
 import driftwood.util.*;
+import driftwood.util.ReflectiveRunnable;
 //}}}
 /**
 * <code>BgKinRunner</code> runs some command that produces a kinemage file
