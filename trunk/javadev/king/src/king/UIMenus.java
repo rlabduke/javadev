@@ -682,7 +682,7 @@ public class UIMenus implements KMessage.Subscriber
         KView view = kMain.getView();
         if(view == null) return;
         view = (KView)view.clone();
-        view.setID(viewname);
+        view.setName(viewname);
         
         // User should choose to save axes positions or not (?)
         // If the data is high-D data, views only really make sense

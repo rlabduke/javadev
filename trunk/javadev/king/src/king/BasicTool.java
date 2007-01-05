@@ -391,7 +391,6 @@ public class BasicTool extends Plugin implements MouseListener, MouseMotionListe
         KView v = kMain.getView();
         if(v == null) return;
         v.rotateY((float)(Math.PI/180.0) * 2f);
-        kMain.publish(new KMessage(this, KMessage.VIEW_MOVED));
     }
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
@@ -400,7 +399,6 @@ public class BasicTool extends Plugin implements MouseListener, MouseMotionListe
         KView v = kMain.getView();
         if(v == null) return;
         v.rotateY((float)(Math.PI/180.0) * -2f);
-        kMain.publish(new KMessage(this, KMessage.VIEW_MOVED));
     }
 //}}}
     

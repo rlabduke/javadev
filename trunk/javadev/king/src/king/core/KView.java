@@ -103,7 +103,10 @@ public class KView implements Serializable
     { return ID; }
     /** Sets the name of this element */
     public synchronized void setName(String nm)
-    { ID = nm; }
+    {
+        ID = nm;
+        if(parent != null) parent.fireKinChanged(AHE.CHANGE_VIEWS_LIST);
+    }
     /** Gets the name of this element (same as <code>getName()</code>*/
     public String toString()
     { return getName(); }
@@ -242,6 +245,7 @@ public class KView implements Serializable
         float[][] rot = { {1f, 0f, 0f}, {0f, cos, -sin}, {0f, sin, cos} };
         xform = mmult(rot, xform);
         if(++nUpdates % N_UPDATES_ALLOWED == 0) { nUpdates = 0; normalize(xform); }
+        if(parent != null) parent.fireKinChanged(AHE.CHANGE_VIEW_TRANSFORM);
     }
 
     /**
@@ -256,6 +260,7 @@ public class KView implements Serializable
         float[][] rot = { {cos, 0f, sin}, {0f, 1f, 0f}, {-sin, 0f, cos} };
         xform = mmult(rot, xform);
         if(++nUpdates % N_UPDATES_ALLOWED == 0) { nUpdates = 0; normalize(xform); }
+        if(parent != null) parent.fireKinChanged(AHE.CHANGE_VIEW_TRANSFORM);
     }
 
     /**
@@ -270,23 +275,21 @@ public class KView implements Serializable
         float[][] rot = { {cos, -sin, 0f}, {sin, cos, 0f}, {0f, 0f, 1f} };
         xform = mmult(rot, xform);
         if(++nUpdates % N_UPDATES_ALLOWED == 0) { nUpdates = 0; normalize(xform); }
+        if(parent != null) parent.fireKinChanged(AHE.CHANGE_VIEW_TRANSFORM);
     }
 //}}}
 
-//{{{ setID, setMatrix, setZoom, get/setSpan
+//{{{ setMatrix, setZoom, get/setSpan
 //##################################################################################################
-    /**
-    * Sets the label used to identify this view.
-    * Identical to <code>setName()</code>.
-    * @param name the name of this view
-    */
-    public synchronized void setID(String name) { setName(name); }
-    
     /**
     * Sets the matrix used by this view
     * @param matrix a 3x3 matrix, matrix[row][col]
     */
-    public synchronized void setMatrix(float[][] matrix) { xform = (float[][])matrix.clone(); }
+    public synchronized void setMatrix(float[][] matrix)
+    {
+        xform = (float[][])matrix.clone();
+        if(parent != null) parent.fireKinChanged(AHE.CHANGE_VIEW_TRANSFORM);
+    }
     
     /**
     * Sets the current zoom factor.
@@ -303,6 +306,8 @@ public class KView implements Serializable
         zoom = z;
         span = 0f;
         //span = getSpan(); // so span will be calc'd immediately with current kin size
+        if(parent != null) parent.fireKinChanged(AHE.CHANGE_VIEW_TRANSFORM);
+
     }
     
     /**
@@ -324,7 +329,11 @@ public class KView implements Serializable
     * Set the span of this view, which (if no zoom has been set or zoom is <= 0)
     * will set the zoom such that an object s units across fits on screen.
     */
-    public synchronized void setSpan(float s) { span = s; }
+    public synchronized void setSpan(float s)
+    {
+        span = s;
+        if(parent != null) parent.fireKinChanged(AHE.CHANGE_VIEW_TRANSFORM);
+    }
 //}}}
 
 //{{{ get/setClip, get/setCenter
@@ -339,7 +348,11 @@ public class KView implements Serializable
     * Sets the current clip factor.
     * @param c the desired clip
     */
-    public synchronized void setClip(float c) { clip = c; }
+    public synchronized void setClip(float c)
+    {
+        clip = c;
+        if(parent != null) parent.fireKinChanged(AHE.CHANGE_VIEW_TRANSFORM);
+    }
 
     /** Returns the coordinates of the current center as a float[] = {x,y,z} */
     public synchronized float[] getCenter()
@@ -369,6 +382,7 @@ public class KView implements Serializable
         center[0] = x;
         center[1] = y;
         center[2] = z;
+        if(parent != null) parent.fireKinChanged(AHE.CHANGE_VIEW_TRANSFORM);
     }
 //}}}
 

@@ -39,7 +39,9 @@ public class KIterator<T extends AHE> implements Iterable<T>, Iterator<T>
 //##################################################################################################
     Set<Opts>               opts;
     T                       next;
+    T                       last;
     Iterator<T>             iter;
+    Iterator<T>             iterLast;
     LinkedList<Iterator<T>> iterStack;
 //}}}
 
@@ -54,7 +56,9 @@ public class KIterator<T extends AHE> implements Iterable<T>, Iterator<T>
     {
         this.opts       = opts;
         this.next       = null;
+        this.last       = null;
         this.iter       = (Iterator<T>) Collections.singleton(top).iterator();
+        this.iterLast   = null;
         this.iterStack  = new LinkedList<Iterator<T>>();
     }
 //}}}
@@ -71,11 +75,13 @@ public class KIterator<T extends AHE> implements Iterable<T>, Iterator<T>
         // True tail-recursion has been replaced by a while-loop pseudo-recursion
         // because otherwise we tend to get StackOverflowErrors.
         // If Java was smarter it would perform this optimization for us... ;)
+        last = null;
         while(true)
         {
             if(iter.hasNext())
             {
                 T ahe = iter.next();
+                iterLast = iter; // "iter" will change if we need to visit children
                 if(ahe instanceof KPoint)
                 {
                     if(shouldVisit((KPoint) ahe))
@@ -151,10 +157,10 @@ public class KIterator<T extends AHE> implements Iterable<T>, Iterator<T>
     {
         // hasNext() may have already stocked next for us
         if(next == null) nextImpl();
-        T retval = next;
+        last = next;
         // mark this value as consumed
         next = null;
-        return retval;
+        return last;
     }
     
     /**
@@ -167,9 +173,38 @@ public class KIterator<T extends AHE> implements Iterable<T>, Iterator<T>
         return (next != null);
     }
     
-    /** Not supported by this implementation */
+    /**
+    * This function is supported only in a limited way:
+    * it works only if you've called next() more recently than hasNext().
+    * If you've called hasNext() more recently than next(),
+    * then it will fail with an IllegalStateException.
+    *
+    * <p>Note that parents are visited before children.  Calling remove
+    * on any parent will mean that none of its descendants are visited.
+    *
+    * <p>If this function does not meet your needs, consider performing two iterations:
+    * In the first, build a Collection of all the items to be removed;
+    * in the second, traverse that new Collection and remove its elements from the kinemage
+    * by calling remove() on their parents.
+    */
     public void remove()
-    { throw new UnsupportedOperationException(); }
+    {
+        if(last != null)
+        {
+            AGE parent = last.getParent();
+            iterLast.remove();
+            // Don't traverse children, if you were considering it:
+            if(iter != iterLast)
+            {
+                iter = iterStack.removeLast();
+                assert iter == iterLast;
+            }
+            int change = (last instanceof AGE ? AHE.CHANGE_TREE_CONTENTS : AHE.CHANGE_POINT_CONTENTS);
+            last = null;
+            parent.fireKinChanged(change);
+        }
+        else throw new IllegalStateException();
+    }
     
     public Iterator<T> iterator()
     { return this; }

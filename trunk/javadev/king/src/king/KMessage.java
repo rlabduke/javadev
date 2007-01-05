@@ -75,8 +75,11 @@ public class KMessage //extends ... implements ...
     public static final long PRE_KIN_SAVE       = (1L<<5);
     /** The KingPrefs object has been updated */
     public static final long PREFS_CHANGED      = (1L<<6);
-    /** The current viewpoint has been altered: center moved, zoom changed, rotated, etc */
-    public static final long VIEW_MOVED         = (1L<<7);
+    
+    // Not needed anymore because KView sends kinemage signals itself!
+    ///** The current viewpoint has been altered: center moved, zoom changed, rotated, etc */
+    //public static final long VIEW_MOVED         = (1L<<7);
+    
     /** A totally different viewpoint has been selected from the Views menu */
     public static final long VIEW_SELECTED      = (1L<<8);
     /** The rendering options have changed (background color, etc) */

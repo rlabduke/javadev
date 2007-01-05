@@ -280,7 +280,6 @@ public class ToolServices implements Transformable
         if(v == null || p == null) return;
         
         v.setCenter((float)p.getX(), (float)p.getY(), (float)p.getZ());
-        kMain.publish(new KMessage(this, KMessage.VIEW_MOVED));
     }
 //}}}
 
@@ -294,7 +293,6 @@ public class ToolServices implements Transformable
         
         v.rotateX((float)(2.0*Math.PI) * dy / 600f);
         v.rotateY((float)(2.0*Math.PI) * dx / 600f);
-        kMain.publish(new KMessage(this, KMessage.VIEW_MOVED));
     }
 
     /** Given a distance in pixels, does pinwheel rotation */
@@ -304,7 +302,6 @@ public class ToolServices implements Transformable
         if(v == null) return;
 
         v.rotateZ((float)(-2.0*Math.PI) * dist / 600f);
-        kMain.publish(new KMessage(this, KMessage.VIEW_MOVED));
     }
 //}}}
 
@@ -318,7 +315,6 @@ public class ToolServices implements Transformable
         
         Dimension dim = kCanvas.getCanvasSize();
         v.viewTranslateRotated(dx, -dy, 0, (dim.width < dim.height ? dim.width : dim.height));
-        kMain.publish(new KMessage(this, KMessage.VIEW_MOVED));
     }
 
     /** Given an offset in pixels, does translation into/out of the screen */
@@ -329,7 +325,6 @@ public class ToolServices implements Transformable
         
         Dimension dim = kCanvas.getCanvasSize();
         v.viewTranslateRotated(0, 0, d, (dim.width < dim.height ? dim.width : dim.height));
-        kMain.publish(new KMessage(this, KMessage.VIEW_MOVED));
     }
 //}}}
 

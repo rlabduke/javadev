@@ -50,8 +50,9 @@ public class KinStable implements ListSelectionListener, KMessage.Subscriber, Ac
 
         kMain.subscribe(this);
         
-        // Check for changes to the kinemage N times per second
-        timer = new Timer(1000/20, this);
+        // Check for changes to the kinemage FPS times per second
+        final int FPS = 30;
+        timer = new Timer(1000/FPS, this);
         timer.start();
     }
 //}}}

@@ -93,6 +93,14 @@ Exception in thread "AWT-EventQueue-3" java.lang.NullPointerException
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 2.01 ###
+- made KView notify the kinemage that owns it whenever it's changed
+- removed KMessage.VIEW_MOVED as there was no longer a need for it
+- this introduces a slight lag, so I upped the rate on the KinStable timer a bit
+- added limited support for remove() to KIterator, but it will work in the most
+  common use-case (a for loop).
+- updated the BeanKing plugin; haven't tested all movie functions yet
+
 ### 2.00 ###
 - moved over highly modified code from the "prince" project.
   A summary of the changes:

@@ -19,8 +19,6 @@ help() {
     print("");
     print("bleach()                 removes point colors for all visible");
     print("delete(name?)            deletes all groups/subgroups/lists with given name");
-    print("importSubgroups(file?)   imports GROUP/FILE subgroups for each group");
-    print("labelAnimateGroups(xyz?) adds label with group name at last picked point");
     print("makeMaster(name?)        creates master for named group/subgroup/list");
     print("");
     print("source(getResource(\"/movies.bsh\"));");
@@ -31,14 +29,8 @@ help(); // display this message on startup!
 bleach() {
     kin = kMain.getKinemage();
     if(kin == null) return;
-    rpi = new RecursivePointIterator(kin);
-    while(rpi.hasNext())
-    {
-        pt = rpi.next();
-        if(pt.isTotallyOn())
-            pt.setColor(null);
-    }
-    kCanvas.repaint();
+    for(pt : KIterator.visiblePoints(kin))
+        pt.setColor(null);
 }
 
 delete()
@@ -49,68 +41,11 @@ delete(String delName)
     if(delName == null) return;
     kin = kMain.getKinemage();
     if(kin == null) return;
-    for(gi = kin.children.iterator(); gi.hasNext(); )
+    for(iter = KIterator.allNonPoints(kin); iter.hasNext(); )
     {
-        group = gi.next();
-        if(delName.equals(group.getName())) gi.remove();
-        for(si = group.children.iterator(); si.hasNext(); )
-        {
-            subgroup = si.next();
-            if(delName.equals(subgroup.getName())) si.remove();
-            for(li = subgroup.children.iterator(); li.hasNext(); )
-            {
-                list = li.next();
-                if(delName.equals(list.getName())) li.remove();
-            }
-        }
+        age = iter.next();
+        if(delName.equals(age.getName())) iter.remove();
     }
-    kMain.notifyChange(KingMain.EM_EDIT_GROSS);
-}
-
-importSubgroups()
-{ importSubgroups(JOptionPane.showInputDialog("File name to load from group subdirs:")); }
-
-importSubgroups(String fileName)
-{
-    kinIO = kMain.getKinIO();
-    for(group : kMain.getKinemage().children)
-    {
-        file = new File(group.getName()+File.separator+fileName);
-        if(!file.exists()) continue;
-        kin = new Kinemage("dummy");
-        kinIO.loadFile(file, kin);
-        for(subgroup : kin.children.get(0).children)
-        {
-            group.add(subgroup);
-            subgroup.setOwner(group);
-        }
-    }
-    kMain.notifyChange(KingMain.EM_EDIT_GROSS);
-}
-
-labelAnimateGroups()
-{
-    pt = kMain.getCanvas().getToolBox().services.getLastPicked(0);
-    labelAnimateGroups(pt.getX(), pt.getY(), pt.getZ());
-}
-
-labelAnimateGroups(double x, double y, double z)
-{
-    for(group : kMain.getKinemage().children)
-    {
-        if(!group.isAnimate()) continue;
-        subgroup = new KSubgroup(group, "info");
-        group.add(subgroup);
-        subgroup.setDominant(true);
-        list = new KList(subgroup, "frame label");
-        subgroup.add(list);
-        list.setType(KList.LABEL);
-        lbl = new LabelPoint(list, group.getName());
-        list.add(lbl);
-        lbl.setHorizontalAlignment(LabelPoint.CENTER);
-        lbl.setXYZ(x, y, z);
-    }
-    kMain.notifyChange(KingMain.EM_EDIT_GROSS);
 }
 
 makeMaster()
@@ -121,17 +56,9 @@ makeMaster(String masterName)
     if(masterName == null) return;
     kin = kMain.getKinemage();
     if(kin == null) return;
-    for(group : kin.children)
+    for(age : KIterator.allNonPoints(kin))
     {
-        if(masterName.equals(group.getName())) group.addMaster(masterName);
-        for(subgroup : group.children)
-        {
-            if(masterName.equals(subgroup.getName())) subgroup.addMaster(masterName);
-            for(list : subgroup.children)
-                if(masterName.equals(list.getName())) list.addMaster(masterName);
-        }
+        if(masterName.equals(age.getName())) age.addMaster(masterName);
     }
-    kin.ensureMasterExists(masterName);
-    kMain.notifyChange(KingMain.EM_EDIT_GROSS);
 }
 

@@ -52,14 +52,16 @@ public interface AHE<P extends AGE> extends Transformable
     /** List properties have changed */
     public static final int CHANGE_LIST_PROPERTIES      = CHANGE_TREE_PROPERTIES | CHANGE_POINT_PROPERTIES;
     
+    /** The details of some view in the kinemage (rotation, zoom, clipping) have changed */
+    public static final int CHANGE_VIEW_TRANSFORM       = (1<<16);
     /** The set of views in the kinemage has changed */
-    public static final int CHANGE_VIEWS_LIST           = (1<<16);
+    public static final int CHANGE_VIEWS_LIST           = (1<<17);
     /** The set of masters in the kinemage has changed */
-    public static final int CHANGE_MASTERS_LIST         = (1<<17);
+    public static final int CHANGE_MASTERS_LIST         = (1<<18);
     /** The set of aspects in the kinemage has changed */
-    public static final int CHANGE_ASPECTS_LIST         = (1<<18);
+    public static final int CHANGE_ASPECTS_LIST         = (1<<19);
     /** The metadata in the kinemage has changed. This may have to be fired manually by clients. */
-    public static final int CHANGE_KIN_METADATA         = (1<<19);
+    public static final int CHANGE_KIN_METADATA         = (1<<20);
 
 
 
