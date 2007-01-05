@@ -75,9 +75,9 @@ public class RNAPhosphateFinder {
 	    double origX, origY, origZ;
 
 	    listPoint = (KPoint) iter.next();
-	    origX = listPoint.getOrigX();
-	    origY = listPoint.getOrigY();
-	    origZ = listPoint.getOrigZ();
+	    origX = listPoint.getX();
+	    origY = listPoint.getY();
+	    origZ = listPoint.getZ();
 	    if (origX > maxX) {
 		maxX = origX;
 	    }

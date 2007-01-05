@@ -97,7 +97,7 @@ public class PlaneFinder
 
     public double calcPointPlaneDistance(KPoint p) {
 	double d = - normal.getX() * anchor.getX() - normal.getY() * anchor.getY() - normal.getZ() * anchor.getZ();
-	double dist = normal.getX() * p.getOrigX() + normal.getY() * p.getOrigY() + normal.getZ() * p.getOrigZ() + d;
+	double dist = normal.getX() * p.getX() + normal.getY() * p.getY() + normal.getZ() * p.getZ() + d;
 	return dist;
     }
     
@@ -109,9 +109,9 @@ public class PlaneFinder
         for(Iterator iter = data.iterator(); iter.hasNext(); i++)
         {
             KPoint t = (KPoint) iter.next();
-            matrix.set(i, 0, t.getOrigX() - centroid.getX());
-            matrix.set(i, 1, t.getOrigY() - centroid.getY());
-            matrix.set(i, 2, t.getOrigZ() - centroid.getZ());
+            matrix.set(i, 0, t.getX() - centroid.getX());
+            matrix.set(i, 1, t.getY() - centroid.getY());
+            matrix.set(i, 2, t.getZ() - centroid.getZ());
         }
         return matrix;
     }
@@ -121,24 +121,24 @@ public class PlaneFinder
 	//RNATriple anchor = basePlane.getAnchor();
 	VectorPoint centroid = new VectorPoint(list, "centroid", null);
 	//centroid.setXYZ(anchor.getX(), anchor.getY(), anchor.getZ());
-	centroid.setOrigX(anchor.getX());
-	centroid.setOrigY(anchor.getY());
-	centroid.setOrigZ(anchor.getZ());
+	centroid.setX(anchor.getX());
+	centroid.setY(anchor.getY());
+	centroid.setZ(anchor.getZ());
 	//centroid.setStyle(MarkerPoint.BOX_L);
 	//centroid.setColor(KPalette.red);
-	centroid.setName("centroid: x=" + df2.format(centroid.getOrigX()) + ", y=" + df2.format(centroid.getOrigY()) + ", z=" + df2.format(centroid.getOrigZ()));
+	centroid.setName("centroid: x=" + df2.format(centroid.getX()) + ", y=" + df2.format(centroid.getY()) + ", z=" + df2.format(centroid.getZ()));
 	centroid.setOn(true);
 	list.add(centroid);
 
 	//RNATriple norm = basePlane.getNormal();
 	VectorPoint norm = new VectorPoint(list, "normal", centroid);
 	//normal.setXYZ(norm.getX(), norm.getY(), norm.getZ());
-	norm.setOrigX(anchor.getX() + normal.getX());
-	norm.setOrigY(anchor.getY() + normal.getY());
-	norm.setOrigZ(anchor.getZ() + normal.getZ());
+	norm.setX(anchor.getX() + normal.getX());
+	norm.setY(anchor.getY() + normal.getY());
+	norm.setZ(anchor.getZ() + normal.getZ());
 	//normal.setStyle(MarkerPoint.BOX_L);
 	//normal.setColor(KPalette.deadwhite);
-	norm.setName("normal: x=" + df2.format(norm.getOrigX()) + ", y=" + df2.format(norm.getOrigY()) + ", z=" + df2.format(norm.getOrigZ()));
+	norm.setName("normal: x=" + df2.format(norm.getX()) + ", y=" + df2.format(norm.getY()) + ", z=" + df2.format(norm.getZ()));
 	norm.setOn(true);
 	list.add(norm);
     }
@@ -188,9 +188,9 @@ public class PlaneFinder
 	}
 	//x = -(lowCoordA * y + lowCoordB * z) / highCoord;
 	TrianglePoint plane = new TrianglePoint(list, "plane", prev);
-	plane.setOrigX(anchor.getX() + x);
-	plane.setOrigY(anchor.getY() + y);
-	plane.setOrigZ(anchor.getZ() + z);
+	plane.setX(anchor.getX() + x);
+	plane.setY(anchor.getY() + y);
+	plane.setZ(anchor.getZ() + z);
 	plane.setOn(true);
 	list.add(plane);
 	return plane;

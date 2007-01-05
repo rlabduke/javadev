@@ -61,9 +61,9 @@ public class DockLsqTool extends BasicTool
             tupleList.add(t);
             listModel.addElement(tag);
             LabelPoint label = new LabelPoint(markList, Integer.toString(count()));
-            label.setOrigX(t.getX());
-            label.setOrigY(t.getY());
-            label.setOrigZ(t.getZ());
+            label.setX(t.getX());
+            label.setY(t.getY());
+            label.setZ(t.getZ());
             label.setUnpickable(true);
             markList.add(label);
             syncDockButton();
@@ -155,7 +155,7 @@ public class DockLsqTool extends BasicTool
         super.click(x, y, p, ev);
         if(p != null)
         {
-            Triple t = new Triple(p.getOrigX(), p.getOrigY(), p.getOrigZ());
+            Triple t = new Triple(p.getX(), p.getY(), p.getZ());
             if(btnReference.isSelected())
             {
                 pkReference.add(p.getName(), t);
@@ -225,11 +225,11 @@ public class DockLsqTool extends BasicTool
                 KPoint pt = (KPoint)iter.next();
                 if(pt.isOn())
                 {
-                    proxy.setXYZ(pt.getOrigX(), pt.getOrigY(), pt.getOrigZ());
+                    proxy.setXYZ(pt.getX(), pt.getY(), pt.getZ());
                     t.transform(proxy);
-                    pt.setOrigX(proxy.getX());
-                    pt.setOrigY(proxy.getY());
-                    pt.setOrigZ(proxy.getZ());
+                    pt.setX(proxy.getX());
+                    pt.setY(proxy.getY());
+                    pt.setZ(proxy.getZ());
                 }
             }
         }

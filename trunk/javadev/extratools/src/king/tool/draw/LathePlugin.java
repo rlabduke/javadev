@@ -86,7 +86,7 @@ public class LathePlugin extends Plugin
         for(int i = 0; iter.hasNext(); i++)
         {
             KPoint p = (KPoint)iter.next();
-            polyline[i] = new Triple( p.getOrigX(), p.getOrigY(), p.getOrigZ() );
+            polyline[i] = new Triple( p.getX(), p.getY(), p.getZ() );
         }
         
         // Build mesh into a TrianglePoint object
@@ -112,29 +112,29 @@ public class LathePlugin extends Plugin
             for(int j = 0; j < steps; j++)
             {
                 TrianglePoint curr = new TrianglePoint(tlist, i+":"+j, last);
-                curr.setOrigX( strip2[j].getX() );
-                curr.setOrigY( strip2[j].getY() );
-                curr.setOrigZ( strip2[j].getZ() );
+                curr.setX( strip2[j].getX() );
+                curr.setY( strip2[j].getY() );
+                curr.setZ( strip2[j].getZ() );
                 tlist.add(curr);
                 last = curr;
                 curr = new TrianglePoint(tlist, i+":"+j, last);
-                curr.setOrigX( strip1[j].getX() );
-                curr.setOrigY( strip1[j].getY() );
-                curr.setOrigZ( strip1[j].getZ() );
+                curr.setX( strip1[j].getX() );
+                curr.setY( strip1[j].getY() );
+                curr.setZ( strip1[j].getZ() );
                 tlist.add(curr);
                 last = curr;
             }
             // Close up the end
             TrianglePoint curr = new TrianglePoint(tlist, i+":0", last);
-            curr.setOrigX( strip2[0].getX() );
-            curr.setOrigY( strip2[0].getY() );
-            curr.setOrigZ( strip2[0].getZ() );
+            curr.setX( strip2[0].getX() );
+            curr.setY( strip2[0].getY() );
+            curr.setZ( strip2[0].getZ() );
             tlist.add(curr);
             last = curr;
             curr = new TrianglePoint(tlist, i+":0", last);
-            curr.setOrigX( strip1[0].getX() );
-            curr.setOrigY( strip1[0].getY() );
-            curr.setOrigZ( strip1[0].getZ() );
+            curr.setX( strip1[0].getX() );
+            curr.setY( strip1[0].getY() );
+            curr.setZ( strip1[0].getZ() );
             tlist.add(curr);
             last = curr; // unnecessary
         }

@@ -152,7 +152,7 @@ public class Vrml97Writer extends Plugin
     void writeDotPoint(KPoint point, KList list, Kinemage kin)
     {
         String xyz, color;
-        xyz = df.format(point.getOrigX())+" "+df.format(point.getOrigY())+" "+df.format(point.getOrigZ());
+        xyz = df.format(point.getX())+" "+df.format(point.getY())+" "+df.format(point.getZ());
         if(point.getColor() != null)    color = point.getColor().toString();
         else                            color = list.getColor().toString();
         
@@ -167,7 +167,7 @@ public class Vrml97Writer extends Plugin
     void writeBallPoint(KPoint point, KList list, Kinemage kin)
     {
         String xyz, color;
-        xyz = df.format(point.getOrigX())+" "+df.format(point.getOrigY())+" "+df.format(point.getOrigZ());
+        xyz = df.format(point.getX())+" "+df.format(point.getY())+" "+df.format(point.getZ());
         if(point.getColor() != null)    color = point.getColor().toString();
         else                            color = list.getColor().toString();
 

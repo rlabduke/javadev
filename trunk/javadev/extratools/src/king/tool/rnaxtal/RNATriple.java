@@ -35,17 +35,17 @@ public class RNATriple implements MutableTuple3 {
     }
 
     public RNATriple(KPoint p) {
-	x = p.getOrigX();
-	y = p.getOrigY();
-	z = p.getOrigZ();
+	x = p.getX();
+	y = p.getY();
+	z = p.getZ();
     }
 //}}}
 
     public RNATriple add(KPoint t)
     {
-        x += t.getOrigX();
-        y += t.getOrigY();
-        z += t.getOrigZ();
+        x += t.getX();
+        y += t.getY();
+        z += t.getZ();
         return this;
     }
 
