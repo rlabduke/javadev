@@ -3,6 +3,7 @@
 package king.tool.draw;
 import king.*;
 import king.core.*;
+import king.points.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -63,9 +64,8 @@ public class SkylightPlugin extends Plugin
         if(k == null) return;
         
         ArrayList balls = new ArrayList();
-        for(RecursivePointIterator iter = new RecursivePointIterator(k, false, true); iter.hasNext(); )
+        for(KPoint p : KIterator.visiblePoints(k))
         {
-            KPoint p = iter.next();
             if(p instanceof BallPoint || p instanceof SpherePoint)
                 balls.add(p);
         }

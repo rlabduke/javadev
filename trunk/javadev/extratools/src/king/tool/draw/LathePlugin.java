@@ -3,6 +3,7 @@
 package king.tool.draw;
 import king.*;
 import king.core.*;
+import king.points.*;
 
 import java.awt.*;
 import java.awt.event.*;

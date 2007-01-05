@@ -2,6 +2,7 @@
 package king.tool.rnaxtal;
 import king.*;
 import king.core.*;
+import king.points.*;
 
 import java.util.*;
 import driftwood.isosurface.*;

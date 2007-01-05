@@ -4,6 +4,7 @@ package king.tool.loops;
 
 import king.*;
 import king.core.*;
+import king.points.*;
 import king.tool.util.*;
 import driftwood.gui.*;
 
