@@ -126,7 +126,6 @@ public class SkylightPlugin extends Plugin
         }
         
         //k.setModified(true); -- can't save it yet anyway!
-        kMain.notifyChange(KingMain.EM_EDIT_FINE);
     }
 //}}}
 

@@ -77,13 +77,13 @@ public class LathePlugin extends Plugin
     {
         KGroup group = new KGroup();
         group.setName("New group");
-        KSubgroup subg = new KSubgroup(group, "lathe obj");
+        KGroup subg = new KGroup("lathe obj");
         subg.setDominant(true);
         group.add(subg);
         
         // Put polyline into a form we can work with
-        Triple[] polyline = new Triple[vecList.children.size()];
-        Iterator iter = vecList.children.iterator();
+        Triple[] polyline = new Triple[vecList.getChildren().size()];
+        Iterator iter = vecList.getChildren().iterator();
         for(int i = 0; iter.hasNext(); i++)
         {
             KPoint p = (KPoint)iter.next();
@@ -96,7 +96,7 @@ public class LathePlugin extends Plugin
         {
             TrianglePoint last = null;
             KList tlist = new KList(KList.RIBBON, "band "+i);
-            tlist.setColor(  ((KPoint)vecList.children.get(i)).getDrawingColor()  );
+            tlist.setColor(  ((KPoint)vecList.getChildren().get(i)).getDrawingColor()  );
             subg.add(tlist);
             
             Triple[] strip1 = mesh[i-1];
@@ -112,13 +112,13 @@ public class LathePlugin extends Plugin
             
             for(int j = 0; j < steps; j++)
             {
-                TrianglePoint curr = new TrianglePoint(tlist, i+":"+j, last);
+                TrianglePoint curr = new TrianglePoint(i+":"+j, last);
                 curr.setX( strip2[j].getX() );
                 curr.setY( strip2[j].getY() );
                 curr.setZ( strip2[j].getZ() );
                 tlist.add(curr);
                 last = curr;
-                curr = new TrianglePoint(tlist, i+":"+j, last);
+                curr = new TrianglePoint(i+":"+j, last);
                 curr.setX( strip1[j].getX() );
                 curr.setY( strip1[j].getY() );
                 curr.setZ( strip1[j].getZ() );
@@ -126,13 +126,13 @@ public class LathePlugin extends Plugin
                 last = curr;
             }
             // Close up the end
-            TrianglePoint curr = new TrianglePoint(tlist, i+":0", last);
+            TrianglePoint curr = new TrianglePoint(i+":0", last);
             curr.setX( strip2[0].getX() );
             curr.setY( strip2[0].getY() );
             curr.setZ( strip2[0].getZ() );
             tlist.add(curr);
             last = curr;
-            curr = new TrianglePoint(tlist, i+":0", last);
+            curr = new TrianglePoint(i+":0", last);
             curr.setX( strip1[0].getX() );
             curr.setY( strip1[0].getY() );
             curr.setZ( strip1[0].getZ() );
@@ -152,19 +152,10 @@ public class LathePlugin extends Plugin
     static public Collection findVectorLists(Kinemage kin)
     {
         ArrayList out = new ArrayList();
-        for(Iterator gi = kin.children.iterator(); gi.hasNext(); )
+        for(KList list : KIterator.visibleLists(kin))
         {
-            KGroup group = (KGroup)gi.next();
-            for(Iterator si = group.children.iterator(); si.hasNext(); )
-            {
-                KSubgroup subg = (KSubgroup)si.next();
-                for(Iterator li = subg.children.iterator(); li.hasNext(); )
-                {
-                    KList list = (KList)li.next();
-                    if(list.getType().equals(KList.VECTOR) && list.isTotallyOn())
-                        out.add(list);
-                }
-            }
+            if(list.getType().equals(KList.VECTOR))
+                out.add(list);
         }
         return out;
     }
@@ -223,7 +214,6 @@ public class LathePlugin extends Plugin
         group.setParent(k);
         k.add(group);
         k.setModified(true);
-        kMain.notifyChange(KingMain.EM_EDIT_GROSS);
     }
 //}}}
 

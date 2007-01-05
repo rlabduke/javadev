@@ -94,27 +94,8 @@ public class DiveExport extends Plugin
     {
         if(kin == null) return;
         
-        for(Iterator gi = kin.iterator(); gi.hasNext(); )
-        {
-            KGroup group = (KGroup) gi.next();
-            if(!group.isOn()) continue;
-            for(Iterator si = group.iterator(); si.hasNext(); )
-            {
-                KSubgroup subgroup = (KSubgroup) si.next();
-                if(!subgroup.isOn()) continue;
-                for(Iterator li = subgroup.iterator(); li.hasNext(); )
-                {
-                    KList list = (KList) li.next();
-                    if(!list.isOn()) continue;
-                    for(Iterator pi = list.iterator(); pi.hasNext(); )
-                    {
-                        KPoint pt = (KPoint) pi.next();
-                        if(!pt.isOn()) continue;
-                        savePoint(out, pt);
-                    }
-                }
-            }
-        }
+        for(KPoint pt : KIterator.visiblePoints(kin))
+            savePoint(out, pt);
         out.flush();
     }
 //}}}

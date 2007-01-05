@@ -61,7 +61,7 @@ public class DockLsqTool extends BasicTool
         {
             tupleList.add(t);
             listModel.addElement(tag);
-            LabelPoint label = new LabelPoint(markList, Integer.toString(count()));
+            LabelPoint label = new LabelPoint(Integer.toString(count()));
             label.setX(t.getX());
             label.setY(t.getY());
             label.setZ(t.getZ());
@@ -74,7 +74,7 @@ public class DockLsqTool extends BasicTool
         {
             if(tupleList.size() > 0) tupleList.remove(tupleList.size()-1);
             if(listModel.size() > 0) listModel.remove(listModel.size()-1);
-            if(markList.children.size() > 0) markList.children.remove(markList.children.size()-1);
+            if(markList.getChildren().size() > 0) markList.getChildren().remove(markList.getChildren().size()-1);
             syncDockButton();
         }
         
