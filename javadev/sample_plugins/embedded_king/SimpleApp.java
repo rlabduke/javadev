@@ -12,6 +12,7 @@ import javax.swing.*;
 import driftwood.gui.*;
 import king.*;
 import king.core.*;
+import king.points.*;
 //}}}
 /**
 * <code>SimpleApp</code> is a bare-bones example of how to embed KiNG graphics
@@ -22,6 +23,12 @@ import king.core.*;
 * <p>KiNG wasn't originally designed to support this, so the code may seem a bit kludgy.
 * Reading the developer documentation for KiNG to understand its overall architecture
 * may help make this clearer.
+*
+* <p>This example was originally developed for KiNG 1.x.  While is has been
+* modified slightly now to work with KiNG 2.x, it is also reasonably easy to
+* embed just the KiNG graphics engine, without the rest of the KiNG baggage
+* (Plugin / Tool / ToolBox, KMessage, KinCanvas, etc).
+* See the KiNG developer's tutorial materials for examples of how to do this.
 *
 * <p>Copyright (C) 2006 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Jun 21 12:11:18 EDT 2006
@@ -97,28 +104,27 @@ public class SimpleApp //extends ... implements ...
     public void onMakeKin(ActionEvent ev)
     {
         Kinemage kin = new Kinemage("A kinemage");
-        KGroup group = new KGroup(kin, "A group");
+        KGroup group = new KGroup("A group");
         kin.add(group);
-        KSubgroup subgroup = new KSubgroup(group, "A subgroup");
+        KGroup subgroup = new KGroup("A subgroup");
         group.add(subgroup);
         
-        KList list = new KList(subgroup, "List of ___");
+        KList list = new KList(KList.BALL, "List of ___");
         subgroup.add(list);
-        list.setType(KList.BALL);
         list.setRadius(0.1f);
         list.setColor(KPalette.sea);
         
         BallPoint bp;
-        bp = new BallPoint(list, "");
+        bp = new BallPoint("");
         list.add(bp);
         bp.setXYZ(0, 0, 0);
-        bp = new BallPoint(list, "");
+        bp = new BallPoint("");
         list.add(bp);
         bp.setXYZ(3, 0, 0);
-        bp = new BallPoint(list, "");
+        bp = new BallPoint("");
         list.add(bp);
         bp.setXYZ(0, 4, 0);
-        bp = new BallPoint(list, "");
+        bp = new BallPoint("");
         list.add(bp);
         bp.setXYZ(0, 0, 5);
         

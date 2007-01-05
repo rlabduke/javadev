@@ -96,12 +96,10 @@ from king.core import *
 # "Bleaches" the (point) color out of all visible points
 kin = kMain.getKinemage()
 if kin != None:
-    rpi = RecursivePointIterator(kin)
-    while rpi.hasNext():
-        point = rpi.next()
-        if(point.isTotallyOn()):
-            point.setColor(None)
-    kCanvas.repaint()
+    iter = KIterator.visiblePoints(kin)
+    while iter.hasNext():
+        point = iter.next()
+        point.setColor(None)
 """)
         #elif(chosen == ...)
         

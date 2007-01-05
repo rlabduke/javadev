@@ -50,7 +50,6 @@ public class SimpleTool extends king.BasicTool
             if(p.getColor() == KPalette.hotpink) p.setColor(null);
             else p.setColor(KPalette.hotpink);
         }
-        kMain.getKinemage().signal.signalKinemage(kMain.getKinemage(), KinemageSignal.APPEARANCE);
     }
     
     /** Override this function for right-button/shift clicks */

@@ -100,6 +100,9 @@ Exception in thread "AWT-EventQueue-3" java.lang.NullPointerException
 - added limited support for remove() to KIterator, but it will work in the most
   common use-case (a for loop).
 - updated the BeanKing plugin; haven't tested all movie functions yet
+- minor fix for ContentPane.get/setGraphicsComponent() that was ruining the
+  embedded KiNG example.  Failure to properly replace the graphics component
+  caused KiNG to try every time, breaking the mouse drag in the process.
 
 ### 2.00 ###
 - moved over highly modified code from the "prince" project.

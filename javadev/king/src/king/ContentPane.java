@@ -159,7 +159,11 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
     {
         if(minorSplit == null)
         {
-            if(majorSplit == null) this.add(c, BorderLayout.CENTER);
+            if(majorSplit == null)
+            {
+                this.removeAll();
+                this.add(c);
+            }
             else majorSplit.setTopComponent(c);
         }
         else minorSplit.setLeftComponent(c);
@@ -170,7 +174,7 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
     {
         if(minorSplit == null)
         {
-            if(majorSplit == null) return this.getComponents()[0];
+            if(majorSplit == null) return this.getComponent(0);
             else return majorSplit.getTopComponent();
         }
         else return minorSplit.getLeftComponent();
