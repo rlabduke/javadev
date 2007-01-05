@@ -115,6 +115,19 @@ public class StreamTank extends ByteArrayOutputStream
     }
 //}}}
 
+//{{{ toByteArray
+//##################################################################################################
+    /**
+    * Returns the actual underlying byte buffer used by this stream,
+    * not a copy of it the way the superclass does.
+    * Modifying this buffer is strongly discouraged.
+    */
+    public byte[] toByteArray()
+    {
+        return buf;
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##################################################################################################
 //}}}

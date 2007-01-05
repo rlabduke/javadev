@@ -77,17 +77,8 @@
     open pdb/map dialog boxes (initial dir) with Mac double-click startup
     Edit view menu: list action (double click/enter) should go to view
     axes not set for initial view when kin is loaded
-    
-Multi-kin of 1UBQ in parallel coords mode:
-Exception in thread "AWT-EventQueue-3" java.lang.NullPointerException
-	at sun.font.FontDesignMetrics.stringWidth(FontDesignMetrics.java:281)
-	at king.core.StandardPainter.getLabelWidth(StandardPainter.java:330)
-	at king.core.LabelPoint.paintStandard(LabelPoint.java:58)
-	at king.core.Engine.renderLoop(Engine.java:239)
-	at king.core.Engine.render(Engine.java:183)
-	at king.KinCanvas.paintCanvas(KinCanvas.java:251)
-	at king.KinCanvas.paintComponent(KinCanvas.java:200)
-
+    Update docs for building, packing
+    Remove references to GNU regexp library in docs, licenses
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -103,6 +94,10 @@ Exception in thread "AWT-EventQueue-3" java.lang.NullPointerException
 - minor fix for ContentPane.get/setGraphicsComponent() that was ruining the
   embedded KiNG example.  Failure to properly replace the graphics component
   caused KiNG to try every time, breaking the mouse drag in the process.
+- made LabelPoint not try to paint itself if its point ID is null.  This was
+  sometimes a source of NullPointerExceptions when switching to parallel coords.
+- started working on a tool / plugin for remote control of the DiVE.
+  Basic sanity check succeeds so far.
 
 ### 2.00 ###
 - moved over highly modified code from the "prince" project.

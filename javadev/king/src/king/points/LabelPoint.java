@@ -50,10 +50,13 @@ public class LabelPoint extends AbstractPoint // implements ...
         if(maincolor.isInvisible()) return;
         Paint paint = maincolor.getPaint(engine.backgroundMode, engine.colorCue);
         
+        String labelText = this.toString();
+        if(labelText == null) return;
+        
         int width, ascent, descent;
-        width   = engine.painter.getLabelWidth(this.toString());
-        ascent  = engine.painter.getLabelAscent(this.toString());
-        descent = engine.painter.getLabelDescent(this.toString());
+        width   = engine.painter.getLabelWidth(labelText);
+        ascent  = engine.painter.getLabelAscent(labelText);
+        descent = engine.painter.getLabelDescent(labelText);
         
         maxy = (int)y + descent;    // screen coords: big y is down
         miny = (int)y - ascent;     // "
