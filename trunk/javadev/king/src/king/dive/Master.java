@@ -19,7 +19,7 @@ import driftwood.util.*;
 * <p>Copyright (C) 2006 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri Dec 15 08:03:06 EST 2006
 */
-public class Master //extends ... implements ...
+public class Master implements Runnable
 {
 //{{{ Constants
 //}}}
@@ -27,8 +27,8 @@ public class Master //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     Props props;
-    Collection<ObjectLink<Command,String>> slaveLinks
-        = Collections.synchronizedCollection(new ArrayList<ObjectLink<Command,String>>());
+    Collection<ObjectLink<Command,Command>> slaveLinks
+        = Collections.synchronizedCollection(new ArrayList<ObjectLink<Command,Command>>());
 //}}}
 
 //{{{ Constructor(s)
@@ -43,18 +43,48 @@ public class Master //extends ... implements ...
     }
 //}}}
 
+//{{{ run
+//##############################################################################
+    /** Cycle through all links looking for messages, then disperse those to all */
+    public void run()
+    {
+        while(true)
+        {
+            // Iterate over a copy, in case new links are added while we traverse.
+            ObjectLink<Command,Command>[] links =
+                slaveLinks.toArray( new ObjectLink[slaveLinks.size()] );
+            for(ObjectLink<Command,Command> link : links)
+            {
+                try
+                {
+                    Command cmd = link.get();
+                    if(cmd != null)
+                        sendCommand(cmd);
+                }
+                catch(Exception ex)
+                {
+                    System.out.println("Error commanding slave: "+ex.getMessage());
+                    slaveLinks.remove(link);
+                }
+            }
+        }//while true
+    }
+//}}}
+
 //{{{ sendCommand
 //##############################################################################
     public void sendCommand(Command c)
     {
-        for(Iterator<ObjectLink<Command,String>> iter = slaveLinks.iterator(); iter.hasNext(); )
+        // Iterate over a copy, in case new links are added while we traverse.
+        ObjectLink<Command,Command>[] links =
+            slaveLinks.toArray( new ObjectLink[slaveLinks.size()] );
+        for(ObjectLink<Command,Command> link : links)
         {
-            ObjectLink<Command,String> link = iter.next();
             try { link.put(c); }
             catch(IOException ex)
             {
                 System.out.println("Error commanding slave: "+ex.getMessage());
-                iter.remove();
+                slaveLinks.remove(link);
             }
         }
     }
@@ -78,14 +108,17 @@ public class Master //extends ... implements ...
             server = new ServerSocket(port);
             System.out.println("Listening for slaves on port "+port);
             
-            new MasterGUI(this);
+            //new MasterGUI(this);
+            Thread thread = new Thread(this);
+            thread.setDaemon(true);
+            thread.start();
             
             while(true)
             {
                 Socket socket = server.accept();
                 try
                 {
-                    ObjectLink<Command,String> link = new ObjectLink<Command,String>(socket);
+                    ObjectLink<Command,Command> link = new ObjectLink<Command,Command>(socket);
                     slaveLinks.add(link);
                 }
                 catch(IOException ex)
@@ -96,7 +129,7 @@ public class Master //extends ... implements ...
         { ex.printStackTrace(); }
         finally
         {
-            for(ObjectLink<Command,String> link : slaveLinks)
+            for(ObjectLink<Command,Command> link : slaveLinks)
                 link.disconnect();
             try { if(server != null) server.close(); } catch(IOException ex) {}
         }
