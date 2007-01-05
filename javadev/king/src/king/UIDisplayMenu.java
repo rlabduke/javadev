@@ -559,8 +559,6 @@ public class UIDisplayMenu implements KMessage.Subscriber
         else          v.rotateY((float)(2 * -rockStepSize * Math.sin((Math.PI*rockStepCount)/rockMaxSteps)));
         
         rockStepCount++;
-        
-        kMain.publish(new KMessage(this, KMessage.VIEW_MOVED));
     }
 //}}}
 

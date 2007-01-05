@@ -85,7 +85,8 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
 //{{{ deliverMessage
 //##################################################################################################
     static final long REBUILD_BUTTONS_P = KMessage.KIN_SWITCHED | KMessage.KIN_CLOSED | KMessage.ALL_CLOSED;
-    static final int  REBUILD_BUTTONS_K = AHE.CHANGE_TREE_CONTENTS | AHE.CHANGE_TREE_PROPERTIES; // e.g. mark group as animate
+    static final int  REBUILD_BUTTONS_K = AHE.CHANGE_TREE_CONTENTS | AHE.CHANGE_TREE_PROPERTIES // e.g. mark group as animate
+                                        | AHE.CHANGE_TREE_MASTERS | AHE.CHANGE_POINT_MASTERS | AHE.CHANGE_MASTERS_LIST;
     static final int  RESYNC_BUTTONS = AHE.CHANGE_TREE_ON_OFF;
     
     public void deliverMessage(KMessage msg)

@@ -35,21 +35,19 @@ void movieRock(int nFrames, double nDegrees)
 {
     // This version is Swing-friendly, so you can see what's happening.
     movieMarkUndo();
-    KingView startView = kMain.getView();
+    KView startView = kMain.getView();
     int i = 0;
     
     void run()
     {
-        KingView nextView = (KingView) startView.clone();
+        KView nextView = (KView) startView.clone();
         nextView.rotateY((float)(Math.toRadians(nDegrees) * Math.sin(2*Math.PI*i / nFrames)));
-        nextView.selectedFromMenu(null);
-        kCanvas.repaint();
+        kMain.setView(nextView);
         movieWriteFrame();
         if(++i < nFrames) SwingUtilities.invokeLater(super);
         else // cleanup code here:
         {
-            startView.selectedFromMenu(null);
-            kCanvas.repaint();
+            kMain.setView(startView);
             print("movieRock() finished!");
         }
     }
@@ -75,9 +73,8 @@ void movieSpin(int nFrames, double nDegrees)
     void run()
     {
         movieWriteFrame();
-        KingView v = kMain.getView();
+        KView v = kMain.getView();
         v.rotateY((float)(Math.toRadians(nDegrees) / nFrames));
-        kCanvas.repaint();
         if(++i < nFrames) SwingUtilities.invokeLater(super);
         else print("movieSpin() finished!");
     }

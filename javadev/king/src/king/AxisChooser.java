@@ -104,7 +104,6 @@ public class AxisChooser //extends ... implements ...
         if(view == null) return;
         view.setViewingAxes(new int[] {xIndex, yIndex, zIndex});
         view.activateViewingAxes();
-        kMain.publish(new KMessage(this, KMessage.VIEW_MOVED));
     }
 //}}}
 
