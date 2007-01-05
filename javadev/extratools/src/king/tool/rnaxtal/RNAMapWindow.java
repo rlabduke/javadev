@@ -291,26 +291,11 @@ public class RNAMapWindow extends EDMapWindow //implements ChangeListener, Actio
     */
 //}}}
 
-//{{{ signalTransform
+//{{{ doTransform
 //##################################################################################################
-    /**
-    * A call to this method indicates the subscriber
-    * should transform its coordinates from model-space
-    * to display-space and optionally add one or more
-    * KPoints to the supplied Engine using addPaintable().
-    *
-    * <p>This method will be called in response to TransformSignal.signalTransform().
-    *
-    * @param engine     the Engine object describing the
-    *   dimensions and properties of the space to be painted.
-    * @param xform      the Transform to apply.
-    *   The subscriber must not modify the original Transform it
-    *   receives! Subscibers may, however, copy and modify the
-    *   Transform(s) they pass to internal substructures.
-    */
-    public void signalTransform(Engine engine, Transform xform)
+    public void doTransform(Engine engine, Transform xform)
     {
-	super.signalTransform(engine, xform);
+	super.doTransform(engine, xform);
         KList list;
         if(centerChanged()) updateMesh();
         /*
@@ -318,26 +303,26 @@ public class RNAMapWindow extends EDMapWindow //implements ChangeListener, Actio
         if(list != null && label1.isSelected())
         {
             list.setColor((KPaint)color1.getSelectedItem());
-            list.signalTransform(engine, xform);
+            list.doTransform(engine, xform);
         }
         
         list = plotter2.getList();
         if(list != null && label2.isSelected())
         {
             list.setColor((KPaint)color2.getSelectedItem());
-            list.signalTransform(engine, xform);
+            list.doTransform(engine, xform);
         }
 	*/
 	list = polyPlotter.getList();
 	if (list != null && polyPicker.isSelected()) {
 	    list.setColor((KPaint)polyColor.getSelectedItem());
-	    list.signalTransform(engine, xform);
+	    list.doTransform(engine, xform);
 	}
 
 	list = planePlotter.getList();
 	if (list != null && planePicker.isSelected()) {
 	    //list.setColor((KPaint)polyColor.getSelectedItem());
-	    list.signalTransform(engine, xform);
+	    list.doTransform(engine, xform);
 	}
         
         //SoftLog.err.println("Painted maps.");

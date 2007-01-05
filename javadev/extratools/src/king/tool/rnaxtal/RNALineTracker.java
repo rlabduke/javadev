@@ -198,7 +198,7 @@ public class RNALineTracker {//implements TransformSignalSubscriber  {
 
     }
     /**
-    public void signalTransform(Engine engine, Transform xform)
+    public void doTransform(Engine engine, Transform xform)
     {
         //KList list;
         //if(centerChanged()) updateMesh();
@@ -209,7 +209,7 @@ public class RNALineTracker {//implements TransformSignalSubscriber  {
         {
             //System.out.println(list.toString());
 	    trackedList.setColor(KPalette.gold);
-            trackedList.signalTransform(engine, xform);
+            trackedList.doTransform(engine, xform);
         }
         
         

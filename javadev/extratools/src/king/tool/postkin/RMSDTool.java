@@ -277,27 +277,12 @@ public class RMSDTool extends BasicTool {
     }
 //}}}
 
-//{{{ signalTransform
+//{{{ doTransform
 //##################################################################################################
-    /**
-    * A call to this method indicates the subscriber
-    * should transform its coordinates from model-space
-    * to display-space and optionally add one or more
-    * KPoints to the supplied Engine using addPaintable().
-    *
-    * <p>This method will be called in response to TransformSignal.signalTransform().
-    *
-    * @param engine     the Engine object describing the
-    *   dimensions and properties of the space to be painted.
-    * @param xform      the Transform to apply.
-    *   The subscriber must not modify the original Transform it
-    *   receives! Subscibers may, however, copy and modify the
-    *   Transform(s) they pass to internal substructures.
-    */
-    public void signalTransform(Engine engine, Transform xform)
+    public void doTransform(Engine engine, Transform xform)
     {
-        pkReference.markList.signalTransform(engine, xform);
-        pkMobile.markList.signalTransform(engine, xform);
+        pkReference.markList.doTransform(engine, xform);
+        pkMobile.markList.doTransform(engine, xform);
     }
 //}}}
 
