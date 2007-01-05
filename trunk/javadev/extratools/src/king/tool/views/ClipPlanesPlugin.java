@@ -148,17 +148,10 @@ public class ClipPlanesPlugin extends Plugin implements ChangeListener
         Kinemage k = kMain.getKinemage();
         if(k == null) return;
         
-        for(Iterator gi = k.iterator(); gi.hasNext(); )
+        for(KList list : KIterator.allLists(k))
         {
-            for(Iterator si = ((KGroup)gi.next()).iterator(); si.hasNext(); )
-            {
-                for(Iterator li = ((KSubgroup)si.next()).iterator(); li.hasNext(); )
-                {
-                    KList list = (KList) li.next();
-                    if(isChecked && list.isTotallyOn())                     list.setClipMode(clipKey);
-                    else if(!isChecked && list.getClipMode() == clipKey)    list.setClipMode(null);
-                }
-            }
+            if(isChecked && list.isVisible())                       list.setClipMode(clipKey);
+            else if(!isChecked && list.getClipMode() == clipKey)    list.setClipMode(null);
         }
         
         kCanvas.repaint();
