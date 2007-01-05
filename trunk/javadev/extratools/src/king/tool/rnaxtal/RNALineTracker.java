@@ -55,7 +55,7 @@ public class RNALineTracker {//implements TransformSignalSubscriber  {
 	ListIterator iter;
 	VectorPoint listPoint;
 
-	ownerList = (KList) startPoint.getOwner();
+	ownerList = (KList) startPoint.getParent();
 	tempTrackList = new KList(KList.VECTOR);
 	iter = ownerList.iterator();
 	for ( ; iter.hasNext(); ) {
@@ -104,14 +104,14 @@ public class RNALineTracker {//implements TransformSignalSubscriber  {
 	    subGroup = new KSubgroup(group, "tracker Subgroup");
 	    subGroup.setHasButton(false);
 	    group.add(subGroup);
-	    trackedList.setOwner(subGroup);
+	    trackedList.setParent(subGroup);
 	    subGroup.add(trackedList);
 	} else {
 	    subGroup = findSubgroup(group, "tracker Subgroup");
 	    oldList = findKList(subGroup, "test list");
 	    subGroup.remove(oldList);
 	    newList = addAll(oldList, trackedList);
-	    newList.setOwner(subGroup);
+	    newList.setParent(subGroup);
 	    subGroup.add(newList);
 	}
 
@@ -119,7 +119,7 @@ public class RNALineTracker {//implements TransformSignalSubscriber  {
 	System.out.println("");
 	System.out.println("tl: " + listDebugger(trackedList));
 
-	//trackedList.setOwner(subgroup);
+	//trackedList.setParent(subgroup);
 	//subgroup.add(trackedList);
      
 

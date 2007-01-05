@@ -202,10 +202,10 @@ public class RecolorTool extends BasicTool implements ActionListener {
         super.click(x, y, p, ev);
 	if ((p != null)&&(clickMode.getState())) {
 	    //colorator = new RecolorNonRibbon();
-	    AGE coloratorKey = (KList) p.getOwner();
-	    //KList parentList = (KList) p.getOwner();
+	    AGE coloratorKey = (KList) p.getParent();
+	    //KList parentList = (KList) p.getParent();
 	    if (coloratorKey.hasMaster("ribbon")) {
-		coloratorKey = (AGE) coloratorKey.getOwner();
+		coloratorKey = (AGE) coloratorKey.getParent();
 	    }
 	    if (coloratorMap.containsKey(coloratorKey)) {
 		colorator = (Recolorator) coloratorMap.get(coloratorKey);
@@ -285,7 +285,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    lowNumField.setText("");
 	    highNumField.setText("");
 	}
-	//KList parentList = (KList) p.getOwner();
+	//KList parentList = (KList) p.getParent();
 	Integer resNum = new Integer(colorator.getResNumber(p));
 	if(lowNumField.getText().equals("")) {
 	    lowNumField.setText(resNum.toString());

@@ -52,7 +52,7 @@ public class RNAPlanePlotter {
 //}}}
 
     public void getPlane(KPoint p) {
-	KList parentList = (KList) p.getOwner();
+	KList parentList = (KList) p.getParent();
 	list.setColor(parentList.getColor());
 	Iterator iter = parentList.iterator();
 	ArrayList data = new ArrayList();

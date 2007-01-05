@@ -73,7 +73,7 @@ public class SkylightPlugin extends Plugin
         for(int i = 0; i < radii.length; i++)
         {
             KPoint p = (KPoint) balls.get(i);
-            KList list = (KList) p.getOwner();
+            KList list = (KList) p.getParent();
             radii[i] = p.getRadius();
             if(radii[i] == 0) radii[i] = list.getRadius();
         }
@@ -109,7 +109,7 @@ public class SkylightPlugin extends Plugin
         for(int i = 0; i < lightness.length; i++)
         {
             KPoint p = (KPoint) balls.get(i);
-            KList list = (KList) p.getOwner();
+            KList list = (KList) p.getParent();
             KPaint paint = list.getColor();
             //KPaint paint = KPalette.white; // useful to evaluating the effect during devel.
             // If sphere is hit by at least half the light rays, we consider it maximally exposed.

@@ -52,7 +52,7 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
 //}}}
 
     public void preChangeAnalyses(KPoint p) {
-	KList parentList = (KList) p.getOwner();
+	KList parentList = (KList) p.getParent();
 	if (!ribbonMap.containsKey(parentList)) {
 	    newGroup();
 	    if (hasRibbonMasters(parentList)) {
@@ -79,8 +79,8 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
     public void sortStructure(KPoint p) {
 
 	String pointID = p.getName().trim();
-	KList parentList = (KList) p.getOwner();
-	KSubgroup parentGroup = (KSubgroup) parentList.getOwner();
+	KList parentList = (KList) p.getParent();
+	KSubgroup parentGroup = (KSubgroup) parentList.getParent();
 	Iterator iter = parentGroup.iterator();
 	KList list;
 	ArrayList listofLists = new ArrayList();
@@ -124,8 +124,8 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
      **/
     private void sortbyNumber(KPoint p) {
 	String pointID = p.getName().trim();
-	KList parentList = (KList) p.getOwner();
-	AGE parentGroup = (AGE) parentList.getOwner();
+	KList parentList = (KList) p.getParent();
+	AGE parentGroup = (AGE) parentList.getParent();
 	Iterator iter = parentGroup.iterator();
 	KList list;
 	ArrayList listofLists = new ArrayList();
@@ -190,7 +190,7 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
 //}}}
 
     public boolean contains(KPoint p) {
-	KList parentList = (KList) p.getOwner();
+	KList parentList = (KList) p.getParent();
 	Integer resNum = new Integer(getResNumber(p));
 	return (structMap.containsKey(resNum)&&clickedLists.contains(parentList));
     }
@@ -240,8 +240,8 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
 
     
     public void highlightAA(KPoint p, String aaName, KPaint color, boolean colorPrior) {
-	KList parentList = (KList) p.getOwner();
-	KSubgroup parentSub = (KSubgroup) parentList.getOwner();
+	KList parentList = (KList) p.getParent();
+	KSubgroup parentSub = (KSubgroup) parentList.getParent();
 	HashSet aaNums = new HashSet();
 	Iterator iter = parentSub.iterator();
 	while (iter.hasNext()) {

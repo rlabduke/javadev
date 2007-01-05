@@ -266,7 +266,7 @@ public class KingLiteBinaryExport extends Plugin
 //##############################################################################
     public void savePoint(DataOutputStream out, KPoint p) throws IOException
     {
-        KList list = (KList) p.getOwner();
+        KList list = (KList) p.getParent();
         if(list == null) return;
         
         int multi = 0;

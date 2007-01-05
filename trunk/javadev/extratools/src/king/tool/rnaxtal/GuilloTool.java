@@ -80,7 +80,7 @@ public class GuilloTool extends BasicTool {
     public void calcDirection(KPoint p) {
 	Plane neckPlane = neckFinder.getPlane();
 	PolygonFinder polyTracker = new PolygonFinder();
-	KList parentList = (KList) p.getOwner();
+	KList parentList = (KList) p.getParent();
 	polyTracker.initiateMap(parentList);
 	//polyTracker.finishMap(parentList);
 	KList polyList = polyTracker.getPolyhedra(p);
@@ -102,7 +102,7 @@ public class GuilloTool extends BasicTool {
 			}
 		    }
 		    //point.setColor(KPalette.green);
-		    point.setOwner(baseList);
+		    point.setParent(baseList);
 		    baseList.add(point);
 		    if (point.equals(p)) {
 			basePoint = point;
@@ -118,7 +118,7 @@ public class GuilloTool extends BasicTool {
 			}
 		    }
 		    //point.setColor(KPalette.green);
-		    point.setOwner(baseList);
+		    point.setParent(baseList);
 		    baseList.add(point);
 		    if (point.equals(p)) {
 			basePoint = point;
@@ -130,7 +130,7 @@ public class GuilloTool extends BasicTool {
 	PolygonFinder baseTracker = new PolygonFinder();
 	baseTracker.initiateMap(baseList);
 	//KPoint basePoint = p.clone();
-	//basePoint.setOwner(baseList);
+	//basePoint.setParent(baseList);
 	System.out.println(basePoint);
 	KList base = baseTracker.getPolyhedra(basePoint);
 	base.setName("base list");

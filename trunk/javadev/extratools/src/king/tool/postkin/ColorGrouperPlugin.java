@@ -45,7 +45,7 @@ public void onGroupByColor(ActionEvent e) {
 	splitKin(kin);
 	KGroup splitGroup = scanForSplitGroup(kin);
 	if (splitGroup != null) {
-		splitGroup.setOwner(null);
+		splitGroup.setParent(null);
 		kMain.getKinemage().remove(splitGroup);
 	}
 	//clearColorLists(kin);
@@ -60,7 +60,7 @@ public void clearColorLists(AGE target) {
 	if (target instanceof KList) {
 		KList list = (KList) target;
 		System.out.println("scanning " + list.getName());
-		AGE owner = (AGE) list.getOwner();
+		AGE owner = (AGE) list.getParent();
 		if (owner.getName().equals("color")) {
 			//list.clear();
 			String name = list.getName();
@@ -108,7 +108,7 @@ public void splitKin(AGE target) {
 				if (colorSetMap.containsKey(paintName)) {
 					HashSet colorSet = (HashSet)colorSetMap.get(paintName);
 					colorSet.add(pt);
-					//pt.setOwner(colorList);
+					//pt.setParent(colorList);
 				} else {
 					HashSet colorSet = new HashSet();
 					colorSet.add(pt);
@@ -123,14 +123,14 @@ public void splitKin(AGE target) {
 					sub.setHasButton(false);
 					colorGroup.add(sub);
 					KList newList = new KList(sub, paintName);
-					KList oldList = (KList) pt.getOwner();
+					KList oldList = (KList) pt.getParent();
 					newList.flags |= oldList.flags;
 					newList.addMaster("color");
 					sub.add(newList);
 					newList.setDimension(pt.getAllCoords().length);
 					newList.setType(KList.BALL);
 					newList.add(pt);
-					pt.setOwner(newList);
+					pt.setParent(newList);
 					colorListMap.put(paintName, newList);
 					*/
 				}
@@ -163,11 +163,11 @@ public void populateColorLists(Kinemage kin) {
 		Iterator pointsIter = points.iterator();
 		while (pointsIter.hasNext()) {
 			KPoint pt = (KPoint) pointsIter.next();
-			KList oldList = (KList) pt.getOwner();
+			KList oldList = (KList) pt.getParent();
 			newList.flags |= oldList.flags;
 			newList.setDimension(pt.getAllCoords().length);
 			newList.add(pt);
-			pt.setOwner(newList);
+			pt.setParent(newList);
 		}
 	}
 }

@@ -394,21 +394,21 @@ public class RNAMapWindow extends EDMapWindow //implements ChangeListener, Actio
 	/*
         if(list1 != null && label1.isSelected())
         {
-            list1.setOwner(subgroup);
+            list1.setParent(subgroup);
             subgroup.add(list1);
         }
         if(list2 != null && label2.isSelected())
         {
-            list2.setOwner(subgroup);
+            list2.setParent(subgroup);
             subgroup.add(list2);
         }
 	*/
 	if (polyList != null && polyPicker.isSelected()) {
-	    polyList.setOwner(subgroup);
+	    polyList.setParent(subgroup);
 	    subgroup.add(polyList);
 	}
 	if (planeList != null && planePicker.isSelected()) {
-	    planeList.setOwner(subgroup);
+	    planeList.setParent(subgroup);
 	    subgroup.add(planeList);
 	}	
         updateMesh(); // regenerate the meshes we just exported
@@ -449,7 +449,7 @@ public class RNAMapWindow extends EDMapWindow //implements ChangeListener, Actio
 	subGroup = new KSubgroup(group, "tracker Subgroup");
 	subGroup.setHasButton(false);
 	group.add(subGroup);
-	trackedList.setOwner(subGroup);
+	trackedList.setParent(subGroup);
 	subGroup.add(trackedList);
 	
 	//settID("tracking is going?");

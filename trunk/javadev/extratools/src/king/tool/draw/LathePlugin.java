@@ -219,7 +219,7 @@ public class LathePlugin extends Plugin
             return;
         
         KGroup group = solidLathe(choice, new Triple(0,0,0), new Triple(0,1,0), 32);
-        group.setOwner(k);
+        group.setParent(k);
         k.add(group);
         k.setModified(true);
         kMain.notifyChange(KingMain.EM_EDIT_GROSS);

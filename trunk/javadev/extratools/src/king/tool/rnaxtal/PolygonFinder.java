@@ -239,7 +239,7 @@ public class PolygonFinder {
 	    shapeSet = (HashSet) hMap.get(listPoint); // Use point to get the Hashset it's in.
 	    shapeList = (KList) polyMap.get(shapeSet); // Use Hashset to look up KList for the point.
 	    shapeList.add(listPoint); // Add point to KList.
-	    listPoint.setOwner(shapeList);
+	    listPoint.setParent(shapeList);
 	}
 	initialized = true;
 	System.out.println("Polyhedra stored");
