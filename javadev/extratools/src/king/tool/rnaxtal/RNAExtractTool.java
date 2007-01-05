@@ -4,6 +4,7 @@ package king.tool.rnaxtal;
 
 import king.*;
 import king.core.*;
+import king.points.*;
 import king.tool.util.*;
 
 import java.util.*;

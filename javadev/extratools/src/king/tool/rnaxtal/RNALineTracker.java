@@ -1,6 +1,7 @@
 package king.tool.rnaxtal;
 import king.*;
 import king.core.*;
+import king.points.*;
 
 //import java.awt.*;
 //import java.awt.event.*;

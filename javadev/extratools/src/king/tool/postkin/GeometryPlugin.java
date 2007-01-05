@@ -4,6 +4,7 @@ package king.tool.postkin;
 
 import king.*;
 import king.core.*;
+import king.points.*;
 import king.tool.util.*;
 import driftwood.r3.*;
 import driftwood.gui.*;

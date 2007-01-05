@@ -3,6 +3,7 @@
 package king.tool.data_analysis;
 import king.*;
 import king.core.*;
+import king.points.*;
 import king.tool.util.KinUtil;
 
 import java.awt.event.*;
