@@ -405,8 +405,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	    list.add(point);
 	    point.setOwner(list);
 	} else {
-	    KList list = new KList();
-	    list.setType(KList.BALL);
+	    KList list = new KList(KList.BALL);
 	    point.setOwner(list);
 	    list.add(point);
 	    list.setName(Double.toString(value));

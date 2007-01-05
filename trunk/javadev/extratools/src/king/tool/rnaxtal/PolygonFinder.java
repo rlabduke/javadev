@@ -172,7 +172,7 @@ public class PolygonFinder {
  * <p>Probably unnecessary as of 07 Jan 04, but aren't hurting anything.
  **/
     private KList cloneList(KList trackedList) {
-	KList listClone = new KList();
+	KList listClone = new KList(trackedList.getType());
 	Iterator iter;
 	VectorPoint listPoint, pointClone, prev;
 	
@@ -188,7 +188,6 @@ public class PolygonFinder {
 	    listClone.add(pointClone);
 	    prev = pointClone;
 	}
-	listClone.setType(trackedList.getType());
 	return listClone;
     }
 
@@ -216,7 +215,7 @@ public class PolygonFinder {
  **/
     private void finishMap(KList trackedList) {
 	HashSet shapeSet = new HashSet();
-	KList shapeList = new KList();
+	KList shapeList = new KList(trackedList.getType());
 	VectorPoint listPoint;
 	Iterator iter;
 	HashSet polyVertSet = new HashSet(hMap.values()); // Hashset of the vertex-containing Hashsets.
@@ -228,8 +227,7 @@ public class PolygonFinder {
 	Iterator setIter = polyVertSet.iterator();
 	for ( ; setIter.hasNext(); ) {
 	    shapeSet = (HashSet) setIter.next(); 
-	    shapeList = new KList(); // make new KList
-	    shapeList.setType(trackedList.getType());
+	    shapeList = new KList(trackedList.getType()); // make new KList
 	    polyMap.put(shapeSet, shapeList); // Store KList with the vertex-containing hashsets as keys.
 	}
 

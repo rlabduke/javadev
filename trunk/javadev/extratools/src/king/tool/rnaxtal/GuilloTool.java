@@ -27,9 +27,8 @@ public class GuilloTool extends BasicTool {
     {
         super(tb);
 	selectedPoints = new ArrayList();
-	list = new KList();
+	list = new KList(KList.TRIANGLE);
 	list.setName("Plain");
-	list.setType(KList.TRIANGLE);
 	list.setWidth(5);
 	//list.setColor(KPalette.sky);
     }
@@ -85,9 +84,8 @@ public class GuilloTool extends BasicTool {
 	polyTracker.initiateMap(parentList);
 	//polyTracker.finishMap(parentList);
 	KList polyList = polyTracker.getPolyhedra(p);
-	KList baseList = new KList();
+	KList baseList = new KList(KList.VECTOR);
 	baseList.setName("base");
-	baseList.setType(KList.VECTOR);
 	baseList.setWidth(5);
 	//baseList.setColor(KPalette.green);
 	Iterator iter = polyList.iterator();
@@ -136,7 +134,6 @@ public class GuilloTool extends BasicTool {
 	System.out.println(basePoint);
 	KList base = baseTracker.getPolyhedra(basePoint);
 	base.setName("base list");
-	base.setType(KList.VECTOR);
 	base.setWidth(5);
 	base.setColor(KPalette.green);
 	base.setOn(true);

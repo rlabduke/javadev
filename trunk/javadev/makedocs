@@ -1,13 +1,13 @@
 #!/bin/sh
 javadoc -d javadocs \
 -quiet \
--source 1.4 \
+-source 1.5 \
 -windowtitle "IWD's JavaDocs" \
 -breakiterator \
 -noqualifier all \
 -linksource \
 -protected \
--link /Users/ian/Documents/devdocs/javadoc-1.4.2/api/ \
+-link /Users/ian/Documents/devdocs/javadoc-1.5/api/ \
 -classpath lib:lib/iText/itext-1.02b.jar \
 -sourcepath chiropraxis/src:driftwood/src:extratools/src:fftoys/src:king/src:molikin/src:silk/src \
 -subpackages chiropraxis:driftwood:fftoys:Jama:jnt:king:molikin:silk

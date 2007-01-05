@@ -514,9 +514,8 @@ public class PlottingTool extends BasicTool {
 		    Double bin = (Double)colors.get((int)Math.floor(sizePerBin * i));
 		    //System.out.println(bin);
 		    //bin = new Double(Math.floor(bin.doubleValue()));
-		    KList list = new KList(null, bin.toString());
+		    KList list = new KList(KList.BALL, bin.toString());
 		    list.flags |= KList.NOHILITE;
-		    list.setType(KList.BALL);
 		    list.addMaster(bin.toString());
 		    list.setDimension(numInd);
 		    binnedPoints.put(bin, list);
@@ -525,9 +524,8 @@ public class PlottingTool extends BasicTool {
 		JOptionPane.showMessageDialog(pane, "Ploease put a number in the 'number of bins' field.", "Error", JOptionPane.ERROR_MESSAGE);
 	    }
 	} else {
-	    KList list = new KList(null, "multi-dim points");
+	    KList list = new KList(KList.BALL, "multi-dim points");
 	    list.flags |= KList.NOHILITE;
-	    list.setType(KList.BALL);
 	    list.setDimension(numInd);
 	    binnedPoints.put(new Double("0"), list);
 	}
@@ -541,18 +539,16 @@ public class PlottingTool extends BasicTool {
 		// I'm forced to round the bins because round-off error in calculation of bins causes nullpointerexceptions
 		//  without rounding the bins (and calculations later).
 		Double bin = new Double((double)Math.round((minColor + perDiv * i)*1000)/1000);
-		KList list = new KList(null, bin.toString());
+		KList list = new KList(KList.BALL, bin.toString());
 		list.flags |= KList.NOHILITE;
-		list.setType(KList.BALL);
 		list.addMaster(bin.toString());
 		list.setDimension(numInd);
 		binnedPoints.put(bin, list);
 		//System.out.println(bin);
 	    }
 	} else {
-	    KList list = new KList(null, "multi-dim points");
+	    KList list = new KList(KList.BALL, "multi-dim points");
 	    list.flags |= KList.NOHILITE;
-	    list.setType(KList.BALL);
 	    list.setDimension(numInd);
 	    binnedPoints.put(new Double(0), list);
 	}
@@ -613,7 +609,7 @@ public class PlottingTool extends BasicTool {
     }
 
     public KList makeList(String[] value, int[] order) {
-	KList list = new KList();
+	KList list = new KList(KList.VECTOR);
 	list.setName(value[0]);
 	VectorPoint prevPoint = null;
 	for (int i = 0; i < order.length; i++) {

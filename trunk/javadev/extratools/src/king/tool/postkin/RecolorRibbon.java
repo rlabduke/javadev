@@ -309,13 +309,13 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
     public ArrayList splitLists(KList bigList) {
 	Iterator iter = bigList.iterator();
 	int oldResNum = -100;
-	KList list = new KList();
+	KList list = new KList(bigList.getType());
 	ArrayList residueList = new ArrayList();
 	while (iter.hasNext()) {
 	    KPoint point = (KPoint) iter.next();
 	    //oldResNum = getResNumber(point);
 	    if (getResNumber(point) != oldResNum) {
-		list = new KList();
+		list = new KList(bigList.getType());
 		list.add(point);
 		oldResNum = getResNumber(point);
 		residueList.add(list);

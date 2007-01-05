@@ -157,10 +157,9 @@ public void populateColorLists(Kinemage kin) {
 		KSubgroup sub = new KSubgroup(colorGroup, "color");
 		sub.setHasButton(false);
 		colorGroup.add(sub);
-		KList newList = new KList(sub, color);
+		KList newList = new KList(KList.BALL, color);
 		newList.addMaster("color");
 		sub.add(newList);
-		newList.setType(KList.BALL);
 		Iterator pointsIter = points.iterator();
 		while (pointsIter.hasNext()) {
 			KPoint pt = (KPoint) pointsIter.next();

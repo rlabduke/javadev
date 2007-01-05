@@ -122,7 +122,7 @@ public class KinStable implements ListSelectionListener, KMessage.Subscriber, Ac
     /**
     * Adds in the specified collection of kinemages.
     * If there is no current kinemage, then the first of these becomes the current kinemage.
-    * @param kins a group of Kinemage objects to add (not null)
+    * @param newKins a group of Kinemage objects to add (not null)
     */
     public void append(Collection<Kinemage> newKins)
     {

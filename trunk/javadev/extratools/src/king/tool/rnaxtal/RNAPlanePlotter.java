@@ -39,9 +39,8 @@ public class RNAPlanePlotter {
     */
     public RNAPlanePlotter() {
 
-	list = new KList();
+	list = new KList(KList.TRIANGLE);
         list.setName("Plain");
-        list.setType(KList.TRIANGLE);
         list.setWidth(5);
 	//list.setColor(KPalette.deadwhite);
 

@@ -169,7 +169,7 @@ public class FramerTool extends BasicTool {
 	KSubgroup subgroup = new KSubgroup(group, "sub");
 	subgroup.setHasButton(false);
 	group.add(subgroup);
-	KList list = new KList(null, "Points");
+	KList list = new KList(KList.BALL, "Points");
 	BallPoint point = new BallPoint(list, ptID);
 	point.setX(x);
 	point.setY(y);

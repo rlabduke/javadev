@@ -40,9 +40,8 @@ public class PlaneFinder
     */
 
     public PlaneFinder() {
-        list = new KList();
+        list = new KList(KList.TRIANGLE);
 	list.setName("Plain");
-	list.setType(KList.TRIANGLE);
 	list.setWidth(5);
     }
     //}}}

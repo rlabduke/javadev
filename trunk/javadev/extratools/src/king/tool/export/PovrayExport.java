@@ -263,7 +263,7 @@ public class PovrayExport extends Plugin
 
 //{{{ writeSubgroup
 //##################################################################################################
-    void writeSubgroup(KSubgroup subgroup, Kinemage kin)
+    void writeSubgroup(KGroup subgroup, Kinemage kin)
     {
         if(!subgroup.isOn()) out.print("/*");
         out.println("//@subgroup {"+subgroup.getName()+"}");
@@ -387,7 +387,7 @@ public class PovrayExport extends Plugin
 
 //{{{ writeView
 //##################################################################################################
-    void writeView(KingView view, int index)
+    void writeView(KView view, int index)
     {
         out.println("//@"+index+"viewid {"+view.getName()+"}");
         
