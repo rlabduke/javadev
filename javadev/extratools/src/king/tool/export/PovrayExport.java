@@ -318,20 +318,20 @@ public class PovrayExport extends Plugin
         {
             double rad = ((BallPoint)point).r0;
             if(rad <= 0) rad = list.getRadius();
-            out.println("sphere { <"+df.format(point.getOrigX())+", "+df.format(point.getOrigY())+", "+df.format(point.getOrigZ())+">, "
+            out.println("sphere { <"+df.format(point.getX())+", "+df.format(point.getY())+", "+df.format(point.getZ())+">, "
                 +df.format(rad)+paintName+" }");
         }
         else if(point instanceof DotPoint)
         {
             int width = list.getWidth();
-            out.println("sphere { <"+df.format(point.getOrigX())+", "+df.format(point.getOrigY())+", "+df.format(point.getOrigZ())+">, "
+            out.println("sphere { <"+df.format(point.getX())+", "+df.format(point.getY())+", "+df.format(point.getZ())+">, "
                 +"DW*"+df.format(width)+paintName+" }");
         }
         else if(point instanceof LabelPoint)
         {
             out.print("text { ttf LabelFont, \""+point+"\", LabelDepth, LabelOffset");
             out.print(" transform { LabelXform }");
-            out.print(" transform { translate <"+df.format(point.getOrigX())+", "+df.format(point.getOrigY())+", "+df.format(point.getOrigZ())+"> }");
+            out.print(" transform { translate <"+df.format(point.getX())+", "+df.format(point.getY())+", "+df.format(point.getZ())+"> }");
             out.println(paintName+" }");
         }
         // SpherePoint is a child of BallPoint
@@ -347,9 +347,9 @@ public class PovrayExport extends Plugin
                     if(n1 == null || n2 == null || n3 == null)
                     {
                         System.err.println("Null normal for "+point);
-                        out.println("triangle { <"+df.format(prevprev.getOrigX())+", "+df.format(prevprev.getOrigY())+", "+df.format(prevprev.getOrigZ())+">, "
-                            +"<"+df.format(prev.getOrigX())+", "+df.format(prev.getOrigY())+", "+df.format(prev.getOrigZ())+">, "
-                            +"<"+df.format(point.getOrigX())+", "+df.format(point.getOrigY())+", "+df.format(point.getOrigZ())+">"
+                        out.println("triangle { <"+df.format(prevprev.getX())+", "+df.format(prevprev.getY())+", "+df.format(prevprev.getZ())+">, "
+                            +"<"+df.format(prev.getX())+", "+df.format(prev.getY())+", "+df.format(prev.getZ())+">, "
+                            +"<"+df.format(point.getX())+", "+df.format(point.getY())+", "+df.format(point.getZ())+">"
                             +paintName+" }");
                     }
                     else
@@ -373,12 +373,12 @@ public class PovrayExport extends Plugin
         {
             int width = point.getWidth();
             if(width <= 0) width = list.getWidth();
-            out.println("sphere { <"+df.format(point.getOrigX())+", "+df.format(point.getOrigY())+", "+df.format(point.getOrigZ())+">, "
+            out.println("sphere { <"+df.format(point.getX())+", "+df.format(point.getY())+", "+df.format(point.getZ())+">, "
                 +"LW*"+df.format(width)+paintName+" }");
             KPoint prev = point.getPrev();
             if(prev != null && !point.equals(prev))
-                out.println("cylinder { <"+df.format(point.getOrigX())+", "+df.format(point.getOrigY())+", "+df.format(point.getOrigZ())+">, "
-                    +"<"+df.format(prev.getOrigX())+", "+df.format(prev.getOrigY())+", "+df.format(prev.getOrigZ())+">, "
+                out.println("cylinder { <"+df.format(point.getX())+", "+df.format(point.getY())+", "+df.format(point.getZ())+">, "
+                    +"<"+df.format(prev.getX())+", "+df.format(prev.getY())+", "+df.format(prev.getZ())+">, "
                     +"LW*"+df.format(width)+paintName+" }");
         }
         else out.println("// "+point.getClass()+" is not supported in POV-Ray output");

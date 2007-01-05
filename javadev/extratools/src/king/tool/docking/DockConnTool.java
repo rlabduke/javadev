@@ -101,7 +101,7 @@ public class DockConnTool extends DockLsqTool {
 	    }
 	    
 	    /*	
-            Triple t = new Triple(p.getOrigX(), p.getOrigY(), p.getOrigZ());
+            Triple t = new Triple(p.getX(), p.getY(), p.getZ());
             if(btnReference.isSelected())
             {
                 pkReference.add(p.getName(), t);
@@ -319,11 +319,11 @@ public class DockConnTool extends DockLsqTool {
                 KPoint pt = (KPoint)iter.next();
                 if(mobilePoints.contains(pt))
                 {
-                    proxy.setXYZ(pt.getOrigX(), pt.getOrigY(), pt.getOrigZ());
+                    proxy.setXYZ(pt.getX(), pt.getY(), pt.getZ());
                     t.transform(proxy);
-                    pt.setOrigX(proxy.getX());
-                    pt.setOrigY(proxy.getY());
-                    pt.setOrigZ(proxy.getZ());
+                    pt.setX(proxy.getX());
+                    pt.setY(proxy.getY());
+                    pt.setZ(proxy.getZ());
                 }
             }
         }

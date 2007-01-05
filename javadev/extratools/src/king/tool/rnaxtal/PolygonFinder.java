@@ -195,9 +195,9 @@ public class PolygonFinder {
 	VectorPoint pointClone;
 	
 	pointClone = new VectorPoint(owner, pointOrg.getName(), start);
-	pointClone.setOrigX((float) pointOrg.getOrigX());
-	pointClone.setOrigY((float) pointOrg.getOrigY());
-	pointClone.setOrigZ((float) pointOrg.getOrigZ());
+	pointClone.setX((float) pointOrg.getX());
+	pointClone.setY((float) pointOrg.getY());
+	pointClone.setZ((float) pointOrg.getZ());
 	return pointClone;
     }
 //}}}

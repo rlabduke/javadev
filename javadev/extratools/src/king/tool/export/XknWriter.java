@@ -334,9 +334,9 @@ public class XknWriter extends Plugin implements XMLReader
         }
         if(point.getColor() != null)
         { atts.addAttribute(nsu, "color", "color", "CDATA", point.getColor().toString()); }
-        atts.addAttribute(nsu, "x", "x", "CDATA", df.format(point.getOrigX()));
-        atts.addAttribute(nsu, "y", "y", "CDATA", df.format(point.getOrigY()));
-        atts.addAttribute(nsu, "z", "z", "CDATA", df.format(point.getOrigZ()));
+        atts.addAttribute(nsu, "x", "x", "CDATA", df.format(point.getX()));
+        atts.addAttribute(nsu, "y", "y", "CDATA", df.format(point.getY()));
+        atts.addAttribute(nsu, "z", "z", "CDATA", df.format(point.getZ()));
 
         // Begin the element
         cnHandler.ignorableWhitespace(newline, 0, 1);

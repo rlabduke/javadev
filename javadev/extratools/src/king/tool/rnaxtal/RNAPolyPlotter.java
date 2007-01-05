@@ -96,16 +96,16 @@ public class RNAPolyPlotter
 	//double[] xyz = phinder.highPoint();
 	RNATriple centroid = phinder.findCentroid(polyList);
 	phPoint = new MarkerPoint(polyList, "phosphate");
-	//phPoint.setOrigX(xyz[0]);
-	//phPoint.setOrigY(xyz[1]);
-	//phPoint.setOrigZ(xyz[2]);
-	phPoint.setOrigX(centroid.getX());
-	phPoint.setOrigY(centroid.getY());
-	phPoint.setOrigZ(centroid.getZ());
+	//phPoint.setX(xyz[0]);
+	//phPoint.setY(xyz[1]);
+	//phPoint.setZ(xyz[2]);
+	phPoint.setX(centroid.getX());
+	phPoint.setY(centroid.getY());
+	phPoint.setZ(centroid.getZ());
 	phPoint.setStyle(MarkerPoint.BOX_L);
 	phPoint.setColor(KPalette.green);
 	phPoint.setWidth(5);
-	phPoint.setName("phosphake: x=" + phPoint.getOrigX() + ", y=" + phPoint.getOrigY() + ", z=" + phPoint.getOrigZ());
+	phPoint.setName("phosphake: x=" + phPoint.getX() + ", y=" + phPoint.getY() + ", z=" + phPoint.getZ());
 	phPoint.setOn(true);
 	return phPoint;
     }
@@ -118,9 +118,9 @@ public class RNAPolyPlotter
 
     public VectorPoint getPhosphate() {
 	VectorPoint phos = new VectorPoint(list, "phosphate", null);
-	phos.setOrigX(phPoint.getOrigX());
-	phos.setOrigY(phPoint.getOrigY());
-	phos.setOrigZ(phPoint.getOrigZ());
+	phos.setX(phPoint.getX());
+	phos.setY(phPoint.getY());
+	phos.setZ(phPoint.getZ());
 	return phos;
     }
 
@@ -128,11 +128,11 @@ public class RNAPolyPlotter
 	VectorPoint phos = getPhosphate();
 	list.add(phos);
 	VectorPoint intersect = new VectorPoint(list, "intersect", phos);
-	intersect.setOrigX(p.getX());
-	intersect.setOrigY(p.getY());
-	intersect.setOrigZ(p.getZ());
+	intersect.setX(p.getX());
+	intersect.setY(p.getY());
+	intersect.setZ(p.getZ());
 	intersect.setColor(KPalette.purple);
-	System.out.println("Intersect: " + intersect.getOrigX() + ", " + intersect.getOrigY() + ", " + intersect.getOrigZ());
+	System.out.println("Intersect: " + intersect.getX() + ", " + intersect.getY() + ", " + intersect.getZ());
 	list.add(intersect);
     }
 

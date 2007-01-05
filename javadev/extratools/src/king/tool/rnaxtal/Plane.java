@@ -36,7 +36,7 @@ public class Plane {
 
 
     public boolean isBelow(KPoint p) {
-	if (a * p.getOrigX() + b * p.getOrigY() + c * p.getOrigZ() + d < 0) {
+	if (a * p.getX() + b * p.getY() + c * p.getZ() + d < 0) {
 	    return true;
 	} else {
 	    return false;
