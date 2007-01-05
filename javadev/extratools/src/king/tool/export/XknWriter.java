@@ -146,7 +146,7 @@ public class XknWriter extends Plugin implements XMLReader
         int idx = 1;
         for(iter = kin.getViewIterator(); iter.hasNext(); idx++)
         {
-            writeView((KingView)iter.next(), idx);
+            writeView((KView)iter.next(), idx);
         }
         
         for(iter = kin.masterList().iterator(); iter.hasNext(); )

@@ -159,7 +159,7 @@ public class ViewpointPlugin extends Plugin implements MouseMotionListener
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onRotXP(ActionEvent ev)
     {
-        KingView view = kMain.getView();
+        KView view = kMain.getView();
         if(view == null) return;
         view.rotateX((float)(Math.PI / 2.0));
         kCanvas.repaint();
@@ -168,7 +168,7 @@ public class ViewpointPlugin extends Plugin implements MouseMotionListener
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onRotXM(ActionEvent ev)
     {
-        KingView view = kMain.getView();
+        KView view = kMain.getView();
         if(view == null) return;
         view.rotateX((float)(-Math.PI / 2.0));
         kCanvas.repaint();
@@ -177,7 +177,7 @@ public class ViewpointPlugin extends Plugin implements MouseMotionListener
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onRotYP(ActionEvent ev)
     {
-        KingView view = kMain.getView();
+        KView view = kMain.getView();
         if(view == null) return;
         view.rotateY((float)(Math.PI / 2.0));
         kCanvas.repaint();
@@ -186,7 +186,7 @@ public class ViewpointPlugin extends Plugin implements MouseMotionListener
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onRotYM(ActionEvent ev)
     {
-        KingView view = kMain.getView();
+        KView view = kMain.getView();
         if(view == null) return;
         view.rotateY((float)(-Math.PI / 2.0));
         kCanvas.repaint();
@@ -195,7 +195,7 @@ public class ViewpointPlugin extends Plugin implements MouseMotionListener
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onRotZP(ActionEvent ev)
     {
-        KingView view = kMain.getView();
+        KView view = kMain.getView();
         if(view == null) return;
         view.rotateZ((float)(Math.PI / 2.0));
         kCanvas.repaint();
@@ -204,7 +204,7 @@ public class ViewpointPlugin extends Plugin implements MouseMotionListener
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onRotZM(ActionEvent ev)
     {
-        KingView view = kMain.getView();
+        KView view = kMain.getView();
         if(view == null) return;
         view.rotateZ((float)(-Math.PI / 2.0));
         kCanvas.repaint();
@@ -216,7 +216,7 @@ public class ViewpointPlugin extends Plugin implements MouseMotionListener
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onCanonicalView(ActionEvent ev)
     {
-        KingView view = kMain.getView();
+        KView view = kMain.getView();
         if(view == null) return;
         float[][] xform  = { {1f, 0f, 0f}, {0f, 1f, 0f}, {0f, 0f, 1f} };
         view.setMatrix(xform);
@@ -230,7 +230,7 @@ public class ViewpointPlugin extends Plugin implements MouseMotionListener
     { mouseMoved(ev); }
     public void mouseMoved(MouseEvent ev)
     {
-        KingView v = kMain.getView();
+        KView v = kMain.getView();
         if(dialog.isVisible() && v != null)
         {
             Dimension dim = kCanvas.getCanvasSize();

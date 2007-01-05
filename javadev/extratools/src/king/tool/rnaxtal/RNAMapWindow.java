@@ -251,7 +251,7 @@ public class RNAMapWindow extends EDMapWindow //implements ChangeListener, Actio
     /*
     boolean centerChanged()
     {
-        KingView v = kMain.getView();
+        KView v = kMain.getView();
         if(v == null) return false;
         
         float[] ctr = v.getCenter();

@@ -203,7 +203,7 @@ public class PovrayExport extends Plugin
         writeView(kin.getCurrentView(), idx++);
         for(iter = kin.getViewIterator(); iter.hasNext(); idx++)
         {
-            writeView((KingView)iter.next(), idx);
+            writeView((KView)iter.next(), idx);
         }
         out.println("//}}} View definitions");
         

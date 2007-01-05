@@ -222,7 +222,7 @@ public class KinFudgerTool extends BasicTool {
     /** Override this function for (left-button) drags */
     public void drag(int dx, int dy, MouseEvent ev) {
 	//System.out.println(dx + ";" + dy);
-	KingView v = kMain.getView();
+	KView v = kMain.getView();
 	if(v != null && draggedPoint != null) {
 
 	    Dimension dim = kCanvas.getCanvasSize();
@@ -284,7 +284,7 @@ public class KinFudgerTool extends BasicTool {
     /** Override this function for right-button/shift drags */
     public void s_drag(int dx, int dy, MouseEvent ev)
     {
-        KingView v = kMain.getView();
+        KView v = kMain.getView();
         if(v != null && draggedPoint != null)
         {
 
