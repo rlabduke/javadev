@@ -1,3 +1,0 @@
-Main-Class: king.KingMain
-Class-Path: itext.jar jogl.jar
-
