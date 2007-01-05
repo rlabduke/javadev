@@ -25,7 +25,7 @@ import java.awt.event.*;
 	 //}}}
 
 	 //{{{ Variables
-	 HashMap colorSetMap;
+	 HashMap<String, HashSet<KPoint>> colorSetMap;
 	 //KGroup colorGroup = null;
 //}}}
 
@@ -40,22 +40,22 @@ import java.awt.event.*;
 //{{{ onGroupByColor
 public void onGroupByColor(ActionEvent e) {
 	Kinemage kin = kMain.getKinemage();
-	colorSetMap = new HashMap();
+	colorSetMap = new HashMap<String, HashSet<KPoint>>();
 	//Set existingColors = colorSetMap.keySet();
 	splitKin(kin);
 	KGroup splitGroup = scanForSplitGroup(kin);
 	if (splitGroup != null) {
-		splitGroup.setParent(null);
 		kMain.getKinemage().remove(splitGroup);
 	}
 	//clearColorLists(kin);
 	populateColorLists(kin);
 	//kin.add(colorGroup);
-	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+	//kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
 }
 //}}}
 
 //{{{ clearColorLists
+/* seems to not be used anymore
 public void clearColorLists(AGE target) {
 	if (target instanceof KList) {
 		KList list = (KList) target;
@@ -78,14 +78,18 @@ public void clearColorLists(AGE target) {
 			clearColorLists(targ);
 		}
 	}
-}
+}*/
 //}}}
 
 //{{{ scanForSplitGroup
+/** 
+ * Scans to see if this kin has been color split already by checking 
+ * the names of the groups for a group named new split.
+ **/
 public KGroup scanForSplitGroup(Kinemage kin) {
-	Iterator groups = kin.iterator();
+	Iterator<KGroup> groups = kin.iterator();
 	while (groups.hasNext()) {
-		KGroup group = (KGroup) groups.next();
+		KGroup group = groups.next();
 		if (group.getName().equals("new splits")) {
 			//colorGroup = group;
 			return group;
@@ -96,78 +100,60 @@ public KGroup scanForSplitGroup(Kinemage kin) {
 //}}}
 
 //{{{ splitKin
-public void splitKin(AGE target) {
-	if (target instanceof KList) {
-		KList list = (KList) target;
+/** 
+ * Separates ballpoints into multiple hashsets, depending on color name.  
+ **/
+public void splitKin(Kinemage kin) {
+	KIterator<KList> listIter = KIterator.allLists(kin);
+  for (KList list : listIter) {
 		if (list.getType().equals(KList.BALL)) {
 			System.out.println("splitting " + list.getName());
-			ListIterator iter = target.iterator();
-			while (iter.hasNext()) {
-				KPoint pt = (KPoint) iter.next();
+			//Iterator<KPoint> iter = list.iterator();
+      for (KPoint pt : list) {
 				String paintName = pt.getDrawingColor().toString();
 				if (colorSetMap.containsKey(paintName)) {
-					HashSet colorSet = (HashSet)colorSetMap.get(paintName);
+					HashSet<KPoint> colorSet = (HashSet)colorSetMap.get(paintName);
 					colorSet.add(pt);
 					//pt.setParent(colorList);
 				} else {
-					HashSet colorSet = new HashSet();
+					HashSet<KPoint> colorSet = new HashSet();
 					colorSet.add(pt);
 					colorSetMap.put(paintName, colorSet);
-					
-					//if (colorGroup == null) {
-						//colorGroup = new KGroup(kMain.getKinemage(), "new splits");
-						//kMain.getKinemage().add(colorGroup);
-					//}
-					/*
-					KSubgroup sub = new KSubgroup(colorGroup, "color");
-					sub.setHasButton(false);
-					colorGroup.add(sub);
-					KList newList = new KList(sub, paintName);
-					KList oldList = (KList) pt.getParent();
-					newList.flags |= oldList.flags;
-					newList.addMaster("color");
-					sub.add(newList);
-					newList.setDimension(pt.getAllCoords().length);
-					newList.setType(KList.BALL);
-					newList.add(pt);
-					pt.setParent(newList);
-					colorListMap.put(paintName, newList);
-					*/
 				}
 			}
-		}
-	} else {
-		Iterator iter = target.iterator();
-		while (iter.hasNext()) {
-			AGE targ = (AGE) iter.next();
-			splitKin(targ);
 		}
 	}
 }
 //}}}
 
 //{{{ populateColorLists()
+/**
+ * Moves the points from old lists to new color-split lists.
+ * Old "feature" where points were copied (instead of moved) 
+ * from old lists to new lists might not work anymore!
+ * Needs new way of copying flags from old lists.
+ **/
 public void populateColorLists(Kinemage kin) {
-	KGroup colorGroup = new KGroup(kin, "new splits");
+	KGroup colorGroup = new KGroup("new splits");
 	kin.add(colorGroup);
-	Iterator keys = colorSetMap.keySet().iterator();
-	while (keys.hasNext()) {
-		String color = (String) keys.next();
-		HashSet points = (HashSet) colorSetMap.get(color);
-		KSubgroup sub = new KSubgroup(colorGroup, "color");
-		sub.setHasButton(false);
+	//Iterator<String> keys = colorSetMap.keySet().iterator();
+  for (String color : colorSetMap.keySet()) {
+		HashSet<KPoint> points = colorSetMap.get(color);
+		KGroup sub = new KGroup("color");
 		colorGroup.add(sub);
+		sub.setHasButton(false);
+		//colorGroup.add(sub);
 		KList newList = new KList(KList.BALL, color);
 		newList.addMaster("color");
 		sub.add(newList);
-		Iterator pointsIter = points.iterator();
+		Iterator<KPoint> pointsIter = points.iterator();
 		while (pointsIter.hasNext()) {
-			KPoint pt = (KPoint) pointsIter.next();
+			KPoint pt = pointsIter.next();
 			KList oldList = (KList) pt.getParent();
-			newList.flags |= oldList.flags;
+			//newList.flags |= oldList.flags;
 			newList.setDimension(pt.getAllCoords().length);
 			newList.add(pt);
-			pt.setParent(newList);
+			//pt.setParent(newList);
 		}
 	}
 }

@@ -340,7 +340,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 			    }
 			}
 		    }
-		    BallPoint point = new BallPoint(null, Double.toString(clashValue));
+		    BallPoint point = new BallPoint(Double.toString(clashValue));
 		    allPoints.add(point);
 
 		    if (clashValue>0) {
@@ -404,10 +404,10 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	if (listMap.containsKey(new Double(value))) {
 	    KList list = (KList) listMap.get(new Double(value));
 	    list.add(point);
-	    point.setParent(list);
+	    //point.setParent(list);
 	} else {
 	    KList list = new KList(KList.BALL);
-	    point.setParent(list);
+	    //point.setParent(list);
 	    list.add(point);
 	    list.setName(Double.toString(value));
 	    listMap.put(new Double(value), list);
@@ -433,24 +433,24 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	Iterator iter = keys.iterator();
 	while (iter.hasNext()) {
 	    Double key = (Double) iter.next();
-	    KGroup group = new KGroup(kin, key.toString());
+	    KGroup group = new KGroup(key.toString());
 	    group.setAnimate(true);
 	    group.addMaster("Data Points");
 	    kin.add(group);
-	    KSubgroup subgroup = new KSubgroup(group, key.toString());
+	    KGroup subgroup = new KGroup(key.toString());
 	    subgroup.setHasButton(false);
 	    group.add(subgroup);
 	
 	    //KList list = new KList(subgroup, "Points");
 	    
 	    KList list = (KList) listMap.get(key);
-	    list.flags |= KList.NOHILITE;
+	    list.setNoHighlight(true);
 	    //list.setType("BALL");
 	    list.setHasButton(false);
 	    subgroup.add(list);
-	    list.setParent(subgroup);
+	    //list.setParent(subgroup);
 	}
-	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+	//kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
     }
 //}}}
 
@@ -575,34 +575,6 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 
 //{{{ onDifference
     public void onDifference(ActionEvent ev) {
-	/*
-	Kinemage kin = kMain.getKinemage();
-	Iterator iter = kin.iterator();
-	allPoints.clear();
-	long startTime = System.currentTimeMillis();
-	while (iter.hasNext()) {
-	    KGroup group = (KGroup) iter.next();
-	    if (group.isOn()) {
-		if (group.hasMaster("Data Points")) {
-		    KSubgroup subgroup = (KSubgroup) group.getChildAt(0);
-		    
-		    KList list = (KList) subgroup.getChildAt(0);
-		    //if (list.isOn()) {
-		    Iterator points = list.iterator();
-		    while (points.hasNext()) {
-			KPoint point = (KPoint) points.next();
-			allPoints.add(point);
-		    }
-		    //}
-		}
-	    }
-	}
-
-	PointSorter ps = new PointSorter(allPoints, PointSorter.SORTBY_Y);
-	allPoints = (ArrayList) ps.sortPhiPsi();
-        ps = new PointSorter(allPoints, PointSorter.SORTBY_X);
-	allPoints = (ArrayList) ps.sortPhiPsi();
-	*/
 	long startTime = System.currentTimeMillis();
 	addAllDataPoints();
 	for (int i = 0; i < allPoints.size(); i++) {
@@ -624,7 +596,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	long endTime = System.currentTimeMillis();
 	
 	System.out.println("Total Time to diff: " + ((endTime-startTime)/1000) + " seconds");
-	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+	//kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
 	
     }
 //}}}
@@ -637,21 +609,24 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	allPoints.clear();
 	//long startTime = System.currentTimeMillis();
 	while (iter.hasNext()) {
-	    KGroup group = (KGroup) iter.next();
-	    if (group.isOn()) {
-		if (group.hasMaster("Data Points")) {
-		    KSubgroup subgroup = (KSubgroup) group.getChildAt(0);
-		    
-		    KList list = (KList) subgroup.getChildAt(0);
-		    //if (list.isOn()) {
-		    Iterator points = list.iterator();
-		    while (points.hasNext()) {
-			KPoint point = (KPoint) points.next();
-			allPoints.add(point);
+    KGroup group = (KGroup) iter.next();
+    if (group.isOn()) {
+      if (group.getMasters().contains("Data Points")) {
+        KIterator<KPoint> points = KIterator.allPoints(group);
+        for (KPoint point : points) {
+          //KGroup subgroup = (KSubgroup) group.getChildAt(0);
+          
+          //KList list = (KList) subgroup.getChildAt(0);
+          //if (list.isOn()) {
+            
+            //Iterator points = list.iterator();
+            //while (points.hasNext()) {
+              //KPoint point = (KPoint) points.next();
+              allPoints.add(point);
 		    }
-		    //}
-		}
-	    }
+            //}
+      }
+    }
 	}
 
 	PointSorter ps = new PointSorter(allPoints, PointSorter.SORTBY_Y);
@@ -792,7 +767,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	plotByScore(true, 5);
 	setDefaultColors();
 	reSortKlists();
-	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+	//kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
     }
      //}}}
 
@@ -841,7 +816,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	long endTime = System.currentTimeMillis();
 	
 	System.out.println("Total Time to smooth: " + ((endTime-startTime)/1000) + " seconds");
-	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+	//kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
 	
     }
 //}}}

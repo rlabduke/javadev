@@ -18,7 +18,14 @@ import java.text.*;
 import java.util.*;
 import java.awt.event.*;
 import java.lang.Double;
-
+//}}}
+/**
+* <code>KinFudgerTool</code> allows a user to easily modify kinemages.  Users can shorten 
+* or lengthen a bond, change bond angles, or dihedrals in the middle of a structure.  Users
+* can also left click on a structure and drag to rotate a structure around.  Right click 
+* and drag allows translation of structures.
+* <p>Copyright (C) 2002-2007 by Vincent B. Chen. All rights reserved.
+**/
 public class KinFudgerTool extends BasicTool {
 
 //{{{ Constants
@@ -40,7 +47,6 @@ public class KinFudgerTool extends BasicTool {
 
 //}}}
 
-
 //{{{ Constructor(s)
 //##############################################################################
     public KinFudgerTool(ToolBox tb) {
@@ -48,7 +54,6 @@ public class KinFudgerTool extends BasicTool {
 	buildGUI();
     }
 //}}}
-
 
 //{{{ buildGUI
 //##############################################################################
@@ -94,14 +99,6 @@ public class KinFudgerTool extends BasicTool {
 
 	show();
     }
-
-    //public void stop()
-    //{
-	
-    //    hide();
-	//System.out.println("parent active?");
-	//parent.activateDefaultTool();
-    //}
 
 //{{{ xx_click() functions
 //##################################################################################################
@@ -191,6 +188,7 @@ public class KinFudgerTool extends BasicTool {
 	}
 	    
     }
+//}}}
 
     private String askInput(String f, double orig) {
 	String choice = (String) JOptionPane.showInputDialog(kMain.getTopWindow(), "What is your desired " + f + " (orig value: " + df.format(orig) + ")");
@@ -218,30 +216,30 @@ public class KinFudgerTool extends BasicTool {
     }    
 //}}}
 
-//{{{ xx_drag() functions
+//{{{ drag
 //##################################################################################################
-    /** Override this function for (left-button) drags */
-    public void drag(int dx, int dy, MouseEvent ev) {
-	//System.out.println(dx + ";" + dy);
-	KView v = kMain.getView();
-	if(v != null && draggedPoint != null) {
-
+  /** Override this function for (left-button) drags */
+  public void drag(int dx, int dy, MouseEvent ev) {
+    //System.out.println(dx + ";" + dy);
+    KView v = kMain.getView();
+    if(v != null && draggedPoint != null) {
+      
 	    Dimension dim = kCanvas.getCanvasSize();
-
+      
 	    float[] xVector = v.translateRotated(1, 0, 0, Math.min(dim.width, dim.height));
 	    float[] yVector = v.translateRotated(0, -1, 0, Math.min(dim.width, dim.height));
-
-	    VectorPoint startAxis = new VectorPoint(null, "start", null);
+      
+	    VectorPoint startAxis = new VectorPoint("start", null);
 	    startAxis.setXYZ(draggedPoint.getX(), draggedPoint.getY(), draggedPoint.getZ());
-	    VectorPoint xAxis = new VectorPoint(null, "xAxis", startAxis);
+	    VectorPoint xAxis = new VectorPoint("xAxis", startAxis);
 	    xAxis.setXYZ(draggedPoint.getX() + xVector[0], draggedPoint.getY() + xVector[1], draggedPoint.getZ() + xVector[2]);
-	    VectorPoint yAxis = new VectorPoint(null, "yAxis", startAxis);
+	    VectorPoint yAxis = new VectorPoint("yAxis", startAxis);
 	    yAxis.setXYZ(draggedPoint.getX() + yVector[0], draggedPoint.getY() + yVector[1], draggedPoint.getZ() + yVector[2]);
-
+      
 	    float xRotAmount = ((float)(2.0*Math.PI) * dx / 3f);
 	    Transform xRotate = new Transform();
 	    xRotate = xRotate.likeRotation(draggedPoint, yAxis, xRotAmount);
-
+      
 	    float yRotAmount = ((float)(2.0*Math.PI) * dy / 3f);
 	    Transform yRotate = new Transform();
 	    yRotate = yRotate.likeRotation(draggedPoint, xAxis, yRotAmount);
@@ -251,44 +249,49 @@ public class KinFudgerTool extends BasicTool {
 	    Kinemage kin = kMain.getKinemage();
 	    Iterator iter = kin.iterator();
 	    while (iter.hasNext()) {
-		KGroup group = (KGroup) iter.next();
-		if (group.isOn()) {
-		    Iterator groupIters = group.iterator();
-		    while (groupIters.hasNext()) {
-			KSubgroup sub = (KSubgroup) groupIters.next();
-			Iterator subIters = sub.iterator();
-			while (subIters.hasNext()) {
-			    KList list = (KList) subIters.next();
-			    Iterator listIter = list.iterator();
-			    while (listIter.hasNext()) {
-				AbstractPoint point = (AbstractPoint) listIter.next();
-				if (mobilePoints.contains(point)) {
-				    xRotate.transform(point);
-				    yRotate.transform(point);
-				    tempSet.add(clonePoint(point));
-				}
-				
-			    }
-			}
-		    }
-		}
+        KGroup group = (KGroup) iter.next();
+        if (group.isOn()) {
+          KIterator<KPoint> groupIter = KIterator.allPoints(group);
+          for (KPoint pt : groupIter) {
+            /*
+            Iterator groupIters = group.iterator();
+            while (groupIters.hasNext()) {
+              KSubgroup sub = (KSubgroup) groupIters.next();
+              Iterator subIters = sub.iterator();
+              while (subIters.hasNext()) {
+                KList list = (KList) subIters.next();
+                Iterator listIter = list.iterator();
+                while (listIter.hasNext()) {
+                */
+                AbstractPoint point = (AbstractPoint) pt;
+                if (mobilePoints.contains(point)) {
+                  xRotate.transform(point);
+                  yRotate.transform(point);
+                  tempSet.add(clonePoint(point));
+                }
+                
+              //}
+            //}
+          }
+        }
 	    }
 	    mobilePoints.clear();
 	    mobilePoints.addAll(tempSet);
-
-	    kCanvas.repaint();
-	}
-	else super.drag(dx, dy, ev);
-
+      
     }
-
-    /** Override this function for right-button/shift drags */
-    public void s_drag(int dx, int dy, MouseEvent ev)
+    else super.drag(dx, dy, ev);
+    
+  }
+  //}}}
+  
+//{{{ s_drag
+  /** Override this function for right-button/shift drags */
+  public void s_drag(int dx, int dy, MouseEvent ev)
+  {
+    KView v = kMain.getView();
+    if(v != null && draggedPoint != null)
     {
-        KView v = kMain.getView();
-        if(v != null && draggedPoint != null)
-        {
-
+      
 	    Dimension dim = kCanvas.getCanvasSize();
 	    //float[] center = v.getCenter();
 	    //float[] offset = v.translateRotated(ev.getX() - dim.width/2, dim.height/2 - ev.getY(), 0, Math.min(dim.width, dim.height));
@@ -304,87 +307,101 @@ public class KinFudgerTool extends BasicTool {
 	    draggedPoint.setX(draggedPoint.getX() + offset[0]);
 	    draggedPoint.setY(draggedPoint.getY() + offset[1]);
 	    draggedPoint.setZ(draggedPoint.getZ() + offset[2]);  
-
+      
 	    HashSet tempSet = new HashSet();  // for storing new, moved coords temporarily for mobilePoints
 	    Kinemage kin = kMain.getKinemage();
 	    Iterator iter = kin.iterator();
 	    while (iter.hasNext()) {
-		KGroup group = (KGroup) iter.next();
-		if (group.isOn()) {
-		    Iterator groupIters = group.iterator();
-		    while (groupIters.hasNext()) {
-			KSubgroup sub = (KSubgroup) groupIters.next();
-			Iterator subIters = sub.iterator();
-			while (subIters.hasNext()) {
-			    KList list = (KList) subIters.next();
-			    Iterator listIter = list.iterator();
-			    while (listIter.hasNext()) {
-				AbstractPoint point = (AbstractPoint) listIter.next();
-				if (mobilePoints.contains(point)) {
-				    //System.out.println("Moving: " + point);
-				    //mobilePoints.remove(point);
-				    //point.setX(point.getX() + origCoord.getX());
-				    //point.setY(point.getY() + origCoord.getY());
-				    //point.setZ(point.getZ() + origCoord.getZ());  
-				    point.setX(point.getX() + offset[0]);
-				    point.setY(point.getY() + offset[1]);
-				    point.setZ(point.getZ() + offset[2]);
-				    tempSet.add(clonePoint(point));
-				}
-				
-			    }
-			}
-		    }
-		}
+        KGroup group = (KGroup) iter.next();
+        if (group.isOn()) {
+          KIterator<KPoint> groupIter = KIterator.allPoints(group);
+          for (KPoint pt : groupIter) {
+            /*
+          Iterator groupIters = group.iterator();
+          while (groupIters.hasNext()) {
+            KSubgroup sub = (KSubgroup) groupIters.next();
+            Iterator subIters = sub.iterator();
+            while (subIters.hasNext()) {
+              KList list = (KList) subIters.next();
+              Iterator listIter = list.iterator();
+              while (listIter.hasNext()) {
+                */
+                AbstractPoint point = (AbstractPoint) pt;
+                if (mobilePoints.contains(point)) {
+                  //System.out.println("Moving: " + point);
+                  //mobilePoints.remove(point);
+                  //point.setX(point.getX() + origCoord.getX());
+                  //point.setY(point.getY() + origCoord.getY());
+                  //point.setZ(point.getZ() + origCoord.getZ());  
+                  point.setX(point.getX() + offset[0]);
+                  point.setY(point.getY() + offset[1]);
+                  point.setZ(point.getZ() + offset[2]);
+                  tempSet.add(clonePoint(point));
+                }
+                
+              //}
+            //}
+          }
+        }
 	    }
 	    mobilePoints.clear();
 	    mobilePoints.addAll(tempSet);
-
-	    kCanvas.repaint();
-	}
-        else super.s_drag(dx, dy, ev);
+      
     }
+    else super.s_drag(dx, dy, ev);
+  }
 //}}}
 
 
-    public void buildAdjacencyList() {
-	adjacencyMap = new HashMap();
-	Kinemage kin = kMain.getKinemage();
-	if (kin != null) kin.setModified(true);
-	Iterator iter = kin.iterator();
-	while (iter.hasNext()) {
-	    KGroup group = (KGroup) iter.next();
-	    //if (group.isOn()) {
-		Iterator groupIters = group.iterator();
-		while (groupIters.hasNext()) {
-		    KSubgroup sub = (KSubgroup) groupIters.next();
-		    Iterator subIters = sub.iterator();
-		    //if (sub.isOn()) {
-		    while (subIters.hasNext()) {
-			KList list = (KList) subIters.next();
-			//if (list.isOn()) {
-			    Iterator listIter = list.iterator();
-			    while (listIter.hasNext()) {
-				Object next = listIter.next();
-				if (next instanceof VectorPoint) {
-				    VectorPoint currPoint = (VectorPoint) next;
-				    
-				    if ((!currPoint.isBreak())&&(currPoint.isOn())) {
-					VectorPoint prevPoint = (VectorPoint) currPoint.getPrev();
-					addPoints(prevPoint, currPoint);
-					addPoints(currPoint, prevPoint);
-				    }
-				}
-				//}
-			}
-			    //}
-		    }
-		}
-		//}
-	}
+  public void buildAdjacencyList() {
+    adjacencyMap = new HashMap();
+    Kinemage kin = kMain.getKinemage();
+    if (kin != null) kin.setModified(true);
+    KIterator<KPoint> iter = KIterator.allPoints(kin);
+    for (KPoint point : iter) {
+      if (point instanceof VectorPoint) {
+        VectorPoint currPoint = (VectorPoint) point;
+        if ((!currPoint.isBreak())&&(currPoint.isOn())) {
+          VectorPoint prevPoint = (VectorPoint) currPoint.getPrev();
+          addPoints(prevPoint, currPoint);
+          addPoints(currPoint, prevPoint);
+        }
+      }
     }
+  }
+   /*     
+    Iterator iter = kin.iterator();
+    while (iter.hasNext()) {
+	    KGroup group = (KGroup) iter.next();
+      Iterator groupIters = group.iterator();
+      while (groupIters.hasNext()) {
+        KSubgroup sub = (KSubgroup) groupIters.next();
+        Iterator subIters = sub.iterator();
+        while (subIters.hasNext()) {
+          KList list = (KList) subIters.next();
+          Iterator listIter = list.iterator();
+          while (listIter.hasNext()) {
+            Object next = listIter.next();
+            if (next instanceof VectorPoint) {
+              VectorPoint currPoint = (VectorPoint) next;
+              
+              if ((!currPoint.isBreak())&&(currPoint.isOn())) {
+                VectorPoint prevPoint = (VectorPoint) currPoint.getPrev();
+                addPoints(prevPoint, currPoint);
+                addPoints(currPoint, prevPoint);
+              }
+            }
+              //}
+          }
+			    //}
+        }
+      }
+      //}
+    }
+  }*/
     
-    private void addPoints(VectorPoint prev, VectorPoint curr) {
+//{{{ addPoints
+        private void addPoints(VectorPoint prev, VectorPoint curr) {
 	if (adjacencyMap.containsKey(prev)) {
 	    HashSet prevSet = (HashSet) adjacencyMap.get(prev);
 	    prevSet.add(curr);
@@ -394,10 +411,11 @@ public class KinFudgerTool extends BasicTool {
 	    adjacencyMap.put(prev, prevSet);
 	}
     }
+//}}}
 
+//{{{ mobilityFinder
     public void mobilityFinder(AbstractPoint first, AbstractPoint second) {
 
-	    
 	Set keys = adjacencyMap.keySet();
 	Iterator iter = keys.iterator();
 	HashMap colors = new HashMap();
@@ -413,7 +431,6 @@ public class KinFudgerTool extends BasicTool {
 		    mobilePoints.add(clonePoint(adjPoint));
 		}
 	    }
-	
 	} else {
 	    while (iter.hasNext()) {
 		Object key = iter.next();
@@ -441,59 +458,64 @@ public class KinFudgerTool extends BasicTool {
 	    }
 	}
     }
-
+//}}}
+    
     private Object clonePoint(AbstractPoint point) {
-	VectorPoint pointClone = new VectorPoint(null, point.getName(), null);
+	VectorPoint pointClone = new VectorPoint(point.getName(), null);
 	pointClone.setX((float) point.getX());
 	pointClone.setY((float) point.getY());
 	pointClone.setZ((float) point.getZ());
 	return pointClone;
     }
 
+//{{{ translocatePoints
     public void translatePoints(AbstractPoint first, AbstractPoint second, double idealDist) {
-	System.out.println("translate");
-	double realDist = (new Triple(first)).distance(second);
-	Triple origVector = new Triple(second.getX() - first.getX(), second.getY() - first.getY(), second.getZ() - first.getZ());
-	origVector = origVector.mult(idealDist/realDist).add(first).sub(second);
-	Kinemage kin = kMain.getKinemage();
-	Iterator iter = kin.iterator();
-	while (iter.hasNext()) {
+    System.out.println("translate");
+    double realDist = (new Triple(first)).distance(second);
+    Triple origVector = new Triple(second.getX() - first.getX(), second.getY() - first.getY(), second.getZ() - first.getZ());
+    origVector = origVector.mult(idealDist/realDist).add(first).sub(second);
+    Kinemage kin = kMain.getKinemage();
+    Iterator iter = kin.iterator();
+    while (iter.hasNext()) {
 	    KGroup group = (KGroup) iter.next();
 	    if (group.isOn()) {
-		Iterator groupIters = group.iterator();
-		while (groupIters.hasNext()) {
-		    KSubgroup sub = (KSubgroup) groupIters.next();
-		    Iterator subIters = sub.iterator();
-		    while (subIters.hasNext()) {
-			KList list = (KList) subIters.next();
-			Iterator listIter = list.iterator();
-			while (listIter.hasNext()) {
-			    AbstractPoint point = (AbstractPoint) listIter.next();
-			    if (mobilePoints.contains(point)) {
-				//System.out.println("Moving: " + point);
-				point.setX(point.getX() + origVector.getX());
-				point.setY(point.getY() + origVector.getY());
-				point.setZ(point.getZ() + origVector.getZ());  
-			    }
-			    
-			}
-		    }
-		}
+        KIterator<KPoint> groupIter = KIterator.allPoints(group);
+        for (KPoint pt : groupIter) {
+          /*
+        Iterator groupIters = group.iterator();
+        while (groupIters.hasNext()) {
+          KSubgroup sub = (KSubgroup) groupIters.next();
+          Iterator subIters = sub.iterator();
+          while (subIters.hasNext()) {
+            KList list = (KList) subIters.next();
+            Iterator listIter = list.iterator();
+            while (listIter.hasNext()) {*/
+              AbstractPoint point = (AbstractPoint) pt;
+              if (mobilePoints.contains(point)) {
+                //System.out.println("Moving: " + point);
+                point.setX(point.getX() + origVector.getX());
+                point.setY(point.getY() + origVector.getY());
+                point.setZ(point.getZ() + origVector.getZ());  
+              }
+              
+            //}
+          //}
+        }
 	    }
-	}
-	kCanvas.repaint();
-
     }
+  }
+//}}}
 
-    public void rotatePoints(AbstractPoint first, AbstractPoint second, AbstractPoint third, double idealAngle) {
+//{{{ rotatePoints
+        public void rotatePoints(AbstractPoint first, AbstractPoint second, AbstractPoint third, double idealAngle) {
         double currAngle = Triple.angle(first, second, third);
 	System.out.println(currAngle + ", " + idealAngle);
 	Triple vectA = new Triple(first.getX()-second.getX(), first.getY()-second.getY(), first.getZ()-second.getZ());
 	Triple vectB = new Triple(third.getX()-second.getX(), third.getY()-second.getY(), third.getZ()-second.getZ());
 	Triple normal = vectA.cross(vectB);
-	VectorPoint ppoint = new VectorPoint(null, "axis", null);
+	VectorPoint ppoint = new VectorPoint("axis", null);
 	ppoint.setXYZ(second.getX(), second.getY(), second.getZ());
-	VectorPoint vpoint = new VectorPoint(null, "test", ppoint);
+	VectorPoint vpoint = new VectorPoint("test", ppoint);
 	vpoint.setX(normal.getX()+second.getX());
 	vpoint.setY(normal.getY()+second.getY());
 	vpoint.setZ(normal.getZ()+second.getZ());
@@ -503,30 +525,34 @@ public class KinFudgerTool extends BasicTool {
 	Kinemage kin = kMain.getKinemage();
 	Iterator iter = kin.iterator();
 	while (iter.hasNext()) {
-	    KGroup group = (KGroup) iter.next();
-	    if (group.isOn()) {
-		Iterator groupIters = group.iterator();
-		while (groupIters.hasNext()) {
+    KGroup group = (KGroup) iter.next();
+    if (group.isOn()) {
+      KIterator<KPoint> groupIter = KIterator.allPoints(group);
+      for (KPoint pt : groupIter) {
+        /*
+      Iterator groupIters = group.iterator();
+      while (groupIters.hasNext()) {
 		    KSubgroup sub = (KSubgroup) groupIters.next();
 		    Iterator subIters = sub.iterator();
 		    while (subIters.hasNext()) {
-			KList list = (KList) subIters.next();
-			Iterator listIter = list.iterator();
-			while (listIter.hasNext()) {
-			    AbstractPoint point = (AbstractPoint) listIter.next();
-			    if (mobilePoints.contains(point)) {
-				rotate.transform(point); 
-			    }
-			    
-			}
-		    }
-		}
-	    }
-	}
-	kCanvas.repaint();
+          KList list = (KList) subIters.next();
+          Iterator listIter = list.iterator();
+          while (listIter.hasNext()) {*/
+            AbstractPoint point = (AbstractPoint) pt;
+            if (mobilePoints.contains(point)) {
+              rotate.transform(point); 
+            }
+            
+          //}
+		    //}
+      }
     }
+	}
+    }
+//}}}
 
-    public void rotateDihedral(AbstractPoint first, AbstractPoint second, AbstractPoint third, AbstractPoint fourth, double idealAngle) {
+//{{{ rotateDihedral
+public void rotateDihedral(AbstractPoint first, AbstractPoint second, AbstractPoint third, AbstractPoint fourth, double idealAngle) {
 	double currAngle = Triple.dihedral(first, second, third, fourth);
 	Transform rotate = new Transform();
 	rotate = rotate.likeRotation(second, third, idealAngle - currAngle);
@@ -535,6 +561,9 @@ public class KinFudgerTool extends BasicTool {
 	while (iter.hasNext()) {
 	    KGroup group = (KGroup) iter.next();
 	    if (group.isOn()) {
+        KIterator<KPoint> groupIter = KIterator.allPoints(group);
+        for (KPoint pt : groupIter) {
+          /*
 		Iterator groupIters = group.iterator();
 		while (groupIters.hasNext()) {
 		    KSubgroup sub = (KSubgroup) groupIters.next();
@@ -542,26 +571,26 @@ public class KinFudgerTool extends BasicTool {
 		    while (subIters.hasNext()) {
 			KList list = (KList) subIters.next();
 			Iterator listIter = list.iterator();
-			while (listIter.hasNext()) {
-			    AbstractPoint point = (AbstractPoint) listIter.next();
+			while (listIter.hasNext()) {*/
+			    AbstractPoint point = (AbstractPoint) pt;
 			    if (mobilePoints.contains(point)) {
 				rotate.transform(point); 
 			    }
 			    
-			}
-		    }
+			//}
+		    //}
 		}
 	    }
 	}
-	kCanvas.repaint();
 	
     }
+//}}}
 
     private void drawDebug(AbstractPoint prev, VectorPoint point) {
 	Kinemage kin = kMain.getKinemage();
-	KGroup group = new KGroup(kin, "test");
+	KGroup group = new KGroup("test");
 	kin.add(group);
-	KSubgroup sub = new KSubgroup(group, "test");
+	KGroup sub = new KGroup("test");
 	group.add(sub);
 	KList list = new KList(KList.VECTOR, "list");
 	sub.add(list);
@@ -569,7 +598,8 @@ public class KinFudgerTool extends BasicTool {
 	list.add(point);
     }
 
-    public void onExport(ActionEvent ev) {
+//{{{ onExport
+        public void onExport(ActionEvent ev) {
 	buildAdjacencyList();
 	JFileChooser saveChooser = new JFileChooser();
 	String currdir = System.getProperty("user.dir");
@@ -589,6 +619,8 @@ public class KinFudgerTool extends BasicTool {
 	}
 
     }
+//}}}
+
 
     public void savePDB(File f) {
 	try {

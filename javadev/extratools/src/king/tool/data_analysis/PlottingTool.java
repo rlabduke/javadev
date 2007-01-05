@@ -334,7 +334,8 @@ public class PlottingTool extends BasicTool {
             //ex.printStackTrace(SoftLog.err);
         }
     }
-
+//}}}
+    
     public void onPlot(ActionEvent ev) {
 	//replotButton.setEnabled(true);
 	//int numColumns = comboBoxes.length;
@@ -443,7 +444,7 @@ public class PlottingTool extends BasicTool {
 		    }
 		}
 		    
-		point = new BallPoint(null, value[0] + " " + value[1]);
+		point = new BallPoint(value[0] + " " + value[1]);
 		plottedPoints.put(value, point);
 		point.setRadius((float)0.1);
 		point.setAllCoords(floats);
@@ -474,32 +475,34 @@ public class PlottingTool extends BasicTool {
 	plot(dimNames, dimMinMax);
     }
 
-    public void plot(Collection dimNames, Integer[] dimMinMax) {
+//{{{ plot
+        public void plot(Collection dimNames, Integer[] dimMinMax) {
 	Kinemage kin = kMain.getKinemage();
 	kin.dimensionNames.addAll(dimNames);
 	kin.dimensionMinMax.addAll(Arrays.asList(dimMinMax));
 	kin.getMasterByName("Data Points");
 	//Iterator iter = kin.iterator();
 	//while (iter.hasNext()) {
-	KGroup group = new KGroup(kin, "test");
+	KGroup group = new KGroup("test");
 	group.setAnimate(true);
 	group.addMaster("Data Points");
 	kin.add(group);
-	KSubgroup subgroup = new KSubgroup(group, "test2");
+	KGroup subgroup = new KGroup("test2");
 	subgroup.setHasButton(false);
 	group.add(subgroup);
 	Collection lists = binnedPoints.values();
 	Iterator iter = lists.iterator();
 	while (iter.hasNext()) {
 	    KList list = (KList) iter.next();
-	    list.setParent(subgroup);
+	    //list.setParent(subgroup);
 	    subgroup.add(list);
 
 	}
-    	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+    	//kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
       
     }
-
+//}}}
+    
     public void createBins(int numInd, ArrayList colors, int color) {
 	if (color != -1) {
 	    if (KinUtil.isNumeric(numBinsField.getText())) {
@@ -516,17 +519,19 @@ public class PlottingTool extends BasicTool {
 		    //System.out.println(bin);
 		    //bin = new Double(Math.floor(bin.doubleValue()));
 		    KList list = new KList(KList.BALL, bin.toString());
-		    list.flags |= KList.NOHILITE;
+		    //list.flags |= KList.NOHILITE;
+        list.setNoHighlight(true);
 		    list.addMaster(bin.toString());
 		    list.setDimension(numInd);
 		    binnedPoints.put(bin, list);
 		}
 	    } else {
-		JOptionPane.showMessageDialog(pane, "Ploease put a number in the 'number of bins' field.", "Error", JOptionPane.ERROR_MESSAGE);
+		JOptionPane.showMessageDialog(pane, "Please put a number in the 'number of bins' field.", "Error", JOptionPane.ERROR_MESSAGE);
 	    }
 	} else {
 	    KList list = new KList(KList.BALL, "multi-dim points");
-	    list.flags |= KList.NOHILITE;
+	    //list.flags |= KList.NOHILITE;
+      list.setNoHighlight(true);
 	    list.setDimension(numInd);
 	    binnedPoints.put(new Double("0"), list);
 	}
@@ -541,7 +546,8 @@ public class PlottingTool extends BasicTool {
 		//  without rounding the bins (and calculations later).
 		Double bin = new Double((double)Math.round((minColor + perDiv * i)*1000)/1000);
 		KList list = new KList(KList.BALL, bin.toString());
-		list.flags |= KList.NOHILITE;
+		//list.flags |= KList.NOHILITE;
+    list.setNoHighlight(true);
 		list.addMaster(bin.toString());
 		list.setDimension(numInd);
 		binnedPoints.put(bin, list);
@@ -549,7 +555,8 @@ public class PlottingTool extends BasicTool {
 	    }
 	} else {
 	    KList list = new KList(KList.BALL, "multi-dim points");
-	    list.flags |= KList.NOHILITE;
+	    //list.flags |= KList.NOHILITE;
+      list.setNoHighlight(true);
 	    list.setDimension(numInd);
 	    binnedPoints.put(new Double(0), list);
 	}
@@ -585,11 +592,12 @@ public class PlottingTool extends BasicTool {
 	kCanvas.repaint();
     }
 
-    public void onPlotParallel(ActionEvent ev) {
+//{{{ onPlotParallel
+        public void onPlotParallel(ActionEvent ev) {
 	Kinemage kin = kMain.getKinemage();
-	KGroup group = new KGroup(kin, "parallel");
+	KGroup group = new KGroup("parallel");
 	kin.add(group);
-	KSubgroup subgroup = new KSubgroup(group, "partest");
+	KGroup subgroup = new KGroup("partest");
 	subgroup.setHasButton(false);
 	group.add(subgroup);
 	Iterator iter = allPoints.iterator();
@@ -599,23 +607,25 @@ public class PlottingTool extends BasicTool {
 		int[] order = {2, 5, 3, 6, 4, 7, 2};
 		KList list = makeList(value, order);
 		subgroup.add(list);
-		list.setParent(subgroup);
+		//list.setParent(subgroup);
 		list.setWidth(1);
-		list.alpha = 128;
+		list.setAlpha(128);
 		list.setHasButton(false);
 	    }
 	}
-	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+	//kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
 	
     }
+//}}}
 
-    public KList makeList(String[] value, int[] order) {
+//{{{ makeList
+        public KList makeList(String[] value, int[] order) {
 	KList list = new KList(KList.VECTOR);
 	list.setName(value[0]);
 	VectorPoint prevPoint = null;
 	for (int i = 0; i < order.length; i++) {
 	    String coord = value[order[i]];
-	    VectorPoint point = new VectorPoint(list, coord, prevPoint);
+	    VectorPoint point = new VectorPoint(coord, prevPoint);
 	    point.setXYZ(i*100, Double.parseDouble(coord), Double.parseDouble(value[8])*5);
 	    list.add(point);
 	    prevPoint = point;
@@ -624,7 +634,7 @@ public class PlottingTool extends BasicTool {
 	
 	return list;
     }
-	    
+//}}}	    
 
     public void onRescale(ActionEvent ev) {
 	Collection points = plottedPoints.values();
