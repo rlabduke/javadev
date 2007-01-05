@@ -117,7 +117,7 @@ public class XknWriter extends Plugin implements XMLReader
         Kinemage    kin;
         int         index   = 1;
         
-        for(Iterator iter = stable.iterator(); iter.hasNext(); index++)
+        for(Iterator iter = stable.getKins().iterator(); iter.hasNext(); index++)
         {
             kin = (Kinemage)iter.next();
             writeKinemage(kin, index);
@@ -145,7 +145,7 @@ public class XknWriter extends Plugin implements XMLReader
         Iterator iter;
         
         int idx = 1;
-        for(iter = kin.getViewIterator(); iter.hasNext(); idx++)
+        for(iter = kin.getViewList().iterator(); iter.hasNext(); idx++)
         {
             writeView((KView)iter.next(), idx);
         }
@@ -195,15 +195,15 @@ public class XknWriter extends Plugin implements XMLReader
             master = (MasterGroup)iter.next();
             if(master.isTarget(group)) writeMasterReference(master);
         }*/
-        for(iter = group.masterIterator(); iter != null && iter.hasNext(); )
+        for(iter = group.getMasters().iterator(); iter != null && iter.hasNext(); )
         {
             writeMasterReference(iter.next().toString());
         }
         
-        KSubgroup subgroup;
+        KGroup subgroup;
         for(iter = group.iterator(); iter.hasNext(); )
         {
-            subgroup = (KSubgroup)iter.next();
+            subgroup = (KGroup)iter.next();
             writeSubgroup(subgroup, kin);
         }
 
@@ -236,7 +236,7 @@ public class XknWriter extends Plugin implements XMLReader
             master = (MasterGroup)iter.next();
             if(master.isTarget(subgroup)) writeMasterReference(master);
         }*/
-        for(iter = subgroup.masterIterator(); iter != null && iter.hasNext(); )
+        for(iter = subgroup.getMasters().iterator(); iter != null && iter.hasNext(); )
         {
             writeMasterReference(iter.next().toString());
         }
@@ -268,11 +268,11 @@ public class XknWriter extends Plugin implements XMLReader
         if(! list.hasButton())  atts.addAttribute(nsu, "nobutton", "nobutton", "CDATA", "true");
         atts.addAttribute(nsu, "color", "color", "CDATA", list.getColor().toString());
         if(list.getType() == KList.VECTOR)
-        { atts.addAttribute(nsu, "width", "width", "CDATA", Integer.toString(list.width)); }
+        { atts.addAttribute(nsu, "width", "width", "CDATA", Integer.toString(list.getWidth())); }
         else if(list.getType() == KList.BALL || list.getType() == KList.SPHERE)
         {
-            atts.addAttribute(nsu, "radius", "radius", "CDATA", df.format(list.radius));
-            if((list.flags & KList.NOHILITE) != 0)
+            atts.addAttribute(nsu, "radius", "radius", "CDATA", df.format(list.getRadius()));
+            if(list.getNoHighlight())
             { atts.addAttribute(nsu, "highlight", "highlight", "CDATA", "false"); }
         }
 
@@ -286,7 +286,7 @@ public class XknWriter extends Plugin implements XMLReader
             master = (MasterGroup)iter.next();
             if(master.isTarget(list)) writeMasterReference(master);
         }*/
-        for(iter = list.masterIterator(); iter != null && iter.hasNext(); )
+        for(iter = list.getMasters().iterator(); iter != null && iter.hasNext(); )
         {
             writeMasterReference(iter.next().toString());
         }
@@ -320,7 +320,7 @@ public class XknWriter extends Plugin implements XMLReader
         if(point instanceof VectorPoint)
         {
             VectorPoint v = (VectorPoint)point;
-            if(v.getWidth() > 0 && v.getWidth() != list.width)
+            if(v.getWidth() > 0 && v.getWidth() != list.getWidth())
             { atts.addAttribute(nsu, "width", "width", "CDATA", Integer.toString(v.getWidth())); }
         }
         else if(point instanceof BallPoint)

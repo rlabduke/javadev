@@ -4,6 +4,7 @@ package king.tool.export;
 import king.*;
 import king.core.*;
 import king.points.*;
+import king.io.KinfileParser;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -99,7 +100,7 @@ public class Vrml97Writer extends Plugin
         out.println(" Transform { children [");
         for(Iterator iter = group.iterator(); iter.hasNext(); )
         {
-            KSubgroup subgroup = (KSubgroup)iter.next();
+            KGroup subgroup = (KGroup)iter.next();
             writeSubgroup(subgroup, kin);
         }
         out.println(" ] }");

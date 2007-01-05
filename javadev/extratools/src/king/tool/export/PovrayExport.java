@@ -153,8 +153,8 @@ public class PovrayExport extends Plugin
         Iterator iter;
         out.println("//@kinemage "+index+" - hand edit at end of kinemage def.");
         out.println("// Should be span (from view) / (2 * rendering width in pixels)");
-        out.println("#declare LW = "+df.format(kin.getCurrentView().getSpan())+" / (2 * 600); // unit line width"); 
-        out.println("#declare DW = "+df.format(kin.getCurrentView().getSpan())+" / (2 * 600); // unit dot width"); 
+        out.println("#declare LW = "+df.format(kMain.getView().getSpan())+" / (2 * 600); // unit line width"); 
+        out.println("#declare DW = "+df.format(kMain.getView().getSpan())+" / (2 * 600); // unit dot width"); 
         out.println("#declare LabelFont = \"timrom.ttf\"; // may need +L/path/to/font/files");
         out.println("#declare LabelDepth = 0.001; // essentially flat text");
         out.println("#declare LabelOffset = 0;");
@@ -201,8 +201,8 @@ public class PovrayExport extends Plugin
         out.println("//     camera { ... transform { View0 inverse } } // INVERSE is crucial!");
         out.println("// Use CLIPPED_BY statements with kinemage object declaration to get clipping.");
         int idx = 0;
-        writeView(kin.getCurrentView(), idx++);
-        for(iter = kin.getViewIterator(); iter.hasNext(); idx++)
+        writeView(kMain.getView(), idx++);
+        for(iter = kin.getViewList().iterator(); iter.hasNext(); idx++)
         {
             writeView((KView)iter.next(), idx);
         }
@@ -253,7 +253,7 @@ public class PovrayExport extends Plugin
         
         for(Iterator iter = group.iterator(); iter.hasNext(); )
         {
-            KSubgroup subgroup = (KSubgroup)iter.next();
+            KGroup subgroup = (KGroup)iter.next();
             writeSubgroup(subgroup, kin);
         }
         
@@ -421,11 +421,10 @@ public class PovrayExport extends Plugin
     Map buildTriangleNormals(Kinemage kin)
     {
         // 1. Accumulate triangle normals involving a particular point
-        RecursivePointIterator rpi = new RecursivePointIterator(kin);
         Map normals = new HashMap(); // maps KPoints to Collections of Triples
-        while(rpi.hasNext())
+        boolean swapNormal = false;
+        for(KPoint pt : KIterator.allPoints(kin))
         {
-            KPoint pt = rpi.next();
             if(!(pt instanceof TrianglePoint)) continue;
             TrianglePoint t = (TrianglePoint) pt;
             if(t.getPrev() == null || t.getPrev().getPrev() == null) continue;
@@ -435,7 +434,8 @@ public class PovrayExport extends Plugin
             Triple b = new Triple(v).sub(t);
             a.cross(b).unit();
             // Swap alternate triangles to keep normals pointing the right way!
-            if((t.multi & t.SEQ_EVEN_BIT) != 0) a.neg();
+            if(swapNormal) a.neg();
+            swapNormal = !swapNormal;
             Collection n = (Collection) normals.get(t);
             if(n == null)
             {

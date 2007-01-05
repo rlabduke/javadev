@@ -210,7 +210,7 @@ public class KingLiteBinaryExport extends Plugin
             if(group.hasButton()) saveGroup(out, group);
             for(Iterator si = group.iterator(); si.hasNext(); )
             {
-                KSubgroup subgroup = (KSubgroup) si.next();
+                KGroup subgroup = (KGroup) si.next();
                 if(!subgroup.isOn()) continue;
                 if(subgroup.hasButton() && !group.isDominant()) saveGroup(out, subgroup);
                 for(Iterator li = subgroup.iterator(); li.hasNext(); )
@@ -240,12 +240,15 @@ public class KingLiteBinaryExport extends Plugin
         
         if(age instanceof KGroup)
         {
-            entityType = ENT_GROUP;
-            if(((KGroup)age).isAnimate()) flags |= ANIMATE_BIT;
-        }
-        else if(age instanceof KSubgroup)
-        {
-            entityType = ENT_SUBGROUP;
+            if(age.getDepth() == 1)
+            {
+                entityType = ENT_GROUP;
+                if(((KGroup)age).isAnimate()) flags |= ANIMATE_BIT;
+            }
+            else
+            {
+                entityType = ENT_SUBGROUP;
+            }
         }
         else if(age instanceof KList)
         {
