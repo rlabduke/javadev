@@ -1,0 +1,8 @@
+Once upon a time, this actually worked.
+
+Now, however, it doesn't.  Although the Python file PyKingConsole.py gets
+"compiled" to a real Java class, that class extends Object rather than
+king.Plugin.  I'm not sure why this ever worked at all, but now it certainly
+does NOT, in part because KiNG can't call the static method isAppletSafe() on
+the PyKingConsole class.
+
