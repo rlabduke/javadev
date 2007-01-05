@@ -91,9 +91,9 @@ public class FramerTool extends BasicTool {
     {
 	super.click(x, y, p, ev);
 	if (p != null) {
-	    KList parent = (KList) p.getOwner();
+	    KList parent = (KList) p.getParent();
 	    //while !(parent instanceof Kinemage) {
-	    //	parent = parent.getOwner();
+	    //	parent = parent.getParent();
 	    //}
 	    //TreeMap caMap = new TreeMap();
 	    //TreeMap oxyMap = new TreeMap();
@@ -177,7 +177,7 @@ public class FramerTool extends BasicTool {
 	point.setColor(color);
 	list.add(point);
 	subgroup.add(list);
-	list.setOwner(subgroup);
+	list.setParent(subgroup);
     }
 
     

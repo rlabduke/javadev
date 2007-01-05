@@ -461,11 +461,11 @@ public class PlottingTool extends BasicTool {
 		    }
 		    KList list = (KList) binnedPoints.get(binValue);
 		    list.add(point);
-		    point.setOwner(list);
+		    point.setParent(list);
 		} else {
 		    KList list = (KList) binnedPoints.get(new Double("0"));
 		    list.add(point);
-		    point.setOwner(list);
+		    point.setParent(list);
 		}
 	    }
 	}
@@ -491,7 +491,7 @@ public class PlottingTool extends BasicTool {
 	Iterator iter = lists.iterator();
 	while (iter.hasNext()) {
 	    KList list = (KList) iter.next();
-	    list.setOwner(subgroup);
+	    list.setParent(subgroup);
 	    subgroup.add(list);
 
 	}
@@ -598,7 +598,7 @@ public class PlottingTool extends BasicTool {
 		int[] order = {2, 5, 3, 6, 4, 7, 2};
 		KList list = makeList(value, order);
 		subgroup.add(list);
-		list.setOwner(subgroup);
+		list.setParent(subgroup);
 		list.setWidth(1);
 		list.alpha = 128;
 		list.setHasButton(false);

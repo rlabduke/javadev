@@ -68,7 +68,7 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
     {
         //super.click(x, y, p, ev);
 	if (p != null) {
-	    KList parentList = (KList) p.getOwner();
+	    KList parentList = (KList) p.getParent();
 	    Integer resNumber = new Integer(getResNumber(p));
 	    if (!structMap.containsKey(resNumber))//||!clickedLists.contains(parentList)) {
 		{
@@ -131,9 +131,9 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
     public void splitStructure(KPoint p) {
 
 	String pointID = p.getName().trim();
-	KList parentList = (KList) p.getOwner();
+	KList parentList = (KList) p.getParent();
 	clickedLists.add(parentList);
-	//KSubgroup parentGroup = (KSubgroup) parentList.getOwner();
+	//KSubgroup parentGroup = (KSubgroup) parentList.getParent();
 	Iterator iter = parentList.iterator();
 	KPoint point;
 	ArrayList listofPoints = new ArrayList();
@@ -158,7 +158,7 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
 //}}}
 
     public boolean contains(KPoint p) {
-	KList parentList = (KList) p.getOwner();
+	KList parentList = (KList) p.getParent();
 	Integer resNum = new Integer(getResNumber(p));
 	return (structMap.containsKey(resNum)&&clickedLists.contains(parentList));
     }
@@ -205,7 +205,7 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
      **/
     
     public void highlightAll(KPoint p, KPaint[] colors) {
-    	//KList parentList = (KList) p.getOwner();
+    	//KList parentList = (KList) p.getParent();
     	//Iterator iter = parentList.iterator();
     	highlightRange(lowResNum.intValue(), highResNum.intValue(), colors);
     }
@@ -213,7 +213,7 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
 //}}}
 
     public void highlightAA(KPoint p, String aaName, KPaint color, boolean colorPrior) {
-	KList parentList = (KList) p.getOwner();
+	KList parentList = (KList) p.getParent();
 	Iterator iter = parentList.iterator();
 	HashSet aaNums = new HashSet();
 	while (iter.hasNext()) {

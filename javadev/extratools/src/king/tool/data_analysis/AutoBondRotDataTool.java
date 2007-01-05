@@ -403,10 +403,10 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	if (listMap.containsKey(new Double(value))) {
 	    KList list = (KList) listMap.get(new Double(value));
 	    list.add(point);
-	    point.setOwner(list);
+	    point.setParent(list);
 	} else {
 	    KList list = new KList(KList.BALL);
-	    point.setOwner(list);
+	    point.setParent(list);
 	    list.add(point);
 	    list.setName(Double.toString(value));
 	    listMap.put(new Double(value), list);
@@ -447,7 +447,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	    //list.setType("BALL");
 	    list.setHasButton(false);
 	    subgroup.add(list);
-	    list.setOwner(subgroup);
+	    list.setParent(subgroup);
 	}
 	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
     }
@@ -522,7 +522,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		double clashValue = Double.parseDouble(point.getName());
 		if ((clashValue<firstNum)||(clashValue>secondNum)) {
 		    if (!offPointSet.contains(point)) {
-			KList owner = (KList) point.getOwner();
+			KList owner = (KList) point.getParent();
 			owner.add(point);
 		    }
 		} else {
@@ -557,7 +557,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 		KPoint point = (KPoint) offPoints.get(i);
 		double clashValue = Double.parseDouble(point.getName());
 		if ((clashValue>=firstNum)&&(clashValue<=secondNum)) {
-		    KList owner = (KList) point.getOwner();
+		    KList owner = (KList) point.getParent();
 		    owner.add(point);
 		    offPoints.remove(i);
 		}
@@ -745,7 +745,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	    Iterator iter = allPoints.iterator();
 	    while (iter.hasNext()) {
 		KPoint point = (KPoint) iter.next();
-		KList list = (KList) point.getOwner();
+		KList list = (KList) point.getParent();
 		point.setZ(Double.parseDouble(list.getName()));
 	    }
 	}

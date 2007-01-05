@@ -114,7 +114,7 @@ public class RamaTool extends BasicTool {
 		    VectorPoint n2 = getPoint(nextList, "n ");
 		    VectorPoint ramaPoint = calcRama(c0, n1, ca1, c1, n2, prev);
 		    //System.out.println(ramaPoint);
-		    ramaPoint.setOwner(list);
+		    ramaPoint.setParent(list);
 		    list.add(ramaPoint);
 		    prev = ramaPoint;
 		    
@@ -127,7 +127,7 @@ public class RamaTool extends BasicTool {
 	    //list.setType("BALL");
 	    list.setHasButton(false);
 	    subgroup.add(list);
-	    list.setOwner(subgroup);
+	    list.setParent(subgroup);
     
 	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
     }

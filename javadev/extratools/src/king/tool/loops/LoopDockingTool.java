@@ -225,9 +225,9 @@ public class LoopDockingTool extends BasicTool {
 	if (p != null) {
 	    if (refPath != null) { // after a reference has been picked
 		connect.buildAdjacencyList(false);
-		KList list = (KList) p.getOwner();
-		KSubgroup sub = (KSubgroup) list.getOwner();
-		KGroup group = (KGroup) sub.getOwner();
+		KList list = (KList) p.getParent();
+		KSubgroup sub = (KSubgroup) list.getParent();
+		KGroup group = (KGroup) sub.getParent();
 		String pdbID = group.getName().substring(0, 4).toLowerCase();
 		mobilePoints = connect.mobilityFinder((AbstractPoint)p);
 		Integer minRes = findMinResidue(mobilePoints);
@@ -259,9 +259,9 @@ public class LoopDockingTool extends BasicTool {
 		superimpose(refPath, mobilePath);
 	    } else { // picks the reference points
 		connect.buildAdjacencyList(false);
-		KList list = (KList) p.getOwner();
-		KSubgroup sub = (KSubgroup) list.getOwner();
-		KGroup group = (KGroup) sub.getOwner();
+		KList list = (KList) p.getParent();
+		KSubgroup sub = (KSubgroup) list.getParent();
+		KGroup group = (KGroup) sub.getParent();
 		String pdbID = group.getName().substring(0, 4).toLowerCase();
 	        mobilePoints = connect.mobilityFinder((AbstractPoint)p);
 		Integer minRes = findMinResidue(mobilePoints);

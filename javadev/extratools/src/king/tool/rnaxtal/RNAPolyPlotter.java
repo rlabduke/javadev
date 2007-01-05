@@ -65,7 +65,7 @@ public class RNAPolyPlotter
 
 	if (!polyTracker.isInitialized()) {
 	    //still need to make program check whether polytracker initiated for particular KList
-	    polyTracker.initiateMap((KList) p.getOwner());
+	    polyTracker.initiateMap((KList) p.getParent());
 	}
 	KList polyList = polyTracker.getPolyhedra(p);
 	MarkerPoint phos = polyAnalyze(polyList);
@@ -153,7 +153,7 @@ public class RNAPolyPlotter
 	    listPoint = (VectorPoint) iter.next();
 	    //listPoint.setColor(KPalette.gold);
 	    //listPoint.setWidth(5);
-	    listPoint.setOwner(startList);
+	    listPoint.setParent(startList);
 	    startList.add(listPoint);
 	}
 	return startList;
