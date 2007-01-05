@@ -214,7 +214,7 @@ public class XknWriter extends Plugin implements XMLReader
 
 //{{{ writeSubgroup()
 //##################################################################################################
-    void writeSubgroup(KSubgroup subgroup, Kinemage kin) throws SAXException
+    void writeSubgroup(KGroup subgroup, Kinemage kin) throws SAXException
     {
         Iterator iter;
 
@@ -349,7 +349,7 @@ public class XknWriter extends Plugin implements XMLReader
 
 //{{{ writeView()
 //##################################################################################################
-    void writeView(KingView view, int index) throws SAXException
+    void writeView(KView view, int index) throws SAXException
     {
         String elName = "view";
         AttributesImpl atts = new AttributesImpl();

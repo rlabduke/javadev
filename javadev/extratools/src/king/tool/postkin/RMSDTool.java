@@ -41,7 +41,7 @@ public class RMSDTool extends BasicTool {
             btnClear.addActionListener(this);
             btnRemove = new JButton("Remove last");
             btnRemove.addActionListener(this);
-            markList = new KList();
+            markList = new KList(KList.LABEL);
             markList.setColor(paint);
         }
         

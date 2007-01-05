@@ -95,11 +95,9 @@ public class CrossWindowPickTool extends BasicTool
         Kinemage kin = kMain.getKinemage();
         if(kin == null) return;
         
-        RecursivePointIterator iter = new RecursivePointIterator(kin);
-        while(iter.hasNext())
+        for(KPoint p : KIterator.visiblePoints(kin))
         {
-            KPoint p = iter.next();
-            if(p.isTotallyOn() && p.getName().equals(pointID))
+            if(p.getName().equals(pointID))
             {
                 services.pick(p);
                 break;

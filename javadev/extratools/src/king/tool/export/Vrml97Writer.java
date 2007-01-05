@@ -108,7 +108,7 @@ public class Vrml97Writer extends Plugin
 
 //{{{ writeSubgroup
 //##################################################################################################
-    void writeSubgroup(KSubgroup subgroup, Kinemage kin)
+    void writeSubgroup(KGroup subgroup, Kinemage kin)
     {
         // Only write out visible subgroups!
         if(! subgroup.isOn()) return;
@@ -183,7 +183,7 @@ public class Vrml97Writer extends Plugin
 
 //{{{ writeView(), writeMaster()
 //##################################################################################################
-    void writeView(KingView view, int index)
+    void writeView(KView view, int index)
     {
         /* NOT IMPLEMENTED * /
         out.println("@"+index+"viewid {"+view.getName()+"}");

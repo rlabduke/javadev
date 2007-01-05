@@ -91,7 +91,7 @@ public class RamaTool extends BasicTool {
 	    KSubgroup subgroup = new KSubgroup(group, "sub");
 	    subgroup.setHasButton(false);
 	    group.add(subgroup);
-	    KList list = new KList(null, "Points");
+	    KList list = new KList(KList.VECTOR, "Points");
 	    
 	    TreeSet keys = new TreeSet(pointMap.keySet());
 	    Iterator iter = keys.iterator();

@@ -40,9 +40,8 @@ public class RNALineTracker {//implements TransformSignalSubscriber  {
 	//parent.sigTransform.subscribe(this);
 
 	storedVertices = new Stack();
-	trackedList = new KList();
+	trackedList = new KList(KList.VECTOR);
 	trackedList.setName("test list");
-	trackedList.setType(KList.VECTOR);
 	//trackedList.setColor(KPalette.gold);
 	//trackedList.setWidth(7);
 
@@ -57,7 +56,7 @@ public class RNALineTracker {//implements TransformSignalSubscriber  {
 	VectorPoint listPoint;
 
 	ownerList = (KList) startPoint.getOwner();
-	tempTrackList = new KList();
+	tempTrackList = new KList(KList.VECTOR);
 	iter = ownerList.iterator();
 	for ( ; iter.hasNext(); ) {
 	    listPoint = (VectorPoint) iter.next();

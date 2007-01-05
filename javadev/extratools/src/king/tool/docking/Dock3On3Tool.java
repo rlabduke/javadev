@@ -46,7 +46,7 @@ public class Dock3On3Tool extends BasicTool
             pointList.setVisibleRowCount(3);
             btnClear = new JButton("Clear");
             btnClear.addActionListener(this);
-            markList = new KList();
+            markList = new KList(KList.LABEL);
             markList.setColor(paint);
             point1 = point2 = point3 = null;
         }

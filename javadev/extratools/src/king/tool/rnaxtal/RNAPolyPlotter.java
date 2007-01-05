@@ -38,9 +38,8 @@ public class RNAPolyPlotter
     */
     public RNAPolyPlotter(CrystalVertexSource map) {
 
-	list = new KList();
+	list = new KList(KList.VECTOR);
         list.setName("Picked Polys");
-        list.setType(KList.VECTOR);
         list.setWidth(5);
 
 	this.map = map;

@@ -562,7 +562,7 @@ public class KinFudgerTool extends BasicTool {
 	kin.add(group);
 	KSubgroup sub = new KSubgroup(group, "test");
 	group.add(sub);
-	KList list = new KList(sub, "list");
+	KList list = new KList(KList.VECTOR, "list");
 	sub.add(list);
 	list.add(prev);
 	list.add(point);

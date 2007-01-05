@@ -94,8 +94,7 @@ public class LathePlugin extends Plugin
         for(int i = 1; i < polyline.length; i++)
         {
             TrianglePoint last = null;
-            KList tlist = new KList(subg, "band "+i);
-            tlist.setType(KList.RIBBON);
+            KList tlist = new KList(KList.RIBBON, "band "+i);
             tlist.setColor(  ((KPoint)vecList.children.get(i)).getDrawingColor()  );
             subg.add(tlist);
             
