@@ -182,9 +182,9 @@ public class PolygonFinder {
 	for ( ; iter.hasNext(); ) {
 	    listPoint = (VectorPoint) iter.next();
 	    if (listPoint.isBreak()) {
-		pointClone = clonePoint(listPoint, listClone, null);
+		pointClone = clonePoint(listPoint, null);
 	    } else {
-		pointClone = clonePoint(listPoint, listClone, prev);
+		pointClone = clonePoint(listPoint, prev);
 	    }
 	    listClone.add(pointClone);
 	    prev = pointClone;
@@ -192,10 +192,10 @@ public class PolygonFinder {
 	return listClone;
     }
 
-    private VectorPoint clonePoint(VectorPoint pointOrg, KList owner, VectorPoint start) {
+    private VectorPoint clonePoint(VectorPoint pointOrg, VectorPoint start) {
 	VectorPoint pointClone;
 	
-	pointClone = new VectorPoint(owner, pointOrg.getName(), start);
+	pointClone = new VectorPoint(pointOrg.getName(), start);
 	pointClone.setX((float) pointOrg.getX());
 	pointClone.setY((float) pointOrg.getY());
 	pointClone.setZ((float) pointOrg.getZ());

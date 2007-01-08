@@ -16,6 +16,7 @@ import java.text.DecimalFormat;
 import driftwood.util.*;
 import driftwood.gui.*;
 import king.tool.util.KinUtil;
+//}}}
 
 public class LoopTool extends BasicTool {
 
@@ -37,7 +38,7 @@ public class LoopTool extends BasicTool {
     JList keptList;
     DefaultListModel listModel;
     JFileChooser filechooser;
-
+    //}}}
 
     public LoopTool(ToolBox tb) {
 	super(tb);
@@ -335,7 +336,7 @@ public class LoopTool extends BasicTool {
 
     private void rename(AGE target, String addOn) {
 	if (target instanceof KList) {
-	    ListIterator iter = target.iterator();
+	    Iterator iter = target.iterator();
 	    while (iter.hasNext()) {
 		KPoint pt = (KPoint) iter.next();
 		pt.setName(pt.getName() + " " + addOn);
@@ -354,7 +355,7 @@ public class LoopTool extends BasicTool {
 
     private void recolor(AGE target, HashSet colorSet, KPaint color) {
 	if (target instanceof KList) {
-	    ListIterator iter = target.iterator();
+	    Iterator iter = target.iterator();
 	    while (iter.hasNext()) {
 		KPoint pt = (KPoint) iter.next();
 		int resNum = KinUtil.getResNumber(pt);
@@ -378,7 +379,7 @@ public class LoopTool extends BasicTool {
 	    if (target != null) ((Kinemage)target).setModified(true);
 	}
 	if (target instanceof KList) {
-	    ListIterator iter = target.iterator();
+	    Iterator iter = target.iterator();
 	    while (iter.hasNext()) {
 		KPoint pt = (KPoint) iter.next();
 		int resNum = KinUtil.getResNumber(pt);
@@ -416,6 +417,6 @@ public class LoopTool extends BasicTool {
     { return dialog; }
 
     public String toString() { return "Loop Tool"; }    
-
+    //}}}
 
 }

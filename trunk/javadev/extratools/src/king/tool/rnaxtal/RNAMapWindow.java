@@ -4,6 +4,7 @@ package king.tool.rnaxtal;
 import king.*;
 import king.core.*;
 import king.points.*;
+import king.tool.edmap.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -359,15 +360,15 @@ public class RNAMapWindow extends EDMapWindow //implements ChangeListener, Actio
 
         Kinemage kin = kMain.getKinemage();
         KGroup group = null;
-	KSubgroup subgroup = null;
+	KGroup subgroup = null;
         KList polyList = polyPlotter.getList();
 	KList planeList = planePlotter.getList();
 
 	if ((polyList != null)&&(planeList != null)) {
-	    group = new KGroup(kin, "RNA map");
+	    group = new KGroup("RNA map");
 	    kin.add(group);
 	    
-	    subgroup = new KSubgroup(group, "RNA map");
+	    subgroup = new KGroup("RNA map");
 	    subgroup.setHasButton(false);
 	    group.add(subgroup);
 	}
@@ -399,7 +400,7 @@ public class RNAMapWindow extends EDMapWindow //implements ChangeListener, Actio
 	}	
         updateMesh(); // regenerate the meshes we just exported
         
-        kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+        //kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
     }
 //}}}
 

@@ -204,13 +204,13 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    //colorator = new RecolorNonRibbon();
 	    AGE coloratorKey = (KList) p.getParent();
 	    //KList parentList = (KList) p.getParent();
-	    if (coloratorKey.hasMaster("ribbon")) {
+	    if (coloratorKey.getMasters().contains("ribbon")) {
 		coloratorKey = (AGE) coloratorKey.getParent();
 	    }
 	    if (coloratorMap.containsKey(coloratorKey)) {
 		colorator = (Recolorator) coloratorMap.get(coloratorKey);
 	    } else {
-		if (coloratorKey instanceof KSubgroup) {
+		if (coloratorKey instanceof KGroup) {
 		    colorator = new RecolorRibbon();
 		    coloratorMap.put(coloratorKey, colorator);
 		} else {

@@ -53,7 +53,7 @@ public class RNALineTracker {//implements TransformSignalSubscriber  {
 
     public void startTracking(VectorPoint startPoint) {
 	KList ownerList, tempTrackList;
-	ListIterator iter;
+	Iterator iter;
 	VectorPoint listPoint;
 
 	ownerList = (KList) startPoint.getParent();
@@ -95,14 +95,14 @@ public class RNALineTracker {//implements TransformSignalSubscriber  {
     public void onTracked() {
 
 	Kinemage kin = kMain.getKinemage();
-	KSubgroup subGroup;
+	KGroup subGroup;
 	KList oldList, newList;
 
 	KGroup group = findGroup(kin, "tracker Group");
 	if (group == null) {
-	    group = new KGroup(kin, "tracker Group");
+	    group = new KGroup("tracker Group");
 	    kin.add(group);
-	    subGroup = new KSubgroup(group, "tracker Subgroup");
+	    subGroup = new KGroup("tracker Subgroup");
 	    subGroup.setHasButton(false);
 	    group.add(subGroup);
 	    trackedList.setParent(subGroup);
@@ -127,7 +127,7 @@ public class RNALineTracker {//implements TransformSignalSubscriber  {
 	//subgroup.add(trackedList);
 	//setID("tracking is going?");
 	//System.out.println("on tracking...");
-	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+	//kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
 	//kCanvas.repaint();
     }
 
@@ -144,12 +144,12 @@ public class RNALineTracker {//implements TransformSignalSubscriber  {
 	return null;
     }
     
-    private KSubgroup findSubgroup(KGroup group, String subgroupName) {
+    private KGroup findSubgroup(KGroup group, String subgroupName) {
 	Iterator iter = group.iterator();
-	KSubgroup kinSubgroup;
+	KGroup kinSubgroup;
 
 	for ( ; iter.hasNext(); ) {
-	    kinSubgroup = (KSubgroup) iter.next();
+	    kinSubgroup = (KGroup) iter.next();
 	    if (kinSubgroup.getName().equals(subgroupName)) {
 		return kinSubgroup;
 	    }
@@ -157,7 +157,7 @@ public class RNALineTracker {//implements TransformSignalSubscriber  {
 	return null;
     }
 
-    private KList findKList(KSubgroup subGroup, String listName) {
+    private KList findKList(KGroup subGroup, String listName) {
 	Iterator iter = subGroup.iterator();
 	KList sgList;
 

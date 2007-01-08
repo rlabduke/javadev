@@ -13,7 +13,7 @@ import java.awt.*;
 import javax.swing.*;
 import driftwood.gui.*;
 import driftwood.util.Strings;
-
+import driftwood.r3.*;
 
 public class PlottingTool extends BasicTool {
     
@@ -227,7 +227,6 @@ public class PlottingTool extends BasicTool {
     }
 //}}}
 
-
 //{{{ makeFileChooser
 //##################################################################################################
     void makeFileChooser()
@@ -245,7 +244,6 @@ public class PlottingTool extends BasicTool {
 
     }
 //}}}
-
 
 //{{{ openOpenFile
 //##################################################################################################
@@ -636,20 +634,28 @@ public class PlottingTool extends BasicTool {
     }
 //}}}	    
 
+
+
+//{{{ onRescale
+  /**
+  * Handles rescaling the plotted points.  Used to scale the tranformed coordinates, but due
+  * to setDrawXYZ functions disappearing in King 2.0, this function will have to actually 
+  * rescale the values of the coordinates.
+  **/
     public void onRescale(ActionEvent ev) {
 	Collection points = plottedPoints.values();
 	Iterator iter = points.iterator();
 	while (iter.hasNext()) {
-	    KPoint point = (KPoint) iter.next();
+	    AbstractPoint point = (AbstractPoint) iter.next();
 	    if (KinUtil.isNumeric(xMultField.getText()) && KinUtil.isNumeric(yMultField.getText()) && KinUtil.isNumeric(zMultField.getText())) {
-		point.setDrawX(point.getDrawX() * Double.parseDouble(xMultField.getText()));
-		point.setDrawY(point.getDrawY() * Double.parseDouble(yMultField.getText()));
-		point.setDrawZ(point.getDrawZ() * Double.parseDouble(zMultField.getText()));
+		point.setX(point.getX() * Double.parseDouble(xMultField.getText()));
+		point.setY(point.getY() * Double.parseDouble(yMultField.getText()));
+		point.setZ(point.getZ() * Double.parseDouble(zMultField.getText()));
 	    }
 	}
 	kCanvas.repaint();
     }
-
+//}}}
     
 
 //{{{ xx_click() functions

@@ -36,7 +36,7 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
     //Integer lowResNum, highResNum;
 
     String[] aaNames = {"gly", "ala", "ser", "thr", "cys", "val", "leu", "ile", "met", "pro", "phe", "tyr", "trp", "asp", "glu", "asn", "gln", "his", "lys", "arg"};
-
+//}}}
 
 //{{{ Constructor(s)
 //##############################################################################
@@ -80,7 +80,7 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
 
 	String pointID = p.getName().trim();
 	KList parentList = (KList) p.getParent();
-	KSubgroup parentGroup = (KSubgroup) parentList.getParent();
+	KGroup parentGroup = (KGroup) parentList.getParent();
 	Iterator iter = parentGroup.iterator();
 	KList list;
 	ArrayList listofLists = new ArrayList();
@@ -89,7 +89,7 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
 
 	while (iter.hasNext()) {
 	    list = (KList) iter.next();
-	    String master = getOldMaster(list);
+	    String master = getRibbonMaster(list);
 	    listofLists = (ArrayList) sortedKin.get(master);
 	    if (listofLists == null) {
 		listofLists = new ArrayList();
@@ -241,7 +241,7 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
     
     public void highlightAA(KPoint p, String aaName, KPaint color, boolean colorPrior) {
 	KList parentList = (KList) p.getParent();
-	KSubgroup parentSub = (KSubgroup) parentList.getParent();
+	KGroup parentSub = (KGroup) parentList.getParent();
 	HashSet aaNums = new HashSet();
 	Iterator iter = parentSub.iterator();
 	while (iter.hasNext()) {
@@ -341,32 +341,29 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
     }
 //}}}
 
-//{{{ getOldMaster
+//{{{ getRibbonMaster
 //######################################################################################################
     /**
      * Helper function that (hopefully) gets the "ribbon master" (alpha, beta, coil) from list.  Depends on
      * prekin giving the ribbon master as the second master of the list.
      **/
-    private String getOldMaster(KList list) {
-	Iterator masIter = list.masterIterator();
-	while (masIter.hasNext()) {
+  private String getRibbonMaster(KList list) {
+    Collection<String> masters = list.getMasters();
+    for (String mast : masters) {
+      if (mast.equals("alpha")||mast.equals("beta")||mast.equals("coil")) {
+        return mast;
+	    }
+    }
+    /* Pre 2.0
+    Iterator masIter = list.masterIterator();
+    while (masIter.hasNext()) {
 	    String oldMaster = (String) masIter.next();
 	    if (oldMaster.equals("alpha")||oldMaster.equals("beta")||oldMaster.equals("coil")) {
-		return oldMaster;
-	//while (masIter.hasNext()) {
-
-	//if (oldMaster.equals("ribbon")) {
-
-		//oldMaster = (String) masIter.next();
-
-		//}
-		//}
-
-		//return oldMaster;
+        return oldMaster;
 	    }
-	}
-	return "";
-    }
+    }*/
+    return "";
+  }
 //}}}
 
     private boolean containsAAName(KList list, String aaName) {
@@ -376,18 +373,25 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
 	return (name.indexOf(aaName) != -1);
     }
 
-    private boolean hasRibbonMasters(KList list) {
-	Iterator masIter = list.masterIterator();
-	if (!(masIter == null)) {
-	    while (masIter.hasNext()) {
-		String oldMaster = (String) masIter.next();
-		if ((oldMaster.equals("coil"))||(oldMaster.equals("beta"))||(oldMaster.equals("alpha"))) {
-		    return true;
-		} 
+  private boolean hasRibbonMasters(KList list) {
+    Collection<String> masters = list.getMasters();
+    for (String mast : masters) {
+      if (mast.equals("alpha")||mast.equals("beta")||mast.equals("coil")) {
+        return true;
 	    }
-	}
-	return false;
     }
+    /* pre 2.0
+    Iterator masIter = list.masterIterator();
+    if (!(masIter == null)) {
+	    while (masIter.hasNext()) {
+        String oldMaster = (String) masIter.next();
+        if ((oldMaster.equals("coil"))||(oldMaster.equals("beta"))||(oldMaster.equals("alpha"))) {
+          return true;
+        } 
+	    }
+    }*/
+    return false;
+  }
 
     //public int numofResidues() {
     //	return highResNum.intValue()-lowResNum.intValue()+1;

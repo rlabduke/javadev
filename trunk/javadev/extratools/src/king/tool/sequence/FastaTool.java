@@ -254,55 +254,67 @@ public class FastaTool extends BasicTool //implements ActionListener
     }
 
     // recolors all points in kinemage.
-    private void recolorNoDots() {
-	Kinemage kin = kMain.getKinemage();
-	Iterator kinIter = kin.iterator();
-	while (kinIter.hasNext()) {
+  private void recolorNoDots() {
+    Kinemage kin = kMain.getKinemage();
+    Iterator kinIter = kin.iterator();
+    while (kinIter.hasNext()) {
 	    KGroup group = (KGroup) kinIter.next();
 	    if ((group.getName()).indexOf("dots") == -1) {
-		Iterator groupIter = group.iterator();
-		while (groupIter.hasNext()) {
-		    AGE sub = (AGE) groupIter.next();
-		    if (sub instanceof KSubgroup) {
-			Iterator subIter = sub.iterator();
-			while (subIter.hasNext()) {
-			    KList list = (KList) subIter.next();
-			    recolorStructure(list);
-			}
-		    } else if (sub instanceof KList) {
-			KList list = (KList) sub;
-			recolorStructure(list);
-		    }
-		}
+        KIterator<KList> listIter = KIterator.allLists(group);
+        for (KList list : listIter) {
+          recolorStructure(list);
+        }
+        /* pre 2.0
+        Iterator groupIter = group.iterator();
+        while (groupIter.hasNext()) {
+          AGE sub = (AGE) groupIter.next();
+          if (sub instanceof KGroup) {
+            Iterator subIter = sub.iterator();
+            while (subIter.hasNext()) {
+              KList list = (KList) subIter.next();
+              recolorStructure(list);
+            }
+          } else if (sub instanceof KList) {
+            KList list = (KList) sub;
+            recolorStructure(list);
+          }
+        }
+        */
 	    }
-	}
     }
+  }
 
-    private void recolorDots() {
-	Kinemage kin = kMain.getKinemage();
-	Iterator kinIter = kin.iterator();
-	while (kinIter.hasNext()) {
+  private void recolorDots() {
+    Kinemage kin = kMain.getKinemage();
+    Iterator kinIter = kin.iterator();
+    while (kinIter.hasNext()) {
 	    KGroup group = (KGroup) kinIter.next();
 	    if ((group.getName()).indexOf("dots") > -1) {
-		Iterator groupIter = group.iterator();
-		while (groupIter.hasNext()) {
-		    AGE sub = (AGE) groupIter.next();
-		    if (sub instanceof KSubgroup) {
-			Iterator subIter = sub.iterator();
-			while (subIter.hasNext()) {
-			    KList list = (KList) subIter.next();
-			    recolor(list);
-			}
-		    } else if (sub instanceof KList) {
-			KList list = (KList) sub;
-			recolor(list);
-		    }
-		}
+        KIterator<KList> listIter = KIterator.allLists(group);
+        for (KList list : listIter) {
+          recolorStructure(list);
+        }
+        /*
+        Iterator groupIter = group.iterator();
+        while (groupIter.hasNext()) {
+          AGE sub = (AGE) groupIter.next();
+          if (sub instanceof KGroup) {
+            Iterator subIter = sub.iterator();
+            while (subIter.hasNext()) {
+              KList list = (KList) subIter.next();
+              recolor(list);
+            }
+          } else if (sub instanceof KList) {
+            KList list = (KList) sub;
+            recolor(list);
+          }
+        }
+        */
 	    }
-	}
     }
+  }
 
-    private void recolor(KList list) {
+  private void recolor(KList list) {
 	Iterator iter = list.iterator();
 	while (iter.hasNext()) {
 	    KPoint point = (KPoint) iter.next();
@@ -511,37 +523,35 @@ public class FastaTool extends BasicTool //implements ActionListener
 
 
     /**
-     * Only does the first group, subgroup's list.
+     * Only does the first group, first subgroup's list.
      **/
-    private String export(AGE target) {
-	String output = "";
-	if (target instanceof KList) {
-	    ListIterator iter = target.iterator();
+  private String export(AGE target) {
+    String output = "";
+    if (target instanceof KList) {
+	    Iterator iter = target.iterator();
 	    int resNum = 1000000;
 	    //String output = "";
 	    while (iter.hasNext()) {
-		KPoint pt = (KPoint) iter.next();
-		int newResNum = KinUtil.getResNumber(pt.getName());
-		if (resNum != newResNum) {
-		    if (newResNum > resNum + 1) output = output.concat("\n");
-		    output = output.concat(AminoAcid.translate(KinUtil.getResName(pt)));
-		    //if (newResNum > resNum + 1) output = output.concat("\n");
-		    resNum = newResNum;
-		}
+        KPoint pt = (KPoint) iter.next();
+        int newResNum = KinUtil.getResNumber(pt.getName());
+        if (resNum != newResNum) {
+          if (newResNum > resNum + 1) output = output.concat("\n");
+          output = output.concat(AminoAcid.translate(KinUtil.getResName(pt)));
+          //if (newResNum > resNum + 1) output = output.concat("\n");
+          resNum = newResNum;
+        }
 	    }
 	    //System.out.println(output);
 	    return output;
-	    
-		    
-	} else {
+    } else {
 	    Iterator iter = target.iterator();
 	    //while (iter.hasNext()) {
-	    return export((AGE) iter.next());
-		//}
-	}
-	//return "null";
+        return export((AGE) iter.next());
+      //}
     }
-
+    //return "null";
+  }
+  
 /*
 //{{{ openMapURL, onUrlCancel, onUrlOk
 //##################################################################################################

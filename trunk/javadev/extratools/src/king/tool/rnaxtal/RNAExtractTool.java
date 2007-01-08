@@ -13,6 +13,7 @@ import java.awt.*;
 import javax.swing.*;
 import driftwood.gui.*;
 import driftwood.util.*;
+//}}}
 
 public class RNAExtractTool extends BasicTool {
 
@@ -189,7 +190,7 @@ public class RNAExtractTool extends BasicTool {
 	    if (target != null) ((Kinemage)target).setModified(true);
 	}
 	if (target instanceof KList) {
-	    ListIterator iter = target.iterator();
+	    Iterator iter = target.iterator();
 	    while (iter.hasNext()) {
 		KPoint pt = (KPoint) iter.next();
 		int resNum = KinUtil.getResNumber(pt);
@@ -220,7 +221,7 @@ public class RNAExtractTool extends BasicTool {
     
     private void rename(AGE target, String addOn) {
 	if (target instanceof KList) {
-	    ListIterator iter = target.iterator();
+	    Iterator iter = target.iterator();
 	    while (iter.hasNext()) {
 		KPoint pt = (KPoint) iter.next();
 		pt.setName(pt.getName() + " " + addOn);

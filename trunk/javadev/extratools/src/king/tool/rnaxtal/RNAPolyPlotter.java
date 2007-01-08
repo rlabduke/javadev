@@ -96,7 +96,7 @@ public class RNAPolyPlotter
 	//System.out.println(phinder);
 	//double[] xyz = phinder.highPoint();
 	RNATriple centroid = phinder.findCentroid(polyList);
-	phPoint = new MarkerPoint(polyList, "phosphate");
+	phPoint = new MarkerPoint("phosphate");
 	//phPoint.setX(xyz[0]);
 	//phPoint.setY(xyz[1]);
 	//phPoint.setZ(xyz[2]);
@@ -118,7 +118,7 @@ public class RNAPolyPlotter
 //}}}
 
     public VectorPoint getPhosphate() {
-	VectorPoint phos = new VectorPoint(list, "phosphate", null);
+	VectorPoint phos = new VectorPoint("phosphate", null);
 	phos.setX(phPoint.getX());
 	phos.setY(phPoint.getY());
 	phos.setZ(phPoint.getZ());
@@ -128,7 +128,7 @@ public class RNAPolyPlotter
     public void addPoint(RNATriple p) {
 	VectorPoint phos = getPhosphate();
 	list.add(phos);
-	VectorPoint intersect = new VectorPoint(list, "intersect", phos);
+	VectorPoint intersect = new VectorPoint("intersect", phos);
 	intersect.setX(p.getX());
 	intersect.setY(p.getY());
 	intersect.setZ(p.getZ());

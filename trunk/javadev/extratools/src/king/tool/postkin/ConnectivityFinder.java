@@ -7,6 +7,7 @@ import king.core.*;
 import king.points.*;
 
 import java.util.*;
+//}}}
 
 public class ConnectivityFinder {
 
@@ -212,7 +213,7 @@ public class ConnectivityFinder {
 
 //{{{ clonePoint
     private Object clonePoint(AbstractPoint point) {
-	VectorPoint pointClone = new VectorPoint(null, point.getName(), null);
+	VectorPoint pointClone = new VectorPoint(point.getName(), null);
 	pointClone.setX((float) point.getX());
 	pointClone.setY((float) point.getY());
 	pointClone.setZ((float) point.getZ());
