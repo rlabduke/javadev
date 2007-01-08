@@ -307,15 +307,16 @@ public class Slave implements GLEventListener
                     link    = new ObjectLink<String,Command>(host, port);
             System.out.println("Connected to master at "+host+":"+port);
             
-            this.kin = createKinemage();
-            try
-            {
-                KinfileParser parser = new KinfileParser();
-                parser.parse(new LineNumberReader(new InputStreamReader(
-                    getClass().getResourceAsStream("/king/kins/fallingbear.kin"))));
-                this.kin = parser.getKinemages().iterator().next();
-            }
-            catch(IOException ex) { ex.printStackTrace(); }
+            this.kin = new Kinemage();
+            //this.kin = createKinemage();
+            //try
+            //{
+            //    KinfileParser parser = new KinfileParser();
+            //    parser.parse(new LineNumberReader(new InputStreamReader(
+            //        getClass().getResourceAsStream("/king/kins/fallingbear.kin"))));
+            //    this.kin = parser.getKinemages().iterator().next();
+            //}
+            //catch(IOException ex) { ex.printStackTrace(); }
             
             // These are default values that will be quickly overwritten.
             this.view = new KView(kin);

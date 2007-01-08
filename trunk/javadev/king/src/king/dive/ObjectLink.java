@@ -9,6 +9,7 @@ import java.net.*;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.zip.*;
 //import java.util.regex.*;
 //import javax.swing.*;
 //import driftwood.*;
@@ -81,6 +82,14 @@ public class ObjectLink <S extends Serializable, R extends Serializable> //exten
     {
         socket.setKeepAlive(true); // may not be needed, really
         
+        // Can't have compressed communication simply by inserting a GZIP I/O
+        // stream, because to flush the output one must call finish(), but that
+        // causes the input on the other end to close, leading to an end-of-file
+        // exception after just one object is transmitted.
+        
+        // The other solutions I can think of right now have so much probable
+        // overhead they're not worth it, esp. over fast connections.
+        
         outStream = new ObjectOutputStream(
             new BufferedOutputStream(socket.getOutputStream()));
         // Essential to prevent deadlock: OIS must read header on create
@@ -88,7 +97,7 @@ public class ObjectLink <S extends Serializable, R extends Serializable> //exten
         inStream = new ObjectInputStream(
             new BufferedInputStream(socket.getInputStream()));
         
-        // Can't have this guys trying anything until the socket exists!
+        // Can't have this guy trying anything until the socket exists!
         receiver = new Receiver();
         recvThread = new Thread(receiver);
         recvThread.setDaemon(true);

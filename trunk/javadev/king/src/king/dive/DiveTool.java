@@ -11,7 +11,7 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
-//import javax.swing.*;
+import javax.swing.JMenuItem;
 import driftwood.r3.*;
 import driftwood.util.SoftLog;
 //}}}
@@ -21,7 +21,7 @@ import driftwood.util.SoftLog;
 * <p>Copyright (C) 2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri Jan  5 15:50:46 EST 2007
 */
-public class DiveTool extends BasicTool implements KMessage.Subscriber
+public class DiveTool extends Plugin implements KMessage.Subscriber
 {
 //{{{ Constants
 //}}}
@@ -29,7 +29,6 @@ public class DiveTool extends BasicTool implements KMessage.Subscriber
 //{{{ Variable definitions
 //##############################################################################
     ObjectLink<Command,Command> link = null;
-    Triple eyePos = new Triple(0,0,2000);
 //}}}
 
 //{{{ Constructor(s)
@@ -58,7 +57,25 @@ public class DiveTool extends BasicTool implements KMessage.Subscriber
                 KView view = kMain.getView();
                 if(view != null)
                 {
-                    Command cmd = new CmdUpdateViewpoint(view, eyePos, eyePos);
+                    Command cmd = new CmdSetView(view);
+                    link.put(cmd);
+                }
+            }
+            if(msg.testProg(KMessage.KIN_SWITCHED))
+            {
+                Kinemage kin = kMain.getKinemage();
+                if(kin != null)
+                {
+                    Command cmd = new CmdLoadKinemage(kin);
+                    link.put(cmd);
+                }
+            }
+            if(msg.testKin(AHE.CHANGE_TREE_ON_OFF))
+            {
+                Kinemage kin = kMain.getKinemage();
+                if(kin != null)
+                {
+                    Command cmd = new CmdSetOnOffState(kin);
                     link.put(cmd);
                 }
             }
@@ -68,10 +85,17 @@ public class DiveTool extends BasicTool implements KMessage.Subscriber
         }
         catch(Exception ex)
         {
-            SoftLog.err.println("Error commanding slave: "+ex.getMessage());
+            SoftLog.err.println("Error sending message: "+ex.getMessage());
+            ex.printStackTrace();
             link = null;
         }
     }
+//}}}
+
+//{{{ empty_code_segment
+//##############################################################################
+    public JMenuItem getToolsMenuItem()
+    { return null; }
 //}}}
 
 //{{{ empty_code_segment
