@@ -48,7 +48,6 @@ public class MasterGroup extends AGE<Kinemage,AHE> // implements ...
     /**
     * Turns the checkbox on/off from within the program.
     * Automatically makes the same change to all groups immediately under this one.
-    * Doesn't automatically trigger a redraw.
     */
     public void setOn(boolean alive)
     {

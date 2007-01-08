@@ -14,30 +14,28 @@ import java.util.*;
 import driftwood.r3.*;
 //}}}
 /**
-* <code>CmdUpdateViewpoint</code> requests that the Slaves redraw their
-* graphics to reflect a new kinemage view and/or a new observer position.
+* <code>CmdSetEyePosition</code> requests that the Slaves redraw their
+* graphics to reflect a new observer position.
 *
 * <p>Copyright (C) 2006 by Ian W. Davis. All rights reserved.
 * <br>Begun on Fri Dec 15 11:39:22 EST 2006
 */
-public class CmdUpdateViewpoint implements Command
+public class CmdSetEyePosition implements Command
 {
 //{{{ Constants
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    KView   view;
     Triple  leftEye;
     Triple  rightEye;
 //}}}
 
 //{{{ Constructor(s)
 //##############################################################################
-    public CmdUpdateViewpoint(KView view, Triple leftEye, Triple rightEye)
+    public CmdSetEyePosition(Triple leftEye, Triple rightEye)
     {
         super();
-        this.view = view;
         this.leftEye = leftEye;
         this.rightEye = rightEye;
     }
@@ -47,7 +45,6 @@ public class CmdUpdateViewpoint implements Command
 //##############################################################################
     public void doCommand(Slave slave)
     {
-        slave.view = view;
         slave.leftEyePos = leftEye;
         slave.rightEyePos = rightEye;
         slave.canvas.repaint();
