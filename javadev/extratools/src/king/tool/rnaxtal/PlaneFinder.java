@@ -120,7 +120,7 @@ public class PlaneFinder
 
     public void drawNormal() {
 	//RNATriple anchor = basePlane.getAnchor();
-	VectorPoint centroid = new VectorPoint(list, "centroid", null);
+	VectorPoint centroid = new VectorPoint("centroid", null);
 	//centroid.setXYZ(anchor.getX(), anchor.getY(), anchor.getZ());
 	centroid.setX(anchor.getX());
 	centroid.setY(anchor.getY());
@@ -132,7 +132,7 @@ public class PlaneFinder
 	list.add(centroid);
 
 	//RNATriple norm = basePlane.getNormal();
-	VectorPoint norm = new VectorPoint(list, "normal", centroid);
+	VectorPoint norm = new VectorPoint("normal", centroid);
 	//normal.setXYZ(norm.getX(), norm.getY(), norm.getZ());
 	norm.setX(anchor.getX() + normal.getX());
 	norm.setY(anchor.getY() + normal.getY());
@@ -188,7 +188,7 @@ public class PlaneFinder
 	    y = second;
 	}
 	//x = -(lowCoordA * y + lowCoordB * z) / highCoord;
-	TrianglePoint plane = new TrianglePoint(list, "plane", prev);
+	TrianglePoint plane = new TrianglePoint("plane", prev);
 	plane.setX(anchor.getX() + x);
 	plane.setY(anchor.getY() + y);
 	plane.setZ(anchor.getZ() + z);

@@ -8,8 +8,14 @@ VBC things to do:
   Check ColorGrouperPlugin.populateColorLists to see if there is a way to copy flags 
     from one Klist to another.
   Check GeometryPlugin.doAll to make sure it still opens files correctly.
-  Fix PlottingTool so it doesn't use old setDrawnXYZ KPoint functions.
-  Check functionality in AutoBondRotTool; not sure if auto-updating of .
+  Fix PlottingTool so it doesn't use old setDrawnXYZ KPoint functions. (Fixed, but changes
+    coordinates of the points now).
+  Check functionality in AutoBondRotTool; not sure if auto-updating of point parents
+    messes anything up.
+  Check RecolorTool for proper determination of whether a kin is wireframe or ribbon.
+  FastaTool rewrite?
+  LoopTool rewrite?
+  RNALineTracker desperately needs a rewrite.
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -19,8 +25,11 @@ VBC things to do:
 - ColorGrouperPlugin updated to use new King 2.0 code and Java 1.5 features.
 - GeometryPlugin updated to use new King 2.0 code and Java 1.5 features.
 - KinFudgerTool updated to use new King 2.0 code.
-- PlottingTool partially updated to use new King 2.0 code (still has issues with setDrawn).
+- PlottingTool updated to use new King 2.0 code.
 - AutoBondRotTool updated to use new King 2.0 code.
+The following tools were updated to use new King 2.0 code.
+- RecolorTool and associated objects, FastaTool, RamaTool, RMSDTool, FramerTool, LoopTool, LoopDockingTool
+  RNAMapTool and associated (still needed?), GuilloTool (still needed?), RNAExtractTool (still needed?)
 
 ### 2.00 ###
 - changed to Java 1.5

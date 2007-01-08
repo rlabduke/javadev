@@ -17,6 +17,7 @@ import driftwood.util.*;
 import driftwood.r3.*;
 import driftwood.gui.*;
 //import driftwood.moldb2.AminoAcid;
+//}}}
 
 public class LoopDockingTool extends BasicTool {
     
@@ -227,7 +228,7 @@ public class LoopDockingTool extends BasicTool {
 	    if (refPath != null) { // after a reference has been picked
 		connect.buildAdjacencyList(false);
 		KList list = (KList) p.getParent();
-		KSubgroup sub = (KSubgroup) list.getParent();
+		KGroup sub = (KGroup) list.getParent();
 		KGroup group = (KGroup) sub.getParent();
 		String pdbID = group.getName().substring(0, 4).toLowerCase();
 		mobilePoints = connect.mobilityFinder((AbstractPoint)p);
@@ -261,7 +262,7 @@ public class LoopDockingTool extends BasicTool {
 	    } else { // picks the reference points
 		connect.buildAdjacencyList(false);
 		KList list = (KList) p.getParent();
-		KSubgroup sub = (KSubgroup) list.getParent();
+		KGroup sub = (KGroup) list.getParent();
 		KGroup group = (KGroup) sub.getParent();
 		String pdbID = group.getName().substring(0, 4).toLowerCase();
 	        mobilePoints = connect.mobilityFinder((AbstractPoint)p);

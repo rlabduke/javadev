@@ -60,11 +60,11 @@ public class GuilloTool extends BasicTool {
 	    list.setColor(KPalette.sky);
 
 	    Kinemage kin = kMain.getKinemage();
-	    KGroup group = new KGroup(kin, "Neck cutoff");
+	    KGroup group = new KGroup("Neck cutoff");
 	    group.setParent(kin);
 	    kin.add(group);
 	    
-	    KSubgroup subgroup = new KSubgroup(group, "Neck cutoff");
+	    KGroup subgroup = new KGroup("Neck cutoff");
 	    subgroup.setHasButton(false);
 	    subgroup.setParent(group);
 	    group.add(subgroup);
@@ -74,7 +74,7 @@ public class GuilloTool extends BasicTool {
 
 	    //selectedPoints.clear();
 	    
-	    kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+	    //kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
 	}
     }
 
@@ -140,20 +140,20 @@ public class GuilloTool extends BasicTool {
 	base.setOn(true);
 
 	Kinemage kin = kMain.getKinemage();
-	KGroup group = new KGroup(kin, "base");
+	KGroup group = new KGroup("base");
 	kin.add(group);
-	kin.metadata.put("base group", group);
+	//kin.metadata.put("base group", group);
 	
-	KSubgroup subgroup = new KSubgroup(group, "base");
+	KGroup subgroup = new KGroup("base");
 	subgroup.setHasButton(false);
 	group.add(subgroup);
-	kin.metadata.put("base subgroup", subgroup);
+	//kin.metadata.put("base subgroup", subgroup);
 
-	kin.metadata.put("base list", base);
+	//kin.metadata.put("base list", base);
 	subgroup.add(base);
 	
 	//selectedPoints.clear();
-	kin.signal.signalKinemage(kin, KinemageSignal.STRUCTURE);
+	//kin.signal.signalKinemage(kin, KinemageSignal.STRUCTURE);
 
 	
     }	

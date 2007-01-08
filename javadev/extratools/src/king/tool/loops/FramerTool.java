@@ -14,6 +14,7 @@ import java.awt.event.*;
 import java.io.*;
 import javax.swing.*;
 import java.text.DecimalFormat;
+//}}}
 
 public class FramerTool extends BasicTool {
 
@@ -163,15 +164,15 @@ public class FramerTool extends BasicTool {
 
     public void plotValues(double x, double y, double z, String ptID, KPaint color) {
 	Kinemage kin = kMain.getKinemage();
-	KGroup group = new KGroup(kin, "group");
+	KGroup group = new KGroup("group");
 	group.setAnimate(true);
 	group.addMaster("Data Points");
 	kin.add(group);
-	KSubgroup subgroup = new KSubgroup(group, "sub");
+	KGroup subgroup = new KGroup("sub");
 	subgroup.setHasButton(false);
 	group.add(subgroup);
 	KList list = new KList(KList.BALL, "Points");
-	BallPoint point = new BallPoint(list, ptID);
+	BallPoint point = new BallPoint(ptID);
 	point.setX(x);
 	point.setY(y);
 	point.setZ(z);
@@ -199,7 +200,7 @@ public class FramerTool extends BasicTool {
 	if (target instanceof Kinemage) {
 	}
 	if ((target instanceof KList)&&(target.isOn())) {
-	    ListIterator iter = target.iterator();
+	    Iterator iter = target.iterator();
 	    while (iter.hasNext()) {
 		KPoint pt = (KPoint) iter.next();
 		includedPoints.add(pt);
@@ -331,10 +332,10 @@ public class FramerTool extends BasicTool {
 		    kin.getMasterByName("mainchain").setOn(true);
 		    kin.getMasterByName("Calphas").setOn(false);
 		    kin.getMasterByName("rotamer outlie").setOn(false);
-		    AGE kage = (KGroup) kin.getChildAt(0);
+		    AGE kage = (KGroup) kin.getChildren().get(0);
 		    
 		    while (!(kage instanceof KList)) {
-			kage = (AGE) kage.getChildAt(0);
+			kage = (AGE) kage.getChildren().get(0);
 		    }
 		    //KGroup group = (KGroup) kin.getChildAt(0);
 		    //KSubgroup sub = (KSubgroup) group.getChildAt(0);

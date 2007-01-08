@@ -13,6 +13,7 @@ import java.awt.event.*;
 
 import driftwood.gui.*;
 import driftwood.r3.*;
+//}}}
 
 public class RamaTool extends BasicTool {
 
@@ -64,7 +65,7 @@ public class RamaTool extends BasicTool {
     public VectorPoint calcRama(AbstractPoint c0, AbstractPoint n1, AbstractPoint ca1, AbstractPoint c1, AbstractPoint n2, VectorPoint prev) {
 	double phi = Triple.dihedral(c0, n1, ca1, c1);
 	double psi = Triple.dihedral(n1, ca1, c1, n2);
-	VectorPoint point = new VectorPoint(null, n1.getName(), prev);
+	VectorPoint point = new VectorPoint(n1.getName(), prev);
 	point.setX(phi);
 	point.setY(psi);
 	int resNum = PointComparator.getResNumber(n1.getName());
@@ -85,11 +86,11 @@ public class RamaTool extends BasicTool {
 	//Iterator iter = keys.iterator();
 	//while (iter.hasNext()) {
 	//Double key = (Double) iter.next();
-	    KGroup group = new KGroup(kin, "group");
+	    KGroup group = new KGroup("group");
 	    group.setAnimate(true);
 	    group.addMaster("Data Points");
 	    kin.add(group);
-	    KSubgroup subgroup = new KSubgroup(group, "sub");
+	    KGroup subgroup = new KGroup("sub");
 	    subgroup.setHasButton(false);
 	    group.add(subgroup);
 	    KList list = new KList(KList.VECTOR, "Points");
@@ -130,7 +131,7 @@ public class RamaTool extends BasicTool {
 	    subgroup.add(list);
 	    list.setParent(subgroup);
     
-	kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+	//kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
     }
 
     public VectorPoint getPoint(ArrayList list, String atomName) {

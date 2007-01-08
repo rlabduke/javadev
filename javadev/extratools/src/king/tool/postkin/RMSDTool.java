@@ -14,6 +14,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import driftwood.r3.*;
 import driftwood.gui.*;
+//}}}
 
 public class RMSDTool extends BasicTool {
 
@@ -53,7 +54,7 @@ public class RMSDTool extends BasicTool {
         {
             tupleList.add(t);
             listModel.addElement(tag);
-            LabelPoint label = new LabelPoint(markList, Integer.toString(count()));
+            LabelPoint label = new LabelPoint(Integer.toString(count()));
             label.setX(t.getX());
             label.setY(t.getY());
             label.setZ(t.getZ());
@@ -66,7 +67,7 @@ public class RMSDTool extends BasicTool {
         {
             if(tupleList.size() > 0) tupleList.remove(tupleList.size()-1);
             if(listModel.size() > 0) listModel.remove(listModel.size()-1);
-            if(markList.children.size() > 0) markList.children.remove(markList.children.size()-1);
+            if(markList.getChildren().size() > 0) markList.getChildren().remove(markList.getChildren().size()-1);
             syncCalcButton();
         }
         
@@ -148,7 +149,8 @@ public class RMSDTool extends BasicTool {
 	//toolpane.newRow();
 	//toolpane.add(keepRefBox, 3, 1);
     }
-
+    //}}}
+    
     public void start() {
 	if (kMain.getKinemage() == null) return;
 	connect = new ConnectivityFinder(kMain);
@@ -199,6 +201,7 @@ public class RMSDTool extends BasicTool {
 
         }
     }
+    //}}}
 
 //{{{ onCalc
 //##############################################################################
@@ -296,5 +299,8 @@ public class RMSDTool extends BasicTool {
     public String toString() { return "RMSD Tool"; }
 
     public String getHelpAnchor() { return null; }
+    //}}}
 
 }
+
+
