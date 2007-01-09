@@ -4,14 +4,15 @@ package king.dive;
 import king.*;
 import king.core.*;
 
-//import java.awt.*;
-//import java.awt.event.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.io.*;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
-import javax.swing.JMenuItem;
+import javax.swing.*;
+import driftwood.gui.*;
 import driftwood.r3.*;
 import driftwood.util.SoftLog;
 //}}}
@@ -36,11 +37,11 @@ public class DiveTool extends Plugin implements KMessage.Subscriber
     public DiveTool(ToolBox tb)
     {
         super(tb);
-        try
-        {
-            link = new ObjectLink<Command,Command>("localhost", 1681);
-        }
-        catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
+        
+        // For my convenience right now.  Should go away later.
+        try { link = new ObjectLink<Command,Command>("localhost", 1681); }
+        catch(IOException ex) {}
+        
         kMain.subscribe(this);
     }
 //}}}
@@ -92,10 +93,48 @@ public class DiveTool extends Plugin implements KMessage.Subscriber
     }
 //}}}
 
-//{{{ empty_code_segment
+//{{{ getToolsMenuItem
 //##############################################################################
     public JMenuItem getToolsMenuItem()
-    { return null; }
+    {
+        JMenu menu = new JMenu("DiVE plugin");
+        JMenuItem item = new JMenuItem(new ReflectiveAction("Connect ...", null, this, "onConnectToMaster"));
+        menu.add(item);
+        return menu;
+    }
+//}}}
+
+//{{{ onConnectToMaster
+//##############################################################################
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onConnectToMaster(ActionEvent ev)
+    {
+        JTextField hostname = new JTextField("localhost");
+        JTextField port = new JTextField("1681");
+        
+        TablePane2 cp = new TablePane2();
+        cp.hfill(true).insets(4).memorize();
+        cp.weights(0,1).addCell(new JLabel("Hostname")).addCell(hostname).newRow();
+        cp.weights(0,1).addCell(new JLabel("Port")).addCell(port).newRow();
+        
+        int result = JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+            cp, "Connect to master",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE);
+            
+        if(result == JOptionPane.OK_OPTION)
+        {
+            try
+            {
+                if(link != null) link.disconnect();
+                link = new ObjectLink<Command,Command>(
+                    hostname.getText(),
+                    Integer.parseInt(port.getText())
+                );
+            }
+            catch(Exception ex) { ex.printStackTrace(); }
+        }
+    }
 //}}}
 
 //{{{ empty_code_segment

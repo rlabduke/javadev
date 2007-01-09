@@ -4,36 +4,26 @@
 ==============================================================================
 <!-- Postponed TO DO items {{{ -->
     Extra clipping planes don't support line shortening
-    Separate checkboxes, tree nodes from AGEs
     Include demo/tutorial kinemage ?
     Implement "screen" keyword for lists
-    Add ability to create/edit colors
-    Allow editing of all points below a given group/subgroup/list.
-        eg: wipe out all point colors, move all pt colors to aspects
     Add "don't ask me again" boxes to warning messages
     Auto-create unnamed @aspects
     Make Find ignore points that have the invisible aspect (Z) active
     Kinemage title doesn't get updated in the kin list immediately
     @pdbfile should be interpretted relative to the kinemage file location!
     Develop "xkn" file specification / DTD / Schema
-    Export as VRML 2.0 (VRML97) / VRML 1.0
-    Implement EM_SHUTDOWN signal in KingMain, goes to Tools also (?)
-    Add pluginStartup() method to plugins that's called after everything is running?
-    Make hierarchy editor drag-and-drop
+    Export as VRML 2.0 (VRML97) / VRML 1.0 -- useful for DiVE too (VRML97)?
+    Make hierarchy editor drag-and-drop [requires Java 1.6+]
     Tau minimizer over a range (rebuild peptides too?)
     Do NOEs within d of x,y,z when nothing is mobile (same for Probe?)
     Support wordlists
-    Add matrix-based deformatation option to Hierarchy:Transform
-        Assymetic scaling of axes
     Show CB deviation in Hinge when not idealizing sc positions
     Draw: construct 4 and 5, polylines, triangle strips, true sphere, cylinder
     For multi-click draw ops, "miss" should reset?
     Draw tool - autolabel distances, angles
     For Views tool: Center Visible command (use r3.PrincipleAxes)
     Allow user to set focal length for perspective "lens"?
-    New shades of gray: smoke (light), charcoal (dark) ?
     Think about free-form docking tools
-        Add some kind of transformation hook (listeners, priorities, etc) ?
         Probably better to just save KPoint[] and Triple[] ...
     Add choice of experiments to expected NOEs
     Distribute noe-display in packaged KiNG versions?
@@ -41,15 +31,12 @@
     Create a java.net or Sourceforge project for KiNG to encourage plugin devel?
     Create HTML+applet mini-tutorials: kin editing, refitting, views, etc. etc.
     Mutate aromatics, Asn, Asp so that bond angles are stretched out ~2 deg.
-    Make refitting tools able to set up alternate confs (as an option)
     Mutated residues should retain B factors where possible (?)
     'space' with (point)masters - what does it mean?
-    Create a MagnifiedOceanTheme and load it using reflection
-    Create a splash-screen loader for KiNG (via manifest in Mustang)
+    Create a splash-screen loader for KiNG (via manifest in Java 1.6)
     Optional 2 column button layout?
     Allow applet/prefs to set width of check-button panel
     Start points of invisible lines are still pickable
-    Redraw problems with Tree (OS X only?)
     Add ability to edit masters/pointmasters
     Look at Pro geometry with Jane
     White background to light gray?
@@ -64,25 +51,25 @@
     Add a movieFade() to beanking for doing transitions!
     Use E+H 2000 geometry for Pro?
     Do something about multiple copies of Driftwood classes -- in every JAR
-    Add per-kinemage viewing transform (aniso axes)
-        But you might want to affect some groups and not others, and it makes
-        picking / translating / measuring / etc weird.
-        Better to actually scale the coords using Hierarchy | Transform.
 <!-- Postponed TO DO items }}} -->
     Open PDB in model manager without opening kinemage first?
     Open/save PDB from/to network
     Allow dragging waters/ions from chiropraxis?
     integrate multichart into KiNG?
-    DiVE export: VRML97 ?
     open pdb/map dialog boxes (initial dir) with Mac double-click startup
     Edit view menu: list action (double click/enter) should go to view
-    axes not set for initial view when kin is loaded
     Update docs for building, packing
     Remove references to GNU regexp library in docs, licenses
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 2.02 ###
+- added GUI to connect to master for DiveTool
+- bug fixes for setting axes with high-dimensional kins
+- fixed KView.clone() to include viewing axes and call super.clone()
+- fixed borders on checkboxes in ContentPane that made button panel too tall
 
 ### 2.01 ###
 - made KView notify the kinemage that owns it whenever it's changed
@@ -102,6 +89,7 @@
 - split CmdUpdateViewpoint into CmdSetView and CmdSetEyePosition
 - experimented with adding compression to ObjectLink, but it's not worth it
   for most of the objects we're currently interested in sending.
+- deployed to rlab for testing
 
 ### 2.00 ###
 - moved over highly modified code from the "prince" project.

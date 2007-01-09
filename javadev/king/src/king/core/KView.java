@@ -21,7 +21,7 @@ import java.util.*;
 * <p>Begun on Thu May 23 21:08:29 EDT 2002
 * <br>Copyright (C) 2002-2007 by Ian W. Davis. All rights reserved.
 */
-public class KView implements Serializable
+public class KView implements Serializable, Cloneable
 {
 //{{{ Static fields
     static final int N_UPDATES_ALLOWED = 100;
@@ -81,18 +81,35 @@ public class KView implements Serializable
     /** Duplicates this object */
     public synchronized KView clone()
     {
-        KView ret = new KView(parent);
-        ret.ID = ID;
-        ret.xform = (float[][])xform.clone();
-        if(center == null) ret.center = getCenter();
-        else               ret.center = (float[])center.clone();
+        try
+        {
+            KView that = (KView) super.clone();
+            that.xform = (float[][]) that.xform.clone();
+            if(that.center != null)
+                that.center = (float[]) that.center.clone();
+            // viewingAxes is never written into
+            
+            that.compile();
+            return that;
+        }
+        catch(CloneNotSupportedException ex)
+        {
+            ex.printStackTrace();
+            return null;
+        }
         
-        ret.zoom = zoom;
-        ret.span = span;
-        ret.clip = clip;
-        
-        ret.compile();
-        return ret;
+        //KView ret = new KView(parent);
+        //ret.ID = ID;
+        //ret.xform = (float[][])xform.clone();
+        //if(center == null) ret.center = getCenter();
+        //else               ret.center = (float[])center.clone();
+        //
+        //ret.zoom = zoom;
+        //ret.span = span;
+        //ret.clip = clip;
+        //
+        //ret.compile();
+        //return ret;
     }
 //}}}
 
