@@ -423,6 +423,7 @@ public class KinCanvas extends JComponent implements KMessage.Subscriber, Transf
         if(kin == null) return;
         
         kin.metadata.put(currViewKey, view.clone());
+        view.activateViewingAxes();
         kMain.publish(new KMessage(this, KMessage.VIEW_SELECTED));
     }
     

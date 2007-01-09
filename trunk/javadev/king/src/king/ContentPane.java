@@ -230,6 +230,7 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
             else if(group.is2Animate()) name = "% "+name;
         }
         JCheckBox cbox = new JCheckBox(name, age.isOn());
+        cbox.setBorder(BorderFactory.createEmptyBorder(1,2,1,2));
         if(age.hasButton())
         {
             cbox.addActionListener(new ButtonListener(cbox, age));
@@ -256,6 +257,7 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
         if(m.hasButton())
         {
             JCheckBox cbox = new JCheckBox(m.getName(), m.isOn());
+            cbox.setBorder(BorderFactory.createEmptyBorder(1,2,1,2));
             cbox.addActionListener(new ButtonListener(cbox, m));
             btnMap.put(cbox, m);
             if(m.getIndent())

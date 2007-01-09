@@ -55,19 +55,25 @@ public class AxisChooser //extends ... implements ...
 //##############################################################################
     private void buildGUI()
     {
+        int[] selected = {0, 1, 2};
+        KView view = kMain.getCanvas().getCurrentView(kin);
+        if(view.getViewingAxes() != null)
+            selected = view.getViewingAxes();
+        //System.err.println(selected[0]+","+selected[1]+","+selected[2]);
+        
         final int visibleRows = 10;
         xAxisList = new FatJList(0, 10);
         xAxisList.setVisibleRowCount(visibleRows);
         xAxisList.setListData(dimNames.toArray());
-        xAxisList.setSelectedIndex(Math.min(0, dimNames.size()-1));
+        xAxisList.setSelectedIndex(Math.min(selected[0], dimNames.size()-1));
         yAxisList = new FatJList(0, 10);
         yAxisList.setVisibleRowCount(visibleRows);
         yAxisList.setListData(dimNames.toArray());
-        yAxisList.setSelectedIndex(Math.min(1, dimNames.size()-1));
+        yAxisList.setSelectedIndex(Math.min(selected[1], dimNames.size()-1));
         zAxisList = new FatJList(0, 10);
         zAxisList.setVisibleRowCount(visibleRows);
         zAxisList.setListData(dimNames.toArray());
-        zAxisList.setSelectedIndex(Math.min(2, dimNames.size()-1));
+        zAxisList.setSelectedIndex(Math.min(selected[2], dimNames.size()-1));
         
         JButton btnOK = new JButton(new ReflectiveAction("Set axes", null, this, "onSetAxes"));
         
