@@ -94,7 +94,7 @@ public class KinUtil {
     
     public static int getResNumber(String name) {
 	//String name = point.getName().trim();
-	String[] uncleanParsed = name.split(" ");
+	String[] uncleanParsed = name.trim().split(" ");
 	//String[] parsed = new String[uncleanParsed.length];
 	String[] parsed = Strings.explode(name, " ".charAt(0), false, true);
         int i2 = 0;
@@ -127,7 +127,6 @@ public class KinUtil {
 		}
 	    }
 	}
-	
 	// for insertions (1a, 1b, 1c, etc).
 	//System.out.println(parsed[3]);
 	//System.out.println(parsed[3].length());
@@ -149,6 +148,7 @@ public class KinUtil {
 
 	return -1;
     }
+    //}}}
 
     public static String getChainID(KPoint point) {
 	String name = point.getName().trim();

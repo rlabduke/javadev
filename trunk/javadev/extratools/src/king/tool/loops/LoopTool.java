@@ -26,12 +26,12 @@ public class LoopTool extends BasicTool {
 
 //{{{ Variable definitions
 //##############################################################################
-    HashSet keptSet; 
+    HashSet<Integer> keptSet;
     HashMap startColorMap, endColorMap;
-    HashMap pdbKeepMap; // full name -> hashset of integers to keep
-    HashMap pdbMultiLoopMap; // full name (pdbName + startResidue#) -> pdbName
-    HashMap chainMap; // fullName -> chainID
-    TreeMap bFactorMap; // bfactor + pdbName -> fullName (to do files in order of bfactor)
+    HashMap<String, HashSet> pdbKeepMap; // full name -> hashset of integers to keep
+    HashMap<String, String> pdbMultiLoopMap; // full name (pdbName + startResidue#) -> pdbName
+    HashMap<String, String> chainMap; // fullName -> chainID
+    TreeMap<String, String> bFactorMap; // bfactor + pdbName -> fullName (to do files in order of bfactor)
     JButton delButton, keepButton, removeButton, openButton, delFromFileButton, doAllButton;
     JTextField lowNumField, highNumField;
     TablePane pane;
@@ -40,10 +40,12 @@ public class LoopTool extends BasicTool {
     JFileChooser filechooser;
     //}}}
 
-    public LoopTool(ToolBox tb) {
+//{{{ Constructor(s)
+        public LoopTool(ToolBox tb) {
 	super(tb);
 	//buildGUI();
     }
+//}}}
     
 //{{{ buildGUI
 //##############################################################################
@@ -86,20 +88,22 @@ public class LoopTool extends BasicTool {
 
 //}}}
 
-    public void start() {
+//{{{ start
+        public void start() {
 	//if (kMain.getKinemage() == null) return;
 	buildGUI();
-	keptSet = new HashSet();
-	pdbKeepMap = new HashMap();
+	keptSet = new HashSet<Integer>();
+	pdbKeepMap = new HashMap<String, HashSet>();
 	startColorMap = new HashMap();
 	endColorMap = new HashMap();
-	bFactorMap = new TreeMap();
-	pdbMultiLoopMap = new HashMap();
-	chainMap = new HashMap();
+	bFactorMap = new TreeMap<String, String>();
+	pdbMultiLoopMap = new HashMap<String, String>();
+	chainMap = new HashMap<String, String>();
 	//colorator = new RecolorNonRibbon();
 	show();
-    }   
-
+    }
+//}}}
+    
 //{{{ makeFileChooser
 //##################################################################################################
     void makeFileChooser()
@@ -120,7 +124,8 @@ public class LoopTool extends BasicTool {
     }
 //}}}
 
-    public void onOpenFile(ActionEvent ev) {
+//{{{ onOpenFile
+        public void onOpenFile(ActionEvent ev) {
 	if (filechooser == null) makeFileChooser();
 
         if(JFileChooser.APPROVE_OPTION == filechooser.showOpenDialog(kMain.getTopWindow()))
@@ -136,7 +141,7 @@ public class LoopTool extends BasicTool {
 			    String[] exploded = Strings.explode(line, ',', false, true);
 			    String pdbName = exploded[0];
 			    pdbName = pdbName.toLowerCase();
-			    HashSet value = new HashSet();
+			    HashSet value = new HashSet<Integer>();
 			    //keepRange(value, Integer.parseInt(exploded[1])-8, Integer.parseInt(exploded[2])+8);
 			    //int startRes = Integer.parseInt(exploded[1])-8;
 			    keepRange(value, Integer.parseInt(exploded[1]), Integer.parseInt(exploded[2]));
@@ -182,7 +187,7 @@ public class LoopTool extends BasicTool {
 		    
 		    kCanvas.repaint(); // otherwise we get partial-redraw artifacts
 		}
-	    } 
+	    }
 
 	    catch(IOException ex) { // includes MalformedURLException 
 		JOptionPane.showMessageDialog(kMain.getTopWindow(),
@@ -197,7 +202,9 @@ public class LoopTool extends BasicTool {
 	    }
 	}
     }
+//}}}
 
+//{{{ onDoAll
     public void onDoAll(ActionEvent ev) {
 	if (filechooser == null) makeFileChooser();
 
@@ -250,35 +257,38 @@ public class LoopTool extends BasicTool {
 		//}
 	}
     }
+//}}}
 
-
-    public void onKeep(ActionEvent ev) {
-	if (KinUtil.isNumeric(lowNumField.getText())&&(KinUtil.isNumeric(highNumField.getText()))) {
+//{{{ onKeep
+  public void onKeep(ActionEvent ev) {
+    if (KinUtil.isNumeric(lowNumField.getText())&&(KinUtil.isNumeric(highNumField.getText()))) {
 	    int firstNum = Integer.parseInt(lowNumField.getText());
 	    int secondNum = Integer.parseInt(highNumField.getText());
 	    if (firstNum > secondNum) {
-		int temp = secondNum;
-		secondNum = firstNum;
-		firstNum = temp;
+        int temp = secondNum;
+        secondNum = firstNum;
+        firstNum = temp;
 	    }
 	    //for (int i = firstNum; i <= secondNum; i++) {
-	    //	keptSet.add(new Integer(i));
+        //	keptSet.add(new Integer(i));
 	    //}
 	    keepRange(keptSet, firstNum, secondNum);
 	    listModel.addElement(Integer.toString(firstNum) + " to " + Integer.toString(secondNum));
-	} else {
+    } else {
 	    JOptionPane.showMessageDialog(pane, "You have to put numbers in the text boxes!", "Error",
-						  JOptionPane.ERROR_MESSAGE);
-	}
+      JOptionPane.ERROR_MESSAGE);
     }
-
-    private void keepRange(HashSet keepSet, int firstNum, int secondNum) {
-	for (int i = firstNum; i <= secondNum; i++) {
+  }
+  
+  private void keepRange(HashSet keepSet, int firstNum, int secondNum) {
+    for (int i = firstNum; i <= secondNum; i++) {
 	    keepSet.add(new Integer(i));
-	}
-	//listModel.addElement(Integer.toString(firstNum) + " to " + Integer.toString(secondNum));
     }
+    //listModel.addElement(Integer.toString(firstNum) + " to " + Integer.toString(secondNum));
+  }
+//}}}
 
+//{{{ onDeleteFromFile
     public void onDeleteFromFile(ActionEvent ev) {
 	String pdbName = kMain.getKinemage().atPdbfile.substring(0, 4).toLowerCase();
 	if (pdbKeepMap.containsKey(pdbName)) {
@@ -294,7 +304,9 @@ public class LoopTool extends BasicTool {
 	}
 	kCanvas.repaint();
     }
+//}}}
 
+//{{{ deleteFromFile
     public void deleteFromFile(HashSet keepSet, String pdbName) {
 	//String pdbName = kMain.getKinemage().atPdbfile.substring(0, 4).toLowerCase();
 	//if (pdbMultiLoopMap.containsKey(pdbName)) {
@@ -309,14 +321,18 @@ public class LoopTool extends BasicTool {
 	    //}
 	kCanvas.repaint();
     }
+//}}}
 
+//{{{ onDelete
     public void onDelete(ActionEvent ev) {
 	//currently assuming kins formatted as lots.
 	delete(kMain.getKinemage(), keptSet);
 	//recolor(kMain.getKinemage(), startColor
 	kCanvas.repaint();
     }
+//}}}
 
+//{{{ onRemove
     public void onRemove(ActionEvent ev) {
 	//if(kept.size() > 0) tupleList.remove(tupleList.size()-1);
 	if(listModel.size() > 0) {
@@ -333,82 +349,54 @@ public class LoopTool extends BasicTool {
 	//if(markList.children.size() > 0) markList.children.remove(markList.children.size()-1);
 	
     }
-
+//}}}
+    
+//{{{ rename
     private void rename(AGE target, String addOn) {
-	if (target instanceof KList) {
-	    Iterator iter = target.iterator();
-	    while (iter.hasNext()) {
-		KPoint pt = (KPoint) iter.next();
-		pt.setName(pt.getName() + " " + addOn);
-		//int resNum = KinUtil.getResNumber(pt);
-		//if (colorSet.contains(new Integer(resNum))) {
-		//    pt.setColor(color);
-		//} 
-	    }
-	} else {
-	    Iterator iter = target.iterator();
-	    while (iter.hasNext()) {
-		rename((AGE)iter.next(), addOn);
-	    }
-	}
+    KIterator<KPoint> points = KIterator.allPoints(target);
+    for (KPoint pt : points) {
+      pt.setName(pt.getName() + " " + addOn);
     }
-
+  }
+//}}}
+  
+//{{{ recolor
     private void recolor(AGE target, HashSet colorSet, KPaint color) {
-	if (target instanceof KList) {
-	    Iterator iter = target.iterator();
-	    while (iter.hasNext()) {
-		KPoint pt = (KPoint) iter.next();
-		int resNum = KinUtil.getResNumber(pt);
-		if (colorSet.contains(new Integer(resNum))) {
-		    pt.setColor(color);
-		} 
-		
-		
-		
-	    }
-	} else {
-	    Iterator iter = target.iterator();
-	    while (iter.hasNext()) {
-		recolor((AGE)iter.next(), colorSet, color);
-	    }
-	}
+    KIterator<KPoint> points = KIterator.allPoints(target);
+    for (KPoint pt : points) {
+      int resNum = KinUtil.getResNumber(pt);
+      if (colorSet.contains(new Integer(resNum))) {
+        pt.setColor(color);
+      } 
     }
-
-    private void delete(AGE target, HashSet keepSet) {
-	if (target instanceof Kinemage) {
+  }
+//}}}
+  
+//{{{ delete
+  private void delete(AGE target, HashSet keepSet) {
+    if (target instanceof Kinemage) {
 	    if (target != null) ((Kinemage)target).setModified(true);
-	}
-	if (target instanceof KList) {
-	    Iterator iter = target.iterator();
-	    while (iter.hasNext()) {
-		KPoint pt = (KPoint) iter.next();
-		int resNum = KinUtil.getResNumber(pt);
-		String ptChain = KinUtil.getChainID(pt).toLowerCase();
-		if ((!keepSet.contains(new Integer(resNum)))){//||(!chainID.equals(ptChain))) {
-		    iter.remove();
-		} else if ((keepSet.contains(new Integer(resNum)))&&(!keepSet.contains(new Integer(resNum-1)))) {
-		    if (pt instanceof VectorPoint) {
-			VectorPoint vpoint = (VectorPoint) pt;
-			KPoint prev = vpoint.getPrev();
-			if (prev instanceof KPoint) {
-			    if (!keepSet.contains(new Integer(KinUtil.getResNumber(prev)))) {
-				vpoint.setPrev(null);
-			    }
-			}
-		    }
-		}
-	    
-		
-		    
-	    }
-	} else {
-	    //System.out.println(target.toString());
-	    Iterator iter = target.iterator();
-	    while (iter.hasNext()) {
-		delete((AGE)iter.next(), keepSet);
-	    }
-	}
     }
+    KIterator<KPoint> points = KIterator.allPoints(target);
+    for (KPoint pt : points) {
+      int resNum = KinUtil.getResNumber(pt);
+      String ptChain = KinUtil.getChainID(pt).toLowerCase();
+      if ((!keepSet.contains(new Integer(resNum)))){//||(!chainID.equals(ptChain))) {
+          points.remove();
+      } else if ((keepSet.contains(new Integer(resNum)))&&(!keepSet.contains(new Integer(resNum-1)))) {
+        if (pt instanceof VectorPoint) {
+          VectorPoint vpoint = (VectorPoint) pt;
+          KPoint prev = vpoint.getPrev();
+          if (prev instanceof KPoint) {
+            if (!keepSet.contains(new Integer(KinUtil.getResNumber(prev)))) {
+              vpoint.setPrev(null);
+            }
+          }
+        }
+      }
+    }
+  }
+//}}}
 
 //{{{ getToolPanel, getHelpAnchor, toString
 //##################################################################################################
