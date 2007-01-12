@@ -12,7 +12,7 @@ VBC things to do:
     coordinates of the points now).
   Check functionality in AutoBondRotTool; not sure if auto-updating of point parents
     messes anything up.
-  Check RecolorTool for proper determination of whether a kin is wireframe or ribbon.
+  Undo for recoloring tool?
   FastaTool rewrite?
   LoopTool rewrite?
   RNALineTracker desperately needs a rewrite.
@@ -20,6 +20,15 @@ VBC things to do:
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+### 2.02 ###
+- GeometryPlugin AnalyzeCurrent seems to be working normally...
+- LoopTool updated to use some Java 1.5 features.
+- RecolorTool being updated to Java 1.5 features.
+- RecolorTool converted all getResNum calls to use KinUtil.
+- RecolorTool ribbon recoloring fixed.
+- RecolorTool no longer stores lists that have been clicked; seems like the program/computers
+  are fast enough now that this isn't necessary.
+- Buildfile updated to use -Xlint:unchecked flag so unchecked errors show up now.
 
 ### 2.01 ###
 - ColorGrouperPlugin updated to use new King 2.0 code and Java 1.5 features.

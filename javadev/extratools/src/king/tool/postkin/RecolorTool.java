@@ -4,6 +4,7 @@ package king.tool.postkin;
 
 import king.*;
 import king.core.*;
+import king.tool.util.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -27,7 +28,6 @@ import javax.swing.event.*;
 
 public class RecolorTool extends BasicTool implements ActionListener {
 
-
     //{{{ Constants
 
 //}}}
@@ -43,7 +43,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
     //HashMap sortedKin;
     //HashMap structMap;
     //HashSet clickedLists;
-    HashMap coloratorMap;//AGE as key, colorator as value
+    HashMap<AGE, Recolorator> coloratorMap;//AGE as key, colorator as value
     Recolorator colorator;
 
     JRadioButton chooseColor, colorAll, colorAA;
@@ -66,7 +66,6 @@ public class RecolorTool extends BasicTool implements ActionListener {
 
 //}}}
 
-
 //{{{ Constructor(s)
 //##############################################################################
     public RecolorTool(ToolBox tb)
@@ -81,7 +80,6 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	//buildGUI();
     }
 //}}}
-
 
 //{{{ buildGUI
 //##############################################################################
@@ -182,111 +180,109 @@ public class RecolorTool extends BasicTool implements ActionListener {
     }
 //}}}
 
-    public void start() {
+//{{{ start
+  /**
+  * Initializes the tool.
+  **/
+        public void start() {
 	if (kMain.getKinemage() == null) return;
 	buildGUI();
-	coloratorMap = new HashMap();
+	coloratorMap = new HashMap<AGE, Recolorator>();
 	//colorator = new RecolorNonRibbon();
 	show();
     }
-
-    //public void windowClosing(WindowEvent ev)     { parent.activateDefaultTool(); }
-    //public void windowDeactivated(WindowEvent ev) { parent.activateDefaultTool(); }
-
+//}}}
 
 //{{{ xx_click() functions
 //##################################################################################################
-    /** Override this function for (left-button) clicks */
-    public void click(int x, int y, KPoint p, MouseEvent ev)
-    {
-        super.click(x, y, p, ev);
-	if ((p != null)&&(clickMode.getState())) {
-	    //colorator = new RecolorNonRibbon();
-	    AGE coloratorKey = (KList) p.getParent();
-	    //KList parentList = (KList) p.getParent();
-	    if (coloratorKey.getMasters().contains("ribbon")) {
-		coloratorKey = (AGE) coloratorKey.getParent();
+  /** Override this function for (left-button) clicks */
+  public void click(int x, int y, KPoint p, MouseEvent ev) {
+    super.click(x, y, p, ev);
+    if ((p != null)&&(clickMode.getState())) {
+	    AGE coloratorKey = (AGE) p.getParent();
+      Collection masts = coloratorKey.getMasters();
+	    if (masts.contains("ribbon")) {
+        coloratorKey = (AGE) coloratorKey.getParent();
 	    }
 	    if (coloratorMap.containsKey(coloratorKey)) {
-		colorator = (Recolorator) coloratorMap.get(coloratorKey);
+        colorator = (Recolorator) coloratorMap.get(coloratorKey);
 	    } else {
-		if (coloratorKey instanceof KGroup) {
-		    colorator = new RecolorRibbon();
-		    coloratorMap.put(coloratorKey, colorator);
-		} else {
-		    colorator = new RecolorNonRibbon();
-		    coloratorMap.put(coloratorKey, colorator);
-		}
+        if (coloratorKey instanceof KGroup) {
+          colorator = new RecolorRibbon();
+          coloratorMap.put(coloratorKey, colorator);
+        } else {
+          colorator = new RecolorNonRibbon();
+          coloratorMap.put(coloratorKey, colorator);
+        }
 	    }
-	    if (!colorator.contains(p)) {
-		colorator.preChangeAnalyses(p);
-	    }
-	    Kinemage k = kMain.getKinemage();
-	    if(k != null) k.setModified(true);
-	    if (colorAll.isSelected()) {
-		int numRes = colorator.numofResidues();
-		//String tableText = textPane.getText();
-		colorator.highlightAll(p, createColorArray(numRes));
-		if (textPane != null) {
-		    String tableText = textPane.getText();
-		    recolorTable(0, tableText.length(), createColorArray(numRes));
-		}
-	    } else if (colorAA.isSelected()) {
-		colorator.highlightAA(p, (String)aaBox.getSelectedItem(), (KPaint) color1.getSelectedItem(), colorPrior.isSelected());
-		if (textPane != null) {
-		    String aa = (String) aaBox.getSelectedItem();
-		    aa = AminoAcid.translate(aa);
-		    String tableText = textPane.getText();
-		    //System.out.println(tableText);
-		    //int i = 0;
-		    int aaIndex = 0;
-		    while (aaIndex >= 0) {
-			aaIndex = tableText.indexOf(aa, aaIndex + 1);
-			if (aaIndex >=0) {
-			    //System.out.println(aaIndex);
-			    //System.out.println(aaIndex + (int)Math.floor(aaIndex/5));
-			    //i = aaIndex + 1;
-			    recolorTable(aaIndex, 1, (KPaint) color1.getSelectedItem());
-			}
-		    }
-		
-
-		}
-	    } else {
-		numberHandler(p);
-		if (!highNumField.getText().equals("")) {
-		    int firstNum = Integer.parseInt(lowNumField.getText());
-		    int secondNum = Integer.parseInt(highNumField.getText());
-		    if (firstNum > secondNum) {
-			int temp = secondNum;
-			secondNum = firstNum;
-			firstNum = temp;
-		    }
-		    KPaint[] colors = createColorArray(secondNum-firstNum+1);
-		    colorator.highlightRange(firstNum, secondNum, colors);
-		    if (textPane != null) {
-			int correctedFirst = firstNum + (int)Math.floor(firstNum/5) - 1;
-			int correctedSec = secondNum + (int)Math.floor(secondNum/5);
-			//recolorTable(correctedFirst, correctedSec - correctedFirst, createColorArray(correctedSec-correctedFirst));
-			recolorTable(correctedFirst, correctedSec - correctedFirst, colors);
-		    }
-		}
-		
-	    }
-	   
-	}
+	    //if (!colorator.contains(p)) {
+        colorator.preChangeAnalyses(p);
+	    //}
+      color(p, colorator);
     }
-//}}}
-
+  }
+  
+  public void color(KPoint p, Recolorator colorator) {
+    Kinemage k = kMain.getKinemage();
+    if(k != null) k.setModified(true);
+    if (colorAll.isSelected()) {
+      int numRes = colorator.numofResidues();
+      //String tableText = textPane.getText();
+      colorator.highlightAll(p, createColorArray(numRes));
+      if (textPane != null) {
+        String tableText = textPane.getText();
+        recolorTable(0, tableText.length(), createColorArray(numRes));
+      }
+    } else if (colorAA.isSelected()) {
+      colorator.highlightAA(p, (String)aaBox.getSelectedItem(), (KPaint) color1.getSelectedItem(), colorPrior.isSelected());
+      if (textPane != null) {
+        String aa = (String) aaBox.getSelectedItem();
+        aa = AminoAcid.translate(aa);
+        String tableText = textPane.getText();
+        //System.out.println(tableText);
+        //int i = 0;
+        int aaIndex = 0;
+        while (aaIndex >= 0) {
+          aaIndex = tableText.indexOf(aa, aaIndex + 1);
+          if (aaIndex >=0) {
+            recolorTable(aaIndex, 1, (KPaint) color1.getSelectedItem());
+          }
+        }
+      }
+    } else {
+      numberHandler(p);
+      if (!highNumField.getText().equals("")) {
+        int firstNum = Integer.parseInt(lowNumField.getText());
+        int secondNum = Integer.parseInt(highNumField.getText());
+        if (firstNum > secondNum) {
+          int temp = secondNum;
+          secondNum = firstNum;
+          firstNum = temp;
+        }
+        KPaint[] colors = createColorArray(secondNum-firstNum+1);
+        colorator.highlightRange(firstNum, secondNum, colors);
+        if (textPane != null) {
+          int correctedFirst = firstNum + (int)Math.floor(firstNum/5) - 1;
+          int correctedSec = secondNum + (int)Math.floor(secondNum/5);
+          //recolorTable(correctedFirst, correctedSec - correctedFirst, createColorArray(correctedSec-correctedFirst));
+          recolorTable(correctedFirst, correctedSec - correctedFirst, colors);
+        }
+      }
+    }
+  }
+  //}}}
 
 //{{{ numberHandler
+  /**
+  * Determines into which num field to put the residue number of the clicked point.
+  **/
     public void numberHandler(KPoint p) {
 	if (!highNumField.getText().equals("")) {
 	    lowNumField.setText("");
 	    highNumField.setText("");
 	}
 	//KList parentList = (KList) p.getParent();
-	Integer resNum = new Integer(colorator.getResNumber(p));
+	Integer resNum = new Integer(KinUtil.getResNumber(p));
 	if(lowNumField.getText().equals("")) {
 	    lowNumField.setText(resNum.toString());
 	} else if (highNumField.getText().equals("")) {
@@ -306,7 +302,6 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	}
     }
 //}}}
-    
     
 //{{{ event functions
 //###############################################################################################
@@ -341,7 +336,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 		JOptionPane.showMessageDialog(pane, "Please click on a point in the structure you want to color before using the number boxes.", "Error",
 					      JOptionPane.ERROR_MESSAGE);
 	    } else {
-		if (isNumeric(lowNumField.getText())&&(isNumeric(highNumField.getText()))&&(textPane == null)) {
+		if (KinUtil.isNumeric(lowNumField.getText())&&(KinUtil.isNumeric(highNumField.getText()))&&(textPane == null)) {
 		    int firstNum = Integer.parseInt(lowNumField.getText());
 		    int secondNum = Integer.parseInt(highNumField.getText());
 		    if (firstNum > secondNum) {
@@ -375,7 +370,11 @@ public class RecolorTool extends BasicTool implements ActionListener {
     }
 //}}}
 
-    public void recolorTable(int offset, int length, KPaint[] colors) {
+//{{{ recolorTable functions
+  /**
+  * Changes the color of the amino acid table.
+  **/
+        public void recolorTable(int offset, int length, KPaint[] colors) {
 	int index = 0;
 	String tableText = textPane.getText();
 	for (int i = offset; i < length + offset; i++) {
@@ -392,23 +391,20 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    
     }
 
+    
     public void recolorTable(int offset, int length, KPaint color) {
 	StyledDocument doc = textPane.getStyledDocument();
 	StyleConstants.setForeground(sas, (Color) color.getWhiteExemplar());
 	doc.setCharacterAttributes(offset, length, sas, true);
 
     }
-	
+    //}}}	
 
-    /**
-     * Event handler for when tool window closed.
-     */
-    //public void windowClosing(WindowEvent ev) {
-	//newGroup();
-    //	parent.activateDefaultTool(); 
-    //}
-
-    public void onTable(ActionEvent ev) {
+//{{{ onTable
+  /**
+  * Creates the sequence table.
+  **/
+  public void onTable(ActionEvent ev) {
 	textPane = new JTextPane();
 	Font monospaced = new Font("monospaced", Font.PLAIN, 12);
 	StyledDocument doc = textPane.getStyledDocument();
@@ -425,17 +421,13 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	} catch (BadLocationException ble) {
 	}
     }
+//}}}
 
-    public boolean isNumeric(String s) {
-	try {
-	    Integer.parseInt(s);
-	    return true;
-	} catch (NumberFormatException e) {
-	    return false;
-	}
-    }
-
-    private KPaint[] createColorArray(int numRes) {
+//{{{ createColorArray
+  /**
+  * Creates the KPaint arrays for coloring by hippie mode or spectral mode.
+  **/
+  private KPaint[] createColorArray(int numRes) {
 	if (chooseColor.isSelected()) {
 	    KPaint[] chosenColor = new KPaint[1];
 	    chosenColor[0] = (KPaint) color1.getSelectedItem();
@@ -473,7 +465,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    }
 	}
     }
-
+//}}}
 
 //{{{ getToolPanel, getHelpAnchor, toString
 //##################################################################################################

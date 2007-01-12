@@ -4,6 +4,7 @@ package king.tool.postkin;
 
 import king.*;
 import king.core.*;
+import king.tool.util.*;
 
 import java.util.*;
 import driftwood.moldb2.AminoAcid;
@@ -33,9 +34,8 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
     // sortbyNum is hashmap with Integer resNum as keys, arraylists as values
     //HashMap sortbyNum;
     //HashMap sortedKin;
-    HashMap structMap;
-    HashSet clickedLists;
-
+    HashMap<Integer, ArrayList<KPoint>> structMap;
+    //HashSet clickedLists;
 
     String[] aaNames = {"gly", "ala", "ser", "thr", "cys", "val", "leu", "ile", "met", "pro", "phe", "tyr", "trp", "asp", "glu", "asn", "gln", "his", "lys", "arg"};
     //JComboBox  aaBox;
@@ -50,121 +50,65 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
 //##############################################################################
     public RecolorNonRibbon()
     {
-        //super(tb);
-	newGroup();
-	clickedLists = new HashSet();
-
-        //undoStack = new LinkedList();
-	//buildGUI();
+      //super(tb);
+      newGroup();
+      //clickedLists = new HashSet();
+      
+      //undoStack = new LinkedList();
+      //buildGUI();
     }
 //}}}
 
-
-//{{{ xx_click() functions
-//##################################################################################################
-    /** Override this function for (left-button) clicks */
-    /*
-    public void clickHandler(KPoint p)
-    {
-        //super.click(x, y, p, ev);
-	if (p != null) {
-	    KList parentList = (KList) p.getParent();
-	    Integer resNumber = new Integer(getResNumber(p));
-	    if (!structMap.containsKey(resNumber))//||!clickedLists.contains(parentList)) {
-		{
-		newGroup();
-		splitStructure(p);
-	    }
-
-	    //Kinemage k = kMain.getKinemage();
-	    //if(k != null) k.setModified(true);
-	    //}
-	    //}
-	    //if (colorAll.isSelected()) {
-	    //highlightAll(p);
-		//} else if (colorAA.isSelected()) {
-		//highlightAA(p);
-		//} else {
-		//highlightRange(p);
-		//}
-	}
-	}*/
-//})}
-
-    public String onTable() {
-	TreeSet keys = new TreeSet(structMap.keySet());
-
-	String aaText = "";
-	int j = 0;
-	for (int i = 1; i <= highResNum.intValue(); i++) {
-	    if (j == 5) {
-		aaText = aaText.concat(" ");
-		j = 0;
-	    }
-	    j++;
-	    if (keys.contains(new Integer(i))) {
-		ArrayList list = (ArrayList) structMap.get(new Integer(i));
-		KPoint point = (KPoint) list.get(0);
-		String aa = getResName(point);
-		if (aa.length()==4) {
-		    aa = aa.substring(1);
-		}
-		aaText = aaText.concat(AminoAcid.translate(aa));
-	    } else {
-		aaText = aaText.concat("-");
-	    }
-	}
-	return aaText;
-    }
-
-    public void preChangeAnalyses(KPoint p) {
-	newGroup();
-	splitStructure(p);
-    }
-
+//{{{ preChangeAnalyses
+  /**
+  * Reinitializes the class and splits the structure in separate lists, based on residue number.
+  **/
+  public void preChangeAnalyses(KPoint p) {
+    newGroup();
+    splitStructure(p);
+  }
+//}}}
+  
 //{{{ splitStructure
 //##################################################################################################
-    /**
-     * 
-     **/
-    
-    public void splitStructure(KPoint p) {
-
-	String pointID = p.getName().trim();
-	KList parentList = (KList) p.getParent();
-	clickedLists.add(parentList);
-	//KSubgroup parentGroup = (KSubgroup) parentList.getParent();
-	Iterator iter = parentList.iterator();
-	KPoint point;
-	ArrayList listofPoints = new ArrayList();
-
-	while (iter.hasNext()) {
-	    point = (KPoint) iter.next();
+  /**
+  * Splits the parent list of a point into separate lists, based on residue number.
+  **/
+  public void splitStructure(KPoint p) {
+    String pointID = p.getName().trim();
+    KList parentList = (KList) p.getParent();
+    //clickedLists.add(parentList);
+    //KSubgroup parentGroup = (KSubgroup) parentList.getParent();
+    KIterator<KPoint> points = KIterator.allPoints(parentList);
+    for (KPoint point : points) {
+    //Iterator iter = parentList.iterator();
+    //KPoint point;
+    //ArrayList<KPoint> listofPoints = new ArrayList<KPoint>();
+    //while (iter.hasNext()) {
+	    //point = (KPoint) iter.next();
 	    //String master = getOldMaster(list);
-	    Integer resNumber = new Integer(getResNumber(point));
-	    listofPoints = (ArrayList) structMap.get(resNumber);
+	    Integer resNumber = new Integer(KinUtil.getResNumber(point.getName()));
+	    ArrayList<KPoint> listofPoints = structMap.get(resNumber);
 	    if (listofPoints == null) {
-		listofPoints = new ArrayList();
+        listofPoints = new ArrayList<KPoint>();
 	    } 
 	    listofPoints.add(point);
 	    structMap.put(resNumber, listofPoints);
-	}
-	//Set keySet = structMap.keySet();
-	TreeSet keys = new TreeSet(structMap.keySet());
-	lowResNum = (Integer) keys.first();
-	highResNum = (Integer) keys.last();
-	
     }
+    //Set keySet = structMap.keySet();
+    TreeSet<Integer> keys = new TreeSet<Integer>(structMap.keySet());
+    lowResNum = (Integer) keys.first();
+    highResNum = (Integer) keys.last();
+  }
 //}}}
 
-    public boolean contains(KPoint p) {
-	KList parentList = (KList) p.getParent();
-	Integer resNum = new Integer(getResNumber(p));
-	return (structMap.containsKey(resNum)&&clickedLists.contains(parentList));
-    }
-	
-
-
+//{{{ contains
+//    public boolean contains(KPoint p) {
+//	KList parentList = (KList) p.getParent();
+//	Integer resNum = new Integer(KinUtil.getResNumber(p.getName()));
+//	return (structMap.containsKey(resNum)&&clickedLists.contains(parentList));
+//    }
+//}}}	
 
 //{{{ highlightRange
 //###################################################################################################
@@ -175,26 +119,26 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
      *
      **/
 
-    public void highlightRange(int firstNum, int secondNum, KPaint[] colors) {
-	int index = 0;
-	for (int i = firstNum; i <= secondNum; i++) {
+  public void highlightRange(int firstNum, int secondNum, KPaint[] colors) {
+    int index = 0;
+    for (int i = firstNum; i <= secondNum; i++) {
 	    if (index >= colors.length) {
-		index = 0;
+        index = 0;
 	    }
 	    Integer hashKey = new Integer(i);
 	    
 	    if (structMap.containsKey(hashKey)) {
-		ArrayList listofLists = (ArrayList) structMap.get(hashKey);
-		Iterator iter = listofLists.iterator();
-		
-		while (iter.hasNext()) {
-		    KPoint point = (KPoint) iter.next();
-		    point.setColor((KPaint) colors[index]);
-		}
-		index++;
+        ArrayList<KPoint> listofPoints = structMap.get(hashKey);
+        for (KPoint point : listofPoints) {
+        //Iterator iter = listofLists.iterator();
+        //while (iter.hasNext()) {
+          //KPoint point = (KPoint) iter.next();
+          point.setColor((KPaint) colors[index]);
+        }
+        index++;
 	    }
-	}
     }
+  }
 
 //}}}
 
@@ -212,37 +156,44 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
     
 //}}}
 
-    public void highlightAA(KPoint p, String aaName, KPaint color, boolean colorPrior) {
-	KList parentList = (KList) p.getParent();
-	Iterator iter = parentList.iterator();
-	HashSet aaNums = new HashSet();
-	while (iter.hasNext()) {
-	    KPoint point = (KPoint) iter.next();
+//{{{ highlightAA
+  /**
+  * For coloring particular amino acids.  
+  **/
+  public void highlightAA(KPoint p, String aaName, KPaint color, boolean colorPrior) {
+    HashSet<Integer> aaNums = new HashSet<Integer>();
+    KList parentList = (KList) p.getParent();
+    KIterator<KPoint> points = KIterator.allPoints(parentList);
+    for (KPoint point : points) {
+    //Iterator iter = parentList.iterator();
+    //while (iter.hasNext()) {
+	    //KPoint point = (KPoint) iter.next();
 	    String name = point.getName();
 	    if (name.indexOf(aaName) != -1) {
-		point.setColor(color);
-		Integer resNum = new Integer(getResNumber(point));
-		aaNums.add(resNum);
+        point.setColor(color);
+        Integer resNum = new Integer(KinUtil.getResNumber(point.getName()));
+        aaNums.add(resNum);
 	    }
-	}
-	if (colorPrior) {
-	    iter = aaNums.iterator();
-	    while (iter.hasNext()) {
-		int priorResNum = ((Integer) iter.next()).intValue() - 1;
-		ArrayList listofPoints = (ArrayList) structMap.get(new Integer(priorResNum));
-		if (listofPoints != null) {
-		    Iterator listIter = listofPoints.iterator();
-		    while (listIter.hasNext()) {
-			KPoint point = (KPoint) listIter.next();
-			if (point != null) {
-			    point.setColor(KPalette.green);
-			}
-		    }
-		}
-	    }
-	}
     }
-
+    if (colorPrior) {
+	    Iterator iter = aaNums.iterator();
+	    while (iter.hasNext()) {
+        int priorResNum = ((Integer) iter.next()).intValue() - 1;
+        ArrayList<KPoint> listofPoints = structMap.get(new Integer(priorResNum));
+        if (listofPoints != null) {
+          Iterator listIter = listofPoints.iterator();
+          while (listIter.hasNext()) {
+            KPoint point = (KPoint) listIter.next();
+            if (point != null) {
+              point.setColor(KPalette.green);
+            }
+          }
+        }
+	    }
+    }
+  }
+//}}}
+  
 //{{{ newGroup
 //######################################################################################################
     /**
@@ -250,9 +201,39 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
      * ribbons in different KGroups, or in new kinemages.
      **/
     public void newGroup() {
-	clickedLists = new HashSet();
-	structMap = new HashMap();
+//	clickedLists = new HashSet();
+	structMap = new HashMap<Integer, ArrayList<KPoint>>();
     }
+//}}}
+
+//{{{ onTable
+  /**
+  * Used for determining the amino acid sequence of a clicked-on structure.
+  **/
+  public String onTable() {
+    TreeSet<Integer> keys = new TreeSet<Integer>(structMap.keySet());
+    String aaText = "";
+    int j = 0;
+    for (int i = 1; i <= highResNum.intValue(); i++) {
+	    if (j == 5) {
+        aaText = aaText.concat(" ");
+        j = 0;
+	    }
+	    j++;
+	    if (keys.contains(new Integer(i))) {
+        ArrayList<KPoint> list = structMap.get(new Integer(i));
+        KPoint point = list.get(0);
+        String aa = KinUtil.getResName(point);
+        if (aa.length()==4) {
+          aa = aa.substring(1);
+        }
+        aaText = aaText.concat(AminoAcid.translate(aa));
+	    } else {
+        aaText = aaText.concat("-");
+	    }
+    }
+    return aaText;
+  }
 //}}}
 
 //{{{ debug
