@@ -21,6 +21,6 @@ slave.screen_center_px = 0 0 0
 slave.screen_normal_vec = 0 0 1
 slave.screen_up_vec = 0 1 0
 
-master.observer_left_eye_px = 0 -90 2000
-master.observer_right_eye_px = 0 90 2000
+master.observer_left_eye_px = -90 0 2000
+master.observer_right_eye_px = 90 0 2000
 
