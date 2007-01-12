@@ -584,7 +584,7 @@ in the plane of the screen.
         setPaint(currColor);
         int currWidth = list.getWidth();
         // The +0.5 makes it closer to other KiNG rendering modes (?)
-        gl.glLineWidth(currWidth+0.5f);
+        gl.glPointSize(currWidth+0.5f);
         gl.glBegin(GL.GL_POINTS);
         for(KPoint p : list.getChildren())
         {

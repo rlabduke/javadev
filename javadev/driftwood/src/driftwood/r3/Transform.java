@@ -40,6 +40,10 @@ import driftwood.util.Strings;
 *
 * <p>Most functions return <code>this</code>, to facilitate chaining.
 *
+* <p>The appendix of the OpenGL Programming Guide is a good resource for
+* common matrices in 3-D graphics (including the frustum, not implemented here)
+* along with their inverses.
+*
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Mon Mar 10 13:03:17 EST 2003
 */
@@ -89,6 +93,15 @@ public class Transform //extends ... implements ...
         m43 = t.m43;
         m44 = t.m44;
         return this;
+    }
+//}}}
+
+//{{{ likeIdentity
+//##################################################################################################
+    /** Makes this Transform into the identity matrix (1 on diagonal, 0 off). */
+    public Transform likeIdentity()
+    {
+        return likeTranslation(0, 0, 0);
     }
 //}}}
 
@@ -208,6 +221,47 @@ public class Transform //extends ... implements ...
         m42 = 0;
         m43 = 0;
         m44 = 1;
+        
+        return this;
+    }
+//}}}
+
+//{{{ likeQuaternion
+//##################################################################################################
+    /** Constructs a rotation matrix from a quaternion. */
+    public Transform likeQuaternion(Quaternion q)
+    {
+        // q_to_row_matrix()
+        // For unit srcQuat, just set s = 2.0; or set xs = srcQuat[X] + 
+        //   srcQuat[X], etc. 
+        double s = 2.0 / (q.getX()*q.getX() + q.getY()*q.getY()
+            + q.getZ()*q.getZ() + q.getW()*q.getW());
+        
+        double  xs, ys, zs, wx, wy, wz, xx, xy, xz, yy, yz, zz;
+        xs = q.getX() * s;   ys = q.getY() * s;   zs = q.getZ() * s;
+        wx = q.getW() * xs;  wy = q.getW() * ys;  wz = q.getW() * zs;
+        xx = q.getX() * xs;  xy = q.getX() * ys;  xz = q.getX() * zs;
+        yy = q.getY() * ys;  yz = q.getY() * zs;  zz = q.getZ() * zs;
+        
+        this.m11 = 1.0 - (yy + zz);
+        this.m12 = xy + wz;
+        this.m13 = xz - wy;
+        this.m14 = 0.0;
+        
+        this.m21 = xy - wz;
+        this.m22 = 1.0 - (xx + zz);
+        this.m23 = yz + wx;
+        this.m24 = 0.0;
+        
+        this.m31 = xz + wy;
+        this.m32 = yz - wx;
+        this.m33 = 1.0 - (xx + yy);
+        this.m34 = 0.0;
+        
+        this.m41 = 0.0;
+        this.m42 = 0.0;
+        this.m43 = 0.0;
+        this.m44 = 1.0;
         
         return this;
     }
