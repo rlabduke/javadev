@@ -174,6 +174,11 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	menu.add(item);
 	clickMode = new JCheckBoxMenuItem("Click Mode On", true);
 	menu.add(clickMode);
+  
+  menu = new JMenu("Edit");
+  menubar.add(menu);
+  item = new JMenuItem(new ReflectiveAction("Undo one step", null, this, "onUndo"));
+  menu.add(item);
 
 	dialog.setJMenuBar(menubar);
 
@@ -421,6 +426,12 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	} catch (BadLocationException ble) {
 	}
     }
+//}}}
+
+//{{{ onUndo
+  public void onUndo(ActionEvent ev) {
+    colorator.undo();
+  }
 //}}}
 
 //{{{ createColorArray

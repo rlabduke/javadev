@@ -75,6 +75,9 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
      **/
     public void newGroup() {
 	//clickedLists = new HashSet();
+  //undoColors = new HashMap<KPoint, KPaint>();
+  pts = new ArrayList<KPoint>();
+  clrs = new ArrayList<KPaint>();
 	structMap = new HashMap<Integer, ArrayList<ArrayList>>();
 	ribbonMap = new HashMap<KList, ArrayList<KList>>();
 	sortedKin = new HashMap<String, ArrayList<KList>>();
@@ -243,6 +246,9 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
   * in colors.  
   **/
   public void highlightRange(int firstNum, int secondNum, KPaint[] colors) {
+    //undoColors.clear();
+    pts.clear();
+    clrs.clear();
     int index = 0;
     for (int i = firstNum; i <= secondNum; i++) {
 	    if (index >= colors.length) {
@@ -277,6 +283,9 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
   * Colors all the points corresponding to a particular amino acid name.
   **/
   public void highlightAA(KPoint p, String aaName, KPaint color, boolean colorPrior) {
+    //undoColors.clear();
+    pts.clear();
+    clrs.clear();
     KList parentList = (KList) p.getParent();
     KGroup parentSub = (KGroup) parentList.getParent();
     HashSet<Integer> aaNums = new HashSet<Integer>();
