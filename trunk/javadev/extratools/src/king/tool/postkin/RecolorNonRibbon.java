@@ -87,6 +87,7 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
     //while (iter.hasNext()) {
 	    //point = (KPoint) iter.next();
 	    //String master = getOldMaster(list);
+      //undoColors.put(point, point.getColor());
 	    Integer resNumber = new Integer(KinUtil.getResNumber(point.getName()));
 	    ArrayList<KPoint> listofPoints = structMap.get(resNumber);
 	    if (listofPoints == null) {
@@ -118,8 +119,10 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
      * and the current p.  
      *
      **/
-
   public void highlightRange(int firstNum, int secondNum, KPaint[] colors) {
+    //undoColors.clear();
+    pts.clear();
+    clrs.clear();
     int index = 0;
     for (int i = firstNum; i <= secondNum; i++) {
 	    if (index >= colors.length) {
@@ -133,6 +136,9 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
         //Iterator iter = listofLists.iterator();
         //while (iter.hasNext()) {
           //KPoint point = (KPoint) iter.next();
+          //undoColors.put(point, point.getColor());
+          pts.add(point);
+          clrs.add(point.getColor());
           point.setColor((KPaint) colors[index]);
         }
         index++;
@@ -161,6 +167,9 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
   * For coloring particular amino acids.  
   **/
   public void highlightAA(KPoint p, String aaName, KPaint color, boolean colorPrior) {
+    //undoColors.clear();
+    pts.clear();
+    clrs.clear();
     HashSet<Integer> aaNums = new HashSet<Integer>();
     KList parentList = (KList) p.getParent();
     KIterator<KPoint> points = KIterator.allPoints(parentList);
@@ -168,6 +177,9 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
     //Iterator iter = parentList.iterator();
     //while (iter.hasNext()) {
 	    //KPoint point = (KPoint) iter.next();
+      //undoColors.put(point, point.getColor());
+      pts.add(point);
+      clrs.add(point.getColor());
 	    String name = point.getName();
 	    if (name.indexOf(aaName) != -1) {
         point.setColor(color);
@@ -185,6 +197,9 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
           while (listIter.hasNext()) {
             KPoint point = (KPoint) listIter.next();
             if (point != null) {
+              //undoColors.put(point, point.getColor());
+              pts.add(point);
+              clrs.add(point.getColor());
               point.setColor(KPalette.green);
             }
           }
@@ -200,10 +215,12 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
      * Resets the tool by creating new hashmaps for the various list storing maps. This is for coloring
      * ribbons in different KGroups, or in new kinemages.
      **/
-    public void newGroup() {
-//	clickedLists = new HashSet();
-	structMap = new HashMap<Integer, ArrayList<KPoint>>();
-    }
+  public void newGroup() {
+    //	clickedLists = new HashSet();
+    pts = new ArrayList<KPoint>();
+    clrs = new ArrayList<KPaint>();
+    structMap = new HashMap<Integer, ArrayList<KPoint>>();
+  }
 //}}}
 
 //{{{ onTable

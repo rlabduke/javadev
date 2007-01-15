@@ -22,6 +22,21 @@ import java.util.*;
 public abstract class Recolorator {
 
     Integer lowResNum, highResNum;
+    
+    //HashMap<KPoint, KPaint> undoColors = null;
+    ArrayList<KPoint> pts = null;
+    ArrayList<KPaint> clrs = null;
+    
+    public void undo() {
+      //for (KPoint point : pts) {
+        for (int i = 0; i < pts.size(); i++) {
+          KPoint point = pts.get(i);
+          KPaint color = clrs.get(i);
+        if (!point.isUnpickable()) {
+          point.setColor(color);
+        }
+      }
+    }
 
     //abstract public boolean contains(KPoint p);
 
@@ -44,6 +59,9 @@ public abstract class Recolorator {
 	while (iter.hasNext()) {
 	    KPoint point = (KPoint) iter.next();
       if (!point.isUnpickable()) {
+        //undoColors.put(point, point.getColor());
+        pts.add(point);
+        clrs.add(point.getColor());
         point.setColor(color);
       }
 	}
