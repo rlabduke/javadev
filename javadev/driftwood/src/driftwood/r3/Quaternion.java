@@ -141,6 +141,73 @@ public class Quaternion implements MutableTuple3
     }
 //}}}
 
+//{{{ likeSlerp
+//##############################################################################
+    /**
+    * Spherical linear interpolation of unit quaternions, to smoothly blend
+    * from one orientation matrix to another.
+    * @param t      when t = 0 you get start, when t = 1 you get end.
+    *   If t is not between 0 and 1, I don't know what you get!
+    */
+    public Quaternion likeSlerp(Quaternion start, Quaternion end, double t)
+    {
+        // q_slerp()
+        
+        double cosOmega = start.getX()*end.getX() + start.getY()*end.getY()
+            + start.getZ()*end.getZ() + start.getW()*end.getW();
+            
+        // If the above dot product is negative, it would be better to
+        // go between the negative of the initial and the final, so that
+        // we take the shorter path.  
+        if(cosOmega < 0)
+        {
+            cosOmega = -cosOmega;
+            start = new Quaternion(-start.getX(), -start.getY(),
+                -start.getZ(), -start.getW());
+        }
+        
+        final double Q_EPSILON = 1e-10;
+        double startScale, endScale;
+        if( (1.0 + cosOmega) > Q_EPSILON ) 
+        {
+            // usual case
+            if( (1.0 - cosOmega) > Q_EPSILON ) 
+            {
+                // usual case
+                double omega = Math.acos(cosOmega);
+                double sinOmega = Math.sin(omega);
+                startScale = Math.sin((1.0 - t)*omega) / sinOmega;
+                endScale = Math.sin(t*omega) / sinOmega;
+            } 
+            else 
+            {
+                // ends very close
+                startScale = 1.0 - t;
+                endScale = t;
+            }
+            this.setXYZW(
+                startScale*start.getX() + endScale*end.getX(),
+                startScale*start.getY() + endScale*end.getY(),
+                startScale*start.getZ() + endScale*end.getZ(),
+                startScale*start.getW() + endScale*end.getW()
+            );
+        } 
+        else 
+        {
+            // ends nearly opposite
+            startScale = Math.sin((0.5 - t) * Math.PI);
+            endScale = Math.sin(t * Math.PI);
+            this.setXYZW(
+                startScale*start.getX() - endScale*start.getY(),
+                startScale*start.getY() + endScale*start.getX(),
+                startScale*start.getZ() - endScale*start.getW(),
+                start.getZ()
+            );
+        }
+        return this;
+    }
+//}}}
+
 //{{{ isNaN, equals, hashCode, toString
 //##################################################################################################
     /** Returns <code>true</code> iff one or more component is Not-A-Number */

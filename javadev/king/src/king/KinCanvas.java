@@ -460,14 +460,27 @@ public class KinCanvas extends JComponent implements KMessage.Subscriber, Transf
         
         if(ev.getSource() == zoommodel)
         {
+            // Only update the view span if the current slider position is different
+            // from what the view says it should be.
+            // This avoids herky-jerky behavior when the view span is badly quantized by the slider model.
+            double viewspan = view.getSpan();
             double kinspan = kMain.getKinemage().getSpan();
-            double newspan = kinspan / Math.pow(2, (double)zoommodel.getValue() / (double)SLIDER_SCALE);
-            view.setSpan((float)newspan);
+            int zoomValue = (int)Math.round((double)SLIDER_SCALE * Math.log(kinspan/viewspan) / LOG_2);
+            if(zoomValue != zoommodel.getValue())
+            {
+                double newspan = kinspan / Math.pow(2, (double)zoommodel.getValue() / (double)SLIDER_SCALE);
+                view.setSpan((float)newspan);
+            }
         }
         else if(ev.getSource() == clipmodel)
         {
-            double newclip = (double)clipmodel.getValue() / 200.0;
-            view.setClip((float)newclip);
+            // Less important for clipping but same principle applies
+            int clipValue = (int)(view.getClip() * 200.0);
+            if(clipValue != clipmodel.getValue())
+            {
+                double newclip = (double)clipmodel.getValue() / 200.0;
+                view.setClip((float)newclip);
+            }
         }
     }
 //}}}

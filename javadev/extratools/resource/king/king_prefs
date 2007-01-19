@@ -1,11 +1,13 @@
 king.tool.export.PovrayExport.menuName = <export>
-king.tool.export.KingLiteBinaryExport.menuName = <export>
 king.tool.export.DiveExport.menuName = <export>
 # VRML and XML export are not maintained or complete...
 king.tool.export.Vrml97Writer.menuName = <not shown>
 king.tool.export.XknWriter.menuName = <not shown>
+# KingLite (aka Hai-King) is no longer used (was for Palm Pilot / Java ME)
+king.tool.export.KingLiteBinaryExport.menuName = <not shown>
 king.tool.draw.LathePlugin.menuName = Kin editing
 king.tool.draw.SkylightPlugin.menuName = Kin editing
+king.tool.movie.MoviePlugin.menuName = Kin editing
 king.tool.data_analysis.CrossWindowPickTool.menuName = Specialty
 king.tool.data_analysis.AutoBondRotDataTool.menuName = Specialty
 king.tool.docking.Dock3On3Tool.menuName = Kin editing
