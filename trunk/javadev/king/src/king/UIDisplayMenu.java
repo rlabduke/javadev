@@ -15,6 +15,7 @@ import javax.swing.event.*;
 import driftwood.gui.*;
 
 import java.util.List;
+import javax.swing.Timer;
 //}}}
 /**
 * <code>UIDisplayMenu</code> encapsulates all the functions
@@ -78,14 +79,16 @@ public class UIDisplayMenu implements KMessage.Subscriber
     JCheckBoxMenuItem cbPersp = null, cbBigMarkers = null, cbBigLabels = null, cbThickness = null,
         cbThin = null, cbIntensity = null, cbBackground = null, cbMonochrome = null, cbColorByList = null,
         cbStereo = null, cbCrosseye = null;
-    JCheckBoxMenuItem autoRockMenuItem = null;
+    JCheckBoxMenuItem autoRockMenuItem = null, autoAnimMenuItem = null;
 
     // Timers, etc for auto-xxx functions
-    javax.swing.Timer autoRockTimer = null;
+    Timer   autoRockTimer   = null;
     float   rockStepSize    = 0;
     int     rockStepCount   = 0;
     int     rockMaxSteps    = 0;
     boolean rockRight       = true;
+    
+    Timer   autoAnimTimer   = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -97,13 +100,15 @@ public class UIDisplayMenu implements KMessage.Subscriber
     {
         kMain = kmain;
         
-        int steptime = kMain.prefs.getInt("autoRockCycleTime") / kMain.prefs.getInt("autoRockCycleSteps");
-        autoRockTimer = new javax.swing.Timer(steptime, new ReflectiveAction(null, null, this, "onDispAutoRockStep"));
-        autoRockTimer.setRepeats(true);
-        autoRockTimer.setCoalesce(false);
+        int steptime    = kMain.prefs.getInt("autoRockCycleTime") / kMain.prefs.getInt("autoRockCycleSteps");
+        autoRockTimer   = new Timer(steptime, new ReflectiveAction(null, null, this, "onDispAutoRockStep"));
+        //autoRockTimer.setRepeats(true);
+        //autoRockTimer.setCoalesce(false);
         rockMaxSteps    = kMain.prefs.getInt("autoRockCycleSteps") / 2;
         rockStepCount   = rockMaxSteps / 2;
         rockStepSize    = (float)Math.toRadians(2.0 * kMain.prefs.getDouble("autoRockDegrees") / (double)rockMaxSteps);
+        
+        autoAnimTimer   = new Timer(kMain.prefs.getInt("autoAnimateDelay"), new ReflectiveAction(null, null, this, "onDispAutoAnimStep"));
         
         kMain.subscribe(this);
     }
@@ -209,6 +214,11 @@ public class UIDisplayMenu implements KMessage.Subscriber
         autoRockMenuItem.setSelected(autoRockTimer.isRunning());
         autoRockMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0)); // 0 => no modifiers
         menu.add(autoRockMenuItem);
+        autoAnimMenuItem = new JCheckBoxMenuItem(new ReflectiveAction("Auto-animate", null, this, "onDispAutoAnimStartStop"));
+        //autoAnimMenuItem.setMnemonic(KeyEvent.VK_R);
+        autoAnimMenuItem.setSelected(autoAnimTimer.isRunning());
+        //autoAnimMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0)); // 0 => no modifiers
+        menu.add(autoAnimMenuItem);
         
         syncCheckboxes();
         
@@ -519,7 +529,7 @@ public class UIDisplayMenu implements KMessage.Subscriber
     }
 //}}}
 
-//{{{ onDisplayAutoRock{StartStop, Step}
+//{{{ onDispAutoRock{StartStop, Step}
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onDispAutoRockStartStop(ActionEvent ev)
@@ -559,6 +569,36 @@ public class UIDisplayMenu implements KMessage.Subscriber
         else          v.rotateY((float)(2 * -rockStepSize * Math.sin((Math.PI*rockStepCount)/rockMaxSteps)));
         
         rockStepCount++;
+    }
+//}}}
+
+//{{{ onDispAutoAnim{StartStop, Step}
+//##################################################################################################
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onDispAutoAnimStartStop(ActionEvent ev)
+    {
+        //Kinemage k = kMain.getKinemage();
+        //if(k == null) return;
+        if(autoAnimMenuItem.isSelected())
+        {
+            String time = JOptionPane.showInputDialog(kMain.getTopWindow(),
+                "Rate of animation? (milliseconds)", Integer.toString(autoAnimTimer.getDelay()));
+            try { autoAnimTimer.setDelay(Integer.parseInt(time)); }
+            catch(NumberFormatException ex) {}
+            autoAnimTimer.start();
+        }
+        else
+        {
+            autoAnimTimer.stop();
+        }
+    }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onDispAutoAnimStep(ActionEvent ev)
+    {
+        Kinemage k = kMain.getKinemage();
+        if(k == null) return;
+        k.animate(1);
     }
 //}}}
 
