@@ -82,7 +82,7 @@ public class KingMain implements WindowListener
         if(prefs.getBoolean("checkNewVersion"))
         {
             // "Timeout" after 2.000 seconds
-            try { prefs.checkVersion(new URL("http://kinemage.biochem.duke.edu/downloads/software/king/king.version.props"), 2000); }
+            try { prefs.checkVersion(new URL("http://kinemage.biochem.duke.edu/downloads/software/king/king2.version.props"), 2000); }
             catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
         }
         parseArguments(args);

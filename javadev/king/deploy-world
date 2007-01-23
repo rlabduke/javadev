@@ -11,10 +11,10 @@ set verbose
 scp dist/king.?.??.??????*.zip www@kinemage.biochem.duke.edu:/var/www/html/downloads/software/king/
 
 # Provide ZIP for auto-update:
-scp dist/king.?.??.??????.zip www@kinemage.biochem.duke.edu:/var/www/html/downloads/software/king/current
+scp dist/king.?.??.??????.zip www@kinemage.biochem.duke.edu:/var/www/html/downloads/software/king/current2
 
 # Update marker for auto-update:
-scp resource/king/version.props www@kinemage.biochem.duke.edu:/var/www/html/downloads/software/king/king.version.props
+scp resource/king/version.props www@kinemage.biochem.duke.edu:/var/www/html/downloads/software/king/king2.version.props
 
 # Update docs on website:
 scp -r dist/king-?.??/doc/. www@kinemage.biochem.duke.edu:/var/www/html/downloads/software/king/docs
