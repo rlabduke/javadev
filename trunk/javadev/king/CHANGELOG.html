@@ -66,6 +66,7 @@
   * MovieMaker needs ...
         an AnimateScene that steps through animate groups too
         to check window size, perspective on, __?__ before rendering
+        filename prefix must be less than or equal to 20 characters for QT
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -76,6 +77,9 @@
 - fixed stupid typo for DiVE defaults that had eyes offset along Y instead of X
 - added Display | Auto-animate for Richard J. Feldmann
 - fixed long-standing "view jerk" bug in KinCanvas
+- changed KiNG 2 to look for updates in a different location -- this way users
+  of 1.x won't be prompted to update until 2.x is stable.
+  If we want them to update in the future, copy 2.x stuff into 1.x locations.
 
 ### 2.02 ###
 - added GUI to connect to master for DiveTool
