@@ -105,7 +105,10 @@ abstract public class AGE<P extends AGE, C extends AHE> extends AHEImpl<P> imple
         {
             //if(newChild.getParent() == null)
                 newChild.setParent(this);
-            return children.set(idx, newChild);
+            C replaced = children.set(idx, newChild);
+            if(newChild instanceof AGE) fireKinChanged(CHANGE_TREE_CONTENTS);
+            else                        fireKinChanged(CHANGE_POINT_CONTENTS);
+            return replaced;
         }
     }
     
