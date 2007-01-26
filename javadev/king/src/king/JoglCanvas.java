@@ -7,10 +7,11 @@ import king.painters.JoglPainter;
 import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.event.*;
+import java.awt.geom.*;
 import java.awt.image.*;
-import java.awt.geom.AffineTransform;
 import java.io.*;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
@@ -40,6 +41,10 @@ import javax.media.opengl.glu.*;
 * However, the speeds are ~50 ms vs 1-2 SECONDS if even one text string is drawn.
 * <p>This mode of doing the canvas overpaint has been replaced by one that uses
 * the JoglPainter directly (which then uses the GLUT font functions for text).
+* <p>In the future, it would be nice to use the com.sun.opengl.util.j2d.Overlap
+* class that appeared in JOGL 1.1.0, but for now we're using the hack method
+* above to not screw people up who have JOGL 1.0.0 installed.
+* (Especially since 1.1.0 is still in the Release Candidate stage.)
 *
 * <p>Copyright (C) 2004-2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Sat Jun  5 15:47:31 EDT 2004
@@ -58,9 +63,10 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
     Dimension   glSize = new Dimension();
     
     // Variables for doing text with a Graphics2D then overlaying it
-    //WritableRaster      raster      = null;
-    //BufferedImage       overlayImg  = null;
-    //byte[]              overlayData = null;
+    WritableRaster      raster      = null;
+    BufferedImage       overlayImg  = null;
+    ByteBuffer          overlayData = null;
+    Image               logo        = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -72,6 +78,11 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
         this.kMain = kMain;
         this.engine = engine;
         this.toolbox = toolbox;
+        
+        // Not guaranteed to load fully before returning -- gives blank screen.
+        this.logo = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("images/king-logo.gif"));
+        // Loads fully before returning:
+        this.logo = new ImageIcon(this.getClass().getResource("images/king-logo.gif")).getImage();
         
         // Java 1.4+ only! - adds support for Drag & Drop to the canvas
         new FileDropHandler(kMain, this);
@@ -106,8 +117,23 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
 
         if(kin == null)
         {
-            gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-            gl.glClear(GL.GL_COLOR_BUFFER_BIT);
+            // Blank screen
+            //gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            //gl.glClear(GL.GL_COLOR_BUFFER_BIT);
+            
+            // KiNG logo and new version availability
+            // This is probably a bit slow, but for logo display, we don't really care.
+            Graphics2D g2 = setupOverlay();
+            Dimension dim = glSize;
+            g2.setColor(Color.black);
+            g2.fillRect(0, 0, dim.width, dim.height);
+            if(logo != null) g2.drawImage(logo, (dim.width-logo.getWidth(this))/2, (dim.height-logo.getHeight(this))/2, this);
+            if(kMain.getPrefs().newerVersionAvailable())
+                announceNewVersion(g2);
+            g2.dispose();
+            // Why *unsigned* bytes?  Who knows.
+            gl.glDrawPixels(dim.width, dim.height,
+                GL.GL_RGBA, GL.GL_UNSIGNED_BYTE , getOverlayBytes());
         }
         else
         {
@@ -216,14 +242,13 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
 
 //{{{ FAST - setupOverlay, getOverlayBytes
 //##############################################################################
-    /*
     Graphics2D setupOverlay()
     {
         if(overlayImg == null || overlayImg.getWidth() != glSize.width || overlayImg.getHeight() != glSize.height)
         {
             overlayImg = new BufferedImage(glSize.width, glSize.height, BufferedImage.TYPE_INT_ARGB);
             int[] data = ((DataBufferInt)overlayImg.getRaster().getDataBuffer()).getData();
-            overlayData = new byte[4 * data.length];
+            overlayData = ByteBuffer.allocate(4 * data.length);
         }
         
         Graphics2D g = overlayImg.createGraphics();
@@ -244,31 +269,45 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
         return g;
     }
     
-    byte[] getOverlayBytes()
+    ByteBuffer getOverlayBytes()
     {
-        int i = 0, j = 0;
+        overlayData.clear();
+        int i = 0;
         int[] data = ((DataBufferInt)overlayImg.getRaster().getDataBuffer()).getData();
         while(i < data.length)
         {
             int d = data[i];
-            if(d == 0)
-            {
-                overlayData[j] = overlayData[j+1] = overlayData[j+2] = overlayData[j+3] = 0;
-            }
-            else // pack into RGBA order from ARGB ints
-            {
-                overlayData[j]   = (byte)((d>>16) & 0xff);
-                overlayData[j+1] = (byte)((d>> 8) & 0xff);
-                overlayData[j+2] = (byte)((d    ) & 0xff);
-                overlayData[j+3] = (byte)((d>>24) & 0xff);
-            }
-            
+            //if(d == 0)
+            //{
+            //    overlayData[j] = overlayData[j+1] = overlayData[j+2] = overlayData[j+3] = 0;
+            //}
+            //else // pack into RGBA order from ARGB ints
+            //{
+                overlayData.put((byte)((d>>16) & 0xff));
+                overlayData.put((byte)((d>> 8) & 0xff));
+                overlayData.put((byte)((d    ) & 0xff));
+                overlayData.put((byte)((d>>24) & 0xff));
+            //}
             i+=1;
-            j+=4;
         }
+        overlayData.rewind(); // or else clients try to read from where we stopped writing
         return overlayData;
     }
-    */
+//}}}
+
+//{{{ announceNewVersion
+//##################################################################################################
+    void announceNewVersion(Graphics2D g2)
+    {
+        String msg = "A new version of KiNG is now available";
+        Dimension d = this.glSize;
+        Font font = new Font("SansSerif", Font.BOLD, 16);
+        g2.setFont(font);
+        g2.setColor(Color.white);
+        FontMetrics metrics = g2.getFontMetrics();
+        Rectangle2D r = metrics.getStringBounds(msg, g2);
+        g2.drawString(msg, (d.width - (int)r.getWidth())/2, (d.height - (int)r.getHeight())/2 + 170);
+    }
 //}}}
 
 //{{{ Mouse listeners (for cursor)
