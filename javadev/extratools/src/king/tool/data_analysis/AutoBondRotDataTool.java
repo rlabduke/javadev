@@ -212,7 +212,7 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	return choice;
     } //}}}
 
-//{{{ openOpenFile
+//{{{ onOpenFile
 //##################################################################################################
     public void onOpenFile(ActionEvent ev)
     {

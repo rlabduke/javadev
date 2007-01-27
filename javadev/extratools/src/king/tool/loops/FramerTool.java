@@ -462,5 +462,6 @@ public class FramerTool extends BasicTool {
 
     public String toString() { return "Framer Tool"; }    
 
-
-}
+    //}}}
+    
+}//class

@@ -30,3 +30,4 @@ king.tool.data_analysis.PlottingTool
 king.tool.postkin.GeometryPlugin
 king.tool.rnaxtal.RNAExtractTool
 king.tool.postkin.RMSDTool
+king.tool.loops.PatchGapPlugin
