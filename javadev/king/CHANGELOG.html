@@ -68,16 +68,20 @@
         an AnimateScene that steps through animate groups too
         to check window size, perspective on, __?__ before rendering
         filename prefix must be less than or equal to 20 characters for QT
+        some control for FPS (controls default lengths)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
 ### 2.04 ###
+### 2.04 ###
 - modified JoglCanvas to display logo and new version alert when no kin
 - bug fix: AGE.replace() did not call fireKinChanged()
   This manifested as very slow/erratic Probe dot update and the dots not being
   actually controlled by the "dots" button in the kinemage.
+- driftwood.PdbReader fix for VMD atom names
+- deployed to cluster
 
 ### 2.03 ###
 - changed glLineWidth() to glPointSize() when rendering DotPoints

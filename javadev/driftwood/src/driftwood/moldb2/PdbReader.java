@@ -386,6 +386,8 @@ public class PdbReader //extends ... implements ...
             if(s.length() >= 78) elem = getElement(s.substring(76,78).trim());
             if(elem == null) elem = getElement(id.substring(0,2));
             if(elem == null) elem = getElement(id.substring(1,2));
+            // VMD produces some (but not all) H with names like _1HB (instead of 1HB_ or _HB1)
+            if(elem == null) elem = getElement(id.substring(2,3));
             if(elem == null) elem = "XX";
             
             a = new Atom(intern(id), elem, s.startsWith("HETATM"));
