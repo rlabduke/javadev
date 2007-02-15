@@ -17,6 +17,13 @@
     Make USER MODs in ModelManager2 undoable by storing them in ModelStatePair
   ? How does molten state interact with replacing the Model frequently?
   * Random things got claimed by G??
+ ** DANGLE:
+        distance checks for chain breaks
+        path name shortened to just file name
+        split residue name into fields
+        defaults for phi,psi; chi; rna
+        support for regex atom names
+        flag for reading cif files
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -24,6 +31,7 @@
 
 ### 0.55 ###
 - updated KiNG plugins to work with 2.0 code changes
+- added Dangle for calculating molecular geometry on demand
 
 ### 0.54 ###
 - started on BackrubFinder2
