@@ -48,10 +48,10 @@ public class Dangle //extends ... implements ...
         Measurement[] meas = (Measurement[]) measurements.toArray(new Measurement[measurements.size()]);
         double[] vals = new double[meas.length];
         
-        System.err.print("#label:model:res");
+        out.print("#label:model:chain:number:ins:type");
         for(int i = 0; i < meas.length; i++)
-            System.err.print(":"+meas[i].getLabel());
-        System.err.println();
+            out.print(":"+meas[i].getLabel());
+        out.println();
         
         for(Iterator models = coords.getModels().iterator(); models.hasNext(); )
         {
@@ -71,7 +71,7 @@ public class Dangle //extends ... implements ...
                 if(print)
                 {
                     out.print(prefix);
-                    out.print(res.getCNIT());
+                    out.print(res.getChain()+":"+res.getSequenceNumber()+":"+res.getInsertionCode()+":"+res.getName());
                     for(int i = 0; i < vals.length; i++)
                     {
                         out.print(":");
@@ -100,7 +100,7 @@ public class Dangle //extends ... implements ...
         PdbReader pr = new PdbReader();
         CifReader cr = new CifReader();
         if(measurements.isEmpty())
-            measurements.addAll(new Parser().parse("torsion phi i-1 _C__, _N__, _CA_, _C__; torsion psi _N__, _CA_, _C__, i+1 _N__"));
+            measurements.addAll(new Parser().parse("phi psi chi1 chi2 chi3 chi4"));
         
         if(files.isEmpty())
         {
@@ -111,7 +111,7 @@ public class Dangle //extends ... implements ...
             for(Iterator iter = files.iterator(); iter.hasNext(); )
             {
                 File f = (File) iter.next();
-                goDangle(f.toString(), pr.read(f));
+                goDangle(f.getName(), pr.read(f));
             }
         }
     }
@@ -219,7 +219,17 @@ public class Dangle //extends ... implements ...
     void interpretArg(String arg)
     {
         // Handle files, etc. here
-        files.add(new File(arg));
+        File f = new File(arg);
+        if(f.exists()) files.add(f);
+        else
+        {
+            try { measurements.addAll(new Parser().parse(arg)); }
+            catch(ParseException ex)
+            {
+                ex.printStackTrace();
+                throw new IllegalArgumentException(ex.getMessage());
+            }
+        }
     }
     
     void interpretFlag(String flag, String param)

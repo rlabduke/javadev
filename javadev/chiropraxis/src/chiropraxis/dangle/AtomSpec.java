@@ -8,7 +8,7 @@ import java.io.*;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
-//import java.util.regex.*;
+import java.util.regex.*;
 //import javax.swing.*;
 import driftwood.moldb2.*;
 //}}}
@@ -28,6 +28,7 @@ public class AtomSpec //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     int resOffset;
+    Matcher regexName;
     String starName, primeName;
 //}}}
 
@@ -37,10 +38,23 @@ public class AtomSpec //extends ... implements ...
     {
         super();
         this.resOffset  = resOffset;
-        this.starName   = atomName.replace('_', ' ');
         
-        this.primeName  = starName.replace('*', '\'');
+        atomName = atomName.replace('_', ' ');
+        this.primeName  = atomName.replace('*', '\'');
         this.starName   = primeName.replace('\'', '*');
+        
+        if(atomName.startsWith("/") && atomName.endsWith("/"))
+        {
+            this.regexName  = Pattern.compile(atomName.substring(1,atomName.length()-1)).matcher("");
+            this.primeName  = atomName;
+            this.starName   = atomName;
+        }
+        else
+        {
+            this.regexName  = null;
+            this.primeName  = atomName.replace('*', '\'');
+            this.starName   = primeName.replace('\'', '*');
+        }
     }
 //}}}
 
@@ -59,8 +73,21 @@ public class AtomSpec //extends ... implements ...
             if(res == null) return null;
             // TODO: check distances to make sure chain is connected
         }
-        Atom atom = res.getAtom(starName);
-        if(atom == null) atom = res.getAtom(primeName);
+        Atom atom = null;
+        if(regexName == null)
+        {
+            atom = res.getAtom(starName);
+            if(atom == null) atom = res.getAtom(primeName);
+        }
+        else
+        {
+            for(Iterator iter = res.getAtoms().iterator(); iter.hasNext() && atom == null; )
+            {
+                Atom a = (Atom) iter.next();
+                if(regexName.reset(a.getName()).matches())
+                    atom = a;
+            }
+        }
         if(atom == null) return null;
         try { return state.get(atom); }
         catch(AtomException ex) { return null; }
