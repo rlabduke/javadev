@@ -57,6 +57,9 @@ abstract public class Measurement //extends ... implements ...
 //##############################################################################
     static public Measurement newBuiltin(String label)
     {
+        // If you add built-ins here, you should also modify
+        // Parser.BUILTIN, the Parser javadoc, and the man page.
+        //{{{ proteins
         if("phi".equals(label))
             return new Dihedral(label,
                 new AtomSpec(-1, "_C__"),
@@ -109,10 +112,69 @@ abstract public class Measurement //extends ... implements ...
             );
         else if("tau".equals(label))
             return new Angle(label,
-                new AtomSpec(0, "_N__"),
-                new AtomSpec(0, "_CA_"),
-                new AtomSpec(0, "_C__")
+                new AtomSpec( 0, "_N__"),
+                new AtomSpec( 0, "_CA_"),
+                new AtomSpec( 0, "_C__")
             );
+        //}}} proteins
+        //{{{ nucleic acids
+        else if("alpha".equals(label))
+            return new Dihedral(label,
+                new AtomSpec(-1, "_O3*"),
+                new AtomSpec( 0, "_P__"),
+                new AtomSpec( 0, "_O5*"),
+                new AtomSpec( 0, "_C5*")
+            );
+        else if("beta".equals(label))
+            return new Dihedral(label,
+                new AtomSpec( 0, "_P__"),
+                new AtomSpec( 0, "_O5*"),
+                new AtomSpec( 0, "_C5*"),
+                new AtomSpec( 0, "_C4*")
+            );
+        else if("gamma".equals(label))
+            return new Dihedral(label,
+                new AtomSpec( 0, "_O5*"),
+                new AtomSpec( 0, "_C5*"),
+                new AtomSpec( 0, "_C4*"),
+                new AtomSpec( 0, "_C3*")
+            );
+        else if("delta".equals(label))
+            return new Dihedral(label,
+                new AtomSpec( 0, "_C5*"),
+                new AtomSpec( 0, "_C4*"),
+                new AtomSpec( 0, "_C3*"),
+                new AtomSpec( 0, "_O3*")
+            );
+        else if("epsilon".equals(label))
+            return new Dihedral(label,
+                new AtomSpec( 0, "_C4*"),
+                new AtomSpec( 0, "_C3*"),
+                new AtomSpec( 0, "_O3*"),
+                new AtomSpec( 1, "_P__")
+            );
+        else if("zeta".equals(label))
+            return new Dihedral(label,
+                new AtomSpec( 0, "_C3*"),
+                new AtomSpec( 0, "_O3*"),
+                new AtomSpec( 1, "_P__"),
+                new AtomSpec( 1, "_O5*")
+            );
+        else if("eta".equals(label)) // virtual!
+            return new Dihedral(label,
+                new AtomSpec(-1, "_C4*"),
+                new AtomSpec( 0, "_P__"),
+                new AtomSpec( 0, "_C4*"),
+                new AtomSpec( 1, "_P__")
+            );
+        else if("theta".equals(label)) // virtual!
+            return new Dihedral(label,
+                new AtomSpec( 0, "_P__"),
+                new AtomSpec( 0, "_C4*"),
+                new AtomSpec( 1, "_P__"),
+                new AtomSpec( 1, "_C4*")
+            );
+        //}}} nucleic acids
         else return null;
     }
 //}}}

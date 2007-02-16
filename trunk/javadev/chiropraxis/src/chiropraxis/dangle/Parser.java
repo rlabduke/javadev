@@ -17,7 +17,7 @@ import java.util.regex.*;
 * <ul>
 * <li>expression &rarr; measurement*</li>
 * <li>measurement &rarr; builtin | distance | angle | dihedral</li>
-* <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau"</li>
+* <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta"</li>
 * <li>distance &rarr; ("distance" | "dist") label atomspec atomspec</li>
 * <li>angle &rarr; "angle" label atomspec atomspec atomspec</li>
 * <li>dihedral &rarr; ("dihedral" | "torsion") label atomspec atomspec atomspec atomspec</li>
@@ -34,7 +34,9 @@ import java.util.regex.*;
 public class Parser //extends ... implements ...
 {
 //{{{ Constants
-    final Matcher BUILTIN   = Pattern.compile("phi|psi|omega|chi1|chi2|chi3|chi4|tau").matcher("");
+    // If you add built-ins here, you should also modify
+    // Measurement.newBuiltin(), the javadoc above, and the man page.
+    final Matcher BUILTIN   = Pattern.compile("phi|psi|omega|chi1|chi2|chi3|chi4|tau|alpha|beta|gamma|delta|epsilon|zeta|eta|theta").matcher("");
     final Matcher DISTANCE  = Pattern.compile("dist(ance)?").matcher("");
     final Matcher ANGLE     = Pattern.compile("angle").matcher("");
     final Matcher DIHEDRAL  = Pattern.compile("dihedral|torsion").matcher("");

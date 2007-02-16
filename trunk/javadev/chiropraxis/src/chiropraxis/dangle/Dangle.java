@@ -14,7 +14,7 @@ import java.util.*;
 import driftwood.moldb2.*;
 //}}}
 /**
-* <code>Dangle</code> has not yet been documented.
+* <code>Dangle</code> is a flexible replacement for many of Dang's jobs.
 *
 * <p>Copyright (C) 2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Thu Feb 15 15:48:20 EST 2007
@@ -26,6 +26,7 @@ public class Dangle //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
+    boolean forcePDB = false, forceCIF = false;
     Collection files = new ArrayList();
     Collection measurements = new ArrayList();
 //}}}
@@ -48,10 +49,12 @@ public class Dangle //extends ... implements ...
         Measurement[] meas = (Measurement[]) measurements.toArray(new Measurement[measurements.size()]);
         double[] vals = new double[meas.length];
         
-        out.print("#label:model:chain:number:ins:type");
+        out.print("# label:model:chain:number:ins:type");
         for(int i = 0; i < meas.length; i++)
             out.print(":"+meas[i].getLabel());
         out.println();
+        for(int i = 0; i < meas.length; i++)
+            out.println("# "+meas[i]);
         
         for(Iterator models = coords.getModels().iterator(); models.hasNext(); )
         {
@@ -104,14 +107,22 @@ public class Dangle //extends ... implements ...
         
         if(files.isEmpty())
         {
-            goDangle("", pr.read(System.in));
+            if(forceCIF)    goDangle("", cr.read(System.in));
+            else            goDangle("", pr.read(System.in));
         }
         else
         {
             for(Iterator iter = files.iterator(); iter.hasNext(); )
             {
                 File f = (File) iter.next();
-                goDangle(f.getName(), pr.read(f));
+                if(forceCIF)
+                    goDangle(f.getName(), cr.read(f));
+                else if(forcePDB)
+                    goDangle(f.getName(), pr.read(f));
+                else if(f.getName().toLowerCase().endsWith(".cif"))
+                    goDangle(f.getName(), cr.read(f));
+                else
+                    goDangle(f.getName(), pr.read(f));
             }
         }
     }
@@ -239,14 +250,15 @@ public class Dangle //extends ... implements ...
             showHelp(true);
             System.exit(0);
         }
-        else if(flag.equals("-e"))
+        else if(flag.equals("-cif"))
         {
-            try { measurements.addAll(new Parser().parse(param)); }
-            catch(ParseException ex)
-            {
-                ex.printStackTrace();
-                throw new IllegalArgumentException(ex.getMessage());
-            }
+            if(forcePDB) throw new IllegalArgumentException("Can't specify both -cif and -pdb");
+            forceCIF = true;
+        }
+        else if(flag.equals("-pdb"))
+        {
+            if(forceCIF) throw new IllegalArgumentException("Can't specify both -cif and -pdb");
+            forcePDB = true;
         }
         else if(flag.equals("-dummy_option"))
         {
