@@ -1,0 +1,44 @@
+
+USAGE
+  dangle ['measurement specifier(s)'] [input file(s)]
+
+  ("dangle" is "java -cp chiropraxis.jar chiropraxis.dangle.Dangle")
+
+INPUT FILES
+  Dangle accepts either PDB or mmCIF files as input.  It tries to guess the
+  format based on file extensions, but you can force one or the other with
+  the -pdb and -cif switches.  If no file name is provided, Dangle will read
+  from standard input.
+
+  The output from Dangle always goes to standard output.
+
+MEASUREMENT SPECIFIERS
+  Dangle can be configured to measure many different distances, angles, and
+  dihedrals in protein and nucleic acid structures.  Some examples are given
+  below, but keep in mind the following points:
+  
+    * Use underscores (_) rather than spaces in atom names and regexps.
+    * Atom names can be 4 chars or a regexp enclosed in slashes (/regexp/).
+    * Use either * or ' for nucleic acid atoms; both match either convention.
+    * Commas and semicolons can be used for clarity but are not required.
+    * Names for the various measurements ARE required (no spaces).
+    * Residue numbers are optional and default to "i" unless specified.
+    * Use either quotes to keep Bash / Csh from breaking the string apart.
+    
+  Dangle also has several "built in" measurement specifiers that you can use:
+    phi, psi, omega, chi1, chi2, chi3, chi4, tau                    # proteins
+    alpha, beta, gamma, delta, epsilon, zeta, eta, theta            # RNA / DNA
+
+  Examples:
+
+    dangle "distance Ca--Ca i-1 _CA_, i _CA_"
+    dangle "dist Ca--Ca i-1 _CA_, _CA_"                             # synonym
+    dangle "dist before i-1 _CA_, _CA_; dist after _CA_, i+1 _CA_"  # two meas.
+  
+    dangle "angle Virtual i-1 _CA_, i _CA_, i+1 _CA_"
+  
+    dangle "torsion Chi_1 _N__, _CA_, _CB_, /_[COS]G[_1]/"          # reg. exp.
+    dangle "dihedral Chi_1 _N__, _CA_, _CB_, /_[COS]G[_1]/"         # synonym
+    
+    dangle "phi, psi, chi1, chi2, chi3, chi4"                       # built-ins
+

@@ -11,16 +11,9 @@
     Make sidechain refitting support two naming conventions for SeMet
     Make a KiNG tool that uses the foos (KingFooTool)
     Think on defn of "wet" foos (water touches edge? center?)
-    Allow ModelManager to switch between alt confs and create new ones
     Show histogram of cluster sizes for SequenceSpacer (maybe in kin text?)
-    [can't repr] Backrub: sc first, then bb, no bb opt sc, leads to sc tool not fixing Cb dev
     Make USER MODs in ModelManager2 undoable by storing them in ModelStatePair
   ? How does molten state interact with replacing the Model frequently?
-  * Random things got claimed by G??
- ** DANGLE:
-        distance checks for chain breaks (max bond len 2.0 A)
-        flag for reading cif files
-        defaults for: alpha, beta, gamma, delta, epsilon, zeta, eta, theta
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -32,6 +25,10 @@
 - added built-ins to grammar
 - added support for regular expression atom names
 - split res CNIT into four fields (for better mmCIF compatibility)
+- added nucleic acid built-ins
+- wrote Dangle man page
+- added -cif and -pdb flags
+- added distance check for connectivity (N--C and O3'--P)
 
 ### 0.54 ###
 - started on BackrubFinder2

@@ -58,7 +58,7 @@ public class AtomSpec //extends ... implements ...
     }
 //}}}
 
-//{{{ get
+//{{{ get, checkConnection
 //##############################################################################
     /**
     * @return the AtomState specified by this spec, or null if it can't be found.
@@ -68,10 +68,13 @@ public class AtomSpec //extends ... implements ...
         Residue res = curr;
         for(int i = 0, end_i = Math.abs(resOffset); i < end_i; i++)
         {
+            Residue old = res;
             if(resOffset > 0) res = curr.getNext(model); // forward search
             else res = curr.getPrev(model); // backward search
             if(res == null) return null;
-            // TODO: check distances to make sure chain is connected
+            
+            if(resOffset > 0)   { if(!checkConnection(model, state, old, res)) return null; }
+            else                { if(!checkConnection(model, state, res, old)) return null; }
         }
         Atom atom = null;
         if(regexName == null)
@@ -91,6 +94,37 @@ public class AtomSpec //extends ... implements ...
         if(atom == null) return null;
         try { return state.get(atom); }
         catch(AtomException ex) { return null; }
+    }
+    
+    private boolean checkConnection(Model model, ModelState state, Residue first, Residue second)
+    {
+        Atom c = null, n = null, o = null, p = null;
+        c = first.getAtom(" C  ");
+        n = second.getAtom(" N  ");
+        if(c != null && n != null)
+        {
+            try
+            {
+                AtomState a1 = state.get(c);
+                AtomState a2 = state.get(n);
+                return (a1.sqDistance(a2) <= 4.00); // from Molikin
+            }
+            catch(AtomException ex) { return false; }
+        }
+        o = first.getAtom(" O3*");
+        if(o == null) o = first.getAtom(" O3'");
+        p = second.getAtom(" P  ");
+        if(o != null && p != null)
+        {
+            try
+            {
+                AtomState a1 = state.get(o);
+                AtomState a2 = state.get(p);
+                return (a1.sqDistance(a2) <= 4.84); // from Molikin
+            }
+            catch(AtomException ex) { return false; }
+        }
+        return false;
     }
 //}}}
 
