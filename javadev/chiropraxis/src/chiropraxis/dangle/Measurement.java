@@ -174,6 +174,20 @@ abstract public class Measurement //extends ... implements ...
                 new AtomSpec( 1, "_P__"),
                 new AtomSpec( 1, "_C4*")
             );
+        else if("chi".equals(label))
+            return new Group(
+                new Dihedral(label, // A, G
+                    new AtomSpec( 0, "_O4*"),
+                    new AtomSpec( 0, "_C1*"),
+                    new AtomSpec( 0, "_N9_"),
+                    new AtomSpec( 0, "_C4_")
+            )).add(
+                new Dihedral(label, // C, T, U
+                    new AtomSpec( 0, "_O4*"),
+                    new AtomSpec( 0, "_C1*"),
+                    new AtomSpec( 0, "_N1_"),
+                    new AtomSpec( 0, "_C2_")
+            ));
         //}}} nucleic acids
         else return null;
     }
@@ -257,6 +271,47 @@ abstract public class Measurement //extends ... implements ...
 
         public String toString()
         { return "dihedral "+getLabel()+" "+a+", "+b+", "+c+", "+d; }
+    }
+//}}}
+
+//{{{ CLASS: Group
+//##############################################################################
+    /** Allows for 1+ measurements to be evaluated in series, returning the first valid result. */
+    static public class Group extends Measurement
+    {
+        Collection group = new ArrayList();
+        
+        public Group(Measurement first)
+        {
+            super(first.getLabel());
+            group.add(first);
+        }
+        
+        /** Returns this for easy chaining. */
+        public Measurement add(Measurement next)
+        { group.add(next); return this; }
+        
+        public double measure(Model model, ModelState state, Residue res)
+        {
+            for(Iterator iter = group.iterator(); iter.hasNext(); )
+            {
+                Measurement m = (Measurement) iter.next();
+                double val = m.measure(model, state, res);
+                if(!Double.isNaN(val)) return val;
+            }
+            return Double.NaN;
+        }
+        
+        public String toString()
+        {
+            StringBuffer buf = new StringBuffer();
+            for(Iterator iter = group.iterator(); iter.hasNext(); )
+            {
+                if(buf.length() > 0) buf.append(" | ");
+                buf.append(iter.next());
+            }
+            return buf.toString();
+        }
     }
 //}}}
 

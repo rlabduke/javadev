@@ -17,7 +17,7 @@ import java.util.regex.*;
 * <ul>
 * <li>expression &rarr; measurement*</li>
 * <li>measurement &rarr; builtin | distance | angle | dihedral</li>
-* <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta"</li>
+* <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi"</li>
 * <li>distance &rarr; ("distance" | "dist") label atomspec atomspec</li>
 * <li>angle &rarr; "angle" label atomspec atomspec atomspec</li>
 * <li>dihedral &rarr; ("dihedral" | "torsion") label atomspec atomspec atomspec atomspec</li>
@@ -28,6 +28,14 @@ import java.util.regex.*;
 * <li>regex &rarr; <i>a java.util.regex regular expression; use _ instead of spaces.</i></li>
 * </ul>
 *
+* <p>There is currently no grammar for specifying things like the nucleic acid
+* sidechain dihedral "chi", which requires alternet *sets* of atom names.
+* If such a thing were added, it would probably look like this:
+*   "dihedral chi _O4*, _C1*, _N9_, _C4_ | _O4*, _C1*, _N1_, _C2_".
+* The problem with using regexps in this case is that all nucleic acids
+* have C2 and C4 atoms, so there's no guarantee that only N9--C4 and N1--C2
+* bonds are considered, and not N9--C2 or N1--C4.
+*
 * <p>Copyright (C) 2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Thu Feb 15 11:18:34 EST 2007
 */
@@ -36,7 +44,7 @@ public class Parser //extends ... implements ...
 //{{{ Constants
     // If you add built-ins here, you should also modify
     // Measurement.newBuiltin(), the javadoc above, and the man page.
-    final Matcher BUILTIN   = Pattern.compile("phi|psi|omega|chi1|chi2|chi3|chi4|tau|alpha|beta|gamma|delta|epsilon|zeta|eta|theta").matcher("");
+    final Matcher BUILTIN   = Pattern.compile("phi|psi|omega|chi1|chi2|chi3|chi4|tau|alpha|beta|gamma|delta|epsilon|zeta|eta|theta|chi").matcher("");
     final Matcher DISTANCE  = Pattern.compile("dist(ance)?").matcher("");
     final Matcher ANGLE     = Pattern.compile("angle").matcher("");
     final Matcher DIHEDRAL  = Pattern.compile("dihedral|torsion").matcher("");
