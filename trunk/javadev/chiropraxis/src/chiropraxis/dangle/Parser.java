@@ -16,14 +16,16 @@ import java.util.regex.*;
 * <code>Parser</code> decodes a simple grammar for specifying measurements in molecules:
 * <ul>
 * <li>expression &rarr; measurement*</li>
-* <li>measurement &rarr; distance | angle | dihedral</li>
+* <li>measurement &rarr; builtin | distance | angle | dihedral</li>
+* <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau"</li>
 * <li>distance &rarr; ("distance" | "dist") label atomspec atomspec</li>
 * <li>angle &rarr; "angle" label atomspec atomspec atomspec</li>
 * <li>dihedral &rarr; ("dihedral" | "torsion") label atomspec atomspec atomspec atomspec</li>
 * <li>label &rarr; [A-Za-z0-9_.-]+</li>
 * <li>atomspec &rarr; resno? atomname</li>
 * <li>resno &rarr; "i" | "i+" [1-9] | "i-" [1-9]</li>
-* <li>atomname &rarr; [_A-Z0-9*']{4}</li>
+* <li>atomname &rarr; [_A-Z0-9*']{4} | "/" regex "/"</li>
+* <li>regex &rarr; <i>a java.util.regex regular expression; use _ instead of spaces.</i></li>
 * </ul>
 *
 * <p>Copyright (C) 2007 by Ian W. Davis. All rights reserved.
@@ -32,12 +34,13 @@ import java.util.regex.*;
 public class Parser //extends ... implements ...
 {
 //{{{ Constants
-    static final Pattern DISTANCE   = Pattern.compile("dist(ance)?");
-    static final Pattern ANGLE      = Pattern.compile("angle");
-    static final Pattern DIHEDRAL   = Pattern.compile("dihedral|torsion");
-    static final Pattern LABEL      = Pattern.compile("[A-Za-z0-9_.-]+");
-    static final Pattern RESNO      = Pattern.compile("i|i(-[1-9])|i\\+([1-9])");
-    static final Pattern ATOMNAME   = Pattern.compile("[_A-Z0-9*']{4}");
+    final Matcher BUILTIN   = Pattern.compile("phi|psi|omega|chi1|chi2|chi3|chi4|tau").matcher("");
+    final Matcher DISTANCE  = Pattern.compile("dist(ance)?").matcher("");
+    final Matcher ANGLE     = Pattern.compile("angle").matcher("");
+    final Matcher DIHEDRAL  = Pattern.compile("dihedral|torsion").matcher("");
+    final Matcher LABEL     = Pattern.compile("[A-Za-z0-9_.-]+").matcher("");
+    final Matcher RESNO     = Pattern.compile("i|i(-[1-9])|i\\+([1-9])").matcher("");
+    final Matcher ATOMNAME  = Pattern.compile("[_A-Z0-9*']{4}|/[^/ ]*/").matcher("");
 //}}}
 
 //{{{ Variable definitions
@@ -54,7 +57,7 @@ public class Parser //extends ... implements ...
     }
 //}}}
 
-//{{{ parse, nextToken, accept, matches
+//{{{ parse, nextToken, accept
 //##############################################################################
     /**
     * Parses a text expression into a set of Measurements.
@@ -80,10 +83,10 @@ public class Parser //extends ... implements ...
         return oldToken;
     }
     
-    boolean accept(Pattern symbol)
+    boolean accept(Matcher symbol)
     {
         if(token == null) return false;
-        else if(symbol.matcher(token).matches())
+        else if(symbol.reset(token).matches())
         {
             nextToken();
             return true;
@@ -91,18 +94,22 @@ public class Parser //extends ... implements ...
         else return false;
     }
     
-    boolean matches(Pattern symbol)
-    {
-        if(token == null) return false;
-        else return symbol.matcher(token).matches();
-    }
+    //boolean matches(Matcher symbol)
+    //{
+    //    if(token == null) return false;
+    //    else return symbol.reset(token).matches();
+    //}
 //}}}
 
 //{{{ measurement
 //##############################################################################
     Measurement measurement() throws ParseException
     {
-        if(accept(DISTANCE))
+        if(accept(BUILTIN))
+        {
+            return Measurement.newBuiltin(BUILTIN.group());
+        }
+        else if(accept(DISTANCE))
         {
             return Measurement.newDistance(
                 label(),
@@ -137,7 +144,7 @@ public class Parser //extends ... implements ...
 //##############################################################################
     String label() throws ParseException
     {
-        if(matches(LABEL)) return nextToken();
+        if(accept(LABEL)) return LABEL.group();
         else throw new ParseException("Expected descriptive label", 0);
     }
 //}}}
@@ -147,23 +154,21 @@ public class Parser //extends ... implements ...
     AtomSpec atomspec() throws ParseException
     {
         int resOffset = 0;
-        if(matches(RESNO))
+        if(accept(RESNO))
         {
-            Matcher m = RESNO.matcher(nextToken());
-            m.matches(); // by definition of accept()
-            String grp = m.group(1);
-            if(grp == null) grp = m.group(2);
+            String grp = RESNO.group(1);
+            if(grp == null) grp = RESNO.group(2);
             if(grp != null)
             {
                 try { resOffset = Integer.parseInt(grp); }
                 catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing residue number!", 0); }
             }
         }
-        if(matches(ATOMNAME))
+        if(accept(ATOMNAME))
         {
             AtomSpec a = new AtomSpec(
                 resOffset,
-                nextToken()
+                ATOMNAME.group()
             );
             return a;
         }

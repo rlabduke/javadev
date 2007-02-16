@@ -53,6 +53,70 @@ abstract public class Measurement //extends ... implements ...
     { return label; }
 //}}}
 
+//{{{ newBuiltin
+//##############################################################################
+    static public Measurement newBuiltin(String label)
+    {
+        if("phi".equals(label))
+            return new Dihedral(label,
+                new AtomSpec(-1, "_C__"),
+                new AtomSpec( 0, "_N__"),
+                new AtomSpec( 0, "_CA_"),
+                new AtomSpec( 0, "_C__")
+            );
+        else if("psi".equals(label))
+            return new Dihedral(label,
+                new AtomSpec( 0, "_N__"),
+                new AtomSpec( 0, "_CA_"),
+                new AtomSpec( 0, "_C__"),
+                new AtomSpec( 1, "_N__")
+            );
+        // Same definition as Dang: named for the first residue in the peptide
+        else if("omega".equals(label))
+            return new Dihedral(label,
+                new AtomSpec( 0, "_CA_"),
+                new AtomSpec( 0, "_C__"),
+                new AtomSpec( 1, "_N__"),
+                new AtomSpec( 1, "_CA_")
+            );
+        else if("chi1".equals(label))
+            return new Dihedral(label,
+                new AtomSpec( 0, "_N__"),
+                new AtomSpec( 0, "_CA_"),
+                new AtomSpec( 0, "_CB_"),
+                new AtomSpec( 0, "/_[ACNOS]G[_1]/")
+            );
+        else if("chi2".equals(label))
+            return new Dihedral(label,
+                new AtomSpec( 0, "_CA_"),
+                new AtomSpec( 0, "_CB_"),
+                new AtomSpec( 0, "/_[ACNOS]G[_1]/"),
+                new AtomSpec( 0, "/_[ACNOS]D[_1]/")
+            );
+        else if("chi3".equals(label))
+            return new Dihedral(label,
+                new AtomSpec( 0, "_CB_"),
+                new AtomSpec( 0, "/_[ACNOS]G[_1]/"),
+                new AtomSpec( 0, "/_[ACNOS]D[_1]/"),
+                new AtomSpec( 0, "/_[ACNOS]E[_1]/")
+            );
+        else if("chi4".equals(label))
+            return new Dihedral(label,
+                new AtomSpec( 0, "/_[ACNOS]G[_1]/"),
+                new AtomSpec( 0, "/_[ACNOS]D[_1]/"),
+                new AtomSpec( 0, "/_[ACNOS]E[_1]/"),
+                new AtomSpec( 0, "/_[ACNOS]Z[_1]/")
+            );
+        else if("tau".equals(label))
+            return new Angle(label,
+                new AtomSpec(0, "_N__"),
+                new AtomSpec(0, "_CA_"),
+                new AtomSpec(0, "_C__")
+            );
+        else return null;
+    }
+//}}}
+
 //{{{ newDistance
 //##############################################################################
     static public Measurement newDistance(String label, AtomSpec a, AtomSpec b)

@@ -18,12 +18,9 @@
   ? How does molten state interact with replacing the Model frequently?
   * Random things got claimed by G??
  ** DANGLE:
-        distance checks for chain breaks
-        path name shortened to just file name
-        split residue name into fields
-        defaults for phi,psi; chi; rna
-        support for regex atom names
+        distance checks for chain breaks (max bond len 2.0 A)
         flag for reading cif files
+        defaults for: alpha, beta, gamma, delta, epsilon, zeta, eta, theta
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -32,6 +29,9 @@
 ### 0.55 ###
 - updated KiNG plugins to work with 2.0 code changes
 - added Dangle for calculating molecular geometry on demand
+- added built-ins to grammar
+- added support for regular expression atom names
+- split res CNIT into four fields (for better mmCIF compatibility)
 
 ### 0.54 ###
 - started on BackrubFinder2
