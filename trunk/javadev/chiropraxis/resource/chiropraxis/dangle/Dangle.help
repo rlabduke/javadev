@@ -27,7 +27,7 @@ MEASUREMENT SPECIFIERS
     
   Dangle also has several "built in" measurement specifiers that you can use:
     phi, psi, omega, chi1, chi2, chi3, chi4, tau                    # proteins
-    alpha, beta, gamma, delta, epsilon, zeta, eta, theta            # RNA / DNA
+    alpha, beta, gamma, delta, epsilon, zeta, eta, theta, chi       # RNA / DNA
 
   Examples:
 
