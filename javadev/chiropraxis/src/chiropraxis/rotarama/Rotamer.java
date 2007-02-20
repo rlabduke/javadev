@@ -30,6 +30,8 @@ public class Rotamer //extends ... implements ...
     static private Rotamer  instance    = null;
     /** Maps 3-letter res code to NDFT: Map<String, NDFloatTable> */
     HashMap                 tables;
+    /** Maps lower case 3-letter codes to Lists of NamedRot objects */
+    HashMap                 names;
     /** Defines geometry (how to measure chi angles, how many, etc */
     SidechainAngles2        scAngles2;
 //}}}
@@ -76,6 +78,7 @@ public class Rotamer //extends ... implements ...
     private Rotamer() throws IOException
     {
         loadTablesFromJar();
+        loadRotamerNames();
         this.scAngles2  = new SidechainAngles2();
     }
 //}}}
@@ -123,6 +126,390 @@ public class Rotamer //extends ... implements ...
     }
 //}}}
 
+//{{{ loadRotamerNames
+//##################################################################################################
+    private void loadRotamerNames()
+    {
+        // These bins are often WAY too big -- the point is to partition space first,
+        // and use the empirical distributions to decide if it's valid or not.
+        // Box boundaries are inclusive, so a point on the border could go either way.
+        // In those cases, though, it really doesn't matter, so it can be arbitrary.
+        // All boundaries are on a non-cyclic 0-360 or 0-180 grid.
+        // Some rotamers need more than one box to account for this.
+        // Boundaries were determined by hand by IWD while looking at kins labeled
+        // by an automatic hill-climbing algorithm.
+        //  name    min1    max1    min2    max2    ...
+        this.names = new HashMap();
+        ArrayList tbl;
+        
+        // thr, val, ser, cys
+        // val has weird "extra" peaks above 1%: 125-135 and 345-360
+        tbl = new ArrayList();
+        tbl.add(new NamedRot("p",       new int[] {0,      120}));
+        tbl.add(new NamedRot("t",       new int[] {120,    240}));
+        tbl.add(new NamedRot("m",       new int[] {240,    360}));
+        names.put("thr", tbl);
+        names.put("val", tbl);
+        names.put("ser", tbl);
+        names.put("cys", tbl);
+        
+        // pro
+        tbl = new ArrayList();
+        tbl.add(new NamedRot("Cg_endo", new int[] {0,      180}));
+        tbl.add(new NamedRot("Cg_exo",  new int[] {180,    360}));
+        names.put("pro", tbl);
+        
+        // phe, tyr
+        tbl = new ArrayList();
+        tbl.add(new NamedRot("p90",     new int[] {0,      120,    0,      180}));
+        tbl.add(new NamedRot("t80",     new int[] {120,    240,    0,      180}));
+        tbl.add(new NamedRot("m-85",    new int[] {240,    360,    35,     150}));
+        tbl.add(new NamedRot("m-30",    new int[] {240,    360,    0,      35}));
+        tbl.add(new NamedRot("m-30",    new int[] {240,    360,    150,    180}));
+        names.put("phe", tbl);
+        names.put("tyr", tbl);
+        
+        // trp
+        tbl = new ArrayList();
+        tbl.add(new NamedRot("p-90",    new int[] {0,      120,    180,    360}));
+        tbl.add(new NamedRot("p90",     new int[] {0,      120,    0,      180}));
+        tbl.add(new NamedRot("t-105",   new int[] {120,    240,    180,    305}));
+        tbl.add(new NamedRot("t90",     new int[] {120,    240,    0,      180}));
+        tbl.add(new NamedRot("t90",     new int[] {120,    240,    305,    360}));
+        tbl.add(new NamedRot("m-90",    new int[] {240,    360,    180,    305}));
+        tbl.add(new NamedRot("m0",      new int[] {240,    360,    305,    360}));
+        tbl.add(new NamedRot("m0",      new int[] {240,    360,    0,      45}));
+        tbl.add(new NamedRot("m95",     new int[] {240,    360,    45,     180}));
+        names.put("trp", tbl);
+        
+        // his
+        tbl = new ArrayList();
+        tbl.add(new NamedRot("p-80",    new int[] {0,      120,    180,    360}));
+        tbl.add(new NamedRot("p80",     new int[] {0,      120,    0,      180}));
+        tbl.add(new NamedRot("t-160",   new int[] {120,    240,    130,    225}));
+        tbl.add(new NamedRot("t-80",    new int[] {120,    240,    225,    360}));
+        tbl.add(new NamedRot("t60",     new int[] {120,    240,    0,      130}));
+        tbl.add(new NamedRot("m-70",    new int[] {240,    360,    225,    360}));
+        tbl.add(new NamedRot("m-70",    new int[] {240,    360,    0,      20}));
+        tbl.add(new NamedRot("m170",    new int[] {240,    360,    130,    225}));
+        tbl.add(new NamedRot("m80",     new int[] {240,    360,    20,     130}));
+        names.put("his", tbl);
+        
+        // leu
+        tbl = new ArrayList();
+        tbl.add(new NamedRot("pp",      new int[] {0,      120,    0,      120}));
+        tbl.add(new NamedRot("pt?",     new int[] {0,      120,    120,    240}));
+        tbl.add(new NamedRot("tp",      new int[] {120,    240,    0,      120}));
+        tbl.add(new NamedRot("tt",      new int[] {120,    240,    120,    240}));
+        tbl.add(new NamedRot("tm?",     new int[] {120,    240,    240,    360}));
+        tbl.add(new NamedRot("mp",      new int[] {240,    360,    0,      120}));
+        tbl.add(new NamedRot("mt",      new int[] {240,    360,    120,    240}));
+        tbl.add(new NamedRot("mm?",     new int[] {240,    360,    240,    360}));
+        names.put("leu", tbl);
+        
+        // ile
+        tbl = new ArrayList();
+        tbl.add(new NamedRot("pp",      new int[] {0,      120,    0,      120}));
+        tbl.add(new NamedRot("pt",      new int[] {0,      120,    120,    240}));
+        tbl.add(new NamedRot("tp",      new int[] {120,    240,    0,      120}));
+        tbl.add(new NamedRot("tt",      new int[] {120,    240,    120,    240}));
+        tbl.add(new NamedRot("tm?",     new int[] {120,    240,    240,    360}));
+        tbl.add(new NamedRot("mp",      new int[] {240,    360,    0,      120}));
+        tbl.add(new NamedRot("mt",      new int[] {240,    360,    120,    240}));
+        tbl.add(new NamedRot("mm",      new int[] {240,    360,    240,    360}));
+        names.put("ile", tbl);
+        
+        // asn
+        tbl = new ArrayList();
+        tbl.add(new NamedRot("p-10",    new int[] {0,      120,    180,    360}));
+        tbl.add(new NamedRot("p30",     new int[] {0,      120,    0,      180}));
+        tbl.add(new NamedRot("t-20",    new int[] {120,    240,    180,    360}));
+        tbl.add(new NamedRot("t-20",    new int[] {120,    240,    0,      10}));
+        tbl.add(new NamedRot("t30",     new int[] {120,    240,    10,     180}));
+        tbl.add(new NamedRot("m-20",    new int[] {240,    360,    300,    360}));
+        tbl.add(new NamedRot("m-20",    new int[] {240,    360,    0,      40}));
+        tbl.add(new NamedRot("m-80",    new int[] {240,    360,    200,    300}));
+        tbl.add(new NamedRot("m120",    new int[] {240,    360,    40,     200}));
+        names.put("asn", tbl);
+        
+        // asp
+        tbl = new ArrayList();
+        tbl.add(new NamedRot("p-10",    new int[] {0,      120,    90,     180}));
+        tbl.add(new NamedRot("p30",     new int[] {0,      120,    0,      90}));
+        tbl.add(new NamedRot("t0",      new int[] {120,    240,    0,      45}));
+        tbl.add(new NamedRot("t0",      new int[] {120,    240,    120,    180}));
+        tbl.add(new NamedRot("t70",     new int[] {120,    240,    45,     120}));
+        tbl.add(new NamedRot("m-20",    new int[] {240,    360,    0,      180}));
+        names.put("asp", tbl);
+        
+        // gln
+        tbl = new ArrayList();
+        tbl.add(new NamedRot("pt20",    new int[] {0,      120,    120,    240,    0,      360}));
+        tbl.add(new NamedRot("pm0",     new int[] {0,      120,    240,    360,    0,      360}));
+        tbl.add(new NamedRot("pp0?",    new int[] {0,      120,    0,      120,    0,      360}));
+        tbl.add(new NamedRot("tp-100",  new int[] {120,    240,    0,      120,    150,    300}));
+        tbl.add(new NamedRot("tp60",    new int[] {120,    240,    0,      120,    0,      150}));
+        tbl.add(new NamedRot("tp60",    new int[] {120,    240,    0,      120,    300,    360}));
+        tbl.add(new NamedRot("tt0",     new int[] {120,    240,    120,    240,    0,      360}));
+        tbl.add(new NamedRot("tm0?",    new int[] {120,    240,    240,    360,    0,      360}));
+        tbl.add(new NamedRot("mp0",     new int[] {240,    360,    0,      120,    0,      360}));
+        tbl.add(new NamedRot("mt-30",   new int[] {240,    360,    120,    240,    0,      360}));
+        tbl.add(new NamedRot("mm-40",   new int[] {240,    360,    240,    360,    0,      60}));
+        tbl.add(new NamedRot("mm-40",   new int[] {240,    360,    240,    360,    210,    360}));
+        tbl.add(new NamedRot("mm100",   new int[] {240,    360,    240,    360,    60,     210}));
+        names.put("gln", tbl);
+        
+        // glu
+        tbl = new ArrayList();
+        tbl.add(new NamedRot("pp20?",   new int[] {0,      120,    0,      120,    0,      180}));
+        tbl.add(new NamedRot("pt-20",   new int[] {0,      120,    120,    240,    0,      180}));
+        tbl.add(new NamedRot("pm0",     new int[] {0,      120,    240,    360,    0,      180}));
+        tbl.add(new NamedRot("tp10",    new int[] {120,    240,    0,      120,    0,      180}));
+        tbl.add(new NamedRot("tt0",     new int[] {120,    240,    120,    240,    0,      180}));
+        tbl.add(new NamedRot("tm-20",   new int[] {120,    240,    240,    360,    0,      180}));
+        tbl.add(new NamedRot("mp0",     new int[] {240,    360,    0,      120,    0,      180}));
+        tbl.add(new NamedRot("mt-10",   new int[] {240,    360,    120,    240,    0,      180}));
+        tbl.add(new NamedRot("mm-40",   new int[] {240,    360,    240,    360,    0,      180}));
+        names.put("glu", tbl);
+        
+        // met (mmt and tpt maybe two peaks each)
+        tbl = new ArrayList();
+        tbl.add(new NamedRot("ppp?",    new int[] {0,      120,    0,      120,    0,      120}));
+        tbl.add(new NamedRot("ptp",     new int[] {0,      120,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("ptt?",    new int[] {0,      120,    120,    240,    120,    240}));
+        tbl.add(new NamedRot("ptm",     new int[] {0,      120,    120,    240,    240,    360}));
+        tbl.add(new NamedRot("pmm?",    new int[] {0,      120,    240,    360,    240,    360}));
+        tbl.add(new NamedRot("tpp",     new int[] {120,    240,    0,      120,    0,      120}));
+        tbl.add(new NamedRot("tpp",     new int[] {120,    240,    0,      120,    330,    360}));
+        tbl.add(new NamedRot("tpt",     new int[] {120,    240,    0,      120,    120,    330}));
+        tbl.add(new NamedRot("ttp",     new int[] {120,    240,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("ttt",     new int[] {120,    240,    120,    240,    120,    240}));
+        tbl.add(new NamedRot("ttm",     new int[] {120,    240,    120,    240,    240,    360}));
+        tbl.add(new NamedRot("tmt?",    new int[] {120,    240,    240,    360,    120,    240}));
+        tbl.add(new NamedRot("tmm?",    new int[] {120,    240,    240,    360,    240,    360}));
+        tbl.add(new NamedRot("mpp?",    new int[] {240,    360,    0,      120,    0,      120}));
+        tbl.add(new NamedRot("mpt?",    new int[] {240,    360,    0,      120,    120,    240}));
+        tbl.add(new NamedRot("mtp",     new int[] {240,    360,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("mtt",     new int[] {240,    360,    120,    240,    120,    240}));
+        tbl.add(new NamedRot("mtm",     new int[] {240,    360,    120,    240,    240,    360}));
+        tbl.add(new NamedRot("mmt",     new int[] {240,    360,    240,    360,    30,     240}));
+        tbl.add(new NamedRot("mmm",     new int[] {240,    360,    240,    360,    0,      30}));
+        tbl.add(new NamedRot("mmm",     new int[] {240,    360,    240,    360,    240,    360}));
+        names.put("met", tbl);
+        
+        // lys (kept all b/c can't see 4D peaks; some never really occur)
+        tbl = new ArrayList();
+        tbl.add(new NamedRot("pppp?",   new int[] {0,      120,    0,      120,    0,      120,    0,      120}));
+        tbl.add(new NamedRot("pppt?",   new int[] {0,      120,    0,      120,    0,      120,    120,    240}));
+        tbl.add(new NamedRot("pppm?",   new int[] {0,      120,    0,      120,    0,      120,    240,    360}));
+        tbl.add(new NamedRot("pptp?",   new int[] {0,      120,    0,      120,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("pptt?",   new int[] {0,      120,    0,      120,    120,    240,    120,    240}));
+        tbl.add(new NamedRot("pptm?",   new int[] {0,      120,    0,      120,    120,    240,    240,    360}));
+        tbl.add(new NamedRot("ppmp?",   new int[] {0,      120,    0,      120,    240,    360,    0,      120}));
+        tbl.add(new NamedRot("ppmt?",   new int[] {0,      120,    0,      120,    240,    360,    120,    240}));
+        tbl.add(new NamedRot("ppmm?",   new int[] {0,      120,    0,      120,    240,    360,    240,    360}));
+        tbl.add(new NamedRot("ptpp?",   new int[] {0,      120,    120,    240,    0,      120,    0,      120}));
+        tbl.add(new NamedRot("ptpt",    new int[] {0,      120,    120,    240,    0,      120,    120,    240}));
+        tbl.add(new NamedRot("ptpm?",   new int[] {0,      120,    120,    240,    0,      120,    240,    360}));
+        tbl.add(new NamedRot("pttp",    new int[] {0,      120,    120,    240,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("pttt",    new int[] {0,      120,    120,    240,    120,    240,    120,    240}));
+        tbl.add(new NamedRot("pttm",    new int[] {0,      120,    120,    240,    120,    240,    240,    360}));
+        tbl.add(new NamedRot("ptmp?",   new int[] {0,      120,    120,    240,    240,    360,    0,      120}));
+        tbl.add(new NamedRot("ptmt",    new int[] {0,      120,    120,    240,    240,    360,    120,    240}));
+        tbl.add(new NamedRot("ptmm?",   new int[] {0,      120,    120,    240,    240,    360,    240,    360}));
+        tbl.add(new NamedRot("pmpp?",   new int[] {0,      120,    240,    360,    0,      120,    0,      120}));
+        tbl.add(new NamedRot("pmpt?",   new int[] {0,      120,    240,    360,    0,      120,    120,    240}));
+        tbl.add(new NamedRot("pmpm?",   new int[] {0,      120,    240,    360,    0,      120,    240,    360}));
+        tbl.add(new NamedRot("pmtp?",   new int[] {0,      120,    240,    360,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("pmtt?",   new int[] {0,      120,    240,    360,    120,    240,    120,    240}));
+        tbl.add(new NamedRot("pmtm?",   new int[] {0,      120,    240,    360,    120,    240,    240,    360}));
+        tbl.add(new NamedRot("pmmp?",   new int[] {0,      120,    240,    360,    240,    360,    0,      120}));
+        tbl.add(new NamedRot("pmmt?",   new int[] {0,      120,    240,    360,    240,    360,    120,    240}));
+        tbl.add(new NamedRot("pmmm?",   new int[] {0,      120,    240,    360,    240,    360,    240,    360}));
+        tbl.add(new NamedRot("tppp?",   new int[] {120,    240,    0,      120,    0,      120,    0,      120}));
+        tbl.add(new NamedRot("tppt?",   new int[] {120,    240,    0,      120,    0,      120,    120,    240}));
+        tbl.add(new NamedRot("tppm?",   new int[] {120,    240,    0,      120,    0,      120,    240,    360}));
+        tbl.add(new NamedRot("tptp",    new int[] {120,    240,    0,      120,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("tptt",    new int[] {120,    240,    0,      120,    120,    240,    120,    240}));
+        tbl.add(new NamedRot("tptm",    new int[] {120,    240,    0,      120,    120,    240,    240,    360}));
+        tbl.add(new NamedRot("tpmp?",   new int[] {120,    240,    0,      120,    240,    360,    0,      120}));
+        tbl.add(new NamedRot("tpmt?",   new int[] {120,    240,    0,      120,    240,    360,    120,    240}));
+        tbl.add(new NamedRot("tpmm?",   new int[] {120,    240,    0,      120,    240,    360,    240,    360}));
+        tbl.add(new NamedRot("ttpp",    new int[] {120,    240,    120,    240,    0,      120,    0,      120}));
+        tbl.add(new NamedRot("ttpt",    new int[] {120,    240,    120,    240,    0,      120,    120,    240}));
+        tbl.add(new NamedRot("ttpm?",   new int[] {120,    240,    120,    240,    0,      120,    240,    360}));
+        tbl.add(new NamedRot("tttp",    new int[] {120,    240,    120,    240,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("tttt",    new int[] {120,    240,    120,    240,    120,    240,    120,    240}));
+        tbl.add(new NamedRot("tttm",    new int[] {120,    240,    120,    240,    120,    240,    240,    360}));
+        tbl.add(new NamedRot("ttmp?",   new int[] {120,    240,    120,    240,    240,    360,    0,      120}));
+        tbl.add(new NamedRot("ttmt",    new int[] {120,    240,    120,    240,    240,    360,    120,    240}));
+        tbl.add(new NamedRot("ttmm",    new int[] {120,    240,    120,    240,    240,    360,    240,    360}));
+        tbl.add(new NamedRot("tmpp?",   new int[] {120,    240,    240,    360,    0,      120,    0,      120}));
+        tbl.add(new NamedRot("tmpt?",   new int[] {120,    240,    240,    360,    0,      120,    120,    240}));
+        tbl.add(new NamedRot("tmpm?",   new int[] {120,    240,    240,    360,    0,      120,    240,    360}));
+        tbl.add(new NamedRot("tmtp?",   new int[] {120,    240,    240,    360,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("tmtt?",   new int[] {120,    240,    240,    360,    120,    240,    120,    240}));
+        tbl.add(new NamedRot("tmtm?",   new int[] {120,    240,    240,    360,    120,    240,    240,    360}));
+        tbl.add(new NamedRot("tmmp?",   new int[] {120,    240,    240,    360,    240,    360,    0,      120}));
+        tbl.add(new NamedRot("tmmt?",   new int[] {120,    240,    240,    360,    240,    360,    120,    240}));
+        tbl.add(new NamedRot("tmmm?",   new int[] {120,    240,    240,    360,    240,    360,    240,    360}));
+        tbl.add(new NamedRot("mppp?",   new int[] {240,    360,    0,      120,    0,      120,    0,      120}));
+        tbl.add(new NamedRot("mppt?",   new int[] {240,    360,    0,      120,    0,      120,    120,    240}));
+        tbl.add(new NamedRot("mppm?",   new int[] {240,    360,    0,      120,    0,      120,    240,    360}));
+        tbl.add(new NamedRot("mptp?",   new int[] {240,    360,    0,      120,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("mptt",    new int[] {240,    360,    0,      120,    120,    240,    120,    240}));
+        tbl.add(new NamedRot("mptm?",   new int[] {240,    360,    0,      120,    120,    240,    240,    360}));
+        tbl.add(new NamedRot("mpmp?",   new int[] {240,    360,    0,      120,    240,    360,    0,      120}));
+        tbl.add(new NamedRot("mpmt?",   new int[] {240,    360,    0,      120,    240,    360,    120,    240}));
+        tbl.add(new NamedRot("mpmm?",   new int[] {240,    360,    0,      120,    240,    360,    240,    360}));
+        tbl.add(new NamedRot("mtpp",    new int[] {240,    360,    120,    240,    0,      120,    0,      120}));
+        tbl.add(new NamedRot("mtpt",    new int[] {240,    360,    120,    240,    0,      120,    120,    240}));
+        tbl.add(new NamedRot("mtpm?",   new int[] {240,    360,    120,    240,    0,      120,    240,    360}));
+        tbl.add(new NamedRot("mttp",    new int[] {240,    360,    120,    240,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("mttt",    new int[] {240,    360,    120,    240,    120,    240,    120,    240}));
+        tbl.add(new NamedRot("mttm",    new int[] {240,    360,    120,    240,    120,    240,    240,    360}));
+        tbl.add(new NamedRot("mtmp?",   new int[] {240,    360,    120,    240,    240,    360,    0,      120}));
+        tbl.add(new NamedRot("mtmt",    new int[] {240,    360,    120,    240,    240,    360,    120,    240}));
+        tbl.add(new NamedRot("mtmm",    new int[] {240,    360,    120,    240,    240,    360,    240,    360}));
+        tbl.add(new NamedRot("mmpp?",   new int[] {240,    360,    240,    360,    0,      120,    0,      120}));
+        tbl.add(new NamedRot("mmpt?",   new int[] {240,    360,    240,    360,    0,      120,    120,    240}));
+        tbl.add(new NamedRot("mmpm?",   new int[] {240,    360,    240,    360,    0,      120,    240,    360}));
+        tbl.add(new NamedRot("mmtp",    new int[] {240,    360,    240,    360,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("mmtt",    new int[] {240,    360,    240,    360,    120,    240,    120,    240}));
+        tbl.add(new NamedRot("mmtm",    new int[] {240,    360,    240,    360,    120,    240,    240,    360}));
+        tbl.add(new NamedRot("mmmp?",   new int[] {240,    360,    240,    360,    240,    360,    0,      120}));
+        tbl.add(new NamedRot("mmmt",    new int[] {240,    360,    240,    360,    240,    360,    120,    240}));
+        tbl.add(new NamedRot("mmmm",    new int[] {240,    360,    240,    360,    240,    360,    240,    360}));
+        names.put("lys", tbl);
+        
+        // arg (again, some entries are dummies for peaks that never occur)
+        tbl = new ArrayList();
+        tbl.add(new NamedRot("ppp_?",   new int[] {0,      120,    0,      120,    0,      120,    0,      360}));
+        tbl.add(new NamedRot("ppt_?",   new int[] {0,      120,    0,      120,    120,    240,    0,      360}));
+        tbl.add(new NamedRot("ppm_?",   new int[] {0,      120,    0,      120,    240,    360,    0,      360}));
+        tbl.add(new NamedRot("ptp85",   new int[] {0,      120,    120,    240,    0,      120,    0,      120}));
+        tbl.add(new NamedRot("ptp180",  new int[] {0,      120,    120,    240,    0,      120,    120,    360}));
+        tbl.add(new NamedRot("ptt85",   new int[] {0,      120,    120,    240,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("ptt180",  new int[] {0,      120,    120,    240,    120,    240,    120,    240}));
+        tbl.add(new NamedRot("ptt-85",  new int[] {0,      120,    120,    240,    120,    240,    240,    360}));
+        tbl.add(new NamedRot("ptm85",   new int[] {0,      120,    120,    240,    240,    360,    0,      120}));
+        tbl.add(new NamedRot("ptm180",  new int[] {0,      120,    120,    240,    240,    360,    120,    360}));
+        tbl.add(new NamedRot("pmp_?",   new int[] {0,      120,    240,    360,    0,      120,    0,      360}));
+        tbl.add(new NamedRot("pmt_?",   new int[] {0,      120,    240,    360,    120,    240,    0,      360}));
+        tbl.add(new NamedRot("pmm_?",   new int[] {0,      120,    240,    360,    240,    360,    0,      360}));
+        tbl.add(new NamedRot("tpp85",   new int[] {120,    240,    0,      120,    0,      120,    0,      120}));
+        tbl.add(new NamedRot("tpp180",  new int[] {120,    240,    0,      120,    0,      120,    120,    360}));
+        tbl.add(new NamedRot("tpt85",   new int[] {120,    240,    0,      120,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("tpt180",  new int[] {120,    240,    0,      120,    120,    240,    120,    360}));
+        tbl.add(new NamedRot("tpm_?",   new int[] {120,    240,    0,      120,    240,    360,    0,      360}));
+        tbl.add(new NamedRot("ttp85",   new int[] {120,    240,    120,    240,    0,      120,    0,      120}));
+        tbl.add(new NamedRot("ttp180",  new int[] {120,    240,    120,    240,    0,      120,    120,    240}));
+        tbl.add(new NamedRot("ttp-105", new int[] {120,    240,    120,    240,    0,      120,    240,    360}));
+        tbl.add(new NamedRot("ttt85",   new int[] {120,    240,    120,    240,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("ttt180",  new int[] {120,    240,    120,    240,    120,    240,    120,    240}));
+        tbl.add(new NamedRot("ttt-85",  new int[] {120,    240,    120,    240,    120,    240,    240,    360}));
+        tbl.add(new NamedRot("ttm105",  new int[] {120,    240,    120,    240,    240,    360,    0,      120}));
+        tbl.add(new NamedRot("ttm180",  new int[] {120,    240,    120,    240,    240,    360,    120,    240}));
+        tbl.add(new NamedRot("ttm-85",  new int[] {120,    240,    120,    240,    240,    360,    240,    360}));
+        tbl.add(new NamedRot("tmp_?",   new int[] {120,    240,    240,    360,    0,      120,    0,      360}));
+        tbl.add(new NamedRot("tmt_?",   new int[] {120,    240,    240,    360,    120,    240,    0,      360}));
+        tbl.add(new NamedRot("tmm_?",   new int[] {120,    240,    240,    360,    240,    360,    0,      360}));
+        tbl.add(new NamedRot("mpp_?",   new int[] {240,    360,    0,      120,    0,      120,    0,      360}));
+        tbl.add(new NamedRot("mpt_?",   new int[] {240,    360,    0,      120,    120,    240,    0,      360}));
+        tbl.add(new NamedRot("mpm_?",   new int[] {240,    360,    0,      120,    240,    360,    0,      360}));
+        tbl.add(new NamedRot("mtp85",   new int[] {240,    360,    120,    240,    0,      120,    0,      120}));
+        tbl.add(new NamedRot("mtp180",  new int[] {240,    360,    120,    240,    0,      120,    120,    240}));
+        tbl.add(new NamedRot("mtp-105", new int[] {240,    360,    120,    240,    0,      120,    240,    360}));
+        tbl.add(new NamedRot("mtt85",   new int[] {240,    360,    120,    240,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("mtt180",  new int[] {240,    360,    120,    240,    120,    240,    120,    240}));
+        tbl.add(new NamedRot("mtt-85",  new int[] {240,    360,    120,    240,    120,    240,    240,    360}));
+        tbl.add(new NamedRot("mtm105",  new int[] {240,    360,    120,    240,    240,    360,    0,      120}));
+        tbl.add(new NamedRot("mtm180",  new int[] {240,    360,    120,    240,    240,    360,    120,    240}));
+        tbl.add(new NamedRot("mtm-85",  new int[] {240,    360,    120,    240,    240,    360,    240,    360}));
+        tbl.add(new NamedRot("mmp_?",   new int[] {240,    360,    240,    360,    0,      120,    0,      360}));
+        tbl.add(new NamedRot("mmt85",   new int[] {240,    360,    240,    360,    120,    240,    0,      120}));
+        tbl.add(new NamedRot("mmt180",  new int[] {240,    360,    240,    360,    120,    240,    120,    240}));
+        tbl.add(new NamedRot("mmt-85",  new int[] {240,    360,    240,    360,    120,    240,    240,    360}));
+        tbl.add(new NamedRot("mmm180",  new int[] {240,    360,    240,    360,    240,    360,    0,      240}));
+        tbl.add(new NamedRot("mmm-85",  new int[] {240,    360,    240,    360,    240,    360,    240,    360}));
+        names.put("arg", tbl);
+    }
+//}}}
+
+//{{{ CLASS: NamedRot
+//##################################################################################################
+    private static class NamedRot
+    {
+        String name;
+        int[] bounds;
+        
+        public NamedRot(String name, int[] bounds)
+        {
+            this.name = name;
+            this.bounds = bounds;
+        }
+        
+        // assumes input angles have already been wrapped
+        public boolean contains(double[] ang)
+        {
+            for(int i = 0; i < bounds.length; i+=2)
+            {
+                int ii = i / 2;
+                if(ang[ii] < bounds[i] || ang[ii] > bounds[i+1]) return false;
+            }
+            return true;
+        }
+        
+        public String getName()
+        { return name; }
+    }
+//}}}
+
+//{{{ identify
+//##################################################################################################
+    /**
+    * Names the specified sidechain rotamer according to the conventions in the
+    * Penultimate Rotamer Library.  Returns null if the conformation can't be named.
+    * This is ONLY meaningful if evaluate() returns &gt;= 0.01 for the given conformation.
+    *
+    * @throws IllegalArgumentException if the residue type is unknown
+    * @throws AtomException atoms or states are missing
+    */
+    public String identify(Residue res, ModelState state)
+    {
+        String rescode = res.getName().toLowerCase();
+        
+        double[] chiAngles = scAngles2.measureChiAngles(res, state);
+        for(int i = 0; i < chiAngles.length; i++)
+        {
+            chiAngles[i] = chiAngles[i] % 360;
+            if(chiAngles[i] < 0) chiAngles[i] += 360;
+        }
+        // for these residues, the last chi angle is only 0 - 180
+        if("asp".equals(rescode) || "glu".equals(rescode) || "phe".equals(rescode) || "tyr".equals(rescode))
+        {
+            int i = chiAngles.length - 1;
+            chiAngles[i] = chiAngles[i] % 180;
+            if(chiAngles[i] < 0) chiAngles[i] += 180;
+        }
+        
+        Collection tbl = (Collection) names.get(rescode);
+        if(tbl == null)
+            throw new IllegalArgumentException("Unknown residue type");
+        //if(chiAngles == null)
+        //    throw new IllegalArgumentException("No chi angles supplied");
+        //if(chiAngles.length < ndft.getDimensions())
+        //    throw new IllegalArgumentException("Too few chi angles supplied");
+        
+        for(Iterator iter = tbl.iterator(); iter.hasNext(); )
+        {
+            NamedRot nr = (NamedRot) iter.next();
+            if(nr.contains(chiAngles)) return nr.getName();
+        }
+        return null;
+    }
+//}}}
+
 //{{{ evaluate
 //##################################################################################################
     /**
@@ -151,10 +538,6 @@ public class Rotamer //extends ... implements ...
         for(int i = 0; i < chis.length; i++) chis[i] = (float)chiAngles[i];
         return ndft.valueAt(chis);
     }
-//}}}
-
-//{{{ empty_code_segment
-//##################################################################################################
 //}}}
 
 //{{{ empty_code_segment
