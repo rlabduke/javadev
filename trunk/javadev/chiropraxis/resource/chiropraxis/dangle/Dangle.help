@@ -23,13 +23,15 @@ MEASUREMENT SPECIFIERS
     * Commas and semicolons can be used for clarity but are not required.
     * Names for the various measurements ARE required (no spaces).
     * Residue numbers are optional and default to "i" unless specified.
-    * Use either quotes to keep Bash / Csh from breaking the string apart.
+    * Use quotes to keep Bash / Csh from breaking the string apart.
     
   Dangle also has several "built in" measurement specifiers that you can use:
     phi, psi, omega, chi1, chi2, chi3, chi4, tau                    # proteins
     alpha, beta, gamma, delta, epsilon, zeta, eta, theta, chi       # RNA / DNA
 
   Examples:
+    
+    dangle "phi, psi, chi1, chi2, chi3, chi4"                       # built-ins
 
     dangle "distance Ca--Ca i-1 _CA_, i _CA_"
     dangle "dist Ca--Ca i-1 _CA_, _CA_"                             # synonym
@@ -39,6 +41,4 @@ MEASUREMENT SPECIFIERS
   
     dangle "torsion Chi_1 _N__, _CA_, _CB_, /_[COS]G[_1]/"          # reg. exp.
     dangle "dihedral Chi_1 _N__, _CA_, _CB_, /_[COS]G[_1]/"         # synonym
-    
-    dangle "phi, psi, chi1, chi2, chi3, chi4"                       # built-ins
 
