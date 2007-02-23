@@ -1,58 +1,80 @@
-#LyX 1.3 created this file. For more info see http://www.lyx.org/
-\lyxformat 221
+#LyX 1.4.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 245
+\begin_document
+\begin_header
 \textclass report
 \language english
 \inputencoding auto
 \fontscheme pslatex
 \graphics default
 \paperfontsize default
-\spacing single 
-\papersize Default
-\paperpackage a4
-\use_geometry 0
-\use_amsmath 0
-\use_natbib 0
-\use_numerical_citations 0
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\cite_engine basic
+\use_bibtopic false
 \paperorientation portrait
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
 \defskip medskip
 \quotes_language english
-\quotes_times 2
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
+\tracking_changes false
+\output_changes true
+\end_header
 
-\layout Title
-\added_space_top vfill \added_space_bottom vfill 
+\begin_body
+
+\begin_layout Standard
+\begin_inset VSpace vfill
+\end_inset
+
+
+\end_layout
+
+\begin_layout Title
 The Extratools manual
-\layout Author
+\end_layout
 
+\begin_layout Standard
+\begin_inset VSpace vfill
+\end_inset
+
+
+\end_layout
+
+\begin_layout Author
 Ian W.
  Davis and Vincent B.
  Chen
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset LatexCommand \tableofcontents{}
 
-\end_inset 
+\end_inset
 
 
-\layout Chapter
+\end_layout
 
+\begin_layout Chapter
 The Tools
-\layout Section
+\end_layout
 
+\begin_layout Section
 Dock 3-on-3: Geometric construction
 \begin_inset LatexCommand \label{dock3-tool}
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The three-point docking tool is useful for constructing geometric shapes
  and figures out of existing pieces in kinemage format.
  As you start picking points with the mouse, they will be labeled with numbers:
@@ -60,36 +82,39 @@ The three-point docking tool is useful for constructing geometric shapes
  When you're ready to apply the docking transformation, turn off groups
  that should remain in place and leave visible those that should move.
  Then press the 
-\family typewriter 
+\family typewriter
 Dock
-\family default 
+\family default
  button.
  The first points will be superimposed exactly, the 1-2 axes will be aligned
  (so that the mobile 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 points in the direction of
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  the reference) and the final points are used to determine rotational position
  (dihedral angle) about the 1-2 axis.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 If you'd like to dock several of the same object with respect to each other,
  remember you can use the copy and paste commands in the hierarchy editor
  to create duplicate objects.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Least-Squares Docking: Getting the best fit
 \begin_inset LatexCommand \label{lsqdock-tool}
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The least-squares docking tool is useful for matching up two objects that
  are similar but not quite the same.
  As you start picking points with the mouse, they will be labeled with numbers,
@@ -100,40 +125,84 @@ The least-squares docking tool is useful for matching up two objects that
  When you're ready to apply the docking transformation, turn off groups
  that should remain in place and leave visible those that should move.
  Then press the 
-\family typewriter 
+\family typewriter
 Dock
-\family default 
+\family default
  button.
  The matched points will be positioned so as to minimize the sum of the
  squares of their separation (thus the phrase 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 least squares
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 ).
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 If you'd like to dock several of the same object with respect to each other,
  remember you can use the copy and paste commands in the hierarchy editor
  to create duplicate objects.
-\layout Section
+\end_layout
 
-RNA Maps: Finding the phosphates
+\begin_layout Section
+Dock By Picking
+\begin_inset LatexCommand \label{dockbypicking-tool}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The dock by picking tool builds upon the least-squares docking tool, making
+ use of structure connectivity to make the tool easier to use.
+ In this version, you do not have to click on every point that you want
+ to use to dock.
+ Instead, you can click on two points, and almost every point in between
+ will be automatically added to the selected box (reference or mobile).
+ It leaves out points that are off, or are only one atom away (e.g.
+ it ignores hydrogens and carbonyls).
+ This tool requires the same number of points to be selected in the reference
+ and mobile fields.
+ The dock button will move the mobile, and every point connected to the
+ mobile section.
+ There is no need to turn off or on parts of the structure to get them to
+ move.
+ 
+\end_layout
+
+\begin_layout Standard
+N.B.
+ Since this tool uses connectivity to determine the points, and the mobile
+ section, it is easy to confuse.
+ For example, it is inconsistent when considering sidechains, or especially
+ rings in structures.
+ 
+\end_layout
+
+\begin_layout Section
+RNA Maps: Finding the phosphates 
+\shape italic
+(not active by default)
+\shape default
+
 \begin_inset LatexCommand \label{rnamap-tool}
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 
-\emph on 
+\emph on
 Authored by Vincent Chen (vbc3@duke.edu)
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 This tool (still under development) was designed to aid users in locating
  potential phosphate positions in the electron density maps of nucleic acids.
  Similar to the existing electron density viewing plug-in, this tool asks
@@ -146,11 +215,13 @@ This tool (still under development) was designed to aid users in locating
  Next, the tool searches through the map to find the highest electron density
  value within that selected polyhedron, and places a marker point on that
  spot, showing an approximate position for the phosphorous.
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Current Issues
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 This tool does not differentiate between a point in the electron density
  and a point on the actual structure.
  Clicking on the structure with the poly picking tool active can result
@@ -164,48 +235,53 @@ This tool does not differentiate between a point in the electron density
  density around and selecting a polyhedron may result in an error.
  If this happens, the program will have to be restarted in order to selected
  a polyhedron not in the initial set.
-\layout Section
+\end_layout
 
+\begin_layout Section
 90 Degree Rotations: Seeing precisely
 \begin_inset LatexCommand \label{rot90-plugin}
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The 90 Degree Rotations plugin provides a simple way to turn your model
  by 90 degrees around any of the three Cartesian axes.
  It also provides a shortcut back to the standard kinemage orientation:
  looking straight down the Z axis from the positive end toward the negative
  one, with positive X to the right and positive Y at the top of the screen.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 This plugin is particularly useful in combination with a trick for setting
  up simultaneous orthogonal views of a kinemage.
  Read about it in the section on stereo graphics in the KiNG manual.
-\layout Section
+\end_layout
 
-
+\begin_layout Section
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 Lathe
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  tool: Just for fun
 \begin_inset LatexCommand \label{lathe-plugin}
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 This is a fun helper that shows what a wide variety of shapes and forms
  can be constructed from a clever combination of kinemage primitives.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The lathe tool takes a single polyline and sweeps it out around an axis
  to create a polygonal object.
  One strip of 64 triangles is created for every line segment.
@@ -214,24 +290,28 @@ The lathe tool takes a single polyline and sweeps it out around an axis
  The standard axis of rotation is the Y-axis, with rotation centered at
  the origin, so keep this in mind when drawing a half-profile to use with
  this tool.
-\layout Chapter
+\end_layout
 
+\begin_layout Chapter
 Editing kinemages
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Several new tools have been created that allow kinemages to be more easily
  edited without having to go back to the original PDB and creating a new
  kinemage.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Recoloring
 \begin_inset LatexCommand \label{recolor-tool}
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 KiNG now has the ability to easily recolor kinemages.
  This tool was designed to specifically recolor protein structure kinemages;
  however, it can probably be used to recolor other kinds of kinemages as
@@ -240,8 +320,9 @@ KiNG now has the ability to easily recolor kinemages.
  For example, a specific amino acid, a particular alpha helix, or a whole
  subunit can be highlighted.
  This tool can also create a table of the amino acids in a structure.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The control panel for this tool has a number of options.
  The top line contains the color options, the second line contains the area
  of effect options, and the third line contains info boxes about what you
@@ -252,57 +333,63 @@ The control panel for this tool has a number of options.
 y from the backbone.
  Also, this tool only colors by point color.
  
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Usage tip: There seems to be some issues with serine sidechains not being
  able to be colored.
  To work around this, try turning on the 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 Pick Objects
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  option in the Tools menu, and click directly on a bond in the sidechain.
  
-\layout Section
+\end_layout
 
+\begin_layout Section
 Kinemage Fudging
 \begin_inset LatexCommand \label{kinfudger-tool}
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The KinFudger tool now allows distance and angles between points to be easily
  adjusted.
  This is especially useful in modifying bond distances, angles, and dihedrals
  in macromolecular structures.
  
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The control panel is simple, consisting of options for the parameter you
  wish to adjust, whether you want to move only one point (and all attached
  single points--I use this to move an atom and its attached hydrogens),
  and a button to export your kin to PDB.
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Adjusting bond distances, angles, and dihedrals
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 In order to adjust a parameter, select the parameter you wish to adjust
  and click on the kinemage points you want to adjust, in order as if you
  were doing measures.
  By default, the tool will move the last point you clicked on, plus all
  the points connected to that point excluding the points 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 behind
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  the points you clicked.
  So for example, if you had a A-B-C-D connection, and you were adjusting
@@ -312,65 +399,162 @@ behind
  A and B.
  Naturally, the connectivity finding algorithm I use gets confused if you
  are adjusting with a cyclic structure, so be careful in that situation.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 An interesting use I discovered about this tool is that you can use the
  distance adjusting to do a one-point docking of structures to close gaps.
  
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Exporting to PDB
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The KinFudger also includes an export to PDB functionality.
  As long as your kinemage PointIDs are formatted in a standard fashion,
  the tool will export all active points to a PDB file.
  So turn off anything you don't want in your PDB.
  Also, if it encounters an non-standard atom name, it will output 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 UNK
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  in the atom field of the PDB.
-\layout Chapter
+\end_layout
 
+\begin_layout Section
+Loop Tool
+\begin_inset LatexCommand \label{loop-tool}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The LoopTool is for removing unwanted residues from macromolecular structures.
+ 
+\end_layout
+
+\begin_layout Subsection
+Basic Usage
+\end_layout
+
+\begin_layout Standard
+Enter the residue number range into the two text boxes and hit the Keep!
+ button.
+ Every residue number in between the range, including the two numbers, will
+ be kept.
+ Multiple ranges can be entered; the ranges that have been entered are shown
+ in the list box.
+ The Remove last button can be used to remove the last range entered.
+ Once the proper ranges have been entered, the Delete rest! button can be
+ used to delete every point without a desired residue number.
+ 
+\end_layout
+
+\begin_layout Subsection
+Advanced Usage
+\end_layout
+
+\begin_layout Standard
+The LoopTool can read in a comma delimited file and use information in the
+ file to delete residues from a structure.
+ This allows a user to save ranges in a file, and not have to manually input
+ the ranges.
+ The format for the files is as follows: pdbname, lowresnum, highresnum,
+ looplength, looplength, B-Factor (e.g.
+ 1ubq,1,5,4,4,1.0).
+ The two looplength fields are included for legacy reasons, but it is not
+ important to have the correct value in those fields, just a number.
+ B-Factor is used for the order of editing more than one structure (more
+ on this later) but similarly to looplength, the number in this field is
+ not critical.
+ To use this feature, use the Open CSV file button to read in the CSV file.
+ Then, just hit Delete from file to remove residues that aren't in your
+ included ranges.
+ 
+\end_layout
+
+\begin_layout Standard
+The LoopTool can also delete residues from multiple structures.
+ In order to use this feature, you need to have a CSV formatted in the same
+ way as described for a single structure, but each line contains a different
+ range.
+ You also need to have a directory containing kinemages of all the different
+ structures, and also a folder called 
+\begin_inset Quotes eld
+\end_inset
+
+loops
+\begin_inset Quotes erd
+\end_inset
+
+ in that directory.
+ Then, open your CSV file as before, and use the Do ALL from file button
+ to specify the directory of kinemages.
+ The program will open every kinemage as needed, delete unwanted residues,
+ and save the new kin in the loops directory.
+ 
+\end_layout
+
+\begin_layout Subsection
+Warnings
+\end_layout
+
+\begin_layout Standard
+The LoopTool makes heavy use of the information in the point IDs of the
+ kinemages.
+ If there are mistakes or unexpected information in the point IDs, then
+ this tool will probably function incorrectly.
+ Use kinemages generated from Prekin, Molprobity, or Molikin to ensure the
+ highest rate of success.
+ 
+\end_layout
+
+\begin_layout Chapter
 Exporting kinemages in other formats
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Several facilities are provided that can help get data out of kinemage format
  and into other forms, either for making figures for publication or for
  further processing.
  Due to security restrictions placed on applets, the export features are
  unavailable when KiNG is running in a web browser.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Exporting for POV-Ray
 \begin_inset LatexCommand \label{export-povray}
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 KiNG can produce output script files to be fed into the high-quality free
  raytracing program POV-Ray (www.povray.org).
  POV-Ray can generate all kinds of 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 photo-realistic
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  effects including different materials and lighting schemes, simulated depth
  of field, 
-\emph on 
+\emph on
 etc.
 
-\emph default 
+\emph default
  It is also very useful for producing digital movies that may be more convenient
  to use during talks and presentations.
  (I recommend the inexpensive QuickTime Pro from Apple for stitching together
@@ -381,57 +565,60 @@ etc.
  Most of the things you'll want to change are either at the very top (colors,
  textures, and sizes of things) or at the very bottom (camera viewpoint,
  depth cueing, lighting).
-\layout Section
+\end_layout
 
+\begin_layout Section
 Deprecated export formats
 \begin_inset LatexCommand \label{export-xml}
 
-\end_inset 
+\end_inset
 
 
 \begin_inset LatexCommand \label{export-vrml97}
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 
-\emph on 
+\emph on
 These feature now lag far behind the rest of the program in functionality;
  they may not work at all.
  For this reason, they do not appear in the menus by default and must be
  
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 enabled
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  under the Tools menu.
  If you need any of these capabilities, you are encouraged to contact the
  author and encourage on-going development.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 You can export kinemages in XML format using the Kinetic Image Markup Language
  by choosing 
-\family typewriter 
+\family typewriter
 Kin-XML
-\family default 
+\family default
  from the 
-\family typewriter 
+\family typewriter
 File | Export
-\family default 
+\family default
  menu.
  We recommend giving these files the extension 
-\family typewriter 
+\family typewriter
 .xkn
-\family default 
+\family default
  or 
-\family typewriter 
+\family typewriter
 .xml
-\family default 
+\family default
 .
  At this time, KiNG does not read these files, nor do other kinemage viewers.
  Also, they may not include all of the information that would be present
@@ -441,8 +628,9 @@ File | Export
  will be useful and convenient.
  Translation from the modified XML back to kinemage format is left as an
  exercise to the reader ;)
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 KiNG also has rudimentary abilities to export its 3-D primitives in VRML97
  (a.k.a.
  VRML 2.0) format.
@@ -452,23 +640,107 @@ KiNG also has rudimentary abilities to export its 3-D primitives in VRML97
  prototyping systems.
  As with XML export, contact the author if further development of this feature
  would be useful to you.
-\layout Chapter
+\end_layout
 
+\begin_layout Chapter
+Structural biology tools
+\end_layout
+
+\begin_layout Section
+Analyze Geometry Plugin
+\begin_inset LatexCommand \label{geometry-plugin}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This plugin is for automatically analyzing the backbone geometry of protein
+ structures.
+ It uses the updated Engh and Huber (
+\shape italic
+International Tables for Crystallography
+\shape default
+ (2001).
+ Vol.
+ F, ch.
+ 18.3, pp.
+ 382-392) geometry data to flag bond lengths or angles which are at least
+ 4 standard deviations away from their mean values.
+ It also flags peptide dihedral angles that are more than 20 degrees off
+ of 180.
+ In order to use this tool, simply have a mainchain protein kinemage open
+ in KiNG, and select Analyze Current from the menu.
+ It will also output a list containing all flagged issues to the command
+ line.
+ 
+\end_layout
+
+\begin_layout Standard
+This tool will also analyze all the files within a directory.
+ Select Analyze All from the menu, and select the directory containing the
+ kinemages.
+ This mode will only output the errors to the command line.
+\end_layout
+
+\begin_layout Subsection
+Issues
+\end_layout
+
+\begin_layout Standard
+As with many of the tools dealing with protein residues, this tool is sensitive
+ to the pointIDs in your kinemage.
+ It also has trouble dealing with insertion codes, since it is often unable
+ to figure out the order of the residues in kinemages with insertion codes.
+ 
+\end_layout
+
+\begin_layout Section
+Fill-Gap Plugin
+\begin_inset LatexCommand \label{fillgap-plugin}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This plugin makes it easy to automatically fill in gaps in protein models.
+ It scans through a protein structure kin for gaps, analyzes the framing
+ peptides of that gap, searches through a quality filtered database of loops
+ for matches, finds kins of those matches, and superimposes them in the
+ kinemage.
+ It requires a database of loop frame information, and a directory of protein
+ kinemages, both of which are quite large, and as of Feb 2007 are not publicly
+ available.
+ Eventually I plan to make them available on kinemage.biochem.duke.edu.
+ 
+\end_layout
+
+\begin_layout Chapter
 Copyright & acknowledgments
-\layout Section
+\end_layout
 
+\begin_layout Section
 Copyright
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The Extratools code and all its associated original resources and documentation
- are copyright (C) 2002-2005 by Ian W.
+ are copyright (C) 2002-2007 by Ian W.
  Davis and Vincent B.
  Chen.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Revision status
-\layout Standard
+\end_layout
 
-This manual was last updated 30 May 2005 by VBC for Extratools version 1.00
- (added chapter about kinemage editing).
-\the_end
+\begin_layout Standard
+This manual was last updated 23 Feb 2007 by VBC for Extratools version 2.00
+ (tools shifted to more public menus in KiNG).
+\end_layout
+
+\end_body
+\end_document
