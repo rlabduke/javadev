@@ -1,489 +1,380 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-
-<!--Converted with jLaTeX2HTML 2002-2-1 (1.70) JA patch-2.0
-patched version by:  Kenshi Muto, Debian Project.
-* modified by:  Shige TAKENO
-LaTeX2HTML 2002-2-1 (1.70),
-original version by:  Nikos Drakos, CBLU, University of Leeds
-* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
-* with significant contributions from:
-  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
-<HTML>
-<HEAD>
-<TITLE>The Extratools manual</TITLE>
-<META NAME="description" CONTENT="The Extratools manual">
-<META NAME="keywords" CONTENT="tools-manual">
-<META NAME="resource-type" CONTENT="document">
-<META NAME="distribution" CONTENT="global">
-
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=EUC-JP">
-<META NAME="Generator" CONTENT="jLaTeX2HTML v2002-2-1 JA patch-2.0">
-<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
-
-<LINK REL="STYLESHEET" HREF="tools-manual.css">
-
-</HEAD>
-
-<BODY >
-<!--Navigation Panel-->
-<IMG WIDTH="81" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next_inactive"
- SRC="file:/usr/share/latex2html/icons/nx_grp_g.png"> 
-<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
- SRC="file:/usr/share/latex2html/icons/up_g.png"> 
-<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
- SRC="file:/usr/share/latex2html/icons/prev_g.png">   
-<BR>
-<BR>
-<BR>
-<!--End of Navigation Panel-->
-
-<P>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"  
+  "http://www.w3.org/TR/html4/loose.dtd">  
+<html > 
+<head><title>The Extratools manual</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251"> 
+<meta name="generator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/mn.html)"> 
+<meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/mn.html)"> 
+<!-- html,word,fn-in --> 
+<meta name="src" content="tools-manual.tex"> 
+<meta name="date" content="2007-02-23 15:50:00"> 
+<link rel="stylesheet" type="text/css" href="tools-manual.css"> 
+</head><body 
+>
+   <div class="maketitle">
 
 
+<h2 class="titleHead">The Extratools manual</h2>
+<div class="author"></div><br />
+<div class="date" ><span 
+class="ptmr8t-x-x-120">February 23, 2007</span></div>
 
+   </div>
+<!--l. 27--><p class="indent">   Ian W. Davis and Vincent B. Chen
 
-<P>
+   <h2 class="likechapterHead"><a 
+ id="x1-1000"></a>Contents</h2> <div class="tableofcontents">
+   <span class="chapterToc">1 <a 
+href="#x1-20001" id="QQ2-1-2">The Tools</a></span>
+<br />   &#x00A0;<span class="sectionToc">1.1 <a 
+href="#x1-30001.1" id="QQ2-1-3">Dock 3-on-3: Geometric construction</a></span>
+<br />   &#x00A0;<span class="sectionToc">1.2 <a 
+href="#x1-40001.2" id="QQ2-1-4">Least-Squares Docking: Getting the best fit</a></span>
+<br />   &#x00A0;<span class="sectionToc">1.3 <a 
+href="#x1-50001.3" id="QQ2-1-5">Dock By Picking</a></span>
+<br />   &#x00A0;<span class="sectionToc">1.4 <a 
+href="#x1-60001.4" id="QQ2-1-6">RNA Maps: Finding the phosphates <span 
+class="ptmri8t-">(not active by default)</span></a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc">1.4.1 <a 
+href="#x1-70001.4.1" id="QQ2-1-7">Current Issues</a></span>
+<br />   &#x00A0;<span class="sectionToc">1.5 <a 
+href="#x1-80001.5" id="QQ2-1-8">90 Degree Rotations: Seeing precisely</a></span>
+<br />   &#x00A0;<span class="sectionToc">1.6 <a 
+href="#x1-90001.6" id="QQ2-1-9">&#8220;Lathe&#8221; tool: Just for fun</a></span>
+<br />   <span class="chapterToc">2 <a 
+href="#x1-100002" id="QQ2-1-10">Editing kinemages</a></span>
+<br />   &#x00A0;<span class="sectionToc">2.1 <a 
+href="#x1-110002.1" id="QQ2-1-11">Recoloring</a></span>
+<br />   &#x00A0;<span class="sectionToc">2.2 <a 
+href="#x1-120002.2" id="QQ2-1-12">Kinemage Fudging</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc">2.2.1 <a 
+href="#x1-130002.2.1" id="QQ2-1-13">Adjusting bond distances, angles, and dihedrals</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc">2.2.2 <a 
+href="#x1-140002.2.2" id="QQ2-1-14">Exporting to PDB</a></span>
+<br />   &#x00A0;<span class="sectionToc">2.3 <a 
+href="#x1-150002.3" id="QQ2-1-15">Loop Tool</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc">2.3.1 <a 
+href="#x1-160002.3.1" id="QQ2-1-16">Basic Usage</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc">2.3.2 <a 
+href="#x1-170002.3.2" id="QQ2-1-17">Advanced Usage</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc">2.3.3 <a 
+href="#x1-180002.3.3" id="QQ2-1-18">Warnings</a></span>
+<br />   <span class="chapterToc">3 <a 
+href="#x1-190003" id="QQ2-1-19">Exporting kinemages in other formats</a></span>
+<br />   &#x00A0;<span class="sectionToc">3.1 <a 
+href="#x1-200003.1" id="QQ2-1-20">Exporting for POV-Ray</a></span>
+<br />   &#x00A0;<span class="sectionToc">3.2 <a 
+href="#x1-210003.2" id="QQ2-1-21">Deprecated export formats</a></span>
+<br />   <span class="chapterToc">4 <a 
+href="#x1-220004" id="QQ2-1-22">Structural biology tools</a></span>
+<br />   &#x00A0;<span class="sectionToc">4.1 <a 
+href="#x1-230004.1" id="QQ2-1-23">Analyze Geometry Plugin</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc">4.1.1 <a 
+href="#x1-240004.1.1" id="QQ2-1-24">Issues</a></span>
+<br />   &#x00A0;<span class="sectionToc">4.2 <a 
+href="#x1-250004.2" id="QQ2-1-25">Fill-Gap Plugin</a></span>
+<br />   <span class="chapterToc">5 <a 
+href="#x1-260005" id="QQ2-1-26">Copyright &amp; acknowledgments</a></span>
+<br />   &#x00A0;<span class="sectionToc">5.1 <a 
+href="#x1-270005.1" id="QQ2-1-27">Copyright</a></span>
+<br />   &#x00A0;<span class="sectionToc">5.2 <a 
+href="#x1-280005.2" id="QQ2-1-28">Revision status</a></span>
+   </div>
 
-<P>
-<H1 ALIGN="CENTER">The Extratools manual</H1>
-<DIV>
+   <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;1</span><br /><a 
+ id="x1-20001"></a>The Tools</h2>
+   <h3 class="sectionHead"><span class="titlemark">1.1    </span> <a 
+ id="x1-30001.1"></a>Dock 3-on-3: Geometric construction</h3>
+<!--l. 37--><p class="noindent">The three-point docking tool is useful for constructing geometric shapes and figures out of
+existing pieces in kinemage format. As you start picking points with the mouse, they will be
+labeled with numbers: first three points in the reference frame, then three in the mobile
+frame. When you&#8217;re ready to apply the docking transformation, turn off groups
+that should remain in place and leave visible those that should move. Then press
+the <span 
+class="pcrr8tn-">Dock </span>button. The first points will be superimposed exactly, the 1-2 axes will
+be aligned (so that the mobile &#8220;points in the direction of&#8221; the reference) and the
+final points are used to determine rotational position (dihedral angle) about the 1-2
+axis.
+<!--l. 49--><p class="indent">   If you&#8217;d like to dock several of the same object with respect to each other, remember you
+can use the copy and paste commands in the hierarchy editor to create duplicate
+objects.
+<!--l. 54--><p class="noindent">
+   <h3 class="sectionHead"><span class="titlemark">1.2    </span> <a 
+ id="x1-40001.2"></a>Least-Squares Docking: Getting the best fit</h3>
+<!--l. 56--><p class="noindent">The least-squares docking tool is useful for matching up two objects that are similar but not
+quite the same. As you start picking points with the mouse, they will be labeled with
+numbers, defining the Reference frame. Once you&#8217;ve selected something to dock onto, you
+should choose the Mobile frame and add an equal number of points to it. The order matters: 1
+will match with 1, 2 with 2, and so on. When you&#8217;re ready to apply the docking
+transformation, turn off groups that should remain in place and leave visible those that
+should move. Then press the <span 
+class="pcrr8tn-">Dock </span>button. The matched points will be positioned so
+as to minimize the sum of the squares of their separation (thus the phrase &#8220;least
+squares&#8221;).
+<!--l. 68--><p class="indent">   If you&#8217;d like to dock several of the same object with respect to each other, remember you
+can use the copy and paste commands in the hierarchy editor to create duplicate
+objects.
+<!--l. 73--><p class="noindent">
+   <h3 class="sectionHead"><span class="titlemark">1.3    </span> <a 
+ id="x1-50001.3"></a>Dock By Picking</h3>
+<!--l. 75--><p class="noindent">The dock by picking tool builds upon the least-squares docking tool, making use of structure
+connectivity to make the tool easier to use. In this version, you do not have to click on every
+point that you want to use to dock. Instead, you can click on two points, and almost every
+point in between will be automatically added to the selected box (reference or mobile). It
+leaves out points that are off, or are only one atom away (e.g. it ignores hydrogens and
+carbonyls). This tool requires the same number of points to be selected in the reference and
+mobile fields. The dock button will move the mobile, and every point connected to the
+mobile section. There is no need to turn off or on parts of the structure to get them to
+move.
 
-<P ALIGN="CENTER"><STRONG>Ian W. Davis and Vincent B. Chen</STRONG></P>
-</DIV>
-<BR>
-
-<H2><A NAME="SECTION00100000000000000000">
-&#204;&#220;14&#161;</A>
-</H2>
-<!--Table of Contents-->
-
-<UL>
-<LI><A NAME="tex2html21"
-  HREF="tools-manual.html#SECTION00200000000000000000">1. The Tools</A>
-<UL>
-<LI><A NAME="tex2html22"
-  HREF="tools-manual.html#SECTION00210000000000000000">1.1 Dock 3-on-3: Geometric construction</A>
-<LI><A NAME="tex2html23"
-  HREF="tools-manual.html#SECTION00220000000000000000">1.2 Least-Squares Docking: Getting the best fit</A>
-<LI><A NAME="tex2html24"
-  HREF="tools-manual.html#SECTION00230000000000000000">1.3 RNA Maps: Finding the phosphates</A>
-<UL>
-<LI><A NAME="tex2html25"
-  HREF="tools-manual.html#SECTION00231000000000000000">1.3.1 Current Issues</A>
-</UL>
-<LI><A NAME="tex2html26"
-  HREF="tools-manual.html#SECTION00240000000000000000">1.4 90 Degree Rotations: Seeing precisely</A>
-<LI><A NAME="tex2html27"
-  HREF="tools-manual.html#SECTION00250000000000000000">1.5 ``Lathe'' tool: Just for fun</A>
-</UL>
-<BR>
-<LI><A NAME="tex2html28"
-  HREF="tools-manual.html#SECTION00300000000000000000">2. Editing kinemages</A>
-<UL>
-<LI><A NAME="tex2html29"
-  HREF="tools-manual.html#SECTION00310000000000000000">2.1 Recoloring</A>
-<LI><A NAME="tex2html30"
-  HREF="tools-manual.html#SECTION00320000000000000000">2.2 Kinemage Fudging</A>
-<UL>
-<LI><A NAME="tex2html31"
-  HREF="tools-manual.html#SECTION00321000000000000000">2.2.1 Adjusting bond distances, angles, and dihedrals</A>
-<LI><A NAME="tex2html32"
-  HREF="tools-manual.html#SECTION00322000000000000000">2.2.2 Exporting to PDB</A>
-</UL>
-</UL>
-<BR>
-<LI><A NAME="tex2html33"
-  HREF="tools-manual.html#SECTION00400000000000000000">3. Exporting kinemages in other formats</A>
-<UL>
-<LI><A NAME="tex2html34"
-  HREF="tools-manual.html#SECTION00410000000000000000">3.1 Exporting for POV-Ray</A>
-<LI><A NAME="tex2html35"
-  HREF="tools-manual.html#SECTION00420000000000000000">3.2 Deprecated export formats</A>
-</UL>
-<BR>
-<LI><A NAME="tex2html36"
-  HREF="tools-manual.html#SECTION00500000000000000000">4. Copyright &amp; acknowledgments</A>
-<UL>
-<LI><A NAME="tex2html37"
-  HREF="tools-manual.html#SECTION00510000000000000000">4.1 Copyright</A>
-<LI><A NAME="tex2html38"
-  HREF="tools-manual.html#SECTION00520000000000000000">4.2 Revision status</A>
-</UL></UL>
-<!--End of Table of Contents-->
-
-<P>
-
-<H1><A NAME="SECTION00200000000000000000">
-1. The Tools</A>
-</H1>
-
-<P>
-
-<H1><A NAME="SECTION00210000000000000000"></A><A NAME="dock3-tool"></A>
-<BR>
-1.1 Dock 3-on-3: Geometric construction
-</H1>
-
-<P>
-The three-point docking tool is useful for constructing geometric
-shapes and figures out of existing pieces in kinemage format. As you
-start picking points with the mouse, they will be labeled with numbers:
-first three points in the reference frame, then three in the mobile
-frame. When you're ready to apply the docking transformation, turn
-off groups that should remain in place and leave visible those that
-should move. Then press the <TT>Dock</TT> button. The first points
-will be superimposed exactly, the 1-2 axes will be aligned (so that
-the mobile ``points in the direction of'' the reference) and the
-final points are used to determine rotational position (dihedral angle)
-about the 1-2 axis.
-
-<P>
-If you'd like to dock several of the same object with respect to each
-other, remember you can use the copy and paste commands in the hierarchy
-editor to create duplicate objects.
-
-<P>
-
-<H1><A NAME="SECTION00220000000000000000"></A><A NAME="lsqdock-tool"></A>
-<BR>
-1.2 Least-Squares Docking: Getting the best fit
-</H1>
-
-<P>
-The least-squares docking tool is useful for matching up two objects
-that are similar but not quite the same. As you start picking points
-with the mouse, they will be labeled with numbers, defining the Reference
-frame. Once you've selected something to dock onto, you should choose
-the Mobile frame and add an equal number of points to it. The order
-matters: 1 will match with 1, 2 with 2, and so on. When you're ready
-to apply the docking transformation, turn off groups that should remain
-in place and leave visible those that should move. Then press the
-<TT>Dock</TT> button. The matched points will be positioned so as
-to minimize the sum of the squares of their separation (thus the phrase
-``least squares'').
-
-<P>
-If you'd like to dock several of the same object with respect to each
-other, remember you can use the copy and paste commands in the hierarchy
-editor to create duplicate objects.
-
-<P>
-
-<H1><A NAME="SECTION00230000000000000000"></A><A NAME="rnamap-tool"></A>
-<BR>
-1.3 RNA Maps: Finding the phosphates
-</H1>
-
-<P>
-<I>Authored by Vincent Chen (vbc3@duke.edu)</I>
-
-<P>
-This tool (still under development) was designed to aid users in locating
-potential phosphate positions in the electron density maps of nucleic
-acids. Similar to the existing electron density viewing plug-in, this
-tool asks the user to open a map file, and opens a control window
-containing many of the same controls as the electron density plug-in.
-In addition to these controls, it has a toggle button to activate/deactivate
-the &#34;poly picking&#34; feature and a color selection
-list. When active, if the user left-clicks on a point in the kinemage,
-the polyhedron containing that point will be highlighted in the color
-selected. Next, the tool searches through the map to find the highest
-electron density value within that selected polyhedron, and places
-a marker point on that spot, showing an approximate position for the
-phosphorous.
-
-<P>
-
-<H2><A NAME="SECTION00231000000000000000">
-1.3.1 Current Issues</A>
-</H2>
-
-<P>
-This tool does not differentiate between a point in the electron density
-and a point on the actual structure. Clicking on the structure with
-the poly picking tool active can result in the program searching through
-the whole structure, which can take a very long time. Be sure to click
-carefully, and to limit the polyhedra to be selected to a reasonable
-size (i.e. have the sigma level set high enough that the polyhedra
-are about the size of a phosphate). Also, once the first polyhedron
-has been selected, moving the electron density around and selecting
-a polyhedron may result in an error. If this happens, the program
-will have to be restarted in order to selected a polyhedron not in
-the initial set.
-
-<P>
-
-<H1><A NAME="SECTION00240000000000000000"></A><A NAME="rot90-plugin"></A>
-<BR>
-1.4 90 Degree Rotations: Seeing precisely
-</H1>
-
-<P>
-The 90 Degree Rotations plugin provides a simple way to turn your
-model by 90 degrees around any of the three Cartesian axes. It also
-provides a shortcut back to the standard kinemage orientation: looking
-straight down the Z axis from the positive end toward the negative
-one, with positive X to the right and positive Y at the top of the
+<!--l. 87--><p class="indent">   N.B. Since this tool uses connectivity to determine the points, and the mobile section, it is
+easy to confuse. For example, it is inconsistent when considering sidechains, or especially
+rings in structures.
+<!--l. 92--><p class="noindent">
+   <h3 class="sectionHead"><span class="titlemark">1.4    </span> <a 
+ id="x1-60001.4"></a>RNA Maps: Finding the phosphates <span 
+class="ptmri8t-">(not active by default)</span></h3>
+<!--l. 94--><p class="noindent"><span 
+class="ptmri8t-">Authored by Vincent Chen (vbc3@duke.edu)</span>
+<!--l. 96--><p class="indent">   This tool (still under development) was designed to aid users in locating potential
+phosphate positions in the electron density maps of nucleic acids. Similar to the existing
+electron density viewing plug-in, this tool asks the user to open a map file, and opens a
+control window containing many of the same controls as the electron density plug-in. In
+addition to these controls, it has a toggle button to activate/deactivate the "poly picking"
+feature and a color selection list. When active, if the user left-clicks on a point in the
+kinemage, the polyhedron containing that point will be highlighted in the color selected.
+Next, the tool searches through the map to find the highest electron density value within that
+selected polyhedron, and places a marker point on that spot, showing an approximate position
+for the phosphorous.
+<!--l. 111--><p class="noindent">
+   <h4 class="subsectionHead"><span class="titlemark">1.4.1    </span> <a 
+ id="x1-70001.4.1"></a>Current Issues</h4>
+<!--l. 113--><p class="noindent">This tool does not differentiate between a point in the electron density and a point on the
+actual structure. Clicking on the structure with the poly picking tool active can result in the
+program searching through the whole structure, which can take a very long time. Be sure to
+click carefully, and to limit the polyhedra to be selected to a reasonable size (i.e.
+have the sigma level set high enough that the polyhedra are about the size of a
+phosphate). Also, once the first polyhedron has been selected, moving the electron
+density around and selecting a polyhedron may result in an error. If this happens, the
+program will have to be restarted in order to selected a polyhedron not in the initial
+set.
+<!--l. 126--><p class="noindent">
+   <h3 class="sectionHead"><span class="titlemark">1.5    </span> <a 
+ id="x1-80001.5"></a>90 Degree Rotations: Seeing precisely</h3>
+<!--l. 128--><p class="noindent">The 90 Degree Rotations plugin provides a simple way to turn your model by 90
+degrees around any of the three Cartesian axes. It also provides a shortcut back to the
+standard kinemage orientation: looking straight down the Z axis from the positive end
+toward the negative one, with positive X to the right and positive Y at the top of the
 screen.
+<!--l. 135--><p class="indent">   This plugin is particularly useful in combination with a trick for setting up simultaneous
+orthogonal views of a kinemage. Read about it in the section on stereo graphics in the KiNG
+manual.
 
-<P>
-This plugin is particularly useful in combination with a trick for
-setting up simultaneous orthogonal views of a kinemage. Read about
-it in the section on stereo graphics in the KiNG manual.
+<!--l. 140--><p class="noindent">
+   <h3 class="sectionHead"><span class="titlemark">1.6    </span> <a 
+ id="x1-90001.6"></a>&#8220;Lathe&#8221; tool: Just for fun</h3>
+<!--l. 142--><p class="noindent">This is a fun helper that shows what a wide variety of shapes and forms can be constructed
+from a clever combination of kinemage primitives.
+<!--l. 145--><p class="indent">   The lathe tool takes a single polyline and sweeps it out around an axis to create a
+polygonal object. One strip of 64 triangles is created for every line segment. This
+tool is ideal for creating anything with an axis of symmetry: bottles, vases, lamps,
+simple cylinders, and so on. The standard axis of rotation is the Y-axis, with rotation
+centered at the origin, so keep this in mind when drawing a half-profile to use with this
+tool.
 
-<P>
+   <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;2</span><br /><a 
+ id="x1-100002"></a>Editing kinemages</h2>
+<!--l. 156--><p class="noindent">Several new tools have been created that allow kinemages to be more easily edited without
+having to go back to the original PDB and creating a new kinemage.
+   <h3 class="sectionHead"><span class="titlemark">2.1    </span> <a 
+ id="x1-110002.1"></a>Recoloring</h3>
+<!--l. 163--><p class="noindent">KiNG now has the ability to easily recolor kinemages. This tool was designed to specifically
+recolor protein structure kinemages; however, it can probably be used to recolor
+other kinds of kinemages as well. It allows specific regions of a structure to be
+recolored. For example, a specific amino acid, a particular alpha helix, or a whole
+subunit can be highlighted. This tool can also create a table of the amino acids in a
+structure.
+<!--l. 171--><p class="indent">   The control panel for this tool has a number of options. The top line contains the color
+options, the second line contains the area of effect options, and the third line contains info
+boxes about what you are coloring and some extra control options. Most of the coloring is
+activated by clicking on the structure. It is important to note that this tool only
+recolors lists and subgroups, so depending on your kinemage, it is possible to color
+the sidechains separately from the backbone. Also, this tool only colors by point
+color.
+<!--l. 180--><p class="indent">   Usage tip: There seems to be some issues with serine sidechains not being able to be
+colored. To work around this, try turning on the &#8220;Pick Objects&#8221; option in the Tools menu, and
+click directly on a bond in the sidechain.
+<!--l. 186--><p class="noindent">
+   <h3 class="sectionHead"><span class="titlemark">2.2    </span> <a 
+ id="x1-120002.2"></a>Kinemage Fudging</h3>
+<!--l. 188--><p class="noindent">The KinFudger tool now allows distance and angles between points to be easily
+adjusted. This is especially useful in modifying bond distances, angles, and dihedrals in
+macromolecular structures.
+<!--l. 192--><p class="indent">   The control panel is simple, consisting of options for the parameter you wish to adjust,
+whether you want to move only one point (and all attached single points&#8211;I use this
+to move an atom and its attached hydrogens), and a button to export your kin to
+PDB.
+<!--l. 198--><p class="noindent">
+   <h4 class="subsectionHead"><span class="titlemark">2.2.1    </span> <a 
+ id="x1-130002.2.1"></a>Adjusting bond distances, angles, and dihedrals</h4>
+<!--l. 200--><p class="noindent">In order to adjust a parameter, select the parameter you wish to adjust and click on the
+kinemage points you want to adjust, in order as if you were doing measures. By default, the
+tool will move the last point you clicked on, plus all the points connected to that point
+excluding the points &#8220;behind&#8221; the points you clicked. So for example, if you had a A-B-C-D
+connection, and you were adjusting the distance between B and C, and you clicked on B first,
+then C, then the program would move C and D. Likewise, if you clicked on C first, and then
+B, the program would move A and B. Naturally, the connectivity finding algorithm I
+use gets confused if you are adjusting with a cyclic structure, so be careful in that
 
-<H1><A NAME="SECTION00250000000000000000"></A><A NAME="lathe-plugin"></A>
-<BR>
-1.5 ``Lathe'' tool: Just for fun
-</H1>
+situation.
+<!--l. 212--><p class="indent">   An interesting use I discovered about this tool is that you can use the distance adjusting to
+do a one-point docking of structures to close gaps.
+<!--l. 217--><p class="noindent">
+   <h4 class="subsectionHead"><span class="titlemark">2.2.2    </span> <a 
+ id="x1-140002.2.2"></a>Exporting to PDB</h4>
+<!--l. 219--><p class="noindent">The KinFudger also includes an export to PDB functionality. As long as your kinemage
+PointIDs are formatted in a standard fashion, the tool will export all active points to a PDB
+file. So turn off anything you don&#8217;t want in your PDB. Also, if it encounters an non-standard
+atom name, it will output &#8220;UNK&#8221; in the atom field of the PDB.
+<!--l. 226--><p class="noindent">
+   <h3 class="sectionHead"><span class="titlemark">2.3    </span> <a 
+ id="x1-150002.3"></a>Loop Tool</h3>
+<!--l. 228--><p class="noindent">The LoopTool is for removing unwanted residues from macromolecular structures.
+<!--l. 232--><p class="noindent">
+   <h4 class="subsectionHead"><span class="titlemark">2.3.1    </span> <a 
+ id="x1-160002.3.1"></a>Basic Usage</h4>
+<!--l. 234--><p class="noindent">Enter the residue number range into the two text boxes and hit the Keep! button. Every
+residue number in between the range, including the two numbers, will be kept. Multiple
+ranges can be entered; the ranges that have been entered are shown in the list box. The
+Remove last button can be used to remove the last range entered. Once the proper ranges have
+been entered, the Delete rest! button can be used to delete every point without a desired
+residue number.
+<!--l. 243--><p class="noindent">
+   <h4 class="subsectionHead"><span class="titlemark">2.3.2    </span> <a 
+ id="x1-170002.3.2"></a>Advanced Usage</h4>
+<!--l. 245--><p class="noindent">The LoopTool can read in a comma delimited file and use information in the file to delete
+residues from a structure. This allows a user to save ranges in a file, and not have to manually
+input the ranges. The format for the files is as follows: pdbname, lowresnum, highresnum,
+looplength, looplength, B-Factor (e.g. 1ubq,1,5,4,4,1.0). The two looplength fields
+are included for legacy reasons, but it is not important to have the correct value in
+those fields, just a number. B-Factor is used for the order of editing more than one
+structure (more on this later) but similarly to looplength, the number in this field is
+not critical. To use this feature, use the Open CSV file button to read in the CSV
+file. Then, just hit Delete from file to remove residues that aren&#8217;t in your included
+ranges.
+<!--l. 258--><p class="indent">   The LoopTool can also delete residues from multiple structures. In order to use this
+feature, you need to have a CSV formatted in the same way as described for a single
+structure, but each line contains a different range. You also need to have a directory
+containing kinemages of all the different structures, and also a folder called &#8220;loops&#8221;
 
-<P>
-This is a fun helper that shows what a wide variety of shapes and
-forms can be constructed from a clever combination of kinemage primitives.
+in that directory. Then, open your CSV file as before, and use the Do ALL from
+file button to specify the directory of kinemages. The program will open every
+kinemage as needed, delete unwanted residues, and save the new kin in the loops
+directory.
+<!--l. 269--><p class="noindent">
+   <h4 class="subsectionHead"><span class="titlemark">2.3.3    </span> <a 
+ id="x1-180002.3.3"></a>Warnings</h4>
+<!--l. 271--><p class="noindent">The LoopTool makes heavy use of the information in the point IDs of the kinemages. If there
+are mistakes or unexpected information in the point IDs, then this tool will probably function
+incorrectly. Use kinemages generated from Prekin, Molprobity, or Molikin to ensure the
+highest rate of success.
 
-<P>
-The lathe tool takes a single polyline and sweeps it out around an
-axis to create a polygonal object. One strip of 64 triangles is created
-for every line segment. This tool is ideal for creating anything with
-an axis of symmetry: bottles, vases, lamps, simple cylinders, and
-so on. The standard axis of rotation is the Y-axis, with rotation
-centered at the origin, so keep this in mind when drawing a half-profile
-to use with this tool.
+   <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;3</span><br /><a 
+ id="x1-190003"></a>Exporting kinemages in other formats</h2>
+<!--l. 280--><p class="noindent">Several facilities are provided that can help get data out of kinemage format and into other
+forms, either for making figures for publication or for further processing. Due to security
+restrictions placed on applets, the export features are unavailable when KiNG is running in a
+web browser.
+   <h3 class="sectionHead"><span class="titlemark">3.1    </span> <a 
+ id="x1-200003.1"></a>Exporting for POV-Ray</h3>
+<!--l. 289--><p class="noindent">KiNG can produce output script files to be fed into the high-quality free raytracing program
+POV-Ray (www.povray.org). POV-Ray can generate all kinds of &#8220;photo-realistic&#8221; effects
+including different materials and lighting schemes, simulated depth of field, <span 
+class="ptmri8t-">etc. </span>It is also very
+useful for producing digital movies that may be more convenient to use during talks and
+presentations. (I recommend the inexpensive QuickTime Pro from Apple for stitching
+together all the output images into a movie.) The POV file is largely complete as written and
+includes terse hints for rendering, but if you use this feature much you&#8217;ll probably
+want to learn something about POV-Ray and tweak the scripts before rendering
+them. Most of the things you&#8217;ll want to change are either at the very top (colors,
+textures, and sizes of things) or at the very bottom (camera viewpoint, depth cueing,
+lighting).
+<!--l. 304--><p class="noindent">
+   <h3 class="sectionHead"><span class="titlemark">3.2    </span> <a 
+ id="x1-210003.2"></a>Deprecated export formats</h3>
+<!--l. 310--><p class="noindent"><span 
+class="ptmri8t-">These feature now lag far behind the rest of the program in functionality; they may not work</span>
+<span 
+class="ptmri8t-">at all. For this reason, they do not appear in the menus by default and must be &#8220;enabled&#8221;</span>
+<span 
+class="ptmri8t-">under the Tools menu. If you need any of these capabilities, you are encouraged to contact the</span>
+<span 
+class="ptmri8t-">author and encourage on-going development.</span>
+<!--l. 312--><p class="indent">   You can export kinemages in XML format using the Kinetic Image Markup Language by
+choosing <span 
+class="pcrr8tn-">Kin-XML </span>from the <span 
+class="pcrr8tn-">File | Export </span>menu. We recommend giving these files
+the extension <span 
+class="pcrr8tn-">.xkn </span>or <span 
+class="pcrr8tn-">.xml</span>. At this time, KiNG does not read these files, nor do
+other kinemage viewers. Also, they may not include all of the information that
+would be present in a traditional kinemage file. However, for people who would like
+to operate on the data from a kinemage without having to write a parser for the
+kinemage format, we expect this will be useful and convenient. Translation from
+the modified XML back to kinemage format is left as an exercise to the reader
+;)
+<!--l. 323--><p class="indent">   KiNG also has rudimentary abilities to export its 3-D primitives in VRML97 (a.k.a.
+VRML 2.0) format. At present, only dots and balls are exported, and they are both rendered
+as spheres. This feature was intended to facilitate the creation of models for rapid prototyping
+systems. As with XML export, contact the author if further development of this feature would
+be useful to you.
 
-<P>
+   <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;4</span><br /><a 
+ id="x1-220004"></a>Structural biology tools</h2>
+   <h3 class="sectionHead"><span class="titlemark">4.1    </span> <a 
+ id="x1-230004.1"></a>Analyze Geometry Plugin</h3>
+<!--l. 336--><p class="noindent">This plugin is for automatically analyzing the backbone geometry of protein structures. It
+uses the updated Engh and Huber (<span 
+class="ptmri8t-">International Tables for Crystallography </span>(2001). Vol. F,
+ch. 18.3, pp. 382-392) geometry data to flag bond lengths or angles which are at least 4
+standard deviations away from their mean values. It also flags peptide dihedral angles
+that are more than 20 degrees off of 180. In order to use this tool, simply have
+a mainchain protein kinemage open in KiNG, and select Analyze Current from
+the menu. It will also output a list containing all flagged issues to the command
+line.
+<!--l. 346--><p class="indent">   This tool will also analyze all the files within a directory. Select Analyze All from the
+menu, and select the directory containing the kinemages. This mode will only output the
+errors to the command line.
+<!--l. 351--><p class="noindent">
+   <h4 class="subsectionHead"><span class="titlemark">4.1.1    </span> <a 
+ id="x1-240004.1.1"></a>Issues</h4>
+<!--l. 353--><p class="noindent">As with many of the tools dealing with protein residues, this tool is sensitive to the
+pointIDs in your kinemage. It also has trouble dealing with insertion codes, since it is
+often unable to figure out the order of the residues in kinemages with insertion
+codes.
+<!--l. 359--><p class="noindent">
+   <h3 class="sectionHead"><span class="titlemark">4.2    </span> <a 
+ id="x1-250004.2"></a>Fill-Gap Plugin</h3>
+<!--l. 361--><p class="noindent">This plugin makes it easy to automatically fill in gaps in protein models. It scans
+through a protein structure kin for gaps, analyzes the framing peptides of that gap,
+searches through a quality filtered database of loops for matches, finds kins of those
+matches, and superimposes them in the kinemage. It requires a database of loop frame
+information, and a directory of protein kinemages, both of which are quite large, and as of
+Feb 2007 are not publicly available. Eventually I plan to make them available on
+kinemage.biochem.duke.edu.
 
-<H1><A NAME="SECTION00300000000000000000">
-2. Editing kinemages</A>
-</H1>
+   <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;5</span><br /><a 
+ id="x1-260005"></a>Copyright &amp; acknowledgments</h2>
+   <h3 class="sectionHead"><span class="titlemark">5.1    </span> <a 
+ id="x1-270005.1"></a>Copyright</h3>
+<!--l. 376--><p class="noindent">The Extratools code and all its associated original resources and documentation are copyright
+(C) 2002-2007 by Ian W. Davis and Vincent B. Chen.
+<!--l. 381--><p class="noindent">
+   <h3 class="sectionHead"><span class="titlemark">5.2    </span> <a 
+ id="x1-280005.2"></a>Revision status</h3>
+<!--l. 383--><p class="noindent">This manual was last updated 23 Feb 2007 by VBC for Extratools version 2.00 (tools shifted
+to more public menus in KiNG).  
+</body></html> 
 
-<P>
-Several new tools have been created that allow kinemages to be more
-easily edited without having to go back to the original PDB and creating
-a new kinemage.
 
-<P>
 
-<H1><A NAME="SECTION00310000000000000000"></A><A NAME="recolor-tool"></A>
-<BR>
-2.1 Recoloring
-</H1>
-
-<P>
-KiNG now has the ability to easily recolor kinemages. This tool was
-designed to specifically recolor protein structure kinemages; however,
-it can probably be used to recolor other kinds of kinemages as well.
-It allows specific regions of a structure to be recolored. For example,
-a specific amino acid, a particular alpha helix, or a whole subunit
-can be highlighted. This tool can also create a table of the amino
-acids in a structure.
-
-<P>
-The control panel for this tool has a number of options. The top line
-contains the color options, the second line contains the area of effect
-options, and the third line contains info boxes about what you are
-coloring and some extra control options. Most of the coloring is activated
-by clicking on the structure. It is important to note that this tool
-only recolors lists and subgroups, so depending on your kinemage,
-it is possible to color the sidechains separately from the backbone.
-Also, this tool only colors by point color. 
-
-<P>
-Usage tip: There seems to be some issues with serine sidechains not
-being able to be colored. To work around this, try turning on the
-``Pick Objects'' option in the Tools menu, and click directly
-on a bond in the sidechain. 
-
-<P>
-
-<H1><A NAME="SECTION00320000000000000000"></A><A NAME="kinfudger-tool"></A>
-<BR>
-2.2 Kinemage Fudging
-</H1>
-
-<P>
-The KinFudger tool now allows distance and angles between points to
-be easily adjusted. This is especially useful in modifying bond distances,
-angles, and dihedrals in macromolecular structures. 
-
-<P>
-The control panel is simple, consisting of options for the parameter
-you wish to adjust, whether you want to move only one point (and all
-attached single points-I use this to move an atom and its attached
-hydrogens), and a button to export your kin to PDB.
-
-<P>
-
-<H2><A NAME="SECTION00321000000000000000">
-2.2.1 Adjusting bond distances, angles, and dihedrals</A>
-</H2>
-
-<P>
-In order to adjust a parameter, select the parameter you wish to adjust
-and click on the kinemage points you want to adjust, in order as if
-you were doing measures. By default, the tool will move the last point
-you clicked on, plus all the points connected to that point excluding
-the points ``behind'' the points you clicked. So for example,
-if you had a A-B-C-D connection, and you were adjusting the distance
-between B and C, and you clicked on B first, then C, then the program
-would move C and D. Likewise, if you clicked on C first, and then
-B, the program would move A and B. Naturally, the connectivity finding
-algorithm I use gets confused if you are adjusting with a cyclic structure,
-so be careful in that situation.
-
-<P>
-An interesting use I discovered about this tool is that you can use
-the distance adjusting to do a one-point docking of structures to
-close gaps. 
-
-<P>
-
-<H2><A NAME="SECTION00322000000000000000">
-2.2.2 Exporting to PDB</A>
-</H2>
-
-<P>
-The KinFudger also includes an export to PDB functionality. As long
-as your kinemage PointIDs are formatted in a standard fashion, the
-tool will export all active points to a PDB file. So turn off anything
-you don't want in your PDB. Also, if it encounters an non-standard
-atom name, it will output ``UNK'' in the atom field of the PDB.
-
-<P>
-
-<H1><A NAME="SECTION00400000000000000000">
-3. Exporting kinemages in other formats</A>
-</H1>
-
-<P>
-Several facilities are provided that can help get data out of kinemage
-format and into other forms, either for making figures for publication
-or for further processing. Due to security restrictions placed on
-applets, the export features are unavailable when KiNG is running
-in a web browser.
-
-<P>
-
-<H1><A NAME="SECTION00410000000000000000"></A><A NAME="export-povray"></A>
-<BR>
-3.1 Exporting for POV-Ray
-</H1>
-
-<P>
-KiNG can produce output script files to be fed into the high-quality
-free raytracing program POV-Ray (www.povray.org). POV-Ray can generate
-all kinds of ``photo-realistic'' effects including different materials
-and lighting schemes, simulated depth of field, <I>etc.</I> It is
-also very useful for producing digital movies that may be more convenient
-to use during talks and presentations. (I recommend the inexpensive
-QuickTime Pro from Apple for stitching together all the output images
-into a movie.) The POV file is largely complete as written and includes
-terse hints for rendering, but if you use this feature much you'll
-probably want to learn something about POV-Ray and tweak the scripts
-before rendering them. Most of the things you'll want to change are
-either at the very top (colors, textures, and sizes of things) or
-at the very bottom (camera viewpoint, depth cueing, lighting).
-
-<P>
-
-<H1><A NAME="SECTION00420000000000000000"></A><A NAME="export-xml"></A><A NAME="export-vrml97"></A>
-<BR>
-3.2 Deprecated export formats
-</H1>
-
-<P>
-<I>These feature now lag far behind the rest of the program in
-functionality; they may not work at all. For this reason, they do
-not appear in the menus by default and must be ``enabled'' under
-the Tools menu. If you need any of these capabilities, you are encouraged
-to contact the author and encourage on-going development.</I>
-
-<P>
-You can export kinemages in XML format using the Kinetic Image Markup
-Language by choosing <TT>Kin-XML</TT> from the <TT>File | Export</TT>
-menu. We recommend giving these files the extension <TT>.xkn</TT>
-or <TT>.xml</TT>. At this time, KiNG does not read these files, nor
-do other kinemage viewers. Also, they may not include all of the information
-that would be present in a traditional kinemage file. However, for
-people who would like to operate on the data from a kinemage without
-having to write a parser for the kinemage format, we expect this will
-be useful and convenient. Translation from the modified XML back to
-kinemage format is left as an exercise to the reader ;)
-
-<P>
-KiNG also has rudimentary abilities to export its 3-D primitives in
-VRML97 (a.k.a. VRML 2.0) format. At present, only dots and balls are
-exported, and they are both rendered as spheres. This feature was
-intended to facilitate the creation of models for rapid prototyping
-systems. As with XML export, contact the author if further development
-of this feature would be useful to you.
-
-<P>
-
-<H1><A NAME="SECTION00500000000000000000">
-4. Copyright &amp; acknowledgments</A>
-</H1>
-
-<P>
-
-<H1><A NAME="SECTION00510000000000000000">
-4.1 Copyright</A>
-</H1>
-
-<P>
-The Extratools code and all its associated original resources and
-documentation are copyright (C) 2002-2005 by Ian W. Davis and Vincent
-B. Chen.
-
-<P>
-
-<H1><A NAME="SECTION00520000000000000000">
-4.2 Revision status</A>
-</H1>
-
-<P>
-This manual was last updated 30 May 2005 by VBC for Extratools version
-1.00 (added chapter about kinemage editing).
-
-<H1><A NAME="SECTION00600000000000000000">
-&#164;^3&#164;&#206;&#202;&#184; 12&#241;&#164;&#203;&#164;&#196;&#164;&#164;&#164;&#198;...</A>
-</H1>
- <STRONG>The Extratools manual</STRONG><P>
-この文書は<A HREF="http://www.latex2html.org/"><STRONG>LaTeX</STRONG>2<tt>HTML</tt></A> 翻訳プログラム Version 2002-2-1 (1.70)
-<P>
-Copyright &#169; 1993, 1994, 1995, 1996,
-<A HREF="http://cbl.leeds.ac.uk/nikos/personal.html">Nikos Drakos</A>, 
-Computer Based Learning Unit, University of Leeds,
-<BR>
-Copyright &#169; 1997, 1998, 1999,
-<A HREF="http://www.maths.mq.edu.au/~ross/">Ross Moore</A>, 
-Mathematics Department, Macquarie University, Sydney.
-<P>を<A HREF="http://takeno.iee.niit.ac.jp/~shige/TeX/latex2html/ltx2html.html">日本語化したもの</A>(
-2002-2-1 (1.70) JA patch-2.0 版)
-<P>
-Copyright &#169; 1998, 1999,
-<A HREF="http://www.topstudio.co.jp/~kmuto/">Kenshi Muto</A>, 
-Debian Project.
-<BR>
-Copyright &#169; 2001, 2002,
-<A HREF="http://takeno.iee.niit.ac.jp/~shige/">Shige TAKENO</A>, 
-Niigata Inst.Tech.
-<P>を用いて生成されました。
-<P>コマンド行は以下の通りでした。: <BR>
- <STRONG>latex2html</STRONG> <tt>-no_subdir -split 0 -show_section_numbers /tmp/lyx_tmpdir20792s8eklE/lyx_tmpbuf0/tools-manual.tex</tt>.
-<P>翻訳は  によって 平成17年6月29日 に実行されました。<HR>
-<!--Navigation Panel-->
-<IMG WIDTH="81" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next_inactive"
- SRC="file:/usr/share/latex2html/icons/nx_grp_g.png"> 
-<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
- SRC="file:/usr/share/latex2html/icons/up_g.png"> 
-<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
- SRC="file:/usr/share/latex2html/icons/prev_g.png">   
-<BR>
-<!--End of Navigation Panel-->
-<ADDRESS>
-
-平成17年6月29日
-</ADDRESS>
-</BODY>
-</HTML>
