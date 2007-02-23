@@ -6,6 +6,7 @@ import king.*;
 import king.core.*;
 import king.points.*;
 
+import java.net.*;
 import java.util.*;
 import java.io.*;
 import java.awt.*;
@@ -403,6 +404,23 @@ public class LoopTool extends BasicTool {
     /** Returns a component with controls and options for this tool */
     protected Container getToolPanel()
     { return dialog; }
+    
+    /** Returns the URL of a web page explaining use of this tool */
+    public URL getHelpURL()
+    {
+      URL     url     = getClass().getResource("/extratools/tools-manual.html");
+      String  anchor  = getHelpAnchor();
+      if(url != null && anchor != null)
+      {
+        try { url = new URL(url, anchor); }
+        catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+        return url;
+      }
+      else return null;
+    }
+    
+    public String getHelpAnchor()
+    { return "#loop-tool"; }
 
     public String toString() { return "Loop Tool"; }    
     //}}}

@@ -10,12 +10,15 @@ import driftwood.r3.*;
 import driftwood.gui.*;
 import driftwood.moldb2.Residue;
 import driftwood.data.*;
+import driftwood.util.SoftLog;
 
+import java.net.*;
 import java.util.*;
 import java.io.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.text.DecimalFormat;
+//}}}
 
 public class GeometryPlugin extends Plugin { 
 
@@ -186,17 +189,17 @@ public class GeometryPlugin extends Plugin {
   * Determines all the files in a given directory, determined by the parent folder
   * of the file chosen, for geometry analysis.
   **/
-    public void onAnalyzeAll(ActionEvent e) {
-	initialize();
-	if (filechooser == null) makeFileChooser();
-	if(JFileChooser.APPROVE_OPTION == filechooser.showOpenDialog(kMain.getTopWindow())) {
-	    //try {
-	    File f = filechooser.getSelectedFile();
-	    System.out.println(f.getPath() + " : " + f.getName() + " : " + f.getParent());
-	    File[] allFiles = f.getParentFile().listFiles();   
-	    doAll(allFiles);
-	}
+  public void onAnalyzeAll(ActionEvent e) {
+    initialize();
+    if (filechooser == null) makeFileChooser();
+    filechooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    if(JFileChooser.APPROVE_OPTION == filechooser.showOpenDialog(kMain.getTopWindow())) {
+      File f = filechooser.getSelectedFile();
+      //System.out.println(f.getPath() + " : " + f.getName() + " : " + f.getParent());
+      File[] allFiles = f.listFiles();   
+      doAll(allFiles);
     }
+  }
 //}}}
 		
 //{{{ doAll
@@ -587,6 +590,26 @@ public class GeometryPlugin extends Plugin {
 	menu.add(new JMenuItem(new ReflectiveAction("Analyze All", null, this, "onAnalyzeAll")));
 	return menu;
     }
+//}}}
+    
+//{{{ getHelp
+
+  /** Returns the URL of a web page explaining use of this tool */
+  public URL getHelpURL()
+  {
+    URL     url     = getClass().getResource("/extratools/tools-manual.html");
+    String  anchor  = getHelpAnchor();
+    if(url != null && anchor != null)
+    {
+      try { url = new URL(url, anchor); }
+      catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+      return url;
+    }
+    else return null;
+  }
+  
+  public String getHelpAnchor()
+  { return "#geometry-plugin"; }
 //}}}
     
 //{{{ toString
