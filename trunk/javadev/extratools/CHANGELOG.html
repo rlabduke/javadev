@@ -13,7 +13,7 @@ VBC things to do:
   Check functionality in AutoBondRotTool; not sure if auto-updating of point parents
     messes anything up.
   FastaTool rewrite?
-  LoopTool rewrite?
+  LoopTool rewrite? (delete from file doesn't work)
   RNALineTracker desperately needs a rewrite.
 
 ==============================================================================
@@ -22,6 +22,13 @@ VBC things to do:
 ### 2.04 ###
 - PatchGapPlugin created, automatically fills in gap in protein structures.  
   Searches database for appropriate matches, based on loop framework.
+- DockConnTool added help.
+- LoopTool added help.
+- PatchGapPlugin added help, and added ability to export loops to pdb format.
+- GeometryPlugin added help, and fixed onDoAll to ask for a directory.
+- KinFudger fixed to use KinUtil.get functions.
+- PointComparater fixed to use KinUtil.get functions.
+- KinUtil cleaned up a little, added new get functions.
 
 ### 2.03 ###
 - Undo (one step only) for RecolorTool!

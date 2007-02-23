@@ -278,6 +278,33 @@ public class AminoAcid //extends ... implements ...
         s = s.toUpperCase();
         return (AA_NAMES.indexOf(s) != -1);
     }
+    
+    // more flexible search for whether something is an AA (e.g. for alt conf agly bgly, etc)
+    static public boolean isExtendedAminoAcid(String s) {
+      boolean isEAA = false;
+      s = s.toUpperCase();
+      String[] coreAAs = AA_NAMES.split(",");
+      for (int i = 0; i < coreAAs.length; i++) {
+        String aa = coreAAs[i];
+        if (s.indexOf(aa) != -1) {
+          isEAA = true;
+        }
+      }
+      return isEAA;
+    }
+    
+    public static String getAAName(String s) {
+      s = s.toUpperCase();
+      String[] coreAAs = AA_NAMES.split(",");
+      for (int i = 0; i < coreAAs.length; i++) {
+        String aa = coreAAs[i];
+        int aaInd = s.indexOf(aa);
+        if (aaInd != -1) {
+          return s.substring(aaInd - 1, aaInd + 3);
+        }
+      }
+      return "UNK";
+    }
 //}}}
 
 //{{{ empty_code_segment

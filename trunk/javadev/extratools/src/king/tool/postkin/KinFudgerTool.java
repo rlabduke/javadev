@@ -5,6 +5,7 @@ package king.tool.postkin;
 import king.*;
 import king.core.*;
 import king.points.*;
+import king.tool.util.*;
 
 import driftwood.r3.*;
 import driftwood.gui.*;
@@ -646,8 +647,8 @@ public void rotateDihedral(AbstractPoint first, AbstractPoint second, AbstractPo
 		    
 		}
 		out.print(PointComparator.getAtomName(point.getName().toUpperCase()) + " ");
-		out.print(PointComparator.getResAA(point.getName().toUpperCase()) + "  ");
-		out.print(formatStrings(String.valueOf(PointComparator.getResNumber(point.getName().toUpperCase())), 4) + "    ");
+		out.print(KinUtil.getResAA(point.getName().toUpperCase()) + "  ");
+		out.print(formatStrings(String.valueOf(KinUtil.getResNumber(point.getName().toUpperCase())), 4) + "    ");
 		out.print(formatStrings(df.format(point.getX()), 8));
 		out.print(formatStrings(df.format(point.getY()), 8));
 		out.print(formatStrings(df.format(point.getZ()), 8));

@@ -10,6 +10,7 @@ king.tool.draw.LathePlugin
 king.tool.draw.SkylightPlugin
 king.tool.movie.MoviePlugin
 king.tool.postkin.ColorGrouperPlugin
+king.tool.postkin.KinimolPlugin
 
 # Tools
 king.tool.docking.Dock3On3Tool

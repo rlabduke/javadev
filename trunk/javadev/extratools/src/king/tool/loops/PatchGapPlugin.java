@@ -8,7 +8,10 @@ import king.points.*;
 import driftwood.gui.*;
 import driftwood.r3.*;
 import king.tool.util.*;
+import king.tool.postkin.*;
+import driftwood.util.SoftLog;
 
+import java.net.*;
 import java.util.*;
 import java.io.*;
 import javax.swing.*;
@@ -17,6 +20,18 @@ import java.text.*;
 import java.util.zip.*;
 //}}}
 
+/**
+* <code>PatchGapPlugin</code> is a plugin to make it easy to fill gaps in protein structures.  
+* It combines functionality originally made for FramerTool, LoopTool, and the docking tools.
+* It scans through a protein structure kin for gaps, analyzes the framing peptides of that gap,
+* searches through my database of loops for matches, finds kins of those matches, and superimposes
+* them in the kinemage.  
+* Unfortunately it requires both my database (in zip format) of loop frame information, and a directory of
+* kinemages, both of which are quite large, and would be difficult to distribute...
+*
+* <p>Copyright (C) 2007 by Vincent Chen. All rights reserved.
+* 
+*/
 public class PatchGapPlugin extends Plugin {
   
   //{{{ Constants
@@ -254,7 +269,7 @@ public class PatchGapPlugin extends Plugin {
   public void scanLoopKins(ArrayList<File> loopKins) {
     //ArrayList<File> loopKins = findLoopKins();
     for (ArrayList<Double> gap : filledMap.keySet()) {
-      KGroup newSub = new KGroup(gap.get(0).intValue() + "->" + gap.get(1).intValue());
+      KGroup newSub = new KGroup(gap.get(0).intValue() + "-" + gap.get(1).intValue());
       group.add(newSub);
       ArrayList<String> listofFiller = filledMap.get(gap);
       System.out.println(listofFiller.size());
@@ -389,11 +404,106 @@ public class PatchGapPlugin extends Plugin {
   }
   //}}}
   
+  //{{{ onExport
+  public void onExport(ActionEvent ev) {
+    JFileChooser saveChooser = new JFileChooser();
+    saveChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    saveChooser.setDialogTitle("Pick pdb output directory");
+    String currdir = System.getProperty("user.dir");
+    if(currdir != null) {
+	    saveChooser.setCurrentDirectory(new File(currdir));
+    }
+    if (saveChooser.APPROVE_OPTION == saveChooser.showSaveDialog(kMain.getTopWindow())) {
+	    File f = saveChooser.getSelectedFile();
+      savePdb(f);
+    }
+  }
+  //}}}
+  
+  //{{{ savePdb
+  /**
+  * First sorts the loop group by the PDB structures the loops came from, doing subgroups separately.
+  * Then it saves a pdb file for each subgroup, putting the loops into different models.  
+  **/
+  public void savePdb(File f) {
+    Iterator groups = kMain.getKinemage().iterator();
+    while (groups.hasNext()) {
+      KGroup tempGroup = (KGroup) groups.next();
+      if (tempGroup.getName().equals("loops")) {
+        group = tempGroup;
+      }
+    }
+    Iterator subs = group.iterator();
+    while (subs.hasNext()) {
+      KGroup sub = (KGroup) subs.next();
+      HashMap<String, KGroup> groupMap = new HashMap<String, KGroup>();
+      KIterator<KList> lists = KIterator.allLists(sub);
+      for (KList list : lists) {
+        KPoint pt = list.getChildren().get(0);
+        String pdbName = KinUtil.getPdbName(pt.getName());
+        if (pdbName != null) {
+          if (groupMap.containsKey(pdbName)) {
+            KGroup pdbGroup = groupMap.get(pdbName);
+            pdbGroup.add(list);
+          } else {
+            KGroup pdbGroup = new KGroup("");
+            pdbGroup.add(list);
+            groupMap.put(pdbName, pdbGroup);
+          }
+        }
+      }
+      File pdbout = new File(f, sub.getName() + ".pdb");
+      if( !pdbout.exists() ||
+        JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+      "The file " + pdbout.toString() + " exists -- do you want to overwrite it?",
+      "Overwrite file?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION )
+      {
+        try {
+          Writer w = new FileWriter(pdbout);
+          PrintWriter out = new PrintWriter(new BufferedWriter(w));
+          int i = 1;
+          for (String pdbName : groupMap.keySet()) {
+            out.println("MODEL     " + Kinimol.formatStrings(Integer.toString(i), 4));
+            out.print(Kinimol.convertGrouptoPdb(groupMap.get(pdbName), pdbName));
+            out.println("ENDMDL");
+            i++;
+          }
+          out.flush();
+          w.close();
+        } catch (IOException ex) {
+          System.out.println(ex);
+          JOptionPane.showMessageDialog(kMain.getTopWindow(),
+          "An error occurred while saving the file.", "Sorry!", JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    }
+  }
+  //}}}
+  
   //{{{ getToolsMenuItem
   public JMenuItem getToolsMenuItem() {
-    JMenuItem menu = new JMenuItem(new ReflectiveAction("Analyze Gaps", null, this, "onAnalyzeCurrent"));
+    JMenu menu = new JMenu("Fill Model Gaps");
+    menu.add(new JMenuItem(new ReflectiveAction("Analyze Gaps", null, this, "onAnalyzeCurrent")));
+    menu.add(new JMenuItem(new ReflectiveAction("Export Loops", null, this, "onExport")));
     return menu;
   }
   //}}}
+  
+  /** Returns the URL of a web page explaining use of this tool */
+  public URL getHelpURL()
+  {
+    URL     url     = getClass().getResource("/extratools/tools-manual.html");
+    String  anchor  = getHelpAnchor();
+    if(url != null && anchor != null)
+    {
+      try { url = new URL(url, anchor); }
+      catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+      return url;
+    }
+    else return null;
+  }
+  
+  public String getHelpAnchor()
+  { return "#fillgap-tool"; }
   
 }//class
