@@ -1,0 +1,4 @@
+# 0 = primary, 1 = secondary
+slave.which_screen = 1
+slave.screen_center_px = -1813 1213 0
+

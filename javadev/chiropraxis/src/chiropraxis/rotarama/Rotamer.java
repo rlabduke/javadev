@@ -476,10 +476,18 @@ public class Rotamer //extends ... implements ...
     * @throws AtomException atoms or states are missing
     */
     public String identify(Residue res, ModelState state)
-    {
-        String rescode = res.getName().toLowerCase();
+    { return identify(res.getName(), scAngles2.measureChiAngles(res, state)); }
         
-        double[] chiAngles = scAngles2.measureChiAngles(res, state);
+    /**
+    * Names the specified sidechain rotamer according to the conventions in the
+    * Penultimate Rotamer Library.  Returns null if the conformation can't be named.
+    * This is ONLY meaningful if evaluate() returns &gt;= 0.01 for the given conformation.
+    *
+    * @throws IllegalArgumentException if the residue type is unknown
+    */
+    public String identify(String rescode, double[] chiAngles)
+    {
+        rescode = rescode.toLowerCase();
         for(int i = 0; i < chiAngles.length; i++)
         {
             chiAngles[i] = chiAngles[i] % 360;
@@ -496,8 +504,8 @@ public class Rotamer //extends ... implements ...
         Collection tbl = (Collection) names.get(rescode);
         if(tbl == null)
             throw new IllegalArgumentException("Unknown residue type");
-        //if(chiAngles == null)
-        //    throw new IllegalArgumentException("No chi angles supplied");
+        if(chiAngles == null)
+            throw new IllegalArgumentException("No chi angles supplied");
         //if(chiAngles.length < ndft.getDimensions())
         //    throw new IllegalArgumentException("Too few chi angles supplied");
         
@@ -519,11 +527,14 @@ public class Rotamer //extends ... implements ...
     * @throws AtomException atoms or states are missing
     */
     public double evaluate(Residue res, ModelState state)
-    {
-        return evalImpl2(res.getName(), scAngles2.measureChiAngles(res, state));
-    }
+    { return evaluate(res.getName(), scAngles2.measureChiAngles(res, state)); }
     
-    double evalImpl2(String rescode, double[] chiAngles)
+    /**
+    * Evaluates the specified rotamer from 0.0 (worst)
+    * to 1.0 (best).
+    * @throws IllegalArgumentException if the residue type is unknown
+    */
+    public double evaluate(String rescode, double[] chiAngles)
     {
         rescode = rescode.toLowerCase();
         NDFloatTable ndft = (NDFloatTable)tables.get(rescode);

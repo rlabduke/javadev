@@ -1,0 +1,10 @@
+# Duke DiVE
+# 1056 x 1056 pixels
+# 2.9 x 2.9 meters
+# = 9.25 dpi
+master.host = localhost
+slave.use_stereo = true
+is_cave = true
+master.observer_left_eye_px = -11 0 0
+master.observer_right_eye_px = 11 0 0
+
