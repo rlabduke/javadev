@@ -1,0 +1,4 @@
+slave.screen_center_px = 0 528 0
+slave.screen_normal_vec = 0 -1 0
+slave.screen_up_vec = 0 0 1
+

@@ -1,0 +1,23 @@
+# 5 screens wide by 3 screens tall.
+# Each screen measures 18 1/2" x 12 3/8",
+# with a 17 1/8" x 12 3/8" image.
+# Operated at a resolution of 1680 x 1050 (98 ppi),
+# an observer 6' from the wall is out 7056 px.
+#
+# Screen/machine layout (machine.display):
+#   node1.0  node1.1  node4.0  node4.1  node7.0
+#   node2.0  node2.1  node5.0  node5.1  node8.1
+#   node3.0  node3.1  node6.0  node6.1  node8.0
+#
+# Config file naming:
+#   21  22  23  24  25
+#   31  32  33  34  35
+#   41  42  43  44  45
+
+master.host = localhost
+master.observer_left_eye_px = -90 0 7056
+master.observer_right_eye_px = 90 0 7056
+
+# Full screen exclusive not compatible with 2 screens / machine
+slave.full_screen_exclusive = false
+

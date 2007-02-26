@@ -1,0 +1,26 @@
+master.port = 1681
+master.host = localhost
+
+# Setting full screen (but not exclusive) makes the window as big as possible
+# and without decorations (title, menubar, max/min/close buttons, etc).
+slave.full_screen = true
+slave.full_screen_exclusive = true
+slave.hide_mouse = true
+# Which physical display and which virtual desktop.
+# Numbering starts from 0, but the default (-1) is usually fine.
+slave.which_screen = -1
+slave.which_subscreen = -1
+# Full Screen Anti-Aliasing. Set to 1 to disable.
+slave.fsaa_samples = 4
+# Trying to set stereo when your graphics card doesn't support it
+# leads to a segfault (OS X) or a GLException (Linux).
+slave.use_stereo = false
+
+is_cave = false
+slave.screen_center_px = 0 0 0
+slave.screen_normal_vec = 0 0 1
+slave.screen_up_vec = 0 1 0
+
+master.observer_left_eye_px = 0 -90 2000
+master.observer_right_eye_px = 0 90 2000
+
