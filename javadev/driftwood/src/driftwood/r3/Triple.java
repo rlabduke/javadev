@@ -334,6 +334,19 @@ public class Triple implements MutableTuple3, Serializable
     }
 
     /**
+    * Returns the distance between s and t.
+    * Safe to execute on <code>this</code>.
+    */
+    public static double distance(Tuple3 s, Tuple3 t)
+    {
+        double dx, dy, dz;
+        dx = s.getX() - t.getX();
+        dy = s.getY() - t.getY();
+        dz = s.getZ() - t.getZ();
+        return Math.sqrt(dx*dx + dy*dy + dz*dz);
+    }
+
+    /**
     * Returns the square of the distance between this triple and t. Faster than distance().
     * Safe to execute on <code>this</code>.
     */
@@ -343,6 +356,19 @@ public class Triple implements MutableTuple3, Serializable
         dx = x - t.getX();
         dy = y - t.getY();
         dz = z - t.getZ();
+        return (dx*dx + dy*dy + dz*dz);
+    }
+
+    /**
+    * Returns the square of the distance between s and t. Faster than distance().
+    * Safe to execute on <code>this</code>.
+    */
+    public static double sqDistance(Tuple3 s, Tuple3 t)
+    {
+        double dx, dy, dz;
+        dx = s.getX() - t.getX();
+        dy = s.getY() - t.getY();
+        dz = s.getZ() - t.getZ();
         return (dx*dx + dy*dy + dz*dz);
     }
 //}}}

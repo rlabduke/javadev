@@ -296,6 +296,7 @@ public class Rotamer //extends ... implements ...
         tbl.add(new NamedRot("mmm",     new int[] {240,    360,    240,    360,    0,      30}));
         tbl.add(new NamedRot("mmm",     new int[] {240,    360,    240,    360,    240,    360}));
         names.put("met", tbl);
+        names.put("mse", tbl); // seleno-Met
         
         // lys (kept all b/c can't see 4D peaks; some never really occur)
         tbl = new ArrayList();
@@ -508,6 +509,8 @@ public class Rotamer //extends ... implements ...
             throw new IllegalArgumentException("No chi angles supplied");
         //if(chiAngles.length < ndft.getDimensions())
         //    throw new IllegalArgumentException("Too few chi angles supplied");
+        for(int i = 0; i < chiAngles.length; i++) if(Double.isNaN(chiAngles[i]))
+            throw new IllegalArgumentException("Some chi angles could not be measured");
         
         for(Iterator iter = tbl.iterator(); iter.hasNext(); )
         {
@@ -544,6 +547,8 @@ public class Rotamer //extends ... implements ...
             throw new IllegalArgumentException("No chi angles supplied");
         if(chiAngles.length < ndft.getDimensions())
             throw new IllegalArgumentException("Too few chi angles supplied");
+        for(int i = 0; i < chiAngles.length; i++) if(Double.isNaN(chiAngles[i]))
+            throw new IllegalArgumentException("Some chi angles could not be measured");
         
         float[] chis = new float[ chiAngles.length ];
         for(int i = 0; i < chis.length; i++) chis[i] = (float)chiAngles[i];
