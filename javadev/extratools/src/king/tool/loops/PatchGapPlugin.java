@@ -206,8 +206,14 @@ public class PatchGapPlugin extends Plugin {
             while ((line = reader.readLine()) != null) {
               //System.out.println(line);
               String[] split = line.split(",");
+              String[] firstSplit = split[0].split(" ");
+              double lineArray[] = new double[8];
+              lineArray[1] = Double.parseDouble(firstSplit[1]);
+              for (int i = 2; i < 8; i++) {
+                lineArray[i] = Double.parseDouble(split[i]);
+              }
               for (ArrayList<Double> gapFrame : gapFrames) {
-                if (scanLine(split, gapFrame)) {
+                if (scanLine(lineArray, gapFrame)) {
                   ArrayList<String> listofMatches = filledMap.get(gapFrame);
                   listofMatches.add(split[0] + " " + split[1]); // should result in pdbname length startResNum
                 }
@@ -225,18 +231,21 @@ public class PatchGapPlugin extends Plugin {
   //}}}
   
   //{{{ scanLine
-  public boolean scanLine(String[] line, ArrayList<Double> frame) {
-    String[] split = line[0].split(" "); // pdbname length
+  public boolean scanLine(double[] line, ArrayList<Double> frame) {
+    //String[] split = stringLine[0].split(" "); // pdbname length
     boolean inRange = true;
     //while (inRange) {
-      if ((frame.get(1) - frame.get(0)) != Double.parseDouble(split[1])) {
+      //if ((frame.get(1) - frame.get(0)) != Double.parseDouble(split[1])) {
+      //  inRange = false;
+      //}
+      if ((frame.get(1) - frame.get(0)) != line[1]) {
         inRange = false;
       }
-      if ((Double.parseDouble(line[2]) >= frame.get(2) + 1)||(Double.parseDouble(line[2]) <= frame.get(2) - 1)) {
+      if ((line[2] >= frame.get(2) + 1)||(line[2] <= frame.get(2) - 1)) {
         inRange = false;
       }
       for (int i = 3; i < frame.size() && inRange; i++) {
-        if ((Double.parseDouble(line[i]) >= frame.get(i) + 25)||(Double.parseDouble(line[i]) <= frame.get(i) - 25)) {
+        if ((line[i] >= frame.get(i) + 25)||(line[i] <= frame.get(i) - 25)) {
           inRange = false;
         }
       }
@@ -254,7 +263,7 @@ public class PatchGapPlugin extends Plugin {
         File[] kinFiles = f.listFiles();
         ArrayList<File> kinList = new ArrayList<File>();
         for (File kin : kinFiles) {
-          if (kin.getName().endsWith(".kin")) {
+          if ((kin.getName().endsWith(".kin"))||(kin.getName().endsWith(".kin.gz"))) {
             kinList.add(kin);
           }
         }
@@ -283,6 +292,12 @@ public class PatchGapPlugin extends Plugin {
         for (int i = startRes; i <= startRes + length + 2; i++) {
           keepSet.add(new Integer(i));
         }
+        //for (int i = 1; i <= 1000; i++) {
+        //  keepSet.add(new Integer(i));
+        //}
+        //for (int i = startRes + length + 1; i <= 1000; i++) {
+        //  keepSet.add(new Integer(i));
+        //}
         for (File kinFile : loopKins) {
           if (kinFile.getName().indexOf(pdbName) != -1) {
             ArrayList<KList> loops = openKin(kinFile, keepSet);
@@ -308,11 +323,19 @@ public class PatchGapPlugin extends Plugin {
     for (KPoint pt : points) {
       int resNum = KinUtil.getResNumber(pt);
       //String ptChain = KinUtil.getChainID(pt).toLowerCase();
-      if ((!keepSet.contains(new Integer(resNum)))){//||(!chainID.equals(ptChain))) {
+      if ((!keepSet.contains(new Integer(resNum)))||(!(pt instanceof VectorPoint))){//||(!chainID.equals(ptChain))) {
           points.remove();
-      } else if ((keepSet.contains(new Integer(resNum)))&&(!keepSet.contains(new Integer(resNum-1)))) {
+      } else {
+        String name = pt.getName();
+        pt.setName(name + keepSet.first().toString()); //temp fix to pdb export putting loops from same pdb together
+      }
+      if ((keepSet.contains(new Integer(resNum)))&&(!keepSet.contains(new Integer(resNum-1)))) {
         if (pt instanceof VectorPoint) {
           VectorPoint vpoint = (VectorPoint) pt;
+          //String name = vpoint.getName();
+          //System.out.println(name);
+          //System.out.print(keepSet.first().toString());
+          //vpoint.setName(name + keepSet.first().toString()); //temp fix to pdb export putting loops from same pdb together
           KPoint prev = vpoint.getPrev();
           if (prev instanceof KPoint) {
             if (!keepSet.contains(new Integer(KinUtil.getResNumber(prev)))) {
@@ -323,6 +346,7 @@ public class PatchGapPlugin extends Plugin {
       }
     }
     Kinemage kin = kMain.getKinemage();
+    removeExtraAtoms(kin, keepSet);
     KIterator<KList> lists = KIterator.allLists(kin.getChildren().get(0));
     try {
       ArrayList<KList> listofLists = new ArrayList<KList>();
@@ -342,6 +366,21 @@ public class PatchGapPlugin extends Plugin {
     return null;
   }
   //}}}
+  
+  public void removeExtraAtoms(Kinemage kin, TreeSet<Integer> keepSet) {
+    KIterator<KPoint> points = KIterator.allPoints(kin);
+    int first = keepSet.first().intValue();
+    int last = keepSet.last().intValue();
+    for (KPoint pt : points) {
+      int resNum = KinUtil.getResNumber(pt);
+      String atomName = KinUtil.getAtomName(pt);
+      if ((atomName.equals("n"))&&(resNum == first)) points.remove();
+      if ((atomName.equals("h"))&&(resNum == first)) points.remove();
+      if ((atomName.equals("ca"))&&(resNum == first)) pt.setPrev(null);
+      if ((atomName.equals("c"))&&(resNum == last)) points.remove();
+      if ((atomName.equals("o"))&&(resNum == last)) points.remove();
+    }
+  }
   
   //{{{ getListTupleArray
   public Tuple3[] getListTupleArray(KList list) {
@@ -364,13 +403,13 @@ public class PatchGapPlugin extends Plugin {
     int oneNum = zeroNum + 1;
     int n1Num = listcaMap.lastKey().intValue();
     int nNum = n1Num - 1;
-    Tuple3[] tuples = new Tuple3[6];
-    tuples[0] = listcoMap.get(new Integer(zeroNum));
-    tuples[1] = listcaMap.get(new Integer(zeroNum));
-    tuples[2] = listcaMap.get(new Integer(oneNum));
-    tuples[3] = listcaMap.get(new Integer(nNum));
-    tuples[4] = listcaMap.get(new Integer(n1Num));
-    tuples[5] = listcoMap.get(new Integer(nNum));
+    Tuple3[] tuples = new Tuple3[4];
+    //tuples[0] = listcoMap.get(new Integer(zeroNum));
+    tuples[0] = listcaMap.get(new Integer(zeroNum));
+    tuples[1] = listcaMap.get(new Integer(oneNum));
+    tuples[2] = listcaMap.get(new Integer(nNum));
+    tuples[3] = listcaMap.get(new Integer(n1Num));
+    //tuples[5] = listcoMap.get(new Integer(nNum));
     return tuples;
   }
   //}}}
@@ -379,13 +418,13 @@ public class PatchGapPlugin extends Plugin {
   public Tuple3[] getGapTupleArray(ArrayList<Double> gap) {
     int oneNum = gap.get(0).intValue();
     int nNum = gap.get(1).intValue();
-    Tuple3[] tuples = new Tuple3[6];
-    tuples[0] = coMap.get(new Integer(oneNum - 1));
-    tuples[1] = caMap.get(new Integer(oneNum - 1));
-    tuples[2] = caMap.get(new Integer(oneNum));
-    tuples[3] = caMap.get(new Integer(nNum));
-    tuples[4] = caMap.get(new Integer(nNum + 1));
-    tuples[5] = coMap.get(new Integer(nNum));
+    Tuple3[] tuples = new Tuple3[4];
+    //tuples[0] = coMap.get(new Integer(oneNum - 1));
+    tuples[0] = caMap.get(new Integer(oneNum - 1));
+    tuples[1] = caMap.get(new Integer(oneNum));
+    tuples[2] = caMap.get(new Integer(nNum));
+    tuples[3] = caMap.get(new Integer(nNum + 1));
+    //tuples[5] = coMap.get(new Integer(nNum));
     return tuples;
   }
   //}}}

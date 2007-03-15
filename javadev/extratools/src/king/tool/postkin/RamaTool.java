@@ -5,6 +5,7 @@ package king.tool.postkin;
 import king.*;
 import king.core.*;
 import king.points.*;
+import king.tool.util.*;
 
 import java.awt.*;
 import java.util.*;
@@ -68,7 +69,7 @@ public class RamaTool extends BasicTool {
 	VectorPoint point = new VectorPoint(n1.getName(), prev);
 	point.setX(phi);
 	point.setY(psi);
-	int resNum = PointComparator.getResNumber(n1.getName());
+	int resNum = KinUtil.getResNumber(n1.getName());
 	int transNum = ((Integer)lengthMap.get(new Integer(resNum))).intValue();
 	point.setZ(transNum);
 	return point;
@@ -154,7 +155,7 @@ public class RamaTool extends BasicTool {
 	pointMap = new TreeMap();
 	while (iter.hasNext()) {
 	    VectorPoint point = (VectorPoint) iter.next();
-	    Integer resNumber = new Integer(PointComparator.getResNumber(point.getName()));
+	    Integer resNumber = new Integer(KinUtil.getResNumber(point.getName()));
 	    if (pointMap.containsKey(resNumber)) {
 		ArrayList list = (ArrayList) pointMap.get(resNumber);
 		if (!list.contains(point)) {
@@ -220,7 +221,7 @@ public class RamaTool extends BasicTool {
     
     
     public void addPoints(VectorPoint point) {
-	Integer resNumber = new Integer(PointComparator.getResNumber(point.getName()));
+	Integer resNumber = new Integer(KinUtil.getResNumber(point.getName()));
 	if (pointMap.containsKey(resNumber)) {
 	    ArrayList list = (ArrayList) pointMap.get(resNumber);
 	    if (!list.contains(point)) {
