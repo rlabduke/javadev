@@ -476,7 +476,7 @@ public class GeometryPlugin extends Plugin {
 //{{{ calcPepDihedral
 /**
 * Calculates peptide dihedral and checks to see if it falls outside 20 degrees of
-* 180 or -180.
+* 180 or -180.  It also doesn't flag cis peptides at the moment.
 **/
         public void calcPepDihedral(String key, String resName, KPoint pt1, KPoint pt2, KPoint pt3, KPoint pt4) {
 	if ((pt1 != null)&&(pt2 != null)&&(pt3 != null)&&(pt4 != null)) {
@@ -489,7 +489,7 @@ public class GeometryPlugin extends Plugin {
 	    Triple trip3 = new Triple(pt3);
 	    Triple trip4 = new Triple(pt4);
 	    double dihed = Triple.dihedral(trip1, trip2, trip3, trip4);
-	    if (((dihed < 160)&&(dihed > 20))||((dihed > -160)&&(dihed < -20))) {
+	    if (((dihed < 160)&&(dihed > 30))||((dihed > -160)&&(dihed < -30))) {
 		//System.out.print("res " + key);// + " - res " + (key.intValue() + 1));
 		//System.out.println(" peptide dihedral " + df.format(dihed));
 		System.out.println(key + ":ca-c-n-ca:" + df.format(dihed));

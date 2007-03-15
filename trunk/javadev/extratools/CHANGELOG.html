@@ -15,10 +15,22 @@ VBC things to do:
   FastaTool rewrite?
   LoopTool rewrite? (delete from file doesn't work)
   RNALineTracker desperately needs a rewrite.
+  some loops get transfered over incorrectly in PatchGapPlugin: 107 models vs 111 found in hsp90
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+### 2.041 ###
+PatchGapPlugin changes:
+- Made a little faster by reducing the number of Double.parseDoubles it does.
+- Finally deletes waters.
+- Doesn't include extra atoms past the endpoints of superimposed loops.
+- Trying out different methods of superimposing the loops, currently uses only the Ca of endpoints.
+- Adds residue numbers to PDB appended to end of the lines of PDB exports, temporarily fixes a problem
+  where if two or more matches were found from one PDB, they'd get stuck together in one model.
+- GeometryPlugin fixed so it (again) scans 30 degrees around 0 for the peptide dihedral; I thought it was wrong
+  before and changed it to 20.
+- RamaTool fixed so it uses KinUtil.get functions.
 ### 2.04 ###
 - PatchGapPlugin created, automatically fills in gap in protein structures.  
   Searches database for appropriate matches, based on loop framework.

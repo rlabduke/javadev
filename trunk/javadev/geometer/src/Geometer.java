@@ -118,12 +118,13 @@ public class Geometer {
 	PdbReader reader = new PdbReader();
 	try {
 	    CoordinateFile coordFile = reader.read(pdb);
-	    System.out.println(coordFile.getIdCode());
+	    //System.out.println(coordFile.getIdCode());
+      String idCode = coordFile.getIdCode();
 	    Iterator models = (coordFile.getModels()).iterator();
 	    while (models.hasNext()) {
 		//System.out.print(".");
 		Model mod = (Model) models.next();
-		testGeometry(mod);
+		testGeometry(idCode, mod);
 	    }
 	} catch (IOException ie) {
 	    System.err.println("Problem when reading pdb file");
@@ -139,7 +140,7 @@ public class Geometer {
      * If there's a mistake in calculation of a bond length or angle,
      * it's probably here.
      **/
-    public void testGeometry(Model mod) {
+    public void testGeometry(String idCode, Model mod) {
 	ModelState modState = mod.getState();
 	Residue prevRes = null;
 	AtomState prevCa = null;
@@ -154,18 +155,18 @@ public class Geometer {
 		    AtomState ca = modState.get(res.getAtom(" CA "));
 		    AtomState carb = modState.get(res.getAtom(" C  "));
 		    AtomState oxy = modState.get(res.getAtom(" O  "));
-		    calcDist(res, nit, ca);
-		    calcDist(res, ca, carb);
-		    calcDist(res, carb, oxy);
-		    calcAngle(res, nit, ca, carb);
-		    calcAngle(res, ca, carb, oxy);
+		    calcDist(res, nit, ca, idCode);
+		    calcDist(res, ca, carb, idCode);
+		    calcDist(res, carb, oxy, idCode);
+		    calcAngle(res, nit, ca, carb, idCode);
+		    calcAngle(res, ca, carb, oxy, idCode);
 		    // Avoids errors where residues in different chains were getting compared.
 		    if ((prevRes != null)&&(prevRes.getChain().equals(res.getChain()))) {
-			calcDist(res, prevCarb, nit);
-			calcAngle(res, prevOxy, prevCarb, nit);
-			calcAngle(res, prevCarb, nit, ca, prevCa);
-			calcPepDihedral(res, prevCa, prevCarb, nit, ca);
-			calcAngle(prevRes, prevCa, prevCarb, nit); //this angle goes with the previous residue, which is why it gets passed prevRes.
+			calcDist(res, prevCarb, nit, idCode);
+			calcAngle(res, prevOxy, prevCarb, nit, idCode);
+			calcAngle(res, prevCarb, nit, ca, prevCa, idCode);
+			calcPepDihedral(res, prevCa, prevCarb, nit, ca, idCode);
+			calcAngle(prevRes, prevCa, prevCarb, nit, idCode); //this angle goes with the previous residue, which is why it gets passed prevRes.
 		    } else {
 			prevRes = null;
 			prevCarb = null;
@@ -208,7 +209,7 @@ public class Geometer {
      * Calculates the distance between two AtomStates.  It uses the
      * Residue to figure out information about the residue for the output.
      **/
-    public void calcDist(Residue res, AtomState pt1, AtomState pt2) {
+    public void calcDist(Residue res, AtomState pt1, AtomState pt2, String idCode) {
 	if ((pt1 != null)&&(pt2 != null)) {
 	    String atom1 = (pt1.getAtom()).getName().trim().toLowerCase();
 	    String atom2 = (pt2.getAtom()).getName().trim().toLowerCase();
@@ -228,7 +229,7 @@ public class Geometer {
 	    double dist = pt1.distance(pt2);
 	    if ((dist <= idealdist - 4 * sd)||(dist >= idealdist + 4 * sd)) {
 		String resInfo = resName + res.getSequenceNumber().trim();
-		System.out.println(resInfo + ":" + atom1 + "-" + atom2 + ":" + df.format(dist) + ":" + df.format((dist - idealdist)/sd));
+		System.out.println(idCode + ":" + resInfo + ":" + atom1 + "-" + atom2 + ":" + df.format(dist) + ":" + df.format((dist - idealdist)/sd));
 	    }
 	}
     }
@@ -240,7 +241,7 @@ public class Geometer {
      * Calculates the angle between three AtomStates.  It uses the
      * Residue to figure out information about the residue for the output.
      **/
-    public void calcAngle(Residue res, AtomState pt1, AtomState pt2, AtomState pt3) {
+    public void calcAngle(Residue res, AtomState pt1, AtomState pt2, AtomState pt3, String idCode) {
 	if ((pt1 != null)&&(pt2 != null)&&(pt3 != null)) {
 	    String atom1 = (pt1.getAtom()).getName().trim().toLowerCase();
 	    String atom2 = (pt2.getAtom()).getName().trim().toLowerCase();
@@ -261,7 +262,7 @@ public class Geometer {
 	    double ang = Triple.angle(pt1, pt2, pt3);
 	    if ((ang <= idealang - 4 * sd)||(ang >= idealang + 4 * sd)) {
 		String resInfo = resName + res.getSequenceNumber().trim();
-		System.out.println(resInfo + ":" + atom1 + "-" + atom2 + "-" + atom3 + ":" + df.format(ang) + ":" + df.format((ang - idealang)/sd));
+		System.out.println(idCode + ":" + resInfo + ":" + atom1 + "-" + atom2 + "-" + atom3 + ":" + df.format(ang) + ":" + df.format((ang - idealang)/sd));
 	    }
 	}
     }
@@ -276,7 +277,7 @@ public class Geometer {
      * so it knows to use the cisPro angle versus the transPro angle. 
      * This only affects the C-N-CA angle.
      **/
-    public void calcAngle(Residue res, AtomState pt1, AtomState pt2, AtomState pt3, AtomState cisPt) {
+    public void calcAngle(Residue res, AtomState pt1, AtomState pt2, AtomState pt3, AtomState cisPt, String idCode) {
 	double dihed = 180;
 	String resName = res.getName().trim().toLowerCase();
 	if ((pt1 != null)&&(pt2 != null)&&(pt3 != null)&&(cisPt != null)) {
@@ -285,9 +286,9 @@ public class Geometer {
 	}
 	if ((dihed < 30) && (dihed > -30) && (resName.equals("pro"))) {
 	    Residue cisRes = new Residue(res, res.getChain(), res.getSegment(), res.getSequenceNumber(), res.getInsertionCode(), "cispro");
-	    calcAngle(cisRes, pt1, pt2, pt3);
+	    calcAngle(cisRes, pt1, pt2, pt3, idCode);
 	} else {
-	    calcAngle(res, pt1, pt2, pt3);
+	    calcAngle(res, pt1, pt2, pt3, idCode);
 	}
     }
 //}}}
@@ -298,7 +299,7 @@ public class Geometer {
      * Calculates a dihedral angle.  This is only used to calculate
      * the peptide dihedral angle, to see how far off of 180 degrees it is.
      **/
-    public void calcPepDihedral(Residue res, AtomState pt1, AtomState pt2, AtomState pt3, AtomState pt4) {
+    public void calcPepDihedral(Residue res, AtomState pt1, AtomState pt2, AtomState pt3, AtomState pt4, String idCode) {
 	if ((pt1 != null)&&(pt2 != null)&&(pt3 != null)&&(pt4 != null)) {
 	    String atom1 = (pt1.getAtom()).getName().trim().toLowerCase();
 	    String atom2 = (pt2.getAtom()).getName().trim().toLowerCase();
@@ -307,7 +308,7 @@ public class Geometer {
 	    double dihed = Triple.dihedral(pt1, pt2, pt3, pt4);
 	    if (((dihed < 160)&&(dihed > 30))||((dihed > -160)&&(dihed < -30))) {	
 		String resInfo = res.getName().trim().toLowerCase() + res.getSequenceNumber().trim();
-		System.out.println(resInfo + ":ca-c-n-ca:" + df.format(dihed));
+		System.out.println(idCode + ":" + resInfo + ":ca-c-n-ca:" + df.format(dihed));
 	    }
 	}
     }
