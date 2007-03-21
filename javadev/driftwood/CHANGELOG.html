@@ -24,6 +24,8 @@ MOLDB2: {{
     We need an Model.extractAtomStates() function based on AS [identity? name?]
   * CifReader should use _atom_site.pdbx_PDB_residue_no instead of CIF numbers?
   ? Why does AminoAcid.translate() return lower case three-letter codes?
+    Alignment needs to accept gap start vs. gap extend penalties (16/2/2 for BLOSUM 62)
+    Consider supporting "WPDB" (wide PDB) format standard
 }}}
 R3: {{{
 }}}
@@ -54,6 +56,7 @@ UTIL: {{{
 - added static distance() methods to Triple [already had angle() and dihedral()]
 - added r3.UltrafastShapeRecognition -- possible algor. for RNA fitting?
 - added moldb2.Alignment for gapped alignments -- superpositions or RNA motifs?
+- moved UltrafastShapeRecognition to old/; showed little promise for conformers
 
 ### 0.77 ###
 - added Builder.makeBoundingBox() for spheres, not just points
