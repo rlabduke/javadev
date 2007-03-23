@@ -81,16 +81,26 @@ SMOOTHING OPERATIONS
         of 0.5 means half as much smoothing.
         
 POST-PROCESSING
-    -ln                 (optional, choose one)
+    -no-op              (optional, choose one; default = no-op)
+    -counts
+    -ln
     -0to1
     -fraction
     -energy
         Modifies the histogram / density trace values "x" after data processing:
+            no-op       counts per dimensional unit
+            counts      counts per "bin" (typical histogram output)
             ln          ln(1+x)
             0to1        all values linearly scaled to lie on [0,1]
             fraction    fraction of input points that map to density less than
                         x, when those points are looked up on the current trace.
             energy      -kT ln (x / num_input_points)
+            
+        Using the Ramachandran plot as an example, the default is to report
+        number of points per square degree, but -counts will report points per
+        bin (such that the sum of all the bin counts equals the total number
+        of input points).  Thus, the values from -no-op do not change when
+        -gridsize or -gridsamples is changed, but the values from -count do.
         
     -scale=#            (optional)
         Multiplies every value in the table by the given number (after the

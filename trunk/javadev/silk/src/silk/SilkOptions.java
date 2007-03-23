@@ -28,7 +28,8 @@ public class SilkOptions //extends ... implements ...
     public static final String      OP_HISTOGRAM        = "histogram";
     public static final String      OP_GAUSSIAN         = "Gaussian density trace";
     public static final String      OP_COSINE           = "cosine density trace";
-    public static final String      POSTOP_NONE         = "no-op";
+    public static final String      POSTOP_NONE         = "no-op (counts-per-unit)";
+    public static final String      POSTOP_COUNTS       = "counts-per-bin";
     public static final String      POSTOP_LN           = "natural-log";
     public static final String      POSTOP_0TO1         = "zero-to-one";
     public static final String      POSTOP_FRACTION     = "convert-to-fraction";

@@ -97,7 +97,8 @@ public class SilkEngine //extends ... implements ...
         anisoUnscaleData(dataSamples, options);
         
         // Apply post-smoothing operations
-        if(options.postop == SilkOptions.POSTOP_NONE)           {}
+        if(options.postop == SilkOptions.POSTOP_NONE)           {} // already had normalize() called
+        else if(options.postop == SilkOptions.POSTOP_COUNTS)    densityTrace.scale( densityTrace.realCount() / densityTrace.totalCount() );
         else if(options.postop == SilkOptions.POSTOP_LN)        densityTrace.transformLog();
         else if(options.postop == SilkOptions.POSTOP_0TO1)      densityTrace.standardize(1.0);
         else if(options.postop == SilkOptions.POSTOP_FRACTION)  // convert to fraction excluded
