@@ -86,6 +86,7 @@ POST-PROCESSING
     -ln
     -0to1
     -fraction
+    -prob
     -energy
         Modifies the histogram / density trace values "x" after data processing:
             no-op       counts per dimensional unit
@@ -94,6 +95,8 @@ POST-PROCESSING
             0to1        all values linearly scaled to lie on [0,1]
             fraction    fraction of input points that map to density less than
                         x, when those points are looked up on the current trace.
+            prob        probability: counts per bin divided by total counts,
+                        so that sum of all bins is 1.0
             energy      -kT ln (x / num_input_points)
             
         Using the Ramachandran plot as an example, the default is to report

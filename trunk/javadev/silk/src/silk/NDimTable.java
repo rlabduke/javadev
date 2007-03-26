@@ -824,6 +824,35 @@ abstract public class NDimTable //extends ... implements ...
     }
 //}}}
 
+//{{{ addPrior
+//##################################################################################################
+    /**
+    * For each bin in this table, finds the count in the equivalent place in another table
+    * and adds some fraction of thatCount.
+    * Used for blending distributions in Bayesian statistics.
+    * As it is effectively a tallying, it updates realcount as well.
+    *
+    * <p><b>Right now, this works for dense tables only, not sparse!</b>
+    *
+    * @param wThat      1.0 means equal "influence" for the prior and this,
+    *   regardless of actual counts (same effective sample size).
+    *   Larger values emphasize the prior more; smaller values, less.
+    */
+    public void addPrior(double wThat, NDimTable that)
+    {
+        wThat *= this.totalCount() / that.totalCount();
+        int[] bin = new int[nDim];
+        double[] pt = new double[nDim];
+        for(int i = 0; i < lookupTable.length; i++)
+        {
+            index2bin(i, bin);
+            centerOf(bin, pt);
+            lookupTable[i] += wThat*that.valueAt(pt);
+        }
+        this.realcount *= (1.0 + wThat);
+    }
+//}}}
+
 //{{{ transformLog, transformTrueNaturalLog, fractionLessThan
 //##################################################################################################
     /**

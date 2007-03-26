@@ -43,10 +43,19 @@ public class SilkEngine //extends ... implements ...
     * Accepts a Collection of DataSample's and a set of SilkOption's
     * and produces a final NDimTable that contains the smoothed data.
     */
-    public NDimTable processData(Collection dataSamples, SilkOptions options)
+    public NDimTable processData(SilkOptions options)
     {
         // Check to make sure all needed options are in place
         options.fillInMissing();
+        Collection dataSamples = options.data;
+        
+        // If there's a prior, calculate that first
+        NDimTable priorTrace = null;
+        if(options.prior != null)
+        {
+            options.prior.postop = SilkOptions.POSTOP_NONE;
+            priorTrace = processData(options.prior);
+        }
         
         // Pre-wrap data, do anisotropic coordinate scaling, crop out unwanted points
         dataSamples = cleanData(dataSamples, options);
@@ -96,6 +105,13 @@ public class SilkEngine //extends ... implements ...
         // Also reset data coords, as they're needed for convert-to-fraction
         anisoUnscaleData(dataSamples, options);
         
+        // Do Bayesian stats
+        if(priorTrace != null)
+        {
+            densityTrace.addPrior(options.priorWeight, priorTrace);
+            densityTrace.normalize();
+        }
+        
         // Apply post-smoothing operations
         if(options.postop == SilkOptions.POSTOP_NONE)           {} // already had normalize() called
         else if(options.postop == SilkOptions.POSTOP_COUNTS)    densityTrace.scale( densityTrace.realCount() / densityTrace.totalCount() );
@@ -109,6 +125,7 @@ public class SilkEngine //extends ... implements ...
             { densityValues[i] = densityTrace.valueAt(((DataSample)iter.next()).coords); }
             densityTrace.fractionLessThan(densityValues);
         }
+        else if(options.postop == SilkOptions.POSTOP_PROB)      densityTrace.scale( 1.0 / densityTrace.totalCount() );  // convert to probability
         else if(options.postop == SilkOptions.POSTOP_ENERGY)
         {
             // Convert to energy in kcal/mol, with an arbitrary zero point.

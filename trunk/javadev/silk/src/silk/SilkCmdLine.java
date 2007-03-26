@@ -45,22 +45,23 @@ public class SilkCmdLine //extends ... implements ...
     /**
     * Main() function for running as an application
     */
-    public void Main() throws IOException
+    public void Main()
     {
+        // Load data from stdin
+        if(opt.dataSource == null)
+            opt.dataSource = new InputStreamReader(System.in);
+
         // Set up options and let user know what we're doing
         opt.fillInMissing();
         if(opt.verbosity >= SilkOptions.V_STANDARD) describeSettings();
         
-        // Load data from stdin
-        TabDataLoader       loader  = new TabDataLoader(opt);
-        LineNumberReader    in      = new LineNumberReader(new InputStreamReader(System.in));
-        Collection          data    = loader.parseReader(in);
+        Collection data = opt.data;
         System.err.println("Loaded "+data.size()+" data samples for analysis");
         
         // Process it
         System.err.println("Processing data samples...");
         SilkEngine  engine          = new SilkEngine();
-        NDimTable   densityTrace    = engine.processData(data, opt);
+        NDimTable   densityTrace    = engine.processData(opt);
         System.err.println("...done.");
         
         // Write it out
@@ -85,15 +86,6 @@ public class SilkCmdLine //extends ... implements ...
             mainprog.showHelp(true);
             System.err.println();
             System.err.println("*** Error parsing arguments: "+ex.getMessage());
-            System.exit(1);
-        }
-        catch(IOException ex)
-        {
-            ex.printStackTrace();
-            System.err.println();
-            mainprog.showHelp(true);
-            System.err.println();
-            System.err.println("*** Error reading data: "+ex.getMessage());
             System.exit(1);
         }
     }
@@ -278,11 +270,25 @@ public class SilkCmdLine //extends ... implements ...
 //##################################################################################################
     void interpretArg(String arg)
     {
-        // Handle files, etc. here
+        // Stupid trick to keep from renaming opt:
+        SilkOptions opt = this.opt;
+        if(opt.prior != null) opt = opt.prior;
+        
+        if(opt.dataSource == null)
+        {
+            try { opt.dataSource = new FileReader(arg); }
+            catch(FileNotFoundException ex)
+            { throw new IllegalArgumentException("file '"+arg+"' not found", ex); }
+        }
+        else throw new IllegalArgumentException("don't know what to do with argument '"+arg+"'");
     }
     
     void interpretFlag(String flag, String param) throws NumberFormatException
     {
+        // Stupid trick to keep from renaming opt:
+        SilkOptions opt = this.opt;
+        if(opt.prior != null) opt = opt.prior;
+        
         if(flag.equals("-help") || flag.equals("-h"))
         {
             showHelp(true);
@@ -321,11 +327,17 @@ public class SilkCmdLine //extends ... implements ...
             opt.ddhalfwidth = Double.parseDouble(param);
         }
         else if(flag.equals("-lambda"))         opt.lambda = Double.parseDouble(param);
+        else if(flag.equals("-prior"))
+        {
+            opt.prior = new SilkOptions();
+            opt.priorWeight = Double.parseDouble(param);
+        }
         else if(flag.equals("-no-op"))          opt.postop = SilkOptions.POSTOP_NONE;
         else if(flag.equals("-counts"))         opt.postop = SilkOptions.POSTOP_COUNTS;
         else if(flag.equals("-ln"))             opt.postop = SilkOptions.POSTOP_LN;
         else if(flag.equals("-0to1"))           opt.postop = SilkOptions.POSTOP_0TO1;
         else if(flag.equals("-fraction"))       opt.postop = SilkOptions.POSTOP_FRACTION;
+        else if(flag.equals("-prob"))           opt.postop = SilkOptions.POSTOP_PROB;
         else if(flag.equals("-energy"))         opt.postop = SilkOptions.POSTOP_ENERGY;
         else if(flag.equals("-scale"))          opt.scale = Double.parseDouble(param);
         else if(flag.equals("-hillclimb"))
