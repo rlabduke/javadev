@@ -33,6 +33,7 @@ public class SilkOptions //extends ... implements ...
     public static final String      POSTOP_LN           = "natural-log";
     public static final String      POSTOP_0TO1         = "zero-to-one";
     public static final String      POSTOP_FRACTION     = "convert-to-fraction";
+    public static final String      POSTOP_PROB         = "probability (bins-sum-to-one)";
     public static final String      POSTOP_ENERGY       = "energy (-kT ln p_i @ 298K)";
     public static final String      OUTPUT_VALUE_LAST   = "text (value last)";
     public static final String      OUTPUT_VALUE_FIRST  = "text (value first)";
@@ -45,7 +46,17 @@ public class SilkOptions //extends ... implements ...
 
 //{{{ Variable definitions
 //##################################################################################################
+    // BAYESIAN STATS (PRIOR)
+    /** If set, it will be used as the prior for this distribution (default null) */
+    public SilkOptions  prior       = null;
+    /** The weighting factor that will be applied to counts from the prior (default 1.0 = equal weights, higher = stronger prior) */
+    public double       priorWeight = 1.0;
+    
     // INPUT
+    /** Collection of DataSample objects;  if left as null we try to load from a stream. */
+    public Collection   data        = null;
+    /** Stream to try loading data from if not null (defaults to null). */
+    public Reader       dataSource  = null;
     /** Number of dimensions (required) */
     public int          nDim        = 0;
     /** Column to take data labels from (defaults to none) */
@@ -230,6 +241,24 @@ public class SilkOptions //extends ... implements ...
         // Output
         if(outputSink == null) outputSink = new BufferedOutputStream(System.out);
         if(outputMode == OUTPUT_NDFT) sparse = false; // must use dense table to write NDFT
+        
+        // Bayesian
+        if(prior != null) sparse = false; // addPrior() doesn't work for sparse tables right now
+        
+        // Data input
+        if(data == null)
+        {
+            if(dataSource == null)
+                throw new IllegalArgumentException("Either data or dataSource must be specified");
+            try
+            {
+                TabDataLoader       loader  = new TabDataLoader(this);
+                LineNumberReader    in      = new LineNumberReader(dataSource);
+                data = loader.parseReader(in);
+            }
+            catch(IOException ex)
+            { throw new IllegalArgumentException("I/O error while loading from dataSource", ex); }
+        }
     }
 //}}}
 
