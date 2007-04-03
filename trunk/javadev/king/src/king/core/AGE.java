@@ -125,7 +125,10 @@ abstract public class AGE<P extends AGE, C extends AHE> extends AHEImpl<P> imple
     
     /** Removes all children from this element */
     public void clear()
-    { children.clear(); }
+    {
+        children.clear();
+        fireKinChanged(CHANGE_TREE_CONTENTS | CHANGE_POINT_CONTENTS);
+    }
     
     /**
     * Returns the actual object that holds the children.

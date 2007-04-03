@@ -190,9 +190,14 @@ public class BgKinRunner implements Runnable
             if(resCommas.length() > 0) resCommas.append(",");
             resCommas.append(res.getSequenceNumber());
         }
+        // can't leave it empty, and there is no "none" keyword
+        if(resCommas.length() == 0) resCommas.append("not all"); // == none (?)
         float[] ctr = kMain.getView().getCenter();
         String viewCtr = ctr[0]+", "+ctr[1]+", "+ctr[2];
         Triple[] bbox = getBoundingBox(residues, state);
+        // Bounding box may be NaN if residues is empty
+        if(bbox[0].isNaN()) bbox[0].setXYZ(0,0,0);
+        if(bbox[1].isNaN()) bbox[1].setXYZ(0,0,0);
         double radius = bbox[1].mag() + 5.0;
         // Splice in parameters and parse out command line
         String[] cmdKeys = {
@@ -334,6 +339,13 @@ public class BgKinRunner implements Runnable
                 else                    kin.replace(oldGroup, newGroup);
                 oldGroup = newGroup;
                 newKin = null;
+            }
+            // Probe may produce a kinemage with an empty @group,
+            // but this gets pruned when read in by KiNG,
+            // so not even an empty group is present.
+            else if(oldGroup != null)
+            {
+                oldGroup.clear();
             }
         }
     }
