@@ -73,14 +73,9 @@ public class MacDropTarget implements ApplicationListener
     public void handleOpenFile(ApplicationEvent ev)
     {
         //SoftLog.err.println("Received notification of file drop!");
-        KinfileIO io = kMain.getKinIO();
         File f = new File(ev.getFilename());
-        if(f.exists())
-        {
-            io.loadFile(f, null);
-            ev.setHandled(true);
-        }
-        else SoftLog.err.println("Filename does not exist: '"+ev.getFilename()+"'");
+        kMain.getFileDropHandler().doFileDrop(f);
+        ev.setHandled(true);
     }
     
     public void handleQuit(ApplicationEvent ev)

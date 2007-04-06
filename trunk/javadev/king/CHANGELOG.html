@@ -71,8 +71,6 @@
   * Logo sometimes ends up off-center (for OpenGL) after a Close All
     90 deg. rotation position tracker doesn't work in OpenGl mode
  ** Mac distro doesn't start in OpenGL mode for Andrew Ban
-    Allow plugins to register extensions for DnD?
-    Remove king.dive package to old/ -- Dave Z. doing C++ version
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -85,6 +83,10 @@
 - AGE.clear() wasn't sending update messages, just changed silently
 - with changes to BgKinRunner, this finally fixes the problem where dots or
   NOEs displayed by ModelManager don't go away when refitting is finished.
+- fixed bug where text window wasn't cleared on Close All
+- updated credit image to say 2007
+- removed king.dive package to old/ -- Dave Z. doing C++ version
+- changed drag-n-drop mechanism so plugins can handle file drops too
 
 ### 2.04 ###
 - modified JoglCanvas to display logo and new version alert when no kin

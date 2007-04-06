@@ -47,6 +47,7 @@ public class KingMain implements WindowListener
     KingPrefs           prefs           = null;
     KinStable           kinStable       = null;
     KinfileIO           kinIO           = null;
+    FileDropHandler     dropHandler     = null;
     KinCanvas           kinCanvas       = null;
     UIMenus             uiMenus         = null;
     UIText              uiText          = null;
@@ -126,6 +127,7 @@ public class KingMain implements WindowListener
         kinStable   = new KinStable(this);
         contentPane = new ContentPane(this);    // doesn't create GUI yet
         kinIO       = new KinfileIO(this);      // progress dlg. references main window
+        dropHandler = new FileDropHandler(this);
         kinCanvas   = new KinCanvas(this);
         uiMenus     = new UIMenus(this);
         uiText      = new UIText(this);
@@ -325,6 +327,9 @@ public class KingMain implements WindowListener
     
     /** Returns the kinemage reader/writer (never null) */
     public KinfileIO getKinIO() { return kinIO; }
+    
+    /** Returns the drag-n-drop handler for files (never null) */
+    public FileDropHandler getFileDropHandler() { return dropHandler; }
     
     /** Returns the active drawing canvas (never null) */
     public KinCanvas getCanvas() { return kinCanvas; }

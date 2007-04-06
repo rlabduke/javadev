@@ -92,7 +92,6 @@ public class KinStable implements ListSelectionListener, KMessage.Subscriber, Ac
     {
         children.clear();
         currentKinemage = null;
-        //kMain.getTextWindow().setText("");
         
         //kinChooser.removeAllItems(); // leaks memory!
         // This leak is a bug in JComboBox.removeAllItems()
