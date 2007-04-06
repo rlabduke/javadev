@@ -133,7 +133,7 @@ public class KinCanvas extends JComponent implements KMessage.Subscriber, Transf
         }
         
         // Java 1.4+ only! - adds support for Drag & Drop to the canvas
-        new FileDropHandler(kMain, this);
+        kMain.getFileDropHandler().handleDropsFor(this);
 
         kMain.subscribe(this);
     }

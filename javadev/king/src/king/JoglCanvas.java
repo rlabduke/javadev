@@ -85,7 +85,7 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
         this.logo = new ImageIcon(this.getClass().getResource("images/king-logo.gif")).getImage();
         
         // Java 1.4+ only! - adds support for Drag & Drop to the canvas
-        new FileDropHandler(kMain, this);
+        kMain.getFileDropHandler().handleDropsFor(this);
         
         // Create and listen to an OpenGL canvas
         GLCapabilities capabilities = new GLCapabilities();

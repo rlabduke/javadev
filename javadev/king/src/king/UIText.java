@@ -19,7 +19,7 @@ import driftwood.gui.*;
 * <p>Copyright (C) 2002-2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Sun Jun  9 19:06:25 EDT 2002
 */
-public class UIText implements MouseListener
+public class UIText implements MouseListener, KMessage.Subscriber
 {
 //{{{ Static fields
 //}}}
@@ -85,6 +85,7 @@ public class UIText implements MouseListener
         this.addHypertextListener(new MageHypertext(kMain));
         
         frame.getContentPane().add(textScroll, BorderLayout.CENTER);
+        kMain.subscribe(this);
     }
 //}}}
 
@@ -111,12 +112,18 @@ public class UIText implements MouseListener
     }
 //}}}
 
-//{{{ shutdown
+//{{{ shutdown, deliverMessage
 //##################################################################################################
     /** Initiates shutdown by calling dispose() on the frame. */
     public void shutdown()
     {
         frame.dispose();
+    }
+    
+    public void deliverMessage(KMessage msg)
+    {
+        if(msg.testProg(KMessage.ALL_CLOSED))
+            this.setText("");
     }
 //}}}
 
