@@ -76,6 +76,7 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
         
         cmColorBy   = new JComboBox(new Object[] {
             BallAndStickLogic.COLOR_BY_MC_SC,
+            BallAndStickLogic.COLOR_BY_RES_TYPE,
             //BallAndStickLogic.COLOR_BY_ELEMENT,
             BallAndStickLogic.COLOR_BY_B_FACTOR,
             BallAndStickLogic.COLOR_BY_OCCUPANCY

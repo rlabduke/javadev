@@ -72,6 +72,7 @@ public class VanDerWaalsPane extends TablePane2 implements DrawingPane
         
         cmColorBy   = new JComboBox(new Object[] {
             VanDerWaalsLogic.COLOR_BY_ELEMENT,
+            VanDerWaalsLogic.COLOR_BY_RES_TYPE,
             VanDerWaalsLogic.COLOR_BY_B_FACTOR,
             VanDerWaalsLogic.COLOR_BY_OCCUPANCY
         });

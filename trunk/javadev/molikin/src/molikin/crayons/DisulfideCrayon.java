@@ -52,7 +52,7 @@ public class DisulfideCrayon extends AbstractCrayon implements BondCrayon
     { return isYellow ? "yellow" : null; }
     
     public String getKinString()
-    { return getColor(); }
+    { return isYellow ? "yellow" : ""; }
 //}}}
 
 //{{{ empty_code_segment

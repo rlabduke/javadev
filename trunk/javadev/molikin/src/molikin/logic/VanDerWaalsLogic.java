@@ -28,6 +28,7 @@ public class VanDerWaalsLogic
 //{{{ Constants
     static final DecimalFormat df2 = driftwood.util.Strings.usDecimalFormat("0.0#");
     public static final Object COLOR_BY_ELEMENT     = "element";
+    public static final Object COLOR_BY_RES_TYPE    = "residue type";
     public static final Object COLOR_BY_B_FACTOR    = "B factor";
     public static final Object COLOR_BY_OCCUPANCY   = "occupancy";
 //}}}
@@ -61,6 +62,8 @@ public class VanDerWaalsLogic
         
         if(colorBy == COLOR_BY_ELEMENT)
             bp.setCrayon(new AltConfCrayon());
+        else if(colorBy == COLOR_BY_RES_TYPE)
+            bp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new ResTypeCrayon()));
         else if(colorBy == COLOR_BY_B_FACTOR)
             bp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new BfactorCrayon()));
         else if(colorBy == COLOR_BY_OCCUPANCY)
