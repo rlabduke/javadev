@@ -66,6 +66,20 @@ public class AtomGraph //extends ... implements ...
     */
     Collection          unbondedAtoms = null;
     
+    /**
+    * Controls whether chain ID should be considered when figuring out bonds.
+    * If set to false, then cross-chain bonds are allowed iff either
+    * (1) at least one atom is not C, N, O, P, or
+    * (2) at least one is marked as a HETATM.
+    * Hydrogens can only bond to something in their own chain in this case.
+    * Cross-chain bonds are a big problem for EM structures (e.g. 1DYL).
+    * This is implemented here rather than as an external filter because I want
+    * this class to return all (true) bonds, but not spurious connections.
+    * This is somewhat inconsistent, as I don't try at this level to filter out
+    * spurious bonds caused by terrible (intra-chain) geometry in old files.
+    */
+    boolean             ignoreChains = false;
+    
     // Used by bond search functions:
     private ArrayList _hits1 = new ArrayList(), _hits2 = new ArrayList();
 //}}}
@@ -220,8 +234,10 @@ public class AtomGraph //extends ... implements ...
             String elem = hit.getElement();
             if(elem.equals("H") || elem.equals("Q")) continue;
             
+            boolean chainsCompat = ignoreChains
+                || query.getResidue().getChain().equals(hit.getResidue().getChain());
             double d2 = query.sqDistance(hit);
-            if(d2 <= d2max && d2 < d2best && Util.altsAreCompatible(query, hit))
+            if(d2 <= d2max && d2 < d2best && chainsCompat && Util.altsAreCompatible(query, hit))
             {
                 bestHit = hit;
                 d2best  = d2;
@@ -243,7 +259,9 @@ public class AtomGraph //extends ... implements ...
         _hits1.clear();
         final double toCNO, toOther;
         String qElem = query.getElement();
-        if(qElem.equals("C") || qElem.equals("N") || qElem.equals("O"))
+        boolean queryIsCNO = qElem.equals("C") || qElem.equals("N") || qElem.equals("O");
+        boolean queryIsCNOP = queryIsCNO || qElem.equals("P");
+        if(queryIsCNO)
         {
             toCNO   = 2.0 * 2.0;
             toOther = 2.2 * 2.2;
@@ -274,15 +292,45 @@ public class AtomGraph //extends ... implements ...
             }
             else
             {
+                boolean hitIsCNO = hElem.equals("C") || hElem.equals("N") || hElem.equals("O");
+                boolean chainsCompat = ignoreChains
+                    || query.getResidue().getChain().equals(hit.getResidue().getChain())
+                    || query.isHet()
+                    || hit.isHet()
+                    || !queryIsCNOP
+                    || !(hitIsCNO || hElem.equals("P"));
                 double d2max;
-                if(hElem.equals("C") || hElem.equals("N") || hElem.equals("O")) d2max = toCNO;
-                else                                                            d2max = toOther;
-                if(query.sqDistance(hit) <= d2max && Util.altsAreCompatible(query, hit))
+                if(hitIsCNO)    d2max = toCNO;
+                else            d2max = toOther;
+                if(query.sqDistance(hit) <= d2max && chainsCompat && Util.altsAreCompatible(query, hit))
                     neighbors.add(hit);
             }
             
         }
         return neighbors;
+    }
+//}}}
+
+//{{{ setIgnoreChains
+//##############################################################################
+    /**
+    * If true, AtomGraph will ignore chain IDs when figuring connectedness.
+    * If false, chain IDs will be used in a pretty conservative way.
+    * The default is false.
+    * Changing the value of this property will cause any bonds that have
+    * already been calculated to be flushed.
+    */
+    public void setIgnoreChains(boolean ignore)
+    {
+        if(ignore != ignoreChains)
+        {
+            this.ignoreChains = ignore;
+            
+            // flush out cached bonds: bonding decisions may change now!
+            for(int i = 0; i < covNeighbors.length; i++) covNeighbors[i] = null;
+            allBonds = null;
+            unbondedAtoms = null;
+        }
     }
 //}}}
 

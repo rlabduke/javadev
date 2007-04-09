@@ -18,11 +18,16 @@
     Fancy ribbons need pointIDs
     pointIDs should include file names and occupancies (if not zero?)
     check what's output for ribbons (guide points?)
-    (option to) no bonds between chains if neither is hetatm and both are C,N,O,P
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 0.14 ###
+- Molikin uses chain IDs (conservatively) to avoid cross-chains bonds in EM
+  structures.  Still errs on the side of too many bonds instead of too few.
+- added ResTypeCrayon; requested by members of BCH 222
+- added option to color sidechains/bases by residue type using ResTypeCrayon
 
 ### 0.13 ###
 - added option to draw disulfides all in yellow

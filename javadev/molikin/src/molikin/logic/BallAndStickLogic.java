@@ -27,6 +27,7 @@ public class BallAndStickLogic
 {
 //{{{ Constants
     public static final Object COLOR_BY_MC_SC       = "backbone / sidechain";
+    public static final Object COLOR_BY_RES_TYPE    = "residue type";
     public static final Object COLOR_BY_ELEMENT     = "element";
     public static final Object COLOR_BY_B_FACTOR    = "B factor";
     public static final Object COLOR_BY_OCCUPANCY   = "occupancy";
@@ -64,6 +65,11 @@ public class BallAndStickLogic
         if(colorBy == COLOR_BY_MC_SC)
         {
             sp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new DisulfideCrayon()));
+            bp.setCrayon(new AltConfCrayon());
+        }
+        if(colorBy == COLOR_BY_RES_TYPE)
+        {
+            sp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new ResTypeCrayon()));
             bp.setCrayon(new AltConfCrayon());
         }
         else if(colorBy == COLOR_BY_B_FACTOR)
