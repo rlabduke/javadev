@@ -49,7 +49,7 @@ public class FileDropHandler extends TransferHandler
     private class KinFileOpen implements Listener
     {
         public String toString()
-        { return "Open the kinemage file"; }
+        { return "Open the kinemage in KiNG"; }
         
         public boolean canHandleDroppedFile(File file)
         {

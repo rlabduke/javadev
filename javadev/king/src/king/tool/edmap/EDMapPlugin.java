@@ -33,6 +33,29 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
     static final String MAPTYPE_CCP4 = "CCP4 map (type 2)";
 //}}}
 
+//{{{ CLASS: MapFileOpen
+//##############################################################################
+    private class MapFileOpen implements FileDropHandler.Listener
+    {
+        public String toString()
+        { return "Open as electron density map in KiNG"; }
+        
+        public boolean canHandleDroppedFile(File file)
+        {
+            return mapFilter.accept(file);
+        }
+        
+        public void handleDroppedFile(File f)
+        {
+            try
+            {
+                openMapFile(f);
+            }
+            catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
+        }
+    }
+//}}}
+
 //{{{ Variable definitions
 //##################################################################################################
     JFileChooser        filechooser     = null;
@@ -53,6 +76,7 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
         super(tb);
         makeFileFilters();
         kMain.subscribe(this);
+        kMain.getFileDropHandler().addFileDropListener(new MapFileOpen());
     }
 //}}}
 
@@ -320,22 +344,27 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
         if(JFileChooser.APPROVE_OPTION == filechooser.showOpenDialog(kMain.getTopWindow()))
         {
             File f = filechooser.getSelectedFile();
-            if(f != null && f.exists())
-            {
-                String choice = askMapFormat(f.getName());
-                CrystalVertexSource map;
+            openMapFile(f);
+        }
+    }
 
-                if(MAPTYPE_O.equals(choice))
-                    map = new OMapVertexSource(new FileInputStream(f));
-                else if(MAPTYPE_XPLOR.equals(choice))
-                    map = new XplorVertexSource(new FileInputStream(f));
-                else if(MAPTYPE_CCP4.equals(choice))
-                    map = new Ccp4VertexSource(new FileInputStream(f));
-                else throw new IllegalArgumentException("Map type not specified");
-                
-                EDMapWindow win = new EDMapWindow(parent, map, f.getName());
-                kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
-            }
+    void openMapFile(File f) throws IOException
+    {
+        if(f != null && f.exists())
+        {
+            String choice = askMapFormat(f.getName());
+            CrystalVertexSource map;
+
+            if(MAPTYPE_O.equals(choice))
+                map = new OMapVertexSource(new FileInputStream(f));
+            else if(MAPTYPE_XPLOR.equals(choice))
+                map = new XplorVertexSource(new FileInputStream(f));
+            else if(MAPTYPE_CCP4.equals(choice))
+                map = new Ccp4VertexSource(new FileInputStream(f));
+            else throw new IllegalArgumentException("Map type not specified");
+            
+            EDMapWindow win = new EDMapWindow(parent, map, f.getName());
+            kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
         }
     }
 //}}}
