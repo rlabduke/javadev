@@ -27,6 +27,30 @@ public class MolikinPlugin extends king.Plugin
 //{{{ Constants
 //}}}
 
+//{{{ CLASS: CoordFileOpen
+//##############################################################################
+    private class CoordFileOpen implements FileDropHandler.Listener
+    {
+        public String toString()
+        { return "Open the file in Molikin"; }
+        
+        public boolean canHandleDroppedFile(File file)
+        {
+            return pdbFilter.accept(file) || cifFilter.accept(file);
+        }
+        
+        public void handleDroppedFile(File f)
+        {
+            try
+            {
+                if(pdbFilter.accept(f))         doPDB(f);
+                else if(cifFilter.accept(f))    doCIF(f);
+            }
+            catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
+        }
+    }
+//}}}
+
 //{{{ Variable definitions
 //##############################################################################
     SuffixFileFilter        pdbFilter, cifFilter, allFilter;
@@ -40,6 +64,7 @@ public class MolikinPlugin extends king.Plugin
     {
         super(tb);
         buildFileChooser();
+        kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen());
     }
 //}}}
 
