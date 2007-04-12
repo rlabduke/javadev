@@ -296,6 +296,7 @@ public class SilkCmdLine //extends ... implements ...
         }
         else if(flag.equals("-ndim"))           opt.nDim = Integer.parseInt(param);
         else if(flag.equals("-label"))          opt.label = Integer.parseInt(param);
+        else if(flag.equals("-color"))          opt.color = Integer.parseInt(param);
         else if(flag.equals("-coords"))         opt.coords = explodeInts(param);
         else if(flag.equals("-bounds"))         opt.bounds = explodeDoubles(param);
         else if(flag.equals("-wrap"))           opt.wrap = new boolean[] {true};

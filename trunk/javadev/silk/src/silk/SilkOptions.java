@@ -65,6 +65,8 @@ public class SilkOptions //extends ... implements ...
     public int[]        coords      = null;
     /** Column to take the per-sample weight from (defaults to none )*/
     public int          weight      = 0;
+    /** Column to take the per-sample color from (defaults to none )*/
+    public int          color       = 0;
     /** Bounds of data space: min1, max1, min2, max2, ... (required) */
     public double[]     bounds      = null;
     /** Whether or not the bounds are wrapped (defaults to false) */

@@ -20,6 +20,10 @@ DESCRIBING YOUR DATA
         Which column in the input data holds a text label identifying that
         data point. Column numbering starts at 1.
         
+    -color=#           (optional)
+        Which column in the input data holds a kinemage color for each point.
+        Has an effect only with -kin. Column numbering starts at 1.
+        
     -weight=#           (optional)
         Which column in the input data holds a weight for each point. Defaults
         to all points counting equally. Column numbering starts at 1.
@@ -124,15 +128,19 @@ OUTPUT FORMATS
         For text output, the value appears before the coordinates instead of
         after them. Text output is the default.
         
-    -ndft               (optional)
-        Write a binary file that can be read by the old NDFloatTable class.
-        Some loss of precision will occur. This option implies -dense.
-        
     -outsep=:           (optional)
         Not supported. The text output is always space delimited.
         
     -sigdig=#           (optional)
         Not supported. The text output always has full precision.
+        
+    -kin                (optional)
+        Write a kinemage file plotting the input data points. For 1-, 2-, and
+        3-D input data only.
+        
+    -ndft               (optional)
+        Write a binary file that can be read by the old NDFloatTable class.
+        Some loss of precision will occur. This option implies -dense.
         
     -v                  (optional)
         Verbose output -- extra status messages.

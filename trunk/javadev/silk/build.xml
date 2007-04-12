@@ -127,6 +127,7 @@
 <!-- Deploys the executable on the local system -->
 <target name="deploy-local"  description="Build class files and copy to ~/bin" depends="build">
     <copy file="${ant.project.name}.jar" todir="${user.home}/rlab/validation/top500-angles/lib/" overwrite="true" failonerror="false"/>
+    <copy file="${ant.project.name}.jar" todir="${user.home}/rlab/validation/top5200-angles/lib/" overwrite="true" failonerror="false"/>
 </target>
 <!-- }}} -->
 </project>
