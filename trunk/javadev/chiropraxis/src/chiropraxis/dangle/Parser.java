@@ -11,13 +11,14 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.regex.*;
 //import javax.swing.*;
+import driftwood.data.*;
 //}}}
 /**
 * <code>Parser</code> decodes a simple grammar for specifying measurements in molecules:
 * <ul>
 * <li>expression &rarr; measurement*</li>
 * <li>measurement &rarr; builtin | distance | angle | dihedral</li>
-* <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi"</li>
+* <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi" | "alpha-1" | "beta-1" | "gamma-1" | "delta-1" | "epsilon-1" | "zeta-1" | "chi-1"</li>
 * <li>distance &rarr; ("distance" | "dist") label atomspec atomspec</li>
 * <li>angle &rarr; "angle" label atomspec atomspec atomspec</li>
 * <li>dihedral &rarr; ("dihedral" | "torsion") label atomspec atomspec atomspec atomspec</li>
@@ -28,10 +29,10 @@ import java.util.regex.*;
 * <li>regex &rarr; <i>a java.util.regex regular expression; use _ instead of spaces.</i></li>
 * </ul>
 *
-* <p>There is currently no grammar for specifying things like the nucleic acid
-* sidechain dihedral "chi", which requires alternet *sets* of atom names.
-* If such a thing were added, it would probably look like this:
-*   "dihedral chi _O4*, _C1*, _N9_, _C4_ | _O4*, _C1*, _N1_, _C2_".
+* <p>To specify things like the nucleic acid sidechain dihedral "chi", which
+* requires alternant *sets* of atom names, simply write two (or more) measurement
+* definitions that have the same name (label).
+* They will be tried in order until one works (i.e. all the atoms are found).
 * The problem with using regexps in this case is that all nucleic acids
 * have C2 and C4 atoms, so there's no guarantee that only N9--C4 and N1--C2
 * bonds are considered, and not N9--C2 or N1--C4.
@@ -44,7 +45,7 @@ public class Parser //extends ... implements ...
 //{{{ Constants
     // If you add built-ins here, you should also modify
     // Measurement.newBuiltin(), the javadoc above, and the man page.
-    final Matcher BUILTIN   = Pattern.compile("phi|psi|omega|chi1|chi2|chi3|chi4|tau|alpha|beta|gamma|delta|epsilon|zeta|eta|theta|chi").matcher("");
+    final Matcher BUILTIN   = Pattern.compile("phi|psi|omega|chi1|chi2|chi3|chi4|tau|alpha|beta|gamma|delta|epsilon|zeta|eta|theta|chi|alpha-1|beta-1|gamma-1|delta-1|epsilon-1|zeta-1|chi-1").matcher("");
     final Matcher DISTANCE  = Pattern.compile("dist(ance)?").matcher("");
     final Matcher ANGLE     = Pattern.compile("angle").matcher("");
     final Matcher DIHEDRAL  = Pattern.compile("dihedral|torsion").matcher("");
@@ -75,11 +76,25 @@ public class Parser //extends ... implements ...
     */
     public Collection parse(String expr) throws ParseException
     {
-        Collection meas = new ArrayList();
+        UberMap meas = new UberMap();
         tokens = new StringTokenizer(expr, ",; \t\n\r\f");
         nextToken();
-        while(token != null) meas.add(measurement());
-        return meas;
+        while(token != null)
+        {
+            // If two measurements are defined with the same name, set them up as alternates.
+            Measurement newM = measurement();
+            Measurement oldM = (Measurement) meas.get(newM.getLabel());
+            if(oldM == null)
+                meas.put(newM.getLabel(), newM);
+            else if(oldM instanceof Measurement.Group)
+                ((Measurement.Group) oldM).add(newM);
+            else
+            {
+                Measurement.Group group = new Measurement.Group(oldM).add(newM);
+                meas.put(group.getLabel(), group);
+            }
+        }
+        return meas.values();
     }
     
     /** Returns the current (soon-to-be previous) token and advances to the next one */

@@ -23,6 +23,10 @@ import driftwood.r3.*;
 abstract public class Measurement //extends ... implements ...
 {
 //{{{ Constants
+    public static final Object TYPE_UNKNOWN     = "unknown";
+    public static final Object TYPE_DISTANCE    = "distance";
+    public static final Object TYPE_ANGLE       = "angle";
+    public static final Object TYPE_DIHEDRAL    = "dihedral";
 //}}}
 
 //{{{ Variable definitions
@@ -39,7 +43,7 @@ abstract public class Measurement //extends ... implements ...
     }
 //}}}
 
-//{{{ measure, getLabel
+//{{{ measure, getLabel/Type
 //##############################################################################
     /**
     * Returns the specified measure in the given state,
@@ -51,6 +55,10 @@ abstract public class Measurement //extends ... implements ...
     
     public String getLabel()
     { return label; }
+    
+    /** Returns one of the TYPE_* constants. */
+    public Object getType()
+    { return TYPE_UNKNOWN; }
 //}}}
 
 //{{{ newBuiltin
@@ -189,6 +197,64 @@ abstract public class Measurement //extends ... implements ...
                     new AtomSpec( 0, "_C2_")
             ));
         //}}} nucleic acids
+        //{{{ nucleic acids, i-1
+        else if("alpha-1".equals(label))
+            return new Dihedral(label,
+                new AtomSpec(-2, "_O3*"),
+                new AtomSpec(-1, "_P__"),
+                new AtomSpec(-1, "_O5*"),
+                new AtomSpec(-1, "_C5*")
+            );
+        else if("beta-1".equals(label))
+            return new Dihedral(label,
+                new AtomSpec(-1, "_P__"),
+                new AtomSpec(-1, "_O5*"),
+                new AtomSpec(-1, "_C5*"),
+                new AtomSpec(-1, "_C4*")
+            );
+        else if("gamma-1".equals(label))
+            return new Dihedral(label,
+                new AtomSpec(-1, "_O5*"),
+                new AtomSpec(-1, "_C5*"),
+                new AtomSpec(-1, "_C4*"),
+                new AtomSpec(-1, "_C3*")
+            );
+        else if("delta-1".equals(label))
+            return new Dihedral(label,
+                new AtomSpec(-1, "_C5*"),
+                new AtomSpec(-1, "_C4*"),
+                new AtomSpec(-1, "_C3*"),
+                new AtomSpec(-1, "_O3*")
+            );
+        else if("epsilon-1".equals(label))
+            return new Dihedral(label,
+                new AtomSpec(-1, "_C4*"),
+                new AtomSpec(-1, "_C3*"),
+                new AtomSpec(-1, "_O3*"),
+                new AtomSpec( 0, "_P__")
+            );
+        else if("zeta-1".equals(label))
+            return new Dihedral(label,
+                new AtomSpec(-1, "_C3*"),
+                new AtomSpec(-1, "_O3*"),
+                new AtomSpec( 0, "_P__"),
+                new AtomSpec( 0, "_O5*")
+            );
+        else if("chi-1".equals(label))
+            return new Group(
+                new Dihedral(label, // A, G
+                    new AtomSpec(-1, "_O4*"),
+                    new AtomSpec(-1, "_C1*"),
+                    new AtomSpec(-1, "_N9_"),
+                    new AtomSpec(-1, "_C4_")
+            )).add(
+                new Dihedral(label, // C, T, U
+                    new AtomSpec(-1, "_O4*"),
+                    new AtomSpec(-1, "_C1*"),
+                    new AtomSpec(-1, "_N1_"),
+                    new AtomSpec(-1, "_C2_")
+            ));
+        //}}} nucleic acids, i-1
         else return null;
     }
 //}}}
@@ -216,6 +282,9 @@ abstract public class Measurement //extends ... implements ...
         
         public String toString()
         { return "distance "+getLabel()+" "+a+", "+b; }
+        
+        public Object getType()
+        { return TYPE_DISTANCE; }
     }
 //}}}
 
@@ -243,6 +312,9 @@ abstract public class Measurement //extends ... implements ...
         
         public String toString()
         { return "angle "+getLabel()+" "+a+", "+b+", "+c; }
+        
+        public Object getType()
+        { return TYPE_ANGLE; }
     }
 //}}}
 
@@ -271,6 +343,9 @@ abstract public class Measurement //extends ... implements ...
 
         public String toString()
         { return "dihedral "+getLabel()+" "+a+", "+b+", "+c+", "+d; }
+        
+        public Object getType()
+        { return TYPE_DIHEDRAL; }
     }
 //}}}
 
@@ -280,16 +355,23 @@ abstract public class Measurement //extends ... implements ...
     static public class Group extends Measurement
     {
         Collection group = new ArrayList();
+        Object type;
         
         public Group(Measurement first)
         {
             super(first.getLabel());
             group.add(first);
+            this.type = first.getType();
         }
         
         /** Returns this for easy chaining. */
-        public Measurement add(Measurement next)
-        { group.add(next); return this; }
+        public Group add(Measurement next)
+        {
+            group.add(next);
+            if(this.type != next.getType())
+                this.type = TYPE_UNKNOWN;
+            return this;
+        }
         
         public double measure(Model model, ModelState state, Residue res)
         {
@@ -307,11 +389,14 @@ abstract public class Measurement //extends ... implements ...
             StringBuffer buf = new StringBuffer();
             for(Iterator iter = group.iterator(); iter.hasNext(); )
             {
-                if(buf.length() > 0) buf.append(" | ");
+                if(buf.length() > 0) buf.append(" ; ");
                 buf.append(iter.next());
             }
             return buf.toString();
         }
+        
+        public Object getType()
+        { return type; }
     }
 //}}}
 
