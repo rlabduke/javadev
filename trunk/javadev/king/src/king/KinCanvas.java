@@ -151,13 +151,17 @@ public class KinCanvas extends JComponent implements KMessage.Subscriber, Transf
     }
     
     /** Takes needed display settings from the kinemage */
-    public static void syncToKin(Engine engine, Kinemage kin)
+    public void syncToKin(Engine engine, Kinemage kin)
     {
         engine.usePerspective   = kin.atPerspective;
         engine.cueThickness     = ! kin.atOnewidth;
         engine.thinLines        = kin.atThinline;
         engine.whiteBackground  = kin.atWhitebackground;
         engine.colorByList      = kin.atListcolordominant;
+        
+        Aspect a = this.getCurrentAspect();
+        if(a == null) engine.activeAspect = 0;
+        else engine.activeAspect = a.getIndex().intValue();
     }
 //}}}
 

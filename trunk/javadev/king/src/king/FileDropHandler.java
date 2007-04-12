@@ -54,7 +54,7 @@ public class FileDropHandler extends TransferHandler
         public boolean canHandleDroppedFile(File file)
         {
             String name = file.getName().toLowerCase();
-            return name.endsWith(".kin") || name.endsWith(".kip");
+            return name.endsWith(".kin") || name.endsWith(".kin.gz") || name.endsWith(".kip");
         }
         
         public void handleDroppedFile(File file)

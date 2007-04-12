@@ -105,7 +105,6 @@ king.tool.export.PdfExport.menuName = <export>
 king.tool.draw.DrawingTool.menuName = <main menu>
 king.tool.util.SelfUpdatePlugin.menuName = <main menu>
 king.tool.bondrot.SuiteRotationTool.menuName = Specialty
-king.dive.DiveTool.menuName = Specialty
 
 ######################################################################
 ### PROTECTION AND CONFIRMATION ######################################
