@@ -70,8 +70,9 @@
         some control for FPS (controls default lengths)
   * Logo sometimes ends up off-center (for OpenGL) after a Close All
     90 deg. rotation position tracker doesn't work in OpenGl mode
- ** Mac distro doesn't start in OpenGL mode for Andrew Ban
     Extend DnD to command line?
+  * Can't open ED maps at startup by DnD (?)
+    Move king.tutorial out of main source tree
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -89,6 +90,9 @@
 - removed king.dive package to old/ -- Dave Z. doing C++ version
 - changed drag-n-drop mechanism so plugins can handle file drops too
 - added DnD support for electron density maps
+- Mac distro won't start in OpenGL mode for Andrew Ban -- don't know why, sorry
+- removed support files / service listing for king.dive
+- display of aspects was broken in KinCanvas (never synced to Engine)
 
 ### 2.04 ###
 - modified JoglCanvas to display logo and new version alert when no kin

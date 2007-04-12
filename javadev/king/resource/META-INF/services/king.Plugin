@@ -7,5 +7,4 @@ king.tool.util.SelfUpdatePlugin
 # Tools
 king.tool.draw.DrawingTool
 king.tool.bondrot.SuiteRotationTool
-king.dive.DiveTool
 

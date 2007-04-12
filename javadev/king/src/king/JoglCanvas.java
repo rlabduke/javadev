@@ -142,7 +142,7 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
             long timestamp = System.currentTimeMillis();
             KView view = kMain.getView();
             Rectangle bounds = new Rectangle(this.glSize);
-            KinCanvas.syncToKin(engine, kin);
+            kMain.getCanvas().syncToKin(engine, kin);
             engine.render(this, view, bounds, painter);
             if(toolbox != null) toolbox.overpaintCanvas(painter);
             timestamp = System.currentTimeMillis() - timestamp;
