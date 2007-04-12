@@ -21,13 +21,20 @@ MEASUREMENT SPECIFIERS
     * Atom names can be 4 chars or a regexp enclosed in slashes (/regexp/).
     * Use either * or ' for nucleic acid atoms; both match either convention.
     * Commas and semicolons can be used for clarity but are not required.
-    * Names for the various measurements ARE required (no spaces).
+      The convention is commas between atoms and semicolons between definitions.
+    * Names for the various measurements ARE required (no spaces, but numbers,
+      letters, and symbols other than commas and semicolons are OK).
+    * If multiple definitions are given for the same name, they are tried in
+      order until one "works" (i.e. all the atoms it calls for are present).
+      This is how to specify things like RNA chi angles.
     * Residue numbers are optional and default to "i" unless specified.
+    * Use the "-360" switch to make dihedrals go from 0 to 360 instead.
     * Use quotes to keep Bash / Csh from breaking the string apart.
     
   Dangle also has several "built in" measurement specifiers that you can use:
     phi, psi, omega, chi1, chi2, chi3, chi4, tau                    # proteins
     alpha, beta, gamma, delta, epsilon, zeta, eta, theta, chi       # RNA / DNA
+    alpha-1, beta-1, gamma-1, delta-1, epsilon-1, zeta-1, chi-1     # RNA / DNA
 
   Examples:
     

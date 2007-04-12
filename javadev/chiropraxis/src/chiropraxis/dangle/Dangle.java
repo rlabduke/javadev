@@ -27,6 +27,7 @@ public class Dangle //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     boolean forcePDB = false, forceCIF = false;
+    boolean doWrap = false; // if true wrap dihedrals to 0 to 360 instead of -180 to 180
     Collection files = new ArrayList();
     Collection measurements = new ArrayList();
 //}}}
@@ -39,7 +40,7 @@ public class Dangle //extends ... implements ...
     }
 //}}}
 
-//{{{ goDangle
+//{{{ goDangle, wrap360
 //##############################################################################
     void goDangle(String label, CoordinateFile coords)
     {
@@ -69,7 +70,12 @@ public class Dangle //extends ... implements ...
                 for(int i = 0; i < meas.length; i++)
                 {
                     vals[i] = meas[i].measure(model, state, res);
-                    if(!Double.isNaN(vals[i])) print = true;
+                    if(!Double.isNaN(vals[i]))
+                    {
+                        print = true;
+                        if(meas[i].getType() == Measurement.TYPE_DIHEDRAL)
+                            vals[i] = wrap360(vals[i]);
+                    }
                 }
                 if(print)
                 {
@@ -86,6 +92,17 @@ public class Dangle //extends ... implements ...
                 }
             }
         }
+    }
+    
+    private double wrap360(double angle)
+    {
+        if(doWrap)
+        {
+            angle = angle % 360;
+            if(angle < 0) return angle + 360;
+            else return angle;
+        }
+        else return angle;
     }
 //}}}
 
@@ -260,6 +277,8 @@ public class Dangle //extends ... implements ...
             if(forceCIF) throw new IllegalArgumentException("Can't specify both -cif and -pdb");
             forcePDB = true;
         }
+        else if(flag.equals("-360"))
+            doWrap = true;
         else if(flag.equals("-dummy_option"))
         {
             // handle option here
