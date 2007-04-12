@@ -73,6 +73,9 @@ public class TabDataLoader //extends ... implements ...
                 if(opt.weight != 0)
                     sample.weight = Double.parseDouble(fields[ opt.weight-1 ]);
                 
+                if(opt.color != 0)
+                    sample.color = fields[ opt.color-1 ];
+                
                 ret.add(sample);
             }
             catch(NumberFormatException ex)
