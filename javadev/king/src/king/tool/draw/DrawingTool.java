@@ -28,6 +28,9 @@ public class DrawingTool extends BasicTool
 {
 //{{{ Constants
     static final int AUGER_RADIUS = 40;
+    static final String PAINT_CYLINDER  = "circle";
+    static final String PAINT_SPHERE    = "sphere";
+    static final String PAINT_POINT     = "one point";
 //}}}
 
 //{{{ Interface: UndoStep
@@ -121,7 +124,7 @@ public class DrawingTool extends BasicTool
     KPoint          draggedPoint = null;
     KPoint[]        allPoints = null;
     
-    JComboBox       cmPointPaint;
+    JComboBox       cmPaintMode, cmPointPaint;
     JTextField      tfShortenLine;
     JCheckBox       cbLabelIsID;
     JTextField      tfNumDots;
@@ -199,11 +202,16 @@ public class DrawingTool extends BasicTool
         buttonGroup.add(rbSphereCrop);
         
         // Create the extra control panels
+        cmPaintMode = new JComboBox(new String[] { PAINT_CYLINDER, PAINT_SPHERE, PAINT_POINT } );
+        cmPaintMode.setSelectedItem(PAINT_CYLINDER);
         cmPointPaint = new JComboBox(KPalette.getStandardMap().values().toArray());
         cmPointPaint.setSelectedItem(KPalette.green);
-        TablePane tpPaintPts = new TablePane();
+        TablePane2 tpPaintPts = new TablePane2();
         tpPaintPts.addCell(new JLabel("Use color:"));
-        tpPaintPts.addCell(cmPointPaint);
+        tpPaintPts.hfill(true).addCell(cmPointPaint);
+        tpPaintPts.newRow();
+        tpPaintPts.addCell(new JLabel("Selection:"));
+        tpPaintPts.hfill(true).addCell(cmPaintMode);
         FoldingBox fbPaintPts = new FoldingBox(rbPaintPoints, tpPaintPts);
         fbPaintPts.setAutoPack(true);
         fbPaintPts.setIndent(10);
@@ -485,21 +493,24 @@ public class DrawingTool extends BasicTool
     protected void doPaintPoints(int x, int y, KPoint p, MouseEvent ev)
     {
         Engine engine = kCanvas.getEngine();
-        Collection points = engine.pickAll2D(x, y, services.doSuperpick.isSelected(), AUGER_RADIUS);
+        Collection points = Collections.emptySet();
+        String mode = (String) cmPaintMode.getSelectedItem();
+        if(mode == PAINT_CYLINDER)
+            points = engine.pickAll2D(x, y, services.doSuperpick.isSelected(), AUGER_RADIUS);
+        else if(mode == PAINT_SPHERE && p != null)
+            points = engine.pickAll3D(p.getX(), p.getY(), p.getZ(), services.doSuperpick.isSelected(), AUGER_RADIUS / engine.zoom3D);
+        else if(mode == PAINT_POINT && p != null)
+            points = Collections.singleton(p);
         
-        // Painting can't be undone because so many
-        // points following those removed might be modified.
+        // Painting can't be undone because ... ?
         
-        // Remove all the points
+        // Paint all the points
         KPaint paintColor = (KPaint) cmPointPaint.getSelectedItem();
         for(Iterator iter = points.iterator(); iter.hasNext(); )
         {
             p = (KPoint) iter.next();
             p.setColor(paintColor);
         }
-        
-        Kinemage kin = kMain.getKinemage();
-        if(kin == null) return;
     }
 //}}}
 
@@ -1129,7 +1140,7 @@ public class DrawingTool extends BasicTool
     
     /** Do we need to see the circle that marks area of effect for Auger and similar tools? */
     boolean needAugerCircle()
-    { return rbAuger.isSelected() || rbPaintPoints.isSelected(); }
+    { return rbAuger.isSelected() || (rbPaintPoints.isSelected() && cmPaintMode.getSelectedItem() != PAINT_POINT); }
     
     /**
     * Called by KinCanvas after all kinemage painting is complete,

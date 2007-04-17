@@ -136,6 +136,7 @@ public class KinfileWriter //extends ... implements ...
             out.print("@group {"+group.getName()+"}");
             if(  group.isAnimate())     out.print(" animate");
             if(  group.is2Animate())    out.print(" 2animate");
+            if(  group.isSelect())      out.print(" select");
         }
         else if(depth == 2)
         {

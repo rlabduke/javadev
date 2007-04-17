@@ -42,7 +42,7 @@ public class GroupEditor implements ChangeListener
     // Groups
     JDialog         grDialog;
     JTextField      grName;
-    JCheckBox       grIsOff, grNoButton, grDominant, grRecessiveOn, grAnimate, gr2Animate;
+    JCheckBox       grIsOff, grNoButton, grDominant, grRecessiveOn, grAnimate, gr2Animate, grSelect;
     JButton         grOK, grCancel;
     
     // Subgroups
@@ -146,6 +146,7 @@ public class GroupEditor implements ChangeListener
         grRecessiveOn   = new JCheckBox("collapsable (Dominant only when off)");
         grAnimate       = new JCheckBox("animate (Include in ANIMATE animation)");
         gr2Animate      = new JCheckBox("2animate (Include in 2ANIMATE animation)");
+        grSelect        = new JCheckBox("select (Allow selection-by-color)");
         
         grOK = new JButton(new ReflectiveAction("OK", null, this, "onGroupOK"));
         grCancel = new JButton(new ReflectiveAction("Cancel", null, this, "onGroupCancel"));
@@ -160,6 +161,7 @@ public class GroupEditor implements ChangeListener
         grPanel.addCell(grRecessiveOn).newRow();
         grPanel.addCell(grAnimate).newRow();
         grPanel.addCell(gr2Animate).newRow();
+        grPanel.addCell(grSelect).newRow();
         grPanel.startSubtable();
             grPanel.center().memorize();
             grPanel.addCell(grOK).addCell(grCancel);
@@ -402,6 +404,7 @@ public class GroupEditor implements ChangeListener
         grRecessiveOn.setSelected(  group.isCollapsible());
         grAnimate.setSelected(      group.isAnimate());
         gr2Animate.setSelected(     group.is2Animate());
+        grSelect.setSelected(       group.isSelect());
         
         // Display dialog box
         grDialog.pack();
@@ -419,6 +422,7 @@ public class GroupEditor implements ChangeListener
             group.setCollapsible(   grRecessiveOn.isSelected());
             group.setAnimate(       grAnimate.isSelected());
             group.set2Animate(      gr2Animate.isSelected());
+            group.setSelect(        grSelect.isSelected());
             markKinModified(group);
         }
         

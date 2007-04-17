@@ -690,6 +690,8 @@ public class Kinemage extends AGE<Kinemage,KGroup> // implements ...
                 if(list.getChildren().isEmpty() && list.getInstance() == null)
                 {
                     iter.remove();
+                    if(list.getParent() == parent)
+                        list.setParent(null);
                     fireKinChanged(CHANGE_TREE_CONTENTS);
                 }
             }
@@ -700,6 +702,8 @@ public class Kinemage extends AGE<Kinemage,KGroup> // implements ...
                 if(age.getChildren().isEmpty())
                 {
                     iter.remove();
+                    if(age.getParent() == parent)
+                        age.setParent(null);
                     fireKinChanged(CHANGE_TREE_CONTENTS);
                 }
             }
