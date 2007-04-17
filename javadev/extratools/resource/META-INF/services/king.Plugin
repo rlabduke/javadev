@@ -7,6 +7,7 @@ king.tool.export.XknWriter
 king.tool.views.ViewpointPlugin
 king.tool.views.ClipPlanesPlugin
 king.tool.draw.LathePlugin
+king.tool.draw.PointColorPlugin
 king.tool.draw.SkylightPlugin
 king.tool.movie.MoviePlugin
 king.tool.postkin.ColorGrouperPlugin
