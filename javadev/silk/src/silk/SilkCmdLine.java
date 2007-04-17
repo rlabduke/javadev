@@ -159,6 +159,7 @@ public class SilkCmdLine //extends ... implements ...
             ps.println("@caption");
             ps.println(opt.title);
             ps.println();
+            ps.println("@title {"+opt.title+"}");
             KinfilePlotter plotter = new KinfilePlotter();
             if(opt.nDim == 1)
             {
