@@ -28,6 +28,7 @@ abstract public class AGE<P extends AGE, C extends AHE> extends AHEImpl<P> imple
     protected static final int FLAG_ANIMATE         = (1<<8);
     protected static final int FLAG_2ANIMATE        = (1<<9);
     protected static final int FLAG_NOHILITE        = (1<<10);
+    protected static final int FLAG_SELECT          = (1<<11);
 //}}}
 
 //{{{ Variable definitions

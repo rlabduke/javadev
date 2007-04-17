@@ -61,7 +61,7 @@ public class ParaParams implements KMessage.Subscriber, Transformable
     double[]    range;
     KView       normalView;
     KView       parallelView;
-    boolean     inParallelMode = false;
+    boolean     inParallelMode = false, isUpdating = false;
     KGroup      axisGroup = null;
     
     Map<KList, ArrayList<KPoint>> normalChildren;
@@ -138,6 +138,7 @@ public class ParaParams implements KMessage.Subscriber, Transformable
     public void toParallelCoords()
     {
         if(inParallelMode) return;
+        isUpdating = true;
         normalChildren.clear(); // to remove any stale entries
         for(KList l : KIterator.allLists(kin))
         {
@@ -156,6 +157,7 @@ public class ParaParams implements KMessage.Subscriber, Transformable
         parallelView.setViewingAxes(normalView.getViewingAxes());
         kMain.getCanvas().setCurrentView(parallelView);
         inParallelMode = true;
+        isUpdating = false;
     }
 //}}}
 
@@ -164,6 +166,7 @@ public class ParaParams implements KMessage.Subscriber, Transformable
     public void fromParallelCoords()
     {
         if(!inParallelMode) return;
+        isUpdating = true;
         parallelChildren.clear(); // to remove any stale entries
         for(KList l : KIterator.allLists(kin))
         {
@@ -173,7 +176,7 @@ public class ParaParams implements KMessage.Subscriber, Transformable
                 newChildren = new ArrayList<KPoint>();
                 normalChildren.put(l, newChildren);
             }
-            parallelChildren.put(l, l.getChildren());
+            parallelChildren.put(l, l.getChildren()); // Commenting this out forces a "redraw" every time we enter PC
             l.setChildren(newChildren);
         }
         //kin.calcSize(); // bounding box, etc. has changed!
@@ -187,6 +190,8 @@ public class ParaParams implements KMessage.Subscriber, Transformable
         KPoint picked = services.getLastPicked(0);
         if(picked != null && picked instanceof ParaPoint)
             services.pick( ((ParaPoint) picked).proxyFor );
+        
+        isUpdating = false;
     }
 //}}}
 
@@ -219,7 +224,7 @@ public class ParaParams implements KMessage.Subscriber, Transformable
 //##############################################################################
     void makeParallelAxes()
     {
-        boolean newAxes = (axisGroup == null);
+        boolean newAxes = (axisGroup == null || axisGroup.getKinemage() == null);
         if(newAxes)
         {
             axisGroup = new KGroup("PC axes");
@@ -279,6 +284,12 @@ public class ParaParams implements KMessage.Subscriber, Transformable
         {
             // Otherwise, we could save the temporary PC representation instead!
             this.fromParallelCoords();
+        }
+        // Force "redraw" of PC if list contents change,
+        // or else we get e.g. duplications of data points.
+        if(msg.testKin(AHE.CHANGE_POINT_CONTENTS) && !isUpdating && !inParallelMode)
+        {
+            parallelChildren.clear();
         }
     }
     

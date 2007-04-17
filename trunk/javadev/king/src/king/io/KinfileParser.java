@@ -281,6 +281,7 @@ public class KinfileParser //extends ... implements ...
                 String s = token.getString();
                      if(s.equals("animate"))        group.setAnimate(true);
                 else if(s.equals("2animate"))       group.set2Animate(true);
+                else if(s.equals("select"))         group.setSelect(true);
                 else if(s.equals("off"))            group.setOn(false);
                 else if(s.equals("dominant"))       group.setDominant(true);
                 else if(s.equals("recessiveon")

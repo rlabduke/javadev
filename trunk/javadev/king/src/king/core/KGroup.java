@@ -69,7 +69,7 @@ public class KGroup extends AGE<AGE,AGE> implements Cloneable
     }
 //}}}
 
-//{{{ is/set(2)Animate
+//{{{ is/set(2)Animate, is/setSelect
 //##################################################################################################
     /** Checks to see if this group should be animated. */
     public boolean isAnimate()
@@ -94,6 +94,19 @@ public class KGroup extends AGE<AGE,AGE> implements Cloneable
         int oldFlags = flags;
         if(b)   flags |= FLAG_2ANIMATE;
         else    flags &= ~FLAG_2ANIMATE;
+        if(flags != oldFlags) fireKinChanged(CHANGE_TREE_PROPERTIES);
+    }
+    
+    /** Checks to see if this group can be selected-by-color. */
+    public boolean isSelect()
+    { return (flags & FLAG_SELECT) == FLAG_SELECT; }
+    
+    /** Sets the "select" property. */ 
+    public void setSelect(boolean b)
+    {
+        int oldFlags = flags;
+        if(b)   flags |= FLAG_SELECT;
+        else    flags &= ~FLAG_SELECT;
         if(flags != oldFlags) fireKinChanged(CHANGE_TREE_PROPERTIES);
     }
 //}}}

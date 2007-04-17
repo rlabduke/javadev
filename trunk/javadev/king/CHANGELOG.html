@@ -73,6 +73,7 @@
     Extend DnD to command line?
   * Can't open ED maps at startup by DnD (?)
     Move king.tutorial out of main source tree
+    sel-by-color: warn when using "if not", auto switch out of PC
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -93,6 +94,10 @@
 - Mac distro won't start in OpenGL mode for Andrew Ban -- don't know why, sorry
 - removed support files / service listing for king.dive
 - display of aspects was broken in KinCanvas (never synced to Engine)
+- added new point-painting modes: sphere, single point (copied from Mage)
+- added support for Mage's "select" property (KGroup, parser, writer, editor)
+- fixed some bugs in ParaParams that made axes disappear, points duplicate
+- changed Kinemage to set parent to null when deleting empty groups
 
 ### 2.04 ###
 - modified JoglCanvas to display logo and new version alert when no kin
