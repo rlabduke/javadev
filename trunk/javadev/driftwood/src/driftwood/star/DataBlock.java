@@ -32,7 +32,7 @@ public class DataBlock extends DataCell
 //{{{ Variable definitions
 //##############################################################################
     DataCell    globalBlock = null;             // may be null
-    Map         saveFrames  = new HashMap();    // never null
+    Map         saveFrames  = new UberMap();    // never null
 //}}}
 
 //{{{ Constructor(s)

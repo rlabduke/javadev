@@ -18,6 +18,7 @@
     <property file="${resource}/${ant.project.name}/buildnum.props"/>
     <property file="${resource}/${ant.project.name}/version.props"/>
 </target>
+<!-- }}} -->
 
 <!-- build, compile {{{ -->
 <!-- Bundles up all needed class and resource files into a JAR -->
