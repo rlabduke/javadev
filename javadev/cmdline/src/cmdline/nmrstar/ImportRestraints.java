@@ -42,8 +42,7 @@ public class ImportRestraints //extends ... implements ...
     
     PrintWriter outRestr        = null;
     PrintWriter outAtoms        = null;
-    PrintWriter outLeftEnd      = null;
-    PrintWriter outRightEnd     = null;
+    PrintWriter outEnds         = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -51,6 +50,55 @@ public class ImportRestraints //extends ... implements ...
     public ImportRestraints()
     {
         super();
+    }
+//}}}
+
+//{{{ processFileOrDir, processFile
+//##############################################################################
+    void processFileOrDir(Collection files)
+    {
+        for(Iterator iter = files.iterator(); iter.hasNext(); )
+        {
+            File fileOrDir = (File) iter.next();
+            if(fileOrDir.isFile())
+                processFile(fileOrDir);
+            else if(fileOrDir.isDirectory())
+                processFileOrDir(Arrays.asList(fileOrDir.listFiles()));
+            else
+                System.err.println("Don't know how to process "+fileOrDir);
+        }
+    }
+    
+    void processFile(File file)
+    {
+        try
+        {
+            System.err.println("Processing "+file+" ...");
+            LineNumberReader lnr = new LineNumberReader(new FileReader(file));
+            StarFile starFile = new StarReader().parse(lnr);
+            lnr.close();
+            
+            restraints.clear();
+            atoms.clear();
+            pdbId       = null;
+            distConstId = null;
+            subtype     = null;
+            format      = null;
+            
+            for(Iterator iBlock = starFile.getDataBlockNames().iterator(); iBlock.hasNext(); )
+            {
+                String blockName = (String) iBlock.next();
+                DataBlock block = starFile.getDataBlock(blockName);
+                processDataCell(block);
+                for(Iterator iSave = block.getSaveFrames().iterator(); iSave.hasNext(); )
+                {
+                    DataCell cell = (DataCell) iSave.next();
+                    processDataCell(cell);
+                }
+            }
+        }
+        catch(Exception ex)
+        { ex.printStackTrace(); }
     }
 //}}}
 
@@ -96,8 +144,7 @@ public class ImportRestraints //extends ... implements ...
             {
                 // do something with it...
                 writeAtoms(segId, resNum, atomName);
-                writeEnd(outLeftEnd, "1", constId, treeId, nodeId, endId, segId, resNum, atomName);
-                writeEnd(outRightEnd, "2", constId, treeId, nodeId, endId, segId, resNum, atomName);
+                writeEnds(constId, treeId, nodeId, endId, segId, resNum, atomName);
             }
         }
         catch(IllegalStateException ex)
@@ -190,17 +237,14 @@ public class ImportRestraints //extends ... implements ...
     }
 //}}}
 
-//{{{ writeEnd
+//{{{ writeEnds
 //##############################################################################
-    void writeEnd(PrintWriter out, String whichEnd,
-        List constId, List treeId, List nodeId, List endId,
+    void writeEnds(List constId, List treeId, List nodeId, List endId,
         List segId, List resNum, List atomName)
     {
         int len = constId.size();
         for(int i = 0; i < len; i++)
         {
-            if(!whichEnd.equals(endId.get(i))) continue;
-            
             String restrKey = this.pdbId+"_"+this.distConstId
                 +"_"+constId.get(i)+"_"+treeId.get(i)+"_"+nodeId.get(i);
             String restrId = (String) restraints.get(restrKey);
@@ -213,12 +257,14 @@ public class ImportRestraints //extends ... implements ...
             if(atomId == null)
                 throw new IllegalStateException("Missing atom name "+atomKey);
             
-            out.print(atomId);
-            out.print("\t");
-            out.print(restrId);
-            out.println();
+            outEnds.print(atomId);
+            outEnds.print("\t");
+            outEnds.print(restrId);
+            outEnds.print("\t");
+            outEnds.print(endId.get(i));
+            outEnds.println();
         }
-        out.flush();
+        outEnds.flush();
     }
 //}}}
 
@@ -237,43 +283,10 @@ public class ImportRestraints //extends ... implements ...
             outRestr = new PrintWriter(new FileWriter("restraints.tab"));
         if(outAtoms == null)
             outAtoms = new PrintWriter(new FileWriter("atoms.tab"));
-        if(outLeftEnd == null)
-            outLeftEnd = new PrintWriter(new FileWriter("left_ends.tab"));
-        if(outRightEnd == null)
-            outRightEnd = new PrintWriter(new FileWriter("right_ends.tab"));
+        if(outEnds == null)
+            outEnds = new PrintWriter(new FileWriter("atoms_restraints.tab"));
         
-        for(Iterator iter = inputFiles.iterator(); iter.hasNext(); )
-        {
-            try
-            {
-                File file = (File) iter.next();
-                System.err.println("Processing "+file+" ...");
-                LineNumberReader lnr = new LineNumberReader(new FileReader(file));
-                StarFile starFile = new StarReader().parse(lnr);
-                lnr.close();
-                
-                restraints.clear();
-                atoms.clear();
-                pdbId       = null;
-                distConstId = null;
-                subtype     = null;
-                format      = null;
-                
-                for(Iterator iBlock = starFile.getDataBlockNames().iterator(); iBlock.hasNext(); )
-                {
-                    String blockName = (String) iBlock.next();
-                    DataBlock block = starFile.getDataBlock(blockName);
-                    processDataCell(block);
-                    for(Iterator iSave = block.getSaveFrames().iterator(); iSave.hasNext(); )
-                    {
-                        DataCell cell = (DataCell) iSave.next();
-                        processDataCell(cell);
-                    }
-                }
-            }
-            catch(Exception ex)
-            { ex.printStackTrace(); }
-        }
+        processFileOrDir(inputFiles);
     }
 
     public static void main(String[] args)

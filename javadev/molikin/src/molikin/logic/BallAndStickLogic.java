@@ -67,7 +67,7 @@ public class BallAndStickLogic
             sp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new DisulfideCrayon()));
             bp.setCrayon(new AltConfCrayon());
         }
-        if(colorBy == COLOR_BY_RES_TYPE)
+        else if(colorBy == COLOR_BY_RES_TYPE)
         {
             sp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new ResTypeCrayon()));
             bp.setCrayon(new AltConfCrayon());
