@@ -12,6 +12,7 @@ king.tool.draw.SkylightPlugin
 king.tool.movie.MoviePlugin
 king.tool.postkin.ColorGrouperPlugin
 king.tool.postkin.KinimolPlugin
+king.tool.data_analysis.HighDimSliderPlugin
 
 # Tools
 king.tool.docking.Dock3On3Tool
@@ -33,3 +34,4 @@ king.tool.postkin.GeometryPlugin
 king.tool.rnaxtal.RNAExtractTool
 king.tool.postkin.RMSDTool
 king.tool.loops.PatchGapPlugin
+king.tool.loops.LoopRmsdTool

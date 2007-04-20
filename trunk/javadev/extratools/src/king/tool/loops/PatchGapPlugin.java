@@ -5,6 +5,7 @@ package king.tool.loops;
 import king.*;
 import king.core.*;
 import king.points.*;
+import king.io.*;
 import driftwood.gui.*;
 import driftwood.r3.*;
 import king.tool.util.*;
@@ -44,6 +45,7 @@ public class PatchGapPlugin extends Plugin {
   TreeMap<Integer, Integer> gapMap;
   HashMap<ArrayList<Double>, ArrayList<String>> filledMap; // gap (oneNum, nNum, frame) -> list of info that matches
   JFileChooser        filechooser     = null;
+  ProgressDialog progDiag;
   KGroup group;
   //}}}
   
@@ -59,6 +61,7 @@ public class PatchGapPlugin extends Plugin {
     coMap = new TreeMap<Integer, KPoint>();
     gapMap = new TreeMap<Integer, Integer>();
     filledMap = new HashMap<ArrayList<Double>, ArrayList<String>>();
+    progDiag = new ProgressDialog(kMain.getTopWindow(), "Filling gaps...", true);
     Kinemage kin = kMain.getKinemage();
     group = new KGroup("loops");
     //newSub = new KGroup("sub");
@@ -277,12 +280,22 @@ public class PatchGapPlugin extends Plugin {
   //{{{ scanLoopKins
   public void scanLoopKins(ArrayList<File> loopKins) {
     //ArrayList<File> loopKins = findLoopKins();
+    Thread progThread = new Thread(progDiag);
+    progThread.setDaemon(true);
+    progThread.start();
+    
     for (ArrayList<Double> gap : filledMap.keySet()) {
       KGroup newSub = new KGroup(gap.get(0).intValue() + "-" + gap.get(1).intValue());
       group.add(newSub);
       ArrayList<String> listofFiller = filledMap.get(gap);
       System.out.println(listofFiller.size());
       for (int ind = 0; ((ind < 100000)&&(ind < listofFiller.size())); ind++) {
+        try {
+          Thread.currentThread().sleep(200);
+        } catch (InterruptedException ex) {
+          System.out.println(ex);
+        }
+        progDiag.update(ind, listofFiller.size());
         String info = listofFiller.get(ind);
         String[] splitInfo = info.split(" ");
         String pdbName = splitInfo[0]; // should be pdbname
@@ -298,9 +311,13 @@ public class PatchGapPlugin extends Plugin {
         //for (int i = startRes + length + 1; i <= 1000; i++) {
         //  keepSet.add(new Integer(i));
         //}
+        if (Math.IEEEremainder((double) ind, 100.0) == 0) {
+          System.out.println("Opened: " + ind);
+        }
         for (File kinFile : loopKins) {
           if (kinFile.getName().indexOf(pdbName) != -1) {
-            ArrayList<KList> loops = openKin(kinFile, keepSet);
+            //ArrayList<KList> loops = openKin(kinFile, keepSet);
+            ArrayList<KList> loops = getLoopFromKin(openKinFile(kinFile), keepSet);
             KList mc = loops.get(0);
             SuperPoser poser = new SuperPoser(getGapTupleArray(gap), getListTupleArray(mc));
             Transform t = poser.superpos();
@@ -311,15 +328,52 @@ public class PatchGapPlugin extends Plugin {
             }
           }
         }
+      progDiag.dispose();
       }
     }
   }
   //}}}
   
-  //{{{ openKin
-  public ArrayList<KList> openKin(File f, TreeSet<Integer> keepSet) {
-    kMain.getKinIO().loadFile(f, null);
-    KIterator<KPoint> points = KIterator.allPoints(kMain.getKinemage());
+  //{{{ openKinFile
+  public KinfileParser openKinFile(File f) {
+    //System.out.println("Opening " + f.getName());
+    KinfileParser parser = new KinfileParser();
+    try {
+      FileInputStream fileIS = new FileInputStream(f);
+      LineNumberReader    lnr;
+      
+      //parser = new KinfileParser();
+      // Test for GZIPped files
+      InputStream input = new BufferedInputStream(fileIS);
+      input.mark(10);
+      if(input.read() == 31 && input.read() == 139)
+      {
+        // We've found the gzip magic numbers...
+        input.reset();
+        input = new GZIPInputStream(input);
+      }
+      else input.reset();
+      
+      lnr = new LineNumberReader(new InputStreamReader(input));
+      parser.parse(lnr);
+      lnr.close();
+      fileIS.close();
+      //return parser;
+    } catch (IOException ioe) {
+      System.out.println(ioe);
+      JOptionPane.showMessageDialog(kMain.getTopWindow(),
+      "An error occurred while opening the file: " + f.getName(), "Sorry!", JOptionPane.ERROR_MESSAGE);
+    } 
+    return parser;
+  }
+  //}}}
+  
+  //{{{ getLoopFromKin
+  public ArrayList<KList> getLoopFromKin(KinfileParser parser, TreeSet<Integer> keepSet) {
+    //kMain.getKinIO().loadFile(f, null);
+    ArrayList<Kinemage> kins = new ArrayList(parser.getKinemages());
+    Kinemage kin = kins.get(0);
+    KIterator<KPoint> points = KIterator.allPoints(kin);
     for (KPoint pt : points) {
       int resNum = KinUtil.getResNumber(pt);
       //String ptChain = KinUtil.getChainID(pt).toLowerCase();
@@ -345,7 +399,7 @@ public class PatchGapPlugin extends Plugin {
         }
       }
     }
-    Kinemage kin = kMain.getKinemage();
+    //Kinemage kin = kMain.getKinemage();
     removeExtraAtoms(kin, keepSet);
     KIterator<KList> lists = KIterator.allLists(kin.getChildren().get(0));
     try {
@@ -354,7 +408,7 @@ public class PatchGapPlugin extends Plugin {
         listofLists.add((KList) list.clone());
       }
         //KList clone = (KList) lists.next().clone();
-      kMain.getStable().closeCurrent();
+      //kMain.getStable().closeCurrent();
       kMain.getTextWindow().setText("");
       return listofLists;
       //kMain.getStable().changeCurrentKinemage(1);
@@ -367,7 +421,8 @@ public class PatchGapPlugin extends Plugin {
   }
   //}}}
   
-  public void removeExtraAtoms(Kinemage kin, TreeSet<Integer> keepSet) {
+  //{{{ removeExtraAtoms
+    public void removeExtraAtoms(Kinemage kin, TreeSet<Integer> keepSet) {
     KIterator<KPoint> points = KIterator.allPoints(kin);
     int first = keepSet.first().intValue();
     int last = keepSet.last().intValue();
@@ -381,7 +436,8 @@ public class PatchGapPlugin extends Plugin {
       if ((atomName.equals("o"))&&(resNum == last)) points.remove();
     }
   }
-  
+  //}}}  
+
   //{{{ getListTupleArray
   public Tuple3[] getListTupleArray(KList list) {
     TreeMap<Integer, KPoint> listcaMap = new TreeMap<Integer, KPoint>();
@@ -480,6 +536,7 @@ public class PatchGapPlugin extends Plugin {
       for (KList list : lists) {
         KPoint pt = list.getChildren().get(0);
         String pdbName = KinUtil.getPdbName(pt.getName());
+        //System.out.println(pdbName);
         if (pdbName != null) {
           if (groupMap.containsKey(pdbName)) {
             KGroup pdbGroup = groupMap.get(pdbName);
@@ -502,6 +559,12 @@ public class PatchGapPlugin extends Plugin {
           PrintWriter out = new PrintWriter(new BufferedWriter(w));
           int i = 1;
           for (String pdbName : groupMap.keySet()) {
+            //KIterator<KPoint> pts = KIterator.allPoints(groupMap.get(pdbName));
+            //int counter = 0;
+            //for (KPoint pt : pts) {
+            //  counter++;
+            //}
+            //System.out.println(counter);
             out.println("MODEL     " + Kinimol.formatStrings(Integer.toString(i), 4));
             out.print(Kinimol.convertGrouptoPdb(groupMap.get(pdbName), pdbName));
             out.println("ENDMDL");
