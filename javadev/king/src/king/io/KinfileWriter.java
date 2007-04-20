@@ -118,6 +118,20 @@ public class KinfileWriter //extends ... implements ...
                 out.print(" "+df.format(number.doubleValue()));
             out.println();
         }
+        if(kin.dimensionScale.size() > 0)
+        {
+            out.print("@dimscale");
+            for(Number number : kin.dimensionScale)
+                out.print(" "+df.format(number.doubleValue()));
+            out.println();
+        }
+        if(kin.dimensionOffset.size() > 0)
+        {
+            out.print("@dimoffset");
+            for(Number number : kin.dimensionOffset)
+                out.print(" "+df.format(number.doubleValue()));
+            out.println();
+        }
         
         // etc.
         
