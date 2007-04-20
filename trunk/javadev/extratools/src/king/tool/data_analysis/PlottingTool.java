@@ -1,5 +1,4 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
-//{{{ Package, imports
 package king.tool.data_analysis;
 import king.*;
 import king.core.*;
@@ -286,9 +285,9 @@ public class PlottingTool extends BasicTool {
     
 //}}}
 
-    //{{{ askFormats
+//{{{ askFormats
     private String askDelimiter(String f) {
-	Object[] choices = {"Comma (,)", "Semi-colon (;)", "Colon (:)", "Space"};
+	Object[] choices = {"Comma (,)", "Semi-colon (;)", "Colon (:)", "Space", "Tab"};
 	String choice = (String) JOptionPane.showInputDialog(kMain.getTopWindow(), 
 		  "Please indicate the delimiter to use to parse the data.", 
 							     "Choose", JOptionPane.PLAIN_MESSAGE, 
@@ -299,12 +298,14 @@ public class PlottingTool extends BasicTool {
 	    return ";";
 	} else if (choice.equals("Colon (:)")) {
 	    return ":";
+	} else if (choice.equals("Tab")) {
+	    return "\t";
 	} else {
 	    return " ";
 	}
     }
     
-    //}}}
+//}}}
 
 //{{{ scanFile
 //##################################################################################################
@@ -828,4 +829,3 @@ public class PlottingTool extends BasicTool {
 //}}}
 
 }
-//}}}
