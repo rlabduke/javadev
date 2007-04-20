@@ -1,8 +1,10 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
+//{{{ Package, imports
 package king.tool.data_analysis;
 import king.*;
 import king.core.*;
 import king.points.*;
+import king.io.*;
 import king.tool.util.KinUtil;
 
 import java.awt.event.*;
@@ -13,10 +15,10 @@ import javax.swing.*;
 import driftwood.gui.*;
 import driftwood.util.Strings;
 import driftwood.r3.*;
+//}}}
 
 public class PlottingTool extends BasicTool {
     
-
 //{{{ Variable definitions
 //##################################################################################################
     ArrayList allPoints; //list of original values from selected file.
@@ -65,13 +67,6 @@ public class PlottingTool extends BasicTool {
 	JLabel infoLabel = new JLabel("Data Plotter has detected " + numColumns + " columns of data;  Row 1 shown below.");
 	pane.add(infoLabel, numColumns, 1);
 	pane.newRow();
-
-	//comboBoxes = new JComboBox[numColumns];
-	//xButtons = new JRadioButton[numColumns];
-	//yButtons = new JRadioButton[numColumns];
-	//zButtons = new JRadioButton[numColumns];
-	
-
 	String[] axLabels = new String[numColumns];
 	//axLabels[0] = "Axis 0";
 	for(int i = 0; i < numColumns; i++) {
@@ -143,18 +138,6 @@ public class PlottingTool extends BasicTool {
 	pane.newRow();
 	pane.add(clickColorBox, 2, 1);
 	pane.newRow();
-	//for(int i = 0; i < numColumns; i++) {
-	    //xButtons[i] = new 
-	    //JComboBox comboBox = new JComboBox(axes);
-	    //comboBoxes[i] = comboBox;
-	    //pane.add(comboBox);
-	//}
-
-	
-	//replotButton = new JButton(new ReflectiveAction("Replot!", null, this, "onPlot"));
-	//replotButton.setEnabled(false);
-	//pane.add(replotButton);
-
 	pane.newRow();
 	JLabel xLabel = new JLabel("x mult=");
 	xMultField = new JTextField("1", 4);
@@ -204,7 +187,7 @@ public class PlottingTool extends BasicTool {
 	pane.add(resetButton);
 	//pane.hfill(true);
 	
-        dialog.addWindowListener(this);
+  dialog.addWindowListener(this);
 	dialog.setContentPane(pane);
 
 	
@@ -244,7 +227,7 @@ public class PlottingTool extends BasicTool {
     }
 //}}}
 
-//{{{ openOpenFile
+//{{{ openFile
 //##################################################################################################
     public void openFile()
     {
@@ -322,8 +305,6 @@ public class PlottingTool extends BasicTool {
 		
 		//float[] values = new float[strings.length];
 		allPoints.add(strings);
-
-
 	    }
 	}
 	catch (IOException ex) {
@@ -335,243 +316,214 @@ public class PlottingTool extends BasicTool {
     }
 //}}}
     
-    public void onPlot(ActionEvent ev) {
-	//replotButton.setEnabled(true);
-	//int numColumns = comboBoxes.length;
-	int x = -1, y = -1, z = -1, color = -1;
-	x = xList.getSelectedIndex();
-	y = yList.getSelectedIndex();
-	z = zList.getSelectedIndex();
-	color = colorList.getSelectedIndex();
-	//for (int i = 0; i < numColumns; i++) {
-	    //System.out.print(comboBoxes[i].getSelectedItem());
-	    //String selectedVal = (String) comboBoxes[i].getSelectedItem();
-	    //int x = -1, y = -1, z = -1, color = -1;
-	    //if (selectedVal.equals("x")) x = i;
-	    //if (selectedVal.equals("y")) y = i;
-	    //if (selectedVal.equals("z")) z = i;
-	    //if (selectedVal.equals("color")) color = i;
-	    //createPoints(x, y, z, color);
-	    //System.out.println(x + y + z);
-	//}
-	if (plotButton.getText().equals("Plot!")) {
+  //{{{ onPlot
+  public void onPlot(ActionEvent ev) {
+    int x = -1, y = -1, z = -1, color = -1;
+    x = xList.getSelectedIndex();
+    y = yList.getSelectedIndex();
+    z = zList.getSelectedIndex();
+    color = colorList.getSelectedIndex();
+    if (plotButton.getText().equals("Plot!")) {
 	    createPoints(x, y, z, color);
-	} else {
+    } else {
 	    replotPoints(x, y, z, color);
-	}
     }
-
-    public void createPoints(int x, int y, int z, int color) {
-	plotButton.setText("Replot!");
-	binnedPoints.clear();
-	plottedPoints.clear();
-
-	// figure out dimension names
-	String[] firstVal = (String[]) allPoints.get(0);
-	String[] secVal = (String[]) allPoints.get(1);
-	ArrayList dimNames = new ArrayList();
-	for (int i = 1; i < firstVal.length; i++) {
+  }
+  //}}}
+    
+  //{{{ createPoints
+  public void createPoints(int x, int y, int z, int color) {
+    plotButton.setText("Replot!");
+    binnedPoints.clear();
+    plottedPoints.clear();
+    
+    // figure out dimension names
+    String[] firstVal = (String[]) allPoints.get(0);
+    String[] secVal = (String[]) allPoints.get(1);
+    ArrayList dimNames = new ArrayList();
+    for (int i = 1; i < firstVal.length; i++) {
 	    dimNames.add(firstVal[i]);
-	}
-
-	// count number of numeric dimensions
-	int numInd = 0;
-	for (int i = 0; i < secVal.length; i++) {
+    }
+    
+    // count number of numeric dimensions
+    int numInd = 0;
+    for (int i = 0; i < secVal.length; i++) {
 	    if (KinUtil.isNumeric(secVal[i])) numInd++;
-	}
-
-	// initialize dimension min-max array
-	Integer[] dimMinMax = new Integer[numInd * 2];
-	for (int i = 0; i < dimMinMax.length; i = i+2) {
+    }
+    
+    // initialize dimension min-max array
+    Integer[] dimMinMax = new Integer[numInd * 2];
+    for (int i = 0; i < dimMinMax.length; i = i+2) {
 	    dimMinMax[i] = new Integer(1000000);
-	}
-	for (int i = 1; i < dimMinMax.length; i = i+2) {
+    }
+    for (int i = 1; i < dimMinMax.length; i = i+2) {
 	    dimMinMax[i] = new Integer(-1000000);
-	}
-
-	// create bins for the points
-	double minColor = 100000;
-	double maxColor = -100000;
-	ArrayList colors = new ArrayList();
-	if (color != -1) {
+    }
+    
+    // create bins for the points
+    double minColor = 100000;
+    double maxColor = -100000;
+    ArrayList colors = new ArrayList();
+    if (color != -1) {
 	    Iterator iter = allPoints.iterator();
 	    while (iter.hasNext()) {
-		String[] value = (String[]) iter.next();
-		//if (color != -1) {
-		//System.out.println(value[color]);
-		if (value.length == firstVal.length) {
-		    if (KinUtil.isNumeric(value[color])) {
-			double dColor = Double.parseDouble(value[color]);
-			if (minColor > dColor) {
-			    minColor = dColor;
-			}
-			if (maxColor < dColor) {
-			    maxColor = dColor;
-			}
-			colors.add(new Double(value[color]));
-		    }
-		}
+        String[] value = (String[]) iter.next();
+        //if (color != -1) {
+          //System.out.println(value[color]);
+          if (value.length == firstVal.length) {
+            if (KinUtil.isNumeric(value[color])) {
+              double dColor = Double.parseDouble(value[color]);
+              if (minColor > dColor) {
+                minColor = dColor;
+              }
+              if (maxColor < dColor) {
+                maxColor = dColor;
+              }
+              colors.add(new Double(value[color]));
+            }
+          }
 	    }
-	}
-	//double perDiv = (maxColor-minColor)/10;
-	//createBins(numInd, minColor, maxColor, perDiv, color);
-	createBins(numInd, colors, color);
-
-	Iterator iter = allPoints.iterator();
-	BallPoint point;
-	//double minColor = 100000;
-	//double maxColor = -100000;
-
-	while (iter.hasNext()) {
+    }
+    //double perDiv = (maxColor-minColor)/10;
+    //createBins(numInd, minColor, maxColor, perDiv, color);
+    createBins(numInd, colors, color);
+    
+    Iterator iter = allPoints.iterator();
+    BallPoint point;
+    //double minColor = 100000;
+    //double maxColor = -100000;
+    
+    while (iter.hasNext()) {
 	    String[] value = (String[]) iter.next();
 	    float[] floats = new float[numInd];
 	    int floatInd = 0;
 	    // one pass to see if number of numeric values matches number of dimensions
 	    for (int i = 0; i < value.length; i++) {
-		if (KinUtil.isNumeric(value[i])) {
-		    floatInd++;
-		}
+        if (KinUtil.isNumeric(value[i])) {
+          floatInd++;
+        }
 	    }
 	    // if they don't match, then this line is not made into a point
 	    if (floatInd == numInd) {
-		floatInd = 0;
-		for (int i = 0; i < value.length; i++) {
-		    if (KinUtil.isNumeric(value[i])) {
-			floats[floatInd] = Float.parseFloat(value[i]);
-			updateMinMax(dimMinMax, floatInd, floats[floatInd]);
-			floatInd++;
-		    }
-		}
+        floatInd = 0;
+        for (int i = 0; i < value.length; i++) {
+          if (KinUtil.isNumeric(value[i])) {
+            floats[floatInd] = Float.parseFloat(value[i]);
+            updateMinMax(dimMinMax, floatInd, floats[floatInd]);
+            floatInd++;
+          }
+        }
 		    
-		point = new BallPoint(value[0] + " " + value[1]);
-		plottedPoints.put(value, point);
-		point.setRadius((float)0.1);
-		point.setAllCoords(floats);
-		if (x == -1) point.setX(0);
-		if (y == -1) point.setY(0);
-		if (z == -1) point.setZ(0);
-		point.useCoordsXYZ(x-1, y-1, z-1); // since the first value is a string identifier, indices are off by 1
-		if (color != -1) {
-		    Iterator keys = binnedPoints.keySet().iterator();
-		    Double binValue = null;
-		    while (keys.hasNext()) {
-			Double key = (Double) keys.next();
-			if (key.compareTo(new Double(value[color])) <= 0) {
-			    binValue = key;
-			}
-		    }
-		    KList list = (KList) binnedPoints.get(binValue);
-		    list.add(point);
-		    point.setParent(list);
-		} else {
-		    KList list = (KList) binnedPoints.get(new Double("0"));
-		    list.add(point);
-		    point.setParent(list);
-		}
+        point = new BallPoint(value[0] + " " + value[1]);
+        plottedPoints.put(value, point);
+        point.setRadius((float)0.1);
+        point.setAllCoords(floats);
+        if (x == -1) point.setX(0);
+        if (y == -1) point.setY(0);
+        if (z == -1) point.setZ(0);
+        point.useCoordsXYZ(x-1, y-1, z-1); // since the first value is a string identifier, indices are off by 1
+        if (color != -1) {
+          Iterator keys = binnedPoints.keySet().iterator();
+          Double binValue = null;
+          while (keys.hasNext()) {
+            Double key = (Double) keys.next();
+            if (key.compareTo(new Double(value[color])) <= 0) {
+              binValue = key;
+            }
+          }
+          KList list = (KList) binnedPoints.get(binValue);
+          list.add(point);
+          point.setParent(list);
+        } else {
+          KList list = (KList) binnedPoints.get(new Double("0"));
+          list.add(point);
+          point.setParent(list);
+        }
 	    }
-	}
-	//System.out.println(minColor + " " + maxColor);
-	plot(dimNames, dimMinMax);
     }
-
-//{{{ plot
-        public void plot(Collection dimNames, Integer[] dimMinMax) {
-	Kinemage kin = kMain.getKinemage();
-	kin.dimensionNames.addAll(dimNames);
-	kin.dimensionMinMax.addAll(Arrays.asList(dimMinMax));
-	kin.getMasterByName("Data Points");
-	//Iterator iter = kin.iterator();
-	//while (iter.hasNext()) {
-	KGroup group = new KGroup("test");
-	group.setAnimate(true);
-	group.addMaster("Data Points");
-	kin.add(group);
-	KGroup subgroup = new KGroup("test2");
-	subgroup.setHasButton(false);
-	group.add(subgroup);
-	Collection lists = binnedPoints.values();
-	Iterator iter = lists.iterator();
-	while (iter.hasNext()) {
-	    KList list = (KList) iter.next();
-	    //list.setParent(subgroup);
-	    subgroup.add(list);
-
-	}
-    	//kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+    //System.out.println(minColor + " " + maxColor);
+    plot(dimNames, dimMinMax);
+  }
+  //}}}
+  
+  //{{{ plot
+  public void plot(Collection dimNames, Integer[] dimMinMax) {
+    KGroup group = new KGroup("Data Points");
+    group.setAnimate(true);
+    group.addMaster("Data Points");
+    KGroup subgroup = new KGroup("points");
+    subgroup.setHasButton(false);
+    group.add(subgroup);
+    Collection lists = binnedPoints.values();
+    Iterator iter = lists.iterator();
+    while (iter.hasNext()) {
+      KList list = (KList) iter.next();
+      //list.setParent(subgroup);
+      subgroup.add(list);
       
     }
-//}}}
+    Kinemage kin = kMain.getKinemage();
+    if (kin == null) {
+      kin = new Kinemage(KinfileParser.DEFAULT_KINEMAGE_NAME+"1");
+    }
+    if (kin.dimensionNames.size() != 0) {
+      JOptionPane.showMessageDialog(pane, "This kinemage already had high dimensions!  They have been replaced.", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+    kin.dimensionNames = new ArrayList<String>(dimNames);
+    kin.dimensionMinMax = new ArrayList<Number>(Arrays.asList(dimMinMax));
+    kin.getMasterByName("Data Points");
+    kin.add(group);
+    if (kMain.getKinemage() == null) {
+      kMain.getStable().append(Arrays.asList(new Kinemage[] {kin}));
+    }
+    //kin.initAll();
+    //kin.fireKinChanged(Kinemage.CHANGE_EVERYTHING);
+    //kMain.publish(new KMessage(kMain, KMessage.KIN_LOADED));
+  }
+  //}}}
     
-    public void createBins(int numInd, ArrayList colors, int color) {
-	if (color != -1) {
+  //{{{ createBins
+  public void createBins(int numInd, ArrayList colors, int color) {
+    if (color != -1) {
 	    if (KinUtil.isNumeric(numBinsField.getText())) {
-		int numBins = Integer.parseInt(numBinsField.getText());
-		Collections.sort(colors);
-		//System.out.println((String)colors.get(0) + (String) colors.get(1));
-		int size = colors.size();
-		double sizePerBin = size/numBins;
-		//double sizePerBin = size/10;
-		//double minColor = Double.parseDouble(colors.get(0));
-		//for (int i = 0; i < 10; i++) {
-		for (int i = 0; i < numBins; i++) {
-		    Double bin = (Double)colors.get((int)Math.floor(sizePerBin * i));
-		    //System.out.println(bin);
-		    //bin = new Double(Math.floor(bin.doubleValue()));
-		    KList list = new KList(KList.BALL, bin.toString());
-		    //list.flags |= KList.NOHILITE;
-        list.setNoHighlight(true);
-		    list.addMaster(bin.toString());
-		    list.setDimension(numInd);
-		    binnedPoints.put(bin, list);
-		}
+        int numBins = Integer.parseInt(numBinsField.getText());
+        Collections.sort(colors);
+        int size = colors.size();
+        double sizePerBin = size/numBins;
+        for (int i = 0; i < numBins; i++) {
+          Double bin = (Double)colors.get((int)Math.floor(sizePerBin * i));
+          KList list = new KList(KList.BALL, bin.toString());
+          list.setNoHighlight(true);
+          list.addMaster(bin.toString());
+          list.setDimension(numInd);
+          binnedPoints.put(bin, list);
+        }
 	    } else {
-		JOptionPane.showMessageDialog(pane, "Please put a number in the 'number of bins' field.", "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(pane, "Please put a number in the 'number of bins' field.", "Error", JOptionPane.ERROR_MESSAGE);
 	    }
-	} else {
+    } else {
 	    KList list = new KList(KList.BALL, "multi-dim points");
-	    //list.flags |= KList.NOHILITE;
       list.setNoHighlight(true);
 	    list.setDimension(numInd);
 	    binnedPoints.put(new Double("0"), list);
-	}
     }
-
-    public void createBins(int numInd, double minColor, double maxColor, double perDiv, int color) {
-	//System.out.println(maxColor);
-	if (color != -1) {
-	    //double perDiv = (maxColor-minColor)/10;
-	    for (int i = 0; i < 11; i++) {
-		// I'm forced to round the bins because round-off error in calculation of bins causes nullpointerexceptions
-		//  without rounding the bins (and calculations later).
-		Double bin = new Double((double)Math.round((minColor + perDiv * i)*1000)/1000);
-		KList list = new KList(KList.BALL, bin.toString());
-		//list.flags |= KList.NOHILITE;
-    list.setNoHighlight(true);
-		list.addMaster(bin.toString());
-		list.setDimension(numInd);
-		binnedPoints.put(bin, list);
-		//System.out.println(bin);
-	    }
-	} else {
-	    KList list = new KList(KList.BALL, "multi-dim points");
-	    //list.flags |= KList.NOHILITE;
-      list.setNoHighlight(true);
-	    list.setDimension(numInd);
-	    binnedPoints.put(new Double(0), list);
-	}
-    }
-
-    public void updateMinMax(Integer[] dimMinMax, int index, float value) {
-	int min = dimMinMax[index*2].intValue();
-	int max = dimMinMax[index*2 + 1].intValue();
-	if (min > value) dimMinMax[index*2] = new Integer((int)Math.floor((double)value));
-	if (max < value) dimMinMax[index*2+1] = new Integer((int)Math.ceil((double)value));
-    }
-
-    public void replotPoints(int x, int y, int z, int color) {
-	// x, y, z, and color are array indexes.
-	Iterator iter = allPoints.iterator();
-	while (iter.hasNext()) {
+  }
+  //}}}
+  
+  //{{{ updateMinMax
+  public void updateMinMax(Integer[] dimMinMax, int index, float value) {
+    int min = dimMinMax[index*2].intValue();
+    int max = dimMinMax[index*2 + 1].intValue();
+    if (min > value) dimMinMax[index*2] = new Integer((int)Math.floor((double)value));
+    if (max < value) dimMinMax[index*2+1] = new Integer((int)Math.ceil((double)value));
+  }
+  //}}}
+  
+  //{{{ replotPoints
+  public void replotPoints(int x, int y, int z, int color) {
+    // x, y, z, and color are array indexes.
+    Iterator iter = allPoints.iterator();
+    while (iter.hasNext()) {
 	    String[] value = (String[]) iter.next();
 	    KPoint point = (KPoint) plottedPoints.get(value);
 	    if (x == -1) point.setX(0);
@@ -579,18 +531,19 @@ public class PlottingTool extends BasicTool {
 	    if (z == -1) point.setZ(0);
 	    point.useCoordsXYZ(x-1, y-1, z-1); // since the first value is a string identifier, indices are off by 1
 	    if (KinUtil.isNumeric(xMultField.getText())) {
-		point.setX(point.getX() * Double.parseDouble(xMultField.getText()));
+        point.setX(point.getX() * Double.parseDouble(xMultField.getText()));
 	    }
 	    if (KinUtil.isNumeric(yMultField.getText())) {
-		point.setY(point.getY() * Double.parseDouble(yMultField.getText()));
+        point.setY(point.getY() * Double.parseDouble(yMultField.getText()));
 	    }
 	    if (KinUtil.isNumeric(zMultField.getText())) {
-		point.setZ(point.getZ() * Double.parseDouble(zMultField.getText()));
+        point.setZ(point.getZ() * Double.parseDouble(zMultField.getText()));
 	    }
-	}
-	kCanvas.repaint();
     }
-
+    kCanvas.repaint();
+  }
+  //}}}
+  
 //{{{ onPlotParallel
         public void onPlotParallel(ActionEvent ev) {
 	Kinemage kin = kMain.getKinemage();
@@ -635,8 +588,6 @@ public class PlottingTool extends BasicTool {
     }
 //}}}	    
 
-
-
 //{{{ onRescale
   /**
   * Handles rescaling the plotted points.  Used to scale the tranformed coordinates, but due
@@ -658,7 +609,6 @@ public class PlottingTool extends BasicTool {
     }
 //}}}
     
-
 //{{{ xx_click() functions
 //##################################################################################################
     /** Override this function for (left-button) clicks */
@@ -769,15 +719,17 @@ public class PlottingTool extends BasicTool {
 
 ///}}}
 
-    public void onReset(ActionEvent ev) {
-	xFiltField.setText("0");
-	yFiltField.setText("0");
-	zFiltField.setText("0");
-	xFiltRange.setText("-1");
-	yFiltRange.setText("-1");
-	zFiltRange.setText("-1");
-    }
-
+  //{{{ onReset
+  public void onReset(ActionEvent ev) {
+    xFiltField.setText("0");
+    yFiltField.setText("0");
+    zFiltField.setText("0");
+    xFiltRange.setText("-1");
+    yFiltRange.setText("-1");
+    zFiltRange.setText("-1");
+  }
+   //}}}
+  
 //{{{ saveDataFile
 
     public void saveDataFile(File f) {

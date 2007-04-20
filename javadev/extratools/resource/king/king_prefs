@@ -32,3 +32,5 @@ king.tool.postkin.RMSDTool.menuName = Specialty
 king.tool.postkin.ColorGrouperPlugin.menuName = Specialty
 king.tool.loops.PatchGapPlugin.menuName = Structural biology
 king.tool.postkin.KinimolPlugin.menuName = Specialty
+king.tool.loops.LoopRmsdTool.menuName = Specialty
+king.tool.data_analysis.HighDimSliderPlugin.menuName = Specialty

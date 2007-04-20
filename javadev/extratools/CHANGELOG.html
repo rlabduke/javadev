@@ -16,10 +16,24 @@ VBC things to do:
   LoopTool rewrite? (delete from file doesn't work)
   RNALineTracker desperately needs a rewrite.
   some loops get transfered over incorrectly in PatchGapPlugin: 107 models vs 111 found in hsp90
+  PatchGapPlugin needs to wrap degree numbers!!!
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 2.07 ###
+- New HighLowSliders to make it easier to specify a range of numbers to do stuff with.
+- New LoopRMSDTool to make it easy to correlate loops with RDC RMSD information.
+- New HighDimSliderPlugin to adjust different dimensions on the fly.
+Changes in PatchGapPlugin:
+- Attempts to get a progress bar don't seem to work yet, but it doesn't flash the 
+opening kin progress bar repeatedly anymore.
+Changes in PointComparator:
+- Changed getAtomName to only look at the beginning of pointIDs because it would occasionally
+find valid atom names in the pdbIDs.
+Changes in PlottingTool:
+- Fixed so if no kinemage is open, it creates a new one and puts the plotted points into it.
 
 ### 2.06 ###
 - added "Select by color" plugin to emulate Mage's selection tools

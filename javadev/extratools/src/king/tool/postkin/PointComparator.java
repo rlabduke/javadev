@@ -210,7 +210,7 @@ public class PointComparator implements Comparator {
     */
     for (int i = allAtoms.size() - 1; i >= 0; i--) {
       String atom = (String) allAtoms.get(i);
-      if (name.indexOf(atom) > -1) return i;
+      if (name.substring(0,10).indexOf(atom) > -1) return i;
     }
     return -1;
   }
@@ -246,7 +246,9 @@ public class PointComparator implements Comparator {
     */
     for (int i = allAtoms.size() - 1; i >= 0; i--) {
       String atom = (String) allAtoms.get(i);
-      if (name.indexOf(atom) > -1) return atom;
+      // substring is to prevent silly bug where the wrong atom would be found in 
+      // the pdbID that is sometimes in the pointIDs.
+      if (name.substring(0,10).indexOf(atom) > -1) return atom; 
     }
     return "UNK ";
   }
