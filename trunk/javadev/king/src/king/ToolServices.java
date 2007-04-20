@@ -114,6 +114,40 @@ public class ToolServices implements Transformable
     }
 //}}}
 
+//{{{ kinCoordsToLogicalXYZ
+//##################################################################################################
+    /**
+    * For kinemages with @dimscale and/or @dimoffset, return a Tuple3 that converts
+    * the actual X,Y,Z in the kinemage to a "logical" XYZ that makes sense to the user.
+    * @param    kin         the current kinemage
+    * @param    coords      the actual XYZ
+    * @param    viewAxes    from KView.getViewingAxes(), can be null
+    */
+    private Tuple3 kinCoordsToLogicalXYZ(Kinemage kin, KPoint coords, int[] viewAxes)
+    {
+        Triple xyz = new Triple(coords);
+        if(kin == null) return xyz;
+        // Should this operate for all points, or just high-dimensional ones?
+        if(viewAxes != null && viewAxes.length >= 3)// && coords.getAllCoords() != null)
+        {
+            // @dimoffset _t_, @dimscale _s_
+            //  kin = s * (orig + t)
+            //  display = orig = (kin / s) - t
+            double sx = 1, sy = 1, sz = 1, tx = 0, ty = 0, tz = 0;
+            if(kin.dimensionScale.size() > viewAxes[0])     sx = kin.dimensionScale.get(viewAxes[0]).doubleValue();
+            if(kin.dimensionScale.size() > viewAxes[1])     sy = kin.dimensionScale.get(viewAxes[1]).doubleValue();
+            if(kin.dimensionScale.size() > viewAxes[2])     sz = kin.dimensionScale.get(viewAxes[2]).doubleValue();
+            if(kin.dimensionOffset.size() > viewAxes[0])    tx = kin.dimensionOffset.get(viewAxes[0]).doubleValue();
+            if(kin.dimensionOffset.size() > viewAxes[1])    ty = kin.dimensionOffset.get(viewAxes[1]).doubleValue();
+            if(kin.dimensionOffset.size() > viewAxes[2])    tz = kin.dimensionOffset.get(viewAxes[2]).doubleValue();
+            xyz.setX( (xyz.getX() / sx) - tx );
+            xyz.setY( (xyz.getY() / sy) - ty );
+            xyz.setZ( (xyz.getZ() / sz) - tz );
+        }
+        return xyz;
+    }
+//}}}
+
 //{{{ pick
 //##################################################################################################
     /**
@@ -152,7 +186,8 @@ public class ToolServices implements Transformable
         else
         {
             setID(p.getName());
-            setCoords(df_3.format(p.getX())+"  "+df_3.format(p.getY())+"  "+df_3.format(p.getZ()));
+            Tuple3 q = kinCoordsToLogicalXYZ(kMain.getKinemage(), p, kMain.getView().getViewingAxes());
+            setCoords(df_3.format(q.getX())+"  "+df_3.format(q.getY())+"  "+df_3.format(q.getZ()));
         }
         kCanvas.repaint();
     }

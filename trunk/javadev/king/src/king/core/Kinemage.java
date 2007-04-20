@@ -41,6 +41,10 @@ public class Kinemage extends AGE<Kinemage,KGroup> // implements ...
     public Collection<String> dimensionNames = new ArrayList<String>();
     /** min,max,min,max,... for high-D kins */
     public List<Number> dimensionMinMax = new ArrayList<Number>();
+    /** Scaling factors used to adjust output of "Show XYZ" */
+    public List<Number> dimensionScale = new ArrayList<Number>();
+    /** Translation factors used to adjust output of "Show XYZ" */
+    public List<Number> dimensionOffset = new ArrayList<Number>();
     
     protected List<KView>   viewList    = new ArrayList<KView>();
     protected float[]       boundingBox = null;

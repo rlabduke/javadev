@@ -140,6 +140,8 @@ public class KinfileParser //extends ... implements ...
             else if(s.equals("@dimensions"))            doDimensions();
             else if(s.equals("@dimension"))             doDimensions(); //deprecated
             else if(s.equals("@dimminmax"))             doDimMinMax();
+            else if(s.equals("@dimscale"))              doDimScale();
+            else if(s.equals("@dimoffset"))             doDimOffset();
             // VIEWS
             else if(s.endsWith("viewid"))               doViewID();
             else if(s.endsWith("zoom"))                 doZoom();
@@ -1079,7 +1081,7 @@ public class KinfileParser //extends ... implements ...
     }
 //}}}
 
-//{{{ doDimensions, doDimMinMax
+//{{{ doDimensions, doDimMinMax, doDimScale, doDimOffset
 //##################################################################################################
     void doDimensions() throws IOException
     {
@@ -1103,6 +1105,30 @@ public class KinfileParser //extends ... implements ...
             token.advance();
         }
         else error("@dimminmax was not followed by 1+ numbers; found '"+token.getString()+"' instead");
+    }
+
+    void doDimScale() throws IOException
+    {
+        checkKinemage();
+        token.advance();
+        if(token.isNumber()) while(token.isNumber())
+        {
+            kinemage.dimensionScale.add(new Double(token.getDouble()));
+            token.advance();
+        }
+        else error("@dimscale was not followed by 1+ numbers; found '"+token.getString()+"' instead");
+    }
+
+    void doDimOffset() throws IOException
+    {
+        checkKinemage();
+        token.advance();
+        if(token.isNumber()) while(token.isNumber())
+        {
+            kinemage.dimensionOffset.add(new Double(token.getDouble()));
+            token.advance();
+        }
+        else error("@dimoffset was not followed by 1+ numbers; found '"+token.getString()+"' instead");
     }
 //}}}
 

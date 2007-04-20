@@ -480,8 +480,9 @@ dimension= #
 \family default
  specifies how many coordinates will be associated with each point in the
  list (default is 3 --- x, y, z).
- This is useful for plotting and graphing in high-dimensional spaces; the
- kinemage viewer will let you set 
+ This is useful for plotting and graphing in high-dimensional spaces.
+ All the lists in a kinemage should either have the same number of dimensions
+ or be normal lists without a dimension specifier.
 \end_layout
 
 \begin_layout Standard
@@ -921,6 +922,18 @@ master=
 \end_layout
 
 \begin_layout Itemize
+
+\family typewriter
+dimension= #
+\family default
+ is a shortcut for specifying 
+\family typewriter
+dimension=
+\family default
+ on all the lists in a particular group or subgroup.
+\end_layout
+
+\begin_layout Itemize
 The words 
 \family typewriter
 animate
@@ -957,6 +970,20 @@ animate
 2animate
 \family default
 .
+\end_layout
+
+\begin_layout Itemize
+The word 
+\family typewriter
+select
+\family default
+ can only be used with groups.
+ Groups so marked are understood to be data points in some kind of plot,
+ so that tools for selecting subsets of data should operate on 
+\family typewriter
+select
+\family default
+ groups and ignore other groups.
 \end_layout
 
 \begin_layout Standard
@@ -2333,6 +2360,47 @@ MAX2\InsetSpace ~
  specifies the minimum and maximum values for a high-dimensional kinemage.
  These ranges are not enforced on individual points, but are used for scaling
  the axes when displaying parallel coordinates.
+\end_layout
+
+\begin_layout Description
+@dimscale\InsetSpace ~
+S1\InsetSpace ~
+S2\InsetSpace ~
+...
+ specifies the scaling that should be applied to convert coordinates as
+ they appear in the kinemage to coordinates as they should be displayed
+ to the user.
+ See below for more details.
+\end_layout
+
+\begin_layout Description
+@dimoffset\InsetSpace ~
+T1\InsetSpace ~
+T2\InsetSpace ~
+...
+ specifies the translation that should be applied to convert coordinates
+ as they appear in the kinemage to coordinates as they should be displayed
+ to the user.
+ If both scaling and offset are specified, the original transform is understood
+ to be 
+\begin_inset Formula $kin=s(orig+t)$
+\end_inset
+
+, and the transform from coordinates stored in the kinemage file back to
+ coordinates intended for display is then 
+\begin_inset Formula $display=orig=(kin/s)-t$
+\end_inset
+
+.
+ The default values are 
+\begin_inset Formula $s=1$
+\end_inset
+
+ and 
+\begin_inset Formula $t=0$
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Subsection
