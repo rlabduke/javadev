@@ -35,6 +35,9 @@ MEASUREMENT SPECIFIERS
     phi, psi, omega, chi1, chi2, chi3, chi4, tau                    # proteins
     alpha, beta, gamma, delta, epsilon, zeta, eta, theta, chi       # RNA / DNA
     alpha-1, beta-1, gamma-1, delta-1, epsilon-1, zeta-1, chi-1     # RNA / DNA
+    
+  There are also some extra-terse shortcuts:
+    rnabb = "alpha, beta, gamma, delta, epsilon, zeta"
 
   Examples:
     
