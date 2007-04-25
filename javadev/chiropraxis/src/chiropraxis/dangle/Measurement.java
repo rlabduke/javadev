@@ -61,6 +61,25 @@ abstract public class Measurement //extends ... implements ...
     { return TYPE_UNKNOWN; }
 //}}}
 
+//{{{ newSuperBuiltin
+//##############################################################################
+    static public Measurement[] newSuperBuiltin(String label)
+    {
+        // If you add super-builtins here, you should also modify
+        // Parser.SUPERBLTN, the Parser javadoc, and the man page.
+        if("rnabb".equals(label))
+            return new Measurement[] {
+                newBuiltin("alpha"),
+                newBuiltin("beta"),
+                newBuiltin("gamma"),
+                newBuiltin("delta"),
+                newBuiltin("epsilon"),
+                newBuiltin("zeta")
+            };
+        else return null;
+    }
+//}}}
+
 //{{{ newBuiltin
 //##############################################################################
     static public Measurement newBuiltin(String label)

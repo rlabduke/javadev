@@ -17,7 +17,8 @@ import driftwood.data.*;
 * <code>Parser</code> decodes a simple grammar for specifying measurements in molecules:
 * <ul>
 * <li>expression &rarr; measurement*</li>
-* <li>measurement &rarr; builtin | distance | angle | dihedral</li>
+* <li>measurement &rarr; super_builtin | builtin | distance | angle | dihedral</li>
+* <li>super_builtin &rarr; "rnabb"</li>
 * <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi" | "alpha-1" | "beta-1" | "gamma-1" | "delta-1" | "epsilon-1" | "zeta-1" | "chi-1"</li>
 * <li>distance &rarr; ("distance" | "dist") label atomspec atomspec</li>
 * <li>angle &rarr; "angle" label atomspec atomspec atomspec</li>
@@ -43,6 +44,9 @@ import driftwood.data.*;
 public class Parser //extends ... implements ...
 {
 //{{{ Constants
+    // If you add super-builtins here, you should also modify
+    // Measurement.newSuperBuiltin(), the javadoc above, and the man page.
+    final Matcher SUPERBLTN = Pattern.compile("rnabb").matcher("");
     // If you add built-ins here, you should also modify
     // Measurement.newBuiltin(), the javadoc above, and the man page.
     final Matcher BUILTIN   = Pattern.compile("phi|psi|omega|chi1|chi2|chi3|chi4|tau|alpha|beta|gamma|delta|epsilon|zeta|eta|theta|chi|alpha-1|beta-1|gamma-1|delta-1|epsilon-1|zeta-1|chi-1").matcher("");
@@ -81,17 +85,21 @@ public class Parser //extends ... implements ...
         nextToken();
         while(token != null)
         {
-            // If two measurements are defined with the same name, set them up as alternates.
-            Measurement newM = measurement();
-            Measurement oldM = (Measurement) meas.get(newM.getLabel());
-            if(oldM == null)
-                meas.put(newM.getLabel(), newM);
-            else if(oldM instanceof Measurement.Group)
-                ((Measurement.Group) oldM).add(newM);
-            else
+            Measurement[] newMs = measurement();
+            for(int i = 0; i < newMs.length; i++)
             {
-                Measurement.Group group = new Measurement.Group(oldM).add(newM);
-                meas.put(group.getLabel(), group);
+                // If two measurements are defined with the same name, set them up as alternates.
+                Measurement newM = newMs[i];
+                Measurement oldM = (Measurement) meas.get(newM.getLabel());
+                if(oldM == null)
+                    meas.put(newM.getLabel(), newM);
+                else if(oldM instanceof Measurement.Group)
+                    ((Measurement.Group) oldM).add(newM);
+                else
+                {
+                    Measurement.Group group = new Measurement.Group(oldM).add(newM);
+                    meas.put(group.getLabel(), group);
+                }
             }
         }
         return meas.values();
@@ -128,38 +136,42 @@ public class Parser //extends ... implements ...
 
 //{{{ measurement
 //##############################################################################
-    Measurement measurement() throws ParseException
+    Measurement[] measurement() throws ParseException
     {
-        if(accept(BUILTIN))
+        if(accept(SUPERBLTN))
         {
-            return Measurement.newBuiltin(BUILTIN.group());
+            return Measurement.newSuperBuiltin(SUPERBLTN.group());
+        }
+        else if(accept(BUILTIN))
+        {
+            return new Measurement[] {Measurement.newBuiltin(BUILTIN.group())};
         }
         else if(accept(DISTANCE))
         {
-            return Measurement.newDistance(
+            return new Measurement[] {Measurement.newDistance(
                 label(),
                 atomspec(),
                 atomspec()
-            );
+            )};
         }
         else if(accept(ANGLE))
         {
-            return Measurement.newAngle(
+            return new Measurement[] {Measurement.newAngle(
                 label(),
                 atomspec(),
                 atomspec(),
                 atomspec()
-            );
+            )};
         }
         else if(accept(DIHEDRAL))
         {
-            return Measurement.newDihedral(
+            return new Measurement[] {Measurement.newDihedral(
                 label(),
                 atomspec(),
                 atomspec(),
                 atomspec(),
                 atomspec()
-            );
+            )};
         }
         else throw new ParseException("Expected 'distance', 'angle', or 'dihedral'", 0);
     }

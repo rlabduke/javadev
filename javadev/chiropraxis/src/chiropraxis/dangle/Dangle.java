@@ -120,7 +120,11 @@ public class Dangle //extends ... implements ...
         PdbReader pr = new PdbReader();
         CifReader cr = new CifReader();
         if(measurements.isEmpty())
-            measurements.addAll(new Parser().parse("phi psi chi1 chi2 chi3 chi4"));
+        {
+            Parser parser = new Parser();
+            String allBuiltins = parser.BUILTIN.pattern().pattern().replace('|', ' ');
+            measurements.addAll(parser.parse(allBuiltins));
+        }
         
         if(files.isEmpty())
         {
