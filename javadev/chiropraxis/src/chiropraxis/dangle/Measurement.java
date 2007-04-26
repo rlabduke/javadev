@@ -27,6 +27,8 @@ abstract public class Measurement //extends ... implements ...
     public static final Object TYPE_DISTANCE    = "distance";
     public static final Object TYPE_ANGLE       = "angle";
     public static final Object TYPE_DIHEDRAL    = "dihedral";
+    public static final Object TYPE_MAXB        = "maxb";
+    public static final Object TYPE_MINQ        = "minq";
 //}}}
 
 //{{{ Variable definitions
@@ -365,6 +367,72 @@ abstract public class Measurement //extends ... implements ...
         
         public Object getType()
         { return TYPE_DIHEDRAL; }
+    }
+//}}}
+
+//{{{ newMaxB
+//##############################################################################
+    static public Measurement newMaxB(String label, AtomSpec a)
+    { return new MaxB(label, a); }
+    
+    static class MaxB extends Measurement
+    {
+        AtomSpec a;
+        
+        public MaxB(String label, AtomSpec a)
+        { super(label); this.a = a; }
+        
+        public double measure(Model model, ModelState state, Residue res)
+        {
+            Collection atoms = a.getAll(model, state, res);
+            if(atoms.isEmpty()) return Double.NaN;
+            double max = Double.NEGATIVE_INFINITY;
+            for(Iterator iter = atoms.iterator(); iter.hasNext(); )
+            {
+                AtomState aa = (AtomState) iter.next();
+                max = Math.max(max, aa.getTempFactor());
+            }
+            return max;
+        }
+        
+        public String toString()
+        { return "maxb "+getLabel()+" "+a; }
+        
+        public Object getType()
+        { return TYPE_MAXB; }
+    }
+//}}}
+
+//{{{ newMinQ
+//##############################################################################
+    static public Measurement newMinQ(String label, AtomSpec a)
+    { return new MinQ(label, a); }
+    
+    static class MinQ extends Measurement
+    {
+        AtomSpec a;
+        
+        public MinQ(String label, AtomSpec a)
+        { super(label); this.a = a; }
+        
+        public double measure(Model model, ModelState state, Residue res)
+        {
+            Collection atoms = a.getAll(model, state, res);
+            if(atoms.isEmpty()) return Double.NaN;
+            double min = Double.POSITIVE_INFINITY;
+            for(Iterator iter = atoms.iterator(); iter.hasNext(); )
+            {
+                AtomState aa = (AtomState) iter.next();
+                min = Math.min(min, aa.getOccupancy());
+            }
+            return min;
+        }
+        
+        public String toString()
+        { return "minq "+getLabel()+" "+a; }
+        
+        public Object getType()
+        { return TYPE_MINQ; }
     }
 //}}}
 

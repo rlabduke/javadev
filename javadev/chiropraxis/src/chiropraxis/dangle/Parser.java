@@ -17,12 +17,14 @@ import driftwood.data.*;
 * <code>Parser</code> decodes a simple grammar for specifying measurements in molecules:
 * <ul>
 * <li>expression &rarr; measurement*</li>
-* <li>measurement &rarr; super_builtin | builtin | distance | angle | dihedral</li>
+* <li>measurement &rarr; super_builtin | builtin | distance | angle | dihedral | maxb | minq</li>
 * <li>super_builtin &rarr; "rnabb"</li>
 * <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi" | "alpha-1" | "beta-1" | "gamma-1" | "delta-1" | "epsilon-1" | "zeta-1" | "chi-1"</li>
 * <li>distance &rarr; ("distance" | "dist") label atomspec atomspec</li>
 * <li>angle &rarr; "angle" label atomspec atomspec atomspec</li>
 * <li>dihedral &rarr; ("dihedral" | "torsion") label atomspec atomspec atomspec atomspec</li>
+* <li>maxb &rarr; "maxb" label atomspec</li>
+* <li>minq &rarr; ("minq" | "mino" | "minocc") label atomspec</li>
 * <li>label &rarr; [A-Za-z0-9_.-]+</li>
 * <li>atomspec &rarr; resno? atomname</li>
 * <li>resno &rarr; "i" | "i+" [1-9] | "i-" [1-9]</li>
@@ -53,6 +55,8 @@ public class Parser //extends ... implements ...
     final Matcher DISTANCE  = Pattern.compile("dist(ance)?").matcher("");
     final Matcher ANGLE     = Pattern.compile("angle").matcher("");
     final Matcher DIHEDRAL  = Pattern.compile("dihedral|torsion").matcher("");
+    final Matcher MAXB      = Pattern.compile("maxb", Pattern.CASE_INSENSITIVE).matcher("");
+    final Matcher MINQ      = Pattern.compile("minq|mino|minocc", Pattern.CASE_INSENSITIVE).matcher("");
     final Matcher LABEL     = Pattern.compile("[A-Za-z0-9_.-]+").matcher("");
     final Matcher RESNO     = Pattern.compile("i|i(-[1-9])|i\\+([1-9])").matcher("");
     final Matcher ATOMNAME  = Pattern.compile("[_A-Z0-9*']{4}|/[^/ ]*/").matcher("");
@@ -170,6 +174,20 @@ public class Parser //extends ... implements ...
                 atomspec(),
                 atomspec(),
                 atomspec(),
+                atomspec()
+            )};
+        }
+        else if(accept(MAXB))
+        {
+            return new Measurement[] {Measurement.newMaxB(
+                label(),
+                atomspec()
+            )};
+        }
+        else if(accept(MINQ))
+        {
+            return new Measurement[] {Measurement.newMinQ(
+                label(),
                 atomspec()
             )};
         }

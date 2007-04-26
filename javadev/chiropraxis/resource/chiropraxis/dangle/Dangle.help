@@ -51,4 +51,8 @@ MEASUREMENT SPECIFIERS
   
     dangle "torsion Chi_1 _N__, _CA_, _CB_, /_[COS]G[_1]/"          # reg. exp.
     dangle "dihedral Chi_1 _N__, _CA_, _CB_, /_[COS]G[_1]/"         # synonym
+    
+    dangle "maxb mcMaxB /..[_A]./"                                  # B-factor
+    dangle "minq scMinQ /..[^_A]./"                                 # occupancy
+    dangle "minocc scMinQ /..[^_A]./"                               # synonym
 
