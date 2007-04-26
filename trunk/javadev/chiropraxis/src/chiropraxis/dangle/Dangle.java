@@ -28,6 +28,7 @@ public class Dangle //extends ... implements ...
 //##############################################################################
     boolean forcePDB = false, forceCIF = false;
     boolean doWrap = false; // if true wrap dihedrals to 0 to 360 instead of -180 to 180
+    boolean showDeviation = false;
     Collection files = new ArrayList();
     Collection measurements = new ArrayList();
 //}}}
@@ -85,7 +86,15 @@ public class Dangle //extends ... implements ...
                     {
                         out.print(":");
                         if(!Double.isNaN(vals[i]))
+                        {
                             out.print(df.format(vals[i]));
+                            double dev = meas[i].getDeviation(vals[i]);
+                            if(!Double.isNaN(dev) && showDeviation)
+                            {
+                                out.print(" ");
+                                out.print(df.format(dev));
+                            }
+                        }
                         else out.print("__?__");
                     }
                     out.println();
@@ -283,6 +292,8 @@ public class Dangle //extends ... implements ...
         }
         else if(flag.equals("-360"))
             doWrap = true;
+        else if(flag.equals("-validate"))
+            showDeviation = true;
         else if(flag.equals("-dummy_option"))
         {
             // handle option here

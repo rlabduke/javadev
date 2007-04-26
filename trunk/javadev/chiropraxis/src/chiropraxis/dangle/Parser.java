@@ -20,8 +20,8 @@ import driftwood.data.*;
 * <li>measurement &rarr; super_builtin | builtin | distance | angle | dihedral | maxb | minq</li>
 * <li>super_builtin &rarr; "rnabb"</li>
 * <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi" | "alpha-1" | "beta-1" | "gamma-1" | "delta-1" | "epsilon-1" | "zeta-1" | "chi-1"</li>
-* <li>distance &rarr; ("distance" | "dist") label atomspec atomspec</li>
-* <li>angle &rarr; "angle" label atomspec atomspec atomspec</li>
+* <li>distance &rarr; ("distance" | "dist") label atomspec atomspec ideal_clause?</li>
+* <li>angle &rarr; "angle" label atomspec atomspec atomspec ideal_clause?</li>
 * <li>dihedral &rarr; ("dihedral" | "torsion") label atomspec atomspec atomspec atomspec</li>
 * <li>maxb &rarr; "maxb" label atomspec</li>
 * <li>minq &rarr; ("minq" | "mino" | "minocc") label atomspec</li>
@@ -30,6 +30,9 @@ import driftwood.data.*;
 * <li>resno &rarr; "i" | "i+" [1-9] | "i-" [1-9]</li>
 * <li>atomname &rarr; [_A-Z0-9*']{4} | "/" regex "/"</li>
 * <li>regex &rarr; <i>a java.util.regex regular expression; use _ instead of spaces.</i></li>
+* <li>ideal_clause &rarr; "ideal" mean sigma</li>
+* <li>mean &rarr; real number</li>
+* <li>sigma &rarr; real number</li>
 * </ul>
 *
 * <p>To specify things like the nucleic acid sidechain dihedral "chi", which
@@ -60,6 +63,8 @@ public class Parser //extends ... implements ...
     final Matcher LABEL     = Pattern.compile("[A-Za-z0-9_.-]+").matcher("");
     final Matcher RESNO     = Pattern.compile("i|i(-[1-9])|i\\+([1-9])").matcher("");
     final Matcher ATOMNAME  = Pattern.compile("[_A-Z0-9*']{4}|/[^/ ]*/").matcher("");
+    final Matcher IDEAL     = Pattern.compile("ideal").matcher("");
+    final Matcher REALNUM   = Pattern.compile("-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?(0|[1-9][0-9]*)(\\.[0-9]+)?)?").matcher("");
 //}}}
 
 //{{{ Variable definitions
@@ -152,20 +157,26 @@ public class Parser //extends ... implements ...
         }
         else if(accept(DISTANCE))
         {
-            return new Measurement[] {Measurement.newDistance(
+            Measurement m = Measurement.newDistance(
                 label(),
                 atomspec(),
                 atomspec()
-            )};
+            );
+            if(accept(IDEAL))
+                m.setMeanAndSigma(realnum(), realnum());
+            return new Measurement[] {m};
         }
         else if(accept(ANGLE))
         {
-            return new Measurement[] {Measurement.newAngle(
+            Measurement m = Measurement.newAngle(
                 label(),
                 atomspec(),
                 atomspec(),
                 atomspec()
-            )};
+            );
+            if(accept(IDEAL))
+                m.setMeanAndSigma(realnum(), realnum());
+            return new Measurement[] {m};
         }
         else if(accept(DIHEDRAL))
         {
@@ -228,6 +239,19 @@ public class Parser //extends ... implements ...
             return a;
         }
         else throw new ParseException("Expected atom name", 0);
+    }
+//}}}
+
+//{{{ realnum
+//##############################################################################
+    double realnum() throws ParseException
+    {
+        if(accept(REALNUM))
+        {
+            try { return Double.parseDouble(REALNUM.group()); }
+            catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing real number!", 0); }
+        }
+        else throw new ParseException("Expected real number", 0);
     }
 //}}}
 

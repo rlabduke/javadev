@@ -56,3 +56,10 @@ MEASUREMENT SPECIFIERS
     dangle "minq scMinQ /..[^_A]./"                                 # occupancy
     dangle "minocc scMinQ /..[^_A]./"                               # synonym
 
+  For distances and angles, one can also define an ideal (mean) value and the
+  expected standard deviation, and Dangle will report on the deviation from
+  ideal in units of standard deviation (sigmas).  In order to see this output,
+  you *must*  pass the -validate flag to Dangle.  For example:
+  
+    dangle -validate "dist Ca--Ca i-1 _CA_, _CA_ ideal 3.8085 0.0242"
+
