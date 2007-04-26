@@ -34,6 +34,8 @@ abstract public class Measurement //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     String label;
+    double mean = Double.NaN;
+    double sigma = Double.NaN;
 //}}}
 
 //{{{ Constructor(s)
@@ -61,6 +63,39 @@ abstract public class Measurement //extends ... implements ...
     /** Returns one of the TYPE_* constants. */
     public Object getType()
     { return TYPE_UNKNOWN; }
+//}}}
+
+//{{{ setMeanAndSigma, getDeviation, toStringIdeal
+//##############################################################################
+    /**
+    * Sets the mean value and (expected) standard deviation for this measure,
+    * if applicable.
+    * @return this, for chaining
+    */
+    public Measurement setMeanAndSigma(double mean, double sigma)
+    {
+        this.mean = mean;
+        this.sigma = sigma;
+        return this;
+    }
+    
+    /**
+    * Returns the deviation of measure from the mean in standard-deviation units (sigmas).
+    * If any of the values involved are NaN, returns NaN.
+    */
+    public double getDeviation(double measure)
+    {
+        // If any values are NaN, result will be NaN too.
+        return (measure - mean) / sigma;
+    }
+    
+    protected String toStringIdeal()
+    {
+        if(!Double.isNaN(mean) && !Double.isNaN(sigma))
+            return " ideal "+mean+" "+sigma;
+        else
+            return "";
+    }
 //}}}
 
 //{{{ newSuperBuiltin
@@ -302,7 +337,7 @@ abstract public class Measurement //extends ... implements ...
         }
         
         public String toString()
-        { return "distance "+getLabel()+" "+a+", "+b; }
+        { return "distance "+getLabel()+" "+a+", "+b+toStringIdeal(); }
         
         public Object getType()
         { return TYPE_DISTANCE; }
@@ -332,7 +367,7 @@ abstract public class Measurement //extends ... implements ...
         }
         
         public String toString()
-        { return "angle "+getLabel()+" "+a+", "+b+", "+c; }
+        { return "angle "+getLabel()+" "+a+", "+b+", "+c+toStringIdeal(); }
         
         public Object getType()
         { return TYPE_ANGLE; }
