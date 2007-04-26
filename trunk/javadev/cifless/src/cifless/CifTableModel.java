@@ -44,24 +44,30 @@ public class CifTableModel extends javax.swing.table.AbstractTableModel
     }
 //}}}
 
-//{{{ addItem, getTableName
+//{{{ addItem, getTableName, toString
 //##############################################################################
     /**
     * Adds a column (item) to the table.
     * NB: itemData is not copied, just stored as-is.
+    * @throws IllegalArgumentException if length of itemData is wrong
     */
     public void addItem(String cifItemName, List itemData)
     {
+        if(this.numRows == 0 || this.numCols == 0) // table empty
+            this.numRows = itemData.size();
+        else if(this.numRows != itemData.size())
+            throw new IllegalArgumentException(cifItemName+" has "+itemData.size()+" elements; expected "+numRows);
+        
         this.columns.put(cifItemName, itemData);
         this.colNames = (String[]) columns.keySet().toArray(colNames);
         this.numCols = columns.size();
-        
         this.colLists = (List[]) columns.values().toArray(colLists);
-        numRows = colLists[0].size();
-        for(int i = 1; i < numCols; i++) numRows = Math.min(numRows, colLists[i].size());
     }
     
     public String getTableName()
+    { return this.tableName; }
+    
+    public String toString()
     { return this.tableName; }
 //}}}
 

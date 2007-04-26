@@ -10,6 +10,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.regex.*;
 //import javax.swing.*;
+import driftwood.data.*;
 import driftwood.star.*;
 //}}}
 /**
@@ -21,13 +22,40 @@ import driftwood.star.*;
 public class CifFile //extends ... implements ...
 {
 //{{{ Constants
+    static final Pattern tableColumnPattern = Pattern.compile("_([^.]+)\\.(.+)");
+//}}}
+
+//{{{ CLASS: Block
+//##############################################################################
+    /** A data block or a save frame */
+    public static class Block
+    {
+        String                      simpleName;
+        Map<String, CifTableModel>  tables          = new UberMap();
+        Map<String, Block>          subBlocks       = new UberMap();
+        
+        public Block(String name)
+        {
+            this.simpleName = name;
+        }
+        
+        public String getName()
+        { return simpleName; }
+        
+        public String toString()
+        { return simpleName; }
+        
+        public Map<String, CifTableModel> getTables()
+        { return tables; }
+        
+        public Map<String, Block> getSubBlocks()
+        { return subBlocks; }
+    }
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    Set allItems;   // _table_name.item_name
-    Set allTables;  // table_name
-    Map tables;     // String -> CifTableModel
+    Block globalBlock;
 //}}}
 
 //{{{ Constructor(s)
@@ -35,9 +63,6 @@ public class CifFile //extends ... implements ...
     public CifFile(InputStream in) throws IOException, java.text.ParseException
     {
         super();
-        this.tables     = new HashMap();
-        this.allItems   = new HashSet();
-        this.allTables  = new HashSet();
         loadCifTables(in);
     }
 //}}}
@@ -50,57 +75,61 @@ public class CifFile //extends ... implements ...
     */
     private void loadCifTables(InputStream in) throws IOException, java.text.ParseException
     {
-        Pattern tableColumnPattern = Pattern.compile("_([^.]+)\\.(.+)");
         LineNumberReader lnr = new LineNumberReader(new InputStreamReader(in));
         StarFile starFile = new StarReader().parse(lnr);
         
-        for(Iterator bi = starFile.getDataBlockNames().iterator(); bi.hasNext(); )
+        this.globalBlock = loadBlock(starFile.getGlobalBlock());
+        Set<String> dataNames = starFile.getDataBlockNames();
+        for(String dataName : dataNames)
         {
-            DataBlock block = (DataBlock) starFile.getDataBlock((String)bi.next());
-            //System.out.println("BLOCK: "+block);
-            //System.out.println("  "+block.getSaveFrames().size()+" save frames");
-            //System.out.println("  "+block.getItemNames().size()+" items");
-            Set itemNames = block.getItemNames();
-            for(Iterator ii = itemNames.iterator(); ii.hasNext(); )
-            {
-                String itemName = (String)ii.next();
-                List item = (List) block.getItem(itemName);
-                Matcher m = tableColumnPattern.matcher(itemName);
-                if(!m.matches()) { System.err.println("Regex failed on "+itemName); continue; }
-                String tableName = m.group(1), columnName = m.group(2);
-                //System.out.println("    "+tableName+" / "+columnName+" : "+item.size());
-                this.allItems.add(itemName);
-                this.allTables.add(tableName);
-                
-                CifTableModel tModel = (CifTableModel) tables.get(tableName);
-                if(tModel == null)
-                {
-                    tModel = new CifTableModel(tableName);
-                    tables.put(tableName, tModel);
-                }
-                tModel.addItem(columnName, item);
-            }
+            DataBlock data = starFile.getDataBlock(dataName);
+            this.globalBlock.subBlocks.put(data.getName(), loadBlock(data));
         }
     }
 //}}}
 
-//{{{ getTable/Tables, hasItem/Table
+//{{{ loadBlock
 //##############################################################################
-    /** Retrieves a table model for the given CIF table name (without leading underscore), or null if none */
-    public CifTableModel getTable(String tableName)
-    { return (CifTableModel) this.tables.get(tableName); }
-    
-    /** Returns a Collection(CifTableModel) of all tables in this file. */
-    public Collection getTables()
-    { return Collections.unmodifiableCollection(this.tables.values()); }
-    
-    /** Does this data set have the given "_table_name.item_name" pair? */
-    public boolean hasItem(String itemName)
-    { return this.allItems.contains(itemName); }
+    private Block loadBlock(DataCell cell)
+    {
+        Block block = new Block(cell.getName());
+        
+        Set<String> itemNames = cell.getItemNames();
+        for(String itemName : itemNames)
+        {
+            List item = (List) cell.getItem(itemName);
+            Matcher m = tableColumnPattern.matcher(itemName);
+            if(!m.matches()) { System.err.println("Regex failed on "+itemName); continue; }
+            String tableName = m.group(1), columnName = m.group(2);
+            //System.out.println("    "+tableName+" / "+columnName+" : "+item.size());
+            
+            CifTableModel tModel = block.tables.get(tableName);
+            if(tModel == null)
+            {
+                tModel = new CifTableModel(tableName);
+                block.tables.put(tableName, tModel);
+            }
+            try { tModel.addItem(columnName, item); }
+            catch(IllegalArgumentException ex) { ex.printStackTrace(); }
+        }
+        
+        if(cell instanceof DataBlock)
+        {
+            DataBlock data = (DataBlock) cell;
+            Collection<DataCell> saveFrames = data.getSaveFrames();
+            for(DataCell saveFrame : saveFrames)
+                block.subBlocks.put(saveFrame.getName(), loadBlock(saveFrame));
+        }
+        
+        return block;
+    }
+//}}}
 
-    /** Does this data set have the given "table_name" ? */
-    public boolean hasTable(String tableName)
-    { return this.allTables.contains(tableName); }
+//{{{ getTopBlock
+//##############################################################################
+    /** Retrieves the Block at the top of this CIF file's hierarchy. */
+    public Block getTopBlock()
+    { return this.globalBlock; }
 //}}}
 
 //{{{ empty_code_segment
