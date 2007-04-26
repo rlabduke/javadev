@@ -18,10 +18,6 @@
     <property file="${resource}/${ant.project.name}/buildnum.props"/>
     <property file="${resource}/${ant.project.name}/version.props"/>
 </target>
-<!-- Defines properties needed to use SCP -->
-<target name="init-scp">
-    <property file="../lib/scp.props"/>
-</target>
 <!-- }}} -->
 
 <!-- build, compile {{{ -->
@@ -42,19 +38,15 @@
     <ant antfile="../driftwood/build.xml" inheritAll="false" target="compile">
         <!-- inherited properties go here -->
     </ant>
-    <ant antfile="../king/build.xml" inheritAll="false" target="compile">
-        <!-- inherited properties go here -->
-    </ant>
     <mkdir dir="${build}"/>
     <javac srcdir="${src}"
            destdir="${build}"
            includes="**/*.java"
            excludes="**/old/"
            debug="on" debuglevel="lines,source"
-           target="1.3" source="1.3">
+           target="1.5" source="1.5">
          <classpath>
             <pathelement location="../driftwood/build"/>
-            <pathelement location="../king/build"/>
          </classpath>
     </javac>
 </target>
@@ -102,33 +94,23 @@
 </target>
 <!-- }}} -->
 
-<!-- clean, backup {{{ -->
+<!-- clean {{{ -->
 <!-- Removes products of compilation -->
 <target name="clean" description="Clean up build/ and dist/">
     <delete dir="${dist}"/>
     <delete dir="${build}"/>
     <delete file="${ant.project.name}.jar"/>
 </target>
-
-<!-- Bundles this code and saves it locally and remotely - simple version control -->
-<target name="backup" depends="init,clean,init-scp" description="Backs up this project on IWD's machine">
-    <tstamp/>
-    <mkdir dir="${user.home}/ark/old-versions/${ant.project.name}"/>
-    <jar jarfile="${user.home}/ark/old-versions/${ant.project.name}/${ant.project.name}-${version}.${buildnum}.jar" index="true">
-        <fileset dir="${basedir}"/>
-    </jar>
-    <scp file="${user.home}/ark/old-versions/${ant.project.name}/${ant.project.name}-${version}.${buildnum}.jar"
-        todir="${scp.backup.username}@${scp.backup.hostname}:${scp.backup.path}/${ant.project.name}-${version}.${buildnum}.jar"
-        password="${scp.backup.password}" failonerror="true"/>
-</target>
 <!-- }}} -->
 
-<!-- deploy-local, deploy-local-mp {{{ -->
+<!-- deploy-local {{{ -->
 <!-- Deploys the executable on the local system - applies to IWD's machine only -->
+<!--
 <target name="deploy-local"  description="Build class files and copy to plugins/" depends="build">
     <copy file="${ant.project.name}.jar" todir="../king/plugins/" overwrite="true" failonerror="true"/>
     <copy file="${ant.project.name}.jar" todir="${user.home}/bin/jars/plugins/" overwrite="true" failonerror="false"/>
     <copy file="${ant.project.name}.jar" todir="/Applications/KiNG.app/Contents/Resources/Java/plugins/" overwrite="true" failonerror="false"/>
 </target>
+-->
 <!-- }}} -->
 </project>

@@ -25,6 +25,7 @@ public class CifLess
 
 //{{{ Variable definitions
 //##############################################################################
+    Collection<File> inputFiles = new ArrayList();
 //}}}
 
 //{{{ Constructor(s)
@@ -46,9 +47,16 @@ public class CifLess
     */
     public void Main() throws IOException, java.text.ParseException
     {
-        CifFile cifFile = new CifFile(System.in);
-        CifDictionary cifDict = new CifDictionary();
-        new TableController("atom_site", cifFile, cifDict);
+        if(inputFiles.isEmpty())
+        {
+            //CifFile cifFile = new CifFile(System.in);
+            //new TreeController(cifFile);
+        }
+        else for(File f : inputFiles)
+        {
+            CifFile cifFile = new CifFile(new FileInputStream(f));
+            new TreeController(cifFile);
+        }
     }
 
     public static void main(String[] args)
@@ -156,7 +164,7 @@ public class CifLess
 //##############################################################################
     void interpretArg(String arg)
     {
-        // Handle files, etc. here
+        inputFiles.add(new File(arg));
     }
     
     void interpretFlag(String flag, String param)
