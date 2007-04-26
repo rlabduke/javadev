@@ -16,7 +16,9 @@ import driftwood.data.*;
 /**
 * <code>Parser</code> decodes a simple grammar for specifying measurements in molecules:
 * <ul>
-* <li>expression &rarr; measurement*</li>
+* <li>expression &rarr; measurement_for*</li>
+* <li>measurement_for &rarr; ("for" "cis"? resname)? measurement</li>
+* <li>resname &rarr; [_A-Z0-9]{3} | "/" regex "/"</li>
 * <li>measurement &rarr; super_builtin | builtin | distance | angle | dihedral | maxb | minq</li>
 * <li>super_builtin &rarr; "rnabb"</li>
 * <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi" | "alpha-1" | "beta-1" | "gamma-1" | "delta-1" | "epsilon-1" | "zeta-1" | "chi-1"</li>
@@ -31,8 +33,9 @@ import driftwood.data.*;
 * <li>atomname &rarr; [_A-Z0-9*']{4} | "/" regex "/"</li>
 * <li>regex &rarr; <i>a java.util.regex regular expression; use _ instead of spaces.</i></li>
 * <li>ideal_clause &rarr; "ideal" mean sigma</li>
-* <li>mean &rarr; real number</li>
-* <li>sigma &rarr; real number</li>
+* <li>mean &rarr; realnum</li>
+* <li>sigma &rarr; realnum</li>
+* <li>realnum &rarr; <i>a real number parseable by Double.parseDouble()</i></li>
 * </ul>
 *
 * <p>To specify things like the nucleic acid sidechain dihedral "chi", which
@@ -49,6 +52,9 @@ import driftwood.data.*;
 public class Parser //extends ... implements ...
 {
 //{{{ Constants
+    final Matcher FOR       = Pattern.compile("for").matcher("");
+    final Matcher CIS       = Pattern.compile("cis").matcher("");
+    final Matcher RESNAME   = Pattern.compile("[_A-Z0-9]{3}|/[^/ ]*/").matcher("");
     // If you add super-builtins here, you should also modify
     // Measurement.newSuperBuiltin(), the javadoc above, and the man page.
     final Matcher SUPERBLTN = Pattern.compile("rnabb").matcher("");
@@ -94,7 +100,7 @@ public class Parser //extends ... implements ...
         nextToken();
         while(token != null)
         {
-            Measurement[] newMs = measurement();
+            Measurement[] newMs = measurement_for();
             for(int i = 0; i < newMs.length; i++)
             {
                 // If two measurements are defined with the same name, set them up as alternates.
@@ -141,6 +147,38 @@ public class Parser //extends ... implements ...
     //    if(token == null) return false;
     //    else return symbol.reset(token).matches();
     //}
+//}}}
+
+//{{{ measurement_for
+//##############################################################################
+    Measurement[] measurement_for() throws ParseException
+    {
+        ResSpec resName = null;
+        if(accept(FOR))
+        {
+            resName = new ResSpec(
+                accept(CIS),
+                resname()
+            );
+        }
+        
+        Measurement[] m = measurement();
+        if(resName != null)
+        {
+            for(int i = 0; i < m.length; i++)
+                m[i].setResSpec(resName);
+        }
+        return m;
+    }
+//}}}
+
+//{{{ resname
+//##############################################################################
+    String resname() throws ParseException
+    {
+        if(accept(RESNAME)) return RESNAME.group();
+        else throw new ParseException("Expected residue name", 0);
+    }
 //}}}
 
 //{{{ measurement

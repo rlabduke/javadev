@@ -33,6 +33,7 @@ abstract public class Measurement //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
+    ResSpec resSpec = null;
     String label;
     double mean = Double.NaN;
     double sigma = Double.NaN;
@@ -47,7 +48,7 @@ abstract public class Measurement //extends ... implements ...
     }
 //}}}
 
-//{{{ measure, getLabel/Type
+//{{{ measure, measureImpl, getLabel/Type, setResSpec
 //##############################################################################
     /**
     * Returns the specified measure in the given state,
@@ -55,7 +56,15 @@ abstract public class Measurement //extends ... implements ...
     * (usually because 1+ atoms/residues don't exist).
     * @return the measure, or NaN if undefined
     */
-    abstract public double measure(Model model, ModelState state, Residue res);
+    public double measure(Model model, ModelState state, Residue res)
+    {
+        if(resSpec == null || resSpec.isMatch(model, state, res))
+            return measureImpl(model, state, res);
+        else
+            return Double.NaN;
+    }
+    
+    abstract protected double measureImpl(Model model, ModelState state, Residue res);
     
     public String getLabel()
     { return label; }
@@ -63,9 +72,12 @@ abstract public class Measurement //extends ... implements ...
     /** Returns one of the TYPE_* constants. */
     public Object getType()
     { return TYPE_UNKNOWN; }
+    
+    public void setResSpec(ResSpec resSpec)
+    { this.resSpec = resSpec; }
 //}}}
 
-//{{{ setMeanAndSigma, getDeviation, toStringIdeal
+//{{{ setMeanAndSigma, getDeviation, toString, toStringImpl
 //##############################################################################
     /**
     * Sets the mean value and (expected) standard deviation for this measure,
@@ -89,13 +101,14 @@ abstract public class Measurement //extends ... implements ...
         return (measure - mean) / sigma;
     }
     
-    protected String toStringIdeal()
+    public String toString()
     {
-        if(!Double.isNaN(mean) && !Double.isNaN(sigma))
-            return " ideal "+mean+" "+sigma;
-        else
-            return "";
+        return (resSpec == null ? "" : resSpec+" ")
+            + toStringImpl()
+            + (!Double.isNaN(mean) && !Double.isNaN(sigma) ? " ideal "+mean+" "+sigma : "");
     }
+    
+    abstract protected String toStringImpl();
 //}}}
 
 //{{{ newSuperBuiltin
@@ -327,7 +340,7 @@ abstract public class Measurement //extends ... implements ...
         public Distance(String label, AtomSpec a, AtomSpec b)
         { super(label); this.a = a; this.b = b; }
         
-        public double measure(Model model, ModelState state, Residue res)
+        protected double measureImpl(Model model, ModelState state, Residue res)
         {
             AtomState aa = a.get(model, state, res);
             AtomState bb = b.get(model, state, res);
@@ -336,8 +349,8 @@ abstract public class Measurement //extends ... implements ...
             else return new Triple(aa).distance(bb);
         }
         
-        public String toString()
-        { return "distance "+getLabel()+" "+a+", "+b+toStringIdeal(); }
+        protected String toStringImpl()
+        { return "distance "+getLabel()+" "+a+", "+b; }
         
         public Object getType()
         { return TYPE_DISTANCE; }
@@ -356,7 +369,7 @@ abstract public class Measurement //extends ... implements ...
         public Angle(String label, AtomSpec a, AtomSpec b, AtomSpec c)
         { super(label); this.a = a; this.b = b; this.c = c; }
         
-        public double measure(Model model, ModelState state, Residue res)
+        protected double measureImpl(Model model, ModelState state, Residue res)
         {
             AtomState aa = a.get(model, state, res);
             AtomState bb = b.get(model, state, res);
@@ -366,8 +379,8 @@ abstract public class Measurement //extends ... implements ...
             else return Triple.angle(aa, bb, cc);
         }
         
-        public String toString()
-        { return "angle "+getLabel()+" "+a+", "+b+", "+c+toStringIdeal(); }
+        protected String toStringImpl()
+        { return "angle "+getLabel()+" "+a+", "+b+", "+c; }
         
         public Object getType()
         { return TYPE_ANGLE; }
@@ -386,7 +399,7 @@ abstract public class Measurement //extends ... implements ...
         public Dihedral(String label, AtomSpec a, AtomSpec b, AtomSpec c, AtomSpec d)
         { super(label); this.a = a; this.b = b; this.c = c; this.d = d; }
         
-        public double measure(Model model, ModelState state, Residue res)
+        protected double measureImpl(Model model, ModelState state, Residue res)
         {
             AtomState aa = a.get(model, state, res);
             AtomState bb = b.get(model, state, res);
@@ -397,7 +410,7 @@ abstract public class Measurement //extends ... implements ...
             else return Triple.dihedral(aa, bb, cc, dd);
         }
 
-        public String toString()
+        protected String toStringImpl()
         { return "dihedral "+getLabel()+" "+a+", "+b+", "+c+", "+d; }
         
         public Object getType()
@@ -417,7 +430,7 @@ abstract public class Measurement //extends ... implements ...
         public MaxB(String label, AtomSpec a)
         { super(label); this.a = a; }
         
-        public double measure(Model model, ModelState state, Residue res)
+        protected double measureImpl(Model model, ModelState state, Residue res)
         {
             Collection atoms = a.getAll(model, state, res);
             if(atoms.isEmpty()) return Double.NaN;
@@ -430,7 +443,7 @@ abstract public class Measurement //extends ... implements ...
             return max;
         }
         
-        public String toString()
+        protected String toStringImpl()
         { return "maxb "+getLabel()+" "+a; }
         
         public Object getType()
@@ -450,7 +463,7 @@ abstract public class Measurement //extends ... implements ...
         public MinQ(String label, AtomSpec a)
         { super(label); this.a = a; }
         
-        public double measure(Model model, ModelState state, Residue res)
+        protected double measureImpl(Model model, ModelState state, Residue res)
         {
             Collection atoms = a.getAll(model, state, res);
             if(atoms.isEmpty()) return Double.NaN;
@@ -463,7 +476,7 @@ abstract public class Measurement //extends ... implements ...
             return min;
         }
         
-        public String toString()
+        protected String toStringImpl()
         { return "minq "+getLabel()+" "+a; }
         
         public Object getType()
@@ -495,7 +508,7 @@ abstract public class Measurement //extends ... implements ...
             return this;
         }
         
-        public double measure(Model model, ModelState state, Residue res)
+        protected double measureImpl(Model model, ModelState state, Residue res)
         {
             for(Iterator iter = group.iterator(); iter.hasNext(); )
             {
@@ -506,7 +519,7 @@ abstract public class Measurement //extends ... implements ...
             return Double.NaN;
         }
         
-        public String toString()
+        protected String toStringImpl()
         {
             StringBuffer buf = new StringBuffer();
             for(Iterator iter = group.iterator(); iter.hasNext(); )
