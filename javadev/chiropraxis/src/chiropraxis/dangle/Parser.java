@@ -17,8 +17,8 @@ import driftwood.data.*;
 * <code>Parser</code> decodes a simple grammar for specifying measurements in molecules:
 * <ul>
 * <li>expression &rarr; measurement_for*</li>
-* <li>measurement_for &rarr; ("for" "cis"? resname)? measurement</li>
-* <li>resname &rarr; [_A-Z0-9]{3} | "/" regex "/"</li>
+* <li>measurement_for &rarr; ("for" resspec)? measurement</li>
+* <li>resspec &rarr; resno? "cis"? ([_A-Z0-9]{3} | "/" regex "/")</li>
 * <li>measurement &rarr; super_builtin | builtin | distance | angle | dihedral | maxb | minq</li>
 * <li>super_builtin &rarr; "rnabb"</li>
 * <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi" | "alpha-1" | "beta-1" | "gamma-1" | "delta-1" | "epsilon-1" | "zeta-1" | "chi-1"</li>
@@ -153,30 +153,45 @@ public class Parser //extends ... implements ...
 //##############################################################################
     Measurement[] measurement_for() throws ParseException
     {
-        ResSpec resName = null;
+        ResSpec resSpec = null;
         if(accept(FOR))
-        {
-            resName = new ResSpec(
-                accept(CIS),
-                resname()
-            );
-        }
+            resSpec = resspec();
         
         Measurement[] m = measurement();
-        if(resName != null)
+        if(resSpec != null)
         {
             for(int i = 0; i < m.length; i++)
-                m[i].setResSpec(resName);
+                m[i].setResSpec(resSpec);
         }
         return m;
     }
 //}}}
 
-//{{{ resname
+//{{{ resspec
 //##############################################################################
-    String resname() throws ParseException
+    ResSpec resspec() throws ParseException
     {
-        if(accept(RESNAME)) return RESNAME.group();
+        int resOffset = 0;
+        if(accept(RESNO))
+        {
+            String grp = RESNO.group(1);
+            if(grp == null) grp = RESNO.group(2);
+            if(grp != null)
+            {
+                try { resOffset = Integer.parseInt(grp); }
+                catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing residue number!", 0); }
+            }
+        }
+        boolean requireCis = accept(CIS);
+        if(accept(RESNAME))
+        {
+            ResSpec r = new ResSpec(
+                resOffset,
+                requireCis,
+                RESNAME.group()
+            );
+            return r;
+        }
         else throw new ParseException("Expected residue name", 0);
     }
 //}}}
