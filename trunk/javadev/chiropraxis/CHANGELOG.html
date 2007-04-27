@@ -16,11 +16,12 @@
     Make USER MODs in ModelManager2 undoable by storing them in ModelStatePair
   ? How does molten state interact with replacing the Model frequently?
     Dangle:
-        do disulfides -- how to format output?
+        do disulfides as a separate class/program/mode
         do Cb deviation, base-P distance, etc
         flag 4sig bond angle, length outliers (separate module); to MolP output
         GUI for defining measures?
-      * document new "for ..." syntax in the help file
+      * document new "for ..." syntax in the help file and -outliers flag
+        different params for DNA vs RNA (Parkinson ... Berman, in our papers)
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -33,6 +34,10 @@
 - added "ideal MEAN SIGMA" syntax to distance and angle definitions.
   This will probably suffice only for very simple validation!
 - added a "for ..." prefix to measurements to aid validation scripting
+- started entering Engh and Huber parameters
+- discovered "for ..." clause needed to be able to refer to prev/next residue
+- implemented "for [i|i[+-][1-9]] [cis] RES ..."
+- added outliers-only output format
 
 ### 0.56 ###
 - added Rotamer.identify() based on a dumb "boxes" approach for rotamer naming.

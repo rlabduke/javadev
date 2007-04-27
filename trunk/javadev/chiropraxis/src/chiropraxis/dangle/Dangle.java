@@ -29,6 +29,7 @@ public class Dangle //extends ... implements ...
     boolean forcePDB = false, forceCIF = false;
     boolean doWrap = false; // if true wrap dihedrals to 0 to 360 instead of -180 to 180
     boolean showDeviation = false;
+    boolean outliersOnly = false;
     Collection files = new ArrayList();
     Collection measurements = new ArrayList();
 //}}}
@@ -41,15 +42,16 @@ public class Dangle //extends ... implements ...
     }
 //}}}
 
-//{{{ goDangle, wrap360
+//{{{ fullOutput
 //##############################################################################
-    void goDangle(String label, CoordinateFile coords)
+    void fullOutput(String label, CoordinateFile coords)
     {
         final PrintStream out = System.out;
         final DecimalFormat df = new DecimalFormat("0.###");
         
         Measurement[] meas = (Measurement[]) measurements.toArray(new Measurement[measurements.size()]);
         double[] vals = new double[meas.length];
+        double[] devs = new double[meas.length];
         
         out.print("# label:model:chain:number:ins:type");
         for(int i = 0; i < meas.length; i++)
@@ -71,6 +73,7 @@ public class Dangle //extends ... implements ...
                 for(int i = 0; i < meas.length; i++)
                 {
                     vals[i] = meas[i].measure(model, state, res);
+                    devs[i] = meas[i].getDeviation();
                     if(!Double.isNaN(vals[i]))
                     {
                         print = true;
@@ -88,11 +91,10 @@ public class Dangle //extends ... implements ...
                         if(!Double.isNaN(vals[i]))
                         {
                             out.print(df.format(vals[i]));
-                            double dev = meas[i].getDeviation(vals[i]);
-                            if(!Double.isNaN(dev) && showDeviation)
+                            if(!Double.isNaN(devs[i]) && showDeviation)
                             {
                                 out.print(" ");
-                                out.print(df.format(dev));
+                                out.print(df.format(devs[i]));
                             }
                         }
                         else out.print("__?__");
@@ -101,6 +103,72 @@ public class Dangle //extends ... implements ...
                 }
             }
         }
+    }
+//}}}
+
+//{{{ outliersOutput
+//##############################################################################
+    void outliersOutput(String label, CoordinateFile coords)
+    {
+        final PrintStream out = System.out;
+        final DecimalFormat df = new DecimalFormat("0.###");
+        final double cutoff = 4.0; // sigmas
+        
+        Measurement[] meas = (Measurement[]) measurements.toArray(new Measurement[measurements.size()]);
+        
+        out.println("# label:model:chain:number:ins:type:measure:value:sigmas");
+        // This is a LOT of output and hard to interpret...
+        //for(int i = 0; i < meas.length; i++)
+        //    out.println("# "+meas[i]);
+        
+        for(Iterator models = coords.getModels().iterator(); models.hasNext(); )
+        {
+            Model model = (Model) models.next();
+            ModelState state = model.getState();
+            String prefix = label+":"+model.getName()+":";
+            
+            for(Iterator residues = model.getResidues().iterator(); residues.hasNext(); )
+            {
+                Residue res = (Residue) residues.next();
+                for(int i = 0; i < meas.length; i++)
+                {
+                    double val = meas[i].measure(model, state, res);
+                    double dev = meas[i].getDeviation();
+                    if(!Double.isNaN(dev) && Math.abs(dev) >= cutoff)
+                    {
+                        if(meas[i].getType() == Measurement.TYPE_DIHEDRAL)
+                            val = wrap360(val);
+                        out.print(prefix);
+                        out.print(res.getChain()+":"+res.getSequenceNumber()+":"+res.getInsertionCode()+":"+res.getName());
+                        out.print(":"+meas[i].getLabel()+":"+df.format(val)+":"+df.format(dev));
+                        out.println();
+                    }
+                }
+            }
+        }
+    }
+//}}}
+
+//{{{ loadEnghAndHuberMeasures, wrap360
+//##############################################################################
+    String loadEnghAndHuberMeasures() throws IOException
+    {
+        LineNumberReader in = new LineNumberReader( new InputStreamReader(
+            this.getClass().getResourceAsStream("EnghHuber_IntlTblsF_1999.txt")
+        ));
+        StringWriter out = new StringWriter();
+        
+        while(true)
+        {
+            String s = in.readLine();
+            if(s == null) break;
+            else if(s.startsWith("#")) continue;
+            out.write(s);
+            out.write("\n");
+        }
+        in.close();
+        
+        return out.getBuffer().toString();
     }
     
     private double wrap360(double angle)
@@ -131,28 +199,38 @@ public class Dangle //extends ... implements ...
         if(measurements.isEmpty())
         {
             Parser parser = new Parser();
-            String allBuiltins = parser.BUILTIN.pattern().pattern().replace('|', ' ');
-            measurements.addAll(parser.parse(allBuiltins));
+            String defaults;
+            if(showDeviation) // all validatable measures
+                defaults = loadEnghAndHuberMeasures();
+            else // all builtins
+                defaults = parser.BUILTIN.pattern().pattern().replace('|', ' ');
+            measurements.addAll(parser.parse(defaults));
         }
         
         if(files.isEmpty())
         {
-            if(forceCIF)    goDangle("", cr.read(System.in));
-            else            goDangle("", pr.read(System.in));
+            if(forceCIF)    fullOutput("", cr.read(System.in));
+            else            fullOutput("", pr.read(System.in));
         }
         else
         {
             for(Iterator iter = files.iterator(); iter.hasNext(); )
             {
+                CoordinateFile coords;
                 File f = (File) iter.next();
                 if(forceCIF)
-                    goDangle(f.getName(), cr.read(f));
+                    coords = cr.read(f);
                 else if(forcePDB)
-                    goDangle(f.getName(), pr.read(f));
+                    coords = pr.read(f);
                 else if(f.getName().toLowerCase().endsWith(".cif"))
-                    goDangle(f.getName(), cr.read(f));
+                    coords = cr.read(f);
                 else
-                    goDangle(f.getName(), pr.read(f));
+                    coords = pr.read(f);
+                
+                if(outliersOnly)
+                    outliersOutput(f.getName(), coords);
+                else
+                    fullOutput(f.getName(), coords);
             }
         }
     }
@@ -294,6 +372,11 @@ public class Dangle //extends ... implements ...
             doWrap = true;
         else if(flag.equals("-validate"))
             showDeviation = true;
+        else if(flag.equals("-outliers"))
+        {
+            showDeviation = true;
+            outliersOnly = true;
+        }
         else if(flag.equals("-dummy_option"))
         {
             // handle option here

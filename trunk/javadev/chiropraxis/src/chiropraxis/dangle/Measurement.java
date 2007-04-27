@@ -37,6 +37,7 @@ abstract public class Measurement //extends ... implements ...
     String label;
     double mean = Double.NaN;
     double sigma = Double.NaN;
+    double deviation = Double.NaN;
 //}}}
 
 //{{{ Constructor(s)
@@ -48,7 +49,7 @@ abstract public class Measurement //extends ... implements ...
     }
 //}}}
 
-//{{{ measure, measureImpl, getLabel/Type, setResSpec
+//{{{ measure, getDeviation, measureImpl, getLabel/Type, setResSpec
 //##############################################################################
     /**
     * Returns the specified measure in the given state,
@@ -58,12 +59,23 @@ abstract public class Measurement //extends ... implements ...
     */
     public double measure(Model model, ModelState state, Residue res)
     {
+        double measure;
         if(resSpec == null || resSpec.isMatch(model, state, res))
-            return measureImpl(model, state, res);
+            measure = measureImpl(model, state, res);
         else
-            return Double.NaN;
+            measure = Double.NaN;
+        this.deviation = (measure - mean) / sigma;
+        return measure;
     }
     
+    /**
+    * Returns the deviation from the mean in standard-deviation units (sigmas)
+    * for the last call to measure().
+    * If any of the values involved are NaN, returns NaN.
+    */
+    public double getDeviation()
+    { return deviation; }
+
     abstract protected double measureImpl(Model model, ModelState state, Residue res);
     
     public String getLabel()
@@ -77,7 +89,7 @@ abstract public class Measurement //extends ... implements ...
     { this.resSpec = resSpec; }
 //}}}
 
-//{{{ setMeanAndSigma, getDeviation, toString, toStringImpl
+//{{{ setMeanAndSigma, toString, toStringImpl
 //##############################################################################
     /**
     * Sets the mean value and (expected) standard deviation for this measure,
@@ -89,16 +101,6 @@ abstract public class Measurement //extends ... implements ...
         this.mean = mean;
         this.sigma = sigma;
         return this;
-    }
-    
-    /**
-    * Returns the deviation of measure from the mean in standard-deviation units (sigmas).
-    * If any of the values involved are NaN, returns NaN.
-    */
-    public double getDeviation(double measure)
-    {
-        // If any values are NaN, result will be NaN too.
-        return (measure - mean) / sigma;
     }
     
     public String toString()
@@ -514,7 +516,12 @@ abstract public class Measurement //extends ... implements ...
             {
                 Measurement m = (Measurement) iter.next();
                 double val = m.measure(model, state, res);
-                if(!Double.isNaN(val)) return val;
+                if(!Double.isNaN(val))
+                {
+                    // So deviation will be calc'd correctly
+                    this.setMeanAndSigma(m.mean, m.sigma);
+                    return val;
+                }
             }
             return Double.NaN;
         }

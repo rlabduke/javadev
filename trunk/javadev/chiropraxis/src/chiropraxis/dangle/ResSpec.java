@@ -28,9 +28,10 @@ public class ResSpec //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
-    String  origResName; // just used for a pretty toString()
-    Matcher regexName;
-    boolean requireCis;
+    String      origResName; // just used for a pretty toString()
+    int         resOffset;
+    Matcher     regexName;
+    boolean     requireCis;
 //}}}
 
 //{{{ Constructor(s)
@@ -39,11 +40,12 @@ public class ResSpec //extends ... implements ...
     * @param requireCis if true, requires that the peptide bond preceding the residue
     * be cis rather than trans.  If false, doesn't care whether cis or trans.
     */
-    public ResSpec(boolean requireCis, String resName)
+    public ResSpec(int resOffset, boolean requireCis, String resName)
     {
         super();
-        this.requireCis = requireCis;
-        this.origResName = resName;
+        this.resOffset      = resOffset;
+        this.requireCis     = requireCis;
+        this.origResName    = resName;
         
         resName = resName.replace('_', ' ');
         
@@ -58,6 +60,9 @@ public class ResSpec //extends ... implements ...
 //##############################################################################
     public boolean isMatch(Model model, ModelState state, Residue curr)
     {
+        curr = getRes(model, state, curr, this.resOffset);
+        if(curr == null) return false;
+
         if(requireCis)
         {
             Residue prev = getRes(model, state, curr, -1);
@@ -74,24 +79,25 @@ public class ResSpec //extends ... implements ...
             catch(AtomException ex)
             { return false; }
         }
+        
         return regexName.reset(curr.getName()).matches();
     }
 //}}}
 
 //{{{ getRes
 //##############################################################################
-    private Residue getRes(Model model, ModelState state, Residue curr, int resOffset)
+    private Residue getRes(Model model, ModelState state, Residue curr, int resOff)
     {
         Residue res = curr;
-        for(int i = 0, end_i = Math.abs(resOffset); i < end_i; i++)
+        for(int i = 0, end_i = Math.abs(resOff); i < end_i; i++)
         {
             Residue old = res;
-            if(resOffset > 0) res = curr.getNext(model); // forward search
+            if(resOff > 0) res = curr.getNext(model); // forward search
             else res = curr.getPrev(model); // backward search
             if(res == null) return null;
             
-            if(resOffset > 0)   { if(!checkConnection(model, state, old, res)) return null; }
-            else                { if(!checkConnection(model, state, res, old)) return null; }
+            if(resOff > 0)  { if(!checkConnection(model, state, old, res)) return null; }
+            else            { if(!checkConnection(model, state, res, old)) return null; }
         }
         return res;
     }
