@@ -17,6 +17,8 @@
     H checkbox should be disabled when no H are present!
     Fancy ribbons need pointIDs
     pointIDs should include file names and occupancies (if not zero?)
+    implement N-to-C coloring for ribbons
+  * check for "CA-only" bug in guide points for nucleic acids
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -29,6 +31,7 @@
 - added option to color sidechains/bases by residue type using ResTypeCrayon
 - fixed color-by-residue type bug: "if" instead of "else if" caused stick
   drawing to fail!
+- fixed ribbon code to not die on C-alpha only protein chains (e.g. 2MYS)
 
 ### 0.13 ###
 - added option to draw disulfides all in yellow

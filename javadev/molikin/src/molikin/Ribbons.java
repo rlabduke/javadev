@@ -149,18 +149,14 @@ public class Ribbons //extends ... implements ...
         for(int i = 0; i < res.length-1; i++)
         {
             g = guides[i+2] = new GuidePoint();
+            // Ensure prevRes and nextRes are not null if there's an AtomException.
+            g.prevRes = res[i  ];
+            g.nextRes = res[i+1];
             try
             {
                 AtomState ca1 = state.get(res[i  ].getAtom(" CA "));
                 AtomState ca2 = state.get(res[i+1].getAtom(" CA "));
-                AtomState ox1 = state.get(res[i  ].getAtom(" O  "));
                 g.xyz.likeMidpoint(ca1, ca2);
-                avec.likeVector(ca1, ca2);
-                bvec.likeVector(ca1, ox1);
-                g.cvec.likeCross(avec, bvec).unit();
-                g.dvec.likeCross(g.cvec, avec).unit();
-                g.prevRes = res[i  ];
-                g.nextRes = res[i+1];
                 
                 // Based on Ca(i-1) to Ca(i+2) distance, we may adjust ribbon width
                 // and/or guidepoint position. Ribbon widens in areas of high OR low
@@ -203,6 +199,14 @@ public class Ribbons //extends ... implements ...
                     else
                         g.widthFactor = g.offsetFactor = 0;
                 }
+                
+                // We do this last so that for CA-only structures, everything
+                // possible is calculated before this throws an exception:
+                AtomState ox1 = state.get(res[i  ].getAtom(" O  "));
+                avec.likeVector(ca1, ca2);
+                bvec.likeVector(ca1, ox1);
+                g.cvec.likeCross(avec, bvec).unit();
+                g.dvec.likeCross(g.cvec, avec).unit();
             }
             catch(AtomException ex) {}
         }

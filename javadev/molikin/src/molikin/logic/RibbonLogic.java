@@ -95,7 +95,8 @@ public class RibbonLogic
             }
         }
         
-        for(Iterator iter = contigs.iterator(); iter.hasNext(); )
+        int i = 0;
+        for(Iterator iter = contigs.iterator(); iter.hasNext(); i++)
         {
             Collection contig = (Collection) iter.next();
             if(contig.size() < 2) continue; // too small to use!
