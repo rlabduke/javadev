@@ -144,7 +144,8 @@ public class TableController implements MouseListener
         if(row != -1 && col != -1)
         {
             col = jTable.convertColumnIndexToModel(col);
-            String cifValue = (String) tModel.getValueAt(row, col);
+            //String cifValue = (String) tModel.getValueAt(row, col);
+            String cifValue = (String) filter.getValueAt(row, col);
             //System.err.println("Clicked row "+row+", column "+col+" ("+cifName+" = "+cifValue+")");
             textArea.setText(cifValue);
         }
@@ -174,7 +175,8 @@ public class TableController implements MouseListener
         {
             col = jTable.convertColumnIndexToModel(col);
             String cifName = tModel.getCifColumnName(col);
-            String cifValue = (String) tModel.getValueAt(row, col);
+            //String cifValue = (String) tModel.getValueAt(row, col);
+            String cifValue = (String) filter.getValueAt(row, col);
             //System.err.println("Clicked row "+row+", column "+col+" ("+cifName+" = "+cifValue+")");
             
             JPopupMenu menu = new JPopupMenu();
