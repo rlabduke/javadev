@@ -280,6 +280,11 @@ public class Ribbons //extends ... implements ...
         for(int i = 0; i < res.length-1; i++)
         {
             g = guides[i+2] = new GuidePoint();
+            // Ensure prevRes and nextRes are not null if there's an AtomException.
+            //g.prevRes = g.nextRes = res[i]; // both really "this" res
+            // This makes the fancy (arrowheaded) ribbon code work right
+            g.prevRes = res[i  ];
+            g.nextRes = res[i+1];
             try
             {
                 Atom phos1 = res[i].getAtom(" P  ");
@@ -287,26 +292,8 @@ public class Ribbons //extends ... implements ...
                 if(phos1 == null) phos1 = res[i].getAtom(" O5'");
                 AtomState p1 = state.get(phos1);
                 AtomState p2 = state.get(res[i+1].getAtom(" P  "));
-                Atom carbon3 = res[i].getAtom(" C3*");
-                if(carbon3 == null) carbon3 = res[i].getAtom(" C3'");
-                AtomState c3 = state.get(carbon3);
-                Atom carbon1 = res[i].getAtom(" C1*");
-                if(carbon1 == null) carbon1 = res[i].getAtom(" C1'");
-                AtomState c1 = state.get(carbon1);
-                Atom carbon4 = res[i].getAtom(" C4*");
-                if(carbon4 == null) carbon4 = res[i].getAtom(" C4'");
-                AtomState c4 = state.get(carbon4);
-                
                 g.xyz.likeMidpoint(p1, p2);
-                avec.likeVector(p1, p2);
-                bvec.likeVector(c3, c1);
-                g.cvec.likeCross(avec, bvec).unit();
-                g.dvec.likeCross(g.cvec, avec).unit();
-                //g.prevRes = g.nextRes = res[i]; // both really "this" res
-                // This makes the fancy (arrowheaded) ribbon code work right
-                g.prevRes = res[i  ];
-                g.nextRes = res[i+1];
-
+                
                 // Based on P(i-1) to P(i+1) or P(i) to P(i+2) distance, we may offset guide points.
                 // For areas of high curvature, the guide point is offset towards the C4'
               
@@ -329,6 +316,9 @@ public class Ribbons //extends ... implements ...
                     {
                         isTightlyCurved = true;
                         ppDistance = Math.min(ppDist1, ppDist2);
+                        Atom carbon4 = res[i].getAtom(" C4*");
+                        if(carbon4 == null) carbon4 = res[i].getAtom(" C4'");
+                        AtomState c4 = state.get(carbon4);
                         maxOffset = g.xyz.distance(c4) + 1.0; // allows guide point to go past the C4'
                         g.offsetFactor = (9.0 - ppDistance) / (9.0 - 7.0);
                         if(g.offsetFactor > 1) g.offsetFactor = 1; // reaches full offset at 7A curvature
@@ -337,6 +327,20 @@ public class Ribbons //extends ... implements ...
                         g.xyz.addMult(maxOffset*g.offsetFactor, offsetVec);
                     }
                 }
+                
+                // We do this last so that for P-only structures (do those exist?),
+                // everything possible is calculated before this throws an exception:
+                Atom carbon3 = res[i].getAtom(" C3*");
+                if(carbon3 == null) carbon3 = res[i].getAtom(" C3'");
+                AtomState c3 = state.get(carbon3);
+                Atom carbon1 = res[i].getAtom(" C1*");
+                if(carbon1 == null) carbon1 = res[i].getAtom(" C1'");
+                AtomState c1 = state.get(carbon1);
+                
+                avec.likeVector(p1, p2);
+                bvec.likeVector(c3, c1);
+                g.cvec.likeCross(avec, bvec).unit();
+                g.dvec.likeCross(g.cvec, avec).unit();
             }
             catch(AtomException ex) {}
         }

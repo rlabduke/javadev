@@ -1,6 +1,7 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
 package molikin;
+import molikin.crayons.*;
 
 //import java.awt.*;
 //import java.awt.event.*;
@@ -296,12 +297,18 @@ public class RibbonPrinter //extends ... implements ...
         ribElement.end = splinepts[0].length-1;
         // Discovery of ribbon elements: ribbons, ropes, and arrows }}}
         
+        // We juggle crayons around to make sure that black edges stay black.
+        RibbonCrayon normalCrayon = this.getCrayon();
+        // The ConstCrayon will return "" as the point color, thereby overriding normalCrayon.
+        RibbonCrayon edgeCrayon = new CompositeCrayon().add(new ConstCrayon("")).add(normalCrayon);
+        
         for(Iterator iter = ribbonElements.iterator(); iter.hasNext(); )
         {
             ribElement = (RibbonElement) iter.next();
             //System.err.println(ribElement.type+"    ["+ribElement.start+", "+ribElement.end+"]");
             if(ribElement.type == SecondaryStructure.HELIX) //{{{
             {
+                this.setCrayon(normalCrayon);
                 out.println("@ribbonlist {fancy helix} "+listAlpha);
                 for(int i = ribElement.start; i < ribElement.end; i++)
                 {
@@ -309,6 +316,7 @@ public class RibbonPrinter //extends ... implements ...
                     printFancy(guides, splinepts[2], i);
                 }
                 printFancy(guides, splinepts[0], ribElement.end); // angled tip at end of helix
+                this.setCrayon(edgeCrayon);
                 out.println("@vectorlist {fancy helix edges} width= 1 "+listAlpha+" color= deadblack");
                 // black edge, left side
                 printFancy(guides, splinepts[0], ribElement.start, true);
@@ -323,6 +331,7 @@ public class RibbonPrinter //extends ... implements ...
             } //}}}
             else if(ribElement.type == SecondaryStructure.STRAND) //{{{
             {
+                this.setCrayon(normalCrayon);
                 out.println("@ribbonlist {fancy sheet} "+listBeta);
                 for(int i = ribElement.start; i < ribElement.end-1; i++)
                 {
@@ -334,6 +343,7 @@ public class RibbonPrinter //extends ... implements ...
                 printFancy(guides, splinepts[5], ribElement.end-2);
                 printFancy(guides, splinepts[6], ribElement.end-2);
                 printFancy(guides, splinepts[0], ribElement.end);
+                this.setCrayon(edgeCrayon);
                 out.println("@vectorlist {fancy sheet edges} width= 1 "+listBeta+" color= deadblack");
                 // black edge, left side
                 printFancy(guides, splinepts[0], ribElement.start, true);
@@ -350,12 +360,14 @@ public class RibbonPrinter //extends ... implements ...
             } //}}}
             else // COIL {{{
             {
+                this.setCrayon(normalCrayon);
                 out.println("@vectorlist {fancy coil} "+listCoil);
                 for(int i = ribElement.start; i <= ribElement.end; i++)
                     printFancy(guides, splinepts[0], i);
             } //}}}
         }
 
+        this.setCrayon(normalCrayon);
         out.flush();
     }
     

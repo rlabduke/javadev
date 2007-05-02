@@ -26,6 +26,11 @@ import driftwood.moldb2.*;
 public class RibbonLogic
 {
 //{{{ Constants
+    public static final Object COLOR_BY_SEC_STRUCT  = "secondary structure";
+    public static final Object COLOR_BY_RAINBOW     = "N -> C / 5' -> 3'";
+    //public static final Object COLOR_BY_RES_TYPE    = "residue type";
+    //public static final Object COLOR_BY_B_FACTOR    = "B factor";
+    //public static final Object COLOR_BY_OCCUPANCY   = "occupancy";
 //}}}
 
 //{{{ Variable definitions
@@ -33,9 +38,11 @@ public class RibbonLogic
     PrintWriter     out = null;
     RibbonPrinter   rp  = null;
     
-    public boolean              doProtein, doNucleic;
-    public boolean              doUntwistRibbons, doDnaStyle;
-    public SecondaryStructure   secondaryStructure = null;
+    public boolean  doProtein, doNucleic;
+    public boolean  doUntwistRibbons, doDnaStyle;
+    public Object   colorBy = COLOR_BY_SEC_STRUCT;
+    
+    public SecondaryStructure secondaryStructure = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -54,6 +61,8 @@ public class RibbonLogic
         this.out = out;
         this.rp = new RibbonPrinter(out);
         
+        // coloring set-up has to wait until contigs are calculated
+        
         String chainID = "_";
         if(residues.size() > 0)
             chainID = ((Residue) residues.iterator().next()).getChain().trim();
@@ -68,6 +77,18 @@ public class RibbonLogic
     }
 //}}}
 
+//{{{ setUpColoring
+//##############################################################################
+    private void setUpColoring(Collection contigs)
+    {
+        if(colorBy == COLOR_BY_SEC_STRUCT)
+            rp.setCrayon(ConstCrayon.NONE);
+        else if(colorBy == COLOR_BY_RAINBOW)
+            rp.setCrayon(ResColorMapCrayon.newRainbow(contigs));
+        else throw new UnsupportedOperationException();
+    }
+//}}}
+
 //{{{ printProtein
 //##############################################################################
     void printProtein(Model model, Set selectedRes, String chainID, String bbColor)
@@ -78,6 +99,7 @@ public class RibbonLogic
         
         Ribbons ribbons = new Ribbons();
         Collection contigs = ribbons.getProteinContigs(selectedRes, state, resC);
+        setUpColoring(contigs);
         
         if(contigs.size() > 0 && secondaryStructure != null)
         {
@@ -133,6 +155,7 @@ public class RibbonLogic
         
         Ribbons ribbons = new Ribbons();
         Collection contigs = ribbons.getNucleicAcidContigs(selectedRes, state, resC);
+        setUpColoring(contigs);
         
         if(contigs.size() > 0 && secondaryStructure != null)
         {
