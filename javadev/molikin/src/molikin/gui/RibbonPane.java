@@ -63,8 +63,10 @@ public class RibbonPane extends TablePane2 implements DrawingPane
         cbUntwistRibbons    = new JCheckBox("untwist ribbons", true);
         cbDnaStyle          = new JCheckBox("DNA-style, not RNA", false);
         
-        cmColorBy   = new JComboBox(new String[] {"secondary structure", "B factor", "occupancy"});
-            cmColorBy.setEnabled(false);
+        cmColorBy   = new JComboBox(new Object[] {
+            RibbonLogic.COLOR_BY_SEC_STRUCT,
+            RibbonLogic.COLOR_BY_RAINBOW
+        });
         
         this.hfill(true).vfill(true).addCell(selector, 2, 1).newRow();
         this.weights(1,0).memorize();
@@ -121,6 +123,7 @@ public class RibbonPane extends TablePane2 implements DrawingPane
         logic.doNucleic             = cbNucleic.isSelected();
         logic.doUntwistRibbons      = cbUntwistRibbons.isSelected();
         logic.doDnaStyle            = cbDnaStyle.isSelected();
+        logic.colorBy               = this.cmColorBy.getSelectedItem();
         logic.printKinemage(out, m, residues, bbColor);
     }
 //}}}

@@ -6,8 +6,7 @@
         1ACX - weird geom leads to weird bonding patterns
         We could modify AtomGroup.connectHeavyAtoms()
         to keep only the N shortest bonds...
-    color by residue type (each AA, base, etc has its own color)
-    color N-to-C or 5'-to-3' (just a crayon, or group into sets?)
+    N-to-C or 5'-to-3' coloring crayon: offer for C-alphas / pseudobackbone?
     GUI for: only A alts? only atoms with B -lt 30? Q -gt 0.66?
     Element color map should be pluggable, not from Util (VdWLogic.printAtomBalls)
     The case for ribbon to ball-and-stick communication:
@@ -15,10 +14,8 @@
         and how to get out the guidepoint coordinates?
         Sidechains should just generate the guidepoints for themselves!
     H checkbox should be disabled when no H are present!
-    Fancy ribbons need pointIDs
+  * Fancy ribbons need pointIDs
     pointIDs should include file names and occupancies (if not zero?)
-    implement N-to-C coloring for ribbons
-  * check for "CA-only" bug in guide points for nucleic acids
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -32,6 +29,10 @@
 - fixed color-by-residue type bug: "if" instead of "else if" caused stick
   drawing to fail!
 - fixed ribbon code to not die on C-alpha only protein chains (e.g. 2MYS)
+- fixed "CA-only" bug in guide points for nucleic acids too (if it ever occurs)
+- tried to color N to C by breaking ribbons into pieces, but you end up with
+  arrowheads in random places and the pieces never quite fit together right.
+- wrote hack crayon for N to C coloring, added it to ribbon GUI
 
 ### 0.13 ###
 - added option to draw disulfides all in yellow

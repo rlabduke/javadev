@@ -14,7 +14,7 @@ import java.util.*;
 import driftwood.moldb2.*;
 //}}}
 /**
-* <code>ResTypeCrayon</code> colors Cys-S---S-Cys bonds yellow.
+* <code>ResTypeCrayon</code> colors things by residue type (amino acid / base).
 *
 * <p>Copyright (C) 2006 by Ian W. Davis. All rights reserved.
 * <br>Begun on Thu Oct 19 13:11:10 EDT 2006
