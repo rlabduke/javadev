@@ -27,7 +27,7 @@ import driftwood.data.*;
 * <li>dihedral &rarr; ("dihedral" | "torsion") label atomspec atomspec atomspec atomspec</li>
 * <li>maxb &rarr; "maxb" label atomspec</li>
 * <li>minq &rarr; ("minq" | "mino" | "minocc") label atomspec</li>
-* <li>label &rarr; [A-Za-z0-9_.-]+</li>
+* <li>label &rarr; [A-Za-z0-9*'_.-]+</li>
 * <li>atomspec &rarr; resno? atomname</li>
 * <li>resno &rarr; "i" | "i+" [1-9] | "i-" [1-9]</li>
 * <li>atomname &rarr; [_A-Z0-9*']{4} | "/" regex "/"</li>
@@ -66,7 +66,7 @@ public class Parser //extends ... implements ...
     final Matcher DIHEDRAL  = Pattern.compile("dihedral|torsion").matcher("");
     final Matcher MAXB      = Pattern.compile("maxb", Pattern.CASE_INSENSITIVE).matcher("");
     final Matcher MINQ      = Pattern.compile("minq|mino|minocc", Pattern.CASE_INSENSITIVE).matcher("");
-    final Matcher LABEL     = Pattern.compile("[A-Za-z0-9_.-]+").matcher("");
+    final Matcher LABEL     = Pattern.compile("[A-Za-z0-9*'_.-]+").matcher("");
     final Matcher RESNO     = Pattern.compile("i|i(-[1-9])|i\\+([1-9])").matcher("");
     final Matcher ATOMNAME  = Pattern.compile("[_A-Z0-9*']{4}|/[^/ ]*/").matcher("");
     final Matcher IDEAL     = Pattern.compile("ideal").matcher("");
@@ -179,7 +179,7 @@ public class Parser //extends ... implements ...
             if(grp != null)
             {
                 try { resOffset = Integer.parseInt(grp); }
-                catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing residue number!", 0); }
+                catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing residue number ["+token+"]", 0); }
             }
         }
         boolean requireCis = accept(CIS);
@@ -192,7 +192,7 @@ public class Parser //extends ... implements ...
             );
             return r;
         }
-        else throw new ParseException("Expected residue name", 0);
+        else throw new ParseException("Expected residue name ["+token+"]", 0);
     }
 //}}}
 
@@ -255,7 +255,7 @@ public class Parser //extends ... implements ...
                 atomspec()
             )};
         }
-        else throw new ParseException("Expected 'distance', 'angle', or 'dihedral'", 0);
+        else throw new ParseException("Expected 'distance', 'angle', or 'dihedral' ["+token+"]", 0);
     }
 //}}}
 
@@ -264,7 +264,7 @@ public class Parser //extends ... implements ...
     String label() throws ParseException
     {
         if(accept(LABEL)) return LABEL.group();
-        else throw new ParseException("Expected descriptive label", 0);
+        else throw new ParseException("Expected descriptive label ["+token+"]", 0);
     }
 //}}}
 
@@ -280,7 +280,7 @@ public class Parser //extends ... implements ...
             if(grp != null)
             {
                 try { resOffset = Integer.parseInt(grp); }
-                catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing residue number!", 0); }
+                catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing residue number ["+token+"]", 0); }
             }
         }
         if(accept(ATOMNAME))
@@ -291,7 +291,7 @@ public class Parser //extends ... implements ...
             );
             return a;
         }
-        else throw new ParseException("Expected atom name", 0);
+        else throw new ParseException("Expected atom name ["+token+"]", 0);
     }
 //}}}
 
@@ -302,9 +302,9 @@ public class Parser //extends ... implements ...
         if(accept(REALNUM))
         {
             try { return Double.parseDouble(REALNUM.group()); }
-            catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing real number!", 0); }
+            catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing real number ["+token+"]", 0); }
         }
-        else throw new ParseException("Expected real number", 0);
+        else throw new ParseException("Expected real number ["+token+"]", 0);
     }
 //}}}
 

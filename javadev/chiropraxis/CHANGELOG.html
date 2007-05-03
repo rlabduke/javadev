@@ -18,10 +18,10 @@
     Dangle:
         do disulfides as a separate class/program/mode
         do Cb deviation, base-P distance, etc
-        flag 4sig bond angle, length outliers (separate module); to MolP output
         GUI for defining measures?
       * document new "for ..." syntax in the help file and -outliers flag
-        different params for DNA vs RNA (Parkinson ... Berman, in our papers)
+            "for deoxy ..." ???
+      * document -protein, -rna, and -dna flags
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -38,6 +38,9 @@
 - discovered "for ..." clause needed to be able to refer to prev/next residue
 - implemented "for [i|i[+-][1-9]] [cis] RES ..."
 - added outliers-only output format
+- changed -validate output to pure colon-separated
+- added -protein, -rna, -dna flags for loading parameters
+- added slightly more helpful syntax error messages to Parser
 
 ### 0.56 ###
 - added Rotamer.identify() based on a dumb "boxes" approach for rotamer naming.
