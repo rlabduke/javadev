@@ -55,7 +55,11 @@ public class Dangle //extends ... implements ...
         
         out.print("# label:model:chain:number:ins:type");
         for(int i = 0; i < meas.length; i++)
+        {
             out.print(":"+meas[i].getLabel());
+            if(showDeviation)
+                out.print(":sigma "+meas[i].getLabel());
+        }
         out.println();
         for(int i = 0; i < meas.length; i++)
             out.println("# "+meas[i]);
@@ -88,16 +92,14 @@ public class Dangle //extends ... implements ...
                     for(int i = 0; i < vals.length; i++)
                     {
                         out.print(":");
-                        if(!Double.isNaN(vals[i]))
+                        if(!Double.isNaN(vals[i]))  out.print(df.format(vals[i]));
+                        else                        out.print("__?__");
+                        if(showDeviation)
                         {
-                            out.print(df.format(vals[i]));
-                            if(!Double.isNaN(devs[i]) && showDeviation)
-                            {
-                                out.print(" ");
-                                out.print(df.format(devs[i]));
-                            }
+                            out.print(":");
+                            if(!Double.isNaN(devs[i]))  out.print(df.format(devs[i]));
+                            else                        out.print("__?__");
                         }
-                        else out.print("__?__");
                     }
                     out.println();
                 }
@@ -149,12 +151,14 @@ public class Dangle //extends ... implements ...
     }
 //}}}
 
-//{{{ loadEnghAndHuberMeasures, wrap360
+//{{{ loadMeasures, wrap360
 //##############################################################################
-    String loadEnghAndHuberMeasures() throws IOException
+    void loadMeasures(String resourceName) throws IOException, ParseException
     {
         LineNumberReader in = new LineNumberReader( new InputStreamReader(
-            this.getClass().getResourceAsStream("EnghHuber_IntlTblsF_1999.txt")
+            //this.getClass().getResourceAsStream("EnghHuber_IntlTblsF_1999.txt")
+            //this.getClass().getResourceAsStream("ParkinsonBerman_ActaCrystD_1996.txt")
+            this.getClass().getResourceAsStream(resourceName)
         ));
         StringWriter out = new StringWriter();
         
@@ -168,7 +172,11 @@ public class Dangle //extends ... implements ...
         }
         in.close();
         
-        return out.getBuffer().toString();
+        measurements.addAll(
+            new Parser().parse(
+                out.getBuffer().toString()
+            )
+        );
     }
     
     private double wrap360(double angle)
@@ -198,13 +206,14 @@ public class Dangle //extends ... implements ...
         CifReader cr = new CifReader();
         if(measurements.isEmpty())
         {
-            Parser parser = new Parser();
-            String defaults;
             if(showDeviation) // all validatable measures
-                defaults = loadEnghAndHuberMeasures();
+                throw new IllegalArgumentException("Must specify measures to validate (try -protein, -rna, -dna)");
             else // all builtins
-                defaults = parser.BUILTIN.pattern().pattern().replace('|', ' ');
-            measurements.addAll(parser.parse(defaults));
+            {
+                Parser parser = new Parser();
+                String defaults = parser.BUILTIN.pattern().pattern().replace('|', ' ');
+                measurements.addAll(parser.parse(defaults));
+            }
         }
         
         if(files.isEmpty())
@@ -372,6 +381,22 @@ public class Dangle //extends ... implements ...
             doWrap = true;
         else if(flag.equals("-validate"))
             showDeviation = true;
+        else if(flag.equals("-prot") || flag.equals("-protein") || flag.equals("-proteins"))
+        {
+            try { loadMeasures("EnghHuber_IntlTblsF_1999.txt"); }
+            catch(Exception ex) { ex.printStackTrace(); }
+        }
+        else if(flag.equalsIgnoreCase("-rna"))
+        {
+            try { loadMeasures("ParkinsonBerman_ActaCrystD_1996_RNA.txt"); }
+            catch(Exception ex) { ex.printStackTrace(); }
+        }
+        else if(flag.equalsIgnoreCase("-dna"))
+        {
+            //try { loadMeasures("ParkinsonBerman_ActaCrystD_1996_DNA.txt"); }
+            //catch(Exception ex) { ex.printStackTrace(); }
+            throw new IllegalArgumentException("No DNA parameters defined yet!");
+        }
         else if(flag.equals("-outliers"))
         {
             showDeviation = true;
