@@ -32,7 +32,7 @@ public class TokenWindow //extends ... implements ...
     /** The recognizer of tokens */
     TokenMatcher    matcher;
     /** How many tokens have been read before the current tokenAt(0); can't be accessed any more. */
-    int             prevTokens = 0;
+    int             prevTokens  = 0;
     /** Highest index (exclusive) accessible by tokenAt(); this and higher indices cause more reading. */
     int             bufEnd      = 0;
     /** Power-of-two-minus-one bitmask used to wrap absolute token index (prevChars + tokenAtIndex) to a buffer index. */
@@ -103,25 +103,31 @@ public class TokenWindow //extends ... implements ...
 //{{{ advance
 //##############################################################################
     /** Same as advance(1). */
-    public void advance() throws ParseException
+    public void advance() throws ParseException, IOException
     { advance(1); }
     
     /** Advances the zero point by the specified amount. */
-    public void advance(int howMuch) throws ParseException
+    public void advance(int howMuch) throws ParseException, IOException
     {
         if(howMuch < 0)
             throw new IllegalArgumentException("Can't advance backwards!");
         tokenAt(howMuch); // forces advancement
-        window.advance(winEnd[ (prevTokens + howMuch) & bufMask ]);
+        int idx = (prevTokens + howMuch) & bufMask;
+        int adv = winEnd[idx];
+        window.advance(adv);
         prevTokens += howMuch;
         bufEnd -= howMuch; // assert bufEnd >= 1;
+        // Correct the end indices for buffered tokens
+        // by the amount we advanced the window:
+        for(int i = 0; i < bufEnd; i++)
+            winEnd[ (prevTokens + i) & bufMask ] -= adv;
     }
 //}}}
 
 //{{{ accept
 //##############################################################################
     /** If <code>s.equals(token())</code>, return true and advance by one .*/
-    public boolean accept(String s) throws ParseException
+    public boolean accept(String s) throws ParseException, IOException
     {
         if(s.equals(token()))
         {
@@ -132,7 +138,7 @@ public class TokenWindow //extends ... implements ...
     }
 
     /** If <code>m.reset(token()).matches()</code>, return true and advance by one .*/
-    public boolean accept(Matcher m) throws ParseException
+    public boolean accept(Matcher m) throws ParseException, IOException
     {
         if(m.reset(token()).matches())
         {
@@ -163,27 +169,18 @@ public class TokenWindow //extends ... implements ...
 
 //{{{ main (simple unit test)
 //##############################################################################
-    public static void main(String[] args) throws ParseException
+    public static void main(String[] args) throws Exception
     {
         TokenMatcher m = new RegexTokenMatcher(
-            "[\\S&&[^\uFFFF]]+", // accept maximal strings of non-whitespace characters
+            "\\S+", // accept maximal strings of non-whitespace characters
             "\\s"   // ignore whitespace
         );
-        CharWindow w = new CharWindow(System.in, 1*CharWindow.MEGABYTE);
+        CharWindow w = new CharWindow(System.in);
         TokenWindow t = new TokenWindow(w, m);
-        /*
         while(t.token() != null)
         {
             System.out.println(t.token());
             t.advance();
-        }
-        */
-        int i = 0;
-        String token = t.tokenAt(i++);
-        while(token != null)
-        {
-            System.out.println(token);
-            token = t.tokenAt(i++);
         }
     }
 //}}}
