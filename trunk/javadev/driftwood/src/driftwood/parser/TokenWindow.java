@@ -171,15 +171,33 @@ public class TokenWindow //extends ... implements ...
 //##############################################################################
     public static void main(String[] args) throws Exception
     {
+        // Should be able to tokenize Java and maybe other languages
+        // Some confusion between + and - as operators vs. signs on numbers
+        Pattern[] accept = {
+            RegexTokenMatcher.REAL_NUM,
+            RegexTokenMatcher.JAVA_WORD,
+            RegexTokenMatcher.JAVA_PUNC,
+            RegexTokenMatcher.SINGLE_QUOTE_STRING,
+            RegexTokenMatcher.DOUBLE_QUOTE_STRING
+        };
+        Pattern[] ignore = {
+            RegexTokenMatcher.WHITESPACE,
+            RegexTokenMatcher.HASH_COMMENT,
+            RegexTokenMatcher.DOUBLE_SLASH_COMMENT,
+            RegexTokenMatcher.SLASH_STAR_COMMENT
+        };
         TokenMatcher m = new RegexTokenMatcher(
-            "\\S+", // accept maximal strings of non-whitespace characters
-            "\\s"   // ignore whitespace
+            //"\\S+", // accept maximal strings of non-whitespace characters
+            //"\\s"   // ignore whitespace
+            RegexTokenMatcher.joinPatterns(accept),
+            RegexTokenMatcher.joinPatterns(ignore)
         );
         CharWindow w = new CharWindow(System.in);
         TokenWindow t = new TokenWindow(w, m);
         while(t.token() != null)
         {
             System.out.println(t.token());
+            System.out.println("-----");
             t.advance();
         }
     }

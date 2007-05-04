@@ -21,6 +21,112 @@ import java.util.regex.*;
 public class RegexTokenMatcher implements TokenMatcher
 {
 //{{{ Constants
+//{{{ Whitespace, or not
+    /**
+    * A string of whitespace characters, including newlines and carriage returns.
+    */
+    public static final Pattern WHITESPACE = Pattern.compile("(?:\\s+)");
+    
+    /**
+    * A string of non-whitespace characters.
+    */
+    public static final Pattern NON_WHITESPACE = Pattern.compile("(?:\\S+)");
+//}}} Whitespace, or not
+    
+//{{{ Numbers
+    /**
+    * The subset of INTEGER that represents the positive numbers (excludes 0).
+    * A digit 1-9 possibly followed by other digits.
+    */
+    public static final Pattern POSITIVE_INT;
+    
+    /**
+    * The subset of INTEGER that represents 0 and the positive numbers.
+    * Either "0", or a digit 1-9 possibly followed by other digits.
+    */
+    public static final Pattern NATURAL_INT;
+    
+    /**
+    * Recognizes a subset of the integer number formats acceptable to Integer.parseInt().
+    * Allowed: explicit "+" signs
+    * Disallowed: spaces, commas, computerized scientific notation, useless leading zeros.
+    */
+    public static final Pattern INTEGER;
+    
+    /**
+    * Recognizes a subset of the real number formats acceptable to Double.parseDouble().
+    * Allowed: explicit "+" signs, computerized scientific notation ("1e6" == 1 000 000).
+    * Disallowed: spaces, commas, useless leading zeros.
+    */
+    public static final Pattern REAL_NUM;
+    
+    static
+    {
+        String sign     = "(?:[+-]?)";
+        String digits   = "(?:[0-9]+)";
+        String positive = "(?:[1-9][0-9]*)";
+        String natural  = "(?:0|"+positive+")";
+        String integer  = "(?:"+sign+natural+")";
+        String real     = "(?:"+integer+"(?:\\.(?:"+digits+")?)?)";
+        String real_exp = "(?:"+real+"(?:[eE]"+integer+")?)";
+        
+        POSITIVE_INT    = Pattern.compile(positive);
+        NATURAL_INT     = Pattern.compile(natural);
+        INTEGER         = Pattern.compile(integer);
+        REAL_NUM        = Pattern.compile(real_exp);
+    }
+//}}} Numbers
+    
+//{{{ Words
+    /**
+    * Something that would be a valid variable/function/class name in Java and many other C-like languages.
+    * Starts with a letter or underscore, and continues with letters, underscores, or digits.
+    */
+    public static final Pattern JAVA_WORD = Pattern.compile("(?:[a-zA-Z_][a-zA-Z_0-9]*)");
+    
+    /**
+    * All the symbols / operators / punctuation from Java, and maybe a few other languages.
+    */
+    public static final Pattern JAVA_PUNC = Pattern.compile("(?:[~!%^&|*/<>.=+-]=?|[,;:?(){}\\[\\]]|&&|\\|\\||<<=?|>>=?|>>>=?|\\+\\+|--)");
+//}}} Words
+
+//{{{ Strings
+    /**
+    * The same as DOUBLE_QUOTE_STRING, but with single quotes (').
+    */
+    public static final Pattern SINGLE_QUOTE_STRING = Pattern.compile("(?s:'(?:[^'\\\\]|\\\\.)*')"); // (?s: ... ) lets . match linefeeds
+    
+    /**
+    * The standard string format in Java, C, etc: delimited by quotes ("), escaped by backslashes (\).
+    * Escaped control sequences like \n are not interpretted or removed by this pattern.
+    * Internal newlines *are* allowed, unlike in Java etc.
+    */
+    public static final Pattern DOUBLE_QUOTE_STRING = Pattern.compile( SINGLE_QUOTE_STRING.pattern().replace('\'', '"') );
+    
+    /**
+    * The same as DOUBLE_QUOTE_STRING, but with slashes (/).
+    * If used for regular expressions, slashes must be escaped no matter where they appear
+    * (eg even inside character classes).
+    */
+    public static final Pattern SLASH_QUOTE_STRING = Pattern.compile( SINGLE_QUOTE_STRING.pattern().replace('\'', '/') );
+//}}} Strings
+    
+//{{{ Comments
+    /**
+    * A shell-style comment, starting with # and extending to end of line.
+    */
+    public static final Pattern HASH_COMMENT = Pattern.compile("(?:#.*)");
+    
+    /**
+    * A C++ style comment, starting with // and extending to end of line.
+    */
+    public static final Pattern DOUBLE_SLASH_COMMENT = Pattern.compile("(?://.*)");
+    
+    /**
+    * A C style comment, starting with slash-star and extending to star-slash.
+    */
+    public static final Pattern SLASH_STAR_COMMENT = Pattern.compile("(?s:/\\*.*?\\*/)"); // (?s: ... ) lets . match linefeeds
+//}}} Comments
 //}}}
 
 //{{{ Variable definitions
