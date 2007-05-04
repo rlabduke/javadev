@@ -73,7 +73,12 @@ public class CharWindow implements CharSequence
 
 //{{{ charAt, length, advance
 //##############################################################################
-    /** Returns the character at relative position index, or U+FFFF if past the end-of-file. */
+    /**
+    * Returns the character at relative position index, or U+FFFF if past the end-of-file.
+    * Negative indices may be OK, but values before the begining of the file are undefined.
+    * @throws IndexOutOfBoundsException if index is outside the valid range
+    * @throws RuntimeException if there are problems reading from the stream
+    */
     public char charAt(int index)
     {
         try
@@ -81,6 +86,9 @@ public class CharWindow implements CharSequence
             // Casting -1 to char gives U+FFFF, as expected.
             if(index < bufEnd - buffer.length)
                 throw new IndexOutOfBoundsException("Current range is ["+(bufEnd - buffer.length)+", "+bufEnd+"); can't get "+index);
+            // If we wanted to catch references before the begining of the file:
+            //else if(prevChars + index < 0)
+            //    throw new IndexOutOfBoundsException("Can't reference positions before the beginging of the stream");
             else while(index >= bufEnd)
             {
                 int c = (char) reader.read();
@@ -117,7 +125,8 @@ public class CharWindow implements CharSequence
 
 //{{{ subSeq, subSequence, toString
 //##############################################################################
-    String subSeq(int start, int end)
+    /** Returns a static snapshot of the specified region */
+    public String toString(int start, int end)
     {
         StringBuffer sb = new StringBuffer(end - start);
         for(int i = start; i < end; i++)
@@ -125,13 +134,13 @@ public class CharWindow implements CharSequence
         return sb.toString();
     }
     
-    /** Returns a static snapshot of the specified region */
+    /** Same as toString(start, end) */
     public CharSequence subSequence(int start, int end)
-    { return subSeq(start, end); }
+    { return toString(start, end); }
 
     /** Returns a static snapshot of all characters in the buffer */
     public String toString()
-    { return subSeq(0, bufEnd); }
+    { return toString(0, bufEnd); }
 //}}}
 
 //{{{ main (simple unit test)
@@ -139,6 +148,8 @@ public class CharWindow implements CharSequence
     /** Echos back complete lines typed at the console. */
     public static void main(String[] args) throws Exception
     {
+        // Mac java does some weird buffering of input until Enter / ^D
+        // Only ^D at begining of line followed by Enter seems to send EOF.
         CharWindow w = new CharWindow(new InputStreamReader(System.in));
         int i = 0;
         while(true)
