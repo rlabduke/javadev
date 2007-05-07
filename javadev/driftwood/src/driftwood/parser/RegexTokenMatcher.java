@@ -131,8 +131,9 @@ public class RegexTokenMatcher implements TokenMatcher
 
 //{{{ Variable definitions
 //##############################################################################
-    Matcher matcher;
-    int     whichGroup;
+    Matcher accept, ignore;
+    String theToken = null;
+    int tokenEnd = 0;
 //}}}
 
 //{{{ Constructor(s)
@@ -148,16 +149,8 @@ public class RegexTokenMatcher implements TokenMatcher
     public RegexTokenMatcher(Pattern accept, Pattern ignore)
     {
         super();
-        
-        // Need ignore at begining for leading ignorables in file, at end for trailing.
-        this.matcher = Pattern.compile(
-            "(?:"+ignore.pattern()+")*"
-            +"("+accept.pattern()+")"
-            +"(?:"+ignore.pattern()+")*"
-        ).matcher("");
-        
-        // groupCount() works even before trying a match
-        this.whichGroup = ignore.matcher("").groupCount() + 1;
+        this.accept = accept.matcher("");
+        this.ignore = ignore.matcher("");
     }
     
     public RegexTokenMatcher(String accept, String ignore)
@@ -171,17 +164,42 @@ public class RegexTokenMatcher implements TokenMatcher
 //##############################################################################
     public boolean match(CharSequence s, int start)
     {
-        this.matcher.reset(s);
-        matcher.region(start, s.length());
+        this.ignore.reset(s);
+        int end = start, len = s.length();
+        while(end < len)
+        {
+            ignore.region(end, len);
+            if(!ignore.lookingAt()) break;
+            end = ignore.end(); // absolute position, not relative to region()
+        }
+        
+        this.accept.reset(s);
+        accept.region(end, len);
         // match must start at begining, but doesn't have to extend to end
-        return matcher.lookingAt();
+        if(accept.lookingAt())
+        {
+            this.theToken = normalize(accept.group());
+            this.tokenEnd = accept.end();
+            return true;
+        }
+        // If whitespace consumed to end of s, return null token.
+        // This allows us to deal with trailing whitespace but not
+        // consume it prematurely, in case we change tokenization rules
+        // in mid-file and it suddenly becomes significant.
+        else if(end > start && end == len)
+        {
+            this.theToken = null;
+            this.tokenEnd = ignore.end();
+            return true;
+        }
+        else return false;
     }
     
     public int end()
-    { return matcher.end(); /* absolute position, not relative to region() */}
+    { return tokenEnd; }
     
-    public CharSequence token()
-    { return normalize(matcher.group(whichGroup)); }
+    public String token()
+    { return theToken; }
     
     /**
     * May be overriden by subclasses to normalize the raw tokens matched by the accept pattern.
