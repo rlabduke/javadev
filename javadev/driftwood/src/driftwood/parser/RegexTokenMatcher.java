@@ -182,17 +182,20 @@ public class RegexTokenMatcher implements TokenMatcher
             this.tokenEnd = accept.end();
             return true;
         }
-        // If whitespace consumed to end of s, return null token.
+        // If we only matched whitespace, set the token to null and our
+        // position to the end of the whitespace.
+        // If whitespace consumed to end of s, return true.
         // This allows us to deal with trailing whitespace but not
         // consume it prematurely, in case we change tokenization rules
         // in mid-file and it suddenly becomes significant.
-        else if(end > start && end == len)
+        // If whitespace just preceded a bad token, we still care about
+        // where the bad token starts (i.e. ignore.end()), but we return false.
+        else
         {
             this.theToken = null;
-            this.tokenEnd = ignore.end();
-            return true;
+            this.tokenEnd = end; // == ignore.end() if we matched whitespace
+            return (end > start && end == len);
         }
-        else return false;
     }
     
     public int end()

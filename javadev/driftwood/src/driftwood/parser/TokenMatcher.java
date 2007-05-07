@@ -35,6 +35,8 @@ public interface TokenMatcher //extends ... implements ...
     /**
     * If the last match() was successful, returns the index of the end of
     * the token (exclusive) -- that is, the position to be used as the next start.
+    * If the last match() was unsuccessful, tries to return the index where the
+    * problem occurred (e.g. could skip leading whitespace before a bad token).
     */
     public int end();
     
