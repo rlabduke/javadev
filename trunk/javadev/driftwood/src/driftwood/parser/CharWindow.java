@@ -82,6 +82,18 @@ public class CharWindow implements CharSequence
     
     public CharWindow(String s, int minBufferSize) throws IOException
     { this(new StringReader(s), minBufferSize); }
+
+    public CharWindow(File f) throws IOException
+    { this(new FileReader(f)); }
+    
+    public CharWindow(File f, int minBufferSize) throws IOException
+    { this(new FileReader(f), minBufferSize); }
+
+    public CharWindow(URL url) throws IOException
+    { this(url.openStream()); }
+    
+    public CharWindow(URL url, int minBufferSize) throws IOException
+    { this(url.openStream(), minBufferSize); }
 //}}}
 
 //{{{ charAt, length, advance
@@ -103,8 +115,42 @@ public class CharWindow implements CharSequence
     {
         if(howMuch < 0)
             throw new IllegalArgumentException("Can't advance backwards!");
+        
+        // Count newlines already in buffer that we'll advance over:
+        for(int i = 0, len = Math.min(dataLen, howMuch); i < len; i++)
+        {
+            if(buffer[ (int)((prevChars + i) & bufMask) ] == '\n')
+            {
+                this.lineAtZero++;
+                this.colAtZero = 0;
+            }
+            else
+                this.colAtZero++;
+        }
+        
+        // If this wiped out our buffer and then some, count those newlines too:
         prevChars += howMuch;
         dataLen -= howMuch;
+        for( ; dataLen < 0; dataLen++)
+        {
+            int c = reader.read();
+            if(c == -1)
+            {
+                if(dataLen < 0) dataLen = 0;
+                break;
+            }
+            else if(c == '\n')
+            {
+                this.lineAtZero++;
+                this.colAtZero = 0;
+            }
+            else
+                this.colAtZero++;
+            buffer[ (int)((prevChars + dataLen) & bufMask) ] = (char) c;
+        }
+        
+        // Fill the rest of the buffer, or until EOF.
+        // These newlines don't get counted until we advance past them.
         for(int bufLen = buffer.length; dataLen < bufLen; dataLen++)
         {
             int c = reader.read();
