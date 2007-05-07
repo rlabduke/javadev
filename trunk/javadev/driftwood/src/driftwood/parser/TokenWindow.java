@@ -94,7 +94,7 @@ public class TokenWindow //extends ... implements ...
                 winEnd[bufIns] = matcher.end();
             }
             else
-                throw syntaxError(start, "bad token");
+                throw syntaxError(matcher.end(), "bad token");
         }
         return buffer[ (prevTokens + index) & bufMask ];
     }
