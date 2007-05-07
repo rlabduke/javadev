@@ -112,7 +112,8 @@ public class TokenWindow //extends ... implements ...
         if(howMuch < 0)
             throw new IllegalArgumentException("Can't advance backwards!");
         tokenAt(howMuch); // forces advancement
-        int idx = (prevTokens + howMuch) & bufMask;
+        // if prevTokens == 0 and howMuch == 0, then winEnd[*] == 0, so it's OK
+        int idx = (prevTokens + howMuch - 1) & bufMask;
         int adv = winEnd[idx];
         window.advance(adv);
         prevTokens += howMuch;
@@ -151,20 +152,25 @@ public class TokenWindow //extends ... implements ...
 
 //{{{ syntaxError
 //##############################################################################
-    /** Makes a ParseException with the specified message */
+    /** Makes a ParseException with the specified message (by default at current position 0) */
     public ParseException syntaxError(int pos, String detail)
     {
         int line = window.lineAt(pos);
         int col = window.columnAt(pos);
         StringBuffer err = new StringBuffer();
         err.append("Syntax error at line "+line+", column "+col+": "+detail+"\n");
-        String snipet = window.toString(pos-col, pos+20);
+        String snipet = window.toString(pos, pos+20);
         err.append("> "+snipet+" ...\n");
-        err.append('>');
-        for(int i = 0; i < col; i++) err.append(' ');
-        err.append("^\n");
+        //String snipet = window.toString(pos-(col-1), pos+20);
+        //err.append("> "+snipet+" ...\n");
+        //err.append('>');
+        //for(int i = 0; i < col; i++) err.append(' ');
+        //err.append("^\n");
         return new ParseException(err.toString(), line);
     }
+    
+    public ParseException syntaxError(String detail)
+    { return syntaxError(0, detail); }
 //}}}
 
 //{{{ main (simple unit test)
