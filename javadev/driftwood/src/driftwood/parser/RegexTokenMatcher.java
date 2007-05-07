@@ -212,20 +212,6 @@ public class RegexTokenMatcher implements TokenMatcher
 //{{{ joinPatterns
 //##############################################################################
     /** Strings together a bunch of Patterns with OR bars (|). */
-    public static Pattern joinPatterns(Pattern[] p)
-    {
-        StringBuffer b = new StringBuffer();
-        for(int i = 0; i < p.length; i++)
-        {
-            if(i > 0) b.append('|');
-            b.append("(?:");
-            b.append(p[i].pattern());
-            b.append(')');
-        }
-        return Pattern.compile(b.toString());
-    }
-
-    /** Strings together a bunch of Patterns with OR bars (|). */
     public static Pattern joinPatterns(String[] p)
     {
         StringBuffer b = new StringBuffer();
@@ -238,6 +224,57 @@ public class RegexTokenMatcher implements TokenMatcher
         }
         return Pattern.compile(b.toString());
     }
+
+    public static Pattern joinPatterns(Pattern[] p)
+    {
+        String[] s = new String[p.length];
+        for(int i = 0; i < p.length; i++)
+            s[i] = p[i].pattern();
+        return joinPatterns(s);
+    }
+
+    public static Pattern joinPatterns(Matcher[] p)
+    {
+        String[] s = new String[p.length];
+        for(int i = 0; i < p.length; i++)
+            s[i] = p[i].pattern().pattern();
+        return joinPatterns(s);
+    }
+//}}}
+
+//{{{ recursivePattern
+//##############################################################################
+    /**
+    * Some languages have quoting systems that escape quote chacters with
+    * a "balancing" requirement:  the number of "open" symbols must match
+    * the number of "close" symbols, and the opens must precede the closes.
+    * For example, PostScript quotes strings this way with parentheses,
+    * kinemage quotes strings this way with curly braces,
+    * and AppleScript does comments this way with <code>(* ... *)</code>.
+    *
+    * <p>Formally, <code>STRING = OPEN ( GUTS | STRING )+ CLOSE</code>.
+    * By allowing GUTS to match 0 characters, one can allow empty strings.
+    *
+    * <p>Such a pattern cannot actually be specified with regular expressions;
+    * however, by nesting things 10 or 20 levels deep, one can match any
+    * reasonable real-life examples.
+    */
+    public static Pattern recursivePattern(String start, String guts, String close, int maxDepth)
+    {
+        StringBuffer b = new StringBuffer();
+        for(int i = 0; i < maxDepth; i++)
+            b.append("(?:").append(start).append(")(?:(?:").append(guts).append(")|(?:");
+        b.append(guts);
+        for(int i = 0; i < maxDepth; i++)
+            b.append("))+(?:").append(close).append(")");
+        return Pattern.compile(b.toString());
+    }
+
+    public static Pattern recursivePattern(Pattern start, Pattern guts, Pattern close, int maxDepth)
+    { return recursivePattern(start.pattern(), guts.pattern(), close.pattern(), maxDepth); }
+
+    public static Pattern recursivePattern(Matcher start, Matcher guts, Matcher close, int maxDepth)
+    { return recursivePattern(start.pattern().pattern(), guts.pattern().pattern(), close.pattern().pattern(), maxDepth); }
 //}}}
 
 //{{{ main (simple unit test)
@@ -245,12 +282,15 @@ public class RegexTokenMatcher implements TokenMatcher
     public static void main(String[] args)
     {
         // Matches foo's separated by whitespace
-        RegexTokenMatcher m = new RegexTokenMatcher("foo", "\\s");
-        String test = "foo   foo  foofoo  f";
-        System.out.println(test);
+        //RegexTokenMatcher m = new RegexTokenMatcher("foo", "\\s");
+        //String test = "foo   foo  foofoo  f";
         //int[] pos = {0, 1, 3, 7, 8};
         //for(int i = 0; i < pos.length; i++)
         //    System.out.println("matches at "+pos[i]+"? "+(m.match(test, pos[i]) ? "true ["+pos[i]+", "+m.end()+") -> '"+m.token()+"'" : "false"));
+
+        RegexTokenMatcher m = new RegexTokenMatcher(recursivePattern("<", "[a-zA-Z .]*", ">", 3), WHITESPACE);
+        String test = "<foo>   <Fred approached.  <<Hi there>> said Bob.>";
+        System.out.println(test);
         for(int i = 0; i < test.length(); i = m.end())
         {
             if(!m.match(test, i))
