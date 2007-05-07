@@ -54,6 +54,9 @@ UTIL: {{{
 - changed parser.* to not consume whitespace prematurely
 - added RegexTokenMatcher.recursivePattern()
 - giving up on parser.* for now -- can't figure out how to make it work
+- heavily reworked CharWindow to make it simpler, and offer both look-ahead
+  and look-behind (for generating context of error msgs)
+- improved TokenWindow.syntaxError(), though leading whitespace still a problem
 
 ### 0.78 ###
 - added util.ReflectiveRunnable

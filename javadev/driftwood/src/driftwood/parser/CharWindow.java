@@ -39,7 +39,7 @@ public class CharWindow implements CharSequence
 //##############################################################################
     /** The source of characters */
     Reader  reader;
-    /** How many characters have been read before the current charAt(0); can't be accessed any more. */
+    /** How many characters have been read before the current charAt(0) */
     long    prevChars   = 0;
     /** Number of line breaks preceding preceding charAt(0) */
     int     lineAtZero  = 0;
@@ -47,6 +47,8 @@ public class CharWindow implements CharSequence
     int     colAtZero   = 0;
     /** Number of usable characters in the buffer */
     int     dataLen     = 0;
+    /** Minimum accessible index in the buffer */
+    int     dataMin     = 0;
     /** Power-of-two-minus-one bitmask used to wrap absolute character index (prevChars + charAtIndex) to a buffer index. */
     long    bufMask;
     /** Actual buffer of characters; reading and writing wrap around in a cycle. */
@@ -59,16 +61,32 @@ public class CharWindow implements CharSequence
     public CharWindow(Reader reader) throws IOException
     { this(reader, KILOBYTE); }
     
+    /**
+    * Creates a new window around the given reader,
+    * with a buffer of at least the specified size (possibly larger).
+    * Actually, the buffer is at least twice the minimum size,
+    * so you get equal amounts of look-ahead and look-behind.
+    * (Look-behind turns out to be very important for recovering the context
+    * of syntax errors!)
+    */
     public CharWindow(Reader reader, int minBufferSize) throws IOException
     {
         super();
         int bufLen;
         for(bufLen = 16; bufLen < minBufferSize; bufLen <<= 1);
+        bufLen <<= 1; // double it: half for lookahead, half for lookbehind
+        
         this.buffer     = new char[bufLen]; // a power of two
         this.bufMask    = bufLen - 1;       // lowest N bits set
         this.reader     = reader;
         
-        advance(0); // fill the buffer initially
+        // fill the buffer initially half full
+        for(this.dataLen = 0; dataLen < bufLen/2; dataLen++)
+        {
+            int c = reader.read();
+            if(c == -1) break;
+            buffer[ (int)(dataLen & bufMask) ] = (char) c;
+        }
     }
     
     public CharWindow(InputStream in) throws IOException
@@ -96,12 +114,12 @@ public class CharWindow implements CharSequence
     { this(url.openStream(), minBufferSize); }
 //}}}
 
-//{{{ charAt, length, advance
+//{{{ charAt, length, read, advance
 //##############################################################################
     public char charAt(int index)
     {
-        if(index < 0 || index > dataLen)
-            throw new IndexOutOfBoundsException("Current range is [0, "+dataLen+"); can't get "+index);
+        if(index < dataMin || index >= dataLen)
+            throw new IndexOutOfBoundsException("Current range is ["+dataMin+", "+dataLen+"); can't get "+index);
         else
             return buffer[ (int)((prevChars + index) & bufMask) ];
     }
@@ -110,57 +128,40 @@ public class CharWindow implements CharSequence
     public int length()
     { return dataLen; }
     
-    /** Advances the zero point of this simulated CharSequence by the specified amount. */
+    /** Returns character at index 0 and advances zero point by one. To detect EOF, check length() == 0. */
+    public char read() throws IOException
+    {
+        // Get charAt(0); if newline, update counters.
+        char atZero = buffer[ (int)(prevChars & bufMask) ];
+        if(atZero == '\n')
+        {
+            this.lineAtZero++;
+            this.colAtZero = 0;
+        }
+        else
+            this.colAtZero++;
+            
+        // Read new char; if EOF, decrease available forward chars.
+        int c = reader.read();
+        if(c == -1)
+            dataLen--;
+        else
+            buffer[ (int)((prevChars + dataLen) & bufMask) ] = (char) c;
+        
+        // Move current position forward by one.
+        prevChars++;
+        dataMin = (int) Math.max(-prevChars, dataLen - buffer.length);
+        
+        return atZero;
+    }
+    
+    /** Call read() repeatedly to advance the zero point of this simulated CharSequence by the specified amount. */
     public void advance(int howMuch) throws IOException
     {
         if(howMuch < 0)
             throw new IllegalArgumentException("Can't advance backwards!");
         
-        // Count newlines already in buffer that we'll advance over:
-        for(int i = 0, len = Math.min(dataLen, howMuch); i < len; i++)
-        {
-            if(buffer[ (int)((prevChars + i) & bufMask) ] == '\n')
-            {
-                this.lineAtZero++;
-                this.colAtZero = 0;
-            }
-            else
-                this.colAtZero++;
-        }
-        
-        // If this wiped out our buffer and then some, count those newlines too:
-        prevChars += howMuch;
-        dataLen -= howMuch;
-        for( ; dataLen < 0; dataLen++)
-        {
-            int c = reader.read();
-            if(c == -1)
-            {
-                if(dataLen < 0) dataLen = 0;
-                break;
-            }
-            else if(c == '\n')
-            {
-                this.lineAtZero++;
-                this.colAtZero = 0;
-            }
-            else
-                this.colAtZero++;
-            buffer[ (int)((prevChars + dataLen) & bufMask) ] = (char) c;
-        }
-        
-        // Fill the rest of the buffer, or until EOF.
-        // These newlines don't get counted until we advance past them.
-        for(int bufLen = buffer.length; dataLen < bufLen; dataLen++)
-        {
-            int c = reader.read();
-            if(c == -1)
-            {
-                if(dataLen < 0) dataLen = 0;
-                break;
-            }
-            buffer[ (int)((prevChars + dataLen) & bufMask) ] = (char) c;
-        }
+        for(int i = 0; i < howMuch; i++) read();
     }
 //}}}
 
@@ -215,6 +216,42 @@ public class CharWindow implements CharSequence
         }
         return col + 1;
     }
+//}}}
+
+//{{{ contextAt, startsWith
+//##############################################################################
+    /**
+    * Returns a string showing the context of the specified position,
+    * spanning the entire line that position occurs on (up to the limits of the buffer).
+    */
+    public String contextAt(int index)
+    {
+        int start = index;
+        while(start > dataMin && charAt(start-1) != '\n') start--;
+        int end = index;
+        while(index < dataLen && charAt(end) != '\n') end++;
+        
+        return toString(start, end);
+    }
+    
+    /**
+    * Tests whether the string <code>other</code> appears in this buffer,
+    * starting at position <code>index</code> in the window.
+    * @param index defaults to 0
+    */
+    public boolean startsWith(CharSequence other, int index)
+    {
+        int thisLen = this.length() - index, otherLen = other.length();
+        if(otherLen > thisLen)
+            return false;
+        for(int i = 0; i < otherLen; )
+            if(this.charAt(index++) != other.charAt(i++))
+                return false;
+        return true;
+    }
+    
+    public boolean startsWith(CharSequence other)
+    { return startsWith(other, 0); }
 //}}}
 
 //{{{ main (simple unit test)
