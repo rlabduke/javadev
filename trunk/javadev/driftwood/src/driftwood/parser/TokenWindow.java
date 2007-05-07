@@ -159,13 +159,14 @@ public class TokenWindow //extends ... implements ...
         int col = window.columnAt(pos);
         StringBuffer err = new StringBuffer();
         err.append("Syntax error at line "+line+", column "+col+": "+detail+"\n");
-        String snipet = window.toString(pos, pos+20);
-        err.append("> "+snipet+" ...\n");
-        //String snipet = window.toString(pos-(col-1), pos+20);
-        //err.append("> "+snipet+" ...\n");
-        //err.append('>');
-        //for(int i = 0; i < col; i++) err.append(' ');
-        //err.append("^\n");
+        String snipet = window.contextAt(pos);
+        err.append("> "+snipet+"\n");
+        if(col <= snipet.length())
+        {
+            err.append('>');
+            for(int i = 0; i < col; i++) err.append(' ');
+            err.append("^\n");
+        }
         return new ParseException(err.toString(), line);
     }
     
