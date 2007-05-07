@@ -24,6 +24,11 @@ public interface TokenMatcher //extends ... implements ...
     * Returns true iff a valid token starts at position <code>start</code>
     * in the given character sequence.
     * After a successful result, end() and token() can be called for details.
+    * <p>This function may return true but generate a null token iff afterwards
+    * <code>this.end() == s.length()</code> and
+    * <code>match(s, end()) == false</code>.
+    * This basically allows for one null token representing the final ignorable
+    * whitespace in a file.
     */
     public boolean match(CharSequence s, int start);
     
@@ -38,7 +43,8 @@ public interface TokenMatcher //extends ... implements ...
     * token that was recognized.  Because the token may be normalized and
     * whitespace/comments/etc may be skipped, the length of the token
     * is not guaranteed to equal <code>end() - start</code>.
+    * This function *may* return null, see <code>match()</code>.
     */
-    public CharSequence token();
+    public String token();
 }//class
 

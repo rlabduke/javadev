@@ -90,7 +90,7 @@ public class TokenWindow //extends ... implements ...
             }
             else if(matcher.match(window, start))
             {
-                buffer[bufIns] = matcher.token().toString();
+                buffer[bufIns] = matcher.token();
                 winEnd[bufIns] = matcher.end();
             }
             else
