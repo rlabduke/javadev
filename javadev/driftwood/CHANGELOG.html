@@ -27,7 +27,8 @@ MOLDB2: {{
     Alignment needs to accept gap start vs. gap extend penalties (16/2/2 for BLOSUM 62)
     Consider supporting "WPDB" (wide PDB) format standard
 }}}
-PARSER: {{{
+PARSER: {{
+    TokenWindow.syntaxError doesn't skip whitespace -- add TokenMatcher.start()?
 }}}
 R3: {{{
 }}}

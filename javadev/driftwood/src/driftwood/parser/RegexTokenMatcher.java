@@ -35,30 +35,24 @@ public class RegexTokenMatcher implements TokenMatcher
     
 //{{{ Numbers
     /**
-    * The subset of INTEGER that represents the positive numbers (excludes 0).
-    * A digit 1-9 possibly followed by other digits.
-    */
-    public static final Pattern POSITIVE_INT;
-    
-    /**
-    * The subset of INTEGER that represents 0 and the positive numbers.
-    * Either "0", or a digit 1-9 possibly followed by other digits.
-    */
-    public static final Pattern NATURAL_INT;
-    
-    /**
     * Recognizes a subset of the integer number formats acceptable to Integer.parseInt().
     * Allowed: explicit "+" signs
     * Disallowed: spaces, commas, computerized scientific notation, useless leading zeros.
     */
-    public static final Pattern INTEGER;
+    public static final Pattern SIGNED_INT;
+    
+    /** Like SIGNED_INT, but without a leading sign (+ or -). */
+    public static final Pattern UNSIGNED_INT;
     
     /**
     * Recognizes a subset of the real number formats acceptable to Double.parseDouble().
     * Allowed: explicit "+" signs, computerized scientific notation ("1e6" == 1 000 000).
     * Disallowed: spaces, commas, useless leading zeros.
     */
-    public static final Pattern REAL_NUM;
+    public static final Pattern SIGNED_REAL;
+    
+    /** Like SIGNED_REAL, but without a leading sign (+ or -). */
+    public static final Pattern UNSIGNED_REAL;
     
     static
     {
@@ -67,13 +61,14 @@ public class RegexTokenMatcher implements TokenMatcher
         String positive = "(?:[1-9][0-9]*)";
         String natural  = "(?:0|"+positive+")";
         String integer  = "(?:"+sign+natural+")";
-        String real     = "(?:"+integer+"(?:\\.(?:"+digits+")?)?)";
-        String real_exp = "(?:"+real+"(?:[eE]"+integer+")?)";
+        String u_real   = "(?:"+natural+"(?:\\.(?:"+digits+")?)?)";
+        String u_real_e = "(?:"+u_real+"(?:[eE]"+integer+")?)";
+        String s_real_e = "(?:"+sign+u_real_e+")";
         
-        POSITIVE_INT    = Pattern.compile(positive);
-        NATURAL_INT     = Pattern.compile(natural);
-        INTEGER         = Pattern.compile(integer);
-        REAL_NUM        = Pattern.compile(real_exp);
+        SIGNED_INT      = Pattern.compile(integer);
+        UNSIGNED_INT    = Pattern.compile(natural);
+        SIGNED_REAL     = Pattern.compile(s_real_e);
+        UNSIGNED_REAL   = Pattern.compile(u_real_e);
     }
 //}}} Numbers
     
