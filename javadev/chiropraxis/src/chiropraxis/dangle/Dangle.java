@@ -12,6 +12,7 @@ import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
 import driftwood.moldb2.*;
+import driftwood.parser.*;
 //}}}
 /**
 * <code>Dangle</code> is a flexible replacement for many of Dang's jobs.
@@ -155,26 +156,11 @@ public class Dangle //extends ... implements ...
 //##############################################################################
     void loadMeasures(String resourceName) throws IOException, ParseException
     {
-        LineNumberReader in = new LineNumberReader( new InputStreamReader(
-            //this.getClass().getResourceAsStream("EnghHuber_IntlTblsF_1999.txt")
-            //this.getClass().getResourceAsStream("ParkinsonBerman_ActaCrystD_1996.txt")
-            this.getClass().getResourceAsStream(resourceName)
-        ));
-        StringWriter out = new StringWriter();
-        
-        while(true)
-        {
-            String s = in.readLine();
-            if(s == null) break;
-            else if(s.startsWith("#")) continue;
-            out.write(s);
-            out.write("\n");
-        }
-        in.close();
-        
         measurements.addAll(
             new Parser().parse(
-                out.getBuffer().toString()
+                new CharWindow(
+                    this.getClass().getResource(resourceName)
+                )
             )
         );
     }
@@ -212,7 +198,7 @@ public class Dangle //extends ... implements ...
             {
                 Parser parser = new Parser();
                 String defaults = parser.BUILTIN.pattern().pattern().replace('|', ' ');
-                measurements.addAll(parser.parse(defaults));
+                measurements.addAll(parser.parse(new CharWindow(defaults)));
             }
         }
         
@@ -351,8 +337,8 @@ public class Dangle //extends ... implements ...
         if(f.exists()) files.add(f);
         else
         {
-            try { measurements.addAll(new Parser().parse(arg)); }
-            catch(ParseException ex)
+            try { measurements.addAll(new Parser().parse(new CharWindow(arg))); }
+            catch(Exception ex)
             {
                 ex.printStackTrace();
                 throw new IllegalArgumentException(ex.getMessage());
