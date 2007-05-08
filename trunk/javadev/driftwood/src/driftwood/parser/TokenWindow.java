@@ -193,7 +193,7 @@ public class TokenWindow //extends ... implements ...
         // Should be able to tokenize Java and maybe other languages
         // Some confusion between + and - as operators vs. signs on numbers
         Pattern[] accept = {
-            RegexTokenMatcher.REAL_NUM,
+            RegexTokenMatcher.UNSIGNED_REAL,
             RegexTokenMatcher.JAVA_WORD,
             RegexTokenMatcher.JAVA_PUNC,
             RegexTokenMatcher.SINGLE_QUOTED_STRING,

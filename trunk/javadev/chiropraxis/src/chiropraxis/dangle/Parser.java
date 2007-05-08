@@ -72,7 +72,7 @@ public class Parser //extends ... implements ...
     final Matcher ATOMNAME  = Pattern.compile("[_A-Z0-9*']{4}|/[^/ ]*/").matcher("");
     final Matcher IDEAL     = Pattern.compile("ideal").matcher("");
     //final Matcher REALNUM   = Pattern.compile("-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?(0|[1-9][0-9]*)(\\.[0-9]+)?)?").matcher("");
-    final Matcher REALNUM   = RegexTokenMatcher.REAL_NUM.matcher("");
+    final Matcher REALNUM   = RegexTokenMatcher.SIGNED_REAL.matcher("");
     
     final Pattern[] toIgnore = {
         RegexTokenMatcher.WHITESPACE,
@@ -84,7 +84,7 @@ public class Parser //extends ... implements ...
         // The superset of other patterns. *Don't* do RESNAME|ATOMNAME, as RESNAME will match atoms, but is too short!
         LABEL.pattern(),
         RegexTokenMatcher.SLASH_QUOTED_STRING,
-        RegexTokenMatcher.REAL_NUM
+        RegexTokenMatcher.SIGNED_REAL
     };
 //}}}
 
