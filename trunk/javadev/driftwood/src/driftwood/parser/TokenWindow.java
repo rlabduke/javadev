@@ -120,7 +120,7 @@ public class TokenWindow //extends ... implements ...
         bufEnd -= howMuch; // assert bufEnd >= 1;
         // Correct the end indices for buffered tokens
         // by the amount we advanced the window:
-        for(int i = 0; i < bufEnd; i++)
+        for(int i = 0; i < buffer.length; i++)
             winEnd[ (prevTokens + i) & bufMask ] -= adv;
     }
 //}}}
@@ -130,7 +130,10 @@ public class TokenWindow //extends ... implements ...
     /** If <code>s.equals(token())</code>, return true and advance by one .*/
     public boolean accept(String s) throws ParseException, IOException
     {
-        if(s.equals(token()))
+        String token = this.token();
+        if(token == null) return false;
+        
+        if(s.equals(token))
         {
             advance();
             return true;
@@ -141,7 +144,10 @@ public class TokenWindow //extends ... implements ...
     /** If <code>m.reset(token()).matches()</code>, return true and advance by one .*/
     public boolean accept(Matcher m) throws ParseException, IOException
     {
-        if(m.reset(token()).matches())
+        String token = this.token();
+        if(token == null) return false;
+        
+        if(m.reset(token).matches())
         {
             advance();
             return true;
@@ -152,16 +158,22 @@ public class TokenWindow //extends ... implements ...
 
 //{{{ syntaxError
 //##############################################################################
-    /** Makes a ParseException with the specified message (by default at current position 0) */
-    public ParseException syntaxError(int pos, String detail)
+    /** Makes a ParseException with the specified message (by default at current token position [0]) */
+    public ParseException syntaxError(int index, String detail)
     {
-        int line = window.lineAt(pos);
-        int col = window.columnAt(pos);
+        int     bufCurr = (prevTokens + index) & bufMask;
+        boolean isEOF   = (buffer[bufCurr] == null); // don't check if index is out of tokenAt() range -- who cares?
+        int     bufPrev = (bufCurr - 1) & bufMask;
+        int     pos     = winEnd[bufPrev]; // character position of start of bad token
+        System.err.println("pos = "+pos);
+        int     line    = window.lineAt(pos);
+        int     col     = window.columnAt(pos);
+        
         StringBuffer err = new StringBuffer();
         err.append("Syntax error at line "+line+", column "+col+": "+detail+"\n");
         String snipet = window.contextAt(pos);
         err.append("> "+snipet+"\n");
-        if(col <= snipet.length())
+        if(col <= snipet.length() || isEOF)
         {
             err.append('>');
             for(int i = 0; i < col; i++) err.append(' ');
@@ -184,8 +196,8 @@ public class TokenWindow //extends ... implements ...
             RegexTokenMatcher.REAL_NUM,
             RegexTokenMatcher.JAVA_WORD,
             RegexTokenMatcher.JAVA_PUNC,
-            RegexTokenMatcher.SINGLE_QUOTE_STRING,
-            RegexTokenMatcher.DOUBLE_QUOTE_STRING
+            RegexTokenMatcher.SINGLE_QUOTED_STRING,
+            RegexTokenMatcher.DOUBLE_QUOTED_STRING
         };
         Pattern[] ignore = {
             RegexTokenMatcher.WHITESPACE,

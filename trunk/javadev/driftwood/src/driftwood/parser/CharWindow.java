@@ -28,11 +28,11 @@ import java.util.*;
 public class CharWindow implements CharSequence
 {
 //{{{ Constants
-    /** Kilobyte, for specifying buffer sizes */
-    public static final int KILOBYTE = 1<<10;
+    /** 2^10 (1024) characters, for specifying buffer sizes */
+    public static final int KILOCHAR = 1<<10;
     
-    /** Megabyte, for specifying buffer sizes */
-    public static final int MEGABYTE = 1<<20;
+    /** 2^20 (1024 * 1024) characters, for specifying buffer sizes */
+    public static final int MEGACHAR = 1<<20;
 //}}}
 
 //{{{ Variable definitions
@@ -57,9 +57,13 @@ public class CharWindow implements CharSequence
 
 //{{{ Constructor(s)
 //##############################################################################
-    /** Default buffer size is 1k. */
+    /**
+    * Default buffer size is 16 kchars,
+    * enough for ~200 (80 char) lines of comments and/or whitespace
+    * preceding a single real token.
+    */
     public CharWindow(Reader reader) throws IOException
-    { this(reader, KILOBYTE); }
+    { this(reader, 16*KILOCHAR); }
     
     /**
     * Creates a new window around the given reader,
@@ -229,7 +233,7 @@ public class CharWindow implements CharSequence
         int start = index;
         while(start > dataMin && charAt(start-1) != '\n') start--;
         int end = index;
-        while(index < dataLen && charAt(end) != '\n') end++;
+        while(end < dataLen && charAt(end) != '\n') end++;
         
         return toString(start, end);
     }
