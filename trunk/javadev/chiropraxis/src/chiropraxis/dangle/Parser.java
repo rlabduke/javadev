@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.regex.*;
 //import javax.swing.*;
 import driftwood.data.*;
+import driftwood.parser.*;
 //}}}
 /**
 * <code>Parser</code> decodes a simple grammar for specifying measurements in molecules:
@@ -70,13 +71,26 @@ public class Parser //extends ... implements ...
     final Matcher RESNO     = Pattern.compile("i|i(-[1-9])|i\\+([1-9])").matcher("");
     final Matcher ATOMNAME  = Pattern.compile("[_A-Z0-9*']{4}|/[^/ ]*/").matcher("");
     final Matcher IDEAL     = Pattern.compile("ideal").matcher("");
-    final Matcher REALNUM   = Pattern.compile("-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?(0|[1-9][0-9]*)(\\.[0-9]+)?)?").matcher("");
+    //final Matcher REALNUM   = Pattern.compile("-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?(0|[1-9][0-9]*)(\\.[0-9]+)?)?").matcher("");
+    final Matcher REALNUM   = RegexTokenMatcher.REAL_NUM.matcher("");
+    
+    final Pattern[] toIgnore = {
+        RegexTokenMatcher.WHITESPACE,
+        Pattern.compile("[,;]+"),
+        RegexTokenMatcher.HASH_COMMENT
+    };
+    
+    final Pattern[] toAccept = {
+        // The superset of other patterns. *Don't* do RESNAME|ATOMNAME, as RESNAME will match atoms, but is too short!
+        LABEL.pattern(),
+        RegexTokenMatcher.SLASH_QUOTED_STRING,
+        RegexTokenMatcher.REAL_NUM
+    };
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    StringTokenizer tokens;
-    String token;
+    TokenWindow t;
 //}}}
 
 //{{{ Constructor(s)
@@ -87,18 +101,24 @@ public class Parser //extends ... implements ...
     }
 //}}}
 
-//{{{ parse, nextToken, accept
+//{{{ parse
 //##############################################################################
     /**
     * Parses a text expression into a set of Measurements.
     * @return a Collection of Measurement objects defined by the expression.
     */
-    public Collection parse(String expr) throws ParseException
+    public Collection parse(CharWindow expr) throws ParseException, IOException
     {
+        TokenMatcher tokenMatcher = new RegexTokenMatcher(
+            RegexTokenMatcher.joinPatterns(toAccept),
+            RegexTokenMatcher.joinPatterns(toIgnore)
+        );
+        t = new TokenWindow(expr, tokenMatcher);
+        
         UberMap meas = new UberMap();
-        tokens = new StringTokenizer(expr, ",; \t\n\r\f");
-        nextToken();
-        while(token != null)
+        //tokens = new StringTokenizer(expr, ",; \t\n\r\f");
+        //nextToken();
+        while(t.token() != null)
         {
             Measurement[] newMs = measurement_for();
             for(int i = 0; i < newMs.length; i++)
@@ -119,42 +139,14 @@ public class Parser //extends ... implements ...
         }
         return meas.values();
     }
-    
-    /** Returns the current (soon-to-be previous) token and advances to the next one */
-    String nextToken()
-    {
-        String oldToken = token;
-        if(!tokens.hasMoreTokens())
-            token = null;
-        else
-            token = tokens.nextToken();
-        return oldToken;
-    }
-    
-    boolean accept(Matcher symbol)
-    {
-        if(token == null) return false;
-        else if(symbol.reset(token).matches())
-        {
-            nextToken();
-            return true;
-        }
-        else return false;
-    }
-    
-    //boolean matches(Matcher symbol)
-    //{
-    //    if(token == null) return false;
-    //    else return symbol.reset(token).matches();
-    //}
 //}}}
 
 //{{{ measurement_for
 //##############################################################################
-    Measurement[] measurement_for() throws ParseException
+    Measurement[] measurement_for() throws ParseException, IOException
     {
         ResSpec resSpec = null;
-        if(accept(FOR))
+        if(t.accept(FOR))
             resSpec = resspec();
         
         Measurement[] m = measurement();
@@ -169,21 +161,21 @@ public class Parser //extends ... implements ...
 
 //{{{ resspec
 //##############################################################################
-    ResSpec resspec() throws ParseException
+    ResSpec resspec() throws ParseException, IOException
     {
         int resOffset = 0;
-        if(accept(RESNO))
+        if(t.accept(RESNO))
         {
             String grp = RESNO.group(1);
             if(grp == null) grp = RESNO.group(2);
             if(grp != null)
             {
                 try { resOffset = Integer.parseInt(grp); }
-                catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing residue number ["+token+"]", 0); }
+                catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing residue number ["+t.token()+"]", 0); }
             }
         }
-        boolean requireCis = accept(CIS);
-        if(accept(RESNAME))
+        boolean requireCis = t.accept(CIS);
+        if(t.accept(RESNAME))
         {
             ResSpec r = new ResSpec(
                 resOffset,
@@ -192,34 +184,34 @@ public class Parser //extends ... implements ...
             );
             return r;
         }
-        else throw new ParseException("Expected residue name ["+token+"]", 0);
+        else throw t.syntaxError("Expected residue name ["+t.token()+"]");
     }
 //}}}
 
 //{{{ measurement
 //##############################################################################
-    Measurement[] measurement() throws ParseException
+    Measurement[] measurement() throws ParseException, IOException
     {
-        if(accept(SUPERBLTN))
+        if(t.accept(SUPERBLTN))
         {
             return Measurement.newSuperBuiltin(SUPERBLTN.group());
         }
-        else if(accept(BUILTIN))
+        else if(t.accept(BUILTIN))
         {
             return new Measurement[] {Measurement.newBuiltin(BUILTIN.group())};
         }
-        else if(accept(DISTANCE))
+        else if(t.accept(DISTANCE))
         {
             Measurement m = Measurement.newDistance(
                 label(),
                 atomspec(),
                 atomspec()
             );
-            if(accept(IDEAL))
+            if(t.accept(IDEAL))
                 m.setMeanAndSigma(realnum(), realnum());
             return new Measurement[] {m};
         }
-        else if(accept(ANGLE))
+        else if(t.accept(ANGLE))
         {
             Measurement m = Measurement.newAngle(
                 label(),
@@ -227,11 +219,11 @@ public class Parser //extends ... implements ...
                 atomspec(),
                 atomspec()
             );
-            if(accept(IDEAL))
+            if(t.accept(IDEAL))
                 m.setMeanAndSigma(realnum(), realnum());
             return new Measurement[] {m};
         }
-        else if(accept(DIHEDRAL))
+        else if(t.accept(DIHEDRAL))
         {
             return new Measurement[] {Measurement.newDihedral(
                 label(),
@@ -241,49 +233,49 @@ public class Parser //extends ... implements ...
                 atomspec()
             )};
         }
-        else if(accept(MAXB))
+        else if(t.accept(MAXB))
         {
             return new Measurement[] {Measurement.newMaxB(
                 label(),
                 atomspec()
             )};
         }
-        else if(accept(MINQ))
+        else if(t.accept(MINQ))
         {
             return new Measurement[] {Measurement.newMinQ(
                 label(),
                 atomspec()
             )};
         }
-        else throw new ParseException("Expected 'distance', 'angle', or 'dihedral' ["+token+"]", 0);
+        else throw t.syntaxError("Expected measurement type ('distance', 'angle', 'dihedral', etc) ["+t.token()+"]");
     }
 //}}}
 
 //{{{ label
 //##############################################################################
-    String label() throws ParseException
+    String label() throws ParseException, IOException
     {
-        if(accept(LABEL)) return LABEL.group();
-        else throw new ParseException("Expected descriptive label ["+token+"]", 0);
+        if(t.accept(LABEL)) return LABEL.group();
+        else throw t.syntaxError("Expected descriptive label ["+t.token()+"]");
     }
 //}}}
 
 //{{{ atomspec
 //##############################################################################
-    AtomSpec atomspec() throws ParseException
+    AtomSpec atomspec() throws ParseException, IOException
     {
         int resOffset = 0;
-        if(accept(RESNO))
+        if(t.accept(RESNO))
         {
             String grp = RESNO.group(1);
             if(grp == null) grp = RESNO.group(2);
             if(grp != null)
             {
                 try { resOffset = Integer.parseInt(grp); }
-                catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing residue number ["+token+"]", 0); }
+                catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing residue number ["+t.token()+"]", 0); }
             }
         }
-        if(accept(ATOMNAME))
+        if(t.accept(ATOMNAME))
         {
             AtomSpec a = new AtomSpec(
                 resOffset,
@@ -291,20 +283,20 @@ public class Parser //extends ... implements ...
             );
             return a;
         }
-        else throw new ParseException("Expected atom name ["+token+"]", 0);
+        else throw t.syntaxError("Expected atom name ["+t.token()+"]");
     }
 //}}}
 
 //{{{ realnum
 //##############################################################################
-    double realnum() throws ParseException
+    double realnum() throws ParseException, IOException
     {
-        if(accept(REALNUM))
+        if(t.accept(REALNUM))
         {
             try { return Double.parseDouble(REALNUM.group()); }
-            catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing real number ["+token+"]", 0); }
+            catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing real number ["+t.token()+"]", 0); }
         }
-        else throw new ParseException("Expected real number ["+token+"]", 0);
+        else throw t.syntaxError("Expected real number ["+t.token()+"]");
     }
 //}}}
 
@@ -313,17 +305,15 @@ public class Parser //extends ... implements ...
     static public void main(String[] args)
     {
         Parser p = new Parser();
-        for(int i = 0; i < args.length; i++)
+        try
         {
-            try
-            {
-                Collection meas = p.parse(args[i]);
-                for(Iterator iter = meas.iterator(); iter.hasNext(); )
-                    System.out.print(" "+iter.next()+" ;");
-                System.out.println();
-            }
-            catch(ParseException ex) { ex.printStackTrace(); }
+            Collection meas = p.parse(new CharWindow(System.in));
+            for(Iterator iter = meas.iterator(); iter.hasNext(); )
+                System.out.print(" "+iter.next()+" ;");
+            System.out.println();
         }
+        catch(ParseException ex) { ex.printStackTrace(); }
+        catch(IOException ex) { ex.printStackTrace(); }
     }
 //}}}
 
