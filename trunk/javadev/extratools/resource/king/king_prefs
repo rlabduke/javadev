@@ -34,3 +34,4 @@ king.tool.loops.PatchGapPlugin.menuName = Structural biology
 king.tool.postkin.KinimolPlugin.menuName = Specialty
 king.tool.loops.LoopRmsdTool.menuName = Specialty
 king.tool.data_analysis.HighDimSliderPlugin.menuName = Specialty
+king.tool.data_analysis.RdcPlayPlugin.menuName = Specialty

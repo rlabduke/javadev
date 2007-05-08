@@ -248,12 +248,30 @@ public class PatchGapPlugin extends Plugin {
         inRange = false;
       }
       for (int i = 3; i < frame.size() && inRange; i++) {
-        if ((line[i] >= frame.get(i) + 25)||(line[i] <= frame.get(i) - 25)) {
-          inRange = false;
-        }
+        inRange = checkAngle(frame.get(i), line[i]);
+        //if ((line[i] >= frame.get(i) + 25)||(line[i] <= frame.get(i) - 25)) {
+        //  inRange = false;
+        //}
       }
     //}
     return inRange;
+  }
+  //}}}
+  
+  //{{{ checkAngle 
+  /** for checking if a value is within a range, taking into account angle wrapping **/
+  public boolean checkAngle(double frameVal, double lineVal) {
+    if (frameVal > 180 - 25) {
+      //if ((lineVal >= frameVal - 25)||(lineVal <= -360 + 25 + frameVal)) {
+      //  System.out.print("Frame: " + frameVal);
+      //  System.out.println(" Line: " + lineVal);
+      //}
+      return ((lineVal >= frameVal - 25)||(lineVal <= -360 + 25 + frameVal));
+    } else if (frameVal < -180 + 25) {
+      return ((lineVal <= frameVal + 25)||(lineVal >= frameVal + 360 - 25));
+    } else {
+      return ((lineVal <= frameVal + 25)&&(lineVal >= frameVal - 25));
+    }
   }
   //}}}
   

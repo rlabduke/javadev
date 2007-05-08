@@ -13,6 +13,7 @@ king.tool.movie.MoviePlugin
 king.tool.postkin.ColorGrouperPlugin
 king.tool.postkin.KinimolPlugin
 king.tool.data_analysis.HighDimSliderPlugin
+king.tool.data_analysis.RdcPlayPlugin
 
 # Tools
 king.tool.docking.Dock3On3Tool
