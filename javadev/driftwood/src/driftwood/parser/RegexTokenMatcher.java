@@ -92,23 +92,23 @@ public class RegexTokenMatcher implements TokenMatcher
 
 //{{{ Strings
     /**
-    * The same as DOUBLE_QUOTE_STRING, but with single quotes (').
+    * The same as DOUBLE_QUOTED_STRING, but with single quotes (').
     */
-    public static final Pattern SINGLE_QUOTE_STRING = Pattern.compile("(?s:'(?:[^'\\\\]|\\\\.)*')"); // (?s: ... ) lets . match linefeeds
+    public static final Pattern SINGLE_QUOTED_STRING = Pattern.compile("(?s:'(?:[^'\\\\]|\\\\.)*')"); // (?s: ... ) lets . match linefeeds
     
     /**
     * The standard string format in Java, C, etc: delimited by quotes ("), escaped by backslashes (\).
     * Escaped control sequences like \n are not interpretted or removed by this pattern.
     * Internal newlines *are* allowed, unlike in Java etc.
     */
-    public static final Pattern DOUBLE_QUOTE_STRING = Pattern.compile( SINGLE_QUOTE_STRING.pattern().replace('\'', '"') );
+    public static final Pattern DOUBLE_QUOTED_STRING = Pattern.compile( SINGLE_QUOTED_STRING.pattern().replace('\'', '"') );
     
     /**
-    * The same as DOUBLE_QUOTE_STRING, but with slashes (/).
+    * The same as DOUBLE_QUOTED_STRING, but with slashes (/).
     * If used for regular expressions, slashes must be escaped no matter where they appear
     * (eg even inside character classes).
     */
-    public static final Pattern SLASH_QUOTE_STRING = Pattern.compile( SINGLE_QUOTE_STRING.pattern().replace('\'', '/') );
+    public static final Pattern SLASH_QUOTED_STRING = Pattern.compile( SINGLE_QUOTED_STRING.pattern().replace('\'', '/') );
 //}}} Strings
     
 //{{{ Comments
