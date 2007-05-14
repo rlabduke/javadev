@@ -29,6 +29,7 @@ abstract public class Measurement //extends ... implements ...
     public static final Object TYPE_DIHEDRAL    = "dihedral";
     public static final Object TYPE_MAXB        = "maxb";
     public static final Object TYPE_MINQ        = "minq";
+    public static final Object TYPE_CBDEV       = "cbdev";
 //}}}
 
 //{{{ Variable definitions
@@ -483,6 +484,47 @@ abstract public class Measurement //extends ... implements ...
         
         public Object getType()
         { return TYPE_MINQ; }
+    }
+//}}}
+
+//{{{ newCbDev
+//##############################################################################
+    static public Measurement newCbDev(String label)
+    { return new CbDev(label); }
+    
+    static class CbDev extends Measurement
+    {
+        public CbDev(String label)
+        { super(label); }
+        
+        protected double measureImpl(Model model, ModelState state, Residue res)
+        {
+            try
+            {
+                // See chiropraxis.sc.SidechainIdealizer
+                Triple t1, t2, ideal = new Triple();
+                Builder build = new Builder();
+                
+                AtomState aaN   = state.get( res.getAtom(" N  ") );
+                AtomState aaCA  = state.get( res.getAtom(" CA ") );
+                AtomState aaCB  = state.get( res.getAtom(" CB ") );
+                AtomState aaC   = state.get( res.getAtom(" C  ") );
+                
+                t1 = build.construct4(aaN, aaC, aaCA, 1.536, 110.4, 123.1);
+                t2 = build.construct4(aaC, aaN, aaCA, 1.536, 110.6, -123.0);
+                ideal.likeMidpoint(t1, t2);
+                
+                return ideal.distance(aaCB);
+            }
+            catch(AtomException ex)
+            { return Double.NaN; }
+        }
+        
+        protected String toStringImpl()
+        { return "cbdev"; }
+        
+        public Object getType()
+        { return TYPE_CBDEV; }
     }
 //}}}
 

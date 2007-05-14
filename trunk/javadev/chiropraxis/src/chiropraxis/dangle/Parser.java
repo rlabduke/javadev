@@ -20,7 +20,7 @@ import driftwood.parser.*;
 * <li>expression &rarr; measurement_for*</li>
 * <li>measurement_for &rarr; ("for" resspec)? measurement</li>
 * <li>resspec &rarr; resno? "cis"? ([_A-Z0-9]{3} | "/" regex "/")</li>
-* <li>measurement &rarr; super_builtin | builtin | distance | angle | dihedral | maxb | minq</li>
+* <li>measurement &rarr; super_builtin | builtin | distance | angle | dihedral | maxb | minq | cbdev</li>
 * <li>super_builtin &rarr; "rnabb"</li>
 * <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi" | "alpha-1" | "beta-1" | "gamma-1" | "delta-1" | "epsilon-1" | "zeta-1" | "chi-1"</li>
 * <li>distance &rarr; ("distance" | "dist") label atomspec atomspec ideal_clause?</li>
@@ -28,6 +28,7 @@ import driftwood.parser.*;
 * <li>dihedral &rarr; ("dihedral" | "torsion") label atomspec atomspec atomspec atomspec</li>
 * <li>maxb &rarr; "maxb" label atomspec</li>
 * <li>minq &rarr; ("minq" | "mino" | "minocc") label atomspec</li>
+* <li>cbdev &rarr; "cbdev"</li>
 * <li>label &rarr; [A-Za-z0-9*'_.-]+</li>
 * <li>atomspec &rarr; resno? atomname</li>
 * <li>resno &rarr; "i" | "i+" [1-9] | "i-" [1-9]</li>
@@ -46,6 +47,8 @@ import driftwood.parser.*;
 * The problem with using regexps in this case is that all nucleic acids
 * have C2 and C4 atoms, so there's no guarantee that only N9--C4 and N1--C2
 * bonds are considered, and not N9--C2 or N1--C4.
+*
+* <p>Comments start with the hash character (#) and extend to end-of-line.
 *
 * <p>Copyright (C) 2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Thu Feb 15 11:18:34 EST 2007
@@ -67,6 +70,7 @@ public class Parser //extends ... implements ...
     final Matcher DIHEDRAL  = Pattern.compile("dihedral|torsion").matcher("");
     final Matcher MAXB      = Pattern.compile("maxb", Pattern.CASE_INSENSITIVE).matcher("");
     final Matcher MINQ      = Pattern.compile("minq|mino|minocc", Pattern.CASE_INSENSITIVE).matcher("");
+    final Matcher CBDEV     = Pattern.compile("cbdev").matcher("");
     final Matcher LABEL     = Pattern.compile("[A-Za-z0-9*'_.-]+").matcher("");
     final Matcher RESNO     = Pattern.compile("i|i(-[1-9])|i\\+([1-9])").matcher("");
     final Matcher ATOMNAME  = Pattern.compile("[_A-Z0-9*']{4}|/[^/ ]*/").matcher("");
@@ -245,6 +249,12 @@ public class Parser //extends ... implements ...
             return new Measurement[] {Measurement.newMinQ(
                 label(),
                 atomspec()
+            )};
+        }
+        else if(t.accept(CBDEV))
+        {
+            return new Measurement[] {Measurement.newCbDev(
+                CBDEV.group()
             )};
         }
         else throw t.syntaxError("Expected measurement type ('distance', 'angle', 'dihedral', etc) ["+t.token()+"]");

@@ -26,13 +26,14 @@ MEASUREMENT SPECIFIERS
       letters, and symbols other than commas and semicolons are OK).
     * If multiple definitions are given for the same name, they are tried in
       order until one "works" (i.e. all the atoms it calls for are present).
-      This is how to specify things like RNA chi angles.
+      This is how to specify things like RNA chi angles.  If it's not enough to
+      have the first definition take precedence, see the "for" option, below.
     * Residue numbers are optional and default to "i" unless specified.
     * Use the "-360" switch to make dihedrals go from 0 to 360 instead.
     * Use quotes to keep Bash / Csh from breaking the string apart.
     
   Dangle also has several "built in" measurement specifiers that you can use:
-    phi, psi, omega, chi1, chi2, chi3, chi4, tau                    # proteins
+    phi, psi, omega, chi1, chi2, chi3, chi4, tau, cbdev             # proteins
     alpha, beta, gamma, delta, epsilon, zeta, eta, theta, chi       # RNA / DNA
     alpha-1, beta-1, gamma-1, delta-1, epsilon-1, zeta-1, chi-1     # RNA / DNA
     
@@ -55,11 +56,49 @@ MEASUREMENT SPECIFIERS
     dangle "maxb mcMaxB /..[_A]./"                                  # B-factor
     dangle "minq scMinQ /..[^_A]./"                                 # occupancy
     dangle "minocc scMinQ /..[^_A]./"                               # synonym
-
+    
   For distances and angles, one can also define an ideal (mean) value and the
   expected standard deviation, and Dangle will report on the deviation from
   ideal in units of standard deviation (sigmas).  In order to see this output,
-  you *must*  pass the -validate flag to Dangle.  For example:
+  you *must* be in validation mode (see below).  For example:
   
     dangle -validate "dist Ca--Ca i-1 _CA_, _CA_ ideal 3.8085 0.0242"
+
+  For really complicated measurements, one can define special cases using "for".
+  Because the first definition takes precedence, the default case should come
+  last.  Residue numbers and residue names or regular expressions are accepted,
+  as is the qualifier "cis" (meaning the residue's N is in a cis peptide bond
+  to the previous residue's C).  For example:
+  
+    dangle -validate "
+      # This is a demo ONLY.  The rules/values are made-up (and kinda stupid)!
+      for cis PRO    angle  C-N-CA  i-1 _C__, _N__, _CA_  ideal 127.0 2.4
+      for /PHE|TYR/  angle  C-N-CA  i-1 _C__, _N__, _CA_  ideal 119.3 1.5
+      for i-1 GLY    angle  C-N-CA  i-1 _C__, _N__, _CA_  ideal 122.3 2.1
+                     angle  C-N-CA  i-1 _C__, _N__, _CA_  ideal 121.7 2.5
+    "
+
+VALIDATION MODE
+  Dangle can operate in "validation mode", in which case the focus is on
+  finding aberant bond lengths and angles as opposed to measuring them per se.
+  One specifies either -validate or -outliers, and usually at least one of
+  -protein, -rna, or -dna.
+  
+  -validate
+    If given this flag, Dangle reports two columns for every measurement:  the
+    actual measured value, and the number of standard deviations from ideal.
+    (Two columns appear even for measures where "deviation" is meaningless.)
+    
+  -outliers
+    If given this flag, Dangle reports one line for every individual residue/
+    measurement combination where deviation exceeds 4 sigma.  Thus, one residue
+    may produce 0, 1, or several lines.
+    
+  -protein      loads protein validation presets (Engh & Huber, 1999)
+  -rna          loads RNA validation presets (Parkinson ... Berman, 1996)
+  -dna          loads DNA validation presets (Parkinson ... Berman, 1996)
+  
+  Because there are many potential measurements of interest and their
+  definitions can be complicated, these flags are almost always used in place
+  of defining measures at the command line.
 

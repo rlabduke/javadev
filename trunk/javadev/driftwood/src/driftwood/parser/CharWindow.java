@@ -99,11 +99,9 @@ public class CharWindow implements CharSequence
     public CharWindow(InputStream in, int minBufferSize) throws IOException
     { this(new InputStreamReader(in), minBufferSize); }
     
+    /** Buffer size == s.length() */
     public CharWindow(String s) throws IOException
-    { this(new StringReader(s)); }
-    
-    public CharWindow(String s, int minBufferSize) throws IOException
-    { this(new StringReader(s), minBufferSize); }
+    { this(new StringReader(s), s.length()); }
 
     public CharWindow(File f) throws IOException
     { this(new FileReader(f)); }
