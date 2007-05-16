@@ -100,6 +100,7 @@ public class RibbonLogic
         Ribbons ribbons = new Ribbons();
         Collection contigs = ribbons.getProteinContigs(selectedRes, state, resC);
         setUpColoring(contigs);
+        rp.setRnaPointIDs(false);
         
         if(contigs.size() > 0 && secondaryStructure != null)
         {
@@ -156,6 +157,7 @@ public class RibbonLogic
         Ribbons ribbons = new Ribbons();
         Collection contigs = ribbons.getNucleicAcidContigs(selectedRes, state, resC);
         setUpColoring(contigs);
+        rp.setRnaPointIDs(true);
         
         if(contigs.size() > 0 && secondaryStructure != null)
         {

@@ -38,6 +38,8 @@ public class RibbonPrinter //extends ... implements ...
     double widthBeta    = 2.2;
     double widthCoil    = 1.0;
     double widthDefault = 2.0;
+    
+    boolean rnaPointIDs = false;
 //}}}
 
 //{{{ Constructor(s)
@@ -126,8 +128,9 @@ public class RibbonPrinter //extends ... implements ...
                 crayon.forRibbon(spline[i], guides[startGuide], guides[startGuide+1], i%nIntervals, nIntervals);
                 // For this to make sense, we have to be able to restart line if there's a break
                 if(!crayon.shouldPrint()) { isBreak = true; continue; }
+                String ptID = getPointID(spline[i], guides[startGuide], guides[startGuide+1], i%nIntervals, nIntervals);
                 tmp.like(spline[i]); // because Tuple3 doesn't have a format() method
-                out.println("{}"+(isBreak ? "P " : "")+crayon.getKinString()+" "+tmp.format(df));
+                out.println("{"+ptID+"}"+(isBreak ? "P " : "")+crayon.getKinString()+" "+tmp.format(df));
                 isBreak = false;
             }
         }
@@ -172,10 +175,11 @@ public class RibbonPrinter //extends ... implements ...
             crayon.forRibbon(tmp, guides[startGuide], guides[startGuide+1], i%nIntervals, nIntervals);
             // For this to make sense, we have to be able to restart line if there's a break
             if(!crayon.shouldPrint()) { isBreak = true; continue; }
+            String ptID = getPointID(tmp, guides[startGuide], guides[startGuide+1], i%nIntervals, nIntervals);
             tmp.like(spline1[i]); // because Tuple3 doesn't have a format() method
-            out.println("{}"+(isBreak ? "X " : "")+crayon.getKinString()+" "+tmp.format(df));
+            out.println("{"+ptID+"}"+(isBreak ? "X " : "")+crayon.getKinString()+" "+tmp.format(df));
             tmp.like(spline2[i]);
-            out.println("{}"+crayon.getKinString()+" "+tmp.format(df));
+            out.println("{\"}"+crayon.getKinString()+" "+tmp.format(df));
             isBreak = false;
         }
 
@@ -376,12 +380,15 @@ public class RibbonPrinter //extends ... implements ...
     
     private void printFancy(GuidePoint[] guides, Tuple3[] splines, int i, boolean lineBreak)
     {
-        int nIntervals = (splines.length - 1) / (guides.length - 3);
-        int startGuide = (i / nIntervals) + 1;
+        int nIntervals  = (splines.length - 1) / (guides.length - 3);
+        int interval    = i % nIntervals;
+        int startGuide  = (i / nIntervals) + 1;
         tmp.like(splines[i]); // because Tuple3 doesn't have a format() command
-        out.print("{}");
+        out.print("{");
+        out.print(getPointID(splines[i], guides[startGuide], guides[startGuide+1], interval, nIntervals));
+        out.print("}");
         if(lineBreak) out.print("P ");
-        crayon.forRibbon(splines[i], guides[startGuide], guides[startGuide+1], i % nIntervals, nIntervals);
+        crayon.forRibbon(splines[i], guides[startGuide], guides[startGuide+1], interval, nIntervals);
         out.print(crayon.getKinString());
         out.print(" ");
         out.println(tmp.format(df));
@@ -410,6 +417,39 @@ public class RibbonPrinter //extends ... implements ...
         this.widthBeta  = beta;
         this.widthCoil  = coil;
     }
+//}}}
+
+//{{{ getPointID, setRnaPointIDs
+//##############################################################################
+    //
+    // One day, all this should be replaced with a pluggable system
+    // like AtomIDer and PrekinIDer.
+    //
+    
+    // Don't need all these params (right now) but kept them b/c they match RibbonCrayon
+    private String getPointID(Tuple3 point, GuidePoint start, GuidePoint end, int interval, int nIntervals)
+    {
+        Residue res = start.nextRes; // == end.prevRes, in all cases
+        if(rnaPointIDs && interval <= nIntervals/2)
+            res = start.prevRes; // == first res, for RNA/DNA only
+        
+        StringBuffer buf = new StringBuffer(11); // should be long enough for almost all
+        buf.append(res.getName());                      // 3
+        buf.append(" ");                                // 1
+        buf.append(res.getChain());                     // 1
+        buf.append(" ");                                // 1
+        buf.append(res.getSequenceNumber().trim());     // 1 - 4 (or more)
+        buf.append(res.getInsertionCode());             // 1
+        return buf.toString().toLowerCase();
+    }
+    
+    /**
+    * If true, residue names in point IDs will be decided based on the RNA/DNA
+    * alignment of guidepoints to residues.
+    * If false (the default), the protein style will be used instead.
+    */
+    public void setRnaPointIDs(boolean r)
+    { this.rnaPointIDs = r; }
 //}}}
 
 //{{{ empty_code_segment
