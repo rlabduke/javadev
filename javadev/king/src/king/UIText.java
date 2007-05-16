@@ -52,6 +52,7 @@ public class UIText implements MouseListener, KMessage.Subscriber
     KingMain kMain;
     JFrame frame;
     JTextArea textarea;
+    JCheckBox allowTextEdits;
     
     JButton popupButton;
     
@@ -72,8 +73,11 @@ public class UIText implements MouseListener, KMessage.Subscriber
         frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         frame.setIconImage(kMain.getPrefs().windowIcon);
         
+        allowTextEdits = new JCheckBox(new ReflectiveAction("Allow text to be edited", null, this, "onAllowTextEdits"));
+        allowTextEdits.setSelected( kMain.getPrefs().getBoolean("textDefaultAllowEdits") );
+        
         textarea = new JTextArea();
-        textarea.setEditable(true);
+        textarea.setEditable( allowTextEdits.isSelected() );
         textarea.setLineWrap(true);
         textarea.setWrapStyleWord(true);
         textarea.addMouseListener(this);
@@ -84,6 +88,7 @@ public class UIText implements MouseListener, KMessage.Subscriber
         new TextCutCopyPasteMenu(textarea);
         this.addHypertextListener(new MageHypertext(kMain));
         
+        frame.getContentPane().add(allowTextEdits, BorderLayout.NORTH);
         frame.getContentPane().add(textScroll, BorderLayout.CENTER);
         kMain.subscribe(this);
     }
@@ -127,7 +132,7 @@ public class UIText implements MouseListener, KMessage.Subscriber
     }
 //}}}
 
-//{{{ cascadeBehind, onPopupButton, getButton
+//{{{ cascadeBehind, onPopupButton, onAllowTextEdits, getButton
 //##################################################################################################
     /**
     * Positions this window above, left, and behind the specified window.
@@ -161,6 +166,12 @@ public class UIText implements MouseListener, KMessage.Subscriber
             frame.toFront();
             //frame.requestFocus();
         }
+    }
+    
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onAllowTextEdits(ActionEvent ev)
+    {
+        textarea.setEditable( allowTextEdits.isSelected() );
     }
     
     public JButton getButton() { return popupButton; }

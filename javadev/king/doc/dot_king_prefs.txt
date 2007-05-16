@@ -44,6 +44,8 @@ fontSizeBig   = 24
 
 # Open the text window behind the main window on startup?
 textOpenOnStart = true
+# Start with the text window editable?
+textDefaultAllowEdits = false
 # Size of the graphics window at startup; 0 means auto-determine
 graphicsWidth  = 0
 graphicsHeight = 0
