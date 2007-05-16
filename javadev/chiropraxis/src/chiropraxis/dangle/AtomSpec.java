@@ -21,7 +21,7 @@ import driftwood.moldb2.*;
 * <p>Copyright (C) 2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Thu Feb 15 11:18:34 EST 2007
 */
-public class AtomSpec //extends ... implements ...
+public class AtomSpec extends XyzSpec
 {
 //{{{ Constants
 //}}}
