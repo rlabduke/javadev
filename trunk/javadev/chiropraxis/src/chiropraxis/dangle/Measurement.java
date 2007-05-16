@@ -333,20 +333,20 @@ abstract public class Measurement //extends ... implements ...
 
 //{{{ newDistance
 //##############################################################################
-    static public Measurement newDistance(String label, AtomSpec a, AtomSpec b)
+    static public Measurement newDistance(String label, XyzSpec a, XyzSpec b)
     { return new Distance(label, a, b); }
     
     static class Distance extends Measurement
     {
-        AtomSpec a, b;
+        XyzSpec a, b;
         
-        public Distance(String label, AtomSpec a, AtomSpec b)
+        public Distance(String label, XyzSpec a, XyzSpec b)
         { super(label); this.a = a; this.b = b; }
         
         protected double measureImpl(Model model, ModelState state, Residue res)
         {
-            AtomState aa = a.get(model, state, res);
-            AtomState bb = b.get(model, state, res);
+            Tuple3 aa = a.get(model, state, res);
+            Tuple3 bb = b.get(model, state, res);
             if(aa == null || bb == null)
                 return Double.NaN;
             else return new Triple(aa).distance(bb);
@@ -362,21 +362,21 @@ abstract public class Measurement //extends ... implements ...
 
 //{{{ newAngle
 //##############################################################################
-    static public Measurement newAngle(String label, AtomSpec a, AtomSpec b, AtomSpec c)
+    static public Measurement newAngle(String label, XyzSpec a, XyzSpec b, XyzSpec c)
     { return new Angle(label, a, b, c); }
     
     static class Angle extends Measurement
     {
-        AtomSpec a, b, c;
+        XyzSpec a, b, c;
         
-        public Angle(String label, AtomSpec a, AtomSpec b, AtomSpec c)
+        public Angle(String label, XyzSpec a, XyzSpec b, XyzSpec c)
         { super(label); this.a = a; this.b = b; this.c = c; }
         
         protected double measureImpl(Model model, ModelState state, Residue res)
         {
-            AtomState aa = a.get(model, state, res);
-            AtomState bb = b.get(model, state, res);
-            AtomState cc = c.get(model, state, res);
+            Tuple3 aa = a.get(model, state, res);
+            Tuple3 bb = b.get(model, state, res);
+            Tuple3 cc = c.get(model, state, res);
             if(aa == null || bb == null || cc == null)
                 return Double.NaN;
             else return Triple.angle(aa, bb, cc);
@@ -392,22 +392,22 @@ abstract public class Measurement //extends ... implements ...
 
 //{{{ newDihedral
 //##############################################################################
-    static public Measurement newDihedral(String label, AtomSpec a, AtomSpec b, AtomSpec c, AtomSpec d)
+    static public Measurement newDihedral(String label, XyzSpec a, XyzSpec b, XyzSpec c, XyzSpec d)
     { return new Dihedral(label, a, b, c, d); }
     
     static class Dihedral extends Measurement
     {
-        AtomSpec a, b, c, d;
+        XyzSpec a, b, c, d;
 
-        public Dihedral(String label, AtomSpec a, AtomSpec b, AtomSpec c, AtomSpec d)
+        public Dihedral(String label, XyzSpec a, XyzSpec b, XyzSpec c, XyzSpec d)
         { super(label); this.a = a; this.b = b; this.c = c; this.d = d; }
         
         protected double measureImpl(Model model, ModelState state, Residue res)
         {
-            AtomState aa = a.get(model, state, res);
-            AtomState bb = b.get(model, state, res);
-            AtomState cc = c.get(model, state, res);
-            AtomState dd = d.get(model, state, res);
+            Tuple3 aa = a.get(model, state, res);
+            Tuple3 bb = b.get(model, state, res);
+            Tuple3 cc = c.get(model, state, res);
+            Tuple3 dd = d.get(model, state, res);
             if(aa == null || bb == null || cc == null || dd == null)
                 return Double.NaN;
             else return Triple.dihedral(aa, bb, cc, dd);
