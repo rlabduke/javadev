@@ -146,6 +146,87 @@ abstract public class XyzSpec //extends ... implements ...
     }
 //}}}
 
+//{{{ class: Vector
+//##############################################################################
+    /** Returns the vector between two points */
+    static public class Vector extends XyzSpec
+    {
+        XyzSpec from, to;
+        
+        public Vector(XyzSpec from, XyzSpec to)
+        {
+            super();
+            this.from = from;
+            this.to = to;
+        }
+        
+        public Tuple3 get(Model model, ModelState state, Residue curr)
+        {
+            Tuple3 f = from.get(model, state, curr);
+            Tuple3 t = to.get(model, state, curr);
+            if(f == null || t == null)
+                return null;
+            return new Triple().likeVector(f, t);
+        }
+        
+        public String toString()
+        {
+            return "vector("+from+", "+to+")";
+        }
+    }
+//}}}
+
+//{{{ class: Normal
+//##############################################################################
+    /** Computes the unit normal vector for the least-squares-fit plane through a group of atoms. */
+    static public class Normal extends XyzSpec
+    {
+        Collection<XyzSpec> specs = new ArrayList();
+        
+        /** @return this, for chaining */
+        public Normal add(XyzSpec spec)
+        {
+            specs.add(spec);
+            return this;
+        }
+        
+        public Tuple3 get(Model model, ModelState state, Residue curr)
+        {
+            // Convert AtomSpecs and XyzSpecs into coordinates.
+            Collection<Tuple3> all = new ArrayList();
+            for(XyzSpec spec : specs)
+            {
+                if(spec instanceof AtomSpec)
+                {
+                    Collection<Tuple3> t = ((AtomSpec) spec).getAll(model, state, curr);
+                    if(t.isEmpty()) return null;
+                    else all.addAll(t);
+                }
+                else
+                {
+                    Tuple3 t = spec.get(model, state, curr);
+                    if(t == null) return null;
+                    else all.add(t);
+                }
+            }
+            if(all.size() < 3) return null;
+            return new LsqPlane(all).getNormal();
+        }
+        
+        public String toString()
+        {
+            StringBuffer buf = new StringBuffer("normal( ");
+            for(XyzSpec spec : specs)
+            {
+                buf.append(spec);
+                buf.append(" ");
+            }
+            buf.append(")");
+            return buf.toString();
+        }
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##############################################################################
 //}}}

@@ -31,6 +31,7 @@ public class Dangle //extends ... implements ...
     boolean doWrap = false; // if true wrap dihedrals to 0 to 360 instead of -180 to 180
     boolean showDeviation = false;
     boolean outliersOnly = false;
+    double sigmaCutoff = 4;
     Collection files = new ArrayList();
     Collection measurements = new ArrayList();
 //}}}
@@ -115,7 +116,6 @@ public class Dangle //extends ... implements ...
     {
         final PrintStream out = System.out;
         final DecimalFormat df = new DecimalFormat("0.###");
-        final double cutoff = 4.0; // sigmas
         
         Measurement[] meas = (Measurement[]) measurements.toArray(new Measurement[measurements.size()]);
         
@@ -137,7 +137,7 @@ public class Dangle //extends ... implements ...
                 {
                     double val = meas[i].measure(model, state, res);
                     double dev = meas[i].getDeviation();
-                    if(!Double.isNaN(dev) && Math.abs(dev) >= cutoff)
+                    if(!Double.isNaN(dev) && Math.abs(dev) >= sigmaCutoff)
                     {
                         if(meas[i].getType() == Measurement.TYPE_DIHEDRAL)
                             val = wrap360(val);
@@ -367,6 +367,11 @@ public class Dangle //extends ... implements ...
             doWrap = true;
         else if(flag.equals("-validate"))
             showDeviation = true;
+        else if(flag.equals("-sigma"))
+        {
+            try { this.sigmaCutoff = Double.parseDouble(param); }
+            catch(NumberFormatException ex) { throw new IllegalArgumentException("Expected -sigma=#.#"); }
+        }
         else if(flag.equals("-prot") || flag.equals("-protein") || flag.equals("-proteins"))
         {
             try { loadMeasures("EnghHuber_IntlTblsF_1999.txt"); }

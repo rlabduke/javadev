@@ -94,6 +94,10 @@ VALIDATION MODE
     measurement combination where deviation exceeds 4 sigma.  Thus, one residue
     may produce 0, 1, or several lines.
     
+  -sigma=#.#
+    Sets the threshold for number of sigmas to be considered an outlier. The
+    default is 4 sigmas.
+    
   -protein      loads protein validation presets (Engh & Huber, 1999)
   -rna          loads RNA validation presets (Parkinson ... Berman, 1996)
   -dna          loads DNA validation presets (Parkinson ... Berman, 1996)
@@ -101,4 +105,34 @@ VALIDATION MODE
   Because there are many potential measurements of interest and their
   definitions can be complicated, these flags are almost always used in place
   of defining measures at the command line.
+
+ADVANCED DANGLE TRICKS
+  The Unix "sort" utility can be applied to the output of Dangle, so the
+  measurements are from smallest to largest instead of in residue order.  For
+  instance, if there is only one measurement, it appears in the 7th column:
+  
+    dangle 'dist ...' FILE.pdb | sort -n -t : -k 7
+    
+  Dangle's distances, angles, and dihedrals can be calculated from any points,
+  not just atom coordinates.  The avg() function computes mean positions:
+  
+    # Distance from one peptide midpoint to another:
+    distance PeptideCtrs avg(i-1 _CA_, i _CA_) avg(i _CA_, i+1 _CA_)
+    
+  The idealtet() function constructs an ideal atom position in the style of
+  the C-beta deviation.  To calculate ideal position D, the parameters are (in
+  order) three points A, B, and C; the desired C--D distance, the B-C-D angle,
+  the A-C-D angle, the A-B-C-D dihedral, and the B-A-C-D dihedral.  Two points
+  are constructed and averaged together, and that distance to C is re-idealized:
+  
+    # Distance from actual CB to ideal CB:
+    distance CbDev _CB_ idealtet(_N__ _C__ _CA_ 1.536 110.4 110.6 123.1 -123.0)
+    
+  Dangle can calculate the angle between two arbitrary vectors, and those can
+  be generated with vector(FROM, TO) or normal().  The normal is obtained by
+  fitting a plane to the collection of (three or more) points by least squares.
+  Regular expressions can be used to specify multiple atoms to include:
+  
+    # In pyrimidines, angle from glycosidic bond to plane of ring atoms:
+    vector_angle Glycos2PyBase vector(_N1_ _C1*) normal(/_N[13]_/ /_C[2456]_/)
 

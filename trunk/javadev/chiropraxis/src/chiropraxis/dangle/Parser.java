@@ -20,19 +20,22 @@ import driftwood.parser.*;
 * <li>expression &rarr; measurement_for*</li>
 * <li>measurement_for &rarr; ("for" resspec)? measurement</li>
 * <li>resspec &rarr; resno? "cis"? ([_A-Z0-9]{3} | "/" regex "/")</li>
-* <li>measurement &rarr; super_builtin | builtin | distance | angle | dihedral | maxb | minq | planarity</li>
+* <li>measurement &rarr; super_builtin | builtin | distance | angle | dihedral | vector_angle | maxb | minq | planarity</li>
 * <li>super_builtin &rarr; "rnabb"</li>
 * <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "cbdev" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi" | "alpha-1" | "beta-1" | "gamma-1" | "delta-1" | "epsilon-1" | "zeta-1" | "chi-1"</li>
 * <li>distance &rarr; ("distance" | "dist") label xyzspec xyzspec ideal_clause?</li>
 * <li>angle &rarr; "angle" label xyzspec xyzspec xyzspec ideal_clause?</li>
 * <li>dihedral &rarr; ("dihedral" | "torsion") label xyzspec xyzspec xyzspec xyzspec</li>
+* <li>vector_angle &rarr; ("vector_angle" | "v_angle") label xyzspec xyzspec ideal_clause?</li>
 * <li>maxb &rarr; "maxb" label atomspec</li>
 * <li>minq &rarr; ("minq" | "mino" | "minocc") label atomspec</li>
 * <li>planarity &rarr; "planarity" label "(" xyzspec+ ")"</li>
 * <li>label &rarr; [A-Za-z0-9*'_.-]+</li>
-* <li>xyzspec &rarr; avg | idealtet | atomspec</li>
+* <li>xyzspec &rarr; avg | idealtet | vector | normal | atomspec</li>
 * <li>avg &rarr; "avg" "(" xyzspec+ ")"</li>
 * <li>idealtet &rarr; "idealtet" "(" xyzspec{3} realnum{5} ")"</li>
+* <li>vector &rarr; "vector" "(" xyzspec xyzspec ")"</li>
+* <li>normal &rarr; "normal" "(" xyzspec+ ")"</li>
 * <li>atomspec &rarr; resno? atomname</li>
 * <li>resno &rarr; "i" | "i+" [1-9] | "i-" [1-9]</li>
 * <li>atomname &rarr; [_A-Z0-9*']{4} | "/" regex "/"</li>
@@ -71,12 +74,15 @@ public class Parser //extends ... implements ...
     final Matcher DISTANCE  = Pattern.compile("dist(ance)?").matcher("");
     final Matcher ANGLE     = Pattern.compile("angle").matcher("");
     final Matcher DIHEDRAL  = Pattern.compile("dihedral|torsion").matcher("");
+    final Matcher V_ANGLE   = Pattern.compile("vector_angle|v_angle").matcher("");
     final Matcher MAXB      = Pattern.compile("maxb", Pattern.CASE_INSENSITIVE).matcher("");
     final Matcher MINQ      = Pattern.compile("minq|mino|minocc", Pattern.CASE_INSENSITIVE).matcher("");
     final Matcher PLANARITY = Pattern.compile("planarity").matcher("");
     final Matcher LABEL     = Pattern.compile("[A-Za-z0-9*'_.-]+").matcher("");
     final Matcher AVG       = Pattern.compile("avg").matcher("");
     final Matcher IDEALTET  = Pattern.compile("idealtet").matcher("");
+    final Matcher VECTOR    = Pattern.compile("vector").matcher("");
+    final Matcher NORMAL    = Pattern.compile("normal").matcher("");
     final Matcher RESNO     = Pattern.compile("i|i(-[1-9])|i\\+([1-9])").matcher("");
     final Matcher ATOMNAME  = Pattern.compile("[_A-Z0-9*']{4}|/[^/ ]*/").matcher("");
     final Matcher IDEAL     = Pattern.compile("ideal").matcher("");
@@ -244,6 +250,17 @@ public class Parser //extends ... implements ...
                 xyzspec()
             )};
         }
+        else if(t.accept(V_ANGLE))
+        {
+            Measurement m = Measurement.newVectorAngle(
+                label(),
+                xyzspec(),
+                xyzspec()
+            );
+            if(t.accept(IDEAL))
+                m.setMeanAndSigma(realnum(), realnum());
+            return new Measurement[] {m};
+        }
         else if(t.accept(MAXB))
         {
             return new Measurement[] {Measurement.newMaxB(
@@ -308,6 +325,25 @@ public class Parser //extends ... implements ...
             );
             t.require(")");
             return itet;
+        }
+        else if(t.accept(VECTOR))
+        {
+            t.require("(");
+            XyzSpec.Vector vec = new XyzSpec.Vector(
+                xyzspec(),
+                xyzspec()
+            );
+            t.require(")");
+            return vec;
+        }
+        else if(t.accept(NORMAL))
+        {
+            t.require("(");
+            XyzSpec.Normal norm = new XyzSpec.Normal();
+            norm.add(xyzspec()); // first one is required
+            while(!t.accept(")"))
+                norm.add(xyzspec());
+            return norm;
         }
         else
         {
