@@ -520,6 +520,12 @@ abstract public class Measurement //extends ... implements ...
             final double cosWide = Math.cos(Math.toRadians(130));
             final double cosNarrow = Math.cos(Math.toRadians(25));
             
+            // Actually, specifying both is unnecessary:
+            // if the upper limit is 130, the lower limit is (180-130)/2 = 25;
+            // if the lower limit is 25, the upper limit is (180 - 2*25) = 130.
+            // I've left the code here because this function seems fast enough
+            // and explicitly constraining both ends makes it easier to think about.
+            
             long time = System.currentTimeMillis();
             // Convert AtomSpecs and XyzSpecs into coordinates.
             Collection<Tuple3> all = new ArrayList();
