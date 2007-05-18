@@ -20,16 +20,19 @@ import driftwood.parser.*;
 * <li>expression &rarr; measurement_for*</li>
 * <li>measurement_for &rarr; ("for" resspec)? measurement</li>
 * <li>resspec &rarr; resno? "cis"? ([_A-Z0-9]{3} | "/" regex "/")</li>
-* <li>measurement &rarr; super_builtin | builtin | distance | angle | dihedral | maxb | minq | cbdev</li>
+* <li>measurement &rarr; super_builtin | builtin | distance | angle | dihedral | maxb | minq | planarity</li>
 * <li>super_builtin &rarr; "rnabb"</li>
-* <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi" | "alpha-1" | "beta-1" | "gamma-1" | "delta-1" | "epsilon-1" | "zeta-1" | "chi-1"</li>
-* <li>distance &rarr; ("distance" | "dist") label atomspec atomspec ideal_clause?</li>
-* <li>angle &rarr; "angle" label atomspec atomspec atomspec ideal_clause?</li>
-* <li>dihedral &rarr; ("dihedral" | "torsion") label atomspec atomspec atomspec atomspec</li>
+* <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "cbdev" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi" | "alpha-1" | "beta-1" | "gamma-1" | "delta-1" | "epsilon-1" | "zeta-1" | "chi-1"</li>
+* <li>distance &rarr; ("distance" | "dist") label xyzspec xyzspec ideal_clause?</li>
+* <li>angle &rarr; "angle" label xyzspec xyzspec xyzspec ideal_clause?</li>
+* <li>dihedral &rarr; ("dihedral" | "torsion") label xyzspec xyzspec xyzspec xyzspec</li>
 * <li>maxb &rarr; "maxb" label atomspec</li>
 * <li>minq &rarr; ("minq" | "mino" | "minocc") label atomspec</li>
-* <li>cbdev &rarr; "cbdev"</li>
+* <li>planarity &rarr; "planarity" label "(" xyzspec+ ")"</li>
 * <li>label &rarr; [A-Za-z0-9*'_.-]+</li>
+* <li>xyzspec &rarr; avg | idealtet | atomspec</li>
+* <li>avg &rarr; "avg" "(" xyzspec+ ")"</li>
+* <li>idealtet &rarr; "idealtet" "(" xyzspec xyzspec xyzspec realnum realnum realnum realnum realnum ")"</li>
 * <li>atomspec &rarr; resno? atomname</li>
 * <li>resno &rarr; "i" | "i+" [1-9] | "i-" [1-9]</li>
 * <li>atomname &rarr; [_A-Z0-9*']{4} | "/" regex "/"</li>
@@ -64,19 +67,22 @@ public class Parser //extends ... implements ...
     final Matcher SUPERBLTN = Pattern.compile("rnabb").matcher("");
     // If you add built-ins here, you should also modify
     // Measurement.newBuiltin(), the javadoc above, and the man page.
-    final Matcher BUILTIN   = Pattern.compile("phi|psi|omega|chi1|chi2|chi3|chi4|tau|alpha|beta|gamma|delta|epsilon|zeta|eta|theta|chi|alpha-1|beta-1|gamma-1|delta-1|epsilon-1|zeta-1|chi-1").matcher("");
+    final Matcher BUILTIN   = Pattern.compile("phi|psi|omega|chi1|chi2|chi3|chi4|tau|cbdev|alpha|beta|gamma|delta|epsilon|zeta|eta|theta|chi|alpha-1|beta-1|gamma-1|delta-1|epsilon-1|zeta-1|chi-1").matcher("");
     final Matcher DISTANCE  = Pattern.compile("dist(ance)?").matcher("");
     final Matcher ANGLE     = Pattern.compile("angle").matcher("");
     final Matcher DIHEDRAL  = Pattern.compile("dihedral|torsion").matcher("");
     final Matcher MAXB      = Pattern.compile("maxb", Pattern.CASE_INSENSITIVE).matcher("");
     final Matcher MINQ      = Pattern.compile("minq|mino|minocc", Pattern.CASE_INSENSITIVE).matcher("");
-    final Matcher CBDEV     = Pattern.compile("cbdev").matcher("");
+    final Matcher PLANARITY = Pattern.compile("planarity").matcher("");
     final Matcher LABEL     = Pattern.compile("[A-Za-z0-9*'_.-]+").matcher("");
+    final Matcher AVG       = Pattern.compile("avg").matcher("");
+    final Matcher IDEALTET  = Pattern.compile("idealtet").matcher("");
     final Matcher RESNO     = Pattern.compile("i|i(-[1-9])|i\\+([1-9])").matcher("");
     final Matcher ATOMNAME  = Pattern.compile("[_A-Z0-9*']{4}|/[^/ ]*/").matcher("");
     final Matcher IDEAL     = Pattern.compile("ideal").matcher("");
     //final Matcher REALNUM   = Pattern.compile("-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?(0|[1-9][0-9]*)(\\.[0-9]+)?)?").matcher("");
     final Matcher REALNUM   = RegexTokenMatcher.SIGNED_REAL.matcher("");
+    final Matcher OPERATOR  = Pattern.compile("[()]").matcher("");;
     
     final Pattern[] toIgnore = {
         RegexTokenMatcher.WHITESPACE,
@@ -87,6 +93,7 @@ public class Parser //extends ... implements ...
     final Pattern[] toAccept = {
         // The superset of other patterns. *Don't* do RESNAME|ATOMNAME, as RESNAME will match atoms, but is too short!
         LABEL.pattern(),
+        OPERATOR.pattern(),
         RegexTokenMatcher.SLASH_QUOTED_STRING,
         RegexTokenMatcher.SIGNED_REAL
     };
@@ -208,8 +215,8 @@ public class Parser //extends ... implements ...
         {
             Measurement m = Measurement.newDistance(
                 label(),
-                atomspec(),
-                atomspec()
+                xyzspec(),
+                xyzspec()
             );
             if(t.accept(IDEAL))
                 m.setMeanAndSigma(realnum(), realnum());
@@ -219,9 +226,9 @@ public class Parser //extends ... implements ...
         {
             Measurement m = Measurement.newAngle(
                 label(),
-                atomspec(),
-                atomspec(),
-                atomspec()
+                xyzspec(),
+                xyzspec(),
+                xyzspec()
             );
             if(t.accept(IDEAL))
                 m.setMeanAndSigma(realnum(), realnum());
@@ -231,10 +238,10 @@ public class Parser //extends ... implements ...
         {
             return new Measurement[] {Measurement.newDihedral(
                 label(),
-                atomspec(),
-                atomspec(),
-                atomspec(),
-                atomspec()
+                xyzspec(),
+                xyzspec(),
+                xyzspec(),
+                xyzspec()
             )};
         }
         else if(t.accept(MAXB))
@@ -251,11 +258,14 @@ public class Parser //extends ... implements ...
                 atomspec()
             )};
         }
-        else if(t.accept(CBDEV))
+        else if(t.accept(PLANARITY))
         {
-            return new Measurement[] {Measurement.newCbDev(
-                CBDEV.group()
-            )};
+            Measurement.Planarity p = new Measurement.Planarity(label());
+            t.require("(");
+            p.add(xyzspec()); // first one is required
+            while(!t.accept(")"))
+                p.add(xyzspec());
+            return new Measurement[] {p};
         }
         else throw t.syntaxError("Expected measurement type ('distance', 'angle', 'dihedral', etc) ["+t.token()+"]");
     }
@@ -267,6 +277,44 @@ public class Parser //extends ... implements ...
     {
         if(t.accept(LABEL)) return LABEL.group();
         else throw t.syntaxError("Expected descriptive label ["+t.token()+"]");
+    }
+//}}}
+
+//{{{ xyzspec
+//##############################################################################
+    XyzSpec xyzspec() throws ParseException, IOException
+    {
+        if(t.accept(AVG))
+        {
+            t.require("(");
+            XyzSpec.Average avg = new XyzSpec.Average();
+            avg.add(xyzspec()); // first one is required
+            while(!t.accept(")"))
+                avg.add(xyzspec());
+            return avg;
+        }
+        else if(t.accept(IDEALTET))
+        {
+            t.require("(");
+            XyzSpec.IdealTetrahedral itet = new XyzSpec.IdealTetrahedral(
+                xyzspec(),  // N
+                xyzspec(),  // C
+                xyzspec(),  // CA
+                realnum(),  // CA-CB dist
+                realnum(),  // C-CA-CB angle
+                realnum(),  // N-CA-CB angle
+                realnum(),  // N-C-CA-CB dihedral
+                realnum()   // C-N-CA-CB dihedral
+            );
+            t.require(")");
+            return itet;
+        }
+        else
+        {
+            try { return atomspec(); }
+            catch(ParseException ex)
+            { throw t.syntaxError("Expected xyz specifier or atom name ["+t.token()+"]"); }
+        }
     }
 //}}}
 

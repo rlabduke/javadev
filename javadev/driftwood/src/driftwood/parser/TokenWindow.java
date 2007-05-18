@@ -155,6 +155,23 @@ public class TokenWindow //extends ... implements ...
         else return false;
     }
 //}}}
+    
+//{{{ require
+//##############################################################################
+    /** Like accept(), but throws ParseException instead of returning false */
+    public void require(String s) throws ParseException, IOException
+    {
+        if(!accept(s))
+            throw syntaxError("Expected '"+s+"', found '"+this.token()+"'");
+    }
+    
+    /** Like accept(), but throws ParseException instead of returning false */
+    public void require(Matcher m) throws ParseException, IOException
+    {
+        if(!accept(m))
+            throw syntaxError("Expected '"+m.pattern()+"', found '"+this.token()+"'");
+    }
+//}}}
 
 //{{{ syntaxError
 //##############################################################################

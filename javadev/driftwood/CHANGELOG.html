@@ -44,6 +44,9 @@ UTIL: {{{
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 0.80 ###
+- added r3.LsqPlane.getRMSD()
+
 ### 0.79 ###
 - changed star.DataBlock to return save frames in same order as file
 - added gui.FullTextAsTipsJTable
@@ -63,6 +66,7 @@ UTIL: {{{
 - typo bug fix in CharWindow.contextAt()
 - null pointer (null token) fix in TokenWindow.accept()
 - more work on TokenWindow.syntaxError() ... why is this so tricky?
+- added TokenWindow.require() -- like accept(), but error on failure
 
 ### 0.78 ###
 - added util.ReflectiveRunnable

@@ -43,6 +43,7 @@ public class LsqPlane //extends ... implements ...
 //##############################################################################
     Triple anchor = new Triple();
     Triple normal = new Triple();
+    double rmsd;
 //}}}
 
 //{{{ Constructor(s)
@@ -76,13 +77,15 @@ public class LsqPlane //extends ... implements ...
             v.get( 2, v.getColumnDimension()-1 )
         );
         normal.unit();
+        
+        rmsd = calcRMSD(data, anchor, normal);
     }
 //}}}
 
 //{{{ calcCentroid, buildMatrix
 //##############################################################################
     /** Calculates the centroid of a collection of Tuple3s. */
-    Triple calcCentroid(Collection data)
+    static Triple calcCentroid(Collection data)
     {
         Triple centroid = new Triple();
         for(Iterator iter = data.iterator(); iter.hasNext(); )
@@ -95,7 +98,7 @@ public class LsqPlane //extends ... implements ...
     }
     
     /** Builds the matrix M */
-    Matrix buildMatrix(Collection data, Triple centroid)
+    static Matrix buildMatrix(Collection data, Triple centroid)
     {
         Matrix matrix = new Matrix(data.size(), 3);
         int i = 0;
@@ -110,7 +113,30 @@ public class LsqPlane //extends ... implements ...
     }
 //}}}
 
-//{{{ getNormal, getAnchor
+//{{{ calcRMSD
+//##############################################################################
+    /**
+    * There's probably a way to get this directly from the eigenvalues,
+    * but I can't figure out what it is.
+    */
+    static double calcRMSD(Collection data, Triple anchorPt, Triple unitNormal)
+    {
+        // Distance from point to plane is vector from point to point-in-plane
+        // projected onto the (unit) normal to the plane.
+        Triple x = new Triple();
+        double rms = 0;
+        for(Iterator iter = data.iterator(); iter.hasNext(); )
+        {
+            Tuple3 t = (Tuple3) iter.next();
+            x.likeVector(anchorPt, t);
+            double dist = x.dot(unitNormal);
+            rms += dist*dist;
+        }
+        return Math.sqrt( rms / data.size() );
+    }
+//}}}
+
+//{{{ getNormal, getAnchor, getRMSD
 //##############################################################################
     /**
     * Returns the unit normal of the plane calculated during the last fitting.
@@ -124,6 +150,12 @@ public class LsqPlane //extends ... implements ...
     */
     public Tuple3 getAnchor()
     { return anchor; }
+    
+    /**
+    * Returns the root-mean-square distance to the plane for all points.
+    */
+    public double getRMSD()
+    { return rmsd; }
 //}}}
 
 //{{{ empty_code_segment
@@ -159,7 +191,8 @@ public class LsqPlane //extends ... implements ...
             System.out.println("Anchor: "+lsq.getAnchor());
             System.out.println("Normal: "+lsq.getNormal());
             Triple plus = new Triple(lsq.getAnchor()).add(lsq.getNormal());
-            System.out.println("Ar+Nm : "+lsq);
+            System.out.println("Ar+Nm : "+plus);
+            System.out.println("RMSD  : "+lsq.getRMSD());
         }
         catch(Exception ex)
         {

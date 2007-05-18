@@ -29,7 +29,7 @@ abstract public class Measurement //extends ... implements ...
     public static final Object TYPE_DIHEDRAL    = "dihedral";
     public static final Object TYPE_MAXB        = "maxb";
     public static final Object TYPE_MINQ        = "minq";
-    public static final Object TYPE_CBDEV       = "cbdev";
+    public static final Object TYPE_PLANARITY   = "planarity";
 //}}}
 
 //{{{ Variable definitions
@@ -196,6 +196,15 @@ abstract public class Measurement //extends ... implements ...
                 new AtomSpec( 0, "_CA_"),
                 new AtomSpec( 0, "_C__")
             );
+        else if("cbdev".equals(label))
+            return new Distance(label,
+                new AtomSpec( 0, "_CB_"),
+                new XyzSpec.IdealTetrahedral(
+                    new AtomSpec(0, "_N__"),
+                    new AtomSpec(0, "_C__"),
+                    new AtomSpec(0, "_CA_"),
+                    1.536, 110.4, 110.6, 123.1, -123.0
+            ));
         //}}} proteins
         //{{{ nucleic acids
         else if("alpha".equals(label))
@@ -487,44 +496,135 @@ abstract public class Measurement //extends ... implements ...
     }
 //}}}
 
-//{{{ newCbDev
+//{{{ CLASS: Planarity
 //##############################################################################
-    static public Measurement newCbDev(String label)
-    { return new CbDev(label); }
-    
-    static class CbDev extends Measurement
+    public static class Planarity extends Measurement
     {
-        public CbDev(String label)
+        Collection<XyzSpec> specs = new ArrayList();
+        
+        public Planarity(String label)
         { super(label); }
         
+        /** @return this, for chaining */
+        public Planarity add(XyzSpec spec)
+        {
+            specs.add(spec);
+            return this;
+        }
+        
+        /** This is an O(n^6) runtime, O(n^3) storage algorithm -- don't call with much more than ~12 atoms! */
         protected double measureImpl(Model model, ModelState state, Residue res)
         {
-            try
+            // Angle limits on which triangles we will accept --
+            // long, skinny triangle are unsteady and "roll" side-to-side.
+            final double cosWide = Math.cos(Math.toRadians(130));
+            final double cosNarrow = Math.cos(Math.toRadians(25));
+            
+            long time = System.currentTimeMillis();
+            // Convert AtomSpecs and XyzSpecs into coordinates.
+            Collection<Tuple3> all = new ArrayList();
+            for(XyzSpec spec : specs)
             {
-                // See chiropraxis.sc.SidechainIdealizer
-                Triple t1, t2, ideal = new Triple();
-                Builder build = new Builder();
-                
-                AtomState aaN   = state.get( res.getAtom(" N  ") );
-                AtomState aaCA  = state.get( res.getAtom(" CA ") );
-                AtomState aaCB  = state.get( res.getAtom(" CB ") );
-                AtomState aaC   = state.get( res.getAtom(" C  ") );
-                
-                t1 = build.construct4(aaN, aaC, aaCA, 1.536, 110.4, 123.1);
-                t2 = build.construct4(aaC, aaN, aaCA, 1.536, 110.6, -123.0);
-                ideal.likeMidpoint(t1, t2);
-                
-                return ideal.distance(aaCB);
+                if(spec instanceof AtomSpec)
+                {
+                    Collection<Tuple3> t = ((AtomSpec) spec).getAll(model, state, res);
+                    if(t.isEmpty()) return Double.NaN;
+                    else all.addAll(t);
+                }
+                else
+                {
+                    Tuple3 t = spec.get(model, state, res);
+                    if(t == null) return Double.NaN;
+                    else all.add(t);
+                }
             }
-            catch(AtomException ex)
-            { return Double.NaN; }
+            
+            // For every possible trio of coordinates, calculate a unit normal.
+            final int len = all.size();
+            Tuple3[] t = all.toArray(new Tuple3[len]);
+            Collection<Triple> normals = new ArrayList();
+            Triple w1 = new Triple(), w2 = new Triple(), w3 = new Triple();
+            for(int i = 0; i < len; i++)
+            for(int j = i+1; j < len; j++)
+            for(int k = j+1; k < len; k++)
+            {
+                w1.likeVector(t[i], t[j]).unit();
+                w2.likeVector(t[j], t[k]).unit();
+                w3.likeVector(t[k], t[i]).unit();
+                
+                // Discard triangles with too-wide or too-narrow angles:
+                double d1 = -w1.dot(w2), d2 = -w2.dot(w3), d3 = -w3.dot(w1);
+                if(d1 < cosWide || d1 > cosNarrow) continue;
+                if(d2 < cosWide || d2 > cosNarrow) continue;
+                if(d3 < cosWide || d3 > cosNarrow) continue;
+                
+                w1.likeCross(w1, w2).unit();
+                normals.add(new Normal(t[i], t[j], t[k], w1));
+            }
+            
+            // For every possible pair of normals, calculate a dot product.
+            // Find the dot product closest to zero.
+            double minDot = 1; // == 0 degree angle
+            Triple mostNormal1 = null, mostNormal2 = null;
+            for(Triple ni : normals)
+            {
+                for(Triple nj : normals)
+                {
+                    double dot = Math.abs(ni.dot(nj));
+                    if(dot <= minDot)
+                    {
+                        minDot = dot;
+                        mostNormal1 = ni;
+                        mostNormal2 = nj;
+                    }
+                }
+            }
+            
+            // Return the angle, in degrees
+            // acos returns NaN sometimes when we're
+            // too close to an angle of 0 or 180 (if |minDot| > 1)
+            double ret = Math.toDegrees(Math.acos( minDot ));
+            if(Double.isNaN(ret)) ret = (minDot>=0.0 ? 0.0 : 180.0);
+            //System.err.println("  runtime for "+len+" points, "+normals.size()+" normals: "+(System.currentTimeMillis() - time)+" ms");
+            //System.err.println("  angle = "+ret+" for "+mostNormal1+" :: "+mostNormal2);
+            return ret;
+        }
+        
+        private static class Normal extends Triple
+        {
+            // Uncomment these lines for help debugging:
+            //Object a, b, c;
+            
+            public Normal(Object a, Object b, Object c, Tuple3 t)
+            {
+                super(t);
+                //this.a = a; this.b = b; this.c = c;
+            }
+            
+            public String toString()
+            {
+                return super.toString()
+                    //+" "+a+" "+b+" "+c
+                ;
+            }
         }
         
         protected String toStringImpl()
-        { return "cbdev"; }
+        {
+            StringBuffer buf = new StringBuffer("planarity "+getLabel()+" (");
+            boolean first = true;
+            for(XyzSpec spec : specs)
+            {
+                if(first) first = false;
+                else buf.append(", ");
+                buf.append(spec);
+            }
+            buf.append(")");
+            return buf.toString();
+        }
         
         public Object getType()
-        { return TYPE_CBDEV; }
+        { return TYPE_PLANARITY; }
     }
 //}}}
 
