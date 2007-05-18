@@ -32,7 +32,7 @@ import driftwood.parser.*;
 * <li>label &rarr; [A-Za-z0-9*'_.-]+</li>
 * <li>xyzspec &rarr; avg | idealtet | atomspec</li>
 * <li>avg &rarr; "avg" "(" xyzspec+ ")"</li>
-* <li>idealtet &rarr; "idealtet" "(" xyzspec xyzspec xyzspec realnum realnum realnum realnum realnum ")"</li>
+* <li>idealtet &rarr; "idealtet" "(" xyzspec{3} realnum{5} ")"</li>
 * <li>atomspec &rarr; resno? atomname</li>
 * <li>resno &rarr; "i" | "i+" [1-9] | "i-" [1-9]</li>
 * <li>atomname &rarr; [_A-Z0-9*']{4} | "/" regex "/"</li>
