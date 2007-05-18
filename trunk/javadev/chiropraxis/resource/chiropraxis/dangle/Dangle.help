@@ -135,4 +135,16 @@ ADVANCED DANGLE TRICKS
   
     # In pyrimidines, angle from glycosidic bond to plane of ring atoms:
     vector_angle Glycos2PyBase vector(_N1_ _C1*) normal(/_N[13]_/ /_C[2456]_/)
+    
+  Dangle can also calculate the planarity (or not) of a group of atoms.  The
+  algorithm calculates a normal for every possible set of three atoms, including
+  those that are not bonded but excluding those that are nearly co-linear.  The
+  normals are then searched to find the two that form the largest angle between
+  them:  if all the points are in the same plane, this will be 0;  if not, it
+  may range all the way up to 90 degrees.  This captures many kinds of non-
+  planarity including bowing and zig-zagging, but the downside is that the
+  precise meaning of the number is unclear.  For example:
+  
+    # Planarity of all atoms in the base plus the C1':
+    planarity BasePlane (_C1* /_[CNO][1-9]_/)
 
