@@ -27,6 +27,7 @@ abstract public class Measurement //extends ... implements ...
     public static final Object TYPE_DISTANCE    = "distance";
     public static final Object TYPE_ANGLE       = "angle";
     public static final Object TYPE_DIHEDRAL    = "dihedral";
+    public static final Object TYPE_V_ANGLE     = "vector_angle";
     public static final Object TYPE_MAXB        = "maxb";
     public static final Object TYPE_MINQ        = "minq";
     public static final Object TYPE_PLANARITY   = "planarity";
@@ -427,6 +428,39 @@ abstract public class Measurement //extends ... implements ...
         
         public Object getType()
         { return TYPE_DIHEDRAL; }
+    }
+//}}}
+
+//{{{ newVectorAngle
+//##############################################################################
+    static public Measurement newVectorAngle(String label, XyzSpec a, XyzSpec b)
+    { return new VectorAngle(label, a, b); }
+    
+    static class VectorAngle extends Measurement
+    {
+        XyzSpec a, b;
+        
+        public VectorAngle(String label, XyzSpec a, XyzSpec b)
+        { super(label); this.a = a; this.b = b; }
+        
+        protected double measureImpl(Model model, ModelState state, Residue res)
+        {
+            Tuple3 aa = a.get(model, state, res);
+            Tuple3 bb = b.get(model, state, res);
+            if(aa == null || bb == null)
+                return Double.NaN;
+            double angle = new Triple(aa).angle(bb);
+            // Sign of plane normals is random, limit angle to [0, 90]
+            if(angle > 90 && (a instanceof XyzSpec.Normal || b instanceof XyzSpec.Normal))
+                angle = 180 - angle;
+            return angle;
+        }
+        
+        protected String toStringImpl()
+        { return "vector_angle "+getLabel()+" "+a+", "+b; }
+        
+        public Object getType()
+        { return TYPE_V_ANGLE; }
     }
 //}}}
 

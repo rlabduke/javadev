@@ -20,8 +20,6 @@
         do base-P distance, etc
         GUI for defining measures?
         "for deoxy ..." ???
-     ** needs -sigma=# flag
-      * doc all new functions (avg, idealtet, planarity)
         new func? avgall() should call getAll() instead of get() on AtomSpecs
 
 ==============================================================================
@@ -29,11 +27,16 @@
 ==============================================================================
 
 ### 0.59 ###
+### 0.59 ###
 - changed to Java 1.5 in compiling (needed by Dangle)
 - created dangle.XyzSpec as superclass of AtomSpec
 - implemented XyzSpec.Average and XyzSpec.IdealTetrahedral
 - removed old CbDev class and added new cbdev builtin
 - added new "planarity" measurement
+- added "vector_angle" measurement
+- added "vector()" and "normal()" functions
+- added -sigma flag
+- caught up on Dangle documentation
 
 ### 0.58 ###
 - switched Dangle to use driftwood.parser for tokenization
