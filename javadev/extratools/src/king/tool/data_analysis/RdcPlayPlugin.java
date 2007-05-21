@@ -24,6 +24,7 @@ public class RdcPlayPlugin extends Plugin implements ChangeListener {
   double daxial, dn, drhombic, xisquared, etasquared, lambdasquared, zetasquared, deltacrit;
   double dzz, dyy, dxx;
   JSlider rhombSlider;
+  JLabel rhombLabel;
   //}}}
   
   //{{{ Constructor
@@ -52,6 +53,8 @@ public class RdcPlayPlugin extends Plugin implements ChangeListener {
     rhombSlider.addChangeListener(this);
     pane.add(rhombSlider);
     pane.newRow();
+    rhombLabel = new JLabel("0.001");
+    pane.add(rhombLabel);
     JDialog dialog = new JDialog(kMain.getTopWindow(), "RDC Play Plugin", false);
     dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
     dialog.setContentPane(pane);
@@ -65,6 +68,7 @@ public class RdcPlayPlugin extends Plugin implements ChangeListener {
     double rhombicity = ((double)rhombSlider.getValue()) / 1000.0;
     //System.out.println(rhombicity);
     calcVariables(rhombicity);
+    rhombLabel.setText(Double.toString(rhombicity));
     Kinemage kin = kMain.getKinemage();
     KIterator<KList> lists = KIterator.allLists(kin);
     KList list = lists.next();
@@ -110,6 +114,7 @@ public class RdcPlayPlugin extends Plugin implements ChangeListener {
     //list.add(origin);
     for (int i = (int)((-1 - 3/2 * drhombic/daxial) * 100); i <= 200; i = i + 5) { // avoids round off errors, I think.
       //System.out.println((double) i / 100.0);
+      //System.out.println(i);
       dn = i * daxial / 100.0;
       xisquared = (2 * daxial - dn) / (3 * daxial - (3/2) * drhombic);
       etasquared = (2 * daxial - dn) / (3 * daxial + (3/2) * drhombic);
@@ -121,7 +126,7 @@ public class RdcPlayPlugin extends Plugin implements ChangeListener {
       VectorPoint negOld = null;
       ArrayList<KPoint> posPoints = new ArrayList<KPoint>();
       ArrayList<KPoint> negPoints = new ArrayList<KPoint>();
-      for (double tau = - Math.PI; tau <= Math.PI; tau += Math.PI / 20) {
+      for (double tau = - Math.PI; tau <= Math.PI; tau += Math.PI / 60) {
         //System.out.println(tau);
         VectorPoint point = new VectorPoint("Point " + df.format(dn), old);
         point.setXYZ(calcX(tau), calcY(tau), calcZ(tau));

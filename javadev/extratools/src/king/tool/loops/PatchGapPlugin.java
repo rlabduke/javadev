@@ -339,6 +339,7 @@ public class PatchGapPlugin extends Plugin {
             KList mc = loops.get(0);
             SuperPoser poser = new SuperPoser(getGapTupleArray(gap), getListTupleArray(mc));
             Transform t = poser.superpos();
+            //System.out.println(poser.calcRMSD(t));
             for (KList loop : loops) {
               loop.setHasButton(false);
               transform(loop, t);
