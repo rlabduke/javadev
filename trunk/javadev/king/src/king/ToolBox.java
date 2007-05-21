@@ -113,6 +113,8 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
         plugins.add(activeTool);
         loadPlugins();
         activeTool.start();
+        
+        kMain.subscribe(this);
     }
 //}}}
 
@@ -497,6 +499,9 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
         if(msg.testProg(RESET_TOOL))
         {
             services.clearEverything();
+            Kinemage kin = kMain.getKinemage();
+            if(kin != null)
+                services.doFlatland.setSelected(kin.atFlat);
             activeTool.reset();
         }
     }
