@@ -100,7 +100,8 @@ public class ToolServices implements Transformable
         doMarkers       = new JCheckBox(new ReflectiveAction("Markers", null, this, "onShowMarkers"));
             doMarkers.setSelected(false);
             doMarkers.setToolTipText("Markers painted on points you've selected with the mouse");
-        doFlatland      = new JCheckBoxMenuItem("Flatland", false);
+        doFlatland      = new JCheckBoxMenuItem(new ReflectiveAction("Flatland", null, this, "onFlatland"));
+            doFlatland.setSelected(false);
             doFlatland.setToolTipText("Translate in X-Y instead of rotating");
         doSuperpick     = new JCheckBoxMenuItem("Superpick", false);
             doSuperpick.setToolTipText("Pick points that are otherwise unpickable");
@@ -421,7 +422,7 @@ public class ToolServices implements Transformable
     }
 //}}}
 
-//{{{ onShowMarkers, onShowXYZ, onShowMeasures, onObjectPick
+//{{{ onShowMarkers/ShowXYZ/ShowMeasures/ObjectPick/Flatland
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onShowMarkers(ActionEvent ev)
@@ -453,6 +454,14 @@ public class ToolServices implements Transformable
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onObjectPick(ActionEvent ev)
     { kCanvas.getEngine().useObjPicking = doObjectPick.isSelected(); }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onFlatland(ActionEvent ev)
+    {
+        Kinemage kin = kMain.getKinemage();
+        if(kin == null) return;
+        kin.atFlat = doFlatland.isSelected();
+    }
 //}}}
 
 //{{{ empty
