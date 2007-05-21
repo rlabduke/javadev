@@ -48,6 +48,13 @@ public class Kinglet extends JApplet implements MouseListener
         else if(mode.equals(LAUNCHER))
         {
             Icon kingletIcon = new ImageIcon(getClass().getResource("images/king-btn.png"));
+            try
+            {
+                String launcherButton = this.getParameter("launcherImage");
+                if(launcherButton != null)
+                    kingletIcon = new ImageIcon(new URL(this.getDocumentBase(), launcherButton));
+            }
+            catch(Exception ex) { System.err.println(ex.getMessage()); }
             getContentPane().add(new JLabel(kingletIcon), BorderLayout.CENTER);
             addMouseListener(this);
             validate();
