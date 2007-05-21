@@ -1,155 +1,184 @@
-#LyX 1.3 created this file. For more info see http://www.lyx.org/
-\lyxformat 221
+#LyX 1.4.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 245
+\begin_document
+\begin_header
 \textclass report
 \language english
 \inputencoding auto
 \fontscheme pslatex
 \graphics default
 \paperfontsize default
-\spacing single 
-\papersize Default
-\paperpackage a4
-\use_geometry 0
-\use_amsmath 0
-\use_natbib 0
-\use_numerical_citations 0
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\cite_engine basic
+\use_bibtopic false
 \paperorientation portrait
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
 \defskip medskip
 \quotes_language english
-\quotes_times 2
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
+\tracking_changes false
+\output_changes true
+\end_header
 
-\layout Title
-\added_space_top vfill \added_space_bottom vfill 
+\begin_body
+
+\begin_layout Standard
+\begin_inset VSpace vfill
+\end_inset
+
+
+\end_layout
+
+\begin_layout Title
 The 
-\noun on 
+\noun on
 KiNG
-\noun default 
+\noun default
  manual
-\layout Author
+\end_layout
 
+\begin_layout Standard
+\begin_inset VSpace vfill
+\end_inset
+
+
+\end_layout
+
+\begin_layout Author
 Ian W.
  Davis
-\layout Abstract
+\end_layout
 
+\begin_layout Abstract
 
-\noun on 
+\noun on
 KiNG
-\noun default 
+\noun default
  (Kinemage, Next Generation) is an interactive system for three-dimensional
  vector graphics.
  It supports a set of graphics primitives that make it suitable for many
  types of graphs, plots, and other illustrations; although its first use
  was to display macromolecular structures for biophysical research.
  
-\noun on 
+\noun on
 KiNG
-\noun default 
+\noun default
  builds on 
-\noun on 
+\noun on
 Mage
-\noun default 
+\noun default
 , 
-\noun on 
+\noun on
 JavaMage
-\noun default 
+\noun default
 , and the 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 kinemage
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  (kinetic image) concept to deliver a full-featured Java application with
  a user-friendly interface and integrated editing features.
  It also operates as a Java applet to promote easy access to kinemages from
  a web browser.
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset LatexCommand \tableofcontents{}
 
-\end_inset 
+\end_inset
 
 
-\layout Chapter
+\end_layout
 
+\begin_layout Chapter
 Getting started
-\layout Section
+\end_layout
 
+\begin_layout Section
 What is a kinemage?
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 A kinemage is a 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 kinetic image,
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  an interactive, three-dimensional illustration.
  Because kinemages contain simple geometric objects --- points, lines, spheres,
  
-\emph on 
+\emph on
 etc.
 
-\emph default 
+\emph default
  --- they are suited to a great variety of subjects, from simple sketches
  to sophisticated plots to detailed schematics of 3-D objects.
  Their strength is in 
-\emph on 
+\emph on
 selective
-\emph default 
+\emph default
  presentation of information --- they were originally intended as an alternative
  to flat, static illustrations in scientific journals.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 In fact, kinemages were first created as a way of visualizing macromolecular
  structures, particularly x-ray crystal structures of proteins.
  However, such a kinemage is a 
-\emph on 
+\emph on
 drawing
-\emph default 
+\emph default
  of a molecule, albeit a 3-D drawing, and not the molecule itself.
  Thus, the kinemage lacks most of the information in a PDB file, and kinemage
  display program cannot read PDB files directly.
  Since their creation, kinemages have been extended to a variety of other
  fields, from the social sciences to ecology to education.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The kinemage concept is the brainchild of Drs.
  David and Jane Richardson at Duke University in Durham, North Carolina,
  USA.
  Their website is at 
 \begin_inset LatexCommand \htmlurl{http://kinemage.biochem.duke.edu}
 
-\end_inset 
+\end_inset
 
 .
-\layout Section
+\end_layout
 
+\begin_layout Section
 Starting the KiNG program
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 If you're reading this, you may already have KiNG running.
  In that case, feel free to skip this section.
  If not, we'll guide you through getting KiNG up and running on your system.
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Download KiNG
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 If you don't already have a copy of KiNG, you can download it from 
 \begin_inset LatexCommand \htmlurl{http://kinemage.biochem.duke.edu}
 
-\end_inset 
+\end_inset
 
 .
  Even if you have a copy already, you might check periodically for new version
@@ -158,16 +187,19 @@ If you don't already have a copy of KiNG, you can download it from
  about Java techonology, we recommend downloading the package that includes
  a Java Virtual Machine in the bundle.
  (This isn't an issue for Macintosh owners.)
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 If you just want to run KiNG as an applet on MolProbity or some other web
  page, you can skip this step.
  You can always download a copy later if you want to run it off-line.
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Make sure you have Java
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 KiNG is written in the Java programming language, and so requires that the
  Java libraries (version 1.3 or later) be present on your computer in order
  for it to run.
@@ -176,133 +208,148 @@ KiNG is written in the Java programming language, and so requires that the
 ll Java on their new computers.
  Look for the coffee-cup icon in your Windows task bar or in the Control
  Panel.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 If you don't have Java, you may have downloaded a copy of KiNG that was
  bundled with its own installation of Java.
  If you ran the InstallAnywhere installation program, this is the copy you
  have; don't worry about downloading and installing another copy of Java.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 If you don't have Java and you didn't download the bundled version of KiNG,
  point your web browser to 
 \begin_inset LatexCommand \htmlurl{http://java.sun.com/getjava/index.html}
 
-\end_inset 
+\end_inset
 
 .
  The software is free and available for Windows, Linux, and Solaris computers.
  We recommend getting the newest version that is available (1.4.2 as of this
  writing).
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Launch KiNG
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Launching KiNG is as simple as double clicking on the 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 KiNG
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  icon.
  If you didn't download a package with an installer, 
-\emph on 
+\emph on
 etc.
 
-\emph default 
+\emph default
  you may need to click on 
-\family typewriter 
+\family typewriter
 king.jar
-\family default 
+\family default
  instead.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 For Unix types who want a shell script, we recommend something like this:
-\layout LyX-Code
+\end_layout
 
+\begin_layout LyX-Code
 #!/bin/sh
-\layout LyX-Code
+\end_layout
 
+\begin_layout LyX-Code
 exec java -Xms32m -Xmx128m -jar /home/ian/bin/jars/king.jar "$@"
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The 
-\family typewriter 
+\family typewriter
 -Xms
-\family default 
+\family default
  and 
-\family typewriter 
+\family typewriter
 -Xmx
-\family default 
+\family default
  switches control the amount of memory initially allocated to the Java program
  and the maximum memory it can consume.
  The default maximum of 64 MB should be enough for almost any kinemage,
  but a few of the largest require more (hence the 
-\family typewriter 
+\family typewriter
 -Xmx128m
-\family default 
+\family default
  recommendation).
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 If you just want to run KiNG as an applet from a web page, you can just
  visit that web page now.
  If you don't see the 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 Kinglet
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  logo after a minute or two, make sure your browser is properly configured
  to work with Java.
  How you do this depends on which browser you have; consult its documentation
  for details.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Opening a kinemage
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 If you already have a kinemage you want to look at, this step is simple:
  just choose 
-\family typewriter 
+\family typewriter
 Open
-\family default 
+\family default
  from the 
-\family typewriter 
+\family typewriter
 File
-\family default 
+\family default
  menu, and select the kinemage you'd like to view.
  If you don't have anything to look at right now, don't worry! Choose 
-\family typewriter 
+\family typewriter
 Help | Built-in kinemages
-\family default 
+\family default
 , and select one of the provided files to explore.
  See 
 \begin_inset LatexCommand \vref{additional-resources}
 
-\end_inset 
+\end_inset
 
  for more places to get kinemages from.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Basic kinemage reading: Using KiNG to view a kinemage
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Basic interaction
 \begin_inset LatexCommand \label{basic-interaction}
 
-\end_inset 
+\end_inset
 
 
-\layout Subsubsection
+\end_layout
 
+\begin_layout Subsubsection
 Moving the kinemage around
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 A kinemage is a dynamic, 3-D illustration.
  The best way to take advantage of that is by rotating it and twisting it
  around.
@@ -312,35 +359,41 @@ A kinemage is a dynamic, 3-D illustration.
  1.
  You can also use the left and right arrow keys for small rotations.
  If you get lost or disoriented, use the 
-\family typewriter 
+\family typewriter
 Views
-\family default 
+\family default
  menu to get back on familiar ground.
-\layout Subsubsection
+\end_layout
 
+\begin_layout Subsubsection
 Identifying points
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 By clicking on points with the mouse (left button again), you'll be able
  to identify them.
  The label associated with each point will appear in the bottom right of
  the graphics area.
  Furthermore, the distance from this point to the last one you clicked will
  also be displayed.
-\layout Subsubsection
+\end_layout
 
+\begin_layout Subsubsection
 Markers
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 For keeping track of which point is selected, markers can be displayed.
  Two markers are displayed normally.
  The checkbox for markers is just below the graphics area, with the pickcenter
  checkbox.
-\layout Subsubsection
+\end_layout
 
+\begin_layout Subsubsection
 Turning groups on & off
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Most kinemages have many different components to them, grouped together
  in logical ways.
  A protein might have one group for each subunit; or one group for mainchain,
@@ -348,8 +401,9 @@ Most kinemages have many different components to them, grouped together
  Groups and subgroups are given names and can be made visible or hidden
  by the viewer --- you might want to see only one subunit, or only the backbone
  (without sidechains and hydrogens cluttering up the view).
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The groups and subgroups appear in the button pane, to the right of the
  graphics area.
  Each one has a button to turn it on or off.
@@ -359,160 +413,177 @@ The groups and subgroups appear in the button pane, to the right of the
  the reader.
  Always check to see if there's more information available than is being
  displayed!
-\layout Subsubsection
+\end_layout
 
+\begin_layout Subsubsection
 Re-centering
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 You can make any point in the kinemage be the center.
  The center point will be in the middle of the graphics area, and the kinemage
  will rotate about that point.
  There are several ways to set the center: you can hold the Shift key while
  you click the point, or use the right mouse button if you have one.
  You can also press the 
-\family typewriter 
+\family typewriter
 Pick center
-\family default 
+\family default
  button below the graphics area and then click on the desired point.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Since re-centering brings a point to the center of the screen, using this
  repeatedly allows one to 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 walk
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  through a large structure.
-\layout Subsubsection
+\end_layout
 
+\begin_layout Subsubsection
 Zooming in and out
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 KiNG allows you to zoom in to see small details in a kinemage.
  Use the 
-\family typewriter 
+\family typewriter
 Zoom
-\family default 
+\family default
  slider, below the graphics area, to control how far you zoom in.
  You can click the mouse right or left of the knob for small movements or
  click the knob and drag it for larger ones.
  A small motion is usually all that's needed.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 For easier access, one can hold Shift and drag (or drag using the right
  mouse button) in the graphics window.
  Dragging down zooms in; up zooms out.
  The up/down arrow keys and mouse wheel (Java 1.4 and later only) also control
  zooming.
-\layout Subsubsection
+\end_layout
 
+\begin_layout Subsubsection
 Clipping
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Objects that are too near the viewer, or too far away, are not displayed;
  otherwise, zooming in would result in a useless superposition.
  The depth of the clipping 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 slab
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  can be adjusted using the slider along the bottom, or by dragging side-to-side
  with the right mouse button (or with the Shift key held down).
-\layout Subsubsection
+\end_layout
 
+\begin_layout Subsubsection
 More modes of interation
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 For more ways to explore the kinemage and interact with it, be sure to read
  about the 
-\family typewriter 
+\family typewriter
 Navigate
-\family default 
+\family default
  tool (see 
 \begin_inset LatexCommand \vref{navigate-tool}
 
-\end_inset 
+\end_inset
 
 ).
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Reading the kinemage text
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Exploring on your own is great, but the best guide to a kinemage is its
  author.
  Often, he or she includes a short text of a few paragraphs or pages that
  explains what the kinemage depicts.
  You can access this text using the 
-\family typewriter 
+\family typewriter
 Show text
-\family default 
+\family default
  button, located just below the graphics area.
  An equivalent command is also available in the 
-\family typewriter 
+\family typewriter
 Edit
-\family default 
+\family default
  menu.
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Using different viewpoints
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Most kinemages have one or more 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 views
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  that were selected by the author to highlight some significant feature.
  These views are accessible from the 
-\family typewriter 
+\family typewriter
 Views
-\family default 
+\family default
  menu.
  Just click on one of the named views and the kinemage will 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 jump
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  to that view.
  You can then rotate it, zoom in or out, 
-\emph on 
+\emph on
 etc.
 
-\emph default 
+\emph default
  to explore further.
  You can always return to the original view by selecting it again from the
  menu.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Kinemages without any predefined views still get an automatic 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 overview
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  view.
  This is a useful way to return to a known starting point if you get lost
  in a complicated structure.
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Other features
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The kinemage format also allows for flip-book style animations, automatic
  searching for points based on their name (the label that appears in the
  lower left when the point is clicked), and much more.
@@ -521,202 +592,215 @@ The kinemage format also allows for flip-book style animations, automatic
  See 
 \begin_inset LatexCommand \vref{advanced-kinemage-reading}
 
-\end_inset 
+\end_inset
 
  to learn more.
-\layout Chapter
+\end_layout
 
+\begin_layout Chapter
 Input & Output
-\layout Section
+\end_layout
 
+\begin_layout Section
 Opening a kinemage
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 To open a new kinemage, go the the 
-\family typewriter 
+\family typewriter
 File
-\family default 
+\family default
  menu and choose 
-\family typewriter 
+\family typewriter
 Open
-\family default 
+\family default
 .
  Browse through your file system and find a kinemage file.
  These files typically end in .
-\family typewriter 
+\family typewriter
 kin
-\family default 
+\family default
 .
  The new version-control convention is to name modified files 
-\family typewriter 
+\family typewriter
 .1.kin
-\family default 
+\family default
 , 
-\family typewriter 
+\family typewriter
 .2.kin
-\family default 
+\family default
 , 
-\emph on 
+\emph on
 etc
-\emph default 
+\emph default
 ., though older kinemages that have been edited may have revisions named
  .
-\family typewriter 
+\family typewriter
 kip
-\family default 
+\family default
 , 
-\family typewriter 
+\family typewriter
 kip1
-\family default 
+\family default
 , 
-\family typewriter 
+\family typewriter
 kip2
-\family default 
+\family default
 , 
-\emph on 
+\emph on
 etc
-\emph default 
+\emph default
 .
  Click the button marked OK and KiNG will begin loading the file.
  You'll see a progress bar as KiNG loads the contents of the file, and then
  the first kinemage in that file will be displayed in the graphics area
  (where the logo used to be).
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 You can also drag and drop kinemages into the KiNG graphics window in order
  to open them, but this feature is not supported for Java versions prior
  to 1.4.
  On Mac OS X machines, you can also double-click 
-\family typewriter 
+\family typewriter
 .kin
-\family default 
+\family default
  files in the Finder or drag kinemage files onto the KiNG Dock icon to launch
  KiNG and open the file.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Additionally, files can be specified on the command line, as in 
-\family typewriter 
-king\SpecialChar ~
--s\SpecialChar ~
-foo.kin\SpecialChar ~
+\family typewriter
+king\InsetSpace ~
+-s\InsetSpace ~
+foo.kin\InsetSpace ~
 bar.kin
-\family default 
+\family default
 , which will load all the kinemages in those two files upon startup.
  The 
-\family typewriter 
+\family typewriter
 -s
-\family default 
+\family default
  (or 
-\family typewriter 
+\family typewriter
 -single
-\family default 
+\family default
 ) flag is required so that KiNG knows not to merge the two files together.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Working with multiple kinemages
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 If your file has more than one kinemage, you can choose which one you want
  to look at from the drop box on the right, just above the buttons.
  You can also use 
-\family typewriter 
+\family typewriter
 File
-\family default 
+\family default
  | 
-\family typewriter 
+\family typewriter
 Open
-\family default 
+\family default
  to load additional files; those kinemages will also appear in the drop
  box.
  When you're done, use 
-\family typewriter 
+\family typewriter
 File
-\family default 
+\family default
  | 
-\family typewriter 
+\family typewriter
 Close
-\family default 
+\family default
  to get rid of the current kinemage, or use 
-\family typewriter 
+\family typewriter
 File
-\family default 
+\family default
  | 
-\family typewriter 
+\family typewriter
 Close all
-\family default 
+\family default
  to get rid of all the open kinemages.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 If you save your file when more than one kinemage is open, they will 
-\emph on 
+\emph on
 all
-\emph default 
+\emph default
  be written out to that file, in the order they currently appear in.
  This is an easy way to create multi-kinemage files, but be careful that
  you don't save 
-\emph on 
+\emph on
 more
-\emph default 
+\emph default
  than you intended to!
-\layout Section
+\end_layout
 
+\begin_layout Section
 Appending a kinemage
 \begin_inset LatexCommand \label{appending-a-kinemage}
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Sometimes you want to combine the contents of multiple kinemages.
  You might want to combine a graph of your latest sales data with some nicely
  formated and labeled axes you prepared last month.
  Or maybe you want to combine a ribbon drawing of your favorite protein
  with a representation of the atomic detail at its active site.
  In either case, using 
-\family typewriter 
+\family typewriter
 File | Append
-\family default 
+\family default
  will combine the contents of a new file with the contents of the currently
  displayed kinemage.
  Be careful --- if the new file contains multiple kinemages, they'll 
-\emph on 
+\emph on
 all
-\emph default 
+\emph default
  be merged into the current one!
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 This behavior can be achieved on the command line by specifying multiple
  files, as in 
-\family typewriter 
-king\SpecialChar ~
--m\SpecialChar ~
-foo.kin\SpecialChar ~
+\family typewriter
+king\InsetSpace ~
+-m\InsetSpace ~
+foo.kin\InsetSpace ~
 bar.kip1
-\family default 
+\family default
 , which will merge all the kinemages in those two files upon startup.
  The 
-\family typewriter 
+\family typewriter
 -m
-\family default 
+\family default
  (or 
-\family typewriter 
+\family typewriter
 -merge
-\family default 
+\family default
 ) flag is optional; merging multiple files is the default behavior.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Saving kinemages
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 You can save kinemages using the 
-\family typewriter 
+\family typewriter
 File | Save as
-\family default 
+\family default
  menu; these files are typically given the extension 
-\family typewriter 
+\family typewriter
 .kin
-\family default 
+\family default
 .
  KiNG will try to help you by automatically appending a number to the filename
  so that your changes don't overwrite your original.
@@ -724,20 +808,23 @@ File | Save as
  edit by hand using any text editor (though of course you don't have to!).
  If you choose to do this and want use a word processor (like Microsoft
  Word), make sure that you load and save the file in plain text format.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Note that due to the security restrictions that web browsers place on Java
  applets, saving will never be possible when KiNG is running inside a web
  browser.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Printing kinemages
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 You can use 
-\family typewriter 
+\family typewriter
 File | Print
-\family default 
+\family default
  to send the image in the graphics area to your printer.
  The image will fill as much of the page as possible without distorting
  it.
@@ -750,29 +837,34 @@ e-is-what-you-get).
  If it looks right on the screen, it should look right on the paper! Some
  images will fit better in landscape mode than portrait mode; this decision
  is left up to the user.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Printing should work even when KiNG is running in a web browser, although
  the user will generally be asked for permission first.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Exporting kinemages in other formats
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Several facilities are provided that can help get data out of kinemage format
  and into other forms, either for making figures for publication or for
  further processing.
  Due to security restrictions placed on applets, the export features are
  unavailable when KiNG is running in a web browser.
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Exporting bitmapped images (JPEG, PNG)
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The 
-\family typewriter 
+\family typewriter
 File | Export
-\family default 
+\family default
  menu allows one to save the current graphics image as a standard image
  file.
  Image export requires that you have Java 1.4 or newer; otherwise, an error
@@ -781,224 +873,237 @@ File | Export
  can be selected from the export dialog box.
  These images are very useful for creating web pages, PowerPoint-style presentat
 ions, 
-\emph on 
+\emph on
 etc
-\emph default 
+\emph default
 .
  For high-quality publication graphics, however, you'll want to use a vector-bas
 ed format like PDF.
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Exporting vector graphics (PDF, PostScript, 
-\emph on 
+\emph on
 etc.
-\emph default 
+\emph default
 )
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Rather than sending the image to the printer, it can be captured for inclusion
  in a publication or later manipulation in a graphics program like Adobe
  Illustrator.
  Note that there are several relevant options under the 
-\family typewriter 
+\family typewriter
 Display
-\family default 
+\family default
  menu, particularly 
-\family typewriter 
+\family typewriter
 White background
-\family default 
+\family default
  and 
-\family typewriter 
+\family typewriter
 Monochrome
-\family default 
+\family default
 .
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 All platforms can generate PDF files using the 
-\family typewriter 
+\family typewriter
 File | Export
-\family default 
+\family default
  menu.
  This is the simplest and best option for almost any use.
  
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 PDF
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  stands for Portable Document Format, the successor to PostScript as the
  standard for vector graphics.
  You can learn more about PDFs at 
 \begin_inset LatexCommand \htmlurl{http://www.adobe.com}
 
-\end_inset 
+\end_inset
 
 .
  It does require the (free) iText PDF library from 
 \begin_inset LatexCommand \htmlurl{http://www.lowagie.com/iText/}
 
-\end_inset 
+\end_inset
 
 , which is distributed with KiNG.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 If for some reason you don't want to use PDF export, it is also often possible
  to hijack the print output into a file.
  For instance, with Macintosh OS X, both PostScript and PDF output are supported
  directly from the Print dialog.
  Under Linux, choosing 
-\family typewriter 
+\family typewriter
 Print to file
-\family default 
+\family default
  from the Print dialog will generate a PostScript file, which can be converted
  many other formats using 
-\emph on 
+\emph on
 e.g.
 
-\emph default 
+\emph default
  Ghostscript tools like 
-\family typewriter 
+\family typewriter
 ps2pdf
-\family default 
+\family default
  (PDF) and 
-\family typewriter 
+\family typewriter
 ps2epsi
-\family default 
+\family default
  (EPS, Encapsulated PostScript).
  Under Microsoft Windows, things don't seem to be as straightforward, but
  one possiblity is to install the generic PostScript printer drivers from
  Adobe and then direct this 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 virtual printer
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  to FILE (rather than, 
-\emph on 
+\emph on
 e.g.
-\emph default 
+\emph default
 , LPT1).
  Your mileage may vary; I'd be interested in hearing about better ways to
  do this from any Windows experts out there.
-\layout Chapter
+\end_layout
 
+\begin_layout Chapter
 Advanced kinemage reading
 \begin_inset LatexCommand \label{advanced-kinemage-reading}
 
-\end_inset 
+\end_inset
 
 
-\layout Section
+\end_layout
 
+\begin_layout Section
 Finding points by name
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Every point in a kinemage has an associated identifying label, which appears
  in the graphics area when the point is clicked on.
  You can find one or more points by searching through those labels for a
  word or phrase using the 
-\family typewriter 
+\family typewriter
 Edit
-\family default 
+\family default
  | 
-\family typewriter 
+\family typewriter
 Find point
-\family default 
+\family default
  dialog.
  When you press 
-\family typewriter 
+\family typewriter
 Search
-\family default 
+\family default
 , KiNG will center the view on the first point that matches your criteria
  (you may need to zoom in/out to see it appropriately).
  
-\family typewriter 
+\family typewriter
 Edit | Find next
-\family default 
+\family default
  will then jump to the next matching point, until all matches are exhausted.
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Whole word searches
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 This is the easiest-to-use of the search options, and usually produces the
  desired results.
  You can enter one or more words or numbers in the search field (separated
  by spaces), and KiNG will find all the points that contain 
-\emph on 
+\emph on
 all
-\emph default 
+\emph default
  of those words, in any order.
  A search for 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 val 17
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  would find 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 17 A val cb
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  but not 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 valine 117
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 .
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Substring searches
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 This works like whole word searches, but will even find points that have
  the search terms embedded in a larger word or number.
  In this case, a search for 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 val 17
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  
-\emph on 
+\emph on
 would
-\emph default 
+\emph default
  find 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 valine 117
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 .
  This often produces extraneous results but may occasionally be useful.
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Glob (simple regex) searches
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 This search is done with a simple 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 regular expression
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 , as is often used for specifying file names on the command line.
  A star (*) matches any group of zero or more characters, and a question
@@ -1007,108 +1112,116 @@ regular expression
  words --- the pieces must be in the correct order.
  Thus a search for 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 val*17
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  would find 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 val17
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 , 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 val 17
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 , and 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 valine 117
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 , among others; but would 
-\emph on 
+\emph on
 not
-\emph default 
+\emph default
  find 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 17 val
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 .
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Perl5 regex searches
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 This search is like the simple regex search but uses the full syntax of
  Perl 5 regular expressions, as implemented by the 
-\family typewriter 
+\family typewriter
 gnu.regexp
-\family default 
+\family default
  library.
  (I'm no expert, but it seems to be a very complete and official implementation.
  All but the most esoteric features are available.) Regular expressions are
  a very involved subject, and many books and on-line references are available
  for the interested reader.
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Tips for faster searches
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Remember that KiNG searches through 
-\emph on 
+\emph on
 all
-\emph default 
+\emph default
  visible points to find ones matching your criteria.
  Turning off (
-\emph on 
+\emph on
 i.e.
-\emph default 
+\emph default
 , making invisible, hiding, unchecking) large groups that you're not interested
  in will skip searching those groups.
  Since all the varieties of search are implemented internally with regular
  expressions, they are relatively computationally expensive.
  A search through a large kinemage may take several seconds.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Viewing animations
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Kinemages often include animations.
  An animation in this sense is not a movie, but more like a flip-book, where
  similar images are aligned and displayed one at a time, in a series of
  discrete frames.
  If a kinemage contains animation(s), there will be forward and reverse
  buttons for the animation located below the checkboxes for groups and masters.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Controlling presentation: The Display menu
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The 
-\family typewriter 
+\family typewriter
 Display
-\family default 
+\family default
  menu offers several options for controlling how the kinemage is rendered.
  Of particular interest is the 
-\family typewriter 
+\family typewriter
 Perspective
-\family default 
+\family default
  option.
  By default, KiNG renders objects with orthographic perspective; objects
  near the viewer are no larger than those far away.
@@ -1117,39 +1230,43 @@ Perspective
  However, for geometrical objects and other cases where the eye expects
  perspective, enabling this option will result in a much more natural-looking
  image.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 There are also several ways of controlling the coloring of the points.
  Each point may have its own color, and several 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 aspects
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  as well.
  For example, a map might be colored by the aspects of temperature, elevation,
  and annual rainfall; one could then choose which of these colorings to
  apply.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The first level of grouping above the individual point is the list; every
  point belongs to a list.
  Points that don't have a color specified take their color from the list,
  but there are times when one might want to suppress the individual colors
  and color points by the color of the list they belong to.
  This option is available as well.
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Stereo
 \begin_inset LatexCommand \label{using_stereo}
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Upon request, KiNG will render the kinemage as a stereoscopic pair of images.
  The two views are very nearly the same, except that one is slightly rotated
  with respect to the other.
@@ -1157,24 +1274,25 @@ Upon request, KiNG will render the kinemage as a stereoscopic pair of images.
  seeing additional depth information.
  Stereo can be either 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 cross-eye
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  or 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 wall-eye
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 ; the former is somewhat easier to learn, but the later is more comfortable
  for long periods of time.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 To see cross-eye stereo, cross your eyes and then look at the screen without
  refocusing.
  You should see 4 identical (though blurry) images.
@@ -1182,147 +1300,156 @@ To see cross-eye stereo, cross your eyes and then look at the screen without
  If you can focus on this phantom central image, you'll be seeing in stereo.
  It may help bring the image into sharp focus to rotate the kinemage slighly
  using the mouse.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 If you've got KiNG set for wall-eye stereo and your eyes set for cross-eye
  (or vice versa), you will see a stereoscopic image, but the parts that
  should be in back will be in front, and it will rotate the wrong direction
  when you move the mouse.
  Change one or the other to get a more reasonable image.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Incidentally, although KiNG doesn't support multiple simultaneous views
  of the same kinemage, you can simulate a pair of orthogonal views by setting
  the stereo separation to 90 degrees in 
-\family typewriter 
+\family typewriter
 Edit | Configure KiNG
-\family default 
+\family default
 .
  Of course, the views no longer forms a stero image, but they're useful
  in another way.
  Particularly applicable for 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 info-vis
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  kinemages, you can examine (for instance) the x-y plane and the y-z plane
  at the same time using this trick.
  It pairs well with the 90-degree rotations plugin (
 \begin_inset LatexCommand \ref{rot90-plugin}
 
-\end_inset 
+\end_inset
 
 ).
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 OpenGL
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 KiNG is capable of using OpenGL rendering commands to take advantage of
  your graphics hardware and get (hopefully) accelerated graphics performance.
  You'll need to have an up-to-date version of Java installed, along with
  the JOGL libraries (
 \begin_inset LatexCommand \htmlurl{https://jogl.dev.java.net/}
 
-\end_inset 
+\end_inset
 
 ).
  Make sure you get both 
-\family typewriter 
+\family typewriter
 jogl.jar
-\family default 
+\family default
  and the native library or libraries (they end in 
-\family typewriter 
+\family typewriter
 .dll
-\family default 
+\family default
 , 
-\family typewriter 
+\family typewriter
 .so
-\family default 
+\family default
 , or 
-\family typewriter 
+\family typewriter
 .jnilib
-\family default 
+\family default
 ).
  As of spring 2005, the JOGL folks were distributing their native libraries
  packaged in a JAR file, too; they'll need to be extracted with a 
-\family typewriter 
+\family typewriter
 jar xvf NATIVE-LIBS.JAR
-\family default 
+\family default
  command.
  You can remove the 
-\family typewriter 
+\family typewriter
 META-INF
-\family default 
+\family default
  directory; it doesn't serve any purpose.
  The JOGL JAR file goes in 
-\family typewriter 
+\family typewriter
 jre/lib/ext
-\family default 
+\family default
  of your Java installation, and the native libraries go in 
-\family typewriter 
+\family typewriter
 jre/bin
-\family default 
+\family default
  (Windows) or 
-\family typewriter 
+\family typewriter
 jre/lib/i386
-\family default 
+\family default
  (Linux).
  On Mac OS X, all the files go in 
-\family typewriter 
+\family typewriter
 /Library/Java/Extensions
-\family default 
+\family default
 .
  If you're on a Unix-style system (including Mac OS X), be sure to check
  your permissions as well.
  If you downloaded a platform-specific version of KiNG, the necessary libraries
  may already be included.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 This feature has been tested with Java 1.4.2 and JOGL 1.1.
  JOGL is still under development, as is this feature, and interacting so
  directly with the hardware is always risky, so it's possible that OpenGL
  rendering may hang KiNG on your computer.
  You've been warned.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Hopefully, a future version of Java (possibly the 1.6.x series) will use OpenGL
  behind the scenes for all graphics operations, making KiNG much faster
  and making this feature obsolete.
  Until then, this is a work-around for large kinemages where performance
  is an issue.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Master buttons
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Not all the buttons to the right of the graphics control groups and subgroups
  of points; some are 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 masters.
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  The master buttons sit below the others, separated by a spacer.
  When activated, a master turns on all the groups it controls; when deactivated,
  it turns them all off.
  The effects are only momentary; the group can be turned on or off directly
  regardless of the state of the master(s) that control it.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 A single group can be controlled by multiple masters.
  Note that the 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 off
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  state of a master is dominant in this case: a master will always turn off
  the groups it controls, but will turn them on only if they are not also
@@ -1330,11 +1457,13 @@ off
  Since the buttons of the individual groups, subgroups, and lists are sometimes
  hidden, one can generate a variety of patterns by turning the masters on
  and off in specific patterns.
-\layout Chapter
+\end_layout
 
+\begin_layout Chapter
 Kinemage authoring: Using KiNG to edit a kinemage
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Kinemage files are stored as human-readable, plain-text files.
  They're also designed to be easily edited by human beings, using a text
  editor like Notepad (Windows), TextEdit (Mac), or vi (Unix).
@@ -1343,227 +1472,252 @@ Kinemage files are stored as human-readable, plain-text files.
  and others).
  A description of the kinemage file format is distributed with KiNG as a
  separate document from this manual.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Merging kinemages together
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The most basic sort of editing is to combine two kinemages into one.
  For this, simply use the 
-\family typewriter 
+\family typewriter
 File | Append
-\family default 
+\family default
  command (see 
 \begin_inset LatexCommand \vref{appending-a-kinemage}
 
-\end_inset 
+\end_inset
 
 ).
-\layout Section
+\end_layout
 
+\begin_layout Section
 Editing text
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The text of a kinemage is often critical for clarifying and amplifying its
  meaning.
  It's analogous to the caption that accompanies a printed figure.
  You can edit the kinemage text in the same window that you use for reading
  it (just press the 
-\family typewriter 
+\family typewriter
 Show text
-\family default 
+\family default
  button).
-\layout Section
+\end_layout
 
+\begin_layout Section
 Editing views
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 A simple editing tool is 
-\family typewriter 
+\family typewriter
 Views | Save current view
-\family default 
+\family default
 , which records the current orientation and position of the kinemage as
  a new view in the 
-\family typewriter 
+\family typewriter
 Views
-\family default 
+\family default
  menu.
  Creating a series of meaningful, clearly labeled views is a great way to
  make a kinemage more informative.
  You can delete, rename, and rearrange views using 
-\family typewriter 
+\family typewriter
 Views | Edit saved views
-\family default 
+\family default
 .
-\layout Section
+\end_layout
 
+\begin_layout Section
 The hierarchy editor
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 One of the goals of KiNG is to enable simple, visual editing of most parts
  of a kinemage.
  Many of the editing commands are activated using a tree-like display of
  the hierarchical kinemage structure, which will resemble the layout of
  buttons.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The structure of the kinemage can be rearranged by cutting, copying, and
  pasting elements; creating new elements and deleting unneeded ones; and
  reordering elements (using the 
-\family typewriter 
+\family typewriter
 Up
-\family default 
+\family default
  and 
-\family typewriter 
+\family typewriter
 Down
-\family default 
+\family default
  commands).
  Play with these commands, and their operation will soon become obvious.
  Elements can even be cut out of one kinemage and pasted into another!
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Also, the properties of individual elements can be adjusted, which allows
  them to be renamed.
  What other properties are available depends on the level of the hierarchy
  (kinemage, group, subgroup, or list).
  Each element can also be toggled on and off, even if it doesn't have a
  button visible in the button pane.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Using the hierarchy editor effectively depends on a decent understanding
  of the kinemage format.
  If you're unfamiliar with kinemages, reading the kinemage format reference
  may be very helpful to you.
-\layout Chapter
+\end_layout
 
+\begin_layout Chapter
 The Tools
-\layout Section
+\end_layout
 
+\begin_layout Section
 Understanding the Tools and Plug-ins
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The 
-\family typewriter 
+\family typewriter
 Tools
-\family default 
+\family default
  menu has a variety of tools and plug-ins for interacting with the kinemage.
  Many of these are highly domain-specific --- tailored to doing structural
  biology, for example.
  Each tool 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 takes over
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  the mouse, assigning specific meanings to the various kinds of clicks and
  drags.
  Normally, the familiar Navigate tool is active, so mouse motions result
  in the sort of rotations, pans, and zooms that most users are accustomed
  to.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Plug-ins, on the other hand, just offer additional functionality that doesn't
  change what the mouse does.
  Because of this, you can have several plug-ins active at once, but only
  one tool.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Some special-purpose tools and plugins have been developed by other people
  and ship separately from KiNG.
  Installing these additional tools and plugins for KiNG is easy, though.
  Just take all plugin files that end with 
-\family typewriter 
+\family typewriter
 .jar
-\family default 
+\family default
  (
-\emph on 
+\emph on
 e.g.
-\emph default 
+\emph default
 , 
-\family typewriter 
+\family typewriter
 chiropraxis.jar
-\family default 
+\family default
 , 
-\family typewriter 
+\family typewriter
 pyking.jar
-\family default 
+\family default
 ) and put them in the 
-\family typewriter 
+\family typewriter
 plugins/
-\family default 
+\family default
  folder that's part of your KiNG distribution.
  There will probably be a few JAR files in there already.
  Then just close KiNG and restart it to load the new tools and plugins.
  Note that these will 
-\emph on 
+\emph on
 not
-\emph default 
+\emph default
  be available when running KiNG as an applet.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The tools menu also has some other options that are related to how mouse
  clicks and drags are interpretted, which are discussed below.
  The tools and plugins listed in the menu can be rearranged, grouped into
  submenus, or hidden entirely by using the 
-\family typewriter 
+\family typewriter
 Tools | Customize
-\family default 
+\family default
  dialog box, which is also accessible from 
-\family typewriter 
+\family typewriter
 Edit | Configure KiNG
-\family default 
+\family default
 .
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Extra measurements
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 In addition to tracking the distance between the last two points, clicking
  on points to identify them can track the angle between the last three points
  and the dihedral angle between the last four.
  When these measurements are active, the 
-\family typewriter 
+\family typewriter
 Markers
-\family default 
+\family default
  option will display four markers instead of two.
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 XYZ coordinates
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Likewise, KiNG can display the original, unrotated coordinates of the point.
  This is sometimes helpful when the kinemage is a graph or plot of some
  data, and the position has some absolute meaning.
  The display of this information can be enabled in the 
-\family typewriter 
+\family typewriter
 Tools
-\family default 
+\family default
  menu.
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Pick objects
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Traditionally, one can only 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 pick
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  points in a kinemage.
  Enabling this option allows KiNG to recognize mouse clicks that hit the
  actual lines drawn between points and the surfaces of triangles.
  In each case, the result is equivalent to clicking on the point that determines
  the attributes (color, line width, etc.) of that graphics object.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Using KiNG with a multi-button mouse
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 In KiNG, even a one-button mouse is sufficient to access all of the available
  functions.
  However, it has also been designed to take full advantage of a three-button
@@ -1572,15 +1726,16 @@ In KiNG, even a one-button mouse is sufficient to access all of the available
  with the left (or only) mouse button.
  This button is referred to as 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 Normal
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  in the command reference charts.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Other functions can be accessed either by holding down keyboard keys at
  the same time, or by using one of the other mouse buttons.
  Holding the Shift key is equivalent to using the right mouse button, and
@@ -1592,8 +1747,9 @@ Other functions can be accessed either by holding down keyboard keys at
  the left and right mouse button.
  Because of the difficulty of clicking two buttons at once, however, this
  shortcut does not apply to Shift+Ctrl+Click.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 At the present time, the Shift and Control keys do not work properly in
  Java on Mac OS X.
  When using a one-button mouse with OS X, you should use the Command key
@@ -1602,24 +1758,27 @@ At the present time, the Shift and Control keys do not work properly in
  button, and you should use the Option key (a.k.a.
  Alt) instead of Control to get the same effect as the middle mouse button.
  Hopefully this will be fixed in OS X 10.4 / Java 1.5.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Some tools also use the up & down arrow keys on the keyboard; these have
  the same effect as using the scroll wheel of a wheel mouse.
  Once again, these may be combined with the Shift and/or Control keys to
  give access to more functions.
  Note that the mouse wheel is never active when running in a Java 1.3.x virtual
  machine; Java 1.4 or later is needed to take advantage of this control.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Navigate: Exploring in 3-D
 \begin_inset LatexCommand \label{navigate-tool}
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The Navigate tool encompasses all the usual modes of interacting with a
  kinemage.
  This is the tool that is active when KiNG is launched, and is probably
@@ -1627,82 +1786,89 @@ The Navigate tool encompasses all the usual modes of interacting with a
  See 
 \begin_inset LatexCommand \vref{basic-interaction}
 
-\end_inset 
+\end_inset
 
  for an introduction to using the Navigate tool to get around a kinemage.
  There are also a few more advanced modes of movement which are described
  below.
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Z-rotation (
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 pinwheel
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 )
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Clicking and dragging (with the left mouse button) near the top of the graphics
  area will cause the kinemage to spin around the Z axis like a pinwheel,
  rather than the more conventional sort of rotation.
  This is sometimes useful for putting something right side up.
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Translation (
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 flatland
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 )
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Holding Control while dragging (or dragging with the middle mouse button)
  allows one to slide the kinemage around in the plane of the screen.
  Dragging at the top of the screen, as for z-rotation, slides the kinemage
  in and out of the plane of the screen.
  (Note: enabling perspective in the 
-\family typewriter 
+\family typewriter
 Diplay
-\family default 
+\family default
  menu is 
-\emph on 
+\emph on
 very
-\emph default 
+\emph default
  helpful when translating in and out of the plane of the screen.) This sort
  of motion is sometimes called 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 panning
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  or 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 flatland,
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  and can be made the default mode of movement by selecting 
-\family typewriter 
+\family typewriter
 Tools | Flatland
-\family default 
+\family default
 .
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Command reference
-\layout Standard
-\noindent \align center 
+\end_layout
 
-\begin_inset  Tabular
+\begin_layout Standard
+\noindent
+\align center
+\begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
 <features>
 <column alignment="center" valignment="top" leftline="true" width="0sp">
@@ -1711,100 +1877,113 @@ Command reference
 <cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 Mouse clicks
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 <cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
+\begin_layout Standard
 
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 </row>
 <row topline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 Normal
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 Mark and identify point; make measurement (pick)
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 </row>
 <row topline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 With Shift
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 Center on selected point (pickcenter)
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 </row>
 <row topline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 With Ctrl
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 -
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 </row>
 <row topline="true" bottomline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 With Shift+Ctrl
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 -
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 </row>
 </lyxtabular>
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
-\noindent \align center 
+\end_layout
 
-\begin_inset  Tabular
+\begin_layout Standard
+\noindent
+\align center
+\begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
 <features>
 <column alignment="center" valignment="top" leftline="true" width="0sp">
@@ -1813,100 +1992,113 @@ With Shift+Ctrl
 <cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 Mouse drags
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 <cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
+\begin_layout Standard
 
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 </row>
 <row topline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 Normal
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 Rotate around X and Y axes; Z-rotate (pinwheel) near top of screen
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 </row>
 <row topline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 With Shift
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 Adjust zoom (up/down); Adjust clipping (left/right) 
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 </row>
 <row topline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 With Ctrl
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 Translate in X-Y plane (flatland); Z-translate near top of screen
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 </row>
 <row topline="true" bottomline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 With Shift+Ctrl
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 Rotate around Y axis only
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 </row>
 </lyxtabular>
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
-\noindent \align center 
+\end_layout
 
-\begin_inset  Tabular
+\begin_layout Standard
+\noindent
+\align center
+\begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
 <features>
 <column alignment="center" valignment="top" leftline="true" width="0sp">
@@ -1915,141 +2107,157 @@ Rotate around Y axis only
 <cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 Mouse wheel / Up & Down arrow keys
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 <cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
+\begin_layout Standard
 
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 </row>
 <row topline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 Normal
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 Adjust zoom
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 </row>
 <row topline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 With Shift
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 Adjust clipping
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 </row>
 <row topline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 With Ctrl
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 -
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 </row>
 <row topline="true" bottomline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 With Shift+Ctrl
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\layout Standard
-
+\begin_layout Standard
 -
-\end_inset 
+\end_layout
+
+\end_inset
 </cell>
 </row>
 </lyxtabular>
 
-\end_inset 
+\end_inset
 
 
-\layout Section
+\end_layout
 
+\begin_layout Section
 Draw New: Reworking the kinemage
 \begin_inset LatexCommand \label{drawnew-tool}
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The Draw New tool provides a variety of simple tools for creating new objects
  in the kinemage or removing existing ones on a point-by-point basis.
-\layout Description
+\end_layout
 
-Edit\SpecialChar ~
-list\SpecialChar ~
+\begin_layout Description
+Edit\InsetSpace ~
+list\InsetSpace ~
 props Picking a point opens the editing window for that point's
  list, where you can set color, width, radius, 
-\emph on 
+\emph on
 etc
-\emph default 
+\emph default
 .
  You will need to activate the 
-\family typewriter 
+\family typewriter
 Tools | Superpick
-\family default 
+\family default
  option to edit unpickable points.
-\layout Description
+\end_layout
 
-Edit\SpecialChar ~
-point\SpecialChar ~
+\begin_layout Description
+Edit\InsetSpace ~
+point\InsetSpace ~
 props Picking a point opens the editing window for that point,
  where you can set color, position, point ID, 
-\emph on 
+\emph on
 etc
-\emph default 
+\emph default
 .
  You will need to activate the 
-\family typewriter 
+\family typewriter
 Tools | Superpick
-\family default 
+\family default
  option to edit unpickable points.
-\layout Description
+\end_layout
 
-Move\SpecialChar ~
+\begin_layout Description
+Move\InsetSpace ~
 points Allows you to click on individual points and drag them around
  to new positions.
  Dragging them with the mouse moves them in the plane of the screen.
@@ -2057,11 +2265,11 @@ points Allows you to click on individual points and drag them around
  is easier to see with Perspective enabled and Stereo on).
  A kinemage may have several 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 points
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  at the same location in 3-D.
  Under normal conditions, this tool will move them all together, so that
@@ -2069,40 +2277,43 @@ points
  However, you can also use Ctrl+Drag to pick apart overlapped points and
  separate them from each other.
  You will need to activate the 
-\family typewriter 
+\family typewriter
 Tools | Superpick
-\family default 
+\family default
  option to move unpickable points.
-\layout Description
+\end_layout
 
-Draw\SpecialChar ~
-line\SpecialChar ~
+\begin_layout Description
+Draw\InsetSpace ~
+line\InsetSpace ~
 segments Simply draws a line between the first point picked and
  the second.
  Every pair of picks forms a new line.
  Lines can be shortened from their natural length (or lengthened, using
  negative numbers), which is sometimes useful for making illustrations.
-\layout Description
+\end_layout
 
-Draw\SpecialChar ~
-dotted\SpecialChar ~
+\begin_layout Description
+Draw\InsetSpace ~
+dotted\InsetSpace ~
 lines Like drawing ordinary lines, except a string of dots is
  created instead of a single line.
  The number of dots is configurable.
  This can serve as a 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 template
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  for constructing more complex dot-dash patterns when used with line drawing
  and prune.
-\layout Description
+\end_layout
 
-Draw\SpecialChar ~
-curved\SpecialChar ~
+\begin_layout Description
+Draw\InsetSpace ~
+curved\InsetSpace ~
 arc Draws an arc from the second point picked to the third one,
  with the arc curving toward the first point picked.
  The user specifies how many degrees out of a circle will be used to create
@@ -2110,32 +2321,37 @@ arc Draws an arc from the second point picked to the third one,
  ones.
  The arc can also be shortened by a few degrees so it doesn't quite touch
  its endpoints, and a four-pronged arrowhead can be added.
-\layout Description
+\end_layout
 
-Draw\SpecialChar ~
+\begin_layout Description
+Draw\InsetSpace ~
 balls Places a small ball at each point picked with the mouse.
-\layout Description
+\end_layout
 
-Draw\SpecialChar ~
+\begin_layout Description
+Draw\InsetSpace ~
 labels Creates a label at the picked point, with its text taken from
  the picked point's ID.
  The label text can be changed using Edit Properties.
-\layout Description
+\end_layout
 
-Draw\SpecialChar ~
+\begin_layout Description
+Draw\InsetSpace ~
 dots Creates a dot at each point picked with the mouse.
-\layout Description
+\end_layout
 
-Draw\SpecialChar ~
+\begin_layout Description
+Draw\InsetSpace ~
 triangles Draws a triangle for each set of three points picked.
  Triangles can also be shrunk (values between 0 and 1) or grown (values
  greater than 1).
  A value of zero will make an infinitely small triangle; a value of one
  will give a triangle that just touches the three points.
-\layout Description
+\end_layout
 
-Prune\SpecialChar ~
-one\SpecialChar ~
+\begin_layout Description
+Prune\InsetSpace ~
+one\InsetSpace ~
 point Removes the single point picked with the mouse.
  In the case of polylines and triangle strips, it will stop things from
  being drawn that depend on the removed point.
@@ -2144,168 +2360,184 @@ point Removes the single point picked with the mouse.
  Sometimes kinemages have multiple points that overlap in the same spatial
  location, so it may take multiple clicks to remove all the objects at a
  particular point in space.
-\layout Description
+\end_layout
 
-Punch\SpecialChar ~
-a\SpecialChar ~
+\begin_layout Description
+Punch\InsetSpace ~
+a\InsetSpace ~
 polyline Removes all the line segments in a particular 
-\emph on 
+\emph on
 polyline
-\emph default 
+\emph default
  (a series of lines drawn head to tail).
  This is sometimes useful with vectors and triangles; for other things,
  it behaves like prune.
-\layout Description
+\end_layout
 
-Auger\SpecialChar ~
-a\SpecialChar ~
+\begin_layout Description
+Auger\InsetSpace ~
+a\InsetSpace ~
 region Removes all points that fall under the giant eraser.
  The eraser is drawn as a large circle that follows the mouse around the
  graphics area.
  Auger operations cannot be undone, so save your file first and click carefully.
-\layout Description
+\end_layout
 
-Spherical\SpecialChar ~
+\begin_layout Description
+Spherical\InsetSpace ~
 crop Removes all points that fall more than a specified distance
  away from the picked point.
  Only visible points are cropped.
  Crop operations cannot be undone, so save your file first and click carefully.
-\layout Description
+\end_layout
 
-New\SpecialChar ~
+\begin_layout Description
+New\InsetSpace ~
 subgroup Kinemage elements created by each drawing option are placed
  into their own list, and all of those lists are placed in one subgroup
  under the 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 New group
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  group created by this tool.
  Creating a new subgroup starts a fresh list for each option above.
  This is a good way to separate out the different objects you're drawing.
  New subgroup can't be undone, but it's pretty harmless.
-\layout Description
+\end_layout
 
+\begin_layout Description
 Undo The Undo button undoes the last drawing action, with a few exceptions
  (mentioned above).
  Undo depth is unlimited, subject to memory constraints.
  Thus, for kinemages that aren't too large you can often undo all the drawing
  operations you've performed since loading the kinemage.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Electron Density: Visualizing maps
 \begin_inset LatexCommand \label{edmap-plugin}
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 This plug-in is for viewing electron density maps while exploring kinemages
  of crystal structures.
  (If that doesn't mean anything to you, then you probably don't need this
  plugin.)
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Choose 
-\family typewriter 
+\family typewriter
 Open
-\family default 
+\family default
  from the 
-\family typewriter 
+\family typewriter
 Tools
-\family default 
+\family default
  menu in order to open a map file.
  Supported formats include X-PLOR (ASCII, not binary), O (DSN6 or Brix),
  and CCP4 (mode 2, the only one in common use).
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Each map opens a new control window, which allows adjustment of its extent,
  color, and level.
  The segment of map that is visible at any given time is centered in the
  current view; when the view changes, the portion that is visible will automatic
 ally be updated.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Any dynamic segment of map can be "captured" as part of a static kinemage;
  just use the 
-\family typewriter 
+\family typewriter
 Export
-\family default 
+\family default
  button to make the currently visible map segment part of the current kinemage.
  When you've finished with a map, be sure to 
-\family typewriter 
+\family typewriter
 Discard
-\family default 
+\family default
  it to free up the memory it consumed.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 If you don't have an electron density map for the structure you're interested
  in, you can try looking at the Uppsala Electron Density Server (
 \begin_inset LatexCommand \htmlurl{http://fsrv1.bmc.uu.se/eds/}
 
-\end_inset 
+\end_inset
 
 ).
  They offer standard maps for many of the structures deposited in the Protein
  Data Bank.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Maps can't be loaded from the local filesystem when KiNG is running as an
  applet due to security restrictions.
  However, you can use the 
-\family typewriter 
+\family typewriter
 XMAP
-\family default 
+\family default
  or 
-\family typewriter 
+\family typewriter
 OMAP
-\family default 
+\family default
  parameter along with the 
-\family typewriter 
+\family typewriter
 <PARAM>
-\family default 
+\family default
  tag to load a (single) map from a URL.
  For example:
-\layout LyX-Code
+\end_layout
 
+\begin_layout LyX-Code
 <PARAM name="omap" value="http://example.com/electron/density/my-protein.dsn6.gz">
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 You can also use the 
-\family typewriter 
+\family typewriter
 EDMAPBASE
-\family default 
+\family default
  and 
-\family typewriter 
+\family typewriter
 EDMAPLIST
-\family default 
+\family default
  parameters to allow the user to select and load a map.
  
-\family typewriter 
+\family typewriter
 EDMAPBASE
-\family default 
+\family default
  specifies a path to the maps relative to the current document base URL.
  
-\family typewriter 
+\family typewriter
 EDMAPLIST
-\family default 
+\family default
  is a space-separated list of filenames that can be loaded from that path.
  Users can also enter and modify URLs directly, though obviously this isn't
  very convenient.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Update KiNG: Upgrading without the hassle
 \begin_inset LatexCommand \label{update-plugin}
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The Update KiNG plugin allows you to quickly and easily update KiNG to the
  latest version published on the Kinemage website (kinemage.biochem.duke.edu).
  After you confirm your intentions, KiNG will begin downloading the new
@@ -2317,115 +2549,123 @@ The Update KiNG plugin allows you to quickly and easily update KiNG to the
  be overwritten.
  You can then quit KiNG and restart to take advantage of new features and
  capabilities.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The Update plugin has been tested on a variety of platforms under a variety
  of conditions, but there is always a chance that it won't work quite right
  on 
-\emph on 
+\emph on
 your
-\emph default 
+\emph default
  computer.
  The chance is greater if you created a non-standard custom installation
  from the JAR files rather than using the pre-packaged platform-specific
  installer.
  If KiNG fails to start after the update, you may have to remove it and
  then download and install a clean copy by hand.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 There are certain things the automatic updater 
-\emph on 
+\emph on
 can't
-\emph default 
+\emph default
  update, like the bundled binary programs (
-\family typewriter 
+\family typewriter
 probe
-\family default 
+\family default
 , 
-\emph on 
+\emph on
 etc
-\emph default 
+\emph default
 .) or the displayed version number of the Mac application bundle.
  For this reason, you may want to periodically remove the existing installation
  completely and reinstall from scratch.
-\layout Chapter
+\end_layout
 
+\begin_layout Chapter
 Configuring KiNG
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 By choosing 
-\family typewriter 
+\family typewriter
 Edit | Configure KiNG
-\family default 
+\family default
 , one can adjust several aspects of KiNG's behavior and appearance, such
  as font sizes, stereo settings, and whether or not certain warnings are
  issued.
  The configuration dialog also allows for reorganizing the 
-\family typewriter 
+\family typewriter
 Tools
-\family default 
+\family default
  menu to suit your own work habits.
  Preferrences may be saved to disk, where they are stored in a simple text
  file named 
-\family typewriter 
+\family typewriter
 .king_prefs
-\family default 
+\family default
  in the user's home directory.
  There may be some settings accessible only through this file; that is,
  they cannot be edited from the graphical interface.
  Nonetheless, pressing 
-\family typewriter 
+\family typewriter
 Reset to defaults
-\family default 
+\family default
  will restore them to their standard values.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Note that due to security restrictions, configurations cannot be saved when
  KiNG is running as an applet.
  However, the web page creator may provide a custom configuration file in
  the same format as the one saved by KiNG the application, thereby altering
  the default behavior for all visitors to the website.
  If you create a preferences file named 
-\family typewriter 
+\family typewriter
 MyKingPrefs.txt
-\family default 
+\family default
  and place it in the same directory as 
-\family typewriter 
+\family typewriter
 king.jar
-\family default 
+\family default
  and your HTML file, add something like this to the 
-\family typewriter 
+\family typewriter
 APPLET
-\family default 
+\family default
  tag of your webpage:
-\layout LyX-Code
+\end_layout
 
+\begin_layout LyX-Code
 <param name=
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 king_prefs
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  value=
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 
-\family typewriter 
+\family typewriter
 MyKingPrefs.txt
-\family default 
+\family default
 
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 >
-\layout Chapter
+\end_layout
 
+\begin_layout Chapter
 Launching KiNG
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 KiNG runs both as a stand-alone application, and as an applet that can be
  included in web pages.
  In any case, KiNG requires a Java Virtual Machine (JVM), version 1.3 or
@@ -2433,93 +2673,104 @@ KiNG runs both as a stand-alone application, and as an applet that can be
  You can get Java from 
 \begin_inset LatexCommand \htmlurl{http://java.sun.com}
 
-\end_inset 
+\end_inset
 
 .
-\layout Section
+\end_layout
 
+\begin_layout Section
 Running KiNG as an application
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 How you launch the KiNG application will depend on what operating system
  (Windows, Mac OS X, Linux, 
-\emph on 
+\emph on
 etc
-\emph default 
+\emph default
 .) you're using.
  With Windows and the Mac, you can usually just double-click on the 
-\family typewriter 
+\family typewriter
 king.jar
-\family default 
+\family default
  file to start KiNG.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 On all operating systems, you can type
-\layout LyX-Code
+\end_layout
 
+\begin_layout LyX-Code
 java -jar king.jar [-merge | -single] [file1 file2 ...]
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 All the files listed on the command line will be merged together into one
  kinemage,, unless the 
-\family typewriter 
+\family typewriter
 -s
-\family default 
+\family default
  flag is included, in which case all the files will be opened as separate
  kinemages.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Making KiNG an applet in a web page
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 KiNG can also be included as a web page applet.
  The following HTML code is a simple example that uses the <APPLET> tag,
  which will work with browsers using a recent JVM.
  Older browsers may need <OBJECT> or <EMBED> tags; more information on this
  is available from Sun Microsystems, Inc.
-\layout LyX-Code
+\end_layout
 
+\begin_layout LyX-Code
 <applet code=
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 king/Kinglet.class
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  archive=
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 king.jar
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  width=300 height=150>
-\layout LyX-Code
+\end_layout
 
+\begin_layout LyX-Code
 <param name=
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 kinSource
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  value=
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 some_file_name.kin
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 >
-\layout LyX-Code
+\end_layout
 
+\begin_layout LyX-Code
 </applet>
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Just put all the jar files, including king.jar, in the same directory as
  the HTML file.
  Users who visit the page will see a 300x150 KiNG logo in the web page,
@@ -2527,77 +2778,81 @@ Just put all the jar files, including king.jar, in the same directory as
  application.
  However, due to security restrictions imposed by the browser environment,
  some functions (
-\emph on 
+\emph on
 e.g.
-\emph default 
+\emph default
 , saving files) will be disabled.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Note that the 
-\family typewriter 
+\family typewriter
 code
-\family default 
+\family default
  property really must have the value 
-\family typewriter 
+\family typewriter
 king/Kinglet.class
-\family default 
+\family default
 , 
-\emph on 
+\emph on
 even though 
-\family typewriter 
+\family typewriter
 king.jar
-\family default 
+\family default
  is not in a sub-directory called 
-\family typewriter 
+\family typewriter
 king/
-\family default 
-\emph default 
+\family default
+\emph default
 .
  This is the most common problem that people have when trying to run KiNG
  as an applet.
  If you did place 
-\family typewriter 
+\family typewriter
 king.jar
-\family default 
+\family default
  somewhere else, that path should precede the jar file name in the 
-\family typewriter 
+\family typewriter
 archive
-\family default 
+\family default
  property instead.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 If you want to include additional jar files for plugins and tools, you need
  to list those in the 
-\family typewriter 
+\family typewriter
 archive
-\family default 
+\family default
  field, after 
-\family typewriter 
+\family typewriter
 king.jar
-\family default 
+\family default
 , separated by commas.
  For example:
-\layout LyX-Code
+\end_layout
 
+\begin_layout LyX-Code
 <applet code=
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 king/Kinglet.class
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  archive=
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 king.jar,chiropraxis.jar,extratools.jar
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  width=300 height=150>
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 It is possible to run KiNG in two other applet modes to achieve a slightly
  different effect.
  First, the large KiNG logo can be replaced with a small one that serves
@@ -2607,135 +2862,155 @@ It is possible to run KiNG in two other applet modes to achieve a slightly
  Below is sample HTML for this effect.
  Note the smaller width and height, to account for the small size of the
  button.
-\layout LyX-Code
+\end_layout
 
+\begin_layout LyX-Code
 <applet code=
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 king/Kinglet.class
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  archive=
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 king.jar
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  width=60 height=21>
-\layout LyX-Code
+\end_layout
 
+\begin_layout LyX-Code
 <param name=
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 mode
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  value=
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 launcher
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 >
-\layout LyX-Code
+\end_layout
 
+\begin_layout LyX-Code
 <param name=
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 kinSource
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  value=
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 some_file_name.kin
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 >
-\layout LyX-Code
+\end_layout
 
+\begin_layout LyX-Code
 </applet>
-\layout Standard
+\end_layout
 
+\begin_layout Standard
+If you would like a custom image for the launcher, specify its URL with
+ the 
+\family typewriter
+launcherImage
+\family default
+ parameter.
+ You may need to change the applet width/height to match.
+ If no image is specified, the default one will be used.
+\end_layout
+
+\begin_layout Standard
 Second, the applet can be embedded in the web page (rather than floating
  in its own window), by placing this line inside the <applet> tags instead:
-\layout LyX-Code
+\end_layout
 
+\begin_layout LyX-Code
 <param name=
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 mode
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  value=
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 flat
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
 >
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 One also probably wants to specify a larger width and/or height, possibly
  as a fraction of the page size (
-\emph on 
+\emph on
 e.g.
 
-\emph default 
+\emph default
  95%).
  Be warned that using KiNG this way may not work well in some browsers;
  test your pages thoroughly.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Normally, a KiNG applet displays only the kinemage specified in its 
-\family typewriter 
+\family typewriter
 kinSource
-\family default 
+\family default
  parameter.
  However, you can also use the 
-\family typewriter 
+\family typewriter
 kinfileBase
-\family default 
+\family default
  and 
-\family typewriter 
+\family typewriter
 kinfileList
-\family default 
+\family default
  parameters to allow the user to open and/or append additional kinemages
  from a pre-specified set.
  
-\family typewriter 
+\family typewriter
 kinfileBase
-\family default 
+\family default
  specifies a path to the maps relative to the current document base URL.
  
-\family typewriter 
+\family typewriter
 kinfileList
-\family default 
+\family default
  is a space-separated list of filenames that can be loaded from that path.
  Users can also enter and modify URLs directly, though obviously this isn't
  very convenient.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The KiNG applet also supports a 
-\family typewriter 
+\family typewriter
 kinfileSaveHandler
-\family default 
+\family default
  parameter, which is the URL of a CGI script that can accept HTTP POST kinemage
  output.
  On a properly configured webserver, this allows users of the KiNG applet
@@ -2743,88 +3018,101 @@ kinfileSaveHandler
  is definitely a custom programming job on the server side and so is not
  an option for most 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 normal
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  uses of the KiNG applet.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Some Tools and Plugins may define their own <PARAM> tags, which will be
  described in their documentation.
-\layout Chapter
+\end_layout
 
+\begin_layout Chapter
 Additional resources
 \begin_inset LatexCommand \label{additional-resources}
 
-\end_inset 
+\end_inset
 
 
-\layout Section
+\end_layout
 
+\begin_layout Section
 Included manuals
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 In addition to this User's Guide, KiNG may be accompanied by a guide to
  the kinemage file format.
  Kinemage files are simple text files, so that anyone can create kinemage
  illustrations by hand.
  This is especially important to fields where no automated tools for kinemage
  creation yet exist.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Included kinemages
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Under the 
-\family typewriter 
+\family typewriter
 Help
-\family default 
+\family default
  menu, KiNG has several built-in kinemages that demonstrate various capabilities
  of the graphics system.
  The palette is particularly useful to kinemage authors when they are designing
  color schemes.
-\layout Section
+\end_layout
 
+\begin_layout Section
 External documentation
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The best resource for learning more about kinemages is the Richardson lab
  website, 
 \begin_inset LatexCommand \htmlurl{http://kinemage.biochem.duke.edu}
 
-\end_inset 
+\end_inset
 
 .
  Many other resources exist; hopefully, they will be documented here in
  the future.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Bug reporting and contact info
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Ian Davis, the author of KiNG, may be reached via email at 
 \begin_inset LatexCommand \htmlurl{mailto:ian.davis@duke.edu}
 
-\end_inset 
+\end_inset
 
 .
 
-\emph on 
+\emph on
  Please
-\emph default 
+\emph default
 , do not hesistate to report bugs and problems with KiNG --- your input
  can only improve the program.
-\layout Chapter
+\end_layout
 
+\begin_layout Chapter
 Copyright & acknowledgments
-\layout Section
+\end_layout
 
+\begin_layout Section
 Copyright
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The KiNG program and all its associated original resources and documentation
  are copyright (C) 2002-2004 by Ian W.
  Davis.
@@ -2833,23 +3121,25 @@ The KiNG program and all its associated original resources and documentation
  with Java programs.
  It is also capable of using the iText library for generating PDF files,
  and the JOGL library for OpenGL rendering.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Licenses
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 KiNG is free software available under the terms of its own BSD-style license
  (see 
 \begin_inset LatexCommand \vref{KiNG-License}
 
-\end_inset 
+\end_inset
 
 ).
  The source code and new versions can be downloaded from the Richardson
  lab website, 
 \begin_inset LatexCommand \htmlurl{http://kinemage.biochem.duke.edu}
 
-\end_inset 
+\end_inset
 
 .
  The gnu.regexp library is covered by the GNU Lesser General Public License
@@ -2858,7 +3148,7 @@ KiNG is free software available under the terms of its own BSD-style license
  is available from its website at 
 \begin_inset LatexCommand \htmlurl{http://www.cacas.org/java/gnu/regexp/}
 
-\end_inset 
+\end_inset
 
 .
  The iText library is dual-licensed under the LGPL and the Mozilla Public
@@ -2866,41 +3156,44 @@ KiNG is free software available under the terms of its own BSD-style license
  iText is available from 
 \begin_inset LatexCommand \htmlurl{http://www.lowagie.com/iText/}
 
-\end_inset 
+\end_inset
 
 .
  JOGL is available under a BSD-style license from 
 \begin_inset LatexCommand \htmlurl{https://jogl.dev.java.net/}
 
-\end_inset 
+\end_inset
 
 .
  Many of the icons are the property of Sun Microsystems and have their own
  license; they are available from 
 \begin_inset LatexCommand \htmlurl{http://developer.java.sun.com/developer/techDocs/hi/repository/}
 
-\end_inset 
+\end_inset
 
 .
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 All license documents are provided in the downloaded KiNG bundles and are
  found in the 
-\family typewriter 
+\family typewriter
 doc/
-\family default 
+\family default
  directory.
  Additionally, the KiNG license appears in the Appendix (see 
 \begin_inset LatexCommand \vref{KiNG-License}
 
-\end_inset 
+\end_inset
 
 ).
-\layout Section
+\end_layout
 
+\begin_layout Section
 Acknowledgments
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 I owe an enormous debt of gratitude to many, many people for making this
  program possible.
  First and foremost, I thank David and Jane Richardson, who are my bosses
@@ -2915,8 +3208,9 @@ I owe an enormous debt of gratitude to many, many people for making this
  into how to improve the program.
  Of course, this work would not have been possible without support from
  the National Institutes of Health and the Howard Hughes Medical Institute.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 KiNG is free software built on free software.
  I can't hope to acknowledge all the authors of all the software that has
  been used to create KiNG, but I can mention a few of the most prominent:
@@ -2926,27 +3220,33 @@ KiNG is free software built on free software.
  movement, for providing a real alternative to comercial operating systems.
  I have also taken advantage of a number of excellent free Java libraries,
  which are described above.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Revision status
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 This manual was last updated 26 October 2005 by IWD for KiNG version 1.46.
-\layout Chapter
-\start_of_appendix 
+\end_layout
+
+\begin_layout Chapter
+\start_of_appendix
 KiNG License
 \begin_inset LatexCommand \label{KiNG-License}
 
-\end_inset 
+\end_inset
 
 
-\layout Section
+\end_layout
 
+\begin_layout Section
 What this license applies to
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 
-\emph on 
+\emph on
 This license applies to everything in this project that is the original
  work of the copyright holder(s) and contributor(s), including but not limited
  to the source code, binary executables, artwork, and documentation.
@@ -2954,55 +3254,66 @@ This license applies to everything in this project that is the original
  which are not covered by this license, and which are governed by their
  own license terms.
  See documentation for more details.
-\layout Section
+\end_layout
 
+\begin_layout Section
 The KiNG License
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Copyright (C) 2002-2005 Ian W.
  Davis.
  All rights reserved.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Redistribution and use in source and binary forms, with or without modification,
  are permitted provided that the following conditions are met:
-\layout Enumerate
+\end_layout
 
+\begin_layout Enumerate
 Redistributions of source code must retain the above copyright notice, this
  list of conditions and the following disclaimer.
-\layout Enumerate
+\end_layout
 
+\begin_layout Enumerate
 Redistributions in binary form must reproduce the above copyright notice,
  this list of conditions and the following disclaimer in the documentation
  and/or other materials provided with the distribution.
-\layout Enumerate
+\end_layout
 
+\begin_layout Enumerate
 The end-user documentation included with the redistribution, if any, must
  include the following acknowledgment:
-\begin_deeper 
-\layout Standard
+\end_layout
 
+\begin_deeper
+\begin_layout Standard
 
-\emph on 
+\emph on
 "This product includes software developed in the Richardon lab at Duke Universit
 y (http://kinemage.biochem.duke.edu)."
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Alternately, this acknowledgment may appear in the software itself, if and
  wherever such third-party acknowledgments normally appear.
-\end_deeper 
-\layout Enumerate
+\end_layout
 
+\end_deeper
+\begin_layout Enumerate
 The name of the copyright holder, the names of the contributors, and the
  names "KiNG", "Kinemage, Next Generation", and "Mage" must not be used
  to endorse or promote products derived from this software without prior
  written permission.
-\layout Enumerate
+\end_layout
 
+\begin_layout Enumerate
 Products derived from this software may not be called "KiNG", nor may "KiNG"
  appear in their name, without prior written permission.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -3013,16 +3324,21 @@ THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Where this license came from
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 This license is based on the BSD and Apache licenses.
  See 
 \begin_inset LatexCommand \htmlurl{http://www.opensource.org/}
 
-\end_inset 
+\end_inset
 
  for more details on these and other licenses.
-\the_end
+\end_layout
+
+\end_body
+\end_document
