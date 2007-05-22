@@ -78,7 +78,7 @@ public class Parser //extends ... implements ...
     final Matcher MAXB      = Pattern.compile("maxb", Pattern.CASE_INSENSITIVE).matcher("");
     final Matcher MINQ      = Pattern.compile("minq|mino|minocc", Pattern.CASE_INSENSITIVE).matcher("");
     final Matcher PLANARITY = Pattern.compile("planarity").matcher("");
-    final Matcher LABEL     = Pattern.compile("[A-Za-z0-9*'_.-]+").matcher("");
+    final Matcher LABEL     = Pattern.compile("[A-Za-z0-9*'_.+-]+").matcher("");
     final Matcher AVG       = Pattern.compile("avg").matcher("");
     final Matcher IDEALTET  = Pattern.compile("idealtet").matcher("");
     final Matcher VECTOR    = Pattern.compile("vector").matcher("");
