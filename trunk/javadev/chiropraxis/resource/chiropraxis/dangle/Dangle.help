@@ -113,6 +113,11 @@ ADVANCED DANGLE TRICKS
   
     dangle 'dist ...' FILE.pdb | sort -n -t : -k 7
     
+  The Unix "tr" utility is helpful for converting colon-delimited output into a
+  CSV file that Excel can read directly:
+  
+    dangle 'dist ...' FILE.pdb | tr : ,
+    
   Dangle's distances, angles, and dihedrals can be calculated from any points,
   not just atom coordinates.  The avg() function computes mean positions:
   
