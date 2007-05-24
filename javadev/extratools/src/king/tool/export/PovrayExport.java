@@ -161,6 +161,7 @@ public class PovrayExport extends Plugin
         out.println("#declare LabelXform = transform { scale 1.0 }; // use this to get text facing forward");
         out.println();
         out.println("#declare DefaultTexture = texture { finish { ambient 0.4 diffuse 0.5 specular 0.3 roughness 0.1 } };");
+        out.println("#declare BallFinish = finish { specular 1 roughness 0.01 };");
         out.println("//{{{ Color definitions");
         Collection colorsets = kin.getAllPaintMap().values();
         for(iter = colorsets.iterator(); iter.hasNext(); )
@@ -211,6 +212,7 @@ public class PovrayExport extends Plugin
         out.println();
         out.println("object {");
         out.println("    Kinemage"+index);
+        out.println("    no_shadow // still preserves specular/phong highlights");
         out.println("    transform { View0 }");
         out.println("    // clipped_by ... from view definitions");
         out.println("}");
@@ -229,7 +231,9 @@ public class PovrayExport extends Plugin
         out.println("}");
         
         out.println();
-        out.println("light_source { <-1, 1, 6> rgb 1 }");
+        out.println("// Adding 'shadowless' keyword also prevents specular/phong highlights");
+        out.println("light_source { <-1, 1, 6> rgb 1.50 shadowless }");
+        out.println("light_source { <-6, 6, 6> rgb 0.75 } // good for highlights on balls");
         if(kin.atWhitebackground)   out.println("background { rgb 1 }");
         else                        out.println("background { rgb 0 }");
         out.println("fog { // for Mage-style depth cueing");
@@ -239,7 +243,7 @@ public class PovrayExport extends Plugin
         out.println("    fog_alt 0.001   // no transition region");
         if(kin.atWhitebackground)   out.println("    rgb 1");
         else                        out.println("    rgb 0");
-        out.println("    distance 1.25   // smaller = stronger");
+        out.println("    distance 1.50   // smaller = stronger");
         out.println("}");
     }
 //}}}
@@ -297,9 +301,14 @@ public class PovrayExport extends Plugin
         
         KPaint paint = list.getColor();
         if(paint == null) paint = KPalette.defaultColor;
-        out.println("texture { C_"+paint+" }");
-        //TODO: support alpha
-        //if(list.alpha != 255) out.print(" alpha= "+df.format(list.alpha/255.0));
+        String highlight = "";
+        if(!list.getNoHighlight() && (KList.BALL.equals(list.getType()) || KList.SPHERE.equals(list.getType())))
+            highlight = " finish{BallFinish}";
+        String alpha = "";
+        // This doesn't seem to work!  Seems to overwrite the color info.
+        //if(list.getAlpha() != 255)
+        //    alpha = " pigment{transmit "+df.format(list.getAlpha()/255.0)+"}";
+        out.println("texture { C_"+paint+highlight+alpha+" }");
         
         out.println("} // End of "+list.getName());
         if(!list.isOn()) out.println("*/");
@@ -313,8 +322,9 @@ public class PovrayExport extends Plugin
         if(point == null) return;
 
         out.println("//"+point.getName());
+        String highlight = list.getNoHighlight() ? "" : " finish{BallFinish}";
         KPaint paint = point.getColor();
-        String paintName = (paint != null && paint != list.getColor() && !kin.atListcolordominant) ? " texture {C_"+paint+"}" : "";
+        String paintName = (paint != null && paint != list.getColor() && !kin.atListcolordominant) ? " texture {C_"+paint+highlight+"}" : "";
         if(point instanceof BallPoint)
         {
             double rad = ((BallPoint)point).r0;
@@ -378,9 +388,15 @@ public class PovrayExport extends Plugin
                 +"LW*"+df.format(width)+paintName+" }");
             KPoint prev = point.getPrev();
             if(prev != null && !point.equals(prev))
+            {
                 out.println("cylinder { <"+df.format(point.getX())+", "+df.format(point.getY())+", "+df.format(point.getZ())+">, "
                     +"<"+df.format(prev.getX())+", "+df.format(prev.getY())+", "+df.format(prev.getZ())+">, "
                     +"LW*"+df.format(width)+paintName+" }");
+                // When using point widths on vectors, may need endcaps on both ends to avoid "nipple" effect
+                if(width > list.getWidth() || width > prev.getWidth())
+                    out.println("sphere { <"+df.format(prev.getX())+", "+df.format(prev.getY())+", "+df.format(prev.getZ())+">, "
+                        +"LW*"+df.format(width)+paintName+" }");
+            }
         }
         else out.println("// "+point.getClass()+" is not supported in POV-Ray output");
     }
