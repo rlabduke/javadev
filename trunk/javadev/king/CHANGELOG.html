@@ -68,14 +68,15 @@
         to check window size, perspective on, __?__ before rendering
         filename prefix must be less than or equal to 20 characters for QT
         some control for FPS (controls default lengths)
-  * Logo sometimes ends up off-center (for OpenGL) after a Close All
+    Logo sometimes ends up off-center (for OpenGL) after a Close All
     90 deg. rotation position tracker doesn't work in OpenGl mode
     Extend DnD to command line?
-  * Can't open ED maps at startup by DnD (?)
+    Can't open ED maps at startup by DnD (?)
     sel-by-color: warn when using "if not", auto switch out of PC
     bug: moved n-D points will move back when axes are changed (?)
     use @dimoffset, @dimscale in parallel coordinate plots?
     make kinemage (esp views) behave OK when there are no points inside... (?)
+  * send show/hide messages to vrkin
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -87,6 +88,9 @@
   This should reduce the amount of memory leaked by KiNG as an applet.
   Leaks are basically Java's fault;  all applets run in one VM and AWT/Swing
   tend to retain references that are hard to clean up completely.
+- fixed memory leak from ContentPane.btnMap (retained Kinemage ref on close all)
+- KinTreeModel appears to leak Kinemage refs, but they're empty placeholders
+- applet now releases (at least) kinemage memory when quit/closed
 
 ### 2.09 ###
 - deployed to world with plugin jars

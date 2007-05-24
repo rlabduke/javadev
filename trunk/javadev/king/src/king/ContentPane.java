@@ -93,7 +93,10 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
     {
         Kinemage kin = kMain.getKinemage();
         if(kin == null)
+        {
+            btnMap.clear(); // or else we leak memory
             setButtons(Box.createVerticalBox());
+        }
         else if(msg.testProg(REBUILD_BUTTONS_P))
             setButtons(rebuildButtons(kin));
         else if(msg.testKin(REBUILD_BUTTONS_K))
