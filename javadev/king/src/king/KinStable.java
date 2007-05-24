@@ -83,6 +83,9 @@ public class KinStable implements ListSelectionListener, KMessage.Subscriber, Ac
     public void deliverMessage(KMessage msg)
     {
         // doesn't react to messages because all updates are made in appropriate functions
+        // (for the most part...)
+        if(msg.testProg(KMessage.KING_SHUTDOWN))
+            this.closeAll(); // minimizes memory leaks in applet mode
     }
 //}}}
 

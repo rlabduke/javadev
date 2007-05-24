@@ -84,6 +84,8 @@ public class KMessage //extends ... implements ...
     public static final long VIEW_SELECTED      = (1L<<8);
     /** The rendering options have changed (background color, etc) */
     public static final long DISPLAY_OPTIONS    = (1L<<9);
+    /** The program is preparing to shut down -- do your clean up NOW */
+    public static final long KING_SHUTDOWN      = (1L<<10);
 //}}}
 
 //{{{ Variable definitions
