@@ -144,8 +144,8 @@ public class KingMain implements WindowListener
     */
     public void shutdown()
     {
-        if(uiText != null)      uiText.shutdown();
-        if(mainWin != null)     mainWin.shutdown();
+        if(mainWin != null) mainWin.shutdown();
+        this.publish(new KMessage(this, KMessage.KING_SHUTDOWN));
         
         instanceCount--;
         if(instanceCount <= 0 && theApplet == null)

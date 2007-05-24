@@ -117,18 +117,14 @@ public class UIText implements MouseListener, KMessage.Subscriber
     }
 //}}}
 
-//{{{ shutdown, deliverMessage
+//{{{ deliverMessage
 //##################################################################################################
-    /** Initiates shutdown by calling dispose() on the frame. */
-    public void shutdown()
-    {
-        frame.dispose();
-    }
-    
     public void deliverMessage(KMessage msg)
     {
         if(msg.testProg(KMessage.ALL_CLOSED))
             this.setText("");
+        if(msg.testProg(KMessage.KING_SHUTDOWN))
+            frame.dispose();
     }
 //}}}
 

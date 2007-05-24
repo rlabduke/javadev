@@ -81,12 +81,23 @@
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 2.10 ###
+- added KMessage.KING_SHUTDOWN message
+- made shutdown message cause all kinemages to be closed.
+  This should reduce the amount of memory leaked by KiNG as an applet.
+  Leaks are basically Java's fault;  all applets run in one VM and AWT/Swing
+  tend to retain references that are hard to clean up completely.
+
+### 2.09 ###
+- deployed to world with plugin jars
+
 ### 2.08 ###
 - added "launcherImage" PARAM for WBA to customize Kinglet, and doc'd it
 - moved king.tutorial out of main source tree
 - fixed bug where @flatland had no effect, ever
   Thanks to Kevin Keating at Yale for the detailed bug report!
 - now store flatland state per-kinemage, like white background, etc
+- deployed to world without plugin jars
 
 ### 2.07 ###
 - updated kinemage format documentation (@dimoffset, @dimscale, select)
