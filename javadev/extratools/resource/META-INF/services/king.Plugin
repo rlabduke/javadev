@@ -14,6 +14,7 @@ king.tool.postkin.ColorGrouperPlugin
 king.tool.postkin.KinimolPlugin
 king.tool.data_analysis.HighDimSliderPlugin
 king.tool.data_analysis.RdcPlayPlugin
+king.tool.vr.VRKinTool
 
 # Tools
 king.tool.docking.Dock3On3Tool
