@@ -277,6 +277,7 @@ public class Model implements Cloneable
     public Set getChain(String chainID)
     {
         Set chain = (Set)chainMap.get(chainID);
+        if (chain==null) return null;
         return Collections.unmodifiableSet(chain);
     }
     

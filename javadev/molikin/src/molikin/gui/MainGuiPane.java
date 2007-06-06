@@ -239,14 +239,17 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
             for(Iterator ci = chains.iterator(); ci.hasNext(); chainCount++)
             {
                 String chainID = (String) ci.next();
-                if(groupByModel)    out.println("@subgroup {chain"+chainID+"} dominant master= {chain"+chainID+"}");
-                else                out.println("@group {"+idCode+" "+chainID+"} dominant");
-                
-                for(Iterator iter = paneListData.iterator(); iter.hasNext(); )
-                {
+                if (m.getChain(chainID)!=null) {
+                  
+                  if(groupByModel)    out.println("@subgroup {chain"+chainID+"} dominant master= {chain"+chainID+"}");
+                  else                out.println("@group {"+idCode+" "+chainID+"} dominant");
+                  
+                  for(Iterator iter = paneListData.iterator(); iter.hasNext(); )
+                  {
                     DrawingPane p = (DrawingPane) iter.next();
                     String bbColor = BACKBONE_COLORS[ (groupByModel ? modelCount : chainCount) % BACKBONE_COLORS.length];
                     p.printKinemage(out, m, chainID, bbColor);
+                  }
                 }
             }
         }
