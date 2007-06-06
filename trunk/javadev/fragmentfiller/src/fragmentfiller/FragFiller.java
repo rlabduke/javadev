@@ -1,16 +1,20 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
-package king.tool.loops;
+package fragmentfiller;
 
-import king.*;
-import king.core.*;
-import king.points.*;
-import king.io.*;
+//import king.*;
+//import king.core.*;
+//import king.points.*;
+//import king.io.*;
+import molikin.logic.*;
 import driftwood.gui.*;
 import driftwood.r3.*;
-import king.tool.util.*;
-import king.tool.postkin.*;
+import driftwood.util.*;
+import driftwood.data.*;
+//import king.tool.util.*;
+//import king.tool.postkin.*;
 import driftwood.util.SoftLog;
+import driftwood.moldb2.*;
 
 import java.net.*;
 import java.util.*;
@@ -22,7 +26,7 @@ import java.util.zip.*;
 //}}}
 
 /**
-* <code>PatchGapPlugin</code> is a plugin to make it easy to fill gaps in protein structures.  
+* <code>FragFiller</code> is based off a plugin to make it easy to fill gaps in protein structures.  
 * It combines functionality originally made for FramerTool, LoopTool, and the docking tools.
 * It scans through a protein structure kin for gaps, analyzes the framing peptides of that gap,
 * searches through my database of loops for matches, finds kins of those matches, and superimposes
@@ -33,158 +37,108 @@ import java.util.zip.*;
 * <p>Copyright (C) 2007 by Vincent Chen. All rights reserved.
 * 
 */
-public class PatchGapPlugin extends Plugin {
+public class FragFiller {
   
   //{{{ Constants
   static final DecimalFormat df = new DecimalFormat("0.000");
   //}}}
   
   //{{{ Variables
-  TreeMap<Integer, KPoint> caMap;
-  TreeMap<Integer, KPoint> coMap;
-  TreeMap<Integer, Integer> gapMap;
+  //TreeMap<Integer, KPoint> caMap;
+  //TreeMap<Integer, KPoint> coMap;
+  //TreeMap<Integer, Integer> gapMap;
+  HashMap<ArrayList<Double>, ArrayList<Triple>> gapFrameAtomsMap;
   HashMap<ArrayList<Double>, ArrayList<String>> filledMap; // gap (oneNum, nNum, frame) -> list of info that matches
-  JFileChooser        filechooser     = null;
-  ProgressDialog progDiag;
-  KGroup group;
+  PdbLibraryReader libReader;
+  //JFileChooser        filechooser     = null;
+  //ProgressDialog progDiag;
+  //KGroup group;
+  //}}}
+  
+  //{{{ main
+  //###############################################################
+  public static void main(String[] args) {
+    if (args.length < 3) {
+	    System.out.println("Not enough arguments: you must have an input pdb, output kin, and an output prefix!");
+    } else if (args.length > 3) {
+      System.out.println("Too many arguments!");
+    } else {
+      //args[0]
+	    //File[] inputs = new File[args.length];
+	    //for (int i = 0; i < args.length; i++) {
+      File pdbFile = new File(System.getProperty("user.dir") + "/" + args[0]);
+      File outKinFile = new File(System.getProperty("user.dir") + "/" + args[1]);
+	    //}
+	    FragFiller filler = new FragFiller(pdbFile, outKinFile, System.getProperty("user.dir") + "/" + args[2]);
+    }
+  }
   //}}}
   
   //{{{ Constructors
-  public PatchGapPlugin(ToolBox tb) {
-    super(tb);
-  }
-  //}}}
-  
-  //{{{ initialize
-  public void initialize() {
-    caMap = new TreeMap<Integer, KPoint>();
-    coMap = new TreeMap<Integer, KPoint>();
-    gapMap = new TreeMap<Integer, Integer>();
+  public FragFiller(File pdbFile, File outKinFile, String outPrefix) {
     filledMap = new HashMap<ArrayList<Double>, ArrayList<String>>();
-    progDiag = new ProgressDialog(kMain.getTopWindow(), "Filling gaps...", true);
-    Kinemage kin = kMain.getKinemage();
-    group = new KGroup("loops");
-    //newSub = new KGroup("sub");
-    kin.add(group);
-    //group.add(newSub);
-    makeFileChooser();
-  }
-  //}}}
-  
-  //{{{ onAnalyzeCurrent
-  public void onAnalyzeCurrent(ActionEvent ev) {
-    initialize();
-    analyzeSequence();
-    findGaps();
-    ArrayList<ArrayList<Double>> gapFrames = getGapFrames();
-    ArrayList<File> datFiles = getLoopDataList();
-    ArrayList<File> loopKins = findLoopKins();
-    if (datFiles != null) {
-      long startTime = System.currentTimeMillis();
-      scanLoopData(datFiles, gapFrames);
-      long endTime = System.currentTimeMillis();
-      System.out.println((endTime - startTime)/1000 + " seconds to scan dat files");
+    gapFrameAtomsMap = new HashMap<ArrayList<Double>, ArrayList<Triple>>();
+    System.out.println(pdbFile.toString());
+    PdbFileAnalyzer analyzer = new PdbFileAnalyzer(pdbFile);
+    Map<String, ArrayList> gapMap = analyzer.getGapAtoms();
+    ArrayList<ArrayList<Double>> gapFrames = new ArrayList<ArrayList<Double>>();
+    for (String name : gapMap.keySet()) {
+      String[] nameParts = Strings.explode(name, ",".charAt(0)); // Model,Chain,seq#ofres1,seq#ofresN
+      ArrayList gapAtomStates = gapMap.get(name);
+      ArrayList<Double> frame = getGapFrame(gapAtomStates);
+      frame.add(0, Double.valueOf(nameParts[2]));
+      frame.add(1, Double.valueOf(nameParts[3]));
+      gapFrames.add(frame);
+      gapFrameAtomsMap.put(frame, gapAtomStates);
     }
-    scanLoopKins(loopKins);
-
-  }
-  //}}}
-  
-  //{{{ analyzeSequence
-  public void analyzeSequence() {
-    Kinemage kin = kMain.getKinemage();
-    KIterator<KPoint> points = KIterator.allPoints(kin);
-    for (KPoint pt : points) {
-      String atomName = KinUtil.getAtomName(pt);
-      //System.out.println(atomName);
-      if (atomName.equals("ca")) {
-        Integer resNum = new Integer(KinUtil.getResNumber(pt));
-        caMap.put(resNum, pt);
-      }
-      if (atomName.equals("o")) {
-        Integer resNum = new Integer(KinUtil.getResNumber(pt));
-        coMap.put(resNum, pt);
-      }
+    ArrayList<File> frameDataFiles = getFrameDataList();
+    scanLoopData(frameDataFiles, gapFrames);
+    for (ArrayList matchedInfo : filledMap.values()) {
+      System.out.println("# of matches: " + matchedInfo.size());
     }
-    //System.out.println(coMap.size());
-    //System.out.println(caMap.size());
-  }
-  //}}}
-  
-  //{{{ findGaps
-  public void findGaps() {
-    int oldresNum = 100000;
-    for (Integer i : caMap.keySet()) {
-      int resNum = i.intValue();
-      if (resNum - 1 > oldresNum) {
-        gapMap.put(new Integer(oldresNum), new Integer(resNum));
-      }
-      oldresNum = resNum;
-    }
+    readPdbLibrary();
+    CoordinateFile[] pdbOut = getFragments();
+    writePdbs(pdbOut, outPrefix);
+    writeKin(pdbOut, outKinFile);
   }
   //}}}
   
   //{{{ getGapFrames
-  public ArrayList<ArrayList<Double>> getGapFrames() {
+  public ArrayList<Double> getGapFrame(ArrayList<Triple> gapAtomStates) {
     ArrayList<ArrayList<Double>> gapFrames = new ArrayList<ArrayList<Double>>();
-    for (Integer oneNum : gapMap.keySet()) {
-      Integer nNum = gapMap.get(oneNum);
-      Integer zeroNum = new Integer(oneNum.intValue() - 1);
-      Integer n1Num = new Integer(nNum.intValue() + 1);
-      if ((caMap.containsKey(zeroNum))&&(caMap.containsKey(oneNum))&&
-      (caMap.containsKey(nNum))&&(caMap.containsKey(n1Num))&&
-      (coMap.containsKey(zeroNum))&&(coMap.containsKey(nNum))) {
-        ArrayList<Double> frame = Framer.calphaAnalyzeList(caMap.get(zeroNum), caMap.get(oneNum), caMap.get(nNum), caMap.get(n1Num), coMap.get(zeroNum), coMap.get(nNum));
-        frame.add(0, new Double(oneNum.doubleValue()));
-        frame.add(1, new Double(nNum.doubleValue()));
-        gapFrames.add(frame);
-        //System.out.print(oneNum + " " + nNum + " ");
-        for (double d : frame) {
-          System.out.print(df.format(d) + " ");
-        }
-        System.out.println();
+    Triple ca0 = gapAtomStates.get(0);
+    Triple ca1 = gapAtomStates.get(1);
+    Triple caN = gapAtomStates.get(2);
+    Triple caN1 = gapAtomStates.get(3);
+    Triple co0 = gapAtomStates.get(4);
+    Triple coN = gapAtomStates.get(5);
+    ArrayList<Double> frame = Framer.calphaAnalyzeList(ca0, ca1, caN, caN1, co0, coN);
+    //frame.add(0, new Double(oneNum.doubleValue()));
+    //frame.add(1, new Double(nNum.doubleValue()));
+    //System.out.print(oneNum + " " + nNum + " ");
+    for (double d : frame) {
+      System.out.print(df.format(d) + " ");
+    }
+    System.out.println();
+    return frame;
+  }
+  //}}}
+  
+  //{{{ getFrameDataList
+  public ArrayList<File> getFrameDataList() {
+    String labworkPath = System.getProperty("user.dir").substring(0, System.getProperty("user.dir").indexOf("labwork") + 7);
+    System.out.println(labworkPath);
+    File f = new File(labworkPath + "/loopwork/fragfiller/");
+    File[] datFiles = f.listFiles();
+    ArrayList<File> dataList = new ArrayList<File>();
+    for (File dat : datFiles) {
+      if (dat.getName().endsWith(".zip")) {
+        dataList.add(dat);
+        System.out.println(dat);
       }
     }
-    return gapFrames;
-  }
-  //}}}
-  
-  //{{{ makeFileChooser
-  //##################################################################################################
-  void makeFileChooser()
-  {
-    
-    // Make accessory for file chooser
-    TablePane acc = new TablePane();
-    
-    // Make actual file chooser -- will throw an exception if we're running as an Applet
-    filechooser = new JFileChooser();
-    String currdir = System.getProperty("user.dir");
-    if(currdir != null) filechooser.setCurrentDirectory(new File(currdir));
-    
-    filechooser.setAccessory(acc);
-  }
-  //}}}
-  
-  //{{{ getLoopDataList
-  public ArrayList<File> getLoopDataList() {
-    //if(filechooser == null) makeFileChooser();
-    filechooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-    filechooser.setDialogTitle("Pick loop frame data directory");
-    if(JFileChooser.APPROVE_OPTION == filechooser.showOpenDialog(kMain.getTopWindow())) {
-	    //try {
-        File f = filechooser.getSelectedFile();
-        File[] datFiles = f.listFiles();
-        ArrayList<File> dataList = new ArrayList<File>();
-        for (File dat : datFiles) {
-          if (dat.getName().endsWith(".zip")) {
-            dataList.add(dat);
-          }
-        }
-        return dataList;
-      //}
-    }
-    return null;
+    return dataList;
+  //}
   }
         
   //}}}
@@ -224,9 +178,7 @@ public class PatchGapPlugin extends Plugin {
             }
           }
         } catch (IOException ie) {
-          JOptionPane.showMessageDialog(kMain.getTopWindow(),
-          "An I/O error occurred while loading the file:\n"+ie.getMessage(),
-          "Sorry!", JOptionPane.ERROR_MESSAGE);
+          System.err.println("An I/O error occurred while loading the file:\n"+ie.getMessage());
         }
       }
     }
@@ -275,6 +227,183 @@ public class PatchGapPlugin extends Plugin {
   }
   //}}}
   
+  //{{{ readPdbLibrary
+  public void readPdbLibrary() {
+    String labworkPath = System.getProperty("user.dir").substring(0, System.getProperty("user.dir").indexOf("labwork") + 7);
+    System.out.println(labworkPath);
+    File f = new File(labworkPath + "/loopwork/fragfiller/pdblibrary");
+    libReader = new PdbLibraryReader(f);
+    /*
+    File[] datFiles = f.listFiles();
+    ArrayList<File> dataList = new ArrayList<File>();
+    for (File dat : datFiles) {
+      if (dat.getName().endsWith(".zip")) {
+        dataList.add(dat);
+        System.out.println(dat);
+      }
+    }
+    return dataList;
+    */
+  }
+  //}}}
+  
+  //{{{ getFragments
+  public CoordinateFile[] getFragments() {
+    CoordinateFile[] fragPdbOut = new CoordinateFile[filledMap.keySet().size()];
+    int i = 0;
+    for (ArrayList<Double> gap : filledMap.keySet()) {
+      fragPdbOut[i] = new CoordinateFile();
+      fragPdbOut[i].setIdCode(gap.get(0).intValue() + "-" + gap.get(1).intValue());
+      ArrayList<String> listofFiller = filledMap.get(gap);
+      ArrayList<Triple> gapFrameStates = gapFrameAtomsMap.get(gap);
+      System.out.println(listofFiller.size());
+      for (int ind = 0; ((ind < 100000)&&(ind < listofFiller.size())); ind++) {
+        String info = listofFiller.get(ind);
+        String[] splitInfo = info.split(" ");
+        String pdbName = splitInfo[0]; // should be pdbname
+        int length = Integer.parseInt(splitInfo[1]);
+        int startRes = Integer.parseInt(splitInfo[2]);
+        libReader.setCurrentPdb(pdbName);
+        Model frag = libReader.getFragment(Integer.toString(ind), startRes, length); //set of residues
+        SuperPoser poser = new SuperPoser(getGapTupleArray(gapFrameStates), libReader.getFragmentEndpointAtoms(frag));
+        Transform t = poser.superpos();
+        //System.out.println(poser.calcRMSD(t));
+        transform(frag, t);
+        fragPdbOut[i].add(frag);
+        if (Math.IEEEremainder((double) ind, 100.0) == 0) {
+          System.out.println("Opened: " + ind);
+        }
+      }
+      i++;
+    }
+    return fragPdbOut;
+  }
+  //}}}
+  
+  //{{{ transform
+  public void transform(Model frag, Transform t) {
+    //KIterator<KPoint> points = KIterator.allPoints(list);
+    ModelState fragState = frag.getState();
+    Iterator resIter = frag.getResidues().iterator();
+    while (resIter.hasNext()) {
+      Residue res = (Residue) resIter.next();
+      Iterator atomIter = res.getAtoms().iterator();
+      while (atomIter.hasNext()) {
+        Atom at = (Atom) atomIter.next();
+        try {
+          AtomState atState = fragState.get(at);
+          Triple proxy = new Triple();
+          proxy.setXYZ(atState.getX(), atState.getY(), atState.getZ());
+          t.transform(proxy);
+          atState.setX(proxy.getX());
+          atState.setY(proxy.getY());
+          atState.setZ(proxy.getZ());
+        } catch (AtomException ae) {
+          System.err.println("Problem with atom " + ae.getMessage() + " in fragment filler");
+        }
+      }
+    }
+  }
+  //}}}
+  
+  //{{{ getGapTupleArray
+  public Tuple3[] getGapTupleArray(ArrayList<Triple> gapFrameStates) {
+    //int oneNum = gap.get(0).intValue();
+    //int nNum = gap.get(1).intValue();
+    Tuple3[] tuples = new Tuple3[4];
+    //tuples[0] = coMap.get(new Integer(oneNum - 1));
+    tuples[0] = gapFrameStates.get(0);
+    tuples[1] = gapFrameStates.get(1);
+    tuples[2] = gapFrameStates.get(2);
+    tuples[3] = gapFrameStates.get(3);
+    //tuples[5] = coMap.get(new Integer(nNum));
+    return tuples;
+  }
+  //}}}
+  
+  //{{{ writePdbs
+  public void writePdbs(CoordinateFile[] pdbs, String prefix) {
+    for (CoordinateFile pdb : pdbs) {
+      try {
+        File outFile = new File(prefix + pdb.getIdCode() + ".pdb");
+        PdbWriter writer = new PdbWriter(outFile);
+        writer.writeCoordinateFile(pdb);
+        writer.close();
+      } catch (IOException ex) {
+        System.err.println("An error occurred while saving a pdb." + ex);
+      }
+    }
+  }
+  //}}}
+  
+  //{{{ writeKin
+  public void writeKin(CoordinateFile[] pdbs, File kinout) {
+    //File pdbout = new File(f, sub.getName() + ".pdb");
+    try {
+      Writer w = new FileWriter(kinout);
+      PrintWriter out = new PrintWriter(new BufferedWriter(w));
+      out.println("@kinemage");
+      BallAndStickLogic bsl = new BallAndStickLogic();
+      bsl.doProtein = true;
+      bsl.doBackbone = true;
+      bsl.doSidechains = true;
+      bsl.doHydrogens = true;
+      bsl.colorBy = BallAndStickLogic.COLOR_BY_MC_SC;
+      for (CoordinateFile pdb : pdbs) {
+        Iterator models = pdb.getModels().iterator();
+        while (models.hasNext()) {
+          Model mod = (Model) models.next();
+          out.println("@group {"+pdb.getIdCode()+" "+mod.getName()+"} dominant animate master= {all models}");
+          bsl.printKinemage(out, mod, new UberSet(mod.getResidues()), "white");
+        }
+      }
+      out.flush();
+      w.close();
+    } catch (IOException ex) {
+        System.err.println("An error occurred while saving the kin." + ex);
+    }
+  }
+  //}}}
+  
+  /*
+  //{{{ initialize
+  public void initialize() {
+    caMap = new TreeMap<Integer, KPoint>();
+    coMap = new TreeMap<Integer, KPoint>();
+    gapMap = new TreeMap<Integer, Integer>();
+    filledMap = new HashMap<ArrayList<Double>, ArrayList<String>>();
+    progDiag = new ProgressDialog(kMain.getTopWindow(), "Filling gaps...", true);
+    //Kinemage kin = kMain.getKinemage();
+    //group = new KGroup("loops");
+    //newSub = new KGroup("sub");
+    //kin.add(group);
+    //group.add(newSub);
+    //makeFileChooser();
+  }
+  //}}}
+  
+  //{{{ onAnalyzeCurrent
+  public void onAnalyzeCurrent(ActionEvent ev) {
+    initialize();
+    analyzeSequence();
+    findGaps();
+    ArrayList<ArrayList<Double>> gapFrames = getGapFrames();
+    ArrayList<File> datFiles = getLoopDataList();
+    ArrayList<File> loopKins = findLoopKins();
+    if (datFiles != null) {
+      long startTime = System.currentTimeMillis();
+      scanLoopData(datFiles, gapFrames);
+      long endTime = System.currentTimeMillis();
+      System.out.println((endTime - startTime)/1000 + " seconds to scan dat files");
+    }
+    scanLoopKins(loopKins);
+
+  }
+  //}}}
+  
+
+  */
+  /*
   //{{{ findLoopKins
   public ArrayList<File> findLoopKins() {
     filechooser.setDialogTitle("Pick source kins data directory");
@@ -295,63 +424,7 @@ public class PatchGapPlugin extends Plugin {
   }
   //}}}
   
-  //{{{ scanLoopKins
-  public void scanLoopKins(ArrayList<File> loopKins) {
-    //ArrayList<File> loopKins = findLoopKins();
-    //Thread progThread = new Thread(progDiag);
-    //progThread.setDaemon(true);
-    //progThread.start();
-    
-    for (ArrayList<Double> gap : filledMap.keySet()) {
-      KGroup newSub = new KGroup(gap.get(0).intValue() + "-" + gap.get(1).intValue());
-      group.add(newSub);
-      ArrayList<String> listofFiller = filledMap.get(gap);
-      System.out.println(listofFiller.size());
-      for (int ind = 0; ((ind < 100000)&&(ind < listofFiller.size())); ind++) {
-        try {
-          //Thread.currentThread().sleep(200);
-        } catch (InterruptedException ex) {
-          System.out.println(ex);
-        }
-        //progDiag.update(ind, listofFiller.size());
-        String info = listofFiller.get(ind);
-        String[] splitInfo = info.split(" ");
-        String pdbName = splitInfo[0]; // should be pdbname
-        int length = Integer.parseInt(splitInfo[1]);
-        int startRes = Integer.parseInt(splitInfo[2]);
-        TreeSet<Integer> keepSet = new TreeSet<Integer>();
-        for (int i = startRes; i <= startRes + length + 2; i++) {
-          keepSet.add(new Integer(i));
-        }
-        //for (int i = 1; i <= 1000; i++) {
-        //  keepSet.add(new Integer(i));
-        //}
-        //for (int i = startRes + length + 1; i <= 1000; i++) {
-        //  keepSet.add(new Integer(i));
-        //}
-        if (Math.IEEEremainder((double) ind, 100.0) == 0) {
-          System.out.println("Opened: " + ind);
-        }
-        for (File kinFile : loopKins) {
-          if (kinFile.getName().indexOf(pdbName) != -1) {
-            //ArrayList<KList> loops = openKin(kinFile, keepSet);
-            ArrayList<KList> loops = getLoopFromKin(openKinFile(kinFile), keepSet);
-            KList mc = loops.get(0);
-            SuperPoser poser = new SuperPoser(getGapTupleArray(gap), getListTupleArray(mc));
-            Transform t = poser.superpos();
-            //System.out.println(poser.calcRMSD(t));
-            for (KList loop : loops) {
-              loop.setHasButton(false);
-              transform(loop, t);
-              newSub.add(loop);
-            }
-          }
-        }
-      //progDiag.dispose();
-      }
-    }
-  }
-  //}}}
+
   
   //{{{ openKinFile
   public KinfileParser openKinFile(File f) {
@@ -504,19 +577,7 @@ public class PatchGapPlugin extends Plugin {
   }
   //}}}
   
-  //{{{ transform
-  public void transform(KList list, Transform t) {
-    KIterator<KPoint> points = KIterator.allPoints(list);
-    for (KPoint pt : points) {
-      Triple proxy = new Triple();
-      proxy.setXYZ(pt.getX(), pt.getY(), pt.getZ());
-      t.transform(proxy);
-      pt.setX(proxy.getX());
-      pt.setY(proxy.getY());
-      pt.setZ(proxy.getZ());
-    }
-  }
-  //}}}
+
   
   //{{{ onExport
   public void onExport(ActionEvent ev) {
@@ -533,12 +594,13 @@ public class PatchGapPlugin extends Plugin {
     }
   }
   //}}}
-  
+  */
   //{{{ savePdb
   /**
   * First sorts the loop group by the PDB structures the loops came from, doing subgroups separately.
   * Then it saves a pdb file for each subgroup, putting the loops into different models.  
   **/
+  /*
   public void savePdb(File f) {
     Iterator groups = kMain.getKinemage().iterator();
     while (groups.hasNext()) {
@@ -599,32 +661,7 @@ public class PatchGapPlugin extends Plugin {
       }
     }
   }
+  */
   //}}}
-  
-  //{{{ getToolsMenuItem
-  public JMenuItem getToolsMenuItem() {
-    JMenu menu = new JMenu("Fill Model Gaps");
-    menu.add(new JMenuItem(new ReflectiveAction("Analyze Gaps", null, this, "onAnalyzeCurrent")));
-    menu.add(new JMenuItem(new ReflectiveAction("Export Loops", null, this, "onExport")));
-    return menu;
-  }
-  //}}}
-  
-  /** Returns the URL of a web page explaining use of this tool */
-  public URL getHelpURL()
-  {
-    URL     url     = getClass().getResource("/extratools/tools-manual.html");
-    String  anchor  = getHelpAnchor();
-    if(url != null && anchor != null)
-    {
-      try { url = new URL(url, anchor); }
-      catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
-      return url;
-    }
-    else return null;
-  }
-  
-  public String getHelpAnchor()
-  { return "#fillgap-tool"; }
   
 }//class
