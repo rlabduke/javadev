@@ -66,10 +66,13 @@ public class FragFiller {
       //args[0]
 	    //File[] inputs = new File[args.length];
 	    //for (int i = 0; i < args.length; i++) {
-      File pdbFile = new File(System.getProperty("user.dir") + "/" + args[0]);
-      File outKinFile = new File(System.getProperty("user.dir") + "/" + args[1]);
+      //File pdbFile = new File(System.getProperty("user.dir") + "/" + args[0]);
+      //File outKinFile = new File(System.getProperty("user.dir") + "/" + args[1]);
+      File pdbFile = new File(args[0]);
+      File outKinFile = new File(args[1]);
+      File outPrefix = new File(args[2]);
 	    //}
-	    FragFiller filler = new FragFiller(pdbFile, outKinFile, System.getProperty("user.dir") + "/" + args[2]);
+	    FragFiller filler = new FragFiller(new File(pdbFile.getAbsolutePath()), new File(outKinFile.getAbsolutePath()), outPrefix.getAbsolutePath());
     }
   }
   //}}}
