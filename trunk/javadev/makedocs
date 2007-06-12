@@ -7,7 +7,6 @@ javadoc -d javadocs \
 -noqualifier all \
 -linksource \
 -protected \
--link /Users/ian/Documents/devdocs/javadoc-1.5/api/ \
 -classpath lib:lib/iText/itext-1.02b.jar \
 -sourcepath chiropraxis/src:driftwood/src:extratools/src:fftoys/src:king/src:molikin/src:silk/src \
 -subpackages chiropraxis:driftwood:fftoys:Jama:jnt:king:molikin:silk

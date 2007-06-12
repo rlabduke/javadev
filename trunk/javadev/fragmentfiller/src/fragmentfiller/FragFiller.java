@@ -50,6 +50,8 @@ public class FragFiller {
   HashMap<ArrayList<Double>, ArrayList<Triple>> gapFrameAtomsMap;
   HashMap<ArrayList<Double>, ArrayList<String>> filledMap; // gap (oneNum, nNum, frame) -> list of info that matches
   PdbLibraryReader libReader;
+  static File fragLibrary = null;
+  static File pdbLibrary = null;
   //JFileChooser        filechooser     = null;
   //ProgressDialog progDiag;
   //KGroup group;
@@ -58,30 +60,91 @@ public class FragFiller {
   //{{{ main
   //###############################################################
   public static void main(String[] args) {
-    if (args.length < 3) {
+    ArrayList<String> argList = parseArgs(args);
+    if (argList.size() < 3) {
 	    System.out.println("Not enough arguments: you must have an input pdb, output kin, and an output prefix!");
-    } else if (args.length > 3) {
-      System.out.println("Too many arguments!");
     } else {
       //args[0]
 	    //File[] inputs = new File[args.length];
 	    //for (int i = 0; i < args.length; i++) {
       //File pdbFile = new File(System.getProperty("user.dir") + "/" + args[0]);
       //File outKinFile = new File(System.getProperty("user.dir") + "/" + args[1]);
-      File pdbFile = new File(args[0]);
-      File outKinFile = new File(args[1]);
-      File outPrefix = new File(args[2]);
+      File pdbFile = new File(argList.get(0));
+      File outKinFile = new File(argList.get(1));
+      File outPrefix = new File(argList.get(2));
 	    //}
+      //System.out.println(pdbFile);
 	    FragFiller filler = new FragFiller(new File(pdbFile.getAbsolutePath()), new File(outKinFile.getAbsolutePath()), outPrefix.getAbsolutePath());
     }
   }
   //}}}
   
+
+  //{{{ parseArgs
+  public static ArrayList parseArgs(String[] args) {
+    ArrayList<String> argList = new ArrayList<String>();
+    String arg;
+    for (int i = 0; i < args.length; i++) {
+      arg = args[i];
+      // this is an option
+      if(arg.startsWith("-")) {
+        if(arg.equals("-h") || arg.equals("-help")) {
+          System.err.println("Help not available. Sorry!");
+          System.exit(0);
+        } else if(arg.equals("-libloc") || arg.equals("-librarylocation")) {
+          if (i+1 < args.length) {
+            fragLibrary = new File(args[i+1]);
+            if (!fragLibrary.canRead()) {
+              System.err.println("Invalid input for fragment library location");
+              System.exit(0);
+            }
+            i++;
+          } else {
+            System.err.println("No argument given for fragment library location");
+            System.exit(0);
+          }
+        } else if(arg.equals("-pdbloc") || arg.equals("-pdblocation")) {
+          if (i+1 < args.length) {
+            pdbLibrary = new File(args[i+1]);
+            if (!pdbLibrary.canRead()) {
+              System.err.println("Invalid input for pdb library location");
+              System.exit(0);
+            }
+            i++;
+          } else {
+            System.err.println("No argument given for pdb library location");
+            System.exit(0);
+          }
+        } else {
+          System.err.println("*** Unrecognized option: "+arg);
+        }
+      } else {
+        argList.add(arg);
+      }
+    }
+    return argList;
+  }
+  //}}}
+  
+  public void setDefaults() {
+    String labworkPath = System.getProperty("user.dir").substring(0, System.getProperty("user.dir").indexOf("labwork") + 7);
+    //System.out.println(labworkPath);
+    if (fragLibrary == null) {
+      fragLibrary = new File(labworkPath + "/loopwork/fragfiller/");
+    }
+    //String labworkPath = System.getProperty("user.dir").substring(0, System.getProperty("user.dir").indexOf("labwork") + 7);
+    //System.out.println(labworkPath);
+    if (pdbLibrary == null) {
+      pdbLibrary = new File(labworkPath + "/loopwork/fragfiller/pdblibrary");
+    }
+  }
+  
   //{{{ Constructors
   public FragFiller(File pdbFile, File outKinFile, String outPrefix) {
+    setDefaults();
     filledMap = new HashMap<ArrayList<Double>, ArrayList<String>>();
     gapFrameAtomsMap = new HashMap<ArrayList<Double>, ArrayList<Triple>>();
-    System.out.println(pdbFile.toString());
+    //System.out.println(pdbFile.toString());
     PdbFileAnalyzer analyzer = new PdbFileAnalyzer(pdbFile);
     Map<String, ArrayList> gapMap = analyzer.getGapAtoms();
     ArrayList<ArrayList<Double>> gapFrames = new ArrayList<ArrayList<Double>>();
@@ -129,10 +192,8 @@ public class FragFiller {
   
   //{{{ getFrameDataList
   public ArrayList<File> getFrameDataList() {
-    String labworkPath = System.getProperty("user.dir").substring(0, System.getProperty("user.dir").indexOf("labwork") + 7);
-    System.out.println(labworkPath);
-    File f = new File(labworkPath + "/loopwork/fragfiller/");
-    File[] datFiles = f.listFiles();
+    System.out.println(fragLibrary);
+    File[] datFiles = fragLibrary.listFiles();
     ArrayList<File> dataList = new ArrayList<File>();
     for (File dat : datFiles) {
       if (dat.getName().endsWith(".zip")) {
@@ -232,10 +293,8 @@ public class FragFiller {
   
   //{{{ readPdbLibrary
   public void readPdbLibrary() {
-    String labworkPath = System.getProperty("user.dir").substring(0, System.getProperty("user.dir").indexOf("labwork") + 7);
-    System.out.println(labworkPath);
-    File f = new File(labworkPath + "/loopwork/fragfiller/pdblibrary");
-    libReader = new PdbLibraryReader(f);
+
+    libReader = new PdbLibraryReader(pdbLibrary);
     /*
     File[] datFiles = f.listFiles();
     ArrayList<File> dataList = new ArrayList<File>();
