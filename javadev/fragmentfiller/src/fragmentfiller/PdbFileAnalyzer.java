@@ -15,7 +15,7 @@ public class PdbFileAnalyzer {
   
   //{{{ Variables
   CoordinateFile pdbFile;
-  HashMap<Model, Map> masterGapMap; // Model -> (chain -> (startGapInt -> listofResidues))
+  HashMap<Model, Map> masterGapMap; // Model -> (chain -> ListofGaps)
   //}}}
   
   //{{{ Constructor
@@ -31,7 +31,7 @@ public class PdbFileAnalyzer {
     PdbReader reader = new PdbReader();
     try {
       pdbFile = reader.read(pdb);
-	    //System.out.println(coordFile.getIdCode());
+	    pdbFile.setIdCode(pdb.getName());
 	    Iterator models = (pdbFile.getModels()).iterator();
 	    while (models.hasNext()) {
         //System.out.print(".");
@@ -45,13 +45,13 @@ public class PdbFileAnalyzer {
   //}}}
   
   //{{{ analyzeModel
-  public HashMap<String, Map> analyzeModel(Model mod) {
+  public HashMap<String, ArrayList> analyzeModel(Model mod) {
     ModelState modState = mod.getState();
-    HashMap<String, Map> chainGapMap = new HashMap<String, Map>();
+    HashMap<String, ArrayList> chainGapMap = new HashMap<String, ArrayList>();
     Set<String> chainSet = mod.getChainIDs();
     for (String chain : chainSet) {
       Set<Residue> residues = mod.getChain(chain);
-      chainGapMap.put(chain, findGaps(residues));
+      chainGapMap.put(chain, findGaps(modState, residues));
     }
     return chainGapMap;
   }
@@ -71,12 +71,13 @@ public class PdbFileAnalyzer {
   //}}}
   
   //{{{ findGaps
-  public Map<Integer, ArrayList> findGaps(Set<Residue> chainofRes) {
+  //public Map<Integer, ArrayList> findGaps(ModelState modState, Set<Residue> chainofRes) {
+  public ArrayList<ProteinGap> findGaps(ModelState modState, Set<Residue> chainofRes) {
     int prevSeq = 100000;
     UberSet uberChainSet = new UberSet(chainofRes);
-    TreeMap<Integer, ArrayList> gapMap = new TreeMap<Integer, ArrayList>();
+    //TreeMap<Integer, ArrayList> gapMap = new TreeMap<Integer, ArrayList>();
+    ArrayList<ProteinGap> gaps = new ArrayList<ProteinGap>();
     for (Residue res : chainofRes) {
-      
       int seqNum = res.getSequenceInteger();
       if (seqNum > prevSeq + 1) {
         ArrayList<Residue> paramRes = new ArrayList<Residue>();
@@ -92,19 +93,40 @@ public class PdbFileAnalyzer {
           nRes = (Residue) uberChainSet.itemAfter(nRes);
           n1Res = (Residue) uberChainSet.itemAfter(nRes);
         }
-        paramRes.add(zeroRes);
-        paramRes.add(oneRes);
-        paramRes.add(nRes);
-        paramRes.add(n1Res);
-        gapMap.put(new Integer(prevSeq), paramRes);
+        ProteinGap gap = new ProteinGap(modState, zeroRes, oneRes, nRes, n1Res);
+        //paramRes.add(zeroRes);
+        //paramRes.add(oneRes);
+        //paramRes.add(nRes);
+        //paramRes.add(n1Res);
+        //gapMap.put(new Integer(prevSeq), paramRes);
+        gaps.add(gap);
       }
       prevSeq = seqNum;
     }
-    return gapMap;
+    return gaps;
   }
   //}}}
   
-  //{{{ getGapAtoms
+  //{{{ simulateGap
+  public void simulateGap(int oneResNum, int nResNum) {
+    
+  }
+  //}}}
+  
+  //{{{ getGaps
+  public Map<String, ArrayList<ProteinGap>> getGaps() {
+    TreeMap<String, ArrayList<ProteinGap>> statesMap = new TreeMap<String, ArrayList<ProteinGap>>();
+    for (Model mod : masterGapMap.keySet()) {
+      ModelState modState = mod.getState();
+      Map<String, ArrayList> chainGapMap = (Map<String, ArrayList>) masterGapMap.get(mod);
+      for (String chain : chainGapMap.keySet()) {
+        ArrayList<ProteinGap> gaps = chainGapMap.get(chain);
+        statesMap.put(mod.getName()+","+chain, gaps);
+      }
+    }
+    return statesMap;
+  }
+  /*
   public Map<String, ArrayList> getGapAtoms() {
     TreeMap<String, ArrayList> statesMap = new TreeMap<String, ArrayList>();
     for (Model mod : masterGapMap.keySet()) {
@@ -134,7 +156,7 @@ public class PdbFileAnalyzer {
       }
     }
     return statesMap;
-  }
+  }*/
   //}}}
   
   //{{{ checkCaO
@@ -151,19 +173,25 @@ public class PdbFileAnalyzer {
   }
   //}}}
   
+  //{{{ getCoordFile
+  public CoordinateFile getCoordFile() {
+    return pdbFile;
+  }
+  //}}}
+  
   //{{{ test
   public void test() {
     Iterator iter = masterGapMap.values().iterator();
     while (iter.hasNext()) {
-      Map<String, Map> chainGapMap = (Map<String, Map>) iter.next();
+      Map<String, ArrayList> chainGapMap = (Map<String, ArrayList>) iter.next();
       for (String chain : chainGapMap.keySet()) {
         System.out.println(chain);
-        Map<Integer, ArrayList> gapMap = chainGapMap.get(chain);
-        for (Integer startGap : gapMap.keySet()) {
-          ArrayList<Residue> list = gapMap.get(startGap);
-          Residue endRes = list.get(2);
-          System.out.println(startGap + " -> " + endRes.getSequenceInteger());
-        }
+        ArrayList<ProteinGap> gapMap = chainGapMap.get(chain);
+        //for (Integer startGap : gapMap.keySet()) {
+        //  ArrayList<Residue> list = gapMap.get(startGap);
+        //  Residue endRes = list.get(2);
+        //  System.out.println(startGap + " -> " + endRes.getSequenceInteger());
+        //}
       }
     }
   }
