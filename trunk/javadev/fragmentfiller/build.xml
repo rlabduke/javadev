@@ -53,6 +53,7 @@
          <classpath>
             <pathelement location="../driftwood/build"/>
             <pathelement location="../molikin/build"/>
+            <pathelement location="mysql-connector-java-5.0.6-bin.jar"/>
          </classpath>
     </javac>
 </target>

@@ -96,6 +96,8 @@ public class PdbLibraryReader {
           try {
             fragModel.add(res);
             res.cloneStates(res, firstState, fragState);
+            String past80 = "  " + currentPdb.getIdCode() + Integer.toString(startRes);
+            addPast80Info(res, past80, fragState);
           } catch (AtomException ae) {
             System.err.println("Error occurred during cloning of atom in PdbLibraryReader.");
           } catch (ResidueException re) {
@@ -108,6 +110,22 @@ public class PdbLibraryReader {
     }
     trimFragment(fragModel);
     return fragModel;
+  }
+  //}}}
+  
+  //{{{ addPast80Info
+  public void addPast80Info(Residue res, String past80, ModelState modState) {
+    Collection atoms = res.getAtoms();
+    Iterator iter = atoms.iterator();
+    while (iter.hasNext()) {
+      try {
+        Atom at = (Atom) iter.next();
+        AtomState atState = modState.get(at);
+        atState.setPast80(past80);
+      } catch (AtomException ae) {
+        System.err.println("Error occurred while adding extra info in PdbLibraryReader.");
+      } 
+    }
   }
   //}}}
   

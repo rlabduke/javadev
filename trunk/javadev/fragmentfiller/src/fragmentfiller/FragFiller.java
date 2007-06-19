@@ -23,6 +23,8 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.text.*;
 import java.util.zip.*;
+import java.sql.*;
+
 //}}}
 
 /**
@@ -47,11 +49,12 @@ public class FragFiller {
   //TreeMap<Integer, KPoint> caMap;
   //TreeMap<Integer, KPoint> coMap;
   //TreeMap<Integer, Integer> gapMap;
-  HashMap<ArrayList<Double>, ArrayList<Triple>> gapFrameAtomsMap;
-  HashMap<ArrayList<Double>, ArrayList<String>> filledMap; // gap (oneNum, nNum, frame) -> list of info that matches
+  //HashMap<ArrayList<Double>, ArrayList<Triple>> gapFrameAtomsMap;
+  HashMap<ProteinGap, ArrayList<String>> filledMap; // gap (oneNum, nNum, frame) -> list of strings (pdbname length startResNum)
   PdbLibraryReader libReader;
   static File fragLibrary = null;
   static File pdbLibrary = null;
+  static int matchDiff;
   //JFileChooser        filechooser     = null;
   //ProgressDialog progDiag;
   //KGroup group;
@@ -79,7 +82,6 @@ public class FragFiller {
   }
   //}}}
   
-
   //{{{ parseArgs
   public static ArrayList parseArgs(String[] args) {
     ArrayList<String> argList = new ArrayList<String>();
@@ -115,6 +117,16 @@ public class FragFiller {
             System.err.println("No argument given for pdb library location");
             System.exit(0);
           }
+        } else if(arg.equals("-nomatchsize")) {
+          if (i+1 < args.length) {
+            if (isInteger(args[i+1])) {
+              matchDiff = Integer.parseInt(args[i+1]);
+              i++;
+            }
+          } else {
+            System.err.println("No integer given for -nomatchsize");
+            System.exit(0);
+          }
         } else {
           System.err.println("*** Unrecognized option: "+arg);
         }
@@ -126,6 +138,7 @@ public class FragFiller {
   }
   //}}}
   
+  //{{{ setDefaults
   public void setDefaults() {
     String labworkPath = System.getProperty("user.dir").substring(0, System.getProperty("user.dir").indexOf("labwork") + 7);
     //System.out.println(labworkPath);
@@ -137,35 +150,49 @@ public class FragFiller {
     if (pdbLibrary == null) {
       pdbLibrary = new File(labworkPath + "/loopwork/fragfiller/pdblibrary");
     }
+    if (matchDiff < 0) {
+      matchDiff = 0;
+    }
   }
-  
+  //}}}
+
   //{{{ Constructors
   public FragFiller(File pdbFile, File outKinFile, String outPrefix) {
     setDefaults();
-    filledMap = new HashMap<ArrayList<Double>, ArrayList<String>>();
-    gapFrameAtomsMap = new HashMap<ArrayList<Double>, ArrayList<Triple>>();
+    filledMap = new HashMap<ProteinGap, ArrayList<String>>();
+    //gapFrameAtomsMap = new HashMap<ArrayList<Double>, ArrayList<Triple>>();
     //System.out.println(pdbFile.toString());
     PdbFileAnalyzer analyzer = new PdbFileAnalyzer(pdbFile);
-    Map<String, ArrayList> gapMap = analyzer.getGapAtoms();
-    ArrayList<ArrayList<Double>> gapFrames = new ArrayList<ArrayList<Double>>();
-    for (String name : gapMap.keySet()) {
-      String[] nameParts = Strings.explode(name, ",".charAt(0)); // Model,Chain,seq#ofres1,seq#ofresN
-      ArrayList gapAtomStates = gapMap.get(name);
-      ArrayList<Double> frame = getGapFrame(gapAtomStates);
-      frame.add(0, Double.valueOf(nameParts[2]));
-      frame.add(1, Double.valueOf(nameParts[3]));
-      gapFrames.add(frame);
-      gapFrameAtomsMap.put(frame, gapAtomStates);
+    Map<String, ArrayList<ProteinGap>> gaps = analyzer.getGaps();
+    ArrayList<ProteinGap> allGaps = new ArrayList<ProteinGap>();
+    for (ArrayList list : gaps.values()) {
+      allGaps.addAll(list);
     }
+    for (ProteinGap gap : allGaps) {
+      filledMap.put(gap, new ArrayList<String>());
+    }
+    //Map<String, ArrayList> gapMap = analyzer.getGapAtoms();
+    //ArrayList<ArrayList<Double>> gapFrames = new ArrayList<ArrayList<Double>>();
+    //for (String name : gapMap.keySet()) {
+    //  String[] nameParts = Strings.explode(name, ",".charAt(0)); // Model,Chain,seq#ofres1,seq#ofresN
+    //  ArrayList gapAtomStates = gapMap.get(name);
+    //  ArrayList<Double> frame = getGapFrame(gapAtomStates);
+    //  frame.add(0, Double.valueOf(nameParts[2]));
+    //  frame.add(1, Double.valueOf(nameParts[3]));
+    //  gapFrames.add(frame);
+    //  gapFrameAtomsMap.put(frame, gapAtomStates);
+    //  filledMap.put(frame, new ArrayList<String>());
+    //}
     ArrayList<File> frameDataFiles = getFrameDataList();
-    scanLoopData(frameDataFiles, gapFrames);
+    searchFragmentDB(allGaps);
+    //scanLoopData(frameDataFiles, allGaps);
     for (ArrayList matchedInfo : filledMap.values()) {
       System.out.println("# of matches: " + matchedInfo.size());
     }
     readPdbLibrary();
     CoordinateFile[] pdbOut = getFragments();
     writePdbs(pdbOut, outPrefix);
-    writeKin(pdbOut, outKinFile);
+    writeKin(analyzer.getCoordFile(), pdbOut, outKinFile);
   }
   //}}}
   
@@ -207,11 +234,62 @@ public class FragFiller {
         
   //}}}
   
-  //{{{ scanLoopData
-  public void scanLoopData(ArrayList<File> datFiles, ArrayList<ArrayList<Double>> gapFrames) {
-    for (ArrayList<Double> gapFrame : gapFrames) {
-      filledMap.put(gapFrame, new ArrayList<String>());
+  //{{{ searchFragmentDB
+  public void searchFragmentDB(ArrayList<ProteinGap> gaps) {
+    DatabaseManager dm = new DatabaseManager();
+    dm.connectToDatabase("//spiral.research.duhs.duke.edu/qDBrDB");
+    for (ProteinGap gap : gaps) {
+      ArrayList<Double> gapFrame = gap.getParameters();
+      int gapLength = gap.getSize();
+      String sqlSelect = "SELECT pdb_id, frag_length, start_res_num FROM prot_frag_params ";
+      if (matchDiff==0) {
+        sqlSelect = sqlSelect.concat("WHERE frag_length = "+Integer.toString(gapLength)+" \n");
+      } else {
+        //sqlSelect = sqlSelect.concat("WHERE (frag_length <= "+Integer.toString(gapLength+matchDiff));
+        //sqlSelect = sqlSelect.concat(" AND frag_length >= "+Integer.toString(gapLength-matchDiff)+") \n");
+        sqlSelect = sqlSelect.concat("WHERE frag_length = "+Integer.toString(matchDiff)+" \n");
+      }
+      double dist = gapFrame.get(0);
+      sqlSelect = sqlSelect.concat("AND (distance <= "+df.format(gapFrame.get(0)+1)+" AND distance >= "+df.format(gapFrame.get(0)-1));
+      sqlSelect = sqlSelect.concat(") \n");
+      double startAng = gapFrame.get(1);
+      sqlSelect = sqlSelect.concat(createWhereQuery(startAng, "start_angle") + " \n");
+      double endAng = gapFrame.get(2);
+      sqlSelect = sqlSelect.concat(createWhereQuery(endAng, "end_angle") + " \n");
+      double startDih = gapFrame.get(3);
+      sqlSelect = sqlSelect.concat(createWhereQuery(startDih, "start_dihedral") + " \n");
+      double middleDih = gapFrame.get(4);
+      sqlSelect = sqlSelect.concat(createWhereQuery(middleDih, "middle_dihedral") + " \n");
+      double endDih = gapFrame.get(5);
+      sqlSelect = sqlSelect.concat(createWhereQuery(endDih, "end_dihedral") + ";");
+      System.out.println(sqlSelect);
+      ArrayList<String> listofMatches = filledMap.get(gap);
+      dm.select(sqlSelect);
+      while (dm.next()) {
+        //System.out.println(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3));
+        listofMatches.add(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3));
+      }
     }
+  }
+  //}}}
+  
+  //{{{ createWhereQuery
+  public String createWhereQuery(double frameVal, String colName) {
+    if (frameVal > 180 - 25) {
+      return "AND ("+colName+" >= "+Double.toString(frameVal-25)+" OR "+colName+" <= "+Double.toString(-360+25+frameVal)+")";
+    } else if (frameVal < -180 + 25) {
+      return "AND ("+colName+" <= "+Double.toString(frameVal+25)+" OR "+colName+"' >= "+Double.toString(frameVal+360-25)+")";
+    } else {
+      return "AND ("+colName+" <= "+Double.toString(frameVal+25)+" AND "+colName+" >= "+Double.toString(frameVal-25)+")";
+    }
+  }
+  //}}}
+  
+  //{{{ scanLoopData
+  public void scanLoopData(ArrayList<File> datFiles, ArrayList<ProteinGap> gaps) {
+    //for (ArrayList<Double> gapFrame : gapFrames) {
+    //  filledMap.put(gapFrame, new ArrayList<String>());
+    //}
     for (File f : datFiles) {
       if(f != null && f.exists()) {
         try {
@@ -233,8 +311,10 @@ public class FragFiller {
               for (int i = 2; i < 8; i++) {
                 lineArray[i] = Double.parseDouble(split[i]);
               }
-              for (ArrayList<Double> gapFrame : gapFrames) {
-                if (scanLine(lineArray, gapFrame)) {
+              for (ProteinGap gap : gaps) {
+                ArrayList<Double> gapFrame = gap.getParameters();
+                int size = gap.getSize();
+                if (scanLine(lineArray, size, gapFrame)) {
                   ArrayList<String> listofMatches = filledMap.get(gapFrame);
                   listofMatches.add(split[0] + " " + split[1]); // should result in pdbname length startResNum
                 }
@@ -250,21 +330,21 @@ public class FragFiller {
   //}}}
   
   //{{{ scanLine
-  public boolean scanLine(double[] line, ArrayList<Double> frame) {
+  public boolean scanLine(double[] line, int size, ArrayList<Double> frame) {
     //String[] split = stringLine[0].split(" "); // pdbname length
     boolean inRange = true;
     //while (inRange) {
       //if ((frame.get(1) - frame.get(0)) != Double.parseDouble(split[1])) {
       //  inRange = false;
       //}
-      if ((frame.get(1) - frame.get(0)) != line[1]) {
+      if (size != line[1]) {
         inRange = false;
       }
-      if ((line[2] >= frame.get(2) + 1)||(line[2] <= frame.get(2) - 1)) {
+      if ((line[2] >= frame.get(0) + 1)||(line[2] <= frame.get(0) - 1)) {
         inRange = false;
       }
       for (int i = 3; i < frame.size() && inRange; i++) {
-        inRange = checkAngle(frame.get(i), line[i]);
+        inRange = checkAngle(frame.get(i - 2), line[i]);
         //if ((line[i] >= frame.get(i) + 25)||(line[i] <= frame.get(i) - 25)) {
         //  inRange = false;
         //}
@@ -313,11 +393,11 @@ public class FragFiller {
   public CoordinateFile[] getFragments() {
     CoordinateFile[] fragPdbOut = new CoordinateFile[filledMap.keySet().size()];
     int i = 0;
-    for (ArrayList<Double> gap : filledMap.keySet()) {
+    for (ProteinGap gap : filledMap.keySet()) {
       fragPdbOut[i] = new CoordinateFile();
-      fragPdbOut[i].setIdCode(gap.get(0).intValue() + "-" + gap.get(1).intValue());
+      fragPdbOut[i].setIdCode(gap.getOneNum() + "-" + gap.getNNum());
       ArrayList<String> listofFiller = filledMap.get(gap);
-      ArrayList<Triple> gapFrameStates = gapFrameAtomsMap.get(gap);
+      //ArrayList<Triple> gapFrameStates = gapFrameAtomsMap.get(gap);
       System.out.println(listofFiller.size());
       for (int ind = 0; ((ind < 100000)&&(ind < listofFiller.size())); ind++) {
         String info = listofFiller.get(ind);
@@ -327,7 +407,7 @@ public class FragFiller {
         int startRes = Integer.parseInt(splitInfo[2]);
         libReader.setCurrentPdb(pdbName);
         Model frag = libReader.getFragment(Integer.toString(ind), startRes, length); //set of residues
-        SuperPoser poser = new SuperPoser(getGapTupleArray(gapFrameStates), libReader.getFragmentEndpointAtoms(frag));
+        SuperPoser poser = new SuperPoser(gap.getTupleArray(), libReader.getFragmentEndpointAtoms(frag));
         Transform t = poser.superpos();
         //System.out.println(poser.calcRMSD(t));
         transform(frag, t);
@@ -399,7 +479,7 @@ public class FragFiller {
   //}}}
   
   //{{{ writeKin
-  public void writeKin(CoordinateFile[] pdbs, File kinout) {
+  public void writeKin(CoordinateFile inputPdb, CoordinateFile[] pdbs, File kinout) {
     //File pdbout = new File(f, sub.getName() + ".pdb");
     try {
       Writer w = new FileWriter(kinout);
@@ -411,6 +491,12 @@ public class FragFiller {
       bsl.doSidechains = true;
       bsl.doHydrogens = true;
       bsl.colorBy = BallAndStickLogic.COLOR_BY_MC_SC;
+      Iterator iter = inputPdb.getModels().iterator();
+      while (iter.hasNext()) {
+        Model mod = (Model) iter.next();
+        out.println("@group {"+inputPdb.getIdCode()+" "+mod.getName()+"} dominant master= {all models} master= {input pdb}");
+        bsl.printKinemage(out, mod, new UberSet(mod.getResidues()), "bluetint");
+      }
       for (CoordinateFile pdb : pdbs) {
         Iterator models = pdb.getModels().iterator();
         while (models.hasNext()) {
@@ -427,303 +513,17 @@ public class FragFiller {
   }
   //}}}
   
-  /*
-  //{{{ initialize
-  public void initialize() {
-    caMap = new TreeMap<Integer, KPoint>();
-    coMap = new TreeMap<Integer, KPoint>();
-    gapMap = new TreeMap<Integer, Integer>();
-    filledMap = new HashMap<ArrayList<Double>, ArrayList<String>>();
-    progDiag = new ProgressDialog(kMain.getTopWindow(), "Filling gaps...", true);
-    //Kinemage kin = kMain.getKinemage();
-    //group = new KGroup("loops");
-    //newSub = new KGroup("sub");
-    //kin.add(group);
-    //group.add(newSub);
-    //makeFileChooser();
-  }
-  //}}}
-  
-  //{{{ onAnalyzeCurrent
-  public void onAnalyzeCurrent(ActionEvent ev) {
-    initialize();
-    analyzeSequence();
-    findGaps();
-    ArrayList<ArrayList<Double>> gapFrames = getGapFrames();
-    ArrayList<File> datFiles = getLoopDataList();
-    ArrayList<File> loopKins = findLoopKins();
-    if (datFiles != null) {
-      long startTime = System.currentTimeMillis();
-      scanLoopData(datFiles, gapFrames);
-      long endTime = System.currentTimeMillis();
-      System.out.println((endTime - startTime)/1000 + " seconds to scan dat files");
-    }
-    scanLoopKins(loopKins);
-
-  }
-  //}}}
-  
-
-  */
-  /*
-  //{{{ findLoopKins
-  public ArrayList<File> findLoopKins() {
-    filechooser.setDialogTitle("Pick source kins data directory");
-    if(JFileChooser.APPROVE_OPTION == filechooser.showOpenDialog(kMain.getTopWindow())) {
-	    //try {
-        File f = filechooser.getSelectedFile();
-        File[] kinFiles = f.listFiles();
-        ArrayList<File> kinList = new ArrayList<File>();
-        for (File kin : kinFiles) {
-          if ((kin.getName().endsWith(".kin"))||(kin.getName().endsWith(".kin.gz"))) {
-            kinList.add(kin);
-          }
-        }
-        return kinList;
-      //}
-    }
-    return null;
-  }
-  //}}}
-  
-
-  
-  //{{{ openKinFile
-  public KinfileParser openKinFile(File f) {
-    //System.out.println("Opening " + f.getName());
-    KinfileParser parser = new KinfileParser();
+  //{{{ isInteger
+  public static boolean isInteger(String s) {
     try {
-      FileInputStream fileIS = new FileInputStream(f);
-      LineNumberReader    lnr;
-      
-      //parser = new KinfileParser();
-      // Test for GZIPped files
-      InputStream input = new BufferedInputStream(fileIS);
-      input.mark(10);
-      if(input.read() == 31 && input.read() == 139)
-      {
-        // We've found the gzip magic numbers...
-        input.reset();
-        input = new GZIPInputStream(input);
-      }
-      else input.reset();
-      
-      lnr = new LineNumberReader(new InputStreamReader(input));
-      parser.parse(lnr);
-      lnr.close();
-      fileIS.close();
-      //return parser;
-    } catch (IOException ioe) {
-      System.out.println(ioe);
-      JOptionPane.showMessageDialog(kMain.getTopWindow(),
-      "An error occurred while opening the file: " + f.getName(), "Sorry!", JOptionPane.ERROR_MESSAGE);
-    } 
-    return parser;
-  }
-  //}}}
-  
-  //{{{ getLoopFromKin
-  public ArrayList<KList> getLoopFromKin(KinfileParser parser, TreeSet<Integer> keepSet) {
-    //kMain.getKinIO().loadFile(f, null);
-    ArrayList<Kinemage> kins = new ArrayList(parser.getKinemages());
-    Kinemage kin = kins.get(0);
-    KIterator<KPoint> points = KIterator.allPoints(kin);
-    for (KPoint pt : points) {
-      int resNum = KinUtil.getResNumber(pt);
-      //String ptChain = KinUtil.getChainID(pt).toLowerCase();
-      if ((!keepSet.contains(new Integer(resNum)))||(!(pt instanceof VectorPoint))){//||(!chainID.equals(ptChain))) {
-          points.remove();
-      } else {
-        String name = pt.getName();
-        pt.setName(name + keepSet.first().toString()); //temp fix to pdb export putting loops from same pdb together
-      }
-      if ((keepSet.contains(new Integer(resNum)))&&(!keepSet.contains(new Integer(resNum-1)))) {
-        if (pt instanceof VectorPoint) {
-          VectorPoint vpoint = (VectorPoint) pt;
-          //String name = vpoint.getName();
-          //System.out.println(name);
-          //System.out.print(keepSet.first().toString());
-          //vpoint.setName(name + keepSet.first().toString()); //temp fix to pdb export putting loops from same pdb together
-          KPoint prev = vpoint.getPrev();
-          if (prev instanceof KPoint) {
-            if (!keepSet.contains(new Integer(KinUtil.getResNumber(prev)))) {
-              vpoint.setPrev(null);
-            }
-          }
-        }
-      }
-    }
-    //Kinemage kin = kMain.getKinemage();
-    removeExtraAtoms(kin, keepSet);
-    KIterator<KList> lists = KIterator.allLists(kin.getChildren().get(0));
-    try {
-      ArrayList<KList> listofLists = new ArrayList<KList>();
-      for (KList list : lists) {
-        listofLists.add((KList) list.clone());
-      }
-        //KList clone = (KList) lists.next().clone();
-      //kMain.getStable().closeCurrent();
-      kMain.getTextWindow().setText("");
-      return listofLists;
-      //kMain.getStable().changeCurrentKinemage(1);
-      //newSub.add(clone);
-    } catch (CloneNotSupportedException e) {
-    }
-    //kMain.getStable().changeCurrentKinemage(2);
-    //kMain.getStable().closeCurrent();
-    return null;
-  }
-  //}}}
-  
-  //{{{ removeExtraAtoms
-    public void removeExtraAtoms(Kinemage kin, TreeSet<Integer> keepSet) {
-    KIterator<KPoint> points = KIterator.allPoints(kin);
-    int first = keepSet.first().intValue();
-    int last = keepSet.last().intValue();
-    for (KPoint pt : points) {
-      int resNum = KinUtil.getResNumber(pt);
-      String atomName = KinUtil.getAtomName(pt);
-      if ((atomName.equals("n"))&&(resNum == first)) points.remove();
-      if ((atomName.equals("h"))&&(resNum == first)) points.remove();
-      if ((atomName.equals("ca"))&&(resNum == first)) pt.setPrev(null);
-      if ((atomName.equals("c"))&&(resNum == last)) points.remove();
-      if ((atomName.equals("o"))&&(resNum == last)) points.remove();
+	    Integer.parseInt(s);
+	    return true;
+    } catch (NumberFormatException e) {
+	    return false;
+    } catch (NullPointerException e) {
+	    return false;
     }
   }
-  //}}}  
-
-  //{{{ getListTupleArray
-  public Tuple3[] getListTupleArray(KList list) {
-    TreeMap<Integer, KPoint> listcaMap = new TreeMap<Integer, KPoint>();
-    TreeMap<Integer, KPoint> listcoMap = new TreeMap<Integer, KPoint>();
-    KIterator<KPoint> points = KIterator.allPoints(list);
-    for (KPoint pt : points) {
-      String atomName = KinUtil.getAtomName(pt);
-      //System.out.println(atomName);
-      if (atomName.equals("ca")) {
-        Integer resNum = new Integer(KinUtil.getResNumber(pt));
-        listcaMap.put(resNum, pt);
-      }
-      if (atomName.equals("o")) {
-        Integer resNum = new Integer(KinUtil.getResNumber(pt));
-        listcoMap.put(resNum, pt);
-      }
-    }
-    int zeroNum = listcaMap.firstKey().intValue();
-    int oneNum = zeroNum + 1;
-    int n1Num = listcaMap.lastKey().intValue();
-    int nNum = n1Num - 1;
-    Tuple3[] tuples = new Tuple3[4];
-    //tuples[0] = listcoMap.get(new Integer(zeroNum));
-    tuples[0] = listcaMap.get(new Integer(zeroNum));
-    tuples[1] = listcaMap.get(new Integer(oneNum));
-    tuples[2] = listcaMap.get(new Integer(nNum));
-    tuples[3] = listcaMap.get(new Integer(n1Num));
-    //tuples[5] = listcoMap.get(new Integer(nNum));
-    return tuples;
-  }
-  //}}}
-  
-  //{{{ getGapTupleArray
-  public Tuple3[] getGapTupleArray(ArrayList<Double> gap) {
-    int oneNum = gap.get(0).intValue();
-    int nNum = gap.get(1).intValue();
-    Tuple3[] tuples = new Tuple3[4];
-    //tuples[0] = coMap.get(new Integer(oneNum - 1));
-    tuples[0] = caMap.get(new Integer(oneNum - 1));
-    tuples[1] = caMap.get(new Integer(oneNum));
-    tuples[2] = caMap.get(new Integer(nNum));
-    tuples[3] = caMap.get(new Integer(nNum + 1));
-    //tuples[5] = coMap.get(new Integer(nNum));
-    return tuples;
-  }
-  //}}}
-  
-
-  
-  //{{{ onExport
-  public void onExport(ActionEvent ev) {
-    JFileChooser saveChooser = new JFileChooser();
-    saveChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-    saveChooser.setDialogTitle("Pick pdb output directory");
-    String currdir = System.getProperty("user.dir");
-    if(currdir != null) {
-	    saveChooser.setCurrentDirectory(new File(currdir));
-    }
-    if (saveChooser.APPROVE_OPTION == saveChooser.showSaveDialog(kMain.getTopWindow())) {
-	    File f = saveChooser.getSelectedFile();
-      savePdb(f);
-    }
-  }
-  //}}}
-  */
-  //{{{ savePdb
-  /**
-  * First sorts the loop group by the PDB structures the loops came from, doing subgroups separately.
-  * Then it saves a pdb file for each subgroup, putting the loops into different models.  
-  **/
-  /*
-  public void savePdb(File f) {
-    Iterator groups = kMain.getKinemage().iterator();
-    while (groups.hasNext()) {
-      KGroup tempGroup = (KGroup) groups.next();
-      if (tempGroup.getName().equals("loops")) {
-        group = tempGroup;
-      }
-    }
-    Iterator subs = group.iterator();
-    while (subs.hasNext()) {
-      KGroup sub = (KGroup) subs.next();
-      HashMap<String, KGroup> groupMap = new HashMap<String, KGroup>();
-      KIterator<KList> lists = KIterator.allLists(sub);
-      for (KList list : lists) {
-        KPoint pt = list.getChildren().get(0);
-        String pdbName = KinUtil.getPdbName(pt.getName());
-        //System.out.println(pdbName);
-        if (pdbName != null) {
-          if (groupMap.containsKey(pdbName)) {
-            KGroup pdbGroup = groupMap.get(pdbName);
-            pdbGroup.add(list);
-          } else {
-            KGroup pdbGroup = new KGroup("");
-            pdbGroup.add(list);
-            groupMap.put(pdbName, pdbGroup);
-          }
-        }
-      }
-      File pdbout = new File(f, sub.getName() + ".pdb");
-      if( !pdbout.exists() ||
-        JOptionPane.showConfirmDialog(kMain.getTopWindow(),
-      "The file " + pdbout.toString() + " exists -- do you want to overwrite it?",
-      "Overwrite file?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION )
-      {
-        try {
-          Writer w = new FileWriter(pdbout);
-          PrintWriter out = new PrintWriter(new BufferedWriter(w));
-          int i = 1;
-          for (String pdbName : groupMap.keySet()) {
-            //KIterator<KPoint> pts = KIterator.allPoints(groupMap.get(pdbName));
-            //int counter = 0;
-            //for (KPoint pt : pts) {
-            //  counter++;
-            //}
-            //System.out.println(counter);
-            out.println("MODEL     " + Kinimol.formatStrings(Integer.toString(i), 4));
-            out.print(Kinimol.convertGrouptoPdb(groupMap.get(pdbName), pdbName));
-            out.println("ENDMDL");
-            i++;
-          }
-          out.flush();
-          w.close();
-        } catch (IOException ex) {
-          System.out.println(ex);
-          JOptionPane.showMessageDialog(kMain.getTopWindow(),
-          "An error occurred while saving the file.", "Sorry!", JOptionPane.ERROR_MESSAGE);
-        }
-      }
-    }
-  }
-  */
   //}}}
   
 }//class
