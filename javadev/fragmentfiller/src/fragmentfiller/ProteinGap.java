@@ -19,12 +19,17 @@ public class ProteinGap {
   Residue n1Res;
   ArrayList<AtomState> states;
   ArrayList<Double> frame;
+  String sourceModName;
+  String sourceChain;
   //int oneResNum;
   //int nResNum;
   //}}}
   
   //{{{ Constructors
-  public ProteinGap(ModelState modState, Residue zr, Residue or, Residue nr, Residue n1r) {
+  public ProteinGap(Model mod, String chain, Residue zr, Residue or, Residue nr, Residue n1r) {
+    sourceModName = mod.getName();
+    sourceChain = chain;
+    ModelState modState = mod.getState();
     zeroRes = zr;
     oneRes = or;
     nRes = nr;
@@ -69,6 +74,10 @@ public class ProteinGap {
 
   public int getNNum() {
     return nRes.getSequenceInteger();
+  }
+  
+  public String getSourceString() {
+    return sourceModName + sourceChain;
   }
   
   public Tuple3[] getTupleArray() {

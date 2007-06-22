@@ -15,12 +15,12 @@ public class PdbFileAnalyzer {
   
   //{{{ Variables
   CoordinateFile pdbFile;
-  HashMap<Model, Map> masterGapMap; // Model -> (chain -> ListofGaps)
+  HashMap<Model, HashMap<String, ArrayList>> masterGapMap; // Model -> (chain -> ListofGaps)
   //}}}
   
   //{{{ Constructor
   public PdbFileAnalyzer(File pdbFile) {
-    masterGapMap = new HashMap<Model, Map>();
+    masterGapMap = new HashMap<Model, HashMap<String, ArrayList>>();
     readPdb(pdbFile);
     test();
   }
@@ -46,12 +46,12 @@ public class PdbFileAnalyzer {
   
   //{{{ analyzeModel
   public HashMap<String, ArrayList> analyzeModel(Model mod) {
-    ModelState modState = mod.getState();
+    //ModelState modState = mod.getState();
     HashMap<String, ArrayList> chainGapMap = new HashMap<String, ArrayList>();
     Set<String> chainSet = mod.getChainIDs();
     for (String chain : chainSet) {
       Set<Residue> residues = mod.getChain(chain);
-      chainGapMap.put(chain, findGaps(modState, residues));
+      chainGapMap.put(chain, findGaps(mod, chain, residues));
     }
     return chainGapMap;
   }
@@ -72,7 +72,7 @@ public class PdbFileAnalyzer {
   
   //{{{ findGaps
   //public Map<Integer, ArrayList> findGaps(ModelState modState, Set<Residue> chainofRes) {
-  public ArrayList<ProteinGap> findGaps(ModelState modState, Set<Residue> chainofRes) {
+  public ArrayList<ProteinGap> findGaps(Model mod, String chainId, Set<Residue> chainofRes) {
     int prevSeq = 100000;
     UberSet uberChainSet = new UberSet(chainofRes);
     //TreeMap<Integer, ArrayList> gapMap = new TreeMap<Integer, ArrayList>();
@@ -93,7 +93,7 @@ public class PdbFileAnalyzer {
           nRes = (Residue) uberChainSet.itemAfter(nRes);
           n1Res = (Residue) uberChainSet.itemAfter(nRes);
         }
-        ProteinGap gap = new ProteinGap(modState, zeroRes, oneRes, nRes, n1Res);
+        ProteinGap gap = new ProteinGap(mod, chainId, zeroRes, oneRes, nRes, n1Res);
         //paramRes.add(zeroRes);
         //paramRes.add(oneRes);
         //paramRes.add(nRes);
@@ -109,7 +109,28 @@ public class PdbFileAnalyzer {
   
   //{{{ simulateGap
   public void simulateGap(int oneResNum, int nResNum) {
-    
+    for (Model mod : masterGapMap.keySet()) {
+      //ModelState modState = mod.getState();
+      HashMap<String, ArrayList> chainMap = masterGapMap.get(mod);
+      for (String chain : chainMap.keySet()) {
+        ArrayList<ProteinGap> gaps = chainMap.get(chain);
+        Set<Residue> residues = mod.getChain(chain);
+        Residue zeroRes = null;
+        Residue oneRes = null;
+        Residue nRes = null;
+        Residue n1Res = null;
+        for (Residue res : residues) {
+          int seqNum = res.getSequenceInteger();
+          if ((seqNum == oneResNum-1)&&(containsCaO(res))) zeroRes = res;
+          if ((seqNum == oneResNum)&&(containsCa(res))) oneRes = res;
+          if ((seqNum == nResNum)&&(containsCaO(res))) nRes = res;
+          if ((seqNum == nResNum+1)&&(containsCa(res))) n1Res = res;
+        }
+        if ((zeroRes!=null)&&(oneRes!=null)&&(nRes!=null)&&(n1Res!=null)) {
+          gaps.add(new ProteinGap(mod, chain, zeroRes, oneRes, nRes, n1Res));
+        }
+      }
+    }
   }
   //}}}
   

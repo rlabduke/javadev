@@ -50,6 +50,7 @@ public class FragFiller {
   //TreeMap<Integer, KPoint> coMap;
   //TreeMap<Integer, Integer> gapMap;
   //HashMap<ArrayList<Double>, ArrayList<Triple>> gapFrameAtomsMap;
+  static HashMap<Integer, Integer> simulatedGaps;
   HashMap<ProteinGap, ArrayList<String>> filledMap; // gap (oneNum, nNum, frame) -> list of strings (pdbname length startResNum)
   PdbLibraryReader libReader;
   static File fragLibrary = null;
@@ -63,6 +64,7 @@ public class FragFiller {
   //{{{ main
   //###############################################################
   public static void main(String[] args) {
+    simulatedGaps = new HashMap<Integer, Integer>();
     ArrayList<String> argList = parseArgs(args);
     if (argList.size() < 3) {
 	    System.out.println("Not enough arguments: you must have an input pdb, output kin, and an output prefix!");
@@ -84,6 +86,7 @@ public class FragFiller {
   
   //{{{ parseArgs
   public static ArrayList parseArgs(String[] args) {
+    //Pattern p = Pattern.compile("^[0-9]*-[0-9]*$");
     ArrayList<String> argList = new ArrayList<String>();
     String arg;
     for (int i = 0; i < args.length; i++) {
@@ -117,7 +120,7 @@ public class FragFiller {
             System.err.println("No argument given for pdb library location");
             System.exit(0);
           }
-        } else if(arg.equals("-nomatchsize")) {
+        } else if (arg.equals("-nomatchsize")) {
           if (i+1 < args.length) {
             if (isInteger(args[i+1])) {
               matchDiff = Integer.parseInt(args[i+1]);
@@ -131,7 +134,22 @@ public class FragFiller {
           System.err.println("*** Unrecognized option: "+arg);
         }
       } else {
-        argList.add(arg);
+        if (arg.matches("[0-9]*-[0-9]*")) {
+          String[] gapBounds = arg.split("-");
+          int first = Integer.parseInt(gapBounds[0]);
+          int sec = Integer.parseInt(gapBounds[1]);
+          if (first > sec) {
+            simulatedGaps.put(sec, first);
+          } else if (sec > first) {
+            simulatedGaps.put(first, sec);
+          } else {
+            System.err.println("You are trying to simulate a gap of size zero!");
+            System.exit(0);
+          }
+        } else {
+          System.out.println(arg);
+          argList.add(arg);
+        }
       }
     }
     return argList;
@@ -163,6 +181,10 @@ public class FragFiller {
     //gapFrameAtomsMap = new HashMap<ArrayList<Double>, ArrayList<Triple>>();
     //System.out.println(pdbFile.toString());
     PdbFileAnalyzer analyzer = new PdbFileAnalyzer(pdbFile);
+    for (Integer start : simulatedGaps.keySet()) {
+      Integer end = simulatedGaps.get(start);
+      analyzer.simulateGap(start.intValue(), end.intValue());
+    }
     Map<String, ArrayList<ProteinGap>> gaps = analyzer.getGaps();
     ArrayList<ProteinGap> allGaps = new ArrayList<ProteinGap>();
     for (ArrayList list : gaps.values()) {
@@ -395,7 +417,8 @@ public class FragFiller {
     int i = 0;
     for (ProteinGap gap : filledMap.keySet()) {
       fragPdbOut[i] = new CoordinateFile();
-      fragPdbOut[i].setIdCode(gap.getOneNum() + "-" + gap.getNNum());
+      System.out.println(gap.getSourceString() + "." + gap.getOneNum() + "-" + gap.getNNum());
+      fragPdbOut[i].setIdCode(gap.getSourceString() + "." + gap.getOneNum() + "-" + gap.getNNum());
       ArrayList<String> listofFiller = filledMap.get(gap);
       //ArrayList<Triple> gapFrameStates = gapFrameAtomsMap.get(gap);
       System.out.println(listofFiller.size());
@@ -494,7 +517,7 @@ public class FragFiller {
       Iterator iter = inputPdb.getModels().iterator();
       while (iter.hasNext()) {
         Model mod = (Model) iter.next();
-        out.println("@group {"+inputPdb.getIdCode()+" "+mod.getName()+"} dominant master= {all models} master= {input pdb}");
+        out.println("@group {"+inputPdb.getIdCode()+" "+mod.getName()+"} dominant master= {input pdb}");
         bsl.printKinemage(out, mod, new UberSet(mod.getResidues()), "bluetint");
       }
       for (CoordinateFile pdb : pdbs) {
