@@ -15,6 +15,8 @@ public class Main {
       LibraryFilterer.main(cmdargs);
     } else if (args[0].equals("pdbsuperimposer")) {
       PdbSuperimposer.main(cmdargs);
+    } else if (args[0].equals("pdbsuperimposer_RNA")) {
+      PdbSuperimposer_RNA.main(cmdargs);
     } else {
       System.err.println("Unknown cmdline function!");
     }
