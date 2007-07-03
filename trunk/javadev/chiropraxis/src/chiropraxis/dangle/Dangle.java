@@ -55,7 +55,6 @@ public class Dangle //extends ... implements ...
         double[] vals = new double[meas.length];
         double[] devs = new double[meas.length];
         
-        out.print("# label:model:chain:number:ins:type");
         for(int i = 0; i < meas.length; i++)
         {
             out.print(":"+meas[i].getLabel());
@@ -232,7 +231,7 @@ public class Dangle //extends ... implements ...
 
     public static void main(String[] args)
     {
-        Dangle mainprog = new Dangle();
+	Dangle mainprog = new Dangle();
         try
         {
             mainprog.parseArguments(args);

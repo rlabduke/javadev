@@ -31,6 +31,7 @@ abstract public class Measurement //extends ... implements ...
     public static final Object TYPE_MAXB        = "maxb";
     public static final Object TYPE_MINQ        = "minq";
     public static final Object TYPE_PLANARITY   = "planarity";
+    public static final Object TYPE_PUCKER   	= "pucker";
 //}}}
 
 //{{{ Variable definitions
@@ -130,6 +131,37 @@ abstract public class Measurement //extends ... implements ...
                 newBuiltin("epsilon"),
                 newBuiltin("zeta")
             };
+	if ("suitefit".equals(label))  	// added 6/20/07 -- DK
+	   return new Measurement[] {
+		newBuiltin("O5'-C5'"),
+		newBuiltin("C5'-C4'"),
+		newBuiltin("C4'-C3'"),
+		newBuiltin("C3'-C2'"),
+		newBuiltin("C2'-C1'"),
+		newBuiltin("O4'-C1'"),
+		newBuiltin("O4'-C4'"),
+		newBuiltin("O3'-C3'"),
+		newBuiltin("C2'-O2'"),
+		newBuiltin("C3'-C4'-O4'"),
+		newBuiltin("C4'-O4'-C1'"),
+		newBuiltin("O4'-C1'-C2'"),
+		newBuiltin("C1'-C2'-C3'"),
+		newBuiltin("C4'-C3'-C2'"),
+		newBuiltin("C3'-C2'-C1'"),
+		newBuiltin("C2'-C1'-O4'"),
+		newBuiltin("C1'-O4'-C4'"),
+		newBuiltin("O3'-C3'-C4'"),
+		newBuiltin("C3'-C4'-C5'"),
+		newBuiltin("delta"),
+		newBuiltin("C3'-C4'-O4'-C1'"),
+		newBuiltin("C4'-O4'-C1'-C2'"),
+		newBuiltin("O4'-C1'-C2'-C3'"),
+		newBuiltin("C4'-C3'-C2'-C1'"),
+		newBuiltin("C3'-C2'-C1'-O4'"),
+		newBuiltin("C2'-C1'-O4'-C4'"),
+		newBuiltin("O3'-C4'-C3'-C2'"),
+		newBuiltin("C5'-C3'-C4'-O4'")
+    	   };
         else return null;
     }
 //}}}
@@ -278,6 +310,174 @@ abstract public class Measurement //extends ... implements ...
                     new AtomSpec( 0, "_N1_"),
                     new AtomSpec( 0, "_C2_")
             ));
+	 
+	// Start of "suitefit" Builtins, added 6/20/07. -- DK
+	// The 9 distances for suitefit:
+	else if("O5'-C5'".equals(label) || "O5'--C5'".equals(label)) 
+            return new Distance(label,
+                new AtomSpec( 0, "_O5*"),
+                new AtomSpec( 0, "_C5*")
+	    );
+	else if("C5'-C4'".equals(label) || "C5'--C4'".equals(label)) 
+            return new Distance(label,
+                new AtomSpec( 0, "_C5*"),
+                new AtomSpec( 0, "_C4*")
+	    );
+	else if("C4'-C3'".equals(label) || "C4'--C3'".equals(label)) 
+            return new Distance(label,
+                new AtomSpec( 0, "_C4*"),
+                new AtomSpec( 0, "_C3*")
+	    );
+	else if("C3'-C2'".equals(label) || "C3'--C2'".equals(label)) 
+            return new Distance(label,
+                new AtomSpec( 0, "_C3*"),
+                new AtomSpec( 0, "_C2*")
+	    );
+	else if("C2'-C1'".equals(label) || "C2'--C1'".equals(label)) 
+            return new Distance(label,
+                new AtomSpec( 0, "_C2*"),
+                new AtomSpec( 0, "_C1*")
+	    );
+	else if("O4'-C1'".equals(label) || "O4'--C1'".equals(label)) 
+            return new Distance(label,
+                new AtomSpec( 0, "_O4*"),
+                new AtomSpec( 0, "_C1*")
+	    );
+	else if("O4'-C4'".equals(label) || "O4'--C4'".equals(label)) 
+            return new Distance(label,
+                new AtomSpec( 0, "_O4*"),
+                new AtomSpec( 0, "_C4*")
+	    );
+	else if("O3'-C3'".equals(label) || "O3'--C3'".equals(label)) 
+            return new Distance(label,
+                new AtomSpec( 0, "_O3*"),
+                new AtomSpec( 0, "_C3*")
+	    );
+	else if("C2'-O2'".equals(label) || "C2'--O2'".equals(label)) 
+            return new Distance(label,
+                new AtomSpec( 0, "_C2*"),
+                new AtomSpec( 0, "_O2*")
+	    );
+	// The 10 angles for suitefit:
+	else if("C3'-C4'-O4'".equals(label))
+            return new Angle(label,
+                new AtomSpec( 0, "_C3*"),
+                new AtomSpec( 0, "_C4*"),
+		new AtomSpec( 0, "_O4*")
+	    );
+	else if("C4'-O4'-C1'".equals(label))
+            return new Angle(label,
+                new AtomSpec( 0, "_C4*"),
+                new AtomSpec( 0, "_O4*"),
+		new AtomSpec( 0, "_C1*")
+	    );
+	else if("O4'-C1'-C2'".equals(label)) 
+            return new Angle(label,
+                new AtomSpec( 0, "_O4*"),
+                new AtomSpec( 0, "_C1*"),
+		new AtomSpec( 0, "_C2*")
+	    );
+	else if("C1'-C2'-C3'".equals(label)) 
+            return new Angle(label,
+                new AtomSpec( 0, "_C1*"),
+                new AtomSpec( 0, "_C2*"),
+		new AtomSpec( 0, "_C3*")
+	    );
+	else if("C4'-C3'-C2'".equals(label)) 
+            return new Angle(label,
+                new AtomSpec( 0, "_C4*"),
+                new AtomSpec( 0, "_C3*"),
+		new AtomSpec( 0, "_C2*")
+	    );
+	else if("C3'-C2'-C1'".equals(label)) 
+            return new Angle(label,
+                new AtomSpec( 0, "_C3*"),
+                new AtomSpec( 0, "_C2*"),
+		new AtomSpec( 0, "_C1*")
+	    );
+	else if("C2'-C1'-O4'".equals(label)) 
+            return new Angle(label,
+                new AtomSpec( 0, "_C2*"),
+                new AtomSpec( 0, "_C1*"),
+		new AtomSpec( 0, "_O4*")
+	    );
+	else if("C1'-O4'-C4'".equals(label)) 
+            return new Angle(label,
+                new AtomSpec( 0, "_C1*"),
+                new AtomSpec( 0, "_O4*"),
+		new AtomSpec( 0, "_C4*")
+	    );
+	else if("O3'-C3'-C4'".equals(label)) 
+            return new Angle(label,
+                new AtomSpec( 0, "_O3*"),
+                new AtomSpec( 0, "_C3*"),
+		new AtomSpec( 0, "_C4*")
+	    );
+	else if("C3'-C4'-C5'".equals(label)) 
+            return new Angle(label,
+                new AtomSpec( 0, "_C3*"),
+                new AtomSpec( 0, "_C4*"),
+		new AtomSpec( 0, "_C5*")
+	    );
+	
+	// The 8 dihedrals for suitefit (other than delta, which is already defined above):
+	else if("C3'-C4'-O4'-C1'".equals(label)) 
+            return new Dihedral(label,
+                new AtomSpec( 0, "_C3*"),
+                new AtomSpec( 0, "_C4*"),
+		new AtomSpec( 0, "_O4*"),
+		new AtomSpec( 0, "_C1*")
+	    );
+	else if("C4'-O4'-C1'-C2'".equals(label))
+            return new Dihedral(label,
+                new AtomSpec( 0, "_C4*"),
+                new AtomSpec( 0, "_O4*"),
+                new AtomSpec( 0, "_C1*"),
+                new AtomSpec( 0, "_C2*")
+            );
+	else if("O4'-C1'-C2'-C3'".equals(label)) 
+            return new Dihedral(label,
+                new AtomSpec( 0, "_O4*"),
+                new AtomSpec( 0, "_C1*"),
+	 	new AtomSpec( 0, "_C2*"),
+		new AtomSpec( 0, "_C3*")
+	    );
+	else if("C4'-C3'-C2'-C1'".equals(label)) 
+            return new Dihedral(label,
+                new AtomSpec( 0, "_C4*"),
+                new AtomSpec( 0, "_C3*"),
+	 	new AtomSpec( 0, "_C2*"),
+		new AtomSpec( 0, "_C1*")
+	    );
+	else if("C3'-C2'-C1'-O4'".equals(label))
+            return new Dihedral(label,
+                new AtomSpec( 0, "_C3*"),
+                new AtomSpec( 0, "_C2*"),
+                new AtomSpec( 0, "_C1*"),
+                new AtomSpec( 0, "_O4*")
+            );
+	else if("C2'-C1'-O4'-C4'".equals(label)) 
+            return new Dihedral(label,
+                new AtomSpec( 0, "_C2*"),
+                new AtomSpec( 0, "_C1*"),
+	 	new AtomSpec( 0, "_O4*"),
+		new AtomSpec( 0, "_C4*")
+	    );
+	else if("O3'-C4'-C3'-C2'".equals(label)) 
+            return new Dihedral(label,
+                new AtomSpec( 0, "_O3*"),
+                new AtomSpec( 0, "_C4*"),
+	 	new AtomSpec( 0, "_C3*"),
+		new AtomSpec( 0, "_C2*")
+	    );
+	else if("C5'-C3'-C4'-O4'".equals(label)) 
+            return new Dihedral(label,
+                new AtomSpec( 0, "_C5*"),
+                new AtomSpec( 0, "_C3*"),
+	 	new AtomSpec( 0, "_C4*"),
+		new AtomSpec( 0, "_O4*")
+	    );
+	
         //}}} nucleic acids
         //{{{ nucleic acids, i-1
         else if("alpha-1".equals(label))
@@ -667,6 +867,199 @@ abstract public class Measurement //extends ... implements ...
         { return TYPE_PLANARITY; }
     }
 //}}}
+
+//{{{ CLASS: PuckerAng
+//##############################################################################
+    public static class PuckerAng extends Measurement
+    {
+        Dihedral v0;
+	Dihedral v1;
+	Dihedral v2;
+	Dihedral v3;
+	Dihedral v4;
+	double v0dbl;
+	double v1dbl;
+	double v2dbl;
+	double v3dbl;
+	double v4dbl;
+		    
+	Collection<XyzSpec> specs = new ArrayList();
+        
+        public PuckerAng(String label)
+        { super(label); }
+	
+	// I altered Ian's "chaining" method here -- DK
+	/** @return this, for chaining */
+        public PuckerAng add(XyzSpec spec)
+        {
+            specs.add(spec);
+            return this;
+        }
+        
+        /** This is an implementation of Eqn 3 in Altona JACS 1972. -- DK */
+        protected double measureImpl(Model model, ModelState state, Residue res)
+        {
+		
+		//for (XyzSpec spec : specs)	
+		//{
+		//	if(spec instanceof AtomSpec)
+		//		System.out.print(spec.toString() + "|");
+		//}
+			
+		v0 = new Dihedral(label,
+			new AtomSpec( 0, "_C4*"), 	// assume order of atoms is OK...
+			new AtomSpec( 0, "_O4*"),
+			new AtomSpec( 0, "_C1*"),
+			new AtomSpec( 0, "_C2*"));
+		v1 = new Dihedral(label,
+			new AtomSpec( 0, "_O4*"),
+			new AtomSpec( 0, "_C1*"),
+			new AtomSpec( 0, "_C2*"),
+			new AtomSpec( 0, "_C3*"));
+		v2 = new Dihedral(label,
+			new AtomSpec( 0, "_C1*"),
+			new AtomSpec( 0, "_C2*"),
+			new AtomSpec( 0, "_C3*"),
+			new AtomSpec( 0, "_C4*"));
+		v3 = new Dihedral(label,
+			new AtomSpec( 0, "_C2*"),
+			new AtomSpec( 0, "_C3*"),
+			new AtomSpec( 0, "_C4*"),
+			new AtomSpec( 0, "_O4*"));
+		v4 = new Dihedral(label,
+			new AtomSpec( 0, "_C3*"),
+			new AtomSpec( 0, "_C4*"),
+			new AtomSpec( 0, "_O4*"),
+			new AtomSpec( 0, "_C1*"));
+		
+		v0dbl = v0.measureImpl(model, state, res);
+		v1dbl = v1.measureImpl(model, state, res);
+		v2dbl = v2.measureImpl(model, state, res);
+		v3dbl = v3.measureImpl(model, state, res);
+		v4dbl = v4.measureImpl(model, state, res);
+		
+		double numer = (v4dbl + v1dbl) - (v3dbl + v0dbl);
+		double denom = (2 * v2dbl * ( 
+			Math.sin(36.0/360*2*Math.PI) + 
+			Math.sin(72.0/360*2*Math.PI)
+			));
+		double dihdP = Math.toDegrees(Math.atan(numer / denom));
+		
+		if (( v2dbl < 0 ) && ( !Double.isNaN(dihdP) ))
+			return dihdP + 180;
+		else
+			return dihdP;
+	}
+        
+        // deleted private static class Normal extends Triple -- DK
+        
+        protected String toStringImpl() // altered a bit from Planarity -- DK
+        {
+            StringBuffer buf = new StringBuffer("pucker " + getLabel());
+	    
+	    // deleted for(XyzSpec spec : specs) ..... stuff -- DK
+            
+            return buf.toString();
+        }
+        
+        public Object getType()
+        { return TYPE_PUCKER; }
+    }
+//}}}
+
+
+//{{{ CLASS: PuckerAmp
+//##############################################################################
+    public static class PuckerAmp extends Measurement
+    {
+        Dihedral v0;
+	Dihedral v1;
+	Dihedral v2;
+	Dihedral v3;
+	Dihedral v4;
+	double v0dbl;
+	double v1dbl;
+	double v2dbl;
+	double v3dbl;
+	double v4dbl;
+	
+	Collection<XyzSpec> specs = new ArrayList();
+        
+        public PuckerAmp(String label)
+        { super(label); }
+	
+	// I deleted Ian's "chaining" method here -- DK
+        
+        /** This is an implementation of Eqn 12 in Rao ActaCryst 1981. -- DK */
+        protected double measureImpl(Model model, ModelState state, Residue res)
+        {
+		v0 = new Dihedral(label,
+			new AtomSpec( 0, "_C4*"), 	// assume order of atoms is OK...
+			new AtomSpec( 0, "_O4*"),
+			new AtomSpec( 0, "_C1*"),
+			new AtomSpec( 0, "_C2*"));
+		v1 = new Dihedral(label,
+			new AtomSpec( 0, "_O4*"),
+			new AtomSpec( 0, "_C1*"),
+			new AtomSpec( 0, "_C2*"),
+			new AtomSpec( 0, "_C3*"));
+		v2 = new Dihedral(label,
+			new AtomSpec( 0, "_C1*"),
+			new AtomSpec( 0, "_C2*"),
+			new AtomSpec( 0, "_C3*"),
+			new AtomSpec( 0, "_C4*"));
+		v3 = new Dihedral(label,
+			new AtomSpec( 0, "_C2*"),
+			new AtomSpec( 0, "_C3*"),
+			new AtomSpec( 0, "_C4*"),
+			new AtomSpec( 0, "_O4*"));
+		v4 = new Dihedral(label,
+			new AtomSpec( 0, "_C3*"),
+			new AtomSpec( 0, "_C4*"),
+			new AtomSpec( 0, "_O4*"),
+			new AtomSpec( 0, "_C1*"));
+		
+		v0dbl = v0.measureImpl(model, state, res);
+		v1dbl = v1.measureImpl(model, state, res);
+		v2dbl = v2.measureImpl(model, state, res);
+		v3dbl = v3.measureImpl(model, state, res);
+		v4dbl = v4.measureImpl(model, state, res);
+		//For debugging:
+		//System.out.println("v0dbl:"+v0dbl + " v1dbl:"+v1dbl + "v2dbl:"+v2dbl + "v3dbl:"+v3dbl + "v4dbl:"+v4dbl);
+		
+		double sum_i_squared = (v0dbl*v0dbl)+(v1dbl*v1dbl)+(v2dbl*v2dbl)+(v3dbl*v3dbl)+(v4dbl*v4dbl);
+		double sum_i_iplus1 = (v0dbl*v1dbl)+(v1dbl*v2dbl)+(v2dbl*v3dbl)+(v3dbl*v4dbl)+(v4dbl*v0dbl);
+		double sum_i_iplus2 = (v0dbl*v2dbl)+(v1dbl*v3dbl)+(v2dbl*v4dbl)+(v3dbl*v0dbl)+(v4dbl*v1dbl);
+		//For debugging:
+		//System.out.print("sum_i_squared: "+sum_i_squared+"\t");
+		//System.out.print("sum_i_iplus1: "+sum_i_iplus1+"\t");
+		//System.out.println("sum_i_iplus2: "+sum_i_iplus2+"\t");
+		
+		double tau_m_squared = ( Math.pow(2.0/5, 2) ) * 
+		    ( sum_i_squared - 
+		        ((1.0 + Math.sqrt(5)) / 2) * sum_i_iplus1 + 
+		        ((-1.0 + Math.sqrt(5)) / 2) * sum_i_iplus2 
+		    );
+		double tau_m = Math.sqrt(tau_m_squared);
+		return tau_m;
+	}
+        
+        // deleted private static class Normal extends Triple -- DK
+        
+        protected String toStringImpl() // altered a bit from Planarity -- DK
+        {
+            StringBuffer buf = new StringBuffer("pucker " + getLabel());
+	    
+	    // deleted for(XyzSpec spec : specs) ..... stuff -- DK
+            
+            return buf.toString();
+        }
+        
+        public Object getType()
+        { return TYPE_PUCKER; }
+    }
+//}}}
+
 
 //{{{ CLASS: Group
 //##############################################################################
