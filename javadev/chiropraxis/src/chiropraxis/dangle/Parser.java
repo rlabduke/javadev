@@ -21,8 +21,8 @@ import driftwood.parser.*;
 * <li>measurement_for &rarr; ("for" resspec)? measurement</li>
 * <li>resspec &rarr; resno? "cis"? ([_A-Z0-9]{3} | "/" regex "/")</li>
 * <li>measurement &rarr; super_builtin | builtin | distance | angle | dihedral | vector_angle | maxb | minq | planarity</li>
-* <li>super_builtin &rarr; "rnabb"</li>
-* <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "cbdev" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi" | "alpha-1" | "beta-1" | "gamma-1" | "delta-1" | "epsilon-1" | "zeta-1" | "chi-1"</li>
+* <li>super_builtin &rarr; ("rnabb" | "suitefit")</li>
+* <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "cbdev" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi" | "alpha-1" | "beta-1" | "gamma-1" | "delta-1" | "epsilon-1" | "zeta-1" | "chi-1" | "O5'-C5'" | "O5'--C5'" | "C5'-C4'" | "C5'--C4'" | "C4'-C3'" | "C4'--C3'" | "C3'-C2'" | "C3'--C2'" | "C2'-C1'" | "C2'--C1'" | "O4'-C1'" | "O4'--C1'" | "O4'-C4'" | "O4'--C4'" | "O3'--C3'" | "O3'-C3'" | "C2'-O2'" | "C2'--O2'" | "C4'-O4'-C1'" | "O4'-C1'-C2'" | "C1'-C2'-C3'" | "C4'-C3'-C2'" | "C3'-C2'-C1'" | "C2'-C1'-O4'" | "C1'-O4'-C4'" | "O3'-C3'-C4'" | "C3'-C4'-C5'" | "C3'-C4'-O4'-C1'" | "C4'-O4'-C1'-C2'" | "O4'-C1'-C2'-C3'" | "C4'-C3'-C2'-C1'" | "C3'-C2'-C1'-O4'" | "C2'-C1'-O4'-C4'" | "O3'-C4'-C3'-C2'" | "C5'-C3'-C4'-O4'"</li>
 * <li>distance &rarr; ("distance" | "dist") label xyzspec xyzspec ideal_clause?</li>
 * <li>angle &rarr; "angle" label xyzspec xyzspec xyzspec ideal_clause?</li>
 * <li>dihedral &rarr; ("dihedral" | "torsion") label xyzspec xyzspec xyzspec xyzspec</li>
@@ -30,6 +30,7 @@ import driftwood.parser.*;
 * <li>maxb &rarr; "maxb" label atomspec</li>
 * <li>minq &rarr; ("minq" | "mino" | "minocc") label atomspec</li>
 * <li>planarity &rarr; "planarity" label "(" xyzspec+ ")"</li>
+* <li>pucker &rarr; "pucker"</li>
 * <li>label &rarr; [A-Za-z0-9*'_.-]+</li>
 * <li>xyzspec &rarr; avg | idealtet | vector | normal | atomspec</li>
 * <li>avg &rarr; "avg" "(" xyzspec+ ")"</li>
@@ -67,10 +68,12 @@ public class Parser //extends ... implements ...
     final Matcher RESNAME   = Pattern.compile("[_A-Z0-9]{3}|/[^/ ]*/").matcher("");
     // If you add super-builtins here, you should also modify
     // Measurement.newSuperBuiltin(), the javadoc above, and the man page.
-    final Matcher SUPERBLTN = Pattern.compile("rnabb").matcher("");
+    // Added "suitefit" SUPERBLTN 6/20/07. -- DK
+    final Matcher SUPERBLTN = Pattern.compile("rnabb|suitefit").matcher(""); 
     // If you add built-ins here, you should also modify
     // Measurement.newBuiltin(), the javadoc above, and the man page.
-    final Matcher BUILTIN   = Pattern.compile("phi|psi|omega|chi1|chi2|chi3|chi4|tau|cbdev|alpha|beta|gamma|delta|epsilon|zeta|eta|theta|chi|alpha-1|beta-1|gamma-1|delta-1|epsilon-1|zeta-1|chi-1").matcher("");
+    // Added BUILTINs for "suitefit" SUPERBLTN 6/28/07. -- DK
+    final Matcher BUILTIN   = Pattern.compile("phi|psi|omega|chi1|chi2|chi3|chi4|tau|cbdev|alpha|beta|gamma|delta|epsilon|zeta|eta|theta|chi|alpha-1|beta-1|gamma-1|delta-1|epsilon-1|zeta-1|chi-1|O5'-C5'|O5'--C5'|C5'-C4'|C5'--C4'|C4'-C3'|C4'--C3'|C3'-C2'|C3'--C2'|C2'-C1'|C2'--C1'|O4'-C1'|O4'--C1'|O4'-C4'|O4'--C4'|O3'--C3'|O3'-C3'|C2'-O2'|C2'--O2'|C4'-O4'-C1'|O4'-C1'-C2'|C1'-C2'-C3'|C4'-C3'-C2'|C3'-C2'-C1'|C2'-C1'-O4'|C1'-O4'-C4'|O3'-C3'-C4'|C3'-C4'-C5'|C3'-C4'-O4'-C1'|C4'-O4'-C1'-C2'|O4'-C1'-C2'-C3'|C4'-C3'-C2'-C1'|C3'-C2'-C1'-O4'|C2'-C1'-O4'-C4'|O3'-C4'-C3'-C2'|C5'-C3'-C4'-O4'").matcher("");
     final Matcher DISTANCE  = Pattern.compile("dist(ance)?").matcher("");
     final Matcher ANGLE     = Pattern.compile("angle").matcher("");
     final Matcher DIHEDRAL  = Pattern.compile("dihedral|torsion").matcher("");
@@ -78,6 +81,7 @@ public class Parser //extends ... implements ...
     final Matcher MAXB      = Pattern.compile("maxb", Pattern.CASE_INSENSITIVE).matcher("");
     final Matcher MINQ      = Pattern.compile("minq|mino|minocc", Pattern.CASE_INSENSITIVE).matcher("");
     final Matcher PLANARITY = Pattern.compile("planarity").matcher("");
+    final Matcher PUCKER    = Pattern.compile("pucker").matcher("");
     final Matcher LABEL     = Pattern.compile("[A-Za-z0-9*'_.+-]+").matcher("");
     final Matcher AVG       = Pattern.compile("avg").matcher("");
     final Matcher IDEALTET  = Pattern.compile("idealtet").matcher("");
@@ -283,6 +287,16 @@ public class Parser //extends ... implements ...
             while(!t.accept(")"))
                 p.add(xyzspec());
             return new Measurement[] {p};
+	}
+        else if(t.accept(PUCKER))
+        {
+            String angLabel = "Altona_JACS_1972 pucker pseudorotation angle P";
+	    Measurement.PuckerAng ang = new Measurement.PuckerAng(angLabel);
+	    
+	    String ampLabel = "Rao_ActaCryst_1981 pucker amplitude tau_m";
+	    Measurement.PuckerAmp amp = new Measurement.PuckerAmp(ampLabel);
+	    
+	    return new Measurement[] {ang, amp};
         }
         else throw t.syntaxError("Expected measurement type ('distance', 'angle', 'dihedral', etc) ["+t.token()+"]");
     }
@@ -362,7 +376,7 @@ public class Parser //extends ... implements ...
         if(t.accept(RESNO))
         {
             String grp = RESNO.group(1);
-            if(grp == null) grp = RESNO.group(2);
+	    if(grp == null) grp = RESNO.group(2);
             if(grp != null)
             {
                 try { resOffset = Integer.parseInt(grp); }
@@ -374,8 +388,8 @@ public class Parser //extends ... implements ...
             AtomSpec a = new AtomSpec(
                 resOffset,
                 ATOMNAME.group()
-            );
-            return a;
+            );   
+	    return a;
         }
         else throw t.syntaxError("Expected atom name ["+t.token()+"]");
     }

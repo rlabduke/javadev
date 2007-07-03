@@ -153,3 +153,21 @@ ADVANCED DANGLE TRICKS
     # Planarity of all atoms in the base plus the C1':
     planarity BasePlane (_C1* /_[CNO][1-9]_/)
 
+  (Added by DK 6/28/07) Dangle can also output the relevant distances, angles, 
+  and dihedrals required for constructing suite conformations in suitefit.  If
+  you want, you can specify some subset of these measurements as well, as seen
+  below.  If your first attempt at outputting such selected suitefit measures 
+  fails, try swapping the order of the atoms (e.g. "O5'-C5'" instead of 
+  "C5'-O5'").
+
+    dangle suitefit FILE.pdb  
+    dangle "O5'-C5'" FILE.pdb
+    dangle "O5'--C5'" FILE.pdb
+    dangle "C4'-C3'-C2'-C1'" FILE.pdb
+    
+  (Added by DK 7/1/07) Dangle now can also output measures of RNA sugar pucker.  
+  Output includes the pseudorotation angle P from Altona et al, JACS, 1972 and
+  the amplitude of pseudorotation from Rao et al, Acta Cryst, 1981.
+  
+    dangle pucker FILE.pdb
+
