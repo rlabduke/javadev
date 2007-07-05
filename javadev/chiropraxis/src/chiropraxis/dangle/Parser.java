@@ -290,10 +290,10 @@ public class Parser //extends ... implements ...
 	}
         else if(t.accept(PUCKER))
         {
-            String angLabel = "Altona_JACS_1972 pucker pseudorotation angle P";
+            String angLabel = "pseudorot_angle";
 	    Measurement.PuckerAng ang = new Measurement.PuckerAng(angLabel);
 	    
-	    String ampLabel = "Rao_ActaCryst_1981 pucker amplitude tau_m";
+	    String ampLabel = "amplitude";
 	    Measurement.PuckerAmp amp = new Measurement.PuckerAmp(ampLabel);
 	    
 	    return new Measurement[] {ang, amp};
