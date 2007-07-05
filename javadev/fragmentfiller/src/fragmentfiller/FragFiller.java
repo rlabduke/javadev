@@ -218,6 +218,7 @@ public class FragFiller {
   }
   //}}}
   
+  /*
   //{{{ getGapFrames
   public ArrayList<Double> getGapFrame(ArrayList<Triple> gapAtomStates) {
     ArrayList<ArrayList<Double>> gapFrames = new ArrayList<ArrayList<Double>>();
@@ -238,6 +239,7 @@ public class FragFiller {
     return frame;
   }
   //}}}
+  */
   
   //{{{ getFrameDataList
   public ArrayList<File> getFrameDataList() {
@@ -300,7 +302,7 @@ public class FragFiller {
     if (frameVal > 180 - 25) {
       return "AND ("+colName+" >= "+Double.toString(frameVal-25)+" OR "+colName+" <= "+Double.toString(-360+25+frameVal)+")";
     } else if (frameVal < -180 + 25) {
-      return "AND ("+colName+" <= "+Double.toString(frameVal+25)+" OR "+colName+"' >= "+Double.toString(frameVal+360-25)+")";
+      return "AND ("+colName+" <= "+Double.toString(frameVal+25)+" OR "+colName+" >= "+Double.toString(frameVal+360-25)+")";
     } else {
       return "AND ("+colName+" <= "+Double.toString(frameVal+25)+" AND "+colName+" >= "+Double.toString(frameVal-25)+")";
     }

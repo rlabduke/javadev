@@ -5,11 +5,13 @@ package fragmentfiller;
 import driftwood.moldb2.*;
 import driftwood.r3.*;
 import java.util.*;
+import java.text.*;
 //}}}
 
 public class ProteinGap {
   
   //{{{ Constants
+  static final DecimalFormat df = new DecimalFormat("0.000");
   //}}}
   
   //{{{ Variables
@@ -49,6 +51,11 @@ public class ProteinGap {
       states.add(co0);
       states.add(coN);
       frame = Framer.calphaAnalyzeList(ca0, ca1, caN, caN1, co0, coN);
+      System.out.print(sourceModName + " " + sourceChain + " ");
+      for (double d : frame) {
+        System.out.print(df.format(d) + " ");
+      }
+      System.out.println();
     } catch (AtomException ae) {
       System.err.println("Problem with atom " + ae.getMessage());
     }

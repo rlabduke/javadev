@@ -127,7 +127,7 @@ public class LibraryFilterer {
         try {
           AtomState refpoint = refState.get((Atom)refAtoms.get(i));
           AtomState modpoint = modState.get((Atom)modAtoms.get(i));
-          sum = sum + Math.sqrt((Math.pow((refpoint.getX() - modpoint.getX()), 2) + Math.pow((refpoint.getY() - modpoint.getY()), 2) + Math.pow((refpoint.getZ() - modpoint.getZ()), 2)));
+          sum = sum + (Math.pow((refpoint.getX() - modpoint.getX()), 2) + Math.pow((refpoint.getY() - modpoint.getY()), 2) + Math.pow((refpoint.getZ() - modpoint.getZ()), 2));
         } catch (AtomException ae) {
           System.err.println("Somehow an Atomstate wasn't found.");
         }

@@ -2,6 +2,8 @@
 //{{{ Package, imports
 package cmdline;
 
+//}}}
+
 public class Main {
   
   //{{{ main
@@ -15,6 +17,8 @@ public class Main {
       LibraryFilterer.main(cmdargs);
     } else if (args[0].equals("pdbsuperimposer")) {
       PdbSuperimposer.main(cmdargs);
+    } else if (args[0].equals("calcrmsd")) {
+      ParameterCalcRmsd.main(cmdargs);
     } else if (args[0].equals("pdbsuperimposer_RNA")) {
       PdbSuperimposer_RNA.main(cmdargs);
     } else {
