@@ -1,9 +1,16 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
-package fragmentfiller;
+package driftwood.mysql;
 
 import java.sql.*;
+//import com.mysql.jdbc.*;
 //}}}
+/** 
+* DatabaseManager is used for interfacing with the mysql database located on spiral (071007).
+* It uses the mysql connector j 5.0.6 downloaded from the mysql website.  Any packages that use
+* this code will have to include a copy of the mysql jar in the classpath when compiling and running
+* this code.  
+*/
 
 public class DatabaseManager {
   
