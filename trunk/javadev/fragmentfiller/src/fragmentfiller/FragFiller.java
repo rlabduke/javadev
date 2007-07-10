@@ -15,6 +15,7 @@ import driftwood.data.*;
 //import king.tool.postkin.*;
 import driftwood.util.SoftLog;
 import driftwood.moldb2.*;
+import driftwood.mysql.*;
 
 import java.net.*;
 import java.util.*;
