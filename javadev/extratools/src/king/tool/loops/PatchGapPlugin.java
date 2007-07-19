@@ -308,11 +308,11 @@ public class PatchGapPlugin extends Plugin {
       ArrayList<String> listofFiller = filledMap.get(gap);
       System.out.println(listofFiller.size());
       for (int ind = 0; ((ind < 100000)&&(ind < listofFiller.size())); ind++) {
-        try {
-          //Thread.currentThread().sleep(200);
-        } catch (InterruptedException ex) {
-          System.out.println(ex);
-        }
+        //try {
+        //  //Thread.currentThread().sleep(200);
+        //} catch (InterruptedException ex) {
+        //  System.out.println(ex);
+        //}
         //progDiag.update(ind, listofFiller.size());
         String info = listofFiller.get(ind);
         String[] splitInfo = info.split(" ");
