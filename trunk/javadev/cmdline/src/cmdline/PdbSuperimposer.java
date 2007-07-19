@@ -1,13 +1,20 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
+//{{{ Package, imports
 package cmdline;
 
 import driftwood.r3.*;
 import driftwood.moldb2.*;
 import java.io.*;
 import java.util.*;
-
+//}}}
+/**
+* PdbSuperimposer is for generating fragment libraries for Resolve.  It uses the 
+* Ca, C, and O atoms of either the first residue or last residue to generate the
+* libraries.  
+*/
 public class PdbSuperimposer {
 
+  //{{{ main
   public static void main(String[] args) {
     if (args.length != 2) {
       System.out.println("This function takes 2 arguments, you need a source pdb and an output pdb!");
@@ -17,50 +24,19 @@ public class PdbSuperimposer {
       PdbSuperimposer imposer = new PdbSuperimposer(pdbIn.getAbsolutePath(), pdbOut.getAbsolutePath());
     }
   }
+  //}}}
   
+  //{{{ Constructor
   public PdbSuperimposer(String inPdb, String outFile) {
     //System.out.println(inPdb + " " + outFile);
-    Builder built = new Builder();
     try {
-	    AtomState modCA = null;
-	    AtomState modC = null;
-	    AtomState modO = null;
 	    System.out.println("reading in file");
 	    PdbReader reader = new PdbReader();
 	    reader.setUseSegID(false);
-	    //File pdb = new File("C:/docs/labwork/modeling/terwilliger/tripepTop500v2/tripepTop500_filtered-endmdl.pdb");
-	    //File pdb = new File("C:/docs/labwork/modeling/terwilleger/tripepTop500_pdblib2/test1.pdb");
       File pdb = new File(inPdb);
-	    CoordinateFile coodFile = reader.read(pdb);
-	    CoordinateFile cleanFile = new CoordinateFile();
+	    CoordinateFile coordFile = reader.read(pdb);
 	    System.out.println("file has been read");
-	    Triple refCA = new Triple(0, 0, 0);
-	    Triple refC = new Triple(1.5, 0, 0);
-	    Triple refO = new Triple(2.15, 1, 0);
-	    Iterator models = (coodFile.getModels()).iterator();
-	    while (models.hasNext()) {
-        Model mod = (Model) models.next();
-        if (PdbSuperimposer.isBackboneComplete(mod)) {
-          cleanFile.add(mod);
-          //System.out.println("model written");
-          ModelState modState = mod.getState();
-          Residue modRes = getFirstResidue(mod);
-          //System.out.println(modState + " " +  modRes);
-          try {
-            modCA = modState.get(modRes.getAtom(" CA "));
-            //System.out.println(modCA);
-            modC = modState.get(modRes.getAtom(" C  "));
-            modO = modState.get(modRes.getAtom(" O  "));
-            //System.out.println(refCA.toString() + refC.toString() + refO.toString());
-            Transform dock3point = built.dock3on3(refCA, refC, refO, modCA, modC, modO);
-            transformModel(mod, dock3point);
-            //Iterator atoms = modRes
-            //dock3point.transform(>>>>>>);
-          } catch (AtomException ae) {
-            System.out.println("a mod atom wasn't found");
-          }
-        }
-	    }
+      CoordinateFile cleanFile = superimposeModels(coordFile);
 	    //System.out.println("builder built");
 	    writePdbFile(cleanFile, outFile);
     }
@@ -68,7 +44,45 @@ public class PdbSuperimposer {
 	    System.err.println("IO Exception thrown " + e.getMessage());
     }
   }
+  //}}}
   
+  //{{{ superimposeModels
+  public CoordinateFile superimposeModels(CoordinateFile coordFile) {
+    Builder built = new Builder();
+    AtomState modCA = null;
+    AtomState modC = null;
+    AtomState modO = null;
+    CoordinateFile cleanFile = new CoordinateFile();
+    Triple refCA = new Triple(0, 0, 0);
+    Triple refC = new Triple(1.5, 0, 0);
+    Triple refO = new Triple(2.15, 1, 0);
+    Iterator models = (coordFile.getModels()).iterator();
+    while (models.hasNext()) {
+      Model mod = (Model) models.next();
+      if (PdbSuperimposer.isBackboneComplete(mod)) {
+        cleanFile.add(mod);
+        //System.out.println("model written");
+        ModelState modState = mod.getState();
+        Residue modRes = getFirstResidue(mod);
+        //System.out.println(modState + " " +  modRes);
+        try {
+          modCA = modState.get(modRes.getAtom(" CA "));
+          //System.out.println(modCA);
+          modC = modState.get(modRes.getAtom(" C  "));
+          modO = modState.get(modRes.getAtom(" O  "));
+          //System.out.println(refCA.toString() + refC.toString() + refO.toString());
+          Transform dock3point = built.dock3on3(refCA, refC, refO, modCA, modC, modO);
+          transformModel(mod, dock3point);
+        } catch (AtomException ae) {
+          System.out.println("a mod atom wasn't found");
+        }
+      }
+    }
+    return cleanFile;
+  }
+  //}}}
+  
+  //{{{ getResidue functions
   private Residue getLastResidue(Model mod) {
     Iterator residues = (mod.getResidues()).iterator();
     while (residues.hasNext()) {
@@ -90,7 +104,9 @@ public class PdbSuperimposer {
     }
     return null;
   }
+  //}}}
   
+  //{{{ transformModel
   private void transformModel(Model mod, Transform trans) {
     ModelState modState = mod.getState();
     Iterator residues = (mod.getResidues()).iterator();
@@ -109,7 +125,13 @@ public class PdbSuperimposer {
       
     }
   }
+  //}}}
   
+  //{{{ isBackboneComplete(Model)
+  /** 
+  * checks to see if a Model has residues with the right atoms (N, CA, C, O) 
+  * and to see if the model has only 3 residues.  
+  */
   public static boolean isBackboneComplete(Model mod) {
     ModelState modState = mod.getState();
     Iterator residues = (mod.getResidues()).iterator();
@@ -140,7 +162,10 @@ public class PdbSuperimposer {
     }
     return true;
   }
+  //}}}
   
+  //{{{ isBackboneComplete(Residue)
+  /** tries to check if a residue has the correct number and type of atoms */
   public static boolean isBackboneComplete(Residue res) {
     Iterator atoms = (res.getAtoms()).iterator();
     int atomTotal = 0x00000000;
@@ -158,9 +183,10 @@ public class PdbSuperimposer {
 	    System.out.println("Residue: " + res + " not complete");
 	    return false;
     }
-		
   }
+  //}}}
   
+  //{{{ writePdbFile
   public void writePdbFile(CoordinateFile coodFile, String outFile) {
     //File pdbOut = new File("C:/docs/labwork/modeling/terwilliger/tripepTop500v2/tripepTop500_filtered-endmdl-ntermsup.pdb");
     File pdbOut = new File(outFile);
@@ -172,6 +198,7 @@ public class PdbSuperimposer {
 	    System.out.println("problem when writing file");
     }
   }
+  //}}}
   
 }
 

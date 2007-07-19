@@ -438,6 +438,15 @@ public class Model implements Cloneable
     }
 //}}}
 
+//{{{ setName
+  /** Sets the name of this model; must be non-null **/
+  public void setName(String name) {
+    if(name == null)
+      throw new NullPointerException("Must provide a non-null model name");
+    this.name = name;
+  }
+//}}}
+
 //{{{ empty_code_segment
 //##################################################################################################
 //}}}

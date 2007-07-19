@@ -21,6 +21,8 @@ public class Main {
       ParameterCalcRmsd.main(cmdargs);
     } else if (args[0].equals("pdbsuperimposer_RNA")) {
       PdbSuperimposer_RNA.main(cmdargs);
+    } else if (args[0].equals("fragmentrotator")||(args[0].equals("fragrot"))) {
+      FragmentRotator.main(cmdargs);
     } else {
       System.err.println("Unknown cmdline function!");
     }
