@@ -255,7 +255,30 @@ public class PdbReader //extends ... implements ...
         // This protects us against duplicate lines
         // that re-define the same atom and state!
         try { mState.add(state); }
-        catch(AtomException ex) { SoftLog.err.println(ex.getMessage()); }
+        catch(AtomException ex)
+        {
+            // Sloppy PDB-like files (like the ligand ones from Rosetta)
+            // sometimes duplicate atom names, like every carbon is " C  ".
+            // But moldb2 requires that every atom have a unique name.
+            // So we append a number after the 4-char name (" C  1", " C  2"),
+            // which will be used internally but will be cut off again when
+            // the file is saved back to PDB.  Should be pretty seamless.
+            
+            // We retain this warning message, because duplicate atom defs
+            // still IS an error in many cases and shouldn't be silenced.
+            SoftLog.err.println(ex.getMessage());
+            
+            a = makeUniqueAtom(r, s);
+            state = new AtomState(a, serial);
+            state.setAltConf(altConf);
+            try { mState.add(state); }
+            catch(AtomException ex2)
+            {
+                // This is a true error condition -- shouldn't ever be able to get here.
+                ex2.printStackTrace();
+                System.err.println("Logical error in PDB construction!");
+            }
+        }
         
         double x, y, z;
         x = Double.parseDouble(s.substring(30, 38).trim());
@@ -370,7 +393,7 @@ public class PdbReader //extends ... implements ...
     }
 //}}}
 
-//{{{ makeAtom
+//{{{ makeAtom, makeUniqueAtom
 //##################################################################################################
     /**
     * Returns the named atom from the given (non-null)
@@ -378,8 +401,25 @@ public class PdbReader //extends ... implements ...
     */
     Atom makeAtom(Residue r, String s)
     {
-        String  id  = s.substring(12, 16);
-        Atom    a   = r.getAtom(id);
+        // The usual case -- create a new atom only if needed
+        return makeAtomImpl(r, s, s.substring(12, 16));
+    }
+    
+    /** Forces creation of a brand new atom with a unique name */
+    Atom makeUniqueAtom(Residue r, String s)
+    {
+        String id = s.substring(12, 16);
+        for(int i = 1; true; i++)
+        {
+            String extID = id+i; // more than 4 chars, intentionally
+            Atom a = r.getAtom(extID);
+            if(a == null) return makeAtomImpl(r, s, extID);
+        }
+    }
+    
+    Atom makeAtomImpl(Residue r, String s, String id)
+    {
+        Atom a = r.getAtom(id);
         if(a == null)
         {
             String elem = null;
