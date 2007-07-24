@@ -171,3 +171,11 @@ ADVANCED DANGLE TRICKS
   
     dangle pucker FILE.pdb
 
+  (Added by DK 7/24/07) Dangle can now output a kinemage with visualizations of 
+  distance and angle geometry outliers.  If one of the flags -kin, -geomkin, or 
+  -geometrykin is used, other output will be stifled and kinemage-formatted output
+  will be sent to the screen.  If you just want distance outliers, use 
+  -distancedevskin or -distdevskin in place of the abovementioned flags; for just 
+  angle outliers, try -angledevskin or -angdevskin.  If you want @kinemage and 
+  @masters for the angle and distance deviations at the top of the output, tack on 
+  the -kinheading flag.
