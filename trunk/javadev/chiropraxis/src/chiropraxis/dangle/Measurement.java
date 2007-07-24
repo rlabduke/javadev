@@ -567,6 +567,12 @@ abstract public class Measurement //extends ... implements ...
         
         public Object getType()
         { return TYPE_DISTANCE; }
+        
+        public AtomSpec getA()
+        { return (AtomSpec) a; }
+        
+        public AtomSpec getB()
+        { return (AtomSpec) b; }
     }
 //}}}
 
@@ -597,6 +603,16 @@ abstract public class Measurement //extends ... implements ...
         
         public Object getType()
         { return TYPE_ANGLE; }
+        
+        public AtomSpec getA()
+        { return (AtomSpec) a; }
+        
+        public AtomSpec getB()
+        { return (AtomSpec) b; }
+        
+        public AtomSpec getC()
+        { return (AtomSpec) c; }
+        
     }
 //}}}
 
@@ -967,7 +983,6 @@ abstract public class Measurement //extends ... implements ...
     }
 //}}}
 
-
 //{{{ CLASS: PuckerAmp
 //##############################################################################
     public static class PuckerAmp extends Measurement
@@ -1059,7 +1074,6 @@ abstract public class Measurement //extends ... implements ...
         { return TYPE_PUCKER; }
     }
 //}}}
-
 
 //{{{ CLASS: Group
 //##############################################################################

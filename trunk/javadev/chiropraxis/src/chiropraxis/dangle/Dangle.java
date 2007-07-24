@@ -31,6 +31,11 @@ public class Dangle //extends ... implements ...
     boolean doWrap = false; // if true wrap dihedrals to 0 to 360 instead of -180 to 180
     boolean showDeviation = false;
     boolean outliersOnly = false;
+    boolean doGeomKin;  // if true make kinemage for each file showing visual 
+    			        // representations of angle & dist deviations
+    boolean doDistDevsKin = false;
+    boolean doAngleDevsKin = false;
+    boolean doKinHeadings = false;
     double sigmaCutoff = 4;
     Collection files = new ArrayList();
     Collection measurements = new ArrayList();
@@ -56,7 +61,7 @@ public class Dangle //extends ... implements ...
         double[] devs = new double[meas.length];
         
         out.print("# label:model:chain:number:ins:type");
-	for(int i = 0; i < meas.length; i++)
+        for(int i = 0; i < meas.length; i++)
         {
             out.print(":"+meas[i].getLabel());
             if(showDeviation)
@@ -222,7 +227,15 @@ public class Dangle //extends ... implements ...
                 else
                     coords = pr.read(f);
                 
-                if(outliersOnly)
+                if(doGeomKin)
+                {
+                    GeomKinSmith gks = new GeomKinSmith( 
+                        (ArrayList<Measurement>) measurements, f.getName(), 
+                        coords, doDistDevsKin, doAngleDevsKin, doKinHeadings, 
+                        sigmaCutoff);
+                    gks.makeKin();
+                }
+                else if(outliersOnly)
                     outliersOutput(f.getName(), coords);
                 else
                     fullOutput(f.getName(), coords);
@@ -392,6 +405,26 @@ public class Dangle //extends ... implements ...
         {
             showDeviation = true;
             outliersOnly = true;
+        }
+        else if(flag.equals("-geometrykin") || flag.equals("-geomkin") || flag.equals("-kin"))
+        {
+            doGeomKin = true;
+            doDistDevsKin = true;
+            doAngleDevsKin = true;
+        }
+        else if(flag.equals("-distancedevskin") || flag.equals("-distdevskin"))
+        {
+            doGeomKin = true;
+            doDistDevsKin = true;
+        }
+        else if(flag.equals("-angledevskin") || flag.equals("-angdevskin"))
+        {
+            doGeomKin = true;
+            doAngleDevsKin = true;
+        }
+        else if(flag.equals("-kinheading"))
+        {
+            doKinHeadings = true;
         }
         else if(flag.equals("-dummy_option"))
         {
