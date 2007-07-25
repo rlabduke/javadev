@@ -90,6 +90,7 @@ abstract public class Measurement //extends ... implements ...
     
     public void setResSpec(ResSpec resSpec)
     { this.resSpec = resSpec; }
+    
 //}}}
 
 //{{{ setMeanAndSigma, toString, toStringImpl
@@ -612,7 +613,6 @@ abstract public class Measurement //extends ... implements ...
         
         public AtomSpec getC()
         { return (AtomSpec) c; }
-        
     }
 //}}}
 

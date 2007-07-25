@@ -178,4 +178,7 @@ ADVANCED DANGLE TRICKS
   -distancedevskin or -distdevskin in place of the abovementioned flags; for just 
   angle outliers, try -angledevskin or -angdevskin.  If you want @kinemage and 
   @masters for the angle and distance deviations at the top of the output, tack on 
-  the -kinheading flag.
+  the -kinheading flag.  By the way, red outlier visualizations mean the value in
+  the model is greater than ideal; blue means the model value is less than ideal.
+  This now works with RNA as well as protein, but note that like the rest of 
+  Dangle, it's not ready for DNA yet.
