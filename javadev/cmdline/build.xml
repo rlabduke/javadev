@@ -40,6 +40,8 @@
         <fileset dir="../king/resource/">
            <!--<exclude name="driftwood/moldb*/"/>-->
         </fileset>
+	<fileset dir="../molikin/build/">
+	</fileset>
     </jar>
 </target>
 
@@ -61,6 +63,7 @@
          <classpath>
             <pathelement location="../driftwood/build"/>
             <pathelement location="../king/build"/>
+            <pathelement location="../molikin/build"/>
          </classpath>
     </javac>
 </target>
