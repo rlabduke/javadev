@@ -36,6 +36,7 @@ public class Dangle //extends ... implements ...
     boolean doDistDevsKin = false;
     boolean doAngleDevsKin = false;
     boolean doKinHeadings = false;
+    boolean RNAnotDNA = false;
     double sigmaCutoff = 4;
     Collection files = new ArrayList();
     Collection measurements = new ArrayList();
@@ -57,19 +58,39 @@ public class Dangle //extends ... implements ...
         final DecimalFormat df = new DecimalFormat("0.###");
         
         Measurement[] meas = (Measurement[]) measurements.toArray(new Measurement[measurements.size()]);
-        double[] vals = new double[meas.length];
-        double[] devs = new double[meas.length];
         
         out.print("# label:model:chain:number:ins:type");
+        int c2o2index = 999; // placeholder value
         for(int i = 0; i < meas.length; i++)
         {
-            out.print(":"+meas[i].getLabel());
-            if(showDeviation)
-                out.print(":sigma "+meas[i].getLabel());
+            if (RNAnotDNA && (meas[i].getLabel()).equals("c2o2") && c2o2index == 999)
+            {
+                // Don't print label for meas c2o2 for the rnabb SuperBuiltin
+                c2o2index = i;
+            }
+            else
+            {
+                out.print(":"+meas[i].getLabel());
+                if(showDeviation)
+                    out.print(":sigma "+meas[i].getLabel());
+            }
         }
         out.println();
+        
         for(int i = 0; i < meas.length; i++)
-            out.println("# "+meas[i]);
+        {
+            // Don't print name for meas c2o2 for the rnabb SuperBuiltin
+            if ( !(RNAnotDNA && i == c2o2index) )
+                out.println("# "+meas[i]);
+        }
+        
+        double[] vals = new double[meas.length];
+        double[] devs = new double[meas.length];
+        if (RNAnotDNA && c2o2index != 999) // we're omitting the c2o2 meas
+        {
+            vals = new double[meas.length - 1];
+            devs = new double[meas.length - 1];
+        }
         
         for(Iterator models = coords.getModels().iterator(); models.hasNext(); )
         {
@@ -81,17 +102,30 @@ public class Dangle //extends ... implements ...
             {
                 Residue res = (Residue) residues.next();
                 boolean print = false;
+                
                 for(int i = 0; i < meas.length; i++)
                 {
-                    vals[i] = meas[i].measure(model, state, res);
-                    devs[i] = meas[i].getDeviation();
-                    if(!Double.isNaN(vals[i]))
+                    if ( !(RNAnotDNA && i == c2o2index) )
                     {
-                        print = true;
-                        if(meas[i].getType() == Measurement.TYPE_DIHEDRAL)
-                            vals[i] = wrap360(vals[i]);
+                        vals[i] = meas[i].measure(model, state, res);
+                        devs[i] = meas[i].getDeviation();
+                        if(!Double.isNaN(vals[i]))
+                        {
+                            print = true;
+                            if(meas[i].getType() == Measurement.TYPE_DIHEDRAL)
+                                vals[i] = wrap360(vals[i]);
+                        }
                     }
                 }
+                
+                // If we're considering the c2o2 meas for purpose of discrimination btw DNA & RNA
+                if (RNAnotDNA && c2o2index != 999) 
+                {
+                    // If the c2o2 meas turns up NaN, it's DNA --> we wanna omit this residue
+                    if ( Double.isNaN(meas[c2o2index].measure(model, state, res)) )
+                        print = false;
+                }
+                
                 if(print)
                 {
                     out.print(prefix);
@@ -275,6 +309,11 @@ public class Dangle //extends ... implements ...
     */
     void parseArguments(String[] args)
     {
+        for (String arg : args)
+        {
+            if (arg.equals("rnabb"))        RNAnotDNA = true;
+        }
+        
         String  arg, flag, param;
         boolean interpFlags = true;
         

@@ -124,45 +124,49 @@ abstract public class Measurement //extends ... implements ...
         // If you add super-builtins here, you should also modify
         // Parser.SUPERBLTN, the Parser javadoc, and the man page.
         if("rnabb".equals(label))
-            return new Measurement[] {
+            
+            return new Measurement[] 
+            {
                 newBuiltin("alpha"),
                 newBuiltin("beta"),
                 newBuiltin("gamma"),
                 newBuiltin("delta"),
                 newBuiltin("epsilon"),
-                newBuiltin("zeta")
+                newBuiltin("zeta"),
+                newBuiltin("c2o2")      // added 7/31/07 -- DK
             };
-	if ("suitefit".equals(label))  	// added 6/20/07 -- DK
-	   return new Measurement[] {
-		newBuiltin("O5'-C5'"),
-		newBuiltin("C5'-C4'"),
-		newBuiltin("C4'-C3'"),
-		newBuiltin("C3'-C2'"),
-		newBuiltin("C2'-C1'"),
-		newBuiltin("O4'-C1'"),
-		newBuiltin("O4'-C4'"),
-		newBuiltin("O3'-C3'"),
-		newBuiltin("C2'-O2'"),
-		newBuiltin("C3'-C4'-O4'"),
-		newBuiltin("C4'-O4'-C1'"),
-		newBuiltin("O4'-C1'-C2'"),
-		newBuiltin("C1'-C2'-C3'"),
-		newBuiltin("C4'-C3'-C2'"),
-		newBuiltin("C3'-C2'-C1'"),
-		newBuiltin("C2'-C1'-O4'"),
-		newBuiltin("C1'-O4'-C4'"),
-		newBuiltin("O3'-C3'-C4'"),
-		newBuiltin("C3'-C4'-C5'"),
-		newBuiltin("delta"),
-		newBuiltin("C3'-C4'-O4'-C1'"),
-		newBuiltin("C4'-O4'-C1'-C2'"),
-		newBuiltin("O4'-C1'-C2'-C3'"),
-		newBuiltin("C4'-C3'-C2'-C1'"),
-		newBuiltin("C3'-C2'-C1'-O4'"),
-		newBuiltin("C2'-C1'-O4'-C4'"),
-		newBuiltin("O3'-C4'-C3'-C2'"),
-		newBuiltin("C5'-C3'-C4'-O4'")
-    	   };
+        if ("suitefit".equals(label))  	// added 6/20/07 -- DK
+	        return new Measurement[] 
+            {
+                newBuiltin("O5'-C5'"),
+                newBuiltin("C5'-C4'"),
+                newBuiltin("C4'-C3'"),
+                newBuiltin("C3'-C2'"),
+                newBuiltin("C2'-C1'"),
+                newBuiltin("O4'-C1'"),
+                newBuiltin("O4'-C4'"),
+                newBuiltin("O3'-C3'"),
+                newBuiltin("C2'-O2'"),
+                newBuiltin("C3'-C4'-O4'"),
+                newBuiltin("C4'-O4'-C1'"),
+                newBuiltin("O4'-C1'-C2'"),
+                newBuiltin("C1'-C2'-C3'"),
+                newBuiltin("C4'-C3'-C2'"),
+                newBuiltin("C3'-C2'-C1'"),
+                newBuiltin("C2'-C1'-O4'"),
+                newBuiltin("C1'-O4'-C4'"),
+                newBuiltin("O3'-C3'-C4'"),
+                newBuiltin("C3'-C4'-C5'"),
+                newBuiltin("delta"),
+                newBuiltin("C3'-C4'-O4'-C1'"),
+                newBuiltin("C4'-O4'-C1'-C2'"),
+                newBuiltin("O4'-C1'-C2'-C3'"),
+                newBuiltin("C4'-C3'-C2'-C1'"),
+                newBuiltin("C3'-C2'-C1'-O4'"),
+                newBuiltin("C2'-C1'-O4'-C4'"),
+                newBuiltin("O3'-C4'-C3'-C2'"),
+                newBuiltin("C5'-C3'-C4'-O4'")
+    	    };
         else return null;
     }
 //}}}
@@ -282,6 +286,11 @@ abstract public class Measurement //extends ... implements ...
                 new AtomSpec( 0, "_O3*"),
                 new AtomSpec( 1, "_P__"),
                 new AtomSpec( 1, "_O5*")
+            );
+        else if("c2o2".equals(label)) // added 7/31/07 -- DK
+            return new Distance(label,
+                new AtomSpec( 0, "_C2*"),
+                new AtomSpec( 0, "_O2*")
             );
         else if("eta".equals(label)) // virtual!
             return new Dihedral(label,
