@@ -182,3 +182,7 @@ ADVANCED DANGLE TRICKS
   the model is greater than ideal; blue means the model value is less than ideal.
   This now works with RNA as well as protein, but note that like the rest of 
   Dangle, it's not ready for DNA yet.
+  
+  (Added by DK 7/31/07) The rnabb builtin measurement now discriminates between 
+  RNA and DNA and will output results only for those residues that are the former.
+
