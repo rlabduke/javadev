@@ -159,6 +159,8 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
         ccp4Filter.addSuffix(".ccp4.gz");
         ccp4Filter.addSuffix(".mbk");
         ccp4Filter.addSuffix(".mbk.gz");
+        ccp4Filter.addSuffix(".map");
+        ccp4Filter.addSuffix(".map.gz");
         
         mapFilter = new SuffixFileFilter("All electron density maps");
         mapFilter.addSuffix(".ccp4");
