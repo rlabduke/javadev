@@ -72,6 +72,12 @@ public class BallAndStickLogic
             sp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new ResTypeCrayon()));
             bp.setCrayon(new AltConfCrayon());
         }
+        else if(colorBy == COLOR_BY_ELEMENT)
+        {
+            sp.setHalfBonds(true);
+            sp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new HalfBondElementCrayon()));
+            bp.setCrayon(new AltConfCrayon());
+        }
         else if(colorBy == COLOR_BY_B_FACTOR)
         {
             sp.setHalfBonds(true);
@@ -84,7 +90,6 @@ public class BallAndStickLogic
             sp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new OccupancyCrayon()));
             bp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new OccupancyCrayon()));
         }
-        //else if(colorBy == COLOR_BY_ELEMENT)
         else throw new UnsupportedOperationException();
 
         if(doProtein)  printProtein(m, residues, bbColor);
