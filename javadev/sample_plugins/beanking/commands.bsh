@@ -20,6 +20,8 @@ help() {
     print("bleach()                 removes point colors for all visible");
     print("delete(name?)            deletes all groups/subgroups/lists with given name");
     print("makeMaster(name?)        creates master for named group/subgroup/list");
+    print("killMaster(name?)        removes all uses of named master");
+    print("killAllMasters()         removes all masters from the kinemage completely");
     print("");
     print("source(getResource(\"/movies.bsh\"));");
     print("");
@@ -59,6 +61,32 @@ makeMaster(String masterName)
     for(age : KIterator.allNonPoints(kin))
     {
         if(masterName.equals(age.getName())) age.addMaster(masterName);
+    }
+}
+
+killMaster()
+{ killMaster(JOptionPane.showInputDialog("Name of master to delete:")); }
+
+killMaster(String masterName)
+{
+    if(masterName == null) return;
+    kin = kMain.getKinemage();
+    if(kin == null) return;
+    for(age : KIterator.allNonPoints(kin))
+    {
+        age.removeMaster(masterName);
+    }
+    kin.removeUnusedMasters();
+}
+
+killAllMasters()
+{
+    kin = kMain.getKinemage();
+    if(kin == null) return;
+    masters = new ArrayList(kin.masterList());
+    for(m : masters)
+    {
+        killMaster(m.getName());
     }
 }
 
