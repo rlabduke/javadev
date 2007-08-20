@@ -128,7 +128,7 @@ public class AtomSpec extends XyzSpec
 
 //{{{ getRes
 //##############################################################################
-    private Residue getRes(Model model, ModelState state, Residue curr)
+    protected Residue getRes(Model model, ModelState state, Residue curr)
     {
         Residue res = curr;
         for(int i = 0, end_i = Math.abs(resOffset); i < end_i; i++)
@@ -187,6 +187,14 @@ public class AtomSpec extends XyzSpec
         if(resOffset > 0)       res += "+" + resOffset;
         else if(resOffset < 0)  res += resOffset;
         return res+" "+starName.replace(' ', '_');
+    }
+//}}}
+
+//{{{ getResOffset
+//##############################################################################
+    protected int getResOffset()
+    {
+        return resOffset;
     }
 //}}}
 

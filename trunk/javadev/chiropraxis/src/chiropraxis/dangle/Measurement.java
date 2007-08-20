@@ -133,7 +133,7 @@ abstract public class Measurement //extends ... implements ...
                 newBuiltin("delta"),
                 newBuiltin("epsilon"),
                 newBuiltin("zeta"),
-                newBuiltin("c2o2")      // added 7/31/07 -- DK
+                //newBuiltin("c2o2")      // added 7/31/07 -- DK
             };
         if ("suitefit".equals(label))  	// added 6/20/07 -- DK
 	        return new Measurement[] 
@@ -578,11 +578,11 @@ abstract public class Measurement //extends ... implements ...
         public Object getType()
         { return TYPE_DISTANCE; }
         
-        public AtomSpec getA()
-        { return (AtomSpec) a; }
+        public XyzSpec getA()
+        { return a; }
         
-        public AtomSpec getB()
-        { return (AtomSpec) b; }
+        public XyzSpec getB()
+        { return b; }
     }
 //}}}
 
