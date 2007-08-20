@@ -36,7 +36,7 @@ public class Dangle //extends ... implements ...
     boolean doDistDevsKin = false;
     boolean doAngleDevsKin = false;
     boolean doKinHeadings = false;
-    boolean RNAnotDNA = false;
+    boolean ignoreDNA = false;
     double sigmaCutoff = 4;
     Collection files = new ArrayList();
     Collection measurements = new ArrayList();
@@ -59,13 +59,14 @@ public class Dangle //extends ... implements ...
         
         Measurement[] meas = (Measurement[]) measurements.toArray(new Measurement[measurements.size()]);
         
+        // Print headings
         out.print("# label:model:chain:number:ins:type");
         int c2o2index = 999; // placeholder value
         for(int i = 0; i < meas.length; i++)
         {
-            if (RNAnotDNA && (meas[i].getLabel()).equals("c2o2") && c2o2index == 999)
+            if (ignoreDNA && (meas[i].getLabel()).equals("c2o2") && c2o2index == 999)
             {
-                // Don't print label for meas c2o2 for the rnabb SuperBuiltin
+                // Don't print label for meas c2o2 for RNA
                 c2o2index = i;
             }
             else
@@ -79,14 +80,15 @@ public class Dangle //extends ... implements ...
         
         for(int i = 0; i < meas.length; i++)
         {
-            // Don't print name for meas c2o2 for the rnabb SuperBuiltin
-            if ( !(RNAnotDNA && i == c2o2index) )
+            // Don't print name for meas c2o2 for RNA
+            if ( !(ignoreDNA && i == c2o2index) )
                 out.println("# "+meas[i]);
         }
         
+        // Delete c2o2 entry from vals and devs arrays
         double[] vals = new double[meas.length];
         double[] devs = new double[meas.length];
-        if (RNAnotDNA && c2o2index != 999) // we're omitting the c2o2 meas
+        if (ignoreDNA && c2o2index != 999) // we're omitting the c2o2 meas
         {
             vals = new double[meas.length - 1];
             devs = new double[meas.length - 1];
@@ -103,9 +105,11 @@ public class Dangle //extends ... implements ...
                 Residue res = (Residue) residues.next();
                 boolean print = false;
                 
+                // Ignoring the c2o2 measurement for now, make sure *no other*
+                // measurement is NaN, then set 'print' to true
                 for(int i = 0; i < meas.length; i++)
                 {
-                    if ( !(RNAnotDNA && i == c2o2index) )
+                    if ( !(ignoreDNA && i == c2o2index) )
                     {
                         vals[i] = meas[i].measure(model, state, res);
                         devs[i] = meas[i].getDeviation();
@@ -118,14 +122,15 @@ public class Dangle //extends ... implements ...
                     }
                 }
                 
-                // If we're considering the c2o2 meas for purpose of discrimination btw DNA & RNA
-                if (RNAnotDNA && c2o2index != 999) 
+                // If c2o2 (for purpose of discrimination btw DNA & RNA) comes up 
+                // NaN, we wanna omit this residue --> set 'print' to false
+                if (ignoreDNA && c2o2index != 999) 
                 {
-                    // If the c2o2 meas turns up NaN, it's DNA --> we wanna omit this residue
                     if ( Double.isNaN(meas[c2o2index].measure(model, state, res)) )
                         print = false;
                 }
                 
+                // Output
                 if(print)
                 {
                     out.print(prefix);
@@ -163,6 +168,28 @@ public class Dangle //extends ... implements ...
         //for(int i = 0; i < meas.length; i++)
         //    out.println("# "+meas[i]);
         
+        int c2o2index = 999; // placeholder value
+        for(int i = 0; i < meas.length; i++)
+        {
+            if (ignoreDNA && (meas[i].getLabel()).equals("c2o2") && c2o2index == 999)
+            {
+                // Don't print label for meas c2o2 for RNA
+                c2o2index = i;
+            }
+            //else
+                // Do nothing in case of outliersOutput 
+                // (would print measurement's signature if doing fullOutput)
+        }
+        
+        // Delete c2o2 entry from vals and devs arrays
+        double[] vals = new double[meas.length];
+        double[] devs = new double[meas.length];
+        if (ignoreDNA && c2o2index != 999) // we're omitting the c2o2 meas
+        {
+            vals = new double[meas.length - 1];
+            devs = new double[meas.length - 1];
+        }
+        
         for(Iterator models = coords.getModels().iterator(); models.hasNext(); )
         {
             Model model = (Model) models.next();
@@ -172,18 +199,53 @@ public class Dangle //extends ... implements ...
             for(Iterator residues = model.getResidues().iterator(); residues.hasNext(); )
             {
                 Residue res = (Residue) residues.next();
+                boolean print = false;
+                
+                // Ignoring the c2o2 measurement for now, make sure *no other*
+                // measurement is NaN, then set 'print' to true
                 for(int i = 0; i < meas.length; i++)
                 {
-                    double val = meas[i].measure(model, state, res);
-                    double dev = meas[i].getDeviation();
-                    if(!Double.isNaN(dev) && Math.abs(dev) >= sigmaCutoff)
+                    if ( !(ignoreDNA && i == c2o2index) )
                     {
-                        if(meas[i].getType() == Measurement.TYPE_DIHEDRAL)
-                            val = wrap360(val);
-                        out.print(prefix);
-                        out.print(res.getChain()+":"+res.getSequenceNumber()+":"+res.getInsertionCode()+":"+res.getName());
-                        out.print(":"+meas[i].getLabel()+":"+df.format(val)+":"+df.format(dev));
-                        out.println();
+                        vals[i] = meas[i].measure(model, state, res);
+                        devs[i] = meas[i].getDeviation();
+                        if(!Double.isNaN(vals[i]))
+                        {
+                            print = true;
+                            if(meas[i].getType() == Measurement.TYPE_DIHEDRAL)
+                                vals[i] = wrap360(vals[i]);
+                        }
+                    }
+                }
+                
+                // If c2o2 (for purpose of discrimination btw DNA & RNA) comes up 
+                // NaN, we wanna omit this residue --> set 'print' to false
+                if (ignoreDNA && c2o2index != 999) 
+                {
+                    if ( Double.isNaN(meas[c2o2index].measure(model, state, res)) )
+                        print = false;
+                }
+                
+                // Output
+                if (print)
+                {
+                    // (Original code from end of outliersOutput, before amending so
+                    // DNA can be ignored, is commented out below)
+                    for(int i = 0; i < vals.length; i++) //meas.length; i++)
+                    {
+                        //double val = meas[i].measure(model, state, res);
+                        //double dev = meas[i].getDeviation();
+                        if(!Double.isNaN(devs[i]) && Math.abs(devs[i]) >= sigmaCutoff)
+                        //if(!Double.isNaN(dev) && Math.abs(dev) >= sigmaCutoff)
+                        {
+                            //if(meas[i].getType() == Measurement.TYPE_DIHEDRAL)
+                            //    val = wrap360(val);
+                            out.print(prefix);
+                            out.print(res.getChain()+":"+res.getSequenceNumber()+":"+res.getInsertionCode()+":"+res.getName());
+                            out.print(":"+meas[i].getLabel()+":"+df.format(vals[i])+":"+df.format(devs[i]));
+                            //out.print(":"+meas[i].getLabel()+":"+df.format(val)+":"+df.format(dev));
+                            out.println();
+                        }
                     }
                 }
             }
@@ -261,12 +323,16 @@ public class Dangle //extends ... implements ...
                 else
                     coords = pr.read(f);
                 
+                // Last chance to add c2o2 to end of measurements list before output
+                if (ignoreDNA)
+                    measurements.add(Measurement.newBuiltin("c2o2"));
+                
                 if(doGeomKin)
                 {
                     GeomKinSmith gks = new GeomKinSmith( 
                         (ArrayList<Measurement>) measurements, f.getName(), 
                         coords, doDistDevsKin, doAngleDevsKin, doKinHeadings, 
-                        sigmaCutoff);
+                        sigmaCutoff, ignoreDNA);
                     gks.makeKin();
                 }
                 else if(outliersOnly)
@@ -311,7 +377,8 @@ public class Dangle //extends ... implements ...
     {
         for (String arg : args)
         {
-            if (arg.equals("rnabb"))        RNAnotDNA = true;
+            if (arg.equals("rnabb") || arg.equals("-rna") || !ignoreDNA)
+                ignoreDNA = true;
         }
         
         String  arg, flag, param;
