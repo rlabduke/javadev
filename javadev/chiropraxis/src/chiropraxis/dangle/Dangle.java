@@ -377,7 +377,7 @@ public class Dangle //extends ... implements ...
     {
         for (String arg : args)
         {
-            if (arg.equals("rnabb") || arg.equals("-rna") || !ignoreDNA)
+            if ( (arg.equals("rnabb") || arg.equals("-rna")) && !ignoreDNA )
                 ignoreDNA = true;
         }
         
