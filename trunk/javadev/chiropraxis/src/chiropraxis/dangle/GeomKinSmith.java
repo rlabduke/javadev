@@ -36,11 +36,12 @@ public class GeomKinSmith //extends ... implements ...
     double sigmaCutoff;
     File kinout;
     boolean ignoreDNA;
+    boolean subgroupNotGroup;
 //}}}
 
 //{{{ Constructor
 //##############################################################################
-    public GeomKinSmith(ArrayList<Measurement> m, String l, CoordinateFile c, boolean dist, boolean ang, boolean head, double sc, boolean id)
+    public GeomKinSmith(ArrayList<Measurement> m, String l, CoordinateFile c, boolean dist, boolean ang, boolean head, double sc, boolean id, boolean sgng)
     {
         meas = (Measurement[]) m.toArray(new Measurement[m.size()]);
         label = l;
@@ -50,6 +51,7 @@ public class GeomKinSmith //extends ... implements ...
         doKinHeadings = head;
         sigmaCutoff = sc;
         ignoreDNA = id;
+        subgroupNotGroup = sgng;
     }
 //}}}
 
@@ -128,8 +130,8 @@ public class GeomKinSmith //extends ... implements ...
                                     {
                                         if(m.getType().equals("distance"))
                                         {
-                                            System.out.println(res.toString()+" "+m.toString()+
-                                                " "+val+" "+dev);
+                                            //System.out.println(res.toString()+" "+m.toString()+
+                                            //    " "+val+" "+dev);
                                             
                                             distImpl(m, model, state, res, val, ideal);
                                         }
@@ -704,8 +706,12 @@ public class GeomKinSmith //extends ... implements ...
             System.out.println("@master {angle devs}");
         }
         
-        System.out.println("@group {"+label.substring(0,4)+" "+
-            mod.getName()+"} dominant master= {all models}");
+        if (subgroupNotGroup)
+            System.out.println("@subgroup {"+label.substring(0,4)+" "+
+                mod.getName()+" geom devs} dominant master= {all models}");
+        else
+            System.out.println("@group {"+label.substring(0,4)+" "+
+                mod.getName()+" geom devs} dominant master= {all models}");
         
         // Print geom outlier viz's
         if (doDistDevsKin)
