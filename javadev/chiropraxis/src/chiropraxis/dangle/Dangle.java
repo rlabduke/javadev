@@ -37,6 +37,7 @@ public class Dangle //extends ... implements ...
     boolean doAngleDevsKin = false;
     boolean doKinHeadings = false;
     boolean ignoreDNA = false;
+    boolean subgroupNotGroup = false;
     double sigmaCutoff = 4;
     Collection files = new ArrayList();
     Collection measurements = new ArrayList();
@@ -332,7 +333,7 @@ public class Dangle //extends ... implements ...
                     GeomKinSmith gks = new GeomKinSmith( 
                         (ArrayList<Measurement>) measurements, f.getName(), 
                         coords, doDistDevsKin, doAngleDevsKin, doKinHeadings, 
-                        sigmaCutoff, ignoreDNA);
+                        sigmaCutoff, ignoreDNA, subgroupNotGroup);
                     gks.makeKin();
                 }
                 else if(outliersOnly)
@@ -531,6 +532,10 @@ public class Dangle //extends ... implements ...
         else if(flag.equals("-kinheading"))
         {
             doKinHeadings = true;
+        }
+        else if(flag.equals("-sub") || flag.equals("-subgroup"))
+        {
+            subgroupNotGroup = true;
         }
         else if(flag.equals("-dummy_option"))
         {
