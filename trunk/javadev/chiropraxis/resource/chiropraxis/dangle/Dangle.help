@@ -186,3 +186,6 @@ ADVANCED DANGLE TRICKS
   (Added by DK 7/31/07) The rnabb builtin measurement now discriminates between 
   RNA and DNA and will output results only for those residues that are the former.
 
+  (Added by DK 8/21/07) Dangle discriminates between RNA and DNA for the -rna flag
+  now.  Also, GeomKinSmith output can be written as a subgroup instead of a group
+  if the -sub or -subgroup flag is used in Dangle.
