@@ -93,6 +93,14 @@ public class UIMenus implements KMessage.Subscriber
             fileChooser.setFileFilter(fileFilter);
         }
         catch(SecurityException ex) {}
+        // Temporary fix for Java 6 bug # 6570445:  JFileChooser in unsigned applet
+        catch(java.lang.ExceptionInInitializerError ex)
+        {
+            if(!(ex.getCause() instanceof java.security.AccessControlException))
+                throw ex;
+        }
+        // Subsequent attempts to create JFileChooser cause NoClassDefFound
+        catch(java.lang.NoClassDefFoundError ex) {}
 
         finder = new PointFinder(kMain);
         viewEditor = new ViewEditor(kMain);
