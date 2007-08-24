@@ -67,6 +67,15 @@ public class Rotalyze //extends ... implements ...
                     double eval = rotamer.evaluate(res.getName(), chis);
                     String rotname = "OUTLIER";
                     if(eval >= 0.01) rotname = rotamer.identify(res.getName(), chis);
+                    
+                    // (RMI and DAK 07/08/24) Added to fix conversion on OUTLIERs
+                    // Was -180 -> 180; now is 0 -> 360
+                    for(int i = 0; i < chis.length; i++)
+                    {
+                       chis[i] = chis[i] % 360;
+                       if(chis[i] < 0) chis[i] += 360;
+                    }
+                    
                     out.print(res.getCNIT());
                     out.print(":");
                     out.print(df1.format(eval*100));

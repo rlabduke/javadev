@@ -133,7 +133,7 @@ public class GeomKinSmith //extends ... implements ...
                                             //System.out.println(res.toString()+" "+m.toString()+
                                             //    " "+val+" "+dev);
                                             
-                                            distImpl(m, model, state, res, val, ideal);
+                                            distImpl(m, model, state, res, val, ideal, dev);
                                         }
                                         if(m.getType().equals("angle"))
                                         {
@@ -155,7 +155,7 @@ public class GeomKinSmith //extends ... implements ...
                             {
                                 if(meas[i].getType().equals("distance"))
                                 {
-                                    distImpl(meas[i], model, state, res, val, ideal);
+                                    distImpl(meas[i], model, state, res, val, ideal, dev);
                                 }
                                 if(meas[i].getType().equals("angle"))
                                 {
@@ -176,7 +176,7 @@ public class GeomKinSmith //extends ... implements ...
 
 //{{{ distImpl
 //##############################################################################
-    protected void distImpl(Measurement meas, Model model, ModelState state, Residue res, double val, double ideal)
+    protected void distImpl(Measurement meas, Model model, ModelState state, Residue res, double val, double ideal, double dev)
     {
 	    Measurement.Distance d = (Measurement.Distance) meas;
         AtomSpec atomSpec1 = (AtomSpec) d.getA();
@@ -243,7 +243,7 @@ public class GeomKinSmith //extends ... implements ...
         
 	    //addBall(devName, (Triple) as1, (Triple) as2, val, ideal);
         //addBallInMiddle(devName, (Triple) as1, (Triple) as2, val, ideal);
-        addSpring(devName, atomState1Triple, atomState2Triple, val, ideal);
+        addSpring(devName, atomState1Triple, atomState2Triple, val, ideal, dev);
     }
 //}}}
 
@@ -471,7 +471,7 @@ public class GeomKinSmith //extends ... implements ...
 /**
 * Adds distance outlier indicator to kin.
 **/
-    public void addSpring(String name, Triple trp1, Triple trp2, double val, double ideal)
+    public void addSpring(String name, Triple trp1, Triple trp2, double val, double ideal, double dev)
 	{
         //distList.add("@balllist {trp1, trp2} color= cyan radius= "+
         //    df1.format(0.1)+" master= {dist devs}");
@@ -488,14 +488,12 @@ public class GeomKinSmith //extends ... implements ...
         Triple v12 = new Triple(trp2.getX() - trp1.getX(), 
                                 trp2.getY() - trp1.getY(), 
                                 trp2.getZ() - trp1.getZ() );
-        
-        Triple trpHalf = v12.mult(0.5);
-        Triple bondNormal = new Triple().likeNormal(trp1, trpHalf, trp2);
-        
+        Triple xAxisUnitVector = new Triple(1, 0, 0);
+        Triple bondNormal = new Triple().likeNormal(trp1, trp2, xAxisUnitVector);
         // (any vector starting at trp1 should work here; we just want a normal to the bond)
         
-        // Work at origin from here on out; add trp1 for kin output
-        bondNormal.mult(0.2 + 0.25 * Math.abs(val - ideal));
+        // Work at origin from here on out; will add trp1 for kin output
+        bondNormal.mult(0.2);
         
         String  	        color = "red";
 		if (val-ideal < 0)	color = "blue";
@@ -505,40 +503,83 @@ public class GeomKinSmith //extends ... implements ...
         lines.add("{"+name+"}P "+df2.format(trp1.getX())+" "+
                                  df2.format(trp1.getY())+" "+
                                  df2.format(trp1.getZ()));
-        Triple posOrig = new Triple(trp1.add(bondNormal).getX(), 
-                                    trp1.add(bondNormal).getY(), 
-                                    trp1.add(bondNormal).getZ() );
+        lines.add("{"+name+"}L "+df2.format(trp1.getX()+bondNormal.getX())+" "+
+                                 df2.format(trp1.getY()+bondNormal.getY())+" "+
+                                 df2.format(trp1.getZ()+bondNormal.getZ()));
+        
+        double posOrigX = trp1.getX() + bondNormal.getX();
+        double posOrigY = trp1.getY() + bondNormal.getY();
+        double posOrigZ = trp1.getZ() + bondNormal.getZ();
+        Triple posOrig = new Triple(posOrigX, posOrigY, posOrigZ);
+                                    //trp1.add(bondNormal).getX(), 
+                                    //trp1.add(bondNormal).getY(), 
+                                    //trp1.add(bondNormal).getZ() );
+        
+        // Set up angle of rotation for each point in spring
+        
+        // Note that #turns = ang/6, so...
+        //    for dev = 0,   #turns = 36/6 = 6
+        //       (theoretically... wouldn't be shown unless -sigma=0.0 flag was used)
+        //    for dev = 4,   #turns = (36-1.5*4)/6 = (36-6)/6 = 30/6 = 5
+        //    for dev = -4,  #turns = (36+1.5*4)/6 = (36+6)/6 = 42/6 = 7
+        //    for dev = 6,   #turns = (36-1.5*6)/6 = (36-9)/6 = 27/6 = 4.333
+        //    for dev = 8,   #turns = (36-1.5*8)/6 = (36-12)/6 = 24/6 = 4
+        //    for dev = 10,  #turns = (36-1.5*10)/6 = (36-15)/6 = 21/6 = 3.5
+        //       (cap for #turns)
+        //    for dev = -10, #turns = (36+1.5*10)/6 = (36+15)/6 = 51/6 = 8.5
+        //       (cap for #turns)
+        // So, theoretical range for #turns is 6 +/- 2.5 (i.e. 3.5 to 8.5)
+        // and actual range for #turns using sigmaCutoff of 4 is (3.5 to 5)U(6 to 8.5)
+        
+        // In summary: +/- 90deg (i.e. quarter turn of spring) per sigma
+        
+        double ang = 36;
+        if (dev >  10) dev =  10;
+        if (dev < -10) dev = -10;
+        if (dev <= 0)
+        {
+            // actual dist < ideal --> scrunched up  --> bigger angle
+            // further exaggerate w/ 2nd term: for scrunched up dists, angles get even bigger
+            // (dev in sigma; usually in range of -10 < dev < 10)
+            ang += 1.5*Math.abs(dev);
+        }
+        else if (dev > 0)
+        {
+            // actual dist > ideal --> stretched out --> smaller angle
+            // further exaggerate w/ 2nd term: for stretched up dists, angles get even smaller
+            // (dev in sigma; usually in range of -10 < dev < 10)
+            ang -= 1.5*dev;
+        }
         
         // Move along bond axis and make the spring
-        int n = 100;
-        double ang = 0;
+        int n = 60; // 60 pts = 6 turns * 10 points/turn
+                    // (and 10 points/turn --> ang = 360/10 = 36deg/point --> that's why I used
+                    //  a default of ang=36 above)
         double dist = new Triple(trp2.getX()-trp1.getX(), 
                                  trp2.getY()-trp1.getY(), 
                                  trp2.getZ()-trp1.getZ() ).mag();
         Triple pos = bondNormal;
         Triple nextSpringPoint;
-        ang = 30;//(6*Math.PI) / n;
-        for (int i = 0; i < n; i ++)
+        for (int i = 1; i <= n; i ++)
         {
-            if (pos.mag() < dist - 0.2)
-            {
-                trp1 = new Triple(trp1Orig.getX(), trp1Orig.getY(), trp1Orig.getZ()); // reset trp1
-                v12 = new Triple().likeVector(trp1, trp2);                            // reset v12
-                
-                // Rotate around atom1-atom2 axis
-                Transform rotate = new Transform();
-                rotate = rotate.likeRotation(v12, ang);
-                rotate.transform(pos);
-                
-                // Move toward atom2 a bit
-                pos.add( v12.mult(dist/n) );
-                
-                nextSpringPoint = trp1.add(pos).add(v12.mult(i*(val/n)));
-                
-                lines.add("{"+name+"}L "+df2.format(nextSpringPoint.getX())+" "+
-                                         df2.format(nextSpringPoint.getY())+" "+
-                                         df2.format(nextSpringPoint.getZ()) );
-            }
+            trp1 = new Triple(trp1Orig.getX(), trp1Orig.getY(), trp1Orig.getZ()); // reset trp1
+            v12 = new Triple().likeVector(trp1, trp2);                            // reset v12
+            
+            // Rotate around atom1-atom2 axis
+            Transform rotate = new Transform();
+            rotate = rotate.likeRotation(v12, ang);
+            rotate.transform(pos);
+            
+            // Move toward atom2 a bit
+            Triple stepTowardsTrp2 = new Triple(v12.getX(), v12.getY(), v12.getZ());
+            stepTowardsTrp2.div(n);
+            pos.add(stepTowardsTrp2); 
+            
+            nextSpringPoint = trp1.add(pos);
+            
+            lines.add("{"+name+"}L "+df2.format(nextSpringPoint.getX())+" "+
+                                     df2.format(nextSpringPoint.getY())+" "+
+                                     df2.format(nextSpringPoint.getZ()) );
         }
         lines.add("{"+name+"}L "+df2.format(trp2.getX())+" "+
                                  df2.format(trp2.getY())+" "+
