@@ -28,6 +28,8 @@ public class Ramalyze //extends ... implements ...
 //{{{ Constants
     public static final Object MODE_PDF = "PDF document";
     //public static final Object MODE_KIN = "Kinemage";
+    public static final Object MODE_RAW = "Raw csv output"; // added by DAK 07/08/24
+    public static final DecimalFormat df = new DecimalFormat("#.##"); // added by DAK 07/08/24
 //}}}
 
 //{{{ CLASS: RamaEval
@@ -228,6 +230,22 @@ public class Ramalyze //extends ... implements ...
             try { out.flush(); }
             catch(IOException ex) {} // PdfWriter might have already closed it!
         }
+        if(mode == MODE_RAW) // added by DAK 07/08/24
+        {
+            // Print RamaEval.numscores separated by colons
+            int i = 0;
+            for (Iterator iter = analyses.keySet().iterator(); iter.hasNext(); i++) // each model
+            {
+                Collection analysis = (Collection) iter.next();
+                for (Iterator iter2 = analysis.iterator(); iter2.hasNext(); ) // each residue
+                {
+                    RamaEval eval = (RamaEval) iter2.next();
+                    System.out.println(eval.name+":"+df.format(100*eval.numscore)+":"+
+                        df.format(eval.phi)+":"+df.format(eval.psi)+":"+eval.score+":"+eval.type);
+                }
+            }
+        }
+        
         // TODO: else if(mode == MODE_KIN) ...
         else throw new IllegalArgumentException("Unknown output mode: "+mode);
     }
@@ -381,6 +399,10 @@ public class Ramalyze //extends ... implements ...
         else if(flag.equals("-pdf"))
         {
             mode = MODE_PDF;
+        }
+        else if(flag.equals("-raw")) // added by DAK 07/08/24
+        {
+            mode = MODE_RAW;
         }
         else if(flag.equals("-dummy_option"))
         {
