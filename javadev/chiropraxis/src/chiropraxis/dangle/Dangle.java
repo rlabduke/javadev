@@ -311,6 +311,10 @@ public class Dangle //extends ... implements ...
         }
         else
         {
+            // Last chance to add c2o2 to end of measurements list before output
+            if (ignoreDNA)
+                measurements.add(Measurement.newBuiltin("c2o2"));
+            
             for(Iterator iter = files.iterator(); iter.hasNext(); )
             {
                 CoordinateFile coords;
@@ -324,9 +328,9 @@ public class Dangle //extends ... implements ...
                 else
                     coords = pr.read(f);
                 
-                // Last chance to add c2o2 to end of measurements list before output
-                if (ignoreDNA)
-                    measurements.add(Measurement.newBuiltin("c2o2"));
+                //// Last chance to add c2o2 to end of measurements list before output
+                //if (ignoreDNA)
+                //    measurements.add(Measurement.newBuiltin("c2o2"));
                 
                 if(doGeomKin)
                 {
