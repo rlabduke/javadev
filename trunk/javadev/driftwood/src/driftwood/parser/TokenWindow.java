@@ -182,7 +182,7 @@ public class TokenWindow //extends ... implements ...
         boolean isEOF   = (buffer[bufCurr] == null); // don't check if index is out of tokenAt() range -- who cares?
         int     bufPrev = (bufCurr - 1) & bufMask;
         int     pos     = winEnd[bufPrev]; // character position of start of bad token
-        System.err.println("pos = "+pos);
+        //System.err.println("pos = "+pos);
         int     line    = window.lineAt(pos);
         int     col     = window.columnAt(pos);
         
