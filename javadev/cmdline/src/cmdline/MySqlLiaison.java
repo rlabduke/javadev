@@ -34,6 +34,7 @@ public class MySqlLiaison
   static String sqlFilename;
   static String outPrefix;
   static String[] args;
+  boolean fromMAD;
   
   //}}}
 
@@ -41,7 +42,7 @@ public class MySqlLiaison
 //###############################################################
   public MySqlLiaison()
   {
-	  ;
+	  fromMAD = false;
   }
 //}}}
 
@@ -77,8 +78,12 @@ public class MySqlLiaison
               // Probably either the sql query filename or the output prefix
               interpretArg(arg);
           }
-          // else if (arg.startsWith("-"))
-              // It's a flag, which we will pass on to MultiPdbSuperimposer
+          else if (arg.equals("-mad") || arg.equals("-MAD"))
+          {
+              fromMAD = true;
+          }
+          // Else, if it's any other arg that starts with "-", it's a flag 
+          // which we will pass on to MultiPdbSuperimposer
       }
   }
   
@@ -111,19 +116,22 @@ public class MySqlLiaison
     argsToPass[args.length] = outPrefix+".csv";
 	
     // Superimposed kin written here
-	MultiPdbSuperimposer.main(argsToPass);
+    if (fromMAD)
+        MultiMADSuperimposer.main(argsToPass);
+	else
+        MultiPdbSuperimposer.main(argsToPass);
   }
 //}}}
 
 //{{{ performMySqlQuery
-    public void performMySqlQuery() 
-    {
+  public void performMySqlQuery() 
+  {
       // Prep the query
       String sqlSelect = "";
       File sqlFile = new File(sqlFilename);
       try 
       {
-                  Scanner s = new Scanner(sqlFile);
+          Scanner s = new Scanner(sqlFile);
           String line = "";
           String lineTrimmed = "";
           while (s.hasNextLine())
@@ -161,9 +169,16 @@ public class MySqlLiaison
           while (dm.next())
           {
               //listOfMatches.add(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3));
-              String lineToPrint = dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" ";	// column 1 = pdb_id
+              //String lineToPrint = dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" ";	// column 1 = pdb_id
                                                         // column 2 = chain_id
                                                         // column 2 = res_num
+              
+              
+              String lineToPrint = "";
+              for (int i = 1; i <= 10; i ++)
+                  lineToPrint += dm.getString(i)+";";
+              
+              
               out.println(lineToPrint);
               //System.out.println(lineToPrint);
           }

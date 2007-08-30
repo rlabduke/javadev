@@ -23,6 +23,8 @@ public class Main {
       PdbSuperimposer_RNA.main(cmdargs);
     } else if (args[0].equals("multipdbsuperimposer")) {
       MultiPdbSuperimposer.main(cmdargs);
+    } else if (args[0].equals("multimadsuperimposer")) {
+      MultiMADSuperimposer.main(cmdargs);
     } else if (args[0].equals("sql2kin")) {
       MySqlLiaison.main(cmdargs);
     } else if (args[0].equals("fragmentrotator")||(args[0].equals("fragrot"))) {
