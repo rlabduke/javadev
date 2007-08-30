@@ -37,12 +37,16 @@ public class MultiPdbSuperimposer
 	boolean doguannormals;
   	int quasipolarBins;
     String bbAtoms;
+    boolean useFlipPdbs;
+    boolean useOrigAndFlipPdbs;
     
+    boolean preppedOutFiles;
     File kinOut;
     ArrayList<PrintWriter> binkinPrintWriters;
 	ArrayList<PrintWriter> guankinPrintWriters;
     
     CoordinateFile cleanFile;
+    CoordinateFile cleanFileFlip;
     String pdbcode;
 	String chain;
     int resno;
@@ -67,12 +71,15 @@ public class MultiPdbSuperimposer
 	public MultiPdbSuperimposer()
 	{
 		// Set defaults
-        kinoption       = true;
-        dobinkin        = false;
-        doCZballs       = false;
-        doguannormals   = false;
-        quasipolarBins  = 10;
-        String bbAtoms = "N,CA,C";
+        kinoption          = true;
+        dobinkin           = false;
+        doCZballs          = false;
+        doguannormals      = false;
+        quasipolarBins     = 10;
+        this.bbAtoms       = "CA-N-C";
+        preppedOutFiles    = false;
+        useFlipPdbs        = false;
+        useOrigAndFlipPdbs = false;
 	}
 //}}}
 
@@ -142,7 +149,7 @@ public class MultiPdbSuperimposer
             // This should give 
             //     /home/keedy/...../OUTPREFIX 
             // with no .pdb or .kin on the end
-            System.out.println("outPrefixAbsPath:     "+outPrefixAbsPath);
+            System.out.println("out prefix:\t"+outPrefixAbsPath);
         }
 	}
     
@@ -171,12 +178,28 @@ public class MultiPdbSuperimposer
         {
             doguannormals = true;
         }
-        else if (flag.equals("-bbAtoms"))
+        else if (flag.equals("-argbins"))
         {
-            if (param.equals("N,CA,C") || param.equals("CA,C,O"))
+            kinoption = false;
+            dobinkin = true;
+            doCZballs = true;
+            doguannormals = true;
+        }
+        else if (flag.equals("-bbatoms"))
+        {
+            if (param.equals("CA-N-C") || param.equals("CA-C-N") || param.equals("CA-C-O") ||
+                param.equals("CZ-NH1-NH2") || param.equals("CG-CB-CD"))
                 this.bbAtoms = param;
             else
-                System.out.println("Expected N,CA,C or CA,C,O after -bbAtoms=");
+                System.out.println("Expected CA-N-C, CA-C-N, CA-C-O, CZ-NH1-NH2, or CG-CB-CD after -bbatoms=");
+        }
+        else if (flag.equals("-flip") || flag.equals("-flipped"))
+        {
+            useFlipPdbs = true;
+        }
+        else if (flag.equals("-preandpostflip") || flag.equals("-origandflip"))
+        {
+            useOrigAndFlipPdbs = true;
         }
         else throw new IllegalArgumentException("'"+flag+"' is not recognized as a valid flag");
     }
@@ -204,7 +227,7 @@ public class MultiPdbSuperimposer
             }
         }
         
-        else if (dobinkin)
+        else if (dobinkin) // either this or kinoption
         {
             binkinPrintWriters = new ArrayList<PrintWriter>();
             
@@ -238,7 +261,7 @@ public class MultiPdbSuperimposer
             }
         }
         
-        else if (doguannormals)
+        if (doguannormals)
         {
             guankinPrintWriters = new ArrayList<PrintWriter>();
             
@@ -264,6 +287,7 @@ public class MultiPdbSuperimposer
             }
         }
         
+        preppedOutFiles = true;
 	}
 //}}}
 
@@ -275,8 +299,9 @@ public class MultiPdbSuperimposer
 		try
 		{
 			cleanFile = new CoordinateFile();
+            cleanFileFlip = new CoordinateFile();
 			
-            System.out.println("inPdbListFileAbsPath: "+inPdbListFileAbsPath);
+            System.out.println("PDB list:\t"+inPdbListFileAbsPath);
             
             Scanner pdbidScanner = new Scanner(new File(inPdbListFileAbsPath));
 			  // for getting pdbcode to put in @group name
@@ -289,34 +314,86 @@ public class MultiPdbSuperimposer
 			{
 				  line = inListScanner.nextLine();
 				  Scanner lineScanner = new Scanner(line);
-				  pdbcode = lineScanner.next();
-				  chain = lineScanner.next();
-				  resno = Integer.parseInt(lineScanner.next());
-				  if (lineScanner.hasNext())
-				  {
+				  pdbcode = lineScanner.next();        //System.out.println("pdbcode: "+pdbcode);
+				  String temp = lineScanner.next();
+                  boolean hasChain;
+                  try {
+                      // In case there's no chain id for this one
+                      int some_integer = Integer.parseInt(temp);
+                      hasChain = false; 
+                  }
+                  catch (NumberFormatException nfe) {
+                      hasChain = true;
+                  }
+                  if (hasChain) {
+                      // It's the chain id, not the resno
+                      chain = temp;
+                      resno = Integer.parseInt(lineScanner.next());
+				  }
+                  else { // if (!hasChain)
+                      chain = "A";
+                      resno = Integer.parseInt(temp);
+                  }
+                  if (lineScanner.hasNext()) {
 					  // i.e. altconf is not the null string ""
 					  altconf = lineScanner.next();
 				  }
 				  else altconf = "no_alt_conf";
 				  lineScanner.close();
 				  
-				  //System.out.println("Want\tres "+resno+", chain "+chain+", pdb "+pdbcode);
-				  
-				  String inputfilenamepdb = "/home/keedy/PDBs/neo500copy/"+pdbcode+".pdb";
-				  
-				  // This entire pdb (all models and residues)
-				  CoordinateFile thisPdbsCoordFile = getCoordFile(inputfilenamepdb);
-				  
-				  // Trims model and adds any single residues that match resno + chain + pdbcode
-				  // criteria to cleanFile in the form of single-residue models
-                  overlayResidues(thisPdbsCoordFile, built);
+                  // 'true' or 'false' in method calls below means use flipped or not flipped coords
+                  // This entire pdb (all models and residues)
+				  //CoordinateFile thisPdbsCoordFile = getCoordFile();
+				  CoordinateFile thisPdbsCoordFile     = null;
+                  CoordinateFile thisPdbsFlipCoordFile = null;
+                  if (useOrigAndFlipPdbs)
+                  {
+                      thisPdbsCoordFile     = getCoordFile(false);
+                      thisPdbsFlipCoordFile = getCoordFile(true);
+                      
+                      // Trims model and adds any single residues that match resno + chain + pdbcode
+                      // criteria to cleanFile in the form of single-residue models
+                      overlayResidues(thisPdbsCoordFile    , built, false);
+                      overlayResidues(thisPdbsFlipCoordFile, built, true);
+                  }
+                  else if (useFlipPdbs)
+                  {
+                      thisPdbsFlipCoordFile = getCoordFile(true);
+                      
+                      // Trims model and adds any single residues that match resno + chain + pdbcode
+                      // criteria to cleanFile in the form of single-residue models
+                      overlayResidues(thisPdbsFlipCoordFile, built, true);
+                  }
+                  else
+                  {
+                      thisPdbsCoordFile = getCoordFile(false);
+                      
+                      // Trims model and adds any single residues that match resno + chain + pdbcode
+                      // criteria to cleanFile in the form of single-residue models
+                      overlayResidues(thisPdbsCoordFile    , built, false);
+                  }
+                  
 				  
 				  count ++;
 				  if (count == 100) 
 				  // 100 worked for chi1-4_anyrot_begs.specif_ch.noalts.sql; 250, 500 did not
 				  {
-					  if (kinoption)	  writeToKin(pdbidScanner);
-					  if (dobinkin)		  writeToBinKins();
+					  if (!preppedOutFiles)
+                          prepOutFiles();
+                      
+                      if (kinoption)	  writeToKin(pdbidScanner);
+					  else if (dobinkin) 
+                      {
+                          if (useOrigAndFlipPdbs)  
+                          {
+                              writeToBinKins(true);
+                              writeToBinKins(false);
+                          }
+                          else if (useFlipPdbs)
+                              writeToBinKins(true);
+                          else
+                              writeToBinKins(false);
+                      }
 					  
 				  	  count = 0;
 				  	  cleanFile = new CoordinateFile();
@@ -325,10 +402,21 @@ public class MultiPdbSuperimposer
 			} // done looking through pdb files in list
 			inListScanner.close();
 			
-			if (kinoption)		writeToKin(pdbidScanner);
-			if (dobinkin)
+			if (!preppedOutFiles)   prepOutFiles();
+            if (kinoption)		    writeToKin(pdbidScanner);
+			else if (dobinkin)
 			{
-				writeToBinKins();
+				//writeToBinKins();
+                if (useOrigAndFlipPdbs)  
+                {
+                    writeToBinKins(true);
+                    writeToBinKins(false);
+                }
+                else if (useFlipPdbs)
+                    writeToBinKins(true);
+                else
+                    writeToBinKins(false);
+                
 				if (doCZballs)		makeCzBallKins();
 				if (doguannormals)	makeGuanNormalKins();
 				assembleBinKin();
@@ -343,48 +431,90 @@ public class MultiPdbSuperimposer
 
 //{{{ getCoordFile
 //##################################################################################################
-  private CoordinateFile getCoordFile(String inputfilenamepdb)
+  private CoordinateFile getCoordFile(boolean flipThisTime)
   {
-	  CoordinateFile coordFile = new CoordinateFile();	// what we will return
+	  String inputfilenamepdb = "/home/keedy/PDBs/neo500copy/"+pdbcode+".pdb";
+      boolean inNeo500 = true;
+      
+      CoordinateFile coordFile = new CoordinateFile();	// what we will return
 	  reader = new PdbReader();
 	  reader.setUseSegID(false);
 	  
-	  // Files were brought into the neo500copy directory in .pdb.gz format, so 
-	  // we want to get a gzipInputStream from those to make the CoordinateFile
-	  
-	  try
-	  {
-		  GZIPInputStream gzipInputStream = new GZIPInputStream(
-			  new FileInputStream(inputfilenamepdb+".gz"));
-		  coordFile = reader.read( (InputStream) gzipInputStream);
-		  
-		  gzipInputStream.close();
-	  }
-	  catch (IOException e)
-	  {
-		  System.out.println("Can't open .pdb.gz file");
-	  }
-	  
+	  // Try my ~/PDBs directory for input pdb file in ####H.pdb format (v3.0)
+      //if (useFlipPdbs)
+      if (flipThisTime)
+          inputfilenamepdb = "/home/keedy/PDBs/"+pdbcode+"/"+pdbcode+"Hflip.pdb";
+      else
+          inputfilenamepdb = "/home/keedy/PDBs/"+pdbcode+"/"+pdbcode+"H.pdb";
+      try
+      {
+          FileInputStream pdbFileInputStream = new FileInputStream(inputfilenamepdb);
+          coordFile = reader.read( (InputStream) pdbFileInputStream);
+          
+          pdbFileInputStream.close();
+      }
+      catch (IOException e1)
+      {
+          // Next, try ~/PDBs/neo500copy directory (v3.0)
+          // Files in .pdb.gz format --> use a gzipInputStream to make CoordinateFile
+          try
+          {
+              GZIPInputStream gzipInputStream = new GZIPInputStream(
+                  new FileInputStream(inputfilenamepdb+".gz"));
+              coordFile = reader.read( (InputStream) gzipInputStream);
+              
+              gzipInputStream.close();
+          }
+          catch (IOException e2)
+          {
+              // Next, try my ~/PDBs directory for input pdb file in pdb####H.ent format (v2.2)
+              inputfilenamepdb = "/home/keedy/PDBs/"+pdbcode+"/pdb"+pdbcode+"H.ent";
+              try
+              {
+                  FileInputStream pdbFileInputStream = new FileInputStream(inputfilenamepdb);
+                  coordFile = reader.read( (InputStream) pdbFileInputStream);
+                  
+                  pdbFileInputStream.close();
+              }
+              catch (IOException e3)
+              {
+                  System.out.println("Can't open ####.pdb.gz, ####H.pdb, or pdb####H.ent file");
+              }
+          }
+      }
+      
 	  return coordFile;
   }
 //}}}
 
 //{{{ overlayResidues
 //##################################################################################################
-  private void overlayResidues(CoordinateFile thisPdbsCoordFile, Builder built)
+  private void overlayResidues(CoordinateFile thisPdbsCoordFile, Builder built, boolean flip)
   {
 	  Iterator models = (thisPdbsCoordFile.getModels()).iterator();
 	  
-	  AtomState modN = null;
-	  AtomState modCA = null;
-	  AtomState modC = null;
-	  //AtomState modO = null;
-	  
-	  Triple refCA = new Triple(0, 0, 0);
-	  Triple refN = new Triple(-0.35, -1.46, 0);
-	  Triple refC = new Triple(1.5, 0, 0);
-	  //Triple refO = new Triple(2.15, 1, 0);
-	  
+	  AtomState modN   = null;
+	  AtomState modCA  = null;
+	  AtomState modC   = null;
+	  AtomState modO   = null;
+	  AtomState modCZ  = null;
+      AtomState modNH1 = null;
+      AtomState modNH2 = null;
+      AtomState modCG  = null;
+      AtomState modCB  = null;
+      AtomState modCD  = null;
+      
+      Triple refN   = new Triple(-0.35, -1.46, 0);
+	  Triple refCA  = new Triple(0, 0, 0);
+	  Triple refC   = new Triple(1.5, 0, 0);
+	  Triple refO   = new Triple(2.15, 1, 0);
+	  Triple refCZ  = new Triple(0, 0, 0);
+      Triple refNH1 = new Triple(0, 1.326, 0);
+      Triple refNH2 = new Triple(1.326*Math.cos(30/360), -1.326*Math.sin(30/360), 0);
+      Triple refCG  = new Triple(0, 0, 0);
+      Triple refCB  = new Triple(0, 1.52, 0);
+      Triple refCD  = new Triple(1.52*Math.cos(21.3/360), 1.52*Math.sin(21.3/360), 0);
+      
 	  // Iterate thru models in *this* pdb file
 	  while (models.hasNext())
 	  {
@@ -400,20 +530,63 @@ public class MultiPdbSuperimposer
 			  ModelState modOneResState = modOneRes.getState();
               Residue    desiredRes     = modOneRes.getResidue(cnit);
 			  
-			  modCA = modOneResState.get(desiredRes.getAtom(" CA "));
-			  modN  = modOneResState.get(desiredRes.getAtom(" N  "));
-			  modC  = modOneResState.get(desiredRes.getAtom(" C  "));
-			  //modO = modState.get(desiredRes.getAtom(" O  "));
-			  
-			  Transform dock3pointNCAC = built.dock3on3(refCA, refN, refC, modCA, modN, modC);
-			  transformModel(modOneRes, dock3pointNCAC);
+              //System.out.println(desiredRes.toString());
+              
+			  if (bbAtoms.equals("CA-N-C"))
+              {
+                  modCA = modOneResState.get(desiredRes.getAtom(" CA "));
+                  modN  = modOneResState.get(desiredRes.getAtom(" N  "));
+                  modC  = modOneResState.get(desiredRes.getAtom(" C  "));
+                  
+                  Transform dock3pointCANC = built.dock3on3(refCA, refN, refC, modCA, modN, modC);
+			      transformModel(modOneRes, dock3pointCANC);
+              }
+              if (bbAtoms.equals("CA-C-N"))
+              {
+                  modCA = modOneResState.get(desiredRes.getAtom(" CA "));
+                  modC  = modOneResState.get(desiredRes.getAtom(" C  "));
+                  modN  = modOneResState.get(desiredRes.getAtom(" N  "));
+                  
+                  Transform dock3pointCACN = built.dock3on3(refCA, refC, refN, modCA, modC, modN);
+			      transformModel(modOneRes, dock3pointCACN);
+              }
+              if (bbAtoms.equals("CA-C-O"))
+              {
+                  modCA = modOneResState.get(desiredRes.getAtom(" CA "));
+                  modC  = modOneResState.get(desiredRes.getAtom(" C  "));
+                  modO  = modOneResState.get(desiredRes.getAtom(" O  "));
+                  
+                  Transform dock3pointCACO = built.dock3on3(refCA, refC, refO, modC, modCA, modO);
+			      transformModel(modOneRes, dock3pointCACO);
+              }
+              if (bbAtoms.equals("CZ-NH1-NH2"))
+              {
+                  modCZ  = modOneResState.get(desiredRes.getAtom(" CZ "));
+                  modNH1 = modOneResState.get(desiredRes.getAtom(" NH1"));
+                  modNH2 = modOneResState.get(desiredRes.getAtom(" NH2"));
+                  
+                  Transform dock3pointCZNH1NH2 = built.dock3on3(refCZ, refNH1, refNH2, modCZ, modNH1, modNH2);
+			      transformModel(modOneRes, dock3pointCZNH1NH2);
+              }
+              if (bbAtoms.equals("CG-CB-CD"))
+              {
+                  modCG  = modOneResState.get(desiredRes.getAtom(" CG "));
+                  modCB  = modOneResState.get(desiredRes.getAtom(" CB "));
+                  modCD  = modOneResState.get(desiredRes.getAtom(" CD "));
+                  
+                  Transform dock3pointCGCBCD = built.dock3on3(refCG, refCB, refCD, modCG, modCB, modCD);
+			      transformModel(modOneRes, dock3pointCGCBCD);
+              }
 		  }
 		  catch (AtomException ae) 
 		  {
 			  System.out.println("a mod atom wasn't found");
 		  }
 		  
-		  cleanFile.add(modOneRes);	// Done with this model
+		  if (flip)
+              cleanFileFlip.add(modOneRes);	// Done with this model
+          else
+              cleanFile.add(modOneRes);	    // Done with this model
 		  
 	  } // Done iterating through models in this pdb file
   }
@@ -440,16 +613,18 @@ public class MultiPdbSuperimposer
 		  String type = res.getName();
 		  int seqInt = res.getSequenceInteger();
 		  String currChain = res.getChain();
-		  boolean isProtein = true;
-		  if (AA_NAMES.indexOf(type) < 0) 
+          boolean isProtein = true;
+		  if (AA_NAMES.indexOf(type) < 0 && AA_NAMES.indexOf("A"+type) < 0) 
 		  {
-			  isProtein = false;
+			  // To allow use to find a one-Residue Model even if type = 
+              // AARG instead of ARG, e.g
+              isProtein = false;
 		  }
 		  
+          //System.out.println("currChain: '"+currChain+"'");
+          
           if (seqInt == resno && currChain.equals(chain) && isProtein) 
 		  {
-			  //System.out.println("Found\tres "+seqInt+", chain "+currChain+", pdb "+pdbcode+"\n");
-			  
 			  desiredRes = res;
 			  cnit = res.getCNIT();
 		  }
@@ -466,6 +641,7 @@ public class MultiPdbSuperimposer
 		  }
 	  }
 	  
+      modBeingTrimmed.setName(pdbcode+" Arg"+resno);
 	  return modBeingTrimmed; // Should now contain one Residue
   }
 //}}}
@@ -552,7 +728,7 @@ public class MultiPdbSuperimposer
 
 //{{{ writeToBinKins
 //##################################################################################################
-  public void writeToBinKins() 
+  public void writeToBinKins(boolean flip) 
   {
 	  int bin = 0;
 	  
@@ -563,12 +739,27 @@ public class MultiPdbSuperimposer
 	  bsl.doHydrogens = true;
 	  bsl.colorBy = BallAndStickLogic.COLOR_BY_MC_SC;
 	  
-	  Collection mods = cleanFile.getModels();
-	  Iterator iter = mods.iterator();
+	  Collection mods;
+      if (flip)
+          mods = cleanFileFlip.getModels();
+	  else
+          mods = cleanFile.getModels();
+      
+      Iterator iter = mods.iterator();
 	  while (iter.hasNext())
 	  {
 		  Model mod = (Model) iter.next();   // this should contain only one residue
 		  
+          
+          //System.out.println("Model name: \t"+mod.toString());
+          //Iterator it = (mod.getResidues()).iterator();
+          //while (it.hasNext())
+          //{
+          //    Residue r = (Residue) it.next();
+          //    System.out.println("Residue name: \t"+r.toString());
+          //}
+          
+          
 		  bin = whichBin(mod);   // refer to bins as 1,2,..., not 0,1,...
 		  
 		  if (bin < 999)
@@ -728,7 +919,7 @@ public class MultiPdbSuperimposer
   }
 //}}}
 
-//{{{ makeGuanNormalKins, getTriple, normalImpl
+//{{{ makeGuanNormalKins, getTriple, getTripleForAltConf, hasChain, normalImpl
 //##################################################################################################
   public void makeGuanNormalKins()
   {
@@ -736,54 +927,86 @@ public class MultiPdbSuperimposer
 	  {
 		  for (int b = 1; b <= quasipolarBins; b ++)
 		  {
-			  // prep for output
+			  // Prep for output
 			  File guanNormalFile = new File(outPrefixAbsPath+"_bin"+b+"guans.kin");
 			  Writer w = new FileWriter(guanNormalFile, true);   
 			  PrintWriter guanNormalPrintWriter = new PrintWriter(new BufferedWriter(w));
 			  guanNormalPrintWriter.println("@vectorlist {bin"+b+" guan normals} "+
-				  "color= hotpink master= {guan normals}");
+                  "color= hotpink master= {guan normals}");
 			  
-			  // prep input
+			  // Prep input
 			  File f = new File(outPrefixAbsPath+"_bin"+b+".kin");
 			  FileInputStream fis = new FileInputStream(f);
 			  InputStreamReader isr = new InputStreamReader(fis);
 			  LineNumberReader lnr = new LineNumberReader(isr);
 			  
+              String line2;
+              while ((line2 = lnr.readLine()) != null && 
+                  line2.indexOf("@vectorlist {protein sc}") < 0)
+              {
+                  // Scan to first residue to avoid getting "hybrids" 
+                  // (NH1 from one residue, NH2 from previous one written)
+              }
+              
 			  String line;
 			  String czLine = "";
+              //  String nh1Line = "";
+              //  String nh2Line = "";
 			  Triple CZ = null;
 			  Triple NH1 = null;
 			  Triple NH2 = null;
 			  while ((line = lnr.readLine()) != null)
 			  {
-				  // must get Triples for CZ, NH1, NH2
-				  
-				  Scanner s = new Scanner(line);
-				  
-				  if (line.indexOf(" cz ") > 0 && line.indexOf("}P") > 0) 
-				  {
-					  // "}P" starts a polyline in kinemages
-					  CZ = getTriple(line);
+				  // Must get Triples for CZ, NH1, NH2
+                  // Accept only alt conf a (if a and b exist)
+				  if (line.indexOf(" cz ") > 0 && line.indexOf("barg") < 0 && line.indexOf("}P") > 0)
+                  {
+                      // "}P" starts a polyline in kinemages
+                      CZ = getTriple(line);
 				  	  czLine = line;
 				  }
-				  if (line.indexOf(" nh1") > 0)
+				  else if (line.indexOf(" nh1") > 0 && line.indexOf("barg") < 0)
+                  {
 					  NH1 = getTriple(line);
-				  if (line.indexOf(" nh2") > 0)
+                      //nh1Line = line;
+				  }
+                  else if (line.indexOf(" nh2") > 0 && line.indexOf("barg") < 0)
+                  {
 					  NH2 = getTriple(line);
+                      //nh2Line = line;
+				  }
 				  
-				  if (CZ != null && NH1 != null && NH2 != null)
+                  if (CZ != null && NH1 != null && NH2 != null)
 				  {
-					  // print result
+					  // FOR TESTING
+                      //guanNormalPrintWriter.println("@balllist {bin"+b+" guan normals} "+
+                      //    "color= red master= {guan normals}");
+					  //guanNormalPrintWriter.println(nh1Line);
+                      //guanNormalPrintWriter.println(nh2Line);
+                      //guanNormalPrintWriter.println("@vectorlist {bin"+b+" guan normals} "+
+                      //    "color= hotpink master= {guan normals}");
+                      
+                      // Print result
 					  guanNormalPrintWriter.println(czLine);
-					  guanNormalPrintWriter.println(
-						  normalImpl(CZ, NH1, NH2, czLine));
+					  guanNormalPrintWriter.println(normalImpl(CZ, NH1, NH2, czLine));
 					  
-					  // reset CZ, NH1, NH2 for next residue in _bin(b).kin
+					  // Reset CZ, NH1, NH2 for next residue in _bin(b).kin
 					  czLine = null;
+                      //  nh1Line = null;
+                      //  nh2Line = null;
 					  CZ = null;
 					  NH1 = null;
 			  		  NH2 = null;
+                      
+                      while ((line2 = lnr.readLine()) != null && 
+                          line2.indexOf("@vectorlist {protein sc}") < 0)
+                      {
+                          // Scan to next residue to avoid getting "hybrids" 
+                          // (NH1 from one residue, NH2 from previous one written)
+                      }
+                      
 				  }
+                  
 			  }
 			  lnr.close();
 			  isr.close();
@@ -799,17 +1022,69 @@ public class MultiPdbSuperimposer
 
   public Triple getTriple(String line)
   {
-	  // line in kin format
+	  // line is in kin format
 	  
-	  Scanner s = new Scanner(line);
-	  s.next();	// skip {pdbid
-	  s.next();	// skip atom name
-	  s.next();	// skip residue type name
-	  s.next();	// skip chain
-	  s.next();	// skip resno
-	  s.next();	// skip B##.##}L or P
+	  if (line.substring(5,6).equals("a") || line.substring(5,6).equals("b"))
+          return getTripleForAltConf(line); // e.g. "aarg" instead of " arg"
+      
+      Scanner s = new Scanner(line);
+	  s.next();	    // skip {pdbid
+	  s.next();	    // skip atom name
+	  s.next();	    // skip residue type name
+	  if (hasChain(line))
+          s.next();	// skip chain
+	  s.next();	    // skip resno
+	  s.next();	    // skip B##.##}L or P
 	  
-	  return new Triple(s.nextDouble(), s.nextDouble(), s.nextDouble());
+      return new Triple(s.nextDouble(), s.nextDouble(), s.nextDouble());
+  }
+
+  public Triple getTripleForAltConf(String line)
+  {
+      //e.g.:
+      //{ n  aarg a 247  B44.37}P -0.338 -1.411 0 
+      //{ ca aarg a 247  B43.52}L 'aa' 0 0 0
+      
+      String coords;
+      if (line.indexOf("}P") >= 0)
+      {
+          coords = line.substring(line.indexOf("}P"));
+      }
+      else //if (line.indexOf("}L") >= 0), or if there's no L there (opt'l in kin format)
+      {
+          if (line.substring(5,6).equals("a"))
+              coords = line.substring(line.indexOf("'aa'"));
+          else // if (line.substring(5,6).equals("b"))
+              coords = line.substring(line.indexOf("'bb'"));
+      }
+      
+      Scanner s = new Scanner(coords);
+      s.next(); // skip 'aa' or 'bb'
+      return new Triple(s.nextDouble(), s.nextDouble(), s.nextDouble());
+  }
+
+  public boolean hasChain(String line)
+  {
+      Scanner s2 = new Scanner(line);
+	  s2.next();	// skip {pdbid
+      s2.next();	// skip atom name
+	  s2.next();	// skip residue type name
+      
+      // See if there's no chain and the next entry is a resno ('try')
+      // or if the chain is there ('catch')
+      boolean hasChain;
+      try
+      {
+          String temp = s2.next();
+          int some_integer = Integer.parseInt(temp);
+          hasChain = false;
+      }
+      catch (NumberFormatException nfe)
+      {
+          hasChain = true;
+      }
+      
+      return hasChain;
   }
 
   public String normalImpl(Triple CZ, Triple NH1, Triple NH2, String czLine)
@@ -824,12 +1099,14 @@ public class MultiPdbSuperimposer
 	  Triple normal = CZ_NH1.cross(CZ_NH2);
       
       // Scale normal
-      double mag = Math.sqrt(Math.pow(normal.getX(), 2) + 
-                             Math.pow(normal.getY(), 2) + 
-                             Math.pow(normal.getZ(), 2) );
-      Triple normalScaled = new Triple(normal.getX() / mag,
-                                       normal.getY() / mag,
-                                       normal.getZ() / mag );
+      //double mag = Math.sqrt(Math.pow(normal.getX(), 2) + 
+      //                       Math.pow(normal.getY(), 2) + 
+      //                       Math.pow(normal.getZ(), 2) );
+      //Triple normalScaled = new Triple(normal.getX() / mag,
+      //                                 normal.getY() / mag,
+      //                                 normal.getZ() / mag );
+      Triple normalScaled = normal.mult( 1/normal.mag() );
+      
       // Move back so tail is on atom 2; now have guanine normal (gn) vector
 	  Triple gn = new Triple(
 		  CZ.getX() + normalScaled.getX(),
@@ -874,7 +1151,7 @@ public class MultiPdbSuperimposer
 			  writeBalls(b, out);
 			  writeGuans(b, out);
 			  
-			  // delete the temp/intermediate files used for assembling this bin of 
+			  // Delete the temp/intermediate files used for assembling this bin of 
 			  // the binkin
 			  (new File(outPrefixAbsPath+"_bin"+b+".kin")).delete();
 			  (new File(outPrefixAbsPath+"_bin"+b+"CZballs.kin")).delete();
@@ -894,38 +1171,43 @@ public class MultiPdbSuperimposer
   {
 	try
 	{
-		  // write this bin's vectorlists to _bins.kin
+		  // Write this bin's vectorlists to _bins.kin
 		  
-		  Scanner pdbidScanner = new Scanner(new File(outPrefixAbsPath+".csv"));
+          // A temporary fix -- if #bins > 1, I don't know how to get the right pdbid
+          // to each pointid
+		  Scanner pdbidScanner = null;
+          if (quasipolarBins == 1)
+               pdbidScanner = new Scanner(new File(inPdbListFileAbsPath));
 		  
 		  LineNumberReader lnrProt = new LineNumberReader(new InputStreamReader(new 
 			  FileInputStream(new File(outPrefixAbsPath+"_bin"+b+".kin"))));
 		  
 		  String line, lineToPrint, pdbidLine, pdbid, currResNo, prevResNo;
-		  pdbid = "";
+		  pdbid = "some pdb";//"";
 		  prevResNo = "";
 		  
 		  while ((line = lnrProt.readLine()) != null)
 		  {
 			  if (line.indexOf("@") >= 0)
 			  {
-				  // it's @group, @vectorlist, @master, etc.
+				  // It's @group, @vectorlist, @master, etc.
 				  out.write(line);
 				  out.newLine();
 			  }
 			  else
 			  {
-				  // it's an atom or point description line
+				  // It's an atom or point description line
 				  currResNo = line.substring(11, 15);
 				  if (! currResNo.equals(prevResNo))
 				  {
-					  // update prevResNo and get new pdbid
+					  // Update prevResNo and get new pdbid
 					  prevResNo = currResNo;
-					  if (pdbidScanner.hasNextLine())
-					  {
-						  pdbidLine = pdbidScanner.nextLine();
-						  pdbid = (new Scanner(pdbidLine)).next();
-					  }
+					  if (quasipolarBins == 1 && pdbidScanner != null)
+                          if (pdbidScanner.hasNextLine())
+                          {
+                          	pdbidLine = pdbidScanner.nextLine();
+                              pdbid = (new Scanner(pdbidLine)).next();
+                          }
 				  }
 				  
 				  lineToPrint = line.substring(0,1)+pdbid+" "+line.substring(1);
@@ -947,38 +1229,43 @@ public class MultiPdbSuperimposer
   {
 	  try
 	  {
-		  // write this bin's balllist to _bins.kin
+		  // Write this bin's balllist to _bins.kin
 		  
-		  Scanner pdbidScanner = new Scanner(new File(outPrefixAbsPath+".csv"));
+          // A temporary fix -- if #bins > 1, I don't know how to get the right pdbid
+          // to each pointid
+		  Scanner pdbidScanner = null;
+          if (quasipolarBins == 1)
+               pdbidScanner = new Scanner(new File(inPdbListFileAbsPath));
 		  
 		  LineNumberReader lnrBalls = new LineNumberReader(new InputStreamReader(new 
 			  FileInputStream(new File(outPrefixAbsPath+"_bin"+b+"CZballs.kin"))));
 		  
 		  String line, lineToPrint, pdbidLine, pdbid, currResNo, prevResNo;
-		  pdbid = "";
+		  pdbid = "some pdb";//"";
 		  prevResNo = "";
 		  
 		  while ((line = lnrBalls.readLine()) != null)
 		  {
 			  if (line.indexOf("@") >= 0)
 			  {
-				  // it's @balllist
+				  // It's @balllist
 				  out.write(line);
 				  out.newLine();
 			  }
 			  else
 			  {
-				  // it's an single ball description line
+				  // It's an single ball description line
 				  currResNo = line.substring(11, 15);
 				  if (! currResNo.equals(prevResNo))
 				  {
 					  // update prevResNo and get new pdbid
 					  prevResNo = currResNo;
-					  if (pdbidScanner.hasNextLine())
-					  {
-						  pdbidLine = pdbidScanner.nextLine();
-						  pdbid = (new Scanner(pdbidLine)).next();
-					  }
+					  if (quasipolarBins == 1 && pdbidScanner != null)
+                          if (pdbidScanner.hasNextLine())
+                          {
+                              pdbidLine = pdbidScanner.nextLine();
+                              pdbid = (new Scanner(pdbidLine)).next();
+                          }
 				  }
 				  
 				  lineToPrint = line.substring(0,1)+pdbid+" "+line.substring(1);
@@ -1000,9 +1287,13 @@ public class MultiPdbSuperimposer
   {
 	  try
 	  {
-		  // write this bin's guans vectorlist to _bins.kin
+		  // Write this bin's guans vectorlist to _bins.kin
 		  
-		  Scanner pdbidScanner = new Scanner(new File(outPrefixAbsPath+".csv"));
+		  // A temporary fix -- if #bins > 1, I don't know how to get the right pdbid
+          // to each pointid
+		  Scanner pdbidScanner = null;
+          if (quasipolarBins == 1)
+               pdbidScanner = new Scanner(new File(inPdbListFileAbsPath));
 		  
 		  LineNumberReader lnrBalls = new LineNumberReader(new InputStreamReader(new 
 			  FileInputStream(new File(outPrefixAbsPath+"_bin"+b+"guans.kin"))));
@@ -1015,23 +1306,24 @@ public class MultiPdbSuperimposer
 		  {
 			  if (line.indexOf("@") >= 0)
 			  {
-				  // it's a guans @vectorlist
+				  // It's a guans @vectorlist
 				  out.write(line);
 				  out.newLine();
 			  }
 			  else
 			  {
-				  // it's an single ball description line
+				  // It's an single ball description line
 				  currResNo = line.substring(11, 15);
 				  if (! currResNo.equals(prevResNo))
 				  {
-					  // update prevResNo and get new pdbid
+					  // Update prevResNo and get new pdbid
 					  prevResNo = currResNo;
-					  if (pdbidScanner.hasNextLine())
-					  {
-						  pdbidLine = pdbidScanner.nextLine();
-						  pdbid = (new Scanner(pdbidLine)).next();
-					  }
+					  if (quasipolarBins == 1 && pdbidScanner != null)
+                          if (pdbidScanner.hasNextLine())
+                          {
+                              pdbidLine = pdbidScanner.nextLine();
+                              pdbid = (new Scanner(pdbidLine)).next();
+                          }
 				  }
 				  
 				  lineToPrint = line.substring(0,1)+pdbid+" "+line.substring(1);
