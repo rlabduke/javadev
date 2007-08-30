@@ -38,8 +38,18 @@ abstract public class ComboTerm extends Selection
     }
 //}}}
 
-//{{{ add, toString
+//{{{ init, add, toString
 //##############################################################################
+    public void init(Collection atomStates)
+    {
+        super.init(atomStates);
+        for(Iterator iter = childTerms.iterator(); iter.hasNext(); )
+        {
+            Selection s = (Selection) iter.next();
+            s.init(atomStates);
+        }
+    }
+
     /**
     * Adds another term to the list managed by this selection.
     */

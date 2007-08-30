@@ -226,7 +226,7 @@ public class SelectionParser //extends ... implements ...
 //##############################################################################
     Selection simple_expr() throws ParseException, IOException
     {
-        if(t.accept(KEYWORD)) return new DummySelection(KEYWORD.group());
+        if(t.accept(KEYWORD)) return KeywordTerm.get(KEYWORD.group());
         else if(t.accept(WITHIN)) return within();
         else return null;
     }
@@ -241,7 +241,7 @@ public class SelectionParser //extends ... implements ...
         Selection s = subexpr();
         if(s != null)
         {
-            return new DummySelection("within-selection");
+            return new WithinSelectionTerm(dist, s);
         }
         else
         {
@@ -250,7 +250,7 @@ public class SelectionParser //extends ... implements ...
             double y = real();
             t.accept(COMMA); // optional
             double z = real();
-            return new DummySelection("within-xyz");
+            return new WithinPointTerm(dist, x, y, z);
         }
     }
 //}}}
@@ -287,21 +287,21 @@ public class SelectionParser //extends ... implements ...
         PrintStream out = System.out;
         try
         {
-            test_ok("mc");
-            test_ok("mc sc");
-            test_ok(" mc  sc ");
-            test_ok("mc & sc & het");
-            test_ok("mc,sc");
-            test_ok("mc or sc and not het");
-            test_ok("mc,sc !het");
-            test_ok("(mc,sc) within 8 of 1, 2.3, 4.5 not within 10 of (het | metal)");
+            test_ok("all");
+            test_ok("all none");
+            test_ok(" all  none ");
+            test_ok("all & none & het");
+            test_ok("all,none");
+            test_ok("all or none and not het");
+            test_ok("all,none !het");
+            test_ok("(all,none) within 8 of 1, 2.3, 4.5 not within 10 of (het | none)");
             test_fail("");
             test_fail("()");
             test_fail("(");
             test_fail("(&)");
             test_fail("!&");
             test_fail("within 42 of (!)");
-            test_fail("mc or ");
+            test_fail("all or ");
             
             out.println();
             out.println("=== All tests passed! ===");

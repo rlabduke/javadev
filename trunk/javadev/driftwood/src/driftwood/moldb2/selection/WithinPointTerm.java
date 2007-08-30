@@ -11,50 +11,50 @@ import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
 import driftwood.moldb2.*;
+import driftwood.r3.*;
 //}}}
 /**
-* <code>NotTerm</code> is the logical NOT (inverse) of another selection.
+* <code>WithinPointTerm</code> handles "within DIST of X, Y, Z" statements.
 *
 * <p>Copyright (C) 2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Aug 29 13:33:28 PDT 2007
 */
-public class NotTerm extends Selection
+public class WithinPointTerm extends Selection
 {
 //{{{ Constants
+    static final private DecimalFormat df = new DecimalFormat("0.####");
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    Selection childTerm;
+    double      distance;
+    double      sqDistance;
+    Triple      center;
 //}}}
 
 //{{{ Constructor(s)
 //##############################################################################
-    public NotTerm(Selection target)
+    public WithinPointTerm(double distance, double x, double y, double z)
     {
         super();
-        this.childTerm = target;
+        this.distance = distance;
+        this.sqDistance = distance * distance;
+        this.center = new Triple(x,y,z);
     }
 //}}}
 
-//{{{ init, selectImpl, toString
+//{{{ selectImpl, toString
 //##############################################################################
-    public void init(Collection atomStates)
-    {
-        super.init(atomStates);
-        childTerm.init(atomStates);
-    }
-    
     /**
     * Returns true iff the given AtomState should belong to this selection.
     */
     protected boolean selectImpl(AtomState as)
     {
-        return !childTerm.select(as);
+        return center.sqDistance(as) <= sqDistance;
     }
     
     public String toString()
-    { return "not ("+childTerm+")"; }
+    { return "within "+df.format(distance)+" of "+df.format(center.getX())+", "+df.format(center.getY())+", "+df.format(center.getZ()); }
 //}}}
 
 //{{{ empty_code_segment

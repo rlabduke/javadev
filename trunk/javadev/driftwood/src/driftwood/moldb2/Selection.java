@@ -7,10 +7,11 @@ package driftwood.moldb2;
 import java.io.*;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
-//import driftwood.*;
+import driftwood.moldb2.selection.SelectionParser;
 //}}}
 /**
 * <code>Selection</code> allows selecting specific residues and atoms using
@@ -52,13 +53,46 @@ abstract public class Selection //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
+    private boolean initialized = false;
 //}}}
 
 //{{{ Constructor(s)
 //##############################################################################
-    public Selection()
+    protected Selection()
     {
         super();
+    }
+//}}}
+
+//{{{ fromString
+//##############################################################################
+    /**
+    * Use this method to obtain a Selection object from a specification string.
+    */
+    static public Selection fromString(String expr) throws ParseException
+    {
+        try
+        {
+            SelectionParser p = new SelectionParser();
+            return p.parse(expr);
+        }
+        // this shouldn't ever happen b/c we're just working with strings
+        catch(IOException ex) { ex.printStackTrace(); return null; }
+    }
+//}}}
+
+//{{{ init
+//##############################################################################
+    /**
+    * This must be called before using select().
+    * It establishes the "universe" of atoms that will be
+    * considered for "within ..." statements.
+    * If you *know* you don't have any "within" statements,
+    * you may pass an empty collection.
+    */
+    public void init(Collection atomStates)
+    {
+        this.initialized = true;
     }
 //}}}
 
@@ -70,7 +104,8 @@ abstract public class Selection //extends ... implements ...
     */
     final public boolean select(AtomState as)
     {
-        //TODO: check for initialization
+        if(!this.initialized)
+            throw new IllegalStateException("Selection must be initialized with init() before use!");
         return selectImpl(as);
     }
 
@@ -81,8 +116,21 @@ abstract public class Selection //extends ... implements ...
     abstract protected boolean selectImpl(AtomState as);
 //}}}
 
-//{{{ empty_code_segment
+//{{{ selectAtomStates
 //##############################################################################
+    /**
+    * Returns the list of AtomStates for which select() is true.
+    */
+    public Collection selectAtomStates(Collection atomStates)
+    {
+        ArrayList selected = new ArrayList();
+        for(Iterator iter = atomStates.iterator(); iter.hasNext(); )
+        {
+            AtomState as = (AtomState) iter.next();
+            if( this.select(as) ) selected.add(as);
+        }
+        return selected;
+    }
 //}}}
 
 //{{{ empty_code_segment
