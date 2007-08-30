@@ -31,7 +31,9 @@ public class SidechainIdealizer //extends ... implements ...
     SidechainAngles2    scAngles;
     Map                 idealSidechainMap;  // Map<Residue.getName(), Map<Atom.getName(), Triple>>
     Map                 idealResMap;        // Map<Residue.getName(), Residue>
+    Map                 idealResMapv23;
     ModelState          idealResState;
+    ModelState          idealResStatev23;
     Builder             builder;
 //}}}
 
@@ -44,8 +46,9 @@ public class SidechainIdealizer //extends ... implements ...
     {
         builder             = new Builder();
         scAngles            = new SidechainAngles2();
-        idealSidechainMap   = loadIdealSidechains();
-        loadIdealResides();
+        //idealSidechainMap   = loadIdealSidechains(); //doesn't currently seem to be used.
+        loadIdealResidues();
+        loadIdealResiduesv23();
     }
 //}}}
 
@@ -90,7 +93,7 @@ public class SidechainIdealizer //extends ... implements ...
 
 //{{{ loadIdealResides, getResidueTypes
 //##################################################################################################
-    void loadIdealResides() throws IOException
+    void loadIdealResidues() throws IOException
     {
         InputStream is = this.getClass().getResourceAsStream("singleres.pdb");
         if(is == null) throw new IOException("File not found in JAR: singleres.pdb");
@@ -105,6 +108,24 @@ public class SidechainIdealizer //extends ... implements ...
         {
             Residue r = (Residue) iter.next();
             idealResMap.put(r.getName(), r);
+        }
+    }
+    
+    void loadIdealResiduesv23() throws IOException
+    {
+        InputStream is = this.getClass().getResourceAsStream("singleres-v23.pdb");
+        if(is == null) throw new IOException("File not found in JAR: singleres.pdb");
+        
+        PdbReader       pdbr    = new PdbReader();
+        CoordinateFile  cf      = pdbr.read(is);
+        Model           m       = cf.getFirstModel();
+        idealResStatev23           = m.getState();
+        
+        idealResMapv23 = new TreeMap();
+        for(Iterator iter = m.getResidues().iterator(); iter.hasNext(); )
+        {
+            Residue r = (Residue) iter.next();
+            idealResMapv23.put(r.getName(), r);
         }
     }
     
@@ -174,6 +195,7 @@ public class SidechainIdealizer //extends ... implements ...
                 if( !( name.equals(" N  ") || name.equals(" H  ")
                     || name.equals(" CA ") || name.equals(" HA ")
                     || name.equals("1HA ") || name.equals("2HA ")
+                    || name.equals(" HA2") || name.equals(" HA3")
                     || name.equals(" C  ") || name.equals(" O  ")) )
                 {
                     // Clone the original state, move it, and insert it into our model
@@ -201,6 +223,7 @@ public class SidechainIdealizer //extends ... implements ...
         
         // Now for glycine, and then we're done
         hAlpha = res.getAtom("1HA ");
+        if (hAlpha == null) res.getAtom(" HA2");
         if(hAlpha != null)
         {
             AtomState s1 = orig.get(hAlpha);
@@ -211,6 +234,7 @@ public class SidechainIdealizer //extends ... implements ...
             modState.add(s2);
         }
         hAlpha = res.getAtom("2HA ");
+        if (hAlpha == null) res.getAtom(" HA3");
         if(hAlpha != null)
         {
             AtomState s1 = orig.get(hAlpha);
@@ -231,16 +255,16 @@ public class SidechainIdealizer //extends ... implements ...
 Idealizing the Cb:dist,angle,dihedral, ideal-tau
               dist, angleCAB,dihedralNCAB,angleideal
               dist, angleNAB,dihedralCNAB,angleideal
-Ala, from  C: 1.536 Å, 110.1,  122.9,    111.2 (Ala)(i.e., N,C,Ca,Cb)
-Ala, from  N: 1.536 Å, 110.6, -122.6,    111.2      (i.e., C,N,Ca,Cb)
-Pro, from  C: 1.530 Å, 112.2,  115.1,    111.8 (Pro)
-Pro, from  N: 1.530 Å, 103.0, -120.7,    111.8
-Val, from  C: 1.540 Å, 109.1,  123.4,    111.2 (Val,Thr,Ile)
-Val, from  N: 1.540 Å, 111.5, -122.0,    111.2
-Leu, from  C: 1.530 Å, 110.1,  122.8,    111.2 (Leu,Met,Phe,Ser,...others)
-Leu, from  N: 1.530 Å, 110.5, -122.6,    111.2
-Gly, form  C: 1.100 Å, 109.3,  121.6,    112.5 (Gly HA1)
-Gly, form  C: 1.100 Å, 109.3, -121.6,    112.5
+Ala, from  C: 1.536 ?, 110.1,  122.9,    111.2 (Ala)(i.e., N,C,Ca,Cb)
+Ala, from  N: 1.536 ?, 110.6, -122.6,    111.2      (i.e., C,N,Ca,Cb)
+Pro, from  C: 1.530 ?, 112.2,  115.1,    111.8 (Pro)
+Pro, from  N: 1.530 ?, 103.0, -120.7,    111.8
+Val, from  C: 1.540 ?, 109.1,  123.4,    111.2 (Val,Thr,Ile)
+Val, from  N: 1.540 ?, 111.5, -122.0,    111.2
+Leu, from  C: 1.530 ?, 110.1,  122.8,    111.2 (Leu,Met,Phe,Ser,...others)
+Leu, from  N: 1.530 ?, 110.5, -122.6,    111.2
+Gly, form  C: 1.100 ?, 109.3,  121.6,    112.5 (Gly HA1)
+Gly, form  C: 1.100 ?, 109.3, -121.6,    112.5
 
 atom abreviation convention: N==N, A==Ca, C==C, B==Cb
 construct fourth point from N C Ca -- betaNCAB
@@ -346,12 +370,15 @@ perpendicular to the N Ca C plane and NOT along the Ca---Cb vector.
     * Dihedrals are preserved from the original model.
     * All heavy atoms must be present, but H's are optional.
     * This method will not create missing atoms, only move existing ones.
+    * It also doesn't move atoms that aren't present in the idealized residues;
+    * this caused issues with the PDB format change.
     * It returns <code>start</code> if the residue is of unknown type.
     */
     public ModelState idealizeSidechain(Residue res, ModelState start)
     {
         Residue idealRes = (Residue) idealResMap.get(res.getName());
-        if(idealRes == null) // a residue we don't recognize
+        Residue idealResv23 = (Residue) idealResMapv23.get(res.getName());
+        if((idealRes == null)||(idealResv23 == null)) // a residue we don't recognize
             return start;
         
         // Save initial conformation. Chis only b/c we might lack H's.
@@ -379,8 +406,14 @@ perpendicular to the N Ca C plane and NOT along the Ca---Cb vector.
                     if(!(nm.equals(" N  ") || nm.equals(" H  ") || nm.equals(" C  ") || nm.equals(" O  ")))
                     {
                         AtomState   s1  = start.get(a1);
-                        AtomState   s2  = idealResState.get(a2);
+                        AtomState   s2;
+                        if (a2 != null) {
+                          s2 = idealResState.get(a2);
+                        } else {
+                          s2 = idealResStatev23.get(idealResv23.getAtom(nm)); //should only be called on atoms that got changed.
+                        }
                         AtomState   s3  = (AtomState)s1.clone();
+                        //System.out.println("moving "+s2.toString()+" onto "+s3.toString());
                         xform.transform(s2, s3); // transforms it into position
                         end.add(s3);
                     }
@@ -410,21 +443,32 @@ perpendicular to the N Ca C plane and NOT along the Ca---Cb vector.
     * @param insCode        the insertion code. Not zero. Space (' ') is a good default.
     * @param resName        one of the three letter codes returned by getResidueTypes().
     * @param outputState    a ModelState that will have the new AtomStates added to it.
+    * @param doPdbv3        boolean for making a residue with Pdbv3 names (vs pdbv2.3 names)
     * @return the new residue of the specified type.
     * @throws IllegalArgumentException if aaType is not a recognized amino acid code.
     */
-    public Residue makeIdealResidue(String chain, String segment, String seqNum, String insCode, String resName, ModelState outputState)
+    public Residue makeIdealResidue(String chain, String segment, String seqNum, String insCode, String resName, ModelState outputState, boolean doPdbv3)
     {
         // Get template
-        if(!idealResMap.containsKey(resName))
+        Map resMap;
+        ModelState resState;
+        if (doPdbv3) {
+          resMap = idealResMap;
+          resState = idealResState;
+        } else {
+          resMap = idealResMapv23;
+          resState = idealResStatev23;
+        }
+          
+        if(!resMap.containsKey(resName))
             throw new IllegalArgumentException("'"+resName+"' is not a known amino acid");
-        Residue templateRes = (Residue) idealResMap.get(resName);
+        Residue templateRes = (Residue) resMap.get(resName);
         
         // Copy it, with a new name
         try
         {
             Residue newRes = new Residue(templateRes, chain, segment, seqNum, insCode, resName);
-            newRes.cloneStates(templateRes, idealResState, outputState);
+            newRes.cloneStates(templateRes, resState, outputState);
             return newRes;
         }
         catch(AtomException ex)
@@ -432,6 +476,12 @@ perpendicular to the N Ca C plane and NOT along the Ca---Cb vector.
             ex.printStackTrace();
             return null;
         }
+    }
+    
+    /** legacy version that defaults to using old (pdb v2.3) format **/
+    public Residue makeIdealResidue(String chain, String segment, String seqNum, String insCode, String resName, ModelState outputState)
+    {
+      return makeIdealResidue(chain, segment, seqNum, insCode, resName, outputState, false);
     }
 //}}}
 

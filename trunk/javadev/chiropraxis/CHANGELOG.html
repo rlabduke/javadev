@@ -29,6 +29,16 @@
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+### 0.74 ###
+- Multiple changes aimed at getting Modeling tools compatible with PDB v3 format.
+- changed SidechainAngles2.areParentandChild to try to be compatible with both v23 and v3 formats.
+   Hope it still give proper behavior.
+- changed angles.props and SidechainAngles2 so dihedrals can have alternate atom names.
+- SidechainIdealizer changed to read in two different idealized residue pdbs, and use the proper one,
+   depending on the input PDB.
+- ScMutTool has an option for making the mutated residue in either PDB v3 or PDB v23 format.
+- singleres.pdb and singlesc.pdb converted to pdb v3, new singleres-v23.pdb added (v23 format).
+- sc-connect.props changed to have both pdb v23 and pdb v3 connections.
 
 ### 0.73 ### (DK)
 - fixed a bug that prevented running multiple PDBs with -rna or rnabb

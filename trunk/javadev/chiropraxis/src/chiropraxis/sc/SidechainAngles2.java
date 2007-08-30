@@ -103,6 +103,8 @@ public class SidechainAngles2 //extends ... implements ...
         for(int i = 0; i < anglelist.length; i++)
         {
             String key = aaname+"."+anglelist[i];
+            //System.out.print(key + ":");
+            //System.out.println(props.getString(key));
             String[] atomlist = Strings.explode(props.getString(key), ',');
             atomsForAngle.put(key, atomlist);
         }
@@ -193,20 +195,51 @@ public class SidechainAngles2 //extends ... implements ...
     */
     public double measureAngle(String angleName, Residue res, ModelState state) throws AtomException
     {
-        String resDotAngle = (res.getName()+"."+angleName).toLowerCase();
-        String[] atomNames = (String[])atomsForAngle.get(resDotAngle);
-        if(atomNames == null || atomNames.length < 4)
-            throw new IllegalArgumentException("Angle definition bad or not found for '"+resDotAngle+"'");
-
-        AtomState a1, a2, a3, a4;
-        a1 = state.get(res.getAtom(atomNames[0]));
-        a2 = state.get(res.getAtom(atomNames[1]));
-        a3 = state.get(res.getAtom(atomNames[2]));
-        a4 = state.get(res.getAtom(atomNames[3]));
-
-        return Triple.dihedral(a1, a2, a3, a4);
+        //String resDotAngle = (res.getName()+"."+angleName).toLowerCase();
+        //String[] atomNames = (String[])atomsForAngle.get(resDotAngle);
+        //if(atomNames == null || atomNames.length < 4)
+        //    throw new IllegalArgumentException("Angle definition bad or not found for '"+resDotAngle+"'");
+        //
+        //AtomState a1, a2, a3, a4;
+        //a1 = state.get(res.getAtom(atomNames[0]));
+        //a2 = state.get(res.getAtom(atomNames[1]));
+        //a3 = state.get(res.getAtom(atomNames[2]));
+        //a4 = state.get(res.getAtom(atomNames[3]));
+        AtomState[] as = getAngleAtomStates(angleName, res, state);
+        
+        return Triple.dihedral(as[0], as[1], as[2], as[3]);
     }
 //}}}
+
+  //{{{ getAngleAtomStates
+  /**
+  * For dealing with possible multiple names for atoms of the dihedrals (due to PDB format change).
+  * I have put semi-colon deliminted alternates for atom names in the dihedral definitions
+  * in angles.props.
+  * @return AtomState[] that should contain 4 AtomStates corresponding to the proper atoms.
+  **/
+  public AtomState[] getAngleAtomStates(String angleName, Residue res, ModelState state) throws AtomException {
+    String resDotAngle = (res.getName()+"."+angleName).toLowerCase();
+    String[] atomNames = (String[])atomsForAngle.get(resDotAngle);
+    if(atomNames == null || atomNames.length < 4)
+      throw new IllegalArgumentException("Angle definition bad or not found for '"+resDotAngle+"'");
+
+    AtomState[] asArray = new AtomState[4];
+    for (int i = 0; i < asArray.length; i++) {
+      String[] namelist = Strings.explode(atomNames[i], ';');
+      Atom testAtom = null;
+      int j = 0;
+      while ((testAtom == null)&&(j < namelist.length)) {
+        //System.out.println(namelist[j]);
+        testAtom = res.getAtom(namelist[j]);
+        j++;
+      }
+      //System.out.println(testAtom.getName());
+      asArray[i] = state.get(testAtom);
+    }
+    return asArray;
+  }
+  //}}}
 
 //{{{ areParentAndChild
 //##################################################################################################
@@ -217,9 +250,12 @@ public class SidechainAngles2 //extends ... implements ...
         if(p == null || c == null || p.length() != 4 || c.length() != 4)
             throw new IllegalArgumentException("Bad atom name(s)");
         
+        // for converting the shifted hydrogens in pdbv3 back to pdbv2.3 (e.g. HG11 to 1HG1)
+        if (p.charAt(0) == 'H') p = p.substring(3) + p.substring(0,3);
+        if (c.charAt(0) == 'H') c = c.substring(3) + c.substring(0,3);
         // If statements are a workaround for seleno-Met,
         // which by convention is a HET and has no remoteness
-        // indicator for the selenium atom.
+        // indicator for the selenium atom.        
         int pi = REMOTENESS.indexOf(p.charAt(2));
         if(parent.getResidue().getName().equals("MSE") && p.equals("SE  ")) pi = REMOTENESS.indexOf('D');
         int ci = REMOTENESS.indexOf(c.charAt(2));
@@ -227,7 +263,7 @@ public class SidechainAngles2 //extends ... implements ...
         
         return
         ((pi > ci && (p.charAt(3) == ' ' || p.charAt(3) == c.charAt(3)))    // parent closer AND on root or same branch
-        || (pi == ci && p.charAt(3) == c.charAt(3)                          // OR child is an H of parent
+        || (pi == ci && (p.charAt(3) == ' ' || p.charAt(3) == c.charAt(3))  // OR child is an H of parent
             && p.charAt(1) != 'H' && c.charAt(1) == 'H'));
     }
 //}}}
@@ -245,16 +281,22 @@ public class SidechainAngles2 //extends ... implements ...
     public ModelState setAngle(String angleName, Residue res, ModelState state, double endAngle) throws AtomException
     {
         // Copied from measureAngle -- we need this info anyway...
-        String resDotAngle = (res.getName()+"."+angleName).toLowerCase();
-        String[] atomNames = (String[])atomsForAngle.get(resDotAngle);
-        if(atomNames == null || atomNames.length < 4)
-            throw new IllegalArgumentException("Angle definition bad or not found for '"+resDotAngle+"'");
+        //String resDotAngle = (res.getName()+"."+angleName).toLowerCase();
+        //String[] atomNames = (String[])atomsForAngle.get(resDotAngle);
+        //if(atomNames == null || atomNames.length < 4)
+        //    throw new IllegalArgumentException("Angle definition bad or not found for '"+resDotAngle+"'");
+        //
 
+        //a1 = state.get(res.getAtom(atomNames[0]));
+        //a2 = state.get(res.getAtom(atomNames[1]));
+        //a3 = state.get(res.getAtom(atomNames[2]));
+        //a4 = state.get(res.getAtom(atomNames[3]));
+        AtomState[] as = getAngleAtomStates(angleName, res, state);
         AtomState a1, a2, a3, a4;
-        a1 = state.get(res.getAtom(atomNames[0]));
-        a2 = state.get(res.getAtom(atomNames[1]));
-        a3 = state.get(res.getAtom(atomNames[2]));
-        a4 = state.get(res.getAtom(atomNames[3]));
+        a1 = as[0];
+        a2 = as[1];
+        a3 = as[2];
+        a4 = as[3];
         
         double startAngle = Triple.dihedral(a1, a2, a3, a4);
         double dTheta = endAngle - startAngle;

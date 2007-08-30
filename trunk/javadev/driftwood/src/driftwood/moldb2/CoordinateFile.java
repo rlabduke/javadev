@@ -33,6 +33,7 @@ public class CoordinateFile //extends ... implements ...
     Collection          unmodModels     = null;
     ArrayList           headers;
     Collection          unmodHeaders    = null;
+    int                 pdbv2atoms      = 0;
     
     SecondaryStructure  secondaryStructure = new SecondaryStructure.AllCoil();
     
@@ -146,6 +147,17 @@ public class CoordinateFile //extends ... implements ...
     
     public void setSecondaryStructure(SecondaryStructure s)
     { this.secondaryStructure = s; }
+//}}}
+
+//{{{ get/setPdbv23Count
+public void setPdbv2Count(int count) {
+  pdbv2atoms = count;
+  //System.out.println("coord file pdbv2atoms set to: "+pdbv2atoms);
+}
+
+public int getPdbv2Count() {
+  return pdbv2atoms;
+}
 //}}}
 
 //{{{ empty_code_segment

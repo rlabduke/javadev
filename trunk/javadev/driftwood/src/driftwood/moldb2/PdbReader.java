@@ -69,6 +69,7 @@ public class PdbReader //extends ... implements ...
     boolean     trimSegID       = false;
     /** If true, segment IDs will define chains and thus must be consistent within one residue. */
     boolean     useSegID        = false;
+    HashMap     v2tov3Map       = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -84,7 +85,7 @@ public class PdbReader //extends ... implements ...
 
 //{{{ init/clearData, intern
 //##################################################################################################
-    void initData()
+    void initData() throws IOException
     {
         coordFile   = new CoordinateFile();
         model       = null;
@@ -92,6 +93,24 @@ public class PdbReader //extends ... implements ...
         residues    = new HashMap();
         autoSerial  = -9999;
         countTER    = 0;
+        v2tov3Map   = new HashMap();
+        
+        InputStream is = this.getClass().getResourceAsStream("PDBv2toPDBv3.hashmap.txt");
+        if(is == null) throw new IOException("File not found in JAR: singleres.pdb");
+        readV2toV3map(is);
+    }
+    
+    private void readV2toV3map(InputStream is) throws IOException {
+      BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+      String line;
+      while ((line = reader.readLine())!=null) {
+        if (!line.startsWith("#")) {
+          String[] strings = Strings.explode(line, ':', false, false);
+          //System.out.println(strings[1] + " and " + strings[0]);
+          v2tov3Map.put(strings[1], strings[0]);
+        }
+      }
+      reader.close();
     }
     
     void clearData()
@@ -103,6 +122,7 @@ public class PdbReader //extends ... implements ...
         autoSerial  = -9999;
         countTER    = 0;
         stringCache.clear();
+        v2tov3Map   = null;
     }
     
     /** Like String.intern(), but the cache is discarded after reading the file. */
@@ -151,6 +171,7 @@ public class PdbReader //extends ... implements ...
     {
         initData();
         
+        int pdbv2atoms = 0;
         String s;
         while((s = r.readLine()) != null)
         {
@@ -158,7 +179,8 @@ public class PdbReader //extends ... implements ...
             {
                 if(s.startsWith("ATOM  ") || s.startsWith("HETATM"))
                 {
-                    readAtom(s);
+                  if (isVersion23(s)) pdbv2atoms++;
+                  readAtom(s);
                 }
                 else if(s.startsWith("MODEL ") && s.length() >= 14)
                 {
@@ -232,8 +254,18 @@ public class PdbReader //extends ... implements ...
         // This sets up secondary structure assignments
         rv.setSecondaryStructure(new PdbSecondaryStructure(rv.getHeaders()));
         
+        rv.setPdbv2Count(pdbv2atoms);
+        
         return rv;
     }
+//}}}
+
+//{{{ testVersion
+/** for testing an atom to see if it is pdb v2.3 **/
+public boolean isVersion23(String atomLine) {
+  String atomRes = atomLine.substring(12, 16) + " " + atomLine.substring(17, 20);
+  return v2tov3Map.containsKey(atomRes);
+}
 //}}}
 
 //{{{ readAtom
@@ -423,12 +455,14 @@ public class PdbReader //extends ... implements ...
         if(a == null)
         {
             String elem = null;
-            if(s.length() >= 78) elem = getElement(s.substring(76,78).trim());
-            if(elem == null) elem = getElement(id.substring(0,2));
-            if(elem == null) elem = getElement(id.substring(1,2));
+            String resName = r.getName();
+            if(s.length() >= 78) elem = getElement(s.substring(76,78).trim(), resName);
+            if(elem == null) elem = getElement(id.substring(0,2), resName);
+            if(elem == null) elem = getElement(id.substring(1,2), resName);
             // VMD produces some (but not all) H with names like _1HB (instead of 1HB_ or _HB1)
-            if(elem == null) elem = getElement(id.substring(2,3));
+            if(elem == null) elem = getElement(id.substring(2,3), resName);
             if(elem == null) elem = "XX";
+            //System.out.print("atom:"+id+"="+elem+" ");
             
             a = new Atom(intern(id), elem, s.startsWith("HETATM"));
             try { r.add(a); }
@@ -458,13 +492,30 @@ public class PdbReader //extends ... implements ...
 "FR", "RA", "AC", "TH", "PA", "U", "NP", "PU", "AM", "CM", "BK", "CF", "ES",
     "FM", "MD", "NO", "LR", "RF", "DB", "SG", "BH", "HS", "MT", "DS"
     };
+    // ambiguous_resnames are for identifying atoms that could be hydrogens or heavy atoms
+    // e.g. Hg.
+    static final String[] ambiguous_resnames = {
+      // residues with He (currently none 070711)
+    "PHF", "HF3", "HF5", // residues with Hf
+    " HG", "HG2","HGB","HGC","HGI","MAC","MBO","MMC","PHG","PMB","AAS","AMS","BE7","CMH","EMC","EMT", // residues with Hg
+    " HO","HO3" //residues with Ho
+    // residues with Hs. (currently none 070711)
+    };
     static Map elementNames = null;
+    static ArrayList ambigAtomResidues = null;
     /**
     * Pass in a valid element symbol, or D, T, or Q (1 or 2 chars, uppercase).
     * Get back a valid element symbol.
+    *
+    * It now takes in the residue name in order to check whether the atom is a hydrogen
+    * or one of several heavy atoms (He, Hf, Hg, Ho, Hs).
+    * These residues are hard-coded in, so they have to be updated when new residues
+    * with these heavy atoms are created.
+    * If the residue isn't found, it defaults to saying it is a hydrogen.
+    *
     * Returns null for things we don't recognize at all.
     */
-    static String getElement(String name)
+    static String getElement(String name, String resName)
     {
         if(elementNames == null)
         {
@@ -474,6 +525,19 @@ public class PdbReader //extends ... implements ...
             elementNames.put("D", "H"); // deuterium
             elementNames.put("T", "H"); // tritium
             elementNames.put("Q", "Q"); // NMR pseudo atoms
+        }
+        // tests to see if atom is one of several atoms that can be ambiguous.
+        if (name.equals("HE")||name.equals("HF")||name.equals("HG")||name.equals("HO")||name.equals("HS")) {
+          if (ambigAtomResidues == null) {
+            ambigAtomResidues = new ArrayList();
+            for (int i = 0; i < ambiguous_resnames.length; i++) 
+              ambigAtomResidues.add(ambiguous_resnames[i]);
+          }
+          if (ambigAtomResidues.contains(resName)) {
+            return (String) elementNames.get(name);
+          } else {
+            return "H";
+          }
         }
         return (String) elementNames.get(name);
     }
