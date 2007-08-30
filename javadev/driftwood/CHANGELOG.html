@@ -29,6 +29,9 @@ MOLDB2: {{
 }}}
 PARSER: {{
     TokenWindow.syntaxError doesn't skip whitespace -- add TokenMatcher.start()?
+    Tokenizer is *too* insensitive to whitespace: "123abc" becomes "123", "abc".
+        So there's no difference between "123abc" and "123 abc" !
+        This is bad for most languages, but I don't know how to fix it...
 }}}
 R3: {{{
 }}}
@@ -55,6 +58,10 @@ UTIL: {{{
 - added support for "within DIST of (SELECTION)" to Selection
 - added support for "within DIST of X, Y, Z" to Selection
 - added support for "all", "none", and "het"
+- changed how Selection.toString() outputs parentheses (so we get fewer)
+- added support for atom____, res__, and chain_ selectors
+- added grammar-level support for residue ranges, but no implementation yet
+  Getting the grammar right was very tricky; ambiguity with "-" symbol and ints.
 
 ### 0.82 ###
 - added mysql/DatabaseManager.  Any code that uses this will need the mysql
