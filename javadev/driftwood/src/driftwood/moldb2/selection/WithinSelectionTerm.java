@@ -11,29 +11,36 @@ import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
 import driftwood.moldb2.*;
+import driftwood.r3.*;
 //}}}
 /**
-* <code>NotTerm</code> is the logical NOT (inverse) of another selection.
+* <code>WithinSelectionTerm</code> handles "within DIST of (SELECTION)" statements.
 *
 * <p>Copyright (C) 2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Aug 29 13:33:28 PDT 2007
 */
-public class NotTerm extends Selection
+public class WithinSelectionTerm extends Selection
 {
 //{{{ Constants
+    static final private DecimalFormat df = new DecimalFormat("0.####");
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    Selection childTerm;
+    double      distance;
+    Selection   childTerm;
+    SpatialBin  spatialBin;
+    Collection  foundPts;
 //}}}
 
 //{{{ Constructor(s)
 //##############################################################################
-    public NotTerm(Selection target)
+    public WithinSelectionTerm(double distance, Selection target)
     {
         super();
+        this.distance = distance;
         this.childTerm = target;
+        this.foundPts = new ArrayList();
     }
 //}}}
 
@@ -42,7 +49,10 @@ public class NotTerm extends Selection
     public void init(Collection atomStates)
     {
         super.init(atomStates);
-        childTerm.init(atomStates);
+        this.childTerm.init(atomStates);
+        // childTerm now fully initialized, doing selections should be safe
+        this.spatialBin = new SpatialBin(3.0); // taken from Molikin; a good size for atoms
+        spatialBin.addAll( childTerm.selectAtomStates(atomStates) );
     }
     
     /**
@@ -50,11 +60,13 @@ public class NotTerm extends Selection
     */
     protected boolean selectImpl(AtomState as)
     {
-        return !childTerm.select(as);
+        this.foundPts.clear();
+        this.spatialBin.findSphere(as, this.distance, this.foundPts);
+        return !foundPts.isEmpty();
     }
     
     public String toString()
-    { return "not ("+childTerm+")"; }
+    { return "within "+df.format(distance)+" of ("+childTerm+")"; }
 //}}}
 
 //{{{ empty_code_segment

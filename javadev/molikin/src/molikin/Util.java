@@ -33,7 +33,7 @@ public class Util //extends ... implements ...
 //{{{ extractOrderedStatesByName
 //##############################################################################
     static public Collection extractOrderedStatesByName(Model model)
-    { return extractOrderedStatesByName(model.getResidues(), model.getStates().values()); }
+    { return Model.extractOrderedStatesByName(model); }
     
     /**
     * Extracts all the uniquely named AtomStates for the given model, in the
@@ -41,42 +41,7 @@ public class Util //extends ... implements ...
     * This is often used to prepare input for AtomGraph.
     */
     static public Collection extractOrderedStatesByName(Collection residues, Collection modelStates)
-    {
-        ModelState[]    states      = (ModelState[]) modelStates.toArray(new ModelState[modelStates.size()]);
-        Set             usedNames   = new HashSet(); // to avoid duplicates
-        ArrayList       atomStates  = new ArrayList();
-        
-        for(Iterator ri = residues.iterator(); ri.hasNext(); )
-        {
-            Residue res = (Residue)ri.next();
-            for(Iterator ai = res.getAtoms().iterator(); ai.hasNext(); )
-            {
-                Atom atom = (Atom)ai.next();
-                for(int i = 0; i < states.length; i++)
-                {
-                    try
-                    {
-                        AtomState as = states[i].get(atom);
-                        // We want to make sure every atom output has a unique PDB name.
-                        // We're not worried so much about duplicating coordinates (old code).
-                        // Name requirement is important for dealing with alt confs,
-                        // where a single atom (' ') may move in A but not B --
-                        // this led to two ATOM entries with different coords but the same name.
-                        String aName = as.getAtom().toString()+as.getAltConf();
-                        //if(!usedNames.contains(as)) -- for comparison by XYZ coords
-                        if(!usedNames.contains(aName))
-                        {
-                            //usedNames.add(as); -- for comparison by XYZ coords
-                            usedNames.add(aName);
-                            atomStates.add(as);
-                        }
-                    }
-                    catch(AtomException ex) {} // no state
-                }
-            }//for each atom
-        }// for each residue
-        return atomStates;
-    }
+    { return Model.extractOrderedStatesByName(residues, modelStates); }
 //}}}
 
 //{{{ altsAreCompatible

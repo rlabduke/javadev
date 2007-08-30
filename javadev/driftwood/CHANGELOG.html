@@ -50,6 +50,11 @@ UTIL: {{{
   This is important for making Molikin robust to weird PDBs (like Rosetta's).
 - removed debugging message from parser.TokenWindow
 - added initial working framework for Probe-like selection algebra
+- moved extractOrderedStatesByName() from molikin.Util to moldb2.Model,
+  because it's a generally useful utility function.
+- added support for "within DIST of (SELECTION)" to Selection
+- added support for "within DIST of X, Y, Z" to Selection
+- added support for "all", "none", and "het"
 
 ### 0.82 ###
 - added mysql/DatabaseManager.  Any code that uses this will need the mysql
