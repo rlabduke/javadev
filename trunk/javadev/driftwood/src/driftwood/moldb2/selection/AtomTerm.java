@@ -13,48 +13,41 @@ import java.util.*;
 import driftwood.moldb2.*;
 //}}}
 /**
-* <code>NotTerm</code> is the logical NOT (inverse) of another selection.
+* <code>AtomTerm</code> handles "atomXXXX" selections.
 *
 * <p>Copyright (C) 2007 by Ian W. Davis. All rights reserved.
-* <br>Begun on Wed Aug 29 13:33:28 PDT 2007
+* <br>Begun on Thu Aug 30 09:11:42 PDT 2007
 */
-public class NotTerm extends Selection
+public class AtomTerm extends Selection
 {
 //{{{ Constants
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    Selection childTerm;
+    String name;
 //}}}
 
 //{{{ Constructor(s)
 //##############################################################################
-    public NotTerm(Selection target)
+    public AtomTerm(String name)
     {
         super();
-        this.childTerm = target;
+        this.name = name.replace('_', ' ');
     }
 //}}}
 
-//{{{ init, selectImpl, toString
+//{{{ selectImpl, toString
 //##############################################################################
-    public void init(Collection atomStates)
-    {
-        super.init(atomStates);
-        childTerm.init(atomStates);
-    }
-    
-    /**
-    * Returns true iff the given AtomState should belong to this selection.
-    */
     protected boolean selectImpl(AtomState as)
     {
-        return !childTerm.select(as);
+        return name.equals(as.getName());
     }
     
     public String toString()
-    { return "not "+childTerm; }
+    {
+        return "atom"+name.replace(' ', '_');
+    }
 //}}}
 
 //{{{ empty_code_segment

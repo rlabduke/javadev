@@ -60,14 +60,15 @@ abstract public class ComboTerm extends Selection
     
     public String toString(String sep)
     {
-        StringBuffer buf = new StringBuffer();
+        StringBuffer buf = new StringBuffer("(");
         boolean first = true;
         for(Iterator iter = childTerms.iterator(); iter.hasNext(); )
         {
             if(first) first = false;
             else buf.append(sep);
-            buf.append("(").append(iter.next()).append(")");
+            buf.append(iter.next());
         }
+        buf.append(")");
         return buf.toString();
     }
 //}}}

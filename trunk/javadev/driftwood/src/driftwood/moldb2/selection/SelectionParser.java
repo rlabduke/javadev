@@ -32,25 +32,56 @@ public class SelectionParser //extends ... implements ...
     final Matcher START_SUBSEL  = Pattern.compile("\\(").matcher("");
     final Matcher END_SUBSEL    = Pattern.compile("\\)").matcher("");
     final Matcher KEYWORD       = Pattern.compile("\\*|all|none|protein|mc|sc|base|alpha|beta|nitrogen|carbon|oxygen|sulfur|phosphorus|hydrogen|metal|polar|nonpolar|charged|donor|acceptor|aromatic|methyl|het|water|dna|rna").matcher("");
+    final Matcher CHAIN         = Pattern.compile("chain([A-Za-z0-9_])").matcher("");
+    final Matcher RESNAME       = Pattern.compile("res([A-Za-z0-9_]{3})").matcher("");
+    final Matcher ATOM          = Pattern.compile("atom([A-Za-z0-9_]{4})").matcher("");
+    final Matcher RESNUM        = Pattern.compile("("+RegexTokenMatcher.SIGNED_INT+")([A-Z])?").matcher("");
+    final Matcher RESRANGE      = Pattern.compile(RESNUM.pattern()+"-"+RESNUM.pattern()).matcher("");
+    final Matcher RANGE_OP      = Pattern.compile("-|to").matcher("");
     final Matcher WITHIN        = Pattern.compile("within").matcher("");
     final Matcher OF            = Pattern.compile("of").matcher("");
     final Matcher COMMA         = Pattern.compile(",").matcher("");
-    final Matcher MINUS_SIGN    = Pattern.compile("-").matcher("");
-    final Matcher REAL          = RegexTokenMatcher.UNSIGNED_REAL.matcher("");
+    final Matcher REAL          = RegexTokenMatcher.SIGNED_REAL.matcher("");
     
     final Pattern[] toIgnore = {
         RegexTokenMatcher.HASH_COMMENT,
         RegexTokenMatcher.WHITESPACE
     };
     
+    // Categories for tokenizer rather than parser:
     final Matcher WORD          = Pattern.compile("[A-Za-z_]+").matcher("");
     final Matcher OPERATOR      = Pattern.compile("[!&*()|,-]").matcher("");
+    final Matcher REAL_NOT_INT;
+    {
+        // Modified from RegexTokenMatcher to ensure we don't match ints!
+        String sign         = "(?:[+-]?)";
+        String digits       = "(?:[0-9]+)";
+        String positive     = "(?:[1-9][0-9]*)";
+        String natural      = "(?:0|"+positive+")";
+        String integer      = "(?:"+sign+natural+")";
+        String u_real       = "(?:"+natural+"(?:\\.(?:"+digits+")?)?)";
+        String u_real_dec   = "(?:"+natural+"\\.(?:"+digits+")?)";  // requires decimal point
+        String u_real_e     = "(?:"+u_real+"[eE]"+integer+")";      // requires exponent
+        String s_real_noint = "(?:"+sign+"(?:"+u_real_dec+"|"+u_real_e+"))";
+        
+        REAL_NOT_INT        = Pattern.compile(s_real_noint).matcher("");
+    }
 
     final Pattern[] toAccept = {
-        // No possible input subsequence should match more than one of these!
+        // No possible input prefix should match more than one of these!
+        // However, we can't manage that because of the residue number range grammar.
+        // So, order matters here:  first patterns will be matched preferentially.
         WORD.pattern(),
-        OPERATOR.pattern(),
-        RegexTokenMatcher.UNSIGNED_REAL
+        RESRANGE.pattern(),     // can start with "-"
+        // Both REAL and RESNUM can match a string that starts with an int, e.g. -1.234:
+        // but RESNUM stops at the decimal point, leaving behind ".234" as a bad token.
+        // But consider "1A to 2B":  opposite problem, left with "A" and "B" hanging.
+        // So we first specifically match reals with a decimal point or exponent,
+        // then ints with a possible trailing insertion code.
+        REAL_NOT_INT.pattern(), // can start with "-", catches decimals/exponents only
+        RESNUM.pattern(),       // can start with "-", catches insertion codes and ints
+        REAL.pattern(),         // can start with "-", catches nothing?
+        OPERATOR.pattern(),     // can start with "-" (equal to "-", actually)
     };
 //}}}
 
@@ -226,9 +257,52 @@ public class SelectionParser //extends ... implements ...
 //##############################################################################
     Selection simple_expr() throws ParseException, IOException
     {
-        if(t.accept(KEYWORD)) return KeywordTerm.get(KEYWORD.group());
-        else if(t.accept(WITHIN)) return within();
-        else return null;
+        if(t.accept(KEYWORD))           return KeywordTerm.get(KEYWORD.group());
+        else if(t.accept(CHAIN))        return new ChainTerm(CHAIN.group(1));
+        else if(t.accept(RESNAME))      return new ResNameTerm(RESNAME.group(1));
+        else if(t.accept(ATOM))         return new AtomTerm(ATOM.group(1));
+        else if(t.accept(RESRANGE))     return res_range();
+        else if(t.accept(RESNUM))       return res_num();
+        else if(t.accept(WITHIN))       return within();
+        else                            return null;
+    }
+//}}}
+
+//{{{ res_range, res_num
+//##############################################################################
+    Selection res_range() throws ParseException, IOException
+    {
+        try
+        {
+            int num1 = Integer.parseInt(RESRANGE.group(1));
+            int num2 = Integer.parseInt(RESRANGE.group(3));
+            String ins1 = RESRANGE.group(2);
+            String ins2 = RESRANGE.group(4);
+            if(ins1 == null) ins1 = " ";
+            if(ins2 == null) ins2 = " ";
+            return new DummySelection("range "+num1+ins1+" to "+num2+ins2);
+        }
+        catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing integer ["+t.token()+"]", 0); }
+    }
+    
+    Selection res_num() throws ParseException, IOException
+    {
+        try
+        {
+            int num1 = Integer.parseInt(RESNUM.group(1));
+            String ins1 = RESNUM.group(2);
+            if(ins1 == null) ins1 = " ";
+            if(t.accept(RANGE_OP))
+            {
+                t.require(RESNUM);
+                int num2 = Integer.parseInt(RESNUM.group(1));
+                String ins2 = RESNUM.group(2);
+                if(ins2 == null) ins2 = " ";
+                return new DummySelection("range "+num1+ins1+" to "+num2+ins2);
+            }
+            else return new DummySelection("single res "+num1+ins1);
+        }
+        catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing integer ["+t.token()+"]", 0); }
     }
 //}}}
 
@@ -259,10 +333,8 @@ public class SelectionParser //extends ... implements ...
 //##############################################################################
     double real() throws ParseException, IOException
     {
-        int sign = 1;
-        if(t.accept(MINUS_SIGN)) sign = -1;
         t.require(REAL);
-        try { return sign * Double.parseDouble(REAL.group()); }
+        try { return Double.parseDouble(REAL.group()); }
         catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing real number ["+t.token()+"]", 0); }
     }
 //}}}
@@ -287,6 +359,15 @@ public class SelectionParser //extends ... implements ...
         PrintStream out = System.out;
         try
         {
+            test_fail("");
+            test_fail("()");
+            test_fail("(");
+            test_fail("(&)");
+            test_fail("!&");
+            test_fail("within 42 of (!)");
+            test_fail("all or ");
+            test_fail("1 - - 2"); // != "1--2", minus must immediately preceed number.
+            
             test_ok("all");
             test_ok("all none");
             test_ok(" all  none ");
@@ -295,17 +376,41 @@ public class SelectionParser //extends ... implements ...
             test_ok("all or none and not het");
             test_ok("all,none !het");
             test_ok("(all,none) within 8 of 1, 2.3, 4.5 not within 10 of (het | none)");
-            test_fail("");
-            test_fail("()");
-            test_fail("(");
-            test_fail("(&)");
-            test_fail("!&");
-            test_fail("within 42 of (!)");
-            test_fail("all or ");
+            test_ok("atom_CA_ chainB,het");
+            test_ok("resGLY,resPRO atom_N__,atom_CA_,atom_C__,atom_O__");
+            test_ok("1-2 -1 -2 -1--2 -1-2 -11A--12B -5 6"); // residue numbers and ranges
+            test_ok("1 - 2 -1 - -2 3 --4C 5 to 6 7D to 8E");
             
             out.println();
             out.println("=== All tests passed! ===");
             out.println();
+            
+            //final Pattern[] toIgnore = {
+            //    RegexTokenMatcher.HASH_COMMENT,
+            //    RegexTokenMatcher.WHITESPACE
+            //};
+            //final Matcher WORD          = Pattern.compile("[A-Za-z_]+").matcher("");
+            //final Matcher OPERATOR      = Pattern.compile("[!&*()|,-]").matcher("");
+            //final Pattern[] toAccept = {
+            //    // No possible input subsequence should match more than one of these!
+            //    WORD.pattern(),
+            //    Pattern.compile("("+RegexTokenMatcher.SIGNED_INT+")([A-Z])?-("+RegexTokenMatcher.SIGNED_INT+")([A-Z])?"),
+            //    RegexTokenMatcher.SIGNED_REAL,
+            //    RegexTokenMatcher.SIGNED_INT,
+            //    OPERATOR.pattern()
+            //};
+            //TokenMatcher tokenMatcher = new RegexTokenMatcher(
+            //    RegexTokenMatcher.joinPatterns(toAccept),
+            //    RegexTokenMatcher.joinPatterns(toIgnore)
+            //    );
+            //String expr = "1-2 -1 -2 -1--2 -1-2 -11A--12B -5 5 5.6";
+            //TokenWindow t = new TokenWindow(new CharWindow(expr), tokenMatcher);
+            //out.println(expr);
+            //while(t.token() != null)
+            //{
+            //    out.println(t.token());
+            //    t.advance();
+            //}
         }
         catch(Exception ex) { ex.printStackTrace(); }
     }
