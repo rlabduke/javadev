@@ -46,6 +46,11 @@ UTIL: {{{
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+### 0.84 ###
+- extended PdbReader to deal with new PDBv3 format hydrogens. Added code for dealing
+  with hydrogen atom names getting identified as heavy atoms (e.g. Hg, Hf).
+- PdbReader now counts how many PDBv2.3 atoms an input pdb contains.
+- added code to CoordinateFile to store how many PDBv2.3 atoms it contains.
 
 ### 0.83 ###
 - added setName to Model

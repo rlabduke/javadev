@@ -24,7 +24,7 @@ import chiropraxis.sc.*;
 * <p>Copyright (C) 2004 by Ian W. Davis. All rights reserved.
 * <br>Begun on Mon Jan 12 09:58:34 EST 2004
 */
-public class ScMutTool  extends ModelingTool
+public class ScMutTool  extends ModelingTool implements ItemListener
 {
 //{{{ Constants
 //}}}
@@ -33,6 +33,7 @@ public class ScMutTool  extends ModelingTool
 //##############################################################################
     SidechainIdealizer  idealizer   = null;
     String[]            resChoices  = null;
+    boolean             usePdbv3    = true;
 //}}}
 
 //{{{ Constructor(s)
@@ -104,19 +105,52 @@ public class ScMutTool  extends ModelingTool
     }
 //}}}
 
+//{{{ makeOptionPane
+private String makeOptionPane(Residue orig) {
+  JOptionPane pane = new JOptionPane("Mutate this sidechain to what?", JOptionPane.QUESTION_MESSAGE,
+               JOptionPane.OK_CANCEL_OPTION, null);
+  pane.setSelectionValues(resChoices);
+  pane.setInitialSelectionValue(orig.getName());
+  JDialog dialog = pane.createDialog(kMain.getTopWindow(), "Choose mutation");
+  pane.selectInitialValue();
+  JCheckBox usePdbv2Box = new JCheckBox("Use PDB v2.3 (old) format");
+  usePdbv2Box.setPreferredSize(new Dimension(300, 30)); // I arrived at these values through
+  usePdbv2Box.setMaximumSize(new Dimension(300, 30));   //    a lot of trial and error just
+  usePdbv2Box.setAlignmentX((float)0.5);                //    to get the check box right.
+  usePdbv3 = true;
+  usePdbv2Box.addItemListener(this);
+  pane.add(usePdbv2Box);
+  //System.out.println(usePdbv2Box.getPreferredSize());
+  //System.out.println(usePdbv2Box.getMaximumSize());
+  //System.out.println(usePdbv2Box.getAlignmentX());
+  dialog.setVisible(true);
+  return (String)pane.getInputValue();
+}
+//}}}
+
+//{{{ itemStateChanged
+public void itemStateChanged(ItemEvent e) {
+  if (e.getStateChange() == ItemEvent.DESELECTED) {
+    usePdbv3 = true;
+  } else {
+    usePdbv3 = false;
+  }
+}
+//}}}
+
 //{{{ askMutateResidue
 //##############################################################################
     void askMutateResidue(Model model, Residue orig, ModelState origState)
     {
         try
         {
-            String choice = (String) JOptionPane.showInputDialog(kMain.getTopWindow(),
-                "Mutate this sidechain to what?",
-                "Choose mutation",
-                JOptionPane.QUESTION_MESSAGE, null,
-                resChoices, orig.getName());
-            
-            if(choice == null) return; // user canceled operation
+            //String choice = (String) JOptionPane.showInputDialog(kMain.getTopWindow(),
+            //    "Mutate this sidechain to what?",
+            //    "Choose mutation",
+            //    JOptionPane.QUESTION_MESSAGE, null,
+            //    resChoices, orig.getName());
+            String choice = makeOptionPane(orig);
+            if((choice == null)||(choice.equals(JOptionPane.UNINITIALIZED_VALUE))) return; // user canceled operation
             
             // Create the mutated sidechain
             ModelState newState = new ModelState(origState);
@@ -124,7 +158,7 @@ public class ScMutTool  extends ModelingTool
                 orig.getSegment(),
                 orig.getSequenceNumber(),
                 orig.getInsertionCode(),
-                choice, newState);
+                choice, newState, usePdbv3);
             
             // Align it on the old backbone
             newState = idealizer.dockResidue(newRes, newState, orig, origState);
