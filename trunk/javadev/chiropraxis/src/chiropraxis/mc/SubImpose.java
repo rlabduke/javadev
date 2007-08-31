@@ -22,6 +22,7 @@ import driftwood.r3.*;
 *
 * <ol>
 * <li>If -super is specified, those atoms from structure 1 are used to superimpose it onto the corresponding atoms from structure 2.</li>
+* <li>If -sieve is specified, those atoms are cut down to the specified fraction (0,1] by Lesk's sieve.</li>
 * <li>If -kin is specified, a kinemage is written showing the the atom correspondances.</li>
 * <li>If -pdb is specified, the new coordinates for structure 1 are written to file.</li>
 * <li>If -rms is specified, those atoms from structure 1 and the corresponding ones from structure 2 are used to compute RMSD.</li>
@@ -57,10 +58,12 @@ public class SubImpose //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     boolean verbose = false;
+    boolean showTransform = false;
     String structIn1 = null, structIn2 = null;
     String kinOut = null, pdbOut = null;
     String superimpose = null;
     Collection rmsd = new ArrayList(); // selection strings to do rmsd over
+    double leskSieve = 0;
 //}}}
 
 //{{{ Constructor(s)
@@ -148,16 +151,81 @@ public class SubImpose //extends ... implements ...
     }
 //}}}
 
+//{{{ sortByLeskSieve
+//##############################################################################
+    /**
+    * Applies Lesk's "sieve" method for selecting an optimal set
+    * of C-alphas to superimpose.
+    * A least-squares fit is applied over all points, and the rmsd (=score)
+    * and worst-fitting pair are entered as a SortItem at the front of the array.
+    * The worst pair is then removed from the set being fit, the fit is repeated,
+    * and the new rmsd and worst pair are entered in the second array position.
+    * This is repeated until all points have been processed.
+    *
+    * It appears this was described in
+    *   AM Lesk (1991) "Protein Architecture: A Practical Guide", IRL Press, Oxford.
+    * It may have also been described in
+    *   Lesk and Chothia (1984) J Mol Biol 174, 175-191.
+    *
+    * THESE ARRAYS ARE SORTED IN PLACE (probabably in O(n**2) time).
+    */
+    static void sortByLeskSieve(Tuple3[] sm1, Tuple3[] sm2)
+    {
+        int i, len = sm1.length;
+        
+        // We're going to screw up the order of these arrays
+        // as we "sieve" out the worst-fitting pairs.
+
+        // More variables we'll need
+        SuperPoser  sp      = new SuperPoser(sm1, sm2);
+        Triple      t       = new Triple();
+        Transform   R;
+        double      rmsd, gap2, worstGap2;
+        int         worstIndex;
+        Tuple3      mSwap;
+        
+        for( ; len > 0; len--)
+        {
+            sp.reset(sm1, 0, sm2, 0, len);
+            R       = sp.superpos();
+            rmsd    = sp.calcRMSD(R);
+            //rmsd    = sp.calcRMSD(R) / Math.sqrt(len); // from Gerstein & Altman 1995 JMB: rmsd grows as square of # of atoms
+            
+            // Find worst-fitting pair
+            worstIndex  = -1;
+            worstGap2   = -1;
+            for(i = 0; i < len; i++)
+            {
+                R.transform(sm2[i], t);
+                gap2 = t.sqDistance(sm1[i]);
+                if(gap2 > worstGap2)
+                {
+                    worstGap2 = gap2;
+                    worstIndex = i;
+                }
+            }
+            
+            // Swap worst pair to back of list
+            mSwap = sm1[len-1];
+            sm1[len-1] = sm1[worstIndex];
+            sm1[worstIndex] = mSwap;
+            mSwap = sm2[len-1];
+            sm2[len-1] = sm2[worstIndex];
+            sm2[worstIndex] = mSwap;
+        }
+    }
+//}}}
+
 //{{{ writeKin
 //##############################################################################
-    void writeKin(AtomState[][] atoms) throws IOException
+    void writeKin(AtomState[][] atoms, int maxlen) throws IOException
     {
         DecimalFormat df = new DecimalFormat("0.0###");
         PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(new File(this.kinOut))));
         out.println("@kinemage");
         out.println("@group {correspondances} dominant");
         out.println("@vectorlist {pairs} color= green");
-        for(int i = 0; i < atoms[0].length; i++)
+        for(int i = 0; i < maxlen; i++)
         {
             AtomState a1 = atoms[0][i], a2 = atoms[1][i];
             out.println("{"+a1+"}P "+df.format(a1.getX())+" "+df.format(a1.getY())+" "+df.format(a1.getZ()));
@@ -165,14 +233,6 @@ public class SubImpose //extends ... implements ...
         }
         out.close();
     }
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
 //}}}
 
 //{{{ empty_code_segment
@@ -230,6 +290,22 @@ public class SubImpose //extends ... implements ...
             R = superpos.superpos();
             System.err.println(df.format(superpos.calcRMSD(R))+"\t"+atoms[0].length+"\t"+superimpose);
             
+            int lenAtomsUsed = atoms[0].length;
+            if(leskSieve > 0)
+            {
+                int len = (int) Math.round( leskSieve * atoms[0].length );
+                if(len < 3)
+                    System.err.println("WARNING: too few atoms for Lesk's sieve at "+df.format(leskSieve));
+                else
+                {
+                    lenAtomsUsed = len;
+                    sortByLeskSieve(atoms[0], atoms[1]);
+                    superpos.reset(atoms[1], 0, atoms[0], 0, len); // only use the len best
+                    R = superpos.superpos();
+                    System.err.println(df.format(superpos.calcRMSD(R))+"\t"+len+"\t[Lesk's sieve = "+df.format(leskSieve)+"]");
+                }
+            }
+            
             // Transform model 1 so transformed coords will be used in the future
             for(Iterator iter = Model.extractOrderedStatesByName(m1).iterator(); iter.hasNext(); )
             {
@@ -238,7 +314,7 @@ public class SubImpose //extends ... implements ...
             }
             
             // Write kinemage showing atoms for superposition:
-            if(kinOut != null) writeKin(atoms);
+            if(kinOut != null) writeKin(atoms, lenAtomsUsed);
             
             // Write superimposed PDB file:
             if(pdbOut != null)
@@ -273,7 +349,15 @@ public class SubImpose //extends ... implements ...
             SuperPoser superpos = new SuperPoser(atoms[1], atoms[0]);
             // Don't recalculate, use our old transform!
             //R = superpos.superpos();
-            System.out.println(df.format(superpos.calcRMSD(R))+"\t"+atoms[0].length+"\t"+rmsd_sel);
+            // Oops, no, use an identity transform -- coords already moved!
+            System.out.println(df.format(superpos.calcRMSD(new Transform()))+"\t"+atoms[0].length+"\t"+rmsd_sel);
+        }
+        
+        // Print the transform:
+        if(showTransform)
+        {
+            System.out.println("Transformation matrix (premult, Rx -> x'):");
+            System.out.println(R);
         }
     }
 
@@ -397,8 +481,17 @@ public class SubImpose //extends ... implements ...
         }
         else if(flag.equals("-v"))
             verbose = true;
+        else if(flag.equals("-t"))
+            showTransform = true;
         else if(flag.equals("-super"))
             superimpose = param;
+        else if(flag.equals("-sieve"))
+        {
+            try { leskSieve = Double.parseDouble(param); }
+            catch(NumberFormatException ex) { throw new IllegalArgumentException(param+" isn't a number!"); }
+            if(leskSieve <= 0 || leskSieve > 1)
+                throw new IllegalArgumentException("value for -sieve out of range (0,1]");
+        }
         else if(flag.equals("-kin"))
             kinOut = param;
         else if(flag.equals("-pdb"))
