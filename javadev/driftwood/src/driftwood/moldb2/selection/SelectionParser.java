@@ -42,6 +42,7 @@ public class SelectionParser //extends ... implements ...
     final Matcher OF            = Pattern.compile("of").matcher("");
     final Matcher COMMA         = Pattern.compile(",").matcher("");
     final Matcher REAL          = RegexTokenMatcher.SIGNED_REAL.matcher("");
+    final Matcher FROMRES       = Pattern.compile("fromres").matcher("");
     
     final Pattern[] toIgnore = {
         RegexTokenMatcher.HASH_COMMENT,
@@ -264,6 +265,7 @@ public class SelectionParser //extends ... implements ...
         else if(t.accept(RESRANGE))     return res_range();
         else if(t.accept(RESNUM))       return res_num();
         else if(t.accept(WITHIN))       return within();
+        else if(t.accept(FROMRES))      return from_res();
         else                            return null;
     }
 //}}}
@@ -306,7 +308,7 @@ public class SelectionParser //extends ... implements ...
     }
 //}}}
 
-//{{{ within
+//{{{ within, from_res
 //##############################################################################
     Selection within() throws ParseException, IOException
     {
@@ -326,6 +328,14 @@ public class SelectionParser //extends ... implements ...
             double z = real();
             return new WithinPointTerm(dist, x, y, z);
         }
+    }
+
+    Selection from_res() throws ParseException, IOException
+    {
+        Selection s = subexpr();
+        if(s == null)
+            throw t.syntaxError("fromres must be followed by (SELECTION)");
+        return new FromResTerm(s);
     }
 //}}}
 
