@@ -11,6 +11,7 @@ import java.text.ParseException;
 import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
+import driftwood.data.UberSet;
 import driftwood.moldb2.selection.SelectionParser;
 //}}}
 /**
@@ -29,7 +30,7 @@ import driftwood.moldb2.selection.SelectionParser;
 * <li>TightOrTerm &rarr; ( "!" | "not" )? NotTerm</li>
 * <li>NotTerm &rarr; SimpleTerm | ( "(" Selection ")" )
 *   <br><i>(That makes the grammar recursive!)</i></li>
-* <li>SimpleTerm &rarr; Keyword | Chain | Seg | ResName | Atom | ResRange | Within</li>
+* <li>SimpleTerm &rarr; Keyword | Chain | Seg | ResName | Atom | ResRange | Within | FromRes</li>
 * <li>Keyword &rarr; "*" | "all" | "none" | "protein" | "mc" | "sc" | "base" | "alpha" | "beta"
 *   | "nitrogen" | "carbon" | "oxygen" | "sulfur" | "phosphorus" | "hydrogen" | "metal"
 *   | "polar" | "nonpolar" | "charged" | "donor" | "acceptor" | "aromatic" | "methyl"
@@ -40,6 +41,7 @@ import driftwood.moldb2.selection.SelectionParser;
 * <li>Atom &rarr; "atom" CHAR{4}</li>
 * <li>ResRange &rarr; INT ( ( "-" | "to" ) INT )</li>
 * <li>Within &rarr; "within" REAL "of" ( ( "(" Selection ")" ) | ( REAL ","? REAL ","? REAL ) )</li>
+* <li>FromRes &rarr; "fromres" "(" Selection ")"</li>
 * </ul>
 *
 * Note that there's an ambiguity around "-": it can denote negative numbers
@@ -118,7 +120,7 @@ abstract public class Selection //extends ... implements ...
     abstract protected boolean selectImpl(AtomState as);
 //}}}
 
-//{{{ selectAtomStates
+//{{{ selectAtomStates, selectResidues
 //##############################################################################
     /**
     * Returns the list of AtomStates for which select() is true.
@@ -130,6 +132,24 @@ abstract public class Selection //extends ... implements ...
         {
             AtomState as = (AtomState) iter.next();
             if( this.select(as) ) selected.add(as);
+        }
+        return selected;
+    }
+    
+    /**
+    * Returns the Set of Residues for which at least one AtomState was selected.
+    */
+    public Set selectResidues(Collection atomStates)
+    {
+        // Must try them all unless already selected,
+        // because only one has to match for the residue to be included.
+        Set selected = new UberSet(); // nice to have them stay in order
+        for(Iterator iter = atomStates.iterator(); iter.hasNext(); )
+        {
+            AtomState as = (AtomState) iter.next();
+            Residue r = as.getResidue();
+            if(selected.contains(r)) continue;
+            else if( this.select(as) ) selected.add(r);
         }
         return selected;
     }
