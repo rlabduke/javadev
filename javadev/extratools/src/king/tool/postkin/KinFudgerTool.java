@@ -144,10 +144,10 @@ public class KinFudgerTool extends BasicTool {
     JButton transformButton = new JButton(new ReflectiveAction("Move highlighted points!", null, this, "onTrans"));
     
     onePointBox = new JCheckBox("Move one point");
-    moveVisBox = new JCheckBox("Move only visible points", true);
+    moveVisBox = new JCheckBox("Move only visible", true);
     
     dragBox = new JCheckBox("Move structures with mouse drag");
-    JButton clearButton = new JButton(new ReflectiveAction("Clear", null, this, "onClear"));
+    JButton clearButton = new JButton(new ReflectiveAction("Clear selection", null, this, "onClear"));
     advBox = new JCheckBox ("Advanced options");
     
     TablePane2 tpAdvOpt = new TablePane2();
@@ -160,14 +160,19 @@ public class KinFudgerTool extends BasicTool {
     pane = new TablePane();
 
     pane.add(fudgeDistance);
-    pane.add(fudgeAngle);
-    pane.add(fudgeDihedral);
-    pane.newRow();
+    pane.save().vfill(true);
+    pane.add(new JSeparator(SwingConstants.VERTICAL),1,3);
+    pane.restore();
     pane.add(onePointBox);
-    //pane.add(exportButton);
     pane.newRow();
-    pane.add(moveVisBox,2,1);
+    
+    pane.add(fudgeAngle);
+    pane.add(moveVisBox,1,1);
+    pane.newRow();
+
+    pane.add(fudgeDihedral);
     pane.addCell(clearButton);
+    
     pane.newRow().save().hfill(true).vfill(true);
     pane.add(new JScrollPane(pkList.pointList),3,1);
     pane.newRow().restore();    
