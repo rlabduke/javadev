@@ -80,6 +80,11 @@
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+### 2.12 ###
+- fixed the bug where the king logo wasn't getting put in the right place after 
+  any point id was displayed.  Seems like gl.glRasterPos2d was getting called by
+  paintLabel, which was also changing the display position for the logo.
+  
 ### 2.11 ###
 - deployed to world with pdb v3 probe.
 - added workarounds to JFileChooser creation bug in unsigned applets

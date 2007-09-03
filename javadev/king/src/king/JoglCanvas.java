@@ -125,6 +125,7 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
             // This is probably a bit slow, but for logo display, we don't really care.
             Graphics2D g2 = setupOverlay();
             Dimension dim = glSize;
+            gl.glRasterPos2d(0, -dim.height); // for getting the logo to display in correct spot
             g2.setColor(Color.black);
             g2.fillRect(0, 0, dim.width, dim.height);
             if(logo != null) g2.drawImage(logo, (dim.width-logo.getWidth(this))/2, (dim.height-logo.getHeight(this))/2, this);
