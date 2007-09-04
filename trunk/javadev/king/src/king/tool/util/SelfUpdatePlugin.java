@@ -34,7 +34,7 @@ public class SelfUpdatePlugin extends Plugin
         "Do you still want to try updating KiNG?";
         
     static final String ARE_YOU_SURE1 =
-        "This plugin will download the latest version of KiNG\n"+
+        "This plugin will download the latest version of KiNG and probe\n"+
         "that is publicly available on the Kinemage website.\n"+
         "It will then be installed over top of your current KiNG\n"+
         "(";
@@ -86,6 +86,7 @@ public class SelfUpdatePlugin extends Plugin
     public SelfUpdatePlugin(ToolBox tb)
     {
         super(tb);
+        //System.out.println(System.getProperty("os.name"));
         progressTimer = new Timer(1000, new ReflectiveAction(null, null, this, "onProgressTimer"));
         progressTimer.setCoalesce(true);
         
@@ -203,6 +204,9 @@ public class SelfUpdatePlugin extends Plugin
                 ZipFile f = new ZipFile(tmpFile);
                 installZipFile(f);
                 f.close();
+                ZipFile probe = updateProbe();
+                installZipFile(probe);
+                probe.close();
                 abortFlag = false; // just in case there was a sync. problem
             }
         }
@@ -213,6 +217,54 @@ public class SelfUpdatePlugin extends Plugin
         
         SwingUtilities.invokeLater(new ReflectiveRunnable(this, "onFinishUpdate"));
     }
+//}}}
+
+//{{{ updateProbe
+  /**
+  * Attempt to automatically update probe.  This requires determining the OS that KiNG is running
+  * on, and obtaining the correctly compatible version of probe.  
+  */
+  private ZipFile updateProbe() throws Throwable {
+    String osName = System.getProperty("os.name").toLowerCase();
+    if (osName.indexOf("win") != -1) { 
+      return downloadProbe("http://kinemage.biochem.duke.edu/downloads/software/king/windowsprobe");
+    } else if (osName.indexOf("mac") != -1) {
+      return downloadProbe("http://kinemage.biochem.duke.edu/downloads/software/king/macprobe");
+    } else if ((osName.indexOf("nix") != -1)||(osName.indexOf("nux") != -1)) {
+      return downloadProbe("http://kinemage.biochem.duke.edu/downloads/software/king/linuxprobe");
+    } else {
+      JOptionPane.showMessageDialog(kMain.getTopWindow(), "Unable to determine operating system name, please update manually.",
+                                    "Update failed", JOptionPane.ERROR_MESSAGE);
+    }
+    return null;
+  }
+//}}}
+
+//{{{ downloadProbe
+  private ZipFile downloadProbe(String url) throws Throwable {
+    URL updateURL = new URL(url);
+    URLConnection urlConn = updateURL.openConnection();
+    this.totalSize = urlConn.getContentLength();
+    this.downloadedSize = 0;
+    
+    InputStream is = urlConn.getInputStream();
+    File tmpFile = File.createTempFile("probeupdate", null);
+    tmpFile.deleteOnExit();
+    OutputStream os = new BufferedOutputStream(new FileOutputStream(tmpFile));
+    //streamcopy(is, os);
+    byte[] buffer = new byte[2048];
+    int len;
+    while((len = is.read(buffer)) != -1 && !abortFlag)
+    {
+      os.write(buffer, 0, len);
+      this.downloadedSize += len;
+    }
+    os.close();
+    is.close();
+    
+    return new ZipFile(tmpFile);
+    
+  }
 //}}}
 
 //{{{ installZipFile, streamcopy
