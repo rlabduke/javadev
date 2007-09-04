@@ -76,6 +76,7 @@
     bug: moved n-D points will move back when axes are changed (?)
     use @dimoffset, @dimscale in parallel coordinate plots?
     make kinemage (esp views) behave OK when there are no points inside... (?)
+    Make update probe a separate plugin?
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -84,6 +85,8 @@
 - fixed the bug where the king logo wasn't getting put in the right place after 
   any point id was displayed.  Seems like gl.glRasterPos2d was getting called by
   paintLabel, which was also changing the display position for the logo.
+- changed SelfUpdatePlugin to update probe also.  Maybe in the future update probe
+  should be a separate plugin?
   
 ### 2.11 ###
 - deployed to world with pdb v3 probe.
