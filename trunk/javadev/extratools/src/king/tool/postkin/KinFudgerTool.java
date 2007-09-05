@@ -118,8 +118,9 @@ public class KinFudgerTool extends BasicTool {
     super(tb);
     pkList = new PointKeeper(KPalette.sky);
     buildGUI();
-    mobileList = new KList(KList.BALL);
+    mobileList = new KList(KList.VECTOR);
     mobileList.setColor(KPalette.green);
+    mobileList.setWidth(5);
   }
   //}}}
   
@@ -223,7 +224,7 @@ public class KinFudgerTool extends BasicTool {
             //System.out.println("starting to find mobiles");
             mobilityFinder(firstClick, secondClick);
             updateMobKlist();
-            this.services.setID("Green balls show which points are going to move.  If not correct, hit clear and try again!");
+            this.services.setID("Green points show which points are going to move.  If not correct, hit clear and try again!");
             //System.out.println("translating mobiles");
             //translatePoints(firstClick, secondClick, dist);
             //System.out.println("finished");
@@ -247,7 +248,7 @@ public class KinFudgerTool extends BasicTool {
             //System.out.println("starting to find mobiles");
             mobilityFinder(secondClick, thirdClick);
             updateMobKlist();
-            this.services.setID("Green balls show which points are going to move.  If not correct, hit clear and try again!");
+            this.services.setID("Green points show which points are going to move.  If not correct, hit clear and try again!");
             //System.out.println("translating mobiles");
             //double currAngle = Triple.angle(firstClick, secondClick, (AbstractPoint) p);
             //rotatePoints(firstClick, secondClick, thirdClick, idealAngle);
@@ -277,7 +278,7 @@ public class KinFudgerTool extends BasicTool {
               mobilityFinder(secondClick, thirdClick);
             }
             updateMobKlist();
-            this.services.setID("Green balls show which points are going to move.  If not correct, hit clear and try again!");
+            this.services.setID("Green points show which points are going to move.  If not correct, hit clear and try again!");
             //System.out.println("finished finding mobiles");
             //double currAngle = Triple.dihedral(firstClick, secondClick, thirdClick, (AbstractPoint) p);
             //rotateDihedral(firstClick, secondClick, thirdClick, fourthClick, idealAngle);
@@ -571,7 +572,7 @@ public class KinFudgerTool extends BasicTool {
     for (KPoint point : iter) {
       if (point instanceof VectorPoint) {
         VectorPoint currPoint = (VectorPoint) point;
-        if ((!currPoint.isBreak())&&(currPoint.isOn())) {
+        if ((!currPoint.isBreak())/*&&(currPoint.isOn())*/) {
           VectorPoint prevPoint = (VectorPoint) currPoint.getPrev();
           addPoints(prevPoint, currPoint);
           addPoints(currPoint, prevPoint);
@@ -625,13 +626,15 @@ public class KinFudgerTool extends BasicTool {
         AbstractPoint point = (AbstractPoint) queue.getFirst();
         queue.removeFirst();
         HashSet adjSet = (HashSet) adjacencyMap.get(point);
-        Iterator adjIter = adjSet.iterator();
-        while (adjIter.hasNext()) {
-          AbstractPoint adjPoint = (AbstractPoint) adjIter.next();
-          if (colors.get(adjPoint).equals(KPalette.white)) {
-            colors.put(adjPoint, KPalette.gray);
-            mobilePoints.add(clonePoint(adjPoint));
-            queue.addLast(adjPoint);
+        if (adjSet != null) {
+          Iterator adjIter = adjSet.iterator();
+          while (adjIter.hasNext()) {
+            AbstractPoint adjPoint = (AbstractPoint) adjIter.next();
+            if (colors.get(adjPoint).equals(KPalette.white)) {
+              colors.put(adjPoint, KPalette.gray);
+              mobilePoints.add(clonePoint(adjPoint));
+              queue.addLast(adjPoint);
+            }
           }
         }
         colors.put(point, KPalette.deadblack);
@@ -655,11 +658,28 @@ public class KinFudgerTool extends BasicTool {
       for (KPoint pt : points) {
         AbstractPoint point = (AbstractPoint) pt;
         if (mobilePoints.contains(point)) {
-          BallPoint ball = new BallPoint("mobile");
-          ball.setX(point.getX());
-          ball.setY(point.getY());
-          ball.setZ(point.getZ());
-          mobileList.add(ball);
+          if (point instanceof VectorPoint) {
+            VectorPoint prev = null;
+            if (pt.getPrev() != null) {
+              prev = new VectorPoint(pt.getPrev().getName(), null);
+              prev.setX(pt.getPrev().getX());
+              prev.setY(pt.getPrev().getY());
+              prev.setZ(pt.getPrev().getZ());
+              mobileList.add(prev);
+            } 
+            VectorPoint vect = new VectorPoint(pt.getName(), prev);
+            vect.setX(point.getX());
+            vect.setY(point.getY());
+            vect.setZ(point.getZ());
+            mobileList.add(vect);
+          } else {
+            BallPoint ball = new BallPoint(pt.getName());
+            ball.setRadius((float)0.25);
+            ball.setX(point.getX());
+            ball.setY(point.getY());
+            ball.setZ(point.getZ());
+            mobileList.add(ball);
+          }
         }
       }
     }
@@ -668,7 +688,12 @@ public class KinFudgerTool extends BasicTool {
   
   //{{{ clonePoint
   private Object clonePoint(AbstractPoint point) {
-    VectorPoint pointClone = new VectorPoint(point.getName(), null);
+    AbstractPoint pointClone;
+    if (point instanceof VectorPoint) {
+      pointClone = new VectorPoint(point.getName(), (VectorPoint) point.getPrev());
+    } else {
+      pointClone = new BallPoint(point.getName());
+    }
     pointClone.setX((float) point.getX());
     pointClone.setY((float) point.getY());
     pointClone.setZ((float) point.getZ());
