@@ -104,6 +104,7 @@ public class KinFudgerTool extends BasicTool {
   
   JRadioButton fudgeDistance, fudgeAngle, fudgeDihedral;
   JCheckBox onePointBox, dragBox, moveVisBox, advBox;
+  JButton transformButton;
   
   AbstractPoint firstClick, secondClick, thirdClick, fourthClick;
   double idealValue;
@@ -142,7 +143,8 @@ public class KinFudgerTool extends BasicTool {
     
     JButton exportButton = new JButton(new ReflectiveAction("Export to pdb", null, this, "onExport"));
     //exportButton.addActionListener(this);
-    JButton transformButton = new JButton(new ReflectiveAction("Move highlighted points!", null, this, "onTrans"));
+    transformButton = new JButton(new ReflectiveAction("Move highlighted points!", null, this, "onTrans"));
+    transformButton.setEnabled(false);
     
     onePointBox = new JCheckBox("Move one point");
     moveVisBox = new JCheckBox("Move only visible", true);
@@ -228,6 +230,8 @@ public class KinFudgerTool extends BasicTool {
             //System.out.println("translating mobiles");
             //translatePoints(firstClick, secondClick, dist);
             //System.out.println("finished");
+          } else {
+            clear();
           }
           //pkList.clear();
           //mobileList.clear();
@@ -253,6 +257,8 @@ public class KinFudgerTool extends BasicTool {
             //double currAngle = Triple.angle(firstClick, secondClick, (AbstractPoint) p);
             //rotatePoints(firstClick, secondClick, thirdClick, idealAngle);
             //System.out.println("finished");
+          } else {
+            clear();
           }
           //pkList.clear();
           //mobileList.clear();
@@ -283,6 +289,8 @@ public class KinFudgerTool extends BasicTool {
             //double currAngle = Triple.dihedral(firstClick, secondClick, thirdClick, (AbstractPoint) p);
             //rotateDihedral(firstClick, secondClick, thirdClick, fourthClick, idealAngle);
             //System.out.println("finished");
+          } else {
+            clear();
           }
           //pkList.clear();
           //mobileList.clear();
@@ -393,6 +401,7 @@ public class KinFudgerTool extends BasicTool {
     fourthClick = null;
     idealValue = Double.NaN;
     this.services.setID("");
+    transformButton.setEnabled(false);
     kCanvas.repaint();
   }
   //}}}
@@ -646,6 +655,7 @@ public class KinFudgerTool extends BasicTool {
   
   //{{{ updateMobKlist
   public void updateMobKlist() {
+    transformButton.setEnabled(true);
     if (mobilePoints.size() > 0) {
       Kinemage kin = kMain.getKinemage();
       KIterator<KPoint> points;
