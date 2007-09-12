@@ -13,6 +13,7 @@ import java.util.*;
 //import javax.swing.*;
 import driftwood.moldb2.*;
 import driftwood.r3.*;
+import chiropraxis.sc.SidechainAngles2;
 //}}}
 /**
 * <code>SubImpose</code> is a tool for superimposing proteins based on a
@@ -59,6 +60,7 @@ public class SubImpose //extends ... implements ...
 //##############################################################################
     boolean verbose = false;
     boolean showTransform = false;
+    boolean fix180flips = true;
     String structIn1 = null, structIn2 = null;
     String kinOut = null, pdbOut = null;
     String superimpose = null;
@@ -71,6 +73,68 @@ public class SubImpose //extends ... implements ...
     public SubImpose()
     {
         super();
+    }
+//}}}
+
+//{{{ fix180rotations
+//##############################################################################
+    /**
+    * For symmetric residues in res1 where the symmetric chi angle differs by
+    * more than 90 degrees from the corresponding residue in res2,
+    * rotate by 180 degrees to remove an rmsd that comes only from atom naming.
+    * @return a new version of s1 with flips incorporated
+    */
+    ModelState fix180rotations(ModelState s1, ModelState s2, Alignment align) throws IOException
+    {
+        DecimalFormat df = new DecimalFormat("0.0");
+        SidechainAngles2 sc = new SidechainAngles2();
+        for(int i = 0, len = align.a.length; i < len; i++)
+        {
+            if(align.a[i] == null || align.b[i] == null) continue;
+            Residue r1 = (Residue) align.a[i];
+            Residue r2 = (Residue) align.b[i];
+            if(!r1.getName().equals(r2.getName())) continue; // sequence mismatch
+            
+            String whichAngle = null;
+            if("PHE".equals(r1.getName()))      whichAngle = "chi2";
+            else if("TYR".equals(r1.getName())) whichAngle = "chi2";
+            else if("ASP".equals(r1.getName())) whichAngle = "chi2";
+            else if("GLU".equals(r1.getName())) whichAngle = "chi3";
+            else continue;
+            
+            // This could potentially also be a problem for Arg "chi5" if you
+            // had a nonstandard rotamer library somewhere that messed up the
+            // NH1/NH2 naming convention, but for now we won't worry about it.
+            // FYI, NH1 is cis to CD, and NH2 is trans to CD:
+            // -- CD          NH1
+            //      \        /
+            //       NE -- CZ
+            //               \
+            //                NH2
+            
+            try
+            {
+                // Calculate both chi angles on [0,360)
+                double a1 = sc.measureAngle(whichAngle, r1, s1) % 360;
+                if(a1 < 0) a1 += 360;
+                double a2 = sc.measureAngle(whichAngle, r2, s2) % 360;
+                if(a2 < 0) a2 += 360;
+                // Calculate difference on [0,180]
+                double diff = Math.abs(a1 - a2);
+                if(diff > 180) diff = 360 - diff;
+                // If greater than 90, flip r1
+                if(diff > 90)
+                {
+                    s1 = sc.setAngle(whichAngle, r1, s1, (a1 - 180));
+                    if(verbose)
+                        System.err.println("Flipped "+whichAngle+" for "+r1+"; "+df.format(a1)+" - "+df.format(a2)+" = "+df.format(diff)+"; "+df.format(a1)+" --> "+df.format(sc.measureAngle(whichAngle, r1, s1)));
+                }
+            }
+            catch(AtomException ex)
+            { System.err.println("Unable to flip "+whichAngle+" for "+r1+": "+ex.getMessage()); }
+        }
+        
+        return s1.createCollapsed();
     }
 //}}}
 
@@ -251,10 +315,12 @@ public class SubImpose //extends ... implements ...
         
         // Read in structures, get arrays of residues.
         PdbReader pdbReader = new PdbReader();
-        CoordinateFile s1 = pdbReader.read(new File(structIn1));
-        CoordinateFile s2 = pdbReader.read(new File(structIn2));
-        Model m1 = s1.getFirstModel();
-        Model m2 = s2.getFirstModel();
+        CoordinateFile coord1 = pdbReader.read(new File(structIn1));
+        CoordinateFile coord2 = pdbReader.read(new File(structIn2));
+        Model m1 = coord1.getFirstModel();
+        Model m2 = coord2.getFirstModel();
+        ModelState s1 = m1.getState();
+        ModelState s2 = m2.getState();
         
         DecimalFormat df = new DecimalFormat("0.0###");
         System.err.println("rmsd\tn_atoms\tselection");
@@ -271,11 +337,14 @@ public class SubImpose //extends ... implements ...
             System.err.println();
         }
         
+        // Fix 180 degree rotations of symmetric sidechains, which give spurious rmsds.
+        if(fix180flips) s1 = fix180rotations(s1, s2, align);
+        
         // If -super, do superimposition of s1 on s2:
         Transform R = new Transform(); // identity, defaults to no superposition
         if(superimpose != null)
         {
-            AtomState[][] atoms = getAtomsForSelection(m1.getResidues(), m1.getState(), m2.getResidues(), m2.getState(), superimpose, align);
+            AtomState[][] atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, superimpose, align);
             if(verbose)
             {
                 System.err.println("Atom alignments:");
@@ -320,7 +389,7 @@ public class SubImpose //extends ... implements ...
             if(pdbOut != null)
             {
                 PdbWriter pdbWriter = new PdbWriter(new File(pdbOut));
-                pdbWriter.writeCoordinateFile(s1);
+                pdbWriter.writeCoordinateFile(coord1);
                 pdbWriter.close();
             }
         }
@@ -336,7 +405,7 @@ public class SubImpose //extends ... implements ...
         for(Iterator iter = rmsd.iterator(); iter.hasNext(); )
         {
             String rmsd_sel = (String) iter.next();
-            AtomState[][] atoms = getAtomsForSelection(m1.getResidues(), m1.getState(), m2.getResidues(), m2.getState(), rmsd_sel, align);
+            AtomState[][] atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, rmsd_sel, align);
             if(verbose)
             {
                 System.err.println("Atom alignments:");
@@ -483,6 +552,8 @@ public class SubImpose //extends ... implements ...
             verbose = true;
         else if(flag.equals("-t"))
             showTransform = true;
+        else if(flag.equals("-noscflip"))
+            fix180flips = false;
         else if(flag.equals("-super"))
             superimpose = param;
         else if(flag.equals("-sieve"))
