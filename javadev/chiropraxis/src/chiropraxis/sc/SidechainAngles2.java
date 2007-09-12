@@ -275,6 +275,7 @@ public class SidechainAngles2 //extends ... implements ...
     * are rotated about the named angle axis.
     * Sets the angle to some absolute value in degrees.
     * Use measureAngle() to learn the initial value, if needed.
+    * @return a modified ModelState (input state is not changed)
     * @throws IllegalArgumentException if operation cannot succeed
     * @throws AtomException if required atoms are missing
     */
