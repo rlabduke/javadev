@@ -7,6 +7,7 @@ import java.io.*;
 import java.util.*;
 import driftwood.moldb2.*;
 import driftwood.r3.*;
+import java.text.DecimalFormat;
 //}}}
 
 public class ArgFlipConfirmer
@@ -14,9 +15,11 @@ public class ArgFlipConfirmer
 //{{{ Variable Definitions
 //##################################################################################################
     ArrayList<String> flippedLines;
+    ArrayList<String> cnitsAndAngles;
     File junk_args;
     CoordinateFile cf_orig;
     CoordinateFile cf_after;
+    boolean junkOut;
 //}}}
 
 //{{{ main
@@ -36,9 +39,24 @@ public class ArgFlipConfirmer
 		try
         {
             flippedLines = new ArrayList<String>();
+            cnitsAndAngles = new ArrayList<String>();
             junk_args = new File(args[0]);
-            File pdb_orig  = new File(args[1]);   // e.g. 1amuH.pdb
-            File pdb_after = new File(args[2]);   // tmp2.pdb
+            File pdb_orig  = new File(args[1]);       // e.g. 1amuH.pdb
+            File pdb_after = new File(args[2]);       // tmp1.pdb
+            try
+            {
+                if (args[3].equals("-junkout"))
+                    junkOut = true;
+            }
+            catch (ArrayIndexOutOfBoundsException aioobe)
+            {
+                junkOut = false;
+            }
+            // Use the above option if you want to take in the ARG lines from a 'junk' file from 
+            // Bob's vtlscr-fixing Perl script and output the lines for ARGs that did flip in
+            // the same format.
+            // Otherwise, output will be in a form readable by said script so it can put it in a
+            // hash with quasi-CNIT values as keys.
             
             PdbReader pdbr_orig = new PdbReader();
             cf_orig = pdbr_orig.read(pdb_orig);
@@ -58,25 +76,24 @@ public class ArgFlipConfirmer
 	{
 		try
         {
+            final DecimalFormat df = new DecimalFormat("###.#");
             Scanner ls = new Scanner(junk_args);
             while (ls.hasNextLine())
             {
                 String argLine = ls.nextLine();
+                String quasiCNIT = argLine.substring(0, 9);
+                // format: "A    3 ARG"
+                //         "chain resno insertion-code restype
                 
                 // Find each Arg's pre- and post-refit guanidinium normal vectors
                 Triple preNormal  = getNormal(argLine, false);
                 Triple postNormal = getNormal(argLine, true);
                 
-                //System.out.println("preNormal: "+preNormal.getX()+", "+
-                //                    preNormal.getY()+", "+preNormal.getZ());
-                //System.out.println("postNormal: "+postNormal.getX()+", "+
-                //                    postNormal.getY()+", "+postNormal.getZ());
-                
-                // Currently, flip defined as 180 +/- 30 degrees ... can change later
                 double angle = preNormal.angle(postNormal);// / (2*Math.PI) * 360;
                 
-                //System.out.println("angle: "+angle);
-                
+                // Add angle to default output ArrayList and 'junkout' ArrayList
+                // (for latter, flip defined as 180 +/- 30 degrees ... can change later) 
+                cnitsAndAngles.add(quasiCNIT+":"+df.format(angle));
                 if ( (angle > 150 && angle < 210) || (angle > -210 && angle < -150) )
                     flippedLines.add(argLine);
             }
@@ -186,8 +203,12 @@ public class ArgFlipConfirmer
 //##################################################################################################
 	private void printOutput()
 	{
-		for (String line : flippedLines)
-            System.out.println(line);
+		if (junkOut)   // output in same format as 'junk' output by Bob's vtlscr-fixing script
+            for (String line : flippedLines)
+                System.out.println(line);
+        else           // output in form readable by Bob's vtlscr-fixing script to put in hash
+            for (String line : cnitsAndAngles)
+                System.out.println(line);
 	}
 //}}}
 
