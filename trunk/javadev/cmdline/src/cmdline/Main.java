@@ -29,6 +29,8 @@ public class Main {
       MySqlLiaison.main(cmdargs);
     } else if (args[0].equals("fragmentrotator")||(args[0].equals("fragrot"))) {
       FragmentRotator.main(cmdargs);
+    } else if (args[0].equals("test")) {
+      Test.main(cmdargs);
     } else {
       System.err.println("Unknown cmdline function!");
     }

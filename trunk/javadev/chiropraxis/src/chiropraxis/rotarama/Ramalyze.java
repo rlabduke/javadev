@@ -230,7 +230,7 @@ public class Ramalyze //extends ... implements ...
             try { out.flush(); }
             catch(IOException ex) {} // PdfWriter might have already closed it!
         }
-        if(mode == MODE_RAW) // added by DAK 07/08/24
+        else if(mode == MODE_RAW) // added by DAK 07/08/24
         {
             // Print RamaEval.numscores separated by colons
             int i = 0;

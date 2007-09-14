@@ -64,6 +64,7 @@
             <pathelement location="../driftwood/build"/>
             <pathelement location="../king/build"/>
             <pathelement location="../molikin/build"/>
+            <pathelement location="../chiropraxis/build"/>
          </classpath>
     </javac>
 </target>
