@@ -10,6 +10,17 @@ import driftwood.r3.*;
 import java.text.DecimalFormat;
 //}}}
 
+/**
+* <code>ArgFlipConfirmer</code> takes in two PDB files and a list of Arg
+* names in a format specified by Bob Immormino's automated sc refitting
+* script using Coot, which is written in Perl.  The output is the angle
+* between the original guanidinium group normal vector and that for the 
+* refit Arg.  This will be filtered later on to take only ~180 degree flips,
+* a special class of Arg refits.
+*
+* <p>Copyright (C) 2007 by Daniel Keedy. All rights reserved.
+* 
+*/
 public class ArgFlipConfirmer
 { 
 //{{{ Variable Definitions
@@ -113,9 +124,11 @@ public class ArgFlipConfirmer
         if (afterRefit)
             cf = cf_after;
         
-        Scanner s = new Scanner(argLine);
-        String chain   = s.next();
-        String resno   = s.next();
+        //Scanner s = new Scanner(argLine);
+        //String chain   = s.next();
+        //String resno   = s.next();
+        String chain = argLine.substring(0,1);
+        String resno = (argLine.substring(1,5)).trim();
         String restype = "ARG";
         
         //System.out.println("chain: '"+chain+"'");
