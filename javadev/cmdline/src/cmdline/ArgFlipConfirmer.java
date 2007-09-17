@@ -11,9 +11,7 @@ import java.text.DecimalFormat;
 //}}}
 
 /**
-* <code>ArgFlipConfirmer</code> takes in two PDB files and a list of Arg
-* names in a format specified by Bob Immormino's automated sc refitting
-* script using Coot, which is written in Perl.  The output is the angle
+* <code>ArgFlipConfirmer</code> takes in two PDB files.  The output is the angle
 * between the original guanidinium group normal vector and that for the 
 * refit Arg.  This will be filtered later on to take only ~180 degree flips,
 * a special class of Arg refits.
@@ -25,12 +23,12 @@ public class ArgFlipConfirmer
 { 
 //{{{ Variable Definitions
 //##################################################################################################
-    ArrayList<String> flippedLines;
+    TreeSet<String> quasiCNITs;
     ArrayList<String> cnitsAndAngles;
-    File junk_args;
+    File pdb_orig;
+    File pdb_after;
     CoordinateFile cf_orig;
     CoordinateFile cf_after;
-    boolean junkOut;
 //}}}
 
 //{{{ main
@@ -49,25 +47,10 @@ public class ArgFlipConfirmer
 	{
 		try
         {
-            flippedLines = new ArrayList<String>();
+            quasiCNITs = new TreeSet<String>();
             cnitsAndAngles = new ArrayList<String>();
-            junk_args = new File(args[0]);
-            File pdb_orig  = new File(args[1]);       // e.g. 1amuH.pdb
-            File pdb_after = new File(args[2]);       // tmp1.pdb
-            try
-            {
-                if (args[3].equals("-junkout"))
-                    junkOut = true;
-            }
-            catch (ArrayIndexOutOfBoundsException aioobe)
-            {
-                junkOut = false;
-            }
-            // Use the above option if you want to take in the ARG lines from a 'junk' file from 
-            // Bob's vtlscr-fixing Perl script and output the lines for ARGs that did flip in
-            // the same format.
-            // Otherwise, output will be in a form readable by said script so it can put it in a
-            // hash with quasi-CNIT values as keys.
+            pdb_orig  = new File(args[0]);       // e.g. 1amuH.pdb
+            pdb_after = new File(args[1]);       // e.g. 1amuH_mod.pdb or tmp1.pdb
             
             PdbReader pdbr_orig = new PdbReader();
             cf_orig = pdbr_orig.read(pdb_orig);
@@ -85,40 +68,65 @@ public class ArgFlipConfirmer
 //##################################################################################################
 	private void readInput()
 	{
-		try
+		// Get list of all Args, which we'll get angles for in next step
+        getArgSet();
+        
+        // For testing....
+        //Iterator iter2 = quasiCNITs.iterator();
+        //while (iter2.hasNext())
+        //{
+        //    String quasiCNIT = (String) iter2.next();
+        //    System.out.println(quasiCNIT);
+        //}
+        
+        // Get orig-after guan angle for each Arg in list compiled above
+        final DecimalFormat df = new DecimalFormat("###.#");
+        Iterator iter = quasiCNITs.iterator();
+        while (iter.hasNext())
         {
-            final DecimalFormat df = new DecimalFormat("###.#");
-            Scanner ls = new Scanner(junk_args);
-            while (ls.hasNextLine())
-            {
-                String argLine = ls.nextLine();
-                String quasiCNIT = argLine.substring(0, 9);
-                // format: "A    3 ARG"
-                //         "chain resno insertion-code restype
-                
-                // Find each Arg's pre- and post-refit guanidinium normal vectors
-                Triple preNormal  = getNormal(argLine, false);
-                Triple postNormal = getNormal(argLine, true);
-                
-                double angle = preNormal.angle(postNormal);// / (2*Math.PI) * 360;
-                
-                // Add angle to default output ArrayList and 'junkout' ArrayList
-                // (for latter, flip defined as 180 +/- 30 degrees ... can change later) 
-                cnitsAndAngles.add(quasiCNIT+":"+df.format(angle));
-                if ( (angle > 150 && angle < 210) || (angle > -210 && angle < -150) )
-                    flippedLines.add(argLine);
-            }
-        }
-        catch (FileNotFoundException fnfe)
-        {
-            System.out.println("Couldn't scan through junk_args");
+            String quasiCNIT = (String) iter.next();
+            
+            // Find each Arg's pre- and post-refit guanidinium normal vectors
+            Triple preNormal  = getNormal(quasiCNIT, false);
+            Triple postNormal = getNormal(quasiCNIT, true);
+            
+            double angle = preNormal.angle(postNormal);// / (2*Math.PI) * 360;
+            
+            // Add angle to output ArrayList 
+            cnitsAndAngles.add(quasiCNIT+":"+df.format(angle));
         }
 	}
 //}}}
 
+//{{{ getArgSet
+//##################################################################################################
+	private void getArgSet()
+	{
+        for (Iterator iterModels = (cf_orig.getModels()).iterator(); iterModels.hasNext(); )
+        {
+            Model mod = (Model) iterModels.next();
+            ModelState state = mod.getState();
+            for (Iterator iterResidues = (mod.getResidues()).iterator(); iterResidues.hasNext(); )
+            {
+                Residue res = (Residue) iterResidues.next();
+                String thisResno = res.getSequenceNumber();
+                String thisResType = res.getName();
+                String thisChain = res.getChain();
+                if (thisResType.equals("ARG"))
+                {
+                    String quasiCNIT = thisChain + thisResno + " ARG";
+                    // format: "A    3 ARG"
+                    //         "chain resno insertion-code restype
+                    quasiCNITs.add(quasiCNIT);
+                }
+            }
+        }
+    }
+//}}}
+
 //{{{ getNormal
 //##################################################################################################
-	private Triple getNormal(String argLine, boolean afterRefit)
+	private Triple getNormal(String quasiCNIT, boolean afterRefit)
 	{
         CoordinateFile cf = cf_orig;
         if (afterRefit)
@@ -127,8 +135,8 @@ public class ArgFlipConfirmer
         //Scanner s = new Scanner(argLine);
         //String chain   = s.next();
         //String resno   = s.next();
-        String chain = argLine.substring(0,1);
-        String resno = (argLine.substring(1,5)).trim();
+        String chain = quasiCNIT.substring(0,1);
+        String resno = (quasiCNIT.substring(1,5)).trim();
         String restype = "ARG";
         
         //System.out.println("chain: '"+chain+"'");
@@ -153,7 +161,8 @@ public class ArgFlipConfirmer
                 
                 String thisResno = (res.getSequenceNumber()).trim();
                 String thisResType = (res.getName()).trim();
-                if (resno.equals(thisResno) && restype.equals(thisResType))
+                String thisChain = (res.getChain()).trim();
+                if (resno.equals(thisResno) && restype.equals(thisResType)&& chain.equals(thisChain))
                 {
                     
                     //System.out.println("found an ARG...");
@@ -216,12 +225,8 @@ public class ArgFlipConfirmer
 //##################################################################################################
 	private void printOutput()
 	{
-		if (junkOut)   // output in same format as 'junk' output by Bob's vtlscr-fixing script
-            for (String line : flippedLines)
-                System.out.println(line);
-        else           // output in form readable by Bob's vtlscr-fixing script to put in hash
-            for (String line : cnitsAndAngles)
-                System.out.println(line);
+		for (String line : cnitsAndAngles)
+            System.out.println(line);
 	}
 //}}}
 
