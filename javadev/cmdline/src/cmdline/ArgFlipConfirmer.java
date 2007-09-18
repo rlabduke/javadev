@@ -158,10 +158,11 @@ public class ArgFlipConfirmer
                 Residue res = (Residue) iterResidues.next();
                 
                 //System.out.println("res: '"+res.getName()+"' '"+res.getSequenceNumber()+"'");
+                //System.out.println("res chain: '"+res.getChain()+"'");
                 
                 String thisResno = (res.getSequenceNumber()).trim();
-                String thisResType = (res.getName()).trim();
-                String thisChain = (res.getChain()).trim();
+                String thisResType = res.getName();
+                String thisChain = res.getChain();
                 if (resno.equals(thisResno) && restype.equals(thisResType)&& chain.equals(thisChain))
                 {
                     
