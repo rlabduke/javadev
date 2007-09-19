@@ -149,18 +149,18 @@ public class CsvToKinner
     void showHelp()
     {
         
-        System.out.println("Usage: java -cp cmdline.CsvToKinner [flags] [filename]" );
-        System.out.println(                                                         );
-        System.out.println("Flags:"                                                 );
-        System.out.println("-COLumns=#,#,#    uses designated columns for "         );
-        System.out.println("                     points in kinemage"                );
-        System.out.println("                  default: plot columns 0,1,2 in kin"   );
-        System.out.println("-DELIMiter=[word] sets delimiter for reading csv input" );
-        System.out.println("                  default: colon" );
-        System.out.println("-KINHEADing       prints @kin header in output"         );
-        System.out.println(                                                         );
-        System.out.println("We assume row 1 is headings."                           );
-        System.out.println("Rows and columns measured 0 to n."                      );
+        System.out.println("Usage: java -cp cmdline.CsvToKinner [flags] [filename]"           );
+        System.out.println(                                                                   );
+        System.out.println("Flags:"                                                           );
+        System.out.println("-COLumns=#,#,#    uses designated columns for points in kinemage" );
+        System.out.println("                  default: plot columns 0,1,2 in kin"             );
+        System.out.println("-DELIMiter=[word] sets delimiter for reading csv input"           );
+        System.out.println("                  default: colon"                                 );
+        System.out.println("-KINHEADing       prints @kin header in output"                   );
+        System.out.println(                                                                   );
+        System.out.println("We assume row 0 is headings."                                     );
+        System.out.println("Rows and columns measured 0 to n."                                );
+        System.out.println(                                                                   );
     }
 //}}}
 
