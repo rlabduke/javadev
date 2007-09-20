@@ -5,6 +5,7 @@ package cmdline;
 
 import java.io.*;
 import java.util.*;
+import java.text.DecimalFormat;
 import driftwood.r3.*;
 //}}}
 
@@ -22,11 +23,12 @@ public class CsvToKinner
 //##################################################################################################
     String csvFilename;
     File csv;
-    int[] cols;
+    int[] cols;                 // column ids/indices to look for in csv
     String[] labels;            // one for each column 
-    ArrayList<double[]> pts;
-    double max;                 // for axis placement purposes
-    double min;                 // for axis placement purposes
+    ArrayList<double[]> pts;    // size() is # rows in csv file
+    double[] maxes;               // for axis placement purposes
+    double[] mins;                // for axis placement purposes
+    double[] avgs;
     String delimiter;           // ":", ",", etc.
     boolean kinHeading;
     boolean wrap360;
@@ -42,7 +44,9 @@ public class CsvToKinner
 		CsvToKinner ctk = new CsvToKinner();
 		ctk.parseArgs(args);
         ctk.readInput();
-        ctk.getMaxMin();
+        ctk.getMaxes();
+        ctk.getMins();
+        ctk.getAvgs();
         ctk.printOutput();
 	}
 //}}}
@@ -298,32 +302,86 @@ public class CsvToKinner
 	}
 //}}}
 
-//{{{ getMaxMin
+//{{{ getMaxes, getMins
 //##################################################################################################
-	private void getMaxMin()
+	private void getMaxes()
 	{
-        max = -999999999;
-        min = 999999999;
-        for (double[] pt : pts)
+        // Find xMax, yMax, and zMax
+        double[] maxesArray = new double[3];
+        for (int xi = 0; xi < 3; xi ++)
         {
-            for (int i = 0; i < pt.length; i ++)
+            double xiMax = -999999999;
+            for (double[] pt : pts)
             {
-                if (pt[i] < min)    min = pt[i];
-                if (pt[i] > max)    max = pt[i];
+                if (pt[xi] > xiMax)    xiMax = pt[xi];
             }
+            
+            // Make sure the axes (which these are used for) will match the wrapping of the data
+            if (wrap360)
+            {
+                xiMax = wrap360(xiMax);
+            }
+            if (wrap180)
+            {
+                xiMax = wrap180(xiMax);
+            }
+            
+            maxesArray[xi] = xiMax;
         }
         
-        // Make sure the axes (which these are used for) will match the wrapping of the data
-        if (wrap360)
+        maxes = maxesArray;
+    }
+
+    private void getMins()
+	{
+        // Find xMin, yMin, and zMin
+        double[] minsArray = new double[3];
+        for (int xi = 0; xi < 3; xi ++)
         {
-            min = wrap360(min);
-            max = wrap360(max);
+            double xiMin = 999999999;
+            for (double[] pt : pts)
+            {
+                if (pt[xi] < xiMin)    xiMin = pt[xi];
+            }
+            
+            // Make sure the axes (which these are used for) will match the wrapping of the data
+            if (wrap360)
+            {
+                xiMin = wrap360(xiMin);
+            }
+            if (wrap180)
+            {
+                xiMin = wrap180(xiMin);
+            }
+            
+            minsArray[xi] = xiMin;
         }
-        if (wrap180)
+        
+        mins = minsArray;
+    }
+//}}}
+
+//{{{ getAvgs
+//##################################################################################################
+	private void getAvgs()
+	{
+        double[] avgsArray = new double[3];
+        for (int xi = 0; xi < 3; xi ++)
         {
-            min = wrap180(min);
-            max = wrap180(max);
+            double sum = 0;
+            int count = 0;
+            for (int i = 0; i < pts.size(); i ++)
+            {
+                double[] pt = pts.get(i);
+                sum += pt[2];
+                count ++;
+            }
+            
+            double avg = sum / count;
+            avgsArray[xi] = avg;
         }
+        
+        avgs = avgsArray;
     }
 //}}}
 
@@ -353,20 +411,12 @@ public class CsvToKinner
     }
 //}}}
 
-//{{{ getAvgZ
+//{{{ scale
 //##################################################################################################
-	private double getAvgZ()
-	{
-        double sum = 0;
-        int count = 0;
-        for (int i = 0; i < pts.size(); i ++)
-        {
-            double[] pt = pts.get(i);
-            sum += pt[2];
-            count ++;
-        }
-        
-        return sum / count;
+	private double scale(double value, int xi)
+    {
+        double valueScaled = value + (value - avgs[xi]) * scalingFactorZ;
+        return valueScaled;
     }
 //}}}
 
@@ -374,11 +424,21 @@ public class CsvToKinner
 //##################################################################################################
 	private void printOutput()
 	{
-		// Heading, if desired
+		final DecimalFormat df = new DecimalFormat("###.#");
+        
+        // Heading, if desired
         if (kinHeading)
             System.out.println("@kin {"+csvFilename+"}");
         
-        // Views and scaling
+        // Figure out overall max and min
+        double max = maxes[0];
+        if (maxes[1] > max)     max = maxes[1];
+        if (maxes[2] > max)     max = maxes[2];
+        double min = mins[0];
+        if (mins[1] < min)     min = mins[1];
+        if (mins[2] < min)     min = mins[2];
+        
+        // Frame
         System.out.println("@group {frame} dominant ");
         System.out.println("@vectorlist {frame} color= white");
         System.out.println("P "+min+" 0.000 0.000");
@@ -387,27 +447,30 @@ public class CsvToKinner
         System.out.println("   0.000 "+max+" 0.000");
         System.out.println("P  0.000 0.000 "+min);
         System.out.println("   0.000 0.000 "+max);
+        
+        // Labels
         System.out.println("@labellist {XYZ} color= white");
-        System.out.println("{"+labels[0]+"="+min+"} "+min+" 0 0");  //380.000 -5.000 -5.000");
-        System.out.println("{"+labels[0]+"="+max+"} "+max+" 0 0");  //380.000 -5.000 -5.000");
-        System.out.println("{"+labels[1]+"="+min+"} 0 "+min+" 0");  //-5.000 380.000 -5.000");
-        System.out.println("{"+labels[1]+"="+max+"} 0 "+max+" 0");  //-5.000 380.000 -5.000");
-        System.out.println("{"+labels[2]+"="+min+"} 0 0 "+min);     //-5.000 -5.000 380.000");
-        System.out.println("{"+labels[2]+"="+max+"} 0 0 "+max);     //-5.000 -5.000 380.000");
+        System.out.println("{"+labels[0]+" "+mins[0]+"} "
+            +1.1*min+" 0 0");
+        System.out.println("{"+labels[0]+" "+maxes[0]+"} "
+            +1.1*max+" 0 0");
+        System.out.println("{"+labels[1]+" "+mins[1]+"} "
+            +"0 "+1.1*min+" 0");
+        System.out.println("{"+labels[1]+" "+maxes[1]+"} "
+            +"0 "+1.1*max+" 0");
+        System.out.println("{"+labels[2]+" "+df.format(mins[2])+"} "
+            +"0 0 "+1.1*min);
+        System.out.println("{"+labels[2]+" "+df.format(maxes[2])+"} "
+            +"0 0 "+1.1*max);
         
         // Group
         System.out.print("@group {");
         for (int i = 0; i < cols.length; i ++)
         {
             if (i < cols.length - 1) System.out.print("col"+cols[i]+", ");
-            else                   System.out.print("col"+cols[i]);
+            else                     System.out.print("col"+cols[i]);
         }
         System.out.println("} animate dominant");
-        
-        // Get avg Z for scaling Z to X and Y, if desired
-        double avgZ = 0;
-        if (scaleZ)
-            avgZ = getAvgZ();
         
         // Dotlist
         System.out.println("@dotlist {nuthin'}");
@@ -421,7 +484,7 @@ public class CsvToKinner
                 // First added for Karplus's PGD bb geometry stuff, to get tau
                 // angles on same scale as 0to360 (or -180to180) phi & psi.
                 if (scaleZ && c == 2)
-                    pt[c] = (pt[c] - avgZ) * scalingFactorZ;
+                    pt[c] = scale(pt[c], 2);// - avgZ) * scalingFactorZ;
                 
                 if (wrap360)        System.out.print(wrap360(pt[c])+" ");
                 else if (wrap180)   System.out.print(wrap180(pt[c])+" ");
