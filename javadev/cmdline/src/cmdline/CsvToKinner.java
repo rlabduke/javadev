@@ -35,6 +35,8 @@ public class CsvToKinner
     boolean wrap180;
     boolean scaleZ;
     int scalingFactorZ;
+    boolean[] angleAxes;
+    
 //}}}
 
 //{{{ main
@@ -71,6 +73,7 @@ public class CsvToKinner
         wrap180 = false;
         scaleZ = false;
         scalingFactorZ = 10;
+        angleAxes = new boolean[3];
         
         // Nothing more to see here.  Move along...
     }
@@ -180,15 +183,34 @@ public class CsvToKinner
                         System.out.println("Default: X,Y,Z");
                     }
                 }
-                else if(flag.equals("-data0to360") || flag.equals("-0to360") || 
-                        flag.equals("-0-360") || flag.equals("wrap360"))
+                else if(flag.equals("-wrap360") || flag.equals("-wrap180"))
                 {
-                    wrap360 = true;
-                }
-                else if(flag.equals("-data0to180") || flag.equals("-0to180") || 
-                        flag.equals("-0-180") || flag.equals("wrap180"))
-                {
-                    wrap180 = true;
+                    if (flag.equals("-wrap360")) wrap360 = true;
+                    if (flag.equals("-wrap180")) wrap180 = true;
+                    if (param != null)
+                    {
+                        Scanner s = new Scanner(param).useDelimiter(",");
+                        while (s.hasNext())
+                        {
+                            String elem = s.next();
+                            if (elem.equals("x"))
+                                angleAxes[0] = true;
+                            else if (elem.equals("y"))
+                                angleAxes[1] = true;
+                            else if (elem.equals("z"))
+                                angleAxes[2] = true;
+                            else 
+                            {
+                                System.out.println("Couldn't understand parameter '"+elem+"'");
+                                System.out.println("Expected x, y, or z");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        System.out.println("Need comma-sep'd labels with this flag: "
+                            +"-wrap###=x,y,z or -wrap###=x,z for example");
+                    }
                 }
                 else if(flag.equals("-scalez"))
                 {
@@ -232,7 +254,9 @@ public class CsvToKinner
     // Display help information
     void showHelp()
     {
-        
+        System.out.println(                                                                    );
+        System.out.println("cmdline.CsvToKinner     DAK     2007"                              );
+        System.out.println(                                                                    );
         System.out.println("Usage: java -cp cmdline.CsvToKinner [flags] [filename]"            );
         System.out.println(                                                                    );
         System.out.println("Flags:"                                                            );
@@ -242,15 +266,13 @@ public class CsvToKinner
         System.out.println("-DELIMiter=[word]  sets delimiter for reading csv input"           );
         System.out.println("                   default: colon"                                 );
         System.out.println("-KINHEADing        prints @kin header in output"                   );
-        System.out.println(                                                                    );
-        System.out.println("-data0to180 || -0to180 || -0-180 || wrap180"                       );
-        System.out.println("                   wraps data and axes to -180 --> 180"            );
-        System.out.println("-data0to360 || -0to360 || -0-360 || wrap360"                       );
-        System.out.println("                   wraps data and axes to -360 --> 360"            );
+        System.out.println("-wrap180=[x,y,z] or -wrap360=[x,y,z]"                              );
+        System.out.println("                   wraps data and axes -180 --> 180 or 0 --> 360"  );
+        System.out.println("                   sets max & min for these axes to angle-like #s" );
+        System.out.println("                      (e.g. 0-360 inst. of 12-344 dep'ing on data" );
+        System.out.println("                   doesn't work for z axis right now..."           );
         System.out.println("-scalez=#          subtracts the average Z from each Z point, then");
         System.out.println("                      (opt'l) multiplies by the provided int"      );
-        System.out.println(                                                                    );
-        System.out.println(                                                                    );
         System.out.println(                                                                    );
         System.out.println("We assume row 0 is headings."                                      );
         System.out.println("Rows and columns measured 0 to n."                                 );
@@ -278,14 +300,23 @@ public class CsvToKinner
                 {
                     // Make a multi-D "point" for this line
                     double[] thisPoint = new double[cols.length];
-                    for (int c = 0; c < cols.length; c ++)
+                    try
                     {
-                        // Skip to ith column
-                        Scanner lineScan_c = new Scanner(line);
-                        lineScan_c.useDelimiter(delimiter);
-                        for (int j = 0; j < cols[c]; j++)
-                            lineScan_c.next();
-                        thisPoint[c] = Double.parseDouble(lineScan_c.next());
+                        for (int c = 0; c < cols.length; c ++)
+                        {
+                            // Skip to ith column
+                            Scanner lineScan_c = new Scanner(line);
+                            lineScan_c.useDelimiter(delimiter);
+                            for (int j = 0; j < cols[c]; j++)
+                                lineScan_c.next();
+                            thisPoint[c] = Double.parseDouble(lineScan_c.next());
+                        }
+                    }
+                    catch (java.util.NoSuchElementException nsee)
+                    {
+                        System.out.println("Couldn't find indicated columns...");
+                        System.out.println("Try using different delimiter?");
+                        System.exit(0);
                     }
                     
                     // Put this multi-D "point" into our ArrayList
@@ -317,11 +348,11 @@ public class CsvToKinner
             }
             
             // Make sure the axes (which these are used for) will match the wrapping of the data
-            if (wrap360)
+            if (wrap360 && xi < 2)
             {
                 xiMax = wrap360(xiMax);
             }
-            if (wrap180)
+            if (wrap180 && xi < 2)
             {
                 xiMax = wrap180(xiMax);
             }
@@ -345,11 +376,11 @@ public class CsvToKinner
             }
             
             // Make sure the axes (which these are used for) will match the wrapping of the data
-            if (wrap360)
+            if (wrap360 && xi < 2)
             {
                 xiMin = wrap360(xiMin);
             }
-            if (wrap180)
+            if (wrap180 && xi < 2)
             {
                 xiMin = wrap180(xiMin);
             }
@@ -430,38 +461,9 @@ public class CsvToKinner
         if (kinHeading)
             System.out.println("@kin {"+csvFilename+"}");
         
-        // Figure out overall max and min
-        double max = maxes[0];
-        if (maxes[1] > max)     max = maxes[1];
-        if (maxes[2] > max)     max = maxes[2];
-        double min = mins[0];
-        if (mins[1] < min)     min = mins[1];
-        if (mins[2] < min)     min = mins[2];
-        
-        // Frame
-        System.out.println("@group {frame} dominant ");
-        System.out.println("@vectorlist {frame} color= white");
-        System.out.println("P "+min+" 0.000 0.000");
-        System.out.println("  "+max+" 0.000 0.000");
-        System.out.println("P  0.000 "+min+" 0.000");
-        System.out.println("   0.000 "+max+" 0.000");
-        System.out.println("P  0.000 0.000 "+min);
-        System.out.println("   0.000 0.000 "+max);
-        
-        // Labels
-        System.out.println("@labellist {XYZ} color= white");
-        System.out.println("{"+labels[0]+" "+mins[0]+"} "
-            +1.1*min+" 0 0");
-        System.out.println("{"+labels[0]+" "+maxes[0]+"} "
-            +1.1*max+" 0 0");
-        System.out.println("{"+labels[1]+" "+mins[1]+"} "
-            +"0 "+1.1*min+" 0");
-        System.out.println("{"+labels[1]+" "+maxes[1]+"} "
-            +"0 "+1.1*max+" 0");
-        System.out.println("{"+labels[2]+" "+df.format(mins[2])+"} "
-            +"0 0 "+1.1*min);
-        System.out.println("{"+labels[2]+" "+df.format(maxes[2])+"} "
-            +"0 0 "+1.1*max);
+        // Frame and labels
+        printFrame(df);
+        printLabels(df);
         
         // Group
         System.out.print("@group {");
@@ -477,22 +479,164 @@ public class CsvToKinner
         for (int i = 0; i < pts.size(); i ++)
         {
             double[] pt = pts.get(i);
-            System.out.print("{point"+i+"} ");
+            System.out.print("{point"+i+" ");
+            for (int c = 0; c < cols.length; c ++)
+                System.out.print(pt[c]+" ");
+            System.out.print("} ");
             for (int c = 0; c < cols.length; c ++)
             {
-                // For scaling Z to X and Y, if desired
-                // First added for Karplus's PGD bb geometry stuff, to get tau
-                // angles on same scale as 0to360 (or -180to180) phi & psi.
-                if (scaleZ && c == 2)
-                    pt[c] = scale(pt[c], 2);// - avgZ) * scalingFactorZ;
-                
-                if (wrap360)        System.out.print(wrap360(pt[c])+" ");
-                else if (wrap180)   System.out.print(wrap180(pt[c])+" ");
-                else                System.out.print(pt[c]+" ");
+                if (c == 2) // Treat Z differently than X and Y
+                {
+                    // For scaling Z to X- & Y-like dimensions, if desired
+                    // First added for Karplus's PGD bb geometry stuff, to get tau
+                    // angles on same scale as 0to360 (or -180to180) phi & psi.
+                    if (scaleZ)
+                        pt[c] = scale(pt[c], 2);
+                    System.out.print(pt[c]+" ");
+                }
+                else
+                {
+                    if (wrap360)        System.out.print(wrap360(pt[c])+" ");
+                    else if (wrap180)   System.out.print(wrap180(pt[c])+" ");
+                    else                System.out.print(pt[c]+" ");
+                }
             }
             System.out.println();
         }
 	}
+//}}}
+
+//{{{ printFrame
+//##################################################################################################
+	private void printFrame(DecimalFormat df)
+	{
+        // Figure out overall max and min
+        //double max = maxes[0];
+        //if (maxes[1] > max)     max = maxes[1];
+        //if (maxes[2] > max)     max = maxes[2];
+        //double min = mins[0];
+        //if (mins[1] < min)     min = mins[1];
+        //if (mins[2] < min)     min = mins[2];
+        
+        
+        // X axis
+        System.out.println("@group {frame} dominant ");
+        System.out.println("@vectorlist {frame} color= white");
+        if (angleAxes[0])
+        {
+            if (wrap360)
+            {
+                System.out.println("{min 0  }P   0 0.000 0.000");
+                System.out.println("{max 360}  360 0.000 0.000");
+            }
+            else // assume wrap180
+            {
+                System.out.println("{min -180}P -180 0 0");
+                System.out.println("{max  180}   180 0 0");
+            }
+        }
+        else
+        {
+            System.out.println("{min "+mins[0]+"}P "+ mins[0] +" 0.000 0.000");
+            System.out.println("{max "+maxes[0]+"}  "+maxes[0]+" 0.000 0.000");
+            
+        }
+        
+        // Y axis
+        if (angleAxes[1])
+        {
+            if (wrap360)
+            {
+                System.out.println("{min 0  }P 0.000   0 0.000");
+                System.out.println("{max 360}  0.000 360 0.000");
+            }
+            else // assume wrap180
+            {
+                System.out.println("{min -180}P 0 -180 0");
+                System.out.println("{max  180}  0  180 0");
+            }
+        }
+        else
+        {
+            System.out.println("{min "+mins[1]+"}P 0.000 "+mins[1] +" 0.000");
+            System.out.println("{max "+maxes[1]+"} 0.000 "+maxes[1]+" 0.000");
+            
+        }
+        
+        // Z axis
+        if (scaleZ)
+        {
+            //if (mins[2] < 0)    mins[2] = 0;
+            //if (maxes[2] > 0)   maxes[2] = 0;
+            System.out.println("{min "+mins[2]+"}P   0.000 0.000 "+scale(mins[2], 2));
+            System.out.println("{max "+maxes[2]+"}   0.000 0.000 "+scale(maxes[2], 2));
+        }
+        else
+        {
+            System.out.println("{min "+mins[2]+"}P  0.000 0.000 "+mins[2] );
+            System.out.println("{max "+maxes[2]+"}  0.000 0.000 "+maxes[2]);
+        }
+    }
+//}}}
+
+//{{{ printLabels
+//##################################################################################################
+	private void printLabels(DecimalFormat df)
+	{
+        // X axis
+        System.out.println("@group {labels} dominant");
+        System.out.println("@labellist {XYZ} color= white");
+        if (angleAxes[0])
+        {
+            if (wrap360)
+            {
+                System.out.println("{"+labels[0]+" 0   } 0    0 0");
+                System.out.println("{"+labels[0]+" 360 } 360  0 0");
+            }
+            else // assume wrap180
+            {
+                System.out.println("{"+labels[0]+" -180} -180 0 0");
+                System.out.println("{"+labels[0]+"  180}  180 0 0");
+            }
+        }
+        else
+        {
+            System.out.println("{"+labels[0]+" "+mins[0] +"} "+mins[0] +" 0 0");
+            System.out.println("{"+labels[0]+" "+maxes[0]+"} "+maxes[0]+" 0 0");
+        }
+        
+        // Y axis
+        if (angleAxes[1])
+        {
+            if (wrap360)
+            {
+                System.out.println("{"+labels[1]+" 0   } 0 0    0");
+                System.out.println("{"+labels[1]+" 360 } 0 360  0");
+            }
+            else // assume wrap180
+            {
+                System.out.println("{"+labels[1]+" -180} 0 -180 0");
+                System.out.println("{"+labels[1]+"  180} 0  180 0");
+            }
+        }
+        else
+        {
+            System.out.println("{"+labels[1]+" "+mins[1] +"} 0 "+mins[1] +" 0");
+            System.out.println("{"+labels[1]+" "+maxes[1]+"} 0 "+maxes[1]+" 0");
+        }
+        
+        // Z axis
+        if (scaleZ)
+        {
+            System.out.println("{"+labels[2]+" "+df.format(mins[2] )+"} "+"0 0 "+scale(mins[2], 2));
+            System.out.println("{"+labels[2]+" "+df.format(maxes[2])+"} "+"0 0 "+scale(maxes[2], 2));
+        }
+        else
+        {
+            System.out.println("{"+labels[2]+" "+df.format(mins[2] )+"} "+"0 0 "+mins[2] );
+            System.out.println("{"+labels[2]+" "+df.format(maxes[2])+"} "+"0 0 "+maxes[2]);
+        }
+    }
 //}}}
 
 } //class
