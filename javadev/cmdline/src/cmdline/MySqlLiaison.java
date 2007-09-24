@@ -85,7 +85,7 @@ public class MySqlLiaison
           }
           else if (arg.equals("-justquery"))
           {
-              System.out.println("Just an SQL query this time -- no superimposition...");
+              System.out.println("Just an SQL query this time (no superimposition) ...");
               justQueryNoSuperimpose = true;
           }
           // Else, if it's any other arg that starts with "-", it's a flag 
@@ -97,12 +97,12 @@ public class MySqlLiaison
   {
       if (arg.indexOf(".sql") > 0)
       {
-          System.out.println("sqlFilename:          "+arg);
+          System.out.println("Your SQL query filename: "+arg);
           sqlFilename = arg;
       }
       else
       {
-          System.out.println("outPrefix:            "+arg);
+          System.out.println("Your outprefix:          "+arg);
           outPrefix = arg;
       }
   }
@@ -136,8 +136,8 @@ public class MySqlLiaison
   public void performMySqlQuery() 
   {
       // Prep the query
-      String sqlSelect = "";
       File sqlFile = new File(sqlFilename);
+      ArrayList<String> sqlSelectLines = new ArrayList<String>();
       try 
       {
           Scanner s = new Scanner(sqlFile);
@@ -147,24 +147,46 @@ public class MySqlLiaison
           {
               line = s.nextLine();
               lineTrimmed = line.trim();
-              if (lineTrimmed.length() != 0 && 
-                  lineTrimmed.indexOf("--") < 0) 
+              if (lineTrimmed.length() != 0 && lineTrimmed.indexOf("--") != 0) 
               {
                   // it's not a blank line or a comment
-                  sqlSelect = sqlSelect+" "+line;
+                  sqlSelectLines.add(line);
               }
           }
-          //System.out.println(sqlSelect);
       }
       catch (FileNotFoundException e)
       {
           System.out.println("Cannot find sql query file");
       }
       
+      // Get # columns SELECTed in query
+      int indexSELECT = 0;
+      int indexFROM = 0;
+      for (int i = 0; i < sqlSelectLines.size(); i ++)
+      {
+          String line = sqlSelectLines.get(i);
+          if ( (line.trim()).indexOf("SELECT") >= 0)    indexSELECT = i;
+          if ( (line.trim()).indexOf("FROM"  ) >= 0)    indexFROM   = i;
+      }
+      int numColumns = 0;
+      for (int i = indexSELECT; i < indexFROM; i ++)
+      numColumns ++;
+      System.out.println("numColums: "+numColumns);
+      
+      // Make single-String query
+      String sqlSelect = "";
+      for (String line : sqlSelectLines)
+      {
+          sqlSelect = sqlSelect+" "+line;
+          System.out.println(line);
+      }
+      
       // Contact the database and perform query
       DatabaseManager dm = new DatabaseManager();
       dm.connectToDatabase("//spiral.research.duhs.duke.edu/neo500");
       dm.select(sqlSelect);
+      
+      System.out.println("** Done **");
       
       // Write query results to a file
       File temp = new File(outPrefix+".csv");
@@ -181,12 +203,9 @@ public class MySqlLiaison
               //String lineToPrint = dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" ";	// column 1 = pdb_id
                                                         // column 2 = chain_id
                                                         // column 2 = res_num
-              
-              
               String lineToPrint = "";
-              for (int i = 1; i <= 10; i ++)
+              for (int i = 1; i <= numColumns; i ++)
                   lineToPrint += dm.getString(i)+";";
-              
               
               out.println(lineToPrint);
               //System.out.println(lineToPrint);
