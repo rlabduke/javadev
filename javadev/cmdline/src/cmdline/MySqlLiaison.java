@@ -35,6 +35,7 @@ public class MySqlLiaison
   static String outPrefix;
   static String[] args;
   boolean fromMAD;
+  boolean justQueryNoSuperimpose;
   
   //}}}
 
@@ -82,6 +83,11 @@ public class MySqlLiaison
           {
               fromMAD = true;
           }
+          else if (arg.equals("-justquery"))
+          {
+              System.out.println("Just an SQL query this time -- no superimposition...");
+              justQueryNoSuperimpose = true;
+          }
           // Else, if it's any other arg that starts with "-", it's a flag 
           // which we will pass on to MultiPdbSuperimposer
       }
@@ -106,20 +112,23 @@ public class MySqlLiaison
 //###############################################################
   public void run()
   {
-	performMySqlQuery();
-	
-	// Add one extra arg, outPrefix+".csv", so MultiPdbSuperimposer
-    // knows where to look for query results
-    String[] argsToPass = new String[args.length+1];
-    for (int i = 0; i < args.length; i ++)
-        argsToPass[i] = args[i];
-    argsToPass[args.length] = outPrefix+".csv";
-	
-    // Superimposed kin written here
-    if (fromMAD)
-        MultiMADSuperimposer.main(argsToPass);
-	else
-        MultiPdbSuperimposer.main(argsToPass);
+      performMySqlQuery();
+      
+      // Add one extra arg, outPrefix+".csv", so MultiPdbSuperimposer
+      // knows where to look for query results
+      String[] argsToPass = new String[args.length+1];
+      for (int i = 0; i < args.length; i ++)
+          argsToPass[i] = args[i];
+      argsToPass[args.length] = outPrefix+".csv";
+      
+      // Superimposed kin written here
+      if (!justQueryNoSuperimpose)
+      {
+          if (fromMAD)
+              MultiMADSuperimposer.main(argsToPass);
+          else
+              MultiPdbSuperimposer.main(argsToPass);
+      }
   }
 //}}}
 
