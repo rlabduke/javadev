@@ -36,6 +36,10 @@ public class CsvToKinner
     boolean scaleZ;
     int scalingFactorZ;
     boolean[] angleAxes;
+    boolean noKin;
+    ArrayList<String[]> noKinPts;
+    boolean noFrame;
+    String groupName;
     
 //}}}
 
@@ -45,6 +49,7 @@ public class CsvToKinner
 	{
 		CsvToKinner ctk = new CsvToKinner();
 		ctk.parseArgs(args);
+        ctk.getAndPrintDesiredColumns();
         ctk.readInput();
         ctk.getMaxes();
         ctk.getMins();
@@ -57,6 +62,7 @@ public class CsvToKinner
 //##################################################################################################
 	public CsvToKinner()
 	{
+        // Initialize defaults
         csv = null;
         csvFilename = "no_filename_given";
         cols = new int[3];
@@ -74,8 +80,10 @@ public class CsvToKinner
         scaleZ = false;
         scalingFactorZ = 10;
         angleAxes = new boolean[3];
+        noKin = false;
+        noFrame = false;
+        groupName = "";
         
-        // Nothing more to see here.  Move along...
     }
 //}}}
 
@@ -218,6 +226,22 @@ public class CsvToKinner
                     if (param != null)
                         scalingFactorZ = Integer.parseInt(param);
                 }
+                else if(flag.equals("-nokin"))
+                {
+                    noKin = true;
+                    noKinPts = new ArrayList<String[]>();
+                }
+                else if(flag.equals("-noframe"))
+                {
+                    noFrame = true;
+                }
+                else if(flag.equals("-groupname") || flag.equals("-group"))
+                {
+                    if (param != null)
+                        groupName = param;
+                    else
+                        System.out.println("Need a word for the kinemage group's name with this flag!");
+                }
                 else if(flag.equals("-dummy-option"))
                 {
                     // Do something...
@@ -237,7 +261,7 @@ public class CsvToKinner
         }
         
         // Make sure there are enough labels for the # columns requested
-        if (labels.length < cols.length)
+        if (labels.length < cols.length && !noKin)
         {
             System.out.println("Not enough labels for the # columns requested!");
             String[] labelsNew = new String[cols.length];
@@ -255,7 +279,8 @@ public class CsvToKinner
     void showHelp()
     {
         System.out.println(                                                                    );
-        System.out.println("cmdline.CsvToKinner     DAK     2007"                              );
+        System.out.println("cmdline.CsvToKinner DAK 2007"                                      );
+        System.out.println("Makes a kin from data in a comma-separated value (csv) file"       );
         System.out.println(                                                                    );
         System.out.println("Usage: java -cp cmdline.CsvToKinner [flags] [filename]"            );
         System.out.println(                                                                    );
@@ -266,16 +291,20 @@ public class CsvToKinner
         System.out.println("-DELIMiter=[word]  sets delimiter for reading csv input"           );
         System.out.println("                   default: colon"                                 );
         System.out.println("-KINHEADing        prints @kin header in output"                   );
-        System.out.println("-wrap180=[x,y,z] or -wrap360=[x,y,z]"                              );
+        System.out.println("-WRAP180=[x,y,z] or -WRAP360=[x,y,z]"                              );
         System.out.println("                   wraps data and axes -180 --> 180 or 0 --> 360"  );
         System.out.println("                   sets max & min for these axes to angle-like #s" );
         System.out.println("                      (e.g. 0-360 inst. of 12-344 dep'ing on data" );
         System.out.println("                   doesn't work for z axis right now..."           );
-        System.out.println("-scalez=#          subtracts the average Z from each Z point, then");
+        System.out.println("-SCALEZ=#          subtracts the average Z from each Z point, then");
         System.out.println("                      (opt'l) multiplies by the provided int"      );
+        System.out.println("-NOFRAME           outputs kin without axes and labels"            );
+        System.out.println("-GROUPname         sets name of the group in the kin format output");
+        System.out.println("-NOKIN             outputs columns indicated in csv (not kin) form");
         System.out.println(                                                                    );
         System.out.println("We assume row 0 is headings."                                      );
         System.out.println("Rows and columns measured 0 to n."                                 );
+        System.out.println("Values must be parseable as doubles unless using -nokin."          );
         System.out.println(                                                                    );
     }
 //}}}
@@ -451,6 +480,73 @@ public class CsvToKinner
     }
 //}}}
 
+//{{{ getAndPrintDesiredColumns
+//##################################################################################################
+	private void getAndPrintDesiredColumns()
+	{
+        if (noKin)
+        {
+            // Get data from input csv
+            try
+            {
+                for (String[] noKinArray : noKinPts)
+                    noKinArray = new String[cols.length];
+                Scanner fileScan = new Scanner(csv);
+                boolean firstLine = true;
+                while (fileScan.hasNextLine())
+                {
+                    String line = fileScan.nextLine();
+                    if (!firstLine)
+                    {
+                        // Make a multi-D set of Strings for this line
+                        String[] thisNoKinPoint = new String[cols.length];
+                        try
+                        {
+                            for (int c = 0; c < cols.length; c ++)
+                            {
+                                // Skip to ith column
+                                Scanner lineScan_c = new Scanner(line);
+                                lineScan_c.useDelimiter(delimiter);
+                                for (int j = 0; j < cols[c]; j++)
+                                    lineScan_c.next();
+                                thisNoKinPoint[c] = lineScan_c.next();
+                            }
+                        }
+                        catch (java.util.NoSuchElementException nsee)
+                        {
+                            System.out.println("Couldn't find indicated columns...");
+                            System.out.println("Try using different delimiter?");
+                            System.exit(0);
+                        }
+                        
+                        // Put this multi-D set of Strings into our ArrayList
+                        noKinPts.add(thisNoKinPoint);
+                    }
+                    
+                    firstLine = false;
+                }
+            }
+            catch (FileNotFoundException fnfe)
+            {
+                System.out.println("Can't read through csv input file...");   
+            }
+            
+            
+            // Print data to screen
+            for (String[] noKinPt : noKinPts) // each row in csv
+            {
+                for (int c = 0; c < cols.length; c ++)
+                    System.out.print(noKinPt[c] + delimiter);
+                System.out.println();
+            }
+        
+        // If not doing a kin, we're done!
+        System.exit(0);
+        
+        }
+    }
+//}}}
+
 //{{{ printOutput
 //##################################################################################################
 	private void printOutput()
@@ -462,15 +558,23 @@ public class CsvToKinner
             System.out.println("@kin {"+csvFilename+"}");
         
         // Frame and labels
-        printFrame(df);
-        printLabels(df);
+        if (!noFrame)
+        {
+            printFrame(df);
+            printLabels(df);
+        }
         
         // Group
-        System.out.print("@group {");
-        for (int i = 0; i < cols.length; i ++)
+        if (!groupName.equals(""))
+            System.out.print("@group {"+groupName);
+        else
         {
-            if (i < cols.length - 1) System.out.print("col"+cols[i]+", ");
-            else                     System.out.print("col"+cols[i]);
+            System.out.print("@group {"+groupName+" ");
+            for (int i = 0; i < cols.length; i ++)
+            {
+                if (i < cols.length - 1) System.out.print("col"+cols[i]+", ");
+                else                     System.out.print("col"+cols[i]);
+            }
         }
         System.out.println("} animate dominant");
         
@@ -503,7 +607,7 @@ public class CsvToKinner
             }
             System.out.println();
         }
-	}
+    }
 //}}}
 
 //{{{ printFrame
@@ -638,5 +742,7 @@ public class CsvToKinner
         }
     }
 //}}}
+
+
 
 } //class
