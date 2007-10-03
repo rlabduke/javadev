@@ -190,3 +190,7 @@ ADVANCED DANGLE TRICKS
   (Added by DK 8/21/07) Dangle discriminates between RNA and DNA for the -rna flag
   now.  Also, GeomKinSmith output can be written as a subgroup instead of a group
   if the -sub or -subgroup flag is used in Dangle.
+
+  (Added by DK 10/3/07) The -dohets or -hets flag tells Dangle to report geometry
+  information for het groups, both in command line and geom dev viz kin forms. By
+  default it is currently off.
