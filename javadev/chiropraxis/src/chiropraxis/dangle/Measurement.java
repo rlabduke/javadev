@@ -63,11 +63,11 @@ abstract public class Measurement //extends ... implements ...
     */
     public double measure(Model model, ModelState state, Residue res, boolean doHetsPassedArg)
     {
+        // Check to make sure there are no het atoms in this residue
+        // (Wouldn't want to give deviations for molecules not described 
+        // by the distribution this code is using!)
         if (!doHetsPassedArg)
         {
-            // Check to make sure there are no het atoms in this residue
-            // (Wouldn't want to give deviations for molecules not described 
-            // by the distribution this code is using!)
             this.doHets = true;
             Collection<Atom> thisResiduesAtoms = res.getAtoms();
             Iterator iter = thisResiduesAtoms.iterator();
@@ -81,18 +81,15 @@ abstract public class Measurement //extends ... implements ...
                 }
             }
         }
-        else // not allowing hets
-        {
-            double measure;
-            if(resSpec == null || resSpec.isMatch(model, state, res))
-                measure = measureImpl(model, state, res);
-            else
-                measure = Double.NaN;
-            this.deviation = (measure - mean) / sigma;
-            return measure;
-        }
         
-        return Double.NaN; // if nothing else works...
+        // Either (1) allowing hets or (2) not allowing hets but there are none in this residue
+        double measure;
+        if(resSpec == null || resSpec.isMatch(model, state, res))
+            measure = measureImpl(model, state, res);
+        else
+            measure = Double.NaN;
+        this.deviation = (measure - mean) / sigma;
+        return measure;
     }
     
     /**
