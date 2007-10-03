@@ -41,6 +41,7 @@ public class Dangle //extends ... implements ...
     double sigmaCutoff = 4;
     Collection files = new ArrayList();
     Collection measurements = new ArrayList();
+    boolean doHets = false;
 //}}}
 
 //{{{ Constructor(s)
@@ -112,7 +113,7 @@ public class Dangle //extends ... implements ...
                 {
                     if ( !(ignoreDNA && i == c2o2index) )
                     {
-                        vals[i] = meas[i].measure(model, state, res);
+                        vals[i] = meas[i].measure(model, state, res, doHets);
                         devs[i] = meas[i].getDeviation();
                         if(!Double.isNaN(vals[i]))
                         {
@@ -127,7 +128,7 @@ public class Dangle //extends ... implements ...
                 // NaN, we wanna omit this residue --> set 'print' to false
                 if (ignoreDNA && c2o2index != 999) 
                 {
-                    if ( Double.isNaN(meas[c2o2index].measure(model, state, res)) )
+                    if ( Double.isNaN(meas[c2o2index].measure(model, state, res, doHets)) )
                         print = false;
                 }
                 
@@ -208,7 +209,7 @@ public class Dangle //extends ... implements ...
                 {
                     if ( !(ignoreDNA && i == c2o2index) )
                     {
-                        vals[i] = meas[i].measure(model, state, res);
+                        vals[i] = meas[i].measure(model, state, res, doHets);
                         devs[i] = meas[i].getDeviation();
                         if(!Double.isNaN(vals[i]))
                         {
@@ -223,7 +224,7 @@ public class Dangle //extends ... implements ...
                 // NaN, we wanna omit this residue --> set 'print' to false
                 if (ignoreDNA && c2o2index != 999) 
                 {
-                    if ( Double.isNaN(meas[c2o2index].measure(model, state, res)) )
+                    if ( Double.isNaN(meas[c2o2index].measure(model, state, res, doHets)) )
                         print = false;
                 }
                 
@@ -234,7 +235,7 @@ public class Dangle //extends ... implements ...
                     // DNA can be ignored, is commented out below)
                     for(int i = 0; i < vals.length; i++) //meas.length; i++)
                     {
-                        //double val = meas[i].measure(model, state, res);
+                        //double val = meas[i].measure(model, state, res, doHets);
                         //double dev = meas[i].getDeviation();
                         if(!Double.isNaN(devs[i]) && Math.abs(devs[i]) >= sigmaCutoff)
                         //if(!Double.isNaN(dev) && Math.abs(dev) >= sigmaCutoff)
@@ -337,7 +338,7 @@ public class Dangle //extends ... implements ...
                     GeomKinSmith gks = new GeomKinSmith( 
                         (ArrayList<Measurement>) measurements, f.getName(), 
                         coords, doDistDevsKin, doAngleDevsKin, doKinHeadings, 
-                        sigmaCutoff, ignoreDNA, subgroupNotGroup);
+                        sigmaCutoff, ignoreDNA, subgroupNotGroup, doHets);
                     gks.makeKin();
                 }
                 else if(outliersOnly)
@@ -540,6 +541,10 @@ public class Dangle //extends ... implements ...
         else if(flag.equals("-sub") || flag.equals("-subgroup"))
         {
             subgroupNotGroup = true;
+        }
+        else if(flag.equals("-dohets") || flag.equals("-hets"))
+        {
+            doHets = true;
         }
         else if(flag.equals("-dummy_option"))
         {

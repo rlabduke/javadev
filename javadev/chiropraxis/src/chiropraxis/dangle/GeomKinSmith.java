@@ -37,11 +37,12 @@ public class GeomKinSmith //extends ... implements ...
     File kinout;
     boolean ignoreDNA;
     boolean subgroupNotGroup;
+    boolean doHets;
 //}}}
 
 //{{{ Constructor
 //##############################################################################
-    public GeomKinSmith(ArrayList<Measurement> m, String l, CoordinateFile c, boolean dist, boolean ang, boolean head, double sc, boolean id, boolean sgng)
+    public GeomKinSmith(ArrayList<Measurement> m, String l, CoordinateFile c, boolean dist, boolean ang, boolean head, double sc, boolean id, boolean sgng, boolean dh)
     {
         meas = (Measurement[]) m.toArray(new Measurement[m.size()]);
         label = l;
@@ -52,6 +53,7 @@ public class GeomKinSmith //extends ... implements ...
         sigmaCutoff = sc;
         ignoreDNA = id;
         subgroupNotGroup = sgng;
+        doHets = dh;
     }
 //}}}
 
@@ -59,6 +61,8 @@ public class GeomKinSmith //extends ... implements ...
 //##############################################################################
     public void makeKin()
     {
+        //System.out.println(doHets);
+        
         // Look thru models -> residues for this CoordinateFile (from one pdb).
         // For each residue that is a(n) dist or angle outlier, add a 
         // geom outlier viz to the proper ArrayList of geom dev viz's for the
@@ -74,6 +78,9 @@ public class GeomKinSmith //extends ... implements ...
             for(Iterator residues = model.getResidues().iterator(); residues.hasNext(); )
             {
                 Residue res = (Residue) residues.next();
+                
+                //System.out.println(res);
+                
                 boolean print = true;
                 
                 // Get c2o2index ("// Print headings" in Dangle.java)
@@ -92,7 +99,7 @@ public class GeomKinSmith //extends ... implements ...
                 {
                     if (ignoreDNA && c2o2index != 999)
                     {
-                        if ( Double.isNaN(meas[c2o2index].measure(model, state, res)) )
+                        if ( Double.isNaN(meas[c2o2index].measure(model, state, res, doHets)) )
                             print = false;
                     }
                 }
@@ -118,7 +125,7 @@ public class GeomKinSmith //extends ... implements ...
                             
                             for (Measurement m : measAL)
                             {
-                                double val = m.measure(model, state, res);
+                                double val = m.measure(model, state, res, doHets);
                                 double dev = m.getDeviation();
                                 double ideal = m.mean;
                                 if(!Double.isNaN(val) && !doneWithGroup)
@@ -147,12 +154,17 @@ public class GeomKinSmith //extends ... implements ...
                         else // meas[i] is NOT a Measurement.Group; probably a 
                              // regular Measurement.Distance or Measurement.Angle
                         {
-                            double val = meas[i].measure(model, state, res);
+                            double val = meas[i].measure(model, state, res, doHets);
                             double dev = meas[i].getDeviation();
                             double ideal = meas[i].mean;
                             
+                            //System.out.println("val: "+val);
+                            //System.out.println("dev: "+dev);
+                            
                             if(!Double.isNaN(val) && !Double.isNaN(dev) && Math.abs(dev) >= sigmaCutoff)
                             {
+                                //System.out.println("meas[i]: "+meas[i]);
+                                
                                 if(meas[i].getType().equals("distance"))
                                 {
                                     distImpl(meas[i], model, state, res, val, ideal, dev);
@@ -188,6 +200,11 @@ public class GeomKinSmith //extends ... implements ...
         // Get correct Residues using Measurement's resOffset values
         Residue res1 = atomSpec1.getRes(model, state, res);
         Residue res2 = atomSpec2.getRes(model, state, res);
+        
+        //System.out.println(model);
+        //System.out.println(state);
+        //System.out.println(res);
+        
         if (atomSpec1.getResOffset() == -1)      res1 = res.getPrev(model);
         if (atomSpec1.getResOffset() ==  1)      res1 = res.getNext(model);
         if (atomSpec2.getResOffset() == -1)      res2 = res.getPrev(model);
@@ -201,16 +218,37 @@ public class GeomKinSmith //extends ... implements ...
         while (i1.hasNext())
         {
             Atom a = (Atom) i1.next();
-            if ((a.getName().trim()).equals( atomSpec1Name.trim()) )
+            
+            //System.out.println("a1:\t\t "+a.getName().trim());
+            //System.out.println("atomSpec1Name:\t'"+atomSpec1Name+"'");
+            
+            if ( (a.getName().trim()).equals( atomSpec1Name.trim()) ||
+                 (a.getName().trim()).equals((atomSpec1Name.trim()).replace('*', '\'')) ||
+                 (a.getName().trim()).equals((atomSpec1Name.trim()).replace('\'', '*')) )
+            {
                 atom1 = a;
+                //System.out.println("MATCH");
+            }
         }        
         Iterator i2 = (res2.getAtoms()).iterator();    
         while (i2.hasNext())
         {
             Atom a = (Atom) i2.next();
-            if ( (a.getName().trim()).equals(atomSpec2Name.trim()) )
+            
+            //System.out.println("a2:\t\t "+a.getName().trim());
+            //System.out.println("atomSpec2Name:\t'"+atomSpec2Name+"'");
+            
+            if ( (a.getName().trim()).equals( atomSpec2Name.trim()) ||
+                 (a.getName().trim()).equals((atomSpec2Name.trim()).replace('*', '\'')) ||
+                 (a.getName().trim()).equals((atomSpec2Name.trim()).replace('\'', '*')) )
+            {
                 atom2 = a;
+                //System.out.println("MATCH");
+            }
         }
+        
+        //System.out.println("atom1:\t\t"+atom1.getName().trim());
+        //System.out.println("atom2:\t\t"+atom2.getName().trim());
         
         // Get AtomStates (and thereby coordinates) for the two Atoms found 
         // above, using the ModelState

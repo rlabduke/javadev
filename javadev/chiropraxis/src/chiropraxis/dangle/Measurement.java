@@ -41,6 +41,7 @@ abstract public class Measurement //extends ... implements ...
     double mean = Double.NaN;
     double sigma = Double.NaN;
     double deviation = Double.NaN;
+    boolean doHets = false;
 //}}}
 
 //{{{ Constructor(s)
@@ -60,15 +61,46 @@ abstract public class Measurement //extends ... implements ...
     * (usually because 1+ atoms/residues don't exist).
     * @return the measure, or NaN if undefined
     */
+    public double measure(Model model, ModelState state, Residue res, boolean doHetsPassedArg)
+    {
+        if (!doHetsPassedArg)
+        {
+            // Check to make sure there are no het atoms in this residue
+            // (Wouldn't want to give deviations for molecules not described 
+            // by the distribution this code is using!)
+            this.doHets = true;
+            Collection<Atom> thisResiduesAtoms = res.getAtoms();
+            Iterator iter = thisResiduesAtoms.iterator();
+            while (iter.hasNext())
+            {
+                Atom atom = (Atom) iter.next();
+                if (atom.isHet())
+                {
+                    this.deviation = Double.NaN;
+                    return Double.NaN;
+                }
+            }
+        }
+        else // not allowing hets
+        {
+            double measure;
+            if(resSpec == null || resSpec.isMatch(model, state, res))
+                measure = measureImpl(model, state, res);
+            else
+                measure = Double.NaN;
+            this.deviation = (measure - mean) / sigma;
+            return measure;
+        }
+        
+        return Double.NaN; // if nothing else works...
+    }
+    
+    /**
+    * Utility method -- redirects to the above 'measure' method
+    */
     public double measure(Model model, ModelState state, Residue res)
     {
-        double measure;
-        if(resSpec == null || resSpec.isMatch(model, state, res))
-            measure = measureImpl(model, state, res);
-        else
-            measure = Double.NaN;
-        this.deviation = (measure - mean) / sigma;
-        return measure;
+        return measure(model, state, res, false);
     }
     
     /**
