@@ -287,7 +287,7 @@ public class Parser //extends ... implements ...
             while(!t.accept(")"))
                 p.add(xyzspec());
             return new Measurement[] {p};
-	}
+        }
         else if(t.accept(PUCKER))
         {
             String angLabel = "pseudorot_angle";

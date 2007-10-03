@@ -53,6 +53,8 @@
             angle       O4'-C1'-C2' _O4*, _C1*, _C2*                ideal 106.4 1.4
 
 # Residues with an N9 (A, G) will use that; others will use N1:
+# Note: Fixed "C4'-C3'-O4' _C4*, _C3*, _O3*" to "C4'-C3'-O3' _C4*, _C3*, _O3*"
+# (DAK 10/3/07)
             angle       N19-C1'-C2' _N9_, _C1*, _C2*                ideal 113.4 1.6
             angle       N19-C1'-C2' _N1_, _C1*, _C2*                ideal 113.4 1.6
             angle       O4'-C1'-N19 _O4*, _C1*, _N9_                ideal 108.2 1.0
@@ -60,7 +62,7 @@
             
             angle       C1'-C2'-O2' _C1*, _C2*, _O2*                ideal 110.6 3.0
             angle       C3'-C2'-O2' _C3*, _C2*, _O2*                ideal 113.3 2.9
-            angle       C4'-C3'-O4' _C4*, _C3*, _O3*                ideal 110.6 2.6
+            angle       C4'-C3'-O3' _C4*, _C3*, _O3*                ideal 110.6 2.6
             angle       C2'-C3'-O3' _C2*, _C3*, _O3*                ideal 111.0 2.8
 
 # 1.2.3 RNA base bond angles
