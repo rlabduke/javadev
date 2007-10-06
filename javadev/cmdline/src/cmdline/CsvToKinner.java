@@ -19,6 +19,13 @@ import driftwood.r3.*;
 */
 public class CsvToKinner
 { 
+
+//{{{ Constants
+//##################################################################################################
+    final String AA_NAMES_NO_ALA_GLY = "arg lys met glu gln asp asn ile leu his trp tyr phe pro thr val ser cys";
+      // no "ala" or "gly"
+//}}}
+
 //{{{ Variable Definitions
 //##################################################################################################
     int numDims;    
@@ -40,6 +47,7 @@ public class CsvToKinner
     ArrayList<String[]> noKinPts;
     boolean noFrame;
     String groupName;
+    ArrayList<String> rotaDots;
     
 //}}}
 
@@ -164,6 +172,7 @@ public class CsvToKinner
         for (int i = 0; i < numDims; i ++)
             wrap180[i] = false;
         
+        rotaDots = null;
     }
 //}}}
 
@@ -315,6 +324,32 @@ public class CsvToKinner
                     else
                         System.out.println("Need a word for the kinemage group's name with this flag!");
                 }
+                else if(flag.equals("-rotadots"))
+                {
+                    rotaDots = new ArrayList<String>();
+                    if (param != null)
+                    {
+                        Scanner s = new Scanner(param).useDelimiter(",");
+                        while (s.hasNext())
+                        {
+                            String elem = s.next();
+                            String possAaName = (elem.substring(0,3)).toLowerCase();
+                            if (AA_NAMES_NO_ALA_GLY.indexOf(possAaName) != -1)
+                                rotaDots.add(elem);
+                            else
+                            {
+                                System.out.println("Couldn't understand parameter '"+elem+"'");
+                                System.out.println("Expected an amino acid name + rotamer,");
+                                System.out.println("  e.g. leutp");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        System.out.println("Need comma-sep'd labels with this flag: "
+                            +"-rotadots=leutp,leupp or -rotadots=leuall for example");
+                    }
+                }
                 else if(flag.equals("-dummy-option"))
                 {
                     // Do something...
@@ -394,6 +429,9 @@ public class CsvToKinner
         System.out.println("                   assumes # dimension/columns is 3"               );
         System.out.println("-NOFRAME           outputs kin without axes and labels"            );
         System.out.println("-GROUPname         sets name of the group in the kin format output");
+        System.out.println("-ROTADOTS=[text]   adds dots at modal chi values to kin for the " );
+        System.out.println("                     indicated rotamers"                           );
+        System.out.println("                   [text] is 'leutp' or 'argmtt85,argptp180', e.g.");
         System.out.println("-NOKIN             outputs columns indicated in csv (not kin) form");
         System.out.println(                                                                    );
         System.out.println("We assume row 0 is headings."                                      );
@@ -644,6 +682,10 @@ public class CsvToKinner
         if (kinHeading)
             System.out.println("@kin {"+csvFilename+"}");
         
+        // Multi-D kin heading stuff for sc's with 4 chis
+        if (numDims > 3)
+            printMultiD();
+        
         // Frame and labels
         if (!noFrame)
         {
@@ -663,7 +705,10 @@ public class CsvToKinner
                 else                     System.out.print("col"+cols[i]);
             }
         }
-        System.out.println("} animate dominant");
+        System.out.print("} animate dominant ");
+        if (numDims > 0)
+            System.out.print("dimension="+numDims+" ");   // select???
+        System.out.println();
         
         // Dotlist
         System.out.println("@dotlist {nuthin'}");
@@ -687,13 +732,6 @@ public class CsvToKinner
                 }
                 else
                 {
-                    
-                    
-                    
-                    // BELOW NEEDS TO CHANGE
-                    
-                    
-                    
                     if (wrap360[c])        System.out.print(wrap360(pt[c])+" ");
                     else if (wrap180[c])   System.out.print(wrap180(pt[c])+" ");
                     else                   System.out.print(pt[c]+" ");
@@ -701,6 +739,30 @@ public class CsvToKinner
             }
             System.out.println();
         }
+        
+        // Dotlist for common-atom value for each rotamer
+        if (rotaDots != null)
+            printRotaDots();
+    }
+//}}}
+
+//{{{ printMultiD
+//##################################################################################################
+	private void printMultiD()
+	{
+        System.out.print("@dimension ");
+        for (int d = 0; d < numDims; d ++)
+            System.out.print("{"+labels[d]+"} ");
+        System.out.println();
+        
+        System.out.print("@dimminmax ");
+        for (int d = 0; d < numDims; d ++)
+        {
+            if (wrap360[d])         System.out.print("0 360 ");
+            else if (wrap180[d])    System.out.print("-180 180 ");
+            else                    System.out.print(mins[d]+" "+maxes[d]+" ");
+        }
+        System.out.println();
     }
 //}}}
 
@@ -732,7 +794,7 @@ public class CsvToKinner
                 for (int c = 0; c < i; c ++)
                     System.out.print(" 0.000 ");
                 System.out.print(" 0 ");
-                for (int c = i; c < numDims; c ++)
+                for (int c = i+1; c < numDims; c ++)
                     System.out.print(" 0.000 ");
                 System.out.println();
                 
@@ -740,7 +802,7 @@ public class CsvToKinner
                 for (int c = 0; c < i; c ++)
                     System.out.print(" 0.000 ");
                 System.out.print(" 360 ");
-                for (int c = i; c < numDims; c ++)
+                for (int c = i+1; c < numDims; c ++)
                     System.out.print(" 0.000 ");
                 System.out.println();
             }
@@ -750,7 +812,7 @@ public class CsvToKinner
                 for (int c = 0; c < i; c ++)
                     System.out.print(" 0.000 ");
                 System.out.print(" -180 ");
-                for (int c = i; c < numDims; c ++)
+                for (int c = i+1; c < numDims; c ++)
                     System.out.print(" 0.000 ");
                 System.out.println();
                 
@@ -758,7 +820,7 @@ public class CsvToKinner
                 for (int c = 0; c < i; c ++)
                     System.out.print(" 0.000 ");
                 System.out.print(" 180 ");
-                for (int c = i; c < numDims; c ++)
+                for (int c = i+1; c < numDims; c ++)
                     System.out.print(" 0.000 ");
                 System.out.println();
             }
@@ -768,7 +830,7 @@ public class CsvToKinner
                 for (int c = 0; c < i; c ++)
                     System.out.print(" 0.000 ");
                 System.out.print(" "+mins[i]+" ");
-                for (int c = i; c < numDims; c ++)
+                for (int c = i+1; c < numDims; c ++)
                     System.out.print(" 0.000 ");
                 System.out.println();
                 
@@ -776,7 +838,7 @@ public class CsvToKinner
                 for (int c = 0; c < i; c ++)
                     System.out.print(" 0.000 ");
                 System.out.print(" "+maxes[i]+" ");
-                for (int c = i; c < numDims; c ++)
+                for (int c = i+1; c < numDims; c ++)
                     System.out.print(" 0.000 ");
                 System.out.println();
             }
@@ -811,7 +873,7 @@ public class CsvToKinner
                 for (int c = 0; c < i; c ++)
                     System.out.print(" 0.000 ");
                 System.out.print(" 0 ");
-                for (int c = i; c < numDims; c ++)
+                for (int c = i+1; c < numDims; c ++)
                     System.out.print(" 0.000 ");
                 System.out.println();
                 
@@ -819,7 +881,7 @@ public class CsvToKinner
                 for (int c = 0; c < i; c ++)
                     System.out.print(" 0.000 ");
                 System.out.print(" 360 ");
-                for (int c = i; c < numDims; c ++)
+                for (int c = i+1; c < numDims; c ++)
                     System.out.print(" 0.000 ");
                 System.out.println();
             }
@@ -829,7 +891,7 @@ public class CsvToKinner
                 for (int c = 0; c < i; c ++)
                     System.out.print(" 0.000 ");
                 System.out.println(" -180 ");
-                for (int c = i; c < numDims; c ++)
+                for (int c = i+1; c < numDims; c ++)
                     System.out.print(" 0.000 ");
                 System.out.println();
                 
@@ -837,7 +899,7 @@ public class CsvToKinner
                 for (int c = 0; c < i; c ++)
                     System.out.print(" 0.000 ");
                 System.out.println(" 180 ");
-                for (int c = i; c < numDims; c ++)
+                for (int c = i+1; c < numDims; c ++)
                     System.out.print(" 0.000 ");
                 System.out.println();
             }
@@ -847,7 +909,7 @@ public class CsvToKinner
                 for (int c = 0; c < i; c ++)
                     System.out.print(" 0.000 ");
                 System.out.println(" "+mins[i]+" ");
-                for (int c = i; c < numDims; c ++)
+                for (int c = i+1; c < numDims; c ++)
                     System.out.print(" 0.000 ");
                 System.out.println();
                 
@@ -855,11 +917,147 @@ public class CsvToKinner
                 for (int c = 0; c < i; c ++)
                     System.out.print(" 0.000 ");
                 System.out.println(" "+maxes[i]+" ");
-                for (int c = i; c < numDims; c ++)
+                for (int c = i+1; c < numDims; c ++)
                     System.out.print(" 0.000 ");
                 System.out.println();
             }
         }
+    }
+//}}}
+
+//{{{ printRotaDots
+//##################################################################################################
+	private void printRotaDots()
+	{
+        ArrayList<String> lines = getRotaDots();
+        int dim = 0;
+        for (String line : lines)
+        {
+            if (line.indexOf("@dotlist") == 0)
+            {
+                // format: "@dotlist {rota common-atom dot(s)} color= green width= 7"
+                System.out.println(line);
+            }
+            else
+            {
+                // format: "{pp 62 80} 62 80"
+                System.out.print( line.substring(0, line.indexOf("}")+1)+" " );
+                Scanner s = new Scanner( line.substring(line.indexOf("}")+1) );
+                while (s.hasNext())
+                {
+                    double coord = s.nextDouble();
+                    if      (wrap360[dim])  System.out.print(wrap360(coord)+" ");
+                    else if (wrap180[dim])  System.out.print(wrap180(coord)+" ");
+                    else                    System.out.print(coord         +" ");
+                    dim ++;
+                }
+                System.out.println();
+                dim = 0;
+            }
+        }
+    }
+//}}}
+
+//{{{ getRotaDots
+//##################################################################################################
+	private ArrayList<String> getRotaDots()
+	{
+        ArrayList<String> lines = new ArrayList<String>();
+        lines.add("@dotlist {rota common-atom dot(s)} color= green width= 7");
+        
+        for (int r = 0; r < rotaDots.size(); r ++)
+        {
+            String resRota = rotaDots.get(r);
+            String res = resRota.substring(0,3).toLowerCase();
+            String rota = resRota.substring(3).toLowerCase();
+            boolean doAll = false;
+            
+            if (res.equals("leu"));
+            {
+                if (rota.equals("all")) doAll = true;
+                if (rota.equals("pp")  || doAll) lines.add("{"+rota+" 62 80} 62 80");
+                if (rota.equals("tp")  || doAll) lines.add("{"+rota+" -177 65} -177 65");
+                if (rota.equals("tt")  || doAll) lines.add("{"+rota+" -172 145} -172 145");
+                if (rota.equals("mp")  || doAll) lines.add("{"+rota+" -85 65} -85 65");
+                if (rota.equals("mt")  || doAll) lines.add("{"+rota+" -65 175} -65 175");
+                if (rota.equals("pt?") || doAll) lines.add("{"+rota+" 60? 180?} 60 180");   // approx.
+                if (rota.equals("tm?") || doAll) lines.add("{"+rota+" 180? 300?} 180 300"); // approx.
+                if (rota.equals("mm?") || doAll) lines.add("{"+rota+" 300? 300?} 300 300"); // approx.
+                // mm is in Penultimate, but not in chiropraxis, so it's left out here
+                doAll = false;
+            }
+            if (res.equals("arg"));
+            {
+                if (rota.equals("all")) doAll = true;
+                
+                if (rota.equals("ptp85")    || doAll) lines.add("{"+rota+" 62 180 65 85} 62 180 65 85");
+                if (rota.equals("ptp180")   || doAll) lines.add("{"+rota+" 62 180 65 -175} 62 180 65 -175");
+                
+                if (rota.equals("ptt85")    || doAll) lines.add("{"+rota+" 62 180 180 85} 62 180 180 85");
+                if (rota.equals("ptt180")   || doAll) lines.add("{"+rota+" 62 180 180 180} 62 180 180 180");
+                if (rota.equals("ptt-85")   || doAll) lines.add("{"+rota+" 62 180 180 -85} 62 180 180 -85");
+                
+                if (rota.equals("ptm180")   || doAll) lines.add("{"+rota+" 62 180 -65 175} 62 180 -65 175");
+                if (rota.equals("ptm-85")   || doAll) lines.add("{"+rota+" 62 180 -65 -85} 62 180 -65 -85");
+                
+                if (rota.equals("tpp85")    || doAll) lines.add("{"+rota+" -177 65 65 85} -177 65 65 85");
+                if (rota.equals("tpp180")   || doAll) lines.add("{"+rota+" -177 65 65 -175} -177 65 65 -175");
+                
+                if (rota.equals("tpt85")    || doAll) lines.add("{"+rota+" -177 65 180 85} -177 65 180 85");
+                if (rota.equals("tpt180")   || doAll) lines.add("{"+rota+" -177 65 180 180} -177 65 180 180");
+                
+                if (rota.equals("ttp85")    || doAll) lines.add("{"+rota+" -177 180 65 85} -177 180 65 85");
+                if (rota.equals("ttp180")   || doAll) lines.add("{"+rota+" -177 180 65 -175} -177 180 65 -175");
+                if (rota.equals("ttp-105")  || doAll) lines.add("{"+rota+" -177 180 65 105} -177 180 65 -105");
+                
+                if (rota.equals("ttt85")    || doAll) lines.add("{"+rota+" -177 180 180 85} -177 180 180 85");
+                if (rota.equals("ttt180")   || doAll) lines.add("{"+rota+" -177 180 180 180} -177 180 180 180");
+                if (rota.equals("ttt-85")   || doAll) lines.add("{"+rota+" -177 180 180 -85} -177 180 180 -85");
+                
+                if (rota.equals("ttm105")   || doAll) lines.add("{"+rota+" -177 180 -65 105} -177 180 -65 105");
+                if (rota.equals("ttm180")   || doAll) lines.add("{"+rota+" -177 180 -65 175} -177 180 -65 175");
+                if (rota.equals("ttm-85")   || doAll) lines.add("{"+rota+" -177 180 -65 -85} -177 180 -65 -85");
+                
+                if (rota.equals("mtp85")    || doAll) lines.add("{"+rota+" -67 180 65 85} -67 180 65 85");
+                if (rota.equals("mtp180")   || doAll) lines.add("{"+rota+" -67 180 65 -175} -67 180 65 -175");
+                if (rota.equals("mtp-105")  || doAll) lines.add("{"+rota+" -67 180 65 -105} -67 180 65 -105");
+                
+                if (rota.equals("mtt85")    || doAll) lines.add("{"+rota+" -67 180 180 85} -67 180 180 85");
+                if (rota.equals("mtt180")   || doAll) lines.add("{"+rota+" -67 180 180 180} -67 180 180 180");
+                if (rota.equals("mtt-85")   || doAll) lines.add("{"+rota+" -67 180 180 -85} -67 180 180 -85");
+                
+                if (rota.equals("mtm105")   || doAll) lines.add("{"+rota+" -67 180 -65 105} -67 180 -65 105");
+                if (rota.equals("mtm180")   || doAll) lines.add("{"+rota+" -67 180 -65 175} -67 180 -65 175");
+                if (rota.equals("mtm-85")   || doAll) lines.add("{"+rota+" -67 180 -65 -85} -67 180 -65 -85");
+                
+                if (rota.equals("mmt85")    || doAll) lines.add("{"+rota+" -62 -68 180 85} -62 -68 180 85");
+                if (rota.equals("mmt180")   || doAll) lines.add("{"+rota+" -62 -68 180 180} -62 -68 180 180");
+                if (rota.equals("mmt-85")   || doAll) lines.add("{"+rota+" -62 -68 180 -85} -62 -68 180 -85");
+                
+                if (rota.equals("mmm180")   || doAll) lines.add("{"+rota+" -62 -68 -65 175} -62 -68 -65 175");
+                if (rota.equals("mmm-85")   || doAll) lines.add("{"+rota+" -62 -68 -65 -85} -62 -68 -65 -85");
+                
+                if (rota.equals("ppp_?")  || doAll) lines.add("{"+rota+" 60? 60? 60? ??} 60 60 60 0"); // approx.
+                if (rota.equals("ppt_?")  || doAll) lines.add("{"+rota+" 60? 60? 180? ??} 60 60 180 0"); // approx.
+                if (rota.equals("ppm_?")  || doAll) lines.add("{"+rota+" 60? 60? 300? ??} 60 60 300 0"); // approx.
+                if (rota.equals("pmp_?")  || doAll) lines.add("{"+rota+" 60? 300? 60? ??} 60 300 60 0"); // approx.
+                if (rota.equals("pmt_?")  || doAll) lines.add("{"+rota+" 60? 300? 180? ??} 60 300 60 0"); // approx.
+                if (rota.equals("pmm_?")  || doAll) lines.add("{"+rota+" 60? 300? 300? ??} 60 300 300 0"); // approx.
+                if (rota.equals("tpm_?")  || doAll) lines.add("{"+rota+" 180? 60? 300? ??} 180 60 300 0"); // approx.
+                if (rota.equals("tmp_?")  || doAll) lines.add("{"+rota+" 180? 300? 60? ??} 180 300 60 0"); // approx.
+                if (rota.equals("tmt_?")  || doAll) lines.add("{"+rota+" 180? 300? 180? ??} 180 300 180 0"); // approx.
+                if (rota.equals("tmm_?")  || doAll) lines.add("{"+rota+" 180? 300? 300? ??} 180 300 300 0"); // approx.
+                if (rota.equals("mpp_?")  || doAll) lines.add("{"+rota+" 300? 60? 60? ??} 300 60 60 0"); // approx.
+                if (rota.equals("mpt_?")  || doAll) lines.add("{"+rota+" 300? 60? 180? ??} 300 60 180 0"); // approx.
+                if (rota.equals("mpm_?")  || doAll) lines.add("{"+rota+" 300? 60? 300? ??} 300 60 300 0"); // approx.
+                if (rota.equals("mmp_?")  || doAll) lines.add("{"+rota+" 300? 300? 60? ??} 300 300 60 0"); // approx.
+                
+                doAll = false;
+            }
+            // more res types here...
+        }
+        
+        return lines;
     }
 //}}}
 
