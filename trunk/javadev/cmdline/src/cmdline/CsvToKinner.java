@@ -31,9 +31,11 @@ public class CsvToKinner
     int numDims;    
     String csvFilename;
     File csv;
-    int[] cols;                 // column ids/indices to look for in csv
+    int[] cols;                 // column ids/indices to look for in csv for n-D data
+    int[] ptidcols;             // column ids/indices to look for in csv for pointids
     String[] labels;            // one for each column 
     ArrayList<double[]> pts;    // size() is # rows in csv file
+    ArrayList<String> ptids;    // size() is # rows in csv file
     double[] maxes;             // for axis placement purposes
     double[] mins;              // for axis placement purposes
     double[] avgs;
@@ -47,7 +49,7 @@ public class CsvToKinner
     ArrayList<String[]> noKinPts;
     boolean noFrame;
     String groupName;
-    ArrayList<String> rotaDots;
+    ArrayList<String> rotaBalls;
     
 //}}}
 
@@ -64,7 +66,11 @@ public class CsvToKinner
         ctk.setUpArrays();
         ctk.parseArgs(args);
         ctk.doChecks();
-        ctk.getAndPrintDesiredColumns();    // last command if not making a kin...
+        
+        // If not doing kin (last command in this case)
+        ctk.getAndPrintDesiredColumns();
+        
+        // If doing kin
         ctk.readInput();
         ctk.getMaxes();
         ctk.getMins();
@@ -156,9 +162,9 @@ public class CsvToKinner
 //##################################################################################################
 	public void setUpArrays()
 	{
-        cols = new int[numDims];
-        for (int i = 0; i < numDims; i ++)
-            cols[i] = i;
+        //cols = new int[numDims];
+        //for (int i = 0; i < numDims; i ++)
+        //    cols[i] = i;
         
         labels = new String[numDims];
         char xChar = 'X';
@@ -172,7 +178,9 @@ public class CsvToKinner
         for (int i = 0; i < numDims; i ++)
             wrap180[i] = false;
         
-        rotaDots = null;
+        rotaBalls = null;
+        ptidcols = null;
+        ptids = null;
     }
 //}}}
 
@@ -324,9 +332,9 @@ public class CsvToKinner
                     else
                         System.out.println("Need a word for the kinemage group's name with this flag!");
                 }
-                else if(flag.equals("-rotadots"))
+                else if(flag.equals("-rotaballs"))
                 {
-                    rotaDots = new ArrayList<String>();
+                    rotaBalls = new ArrayList<String>();
                     if (param != null)
                     {
                         Scanner s = new Scanner(param).useDelimiter(",");
@@ -335,7 +343,7 @@ public class CsvToKinner
                             String elem = s.next();
                             String possAaName = (elem.substring(0,3)).toLowerCase();
                             if (AA_NAMES_NO_ALA_GLY.indexOf(possAaName) != -1)
-                                rotaDots.add(elem);
+                                rotaBalls.add(elem);
                             else
                             {
                                 System.out.println("Couldn't understand parameter '"+elem+"'");
@@ -347,7 +355,39 @@ public class CsvToKinner
                     else
                     {
                         System.out.println("Need comma-sep'd labels with this flag: "
-                            +"-rotadots=leutp,leupp or -rotadots=leuall for example");
+                            +"-rotaballs=leutp,leupp or -rotaballs=leuall for example");
+                    }
+                }
+                else if(flag.equals("-pointidcols"))
+                {
+                    ArrayList<Integer> ptidcolsAL = new ArrayList<Integer>(); // temporary
+                    ptids = new ArrayList<String>();
+                    if (param != null)
+                    {
+                        Scanner s = new Scanner(param).useDelimiter(",");
+                        while (s.hasNext())
+                        {
+                            String elem = s.next();
+                            int ptidcol = 999;
+                            ptidcol = Integer.parseInt(elem);
+                            if (ptidcol != 999) // i.e. a valid column specifier is given
+                                ptidcolsAL.add(ptidcol);
+                            else
+                            {
+                                System.out.println("Couldn't understand parameter '"+elem+"'");
+                                System.out.println("Expected an integer");
+                            }
+                        }
+                        
+                        ptidcols = new int[ptidcolsAL.size()]; // permanent ptidcol container
+                        for (int j = 0; j < ptidcolsAL.size(); j++)
+                            ptidcols[j] = ptidcolsAL.get(j);
+                        
+                    }
+                    else
+                    {
+                        System.out.println("Need comma-sep'd integers with this flag: "
+                            +"-pointidcols=0 or -pointidcols=0,1 for example");
                     }
                 }
                 else if(flag.equals("-dummy-option"))
@@ -429,7 +469,7 @@ public class CsvToKinner
         System.out.println("                   assumes # dimension/columns is 3"               );
         System.out.println("-NOFRAME           outputs kin without axes and labels"            );
         System.out.println("-GROUPname         sets name of the group in the kin format output");
-        System.out.println("-ROTADOTS=[text]   adds dots at modal chi values to kin for the " );
+        System.out.println("-ROTABALLS=[text]  adds balls at modal chi values to kin for the " );
         System.out.println("                     indicated rotamers"                           );
         System.out.println("                   [text] is 'leutp' or 'argmtt85,argptp180', e.g.");
         System.out.println("-NOKIN             outputs columns indicated in csv (not kin) form");
@@ -453,25 +493,45 @@ public class CsvToKinner
                 array = new double[cols.length];
             Scanner fileScan = new Scanner(csv);
             boolean firstLine = true;
-            double pt0, pt1, pt2;
             while (fileScan.hasNextLine())
             {
                 String line = fileScan.nextLine();
                 if (!firstLine)
                 {
-                    // Make a multi-D "point" for this line
-                    double[] thisPoint = new double[cols.length];
                     try
                     {
+                        if (ptidcols != null)
+                        {
+                            // Get data for pointid from this line
+                            String ptid = "";
+                            for (int p = 0; p < ptidcols.length; p ++)
+                            {
+                                // Skip to jth column in this particular line
+                                int ptidcol = ptidcols[p];
+                                Scanner lineScan = new Scanner(line);
+                                lineScan.useDelimiter(delimiter);
+                                for (int j = 0; j < ptidcol; j++)
+                                    lineScan.next();
+                                ptid += " "+lineScan.next();
+                            }
+                            // Put this multi-D point's pointid into our ptids ArrayList
+                            ptids.add(ptid);
+                        }
+                        
+                        // Make a multi-D "point" for this line
+                        double[] thisPoint = new double[cols.length];
                         for (int c = 0; c < cols.length; c ++)
                         {
                             // Skip to jth column in this particular line
-                            Scanner lineScan_c = new Scanner(line);
-                            lineScan_c.useDelimiter(delimiter);
-                            for (int j = 0; j < c; j++)
-                                lineScan_c.next();
-                            thisPoint[c] = Double.parseDouble(lineScan_c.next());
+                            int col = cols[c];
+                            Scanner lineScan = new Scanner(line);
+                            lineScan.useDelimiter(delimiter);
+                            for (int j = 0; j < col; j++)
+                                lineScan.next();
+                            thisPoint[c] = Double.parseDouble(lineScan.next());
                         }
+                        // Put this multi-D "point" into our ArrayList
+                        pts.add(thisPoint);
                     }
                     catch (java.util.NoSuchElementException nsee)
                     {
@@ -480,8 +540,6 @@ public class CsvToKinner
                         System.exit(0);
                     }
                     
-                    // Put this multi-D "point" into our ArrayList
-                    pts.add(thisPoint);
                 }
                 
                 firstLine = false;
@@ -609,6 +667,9 @@ public class CsvToKinner
 //##################################################################################################
 	private void getAndPrintDesiredColumns()
 	{
+        //for (int col : cols)
+        //    System.out.println("col: "+col);
+        
         if (noKin)
         {
             // Get data from input csv
@@ -715,10 +776,17 @@ public class CsvToKinner
         for (int i = 0; i < pts.size(); i ++)
         {
             double[] pt = pts.get(i);
-            System.out.print("{point"+i+" ");
-            for (int c = 0; c < cols.length; c ++)
-                System.out.print(pt[c]+" ");
-            System.out.print("} ");
+            
+            
+            
+            System.out.print("{"+ptids.get(i)+"} "); // no need for coordinates or 
+                                                     // arbitrary 'point#' in ptid
+            //for (int c = 0; c < cols.length; c ++)
+            //    System.out.print(pt[c]+" ");
+            //System.out.print("} ");
+            
+            
+            
             for (int c = 0; c < cols.length; c ++)
             {
                 if (c == 2) // Treat Z differently than X and Y
@@ -741,8 +809,8 @@ public class CsvToKinner
         }
         
         // Dotlist for common-atom value for each rotamer
-        if (rotaDots != null)
-            printRotaDots();
+        if (rotaBalls != null)
+            printRotaBalls();
     }
 //}}}
 
@@ -925,17 +993,17 @@ public class CsvToKinner
     }
 //}}}
 
-//{{{ printRotaDots
+//{{{ printRotaBalls
 //##################################################################################################
-	private void printRotaDots()
+	private void printRotaBalls()
 	{
-        ArrayList<String> lines = getRotaDots();
+        ArrayList<String> lines = getRotaBalls();
         int dim = 0;
         for (String line : lines)
         {
-            if (line.indexOf("@dotlist") == 0)
+            if (line.indexOf("@balllist") == 0)
             {
-                // format: "@dotlist {rota common-atom dot(s)} color= green width= 7"
+                // format: "@balllist {rota common-atom ball(s)} radius= 3.0 color= green"
                 System.out.println(line);
             }
             else
@@ -958,16 +1026,16 @@ public class CsvToKinner
     }
 //}}}
 
-//{{{ getRotaDots
+//{{{ getRotaBalls
 //##################################################################################################
-	private ArrayList<String> getRotaDots()
+	private ArrayList<String> getRotaBalls()
 	{
         ArrayList<String> lines = new ArrayList<String>();
-        lines.add("@dotlist {rota common-atom dot(s)} color= green width= 7");
+        lines.add("@balllist {rota common-atom ball(s)} radius= 3.0 color= green");
         
-        for (int r = 0; r < rotaDots.size(); r ++)
+        for (int r = 0; r < rotaBalls.size(); r ++)
         {
-            String resRota = rotaDots.get(r);
+            String resRota = rotaBalls.get(r);
             String res = resRota.substring(0,3).toLowerCase();
             String rota = resRota.substring(3).toLowerCase();
             boolean doAll = false;
