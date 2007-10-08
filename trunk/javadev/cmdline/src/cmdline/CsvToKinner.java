@@ -742,7 +742,11 @@ public class CsvToKinner
         // Heading, if desired
         if (kinHeading)
             System.out.println("@kin {"+csvFilename+"}");
-        
+       
+	System.out.println("@master {data}");
+	if (rotaBalls != null)
+	    System.out.println("@master {rota centers}");
+
         // Multi-D kin heading stuff for sc's with 4 chis
         if (numDims > 3)
             printMultiD();
@@ -772,7 +776,7 @@ public class CsvToKinner
         System.out.println();
         
         // Dotlist
-        System.out.println("@dotlist {nuthin'}");
+        System.out.println("@dotlist {data} master= {data} ");
         for (int i = 0; i < pts.size(); i ++)
         {
             double[] pt = pts.get(i);
@@ -1031,7 +1035,7 @@ public class CsvToKinner
 	private ArrayList<String> getRotaBalls()
 	{
         ArrayList<String> lines = new ArrayList<String>();
-        lines.add("@balllist {rota common-atom ball(s)} radius= 3.0 color= green");
+        lines.add("@balllist {rota common-atom ball(s)} radius= 3.0 color= green master= {rota centers}");
         
         for (int r = 0; r < rotaBalls.size(); r ++)
         {
@@ -1054,7 +1058,7 @@ public class CsvToKinner
                 // mm is in Penultimate, but not in chiropraxis, so it's left out here
                 doAll = false;
             }
-            if (res.equals("arg"));
+	    if (res.equals("arg"))
             {
                 if (rota.equals("all")) doAll = true;
                 
