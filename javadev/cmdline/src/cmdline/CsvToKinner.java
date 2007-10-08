@@ -545,7 +545,7 @@ public class CsvToKinner
                     catch (java.util.NoSuchElementException nsee)
                     {
                         System.out.println("Couldn't find indicated columns...");
-                        System.out.println("Try using different delimiter?");
+                        System.out.println("Try using different delimiter instead of "+delimiter+"?");
                         System.exit(0);
                     }
                     
@@ -663,12 +663,19 @@ public class CsvToKinner
     }
 //}}}
 
-//{{{ scale
+//{{{ scale, inverseScale
 //##################################################################################################
 	private double scale(double value, int xi)
     {
         double valueScaled = value + (value - avgs[xi]) * scalingFactorZ;
         return valueScaled;
+    }
+    
+    private double inverseScale(double scaledTarget, int xi)
+    {
+        // Tells you what non-scaled # would give a certain scaled #
+        // If you enter this return value into scale method, you'll get scaledTarget
+        return (scaledTarget+(avgs[xi]*scalingFactorZ)) / (1+scalingFactorZ);
     }
 //}}}
 
@@ -756,8 +763,8 @@ public class CsvToKinner
         {
             if (altFrame)
             {
-                printMyFrame(df);
-                printMyLabels(df);
+                printAltFrame(df);
+                printAltLabels(df);
             }
             else
                 printDavesFrameAndLabels();
@@ -862,9 +869,9 @@ public class CsvToKinner
     }
 //}}}
 
-//{{{ printMyFrame
+//{{{ printAltFrame
 //##################################################################################################
-	private void printMyFrame(DecimalFormat df)
+	private void printAltFrame(DecimalFormat df)
 	{
         System.out.println("@group {frame} dominant ");
         System.out.println("@vectorlist {frame} color= white");
@@ -877,74 +884,87 @@ public class CsvToKinner
             // Special case for Z axis if numDims = 3 and -scaleZ=# flag used
             // (First implemented b/c Z axis was bond angles while X+Y axes were
             // dihedrals --> different visual scales desirable)
-            if (i == 2 && scaleZ)
+            if (i == 2 && numDims == 3 && scaleZ)
             {
-                System.out.println("{min "+mins[2]+"}P   0.000 0.000 "+scale(mins[2], 2));
-                System.out.println("{max "+maxes[2]+"}   0.000 0.000 "+scale(maxes[2], 2));
-                continue; // skip to next column/dimension
-            }
-            
-            if (wrap360[i])
-            {
-                System.out.print("{min 0  }P ");
-                for (int c = 0; c < i; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.print(" 0 ");
-                for (int c = i+1; c < numDims; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.println();
+                // Assume other two axes (X, Y) are in XY plane where Z = 0
+                // Want bottom of Z axis to be below that plane or at least in it
+                // Likewise, want top of Z axis to be above that plane or at least in it
+                // (This is just for visual effect)
+                if (scale(mins[2], 2) > 0)
+                    System.out.println("{min "+df.format(inverseScale(0,2))+"}P   0.000 0.000 0");
+                else // "normal" way
+                    System.out.println("{min "+mins[2]+"}P   0.000 0.000 "+scale(mins[2], 2));
                 
-                System.out.print("{max 360} ");
-                for (int c = 0; c < i; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.print(" 360 ");
-                for (int c = i+1; c < numDims; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.println();
-            }
-            else if (wrap180[i])
-            {
-                System.out.print("{min -180}P ");
-                for (int c = 0; c < i; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.print(" -180 ");
-                for (int c = i+1; c < numDims; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.println();
+                if (scale(maxes[2], 2) < 0)
+                    System.out.println("{max "+df.format(inverseScale(0,2))+"}   0.000 0.000 0");
+                else // "normal" way
+                    System.out.println("{max "+maxes[2]+"}   0.000 0.000 "+scale(maxes[2], 2));
                 
-                System.out.print("{max 180} ");
-                for (int c = 0; c < i; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.print(" 180 ");
-                for (int c = i+1; c < numDims; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.println();
             }
-            else // don't use angle-like "180/360" axes; instead, do it based on the data
+            else
             {
-                System.out.print("{min "+mins[i]+"}P ");
-                for (int c = 0; c < i; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.print(" "+mins[i]+" ");
-                for (int c = i+1; c < numDims; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.println();
-                
-                System.out.print("{max "+maxes[i]+"} ");
-                for (int c = 0; c < i; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.print(" "+maxes[i]+" ");
-                for (int c = i+1; c < numDims; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.println();
+                if (wrap360[i])
+                {
+                    System.out.print("{min 0  }P ");
+                    for (int c = 0; c < i; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.print(" 0 ");
+                    for (int c = i+1; c < numDims; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.println();
+                    
+                    System.out.print("{max 360} ");
+                    for (int c = 0; c < i; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.print(" 360 ");
+                    for (int c = i+1; c < numDims; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.println();
+                }
+                else if (wrap180[i])
+                {
+                    System.out.print("{min -180}P ");
+                    for (int c = 0; c < i; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.print(" -180 ");
+                    for (int c = i+1; c < numDims; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.println();
+                    
+                    System.out.print("{max 180} ");
+                    for (int c = 0; c < i; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.print(" 180 ");
+                    for (int c = i+1; c < numDims; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.println();
+                }
+                else // don't use angle-like "180/360" axes; instead, do it based on the data
+                {
+                    System.out.print("{min "+mins[i]+"}P ");
+                    for (int c = 0; c < i; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.print(" "+mins[i]+" ");
+                    for (int c = i+1; c < numDims; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.println();
+                    
+                    System.out.print("{max "+maxes[i]+"} ");
+                    for (int c = 0; c < i; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.print(" "+maxes[i]+" ");
+                    for (int c = i+1; c < numDims; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.println();
+                }
             }
         }
     }
 //}}}
 
-//{{{ printMyLabels
+//{{{ printAltLabels
 //##################################################################################################
-	private void printMyLabels(DecimalFormat df)
+	private void printAltLabels(DecimalFormat df)
 	{
         System.out.println("@group {labels} dominant");
         System.out.println("@labellist {XYZ} color= white");
@@ -957,65 +977,78 @@ public class CsvToKinner
             // Special case for Z axis if numDims = 3 and -scaleZ=# flag used
             // (First implemented b/c Z axis was bond angles while X+Y axes were
             // dihedrals --> different visual scales desirable)
-            if (i == 2 && scaleZ)
+            if (i == 2 && numDims == 3 && scaleZ)
             {
-                System.out.println("{"+labels[2]+" "+df.format(mins[2] )+"} "+"0 0 "+scale(mins[2], 2));
-                System.out.println("{"+labels[2]+" "+df.format(maxes[2])+"} "+"0 0 "+scale(maxes[2], 2));
-            }
-            
-            if (wrap360[i])
-            {
-                System.out.print("{"+labels[i]+" 0  }P ");
-                for (int c = 0; c < i; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.print(" 0 ");
-                for (int c = i+1; c < numDims; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.println();
+                // Assume other two axes (X, Y) are in XY plane where Z = 0
+                // Want bottom of Z axis to be below that plane or at least in it
+                // Likewise, want top of Z axis to be above that plane or at least in it
+                // (This is just for visual effect)
+                if (scale(mins[2], 2) > 0)
+                    System.out.println("{"+labels[2]+" "+df.format(inverseScale(0,2))+"} 0 0 0");
+                else
+                    System.out.println("{"+labels[2]+" "+df.format(mins[2] )+"} "+"0 0 "+scale(mins[2], 2));
                 
-                System.out.print("{"+labels[i]+" 360} ");
-                for (int c = 0; c < i; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.print(" 360 ");
-                for (int c = i+1; c < numDims; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.println();
-            }
-            else if (wrap180[i])
-            {
-                System.out.print("{"+labels[i]+" -180}P ");
-                for (int c = 0; c < i; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.println(" -180 ");
-                for (int c = i+1; c < numDims; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.println();
-                
-                System.out.println("{"+labels[i]+" 180} ");
-                for (int c = 0; c < i; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.println(" 180 ");
-                for (int c = i+1; c < numDims; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.println();
+                if (scale(maxes[2], 2) < 0)
+                    System.out.println("{"+labels[2]+" "+df.format(inverseScale(0,2))+"} 0 0 0");
+                else
+                    System.out.println("{"+labels[2]+" "+df.format(maxes[2])+"} "+"0 0 "+scale(maxes[2], 2));
             }
             else
             {
-                System.out.print("{"+labels[i]+" "+mins[i] +"} ");
-                for (int c = 0; c < i; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.println(" "+mins[i]+" ");
-                for (int c = i+1; c < numDims; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.println();
-                
-                System.out.print("{"+labels[i]+" "+maxes[i] +"} ");
-                for (int c = 0; c < i; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.println(" "+maxes[i]+" ");
-                for (int c = i+1; c < numDims; c ++)
-                    System.out.print(" 0.000 ");
-                System.out.println();
+                if (wrap360[i])
+                {
+                    System.out.print("{"+labels[i]+" 0  }P ");
+                    for (int c = 0; c < i; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.print(" 0 ");
+                    for (int c = i+1; c < numDims; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.println();
+                    
+                    System.out.print("{"+labels[i]+" 360} ");
+                    for (int c = 0; c < i; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.print(" 360 ");
+                    for (int c = i+1; c < numDims; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.println();
+                }
+                else if (wrap180[i])
+                {
+                    System.out.print("{"+labels[i]+" -180}P ");
+                    for (int c = 0; c < i; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.print(" -180 ");
+                    for (int c = i+1; c < numDims; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.println();
+                    
+                    System.out.print("{"+labels[i]+" 180} ");
+                    for (int c = 0; c < i; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.print(" 180 ");
+                    for (int c = i+1; c < numDims; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.println();
+                }
+                else
+                {
+                    System.out.print("{"+labels[i]+" "+mins[i] +"} ");
+                    for (int c = 0; c < i; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.print(" "+mins[i]+" ");
+                    for (int c = i+1; c < numDims; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.println();
+                    
+                    System.out.print("{"+labels[i]+" "+maxes[i] +"} ");
+                    for (int c = 0; c < i; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.print(" "+maxes[i]+" ");
+                    for (int c = i+1; c < numDims; c ++)
+                        System.out.print(" 0.000 ");
+                    System.out.println();
+                }
             }
         }
     }
@@ -1038,7 +1071,7 @@ public class CsvToKinner
             }
         }
         System.out.print("} animate dominant ");
-        if (numDims > 0)
+        if (numDims > 3)
             System.out.print("dimension="+numDims+" ");   // select???
         System.out.println();
         
@@ -1048,12 +1081,18 @@ public class CsvToKinner
         {
             double[] pt = pts.get(i);
             
-            System.out.print("{"+ptids.get(i)+"} "); // no need for coordinates or 
-                                                     // arbitrary 'point#' in ptid
-            //for (int c = 0; c < cols.length; c ++)
-            //    System.out.print(pt[c]+" ");
-            //System.out.print("} ");
+            // Point ids
+            if (ptids != null) // use indicated point id
+                System.out.print("{"+ptids.get(i)+"} ");                               
+            else               // use arbitrary 'point#' for point id
+            {
+                System.out.print("{");
+                for (int c = 0; c < cols.length; c ++)
+                    System.out.print(pt[c]+" ");
+                System.out.print("} ");
+            }
             
+            // Coordinates
             for (int c = 0; c < cols.length; c ++)
             {
                 if (c == 2) // Treat Z differently than X and Y
