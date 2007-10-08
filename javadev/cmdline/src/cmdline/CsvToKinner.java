@@ -50,6 +50,7 @@ public class CsvToKinner
     boolean noFrame;
     String groupName;
     ArrayList<String> rotaBalls;
+    boolean altFrame;
     
 //}}}
 
@@ -94,6 +95,7 @@ public class CsvToKinner
         noKin = false;
         noFrame = false;
         groupName = "";
+        altFrame = false;
         
     }
 //}}}
@@ -390,6 +392,10 @@ public class CsvToKinner
                             +"-pointidcols=0 or -pointidcols=0,1 for example");
                     }
                 }
+                else if(flag.equals("-altframe"))
+                {
+                    altFrame = true;
+                }
                 else if(flag.equals("-dummy-option"))
                 {
                     // Do something...
@@ -468,6 +474,9 @@ public class CsvToKinner
         System.out.println("                      (opt'l) multiplies by the provided int"      );
         System.out.println("                   assumes # dimension/columns is 3"               );
         System.out.println("-NOFRAME           outputs kin without axes and labels"            );
+        System.out.println("                   looks same as RNA 9d kins"                      );
+        System.out.println("-ALTFRAME          outputs kin with a different style of frame"    );
+        System.out.println("                   required for -wrap180 or -labels flags"         );
         System.out.println("-GROUPname         sets name of the group in the kin format output");
         System.out.println("-ROTABALLS=[text]  adds balls at modal chi values to kin for the " );
         System.out.println("                     indicated rotamers"                           );
@@ -739,78 +748,23 @@ public class CsvToKinner
 	{
 		final DecimalFormat df = new DecimalFormat("###.#");
         
-        // Heading, if desired
-        if (kinHeading)
-            System.out.println("@kin {"+csvFilename+"}");
-       
-	System.out.println("@master {data}");
-	if (rotaBalls != null)
-	    System.out.println("@master {rota centers}");
-
-        // Multi-D kin heading stuff for sc's with 4 chis
-        if (numDims > 3)
-            printMultiD();
+        // Heading stuff
+        printHeading();
         
         // Frame and labels
         if (!noFrame)
         {
-            printFrame(df);
-            printLabels(df);
+            if (altFrame)
+            {
+                printMyFrame(df);
+                printMyLabels(df);
+            }
+            else
+                printDavesFrameAndLabels();
         }
         
-        // Group
-        if (!groupName.equals(""))
-            System.out.print("@group {"+groupName);
-        else
-        {
-            System.out.print("@group {"+groupName+" ");
-            for (int i = 0; i < cols.length; i ++)
-            {
-                if (i < cols.length - 1) System.out.print("col"+cols[i]+", ");
-                else                     System.out.print("col"+cols[i]);
-            }
-        }
-        System.out.print("} animate dominant ");
-        if (numDims > 0)
-            System.out.print("dimension="+numDims+" ");   // select???
-        System.out.println();
-        
-        // Dotlist
-        System.out.println("@dotlist {data} master= {data} ");
-        for (int i = 0; i < pts.size(); i ++)
-        {
-            double[] pt = pts.get(i);
-            
-            
-            
-            System.out.print("{"+ptids.get(i)+"} "); // no need for coordinates or 
-                                                     // arbitrary 'point#' in ptid
-            //for (int c = 0; c < cols.length; c ++)
-            //    System.out.print(pt[c]+" ");
-            //System.out.print("} ");
-            
-            
-            
-            for (int c = 0; c < cols.length; c ++)
-            {
-                if (c == 2) // Treat Z differently than X and Y
-                {
-                    // For scaling Z to X- & Y-like dimensions, if desired
-                    // First added for Karplus's PGD bb geometry stuff, to get tau
-                    // angles on same scale as 0to360 (or -180to180) phi & psi.
-                    if (scaleZ)
-                        pt[c] = scale(pt[c], 2);
-                    System.out.print(pt[c]+" ");
-                }
-                else
-                {
-                    if (wrap360[c])        System.out.print(wrap360(pt[c])+" ");
-                    else if (wrap180[c])   System.out.print(wrap180(pt[c])+" ");
-                    else                   System.out.print(pt[c]+" ");
-                }
-            }
-            System.out.println();
-        }
+        // Group containing data
+        printDataGroup();
         
         // Dotlist for common-atom value for each rotamer
         if (rotaBalls != null)
@@ -818,29 +772,99 @@ public class CsvToKinner
     }
 //}}}
 
-//{{{ printMultiD
+//{{{ printHeading
 //##################################################################################################
-	private void printMultiD()
+	private void printHeading()
 	{
-        System.out.print("@dimension ");
-        for (int d = 0; d < numDims; d ++)
-            System.out.print("{"+labels[d]+"} ");
-        System.out.println();
+        // @kin, if desired
+        if (kinHeading)
+            System.out.println("@kin {"+csvFilename+"}");
         
-        System.out.print("@dimminmax ");
-        for (int d = 0; d < numDims; d ++)
+        // Masters
+        System.out.println("@master {data}");
+        if (rotaBalls != null)
+	    System.out.println("@master {rota centers}");
+
+        // Multi-D kin heading stuff (@dimension...) for sc's with >=3 chis
+        if (numDims > 3)
         {
-            if (wrap360[d])         System.out.print("0 360 ");
-            else if (wrap180[d])    System.out.print("-180 180 ");
-            else                    System.out.print(mins[d]+" "+maxes[d]+" ");
+            
+            System.out.print("@dimension ");
+            for (int d = 0; d < numDims; d ++)
+                System.out.print("{"+labels[d]+"} ");
+            System.out.println();
+            
+            System.out.print("@dimminmax ");
+            for (int d = 0; d < numDims; d ++)
+            {
+                if (wrap360[d])         System.out.print("0 360 ");
+                else if (wrap180[d])    System.out.print("-180 180 ");
+                else                    System.out.print(mins[d]+" "+maxes[d]+" ");
+            }
+            System.out.println();
         }
-        System.out.println();
     }
 //}}}
 
-//{{{ printFrame
+//{{{ printDavesFrameAndLabels
 //##################################################################################################
-	private void printFrame(DecimalFormat df)
+	private void printDavesFrameAndLabels()
+	{
+        System.out.println("@group {frame} dominant");
+        System.out.println("@vectorlist {frame} color= white");
+        System.out.println("P  0.000 0.000 0.000");
+        System.out.println(" 5.000 0.000 0.000");
+        System.out.println("P  35.000 0.000 0.000");
+        System.out.println(" 40.000 0.000 0.000");
+        System.out.println("P  80.000 0.000 0.000");
+        System.out.println(" 160.000 0.000 0.000");
+        System.out.println("P  0.000 0.000 0.000");
+        System.out.println(" 0.000 5.000 0.000");
+        System.out.println("P  0.000 35.000 0.000");
+        System.out.println(" 0.000 40.000 0.000");
+        System.out.println("P  0.000 80.000 0.000");
+        System.out.println(" 0.000 160.000 0.000");
+        System.out.println("P  0.000 0.000 0.000");
+        System.out.println(" 0.000 0.000 5.000");
+        System.out.println("P  0.000 0.000 35.000");
+        System.out.println(" 0.000 0.000 40.000");
+        System.out.println("P  0.000 0.000 80.000");
+        System.out.println(" 0.000 0.000 160.000");
+        System.out.println("P  200.000 0.000 0.000");
+        System.out.println(" 280.000 0.000 0.000");
+        System.out.println("P  320.000 0.000 0.000");
+        System.out.println(" 360.000 0.000 0.000");
+        System.out.println("P  0.000 200.000 0.000");
+        System.out.println(" 0.000 280.000 0.000");
+        System.out.println("P  0.000 320.000 0.000");
+        System.out.println(" 0.000 360.000 0.000");
+        System.out.println("P  0.000 0.000 200.000");
+        System.out.println(" 0.000 0.000 280.000");
+        System.out.println("P  0.000 0.000 320.000");
+        System.out.println(" 0.000 0.000 360.000");
+        System.out.println("@labellist {XYZ} color= white");
+        System.out.println("{X} 20.000 -5.000 -5.000");
+        System.out.println("{X} 380.000 -5.000 -5.000");
+        System.out.println("{Y} -5.000 20.000 -5.000");
+        System.out.println("{Y} -5.000 380.000 -5.000");
+        System.out.println("{Z} -5.000 -5.000 20.000");
+        System.out.println("{Z} -5.000 -5.000 380.000");
+        System.out.println("@labellist {mtp} color= green");
+        System.out.println("{p} 60.000 0.000 0.000");
+        System.out.println("{t} 180.000 0.000 0.000");
+        System.out.println("{m} 300.000 0.000 0.000");
+        System.out.println("{p} 0.000 60.000 0.000");
+        System.out.println("{t} 0.000 180.000 0.000");
+        System.out.println("{m} 0.000 300.000 0.000");
+        System.out.println("{p} 0.000 0.000 60.000");
+        System.out.println("{t} 0.000 0.000 180.000");
+        System.out.println("{m} 0.000 0.000 300.000");
+    }
+//}}}
+
+//{{{ printMyFrame
+//##################################################################################################
+	private void printMyFrame(DecimalFormat df)
 	{
         System.out.println("@group {frame} dominant ");
         System.out.println("@vectorlist {frame} color= white");
@@ -918,9 +942,9 @@ public class CsvToKinner
     }
 //}}}
 
-//{{{ printLabels
+//{{{ printMyLabels
 //##################################################################################################
-	private void printLabels(DecimalFormat df)
+	private void printMyLabels(DecimalFormat df)
 	{
         System.out.println("@group {labels} dominant");
         System.out.println("@labellist {XYZ} color= white");
@@ -997,6 +1021,62 @@ public class CsvToKinner
     }
 //}}}
 
+//{{{ printDataGroup
+//##################################################################################################
+	private void printDataGroup()
+	{
+        
+        if (!groupName.equals(""))
+            System.out.print("@group {"+groupName);
+        else
+        {
+            System.out.print("@group {"+groupName+" ");
+            for (int i = 0; i < cols.length; i ++)
+            {
+                if (i < cols.length - 1) System.out.print("col"+cols[i]+", ");
+                else                     System.out.print("col"+cols[i]);
+            }
+        }
+        System.out.print("} animate dominant ");
+        if (numDims > 0)
+            System.out.print("dimension="+numDims+" ");   // select???
+        System.out.println();
+        
+        // Dotlist
+        System.out.println("@dotlist {data} master= {data} ");
+        for (int i = 0; i < pts.size(); i ++)
+        {
+            double[] pt = pts.get(i);
+            
+            System.out.print("{"+ptids.get(i)+"} "); // no need for coordinates or 
+                                                     // arbitrary 'point#' in ptid
+            //for (int c = 0; c < cols.length; c ++)
+            //    System.out.print(pt[c]+" ");
+            //System.out.print("} ");
+            
+            for (int c = 0; c < cols.length; c ++)
+            {
+                if (c == 2) // Treat Z differently than X and Y
+                {
+                    // For scaling Z to X- & Y-like dimensions, if desired
+                    // First added for Karplus's PGD bb geometry stuff, to get tau
+                    // angles on same scale as 0to360 (or -180to180) phi & psi.
+                    if (scaleZ)
+                        pt[c] = scale(pt[c], 2);
+                    System.out.print(pt[c]+" ");
+                }
+                else
+                {
+                    if (wrap360[c])        System.out.print(wrap360(pt[c])+" ");
+                    else if (wrap180[c])   System.out.print(wrap180(pt[c])+" ");
+                    else                   System.out.print(pt[c]+" ");
+                }
+            }
+            System.out.println();
+        }
+    }
+//}}}
+
 //{{{ printRotaBalls
 //##################################################################################################
 	private void printRotaBalls()
@@ -1047,14 +1127,14 @@ public class CsvToKinner
             if (res.equals("leu"));
             {
                 if (rota.equals("all")) doAll = true;
-                if (rota.equals("pp")  || doAll) lines.add("{"+rota+" 62 80} 62 80");
-                if (rota.equals("tp")  || doAll) lines.add("{"+rota+" -177 65} -177 65");
-                if (rota.equals("tt")  || doAll) lines.add("{"+rota+" -172 145} -172 145");
-                if (rota.equals("mp")  || doAll) lines.add("{"+rota+" -85 65} -85 65");
-                if (rota.equals("mt")  || doAll) lines.add("{"+rota+" -65 175} -65 175");
-                if (rota.equals("pt?") || doAll) lines.add("{"+rota+" 60? 180?} 60 180");   // approx.
-                if (rota.equals("tm?") || doAll) lines.add("{"+rota+" 180? 300?} 180 300"); // approx.
-                if (rota.equals("mm?") || doAll) lines.add("{"+rota+" 300? 300?} 300 300"); // approx.
+                if (rota.equals("pp")  || doAll) lines.add("{pp   62 80} 62 80");
+                if (rota.equals("tp")  || doAll) lines.add("{tp   -177 65} -177 65");
+                if (rota.equals("tt")  || doAll) lines.add("{tt   -172 145} -172 145");
+                if (rota.equals("mp")  || doAll) lines.add("{mp   -85 65} -85 65");
+                if (rota.equals("mt")  || doAll) lines.add("{mt   -65 175} -65 175");
+                if (rota.equals("pt?") || doAll) lines.add("{pt?   60? 180?} 60 180");   // approx.
+                if (rota.equals("tm?") || doAll) lines.add("{tm?   180? 300?} 180 300"); // approx.
+                if (rota.equals("mm?") || doAll) lines.add("{mm?   300? 300?} 300 300"); // approx.
                 // mm is in Penultimate, but not in chiropraxis, so it's left out here
                 doAll = false;
             }
@@ -1062,67 +1142,67 @@ public class CsvToKinner
             {
                 if (rota.equals("all")) doAll = true;
                 
-                if (rota.equals("ptp85")    || doAll) lines.add("{"+rota+" 62 180 65 85} 62 180 65 85");
-                if (rota.equals("ptp180")   || doAll) lines.add("{"+rota+" 62 180 65 -175} 62 180 65 -175");
+                if (rota.equals("ptp85")    || doAll) lines.add("{ptp85   62 180 65 85} 62 180 65 85");
+                if (rota.equals("ptp180")   || doAll) lines.add("{ptp180   62 180 65 -175} 62 180 65 -175");
                 
-                if (rota.equals("ptt85")    || doAll) lines.add("{"+rota+" 62 180 180 85} 62 180 180 85");
-                if (rota.equals("ptt180")   || doAll) lines.add("{"+rota+" 62 180 180 180} 62 180 180 180");
-                if (rota.equals("ptt-85")   || doAll) lines.add("{"+rota+" 62 180 180 -85} 62 180 180 -85");
+                if (rota.equals("ptt85")    || doAll) lines.add("{ptt85   62 180 180 85} 62 180 180 85");
+                if (rota.equals("ptt180")   || doAll) lines.add("{ptt180   62 180 180 180} 62 180 180 180");
+                if (rota.equals("ptt-85")   || doAll) lines.add("{ptt-85   62 180 180 -85} 62 180 180 -85");
                 
-                if (rota.equals("ptm180")   || doAll) lines.add("{"+rota+" 62 180 -65 175} 62 180 -65 175");
-                if (rota.equals("ptm-85")   || doAll) lines.add("{"+rota+" 62 180 -65 -85} 62 180 -65 -85");
+                if (rota.equals("ptm180")   || doAll) lines.add("{ptm180   62 180 -65 175} 62 180 -65 175");
+                if (rota.equals("ptm-85")   || doAll) lines.add("{ptm-85   62 180 -65 -85} 62 180 -65 -85");
                 
-                if (rota.equals("tpp85")    || doAll) lines.add("{"+rota+" -177 65 65 85} -177 65 65 85");
-                if (rota.equals("tpp180")   || doAll) lines.add("{"+rota+" -177 65 65 -175} -177 65 65 -175");
+                if (rota.equals("tpp85")    || doAll) lines.add("{tpp85   -177 65 65 85} -177 65 65 85");
+                if (rota.equals("tpp180")   || doAll) lines.add("{tpp180   -177 65 65 -175} -177 65 65 -175");
                 
-                if (rota.equals("tpt85")    || doAll) lines.add("{"+rota+" -177 65 180 85} -177 65 180 85");
-                if (rota.equals("tpt180")   || doAll) lines.add("{"+rota+" -177 65 180 180} -177 65 180 180");
+                if (rota.equals("tpt85")    || doAll) lines.add("{tpt85   -177 65 180 85} -177 65 180 85");
+                if (rota.equals("tpt180")   || doAll) lines.add("{tpt180   -177 65 180 180} -177 65 180 180");
                 
-                if (rota.equals("ttp85")    || doAll) lines.add("{"+rota+" -177 180 65 85} -177 180 65 85");
-                if (rota.equals("ttp180")   || doAll) lines.add("{"+rota+" -177 180 65 -175} -177 180 65 -175");
-                if (rota.equals("ttp-105")  || doAll) lines.add("{"+rota+" -177 180 65 105} -177 180 65 -105");
+                if (rota.equals("ttp85")    || doAll) lines.add("{ttp85   -177 180 65 85} -177 180 65 85");
+                if (rota.equals("ttp180")   || doAll) lines.add("{ttp180   -177 180 65 -175} -177 180 65 -175");
+                if (rota.equals("ttp-105")  || doAll) lines.add("{ttp-105   -177 180 65 105} -177 180 65 -105");
                 
-                if (rota.equals("ttt85")    || doAll) lines.add("{"+rota+" -177 180 180 85} -177 180 180 85");
-                if (rota.equals("ttt180")   || doAll) lines.add("{"+rota+" -177 180 180 180} -177 180 180 180");
-                if (rota.equals("ttt-85")   || doAll) lines.add("{"+rota+" -177 180 180 -85} -177 180 180 -85");
+                if (rota.equals("ttt85")    || doAll) lines.add("{ttt85   -177 180 180 85} -177 180 180 85");
+                if (rota.equals("ttt180")   || doAll) lines.add("{ttt180   -177 180 180 180} -177 180 180 180");
+                if (rota.equals("ttt-85")   || doAll) lines.add("{ttt-85   -177 180 180 -85} -177 180 180 -85");
                 
-                if (rota.equals("ttm105")   || doAll) lines.add("{"+rota+" -177 180 -65 105} -177 180 -65 105");
-                if (rota.equals("ttm180")   || doAll) lines.add("{"+rota+" -177 180 -65 175} -177 180 -65 175");
-                if (rota.equals("ttm-85")   || doAll) lines.add("{"+rota+" -177 180 -65 -85} -177 180 -65 -85");
+                if (rota.equals("ttm105")   || doAll) lines.add("{ttm105   -177 180 -65 105} -177 180 -65 105");
+                if (rota.equals("ttm180")   || doAll) lines.add("{ttm180   -177 180 -65 175} -177 180 -65 175");
+                if (rota.equals("ttm-85")   || doAll) lines.add("{ttm-85   -177 180 -65 -85} -177 180 -65 -85");
                 
-                if (rota.equals("mtp85")    || doAll) lines.add("{"+rota+" -67 180 65 85} -67 180 65 85");
-                if (rota.equals("mtp180")   || doAll) lines.add("{"+rota+" -67 180 65 -175} -67 180 65 -175");
-                if (rota.equals("mtp-105")  || doAll) lines.add("{"+rota+" -67 180 65 -105} -67 180 65 -105");
+                if (rota.equals("mtp85")    || doAll) lines.add("{mtp85   -67 180 65 85} -67 180 65 85");
+                if (rota.equals("mtp180")   || doAll) lines.add("{mtp180   -67 180 65 -175} -67 180 65 -175");
+                if (rota.equals("mtp-105")  || doAll) lines.add("{mtp-105   -67 180 65 -105} -67 180 65 -105");
                 
-                if (rota.equals("mtt85")    || doAll) lines.add("{"+rota+" -67 180 180 85} -67 180 180 85");
-                if (rota.equals("mtt180")   || doAll) lines.add("{"+rota+" -67 180 180 180} -67 180 180 180");
-                if (rota.equals("mtt-85")   || doAll) lines.add("{"+rota+" -67 180 180 -85} -67 180 180 -85");
+                if (rota.equals("mtt85")    || doAll) lines.add("{mtt85   -67 180 180 85} -67 180 180 85");
+                if (rota.equals("mtt180")   || doAll) lines.add("{mtt180   -67 180 180 180} -67 180 180 180");
+                if (rota.equals("mtt-85")   || doAll) lines.add("{mtt-85   -67 180 180 -85} -67 180 180 -85");
                 
-                if (rota.equals("mtm105")   || doAll) lines.add("{"+rota+" -67 180 -65 105} -67 180 -65 105");
-                if (rota.equals("mtm180")   || doAll) lines.add("{"+rota+" -67 180 -65 175} -67 180 -65 175");
-                if (rota.equals("mtm-85")   || doAll) lines.add("{"+rota+" -67 180 -65 -85} -67 180 -65 -85");
+                if (rota.equals("mtm105")   || doAll) lines.add("{mtm105   -67 180 -65 105} -67 180 -65 105");
+                if (rota.equals("mtm180")   || doAll) lines.add("{mtm180   -67 180 -65 175} -67 180 -65 175");
+                if (rota.equals("mtm-85")   || doAll) lines.add("{mtm-85   -67 180 -65 -85} -67 180 -65 -85");
                 
-                if (rota.equals("mmt85")    || doAll) lines.add("{"+rota+" -62 -68 180 85} -62 -68 180 85");
-                if (rota.equals("mmt180")   || doAll) lines.add("{"+rota+" -62 -68 180 180} -62 -68 180 180");
-                if (rota.equals("mmt-85")   || doAll) lines.add("{"+rota+" -62 -68 180 -85} -62 -68 180 -85");
+                if (rota.equals("mmt85")    || doAll) lines.add("{mmt85   -62 -68 180 85} -62 -68 180 85");
+                if (rota.equals("mmt180")   || doAll) lines.add("{mmt180   -62 -68 180 180} -62 -68 180 180");
+                if (rota.equals("mmt-85")   || doAll) lines.add("{mmt-85   -62 -68 180 -85} -62 -68 180 -85");
                 
-                if (rota.equals("mmm180")   || doAll) lines.add("{"+rota+" -62 -68 -65 175} -62 -68 -65 175");
-                if (rota.equals("mmm-85")   || doAll) lines.add("{"+rota+" -62 -68 -65 -85} -62 -68 -65 -85");
+                if (rota.equals("mmm180")   || doAll) lines.add("{mmm180   -62 -68 -65 175} -62 -68 -65 175");
+                if (rota.equals("mmm-85")   || doAll) lines.add("{mmm-85   -62 -68 -65 -85} -62 -68 -65 -85");
                 
-                if (rota.equals("ppp_?")  || doAll) lines.add("{"+rota+" 60? 60? 60? ??} 60 60 60 0"); // approx.
-                if (rota.equals("ppt_?")  || doAll) lines.add("{"+rota+" 60? 60? 180? ??} 60 60 180 0"); // approx.
-                if (rota.equals("ppm_?")  || doAll) lines.add("{"+rota+" 60? 60? 300? ??} 60 60 300 0"); // approx.
-                if (rota.equals("pmp_?")  || doAll) lines.add("{"+rota+" 60? 300? 60? ??} 60 300 60 0"); // approx.
-                if (rota.equals("pmt_?")  || doAll) lines.add("{"+rota+" 60? 300? 180? ??} 60 300 60 0"); // approx.
-                if (rota.equals("pmm_?")  || doAll) lines.add("{"+rota+" 60? 300? 300? ??} 60 300 300 0"); // approx.
-                if (rota.equals("tpm_?")  || doAll) lines.add("{"+rota+" 180? 60? 300? ??} 180 60 300 0"); // approx.
-                if (rota.equals("tmp_?")  || doAll) lines.add("{"+rota+" 180? 300? 60? ??} 180 300 60 0"); // approx.
-                if (rota.equals("tmt_?")  || doAll) lines.add("{"+rota+" 180? 300? 180? ??} 180 300 180 0"); // approx.
-                if (rota.equals("tmm_?")  || doAll) lines.add("{"+rota+" 180? 300? 300? ??} 180 300 300 0"); // approx.
-                if (rota.equals("mpp_?")  || doAll) lines.add("{"+rota+" 300? 60? 60? ??} 300 60 60 0"); // approx.
-                if (rota.equals("mpt_?")  || doAll) lines.add("{"+rota+" 300? 60? 180? ??} 300 60 180 0"); // approx.
-                if (rota.equals("mpm_?")  || doAll) lines.add("{"+rota+" 300? 60? 300? ??} 300 60 300 0"); // approx.
-                if (rota.equals("mmp_?")  || doAll) lines.add("{"+rota+" 300? 300? 60? ??} 300 300 60 0"); // approx.
+                if (rota.equals("ppp_?")  || doAll) lines.add("{ppp_?   60? 60? 60? ??} 60 60 60 0"); // approx.
+                if (rota.equals("ppt_?")  || doAll) lines.add("{ppt_?   60? 60? 180? ??} 60 60 180 0"); // approx.
+                if (rota.equals("ppm_?")  || doAll) lines.add("{ppm_?   60? 60? 300? ??} 60 60 300 0"); // approx.
+                if (rota.equals("pmp_?")  || doAll) lines.add("{pmp_?   60? 300? 60? ??} 60 300 60 0"); // approx.
+                if (rota.equals("pmt_?")  || doAll) lines.add("{pmt_?   60? 300? 180? ??} 60 300 60 0"); // approx.
+                if (rota.equals("pmm_?")  || doAll) lines.add("{pmm_?   60? 300? 300? ??} 60 300 300 0"); // approx.
+                if (rota.equals("tpm_?")  || doAll) lines.add("{tpm_?   180? 60? 300? ??} 180 60 300 0"); // approx.
+                if (rota.equals("tmp_?")  || doAll) lines.add("{tmp_?   180? 300? 60? ??} 180 300 60 0"); // approx.
+                if (rota.equals("tmt_?")  || doAll) lines.add("{tmt_?   180? 300? 180? ??} 180 300 180 0"); // approx.
+                if (rota.equals("tmm_?")  || doAll) lines.add("{tmm_?   180? 300? 300? ??} 180 300 300 0"); // approx.
+                if (rota.equals("mpp_?")  || doAll) lines.add("{mpp_?   300? 60? 60? ??} 300 60 60 0"); // approx.
+                if (rota.equals("mpt_?")  || doAll) lines.add("{mpt_?   300? 60? 180? ??} 300 60 180 0"); // approx.
+                if (rota.equals("mpm_?")  || doAll) lines.add("{mpm_?   300? 60? 300? ??} 300 60 300 0"); // approx.
+                if (rota.equals("mmp_?")  || doAll) lines.add("{mmp_?   300? 300? 60? ??} 300 300 60 0"); // approx.
                 
                 doAll = false;
             }
