@@ -153,45 +153,42 @@ ADVANCED DANGLE TRICKS
     # Planarity of all atoms in the base plus the C1':
     planarity BasePlane (_C1* /_[CNO][1-9]_/)
 
-  (Added by DK 6/28/07) Dangle can also output the relevant distances, angles, 
-  and dihedrals required for constructing suite conformations in suitefit.  If
-  you want, you can specify some subset of these measurements as well, as seen
-  below.  If your first attempt at outputting such selected suitefit measures 
-  fails, try swapping the order of the atoms (e.g. "O5'-C5'" instead of 
-  "C5'-O5'").
+  Dangle can output the relevant distances, angles, and dihedrals required for 
+  constructing suite conformations in suitefit.  It is also possible to specify
+  some subset of these measurements as well, as seen below.  If your first 
+  attempt at outputting such selected suitefit measures fails, try swapping 
+  the order of the atoms (e.g. "O5'-C5'" instead of "C5'-O5'").
 
     dangle suitefit FILE.pdb  
     dangle "O5'-C5'" FILE.pdb
     dangle "O5'--C5'" FILE.pdb
     dangle "C4'-C3'-C2'-C1'" FILE.pdb
     
-  (Added by DK 7/1/07) Dangle now can also output measures of RNA sugar pucker.  
-  Output includes the pseudorotation angle P from Altona et al, JACS, 1972 and
-  the amplitude of pseudorotation from Rao et al, Acta Cryst, 1981.
+  Dangle can output measures of RNA sugar pucker.  Output includes the 
+  pseudorotation angle P from Altona et al, JACS, 1972 and the amplitude of 
+  pseudorotation from Rao et al, Acta Cryst, 1981.
   
     dangle pucker FILE.pdb
 
-  (Added by DK 7/24/07) Dangle can now output a kinemage with visualizations of 
-  distance and angle geometry outliers.  If one of the flags -kin, -geomkin, or 
-  -geometrykin is used, other output will be stifled and kinemage-formatted output
-  will be sent to the screen.  If you just want distance outliers, use 
-  -distancedevskin or -distdevskin in place of the abovementioned flags; for just 
-  angle outliers, try -angledevskin or -angdevskin.  If you want @kinemage and 
-  @masters for the angle and distance deviations at the top of the output, tack on 
-  the -kinheading flag.  By the way, red outlier visualizations mean the value in
-  the model is greater than ideal; blue means the model value is less than ideal.
-  This now works with RNA as well as protein, but note that like the rest of 
-  Dangle, it's not ready for DNA yet.  Ideal is 6 turns in the distance deviation
-  "springs" and each sigma deviation adds +/- 0.25 turns.
-  
-  (Added by DK 7/31/07) The rnabb builtin measurement now discriminates between 
-  RNA and DNA and will output results only for those residues that are the former.
+  Dangle can output a kinemage with visualizations of distance and angle 
+  geometry outliers.  Red outlier visualizations indicate the value in the 
+  model is greater than ideal; blue means the value in the model is less than 
+  ideal.  Like the rest of Dangle, geom dev viz kins work for protein and RNA 
+  but not DNA.  Ideal bond length corresponds to 6 turns in the distance 
+  deviation "springs" and each sigma deviation adds +/- 0.25 turns.  The 
+  following flags suppress csv output and send kinemage format output to the 
+  screen:
 
-  (Added by DK 8/21/07) Dangle discriminates between RNA and DNA for the -rna flag
-  now.  Also, GeomKinSmith output can be written as a subgroup instead of a group
-  if the -sub or -subgroup flag is used in Dangle.
+    -kin/-geomkin/-geometrykin      distance + angle outliers
+    -distancedevskin/-distdevskin   just distance outliers
+    -angledevskin/-angdevskin       just angle outliers
 
-  (Added by DK 10/3/07) The -dohets or -hets flag tells Dangle to report geometry
-  information for het groups, both in command line and geom dev viz kin forms. By
-  default it is currently off.
+  Other flags for geom dev viz kins:
+
+    -kinheading                     @kinemage + @master(s) at top
+    -sub/-subgroup                  @subgroup instead of @group
+
+  By default Dangle ignores het atoms, but this can be overridden with the 
+  -dohets or -hets flags, which tell Dangle to report geometry information for 
+  het groups, both in command line and geom dev viz kin forms.
 

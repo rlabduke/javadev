@@ -27,6 +27,9 @@ public class Dangle //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
+    
+    String versionNumber = "0.77.071016";
+    
     boolean forcePDB = false, forceCIF = false;
     boolean doWrap = false; // if true wrap dihedrals to 0 to 360 instead of -180 to 180
     boolean showDeviation = false;
@@ -371,7 +374,7 @@ public class Dangle //extends ... implements ...
     }
 //}}}
 
-//{{{ parseArguments, showHelp
+//{{{ parseArguments
 //##############################################################################
     /**
     * Parse the command-line options for this program.
@@ -425,7 +428,16 @@ public class Dangle //extends ... implements ...
             }
         }//for(each arg in args)
     }
-    
+//}}}
+
+//{{{ showHelp, showChanges, getVersion
+//##############################################################################
+    /**
+    * Parse the command-line options for this program.
+    * @param args the command-line options, as received by main()
+    * @throws IllegalArgumentException if any argument is unrecognized, ambiguous, missing
+    *   a required parameter, has a malformed parameter, or is otherwise unacceptable.
+    */
     // Display help information
     void showHelp(boolean showAll)
     {
@@ -440,7 +452,26 @@ public class Dangle //extends ... implements ...
                 catch(IOException ex) { ex.printStackTrace(); }
             }
         }
-        System.err.println("chiropraxis.dangle.Dangle");
+        System.err.println("chiropraxis.dangle.Dangle version " + versionNumber);
+        System.err.println("Copyright (C) 2007 by Ian W. Davis. All rights reserved.");
+    }
+
+    // Display changes information
+    void showChanges(boolean showAll)
+    {
+        if(showAll)
+        {
+            InputStream is = getClass().getResourceAsStream("Dangle.changes");
+            if(is == null)
+                System.err.println("\n*** Unable to locate changes information in 'Dangle.changes' ***\n");
+            else
+            {
+                try { streamcopy(is, System.out); }
+                catch(IOException ex) { ex.printStackTrace(); }
+            }
+        }
+        System.err.print("chiropraxis.dangle.Dangle version " + versionNumber);
+        System.err.println();
         System.err.println("Copyright (C) 2007 by Ian W. Davis. All rights reserved.");
     }
 
@@ -476,6 +507,11 @@ public class Dangle //extends ... implements ...
         if(flag.equals("-help") || flag.equals("-h"))
         {
             showHelp(true);
+            System.exit(0);
+        }
+        if(flag.equals("-changes"))
+        {
+            showChanges(true);
             System.exit(0);
         }
         else if(flag.equals("-cif"))
