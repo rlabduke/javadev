@@ -30,11 +30,18 @@
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 0.76 ### (DK)
-- Fixed small bug w/ regard to -hets flag
-- Fixed particular Measurement line in Parkinson resource file for -rna (noted)
+### 0.77 ### (dak)
+- Added -changes flag and Dangle.changes resource file
+- Added versionNumber as a variable in Dangle.java which is printed out
+  for -help or -changes at bottom (will need to update manually every time
+  code is changed...)
 
-### 0.75 ### (DK)
+### 0.76 ### (dak)
+- Fixed small bug w/ regard to -hets flag
+- Fixed particular Measurement line in Parkinson resource file for -rna (noted
+  in the file)
+
+### 0.75 ### (dak)
 - Added -hets flag to Dangle (default: doesn't address hets)
 
 ### 0.74 ###
@@ -49,62 +56,63 @@
 - sc-connect.props changed to have both pdb v23 and pdb v3 connections.
 - fixed a bug in Ramalyze where "MODE_PDF" was giving an error, even when PDFs were being generated.
 
-### 0.73 ### (DK)
+### 0.73 ### (dak)
 - fixed a bug that prevented running multiple PDBs with -rna or rnabb
 - added SubImpose for superimposing subsets of atoms in PDB files
 
-### 0.72 ### (DK)
+### 0.72 ### (dak)
 - added -raw flag to rotarama.Ramalyze to replicate the raw data output 
   functionality in hless (was on IWD's to-do list)
 
-### 0.71 ### (DK)
+### 0.71 ### (dak)
 - amended spring drawings in dangle.GeomKinSmith so ideal distance = 6 turns
   and each sigma deviation = +/- 0.25 turn
 - changed rotarama.Rotalyze so OUTLIERs are output as 0 to 360, not -180
   to 180
 
-### 0.70 ### (DK)
+### 0.70 ### (dak)
 - added information about the changes below to Dangle.help
 
-### 0.69 ### (DK)
+### 0.69 ### (dak)
 - added -sub flag to Dangle, which makes GeomKinSmith output be @subgroup 
   instead of @group
 - removed a print line from GeomKinSmith that I had accidentally left in for 
   debugging
 
-### 0.68 ### (DK)
+### 0.68 ### (dak)
 - fixed a stupid bug I had just committed
 
-### 0.67 ### (DK)
+### 0.67 ### (dak)
 - fixed bug that was messing up i-1,i dist viz's in GeomKinSmith
 - modified Dangle output methods and GeomKinSmith so DNA automatically dist-
   inguished from RNA if use -rna flag *or* rnabb SuperBuiltin; works if using
   -validate or a flag for geom dev viz's (e.g. -geomkin)
 
-### 0.66 ### (DK)
+### 0.66 ### (dak)
 - changed rnabb SuperBuiltin so results are output only for RNA residues
 - involved changes in Dangle.fullOutput(), Dangle.parseArguments(), 
   Measurement.newBuiltin(), Measurement.newSuperBuiltin(), and Parser
 
-### 0.65 ### (DK)
+### 0.65 ### (dak)
 - fixed handling of Measurement.Groups in GeomKinSmith so that it can handle N19
   "ambiguities" between purines and pyrimidines, so now works with RNA
 
-### 0.64 ### (DK)
-- added GeomKinSmith.java for making kins of angle and distance outlier visualizations
-- edited Dangle.java's Main method so if new geometry flags are true, visualization 
-  kinemage is made
+### 0.64 ### (dak)
+- added GeomKinSmith.java for making kins of angle and distance outlier 
+  visualizations
+- edited Dangle.java's Main method so if new geometry flags are true, 
+  visualization kinemage is made
 - added some "get" methods to Measurement.Angle and .Distance
 
-### 0.63 ### (DK)
+### 0.63 ### (dak)
 - fixed a bug I had just submitted in which I had accidentally deleted the 
   "# label:model:chain:number:ins:type" line at the top of Dangle.java
 
-### 0.62 ### (DK)
+### 0.62 ### (dak)
 - renamed labels for pucker amplitude and pucker pseudorotation angle to be more
   concise
 
-### 0.61 ### (DK)
+### 0.61 ### (dak)
 - added suitefit as new SUPERBLTN and suitefit measures as new BUILTINs
 - added new subclasses for RNA ring pucker called PuckerAng (calculates P from
   Altona et al, JACS, 1972) and PuckerAmp (calculates tau_m from Rao et al, 
