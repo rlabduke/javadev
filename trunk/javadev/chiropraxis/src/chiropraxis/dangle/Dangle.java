@@ -25,10 +25,10 @@ public class Dangle //extends ... implements ...
 //{{{ Constants
 //}}}
 
-//{{{ Variable definitions
+//{{{ Variable definitions (+ version number!)
 //##############################################################################
     
-    String versionNumber = "0.77.071016";
+    String versionNumber = "0.78.071016";
     
     boolean forcePDB = false, forceCIF = false;
     boolean doWrap = false; // if true wrap dihedrals to 0 to 360 instead of -180 to 180
