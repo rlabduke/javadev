@@ -39,8 +39,12 @@ public class Peptide //extends ... implements ...
     public boolean isBeta = false;
     /** Whether this strand is parallel to its two H-bonded neighbors. */
     public boolean isParallelN = false, isParallelO = false;
+    /** Whether or not this peptide can be considered to be in an alpha helix. */
+    public boolean isHelix = false;
     /** The index of this chain, and the index of this peptide within it. -1 by default. */
     int chain = -1, index = -1;
+    /** Psi of the N-ward residue and phi of the C-ward residue. */
+    double psiN = Double.NaN, phiC = Double.NaN;
 //}}}
 
 //{{{ Constructor(s)
