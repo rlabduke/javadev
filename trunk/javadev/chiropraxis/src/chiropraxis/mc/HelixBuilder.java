@@ -27,6 +27,12 @@ public class HelixBuilder //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     String filename;
+    String list;                 // list of filenames if want more than one
+    ArrayList<String> filenames; // from list
+    ArrayList<Helix> helices;
+    boolean doNcaps;
+    boolean doKin;
+    boolean doPrint;
 //}}}
 
 //{{{ Constructor(s)
@@ -34,7 +40,13 @@ public class HelixBuilder //extends ... implements ...
     public HelixBuilder()
     {
         super();
-        filename = null;
+        filename  = null;
+        list      = null;
+        filenames = null;
+        helices   = new ArrayList<Helix>();
+        doNcaps   = false;
+        doKin     = false;
+        doPrint   = true;
     }
 //}}}
 
@@ -48,27 +60,18 @@ public class HelixBuilder //extends ... implements ...
         findHBonds(peptides, state);
         getPsiPhis(peptides, state);
         
-        // Try to identify sheet based on H-bonding pattern
-        assignSecStruct(peptides);
-        // all Peptide data has now been filled in!
+        // Try to identify *helix* based on H-bonding pattern
+        assignSecStruct(peptides); // all Peptide data has now been filled in!
+        addHelices(peptides, model);
+        if (doNcaps) findNcaps();
         
-        // Map each residue to a beta-sheet plane
-        // and a normal to that plane, if possible.
-        // Returns a Map<Residue, Triple>
-        //Map normals = calcSheetNormals(peptides, model, state);
-        
-        // Flesh the normals out into a local coordinate system
-        // and measure the Ca-Cb's angle to the normal.
-        //Map angles = measureSheetAngles(peptides, normals, state);
-        
-        //System.out.println("@text");
-        //printAlongStrandNeighborAngles(System.out, peptides, angles);
-        //printCrossStrandNeighborAngles(System.out, modelName, peptides, angles);
-        System.out.println("@kinemage 1");
-        sketchHbonds(System.out, peptides, state, true); // true means just helices
-        //sketchNormals(System.out, normals, state);
-        //sketchLocalAxes(System.out, angles, state);
-        //sketchPlanes(System.out, angles, state);
+        if (doKin)
+        {
+            System.out.println("@kinemage {"+filename+" helices}");
+            sketchHbonds(System.out, peptides, state);
+            sketchNcaps(System.out, state);
+        }
+        //printHelicalPeptides(System.out, peptides);
     }
 //}}}
 
@@ -339,104 +342,54 @@ public class HelixBuilder //extends ... implements ...
     }
 //}}}
 
-//{{{ [calcSheetNormals]
+//{{{ addHelices
 //##############################################################################
-    /**
-    * Returns a Map&lt;Residue, Triple&gt; that maps each Residue in model
-    * that falls in a "reasonable" part of the beta sheet to a Triple
-    * representing the normal vector of the beta sheet at that Residue's C-alpha.
-    * The normal is the normal of a plane least-squares fit through
-    * six nearby peptide centers: the ones before and after this residue in
-    * the strand, and their two (each) H-bonding partners, all of which
-    * must be present and classified as being in beta sheet.
-    */
-    Map calcSheetNormals(Collection peptides, Model model, ModelState state)
+    void addHelices(Collection peptides, Model model)
     {
-        // Allow mapping from residues to the peptides that hold them.
-        Map cPeptides = new HashMap(), nPeptides = new HashMap();
+        TreeSet thisHelixsResidues = new TreeSet<Residue>();
+        
         for(Iterator iter = peptides.iterator(); iter.hasNext(); )
         {
-            Peptide p = (Peptide) iter.next();
-            if(p.cRes != null) cPeptides.put(p.cRes, p);
-            if(p.nRes != null) nPeptides.put(p.nRes, p);
-        }
-        
-        Map normals = new HashMap();
-        for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
-        {
-            Residue res = (Residue) iter.next();
-            Peptide cPep = (Peptide) cPeptides.get(res);
-            Peptide nPep = (Peptide) nPeptides.get(res);
-            if(cPep != null && cPep.hbondN != null && cPep.hbondO != null
-            && nPep != null && nPep.hbondN != null && nPep.hbondO != null
-            && cPep.isBeta && cPep.hbondN.isBeta && cPep.hbondO.isBeta
-            && nPep.isBeta && nPep.hbondN.isBeta && nPep.hbondO.isBeta)
+            Peptide pep = (Peptide) iter.next();
+            if (pep.isHelix)
             {
-                Collection guidePts = new ArrayList();
-                guidePts.add(cPep.hbondN.midpoint);
-                guidePts.add(cPep.midpoint);
-                guidePts.add(cPep.hbondO.midpoint);
-                guidePts.add(nPep.hbondN.midpoint);
-                guidePts.add(nPep.midpoint);
-                guidePts.add(nPep.hbondO.midpoint);
-                LsqPlane lsqPlane = new LsqPlane(guidePts);
-                Triple normal = new Triple(lsqPlane.getNormal());
-                normals.put(res, normal);
-                // Try to make it point the same way as Ca-Cb
-                try
+                if (pep.nRes != null)
+                    thisHelixsResidues.add(pep.nRes);
+                if (pep.cRes != null)
+                    thisHelixsResidues.add(pep.cRes);
+                
+                if (!pep.next.isHelix || pep.next == null || pep.cRes == null)
                 {
-                    AtomState ca = state.get(res.getAtom(" CA "));
-                    AtomState cb = state.get(res.getAtom(" CB "));
-                    Triple cacb = new Triple(cb).sub(ca);
-                    if(cacb.dot(normal) < 0) normal.neg();
+                    // Make this helix, add it to the list, and
+                    // reset this helix-making process
+                    Helix thisHelix = new Helix(thisHelixsResidues);
+                    helices.add(thisHelix);
+                    thisHelixsResidues = new TreeSet<Residue>();
                 }
-                catch(AtomException ex) {} // oh well (e.g. Gly)
             }
         }
-        return normals;
     }
 //}}}
 
-//{{{ [measureSheetAngles]
+//{{{ findNcaps
 //##############################################################################
-    /** Returns a map of Residues to SheetAxes */
-    Map measureSheetAngles(Collection peptides, Map normals, ModelState state)
+public void findNcaps()
     {
-        // Allow mapping from residues to the peptides that hold them.
-        Map cPeptides = new HashMap(), nPeptides = new HashMap();
-        for(Iterator iter = peptides.iterator(); iter.hasNext(); )
+        /** This is a very simple Ncap-finding algorithm!
+        * Can alter later to incorporate Ca position relative to cylinder of
+        * helix as in original RLab helix cap paper
+        */
+        for (Helix helix : helices)
         {
-            Peptide p = (Peptide) iter.next();
-            if(p.cRes != null) cPeptides.put(p.cRes, p);
-            if(p.nRes != null) nPeptides.put(p.nRes, p);
+            if (helix.ncap != null) continue;
+            else helix.ncap = helix.getRes("first");
         }
-        
-        Map angles = new HashMap();
-        for(Iterator iter = normals.keySet().iterator(); iter.hasNext(); )
-        {
-            Residue res     = (Residue) iter.next();
-            Triple  normal  = (Triple) normals.get(res);
-            Peptide cPep    = (Peptide) cPeptides.get(res);
-            Peptide nPep    = (Peptide) nPeptides.get(res);
-            if(cPep == null || nPep == null) continue;
-            Triple  n2c     = new Triple(cPep.midpoint).sub(nPep.midpoint);
-            try
-            {
-                AtomState   ca      = state.get(res.getAtom(" CA "));
-                AtomState   cb      = state.get(res.getAtom(" CB "));
-                Triple      cacb    = new Triple(cb).sub(ca);
-                SheetAxes   axes    = new SheetAxes(normal, n2c, cacb);
-                angles.put(res, axes);
-            }
-            catch(AtomException ex) {}
-        }
-        return angles;
     }
 //}}}
 
 //{{{ sketchHbonds
 //##############################################################################
-    void sketchHbonds(PrintStream out, Collection peptides, ModelState state, boolean justHelices)
+    void sketchHbonds(PrintStream out, Collection peptides, ModelState state)
     {
         DecimalFormat df = new DecimalFormat("0.0###");
         out.println("@group {peptides & hbonds}");
@@ -486,169 +439,44 @@ public class HelixBuilder //extends ... implements ...
     }
 //}}}
 
-//{{{ sketchNormals
+//{{{ sketchNcaps
 //##############################################################################
-    void sketchNormals(PrintStream out, Map normals, ModelState state)
+    void sketchNcaps(PrintStream out, ModelState state)
     {
+        
         DecimalFormat df = new DecimalFormat("0.0###");
-        out.println("@group {normals & planes}");
-        out.println("@vectorlist {peptides} color= magenta");
-        for(Iterator iter = normals.keySet().iterator(); iter.hasNext(); )
+        out.println("@group {ncaps}");
+        out.println("@balllist {ncaps} radius= 0.3 color= hotpink");
+        for (Helix helix : helices)
         {
-            Residue res = (Residue) iter.next();
-            Triple normal = (Triple) normals.get(res);
             try
             {
-                AtomState ca = state.get(res.getAtom(" CA "));
-                Triple tip = new Triple(normal).add(ca);
-                out.println("{"+res+"}P "+ca.format(df));
-                out.println("{normal: "+tip.format(df)+"} "+tip.format(df));
-            }
-            catch(AtomException ex) { ex.printStackTrace(); }
-        }
-    }
-//}}}
-
-//{{{ sketchLocalAxes
-//##############################################################################
-    void sketchLocalAxes(PrintStream out, Map angles, ModelState state)
-    {
-        DecimalFormat df = new DecimalFormat("0.0###");
-        out.println("@group {local axes}");
-        out.println("@vectorlist {axes} color= brown");
-        for(Iterator iter = angles.keySet().iterator(); iter.hasNext(); )
-        {
-            Residue res = (Residue) iter.next();
-            SheetAxes axes = (SheetAxes) angles.get(res);
-            try
-            {
-                AtomState ca = state.get(res.getAtom(" CA "));
-                Triple tip = new Triple(axes.strand).add(ca);
-                out.println("{"+res+"}P "+ca.format(df));
-                out.println("{strand}red "+tip.format(df));
-                tip.like(axes.cross).add(ca);
-                out.println("{"+res+"}P "+ca.format(df));
-                out.println("{cross}green "+tip.format(df));
-                tip.like(axes.normal).add(ca);
-                out.println("{"+res+"}P "+ca.format(df));
-                out.println("{normal}blue "+tip.format(df));
-            }
-            catch(AtomException ex) { ex.printStackTrace(); }
-        }
-        out.println("@labellist {angles} color= peach");
-        for(Iterator iter = angles.keySet().iterator(); iter.hasNext(); )
-        {
-            Residue res = (Residue) iter.next();
-            SheetAxes axes = (SheetAxes) angles.get(res);
-            try
-            {
-                AtomState ca = state.get(res.getAtom(" CA "));
-                Triple tip = new Triple(axes.strand).add(ca);
-                out.println("{strand: "+df.format(axes.angleAlong)+"}red "+tip.format(df));
-                tip.like(axes.cross).add(ca);
-                out.println("{cross: "+df.format(axes.angleAcross)+"}green "+tip.format(df));
-                tip.like(axes.normal).add(ca);
-                out.println("{normal: "+df.format(axes.angleNormal)+"}blue "+tip.format(df));
-            }
-            catch(AtomException ex) { ex.printStackTrace(); }
-        }
-    }
-//}}}
-
-//{{{ sketchPlanes
-//##############################################################################
-    void sketchPlanes(PrintStream out, Map angles, ModelState state)
-    {
-        DecimalFormat df = new DecimalFormat("0.0###");
-        Transform xform = new Transform();
-        // It's important that we visit the residues in order.
-        ArrayList residues = new ArrayList(angles.keySet());
-        Collections.sort(residues);
-        for(Iterator iter = residues.iterator(); iter.hasNext(); )
-        {
-            Residue res = (Residue) iter.next();
-            SheetAxes axes = (SheetAxes) angles.get(res);
-            out.println("@group {"+res.getCNIT()+"} animate dominant");
-            out.println("@vectorlist {axes} color= brown");
-            try
-            {
-                AtomState ca = state.get(res.getAtom(" CA "));
-                Triple tip = new Triple();
-                for(int i = 0; i < 360; i+=5)
+                if (helix.ncap != null)
                 {
-                    tip.like(axes.strand).mult(5);
-                    xform.likeRotation(axes.normal, i);
-                    xform.transformVector(tip);
-                    tip.add(ca);
-                    out.println("{"+res+"}P "+ca.format(df));
-                    out.println("{plane} "+tip.format(df));
+                    AtomState ncapCa = state.get(helix.ncap.getAtom(" CA "));
+                    out.println("{helix '"+helix.toString()+"' ncap} "+
+                        df.format(ncapCa.getX())+" "+
+                        df.format(ncapCa.getY())+" "+
+                        df.format(ncapCa.getZ()) );
                 }
             }
-            catch(AtomException ex) { ex.printStackTrace(); }
-        }
-    }
-//}}}
-
-//{{{ printAlongStrandNeighborAngles
-//##############################################################################
-    void printAlongStrandNeighborAngles(PrintStream out, Collection peptides, Map angles)
-    {
-        // Allow mapping from residues to the peptides that hold them.
-        Map cPeptides = new HashMap(), nPeptides = new HashMap();
-        for(Iterator iter = peptides.iterator(); iter.hasNext(); )
-        {
-            Peptide p = (Peptide) iter.next();
-            if(p.cRes != null) cPeptides.put(p.cRes, p);
-            if(p.nRes != null) nPeptides.put(p.nRes, p);
-        }
-
-        DecimalFormat df = new DecimalFormat("0.0###");
-        out.println("residue:normal:across:along:next-neighbor?:normal:across:along");
-        for(Iterator iter = angles.keySet().iterator(); iter.hasNext(); )
-        {
-            Residue res = (Residue) iter.next();
-            SheetAxes axes = (SheetAxes) angles.get(res);
-            out.print(res.getCNIT()+":"+df.format(axes.angleNormal)+":"+df.format(axes.angleAcross)+":"+df.format(axes.angleAlong));
-            Peptide pep = (Peptide) cPeptides.get(res);
-            SheetAxes next = (SheetAxes) angles.get(pep.nRes);
-            if(pep.nRes !=  null && next != null)
-                out.print(":"+pep.nRes.getCNIT()+":"+df.format(next.angleNormal)+":"+df.format(next.angleAcross)+":"+df.format(next.angleAlong));
-            out.println();
-        }
-    }
-//}}}
-
-//{{{ printCrossStrandNeighborAngles
-//##############################################################################
-    void printCrossStrandNeighborAngles(PrintStream out, String prefix, Collection peptides, Map angles)
-    {
-        // Allow mapping from residues to the peptides that hold them.
-        Map cPeptides = new HashMap(), nPeptides = new HashMap();
-        for(Iterator iter = peptides.iterator(); iter.hasNext(); )
-        {
-            Peptide p = (Peptide) iter.next();
-            if(p.cRes != null) cPeptides.put(p.cRes, p);
-            if(p.nRes != null) nPeptides.put(p.nRes, p);
-        }
-
-        DecimalFormat df = new DecimalFormat("0.0###");
-        //out.println("residue:normal:across:along:acrossN-neighbor?:normal:across:along");
-        for(Iterator iter = angles.keySet().iterator(); iter.hasNext(); )
-        {
-            Residue res = (Residue) iter.next();
-            SheetAxes axes = (SheetAxes) angles.get(res);
-            out.print(prefix+":"+res.getCNIT()+":"+df.format(axes.angleNormal)+":"+df.format(axes.angleAcross)+":"+df.format(axes.angleAlong));
-            Peptide pep = (Peptide) nPeptides.get(res);
-            if(pep.hbondN != null) // has a cross-strand neighbor
+            catch (driftwood.moldb2.AtomException ae)
             {
-                Residue nextRes;
-                if(pep.isParallelN) nextRes = pep.hbondN.nRes;
-                else                nextRes = pep.hbondN.cRes;
-                SheetAxes next = (SheetAxes) angles.get(nextRes);
-                if(nextRes !=  null && next != null)
-                    out.print(":"+nextRes.getCNIT()+":"+df.format(next.angleNormal)+":"+df.format(next.angleAcross)+":"+df.format(next.angleAlong));
+                System.err.println("Can't find atom ' CA ' in helix "+helix);
             }
-            out.println();
+        }
+    }
+//}}}
+
+//{{{ printHelicalPeptides
+//##############################################################################
+    void printHelicalPeptides(PrintStream out, Collection peptides)
+    {
+        for(Iterator iter = peptides.iterator(); iter.hasNext(); )
+        {
+            Peptide pep = (Peptide) iter.next();
+            if(pep.isHelix) //Beta)
+                out.println(filename.substring(0,4)+" "+pep); 
         }
     }
 //}}}
@@ -660,17 +488,30 @@ public class HelixBuilder //extends ... implements ...
     */
     public void Main() throws IOException
     {
-        // Load model group from PDB files
-        File file = new File(filename);
-        LineNumberReader in = new LineNumberReader(new FileReader(file));
-        PdbReader pdbReader = new PdbReader();
-        CoordinateFile cf = pdbReader.read(in);
+        // Make helices
+        if (list != null) // more than one filename
+        {
+            // Set up filenames ArrayList
+            filenames = new ArrayList<String>();
+            File f = new File(list);
+            Scanner s = new Scanner(f);
+            while (s.hasNext());
+                filenames.add(s.next());
+            
+            // Load model group from PDB file(s)
+            for (int i = 0; i < filenames.size(); i++)
+            {
+                filename = filenames.get(i); // seen by doFile()
+                doFile();
+            }
+        }
+        else // just one filename
+            doFile();
         
-        Model m = cf.getFirstModel();
-        ModelState state = m.getState();
-        processModel(cf.getIdCode(), m, state);
+        if (doPrint)
+            printHelices();
     }
-
+    
     public static void main(String[] args)
     {
         HelixBuilder mainprog = new HelixBuilder();
@@ -687,6 +528,39 @@ public class HelixBuilder //extends ... implements ...
             System.err.println();
             System.err.println("*** Error parsing arguments: "+ex.getMessage());
             System.exit(1);
+        }
+    }
+//}}}
+
+//{{{ doFile
+//##############################################################################
+public void doFile() throws IOException
+    {
+        File file = new File(filename);
+        LineNumberReader in = new LineNumberReader(new FileReader(file));
+        PdbReader pdbReader = new PdbReader();
+        CoordinateFile cf = pdbReader.read(in);
+        
+        Model m = cf.getFirstModel();
+        ModelState state = m.getState();
+        processModel(cf.getIdCode(), m, state);
+    }
+//}}}
+
+//{{{ printHelices
+//##############################################################################
+public void printHelices()
+    {
+        System.out.println("Total number helices: "+helices.size());
+        for (Helix helix : helices)
+        {
+            System.out.println("** "+helix.toString());
+            for (Residue residue : helix.residues)
+                System.out.println("  "+residue);
+            if (doNcaps)
+                if (helix.ncap != null)
+                    System.out.println("ncap: "+helix.ncap);
+            System.out.println();
         }
     }
 //}}}
@@ -784,6 +658,23 @@ public class HelixBuilder //extends ... implements ...
         {
             showHelp(true);
             System.exit(0);
+        }
+        else if(flag.equals("-list"))
+        {
+            list = param;
+        }
+        else if(flag.equals("-kin"))
+        {
+            doKin = true;
+            doPrint = false;
+        }
+        else if(flag.equals("-print"))
+        {
+            doPrint = true;
+        }
+        else if(flag.equals("-ncaps"))
+        {
+            doNcaps = true;
         }
         else if(flag.equals("-dummy_option"))
         {
