@@ -37,6 +37,17 @@ public class Helix //extends ... implements ...
     /** Residue which is the Ncap for this helix. */
     public Residue ncap;
     
+    /** Angle between plane of Ncap Ca(i,i-1,i+1) and local helix axis. */
+    public double ncapAngle;
+    
+    /** Head position (i.e. end of vector) of the 4-Ca helix axis starting 
+    * at each residue. */
+    public ArrayList<Triple> axisHeads;
+    
+    /** Tail position (i.e. beginning of vector) of the 4-Ca helix axis 
+    * starting at each residue. */
+    public ArrayList<Triple> axisTails;
+    
 //}}}
 
 //{{{ Constructor(s)
@@ -50,6 +61,9 @@ public class Helix //extends ... implements ...
             residues.add( (Residue)iter.next() );
         Collections.sort(residues);
         ncap = null;
+        ncapAngle = Double.NaN;
+        axisHeads = null;
+        axisTails = null;
     }
 //}}}
 
