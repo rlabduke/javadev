@@ -40,13 +40,30 @@ public class Helix //extends ... implements ...
     /** Angle between plane of Ncap Ca(i,i-1,i+1) and local helix axis. */
     public double ncapAngle;
     
-    /** Head position (i.e. end of vector) of the 4-Ca helix axis starting 
-    * at each residue. */
-    public ArrayList<Triple> axisHeads;
+    /** Tail position (i.e. beg. of vector) of the normal to the Ncap plane */
+    public Triple ncapNormalTail;
+    
+    /** Head position (i.e. end of vector) of the normal to the Ncap plane */
+    public Triple ncapNormalHead;
     
     /** Tail position (i.e. beginning of vector) of the 4-Ca helix axis 
     * starting at each residue. */
     public ArrayList<Triple> axisTails;
+    
+    /** Head position (i.e. end of vector) of the 4-Ca helix axis starting 
+    * at each residue. */
+    public ArrayList<Triple> axisHeads;
+    
+    /** Tail position (i.e. beginning of vector) of the vector sum version of
+    * the 4-Ca helix axis starting at each residue. */
+    public Triple vectorSumAxisTail;
+    
+    /** Head position (i.e. end of vector) of the vector sum version of 
+    * the 4-Ca helix axis starting at each residue. */
+    public Triple vectorSumAxisHead;
+    
+    // Don't need separate ArrayList<Triple> smoothAxisTails/Heads b/c
+    // we'll just modify axisTails/Heads if we do that option
     
 //}}}
 
@@ -62,8 +79,12 @@ public class Helix //extends ... implements ...
         Collections.sort(residues);
         ncap = null;
         ncapAngle = Double.NaN;
-        axisHeads = null;
+        ncapNormalTail = null;
+        ncapNormalHead = null;
         axisTails = null;
+        axisHeads = null;
+        vectorSumAxisTail = null;
+        vectorSumAxisHead = null;
     }
 //}}}
 
