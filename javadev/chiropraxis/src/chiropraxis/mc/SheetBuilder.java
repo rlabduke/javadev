@@ -26,6 +26,14 @@ public class SheetBuilder //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
+    String filename;
+    boolean doBetaAroms;
+    ArrayList<BetaArom> betaAroms;
+    String oppResType;
+    boolean doPrint;
+    boolean doKin;
+    boolean verbose;
+    
 //}}}
 
 //{{{ Constructor(s)
@@ -33,6 +41,13 @@ public class SheetBuilder //extends ... implements ...
     public SheetBuilder()
     {
         super();
+        filename    = null;
+        doBetaAroms = false;
+        betaAroms   = new ArrayList<BetaArom>();
+        oppResType  = null;
+        doPrint     = true;
+        doKin       = false;
+        verbose     = false;
     }
 //}}}
 
@@ -40,6 +55,9 @@ public class SheetBuilder //extends ... implements ...
 //##############################################################################
     void processModel(String modelName, Model model, ModelState state)
     {
+        if (verbose)
+            System.out.println("Processing model "+model+"...");
+        
         // Create a set of Peptides and connect them up
         Collection peptides = createPeptides(model, state);
         connectPeptides(peptides);
@@ -49,23 +67,49 @@ public class SheetBuilder //extends ... implements ...
         assignSecStruct(peptides);
         // all Peptide data has now been filled in!
         
-        // Map each residue to a beta-sheet plane
-        // and a normal to that plane, if possible.
-        // Returns a Map<Residue, Triple>
-        Map normals = calcSheetNormals(peptides, model, state);
-        
-        // Flesh the normals out into a local coordinate system
-        // and measure the Ca-Cb's angle to the normal.
-        Map angles = measureSheetAngles(peptides, normals, state);
-        
-        //System.out.println("@text");
-        //printAlongStrandNeighborAngles(System.out, peptides, angles);
-        printCrossStrandNeighborAngles(System.out, modelName, peptides, angles);
-        //System.out.println("@kinemage 1");
-        //sketchHbonds(System.out, peptides, state);
-        //sketchNormals(System.out, normals, state);
-        //sketchLocalAxes(System.out, angles, state);
-        //sketchPlanes(System.out, angles, state);
+        if (doBetaAroms)
+        {
+            // This is the stuff Daniel Keedy and Ed Triplett came up with 
+            // for a local system for an aromatic residue in a plus (p) rotamer
+            // across from a given residue type in a beta sheet.
+            // If the -betaarom flag is used, we'll hijack Ian's earlier code
+            // to decide which peptides in this pdb deserve beta status then
+            // launch into our own stuff.
+            addBetaAroms(peptides, model, state);
+            if (doKin)
+            {
+                System.out.println("@text");
+                System.out.println("@kinemage 1");
+                sketchHbonds(System.out, peptides, state);
+                sketchBetaAroms(System.out, state);
+                
+                // what else???
+                
+            }
+        }
+        else
+        {
+            // This is the stuff Ian had already written for SheetBuilder.
+            // We're leaving it here as the default.
+            
+            // Map each residue to a beta-sheet plane
+            // and a normal to that plane, if possible.
+            // Returns a Map<Residue, Triple>
+            Map normals = calcSheetNormals(peptides, model, state);
+            
+            // Flesh the normals out into a local coordinate system
+            // and measure the Ca-Cb's angle to the normal.
+            Map angles = measureSheetAngles(peptides, normals, state);
+            
+            //System.out.println("@text");
+            //printAlongStrandNeighborAngles(System.out, peptides, angles);
+            printCrossStrandNeighborAngles(System.out, modelName, peptides, angles);
+            //System.out.println("@kinemage 1");
+            //sketchHbonds(System.out, peptides, state);
+            //sketchNormals(System.out, normals, state);
+            //sketchLocalAxes(System.out, angles, state);
+            //sketchPlanes(System.out, angles, state);
+        }
     }
 //}}}
 
@@ -245,6 +289,9 @@ public class SheetBuilder //extends ... implements ...
     */
     void assignSecStruct(Collection peptides)
     {
+        if (verbose)
+            System.out.println("Starting assignSecStruct...");
+        
         for(Iterator iter = peptides.iterator(); iter.hasNext(); )
         {
             Peptide pepN = (Peptide) iter.next();
@@ -265,19 +312,143 @@ public class SheetBuilder //extends ... implements ...
                 // Parallel?
                 else if(pepN.chain != pepM.chain || Math.abs(pepN.index - pepM.index) > 5)
                 {
-                    if(pepN.next != null && pepM.next != null && pepN.next.hbondO == pepM.next)
+                    if (doBetaAroms)
+                        continue; // b/c we just want anti-parallel ones for aromatic betas
+                    else
                     {
-                        pepN.isBeta = pepM.isBeta = true;
-                        pepN.isParallelN = pepM.isParallelO = true;
-                    }
-                    else if(pepN.prev != null && pepM.prev != null && pepN.prev.hbondO == pepM.prev)
-                    {
-                        pepN.isBeta = pepM.isBeta = true;
-                        pepN.isParallelN = pepM.isParallelO = true;
+                        if(pepN.next != null && pepM.next != null && pepN.next.hbondO == pepM.next)
+                        {
+                            pepN.isBeta = pepM.isBeta = true;
+                            pepN.isParallelN = pepM.isParallelO = true;
+                        }
+                        else if(pepN.prev != null && pepM.prev != null && pepN.prev.hbondO == pepM.prev)
+                        {
+                            pepN.isBeta = pepM.isBeta = true;
+                            pepN.isParallelN = pepM.isParallelO = true;
+                        }
                     }
                 }
             }
         }
+    }
+//}}}
+
+//{{{ addBetaAroms
+//##############################################################################
+    void addBetaAroms(Collection peptides, Model model, ModelState state)
+    {
+        if (verbose)
+            System.out.println("Starting addBetaArom...");
+        
+        for(Iterator iter = peptides.iterator(); iter.hasNext(); )
+        {
+            // M = this strand, N = opposite strand
+            Peptide pepM = (Peptide) iter.next();
+            
+            // Make sure nothing we need is null
+            if (pepM.cRes != null && pepM.nRes != null && 
+                pepM.hbondO != null && pepM.prev != null)
+            {
+                Peptide pepN       = pepM.hbondO;
+                Peptide pepMminus1 = pepM.prev;
+                if (pepMminus1.hbondN != null && pepN.next != null)
+                {
+                    Peptide pepNplus1 = pepN.next;
+                    // See if we've got an aromatic in a p rotamer on a beta
+                    // strand flanked by an HB'ing NH and CO to an Xaa residue
+                    // on the opposite strand flanked by a CO and NH which are
+                    // HB'ing to the aforementioned NH and CO.
+                    if (isPlusArom(pepM.nRes, state) && 
+                        rightOppResType(pepN.cRes) &&
+                        pepM.isBeta && pepMminus1.isBeta && 
+                        pepN.isBeta && pepNplus1.isBeta &&
+                        pepNplus1.equals(pepMminus1.hbondN) && 
+                        pepN.equals(pepM.hbondO))
+                    {
+                        try
+                        {
+                            // Make a BetaArom object representing local region and
+                            // add it to the list
+                            BetaArom thisBetaArom = new BetaArom();
+                            thisBetaArom.pdb     = filename;
+                            thisBetaArom.aromRes = pepM.nRes;
+                            thisBetaArom.oppRes  = pepN.cRes;
+                            
+                            // Aromatic's Ca(i-1), Ca(i), Ca(i+1), and Cb(i)
+                            ArrayList<AtomState> aromCoordsAL = new ArrayList<AtomState>();
+                            aromCoordsAL.add(state.get(pepM.nRes.getPrev(model).getAtom(" CA ")));
+                            aromCoordsAL.add(state.get(pepM.nRes.getAtom(" CA ")));
+                            aromCoordsAL.add(state.get(pepM.nRes.getNext(model).getAtom(" CA ")));
+                            aromCoordsAL.add(state.get(pepM.nRes.getAtom(" CB ")));
+                            thisBetaArom.aromCoords = aromCoordsAL;
+                            
+                            // Opposite residue's Ca(i-1), Ca(i), Ca(i+1), and Cb(i)
+                            ArrayList<AtomState> oppCoordsAL = new ArrayList<AtomState>();
+                            oppCoordsAL.add(state.get(pepN.cRes.getPrev(model).getAtom(" CA ")));
+                            oppCoordsAL.add(state.get(pepN.cRes.getAtom(" CA ")));
+                            oppCoordsAL.add(state.get(pepN.cRes.getNext(model).getAtom(" CA ")));
+                            oppCoordsAL.add(state.get(pepN.cRes.getAtom(" CB ")));
+                            thisBetaArom.oppCoords = oppCoordsAL;
+                            
+                            // Ed's angle btw Cb(arom)-Ca(arom)-Ca(opp)
+                            Triple cbArom = state.get(pepM.nRes.getAtom(" CB "));
+                            Triple caArom = state.get(pepM.nRes.getAtom(" CA "));
+                            Triple caOpp  = state.get(pepN.cRes.getAtom(" CA "));
+                            thisBetaArom.cbcacaAngle = Triple.angle(cbArom, caArom, caOpp);
+                            
+                            // Some other angles/measurements...
+                            //???
+                            
+                            betaAroms.add(thisBetaArom);
+                        }
+                        catch (AtomException ae)
+                        {
+                            System.err.println("Couldn't make a BetaArom object "+
+                                "for this aromatic: "+pepM.nRes);
+                        }
+                    }
+                }
+            }
+        }
+    }
+//}}}
+
+//{{{ isPlus, rightOppResType
+//##############################################################################
+    boolean isPlusArom(Residue res, ModelState state)
+    {
+        String resName = res.getName();
+        if (resName.equals("PHE") || resName.equals("TYR") || 
+            resName.equals("HIS") || resName.equals("TRP"))
+        {
+            try
+            {
+                AtomState n  = state.get(res.getAtom(" N  "));
+                AtomState ca = state.get(res.getAtom(" CA "));
+                AtomState cb = state.get(res.getAtom(" CB "));
+                AtomState cg = state.get(res.getAtom(" CG "));
+                
+                double chi1 = Triple.dihedral(n, ca, cb, cg);
+                
+                if (chi1 > 30 && chi1 < 90)
+                    return true;
+            }
+            catch (AtomException ae)
+            {
+                System.err.println("Couldn't figure out if "+res+" is p rota or not!");
+            }
+        }
+        return false;
+    }
+
+    boolean rightOppResType(Residue res)
+    {
+        if (oppResType != null)
+        {
+            
+        }
+        return true; // default: don't discriminate based on res type on 
+                     // opposite strand
     }
 //}}}
 
@@ -401,7 +572,12 @@ public class SheetBuilder //extends ... implements ...
             if(pep.isBeta)
                 out.println("{"+pep+"} r=0.3 "+pep.midpoint.format(df));
             else
-                out.println("{"+pep+"} "+pep.midpoint.format(df));
+            {
+                // If using -betaaroms flag, we're only interested in aromatics
+                // in beta regions and don't even wanna print non-beta peptides
+                if (!doBetaAroms)
+                    out.println("{"+pep+"} "+pep.midpoint.format(df));
+            }
         }
         
         out.println("@vectorlist {N hbonds} color= sky");
@@ -410,14 +586,15 @@ public class SheetBuilder //extends ... implements ...
             Peptide pep = (Peptide) iter.next();
             if(pep.hbondN != null)
             {
-                try
-                {
-                    AtomState h = state.get(pep.nRes.getAtom(" H  "));
-                    AtomState o = state.get(pep.hbondN.cRes.getAtom(" O  "));
-                    out.println("{"+pep+"}P "+h.format(df));
-                    out.println("{"+pep.hbondN+"} "+o.format(df));
-                }
-                catch(AtomException ex) {}
+                if (pep.isBeta || !doBetaAroms) // again, if -betaaroms, we're picky
+                    try
+                    {
+                        AtomState h = state.get(pep.nRes.getAtom(" H  "));
+                        AtomState o = state.get(pep.hbondN.cRes.getAtom(" O  "));
+                        out.println("{"+pep+"}P "+h.format(df));
+                        out.println("{"+pep.hbondN+"} "+o.format(df));
+                    }
+                    catch(AtomException ex) {}
             }
         }
         
@@ -427,15 +604,41 @@ public class SheetBuilder //extends ... implements ...
             Peptide pep = (Peptide) iter.next();
             if(pep.hbondO != null)
             {
-                try
-                {
-                    AtomState o = state.get(pep.cRes.getAtom(" O  "));
-                    AtomState h = state.get(pep.hbondO.nRes.getAtom(" H  "));
-                    out.println("{"+pep+"}P "+o.format(df));
-                    out.println("{"+pep.hbondO+"} "+h.format(df));
-                }
-                catch(AtomException ex) {}
+                if (pep.isBeta || !doBetaAroms) // again, if -betaaroms, we're picky
+                    try
+                    {
+                        AtomState o = state.get(pep.cRes.getAtom(" O  "));
+                        AtomState h = state.get(pep.hbondO.nRes.getAtom(" H  "));
+                        out.println("{"+pep+"}P "+o.format(df));
+                        out.println("{"+pep.hbondO+"} "+h.format(df));
+                    }
+                    catch(AtomException ex) {}
             }
+        }
+    }
+//}}}
+
+//{{{ sketchBetaAroms
+//##############################################################################
+    void sketchBetaAroms(PrintStream out, ModelState state)
+    {
+        DecimalFormat df = new DecimalFormat("0.0###");
+        out.println("@group {p aroms in beta}");
+        out.println("@balllist {p aroms in beta} radius= 0.3 color= hotpink");
+        try
+        {
+            for (BetaArom ba : betaAroms)
+            {
+                AtomState ca = state.get(ba.aromRes.getAtom(" CA "));
+                out.println("{"+ba.toString()+" from "+ba.pdb+"} "+
+                    df.format(ca.getX())+" "+
+                    df.format(ca.getY())+" "+
+                    df.format(ca.getZ()) );
+            }
+        }
+        catch (AtomException ae)
+        {
+            System.err.println("Can't get coords to sketch ball for beta arom CA...");
         }
     }
 //}}}
@@ -614,13 +817,22 @@ public class SheetBuilder //extends ... implements ...
     */
     public void Main() throws IOException
     {
+        if (verbose)
+            System.out.println("Starting Main method...");
+        
         // Load model group from PDB files
+        File file = new File(filename);
+        LineNumberReader in = new LineNumberReader(new FileReader(file));
         PdbReader pdbReader = new PdbReader();
-        CoordinateFile cf = pdbReader.read(System.in);
+        CoordinateFile cf = pdbReader.read(in);
         
         Model m = cf.getFirstModel();
         ModelState state = m.getState();
         processModel(cf.getIdCode(), m, state);
+        
+        if (doPrint)
+            printBetaAromStats(System.out);
+        
     }
 
     public static void main(String[] args)
@@ -629,6 +841,7 @@ public class SheetBuilder //extends ... implements ...
         try
         {
             mainprog.parseArguments(args);
+            System.out.println("Finished parsing args...");
             mainprog.Main();
         }
         catch(Exception ex)
@@ -639,6 +852,19 @@ public class SheetBuilder //extends ... implements ...
             System.err.println();
             System.err.println("*** Error parsing arguments: "+ex.getMessage());
             System.exit(1);
+        }
+    }
+//}}}
+
+//{{{ printBetaAromStats
+//##############################################################################
+    void printBetaAromStats(PrintStream out)
+    {
+        DecimalFormat df = new DecimalFormat("0.0###");
+        out.println("pdb:arom_res:opp_res:cb(arom)_ca(arom)_ca(opp)");
+        for (BetaArom ba : betaAroms)
+        {
+            out.println(ba.pdb+":"+ba.aromRes+":"+ba.oppRes+":"+ba.cbcacaAngle);
         }
     }
 //}}}
@@ -724,6 +950,10 @@ public class SheetBuilder //extends ... implements ...
     void interpretArg(String arg)
     {
         // Handle files, etc. here
+        if (filename == null)
+            filename = arg;
+        else
+            System.out.println("Didn't need "+arg+"; already have file "+filename);
     }
     
     void interpretFlag(String flag, String param)
@@ -732,6 +962,23 @@ public class SheetBuilder //extends ... implements ...
         {
             showHelp(true);
             System.exit(0);
+        }
+        else if(flag.equals("-betaarom"))
+        {
+            doBetaAroms = true;
+        }
+        else if(flag.equals("-oppres"))
+        {
+            oppResType = param;
+        }
+        else if(flag.equals("-kin"))
+        {
+            doKin = true;
+            doPrint = false;
+        }
+        else if(flag.equals("-verbose") || flag.equals("-v"))
+        {
+            verbose = true;
         }
         else if(flag.equals("-dummy_option"))
         {
