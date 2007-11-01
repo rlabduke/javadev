@@ -358,8 +358,12 @@ public class SheetBuilder //extends ... implements ...
                     // strand flanked by an HB'ing NH and CO to an Xaa residue
                     // on the opposite strand flanked by a CO and NH which are
                     // HB'ing to the aforementioned NH and CO.
-                    if (isPlusArom(pepM.nRes, state) && 
-                        rightOppResType(pepN.cRes) &&
+                    // We're arbitrarily going for peptides with such a residue
+                    // on the peptide's CO-containing residue (i.e. earlier in 
+                    // sequence), not its N-containing residue (i.e. later in 
+                    // sequence), so we frame our requirements based on that.
+                    if (isPlusArom(pepM.cRes, state) && 
+                        rightOppResType(pepN.nRes) &&
                         pepM.isBeta && pepMminus1.isBeta && 
                         pepN.isBeta && pepNplus1.isBeta &&
                         pepNplus1.equals(pepMminus1.hbondN) && 
@@ -371,29 +375,29 @@ public class SheetBuilder //extends ... implements ...
                             // add it to the list
                             BetaArom thisBetaArom = new BetaArom();
                             thisBetaArom.pdb     = filename;
-                            thisBetaArom.aromRes = pepM.nRes;
-                            thisBetaArom.oppRes  = pepN.cRes;
+                            thisBetaArom.aromRes = pepM.cRes;
+                            thisBetaArom.oppRes  = pepN.nRes;
                             
                             // Aromatic's Ca(i-1), Ca(i), Ca(i+1), and Cb(i)
                             ArrayList<AtomState> aromCoordsAL = new ArrayList<AtomState>();
-                            aromCoordsAL.add(state.get(pepM.nRes.getPrev(model).getAtom(" CA ")));
-                            aromCoordsAL.add(state.get(pepM.nRes.getAtom(" CA ")));
-                            aromCoordsAL.add(state.get(pepM.nRes.getNext(model).getAtom(" CA ")));
-                            aromCoordsAL.add(state.get(pepM.nRes.getAtom(" CB ")));
+                            aromCoordsAL.add(state.get(pepM.cRes.getPrev(model).getAtom(" CA ")));
+                            aromCoordsAL.add(state.get(pepM.cRes.getAtom(" CA ")));
+                            aromCoordsAL.add(state.get(pepM.cRes.getNext(model).getAtom(" CA ")));
+                            aromCoordsAL.add(state.get(pepM.cRes.getAtom(" CB ")));
                             thisBetaArom.aromCoords = aromCoordsAL;
                             
                             // Opposite residue's Ca(i-1), Ca(i), Ca(i+1), and Cb(i)
                             ArrayList<AtomState> oppCoordsAL = new ArrayList<AtomState>();
-                            oppCoordsAL.add(state.get(pepN.cRes.getPrev(model).getAtom(" CA ")));
-                            oppCoordsAL.add(state.get(pepN.cRes.getAtom(" CA ")));
-                            oppCoordsAL.add(state.get(pepN.cRes.getNext(model).getAtom(" CA ")));
-                            oppCoordsAL.add(state.get(pepN.cRes.getAtom(" CB ")));
+                            oppCoordsAL.add(state.get(pepN.nRes.getPrev(model).getAtom(" CA ")));
+                            oppCoordsAL.add(state.get(pepN.nRes.getAtom(" CA ")));
+                            oppCoordsAL.add(state.get(pepN.nRes.getNext(model).getAtom(" CA ")));
+                            oppCoordsAL.add(state.get(pepN.nRes.getAtom(" CB ")));
                             thisBetaArom.oppCoords = oppCoordsAL;
                             
                             // Ed's angle btw Cb(arom)-Ca(arom)-Ca(opp)
-                            Triple cbArom = state.get(pepM.nRes.getAtom(" CB "));
-                            Triple caArom = state.get(pepM.nRes.getAtom(" CA "));
-                            Triple caOpp  = state.get(pepN.cRes.getAtom(" CA "));
+                            Triple cbArom = state.get(pepM.cRes.getAtom(" CB "));
+                            Triple caArom = state.get(pepM.cRes.getAtom(" CA "));
+                            Triple caOpp  = state.get(pepN.nRes.getAtom(" CA "));
                             thisBetaArom.cbcacaAngle = Triple.angle(cbArom, caArom, caOpp);
                             
                             // Some other angles/measurements...
@@ -569,6 +573,18 @@ public class SheetBuilder //extends ... implements ...
         for(Iterator iter = peptides.iterator(); iter.hasNext(); )
         {
             Peptide pep = (Peptide) iter.next();
+            
+            //if (pep.nRes != null) try
+            //{
+            //    Triple nCa = state.get(pep.nRes.getAtom(" CA "));
+            //    out.println("{nRes of pep "+pep+"} "+nCa.getX()+" "+nCa.getY()+" "+
+            //        nCa.getZ());
+            //}
+            //catch (AtomException ae)
+            //{
+            //    out.println("oops...");   
+            //}
+            
             if(pep.isBeta)
                 out.println("{"+pep+"} r=0.3 "+pep.midpoint.format(df));
             else
@@ -841,7 +857,7 @@ public class SheetBuilder //extends ... implements ...
         try
         {
             mainprog.parseArguments(args);
-            System.out.println("Finished parsing args...");
+            //System.out.println("Finished parsing args...");
             mainprog.Main();
         }
         catch(Exception ex)

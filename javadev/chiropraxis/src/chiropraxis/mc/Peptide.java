@@ -43,7 +43,8 @@ public class Peptide //extends ... implements ...
     public boolean isHelix = false;
     /** The index of this chain, and the index of this peptide within it. -1 by default. */
     int chain = -1, index = -1;
-    /** Psi of the N-ward residue and phi of the C-ward residue. */
+    /** Psi of the 1st ("N-ward") residue and phi of the second ("C-ward") residue.
+    * Careful! This convention is opposite to that of cRes vs. nRes! */
     double psiN = Double.NaN, phiC = Double.NaN;
 //}}}
 
