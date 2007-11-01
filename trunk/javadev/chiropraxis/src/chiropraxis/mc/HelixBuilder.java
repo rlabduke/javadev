@@ -73,6 +73,7 @@ public class HelixBuilder //extends ... implements ...
         assignLeftoverSecStruct(peptides);
         //assignLeftoverSecStruct2(peptides); // ~ same thing but ignores phiC and psiN
         addHelices(peptides, model, state);
+        //addHelices2(peptides, model, state); // addresses cRes vs. nRes confusion
         //updatePepDefs(peptides, model); // to comply with what was done to Residues above
         // all Peptide data has now been filled in!
         findAxes(model, state);
@@ -371,8 +372,12 @@ public class HelixBuilder //extends ... implements ...
                     if (pep.hbondO != null && pep.hbondO.nRes != null)
                     {
                         int seqNumDiff = 
-                            ((pep.hbondO).nRes).getSequenceInteger() -
-                            (pep.nRes).getSequenceInteger();
+                            ((pep.hbondO).cRes).getSequenceInteger() -
+                            (pep.cRes).getSequenceInteger(); 
+                            // Was nRes to nRes, but this works equally well and
+                            // makes more sense looking at the helix b/c pep.cRes
+                            // is the one whose CO H-bonds to the N-H of the 
+                            // capping box.
                         if (seqNumDiff == 3)
                             hbForward = true;
                     }
@@ -383,6 +388,11 @@ public class HelixBuilder //extends ... implements ...
                         int seqNumDiff = 
                             (pep.nRes).getSequenceInteger() - 
                             ((pep.hbondN).nRes).getSequenceInteger();
+                            // Note that pep.nRes's NH HB's to the CO of 
+                            // pep.hbondN and that residue difference is 4, but 
+                            // we look at the N-containing res of that target 
+                            // peptide, not the C-containing res, so 3 is the 
+                            // correct target
                         if (seqNumDiff == 3)
                             hbBackward = true;   //alter to allow for C caps?
                     }
@@ -393,8 +403,9 @@ public class HelixBuilder //extends ... implements ...
                     //     or
                     //     helical (i+3) HB to a helical peptide
                     boolean nResIsHelical = false,  cResIsHelical = false,
-                            rightPhiPsiN = false,   rightPhiPsiC = false, 
-                            makesNwardHB = false, makesCwardHB = false;
+                            rightPsiN     = false,  rightPhiC     = false, 
+                            makesNwardHBtoHelicalPeptide = false,
+                            makesCwardHBtoHelicalPeptide = false;
                     for(Iterator iter2 = peptides.iterator(); iter2.hasNext(); )
                     {
                         Peptide pep2 = (Peptide) iter2.next();
@@ -406,13 +417,22 @@ public class HelixBuilder //extends ... implements ...
                                 cResIsHelical = true;
                         }
                     }
-                    if (pep.psiN > -90 && pep.psiN < 45)    rightPhiPsiN = true;
-                    if (pep.phiC > -180 && pep.phiC < 0)    rightPhiPsiC = true;
-                    if (hbBackward && pep.hbondN.isHelix)   makesNwardHB = true;
-                    if (hbForward && pep.hbondO.isHelix)    makesCwardHB = true;
                     
-                    if ((nResIsHelical && (rightPhiPsiN || makesNwardHB)) ||
-                        (cResIsHelical && (rightPhiPsiC || makesCwardHB)))
+                    if (pep.psiN > -90 && pep.psiN < 45)    rightPsiN = true;
+                    if (pep.phiC > -180 && pep.phiC < 0)    rightPhiC = true;
+                    if (hbBackward && pep.hbondN.isHelix)
+                        makesNwardHBtoHelicalPeptide = true;
+                    if (hbForward && pep.hbondO.isHelix)
+                        makesCwardHBtoHelicalPeptide = true;
+                    
+                    // Was commented out version here until I realized I had
+                    // confused nRes and cRes.
+                    // All that changes is cResIsHelical becomes nResIsHelical
+                    // and vice versa.
+                    //if ((nResIsHelical && (rightPsiN || makesNwardHBtoHelicalPeptide)) ||
+                    //    (cResIsHelical && (rightPhiC || makesCwardHBtoHelicalPeptide)))
+                    if ((cResIsHelical && (rightPsiN || makesNwardHBtoHelicalPeptide)) ||
+                        (nResIsHelical && (rightPhiC || makesCwardHBtoHelicalPeptide)))
                         pepsToMakeHelical.add(pep);//pep.isHelix = true;
                         
                 }
@@ -424,7 +444,7 @@ public class HelixBuilder //extends ... implements ...
     }
 //}}}
 
-//{{{ assignLeftoverSecStruct2
+//{{{ [assignLeftoverSecStruct2] not used right now
 //##############################################################################
     void assignLeftoverSecStruct2(Collection peptides)
     {
@@ -500,6 +520,16 @@ public class HelixBuilder //extends ... implements ...
 //##############################################################################
     void addHelices(Collection peptides, Model model, ModelState state)
     {
+        // *Note* There's still some cRes vs. nRes confusion here!
+        // It's been addressed in addHelices2, but that new method may work 
+        // better (3_10 helices?) or worse in certain cases, so we'll leave 
+        // this one just in case.
+        
+        // The problem: should we really be looking at the nRes Ca(i,i-3) distance 
+        // at helix C-termini and the cRes Ca(i,i+3) distance at N-termini)?
+        // What's here seems to work well for now, so we won't mess 
+        // with it just yet...
+        
         // Start by finding overall first and last residues in the sequence to
         // avoid null pointer errors near the ends
         Residue firstRes = null, lastRes = null;
@@ -581,7 +611,7 @@ public class HelixBuilder //extends ... implements ...
                             if (verbose)
                             {
                                 System.out.println("Looking at peptide "+pep);
-                                System.out.println("  *Didn't* add residue "+
+                                System.out.println("  Did add residue "+
                                     pep.nRes+" to a helix\tCa-Ca(i-3) dist "+
                                     ca.distance(ca_iminus3));
                             }
@@ -592,7 +622,7 @@ public class HelixBuilder //extends ... implements ...
                             if (verbose)
                             {
                                 System.out.println("Looking at peptide "+pep);
-                                System.out.println("  Didn't add residue "+pep.nRes+
+                                System.out.println("  *Didn't* add residue "+pep.nRes+
                                     " to a helix\tCa-Ca(i-3) dist "+
                                     ca.distance(ca_iminus3));
                             }
@@ -601,6 +631,143 @@ public class HelixBuilder //extends ... implements ...
                     catch (AtomException ae)
                     {
                         System.err.println("Couldn't find res i-3 for res "+pep.nRes);
+                        Residue iminus3 = null;
+                    }
+                }
+                
+                // If done with a stretch of helical peptides
+                if (!pep.next.isHelix || pep.next == null || pep.cRes == null)
+                {
+                    // If at least 4 residues, we're good to go.
+                    // Make this helix, add it to the list, and reset this 
+                    // helix-making process
+                    if (thisHelixsResidues.size() >= 4)
+                    {
+                        Helix thisHelix = new Helix(thisHelixsResidues);
+                        helices.add(thisHelix);
+                        thisHelixsResidues = new TreeSet<Residue>();
+                    }
+                    else
+                        if (verbose)
+                            System.out.println("Only "+thisHelixsResidues.size()+
+                                " residues in this helix, so not making it...");
+                }
+            }
+        }
+    }
+    //}}}
+
+//{{{ [addHelices2]
+//##############################################################################
+    void addHelices2(Collection peptides, Model model, ModelState state)
+    {
+        // Only diff from addHelices: addresses cRes vs. nRes confusion
+        
+        // This one tends not to work as well, finding initial residues (which
+        // we define as Ncaps) farther into the helix than they should be.
+        // I don't know why...
+        
+        // Start by finding overall first and last residues in the sequence to
+        // avoid null pointer errors near the ends
+        Residue firstRes = null, lastRes = null;
+        for (Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
+        {
+            Residue currRes = (Residue) iter.next();
+            if (firstRes == null)   firstRes = currRes;
+            if (lastRes == null)    lastRes = currRes;
+            if (currRes.getSequenceInteger() < firstRes.getSequenceInteger())
+                firstRes = currRes;
+            if (currRes.getSequenceInteger() > lastRes.getSequenceInteger())
+                lastRes = currRes;
+        }
+        
+        TreeSet thisHelixsResidues = new TreeSet<Residue>();
+        for(Iterator iter = peptides.iterator(); iter.hasNext(); )
+        {
+            Peptide pep = (Peptide) iter.next();
+            if (pep.isHelix)
+            {
+                // Decide which Residues from the Peptides are helical.
+                // Simultaneously catch residues on ends that meet the  
+                // requirements in the assignSecStruc methods but upon 
+                // visual inspection are way too far from the helix.
+                
+                // A convenient filter: eliminate residues from helix if
+                // Ca i to i+3 > 6.0A (N-term) or Ca i to i-3 > 6.0A (C-term).
+                
+                // Look at nRes of peptide if worried about end of sequence
+                if (pep.nRes != null && pep.nRes.getSequenceInteger() <= 
+                    lastRes.getSequenceInteger() - 3)
+                {
+                    try
+                    {
+                        Residue iplus3 = pep.nRes.getNext(model).getNext(model).
+                            getNext(model);
+                        AtomState ca        = state.get(pep.nRes.getAtom(" CA "));
+                        AtomState ca_iplus3 = state.get(iplus3.getAtom(" CA "));
+                        if (ca != null && ca_iplus3 != null && ca.distance(ca_iplus3) < 6)
+                        {
+                            if (verbose)
+                            {
+                                System.out.println("Looking at peptide "+pep);
+                                System.out.println("  Did add residue "+pep.nRes+
+                                    " to a helix\tCa-Ca(i+3) dist "+
+                                    ca.distance(ca_iplus3));
+                            }
+                            thisHelixsResidues.add(pep.nRes);
+                        }
+                        else
+                        {
+                            if (verbose)
+                            {
+                                System.out.println("Looking at peptide "+pep);
+                                System.out.println("  *Didn't* add residue "+
+                                    pep.nRes+" to a helix\tCa-Ca(i+3) dist "+
+                                    ca.distance(ca_iplus3));
+                            }
+                        }
+                    }
+                    catch (AtomException ae)
+                    {
+                        System.err.println("Couldn't find res i+3 for res "+pep.nRes);
+                        Residue iplus3 = null;
+                    }
+                }
+                // Look at cRes of peptide if worried about beginning of sequence
+                if (pep.cRes != null && pep.cRes.getSequenceInteger() >= 
+                    firstRes.getSequenceInteger() + 3)
+                {
+                    try
+                    {
+                        Residue iminus3 = pep.cRes.getPrev(model).getPrev(model).
+                            getPrev(model);
+                        AtomState ca         = state.get(pep.cRes.getAtom(" CA "));
+                        AtomState ca_iminus3 = state.get(iminus3.getAtom(" CA "));
+                        if (ca != null && ca_iminus3 != null && ca.distance(ca_iminus3) < 6)
+                        {
+                            if (verbose)
+                            {
+                                System.out.println("Looking at peptide "+pep);
+                                System.out.println("  Did add residue "+
+                                    pep.cRes+" to a helix\tCa-Ca(i-3) dist "+
+                                    ca.distance(ca_iminus3));
+                            }
+                            thisHelixsResidues.add(pep.cRes);
+                        }
+                        else
+                        {
+                            if (verbose)
+                            {
+                                System.out.println("Looking at peptide "+pep);
+                                System.out.println("  *Didn't* add residue "+pep.cRes+
+                                    " to a helix\tCa-Ca(i-3) dist "+
+                                    ca.distance(ca_iminus3));
+                            }
+                        }
+                    }
+                    catch (AtomException ae)
+                    {
+                        System.err.println("Couldn't find res i-3 for res "+pep.cRes);
                         Residue iminus3 = null;
                     }
                 }
@@ -1075,7 +1242,8 @@ public void findNcaps(Model model, ModelState state)
         // Print output
         if (doPrint)
         {
-            printHelices();
+            if (verbose)
+                printHelices();
             printNcapAngles();
         }
     }
@@ -1147,21 +1315,21 @@ public void doFile() throws IOException
     public void printHelices()
     {
         System.out.println("Total number helices in "+filename+": "+helices.size());
-        //for (Helix helix : helices)
-        //{
-        //    System.out.println("** "+helix.toString());
-        //    System.out.println("  "+helix.residues.size()+" residues");
-        //    for (Residue residue : helix.residues)
-        //        System.out.println("  "+residue);
-        //    if (doNcaps)
-        //    {
-        //        if (helix.ncap != null)
-        //            System.out.println("  ncap: "+helix.ncap);
-        //        if (helix.ncapAngle != Double.NaN)
-        //            System.out.println("  ncap angle: "+helix.ncapAngle);
-        //    }
-        //    System.out.println();
-        //}
+        for (Helix helix : helices)
+        {
+            System.out.println("** "+helix.toString());
+            System.out.println("  "+helix.residues.size()+" residues");
+            for (Residue residue : helix.residues)
+                System.out.println("  "+residue);
+            if (doNcaps)
+            {
+                if (helix.ncap != null)
+                    System.out.println("  ncap: "+helix.ncap);
+                if (helix.ncapAngle != Double.NaN)
+                    System.out.println("  ncap angle: "+helix.ncapAngle);
+            }
+            System.out.println();
+        }
     }
 
     public void printNcapAngles()
