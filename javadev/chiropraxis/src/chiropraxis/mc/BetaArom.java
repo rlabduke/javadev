@@ -52,11 +52,20 @@ public class BetaArom //extends ... implements ...
     public ArrayList<AtomState> aromCoords;
     
     /** AtomStates for the opposite residue's Ca(i-1), Ca(i), Ca(i+1), and Cb(i)
-    * atoms, in that order */
+    * atoms, in that order
+    * Cb(i) will be null if opposite residue is a GLY */
     public ArrayList<AtomState> oppCoords;
     
     /** Angle from Cb(i,arom)-Ca(i,arom)-Ca(i,opp) */
     public double cbcacaAngle;
+    
+    /** Dihedral from Ca(i-1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i+1,opp)
+    * Shows twist of beta sheet starting "N-ward" from the aromatic */
+    public double nwardDihedral;
+    
+    /** Dihedral from Ca(i+1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i-1,opp)
+    * Shows twist of beta sheet starting "C-ward" from the aromatic */
+    public double cwardDihedral;
     
     /** Some other angle not yet defined... */
     //?????

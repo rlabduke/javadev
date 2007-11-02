@@ -22,6 +22,7 @@ import driftwood.r3.*;
 public class SheetBuilder //extends ... implements ...
 {
 //{{{ Constants
+    String aaNames="ALA,ARG,ASN,ASP,CYS,GLU,GLN,GLY,HIS,ILE,LEU,LYS,MET,PHE,PRO,SER,THR,TRP,TYR,VAL";
 //}}}
 
 //{{{ Variable definitions
@@ -29,7 +30,7 @@ public class SheetBuilder //extends ... implements ...
     String filename;
     boolean doBetaAroms;
     ArrayList<BetaArom> betaAroms;
-    String oppResType;
+    TreeSet<String> oppResTypes;
     boolean doPrint;
     boolean doKin;
     boolean verbose;
@@ -44,7 +45,7 @@ public class SheetBuilder //extends ... implements ...
         filename    = null;
         doBetaAroms = false;
         betaAroms   = new ArrayList<BetaArom>();
-        oppResType  = null;
+        oppResTypes = null;
         doPrint     = true;
         doKin       = false;
         verbose     = false;
@@ -371,6 +372,10 @@ public class SheetBuilder //extends ... implements ...
                     {
                         try
                         {
+                            if (verbose)
+                                System.out.print("Let's make a BetaArom for "+pepM.cRes+
+                                    " hanging over "+pepN.nRes);
+                            
                             // Make a BetaArom object representing local region and
                             // add it to the list
                             BetaArom thisBetaArom = new BetaArom();
@@ -391,7 +396,10 @@ public class SheetBuilder //extends ... implements ...
                             oppCoordsAL.add(state.get(pepN.nRes.getPrev(model).getAtom(" CA ")));
                             oppCoordsAL.add(state.get(pepN.nRes.getAtom(" CA ")));
                             oppCoordsAL.add(state.get(pepN.nRes.getNext(model).getAtom(" CA ")));
-                            oppCoordsAL.add(state.get(pepN.nRes.getAtom(" CB ")));
+                            if (pepN.nRes.getName().equals("GLY"))
+                                oppCoordsAL.add(null);
+                            else
+                                oppCoordsAL.add(state.get(pepN.nRes.getAtom(" CB ")));
                             thisBetaArom.oppCoords = oppCoordsAL;
                             
                             // Ed's angle btw Cb(arom)-Ca(arom)-Ca(opp)
@@ -399,6 +407,18 @@ public class SheetBuilder //extends ... implements ...
                             Triple caArom = state.get(pepM.cRes.getAtom(" CA "));
                             Triple caOpp  = state.get(pepN.nRes.getAtom(" CA "));
                             thisBetaArom.cbcacaAngle = Triple.angle(cbArom, caArom, caOpp);
+                            
+                            // Dihedral from Ca(i-1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i+1,opp)
+                            Triple ca_iminus1Arom = state.get(pepM.cRes.getPrev(model).getAtom(" CA "));
+                            Triple ca_iplus1Opp   = state.get(pepN.nRes.getNext(model).getAtom(" CA "));
+                            thisBetaArom.nwardDihedral = Triple.dihedral(
+                                ca_iminus1Arom, caArom, caOpp, ca_iplus1Opp);
+                            
+                            // Dihedral from Ca(i+1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i-1,opp)
+                            Triple ca_iplus1Arom = state.get(pepM.cRes.getNext(model).getAtom(" CA "));
+                            Triple ca_iminus1Opp = state.get(pepN.nRes.getPrev(model).getAtom(" CA "));
+                            thisBetaArom.cwardDihedral = Triple.dihedral(
+                                ca_iplus1Arom, caArom, caOpp, ca_iminus1Opp);
                             
                             // Some other angles/measurements...
                             //???
@@ -447,12 +467,41 @@ public class SheetBuilder //extends ... implements ...
 
     boolean rightOppResType(Residue res)
     {
-        if (oppResType != null)
+        if (verbose)
         {
-            
+            System.out.print("Trying to figure out if "+res+" is a ");
+            Scanner s = new Scanner(aaNames).useDelimiter(",");
+            while (s.hasNext())
+                System.out.print(s.next()+" or ");
+            System.out.println();
         }
-        return true; // default: don't discriminate based on res type on 
-                     // opposite strand
+        
+        if (oppResTypes.contains(res.getName()))
+        {
+            if (verbose)
+            {
+                System.out.print("  Decided that "+res+" is a ");
+                Scanner s = new Scanner(aaNames).useDelimiter(",");
+                while (s.hasNext())
+                    System.out.print(s.next()+" or ");
+                System.out.println();
+                System.out.println();
+            }
+            return true;
+        }
+        else
+        {
+            if (verbose)
+            {
+                System.out.print("  Decided that "+res+" is *NOT* a ");
+                Scanner s = new Scanner(aaNames).useDelimiter(",");
+                while (s.hasNext())
+                    System.out.print(s.next()+" or ");
+                System.out.println();
+                System.out.println();
+            }
+            return false;
+        }
     }
 //}}}
 
@@ -877,10 +926,13 @@ public class SheetBuilder //extends ... implements ...
     void printBetaAromStats(PrintStream out)
     {
         DecimalFormat df = new DecimalFormat("0.0###");
-        out.println("pdb:arom_res:opp_res:cb(arom)_ca(arom)_ca(opp)");
+        out.println("pdb:arom_res:opp_res:cb(arom)_ca(arom)_ca(opp):"+
+            "ca(arom,i-1)_ca(arom,i)_ca(opp,i)_ca(opp,i+1):"+
+            "ca(arom,i+1)_ca(arom,i)_ca(opp,i)_ca(opp,i-1)");
         for (BetaArom ba : betaAroms)
         {
-            out.println(ba.pdb+":"+ba.aromRes+":"+ba.oppRes+":"+ba.cbcacaAngle);
+            out.println(ba.pdb+":"+ba.aromRes+":"+ba.oppRes+":"+ba.cbcacaAngle+
+                ":"+ba.nwardDihedral+":"+ba.cwardDihedral);
         }
     }
 //}}}
@@ -932,6 +984,15 @@ public class SheetBuilder //extends ... implements ...
                     +"' expects to be followed by a parameter"); }
             }
         }//for(each arg in args)
+        
+        // If no specified res types on opposite strand, allow all of 'em
+        if (oppResTypes == null) 
+        {
+            oppResTypes = new TreeSet<String>();
+            Scanner s = new Scanner(aaNames).useDelimiter(",");
+            while (s.hasNext())
+                oppResTypes.add(s.next());
+        }
     }
     
     // Display help information
@@ -985,7 +1046,57 @@ public class SheetBuilder //extends ... implements ...
         }
         else if(flag.equals("-oppres"))
         {
-            oppResType = param;
+            // Consider only these res types on opposite strand
+            if (oppResTypes != null)
+            {
+                System.err.println("Can't use -oppres when opposite residue types"+
+                    " already specified!");
+                // compiler will continue to end of method now...
+            }
+            else
+            {
+                oppResTypes = new TreeSet<String>();
+                if (param != null)
+                {
+                    Scanner s = new Scanner(param).useDelimiter(",");
+                    while (s.hasNext())
+                    {
+                        String elem = s.next();
+                        oppResTypes.add(elem);
+                    }
+                }
+            }
+        }
+        else if(flag.equals("-notoppres"))
+        {
+            // Remove these res types from consideration on opposite strand
+            if (oppResTypes != null)
+            {
+                System.err.println("Can't use -notoppres when opposite residue types"+
+                    " already specified!");
+                // compiler will continue to end of method now...
+            }
+            else
+            {
+                // First add all res types to the set ...
+                if (oppResTypes == null) 
+                {
+                    oppResTypes = new TreeSet<String>();
+                    Scanner s = new Scanner(aaNames).useDelimiter(",");
+                    while (s.hasNext())
+                        oppResTypes.add(s.next());
+                }
+                // ... then remove the unwanted ones.
+                if (param != null)
+                {
+                    Scanner s = new Scanner(param).useDelimiter(",");
+                    while (s.hasNext())
+                    {
+                        String elem = s.next();
+                        oppResTypes.remove(elem);
+                    }
+                }
+            }
         }
         else if(flag.equals("-kin"))
         {
