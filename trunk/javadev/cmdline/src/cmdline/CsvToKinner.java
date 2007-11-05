@@ -130,7 +130,7 @@ public class CsvToKinner
                 }
                 
                 // This flag will give us # dimensions
-                if(flag.equals("-columns") || flag.equals("-col"))
+                if(flag.equals("-columns") || flag.equals("-cols"))
                 {
                     if (param != null)
                     {
@@ -421,19 +421,20 @@ public class CsvToKinner
             System.exit(0);
         }
         
-        // Make sure there are enough labels for the # columns requested
-        if (labels.length < cols.length && !noKin)
-        {
-            System.out.println("Not enough labels for the # columns requested!");
-            String[] labelsNew = new String[cols.length];
-            for (int i = 0; i < cols.length; i ++)
+        if (!noKin)
+            // Make sure there are enough labels for the # columns requested
+            if (labels.length < cols.length)
             {
-                if (i < labels.length)
-                    labelsNew[i] = labels[i];
-                else
-                    labelsNew[i] = "???";
+                System.out.println("Not enough labels for the # columns requested!");
+                String[] labelsNew = new String[cols.length];
+                for (int i = 0; i < cols.length; i ++)
+                {
+                    if (i < labels.length)
+                        labelsNew[i] = labels[i];
+                    else
+                        labelsNew[i] = "???";
+                }
             }
-        }
         
         // Make sure user didn't try to do -scalez with numDims != 3
         // (scaleZ option assumes & requires x,y,z coordinate system)
@@ -459,7 +460,7 @@ public class CsvToKinner
         System.out.println("Usage: java -cp cmdline.CsvToKinner [flags] [filename]"            );
         System.out.println(                                                                    );
         System.out.println("Flags:"                                                            );
-        System.out.println("-COLumns=#,#,#,... uses designated columns for points in kinemage" );
+        System.out.println("-COLumnS=#,#,#,... uses designated columns for points in kinemage" );
         System.out.println("                   default: plot columns 0,1,2 in kin"             );
         System.out.println("                   if less than 3 columns, filled in with zeros"   );
         System.out.println("-DELIMiter=[text]  sets delimiter for reading csv input"           );
@@ -473,11 +474,16 @@ public class CsvToKinner
         System.out.println("-SCALEZ=#          subtracts the average Z from each Z point, then");
         System.out.println("                      (opt'l) multiplies by the provided int"      );
         System.out.println("                   assumes # dimension/columns is 3"               );
+        System.out.println("-POINTIDCOLS=#,#,#,..."                                            );
+        System.out.println("                   sets pointids for integer axes 0,1,2,..."       );
+        System.out.println("                     combines text to one pointid if given >1 int" );
         System.out.println("-NOFRAME           outputs kin without axes and labels"            );
         System.out.println("                   looks same as RNA 9d kins"                      );
         System.out.println("-ALTFRAME          outputs kin with a different style of frame"    );
         System.out.println("                   required for -wrap180 or -labels flags"         );
         System.out.println("-GROUPname         sets name of the group in the kin format output");
+        System.out.println("-LABELS=[text]     sets labels for axes in x,y,z order"            );
+        System.out.println("                     [text] is 'chi1' or 'chi1,chi2,chi3', e.g."   );
         System.out.println("-ROTABALLS=[text]  adds balls at modal chi values to kin for the " );
         System.out.println("                     indicated rotamers"                           );
         System.out.println("                   [text] is 'leutp' or 'argmtt85,argptp180', e.g.");
@@ -1163,7 +1169,7 @@ public class CsvToKinner
             String rota = resRota.substring(3).toLowerCase();
             boolean doAll = false;
             
-            if (res.equals("leu"));
+            if (res.equals("leu"))
             {
                 if (rota.equals("all")) doAll = true;
                 if (rota.equals("pp")  || doAll) lines.add("{pp   62 80} 62 80");
