@@ -1,0 +1,30 @@
+
+Usage:
+    java chiropraxis.mc.HelixBuilder [-flags] file.pdb [> output.kin]
+
+HELIXBUILDER is an aid for finding helices in PDB files as well as N caps and
+reporting certain information about them that may comprise evidence for back-
+rubs at certain positions, e.g. the N cap.
+
+Options:
+    -kin
+	Outputs a kinemage format visualization of helices and (opt'l) N caps.
+    -print
+	Outputs csv format information about helices and (opt'l) N caps.
+	Alternative to -kin.
+    -ncaps
+	Turns on opt'l N cap analysis.
+    -smoothaxes[=#]
+	Smooths DAK's local helix axes, one per residue in a helix, by
+	averaging each with its immediate neighbors the given number of
+	times (default: once). Multiple rounds of smoothing leads to 
+	straighter local helical axes that are less affected by subtle
+	local changes in helix direction.
+    -vectorsumaxis
+	Makes a single helix end-to-end axis from DAK's local helix axes.
+	Alternative to -smoothaxes.
+    -verbose || -v
+	Prints extra information you probably don't even wanna know...
+    -list 
+	Gives list of filenames instead of one pdb. (Currently not operational!)
+	

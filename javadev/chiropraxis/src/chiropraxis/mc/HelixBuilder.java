@@ -34,6 +34,7 @@ public class HelixBuilder //extends ... implements ...
     boolean doKin;
     boolean doPrint;
     boolean smoothAxes;
+    int smoothAxesTimes;
     boolean vectorSumAxis;
     boolean verbose;
     
@@ -44,16 +45,17 @@ public class HelixBuilder //extends ... implements ...
     public HelixBuilder()
     {
         super();
-        filename      = null;
-        list          = null;
-        filenames     = null;
-        helices       = new ArrayList<Helix>();
-        doNcaps       = false;
-        doKin         = false;
-        doPrint       = true;
-        smoothAxes    = false;
-        vectorSumAxis = false;
-        verbose       = false;
+        filename        = null;
+        list            = null;
+        filenames       = null;
+        helices         = new ArrayList<Helix>();
+        doNcaps         = false;
+        doKin           = false;
+        doPrint         = true;
+        smoothAxes      = false;
+        smoothAxesTimes = 0;
+        vectorSumAxis   = false;
+        verbose         = false;
         
     }
 //}}}
@@ -77,7 +79,9 @@ public class HelixBuilder //extends ... implements ...
         //updatePepDefs(peptides, model); // to comply with what was done to Residues above
         // all Peptide data has now been filled in!
         findAxes(model, state);
-        if (smoothAxes)     smoothAxes();
+        if (smoothAxes)
+            for (int i = 0; i < smoothAxesTimes; i ++)
+                smoothAxes();
         if (vectorSumAxis)  addVectorSumAxis();
         if (doNcaps)        findNcaps(model, state);
         
@@ -1027,15 +1031,16 @@ public void findNcaps(Model model, ModelState state)
             {
                 try
                 {
-                    AtomState Ca     = state.get(helix.ncap.getAtom(" CA "));
+                    // Set angle between plane of Ncap Ca(i,i-1,i+1) and local helix axis
+                    AtomState ca     = state.get(helix.ncap.getAtom(" CA "));
                     AtomState prevCa = state.get(helix.ncap.getPrev(model).getAtom(" CA "));
                     AtomState nextCa = state.get(helix.ncap.getNext(model).getAtom(" CA "));
                     
-                    Triple normal = new Triple().likeNormal(prevCa, Ca, nextCa); 
+                    Triple normal = new Triple().likeNormal(prevCa, ca, nextCa); 
                     
-                    helix.ncapNormalTail = Ca;
-                    helix.ncapNormalHead = new Triple(Ca.getX()+normal.getX(), 
-                        Ca.getY()+normal.getY(), Ca.getZ()+normal.getZ());
+                    helix.ncapNormalTail = ca;
+                    helix.ncapNormalHead = new Triple(ca.getX()+normal.getX(), 
+                        ca.getY()+normal.getY(), ca.getZ()+normal.getZ());
                     
                     Triple tail = helix.axisTails.get(0);
                     Triple head = helix.axisHeads.get(0);
@@ -1043,7 +1048,26 @@ public void findNcaps(Model model, ModelState state)
                         head.getY()-tail.getY(), head.getZ()-tail.getZ() );
                     
                     // OK to mess with normal directly now
-                    helix.ncapAngle = normal.angle(axisAtOrigin);
+                    helix.ncapPlaneNormalAngle = normal.angle(axisAtOrigin);
+                    
+                    // Set angle between Ncap Ca_Cb vector and local helix axis
+                    Triple likeCa = new Triple(ca); // same coords as ca above but different object
+                    if (!helix.ncap.getName().equals("GLY"))
+                    {
+                        Triple likeCb = new Triple(state.get(helix.ncap.getAtom(" CB ")));
+                        Triple caCbAtOrigin = new Triple().likeVector(likeCa, likeCb);
+                        helix.ncapCaCbAngle = normal.angle(caCbAtOrigin);
+                    }
+                    // else (default in Helix constructor: Double.NaN)
+                    
+                    // Set phi, psi for Ncap residue
+                    Triple likePrevC = new Triple(state.get(helix.ncap.getPrev(model).getAtom(" C  ")));
+                    Triple likeN = new Triple(state.get(helix.ncap.getAtom(" N  ")));
+                    // likeCa already defined
+                    Triple likeC = new Triple(state.get(helix.ncap.getAtom(" C  ")));
+                    Triple likeNextN = new Triple(state.get(helix.ncap.getNext(model).getAtom(" N  ")));
+                    helix.ncapPhi = Triple.dihedral(likePrevC, likeN, likeCa, likeC);
+                    helix.ncapPsi = Triple.dihedral(likeN, likeCa, likeC, likeNextN);
                 }
                 catch (driftwood.moldb2.AtomException ae)
                 {
@@ -1314,6 +1338,7 @@ public void doFile() throws IOException
 //##############################################################################
     public void printHelices()
     {
+        // Only printing this if verbose...
         System.out.println("Total number helices in "+filename+": "+helices.size());
         for (Helix helix : helices)
         {
@@ -1325,8 +1350,8 @@ public void doFile() throws IOException
             {
                 if (helix.ncap != null)
                     System.out.println("  ncap: "+helix.ncap);
-                if (helix.ncapAngle != Double.NaN)
-                    System.out.println("  ncap angle: "+helix.ncapAngle);
+                if (helix.ncapPlaneNormalAngle != Double.NaN)
+                    System.out.println("  ncap plane normal angle: "+helix.ncapPlaneNormalAngle);
             }
             System.out.println();
         }
@@ -1335,12 +1360,17 @@ public void doFile() throws IOException
     public void printNcapAngles()
     {
         // Only works right for one filename at a time!
+        DecimalFormat df = new DecimalFormat("#.###");
         if (doNcaps)
         {
+            System.out.println("file:helix:ncap:ca(i-1)_ca(i)_ca(i+1)-local_helix_axis_angle:"+
+                "ca(i)_cb(i)-local_helix_axis_angle:phi:psi");
             for (Helix helix : helices)
             {
                 System.out.println(filename+":"+helix+":"+helix.ncap+":"+
-                    helix.ncapAngle);
+                    df.format(helix.ncapPlaneNormalAngle)+":"+
+                    df.format(helix.ncapCaCbAngle)+":"+
+                    df.format(helix.ncapPhi)+":"+df.format(helix.ncapPsi));
             }
         }
     }
@@ -1460,6 +1490,8 @@ public void doFile() throws IOException
         else if(flag.equals("-smoothaxes"))
         {
             smoothAxes = true;
+            if (param != null)  smoothAxesTimes = Integer.parseInt(param);
+            else                smoothAxesTimes = 1;
         }
         else if(flag.equals("-vectorsumaxis"))
         {
