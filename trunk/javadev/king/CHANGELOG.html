@@ -79,10 +79,18 @@
     Make update probe a separate plugin?
     King can't seem to find residues with numbers bigger than 1000 when using a 
        gzipped file.
-
+    Removed MetalLookAndFeel property (from Java.Properties section) from 
+       Info.plist for Mac application; this is a workaround to get King to work
+       in MacOSX Leopard, but changes the look of King...need to find a real
+       fix.
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+### 2.13 ###
+- No major changes except to remove a property from Info.plist for Mac applications;
+  MetalLookAndFeel was causing menus to disappear behind the graphics with MacOSX
+  Leopard (see above).
+
 ### 2.12 ###
 - fixed the bug where the king logo wasn't getting put in the right place after 
   any point id was displayed.  Seems like gl.glRasterPos2d was getting called by
