@@ -1,0 +1,47 @@
+
+Usage:
+    java cmdline.CsvToKinner
+
+CSVTOKINNER makes a kin or outputs desired columns in csv format from data in 
+a comma-separated value (csv) input file. We assume rows and columns are 
+measured 0 to n and row 0 is headings. Values must be parseable as doubles 
+unless using -nokin.
+
+Usage: java -cp cmdline.CsvToKinner [flags] [filename]            
+
+Flags:                                                            
+    -COLumnS=#,#,#,...
+	Uses designated columns (default: 0,1,2) for points in kinemage.
+	If less than 3 columns, filled in with zeroes.
+    -DELIMiter=text
+        Sets delimiter for reading csv input. Default is ":".
+    -KINHEADing
+        Prints @kin header in output.
+    -WRAP180=#,#,#,... | -WRAP360=#,#,#,...                        
+        Wraps data and axes -180 --> 180 or 0 --> 360 and sets max & min for
+          these axes to angle-like #s (e.g. 0-360 inst. of 12-344 depending
+	  on data).
+        Doesn't work for z axis right now...           
+    -SCALEZ[=#]
+        Subtracts the average Z from each Z point, then (opt'l) multiplies 
+	  by the provided integer.
+	Assumes # dimension/columns is 3.
+    -POINTIDCOLS=#,#,#,...
+        Sets pointids for integer axes 0,1,2,...       
+        Combines text to one pointid if given >1 integer.
+    -NOFRAME
+        Outputs kin without axes and labels (looks same as RNA 9d kins).
+    -ALTFRAME
+        Outputs kin with a different style of frame.
+	Required for -wrap180 or -labels flags.
+    -GROUPname=text
+        Sets name of the group in the kin format output.
+    -LABELS=text
+        Sets labels for axes in x,y,z order.
+        Possible values for text: 'chi1' or 'chi1,chi2,chi3'
+    -ROTABALLS=text
+        Adds balls at modal chi values to kin for the indicated rotamers.
+        Possible values for text: 'leutp' or 'argmtt85,argptp180'
+    -NOKIN
+        Outputs columns indicated in csv (not kin) form.
+
