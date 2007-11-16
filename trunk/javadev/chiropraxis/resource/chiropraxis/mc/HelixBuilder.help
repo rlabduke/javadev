@@ -9,17 +9,22 @@ rubs at certain positions, e.g. the N cap.
 Options:
     -kin
 	Outputs a kinemage format visualization of helices and (opt'l) N caps.
+	Alternative to -kin (which is default).
     -print
 	Outputs csv format information about helices and (opt'l) N caps.
-	Alternative to -kin.
     -ncaps
 	Turns on opt'l N cap analysis.
+    -onlyhbncaps
+	Reports as N caps only those residues that are a Ser/Thr/Asn/Asp and 
+	  make a sc Hbond to i+2 or i+3 mc.
+	Works on both -print and -kin output.
+	Also turns on opt'l N cap analysis equivalently to -ncaps.
     -smoothaxes[=#]
 	Smooths DAK's local helix axes, one per residue in a helix, by
-	averaging each with its immediate neighbors the given number of
-	times (default: once). Multiple rounds of smoothing leads to 
-	straighter local helical axes that are less affected by subtle
-	local changes in helix direction.
+	  averaging each with its immediate neighbors the given number of
+	  times (default: once). Multiple rounds of smoothing leads to 
+	  straighter local helical axes that are less affected by subtle
+	  local changes in helix direction.
     -vectorsumaxis
 	Makes a single helix end-to-end axis from DAK's local helix axes.
 	Alternative to -smoothaxes.
@@ -27,4 +32,6 @@ Options:
 	Prints extra information you probably don't even wanna know...
     -list 
 	Gives list of filenames instead of one pdb. (Currently not operational!)
+    -nokinheading
+	If doing kinemage output, don't print the @kinemage at the top.
 	
