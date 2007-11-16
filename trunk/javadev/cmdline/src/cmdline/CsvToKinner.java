@@ -218,7 +218,7 @@ public class CsvToKinner
                 // Look thru options for this flag
                 if(flag.equals("-help") || flag.equals("-h"))
                 {
-                    showHelp();
+                    showHelp(true);
                     System.exit(0);
                 }
                 else if(flag.equals("-delimiter") || flag.equals("-delim"))
@@ -402,7 +402,7 @@ public class CsvToKinner
                 }
                 else
                 {
-                    if (!flag.equals("-columns"))
+                    if (!flag.equals("-columns") && !flag.equals("-cols"))
                         System.out.println("Couldn't understand flag: "+flag);   
                 }
             }
@@ -449,50 +449,30 @@ public class CsvToKinner
 
 //{{{ showHelp
 //##################################################################################################
-	void showHelp()
+	// Display help information
+    void showHelp(boolean showAll)
     {
-        // Display help information
-        System.out.println(                                                                    );
-        System.out.println("cmdline.CsvToKinner DAK 2007"                                      );
-        System.out.println("Makes a kin or outputs desired columns in csv format from data in" );
-        System.out.println("  a comma-separated value (csv) input file"                        );
-        System.out.println(                                                                    );
-        System.out.println("Usage: java -cp cmdline.CsvToKinner [flags] [filename]"            );
-        System.out.println(                                                                    );
-        System.out.println("Flags:"                                                            );
-        System.out.println("-COLumnS=#,#,#,... uses designated columns for points in kinemage" );
-        System.out.println("                   default: plot columns 0,1,2 in kin"             );
-        System.out.println("                   if less than 3 columns, filled in with zeros"   );
-        System.out.println("-DELIMiter=[text]  sets delimiter for reading csv input"           );
-        System.out.println("                   default is :"                                   );
-        System.out.println("-KINHEADing        prints @kin header in output"                   );
-        System.out.println("-WRAP180=#,#,#,... or -WRAP360=#,#,#,..."                          );
-        System.out.println("                   wraps data and axes -180 --> 180 or 0 --> 360"  );
-        System.out.println("                   sets max & min for these axes to angle-like #s" );
-        System.out.println("                      (e.g. 0-360 inst. of 12-344 dep'ing on data" );
-        System.out.println("                   doesn't work for z axis right now..."           );
-        System.out.println("-SCALEZ=#          subtracts the average Z from each Z point, then");
-        System.out.println("                      (opt'l) multiplies by the provided int"      );
-        System.out.println("                   assumes # dimension/columns is 3"               );
-        System.out.println("-POINTIDCOLS=#,#,#,..."                                            );
-        System.out.println("                   sets pointids for integer axes 0,1,2,..."       );
-        System.out.println("                     combines text to one pointid if given >1 int" );
-        System.out.println("-NOFRAME           outputs kin without axes and labels"            );
-        System.out.println("                   looks same as RNA 9d kins"                      );
-        System.out.println("-ALTFRAME          outputs kin with a different style of frame"    );
-        System.out.println("                   required for -wrap180 or -labels flags"         );
-        System.out.println("-GROUPname         sets name of the group in the kin format output");
-        System.out.println("-LABELS=[text]     sets labels for axes in x,y,z order"            );
-        System.out.println("                     [text] is 'chi1' or 'chi1,chi2,chi3', e.g."   );
-        System.out.println("-ROTABALLS=[text]  adds balls at modal chi values to kin for the " );
-        System.out.println("                     indicated rotamers"                           );
-        System.out.println("                   [text] is 'leutp' or 'argmtt85,argptp180', e.g.");
-        System.out.println("-NOKIN             outputs columns indicated in csv (not kin) form");
-        System.out.println(                                                                    );
-        System.out.println("We assume row 0 is headings."                                      );
-        System.out.println("Rows and columns measured 0 to n."                                 );
-        System.out.println("Values must be parseable as doubles unless using -nokin."          );
-        System.out.println(                                                                    );
+        if(showAll)
+        {
+            InputStream is = getClass().getResourceAsStream("CsvToKinner.help");
+            if(is == null)
+                System.err.println("\n*** Unable to locate help information in 'CsvToKinner.help' ***\n");
+            else
+            {
+                try { streamcopy(is, System.out); }
+                catch(IOException ex) { ex.printStackTrace(); }
+            }
+        }
+        System.err.println("cmdline.CsvToKinner");
+        System.err.println("Copyright (C) 2007 by Daniel Keedy. All rights reserved.");
+    }
+
+    // Copies src to dst until we hit EOF
+    void streamcopy(InputStream src, OutputStream dst) throws IOException
+    {
+        byte[] buffer = new byte[2048];
+        int len;
+        while((len = src.read(buffer)) != -1) dst.write(buffer, 0, len);
     }
 //}}}
 
