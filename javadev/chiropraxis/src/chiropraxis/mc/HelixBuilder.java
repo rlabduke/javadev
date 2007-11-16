@@ -31,12 +31,14 @@ public class HelixBuilder //extends ... implements ...
     ArrayList<String> filenames; // from list
     ArrayList<Helix> helices;
     boolean doNcaps;
+    boolean onlyHbNcaps;
     boolean doKin;
     boolean doPrint;
     boolean smoothAxes;
     int smoothAxesTimes;
     boolean vectorSumAxis;
     boolean verbose;
+    boolean noKinHeading;
     
 //}}}
 
@@ -45,18 +47,19 @@ public class HelixBuilder //extends ... implements ...
     public HelixBuilder()
     {
         super();
-        filename        = null;
-        list            = null;
-        filenames       = null;
-        helices         = new ArrayList<Helix>();
-        doNcaps         = false;
-        doKin           = false;
-        doPrint         = true;
-        smoothAxes      = false;
-        smoothAxesTimes = 0;
-        vectorSumAxis   = false;
-        verbose         = false;
-        
+        filename          = null;
+        list              = null;
+        filenames         = null;
+        helices           = new ArrayList<Helix>();
+        doNcaps           = false;
+        onlyHbNcaps       = false;
+        doKin             = false;
+        doPrint           = true;
+        smoothAxes        = false;
+        smoothAxesTimes   = 0;
+        vectorSumAxis     = false;
+        verbose           = false;
+        noKinHeading      = false;
     }
 //}}}
 
@@ -87,7 +90,8 @@ public class HelixBuilder //extends ... implements ...
         
         if (doKin)
         {
-            System.out.println("@kinemage {"+filename+" helices}");
+            if (!noKinHeading)
+                System.out.println("@kinemage {"+filename+" helices}");
             sketchHbonds(System.out, peptides, state);
             sketchNcaps(System.out, state);
             sketchAxes(System.out);
@@ -530,9 +534,9 @@ public class HelixBuilder //extends ... implements ...
         // this one just in case.
         
         // The problem: should we really be looking at the nRes Ca(i,i-3) distance 
-        // at helix C-termini and the cRes Ca(i,i+3) distance at N-termini)?
-        // What's here seems to work well for now, so we won't mess 
-        // with it just yet...
+        // at helix C-termini and the cRes Ca(i,i+3) distance at N-termini?
+        // What's here seems to work well for now, so we won't mess with it 
+        // just yet...
         
         // Start by finding overall first and last residues in the sequence to
         // avoid null pointer errors near the ends
@@ -576,10 +580,11 @@ public class HelixBuilder //extends ... implements ...
                         {
                             if (verbose)
                             {
-                                System.out.println("Looking at peptide "+pep);
+                                System.out.println("Looking at "+pep);
                                 System.out.println("  Did add residue "+pep.cRes+
                                     " to a helix\tCa-Ca(i+3) dist "+
                                     ca.distance(ca_iplus3));
+                                System.out.println();
                             }
                             thisHelixsResidues.add(pep.cRes);
                         }
@@ -591,6 +596,7 @@ public class HelixBuilder //extends ... implements ...
                                 System.out.println("  *Didn't* add residue "+
                                     pep.cRes+" to a helix\tCa-Ca(i+3) dist "+
                                     ca.distance(ca_iplus3));
+                                System.out.println();
                             }
                         }
                     }
@@ -618,6 +624,7 @@ public class HelixBuilder //extends ... implements ...
                                 System.out.println("  Did add residue "+
                                     pep.nRes+" to a helix\tCa-Ca(i-3) dist "+
                                     ca.distance(ca_iminus3));
+                                System.out.println();
                             }
                             thisHelixsResidues.add(pep.nRes);
                         }
@@ -629,6 +636,7 @@ public class HelixBuilder //extends ... implements ...
                                 System.out.println("  *Didn't* add residue "+pep.nRes+
                                     " to a helix\tCa-Ca(i-3) dist "+
                                     ca.distance(ca_iminus3));
+                                System.out.println();
                             }
                         }
                     }
@@ -642,19 +650,31 @@ public class HelixBuilder //extends ... implements ...
                 // If done with a stretch of helical peptides
                 if (!pep.next.isHelix || pep.next == null || pep.cRes == null)
                 {
-                    // If at least 4 residues, we're good to go.
+                    // If at least 5 residues, we're good to go.
                     // Make this helix, add it to the list, and reset this 
                     // helix-making process
-                    if (thisHelixsResidues.size() >= 4)
+                    Iterator it = thisHelixsResidues.iterator();
+                    ArrayList<Residue> r = new ArrayList<Residue>();
+                    while (it.hasNext())
+                        r.add( (Residue)it.next() );
+                    Collections.sort(r);
+                    if (thisHelixsResidues.size() >= 5)
                     {
                         Helix thisHelix = new Helix(thisHelixsResidues);
                         helices.add(thisHelix);
                         thisHelixsResidues = new TreeSet<Residue>();
+                        if (verbose)
+                            System.out.println("Making helix starting at '"+r.get(0)+"'"+
+                            " b/c size is "+r.size());
                     }
                     else
+                    {
+                        // Reset this helix-making process w/out making a helix
+                        thisHelixsResidues = new TreeSet<Residue>();
                         if (verbose)
-                            System.out.println("Only "+thisHelixsResidues.size()+
-                                " residues in this helix, so not making it...");
+                            System.out.println("Only "+r.size()+" residues in this helix"+
+                                " starting at '"+r.get(0)+"', so not making it...");
+                    }
                 }
             }
         }
@@ -967,45 +987,6 @@ public void smoothAxes()
     }
 //}}}
 
-//{{{ [addVectorSumAxis] not working right!
-//##############################################################################
-public void addVectorSumAxis()
-    {
-        /** 
-        * Makes a single, vector sum helical axis from the local helical 
-        * axes for each set of 4 Ca's in each Helix made in findAxes.
-        * Goal: Generate a direction that is robust to weirdnesses in the local
-        * geometry (e.g. helix turning into beta or something) but does reflect
-        * subtle local changes in helical direction.
-        */
-        
-        
-        // WHAT'S WRONG WITH THESE AXES' DIRECTIONS ???
-        // PROBABLY AN ISSUE W/ NOT TRANSLATING TO ORIGIN...
-        
-        
-        for (Helix helix : helices)
-        {
-            double x = 0, y = 0, z = 0;
-            for (int i = 0; i < helix.axisHeads.size(); i ++)
-            {
-                Triple head = helix.axisHeads.get(i);
-                Triple tail = helix.axisTails.get(i);
-                Triple axisAtOrigin = new Triple(head.getX()-tail.getX(),
-                    head.getY()-tail.getY(), head.getZ()-tail.getZ());
-                x += axisAtOrigin.getX(); 
-                y += axisAtOrigin.getY(); 
-                z += axisAtOrigin.getZ();
-            }
-            
-            helix.vectorSumAxisTail = helix.axisTails.get(0);
-            helix.vectorSumAxisHead = new Triple(x, y, z).unit().mult(3).add(
-                new Triple(helix.axisTails.get(0)));
-            
-        }//for(each Helix in helices)
-    }
-//}}}
-
 //{{{ findNcaps
 //##############################################################################
 public void findNcaps(Model model, ModelState state)
@@ -1021,60 +1002,223 @@ public void findNcaps(Model model, ModelState state)
         {
             // Find the Ncaps
             if (helix.ncap != null) continue;
-            else helix.ncap = helix.getRes("first");
-            
-            // Calculate a "backrub-like" angle for each Ncap
-            // This is angle between local helix axis for the Ncap residue
-            // and the normal to the plane formed by Ca(i,i-1,i+1).
-            if (helix.ncap.getNext(model) != null && 
-                helix.ncap.getPrev(model) != null )
+            else
             {
-                try
+                if (onlyHbNcaps && 
+                    !ncapMakesHb(helix.getRes("first"), model, state).equals("i+2") &&
+                    !ncapMakesHb(helix.getRes("first"), model, state).equals("i+3") )
+                    helix.ncap = null;
+                else
                 {
-                    // Set angle between plane of Ncap Ca(i,i-1,i+1) and local helix axis
-                    AtomState ca     = state.get(helix.ncap.getAtom(" CA "));
-                    AtomState prevCa = state.get(helix.ncap.getPrev(model).getAtom(" CA "));
-                    AtomState nextCa = state.get(helix.ncap.getNext(model).getAtom(" CA "));
-                    
-                    Triple normal = new Triple().likeNormal(prevCa, ca, nextCa); 
-                    
-                    helix.ncapNormalTail = ca;
-                    helix.ncapNormalHead = new Triple(ca.getX()+normal.getX(), 
-                        ca.getY()+normal.getY(), ca.getZ()+normal.getZ());
-                    
-                    Triple tail = helix.axisTails.get(0);
-                    Triple head = helix.axisHeads.get(0);
-                    Triple axisAtOrigin = new Triple(head.getX()-tail.getX(),
-                        head.getY()-tail.getY(), head.getZ()-tail.getZ() );
-                    
-                    // OK to mess with normal directly now
-                    helix.ncapPlaneNormalAngle = normal.angle(axisAtOrigin);
-                    
-                    // Set angle between Ncap Ca_Cb vector and local helix axis
-                    Triple likeCa = new Triple(ca); // same coords as ca above but different object
-                    if (!helix.ncap.getName().equals("GLY"))
-                    {
-                        Triple likeCb = new Triple(state.get(helix.ncap.getAtom(" CB ")));
-                        Triple caCbAtOrigin = new Triple().likeVector(likeCa, likeCb);
-                        helix.ncapCaCbAngle = normal.angle(caCbAtOrigin);
-                    }
-                    // else (default in Helix constructor: Double.NaN)
-                    
-                    // Set phi, psi for Ncap residue
-                    Triple likePrevC = new Triple(state.get(helix.ncap.getPrev(model).getAtom(" C  ")));
-                    Triple likeN = new Triple(state.get(helix.ncap.getAtom(" N  ")));
-                    // likeCa already defined
-                    Triple likeC = new Triple(state.get(helix.ncap.getAtom(" C  ")));
-                    Triple likeNextN = new Triple(state.get(helix.ncap.getNext(model).getAtom(" N  ")));
-                    helix.ncapPhi = Triple.dihedral(likePrevC, likeN, likeCa, likeC);
-                    helix.ncapPsi = Triple.dihedral(likeN, likeCa, likeC, likeNextN);
-                }
-                catch (driftwood.moldb2.AtomException ae)
-                {
-                    System.out.println("Problem calculating ncap angle...");
+                    helix.ncap = new Ncap(helix.getRes("first"));
+                    if (ncapMakesHb(helix.getRes("first"), model, state).equals("i+2"))
+                        helix.ncap.hb_i2 = true;
+                    if (ncapMakesHb(helix.getRes("first"), model, state).equals("i+3"))
+                        helix.ncap.hb_i3 = true;
                 }
             }
-        } 
+            
+            if (helix.ncap != null)
+            {
+                // Calculate "backrub-like" angles for each Ncap
+                setNcapAngles(helix, model, state);
+                
+                // Set phi, psi for Ncap i, i+1, and i-1 residues
+                setNcapPhiPsis(helix, model, state);
+            }
+        }
+    }
+//}}}
+
+//{{{ ncapMakesHb
+//##############################################################################
+public String ncapMakesHb(Residue res, Model model, ModelState state)
+    /** 
+    * This is a simple geometric routine to determine whether a putative Ncap
+    * residue is a Ser/Thr/Asn/Asp and makes an i+2 or i+3 Hbond or not.
+    * Uses cutoff of 2.9A to determine whether an Hbond is there or not, which
+    * is something we could obviously alter later, but it seems reasonable.
+    */
+    {
+        try
+        {
+            Residue res2 = res.getNext(model).getNext(model);
+            Residue res3 = res2.getNext(model);
+            Triple likeH2 = new Triple(state.get(res2.getAtom(" H  ")));
+            Triple likeH3 = new Triple(state.get(res3.getAtom(" H  ")));
+            
+            // Ser
+            if (res.getName().equals("SER"))
+            {
+                Triple likeOG = new Triple(state.get(res.getAtom(" OG ")));
+                double dist2 = Triple.distance(likeOG, likeH2);
+                double dist3 = Triple.distance(likeOG, likeH3);
+                if (verbose)
+                    System.out.println("Ncap "+res+" makes an Hb with distance "+
+                        dist2+" or "+dist3);
+                if (dist2 < 2.9 && dist2 < dist3)   return "i+2";
+                if (dist3 < 2.9 && dist3 < dist2)   return "i+3";
+            }
+            
+            // Thr
+            if (res.getName().equals("THR"))
+            {
+                Triple likeOG1 = new Triple(state.get(res.getAtom(" OG1")));
+                double dist2 = Triple.distance(likeOG1, likeH2);
+                double dist3 = Triple.distance(likeOG1, likeH3);
+                if (verbose)
+                    System.out.println("Ncap "+res+" makes an Hb with distance "+
+                        dist2+" or "+dist3);
+                if (dist2 < 2.9 && dist2 < dist3)   return "i+2";
+                if (dist3 < 2.9 && dist3 < dist2)   return "i+3";
+            }
+            
+            // Asn
+            if (res.getName().equals("ASN"))
+            {
+                Triple likeOD1 = new Triple(state.get(res.getAtom(" OD1")));
+                double dist2 = Triple.distance(likeOD1, likeH2);
+                double dist3 = Triple.distance(likeOD1, likeH3);
+                if (verbose)
+                    System.out.println("Ncap "+res+" makes an Hb with distance "+
+                        dist2+" or "+dist3);
+                if (dist2 < 2.9 && dist2 < dist3)   return "i+2";
+                if (dist3 < 2.9 && dist3 < dist2)   return "i+3";
+            }
+            
+            // Asp
+            if (res.getName().equals("ASP"))
+            {
+                Triple likeOD1 = new Triple(state.get(res.getAtom(" OD1")));
+                double od1Dist2 = Triple.distance(likeOD1, likeH2);
+                double od1Dist3 = Triple.distance(likeOD1, likeH3);
+                Triple likeOD2 = new Triple(state.get(res.getAtom(" OD2")));
+                double od2Dist2 = Triple.distance(likeOD2, likeH2);
+                double od2Dist3 = Triple.distance(likeOD2, likeH3);
+                if (verbose)
+                    System.out.println("Ncap "+res+" makes an Hb with distance "+
+                        od1Dist2+", "+od1Dist3+", "+od2Dist2+", or "+od2Dist3);
+                if ((od1Dist2 < 2.9 && od1Dist2 < od1Dist3 && od1Dist2 < od2Dist3) ||
+                    (od2Dist2 < 2.9 && od2Dist2 < od1Dist3 && od2Dist2 < od2Dist3))
+                    return "i+2";
+                if ((od1Dist3 < 2.9 && od1Dist3 < od1Dist2 && od1Dist3 < od2Dist2) || 
+                    (od2Dist3 < 2.9 && od2Dist3 < od1Dist2 && od2Dist3 < od2Dist2))
+                    return "i+3";
+            }
+            return "";
+        }
+        catch (AtomException ae)
+        {
+            System.err.println("Problem figuring out if "+res+" is an Asn/Asp/Ser/Thr"+
+                " whose sc Hbonds to i+2 or i+3 mc and is therefore an Ncap...");
+            return "";
+        }
+    }
+    
+//}}}
+
+//{{{ setNcapAngles, setNcapPhiPsis
+//##############################################################################
+public void setNcapAngles(Helix helix, Model model, ModelState state)
+    {
+        try
+        {
+            // One option is angle between the local helix axis for the Ncap residue
+            // and the normal to the plane formed by Ca(i,i-1,i+1).
+            AtomState ca = state.get(helix.ncap.res.getAtom(" CA "));
+            Triple tail = helix.axisTails.get(0);
+            Triple head = helix.axisHeads.get(0);
+            Triple axisAtOrigin = new Triple(head.getX()-tail.getX(),
+                head.getY()-tail.getY(), head.getZ()-tail.getZ() );
+            if (helix.ncap.res.getPrev(model) != null && helix.ncap.res.getNext(model) != null)
+            {
+                // this angle defined
+                AtomState prevCa = state.get(helix.ncap.res.getPrev(model).getAtom(" CA "));
+                AtomState nextCa = state.get(helix.ncap.res.getNext(model).getAtom(" CA "));
+                
+                Triple normal = new Triple().likeNormal(prevCa, ca, nextCa); 
+                
+                helix.ncap.normalTail = ca;
+                helix.ncap.normalHead = new Triple(ca.getX()+normal.getX(), 
+                    ca.getY()+normal.getY(), ca.getZ()+normal.getZ());
+                
+                // OK to mess with normal directly now
+                helix.ncap.planeNormalAngle = normal.angle(axisAtOrigin);
+            }
+            // else (default in Ncap constructor: Double.NaN)
+            
+            // A second option is the angle between the Ncap Ca_Cb vector 
+            // and the local helix axis
+            Triple likeCa = new Triple(ca); // same coords as ca above but different object
+            if (!helix.ncap.res.getName().equals("GLY"))
+            {
+                Triple likeCb = new Triple(state.get(helix.ncap.res.getAtom(" CB ")));
+                Triple caCbAtOrigin = new Triple().likeVector(likeCa, likeCb);
+                helix.ncap.caCbAngle = caCbAtOrigin.angle(axisAtOrigin);
+            }
+            // else (default in Ncap constructor: Double.NaN)
+        }
+        catch (driftwood.moldb2.AtomException ae)
+        {
+            System.err.println("Problem calculating Ncap angles...");
+        }
+    }
+
+public void setNcapPhiPsis(Helix helix, Model model, ModelState state)
+    {
+        try
+        {
+            // Phi, psi for Ncap residue
+            Triple likeCa = new Triple(state.get(helix.ncap.res.getAtom(" CA ")));
+            Triple likeN = new Triple(state.get(helix.ncap.res.getAtom(" N  ")));
+            Triple likeC = new Triple(state.get(helix.ncap.res.getAtom(" C  ")));
+            if (helix.ncap.res.getPrev(model) != null) // phi defined
+            {
+                Triple likePrevC = new Triple(state.get(helix.ncap.res.getPrev(model).getAtom(" C  ")));
+                helix.ncap.phi = Triple.dihedral(likePrevC, likeN, likeCa, likeC);
+            }
+            if (helix.ncap.res.getNext(model) != null) // psi defined
+            {
+                Triple likeNextN = new Triple(state.get(helix.ncap.res.getNext(model).getAtom(" N  ")));
+                helix.ncap.psi = Triple.dihedral(likeN, likeCa, likeC, likeNextN);
+            }
+            
+            // Phi, psi for Ncap i+1 residue ("N1")
+            if (helix.ncap.res.getNext(model) != null)
+            {
+                Residue n1 = helix.ncap.res.getNext(model);
+                Triple likeN1Ca = new Triple(state.get(n1.getAtom(" CA ")));
+                Triple likeN1N = new Triple(state.get(n1.getAtom(" N  ")));
+                Triple likeN1C = new Triple(state.get(n1.getAtom(" C  ")));
+                helix.ncap.n1Phi = Triple.dihedral(likeC, likeN1N, likeN1Ca, likeN1C);
+                if (n1.getNext(model) != null) // psi defined
+                {
+                    Triple likeN2N = new Triple(state.get(n1.getNext(model).getAtom(" N  ")));
+                    helix.ncap.n1Psi = Triple.dihedral(likeN1N, likeN1Ca, likeN1C, likeN2N);
+                }
+            }
+            
+            // Phi, psi for Ncap i-1 residue ("N'")
+            if (helix.ncap.res.getPrev(model) != null)
+            {
+                Residue nprime = helix.ncap.res.getPrev(model);
+                Triple likeNprimeCa = new Triple(state.get(nprime.getAtom(" CA ")));
+                Triple likeNprimeN = new Triple(state.get(nprime.getAtom(" N  ")));
+                Triple likeNprimeC = new Triple(state.get(nprime.getAtom(" C  ")));
+                if (nprime.getPrev(model) != null) // phi defined
+                {
+                    Triple likendoubleprimeC = new Triple(state.get(
+                        nprime.getPrev(model).getAtom(" C  ")));
+                    helix.ncap.nprimePhi = Triple.dihedral(likendoubleprimeC, likeNprimeN, 
+                        likeNprimeCa, likeNprimeC);
+                }
+                helix.ncap.nprimePsi = Triple.dihedral(likeNprimeN, likeNprimeCa, likeNprimeC, likeN);
+            }
+        }
+        catch (driftwood.moldb2.AtomException ae)
+        {
+            System.err.println("Problem calculating ncap i, i-1, and i+1 phi & psi...");
+        }
     }
 //}}}
 
@@ -1134,7 +1278,6 @@ public void findNcaps(Model model, ModelState state)
 //##############################################################################
     void sketchNcaps(PrintStream out, ModelState state)
     {
-        
         DecimalFormat df = new DecimalFormat("0.0###");
         out.println("@group {ncaps}");
         out.println("@balllist {ncaps} radius= 0.3 color= hotpink");
@@ -1144,7 +1287,7 @@ public void findNcaps(Model model, ModelState state)
             {
                 if (helix.ncap != null)
                 {
-                    AtomState ncapCa = state.get(helix.ncap.getAtom(" CA "));
+                    AtomState ncapCa = state.get(helix.ncap.res.getAtom(" CA "));
                     out.println("{helix '"+helix.toString()+"' ncap} "+
                         df.format(ncapCa.getX())+" "+
                         df.format(ncapCa.getY())+" "+
@@ -1160,16 +1303,17 @@ public void findNcaps(Model model, ModelState state)
         out.println("@vectorlist {ncap normals} color= hotpink");
         for (Helix helix : helices)
         {
-            if (helix.ncap != null)
+            if (helix.ncap != null && 
+                helix.ncap.normalTail != null && helix.ncap.normalHead != null)
             {
                 out.println("{helix '"+helix.toString()+"' ncap normal tail}P "+
-                    df.format(helix.ncapNormalTail.getX())+" "+
-                    df.format(helix.ncapNormalTail.getY())+" "+
-                    df.format(helix.ncapNormalTail.getZ()) );
+                    df.format(helix.ncap.normalTail.getX())+" "+
+                    df.format(helix.ncap.normalTail.getY())+" "+
+                    df.format(helix.ncap.normalTail.getZ()) );
                 out.println("{helix '"+helix.toString()+"' ncap normal head}P "+
-                    df.format(helix.ncapNormalHead.getX())+" "+
-                    df.format(helix.ncapNormalHead.getY())+" "+
-                    df.format(helix.ncapNormalHead.getZ()) );
+                    df.format(helix.ncap.normalHead.getX())+" "+
+                    df.format(helix.ncap.normalHead.getY())+" "+
+                    df.format(helix.ncap.normalHead.getZ()) );
                 
             }
         }
@@ -1350,8 +1494,8 @@ public void doFile() throws IOException
             {
                 if (helix.ncap != null)
                     System.out.println("  ncap: "+helix.ncap);
-                if (helix.ncapPlaneNormalAngle != Double.NaN)
-                    System.out.println("  ncap plane normal angle: "+helix.ncapPlaneNormalAngle);
+                if (helix.ncap.planeNormalAngle != Double.NaN)
+                    System.out.println("  ncap plane normal angle: "+helix.ncap.planeNormalAngle);
             }
             System.out.println();
         }
@@ -1363,14 +1507,66 @@ public void doFile() throws IOException
         DecimalFormat df = new DecimalFormat("#.###");
         if (doNcaps)
         {
-            System.out.println("file:helix:ncap:ca(i-1)_ca(i)_ca(i+1)-local_helix_axis_angle:"+
-                "ca(i)_cb(i)-local_helix_axis_angle:phi:psi");
+            System.out.print("file:helix:ncap:ca(i-1)_ca(i)_ca(i+1)-local_helix_axis_angle:"+
+                "ca(i)_cb(i)-local_helix_axis_angle:i-1_phi:i-1_psi:i_phi:i_psi:i+1_phi:i+1_psi");
+            if (onlyHbNcaps)
+                System.out.println(":ncap_hb_i+2?:ncap_hb_i+3?");
+            else
+                System.out.println();
             for (Helix helix : helices)
             {
-                System.out.println(filename+":"+helix+":"+helix.ncap+":"+
-                    df.format(helix.ncapPlaneNormalAngle)+":"+
-                    df.format(helix.ncapCaCbAngle)+":"+
-                    df.format(helix.ncapPhi)+":"+df.format(helix.ncapPsi));
+                if (helix.ncap != null)
+                {
+                    System.out.print(filename+":"+helix+":"+helix.ncap+":");
+                    if (Double.isNaN(helix.ncap.planeNormalAngle))
+                        System.out.print("__?__:");
+                    else
+                        System.out.print(df.format(helix.ncap.planeNormalAngle)+":");
+                    if (Double.isNaN(helix.ncap.caCbAngle))
+                        System.out.print("__?__:");
+                    else
+                        System.out.print(df.format(helix.ncap.caCbAngle)+":");
+                    
+                    if (Double.isNaN(helix.ncap.nprimePhi))
+                        System.out.print("__?__:");
+                    else
+                        System.out.print(df.format(helix.ncap.nprimePhi)+":");
+                    if (Double.isNaN(helix.ncap.nprimePsi))
+                        System.out.print("__?__:");
+                    else
+                        System.out.print(df.format(helix.ncap.nprimePsi)+":");
+                    
+                    if (Double.isNaN(helix.ncap.phi))
+                        System.out.print("__?__:");
+                    else
+                        System.out.print(df.format(helix.ncap.phi)+":");
+                    if (Double.isNaN(helix.ncap.psi))
+                        System.out.print("__?__:");
+                    else
+                        System.out.print(df.format(helix.ncap.psi)+":");
+                    
+                    if (Double.isNaN(helix.ncap.n1Phi))
+                        System.out.print("__?__:");
+                    else
+                        System.out.print(df.format(helix.ncap.n1Phi)+":");
+                    if (Double.isNaN(helix.ncap.n1Psi))
+                        System.out.print("__?__:");
+                    else
+                        System.out.print(df.format(helix.ncap.n1Psi));
+                    
+                    if (onlyHbNcaps)
+                    {
+                        if (helix.ncap.hb_i2)   System.out.print(":1:");
+                        else                    System.out.print(":0:");
+                        if (helix.ncap.hb_i3)   System.out.print("1");
+                        else                    System.out.print("0");
+                    }
+                    
+                    System.out.println();
+                }
+                else // if (helix.ncap == null)
+                    if (verbose && onlyHbNcaps)
+                        System.out.println(filename+":"+helix+":no_hb_ncap::::");
             }
         }
     }
@@ -1435,7 +1631,7 @@ public void doFile() throws IOException
                 System.err.println("\n*** Unable to locate help information in 'HelixBuilder.help' ***\n");
             else
             {
-                try { streamcopy(is, System.out); }
+                try { streamcopy(is, System.err); }
                 catch(IOException ex) { ex.printStackTrace(); }
             }
         }
@@ -1487,6 +1683,11 @@ public void doFile() throws IOException
         {
             doNcaps = true;
         }
+        else if(flag.equals("-onlyhbncaps"))
+        {
+            doNcaps = true;
+            onlyHbNcaps = true;
+        }
         else if(flag.equals("-smoothaxes"))
         {
             smoothAxes = true;
@@ -1500,6 +1701,10 @@ public void doFile() throws IOException
         else if(flag.equals("-v") || flag.equals("-verbose"))
         {
             verbose = true;
+        }
+        else if(flag.equals("-nokinheading"))
+        {
+            noKinHeading = true;
         }
         else if(flag.equals("-dummy_option"))
         {
@@ -1601,6 +1806,45 @@ public void doFile() throws IOException
         if(u.angle(g) > 90.0) dihedral = -dihedral;
         
         return dihedral;
+    }
+//}}}
+
+//{{{ [addVectorSumAxis] not working right!
+//##############################################################################
+public void addVectorSumAxis()
+    {
+        /** 
+        * Makes a single, vector sum helical axis from the local helical 
+        * axes for each set of 4 Ca's in each Helix made in findAxes.
+        * Goal: Generate a direction that is robust to weirdnesses in the local
+        * geometry (e.g. helix turning into beta or something) but does reflect
+        * subtle local changes in helical direction.
+        */
+        
+        
+        // WHAT'S WRONG WITH THESE AXES' DIRECTIONS ???
+        // PROBABLY AN ISSUE W/ NOT TRANSLATING TO ORIGIN...
+        
+        
+        for (Helix helix : helices)
+        {
+            double x = 0, y = 0, z = 0;
+            for (int i = 0; i < helix.axisHeads.size(); i ++)
+            {
+                Triple head = helix.axisHeads.get(i);
+                Triple tail = helix.axisTails.get(i);
+                Triple axisAtOrigin = new Triple(head.getX()-tail.getX(),
+                    head.getY()-tail.getY(), head.getZ()-tail.getZ());
+                x += axisAtOrigin.getX(); 
+                y += axisAtOrigin.getY(); 
+                z += axisAtOrigin.getZ();
+            }
+            
+            helix.vectorSumAxisTail = helix.axisTails.get(0);
+            helix.vectorSumAxisHead = new Triple(x, y, z).unit().mult(3).add(
+                new Triple(helix.axisTails.get(0)));
+            
+        }//for(each Helix in helices)
     }
 //}}}
 

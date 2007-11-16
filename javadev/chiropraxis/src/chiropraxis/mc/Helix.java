@@ -34,23 +34,8 @@ public class Helix //extends ... implements ...
     /** PDB code for the structure this helix is in */
     public String pdb;
     
-    /** Residue which is the Ncap for this helix. */
-    public Residue ncap;
-    
-    /** Angle between plane of Ncap Ca(i,i-1,i+1) and local helix axis. */
-    public double ncapPlaneNormalAngle;
-    
-    /** Angle between Ncap Ca_Cb vector and local helix axis. */
-    public double ncapCaCbAngle;
-    
-    /** Ncap residue's phi, psi dihedrals. */
-    public double ncapPhi, ncapPsi;
-    
-    /** Tail position (i.e. beg. of vector) of the normal to the Ncap plane */
-    public Triple ncapNormalTail;
-    
-    /** Head position (i.e. end of vector) of the normal to the Ncap plane */
-    public Triple ncapNormalHead;
+    /** Ncap object with various measurements contained within. */
+    public Ncap ncap;
     
     /** Tail position (i.e. beginning of vector) of the 4-Ca helix axis 
     * starting at each residue. */
@@ -84,12 +69,6 @@ public class Helix //extends ... implements ...
             residues.add( (Residue)iter.next() );
         Collections.sort(residues);
         ncap = null;
-        ncapPlaneNormalAngle = Double.NaN;
-        ncapCaCbAngle = Double.NaN;
-        ncapPhi = Double.NaN;
-        ncapPsi = Double.NaN;
-        ncapNormalTail = null;
-        ncapNormalHead = null;
         axisTails = null;
         axisHeads = null;
         vectorSumAxisTail = null;

@@ -63,7 +63,10 @@ public class SubImpose //extends ... implements ...
     boolean fix180flips = true;
     String structIn1 = null, structIn2 = null;
     String kinOut = null, pdbOut = null;
-    String superimpose = null;
+    String superimpose = null; // describes atoms in structure 1 for superimposing onto structure 2
+    String superimpose2 = null; // describes atoms in structure 2 which will match up with those
+                                // in structure 1 described in superimpose
+                                // added by dak
     Collection rmsd = new ArrayList(); // selection strings to do rmsd over
     double leskSieve = 0;
 //}}}
@@ -147,6 +150,7 @@ public class SubImpose //extends ... implements ...
     AtomState[][] getAtomsForSelection(Collection res1, ModelState s1, Collection res2, ModelState s2, String selection, Alignment align) throws ParseException
     {
         // Get selected atom states from model 1
+        int numAs1s = 0; // added by dak
         Selection sel = Selection.fromString(selection);
         Collection allStates1 = Model.extractOrderedStatesByName(res1, Collections.singleton(s1));
         sel.init(allStates1);
@@ -154,45 +158,69 @@ public class SubImpose //extends ... implements ...
         for(Iterator iter = allStates1.iterator(); iter.hasNext(); )
         {
             AtomState as = (AtomState) iter.next();
-            if(sel.select(as)) selStates1.add(as);
+            if(sel.select(as))  selStates1.add(as);
         }
         
-        // Set up residue correspondances
-        Map map1to2 = new HashMap();
-        for(int i = 0; i < align.a.length; i++)
-        {
-            if(align.a[i] != null)
-                map1to2.put(align.a[i], align.b[i]); // b[i] may be null
-        }
-        
-        // Get corresponding states from model 2
-        Collection selStates2 = new ArrayList();
+        // added by dak
         int matched = 0;
-        for(Iterator iter = selStates1.iterator(); iter.hasNext(); )
+        Collection selStates2 = new ArrayList();
+        String selection2 = superimpose2; // comes from -super2=[text] flag
+        if (selection2 != null)
         {
-            AtomState as1 = (AtomState) iter.next();
-            AtomState as2 = null;
-            Residue r = (Residue) map1to2.get( as1.getResidue() );
-            if(r != null)
+            // Residue correspondences (sic below) given by flag
+            // Get selected atom states from model 2
+            Selection sel2 = Selection.fromString(selection2);
+            Collection allStates2 = Model.extractOrderedStatesByName(res2, Collections.singleton(s2));
+            sel2.init(allStates2);
+            for(Iterator iter2 = allStates2.iterator(); iter2.hasNext(); )
             {
-                Atom a = r.getAtom( as1.getName() );
-                if(a != null)
+                AtomState as2 = (AtomState) iter2.next();
+                if(sel2.select(as2))
                 {
-                    try
-                    {
-                        as2 = s2.get(a);
-                        matched++;
-                    }
-                    catch(AtomException ex) { ex.printStackTrace(); }
+                    selStates2.add(as2);
+                    matched ++; // placeholder so code below (arranging into nice arrays) doesn't break
                 }
             }
-            selStates2.add(as2); // as2 could still be null
+        }
+        else
+        {
+            // Need to set up residue correspondences (sic below) algorithmically as Ian originally intended
+            // Set up residue correspondances
+            Map map1to2 = new HashMap();
+            for(int i = 0; i < align.a.length; i++)
+            {
+                if(align.a[i] != null)
+                    map1to2.put(align.a[i], align.b[i]); // b[i] may be null
+            }
+            
+            // Get corresponding states from model 2
+            //Collection selStates2 = new ArrayList(); // moved outside of for statement by dak
+            //int matched = 0; // moved outside of for statement by dak
+            for(Iterator iter = selStates1.iterator(); iter.hasNext(); )
+            {
+                AtomState as1 = (AtomState) iter.next();
+                AtomState as2 = null;
+                Residue r = (Residue) map1to2.get( as1.getResidue() );
+                if(r != null)
+                {
+                    Atom a = r.getAtom( as1.getName() );
+                    if(a != null)
+                    {
+                        try
+                        {
+                            as2 = s2.get(a);
+                            matched++;
+                        }
+                        catch(AtomException ex) { ex.printStackTrace(); }
+                    }
+                }
+                selStates2.add(as2); // as2 could still be null
+            }
         }
         
-        if(selStates1.size() != selStates2.size()
-        || matched > selStates1.size())
+        if(selStates1.size() != selStates2.size() || matched > selStates1.size())
             throw new RuntimeException("logical error; sel1="+selStates1.size()+", sel2="+selStates2.size()+", matched="+matched);
-            
+        
         // Arrange data into nice arrays for convenience
         AtomState[][] ret = new AtomState[2][matched];
         Iterator iter1 = selStates1.iterator();
@@ -556,6 +584,8 @@ public class SubImpose //extends ... implements ...
             fix180flips = false;
         else if(flag.equals("-super"))
             superimpose = param;
+        else if(flag.equals("-super2"))
+            superimpose2 = param; // added by dak
         else if(flag.equals("-sieve"))
         {
             try { leskSieve = Double.parseDouble(param); }
