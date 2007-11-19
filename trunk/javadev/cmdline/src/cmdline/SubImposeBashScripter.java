@@ -17,7 +17,7 @@ public class SubImposeBashScripter //extends ... implements ...
 {
 //{{{ Constants
 //##############################################################################
-    String javaCmd = "java -cp ~/javadev/chiropraxis/chiropraxis.jar chiropraxis.mc.SubImpose ";
+    String javaCmd = "java -Xmx512m -cp ~/javadev/chiropraxis/chiropraxis.jar chiropraxis.mc.SubImpose ";
     PrintStream out = System.out;
     
 //}}}
@@ -46,6 +46,7 @@ public class SubImposeBashScripter //extends ... implements ...
     
     boolean verbose = false;
     String finalKin = null;
+    String master = null;
     
 //}}}
 
@@ -124,9 +125,14 @@ public class SubImposeBashScripter //extends ... implements ...
         {
             String pdb1 = pdb;
             String mobile = cmd;
-            out.println(javaCmd+mobile+ref+"-pdb="+pdb1+"onto"+pdb2+".pdb");
-            if (verbose) System.out.println("Final command: "+javaCmd+ref+mobile+
-                "-pdb="+pdb1+"onto"+pdb2+".pdb");
+            out.println(javaCmd+mobile+ref+"-pdb=temp");
+            out.println("grep \" "+chain+" \" temp > "+pdb1+"onto"+pdb2+".pdb");
+            if (verbose)
+            {
+                System.out.println("Final command: "+javaCmd+ref+mobile+"-pdb=temp");
+                System.out.println("               grep \" "+chain+" \" temp > "+
+                    pdb1+"onto"+pdb2+".pdb");
+            }
         }
     }
 //}}}
@@ -255,12 +261,18 @@ public class SubImposeBashScripter //extends ... implements ...
         out.println("rm -f "+finalKin);
         out.println("touch "+finalKin);
         out.println("prekin -scope -show \"mc(white),sc(cyan),hy(gray)\" "
-            +pdb2Path.substring(0,pdb2Path.length()-4)+".kin "+finalKin);
+            +pdb2Path.substring(0,pdb2Path.length()-4)+".pdb "+finalKin);
         
         // Command to make a kin of each superimposed PDB and append it to the final kin
-        out.println("for pdb in *onto*.pdb do");
-        out.println("    prekin -append -scope -show \"mc(brown),sc(green),hy(pinktint)\" -animate $pdb - >> "+finalKin);
+        out.println("for pdb in *onto*.pdb");
+        out.println("do");
+        out.print("    prekin -append -scope -show \"mc(brown),sc(green),hy(pinktint)\""
+            +" -animate $pdb - | sed -e 's/@g.*/& master= {all}/g'");
+        if (master != null)
+            out.print(" | sed -e 's/@g.*/& master= {"+master+"}/g'");
+        out.println(" >> "+finalKin);
         out.println("done");
+        out.println("rm -f *temp*");
     }
 //}}}
 
@@ -415,6 +427,10 @@ public class SubImposeBashScripter //extends ... implements ...
         else if(flag.equals("-kin"))
         {
             finalKin = param;
+        }
+        else if(flag.equals("-master"))
+        {
+            master = param;
         }
         else if(flag.equals("-dummy_option"))
         {
