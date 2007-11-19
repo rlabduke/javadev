@@ -20,6 +20,9 @@ Options:
 	  allhelix   uses all residues in helix except N cap (default)
     -kin=text
 	Tells name of output kinemage overlaying all superpositions.
+    -master=text
+	Tells name of master for every group in this superposed kinemage
+	  (in addition to master= {all} which is on every group by default).
     -verbose
 	Gives extra info when running the program.
     -help
