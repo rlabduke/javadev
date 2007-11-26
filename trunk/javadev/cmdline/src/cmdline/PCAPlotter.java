@@ -35,6 +35,7 @@ public class PCAPlotter //extends ... implements ...
     ArrayList<Triple> pcs = null;
     String color = "red";
     double scale = 1;
+    String group = null;
     
 //}}}
 
@@ -166,6 +167,8 @@ public class PCAPlotter //extends ... implements ...
             color = param;
         else if (flag.equals("-scale"))
             scale = Integer.parseInt(param);
+        else if (flag.equals("-group"))
+            group = param;
         else if (flag.equals("-verbose") || flag.equals("-v"))
             verbose = true;
         else
@@ -185,28 +188,64 @@ public class PCAPlotter //extends ... implements ...
             // U matrix
             pcs = new ArrayList<Triple>();
             Scanner s = new Scanner(u);
+            ArrayList<String> xyz = new ArrayList<String>();
             
-            // If pc == 1, dont' skip any lines and use PC #1
-            for (int i = 0; i < pc - 1; i ++)
-                if (s.hasNextLine())
-                    s.nextLine();
-            
-            String line = s.nextLine();
-            Scanner ls = new Scanner(line).useDelimiter(",");
-            while (ls.hasNext())
+            while (s.hasNextLine())
             {
-                Triple pos = new Triple();
-                pos.setX(Double.parseDouble(ls.next()));
-                pos.setY(Double.parseDouble(ls.next()));
-                pos.setZ(Double.parseDouble(ls.next()));
-                pcs.add(pos);
+                String line = s.nextLine();
+                Scanner ls = new Scanner(line).useDelimiter(",");
+                
+                // Find correct column holding desired PC.
+                // If pc == 1, dont' skip any columns and use PC #1
+                for (int i = 0; i < pc - 1; i ++)
+                    ls.next(); // skip this PC
+                xyz.add(ls.next());
+                
+                if (xyz.size() >= 3)
+                {
+                    Triple point = new Triple(
+                        Double.parseDouble(xyz.get(0)), 
+                        Double.parseDouble(xyz.get(1)), 
+                        Double.parseDouble(xyz.get(2)));
+                    pcs.add(point);
+                    xyz = new ArrayList<String>(); // reset for next x,y,z
+                }
             }
         }
         catch (FileNotFoundException fnfe)
         {
-            System.err.println("Can't read input file(s)!");
+            System.err.println("Can't read input file: '"+u+"'!");
             System.exit(0);
         }
+        
+        // OLD METHOD -- got x,y,z from same line (wrong!)
+//       try
+//       {
+//           // U matrix
+//           pcs = new ArrayList<Triple>();
+//           Scanner s = new Scanner(u);
+//           
+//           // If pc == 1, dont' skip any lines and use PC #1
+//           for (int i = 0; i < pc - 1; i ++)
+//               if (s.hasNextLine())
+//                   s.nextLine();
+//           
+//           String line = s.nextLine();
+//           Scanner ls = new Scanner(line).useDelimiter(",");
+//           while (ls.hasNext())
+//           {
+//               Triple pos = new Triple();
+//               pos.setX(Double.parseDouble(ls.next()));
+//               pos.setY(Double.parseDouble(ls.next()));
+//               pos.setZ(Double.parseDouble(ls.next()));
+//               pcs.add(pos);
+//           }
+//       }
+//       catch (FileNotFoundException fnfe)
+//       {
+//           System.err.println("Can't read input file(s)!");
+//           System.exit(0);
+//       }
     }
 //}}}
 
@@ -260,7 +299,10 @@ public class PCAPlotter //extends ... implements ...
         // component on those two lists so the equivalent K* or MD principal
         // components can be turned on together in the final kinemage. 
         PrintStream out = System.out;
-        out.println("@group {pc "+pc+"} animate");
+        if (group == null)
+            out.println("@group {pc "+pc+"} dominant animate");
+        else
+            out.println("@group {"+group+"} dominant animate");
         
         // Calculate arrows
         ArrayList<Triple> arrows = new ArrayList<Triple>();
@@ -291,7 +333,7 @@ public class PCAPlotter //extends ... implements ...
         }
         
         // Balllist for arrowheads
-        out.println("@balllist {pc arrowheads} master= {pc "+pc+"} color= "+color+" radius= 0.1");
+        out.println("@balllist {pc arrowheads} master= {pc "+pc+"} color= "+color+" radius= 0.07");
         for (int i = 0; i < origCoords.size(); i ++)
         {
             Triple arrow = arrows.get(i);
