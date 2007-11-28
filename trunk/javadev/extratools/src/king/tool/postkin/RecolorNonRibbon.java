@@ -141,8 +141,8 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
           clrs.add(point.getColor());
           point.setColor((KPaint) colors[index]);
         }
-        index++;
 	    }
+      index++;
     }
   }
 

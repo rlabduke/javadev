@@ -53,6 +53,7 @@
            <!--compilerarg value="-Xlint:unchecked"/-->
          <classpath>
             <pathelement location="../driftwood/build"/>
+            <pathelement location="../chiropraxis/build"/>
             <pathelement location="../king/build"/>
          </classpath>
     </javac>
