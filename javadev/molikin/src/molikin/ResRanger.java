@@ -54,8 +54,14 @@ public class ResRanger //extends ... implements ...
             }
             catch(NumberFormatException ex)
             {
+              if (r.getSequenceInteger() != Residue.NAN_SEQ) {
+                num = r.getSequenceInteger();
+                ins = r.getInsertionCode().trim();
+                callme = r.getSequenceNumber().trim() + ins;
+              } else {
                 ins = r.getSequenceNumber().trim() + r.getInsertionCode().trim();
                 callme = num+ins;
+              }
             }
         }
         

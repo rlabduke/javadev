@@ -106,9 +106,13 @@ public class Residue implements Comparable
         this.insCode    = insCode;
         this.resName    = resName;
         
-        try { this.seqInt = Integer.parseInt(this.seqNum.trim()); }
-        catch(NumberFormatException ex) { this.seqInt = NAN_SEQ; }
-
+        try { this.seqInt = Integer.parseInt(this.seqNum.trim());
+          //System.out.println(seqNum + " decodes to " + seqInt);
+        }
+        catch(NumberFormatException ex) { 
+          try { this.seqInt = Hy36.decode(4, seqNum); }
+          catch (Error e) { this.seqInt = NAN_SEQ; }
+        }
         atoms = new UberMap();
     }
 

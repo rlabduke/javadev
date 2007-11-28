@@ -262,8 +262,8 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
           ArrayList list= (ArrayList) iter.next();
           setPointColors(list, (KPaint) colors[index]);
         }
-        index++;
 	    }
+      index++;
     }
   }
 //}}}  
