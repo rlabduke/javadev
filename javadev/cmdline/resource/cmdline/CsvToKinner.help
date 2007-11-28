@@ -36,6 +36,8 @@ Flags:
 	Required for -wrap180 or -labels flags.
     -GROUPname=text
         Sets name of the group in the kin format output.
+    -COLOR=text
+	Sets color of dots for this group.
     -LABELS=text
         Sets labels for axes in x,y,z order.
         Possible values for text: 'chi1' or 'chi1,chi2,chi3'
