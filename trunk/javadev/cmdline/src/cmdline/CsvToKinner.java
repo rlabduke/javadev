@@ -51,6 +51,7 @@ public class CsvToKinner
     String groupName;
     ArrayList<String> rotaBalls;
     boolean altFrame;
+    String color;
     
 //}}}
 
@@ -96,6 +97,7 @@ public class CsvToKinner
         noFrame = false;
         groupName = "";
         altFrame = false;
+        color = "white";
         
     }
 //}}}
@@ -395,6 +397,10 @@ public class CsvToKinner
                 else if(flag.equals("-altframe"))
                 {
                     altFrame = true;
+                }
+                else if(flag.equals("-color"))
+                {
+                    color = param;
                 }
                 else if(flag.equals("-dummy-option"))
                 {
@@ -1062,7 +1068,7 @@ public class CsvToKinner
         System.out.println();
         
         // Dotlist
-        System.out.println("@dotlist {data} master= {data} ");
+        System.out.println("@dotlist {data} master= {data} color= "+color);
         for (int i = 0; i < pts.size(); i ++)
         {
             double[] pt = pts.get(i);
