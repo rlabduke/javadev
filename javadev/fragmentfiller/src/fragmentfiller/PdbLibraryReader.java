@@ -94,10 +94,15 @@ public class PdbLibraryReader {
         int resNum = res.getSequenceInteger();
         if ((resNum >= startRes)&&(resNum <= startRes + length + 2)) {
           try {
-            fragModel.add(res);
-            res.cloneStates(res, firstState, fragState);
-            String past80 = "  " + currentPdb.getIdCode() + Integer.toString(startRes);
-            addPast80Info(res, past80, fragState);
+            if (isResidueComplete(res)) {
+              fragModel.add(res);
+              res.cloneStates(res, firstState, fragState);
+              String past80 = "  " + currentPdb.getIdCode() + Integer.toString(startRes);
+              addPast80Info(res, past80, fragState);
+            } else {
+              System.err.println("fragment from "+currentPdb.getIdCode()+" "+String.valueOf(resNum)+" discarded due to incomplete residues");
+              return null;
+            }
           } catch (AtomException ae) {
             System.err.println("Error occurred during cloning of atom in PdbLibraryReader.");
           } catch (ResidueException re) {
@@ -135,13 +140,29 @@ public class PdbLibraryReader {
     try {
       UberSet residues = new UberSet(fragment.getResidues());
       Residue firstRes = (Residue) residues.firstItem();
-      firstRes.remove(firstRes.getAtom(" N  "));
+      Atom firstN = firstRes.getAtom(" N  ");
+      if (firstN != null) firstRes.remove(firstN);
+      else throw new AtomException("trouble trimming model "+fragment.toString()+" res "+firstRes.getSequenceNumber());
       Residue lastRes = (Residue) residues.lastItem();
-      lastRes.remove(lastRes.getAtom(" O  "));
-      lastRes.remove(lastRes.getAtom(" C  "));
+      Atom lastO = lastRes.getAtom(" O  ");
+      Atom lastC = lastRes.getAtom(" C  ");
+      if (lastO != null) lastRes.remove(lastO);
+      else throw new AtomException("trouble trimming model "+fragment.toString()+" res "+firstRes.getSequenceNumber());
+      if (lastC != null) lastRes.remove(lastC);
+      else throw new AtomException("trouble trimming model "+fragment.toString()+" res "+firstRes.getSequenceNumber());
     } catch (AtomException ae) {
-      System.err.println("Error while trimming fragment.");
+      System.err.println(ae);
     }
+  }
+  //}}}
+  
+  //{{{ checkResidue
+  public boolean isResidueComplete(Residue res) {
+    if (res == null) return false;
+    return ((res.getAtom(" N  ")!=null)&&
+            (res.getAtom(" CA ")!=null)&&
+            (res.getAtom(" C  ")!=null)&&
+            (res.getAtom(" O  ")!=null));
   }
   //}}}
   
@@ -163,6 +184,33 @@ public class PdbLibraryReader {
         endAtomStates[1] =modState.get(oneRes.getAtom(" CA "));
         endAtomStates[2] =modState.get(nRes.getAtom(" CA "));
         endAtomStates[3] =modState.get(n1Res.getAtom(" CA "));
+      } catch (AtomException ae) {
+        System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + currentPdb.toString());
+      }
+    } else {
+      System.err.println("No pdb set in PdbLibraryReader!");
+    }
+    return endAtomStates;
+  }
+  //}}}
+  
+  //{{{ getFragmentNtermAtoms
+  public Tuple3[] getFragmentNtermAtoms(Model fragment) {
+    UberSet fragRes = new UberSet(fragment.getResidues());
+    Tuple3[] endAtomStates = new Tuple3[3];
+    if (currentPdb != null) {
+      //Model firstMod = currentPdb.getFirstModel();
+      ModelState modState = fragment.getState();
+      Residue zeroRes = (Residue) fragRes.firstItem();
+      Residue oneRes = (Residue) fragRes.itemAfter(zeroRes);
+      //Residue n1Res = (Residue) fragRes.lastItem();
+      //Residue nRes = (Residue) fragRes.itemBefore(n1Res);
+      //System.out.println(zeroRes.getSequenceInteger() + " " + oneRes.getSequenceInteger() + " " + nRes.getSequenceInteger() + " " + n1Res.getSequenceInteger());
+      try {
+        endAtomStates[0] = modState.get(zeroRes.getAtom(" CA "));
+        endAtomStates[1] =modState.get(zeroRes.getAtom(" O  "));
+        endAtomStates[2] =modState.get(oneRes.getAtom(" CA "));
+        //endAtomStates[3] =modState.get(n1Res.getAtom(" CA "));
       } catch (AtomException ae) {
         System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + currentPdb.toString());
       }

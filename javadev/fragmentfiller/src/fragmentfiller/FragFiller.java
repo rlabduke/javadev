@@ -57,6 +57,7 @@ public class FragFiller {
   static File fragLibrary = null;
   static File pdbLibrary = null;
   static int matchDiff;
+  static boolean ntermsup = false;
   //JFileChooser        filechooser     = null;
   //ProgressDialog progDiag;
   //KGroup group;
@@ -131,6 +132,8 @@ public class FragFiller {
             System.err.println("No integer given for -nomatchsize");
             System.exit(0);
           }
+        } else if (arg.equals("-ntermsup")) {
+          ntermsup = true;
         } else {
           System.err.println("*** Unrecognized option: "+arg);
         }
@@ -209,8 +212,12 @@ public class FragFiller {
     ArrayList<File> frameDataFiles = getFrameDataList();
     searchFragmentDB(allGaps);
     //scanLoopData(frameDataFiles, allGaps);
-    for (ArrayList matchedInfo : filledMap.values()) {
-      System.out.println("# of matches: " + matchedInfo.size());
+    //for (ArrayList matchedInfo : filledMap.values()) {
+    //  System.out.println("# of matches: " + matchedInfo.size());
+    //}
+    for (ProteinGap gap : filledMap.keySet()) {
+      ArrayList matchedInfo = filledMap.get(gap);
+      System.out.println(gap.getSourceString() + " had " + matchedInfo.size() + " matches");
     }
     readPdbLibrary();
     CoordinateFile[] pdbOut = getFragments();
@@ -433,13 +440,26 @@ public class FragFiller {
         int startRes = Integer.parseInt(splitInfo[2]);
         libReader.setCurrentPdb(pdbName);
         Model frag = libReader.getFragment(Integer.toString(ind), startRes, length); //set of residues
-        SuperPoser poser = new SuperPoser(gap.getTupleArray(), libReader.getFragmentEndpointAtoms(frag));
-        Transform t = poser.superpos();
-        //System.out.println(poser.calcRMSD(t));
-        transform(frag, t);
-        fragPdbOut[i].add(frag);
-        if (Math.IEEEremainder((double) ind, 100.0) == 0) {
-          System.out.println("Opened: " + ind);
+        if (frag != null) {
+          //SuperPoser poser = null;
+          Transform t = null;
+          if (!ntermsup) {
+            SuperPoser poser = new SuperPoser(gap.getTupleArray(), libReader.getFragmentEndpointAtoms(frag));
+            t = poser.superpos();
+          } else {
+            Builder builder = new Builder();
+            Tuple3[] gapArray = gap.getNtermTuples();
+            Tuple3[] fragArray = libReader.getFragmentNtermAtoms(frag);
+            t = builder.dock3on3(
+            gapArray[2], gapArray[0], gapArray[1],
+            fragArray[2], fragArray[0], fragArray[1]);
+          }
+          //System.out.println(poser.calcRMSD(t));
+          transform(frag, t);
+          fragPdbOut[i].add(frag);
+          if (Math.IEEEremainder((double) ind, 100.0) == 0) {
+            System.out.println("Opened: " + ind);
+          }
         }
       }
       i++;

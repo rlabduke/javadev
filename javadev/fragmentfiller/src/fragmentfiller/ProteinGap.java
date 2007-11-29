@@ -99,6 +99,17 @@ public class ProteinGap {
   }
   //}}}
   
+  public Tuple3[] getNtermTuples() {
+    Tuple3[] tuples = new Tuple3[3];
+    //tuples[0] = coMap.get(new Integer(oneNum - 1));
+    tuples[0] = states.get(0);
+    tuples[1] = states.get(4);
+    tuples[2] = states.get(1);
+    //tuples[3] = states.get(3);
+    //tuples[5] = coMap.get(new Integer(nNum));
+    return tuples;
+  }
+  
   //{{{ equals, hashcode
   public boolean equals(Object o)
   {
