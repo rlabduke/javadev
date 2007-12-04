@@ -1,10 +1,11 @@
 
 Usage:
-    java chiropraxis.mc.HelixBuilder [-flags] file.pdb [> output.kin]
+    java chiropraxis.mc.DsspHelixBuilder [-flags] file.pdb [> output.kin]
 
-HELIXBUILDER is an aid for finding helices in PDB files as well as N caps and
-reporting certain information about them that may comprise evidence for back-
-rubs at certain positions, e.g. the N cap.
+DSSPHELIXBUILDER is an aid for finding helices in PDB files as well as N caps 
+and reporting certain information about them that may comprise evidence for 
+backrubs at certain positions, e.g. the N cap. It does *approximately* the 
+same thing as Kabsch & Sander's DSSP algorithm.
 
 Options:
     -kin
@@ -26,9 +27,6 @@ Options:
 	  times (default: once). Multiple rounds of smoothing leads to 
 	  straighter local helical axes that are less affected by subtle
 	  local changes in helix direction.
-    -vectorsumaxis
-	Makes a single helix end-to-end axis from DAK's local helix axes.
-	Alternative to -smoothaxes.
     -verbose || -v
 	Prints extra information you probably don't even wanna know...
     -list 

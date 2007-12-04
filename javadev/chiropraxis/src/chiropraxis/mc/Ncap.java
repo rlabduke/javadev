@@ -43,8 +43,17 @@ public class Ncap //extends ... implements ...
     * backrub tool.*/
     public double nprimePhi, nprimePsi, phi, psi, n1Phi, n1Psi;
     
+    /** Distances that may vary between Ncap types (e.g. i+2 vs. i+3) or 
+    * indicate where a residue is an Ncap vs. just continuation of a helix. 
+    * For the first two, the atoms involved depend on the sc type. */
+    double distNcapScToN2H, distNcapScToN3H, distNcapCaToN3Ca, distNprimeCaToN3Ca;
+    
     /** Whether Ncap Hbonds to i+2 and i+3 or not */
     boolean hb_i2, hb_i3;
+    
+    /** Number of chi angles (a measure of sidechain length) for two potentially
+    * important residues for this Ncap. */
+    int ncapNumChis, n3NumChis;
     
     /** Tail position (i.e. beg. of vector) of the normal to the Ncap plane */
     public Triple normalTail;
@@ -60,18 +69,24 @@ public class Ncap //extends ... implements ...
     {
         super();
         res = residue;
-        planeNormalAngle = Double.NaN;
-        caCbAngle = Double.NaN;
-        nprimePhi = Double.NaN;
-        nprimePsi = Double.NaN;
-        phi = Double.NaN;
-        psi = Double.NaN;
-        n1Phi = Double.NaN;
-        n1Psi = Double.NaN;
-        hb_i2 = false;
-        hb_i3 = false;
-        normalTail = null;
-        normalHead = null;
+        planeNormalAngle   = Double.NaN;
+        caCbAngle          = Double.NaN;
+        distNcapScToN2H    = Double.NaN;
+        distNcapScToN3H    = Double.NaN;
+        distNcapCaToN3Ca   = Double.NaN;
+        distNprimeCaToN3Ca = Double.NaN;
+        nprimePhi          = Double.NaN;
+        nprimePsi          = Double.NaN;
+        phi                = Double.NaN;
+        psi                = Double.NaN;
+        n1Phi              = Double.NaN;
+        n1Psi              = Double.NaN;
+        hb_i2              = false;
+        hb_i3              = false;
+        ncapNumChis        = 999;
+        n3NumChis          = 999;
+        normalTail         = null;
+        normalHead         = null;
         
     }
 //}}}
