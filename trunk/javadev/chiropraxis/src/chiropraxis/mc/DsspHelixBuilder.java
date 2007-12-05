@@ -21,7 +21,8 @@ import driftwood.r3.*;
 * about alpha helices, for an input PDB file.
 * Specifically, it measures parameters related to the N cap of each helix in 
 * the file.
-* 
+* Note that this now contains some bug fixes (e.g. handles Pro at N2 or N3) that
+* the original HelixBuilder does not.
 * 
 * <p>Copyright (C) 2007 by Daniel Keedy. All rights reserved.
 * <br>Begun on Tue Mar 30 10:45:56 EST 2004
@@ -945,17 +946,14 @@ public class DsspHelixBuilder //extends ... implements ...
             if (helix.ncap != null) continue;
             else
             {
-                if (onlyHbNcaps && 
-                    !ncapMakesHb(helix.getRes("first"), model, state).equals("i+2") &&
-                    !ncapMakesHb(helix.getRes("first"), model, state).equals("i+3"))
+                String hb = ncapMakesHb(helix.getRes("first"), model, state);
+                if (onlyHbNcaps && !hb.equals("i+2") && !hb.equals("i+3"))
                     helix.ncap = null;
                 else
                 {
                     helix.ncap = new Ncap(helix.getRes("first"));
-                    if (ncapMakesHb(helix.getRes("first"), model, state).equals("i+2"))
-                        helix.ncap.hb_i2 = true;
-                    if (ncapMakesHb(helix.getRes("first"), model, state).equals("i+3"))
-                        helix.ncap.hb_i3 = true;
+                    if (hb.equals("i+2"))       helix.ncap.hb_i2 = true;
+                    if (hb.equals("i+3"))       helix.ncap.hb_i3 = true;
                 }
             }
         }
@@ -988,72 +986,133 @@ public class DsspHelixBuilder //extends ... implements ...
     * is something we could obviously alter later, but it seems reasonable.
     */
     {
+        double cutoff = 2.9; // Angstroms
         try
         {
             Residue res2 = res.getNext(model).getNext(model);
             Residue res3 = res2.getNext(model);
-            Triple likeH2 = new Triple(state.get(res2.getAtom(" H  ")));
-            Triple likeH3 = new Triple(state.get(res3.getAtom(" H  ")));
+            Atom h2 = res2.getAtom(" H  "); // doesn't exist for prolines! (" HA ")
+            Atom h3 = res3.getAtom(" H  ");
+            Triple likeH2 = null;
+            Triple likeH3 = null;
+            if (h2 != null)     likeH2 = new Triple(state.get(h2));
+            if (h3 != null)     likeH3 = new Triple(state.get(h3));
             
             // Ser
             if (res.getName().equals("SER"))
             {
                 Triple likeOG = new Triple(state.get(res.getAtom(" OG ")));
-                double dist2 = Triple.distance(likeOG, likeH2);
-                double dist3 = Triple.distance(likeOG, likeH3);
-                if (verbose)
-                    System.out.println("Ncap "+res+" might make an Hb with distance "+
-                        dist2+" or "+dist3);
-                if (dist2 < 2.9 && dist2 < dist3)   return "i+2";
-                if (dist3 < 2.9 && dist3 < dist2)   return "i+3";
+                double dist2 = Double.NaN;
+                double dist3 = Double.NaN;
+                if (h2 != null)     dist2 = Triple.distance(likeOG, likeH2);
+                if (h3 != null)     dist3 = Triple.distance(likeOG, likeH3);
+                if (!Double.isNaN(dist2) && !Double.isNaN(dist3))
+                {
+                    if (dist2 < cutoff && dist2 < dist3)
+                    {
+                        if (verbose) System.out.println("Ncap "+res+" makes an i+2"
+                            +" Hb with distance "+dist2);
+                        return "i+2";
+                    }
+                    if (dist3 < cutoff && dist3 < dist2)
+                    {
+                        if (verbose) System.out.println("Ncap "+res+" makes an i+3"
+                            +" Hb with distance "+dist3);
+                        return "i+3";
+                    }
+                }
             }
             
             // Thr
             if (res.getName().equals("THR"))
             {
                 Triple likeOG1 = new Triple(state.get(res.getAtom(" OG1")));
-                double dist2 = Triple.distance(likeOG1, likeH2);
-                double dist3 = Triple.distance(likeOG1, likeH3);
-                if (verbose)
-                    System.out.println("Ncap "+res+" might make an Hb with distance "+
-                        dist2+" or "+dist3);
-                if (dist2 < 2.9 && dist2 < dist3)   return "i+2";
-                if (dist3 < 2.9 && dist3 < dist2)   return "i+3";
+                double dist2 = Double.NaN;
+                double dist3 = Double.NaN;
+                if (h2 != null)     dist2 = Triple.distance(likeOG1, likeH2);
+                if (h3 != null)     dist3 = Triple.distance(likeOG1, likeH3);
+                if (!Double.isNaN(dist2) && !Double.isNaN(dist3))
+                {
+                    if (dist2 < cutoff && dist2 < dist3)
+                    {
+                        if (verbose) System.out.println("Ncap "+res+" makes an i+2"
+                            +" Hb with distance "+dist2);
+                        return "i+2";
+                    }
+                    if (dist3 < cutoff && dist3 < dist2)
+                    {
+                        if (verbose) System.out.println("Ncap "+res+" makes an i+3"
+                            +" Hb with distance "+dist3);
+                        return "i+3";
+                    }
+                }
             }
             
             // Asn
             if (res.getName().equals("ASN"))
             {
                 Triple likeOD1 = new Triple(state.get(res.getAtom(" OD1")));
-                double dist2 = Triple.distance(likeOD1, likeH2);
-                double dist3 = Triple.distance(likeOD1, likeH3);
-                if (verbose)
-                    System.out.println("Ncap "+res+" might make an Hb with distance "+
-                        dist2+" or "+dist3);
-                if (dist2 < 2.9 && dist2 < dist3)   return "i+2";
-                if (dist3 < 2.9 && dist3 < dist2)   return "i+3";
+                double dist2 = Double.NaN;
+                double dist3 = Double.NaN;
+                if (h2 != null)     dist2 = Triple.distance(likeOD1, likeH2);
+                if (h3 != null)     dist3 = Triple.distance(likeOD1, likeH3);
+                if (!Double.isNaN(dist2) && !Double.isNaN(dist3))
+                {
+                    if (dist2 < cutoff && dist2 < dist3)
+                    {
+                        if (verbose) System.out.println("Ncap "+res+" makes an i+2"
+                            +" Hb with distance "+dist2);
+                        return "i+2";
+                    }
+                    if (dist3 < cutoff && dist3 < dist2)
+                    {
+                        if (verbose) System.out.println("Ncap "+res+" makes an i+3"
+                            +" Hb with distance "+dist3);
+                        return "i+3";
+                    }
+                }
             }
             
             // Asp
             if (res.getName().equals("ASP"))
             {
                 Triple likeOD1 = new Triple(state.get(res.getAtom(" OD1")));
-                double od1Dist2 = Triple.distance(likeOD1, likeH2);
-                double od1Dist3 = Triple.distance(likeOD1, likeH3);
                 Triple likeOD2 = new Triple(state.get(res.getAtom(" OD2")));
-                double od2Dist2 = Triple.distance(likeOD2, likeH2);
-                double od2Dist3 = Triple.distance(likeOD2, likeH3);
-                if (verbose)
-                    System.out.println("Ncap "+res+" might make an Hb with distance "+
-                        od1Dist2+", "+od1Dist3+", "+od2Dist2+", or "+od2Dist3);
-                if ((od1Dist2 < 2.9 && od1Dist2 < od1Dist3 && od1Dist2 < od2Dist3) ||
-                    (od2Dist2 < 2.9 && od2Dist2 < od1Dist3 && od2Dist2 < od2Dist3))
-                    return "i+2";
-                if ((od1Dist3 < 2.9 && od1Dist3 < od1Dist2 && od1Dist3 < od2Dist2) || 
-                    (od2Dist3 < 2.9 && od2Dist3 < od1Dist2 && od2Dist3 < od2Dist2))
-                    return "i+3";
+                double od1Dist2 = Double.NaN;
+                double od1Dist3 = Double.NaN;
+                double od2Dist2 = Double.NaN;
+                double od2Dist3 = Double.NaN;
+                if (h2 != null)
+                {
+                    od1Dist2 = Triple.distance(likeOD1, likeH2);
+                    od2Dist2 = Triple.distance(likeOD2, likeH2);
+                }
+                if (h3 != null)
+                {
+                    od1Dist3 = Triple.distance(likeOD1, likeH3);
+                    od2Dist3 = Triple.distance(likeOD2, likeH3);
+                }
+                if (!Double.isNaN(od1Dist2) && !Double.isNaN(od1Dist3) && 
+                    !Double.isNaN(od2Dist2) && !Double.isNaN(od2Dist3))
+                {
+                    if ((od1Dist2 < cutoff && od1Dist2 < od1Dist3 && od1Dist2 < od2Dist3) ||
+                        (od2Dist2 < cutoff && od2Dist2 < od1Dist3 && od2Dist2 < od2Dist3))
+                    {
+                        if (verbose) System.out.println("Ncap "+res+" makes an i+2"
+                            +" Hb with distance "+od1Dist2+" or "+od2Dist2);
+                        return "i+2";
+                    }
+                    if ((od1Dist3 < cutoff && od1Dist3 < od1Dist2 && od1Dist3 < od2Dist2) || 
+                        (od2Dist3 < cutoff && od2Dist3 < od1Dist2 && od2Dist3 < od2Dist2))
+                    {
+                        if (verbose) System.out.println("Ncap "+res+" makes an i+3"
+                            +" Hb with distance "+od1Dist3+" or "+od2Dist3);
+                        return "i+3";
+                    }
+                }
             }
             
+            // Non-NDST
             if (verbose)
                 System.out.println("Res '"+res+"' isn't an NDST that makes an Hb...");
             return "";
@@ -1080,8 +1139,14 @@ public class DsspHelixBuilder //extends ... implements ...
             Residue res2 = res.getNext(model).getNext(model);
             Residue res3 = res2.getNext(model);
             Residue resminus1 = res.getPrev(model);
-            Triple likeH2 = new Triple(state.get(res2.getAtom(" H  ")));
-            Triple likeH3 = new Triple(state.get(res3.getAtom(" H  ")));
+            
+            Triple likeH2 = null;
+            Triple likeH3 = null;
+            if (res2.getAtom(" H  ") != null)
+                likeH2 = new Triple(state.get(res2.getAtom(" H  ")));
+            if (res3.getAtom(" H  ") != null)
+                likeH3 = new Triple(state.get(res3.getAtom(" H  ")));
+            
             Triple scAtom = null;
             Triple scAtom2 = null; // for ASP b/c two poss HB'ing atoms
             if (res.getName().equals("SER"))
@@ -1095,9 +1160,20 @@ public class DsspHelixBuilder //extends ... implements ...
                 scAtom  = new Triple(state.get(res.getAtom(" OD1")));
                 scAtom2 = new Triple(state.get(res.getAtom(" OD2")));
             }
-            Triple likeNcapCa   = new Triple(state.get(res.getAtom(" CA ")));
-            Triple likeN3Ca     = new Triple(state.get(res3.getAtom(" CA ")));
-            Triple likeNprimeCa = new Triple(state.get(resminus1.getAtom(" CA ")));
+            
+            Triple likeNcapCa   = null;
+            Triple likeN3Ca     = null;
+            Triple likeNprimeCa = null;
+            if (res != null)
+                if (res.getAtom(" CA ") != null)
+                    likeNcapCa   = new Triple(state.get(res.getAtom(" CA ")));
+            if (res3 != null)
+                if (res3.getAtom(" CA ") != null)
+                    likeN3Ca     = new Triple(state.get(res3.getAtom(" CA ")));
+            if (resminus1 != null)
+                if (resminus1.getAtom(" CA ") != null)
+                    likeNprimeCa = new Triple(state.get(resminus1.getAtom(" CA ")));
+            
             if (verbose)
             {
                 System.out.println("likeNcapCa: '"+likeNcapCa+"'");
@@ -1105,31 +1181,44 @@ public class DsspHelixBuilder //extends ... implements ...
                 System.out.println("likeNprimeCa: '"+likeNprimeCa+"'");
             }
             
+            double dist = Double.NaN;
             // Set distNcapScToN2H
-            double dist = Triple.distance(scAtom, likeH2);
-            if (scAtom2 != null)
+            if (likeH2 != null)
             {
-                double altDist = Triple.distance(scAtom2, likeH2);
-                if (altDist < dist)  dist = altDist;
+                dist = Triple.distance(scAtom, likeH2);
+                if (scAtom2 != null)
+                {
+                    double altDist = Triple.distance(scAtom2, likeH2);
+                    if (altDist < dist)  dist = altDist;
+                }
+                helix.ncap.distNcapScToN2H = dist;
             }
-            helix.ncap.distNcapScToN2H = dist;
             
             // Set distNcapScToN3H
-            dist = Triple.distance(scAtom, likeH3);
-            if (scAtom2 != null)
+            if (likeH3 != null)
             {
-                double altDist = Triple.distance(scAtom2, likeH3);
-                if (altDist < dist)  dist = altDist;
+                dist = Triple.distance(scAtom, likeH3);
+                if (scAtom2 != null)
+                {
+                    double altDist = Triple.distance(scAtom2, likeH3);
+                    if (altDist < dist)  dist = altDist;
+                }
+                helix.ncap.distNcapScToN3H = dist;
             }
-            helix.ncap.distNcapScToN3H = dist;
             
             // Set distNcapCaToN3Ca
-            dist = Triple.distance(likeNcapCa, likeN3Ca);
-            helix.ncap.distNcapCaToN3Ca = dist;
+            if (likeNcapCa != null && likeN3Ca != null)
+            {
+                dist = Triple.distance(likeNcapCa, likeN3Ca);
+                helix.ncap.distNcapCaToN3Ca = dist;
+            }
             
             // Set distNprimeCaToN3Ca
-            dist = Triple.distance(likeNcapCa, likeNprimeCa);
-            helix.ncap.distNprimeCaToN3Ca = dist;
+            if (likeNcapCa != null && likeNprimeCa != null)
+            {
+                dist = Triple.distance(likeNcapCa, likeNprimeCa);
+                helix.ncap.distNprimeCaToN3Ca = dist;
+            }
         }
         catch (driftwood.moldb2.AtomException ae)
         {
@@ -1591,10 +1680,10 @@ public class DsspHelixBuilder //extends ... implements ...
                     
                     if (onlyHbNcaps)
                     {
-                        if (helix.ncap.hb_i2)   System.out.print("1:");
-                        else                    System.out.print("0:");
-                        if (helix.ncap.hb_i3)   System.out.print("1:");
-                        else                    System.out.print("0:");
+                        if (helix.ncap.hb_i2)   System.out.print("i+2:");
+                        else                    System.out.print(":");
+                        if (helix.ncap.hb_i3)   System.out.print("i+3:");
+                        else                    System.out.print(":");
                         
                         if (Double.isNaN(helix.ncap.distNcapScToN2H))
                             System.out.print("__?__:");
