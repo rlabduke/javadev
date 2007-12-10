@@ -5,6 +5,7 @@ package king.tool.nmr;
 //}}}
 
 /**
+* <p>Copyright (C) 2007 by Vincent B. Chen. All rights reserved.
 * Began Wed Nov 07 16:21:00 EST 2007
 **/
 public class DipolarRestraint implements NmrRestraint {
@@ -58,7 +59,11 @@ public class DipolarRestraint implements NmrRestraint {
   
   //{{{ toString
   public String toString() {
-    return "RDC restraint " + fromNum + " " + fromName + ":" + toNum +" " + toName + values;
+    String outString = "RDC restraint " + fromNum + " " + fromName + ":" + toNum +" " + toName;
+    for (double d : values) {
+      outString = outString.concat(" " + Double.valueOf(d));
+    }
+    return outString;
   }
   //}}}
 }
