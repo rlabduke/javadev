@@ -2,10 +2,17 @@
 //{{{ Package, imports
 package king.tool.nmr;
 
+import driftwood.r3.*;
 import Jama.*;
 //}}}
-
-
+/**
+* <code>RdcSolver</code> does the heavy lifting for the RdcVisTool, primarily
+* solving for the Saupe matrix as described in Losonczi et al (1999) and taught to me
+* by Tony Yan in the Donald lab.  
+* 
+* <p>Copyright (C) 2007 by Vincent B. Chen. All rights reserved.
+* <br>Begun Wed Nov 07 2007
+**/
 public class RdcSolver {
   
   //{{{ Constants
@@ -105,6 +112,24 @@ public class RdcSolver {
   //{{{ getSaupeDiagonalized
   public Matrix getSaupeDiagonalized() {
     return diagonalize(saupe);
+  }
+  //}}}
+  
+  //{{{ getSaupeEigenvectors
+  public Matrix getSaupeEigenvectors() {
+    return saupe.eig().getV();
+  }
+  //}}}
+  
+  //{{{ backCalculateRdc
+  public double backCalculateRdc(Tuple3 vector) {
+    Matrix vect = new Matrix(3, 1);
+    vect.set(0, 0, vector.getX());
+    vect.set(1, 0, vector.getY());
+    vect.set(2, 0, vector.getZ());
+    Matrix ans = vect.transpose().times(saupe).times(vect);
+    //ans.print(1, 3);
+    return ans.get(0, 0);
   }
   //}}}
   

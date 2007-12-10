@@ -12,6 +12,7 @@ import driftwood.util.*;
 * <code>NMRRestraintsReader</code> is intended to read NMR restraints files (.mr) files.  It probably
 * only works with .mr files from certain programs.
 * 
+* <p>Copyright (C) 2007 by Vincent B. Chen. All rights reserved.
 * <br>Begun Tue Nov 06 13:26:49 EST 2007
 **/
 

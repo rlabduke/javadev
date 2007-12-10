@@ -25,6 +25,7 @@ import king.tool.util.*;
 /**
 * <code>RdcVisTool</code> is intended as a tool to visualize RDC data on proteins.
 * 
+* <p>Copyright (C) 2007 by Vincent B. Chen. All rights reserved.
 * <br>Begun Wed Nov 07 14:17:42 EST 2007
 **/
 public class RdcVisTool extends ModelingTool {
@@ -36,7 +37,10 @@ public class RdcVisTool extends ModelingTool {
   //{{{ Variables
   JFileChooser filechooser;
   RdcDrawer drawer;
+  RdcVisWindow rdcWin;
   TreeMap currentRdcs;
+  KGroup group = null;
+  KGroup subgroup = null;
   //}}}
   
   //{{{ Constructors
@@ -51,7 +55,10 @@ public class RdcVisTool extends ModelingTool {
 
     // Bring up model manager
     modelman.onShowDialog(null);
-    read();
+    MagneticResonanceFile mrf = openFile();
+    //Set rdcTypes = mrf.getRdcTypeSet();
+    //analyzeFile(mrf);
+    rdcWin = new RdcVisWindow(kMain, mrf, modelman);
     // Helpful hint for users:
     this.services.setID("Ctrl-click, option-click, or middle-click a residue to see RDC curves");
   }
@@ -76,7 +83,7 @@ public class RdcVisTool extends ModelingTool {
   //}}}
 
   //{{{ openFile
-  public void openFile() {
+  public MagneticResonanceFile openFile() {
     // Create file chooser on demand
     if(filechooser == null) makeFileChooser();
     
@@ -87,7 +94,8 @@ public class RdcVisTool extends ModelingTool {
         NMRRestraintsReader nrr = new NMRRestraintsReader();
         nrr.scanFile(f);
         MagneticResonanceFile mrf = nrr.analyzeFileContents();
-        analyzeFile(mrf);
+        return mrf;
+        //analyzeFile(mrf);
       } catch (IOException ex) {
         JOptionPane.showMessageDialog(kMain.getTopWindow(),
         "An I/O error occurred while loading the file:\n"+ex.getMessage(),
@@ -95,33 +103,28 @@ public class RdcVisTool extends ModelingTool {
         //ex.printStackTrace(SoftLog.err);
       }
     }
-  }
-  //}}}
-  
-  //{{{ read
-  public void read() {
-    openFile();
+    return null;
   }
   //}}}
   
   //{{{ analyzeFile
-  public void analyzeFile(MagneticResonanceFile mrf) {
-    Set rdcTypes = mrf.getRdcTypeSet();
-    Iterator iter = rdcTypes.iterator();
-    while (iter.hasNext()) {
-      System.out.println(iter.next());
-    }
-    currentRdcs = mrf.getRdcMapforType("N-HN");
-    Iterator keys = currentRdcs.keySet().iterator();
-    //while (keys.hasNext()) {
-    //  System.out.print(keys.next() + " ");
-    //}
-    Model       model   = modelman.getModel();
-    ModelState  state   = modelman.getFrozenState();
-    RdcSolver solver = solveRdcs(model, state, currentRdcs);
-    drawer = new RdcDrawer(solver.getSaupeDiagonalized());
-    //Matrix saupeDiagonal = solver.getSaupeDiagonalized();
-  }
+  //public void analyzeFile(MagneticResonanceFile mrf) {
+  //  //Set rdcTypes = mrf.getRdcTypeSet();
+  //  //Iterator iter = rdcTypes.iterator();
+  //  //while (iter.hasNext()) {
+  //  //  System.out.println(iter.next());
+  //  //}
+  //  currentRdcs = mrf.getRdcMapforType("N-HN");
+  //  Iterator keys = currentRdcs.keySet().iterator();
+  //  //while (keys.hasNext()) {
+  //  //  System.out.print(keys.next() + " ");
+  //  //}
+  //  Model       model   = modelman.getModel();
+  //  ModelState  state   = modelman.getFrozenState();
+  //  RdcSolver solver = solveRdcs(model, state, currentRdcs);
+  //  drawer = new RdcDrawer(solver.getSaupeDiagonalized());
+  //  //Matrix saupeDiagonal = solver.getSaupeDiagonalized();
+  //}
   //}}}
   
   //{{{ c_click
@@ -131,7 +134,6 @@ public class RdcVisTool extends ModelingTool {
   {
     if(p != null)
     {
-      drawCurve(p);
       //if(modelman.isMolten())
       //{
       //  JOptionPane.showMessageDialog(kMain.getTopWindow(),
@@ -141,10 +143,24 @@ public class RdcVisTool extends ModelingTool {
       //  return;
       //}
       //
-      //Model       model   = modelman.getModel();
-      //ModelState  state   = modelman.getFrozenState();
+      Model       model   = modelman.getModel();
+      ModelState  state   = modelman.getFrozenState();
       //Residue     orig    = this.getResidueNearest(model, state,
       //                           p.getX(), p.getY(), p.getZ());
+      Iterator iter = model.getResidues().iterator();
+      while (iter.hasNext()) {
+        Residue orig = (Residue) iter.next();
+        Triple rdcVect = getResidueRdcVect(state, orig);
+        AtomState origin = getOriginAtom(state, orig);
+        if ((rdcVect != null)&&(origin != null)) {
+          drawCurve(origin, rdcVect, orig);
+        } else {
+          //JOptionPane.showMessageDialog(kMain.getTopWindow(),
+          //"Sorry, the atoms needed for this RDC do not seem to be in this residue.",
+          //"Selected RDC atoms not found",
+          //JOptionPane.ERROR_MESSAGE);
+        }
+      }
       //RdcSolver solver = solveRdcs(model, state);
       //if(orig != null)
       //  showRdcCurve(model, orig, state);
@@ -152,72 +168,76 @@ public class RdcVisTool extends ModelingTool {
   }
   //}}}
   
-  //{{{ drawCurve
-  public void drawCurve(KPoint p) {
-    Kinemage kin = kMain.getKinemage();
-    //if(kin == null) return null;
-    KGroup group = new KGroup("group");
-    group.setAnimate(true);
-    group.addMaster("Curves");
-    kin.add(group);
-    KGroup subgroup = new KGroup("sub");
-    subgroup.setHasButton(false);
-    group.add(subgroup);
-    KList list = new KList(KList.VECTOR, "Points");
-    subgroup.add(list);
-    String seq = String.valueOf(KinUtil.getResNumber(p));
-    DipolarRestraint dr = (DipolarRestraint) currentRdcs.get(seq);
-    double rdcVal = dr.getValues()[0];
-    System.out.println("res num= "+seq+" rdc val= "+df.format(rdcVal));
-    drawer.drawCurve(rdcVal, p, list);
-  }
-  //}}}
-  
-  //{{{ solveRdcs
-  public RdcSolver solveRdcs(Model mod, ModelState state, TreeMap rdcs) {
-    Iterator residues = mod.getResidues().iterator();
-    ArrayList nhVects = new ArrayList();
-    ArrayList rdcValues = new ArrayList();
-    while (residues.hasNext()) {
-      Residue res = (Residue) residues.next();
-      String seq = res.getSequenceNumber().trim();
-      //System.out.println(seq);
-      if (rdcs.containsKey(seq)) {
-        Atom from = res.getAtom(" N  ");
-        Atom to = res.getAtom(" H  ");
-        try {
-          AtomState fromState = state.get(from);
-          AtomState toState = state.get(to);
-          DipolarRestraint dr = (DipolarRestraint) rdcs.get(seq);
-          Triple vect = new Triple().likeVector(fromState, toState).unit();
-          //System.out.println(vect);
-          nhVects.add(vect);
-          rdcValues.add(rdcs.get(seq));
-          System.out.println(seq + " " + dr.getValues()[0]);
-        } catch (AtomException ae) {
-          System.out.println(ae + " thrown, atom is missing");
-        }
-      }
-    }
-    // make matrices
-    if (nhVects.size() != rdcValues.size()) {
-      System.out.println("nhVects and rdcValues not same size, must be same for SVD calc");
-    } else {
-      Matrix nhMatrix = new Matrix(3, nhVects.size());
-      Matrix rdcMatrix = new Matrix(1, nhVects.size());
-      for (int i = 0; i < nhVects.size(); i++) {
-        Triple vect = (Triple) nhVects.get(i);
-        DipolarRestraint dr = (DipolarRestraint) rdcValues.get(i);
-        nhMatrix.set(0, i, vect.getX());
-        nhMatrix.set(1, i, vect.getY());
-        nhMatrix.set(2, i, vect.getZ());
-        rdcMatrix.set(0, i, dr.getValues()[0]);
-      }
-      return new RdcSolver(nhMatrix, rdcMatrix);
+  //{{{ getResidueRdcVect
+  /** returns RdcVect for orig residue based on what is selected in rdcWin **/
+  public Triple getResidueRdcVect(ModelState state, Residue orig) {
+    String atoms[] = rdcWin.parseAtomNames();
+    Atom from = orig.getAtom(atoms[0]);
+    Atom to = orig.getAtom(atoms[1]);
+    try {
+      AtomState fromState = state.get(from);
+      AtomState toState = state.get(to);
+      Triple rdcVect = new Triple().likeVector(fromState, toState).unit();
+      return rdcVect;
+    } catch (AtomException ae) {
     }
     return null;
   }
   //}}}
+  
+  //{{{ getOriginAtom
+  public AtomState getOriginAtom(ModelState state, Residue orig) {
+    String atoms[] = rdcWin.parseAtomNames();
+    Atom origin = orig.getAtom(atoms[0]);
+    try {
+      AtomState originState = state.get(origin);
+      return originState;
+    } catch (AtomException ae) {
+    }
+    return null;
+  }
+  //}}}
+  
+  //{{{ drawCurve
+  public void drawCurve(Tuple3 p, Triple rdcVect, Residue orig) {
+    Kinemage kin = kMain.getKinemage();
+    //if(kin == null) return null;
+    if (group == null) {
+      group = new KGroup("group");
+      group.addMaster("Curves");
+      group.setDominant(true);
+      kin.add(group);
+    }
+    if (subgroup == null) {
+      subgroup = new KGroup("sub");
+      subgroup.setHasButton(false);
+      group.add(subgroup);
+    }
+    String seq = orig.getSequenceNumber().trim();
+    double rdcVal = rdcWin.getRdcValue(seq);
+    //System.out.println(rdcVal);
+    //System.out.println((rdcVal != Double.NaN));
+    double backcalcRdc = rdcWin.getBackcalcRdc(rdcVect);
+    if ((!Double.isNaN(rdcVal))&&(!Double.isNaN(backcalcRdc))) {
+      KList list = new KList(KList.VECTOR, "Points");
+      subgroup.add(list);
+      //System.out.println(seq);
+      //String seq = String.valueOf(KinUtil.getResNumber(p));
+      //DipolarRestraint dr = (DipolarRestraint) currentRdcs.get(seq);
+      
+      System.out.println("res num= "+seq+" rdc val= "+df.format(rdcVal)+" calc rdc= "+df.format(backcalcRdc));
+      rdcWin.getDrawer().drawCurve(rdcVal, p, backcalcRdc, list);
+      //rdcWin.getDrawer().drawCurve(rdcVal - 2, p, backcalcRdc, list);
+      //rdcWin.getDrawer().drawCurve(rdcVal + 2, p, backcalcRdc, list);
+            
+
+    } else {
+      System.out.println("this residue does not appear to have an rdc");
+    }
+  }
+  //}}}
+  
+
   
   //{{{ showRdcCurve
   //##############################################################################

@@ -10,6 +10,7 @@ import java.util.*;
 * <code>MagneticResonanceFile</code> is an object representing an NMR restraints (.mr) files.  It probably
 * only works with .mr files from certain programs.
 * 
+* <p>Copyright (C) 2007 by Vincent B. Chen. All rights reserved.
 * <br>Begun on Fri Nov 09 13:57:53 EST 2007
 **/
 
