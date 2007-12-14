@@ -50,7 +50,7 @@ public class SelectionParser //extends ... implements ...
     };
     
     // Categories for tokenizer rather than parser:
-    final Matcher WORD          = Pattern.compile("[A-Za-z_]+").matcher("");
+    final Matcher WORD          = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*").matcher("");
     final Matcher OPERATOR      = Pattern.compile("[!&*()|,-]").matcher("");
     final Matcher REAL_NOT_INT;
     {

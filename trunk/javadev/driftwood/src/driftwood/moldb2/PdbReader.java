@@ -459,6 +459,7 @@ public boolean isVersion23(String atomLine) {
             if(s.length() >= 78) elem = getElement(s.substring(76,78).trim(), resName);
             if(elem == null) elem = getElement(id.substring(0,2), resName);
             if(elem == null) elem = getElement(id.substring(1,2), resName);
+            if(elem == null) elem = getElement(id.substring(0,1), resName);
             // VMD produces some (but not all) H with names like _1HB (instead of 1HB_ or _HB1)
             if(elem == null) elem = getElement(id.substring(2,3), resName);
             if(elem == null) elem = "XX";
