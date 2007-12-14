@@ -71,6 +71,24 @@ public class KeywordTerm //extends ... implements ...
             map.put("het", new NamedTerm("het") { protected boolean selectImpl(AtomState as) {
                     return as.isHet();
             }});
+            map.put("carbon", new NamedTerm("carbon") { protected boolean selectImpl(AtomState as) {
+                    return "C".equals(as.getElement());
+            }});
+            map.put("hydrogen", new NamedTerm("hydrogen") { protected boolean selectImpl(AtomState as) {
+                    return "H".equals(as.getElement());
+            }});
+            map.put("nitrogen", new NamedTerm("nitrogen") { protected boolean selectImpl(AtomState as) {
+                    return "N".equals(as.getElement());
+            }});
+            map.put("oxygen", new NamedTerm("oxygen") { protected boolean selectImpl(AtomState as) {
+                    return "O".equals(as.getElement());
+            }});
+            map.put("phosphorus", new NamedTerm("phosphorus") { protected boolean selectImpl(AtomState as) {
+                    return "P".equals(as.getElement());
+            }});
+            map.put("sulfur", new NamedTerm("sulfur") { protected boolean selectImpl(AtomState as) {
+                    return "S".equals(as.getElement());
+            }});
         }
         return (Selection) map.get(keyword); // null if not found
     }

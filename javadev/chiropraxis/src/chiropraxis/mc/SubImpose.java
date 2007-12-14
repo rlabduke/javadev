@@ -327,6 +327,22 @@ public class SubImpose //extends ... implements ...
     }
 //}}}
 
+//{{{ rms
+//##############################################################################
+    double rms(AtomState[] a, AtomState[] b)
+    {
+        double rmsd = 0.0;
+        int len = a.length;
+        Triple t = new Triple();
+        for(int i = 0; i < len; i++)
+        {
+            t.likeDiff(a[i], b[i]);
+            rmsd += t.mag2();
+        }
+        return Math.sqrt(rmsd / len);
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##############################################################################
 //}}}
@@ -441,13 +457,15 @@ public class SubImpose //extends ... implements ...
                     System.err.println("  "+atoms[0][i]+" <==> "+atoms[1][i]);
                 System.err.println();
             }
-            // struct2 is the reference point, struct1 should move.
-            // (nothing's really moving here so it doesn't matter).
-            SuperPoser superpos = new SuperPoser(atoms[1], atoms[0]);
-            // Don't recalculate, use our old transform!
-            //R = superpos.superpos();
-            // Oops, no, use an identity transform -- coords already moved!
-            System.out.println(df.format(superpos.calcRMSD(new Transform()))+"\t"+atoms[0].length+"\t"+rmsd_sel);
+            //!  Ack!  Can't use superpos.calcRMSD() b/c it translates everything to the origen!
+            //!  // struct2 is the reference point, struct1 should move.
+            //!  // (nothing's really moving here so it doesn't matter).
+            //!  SuperPoser superpos = new SuperPoser(atoms[1], atoms[0]);
+            //!  // Don't recalculate, use our old transform!
+            //!  //R = superpos.superpos();
+            //!  // Oops, no, use an identity transform -- coords already moved!
+            //!  System.out.println(df.format(superpos.calcRMSD(new Transform()))+"\t"+atoms[0].length+"\t"+rmsd_sel);
+            System.out.println(df.format(rms(atoms[1], atoms[0]))+"\t"+atoms[0].length+"\t"+rmsd_sel);
         }
         
         // Print the transform:
