@@ -276,7 +276,6 @@ public class SelectionParser //extends ... implements ...
     {
         try
         {
-            Selection s = subexpr();
             int num1 = Integer.parseInt(RESRANGE.group(1));
             int num2 = Integer.parseInt(RESRANGE.group(3));
             String ins1 = RESRANGE.group(2);
@@ -286,7 +285,7 @@ public class SelectionParser //extends ... implements ...
             //return new DummySelection("range "+num1+ins1+" to "+num2+ins2);
             
             // Added by dak 10/22/07
-            ResRangeTerm rrt = new ResRangeTerm(s, num1, num2);
+            ResRangeTerm rrt = new ResRangeTerm(num1, num2);
             //System.out.println("Trying SelectionParser.res_range() ...");
             //System.out.println("New ResRangeTerm: "+rrt.toString());
             return rrt;
@@ -307,7 +306,8 @@ public class SelectionParser //extends ... implements ...
                 int num2 = Integer.parseInt(RESNUM.group(1));
                 String ins2 = RESNUM.group(2);
                 if(ins2 == null) ins2 = " ";
-                return new DummySelection("range "+num1+ins1+" to "+num2+ins2);
+                //return new DummySelection("range "+num1+ins1+" to "+num2+ins2);
+                return new ResRangeTerm(num1, num2);
             }
             else return new DummySelection("single res "+num1+ins1);
         }

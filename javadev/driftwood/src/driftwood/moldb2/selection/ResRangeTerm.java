@@ -32,20 +32,15 @@ public class ResRangeTerm extends Selection
 //{{{ Variable definitions
 //##############################################################################
     Set         includedRes;
-    Selection   childTerm;
     int         resnum1;
     int         resnum2;
 //}}}
 
 //{{{ Constructor(s)
 //##############################################################################
-    public ResRangeTerm(Selection target, int rn1, int rn2)
+    public ResRangeTerm(int rn1, int rn2)
     {
         super();
-        this.childTerm = target;
-        // In all cases I've tried, target is null, but I'm leaving this 
-        // reference to it here anyway since Ian had it coded in...
-        //System.out.println("Selection target is null: "+(target == null));
         resnum1 = rn1;
         resnum2 = rn2;
     }
@@ -56,11 +51,6 @@ public class ResRangeTerm extends Selection
     public void init(Collection atomStates)
     {
         super.init(atomStates);
-        // I commented out the rest of the lines in this method to try and avoid
-        // getting errors at runtime. -- dak
-        //this.childTerm.init(atomStates);
-        // childTerm now fully initialized, doing selections should be safe
-        //this.includedRes = childTerm.selectResidues(atomStates);
     }
     
     /**
@@ -83,7 +73,7 @@ public class ResRangeTerm extends Selection
     }
     
     public String toString()
-    { return "resrange ("+resnum1+"-"+resnum2+")"; }
+    { return resnum1+"-"+resnum2; }
 //}}}
 
 //{{{ empty_code_segment
