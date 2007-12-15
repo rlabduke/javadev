@@ -70,18 +70,14 @@ public class DsspHelixBuilder //extends ... implements ...
         getPsiPhis(peptides, state);
         
         // Try to identify *helix* based on H-bonding pattern
-        //makeNTurns(peptides, model);
         buildMinHelices(peptides, model);
-        //makeStretches(model);
         buildHelices(model, state);
         
         // Axis & Ncap stuff
         findAxes(model, state);
         if (smoothAxes)
-            for (int i = 0; i < smoothAxesTimes; i ++)
-                smoothAxes();
-        //if (vectorSumAxis)  addVectorSumAxis();   // in HelixBuilder but not DsspHelixBuilder
-        if (doNcaps)        findNcaps(model, state);
+            for (int i = 0; i < smoothAxesTimes; i ++)  smoothAxes();
+        if (doNcaps)    findNcaps(model, state);
         
         if (doKin)
         {
@@ -420,7 +416,7 @@ public class DsspHelixBuilder //extends ... implements ...
             Peptide pep = (Peptide) iter.next();
             if(pep != null)
             {
-                if (verbose) System.out.println("Doing makeNTurns for '"+pep+"'...");
+                if (verbose) System.out.println("Making n-turn(s) with '"+pep+"'...");
                 if (pep.hbondO != null)
                 {
                     Peptide pep2 = pep.hbondO;
@@ -464,7 +460,7 @@ public class DsspHelixBuilder //extends ... implements ...
                 if (prevNTurn.firstRes.getNext(model).equals(nTurn.firstRes))
                 {
                     // These n-turns are consecutive => make a MinHelix
-                    // If n-turn1: 1-4 and n:turn2: 2-5, minhelix:2-4
+                    // If n-turn1:1-4 and n-turn2:2-5, minhelix:2-4
                     Residue mhfr = nTurn.firstRes;
                     Residue mhlr = prevNTurn.lastRes;
                     int diff = mhlr.getSequenceInteger() - mhfr.getSequenceInteger();
@@ -489,108 +485,6 @@ public class DsspHelixBuilder //extends ... implements ...
     }
 //}}}
 
-//{{{ [UNUSED makeStretches]
-//##############################################################################
-    /**
-    * Link up overlapping n-turns.
-    * Note that we include not just consecutive n-turns, but rather any that 
-    * share at least one residue (which Kabsh & Sander do too, from what I can 
-    * tell).
-    * We'll try to add additional residue(s) at the helix's N-terminus with the
-    * buildHelices method if we think they include the Ncap, but that comes later.
-    */
-    void makeStretches(Model model)
-    {
-        if (verbose) System.out.println("Staring makeStretches...");
-        
-        stretches = new ArrayList<NTurn[]>();
-        ArrayList<NTurn> stretch = null;
-        
-        
-        
-        for (int i = 0; i < nTurns.size(); i ++)
-        {
-            NTurn nTurn = nTurns.get(i);
-            if (stretch == null) // first time only
-            {
-                // Start new stretch (then move to next possible NTurn)
-                stretch = new ArrayList<NTurn>();
-                stretch.add(nTurn);
-            }
-            else
-            {
-                // A stretch exists; try adding to it
-                NTurn lastNTurn = stretch.get(stretch.size()-1);
-                if (nTurn.overlap(lastNTurn) >= 1)
-                {
-                    // Add this NTurn to the stretch b/c it overlaps with the 
-                    // last NTurn currently there
-                    stretch.add(nTurn);
-                }
-                else
-                {
-                    // This stretch is finished.
-                    // Convert it: NTurn[] => AL<NTurn>; store in AL<NTurn[]>
-                    NTurn[] stretchArray = new NTurn[stretch.size()];
-                    for (int j = 0; j < stretch.size(); j ++)
-                        stretchArray[j] = stretch.get(j);
-                    stretches.add(stretchArray);
-                    
-                    // Start over
-                    stretch = new ArrayList<NTurn>();
-                    stretch.add(nTurn); // b/c haven't used this nTurn yet
-                }
-            }
-        }
-        
-        
-        
-        //for (int i = 0; i < nTurns.size(); i ++)
-        //{
-        //    NTurn nTurn1 = nTurns.get(i);
-        //    if (stretch == null)
-        //    {
-        //        stretch = new ArrayList<NTurn>();
-        //        stretch.add(nTurn1);
-        //    }
-        //    
-        //    for (int j = 0; j < nTurns.size(); j ++)
-        //    {
-        //        if (i != j)
-        //        {
-        //            NTurn nTurn2 = nTurns.get(j);
-        //            if (nTurn1.overlap(nTurn2) >= 1)
-        //            {
-        //                stretch.add(nTurn2);
-        //            }
-        //            else
-        //            {
-        //                // We've reached the end of a stretch of overlapping NTurns
-        //                if (stretch.size() >= 2) // that's 2 n-turns
-        //                {
-        //                    // Convert NTurn[] => AL<NTurn>; store in AL<NTurn[]>
-        //                    NTurn[] stretchArray = new NTurn[stretch.size()];
-        //                    for (int k = 0; k < stretch.size(); k ++)
-        //                        stretchArray[k] = stretch.get(k);
-        //                    stretches.add(stretchArray);
-        //                    stretch = null;
-        //                    break; // out of current, inner loop
-        //                    // Now we'll return to the beginning of the outer for 
-        //                    // loop and add the new nTurn1 as a new initial n-turn, 
-        //                    // as desired
-        //                }
-        //                //else
-        //                //{
-        //                //    if (verbose) System.out.println("Only "+stretch.size()+
-        //                //        " n-turns in this stretch => can't belong in a helix!");
-        //                //}
-        //            }
-        //        }
-        //    }
-        //}
-    }
-//}}}
-
 //{{{ buildHelices
 //##############################################################################
     /**
@@ -606,42 +500,69 @@ public class DsspHelixBuilder //extends ... implements ...
         // Make Helix objects for sets of overlapping MinHelix objects
         helices = new ArrayList<Helix>();
         ArrayList<MinHelix> consecMinHelices = new ArrayList<MinHelix>();
-        for (MinHelix minHelix : minHelices)
+        boolean doneConnecting = false;
+        for (int i = 0; i < minHelices.size(); i ++)
         {
+            MinHelix minHelix = minHelices.get(i);
             if (consecMinHelices.size() == 0)
+            {
+                if (verbose) System.out.println("Starting new consecMinHelices with '"+minHelix+"'");
                 consecMinHelices.add(minHelix);
+            }
             else
             {
                 MinHelix lastMinHelix = consecMinHelices.get(consecMinHelices.size()-1);
                 if (minHelix.overlap(lastMinHelix) >= 1)
+                {
+                    if (verbose) System.out.println("Adding '"+minHelix+"' to consecMinHelices");
                     consecMinHelices.add(minHelix);
+                }
                 else
                 {
-                    // Completed set of overlapping min helices => make helix
-                    TreeSet<Residue> resSet = new TreeSet<Residue>();
-                    for (MinHelix consecMinHelix : consecMinHelices)
-                    {
-                        resSet.add(consecMinHelix.firstRes);
-                        Residue resInBtw = consecMinHelix.firstRes;
-                        for (int r = 0; r < consecMinHelix.n; r ++)
-                        {
-                            resInBtw = resInBtw.getNext(model); // keeps updating = good
-                            resSet.add(resInBtw);
-                        }
-                        resSet.add(consecMinHelix.lastRes);
-                    }
-                    Helix helix = new Helix(resSet);
-                    helices.add(helix);
-                    if (verbose) System.out.println("Added '"+helix+"' for MinHelix set:"
-                            +"\n   ("+consecMinHelices.get(0)+") to "
-                            +"("+consecMinHelices.get(consecMinHelices.size()-1)+")");
-                    
-                    // Reset => start new set of overlapping MinHelix objects
-                    consecMinHelices = new ArrayList<MinHelix>();
-                    consecMinHelices.add(minHelix); // b/c haven't used this minHelix yet
+                    doneConnecting = true;
                 }
             }
+            if (i == minHelices.size()-1)    doneConnecting = true;
+            
+            if (doneConnecting)
+            {
+                // Completed set of overlapping min helices => make helix
+                if (verbose) System.out.println("Completed AL consecMinHelices;"
+                    +" size = "+consecMinHelices.size());
+                TreeSet<Residue> resSet = new TreeSet<Residue>();
+                for (MinHelix consecMinHelix : consecMinHelices)
+                {
+                    resSet.add(consecMinHelix.firstRes);
+                    Residue resInBtw = consecMinHelix.firstRes;
+                    for (int r = 0; r < consecMinHelix.n; r ++)
+                    {
+                        resInBtw = resInBtw.getNext(model); // keeps updating = good
+                        resSet.add(resInBtw);
+                    }
+                    resSet.add(consecMinHelix.lastRes);
+                }
+                if (verbose)
+                {
+                    System.out.println("About to make new Helix from resSet:");
+                    Iterator iter = resSet.iterator();
+                    while (iter.hasNext())
+                        System.out.println("   "+iter.next());
+                }
+                Helix helix = new Helix(resSet);
+                helices.add(helix);
+                if (verbose) System.out.println("Added '"+helix+"' for MinHelix set:"
+                        +"\n   ("+consecMinHelices.get(0)+") to "
+                        +"("+consecMinHelices.get(consecMinHelices.size()-1)+")");
+                
+                // Reset => start new set of overlapping MinHelix objects
+                consecMinHelices = new ArrayList<MinHelix>();
+                consecMinHelices.add(minHelix); // b/c haven't used this minHelix yet
+                doneConnecting = false;
+            }
         }
+        
+        if (verbose) System.out.println("After connecting MinHelices but before "
+            +"adding putative Ncap residue, # helices = "+helices.size());
         
         // Also add putative Ncap residues based on i,i+3 distance < 5.9 A as in my
         // original HelixBuilder.
@@ -682,82 +603,6 @@ public class DsspHelixBuilder //extends ... implements ...
                 +"first residue of some helix...");
         }
     }
-//}}}
-
-//{{{ [OLD buildHelices]
-//##############################################################################
-    ///**
-    //* Make Helix objects from stretches of n-turns.
-    //* We'll try to add additional residue(s) at the helix's N-terminus if we 
-    //* think they include the Ncap.
-    //*/
-    //void buildHelices(Model model, ModelState state)
-    //{
-    //    if (verbose) System.out.println("Staring buildHelices...");
-    //    
-    //    // Make Helix objects for "stretches" of consecutive n-turns
-    //    helices = new ArrayList<Helix>();
-    //    for (NTurn[] stretch : stretches)
-    //    {
-    //        // Convert NTurn[] => TreeSet<Residue> => Helix
-    //        TreeSet<Residue> resSet = new TreeSet<Residue>();
-    //        for (NTurn nTurn : stretch)
-    //        {
-    //            resSet.add(nTurn.firstRes);
-    //            Residue resInBtw = nTurn.firstRes;
-    //            for (int r = 0; r < nTurn.n; r ++)
-    //            {
-    //                resInBtw = resInBtw.getNext(model); // keeps updating = good
-    //                resSet.add(resInBtw);
-    //            }
-    //            resSet.add(nTurn.lastRes);
-    //        }
-    //        Helix helix = new Helix(resSet);
-    //        helices.add(helix);
-    //        if (verbose)
-    //            System.out.println("Added '"+helix+"' for stretch: \n"
-    //                +"   ("+stretch[0]+") to ("+stretch[stretch.length-1]+")");
-    //    }
-    //    
-    //    // Also add putative Ncap residues based on i,i+3 distance < 6A as in my
-    //    // original HelixBuilder.
-    //    // A convenient approach: add the preceding residue to each helix iff
-    //    // Ca(i)-Ca(i+3) distance < 6.0A (N-term)
-    //    try
-    //    {
-    //        for (Helix helix : helices)
-    //        {
-    //            Residue first  = helix.getRes("first");
-    //            Residue prev   = first.getPrev(model);
-    //            Residue prev3  = first.getNext(model).getNext(model);
-    //            if (prev != null && prev3 != null)
-    //            {
-    //                AtomState caPrev  = state.get(prev.getAtom(" CA "));
-    //                AtomState caPrev3 = state.get(prev3.getAtom(" CA "));
-    //                if (caPrev != null && caPrev3 != null)
-    //                {
-    //                    if (caPrev.distance(caPrev3) < 6)
-    //                    {
-    //                        // Add this residue b/c it's possibly the Ncap!
-    //                        ArrayList<Residue> temp = new ArrayList<Residue>();
-    //                        temp.add(prev); // new first residue
-    //                        for (Residue res : helix.residues)
-    //                            temp.add(res);
-    //                        //Collections.sort(temp); // doesn't work for some reason...
-    //                        helix.residues = temp; // refer to this new object
-    //                        if (verbose) System.out.println("Added '"+prev+"' since "
-    //                            +"Ca(i)-Ca(i+3) dist = "+caPrev.distance(caPrev3));
-    //                    }
-    //                }
-    //            }
-    //        }
-    //    }
-    //    catch (AtomException ae)
-    //    {
-    //        System.err.println("Couldn't find one/both of res i-1 or i+2 for the "
-    //            +"first residue of some helix...");
-    //    }
-    //}
 //}}}
 
 //{{{ findAxes
@@ -946,9 +791,14 @@ public class DsspHelixBuilder //extends ... implements ...
             if (helix.ncap != null) continue;
             else
             {
-                String hb = ncapMakesHb(helix.getRes("first"), model, state);
+                if (verbose)
+                    System.out.println("Calling typeOfHbond for '"+helix+"' in '"+filename+"'");
+                String hb = typeOfHbond(helix.getRes("first"), model, state);
+                
                 if (onlyHbNcaps && !hb.equals("i+2") && !hb.equals("i+3"))
+                {
                     helix.ncap = null;
+                }
                 else
                 {
                     helix.ncap = new Ncap(helix.getRes("first"));
@@ -976,9 +826,9 @@ public class DsspHelixBuilder //extends ... implements ...
     }
 //}}}
 
-//{{{ ncapMakesHb
+//{{{ typeOfHbond
 //##############################################################################
-    public String ncapMakesHb(Residue res, Model model, ModelState state)
+    public String typeOfHbond(Residue res, Model model, ModelState state)
     /** 
     * This is a simple geometric routine to determine whether a putative Ncap
     * residue is a Ser/Thr/Asn/Asp and makes an i+2 or i+3 Hbond or not.
@@ -987,6 +837,7 @@ public class DsspHelixBuilder //extends ... implements ...
     */
     {
         double cutoff = 2.9; // Angstroms
+        
         try
         {
             Residue res2 = res.getNext(model).getNext(model);
@@ -1119,6 +970,7 @@ public class DsspHelixBuilder //extends ... implements ...
         }
         catch (AtomException ae)
         {
+            // If e.g. there are disordered sidechain atoms
             System.err.println("Problem figuring out if "+res+" in '"+filename
                 +"' is an Asn/Asp/Ser/Thr whose sc Hbonds to i+2 or i+3 mc and"
                 +" is therefore an Ncap...");
@@ -1858,6 +1710,184 @@ public class DsspHelixBuilder //extends ... implements ...
         }
         else throw new IllegalArgumentException("'"+flag+"' is not recognized as a valid flag");
     }
+//}}}
+
+//{{{ [UNUSED makeStretches]
+//##############################################################################
+    /**
+    * Link up overlapping n-turns.
+    * Note that we include not just consecutive n-turns, but rather any that 
+    * share at least one residue (which Kabsh & Sander do too, from what I can 
+    * tell).
+    * We'll try to add additional residue(s) at the helix's N-terminus with the
+    * buildHelices method if we think they include the Ncap, but that comes later.
+    */
+    void makeStretches(Model model)
+    {
+        if (verbose) System.out.println("Staring makeStretches...");
+        
+        stretches = new ArrayList<NTurn[]>();
+        ArrayList<NTurn> stretch = null;
+        
+        
+        
+        for (int i = 0; i < nTurns.size(); i ++)
+        {
+            NTurn nTurn = nTurns.get(i);
+            if (stretch == null) // first time only
+            {
+                // Start new stretch (then move to next possible NTurn)
+                stretch = new ArrayList<NTurn>();
+                stretch.add(nTurn);
+            }
+            else
+            {
+                // A stretch exists; try adding to it
+                NTurn lastNTurn = stretch.get(stretch.size()-1);
+                if (nTurn.overlap(lastNTurn) >= 1)
+                {
+                    // Add this NTurn to the stretch b/c it overlaps with the 
+                    // last NTurn currently there
+                    stretch.add(nTurn);
+                }
+                else
+                {
+                    // This stretch is finished.
+                    // Convert it: NTurn[] => AL<NTurn>; store in AL<NTurn[]>
+                    NTurn[] stretchArray = new NTurn[stretch.size()];
+                    for (int j = 0; j < stretch.size(); j ++)
+                        stretchArray[j] = stretch.get(j);
+                    stretches.add(stretchArray);
+                    
+                    // Start over
+                    stretch = new ArrayList<NTurn>();
+                    stretch.add(nTurn); // b/c haven't used this nTurn yet
+                }
+            }
+        }
+        
+        
+        
+        //for (int i = 0; i < nTurns.size(); i ++)
+        //{
+        //    NTurn nTurn1 = nTurns.get(i);
+        //    if (stretch == null)
+        //    {
+        //        stretch = new ArrayList<NTurn>();
+        //        stretch.add(nTurn1);
+        //    }
+        //    
+        //    for (int j = 0; j < nTurns.size(); j ++)
+        //    {
+        //        if (i != j)
+        //        {
+        //            NTurn nTurn2 = nTurns.get(j);
+        //            if (nTurn1.overlap(nTurn2) >= 1)
+        //            {
+        //                stretch.add(nTurn2);
+        //            }
+        //            else
+        //            {
+        //                // We've reached the end of a stretch of overlapping NTurns
+        //                if (stretch.size() >= 2) // that's 2 n-turns
+        //                {
+        //                    // Convert NTurn[] => AL<NTurn>; store in AL<NTurn[]>
+        //                    NTurn[] stretchArray = new NTurn[stretch.size()];
+        //                    for (int k = 0; k < stretch.size(); k ++)
+        //                        stretchArray[k] = stretch.get(k);
+        //                    stretches.add(stretchArray);
+        //                    stretch = null;
+        //                    break; // out of current, inner loop
+        //                    // Now we'll return to the beginning of the outer for 
+        //                    // loop and add the new nTurn1 as a new initial n-turn, 
+        //                    // as desired
+        //                }
+        //                //else
+        //                //{
+        //                //    if (verbose) System.out.println("Only "+stretch.size()+
+        //                //        " n-turns in this stretch => can't belong in a helix!");
+        //                //}
+        //            }
+        //        }
+        //    }
+        //}
+    }
+//}}}
+
+//{{{ [OLD buildHelices]
+//##############################################################################
+    ///**
+    //* Make Helix objects from stretches of n-turns.
+    //* We'll try to add additional residue(s) at the helix's N-terminus if we 
+    //* think they include the Ncap.
+    //*/
+    //void buildHelices(Model model, ModelState state)
+    //{
+    //    if (verbose) System.out.println("Staring buildHelices...");
+    //    
+    //    // Make Helix objects for "stretches" of consecutive n-turns
+    //    helices = new ArrayList<Helix>();
+    //    for (NTurn[] stretch : stretches)
+    //    {
+    //        // Convert NTurn[] => TreeSet<Residue> => Helix
+    //        TreeSet<Residue> resSet = new TreeSet<Residue>();
+    //        for (NTurn nTurn : stretch)
+    //        {
+    //            resSet.add(nTurn.firstRes);
+    //            Residue resInBtw = nTurn.firstRes;
+    //            for (int r = 0; r < nTurn.n; r ++)
+    //            {
+    //                resInBtw = resInBtw.getNext(model); // keeps updating = good
+    //                resSet.add(resInBtw);
+    //            }
+    //            resSet.add(nTurn.lastRes);
+    //        }
+    //        Helix helix = new Helix(resSet);
+    //        helices.add(helix);
+    //        if (verbose)
+    //            System.out.println("Added '"+helix+"' for stretch: \n"
+    //                +"   ("+stretch[0]+") to ("+stretch[stretch.length-1]+")");
+    //    }
+    //    
+    //    // Also add putative Ncap residues based on i,i+3 distance < 6A as in my
+    //    // original HelixBuilder.
+    //    // A convenient approach: add the preceding residue to each helix iff
+    //    // Ca(i)-Ca(i+3) distance < 6.0A (N-term)
+    //    try
+    //    {
+    //        for (Helix helix : helices)
+    //        {
+    //            Residue first  = helix.getRes("first");
+    //            Residue prev   = first.getPrev(model);
+    //            Residue prev3  = first.getNext(model).getNext(model);
+    //            if (prev != null && prev3 != null)
+    //            {
+    //                AtomState caPrev  = state.get(prev.getAtom(" CA "));
+    //                AtomState caPrev3 = state.get(prev3.getAtom(" CA "));
+    //                if (caPrev != null && caPrev3 != null)
+    //                {
+    //                    if (caPrev.distance(caPrev3) < 6)
+    //                    {
+    //                        // Add this residue b/c it's possibly the Ncap!
+    //                        ArrayList<Residue> temp = new ArrayList<Residue>();
+    //                        temp.add(prev); // new first residue
+    //                        for (Residue res : helix.residues)
+    //                            temp.add(res);
+    //                        //Collections.sort(temp); // doesn't work for some reason...
+    //                        helix.residues = temp; // refer to this new object
+    //                        if (verbose) System.out.println("Added '"+prev+"' since "
+    //                            +"Ca(i)-Ca(i+3) dist = "+caPrev.distance(caPrev3));
+    //                    }
+    //                }
+    //            }
+    //        }
+    //    }
+    //    catch (AtomException ae)
+    //    {
+    //        System.err.println("Couldn't find one/both of res i-1 or i+2 for the "
+    //            +"first residue of some helix...");
+    //    }
+    //}
 //}}}
 
 }//class
