@@ -17,7 +17,6 @@ import java.text.DecimalFormat;
 * a special class of Arg refits.
 *
 * <p>Copyright (C) 2007 by Daniel Keedy. All rights reserved.
-* 
 */
 public class ArgFlipConfirmer
 { 
@@ -25,10 +24,11 @@ public class ArgFlipConfirmer
 //##################################################################################################
     TreeSet<String> quasiCNITs;
     ArrayList<String> cnitsAndAngles;
-    File pdb_orig;
-    File pdb_after;
+    File pdb_orig = null;
+    File pdb_after = null;;
     CoordinateFile cf_orig;
     CoordinateFile cf_after;
+    boolean verbose = false;
 //}}}
 
 //{{{ main
@@ -49,13 +49,22 @@ public class ArgFlipConfirmer
         {
             quasiCNITs = new TreeSet<String>();
             cnitsAndAngles = new ArrayList<String>();
-            pdb_orig  = new File(args[0]);       // e.g. 1amuH.pdb
-            pdb_after = new File(args[1]);       // e.g. 1amuH_mod.pdb or tmp1.pdb
             
-            PdbReader pdbr_orig = new PdbReader();
-            cf_orig = pdbr_orig.read(pdb_orig);
+            for (String arg : args)
+            {
+                if (arg.equals("-v"))
+                    verbose = true;
+                else if (pdb_orig == null)
+                    pdb_orig  = new File(args[0]);   // e.g. 1amuH.pdb
+                else if (pdb_after == null)
+                    pdb_after = new File(args[1]);   // e.g. 1amuH_mod.pdb or tmp1.pdb
+            }
+            
+            PdbReader pdbr_orig  = new PdbReader();
+            cf_orig              = pdbr_orig.read(pdb_orig);
+            
             PdbReader pdbr_after = new PdbReader();
-            cf_after = pdbr_after.read(pdb_after);
+            cf_after             = pdbr_after.read(pdb_after);
         }
         catch (IOException ioe)
         {
@@ -72,12 +81,15 @@ public class ArgFlipConfirmer
         getArgSet();
         
         // For testing....
-        //Iterator iter2 = quasiCNITs.iterator();
-        //while (iter2.hasNext())
-        //{
-        //    String quasiCNIT = (String) iter2.next();
-        //    System.out.println(quasiCNIT);
-        //}
+        if (verbose)
+        {
+            Iterator iter2 = quasiCNITs.iterator();
+            while (iter2.hasNext())
+            {
+                String quasiCNIT = (String) iter2.next();
+                System.out.println(quasiCNIT);
+            }
+        }
         
         // Get orig-after guan angle for each Arg in list compiled above
         final DecimalFormat df = new DecimalFormat("###.#");
