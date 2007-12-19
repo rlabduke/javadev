@@ -11,6 +11,8 @@ number of C-alphas for superpositions must be the same, so if using the
 -ncapidxs=allhelix flag, you are limited to the number of residues in that
 first helix!
 
+*Note* Make sure the first line in the input file is a representative example!
+
 Options:
     -ncapidxs=text | -ncapindices=text
 	Tells which residues relative to the N cap will be used for helix 
