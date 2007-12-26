@@ -100,7 +100,7 @@ public class RdcPlayPlugin extends Plugin implements ChangeListener {
     kin.add(group);
     group.add(sub);
     sub.add(list);
-    
+
     createPoints(list);
     kMain.getStable().append(Arrays.asList(new Kinemage[] {kin}));
 
@@ -109,9 +109,16 @@ public class RdcPlayPlugin extends Plugin implements ChangeListener {
   
   //{{{ createPoints
   public void createPoints(KList list) {
-    //VectorPoint origin = new VectorPoint("0 0 0", null);
-    //origin.setXYZ(0, 0, 0);
-    //list.add(origin);
+    VectorPoint origin = new VectorPoint("0 0 0", null);
+    origin.setXYZ(0, 0, 0);
+    VectorPoint plusZ = new VectorPoint("0 0 1", origin);
+    plusZ.setXYZ(0, 0, 1);
+    VectorPoint plusX = new VectorPoint("1 0 0", origin);
+    plusX.setXYZ(1, 0, 0);
+    plusX.setColor(KPalette.bluetint);
+    list.add(origin);
+    list.add(plusZ);
+    list.add(plusX);
     for (int i = (int)((-1 - 3/2 * drhombic/daxial) * 100); i <= 200; i = i + 5) { // avoids round off errors, I think.
       //System.out.println((double) i / 100.0);
       //System.out.println(i);
