@@ -21,12 +21,13 @@ public class FragmentLibraryCreator {
   //{{{ main
   public static void main(String[] args) {
     long startTime = System.currentTimeMillis();
-    if (args.length < 2) {
-	    System.out.println("Not enough arguments, you need one directory and outfile!");
-    } else if (args.length > 2) {
-      System.out.println("Too many arguments, you need one directory and outfile!");
+    if (args.length < 3) {
+	    System.out.println("Not enough arguments, you need a size, a directory, and an outfile!");
+    } else if (args.length > 3) {
+      System.out.println("Too many arguments, you need a size, a directory, and an outfile!");
     } else {
-      File pdbsDirectory = new File(args[0]);
+      int size = Integer.parseInt(args[0]);
+      File pdbsDirectory = new File(args[1]);
       pdbsDirectory = pdbsDirectory.getAbsoluteFile();
       File[] files = pdbsDirectory.listFiles();
       //System.out.println(inputs[i]);
@@ -34,9 +35,9 @@ public class FragmentLibraryCreator {
 	    //File resAnalysisDirectory = new File(args[1]);
       //File[] resAnalysisFiles = resAnalysisDirectory.listFiles();
 	    FragmentLibraryCreator filterer = new FragmentLibraryCreator(files);
-      String lib = filterer.createLibrary(2);
+      String lib = filterer.createLibrary(size);
       //System.out.println(lib);
-      File saveFile = new File(args[1]);
+      File saveFile = new File(args[2]);
       saveFile = saveFile.getAbsoluteFile();
       System.out.println(saveFile.getAbsolutePath());
       //System.out.println(saveFile.getCanonicalPath());
