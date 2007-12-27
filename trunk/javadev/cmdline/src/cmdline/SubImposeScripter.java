@@ -13,13 +13,11 @@ import driftwood.util.Strings;
 * superimpose it onto the first helix in that list using a designated set of 
 * residues.
 */
-public class SubImposeBashScripter //extends ... implements ...
+public class SubImposeScripter //extends ... implements ...
 {
 //{{{ Constants
 //##############################################################################
     String javaCmd = "java -Xmx512m -cp ~/javadev/chiropraxis/chiropraxis.jar chiropraxis.mc.SubImpose ";
-    PrintStream out = System.out;
-    
 //}}}
 
 //{{{ Variable definitions
@@ -30,6 +28,11 @@ public class SubImposeBashScripter //extends ... implements ...
     /** Residue indices relative to the Ncap (e.g. "-1,1,2" is N', N1, N2) which 
     * will be used for the superimposition. */
     String ncapIdxs = "allhelix";
+    
+    /** Residue indices relative to the Ncap for inclusion in the output 
+    coordinates. */
+    int initIdx  = -5;
+    int finalIdx = 5;
     
     /** The first helix in the set, onto which all others will be superimposed. */
     String ref = null;
@@ -44,6 +47,9 @@ public class SubImposeBashScripter //extends ... implements ...
     /** Atom type used to align residues. */
     String atom = "_CA_";
     
+    /** Where *onto* superposed PDBs will be stored. */
+    String pdbDir = null;
+    
     boolean verbose = false;
     String finalKin = null;
     String master = null;
@@ -52,7 +58,7 @@ public class SubImposeBashScripter //extends ... implements ...
 
 //{{{ Constructor(s)
 //##############################################################################
-    public SubImposeBashScripter()
+    public SubImposeScripter()
     {
         super();
     }
@@ -90,6 +96,8 @@ public class SubImposeBashScripter //extends ... implements ...
                 pdb = token.substring(0,dotPdbIdx);
             }
         }
+        int ncapResnum = Integer.parseInt(ncapSubstring.substring(7,11).trim());
+        if (verbose) System.out.println("ncapResnum = "+ncapResnum);
         
         // Make command
         // "\(chainA\&atom_CA_\&" -- will add res indices to this each time
@@ -119,19 +127,32 @@ public class SubImposeBashScripter //extends ... implements ...
             pdb2 = pdb;
             pdb2Path = pdbPath;
             refHelixNumRes = getLastResnum(line) - getFirstResnum(line);
+            
+            int resnum1 = ncapResnum + initIdx;   if (resnum1 <= 0) resnum1 = 1;
+            int resnum2 = ncapResnum + finalIdx;
+            prekinForHelix(true, pdb2Path, resnum1, resnum2);
+                
             if (verbose) System.out.println("Setting ref="+ref+" and pdb2="+pdb2);
         }
         else
         {
             String pdb1 = pdb;
             String mobile = cmd;
-            out.println(javaCmd+mobile+ref+"-pdb=temp");
-            out.println("grep \" "+chain+" \" temp > "+pdb1+"onto"+pdb2+".pdb");
+            
+            String pdbLoc;
+            if (pdbDir != null)   pdbLoc = pdbDir+"/"+pdb1+"onto"+pdb2+".pdb";
+            else                  pdbLoc = pdb1+"onto"+pdb2+".pdb";
+            
+            System.out.println(javaCmd+mobile+ref+"-pdb=temp");
+            System.out.println("grep \" "+chain+" \" temp > "+pdbLoc);
+            int resnum1 = ncapResnum + initIdx;   if (resnum1 <= 0) resnum1 = 1;
+            int resnum2 = ncapResnum + finalIdx;
+            prekinForHelix(false, pdbLoc, resnum1, resnum2);
+            
             if (verbose)
             {
                 System.out.println("Final command: "+javaCmd+ref+mobile+"-pdb=temp");
-                System.out.println("               grep \" "+chain+" \" temp > "+
-                    pdb1+"onto"+pdb2+".pdb");
+                System.out.println("grep \" "+chain+" \" temp > "+pdbLoc);
             }
         }
     }
@@ -250,29 +271,22 @@ public class SubImposeBashScripter //extends ... implements ...
     }
 //}}}
 
-//{{{ writeVizScript
+//{{{ prekinForHelix
 //##############################################################################
-    public void writeVizScript()
+    public void prekinForHelix(boolean ref, String pdbPath, int resnum1, int resnum2)
     {
-        if (verbose) System.out.println("Starting writeVizScript...");
+        if (verbose) System.out.println("Starting prekinForHelix...");
         
-        // Set up final kin including the reference structure
-        if (finalKin == null) finalKin = "final.kin";
-        out.println("rm -f "+finalKin);
-        out.println("touch "+finalKin);
-        out.println("prekin -scope -show \"mc(white),sc(cyan),hy(gray)\" "
-            +pdb2Path.substring(0,pdb2Path.length()-4)+".pdb "+finalKin);
+        String cmd = "prekin ";
+        if (!ref)   cmd += "-append ";
+        cmd += "-scope -range "+resnum1+"-"+resnum2;
+        if (ref)    cmd += " -show \"mc(white),sc(cyan),hy(gray)\"";
+        else        cmd += " -show \"mc(brown),sc(green),hy(pinktint)\"";
+        cmd += " -animate "+pdbPath+" - | sed -e 's/@g.*/& master= {all}/g'";
+        if (master != null) cmd += " | sed -e 's/@g.*/& master= {"+master+"}/g'";
+        cmd += " >> "+finalKin;
         
-        // Command to make a kin of each superimposed PDB and append it to the final kin
-        out.println("for pdb in *onto*.pdb");
-        out.println("do");
-        out.print("    prekin -append -scope -show \"mc(brown),sc(green),hy(pinktint)\""
-            +" -animate $pdb - | sed -e 's/@g.*/& master= {all}/g'");
-        if (master != null)
-            out.print(" | sed -e 's/@g.*/& master= {"+master+"}/g'");
-        out.println(" >> "+finalKin);
-        out.println("done");
-        out.println("rm -f *temp*");
+        System.out.println(cmd);
     }
 //}}}
 
@@ -290,17 +304,20 @@ public class SubImposeBashScripter //extends ... implements ...
             System.exit(0);
         }
         
-        out.println("#!/bin/bash");
-        File f = new File(file);
+        System.out.println("#!/bin/bash");
+        
+        // Set up final kin including the reference structure
+        if (finalKin == null) finalKin = "final.kin";
+        System.out.println("rm -f "+finalKin);
+        System.out.println("touch "+finalKin);File f = new File(file);
+        
         Scanner s = new Scanner(f);
         while (s.hasNextLine())     writeScriptForHelix(s.nextLine());
-        
-        writeVizScript();
     }
 
     public static void main(String[] args)
     {
-        SubImposeBashScripter mainprog = new SubImposeBashScripter();
+        SubImposeScripter mainprog = new SubImposeScripter();
         try
         {
             mainprog.parseArguments(args);
@@ -377,16 +394,16 @@ public class SubImposeBashScripter //extends ... implements ...
     {
         if(showAll)
         {
-            InputStream is = getClass().getResourceAsStream("SubImposeBashScriptMaker.help");
+            InputStream is = getClass().getResourceAsStream("SubImposeScripter.help");
             if(is == null)
-                System.err.println("\n*** Unable to locate help information in 'SubImposeBashScriptMaker.help' ***\n");
+                System.err.println("\n*** Unable to locate help information in 'SubImposeScripter.help' ***\n");
             else
             {
                 try { streamcopy(is, System.out); }
                 catch(IOException ex) { ex.printStackTrace(); }
             }
         }
-        System.err.println("chiropraxis.mc.SubImposeBashScriptMaker");
+        System.err.println("chiropraxis.mc.SubImposeScripter");
         System.err.println("Copyright (C) 2007 by Daniel Keedy. All rights reserved.");
     }
 
@@ -424,9 +441,32 @@ public class SubImposeBashScripter //extends ... implements ...
         {
             ncapIdxs = param;
         }
+        else if(flag.equals("-range"))
+        {
+            Scanner s = new Scanner(param).useDelimiter(",");
+            int idx1 = 999, idx2 = 999;
+            while (s.hasNext())
+            {
+                String token = s.next();
+                int tokenInt = Integer.parseInt(token);
+                if (idx1 == 999)        idx1 = tokenInt;
+                else if (idx2 == 999)   idx2 = tokenInt;
+                else System.err.println("Wrong format: should be -range=#,#");
+            }
+            if (idx1 != 999 && idx2 != 999)
+            {
+                initIdx  = idx1;
+                finalIdx = idx2;
+            }
+            else System.err.println("Wrong format: should be -range=#,#");
+        }
         else if(flag.equals("-kin"))
         {
             finalKin = param;
+        }
+        else if(flag.equals("-pdbdir"))
+        {
+            pdbDir = param;
         }
         else if(flag.equals("-master"))
         {
