@@ -17,6 +17,9 @@ import driftwood.r3.*;
 * <code>DsspHelixBuilder</code> was modified from HelixBuilder to use an 
 * implementation of the Kabsch & Sander DSSP algorithm instead of my heuristic
 * method for figuring out which residues are in a helix.
+* It's not a perfect replication of the DSSP algorithm for some reason; e.g.,
+* it splits up a stretch of helical residues that are actually two kinked 
+* helices according to DSSP into two helices.
 * Like HelixBuilder, this class creates Helix objects, which hold information 
 * about alpha helices, for an input PDB file.
 * Specifically, it measures parameters related to the N cap of each helix in 
@@ -58,6 +61,8 @@ public class DsspHelixBuilder //extends ... implements ...
         super();
     }
 //}}}
+
+
 
 //{{{ processModel
 //##############################################################################
@@ -774,6 +779,8 @@ public class DsspHelixBuilder //extends ... implements ...
     }
 //}}}
 
+
+
 //{{{ findNcaps
 //##############################################################################
     public void findNcaps(Model model, ModelState state)
@@ -792,8 +799,8 @@ public class DsspHelixBuilder //extends ... implements ...
             else
             {
                 if (verbose)
-                    System.out.println("Calling typeOfHbond for '"+helix+"' in '"+filename+"'");
-                String hb = typeOfHbond(helix.getRes("first"), model, state);
+                    System.out.println("Calling typeOfNcapHbond for '"+helix+"' in '"+filename+"'");
+                String hb = typeOfNcapHbond(helix.getRes("first"), model, state);
                 
                 if (onlyHbNcaps && !hb.equals("i+2") && !hb.equals("i+3"))
                 {
@@ -813,7 +820,8 @@ public class DsspHelixBuilder //extends ... implements ...
             if (helix.ncap != null)
             {
                 // Calculate "backrub-like" distances & angles for each Ncap
-                if (onlyHbNcaps)    setNcapDistances(helix, model, state);
+                if (onlyHbNcaps)    
+                    setNcapDistances(helix, model, state);
                 setNcapAngles(helix, model, state);
                 
                 // Set phi, psi for Ncap i, i+1, and i-1 residues
@@ -821,14 +829,17 @@ public class DsspHelixBuilder //extends ... implements ...
                 
                 // Set "sc length" for Ncap & N3
                 setNcapScLengths(helix, model);
+                
+                // See if there's a capping box
+                setCappingBox(helix, model, state);
             }
         }
     }
 //}}}
 
-//{{{ typeOfHbond
+//{{{ typeOfNcapHbond
 //##############################################################################
-    public String typeOfHbond(Residue res, Model model, ModelState state)
+    public String typeOfNcapHbond(Residue res, Model model, ModelState state)
     /** 
     * This is a simple geometric routine to determine whether a putative Ncap
     * residue is a Ser/Thr/Asn/Asp and makes an i+2 or i+3 Hbond or not.
@@ -836,136 +847,94 @@ public class DsspHelixBuilder //extends ... implements ...
     * is something we could obviously alter later, but it seems reasonable.
     */
     {
-        double cutoff = 2.9; // Angstroms
-        
         try
         {
             Residue res2 = res.getNext(model).getNext(model);
             Residue res3 = res2.getNext(model);
             Atom h2 = res2.getAtom(" H  "); // doesn't exist for prolines! (" HA ")
             Atom h3 = res3.getAtom(" H  ");
+            Atom n2 = res2.getAtom(" N  ");
+            Atom n3 = res3.getAtom(" N  ");
             Triple likeH2 = null;
             Triple likeH3 = null;
+            Triple likeN2 = null;
+            Triple likeN3 = null;
             if (h2 != null)     likeH2 = new Triple(state.get(h2));
             if (h3 != null)     likeH3 = new Triple(state.get(h3));
+            if (n2 != null)     likeN2 = new Triple(state.get(n2));
+            if (n3 != null)     likeN3 = new Triple(state.get(n3));
             
-            // Ser
-            if (res.getName().equals("SER"))
-            {
-                Triple likeOG = new Triple(state.get(res.getAtom(" OG ")));
-                double dist2 = Double.NaN;
-                double dist3 = Double.NaN;
-                if (h2 != null)     dist2 = Triple.distance(likeOG, likeH2);
-                if (h3 != null)     dist3 = Triple.distance(likeOG, likeH3);
-                if (!Double.isNaN(dist2) && !Double.isNaN(dist3))
-                {
-                    if (dist2 < cutoff && dist2 < dist3)
-                    {
-                        if (verbose) System.out.println("Ncap "+res+" makes an i+2"
-                            +" Hb with distance "+dist2);
-                        return "i+2";
-                    }
-                    if (dist3 < cutoff && dist3 < dist2)
-                    {
-                        if (verbose) System.out.println("Ncap "+res+" makes an i+3"
-                            +" Hb with distance "+dist3);
-                        return "i+3";
-                    }
-                }
-            }
-            
-            // Thr
-            if (res.getName().equals("THR"))
-            {
-                Triple likeOG1 = new Triple(state.get(res.getAtom(" OG1")));
-                double dist2 = Double.NaN;
-                double dist3 = Double.NaN;
-                if (h2 != null)     dist2 = Triple.distance(likeOG1, likeH2);
-                if (h3 != null)     dist3 = Triple.distance(likeOG1, likeH3);
-                if (!Double.isNaN(dist2) && !Double.isNaN(dist3))
-                {
-                    if (dist2 < cutoff && dist2 < dist3)
-                    {
-                        if (verbose) System.out.println("Ncap "+res+" makes an i+2"
-                            +" Hb with distance "+dist2);
-                        return "i+2";
-                    }
-                    if (dist3 < cutoff && dist3 < dist2)
-                    {
-                        if (verbose) System.out.println("Ncap "+res+" makes an i+3"
-                            +" Hb with distance "+dist3);
-                        return "i+3";
-                    }
-                }
-            }
-            
-            // Asn
+            Triple likeO0   = null;
+            Triple likeO0_2 = null;
+            Triple likeC0   = null;
             if (res.getName().equals("ASN"))
             {
-                Triple likeOD1 = new Triple(state.get(res.getAtom(" OD1")));
-                double dist2 = Double.NaN;
-                double dist3 = Double.NaN;
-                if (h2 != null)     dist2 = Triple.distance(likeOD1, likeH2);
-                if (h3 != null)     dist3 = Triple.distance(likeOD1, likeH3);
-                if (!Double.isNaN(dist2) && !Double.isNaN(dist3))
-                {
-                    if (dist2 < cutoff && dist2 < dist3)
-                    {
-                        if (verbose) System.out.println("Ncap "+res+" makes an i+2"
-                            +" Hb with distance "+dist2);
-                        return "i+2";
-                    }
-                    if (dist3 < cutoff && dist3 < dist2)
-                    {
-                        if (verbose) System.out.println("Ncap "+res+" makes an i+3"
-                            +" Hb with distance "+dist3);
-                        return "i+3";
-                    }
-                }
+                Atom o0 = res.getAtom(" OD1");
+                Atom c0 = res.getAtom(" CG ");
+                if (o0 != null)     likeO0 = new Triple(state.get(o0));
+                if (c0 != null)     likeC0 = new Triple(state.get(c0));
             }
-            
-            // Asp
             if (res.getName().equals("ASP"))
             {
-                Triple likeOD1 = new Triple(state.get(res.getAtom(" OD1")));
-                Triple likeOD2 = new Triple(state.get(res.getAtom(" OD2")));
-                double od1Dist2 = Double.NaN;
-                double od1Dist3 = Double.NaN;
-                double od2Dist2 = Double.NaN;
-                double od2Dist3 = Double.NaN;
-                if (h2 != null)
-                {
-                    od1Dist2 = Triple.distance(likeOD1, likeH2);
-                    od2Dist2 = Triple.distance(likeOD2, likeH2);
-                }
-                if (h3 != null)
-                {
-                    od1Dist3 = Triple.distance(likeOD1, likeH3);
-                    od2Dist3 = Triple.distance(likeOD2, likeH3);
-                }
-                if (!Double.isNaN(od1Dist2) && !Double.isNaN(od1Dist3) && 
-                    !Double.isNaN(od2Dist2) && !Double.isNaN(od2Dist3))
-                {
-                    if ((od1Dist2 < cutoff && od1Dist2 < od1Dist3 && od1Dist2 < od2Dist3) ||
-                        (od2Dist2 < cutoff && od2Dist2 < od1Dist3 && od2Dist2 < od2Dist3))
-                    {
-                        if (verbose) System.out.println("Ncap "+res+" makes an i+2"
-                            +" Hb with distance "+od1Dist2+" or "+od2Dist2);
-                        return "i+2";
-                    }
-                    if ((od1Dist3 < cutoff && od1Dist3 < od1Dist2 && od1Dist3 < od2Dist2) || 
-                        (od2Dist3 < cutoff && od2Dist3 < od1Dist2 && od2Dist3 < od2Dist2))
-                    {
-                        if (verbose) System.out.println("Ncap "+res+" makes an i+3"
-                            +" Hb with distance "+od1Dist3+" or "+od2Dist3);
-                        return "i+3";
-                    }
-                }
+                Atom o0   = res.getAtom(" OD1");
+                Atom o0_2 = res.getAtom(" OD2");
+                Atom c0   = res.getAtom(" CG ");
+                if (o0 != null)     likeO0   = new Triple(state.get(o0));
+                if (o0_2 != null)   likeO0_2 = new Triple(state.get(o0_2));
+                if (c0 != null)     likeC0   = new Triple(state.get(c0));
+            }
+            if (res.getName().equals("SER"))
+            {
+                Atom o0 = res.getAtom(" OG ");
+                Atom c0 = res.getAtom(" CB ");
+                if (o0 != null)     likeO0 = new Triple(state.get(o0));
+                if (c0 != null)     likeC0 = new Triple(state.get(c0));
+            }
+            if (res.getName().equals("THR"))
+            {
+                Atom o0 = res.getAtom(" OG1");
+                Atom c0 = res.getAtom(" CB ");
+                if (o0 != null)     likeO0 = new Triple(state.get(o0));
+                if (c0 != null)     likeC0 = new Triple(state.get(c0));
             }
             
-            // Non-NDST
-            if (verbose)
-                System.out.println("Res '"+res+"' isn't an NDST that makes an Hb...");
+            // Accept Hbond according to Kabsch & Sander criterion:
+            // E = 0.42*0.20*332*(1/rON + 1/rCH - 1/rOH - 1/rCN) 
+            // is less than -0.5 kcal/mol.
+            // The difference is we're now dealing with a sc-mc 
+            // Hbond, but it should work about as well (?).
+            if (likeH2 != null && likeH3 != null && 
+                likeN2 != null && likeN3 != null && 
+                likeO0 != null && likeC0 != null)
+            {
+                double rON = likeO0.distance(likeN3);
+                double rCH = likeC0.distance(likeH3);
+                double rOH = likeO0.distance(likeH3);
+                double rCN = likeC0.distance(likeN3);
+                double energy3 = 27.9*(1/rON + 1/rCH - 1/rOH - 1/rCN);
+                
+                rON = likeO0.distance(likeN2);
+                rCH = likeC0.distance(likeH2);
+                rOH = likeO0.distance(likeH2);
+                rCN = likeC0.distance(likeN2);
+                double energy2 = 27.9*(1/rON + 1/rCH - 1/rOH - 1/rCN);
+                if (verbose) System.out.println("Ncap energy3 = "+energy3);
+                if (verbose) System.out.println("Ncap energy2 = "+energy2);
+                if (energy2 < energy3 && energy2 < -0.5)
+                {
+                    if (verbose) System.out.println("Ncap "+res+" makes an i+2"
+                        +" Hb with energy "+energy2);
+                    return "i+2";
+                }
+                if (energy3 < energy2 && energy3 < -0.5)
+                {
+                    if (verbose) System.out.println("Ncap "+res+" makes an i+3"
+                        +" Hb with energy "+energy3);
+                    return "i+3";
+                }
+            }
+            if (verbose) System.out.println("Res '"+res+"' isn't an "+
+                "NDST that makes an Hb...");
             return "";
         }
         catch (AtomException ae)
@@ -980,7 +949,135 @@ public class DsspHelixBuilder //extends ... implements ...
     
 //}}}
 
-//{{{ setNcap(Distances, Angles, PhiPsis, scLengths)
+//{{{ setCappingBox
+//##############################################################################
+    public void setCappingBox(Helix helix, Model model, ModelState state)
+    /** 
+    * This is a simple geometric routine akin to typeOfNcapHbond.
+    * For a given valid N cap, if residue N3 exists, it documents what aa type
+    * it is and whether or not it's a Gln/Glu that makes a "capping box" 
+    * hydrogen bond.
+    * These two values are stored as fields in the Ncap class.
+    */
+    {
+        try
+        {
+            Residue res0 = helix.ncap.res;
+            if (res0.getNext(model) != null)
+            {
+                if (verbose) System.out.println("res1 exists!");
+                Residue res1 = res0.getNext(model);
+                if (res1.getNext(model) != null)
+                {
+                    if (verbose) System.out.println("res2 exists!");
+                    Residue res2 = res1.getNext(model);
+                    if (res2.getNext(model) != null)
+                    {
+                        // Set res3
+                        if (verbose) System.out.println("res3 exists!");
+                        Residue res3 = res2.getNext(model);
+                        helix.ncap.res3 = res3;
+                        
+                        // Get potentially Hbonded capping box sc3 & mc0 coordinates
+                        Atom h0 = res0.getAtom(" H  ");
+                        Atom n0 = res0.getAtom(" N  ");
+                        Triple likeH0  = null;
+                        Triple likeN0 = null;
+                        if (h0 != null)     likeH0 = new Triple(state.get(h0));
+                        if (n0 != null)     likeN0 = new Triple(state.get(n0));
+                        
+                        Triple likeO3   = null;
+                        Triple likeO3_2 = null;
+                        Triple likeC3   = null;
+                        if (res3.getName().equals("GLN"))
+                        {
+                            Atom o3 = res3.getAtom(" OE1");
+                            Atom c3 = res3.getAtom(" CD ");
+                            if (o3 != null)     likeO3 = new Triple(state.get(o3));
+                            if (c3 != null)     likeC3 = new Triple(state.get(c3));
+                        }
+                        if (res3.getName().equals("GLU"))
+                        {
+                            Atom o3   = res3.getAtom(" OE1");
+                            Atom o3_2 = res3.getAtom(" OE2");
+                            Atom c3   = res3.getAtom(" CD ");
+                            if (o3 != null)     likeO3   = new Triple(state.get(o3));
+                            if (o3_2 != null)   likeO3_2 = new Triple(state.get(o3_2));
+                            if (c3 != null)     likeC3 = new Triple(state.get(c3));
+                        }
+                        if (res3.getName().equals("ASN"))
+                        {
+                            Atom o3 = res3.getAtom(" OD1");
+                            Atom c3 = res3.getAtom(" CG ");
+                            if (o3 != null)     likeO3 = new Triple(state.get(o3));
+                            if (c3 != null)     likeC3 = new Triple(state.get(c3));
+                        }
+                        if (res3.getName().equals("ASP"))
+                        {
+                            Atom o3   = res3.getAtom(" OD1");
+                            Atom o3_2 = res3.getAtom(" OD2");
+                            Atom c3   = res3.getAtom(" CG ");
+                            if (o3 != null)     likeO3   = new Triple(state.get(o3));
+                            if (o3_2 != null)   likeO3_2 = new Triple(state.get(o3_2));
+                            if (c3 != null)     likeC3 = new Triple(state.get(c3));
+                        }
+                        if (res3.getName().equals("SER"))
+                        {
+                            Atom o3 = res3.getAtom(" OG ");
+                            Atom c3 = res3.getAtom(" CB ");
+                            if (o3 != null)     likeO3 = new Triple(state.get(o3));
+                            if (c3 != null)     likeC3 = new Triple(state.get(c3));
+                        }
+                        if (res3.getName().equals("THR"))
+                        {
+                            Atom o3 = res3.getAtom(" OG1");
+                            Atom c3 = res3.getAtom(" CB ");
+                            if (o3 != null)     likeO3 = new Triple(state.get(o3));
+                            if (c3 != null)     likeC3 = new Triple(state.get(c3));
+                        }
+                        
+                        // Accept Hbond according to Kabsch & Sander criterion:
+                        // E = 0.42*0.20*332*(1/rON + 1/rCH - 1/rOH - 1/rCN) 
+                        // is less than -0.5 kcal/mol.
+                        // The difference is we're now dealing with a sc-mc 
+                        // Hbond, but it should work about as well (?).
+                        if (likeH0 != null && likeN0 != null && 
+                            likeO3 != null && likeC3 != null)
+                        {
+                            double rON = likeO3.distance(likeN0);
+                            double rCH = likeC3.distance(likeH0);
+                            double rOH = likeO3.distance(likeH0);
+                            double rCN = likeC3.distance(likeN0);
+                            double energy = 27.9*(1/rON + 1/rCH - 1/rOH - 1/rCN);
+                            if (likeO3_2 != null)
+                            {
+                                double rON_2 = likeO3_2.distance(likeN0);
+                                double rOH_2 = likeO3_2.distance(likeH0);
+                                double energy2 = 27.9*(1/rON_2 + 1/rCH - 1/rOH_2 - 1/rCN);
+                                if (energy2 < energy)       energy = energy2;
+                            }
+                            if (energy < -0.5)
+                            {
+                                helix.ncap.cappingBoxResType = res3.getName();
+                                if (verbose) System.out.println(res3+" makes capping "
+                                    +"box Hb to "+res0+"\t energy="+energy);
+                            }
+                        }
+                        else // no capping box for this helix
+                            if (verbose) System.out.println("No Glu/Gln/Asn/Asp/"+
+                                "Ser/Thr capping box for "+helix);
+                    }
+                }
+            }
+        }
+        catch (AtomException ae)
+        {
+            System.err.println("Trouble looking for capping box in '"+helix+"'");
+        }
+    }
+//}}}
+
+//{{{ setNcapDistances
 //##############################################################################
     public void setNcapDistances(Helix helix, Model model, ModelState state)
     {
@@ -1077,23 +1174,27 @@ public class DsspHelixBuilder //extends ... implements ...
             System.err.println("Problem calculating Ncap distances...");
         }
     }
+//}}}
 
+//{{{ setNcapAngles
+//##############################################################################
     public void setNcapAngles(Helix helix, Model model, ModelState state)
     {
         try
         {
             // One option is angle between the local helix axis for the Ncap residue
             // and the normal to the plane formed by Ca(i,i-1,i+1).
-            AtomState ca = state.get(helix.ncap.res.getAtom(" CA "));
+            Residue res = helix.ncap.res;
+            AtomState ca = state.get(res.getAtom(" CA "));
             Triple tail = helix.axisTails.get(0);
             Triple head = helix.axisHeads.get(0);
             Triple axisAtOrigin = new Triple(head.getX()-tail.getX(),
                 head.getY()-tail.getY(), head.getZ()-tail.getZ() );
-            if (helix.ncap.res.getPrev(model) != null && helix.ncap.res.getNext(model) != null)
+            if (res.getPrev(model) != null && res.getNext(model) != null)
             {
                 // this angle defined
-                AtomState prevCa = state.get(helix.ncap.res.getPrev(model).getAtom(" CA "));
-                AtomState nextCa = state.get(helix.ncap.res.getNext(model).getAtom(" CA "));
+                AtomState prevCa = state.get(res.getPrev(model).getAtom(" CA "));
+                AtomState nextCa = state.get(res.getNext(model).getAtom(" CA "));
                 
                 Triple normal = new Triple().likeNormal(prevCa, ca, nextCa); 
                 
@@ -1104,25 +1205,80 @@ public class DsspHelixBuilder //extends ... implements ...
                 // OK to mess with normal directly now
                 helix.ncap.planeNormalAngle = normal.angle(axisAtOrigin);
             }
-            // else (default in Ncap constructor: Double.NaN)
             
             // A second option is the angle between the Ncap Ca_Cb vector 
             // and the local helix axis
             Triple likeCa = new Triple(ca); // same coords as ca above but different object
-            if (!helix.ncap.res.getName().equals("GLY"))
+            if (!res.getName().equals("GLY"))
             {
-                Triple likeCb = new Triple(state.get(helix.ncap.res.getAtom(" CB ")));
+                Triple likeCb = new Triple(state.get(res.getAtom(" CB ")));
                 Triple caCbAtOrigin = new Triple().likeVector(likeCa, likeCb);
                 helix.ncap.caCbAngle = caCbAtOrigin.angle(axisAtOrigin);
             }
             // else (default in Ncap constructor: Double.NaN)
+            
+            // Another two measures involve Ca's so we'll do them together.
+            // (1) The first is another option to describe the backrub state 
+            //     that ignores my artificial local helix axes and defines
+            //     the backrub as the angle between the Ca(i-1,i+1,i+2) and
+            //     Ca(i-1,i,i+1) planes: first = reference, second = backrub.
+            // (2) The second is the angle btw the virtual bonds Ca(i-1,i+1) 
+            //     and Ca(i+1,i+2), which was visually observed to potentially be
+            //     different for short Ser/Thr vs. long Asn/Asp Ncaps.
+            if (res.getPrev(model) != null && res.getNext(model) != null)
+            {
+                Residue resNext = res.getNext(model);
+                Residue resPrev = res.getPrev(model);
+                if (resNext.getNext(model) != null)
+                {
+                    Residue resNext2 = resNext.getNext(model);
+                    
+                    Triple likeCaPrev  = new Triple(state.get(resPrev.getAtom(" CA ")));
+                           likeCa      = new Triple(state.get(res.getAtom(" CA ")));
+                    Triple likeCaNext  = new Triple(state.get(resNext.getAtom(" CA ")));
+                    Triple likeCaNext2 = new Triple(state.get(resNext2.getAtom(" CA ")));
+                    
+                    // (1) caPlanesAngle
+                    Triple norm1 = new Triple().likeNormal(likeCaPrev, likeCa, likeCaNext);
+                    Triple norm2 = new Triple().likeNormal(likeCaPrev, likeCaNext, likeCaNext2);
+                    helix.ncap.caPlanesAngle = norm1.angle(norm2);
+                    
+                    // (2) caEntryAngle
+                    helix.ncap.caEntryAngle = new Triple().angle(
+                        likeCaPrev, likeCaNext, likeCaNext2);
+                }
+            }
+            
+            // Another set of measures is the tau angles (N-Ca-C) for i, i-1, i+1.
+            // They may be strained if a backrub occurs
+            Triple likeN =  new Triple(state.get(res.getAtom(" N  ")));
+                   likeCa = new Triple(state.get(res.getAtom(" CA ")));
+            Triple likeC =  new Triple(state.get(res.getAtom(" C  ")));
+            helix.ncap.tau = Triple.angle(likeN, likeCa, likeC);
+            if (res.getPrev(model) != null)
+            {
+                likeN  = new Triple(state.get(res.getPrev(model).getAtom(" N  ")));
+                likeCa = new Triple(state.get(res.getPrev(model).getAtom(" CA ")));
+                likeC  = new Triple(state.get(res.getPrev(model).getAtom(" C  ")));
+                helix.ncap.nprimeTau = Triple.angle(likeN, likeCa, likeC);
+            }
+            if (res.getNext(model) != null)
+            {
+                likeN  = new Triple(state.get(res.getNext(model).getAtom(" N  ")));
+                likeCa = new Triple(state.get(res.getNext(model).getAtom(" CA ")));
+                likeC  = new Triple(state.get(res.getNext(model).getAtom(" C  ")));
+                helix.ncap.n1Tau = Triple.angle(likeN, likeCa, likeC);
+            }
         }
         catch (driftwood.moldb2.AtomException ae)
         {
             System.err.println("Problem calculating Ncap angles...");
         }
     }
+//}}}
 
+//{{{ setNcapPhiPsis
+//##############################################################################
     public void setNcapPhiPsis(Helix helix, Model model, ModelState state)
     {
         try
@@ -1179,7 +1335,10 @@ public class DsspHelixBuilder //extends ... implements ...
             System.err.println("Problem calculating ncap i, i-1, and i+1 phi & psi...");
         }
     }
+//}}}
 
+//{{{ setNcapScLengths
+//##############################################################################
     public void setNcapScLengths(Helix helix, Model model)
     {
         TreeSet<String> zeroChis = new TreeSet<String>();
@@ -1227,6 +1386,8 @@ public class DsspHelixBuilder //extends ... implements ...
         }
     }
 //}}}
+
+
 
 //{{{ sketchHbonds
 //##############################################################################
@@ -1398,6 +1559,8 @@ public class DsspHelixBuilder //extends ... implements ...
     }
 //}}}
 
+
+
 //{{{ Main, main
 //##############################################################################
     /**
@@ -1478,97 +1641,88 @@ public class DsspHelixBuilder //extends ... implements ...
 
     public void printNcapAngles()
     {
-        // Only works right for one filename at a time!
         DecimalFormat df = new DecimalFormat("#.###");
         if (doNcaps)
         {
-            System.out.print("file:helix:ncap:"+
-                "ca(i-1)_ca(i)_ca(i+1)-local_helix_axis_angle:ca(i)_cb(i)-local_helix_axis_angle:"+
-                "i-1_phi:i-1_psi:i_phi:i_psi:i+1_phi:i+1_psi:");
-            if (onlyHbNcaps)
-                System.out.print("ncap_hb_i+2?:ncap_hb_i+3?:"+
-                    "distNcapScToN2H:distNcapScToN3H:distNcapCaToN3Ca:distNprimeCaToN3Ca:");
-            System.out.println("ncapNumChis:n3NumChis:");
+            PrintStream out = System.out;
+            out.print("file:helix:Ncap:"+
+                "CaCaCa_axis:CaCb_axis:CaCa(i)Ca_CaCa(i+1)Ca:Ca(i-1)_Ca(i)_Ca(i+1):"+
+                "tau(i-1):tau(i):tau(i+1):"+
+                "phi(i-1):psi(i-1):phi(i):psi(i):phi(i+1):psi(i+1):");
+            if (onlyHbNcaps)   out.print("NcapO_N2H:NcapO_N3H:NcapCa_N3Ca:"+
+                "N'Ca_N3Ca:Ncap_HB_i+2?:Ncap_HB_i+3?:");
+            out.println("cappingBox:NcapChis:N3Chis:");
+            
             for (Helix helix : helices)
             {
-                if (helix.ncap != null)
+                Ncap n = helix.ncap;
+                if (n != null)
                 {
-                    System.out.print(filename+":"+helix+":"+helix.ncap+":");
-                    if (Double.isNaN(helix.ncap.planeNormalAngle))
-                        System.out.print("__?__:");
-                    else
-                        System.out.print(df.format(helix.ncap.planeNormalAngle)+":");
-                    if (Double.isNaN(helix.ncap.caCbAngle))
-                        System.out.print("__?__:");
-                    else
-                        System.out.print(df.format(helix.ncap.caCbAngle)+":");
+                    out.print(filename+":"+helix+":"+n+":");
+                    // "Backrub angles"
+                    if (Double.isNaN(n.planeNormalAngle))   out.print("__?__:");
+                    else    out.print(df.format(n.planeNormalAngle)+":");
+                    if (Double.isNaN(n.caCbAngle))          out.print("__?__:");
+                    else    out.print(df.format(n.caCbAngle)+":");
+                    if (Double.isNaN(n.caPlanesAngle))      out.print("__?__:");
+                    else    out.print(df.format(n.caPlanesAngle)+":");
+                    if (Double.isNaN(n.caEntryAngle))       out.print("__?__:");
+                    else    out.print(df.format(n.caEntryAngle)+":");
                     
-                    if (Double.isNaN(helix.ncap.nprimePhi))
-                        System.out.print("__?__:");
-                    else
-                        System.out.print(df.format(helix.ncap.nprimePhi)+":");
-                    if (Double.isNaN(helix.ncap.nprimePsi))
-                        System.out.print("__?__:");
-                    else
-                        System.out.print(df.format(helix.ncap.nprimePsi)+":");
+                    if (Double.isNaN(n.nprimeTau))          out.print("__?__:");
+                    else    out.print(df.format(n.nprimeTau)+":");
+                    if (Double.isNaN(n.tau))                out.print("__?__:");
+                    else    out.print(df.format(n.tau)+":");
+                    if (Double.isNaN(n.n1Tau))              out.print("__?__:");
+                    else    out.print(df.format(n.n1Tau)+":");
                     
-                    if (Double.isNaN(helix.ncap.phi))
-                        System.out.print("__?__:");
-                    else
-                        System.out.print(df.format(helix.ncap.phi)+":");
-                    if (Double.isNaN(helix.ncap.psi))
-                        System.out.print("__?__:");
-                    else
-                        System.out.print(df.format(helix.ncap.psi)+":");
+                    // Phi, psi
+                    if (Double.isNaN(n.nprimePhi))          out.print("__?__:");
+                    else    out.print(df.format(n.nprimePhi)+":");
+                    if (Double.isNaN(n.nprimePsi))          out.print("__?__:");
+                    else    out.print(df.format(n.nprimePsi)+":");
+                    if (Double.isNaN(n.phi))                out.print("__?__:");
+                    else    out.print(df.format(n.phi)+":");
+                    if (Double.isNaN(n.psi))                out.print("__?__:");
+                    else    out.print(df.format(n.psi)+":");
+                    if (Double.isNaN(n.n1Phi))              out.print("__?__:");
+                    else    out.print(df.format(n.n1Phi)+":");
+                    if (Double.isNaN(n.n1Psi))              out.print("__?__:");
+                    else    out.print(df.format(n.n1Psi)+":");
                     
-                    if (Double.isNaN(helix.ncap.n1Phi))
-                        System.out.print("__?__:");
-                    else
-                        System.out.print(df.format(helix.ncap.n1Phi)+":");
-                    if (Double.isNaN(helix.ncap.n1Psi))
-                        System.out.print("__?__:");
-                    else
-                        System.out.print(df.format(helix.ncap.n1Psi)+":");
-                    
+                    // Ncap Hbonding
                     if (onlyHbNcaps)
                     {
-                        if (helix.ncap.hb_i2)   System.out.print("i+2:");
-                        else                    System.out.print(":");
-                        if (helix.ncap.hb_i3)   System.out.print("i+3:");
-                        else                    System.out.print(":");
+                        if (Double.isNaN(n.distNcapScToN2H))    out.print("__?__:");
+                        else    out.print(df.format(n.distNcapScToN2H)+":");
+                        if (Double.isNaN(n.distNcapScToN3H))    out.print("__?__:");
+                        else    out.print(df.format(n.distNcapScToN3H)+":");
+                        if (Double.isNaN(n.distNcapCaToN3Ca))   out.print("__?__:");
+                        else    out.print(df.format(n.distNcapCaToN3Ca)+":");
+                        if (Double.isNaN(n.distNprimeCaToN3Ca)) out.print("__?__:");
+                        else    out.print(df.format(n.distNprimeCaToN3Ca)+":");
                         
-                        if (Double.isNaN(helix.ncap.distNcapScToN2H))
-                            System.out.print("__?__:");
-                        else
-                            System.out.print(df.format(helix.ncap.distNcapScToN2H)+":");
-                        if (Double.isNaN(helix.ncap.distNcapScToN3H))
-                            System.out.print("__?__:");
-                        else
-                            System.out.print(df.format(helix.ncap.distNcapScToN3H)+":");
-                        if (Double.isNaN(helix.ncap.distNcapCaToN3Ca))
-                            System.out.print("__?__:");
-                        else
-                            System.out.print(df.format(helix.ncap.distNcapCaToN3Ca)+":");
-                        if (Double.isNaN(helix.ncap.distNprimeCaToN3Ca))
-                            System.out.print("__?__:");
-                        else
-                            System.out.print(df.format(helix.ncap.distNprimeCaToN3Ca)+":");
+                        if (n.hb_i2)   out.print("i+2:");
+                        else           out.print(":");
+                        if (n.hb_i3)   out.print("i+3:");
+                        else           out.print(":");
                     }
                     
-                    if (helix.ncap.ncapNumChis == 999)
-                        System.out.print("__?__:");
-                    else
-                        System.out.print(helix.ncap.ncapNumChis+":");
-                    if (helix.ncap.n3NumChis == 999)
-                        System.out.print("__?__:");
-                    else
-                        System.out.print(helix.ncap.n3NumChis+":");
+                    // Capping box
+                    if (n.cappingBoxResType == null) out.print(":");
+                    else                             out.print(n.cappingBoxResType+":");
                     
-                    System.out.println();
+                    // Misc
+                    if (n.ncapNumChis == 999)   out.print("__?__:");
+                    else                        out.print(n.ncapNumChis+":");
+                    if (n.n3NumChis == 999)     out.print("__?__:");
+                    else                        out.print(n.n3NumChis+":");
+                    
+                    out.println();
                 }
-                else // if (helix.ncap == null)
+                else // if (n == null)
                     if (verbose && onlyHbNcaps)
-                        System.out.println(filename+":"+helix+":no_hb_ncap::::");
+                        out.println(filename+":"+helix+":no_HBed_NDST_Ncap!");
             }
         }
     }
@@ -1710,184 +1864,6 @@ public class DsspHelixBuilder //extends ... implements ...
         }
         else throw new IllegalArgumentException("'"+flag+"' is not recognized as a valid flag");
     }
-//}}}
-
-//{{{ [UNUSED makeStretches]
-//##############################################################################
-    /**
-    * Link up overlapping n-turns.
-    * Note that we include not just consecutive n-turns, but rather any that 
-    * share at least one residue (which Kabsh & Sander do too, from what I can 
-    * tell).
-    * We'll try to add additional residue(s) at the helix's N-terminus with the
-    * buildHelices method if we think they include the Ncap, but that comes later.
-    */
-    void makeStretches(Model model)
-    {
-        if (verbose) System.out.println("Staring makeStretches...");
-        
-        stretches = new ArrayList<NTurn[]>();
-        ArrayList<NTurn> stretch = null;
-        
-        
-        
-        for (int i = 0; i < nTurns.size(); i ++)
-        {
-            NTurn nTurn = nTurns.get(i);
-            if (stretch == null) // first time only
-            {
-                // Start new stretch (then move to next possible NTurn)
-                stretch = new ArrayList<NTurn>();
-                stretch.add(nTurn);
-            }
-            else
-            {
-                // A stretch exists; try adding to it
-                NTurn lastNTurn = stretch.get(stretch.size()-1);
-                if (nTurn.overlap(lastNTurn) >= 1)
-                {
-                    // Add this NTurn to the stretch b/c it overlaps with the 
-                    // last NTurn currently there
-                    stretch.add(nTurn);
-                }
-                else
-                {
-                    // This stretch is finished.
-                    // Convert it: NTurn[] => AL<NTurn>; store in AL<NTurn[]>
-                    NTurn[] stretchArray = new NTurn[stretch.size()];
-                    for (int j = 0; j < stretch.size(); j ++)
-                        stretchArray[j] = stretch.get(j);
-                    stretches.add(stretchArray);
-                    
-                    // Start over
-                    stretch = new ArrayList<NTurn>();
-                    stretch.add(nTurn); // b/c haven't used this nTurn yet
-                }
-            }
-        }
-        
-        
-        
-        //for (int i = 0; i < nTurns.size(); i ++)
-        //{
-        //    NTurn nTurn1 = nTurns.get(i);
-        //    if (stretch == null)
-        //    {
-        //        stretch = new ArrayList<NTurn>();
-        //        stretch.add(nTurn1);
-        //    }
-        //    
-        //    for (int j = 0; j < nTurns.size(); j ++)
-        //    {
-        //        if (i != j)
-        //        {
-        //            NTurn nTurn2 = nTurns.get(j);
-        //            if (nTurn1.overlap(nTurn2) >= 1)
-        //            {
-        //                stretch.add(nTurn2);
-        //            }
-        //            else
-        //            {
-        //                // We've reached the end of a stretch of overlapping NTurns
-        //                if (stretch.size() >= 2) // that's 2 n-turns
-        //                {
-        //                    // Convert NTurn[] => AL<NTurn>; store in AL<NTurn[]>
-        //                    NTurn[] stretchArray = new NTurn[stretch.size()];
-        //                    for (int k = 0; k < stretch.size(); k ++)
-        //                        stretchArray[k] = stretch.get(k);
-        //                    stretches.add(stretchArray);
-        //                    stretch = null;
-        //                    break; // out of current, inner loop
-        //                    // Now we'll return to the beginning of the outer for 
-        //                    // loop and add the new nTurn1 as a new initial n-turn, 
-        //                    // as desired
-        //                }
-        //                //else
-        //                //{
-        //                //    if (verbose) System.out.println("Only "+stretch.size()+
-        //                //        " n-turns in this stretch => can't belong in a helix!");
-        //                //}
-        //            }
-        //        }
-        //    }
-        //}
-    }
-//}}}
-
-//{{{ [OLD buildHelices]
-//##############################################################################
-    ///**
-    //* Make Helix objects from stretches of n-turns.
-    //* We'll try to add additional residue(s) at the helix's N-terminus if we 
-    //* think they include the Ncap.
-    //*/
-    //void buildHelices(Model model, ModelState state)
-    //{
-    //    if (verbose) System.out.println("Staring buildHelices...");
-    //    
-    //    // Make Helix objects for "stretches" of consecutive n-turns
-    //    helices = new ArrayList<Helix>();
-    //    for (NTurn[] stretch : stretches)
-    //    {
-    //        // Convert NTurn[] => TreeSet<Residue> => Helix
-    //        TreeSet<Residue> resSet = new TreeSet<Residue>();
-    //        for (NTurn nTurn : stretch)
-    //        {
-    //            resSet.add(nTurn.firstRes);
-    //            Residue resInBtw = nTurn.firstRes;
-    //            for (int r = 0; r < nTurn.n; r ++)
-    //            {
-    //                resInBtw = resInBtw.getNext(model); // keeps updating = good
-    //                resSet.add(resInBtw);
-    //            }
-    //            resSet.add(nTurn.lastRes);
-    //        }
-    //        Helix helix = new Helix(resSet);
-    //        helices.add(helix);
-    //        if (verbose)
-    //            System.out.println("Added '"+helix+"' for stretch: \n"
-    //                +"   ("+stretch[0]+") to ("+stretch[stretch.length-1]+")");
-    //    }
-    //    
-    //    // Also add putative Ncap residues based on i,i+3 distance < 6A as in my
-    //    // original HelixBuilder.
-    //    // A convenient approach: add the preceding residue to each helix iff
-    //    // Ca(i)-Ca(i+3) distance < 6.0A (N-term)
-    //    try
-    //    {
-    //        for (Helix helix : helices)
-    //        {
-    //            Residue first  = helix.getRes("first");
-    //            Residue prev   = first.getPrev(model);
-    //            Residue prev3  = first.getNext(model).getNext(model);
-    //            if (prev != null && prev3 != null)
-    //            {
-    //                AtomState caPrev  = state.get(prev.getAtom(" CA "));
-    //                AtomState caPrev3 = state.get(prev3.getAtom(" CA "));
-    //                if (caPrev != null && caPrev3 != null)
-    //                {
-    //                    if (caPrev.distance(caPrev3) < 6)
-    //                    {
-    //                        // Add this residue b/c it's possibly the Ncap!
-    //                        ArrayList<Residue> temp = new ArrayList<Residue>();
-    //                        temp.add(prev); // new first residue
-    //                        for (Residue res : helix.residues)
-    //                            temp.add(res);
-    //                        //Collections.sort(temp); // doesn't work for some reason...
-    //                        helix.residues = temp; // refer to this new object
-    //                        if (verbose) System.out.println("Added '"+prev+"' since "
-    //                            +"Ca(i)-Ca(i+3) dist = "+caPrev.distance(caPrev3));
-    //                    }
-    //                }
-    //            }
-    //        }
-    //    }
-    //    catch (AtomException ae)
-    //    {
-    //        System.err.println("Couldn't find one/both of res i-1 or i+2 for the "
-    //            +"first residue of some helix...");
-    //    }
-    //}
 //}}}
 
 }//class
