@@ -1,8 +1,8 @@
 
 Usage:
-    java cmdline.SubImposeBashScriptMaker [-flags] file [> script.bash]
+    java cmdline.SubImposeScripter [-flags] file [> script.bash]
 
-SUBIMPOSEBASHSCRIPTMAKER is a simple stand-alone class to make a Bash script 
+SUBIMPOSESCRIPTER is a simple stand-alone class to make a Bash script 
 that will run Ian's chiropraxis.mc.SubImpose on each helix in a HelixBuilder 
 output list (the input "file") and superimpose it onto the first helix in 
 that list using a designated set of residues. Note that the program auto-
