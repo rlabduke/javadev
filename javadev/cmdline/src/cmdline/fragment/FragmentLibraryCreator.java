@@ -16,32 +16,92 @@ public class FragmentLibraryCreator {
   
   //{{{ Variables
   ArrayList<File> pdbs;
+  CoordinateFile currentPdb;
+  static int lowSize;
+  static int highSize;
   //}}}
 
+    //{{{ parseArgs
+  public static ArrayList parseArgs(String[] args) {
+    //Pattern p = Pattern.compile("^[0-9]*-[0-9]*$");
+    ArrayList<String> argList = new ArrayList<String>();
+    String arg;
+    for (int i = 0; i < args.length; i++) {
+      arg = args[i];
+      // this is an option
+      if(arg.startsWith("-")) {
+        if(arg.equals("-h") || arg.equals("-help")) {
+          System.err.println("Help not available. Sorry!");
+          System.exit(0);
+        } else {
+          System.err.println("*** Unrecognized option: "+arg);
+        }
+      } else {
+        if (arg.matches("[0-9]*-[0-9]*")) {
+          String[] gapBounds = arg.split("-");
+          int first = Integer.parseInt(gapBounds[0]);
+          int sec = Integer.parseInt(gapBounds[1]);
+          lowSize = Math.min(first, sec);
+          highSize = Math.max(first, sec);
+          if (lowSize <= 0) {
+            System.err.println("Can't generate library <= 0 in size!");
+            System.exit(0);
+          }
+          argList.add(arg);
+        } else {
+          System.out.println(arg);
+          argList.add(arg);
+        }
+      }
+    }
+    return argList;
+  }
+  //}}}
+  
   //{{{ main
   public static void main(String[] args) {
+    ArrayList<String> argList = parseArgs(args);
     long startTime = System.currentTimeMillis();
-    if (args.length < 3) {
-	    System.out.println("Not enough arguments, you need a size, a directory, and an outfile!");
-    } else if (args.length > 3) {
-      System.out.println("Too many arguments, you need a size, a directory, and an outfile!");
+    if (argList.size() < 3) {
+	    System.out.println("Not enough arguments, you need a size range, a directory, and an outfile, in that order!");
+    } else if (argList.size() > 3) {
+      System.out.println("Too many arguments, you need a size range, a directory, and an outfile, in that order!");
     } else {
-      int size = Integer.parseInt(args[0]);
-      File pdbsDirectory = new File(args[1]);
+      //int size = Integer.parseInt(args[0]);
+      File pdbsDirectory = new File(argList.get(1));
       pdbsDirectory = pdbsDirectory.getAbsoluteFile();
       File[] files = pdbsDirectory.listFiles();
-      //System.out.println(inputs[i]);
-    
-	    //File resAnalysisDirectory = new File(args[1]);
-      //File[] resAnalysisFiles = resAnalysisDirectory.listFiles();
-	    FragmentLibraryCreator filterer = new FragmentLibraryCreator(files);
-      String lib = filterer.createLibrary(size);
-      //System.out.println(lib);
-      File saveFile = new File(args[2]);
-      saveFile = saveFile.getAbsoluteFile();
-      System.out.println(saveFile.getAbsolutePath());
-      //System.out.println(saveFile.getCanonicalPath());
-      filterer.write(saveFile, lib);
+      //for (File f : files) {
+      //  String name = f.getName();
+      //  if (name.endsWith(".pdb")) {}
+      LibraryWriter[] writers = new LibraryWriter[highSize+1];
+      for (int size = lowSize; size <= highSize; size++) {
+        String outPrefix = argList.get(2);
+        File saveFile = new File(argList.get(2)+size+".txt");
+        saveFile = saveFile.getAbsoluteFile();
+        LibraryWriter writer = new LibraryWriter(saveFile);
+        System.out.println(saveFile.getAbsolutePath());
+        writers[size] = writer;
+      }
+      FragmentLibraryCreator filterer = new FragmentLibraryCreator(files);
+      Iterator iter = filterer.iterator();
+      while (iter.hasNext()) {
+        File f = (File) iter.next();
+        System.out.println(f.toString());
+        filterer.setPdb(f);
+        for (int size = lowSize; size <= highSize; size++) {
+          LibraryWriter writer = writers[size];
+          String lib = filterer.createLibrary(size);
+          //System.out.println(lib.length());
+          writer.write(lib);
+          //filterer.write(saveFile, lib);
+        }
+      }
+      for (LibraryWriter writer : writers) {
+        if (writer != null) {
+          writer.close();
+        }
+      }
     }
     
     long endTime = System.currentTimeMillis();
@@ -59,6 +119,12 @@ public class FragmentLibraryCreator {
         pdbs.add(f);
       }
     }
+  }
+  //}}}
+
+  //{{{ iterator
+  public Iterator iterator() {
+    return pdbs.iterator();
   }
   //}}}
   
@@ -79,29 +145,57 @@ public class FragmentLibraryCreator {
     return null;
   }
   //}}}
+  
+  //{{{ setPdb
+  public void setPdb(File f) {
+    currentPdb = readFile(f);
+  }
+  //}}}
     
-  //{{{ createLibrary
+  //{{{ createLibrary (depreciated)
   /** only uses first model of each pdb file **/
+  //public String createLibrary(int fraglength) {
+  //  String libParams = "";
+  //  for (File f : pdbs) {
+  //    CoordinateFile pdb = readFile(f);
+  //    if (pdb == null) {
+  //      System.err.println("Somehow a file wasn't readable");
+  //    } else {
+  //      Model first = pdb.getFirstModel();
+  //      Set<String> chains = first.getChainIDs();
+  //      for (String cid : chains) {
+  //        System.out.println("Chain -" + cid + "-");
+  //        Set<Residue> residues = first.getChain(cid);
+  //        if (libParams.equals(""))  libParams = fragalyze(pdb.getIdCode(), first, residues, fraglength);
+  //        else                       libParams = libParams+"\n"+fragalyze(pdb.getIdCode(), first, residues, fraglength);
+  //        //System.out.println(libParams);
+  //      }
+  //    }
+  //    libParams = libParams.trim(); // to get rid of spaces in between pdb file parameters
+  //  }
+  //  return libParams;
+  //}
+  //}}}
+  
+  //{{{ createLibrary(fraglength, pdb)
   public String createLibrary(int fraglength) {
     String libParams = "";
-    for (File f : pdbs) {
-      CoordinateFile pdb = readFile(f);
-      if (pdb == null) {
-        System.err.println("Somehow a file wasn't readable");
-      } else {
-        Model first = pdb.getFirstModel();
-        Set<String> chains = first.getChainIDs();
-        for (String cid : chains) {
-          System.out.println("Chain -" + cid + "-");
-          Set<Residue> residues = first.getChain(cid);
-          if (libParams.equals(""))  libParams = fragalyze(pdb.getIdCode(), first, residues, fraglength);
-          else                       libParams = libParams+"\n"+fragalyze(pdb.getIdCode(), first, residues, fraglength);
-          //System.out.println(libParams);
-        }
+    //CoordinateFile pdb = readFile(f);
+    if (currentPdb == null) {
+      System.err.println("Somehow a file wasn't readable");
+    } else {
+      Model first = currentPdb.getFirstModel();
+      Set<String> chains = first.getChainIDs();
+      for (String cid : chains) {
+        System.out.println("Chain -" + cid + "-");
+        Set<Residue> residues = first.getChain(cid);
+        if (libParams.equals(""))  libParams = fragalyze(currentPdb.getIdCode(), first, residues, fraglength);
+        else                       libParams = libParams+"\n"+fragalyze(currentPdb.getIdCode(), first, residues, fraglength);
+        //System.out.println(libParams);
       }
-      libParams = libParams.trim(); // to get rid of spaces in between pdb file parameters
     }
-    return libParams;
+    libParams = libParams.trim(); // to get rid of spaces in between currentPdb file parameters from water chains, etc
+    return libParams+"\n";
   }
   //}}}
 
@@ -248,22 +342,22 @@ public class FragmentLibraryCreator {
   //}}}
   
   //{{{ write
-  public void write(File saveFile, String text) {
-    try {
-      System.out.println(saveFile.getCanonicalPath());
-      if (!saveFile.exists()) {
-        saveFile.createNewFile();
-      }
-      Writer w = new FileWriter(saveFile);
-      PrintWriter out = new PrintWriter(new BufferedWriter(w));
-      out.print(text);
-      out.flush();
-      w.close();
-    } catch (IOException ie) {
-      System.out.println("Error when writing lib file!");
-      ie.printStackTrace();
-    }
-  }
+  //public void write(File saveFile, String text) {
+  //  try {
+  //    System.out.println(saveFile.getCanonicalPath());
+  //    if (!saveFile.exists()) {
+  //      saveFile.createNewFile();
+  //    }
+  //    Writer w = new FileWriter(saveFile);
+  //    PrintWriter out = new PrintWriter(new BufferedWriter(w));
+  //    out.print(text);
+  //    out.flush();
+  //    w.close();
+  //  } catch (IOException ie) {
+  //    System.out.println("Error when writing lib file!");
+  //    ie.printStackTrace();
+  //  }
+  //}
   //}}}
   
 }
