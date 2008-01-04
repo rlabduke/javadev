@@ -21,7 +21,7 @@ public class FragmentLibraryCreator {
   static int highSize;
   //}}}
 
-    //{{{ parseArgs
+  //{{{ parseArgs
   public static ArrayList parseArgs(String[] args) {
     //Pattern p = Pattern.compile("^[0-9]*-[0-9]*$");
     ArrayList<String> argList = new ArrayList<String>();
@@ -93,7 +93,9 @@ public class FragmentLibraryCreator {
           LibraryWriter writer = writers[size];
           String lib = filterer.createLibrary(size);
           //System.out.println(lib.length());
-          writer.write(lib);
+          if (lib.length() > 1) { // avoids possible lib where none of structure generated fragments
+            writer.write(lib);
+          }
           //filterer.write(saveFile, lib);
         }
       }
@@ -119,6 +121,7 @@ public class FragmentLibraryCreator {
         pdbs.add(f);
       }
     }
+    Collections.sort(pdbs);
   }
   //}}}
 
@@ -177,7 +180,7 @@ public class FragmentLibraryCreator {
   //}
   //}}}
   
-  //{{{ createLibrary(fraglength, pdb)
+  //{{{ createLibrary(fraglength)
   public String createLibrary(int fraglength) {
     String libParams = "";
     //CoordinateFile pdb = readFile(f);
