@@ -8,6 +8,11 @@ import java.util.*;
 import java.io.*;
 import java.text.*;
 
+/**
+* FragmentLibraryCreator takes in a directory of files and generates a fragment library parameter data set.
+* It excludes fragments with altconfs, insertion codes, or residues with incomplete or odd backbones.
+**/
+
 public class FragmentLibraryCreator {
   
   //{{{ Constants
@@ -209,8 +214,10 @@ public class FragmentLibraryCreator {
     String params = "";
     for (Residue res : residues) {
       //System.out.println(res.getCNIT());
+      //if (!res.getName().equals("HOH")) System.out.println(res.getCNIT() + " " + currFrag.size());
+      //if (!res.getName().equals("PHE")) testForAlts(res, mod);
       if (currFrag.size() != size + 3) {
-        if (isBackboneComplete(res)&&(res.getInsertionCode().equals(" "))) {
+        if (isBackboneComplete(res, mod)&&(res.getInsertionCode().equals(" "))) {
           currFrag.add(res);
         } else {
           //maxBfactor = 0;
@@ -298,23 +305,52 @@ public class FragmentLibraryCreator {
   
   //{{{ isBackboneComplete(Residue)
   /** tries to check if a residue has the correct number and type of atoms */
-  public static boolean isBackboneComplete(Residue res) {
+  public static boolean isBackboneComplete(Residue res, Model mod) {
+    ModelState modState = mod.getState(); // n.b. that this is just the default state (ie. "A" or " ")
     Iterator atoms = (res.getAtoms()).iterator();
     int atomTotal = 0x00000000;
     while (atoms.hasNext()) {
 	    Atom at = (Atom) atoms.next();
+      if (!modState.hasState(at)) return false;
 	    String atomName = at.getName();
 	    if (atomName.equals(" N  ")) atomTotal = atomTotal + 0x00000001;
 	    if (atomName.equals(" CA ")) atomTotal = atomTotal + 0x00000002;
 	    if (atomName.equals(" C  ")) atomTotal = atomTotal + 0x00000004;
 	    if (atomName.equals(" O  ")) atomTotal = atomTotal + 0x00000008;
+
+      //if (res.getName().equals("PHE")) System.out.println(atomTotal);
     }
+    //if (!res.getName().equals("HOH")) System.out.println(atomTotal);    
     if (atomTotal == 15) {
 	    return true;
     } else {
 	    //System.out.println("Residue: " + res + " not complete");
 	    return false;
     }
+  }
+  //}}}
+  
+  //{{{ testforalts
+  private static boolean testForAlts(Residue res, Model mod) {
+    Map<String, ModelState> modStates = mod.getStates();
+    Iterator atoms = (res.getAtoms()).iterator();
+    //int atomTotal = 0x00000000;
+    while (atoms.hasNext()) {
+      Atom at = (Atom) atoms.next();
+      try {
+        for (ModelState modState : modStates.values()) {
+          if (modState.hasState(at)) {
+            AtomState atState = modState.get(at);
+            if (!atState.getAltConf().equals(" ")) {
+              System.out.println(atState);
+            }
+          }
+        }
+      } catch (AtomException ae) {
+        System.err.println("Problem with atom " + ae.getMessage());
+      }
+    }
+    return false;
   }
   //}}}
   

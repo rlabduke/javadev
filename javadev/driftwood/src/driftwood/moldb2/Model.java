@@ -21,6 +21,9 @@ import driftwood.data.*;
 * <p>It is recommended that every residues in the model have a unique
 * CNIT code, or {@link #getResidue(String)} won't work properly.
 *
+* <p>An interesting note about Models is that they can contain multiple
+* ModelStates.  Alt confs are typically stored in separate ModelStates!
+*
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Tue Jun 10 10:36:48 EDT 2003
 */
