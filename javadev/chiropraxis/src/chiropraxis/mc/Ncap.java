@@ -44,14 +44,18 @@ public class Ncap //extends ... implements ...
     /** Angle btw Ca(i-1,i+1) & Ca(i+1,i+2) virtual bonds; diff for ST vs. ND? */
     public double caEntryAngle;
     
-    /** Ncap i-1,i,i+1 residues' phi, psi dihedrals. i+/-1 angles may be better 
-    * indicators of a backrub b/c they actually cause the change during KiNG's 
-    * backrub tool.*/
-    public double nprimePhi, nprimePsi, phi, psi, n1Phi, n1Psi;
+    /** Angles btw N3's N_H vector and (1) Ca(i,i+1,i+2) vector and (2) local
+    * helix axis. */
+    public double n3NH_precCaCaCa, n3NH_axis; 
     
     /** Ncap i-1,i,i+1 residues' tau angles. May be strained if a backrub
     * occurs. */
     public double nprimeTau, tau, n1Tau;
+    
+    /** Ncap i-1,i,i+1 residues' phi, psi dihedrals. i+/-1 angles may be better 
+    * indicators of a backrub b/c they actually cause the change during KiNG's 
+    * backrub tool.*/
+    public double nprimePhi, nprimePsi, phi, psi, n1Phi, n1Psi;
     
     /** Distances that may vary between Ncap types (e.g. i+2 vs. i+3) or 
     * indicate where a residue is an Ncap vs. just continuation of a helix. 
@@ -91,6 +95,8 @@ public class Ncap //extends ... implements ...
         distNcapScToN3H    = Double.NaN;
         distNcapCaToN3Ca   = Double.NaN;
         distNprimeCaToN3Ca = Double.NaN;
+        n3NH_precCaCaCa    = Double.NaN;
+        n3NH_axis          = Double.NaN;
         nprimeTau          = Double.NaN;
         tau                = Double.NaN;
         n1Tau              = Double.NaN;

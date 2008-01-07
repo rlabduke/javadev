@@ -1269,6 +1269,41 @@ public class DsspHelixBuilder //extends ... implements ...
                 likeC  = new Triple(state.get(res.getNext(model).getAtom(" C  ")));
                 helix.ncap.n1Tau = Triple.angle(likeN, likeCa, likeC);
             }
+            
+            // These measures look at N3's N_H vector to see if it points in
+            // different directions based on the Ncap Hbond type.
+            // We'll use two different "references."
+            likeCa = new Triple(state.get(res.getAtom(" CA ")));
+            if (res.getNext(model) != null)
+            {
+                Residue res1 = res.getNext(model);
+                Triple likeCa1 = new Triple(state.get(res1.getAtom(" CA ")));
+                if (res1.getNext(model) != null)
+                {
+                    Residue res2 = res1.getNext(model);
+                    Triple likeCa2 = new Triple(state.get(res2.getAtom(" CA ")));
+                    if (res2.getNext(model) != null)
+                    {
+                        Residue res3 = res2.getNext(model);
+                        if (!res3.getName().equals("PRO"))
+                        {
+                            Triple likeN3N = new Triple(state.get(res3.getAtom(" N  ")));
+                            Triple likeN3H = new Triple(state.get(res3.getAtom(" H  ")));
+                            Triple n3NH = new Triple().likeVector(likeN3N, likeN3H);
+                            
+                            // n3NH_precCaCaCA
+                            if (!res.getName().equals("GLY"))
+                            {
+                                Triple norm = new Triple().likeNormal(likeCa, likeCa1, likeCa2);
+                                helix.ncap.n3NH_precCaCaCa = n3NH.angle(norm);
+                            }
+                            
+                            // n3NH_axis
+                            helix.ncap.n3NH_axis = n3NH.angle(axisAtOrigin);
+                        }
+                    }
+                }
+            }
         }
         catch (driftwood.moldb2.AtomException ae)
         {
@@ -1647,6 +1682,7 @@ public class DsspHelixBuilder //extends ... implements ...
             PrintStream out = System.out;
             out.print("file:helix:Ncap:"+
                 "CaCaCa_axis:CaCb_axis:CaCa(i)Ca_CaCa(i+1)Ca:Ca(i-1)_Ca(i)_Ca(i+1):"+
+                "N3NH_CaCa(i+1)Ca:N3NH_axis:"+
                 "tau(i-1):tau(i):tau(i+1):"+
                 "phi(i-1):psi(i-1):phi(i):psi(i):phi(i+1):psi(i+1):");
             if (onlyHbNcaps)   out.print("NcapO_N2H:NcapO_N3H:NcapCa_N3Ca:"+
@@ -1668,6 +1704,11 @@ public class DsspHelixBuilder //extends ... implements ...
                     else    out.print(df.format(n.caPlanesAngle)+":");
                     if (Double.isNaN(n.caEntryAngle))       out.print("__?__:");
                     else    out.print(df.format(n.caEntryAngle)+":");
+                    
+                    if (Double.isNaN(n.n3NH_precCaCaCa))    out.print("__?__:");
+                    else    out.print(df.format(n.n3NH_precCaCaCa)+":");
+                    if (Double.isNaN(n.n3NH_axis))          out.print("__?__:");
+                    else    out.print(df.format(n.n3NH_axis)+":");
                     
                     if (Double.isNaN(n.nprimeTau))          out.print("__?__:");
                     else    out.print(df.format(n.nprimeTau)+":");
