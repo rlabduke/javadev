@@ -139,9 +139,9 @@ public class SubImposeScripter //extends ... implements ...
             String pdb1 = pdb;
             String mobile = cmd;
             
-            String pdbLoc;
-            if (pdbDir != null)   pdbLoc = pdbDir+"/"+pdb1+"onto"+pdb2+".pdb";
-            else                  pdbLoc = pdb1+"onto"+pdb2+".pdb";
+            String pdbLoc = "";
+            if (pdbDir != null)   pdbLoc += pdbDir+"/";
+            pdbLoc += pdb1+chain+ncapResnum+"_onto_ref.pdb";
             
             System.out.println(javaCmd+mobile+ref+"-pdb=temp");
             System.out.println("grep \" "+chain+" \" temp > "+pdbLoc);
@@ -178,6 +178,14 @@ public class SubImposeScripter //extends ... implements ...
             stretches[0] = (resnum-1)+"-"+(resnum-1); // e.g. "305-305"
             stretches[1] = (resnum+1)+"-"+(resnum+2); // e.g. "307-308"
         }
+        if (ncapIdxs.equals("1,2,3"))
+        {
+            // "Ncap A  306 ASP" > "306 " > "306 "
+            String resnumString = ncapSubstring.substring(7,11).trim();
+            int resnum = Integer.parseInt(resnumString);
+            stretches = new String[1];
+            stretches[0] = (resnum+1)+"-"+(resnum+3); // e.g. "307-309"
+        }
         else if (ncapIdxs.equals("allhelix"))
         {
             // We're limited to the number of residues in the ref helix, so
@@ -189,34 +197,36 @@ public class SubImposeScripter //extends ... implements ...
             // Get number of residues in this helix
             int firstResnum = getFirstResnum(line);
             int lastResnum  = getLastResnum(line);
-            int numRes = lastResnum-firstResnum;
+            int numRes = lastResnum-firstResnum+1; // e.g. 2-res helix: 1-2 has 2 res's, not 1
             if (firstResnum == -999 || lastResnum == 999)
                 System.err.println("Couldn't get first and/or last residue # in '"+line+"'...");
             if (verbose) 
                 System.out.println("Found 1st:"+firstResnum+" & last:"+lastResnum+
                     " res's in this helix");
             
-            // Make sure this helix is the right length
+            // Account for possible helix lengths relative to ref helix
+            boolean tooLong = false;
             if (ref != null)
             {
-                // if (refHelixNumRes == numRes)    perfect!
-                if (refHelixNumRes < numRes)
+                // if (numRes == refHelixNumRes)  firstResnum, lastResnum already set
+                if (numRes > refHelixNumRes)
                     lastResnum = firstResnum + refHelixNumRes;
-                if (refHelixNumRes > numRes)
+                if (numRes < refHelixNumRes)
                 {
-                    // Can't use this helix!
-                    System.err.println("Can't use this helix b/c length:"+numRes
-                        +" < "+refHelixNumRes+" in ref helix!");
-                    
-                    // HOW TO HANDLE UNWANTED HELICES?
-                    
+                    System.err.println("Can't use this helix b/c shorter than "
+                        +"ref helix ("+numRes+" < "+refHelixNumRes+")!");
+                    tooLong = true;
                 }
             }
             
             // Add a single stretch through those resnums, but not including 
             // the N cap, to the array
-            stretches = new String[1];
-            stretches[0] = (firstResnum+1)+"-"+lastResnum;
+            if (!tooLong)
+            {
+                stretches = new String[1];
+                stretches[0] = (firstResnum+1)+"-"+lastResnum;
+            }
+            if (verbose) System.out.println("stretches: "+stretches);
         }
         else if (ncapIdxs.equals("dummy_option"))
         {
