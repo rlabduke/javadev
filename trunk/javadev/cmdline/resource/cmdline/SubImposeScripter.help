@@ -19,6 +19,7 @@ Options:
 	  alignment.
 	Options for text:
 	  -1,1,2     uses N', N1, and N2 residues
+          1,2,3      uses N1, N2, and N3 residues
 	  allhelix   uses all residues in helix except N cap (default)
     -kin=text
 	Tells name of output kinemage overlaying all superpositions.
