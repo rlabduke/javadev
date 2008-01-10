@@ -218,6 +218,11 @@ public class FragmentLibraryCreator {
       //if (!res.getName().equals("PHE")) testForAlts(res, mod);
       if (currFrag.size() != size + 3) {
         if (isBackboneComplete(res, mod)&&(res.getInsertionCode().equals(" "))) {
+          if (currFrag.size() > 0) {
+            if (!isBonded(currFrag.get(currFrag.size()-1), res, mod)) {
+              currFrag.clear();
+            }
+          }
           currFrag.add(res);
         } else {
           //maxBfactor = 0;
@@ -234,6 +239,21 @@ public class FragmentLibraryCreator {
       }
     }
     return params;
+  }
+  //}}}
+  
+  //{{{ isBonded
+  public boolean isBonded(Residue prev, Residue curr, Model mod) {
+    ModelState modState = mod.getState();
+    try {
+      AtomState prevC   = modState.get(prev.getAtom(" C  "));
+      AtomState n       = modState.get(curr.getAtom(" N  "));
+      if(prevC.sqDistance(n) > 2.56) return false;
+      return true;
+    } catch (AtomException ae) {
+      System.err.println("An incomplete residue got passed to isBonded:" + ae.toString());
+    }
+    return false;
   }
   //}}}
   
