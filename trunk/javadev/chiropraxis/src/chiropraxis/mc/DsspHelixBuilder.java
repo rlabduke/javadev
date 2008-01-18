@@ -1163,9 +1163,9 @@ public class DsspHelixBuilder //extends ... implements ...
             }
             
             // Set distNprimeCaToN3Ca
-            if (likeNcapCa != null && likeNprimeCa != null)
+            if (likeNprimeCa != null && likeN3Ca != null)
             {
-                dist = Triple.distance(likeNcapCa, likeNprimeCa);
+                dist = Triple.distance(likeNprimeCa, likeN3Ca);
                 helix.ncap.distNprimeCaToN3Ca = dist;
             }
         }
@@ -1270,7 +1270,7 @@ public class DsspHelixBuilder //extends ... implements ...
                 helix.ncap.n1Tau = Triple.angle(likeN, likeCa, likeC);
             }
             
-            // These measures look at N3's N_H vector to see if it points in
+            // These measures look at N3's N-H vector to see if it points in
             // different directions based on the Ncap Hbond type.
             // We'll use two different "references."
             likeCa = new Triple(state.get(res.getAtom(" CA ")));
@@ -1681,8 +1681,8 @@ public class DsspHelixBuilder //extends ... implements ...
         {
             PrintStream out = System.out;
             out.print("file:helix:Ncap:"+
-                "CaCaCa_axis:CaCb_axis:CaCa(i)Ca_CaCa(i+1)Ca:Ca(i-1)_Ca(i)_Ca(i+1):"+
-                "N3NH_CaCa(i+1)Ca:N3NH_axis:"+
+                "CaCaCa_axis:CaCb_axis:Ca(i-1,i+1,i+2)_Ca(i-1,i,i+1):Ca(i-1,i+1,i+2):"+
+                "N3NH_Ca(i,i+1,i+2):N3NH_axis:"+
                 "tau(i-1):tau(i):tau(i+1):"+
                 "phi(i-1):psi(i-1):phi(i):psi(i):phi(i+1):psi(i+1):");
             if (onlyHbNcaps)   out.print("NcapO_N2H:NcapO_N3H:NcapCa_N3Ca:"+
@@ -1695,6 +1695,7 @@ public class DsspHelixBuilder //extends ... implements ...
                 if (n != null)
                 {
                     out.print(filename+":"+helix+":"+n+":");
+                    
                     // "Backrub angles"
                     if (Double.isNaN(n.planeNormalAngle))   out.print("__?__:");
                     else    out.print(df.format(n.planeNormalAngle)+":");

@@ -419,6 +419,22 @@ public class SheetBuilder //extends ... implements ...
                             Triple ca_iminus1Opp = state.get(pepN.nRes.getPrev(model).getAtom(" CA "));
                             thisBetaArom.cwardDihedral = Triple.dihedral(
                                 ca_iplus1Arom, caArom, caOpp, ca_iminus1Opp);
+                             
+                            // Dihedral from Ca(i-1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i-1,opp)
+                            thisBetaArom.minusDihedral = Triple.dihedral(
+                                ca_iminus1Arom, caArom, caOpp, ca_iminus1Opp);
+                            
+                            // Dihedral from Ca(i+1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i+1,opp)
+                            thisBetaArom.plusDihedral = Triple.dihedral(
+                                ca_iplus1Arom, caArom, caOpp, ca_iplus1Opp);
+                                                      
+                            // Angle from Ca(i+1,arom)-Ca(i,arom)-Ca(i+1,arom)
+                            thisBetaArom.aromAngle = Triple.angle(
+                                ca_iplus1Arom, caArom, ca_iminus1Arom);
+                            
+                            // Angle from Ca(i+1,opp)-Ca(i,opp)-Ca(i+1,opp)
+                            thisBetaArom.oppAngle = Triple.angle(
+                                ca_iplus1Opp, caOpp, ca_iminus1Opp);
                             
                             // Some other angles/measurements...
                             //???
@@ -928,11 +944,22 @@ public class SheetBuilder //extends ... implements ...
         DecimalFormat df = new DecimalFormat("0.0###");
         out.println("pdb:arom_res:opp_res:cb(arom)_ca(arom)_ca(opp):"+
             "ca(arom,i-1)_ca(arom,i)_ca(opp,i)_ca(opp,i+1):"+
-            "ca(arom,i+1)_ca(arom,i)_ca(opp,i)_ca(opp,i-1)");
+            "ca(arom,i+1)_ca(arom,i)_ca(opp,i)_ca(opp,i-1):"+
+            "ca(arom,i-1)_ca(arom,i)_ca(opp,i)_ca(opp,i-1):"+
+            "ca(arom,i+1)_ca(arom,i)_ca(opp,i)_ca(opp,i+1):"+
+            "arom_simple_angle:"+
+            "opp_simple_angle:");
         for (BetaArom ba : betaAroms)
         {
-            out.println(ba.pdb+":"+ba.aromRes+":"+ba.oppRes+":"+ba.cbcacaAngle+
-                ":"+ba.nwardDihedral+":"+ba.cwardDihedral);
+            out.println(ba.pdb+":"+ba.aromRes+
+                ":"+ba.oppRes+
+                ":"+ba.cbcacaAngle+
+                ":"+ba.nwardDihedral+
+                ":"+ba.cwardDihedral+
+                ":"+ba.minusDihedral+
+                ":"+ba.plusDihedral+
+                ":"+ba.aromAngle+
+                ":"+ba.oppAngle);
         }
     }
 //}}}

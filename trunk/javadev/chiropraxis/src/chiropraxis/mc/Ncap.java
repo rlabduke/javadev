@@ -121,7 +121,7 @@ public class Ncap //extends ... implements ...
 //##############################################################################
     public String toString()
     {
-        return "Ncap "+res;
+        return res.getName();//"Ncap "+res;
     }
 //}}}
 

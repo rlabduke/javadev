@@ -66,6 +66,18 @@ public class BetaArom //extends ... implements ...
     /** Dihedral from Ca(i+1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i-1,opp)
     * Shows twist of beta sheet starting "C-ward" from the aromatic */
     public double cwardDihedral;
+
+    /** Dihedral from Ca(i-1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i-1,opp) */
+    public double minusDihedral;
+    
+    /** Dihedral from Ca(i+1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i+1,opp) */
+    public double plusDihedral;
+    
+    /** Aromatic strand simple angle from Ca(i-1) to Ca (i) to Ca(i+1) */
+    public double aromAngle;
+    
+    /** Opposite strand simple angle from Ca(i-1) to Ca (i) to Ca(i+1) */
+    public double oppAngle;
     
     /** Some other angle not yet defined... */
     //?????
