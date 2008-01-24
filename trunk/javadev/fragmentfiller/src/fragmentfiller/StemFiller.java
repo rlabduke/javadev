@@ -29,18 +29,13 @@ import java.sql.*;
 //}}}
 
 /**
-* <code>FragFiller</code> is based off a plugin to make it easy to fill gaps in protein structures.  
-* It combines functionality originally made for FramerTool, LoopTool, and the docking tools.
-* It scans through a protein structure kin for gaps, analyzes the framing peptides of that gap,
-* searches through my database of loops for matches, finds kins of those matches, and superimposes
-* them in the kinemage.  
-* Unfortunately it requires both my database (in zip format) of loop frame information, and a directory of
-* kinemages, both of which are quite large, and would be difficult to distribute...
+* <code>StemFiller</code> is for filling gaps in pdb files using the stem-oriented
+* fragment database.
 *
 * <p>Copyright (C) 2007 by Vincent Chen. All rights reserved.
 * 
 */
-public class FragFiller implements Filler {
+public class StemFiller implements Filler {
   
   //{{{ Constants
   static final DecimalFormat df = new DecimalFormat("0.000");
@@ -52,10 +47,9 @@ public class FragFiller implements Filler {
   //TreeMap<Integer, Integer> gapMap;
   //HashMap<ArrayList<Double>, ArrayList<Triple>> gapFrameAtomsMap;
   //static HashMap<Integer, Integer> simulatedGaps;
-  HashMap<ProteinGap, ArrayList<String>> filledMap; // gap (oneNum, nNum, frame) -> list of strings (pdbname length startResNum)
-  //ArrayList
+  HashMap<ProteinStem, ArrayList<String>> filledMap; // gap (oneNum, nNum, frame) -> list of strings (pdbname length startResNum)
   //PdbLibraryReader libReader;
-  //static int matchDiff;
+  static int matchDiff;
   static boolean ntermsup = false;
   //JFileChooser        filechooser     = null;
   //ProgressDialog progDiag;
@@ -63,22 +57,22 @@ public class FragFiller implements Filler {
   //}}}
     
   //{{{ Constructors
-  public FragFiller(Map<String, ArrayList<ProteinGap>> gaps) {
-    filledMap = new HashMap<ProteinGap, ArrayList<String>>();
+  public StemFiller(Map<String, ArrayList<ProteinStem>> stems) {
+    filledMap = new HashMap<ProteinStem, ArrayList<String>>();
     //gapFrameAtomsMap = new HashMap<ArrayList<Double>, ArrayList<Triple>>();
     //System.out.println(pdbFile.toString());
     //PdbFileAnalyzer analyzer = new PdbFileAnalyzer(pdbFile);
-    //for (Integer start : simulatedGaps.keySet()) {
+    //for (Integer start : simulatedStems.keySet()) {
     //  Integer end = simulatedGaps.get(start);
     //  analyzer.simulateGap(start.intValue(), end.intValue());
     //}
     //Map<String, ArrayList<ProteinGap>> gaps = analyzer.getGaps();
-    ArrayList<ProteinGap> allGaps = new ArrayList<ProteinGap>();
-    for (ArrayList list : gaps.values()) {
-      allGaps.addAll(list);
+    ArrayList<ProteinStem> allStems = new ArrayList<ProteinStem>();
+    for (ArrayList list : stems.values()) {
+      allStems.addAll(list);
     }
-    for (ProteinGap gap : allGaps) {
-      filledMap.put(gap, new ArrayList<String>());
+    for (ProteinStem stem : allStems) {
+      filledMap.put(stem, new ArrayList<String>());
     }
     //Map<String, ArrayList> gapMap = analyzer.getGapAtoms();
     //ArrayList<ArrayList<Double>> gapFrames = new ArrayList<ArrayList<Double>>();
@@ -108,38 +102,31 @@ public class FragFiller implements Filler {
     //writeKin(analyzer.getCoordFile(), pdbOut, outKinFile);
   }
   //}}}
-  
+    
   //{{{ searchDB
-  public void searchDB(int matchDiff) {
+  public void searchDB(ArrayList<ProteinStem> stems, int matchDiff) {
     DatabaseManager dm = new DatabaseManager();
     //dm.connectToDatabase("//spiral.research.duhs.duke.edu/qDBrDB");
     dm.connectToDatabase("//quality.biochem.duke.edu/vbc3");
-    for (ProteinGap gap : filledMap.keySet()) {
-      ArrayList<Double> gapFrame = gap.getParameters();
-      int gapLength = gap.getSize();
+    for (ProteinStem stem : stems) {
+      ArrayList<Double> stemParams = stem.getParameters();
+      //int gapLength = gap.getSize();
       String sqlSelect = "SELECT pdb_id, chain_id, frag_length, start_res_num FROM parameters5200 ";
       if (matchDiff==0) {
-        sqlSelect = sqlSelect.concat("WHERE frag_length = "+Integer.toString(gapLength)+" \n");
+        sqlSelect = sqlSelect.concat("WHERE frag_length = "+Integer.toString(5)+" \n");
       } else {
         //sqlSelect = sqlSelect.concat("WHERE (frag_length <= "+Integer.toString(gapLength+matchDiff));
         //sqlSelect = sqlSelect.concat(" AND frag_length >= "+Integer.toString(gapLength-matchDiff)+") \n");
         sqlSelect = sqlSelect.concat("WHERE frag_length = "+Integer.toString(matchDiff)+" \n");
       }
-      double dist = gapFrame.get(0);
-      sqlSelect = sqlSelect.concat("AND (distance <= "+df.format(gapFrame.get(0)+1)+" AND distance >= "+df.format(gapFrame.get(0)-1));
-      sqlSelect = sqlSelect.concat(") \n");
-      double startAng = gapFrame.get(1);
-      sqlSelect = sqlSelect.concat(createWhereQuery(startAng, "start_angle") + " \n");
-      double endAng = gapFrame.get(2);
-      sqlSelect = sqlSelect.concat(createWhereQuery(endAng, "end_angle") + " \n");
-      double startDih = gapFrame.get(3);
-      sqlSelect = sqlSelect.concat(createWhereQuery(startDih, "start_dihedral") + " \n");
-      double middleDih = gapFrame.get(4);
-      sqlSelect = sqlSelect.concat(createWhereQuery(middleDih, "middle_dihedral") + " \n");
-      double endDih = gapFrame.get(5);
-      sqlSelect = sqlSelect.concat(createWhereQuery(endDih, "end_dihedral") + ";");
+      double startAng = stemParams.get(0);
+      sqlSelect = sqlSelect.concat(createWhereQuery(startAng, "start_pair_angle") + " \n");
+      double endAng = stemParams.get(1);
+      sqlSelect = sqlSelect.concat(createWhereQuery(endAng, "sp_n_angle") + " \n");
+      double startDih = stemParams.get(2);
+      sqlSelect = sqlSelect.concat(createWhereQuery(startDih, "sp_c_dihedral") + ";");
       System.out.println(sqlSelect);
-      ArrayList<String> listofMatches = filledMap.get(gap);
+      ArrayList<String> listofMatches = filledMap.get(stem);
       dm.select(sqlSelect);
       while (dm.next()) {
         System.out.println(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4));
@@ -152,9 +139,9 @@ public class FragFiller implements Filler {
   //{{{ getMatchesInfo
   public String getMatchesInfo() {
     String info = "";
-    for (ProteinGap gap : filledMap.keySet()) {
-      ArrayList matchedInfo = filledMap.get(gap);
-      info = info.concat(gap.getSourceString() + " had " + matchedInfo.size() + " matches");
+    for (ProteinStem stem : filledMap.keySet()) {
+      ArrayList matchedInfo = filledMap.get(stem);
+      info = info.concat(stem.getSourceString() + " had " + matchedInfo.size() + " matches");
     }
     return info;
   }
@@ -173,7 +160,7 @@ public class FragFiller implements Filler {
   //}}}
   
   //{{{ scanLoopData
-  public void scanLoopData(ArrayList<File> datFiles, ArrayList<ProteinGap> gaps) {
+  public void scanLoopData(ArrayList<File> datFiles, ArrayList<ProteinStem> stems) {
     //for (ArrayList<Double> gapFrame : gapFrames) {
     //  filledMap.put(gapFrame, new ArrayList<String>());
     //}
@@ -198,11 +185,11 @@ public class FragFiller implements Filler {
               for (int i = 2; i < 8; i++) {
                 lineArray[i] = Double.parseDouble(split[i]);
               }
-              for (ProteinGap gap : gaps) {
-                ArrayList<Double> gapFrame = gap.getParameters();
-                int size = gap.getSize();
-                if (scanLine(lineArray, size, gapFrame)) {
-                  ArrayList<String> listofMatches = filledMap.get(gapFrame);
+              for (ProteinStem stem : stems) {
+                ArrayList<Double> stemFrame = stem.getParameters();
+                int size = 5;
+                if (scanLine(lineArray, size, stemFrame)) {
+                  ArrayList<String> listofMatches = filledMap.get(stemFrame);
                   listofMatches.add(split[0] + " " + split[1]); // should result in pdbname length startResNum
                 }
               }
@@ -262,12 +249,12 @@ public class FragFiller implements Filler {
   public CoordinateFile[] getFragments(PdbLibraryReader libReader) {
     CoordinateFile[] fragPdbOut = new CoordinateFile[filledMap.keySet().size()];
     int i = 0;
-    for (ProteinGap gap : filledMap.keySet()) {
+    for (ProteinStem stem : filledMap.keySet()) {
       fragPdbOut[i] = new CoordinateFile();
-      System.out.println(gap.getSourceString() + "." + gap.getOneNum() + "-" + gap.getNNum());
-      fragPdbOut[i].setIdCode(gap.getSourceString() + "." + gap.getOneNum() + "-" + gap.getNNum());
-      ArrayList<String> listofFiller = filledMap.get(gap);
-      //ArrayList<Triple> gapFrameStates = gapFrameAtomsMap.get(gap);
+      System.out.println(stem.getSourceString() + "." + stem.getOneNum());
+      fragPdbOut[i].setIdCode(stem.getSourceString() + "." + stem.getOneNum());
+      ArrayList<String> listofFiller = filledMap.get(stem);
+      //ArrayList<Triple> stemFrameStates = stemFrameAtomsMap.get(stem);
       System.out.println(listofFiller.size());
       for (int ind = 0; ((ind < 100000)&&(ind < listofFiller.size())); ind++) {
         String info = listofFiller.get(ind);
@@ -281,15 +268,15 @@ public class FragFiller implements Filler {
           //SuperPoser poser = null;
           Transform t = null;
           if (!ntermsup) {
-            SuperPoser poser = new SuperPoser(gap.getTupleArray(), libReader.getFragmentEndpointAtoms(frag));
+            SuperPoser poser = new SuperPoser(stem.getTupleArray(), libReader.getFragmentEndpointAtoms(frag));
             t = poser.superpos();
           } else {
             Builder builder = new Builder();
-            Tuple3[] gapArray = gap.getNtermTuples();
-            Tuple3[] fragArray = libReader.getFragmentNtermAtoms(frag);
-            t = builder.dock3on3(
-            gapArray[2], gapArray[0], gapArray[1],
-            fragArray[2], fragArray[0], fragArray[1]);
+            //Tuple3[] stemArray = stem.getNtermTuples();
+            //Tuple3[] fragArray = libReader.getFragmentNtermAtoms(frag);
+            //t = builder.dock3on3(
+            //stemArray[2], stemArray[0], stemArray[1],
+            //fragArray[2], fragArray[0], fragArray[1]);
           }
           //System.out.println(poser.calcRMSD(t));
           transform(frag, t);
@@ -332,15 +319,15 @@ public class FragFiller implements Filler {
   //}}}
   
   //{{{ getTupleArray
-  public Tuple3[] getTupleArray(ArrayList<Triple> gapFrameStates) {
-    //int oneNum = gap.get(0).intValue();
-    //int nNum = gap.get(1).intValue();
+  public Tuple3[] getTupleArray(ArrayList<Triple> stemFrameStates) {
+    //int oneNum = stem.get(0).intValue();
+    //int nNum = stem.get(1).intValue();
     Tuple3[] tuples = new Tuple3[4];
     //tuples[0] = coMap.get(new Integer(oneNum - 1));
-    tuples[0] = gapFrameStates.get(0);
-    tuples[1] = gapFrameStates.get(1);
-    tuples[2] = gapFrameStates.get(2);
-    tuples[3] = gapFrameStates.get(3);
+    tuples[0] = stemFrameStates.get(0);
+    tuples[1] = stemFrameStates.get(1);
+    tuples[2] = stemFrameStates.get(2);
+    tuples[3] = stemFrameStates.get(3);
     //tuples[5] = coMap.get(new Integer(nNum));
     return tuples;
   }

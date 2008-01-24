@@ -16,11 +16,13 @@ public class PdbFileAnalyzer {
   //{{{ Variables
   CoordinateFile pdbFile;
   HashMap<Model, HashMap<String, ArrayList>> masterGapMap; // Model -> (chain -> ListofGaps)
+  HashMap<Model, HashMap<String, ArrayList>> masterStemMap; // Model -> (chain -> ListofStems).
   //}}}
   
   //{{{ Constructor
   public PdbFileAnalyzer(File pdbFile) {
     masterGapMap = new HashMap<Model, HashMap<String, ArrayList>>();
+    masterStemMap = new HashMap<Model, HashMap<String, ArrayList>>();
     readPdb(pdbFile);
     test();
   }
@@ -36,7 +38,8 @@ public class PdbFileAnalyzer {
 	    while (models.hasNext()) {
         //System.out.print(".");
         Model mod = (Model) models.next();
-        masterGapMap.put(mod, analyzeModel(mod));
+        masterGapMap.put(mod, analyzeModelforGaps(mod));
+        masterStemMap.put(mod, analyzeModelforStems(mod));
 	    }
     } catch (IOException ie) {
 	    System.err.println("Problem when reading pdb file");
@@ -45,7 +48,7 @@ public class PdbFileAnalyzer {
   //}}}
   
   //{{{ analyzeModel
-  public HashMap<String, ArrayList> analyzeModel(Model mod) {
+  public HashMap<String, ArrayList> analyzeModelforGaps(Model mod) {
     //ModelState modState = mod.getState();
     HashMap<String, ArrayList> chainGapMap = new HashMap<String, ArrayList>();
     Set<String> chainSet = mod.getChainIDs();
@@ -54,6 +57,17 @@ public class PdbFileAnalyzer {
       chainGapMap.put(chain, findGaps(mod, chain, residues));
     }
     return chainGapMap;
+  }
+  
+  public HashMap<String, ArrayList> analyzeModelforStems(Model mod) {
+    //ModelState modState = mod.getState();
+    HashMap<String, ArrayList> chainStemMap = new HashMap<String, ArrayList>();
+    Set<String> chainSet = mod.getChainIDs();
+    for (String chain : chainSet) {
+      Set<Residue> residues = mod.getChain(chain);
+      chainStemMap.put(chain, findStems(mod, chain, residues));
+    }
+    return chainStemMap;
   }
   //}}}
   
@@ -67,6 +81,42 @@ public class PdbFileAnalyzer {
       }
     }
     return cleanChain;
+  }
+  //}}}
+  
+  //{{{ findStems
+  public ArrayList<ProteinStem> findStems(Model mod, String chainId, Set<Residue> chainofRes) {
+    int prevSeq = 100000;
+    UberSet uberChainSet = new UberSet(chainofRes);
+    ArrayList<ProteinStem> stems = new ArrayList<ProteinStem>();
+    for (Residue res : chainofRes) {
+      int seqNum = res.getSequenceInteger();
+      if (seqNum > prevSeq + 1) {
+        ArrayList<Residue> paramRes = new ArrayList<Residue>();
+        Residue twoRes = (Residue) uberChainSet.itemBefore(res);
+        Residue oneRes = (Residue) uberChainSet.itemBefore(twoRes);
+        Residue zeroRes = (Residue) uberChainSet.itemBefore(oneRes);
+        while (!containsCaO(zeroRes)&&!containsCaO(oneRes)&&!containsCa(twoRes)) {
+          twoRes = (Residue) uberChainSet.itemBefore(twoRes);
+          oneRes = (Residue) uberChainSet.itemBefore(twoRes);
+          zeroRes = (Residue) uberChainSet.itemBefore(oneRes);
+        }
+        ProteinStem n_stem = new ProteinStem(mod, chainId, zeroRes, oneRes, twoRes, ProteinStem.N_TERM);
+        stems.add(n_stem);
+        Residue nRes = res;
+        Residue n1Res = (Residue) uberChainSet.itemAfter(nRes);
+        Residue n2Res = (Residue) uberChainSet.itemAfter(n1Res);
+        while (!containsCaO(nRes)&&!containsCaO(n1Res)&&!containsCa(n2Res)) {
+          nRes = (Residue) uberChainSet.itemAfter(nRes);
+          n1Res = (Residue) uberChainSet.itemAfter(nRes);
+          n2Res = (Residue) uberChainSet.itemAfter(n1Res);
+        }
+        ProteinStem c_stem = new ProteinStem(mod, chainId, nRes, n1Res, n2Res, ProteinStem.C_TERM);
+        stems.add(c_stem);
+      }
+      prevSeq = seqNum;
+    }
+    return stems;
   }
   //}}}
   
