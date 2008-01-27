@@ -27,14 +27,14 @@ public class SheetBuilder //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
-    String filename;
-    boolean doBetaAroms;
-    ArrayList<BetaArom> betaAroms;
-    TreeSet<String> oppResTypes;
-    boolean doPrint;
-    boolean doKin;
-    boolean verbose;
-    
+    String filename               = null;
+    boolean doBetaAroms           = false;
+    ArrayList<BetaArom> betaAroms = new ArrayList<BetaArom>();
+    TreeSet<String> oppResTypes   = null;
+    boolean doPrint               = true;
+    boolean doKin                 = false;
+    boolean verbose               = false;
+    Map resToSheetAxes            = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -42,13 +42,6 @@ public class SheetBuilder //extends ... implements ...
     public SheetBuilder()
     {
         super();
-        filename    = null;
-        doBetaAroms = false;
-        betaAroms   = new ArrayList<BetaArom>();
-        oppResTypes = null;
-        doPrint     = true;
-        doKin       = false;
-        verbose     = false;
     }
 //}}}
 
@@ -68,6 +61,16 @@ public class SheetBuilder //extends ... implements ...
         assignSecStruct(peptides);
         // all Peptide data has now been filled in!
         
+        // Map each residue to a beta-sheet plane
+        // and a normal to that plane, if possible.
+        // Returns a Map<Residue, Triple>
+        
+        Map normals = calcSheetNormals(peptides, model, state);
+        // Flesh the normals out into a local coordinate system
+        // and measure the Ca-Cb's angle to the normal.
+        //Map angles = measureSheetAngles(peptides, normals, state);
+        resToSheetAxes = measureSheetAngles(peptides, normals, state);
+        
         if (doBetaAroms)
         {
             // This is the stuff Daniel Keedy and Ed Triplett came up with 
@@ -83,9 +86,6 @@ public class SheetBuilder //extends ... implements ...
                 System.out.println("@kinemage 1");
                 sketchHbonds(System.out, peptides, state);
                 sketchBetaAroms(System.out, state);
-                
-                // what else???
-                
             }
         }
         else
@@ -93,18 +93,10 @@ public class SheetBuilder //extends ... implements ...
             // This is the stuff Ian had already written for SheetBuilder.
             // We're leaving it here as the default.
             
-            // Map each residue to a beta-sheet plane
-            // and a normal to that plane, if possible.
-            // Returns a Map<Residue, Triple>
-            Map normals = calcSheetNormals(peptides, model, state);
-            
-            // Flesh the normals out into a local coordinate system
-            // and measure the Ca-Cb's angle to the normal.
-            Map angles = measureSheetAngles(peptides, normals, state);
-            
             //System.out.println("@text");
             //printAlongStrandNeighborAngles(System.out, peptides, angles);
-            printCrossStrandNeighborAngles(System.out, modelName, peptides, angles);
+            //printCrossStrandNeighborAngles(System.out, modelName, peptides, angles);
+            printCrossStrandNeighborAngles(System.out, modelName, peptides, resToSheetAxes);
             //System.out.println("@kinemage 1");
             //sketchHbonds(System.out, peptides, state);
             //sketchNormals(System.out, normals, state);
@@ -373,73 +365,151 @@ public class SheetBuilder //extends ... implements ...
                         try
                         {
                             if (verbose)
-                                System.out.print("Let's make a BetaArom for "+pepM.cRes+
+                                System.out.println("Let's make a BetaArom for "+pepM.cRes+
                                     " hanging over "+pepN.nRes);
                             
-                            // Make a BetaArom object representing local region and
-                            // add it to the list
-                            BetaArom thisBetaArom = new BetaArom();
-                            thisBetaArom.pdb     = filename;
-                            thisBetaArom.aromRes = pepM.cRes;
-                            thisBetaArom.oppRes  = pepN.nRes;
+                            //{{{ Basic info about the BetaArom
+                                // Make a BetaArom object representing local region and
+                                // add it to the list
+                                BetaArom ba = new BetaArom();
+                                ba.pdb     = filename;
+                                ba.aromRes = pepM.cRes;
+                                ba.oppRes  = pepN.nRes;
+                                
+                                // Number of fully beta residues (i.e. both peptides of which the
+                                // residue is a part must be beta) on each end of arom & opp residues.
+                                // Min = 0.
+                                int[] aromNumBetaResNC = getNumBetaRes(pepM.cRes, model, peptides);
+                                ba.aromNumBetaResN = aromNumBetaResNC[0];
+                                ba.aromNumBetaResC = aromNumBetaResNC[1];
+                                int[] oppNumBetaResNC  = getNumBetaRes(pepN.nRes, model, peptides);
+                                ba.oppNumBetaResN  = oppNumBetaResNC[0];
+                                ba.oppNumBetaResC  = oppNumBetaResNC[1];
+                                
+                                // Aromatic's Ca(i-1), Ca(i), Ca(i+1), and Cb(i)
+                                ArrayList<AtomState> aromCoordsAL = new ArrayList<AtomState>();
+                                aromCoordsAL.add(state.get(pepM.cRes.getPrev(model).getAtom(" CA ")));
+                                aromCoordsAL.add(state.get(pepM.cRes.getAtom(" CA ")));
+                                aromCoordsAL.add(state.get(pepM.cRes.getNext(model).getAtom(" CA ")));
+                                aromCoordsAL.add(state.get(pepM.cRes.getAtom(" CB ")));
+                                ba.aromCoords = aromCoordsAL;
+                                
+                                // Opposite residue's Ca(i-1), Ca(i), Ca(i+1), and Cb(i)
+                                ArrayList<AtomState> oppCoordsAL = new ArrayList<AtomState>();
+                                oppCoordsAL.add(state.get(pepN.nRes.getPrev(model).getAtom(" CA ")));
+                                oppCoordsAL.add(state.get(pepN.nRes.getAtom(" CA ")));
+                                oppCoordsAL.add(state.get(pepN.nRes.getNext(model).getAtom(" CA ")));
+                                if (pepN.nRes.getName().equals("GLY"))
+                                    oppCoordsAL.add(null);
+                                else
+                                    oppCoordsAL.add(state.get(pepN.nRes.getAtom(" CB ")));
+                                ba.oppCoords = oppCoordsAL;
+                            //}}}
                             
-                            // Aromatic's Ca(i-1), Ca(i), Ca(i+1), and Cb(i)
-                            ArrayList<AtomState> aromCoordsAL = new ArrayList<AtomState>();
-                            aromCoordsAL.add(state.get(pepM.cRes.getPrev(model).getAtom(" CA ")));
-                            aromCoordsAL.add(state.get(pepM.cRes.getAtom(" CA ")));
-                            aromCoordsAL.add(state.get(pepM.cRes.getNext(model).getAtom(" CA ")));
-                            aromCoordsAL.add(state.get(pepM.cRes.getAtom(" CB ")));
-                            thisBetaArom.aromCoords = aromCoordsAL;
+                            //{{{ Angles, dihedrals, & other msrmts
+                                // Ed's angle btw Cb(arom)-Ca(arom)-Ca(opp)
+                                Triple cbArom = state.get(pepM.cRes.getAtom(" CB "));
+                                Triple caArom = state.get(pepM.cRes.getAtom(" CA "));
+                                Triple caOpp  = state.get(pepN.nRes.getAtom(" CA "));
+                                ba.cbcacaAngle = Triple.angle(cbArom, caArom, caOpp);
+                                
+                                // Dihedral from Ca(i-1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i+1,opp)
+                                Triple ca_iminus1Arom = state.get(pepM.cRes.getPrev(model).getAtom(" CA "));
+                                Triple ca_iplus1Opp   = state.get(pepN.nRes.getNext(model).getAtom(" CA "));
+                                ba.nwardDihedral = Triple.dihedral(
+                                    ca_iminus1Arom, caArom, caOpp, ca_iplus1Opp);
+                                
+                                // Dihedral from Ca(i+1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i-1,opp)
+                                Triple ca_iplus1Arom = state.get(pepM.cRes.getNext(model).getAtom(" CA "));
+                                Triple ca_iminus1Opp = state.get(pepN.nRes.getPrev(model).getAtom(" CA "));
+                                ba.cwardDihedral = Triple.dihedral(
+                                    ca_iplus1Arom, caArom, caOpp, ca_iminus1Opp);
+                                 
+                                // Dihedral from Ca(i-1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i-1,opp)
+                                ba.minusDihedral = Triple.dihedral(
+                                    ca_iminus1Arom, caArom, caOpp, ca_iminus1Opp);
+                                
+                                // Dihedral from Ca(i+1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i+1,opp)
+                                ba.plusDihedral = Triple.dihedral(
+                                    ca_iplus1Arom, caArom, caOpp, ca_iplus1Opp);
+                                                          
+                                // Angle btw Ca(i+1,arom)-Ca(i,arom)-Ca(i+1,arom)
+                                ba.aromAngle = Triple.angle(
+                                    ca_iplus1Arom, caArom, ca_iminus1Arom);
+                                
+                                // Angle btw Ca(i+1,opp)-Ca(i,opp)-Ca(i+1,opp)
+                                ba.oppAngle = Triple.angle(
+                                    ca_iplus1Opp, caOpp, ca_iminus1Opp);
+                                
+                                // "Fray": roughly speaking, how much the two strands are
+                                // pulling apart as viewed from a profile view
+                                ba.fray = Math.abs(ba.cwardDihedral-ba.nwardDihedral) - 
+                                    Math.abs(ba.aromAngle-ba.oppAngle);
+                                
+                                // "Tilt": angle btw Ca(arom)(i-1,i,i+1) & Ca(opp)(i-1,i,i+1) planes,
+                                // i.e.   /...\   or   \.../   
+                                Triple normArom = new Triple().likeNormal(ca_iminus1Arom, caArom, ca_iplus1Arom);
+                                Triple normOpp  = new Triple().likeNormal(ca_iminus1Opp, caOpp, ca_iplus1Opp);
+                                ba.tilt = normArom.angle(normOpp);
+                                
+                                // Angle indicating whether CaCb points toward concave or convex side
+                                // of sheet (< 90 concave, > 90 convex)
+                                ba.cacb_Concavity = calcConcavity(pepM.cRes, state, peptides);
+                                
+                                // Some other angles/measurements...
+                                //???
+                                
+                            //}}}
                             
-                            // Opposite residue's Ca(i-1), Ca(i), Ca(i+1), and Cb(i)
-                            ArrayList<AtomState> oppCoordsAL = new ArrayList<AtomState>();
-                            oppCoordsAL.add(state.get(pepN.nRes.getPrev(model).getAtom(" CA ")));
-                            oppCoordsAL.add(state.get(pepN.nRes.getAtom(" CA ")));
-                            oppCoordsAL.add(state.get(pepN.nRes.getNext(model).getAtom(" CA ")));
-                            if (pepN.nRes.getName().equals("GLY"))
-                                oppCoordsAL.add(null);
-                            else
-                                oppCoordsAL.add(state.get(pepN.nRes.getAtom(" CB ")));
-                            thisBetaArom.oppCoords = oppCoordsAL;
+                            //{{{ Unused code
+                                // OLD VERSION #2 BELOW...
+                                // Dot product btw sidechain Ca-Cb vector and local "curvature vector":
+                                //    closer to -1 => on convex side (outside) of very curved sheet
+                                //    closer to +1 => on concave side (inside) of very curved sheet
+                                //if (pepM.hbondN != null)
+                                //{
+                                //    if (pepM.hbondN.cRes != null && pepM.hbondN.nRes != null)
+                                //    {
+                                //        // Through pepM's C=O (the "opposite" strand for beta arom purposes)
+                                //        Triple caThruO      = state.get(pepM.hbondO.cRes.getAtom(" CA "));
+                                //        Triple caThruO_opt2 = state.get(pepM.hbondO.nRes.getAtom(" CA "));
+                                //        double distThruO = caArom.distance(caThruO);
+                                //        if (caArom.distance(caThruO_opt2) < distThruO)   caThruO = caThruO_opt2;
+                                //        // Through pepM's N-H
+                                //        Triple caThruN      = state.get(pepM.hbondN.cRes.getAtom(" CA "));
+                                //        Triple caThruN_opt2 = state.get(pepM.hbondN.nRes.getAtom(" CA "));
+                                //        double distThruN = caArom.distance(caThruN);
+                                //        if (caArom.distance(caThruN_opt2) < distThruN)   caThruN = caThruN_opt2;
+                                //        // Pulling it together
+                                //        Triple cacb = new Triple(cbArom).sub(caArom).unit();
+                                //        Triple midpt = new Triple().likeMidpoint(caThruO, caThruN);
+                                //        Triple curveVector = midpt.sub(caArom).unit();
+                                //        ba.curvatureDot = cacb.dot(curveVector);
+                                //    }
+                                //}
+                                //else ba.curvatureDot = Double.NaN;
+                                // OLD VERSION #1 BELOW...
+                                //// Note that Ca(i+2) residue-wise goes with pep(i+1) but Ca(i-2) goes
+                                //// with pep(i-2) since we originally used the C-containing res of the 
+                                //// peptide to find these beta aromatics
+                                //Peptide pepMminus2 = pepMminus1.prev;
+                                //Peptide pepMplus1  = pepM.next;
+                                //if (pepMminus2 != null && pepMplus1 != null)
+                                //{
+                                //    if (pepMminus1.isBeta && pepMplus1.isBeta)
+                                //    {
+                                //        Triple cacb = new Triple(cbArom).sub(caArom).unit();
+                                //        Triple ca_iminus2Arom = state.get(pepMminus2.cRes.getAtom(" CA "));
+                                //        Triple ca_iplus2Arom  = state.get(pepMplus1.nRes.getAtom(" CA "));
+                                //        Triple midpt = new Triple().likeMidpoint(ca_iminus2Arom, ca_iplus2Arom);
+                                //        Triple curveVector = midpt.sub(caArom).unit();
+                                //        ba.curvatureDot = cacb.dot(curveVector);
+                                //    }
+                                //}
+                                //else ba.curvatureDot = Double.NaN;
+                            //}}}
                             
-                            // Ed's angle btw Cb(arom)-Ca(arom)-Ca(opp)
-                            Triple cbArom = state.get(pepM.cRes.getAtom(" CB "));
-                            Triple caArom = state.get(pepM.cRes.getAtom(" CA "));
-                            Triple caOpp  = state.get(pepN.nRes.getAtom(" CA "));
-                            thisBetaArom.cbcacaAngle = Triple.angle(cbArom, caArom, caOpp);
-                            
-                            // Dihedral from Ca(i-1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i+1,opp)
-                            Triple ca_iminus1Arom = state.get(pepM.cRes.getPrev(model).getAtom(" CA "));
-                            Triple ca_iplus1Opp   = state.get(pepN.nRes.getNext(model).getAtom(" CA "));
-                            thisBetaArom.nwardDihedral = Triple.dihedral(
-                                ca_iminus1Arom, caArom, caOpp, ca_iplus1Opp);
-                            
-                            // Dihedral from Ca(i+1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i-1,opp)
-                            Triple ca_iplus1Arom = state.get(pepM.cRes.getNext(model).getAtom(" CA "));
-                            Triple ca_iminus1Opp = state.get(pepN.nRes.getPrev(model).getAtom(" CA "));
-                            thisBetaArom.cwardDihedral = Triple.dihedral(
-                                ca_iplus1Arom, caArom, caOpp, ca_iminus1Opp);
-                             
-                            // Dihedral from Ca(i-1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i-1,opp)
-                            thisBetaArom.minusDihedral = Triple.dihedral(
-                                ca_iminus1Arom, caArom, caOpp, ca_iminus1Opp);
-                            
-                            // Dihedral from Ca(i+1,arom)-Ca(i,arom)-Ca(i,opp)-Ca(i+1,opp)
-                            thisBetaArom.plusDihedral = Triple.dihedral(
-                                ca_iplus1Arom, caArom, caOpp, ca_iplus1Opp);
-                                                      
-                            // Angle from Ca(i+1,arom)-Ca(i,arom)-Ca(i+1,arom)
-                            thisBetaArom.aromAngle = Triple.angle(
-                                ca_iplus1Arom, caArom, ca_iminus1Arom);
-                            
-                            // Angle from Ca(i+1,opp)-Ca(i,opp)-Ca(i+1,opp)
-                            thisBetaArom.oppAngle = Triple.angle(
-                                ca_iplus1Opp, caOpp, ca_iminus1Opp);
-                            
-                            // Some other angles/measurements...
-                            //???
-                            
-                            betaAroms.add(thisBetaArom);
+                            betaAroms.add(ba);
                         }
                         catch (AtomException ae)
                         {
@@ -518,6 +588,151 @@ public class SheetBuilder //extends ... implements ...
             }
             return false;
         }
+    }
+//}}}
+
+//{{{ getNumBetaRes, resIsBeta
+//##############################################################################
+    int[] getNumBetaRes(Residue res, Model model, Collection peptides)
+    {
+        int numN = 0;
+        int numC = 0;
+        
+        // N-ward
+        boolean endOfStrand = false;
+        Residue currRes = res;
+        while (!endOfStrand)
+        {
+            if (currRes.getPrev(model) != null)
+            {
+                currRes = currRes.getPrev(model);
+                if (!resIsBeta(currRes, model, peptides))   endOfStrand = true;
+                else                                        numN += 1;
+            }
+        }
+        // C-ward
+        endOfStrand = false;
+        currRes = res;
+        while (!endOfStrand)
+        {
+            if (currRes.getNext(model) != null)
+            {
+                currRes = currRes.getNext(model);
+                if (!resIsBeta(currRes, model, peptides))   endOfStrand = true;
+                else                                        numC += 1;
+            }
+        }
+        if (verbose)
+        {
+            System.out.println("# res N-ward of '"+res+"': "+numN);
+            System.out.println("# res C-ward of '"+res+"': "+numC);
+        }
+        
+        int[] numBetaResNC = new int[2];
+        numBetaResNC[0] = numN;
+        numBetaResNC[1] = numC;
+        return numBetaResNC;
+    }
+
+    boolean resIsBeta(Residue res, Model model, Collection peptides)
+    {
+        Peptide nPep = null; // peptide N-ward to this residue; also contains this residue's N-H
+        Peptide cPep = null; // peptide C-ward to this residue; also contains this residue's C=O
+        for(Iterator iter = peptides.iterator(); iter.hasNext(); )
+        {
+            Peptide pep = (Peptide) iter.next();
+            if (res.equals(pep.nRes))   nPep = pep;
+            if (res.equals(pep.cRes))   cPep = pep;
+        }
+        if (nPep.isBeta && cPep.isBeta)   return true;
+        return false;
+    }
+//}}}
+
+//{{{ calcConcavity
+//##############################################################################
+    /**
+    * Returns an angle btw the CaCb vector and the local "concavity vector."
+    * Goal: to indicate whether CaCb points toward the concave or the convex 
+    * side of the sheet (< 90 concave, > 90 convex).
+    */
+    double calcConcavity(Residue res, ModelState state, Collection peptides)
+    {
+        Peptide nPep = null, cPep = null;
+        for(Iterator iter = peptides.iterator(); iter.hasNext(); )
+        {
+            Peptide p = (Peptide) iter.next();
+            if(p.nRes != null && p.nRes.equals(res))   nPep = p;
+            if(p.cRes != null && p.cRes.equals(res))   cPep = p;
+        }
+        
+        if(cPep != null && cPep.hbondN != null && cPep.hbondO != null
+        && nPep != null && nPep.hbondN != null && nPep.hbondO != null
+        && cPep.isBeta && cPep.hbondN.isBeta && cPep.hbondO.isBeta
+        && nPep.isBeta && nPep.hbondN.isBeta && nPep.hbondO.isBeta)
+        {
+            // Normal1: thru cPep's C=O ("opposite" strand for plus aromatics)
+            Collection guidePts1 = new ArrayList();
+            guidePts1.add(cPep.midpoint);
+            guidePts1.add(nPep.midpoint);
+            guidePts1.add(cPep.hbondO.midpoint);
+            guidePts1.add(nPep.hbondN.midpoint);
+            LsqPlane lsqPlane1 = new LsqPlane(guidePts1);
+            Triple normal1 = new Triple(lsqPlane1.getNormal());
+            Triple anchor1 = new Triple(lsqPlane1.getAnchor());
+            try // to make this normal point toward the middle strand
+            {
+                AtomState ca = state.get(res.getAtom(" CA "));
+                Triple toCa = new Triple(ca).sub(anchor1);
+                if(normal1.dot(toCa) < 0)   normal1.neg();
+            }
+            catch(AtomException ex) {}
+            
+            // Normal2: thru cPep's N-H
+            Collection guidePts2 = new ArrayList();
+            guidePts2.add(cPep.midpoint);
+            guidePts2.add(nPep.midpoint);
+            guidePts2.add(cPep.hbondN.midpoint);
+            guidePts2.add(nPep.hbondO.midpoint);
+            LsqPlane lsqPlane2 = new LsqPlane(guidePts2);
+            Triple normal2 = new Triple(lsqPlane2.getNormal());
+            Triple anchor2 = new Triple(lsqPlane2.getAnchor());
+            try // to make this normal point toward the middle strand
+            {
+                AtomState ca = state.get(res.getAtom(" CA "));
+                Triple toCa = new Triple(ca).sub(anchor2);
+                if(normal2.dot(toCa) < 0)   normal2.neg();
+            }
+            catch(AtomException ex) {}
+            
+            // Now that the two side-planes' normals are pointing toward the
+            // central strand, we know that their vector sum indicates the
+            // *concave* direction of the local beta sheet!
+            // Therefore, the angle btw CaCb and the normals' vector sum tells
+            // us whether the CaCb vector points toward the concave or convex
+            // side of the sheet: < 90 concave, > 90 convex.
+            try
+            {
+                Triple normalsSum = new Triple().likeSum(normal1, normal2).unit();
+                AtomState ca = state.get(res.getAtom(" CA "));
+                AtomState cb = state.get(res.getAtom(" CB "));
+                Triple cacb = new Triple(cb).sub(ca);
+                //if (verbose)
+                //{
+                //    System.out.println("@group {"+res+" concav norms} dominant");
+                //    System.out.println("@vectorlist");
+                //    System.out.println("{norm1 anchor}P "+anchor1.toString().replace(',', ' '));
+                //    System.out.println("{norm1 head} "+anchor1.add(normal1).toString().replace(',', ' '));
+                //    System.out.println("{norm2 anchor}P "+anchor2.toString().replace(',', ' '));
+                //    System.out.println("{norm2 head} "+anchor2.add(normal2).toString().replace(',', ' '));
+                //    System.out.println("{cacb anchor}P "+new Triple(ca).toString().replace(',', ' '));
+                //    System.out.println("{cacb head} "+new Triple(cb).toString().replace(',', ' '));
+                //}
+                return normalsSum.angle(cacb);
+            }
+            catch(AtomException ex) {} // oh well (e.g. Gly)
+        }
+        return Double.NaN; 
     }
 //}}}
 
@@ -942,24 +1157,59 @@ public class SheetBuilder //extends ... implements ...
     void printBetaAromStats(PrintStream out)
     {
         DecimalFormat df = new DecimalFormat("0.0###");
-        out.println("pdb:arom_res:opp_res:cb(arom)_ca(arom)_ca(opp):"+
-            "ca(arom,i-1)_ca(arom,i)_ca(opp,i)_ca(opp,i+1):"+
-            "ca(arom,i+1)_ca(arom,i)_ca(opp,i)_ca(opp,i-1):"+
-            "ca(arom,i-1)_ca(arom,i)_ca(opp,i)_ca(opp,i-1):"+
-            "ca(arom,i+1)_ca(arom,i)_ca(opp,i)_ca(opp,i+1):"+
-            "arom_simple_angle:"+
-            "opp_simple_angle:");
+        out.println("pdb:arom_res:arom_res_type:opp_res:opp_res_type:"+
+            "aromNumBetaResN:aromNumBetaResC:oppNumBetaResN:oppNumBetaResC:"+
+            "CbCaCa:nwardDhdrl:cwardDhdrl:minusDhdrl:plusDhdrl:"+
+            "aromSimpAng:oppSimpAng:"+
+            "fray:tilt:"+
+            "CaCb_Concavity:"+
+            "CaCb_6CaNormal:CaCb_Across:CaCb_Along");
+            //"cb(arom)_ca(arom)_ca(opp):"+
+            //"ca(arom,i-1)_ca(arom,i)_ca(opp,i)_ca(opp,i+1):"+
+            //"ca(arom,i+1)_ca(arom,i)_ca(opp,i)_ca(opp,i-1):"+
+            //"ca(arom,i-1)_ca(arom,i)_ca(opp,i)_ca(opp,i-1):"+
+            //"ca(arom,i+1)_ca(arom,i)_ca(opp,i)_ca(opp,i+1):"+
+            //"arom_simple_angle:"+
+            //"opp_simple_angle:"+
+            
         for (BetaArom ba : betaAroms)
         {
-            out.println(ba.pdb+":"+ba.aromRes+
+            // DAK's beta aromatic angles
+            out.print(ba.pdb+
+                ":"+ba.aromRes+
+                ":"+ba.aromRes.getName()+
                 ":"+ba.oppRes+
+                ":"+ba.oppRes.getName()+
+                ":"+ba.aromNumBetaResN+
+                ":"+ba.aromNumBetaResC+
+                ":"+ba.oppNumBetaResN+
+                ":"+ba.oppNumBetaResC+
                 ":"+ba.cbcacaAngle+
                 ":"+ba.nwardDihedral+
                 ":"+ba.cwardDihedral+
                 ":"+ba.minusDihedral+
                 ":"+ba.plusDihedral+
                 ":"+ba.aromAngle+
-                ":"+ba.oppAngle);
+                ":"+ba.oppAngle+
+                ":"+ba.fray+
+                ":"+ba.tilt);
+            if (!Double.isNaN(ba.cacb_Concavity)) out.print(":"+ba.cacb_Concavity);
+            else                                  out.print(":");
+            
+            // IWD's sheet axis angles
+            String sheetAxesAngles = ":::";
+            for(Iterator iter = resToSheetAxes.keySet().iterator(); iter.hasNext(); )
+            {
+                Residue res = (Residue) iter.next();
+                if (res.equals(ba.aromRes))
+                {
+                    SheetAxes axes = (SheetAxes) resToSheetAxes.get(res);
+                    sheetAxesAngles = ":"+axes.angleNormal+
+                                      ":"+axes.angleAcross+
+                                      ":"+axes.angleAlong;
+                }
+            }
+            out.println(sheetAxesAngles);
         }
     }
 //}}}
