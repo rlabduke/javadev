@@ -269,14 +269,15 @@ public class FragFiller implements Filler {
       ArrayList<String> listofFiller = filledMap.get(gap);
       //ArrayList<Triple> gapFrameStates = gapFrameAtomsMap.get(gap);
       System.out.println(listofFiller.size());
-      for (int ind = 0; ((ind < 100000)&&(ind < listofFiller.size())); ind++) {
+      for (int ind = 0; ((ind < 500)&&(ind < listofFiller.size())); ind++) {
         String info = listofFiller.get(ind);
         String[] splitInfo = info.split(" ");
         String pdbName = splitInfo[0]; // should be pdbname
-        int length = Integer.parseInt(splitInfo[1]);
-        int startRes = Integer.parseInt(splitInfo[2]);
-        libReader.setCurrentPdb(pdbName);
-        Model frag = libReader.getFragment(Integer.toString(ind), startRes, length); //set of residues
+        String chain = splitInfo[1];
+        int length = Integer.parseInt(splitInfo[2]);
+        int startRes = Integer.parseInt(splitInfo[3]);
+        libReader.setCurrentPdb(pdbName, chain);
+        Model frag = libReader.getFragment(Integer.toString(ind), chain, startRes, length); //set of residues
         if (frag != null) {
           //SuperPoser poser = null;
           Transform t = null;
