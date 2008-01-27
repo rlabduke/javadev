@@ -47,6 +47,11 @@ public class BetaArom //extends ... implements ...
     * to backrub */
     public Residue oppRes;
     
+    /** Number of fully beta residues (i.e. both peptides of which the residue
+    * is a part must be beta according to SheetBuilder) on each end of arom & 
+    * opp residues. Min = 0. */
+    public int aromNumBetaResN, aromNumBetaResC, oppNumBetaResN, oppNumBetaResC;
+    
     /** AtomStates for the aromatic's Ca(i-1), Ca(i), Ca(i+1), and Cb(i)
     * atoms, in that order */
     public ArrayList<AtomState> aromCoords;
@@ -79,6 +84,16 @@ public class BetaArom //extends ... implements ...
     /** Opposite strand simple angle from Ca(i-1) to Ca (i) to Ca(i+1) */
     public double oppAngle;
     
+    /** "Fray" of strands: how much they're pulling apart as viewed from a 
+    * profile view */
+    public double fray;
+    
+    /** "Tilt": angle btw Ca(arom)(i-1,i,i+1)-Ca(opp)(i-1,i,i+1): /...\  or \.../ */
+    public double tilt;
+    
+    /** Angle btw sidechain Ca-Cb vector and local "concavity vector" */
+    public double cacb_Concavity;
+    
     /** Some other angle not yet defined... */
     //?????
     
@@ -89,13 +104,6 @@ public class BetaArom //extends ... implements ...
     public BetaArom()
     {
         super();
-        pdb         = null;
-        aromRes     = null;
-        oppRes      = null;
-        aromCoords  = null;
-        oppCoords   = null;
-        cbcacaAngle = Double.NaN;
-        
     }
 //}}}
 
