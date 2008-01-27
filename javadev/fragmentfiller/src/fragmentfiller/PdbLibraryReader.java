@@ -18,6 +18,7 @@ public class PdbLibraryReader {
   //{{{ Variables
   HashMap<String, ZipEntry> pdbMap;
   CoordinateFile currentPdb;
+  String currentChain;
   ZipFile zip;
   //}}}
   
@@ -37,7 +38,10 @@ public class PdbLibraryReader {
               //System.out.println("Scanning: " + zEntry.getName());
               //LineNumberReader reader = new LineNumberReader(new InputStreamReader(zip.getInputStream(zEntry)));
               //System.out.println(zEntry.getName().substring(7, 11));
-              pdbMap.put(zEntry.getName().substring(7, 11), zEntry);
+              String[] splitInfo = zEntry.getName().split("/");
+              String pdbFileName = splitInfo[splitInfo.length - 1];
+              System.out.println(pdbFileName + ":"+ pdbFileName.substring(0,5));
+              pdbMap.put(pdbFileName.substring(0, 5).toLowerCase(), zEntry);
             }
           }
           
@@ -67,16 +71,17 @@ public class PdbLibraryReader {
   //}}}
   
   //{{{ setCurrentPdb
-  public void setCurrentPdb(String name) {
-    if ((currentPdb == null) || (!currentPdb.getIdCode().equals(name))) {
-      currentPdb = readPdb(name);
+  public void setCurrentPdb(String name, String chain) {
+    if (((currentPdb == null)||(currentChain == null)) || ((!currentPdb.getIdCode().equals(name))||(currentChain!=chain))) {
+      currentPdb = readPdb(name.toLowerCase()+chain.toLowerCase());
+      currentChain = chain;
       //System.out.println("Setting currentPdb to: " + name);
     }
   }
   //}}}
   
   //{{{ getFragment
-  public Model getFragment(String modNum, int startRes, int length) {
+  public Model getFragment(String modNum, String chain, int startRes, int length) {
     //CoordinateFile pdbFile = readPdb(pdbName);
     //UberSet fragRes = new UberSet();
     Model fragModel = new Model(modNum);
@@ -87,28 +92,33 @@ public class PdbLibraryReader {
     if (currentPdb != null) {
       Model firstMod = currentPdb.getFirstModel();
       ModelState firstState = firstMod.getState();
-      Collection modResidues = firstMod.getResidues();
-      Iterator iter = modResidues.iterator();
-      while ((fragModel.getResidues().size() <= length + 2)&&(iter.hasNext())) {
-        Residue res = (Residue) iter.next();
-        int resNum = res.getSequenceInteger();
-        if ((resNum >= startRes)&&(resNum <= startRes + length + 2)) {
-          try {
-            if (isResidueComplete(res)) {
-              fragModel.add(res);
-              res.cloneStates(res, firstState, fragState);
-              String past80 = "  " + currentPdb.getIdCode() + Integer.toString(startRes);
-              addPast80Info(res, past80, fragState);
-            } else {
-              System.err.println("fragment from "+currentPdb.getIdCode()+" "+String.valueOf(resNum)+" discarded due to incomplete residues");
-              return null;
+      Collection modResidues = firstMod.getChain(chain);
+      //System.out.println("Currently set to " + currentPdb.getIdCode() + " with chain:" + chain);
+      if (modResidues != null) {
+        Iterator iter = modResidues.iterator();
+        while ((fragModel.getResidues().size() <= length + 2)&&(iter.hasNext())) {
+          Residue res = (Residue) iter.next();
+          int resNum = res.getSequenceInteger();
+          if ((resNum >= startRes)&&(resNum <= startRes + length + 2)) {
+            try {
+              if (isResidueComplete(res)) {
+                fragModel.add(res);
+                res.cloneStates(res, firstState, fragState);
+                String past80 = "  " + currentPdb.getIdCode() + Integer.toString(startRes) + chain;
+                addPast80Info(res, past80, fragState);
+              } else {
+                System.err.println("fragment from "+currentPdb.getIdCode()+" "+String.valueOf(resNum)+" discarded due to incomplete residues");
+                return null;
+              }
+            } catch (AtomException ae) {
+              System.err.println("Error occurred during cloning of atom in PdbLibraryReader.");
+            } catch (ResidueException re) {
+              System.err.println("Error occurred during adding of residue in PdbLibraryReader.");
             }
-          } catch (AtomException ae) {
-            System.err.println("Error occurred during cloning of atom in PdbLibraryReader.");
-          } catch (ResidueException re) {
-            System.err.println("Error occurred during adding of residue in PdbLibraryReader.");
           }
         }
+      } else {
+        System.err.println("This shouldn't happen, but a pdb in the library does not have a chain the database says it should!");
       }
     } else {
       System.err.println("No pdb set in PdbLibraryReader!");
@@ -184,6 +194,66 @@ public class PdbLibraryReader {
         endAtomStates[1] =modState.get(oneRes.getAtom(" CA "));
         endAtomStates[2] =modState.get(nRes.getAtom(" CA "));
         endAtomStates[3] =modState.get(n1Res.getAtom(" CA "));
+      } catch (AtomException ae) {
+        System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + currentPdb.toString());
+      }
+    } else {
+      System.err.println("No pdb set in PdbLibraryReader!");
+    }
+    return endAtomStates;
+  }
+  //}}}
+  
+  //{{{ getStemMtermAtoms
+  public Tuple3[] getStemNtermAtoms(Model fragment) {
+    //UberSet fragRes = (UberSet) residues;
+    UberSet fragRes = new UberSet(fragment.getResidues());
+    Tuple3[] endAtomStates = new Tuple3[3];
+    if (currentPdb != null) {
+      //Model firstMod = currentPdb.getFirstModel();
+      ModelState modState = fragment.getState();
+      Residue zeroRes = (Residue) fragRes.firstItem();
+      Residue oneRes = (Residue) fragRes.itemAfter(zeroRes);
+      Residue twoRes = (Residue) fragRes.itemAfter(oneRes);
+      //Residue n1Res = (Residue) fragRes.lastItem();
+      //Residue nRes = (Residue) fragRes.itemBefore(n1Res);
+      //System.out.println(zeroRes.getSequenceInteger() + " " + oneRes.getSequenceInteger() + " " + nRes.getSequenceInteger() + " " + n1Res.getSequenceInteger());
+      try {
+        endAtomStates[0] = modState.get(zeroRes.getAtom(" CA "));
+        endAtomStates[1] = modState.get(oneRes.getAtom(" CA "));
+        endAtomStates[2] = modState.get(twoRes.getAtom(" CA "));
+        //endAtomStates[2] =modState.get(nRes.getAtom(" CA "));
+        //endAtomStates[3] =modState.get(n1Res.getAtom(" CA "));
+      } catch (AtomException ae) {
+        System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + currentPdb.toString());
+      }
+    } else {
+      System.err.println("No pdb set in PdbLibraryReader!");
+    }
+    return endAtomStates;
+  }
+  //}}}
+  
+  //{{{ getStemCtermAtoms
+  public Tuple3[] getStemCtermAtoms(Model fragment) {
+    //UberSet fragRes = (UberSet) residues;
+    UberSet fragRes = new UberSet(fragment.getResidues());
+    Tuple3[] endAtomStates = new Tuple3[3];
+    if (currentPdb != null) {
+      //Model firstMod = currentPdb.getFirstModel();
+      ModelState modState = fragment.getState();
+      Residue n1Res = (Residue) fragRes.lastItem();
+      Residue nRes = (Residue) fragRes.itemBefore(n1Res);
+      Residue mRes = (Residue) fragRes.itemBefore(nRes);
+      //Residue n1Res = (Residue) fragRes.lastItem();
+      //Residue nRes = (Residue) fragRes.itemBefore(n1Res);
+      //System.out.println(zeroRes.getSequenceInteger() + " " + oneRes.getSequenceInteger() + " " + nRes.getSequenceInteger() + " " + n1Res.getSequenceInteger());
+      try {
+        endAtomStates[0] = modState.get(mRes.getAtom(" CA "));
+        endAtomStates[1] = modState.get(nRes.getAtom(" CA "));
+        endAtomStates[2] = modState.get(n1Res.getAtom(" CA "));
+        //endAtomStates[2] =modState.get(nRes.getAtom(" CA "));
+        //endAtomStates[3] =modState.get(n1Res.getAtom(" CA "));
       } catch (AtomException ae) {
         System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + currentPdb.toString());
       }

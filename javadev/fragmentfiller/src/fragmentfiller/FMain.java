@@ -253,7 +253,7 @@ public class FMain {
   public void writePdbs(CoordinateFile[] pdbs, String prefix) {
     for (CoordinateFile pdb : pdbs) {
       try {
-        File outFile = new File(prefix + pdb.getIdCode() + ".pdb");
+        File outFile = new File(prefix + pdb.getIdCode().trim() + ".pdb");
         PdbWriter writer = new PdbWriter(outFile);
         writer.writeCoordinateFile(pdb);
         writer.close();

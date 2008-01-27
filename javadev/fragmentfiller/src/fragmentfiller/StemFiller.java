@@ -260,23 +260,37 @@ public class StemFiller implements Filler {
         String info = listofFiller.get(ind);
         String[] splitInfo = info.split(" ");
         String pdbName = splitInfo[0]; // should be pdbname
+        String chain = splitInfo[1];
         int length = Integer.parseInt(splitInfo[1]);
         int startRes = Integer.parseInt(splitInfo[2]);
-        libReader.setCurrentPdb(pdbName);
-        Model frag = libReader.getFragment(Integer.toString(ind), startRes, length); //set of residues
+        libReader.setCurrentPdb(pdbName, chain);
+        Model frag = libReader.getFragment(Integer.toString(ind), chain, startRes, length); //set of residues
         if (frag != null) {
           //SuperPoser poser = null;
           Transform t = null;
           if (!ntermsup) {
-            SuperPoser poser = new SuperPoser(stem.getTupleArray(), libReader.getFragmentEndpointAtoms(frag));
+            SuperPoser poser;
+            if (stem.getStemType() == ProteinStem.N_TERM) {
+              poser = new SuperPoser(stem.getTupleArray(), libReader.getStemNtermAtoms(frag));
+            } else {
+              poser = new SuperPoser(stem.getTupleArray(), libReader.getStemCtermAtoms(frag));
+            }
             t = poser.superpos();
           } else {
             Builder builder = new Builder();
-            //Tuple3[] stemArray = stem.getNtermTuples();
-            //Tuple3[] fragArray = libReader.getFragmentNtermAtoms(frag);
-            //t = builder.dock3on3(
-            //stemArray[2], stemArray[0], stemArray[1],
-            //fragArray[2], fragArray[0], fragArray[1]);
+            if (stem.getStemType() == ProteinStem.N_TERM) {
+              Tuple3[] stemArray = stem.getTupleArray();
+              Tuple3[] fragArray = libReader.getStemNtermAtoms(frag);
+              t = builder.dock3on3(
+              stemArray[2], stemArray[1], stemArray[0],
+              fragArray[2], fragArray[1], fragArray[0]);
+            } else {
+              Tuple3[] stemArray = stem.getTupleArray();
+              Tuple3[] fragArray = libReader.getStemCtermAtoms(frag);
+              t = builder.dock3on3(
+              stemArray[0], stemArray[1], stemArray[2],
+              fragArray[0], fragArray[1], fragArray[2]);
+            }
           }
           //System.out.println(poser.calcRMSD(t));
           transform(frag, t);
