@@ -91,7 +91,7 @@ public class ProteinStem {
   }
   
   public String getSourceString() {
-    return sourceModName + sourceChain;
+    return (sourceModName + sourceChain).trim();
   }
   
   public int getStemType() {

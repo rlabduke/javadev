@@ -58,6 +58,7 @@ public class FMain {
   static File pdbLibrary = null;
   static int matchDiff;
   static boolean ntermsup = false;
+  static boolean useStems = false;
   //JFileChooser        filechooser     = null;
   //ProgressDialog progDiag;
   //KGroup group;
@@ -134,6 +135,8 @@ public class FMain {
           }
         } else if (arg.equals("-ntermsup")) {
           ntermsup = true;
+        } else if (arg.equals("-stems")) {
+          useStems = true;
         } else {
           System.err.println("*** Unrecognized option: "+arg);
         }
@@ -189,36 +192,29 @@ public class FMain {
       Integer end = simulatedGaps.get(start);
       analyzer.simulateGap(start.intValue(), end.intValue());
     }
-    Map<String, ArrayList<ProteinGap>> gaps = analyzer.getGaps();
-    FragFiller fragFill = new FragFiller(gaps);
-    ArrayList<ProteinGap> allGaps = new ArrayList<ProteinGap>();
-    //for (ArrayList list : gaps.values()) {
-    //  allGaps.addAll(list);
-    //}
-    //for (ProteinGap gap : allGaps) {
-    //  filledMap.put(gap, new ArrayList<String>());
-    //}
-    //Map<String, ArrayList> gapMap = analyzer.getGapAtoms();
-    //ArrayList<ArrayList<Double>> gapFrames = new ArrayList<ArrayList<Double>>();
-    //for (String name : gapMap.keySet()) {
-    //  String[] nameParts = Strings.explode(name, ",".charAt(0)); // Model,Chain,seq#ofres1,seq#ofresN
-    //  ArrayList gapAtomStates = gapMap.get(name);
-    //  ArrayList<Double> frame = getGapFrame(gapAtomStates);
-    //  frame.add(0, Double.valueOf(nameParts[2]));
-    //  frame.add(1, Double.valueOf(nameParts[3]));
-    //  gapFrames.add(frame);
-    //  gapFrameAtomsMap.put(frame, gapAtomStates);
-    //  filledMap.put(frame, new ArrayList<String>());
-    //}
-    //ArrayList<File> frameDataFiles = getFrameDataList();
-    fragFill.searchDB(matchDiff);
-    //scanLoopData(frameDataFiles, allGaps);
-    //for (ArrayList matchedInfo : filledMap.values()) {
-    //  System.out.println("# of matches: " + matchedInfo.size());
-    //}
-    System.out.println(fragFill.getMatchesInfo());
     readPdbLibrary();
-    CoordinateFile[] pdbOut = fragFill.getFragments(libReader);
+    CoordinateFile[] pdbOut;
+    if (!useStems) {
+      Map<String, ArrayList<ProteinGap>> gaps = analyzer.getGaps();
+      FragFiller fragFill = new FragFiller(gaps);
+      ArrayList<ProteinGap> allGaps = new ArrayList<ProteinGap>();
+      fragFill.searchDB(matchDiff);
+      /* for searching loop data not using a database.  probably doesn't work with neo5200 params.
+      scanLoopData(frameDataFiles, allGaps);
+      for (ArrayList matchedInfo : filledMap.values()) {
+        System.out.println("# of matches: " + matchedInfo.size());
+      }
+      */
+      System.out.println(fragFill.getMatchesInfo());
+      pdbOut = fragFill.getFragments(libReader);
+    } else {
+      Map<String, ArrayList<ProteinStem>> stems = analyzer.getStems();
+      StemFiller stemFill = new StemFiller(stems);
+      ArrayList<ProteinStem> allStems = new ArrayList<ProteinStem>();
+      stemFill.searchDB(matchDiff);
+      System.out.println(stemFill.getMatchesInfo());
+      pdbOut = stemFill.getFragments(libReader);
+    }
     writePdbs(pdbOut, outPrefix);
     writeKin(analyzer.getCoordFile(), pdbOut, outKinFile);
   }
@@ -253,7 +249,7 @@ public class FMain {
   public void writePdbs(CoordinateFile[] pdbs, String prefix) {
     for (CoordinateFile pdb : pdbs) {
       try {
-        File outFile = new File(prefix + pdb.getIdCode().trim() + ".pdb");
+        File outFile = new File(prefix + pdb.getIdCode() + ".pdb");
         PdbWriter writer = new PdbWriter(outFile);
         writer.writeCoordinateFile(pdb);
         writer.close();

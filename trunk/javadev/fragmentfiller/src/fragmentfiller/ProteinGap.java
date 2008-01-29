@@ -84,7 +84,7 @@ public class ProteinGap {
   }
   
   public String getSourceString() {
-    return sourceModName + sourceChain;
+    return (sourceModName + sourceChain).trim();
   }
   
   public Tuple3[] getTupleArray() {
