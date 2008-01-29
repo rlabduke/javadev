@@ -93,26 +93,34 @@ public class PdbFileAnalyzer {
       int seqNum = res.getSequenceInteger();
       if (seqNum > prevSeq + 1) {
         ArrayList<Residue> paramRes = new ArrayList<Residue>();
-        Residue twoRes = (Residue) uberChainSet.itemBefore(res);
-        Residue oneRes = (Residue) uberChainSet.itemBefore(twoRes);
-        Residue zeroRes = (Residue) uberChainSet.itemBefore(oneRes);
-        while (!containsCaO(zeroRes)&&!containsCaO(oneRes)&&!containsCa(twoRes)) {
-          twoRes = (Residue) uberChainSet.itemBefore(twoRes);
-          oneRes = (Residue) uberChainSet.itemBefore(twoRes);
-          zeroRes = (Residue) uberChainSet.itemBefore(oneRes);
+        try {
+          Residue twoRes = (Residue) uberChainSet.itemBefore(res);
+          Residue oneRes = (Residue) uberChainSet.itemBefore(twoRes);
+          Residue zeroRes = (Residue) uberChainSet.itemBefore(oneRes);
+          while (!containsCaO(zeroRes)&&!containsCaO(oneRes)&&!containsCa(twoRes)) {
+            twoRes = (Residue) uberChainSet.itemBefore(twoRes);
+            oneRes = (Residue) uberChainSet.itemBefore(twoRes);
+            zeroRes = (Residue) uberChainSet.itemBefore(oneRes);
+          }
+          ProteinStem n_stem = new ProteinStem(mod, chainId, zeroRes, oneRes, twoRes, ProteinStem.N_TERM);
+          stems.add(n_stem);
+        } catch (NoSuchElementException nsee) {
+          System.out.println("No nterm stem possible for " + res.toString());
         }
-        ProteinStem n_stem = new ProteinStem(mod, chainId, zeroRes, oneRes, twoRes, ProteinStem.N_TERM);
-        stems.add(n_stem);
-        Residue nRes = res;
-        Residue n1Res = (Residue) uberChainSet.itemAfter(nRes);
-        Residue n2Res = (Residue) uberChainSet.itemAfter(n1Res);
-        while (!containsCaO(nRes)&&!containsCaO(n1Res)&&!containsCa(n2Res)) {
-          nRes = (Residue) uberChainSet.itemAfter(nRes);
-          n1Res = (Residue) uberChainSet.itemAfter(nRes);
-          n2Res = (Residue) uberChainSet.itemAfter(n1Res);
+        try {
+          Residue nRes = res;
+          Residue n1Res = (Residue) uberChainSet.itemAfter(nRes);
+          Residue n2Res = (Residue) uberChainSet.itemAfter(n1Res);
+          while (!containsCaO(nRes)&&!containsCaO(n1Res)&&!containsCa(n2Res)) {
+            nRes = (Residue) uberChainSet.itemAfter(nRes);
+            n1Res = (Residue) uberChainSet.itemAfter(nRes);
+            n2Res = (Residue) uberChainSet.itemAfter(n1Res);
+          }
+          ProteinStem c_stem = new ProteinStem(mod, chainId, nRes, n1Res, n2Res, ProteinStem.C_TERM);
+          stems.add(c_stem);
+        } catch (NoSuchElementException nsee) {
+          System.out.println("No cterm stem possible for " + res.toString());
         }
-        ProteinStem c_stem = new ProteinStem(mod, chainId, nRes, n1Res, n2Res, ProteinStem.C_TERM);
-        stems.add(c_stem);
       }
       prevSeq = seqNum;
     }

@@ -50,7 +50,7 @@ public class StemFiller implements Filler {
   HashMap<ProteinStem, ArrayList<String>> filledMap; // gap (oneNum, nNum, frame) -> list of strings (pdbname length startResNum)
   //PdbLibraryReader libReader;
   static int matchDiff;
-  static boolean ntermsup = false;
+  //static boolean ntermsup = false;
   //JFileChooser        filechooser     = null;
   //ProgressDialog progDiag;
   //KGroup group;
@@ -123,13 +123,13 @@ public class StemFiller implements Filler {
       double endAng = stemParams.get(1);
       double startDih = stemParams.get(2);
       if (stem.getStemType() == ProteinStem.N_TERM) {
-        sqlSelect = sqlSelect.concat(createWhereQuery(startAng, "start_pair_angle", 15) + " \n");
-        sqlSelect = sqlSelect.concat(createWhereQuery(endAng, "sp_n_dihedral", 10) + " \n");
-        sqlSelect = sqlSelect.concat(createWhereQuery(startDih, "sp_c_dihedral", 10) + ";");
+        sqlSelect = sqlSelect.concat(createWhereQuery(startAng, "start_pair_angle", 5) + " \n");
+        sqlSelect = sqlSelect.concat(createWhereQuery(endAng, "sp_n_dihedral", 5) + " \n");
+        sqlSelect = sqlSelect.concat(createWhereQuery(startDih, "sp_c_dihedral", 5) + ";");
       } else {
-        sqlSelect = sqlSelect.concat(createWhereQuery(startAng, "end_pair_angle", 15) + " \n");
-        sqlSelect = sqlSelect.concat(createWhereQuery(endAng, "ep_n_dihedral", 10) + " \n");
-        sqlSelect = sqlSelect.concat(createWhereQuery(startDih, "ep_c_dihedral", 10) + ";");
+        sqlSelect = sqlSelect.concat(createWhereQuery(startAng, "end_pair_angle", 5) + " \n");
+        sqlSelect = sqlSelect.concat(createWhereQuery(endAng, "ep_n_dihedral", 5) + " \n");
+        sqlSelect = sqlSelect.concat(createWhereQuery(startDih, "ep_c_dihedral", 5) + ";");
       }
       System.out.println(sqlSelect);
       ArrayList<String> listofMatches = filledMap.get(stem);
@@ -147,7 +147,7 @@ public class StemFiller implements Filler {
     String info = "";
     for (ProteinStem stem : filledMap.keySet()) {
       ArrayList matchedInfo = filledMap.get(stem);
-      info = info.concat(stem.getSourceString() + " had " + matchedInfo.size() + " matches");
+      info = info.concat(stem.getSourceString() + " had " + matchedInfo.size() + " matches\n");
     }
     return info;
   }
@@ -252,7 +252,7 @@ public class StemFiller implements Filler {
   //}}}
   
   //{{{ getFragments
-  public CoordinateFile[] getFragments(PdbLibraryReader libReader) {
+  public CoordinateFile[] getFragments(PdbLibraryReader libReader, boolean ntermsup) {
     CoordinateFile[] fragPdbOut = new CoordinateFile[filledMap.keySet().size()];
     int i = 0;
     for (ProteinStem stem : filledMap.keySet()) {
@@ -262,7 +262,7 @@ public class StemFiller implements Filler {
       ArrayList<String> listofFiller = filledMap.get(stem);
       //ArrayList<Triple> stemFrameStates = stemFrameAtomsMap.get(stem);
       System.out.println(listofFiller.size());
-      for (int ind = 0; ((ind < 5000)&&(ind < listofFiller.size())); ind++) {
+      for (int ind = 0; ((ind < 10000)&&(ind < listofFiller.size())); ind++) {
         String info = listofFiller.get(ind);
         String[] splitInfo = info.split(" ");
         String pdbName = splitInfo[0]; // should be pdbname

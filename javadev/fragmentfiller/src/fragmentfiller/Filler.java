@@ -17,7 +17,7 @@ public interface Filler {
   
   //public void searchDB(ArrayList list);
   
-  public CoordinateFile[] getFragments(PdbLibraryReader libReader);
+  public CoordinateFile[] getFragments(PdbLibraryReader libReader, boolean ntermsup);
   
   public Tuple3[] getTupleArray(ArrayList<Triple> states);
   

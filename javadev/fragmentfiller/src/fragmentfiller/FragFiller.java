@@ -154,7 +154,7 @@ public class FragFiller implements Filler {
     String info = "";
     for (ProteinGap gap : filledMap.keySet()) {
       ArrayList matchedInfo = filledMap.get(gap);
-      info = info.concat(gap.getSourceString() + " had " + matchedInfo.size() + " matches");
+      info = info.concat(gap.getSourceString() + " had " + matchedInfo.size() + " matches\n");
     }
     return info;
   }
@@ -259,7 +259,7 @@ public class FragFiller implements Filler {
   //}}}
   
   //{{{ getFragments
-  public CoordinateFile[] getFragments(PdbLibraryReader libReader) {
+  public CoordinateFile[] getFragments(PdbLibraryReader libReader, boolean ntermsup) {
     CoordinateFile[] fragPdbOut = new CoordinateFile[filledMap.keySet().size()];
     int i = 0;
     for (ProteinGap gap : filledMap.keySet()) {

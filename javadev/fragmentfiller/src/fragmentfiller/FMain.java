@@ -194,8 +194,8 @@ public class FMain {
     }
     readPdbLibrary();
     CoordinateFile[] pdbOut;
+    Map<String, ArrayList<ProteinGap>> gaps = analyzer.getGaps();
     if (!useStems) {
-      Map<String, ArrayList<ProteinGap>> gaps = analyzer.getGaps();
       FragFiller fragFill = new FragFiller(gaps);
       ArrayList<ProteinGap> allGaps = new ArrayList<ProteinGap>();
       fragFill.searchDB(matchDiff);
@@ -206,14 +206,14 @@ public class FMain {
       }
       */
       System.out.println(fragFill.getMatchesInfo());
-      pdbOut = fragFill.getFragments(libReader);
+      pdbOut = fragFill.getFragments(libReader, ntermsup);
     } else {
       Map<String, ArrayList<ProteinStem>> stems = analyzer.getStems();
       StemFiller stemFill = new StemFiller(stems);
       ArrayList<ProteinStem> allStems = new ArrayList<ProteinStem>();
       stemFill.searchDB(matchDiff);
       System.out.println(stemFill.getMatchesInfo());
-      pdbOut = stemFill.getFragments(libReader);
+      pdbOut = stemFill.getFragments(libReader, ntermsup);
     }
     writePdbs(pdbOut, outPrefix);
     writeKin(analyzer.getCoordFile(), pdbOut, outKinFile);
