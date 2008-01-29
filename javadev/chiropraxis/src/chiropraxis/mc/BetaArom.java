@@ -91,9 +91,6 @@ public class BetaArom //extends ... implements ...
     /** "Tilt": angle btw Ca(arom)(i-1,i,i+1)-Ca(opp)(i-1,i,i+1): /...\  or \.../ */
     public double tilt;
     
-    /** Angle btw sidechain Ca-Cb vector and local "concavity vector" */
-    public double cacb_Concavity;
-    
     /** Some other angle not yet defined... */
     //?????
     

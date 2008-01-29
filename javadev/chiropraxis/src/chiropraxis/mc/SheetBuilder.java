@@ -27,14 +27,16 @@ public class SheetBuilder //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
-    String filename               = null;
-    boolean doBetaAroms           = false;
-    ArrayList<BetaArom> betaAroms = new ArrayList<BetaArom>();
-    TreeSet<String> oppResTypes   = null;
-    boolean doPrint               = true;
-    boolean doKin                 = false;
-    boolean verbose               = false;
-    Map resToSheetAxes            = null;
+    String filename                = null;
+    boolean doBetaAroms            = false;
+    ArrayList<BetaArom> betaAroms  = new ArrayList<BetaArom>();
+    TreeSet<String> oppResTypes    = null;
+    boolean doPrint                = true;
+    boolean doKin                  = false;
+    boolean verbose                = false;
+    Map resToSheetAxes             = null;
+    Map resToAcrossSheetAxes2      = null;
+    Map resToAlongSheetAxes3       = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -49,8 +51,7 @@ public class SheetBuilder //extends ... implements ...
 //##############################################################################
     void processModel(String modelName, Model model, ModelState state)
     {
-        if (verbose)
-            System.out.println("Processing model "+model+"...");
+        if (verbose) System.out.println("Processing model "+model+"...");
         
         // Create a set of Peptides and connect them up
         Collection peptides = createPeptides(model, state);
@@ -71,6 +72,33 @@ public class SheetBuilder //extends ... implements ...
         //Map angles = measureSheetAngles(peptides, normals, state);
         resToSheetAxes = measureSheetAngles(peptides, normals, state);
         
+        // Similar to Ian's two methods above ^^^, but works on pairs of planes
+        // from a strand to its two neighbor strands instead of on a single 
+        // plane through all three strands.
+        // This helps measure concavity vs. convexity along the "cross-strand"
+        // direction.
+        if (doKin)
+        {
+            System.out.println("@kinemage 1");
+            System.out.println("@group {across normals => concave} dominant");
+            System.out.println("@vectorlist {across normals => concave} color= lilac");
+        }
+        Map acrossNormals = calcAcrossSheetNormals(peptides, model, state); // also contains centroid1to2
+        resToAcrossSheetAxes2 = measureAcrossSheetAngles(peptides, acrossNormals, state);
+        
+        // Similar to the above two methods, but works on pairs of planes spaced 
+        // *along* the central strand rather than *across* the three strands.
+        // This helps measure concavity vs. convexity along the "along-strand"
+        // direction.
+        if (doKin)
+        {
+            System.out.println("@group {along normals => concave} dominant");
+            System.out.println("@vectorlist {along normals => concave} color= pink");
+        }
+        Map alongNormals = calcAlongSheetNormals(peptides, model, state); // also contains centroid1to2
+        resToAlongSheetAxes3 = measureAlongSheetAngles(peptides, alongNormals, state);
+        
+        
         if (doBetaAroms)
         {
             // This is the stuff Daniel Keedy and Ed Triplett came up with 
@@ -82,8 +110,6 @@ public class SheetBuilder //extends ... implements ...
             addBetaAroms(peptides, model, state);
             if (doKin)
             {
-                System.out.println("@text");
-                System.out.println("@kinemage 1");
                 sketchHbonds(System.out, peptides, state);
                 sketchBetaAroms(System.out, state);
             }
@@ -452,10 +478,6 @@ public class SheetBuilder //extends ... implements ...
                                 Triple normOpp  = new Triple().likeNormal(ca_iminus1Opp, caOpp, ca_iplus1Opp);
                                 ba.tilt = normArom.angle(normOpp);
                                 
-                                // Angle indicating whether CaCb points toward concave or convex side
-                                // of sheet (< 90 concave, > 90 convex)
-                                ba.cacb_Concavity = calcConcavity(pepM.cRes, state, peptides);
-                                
                                 // Some other angles/measurements...
                                 //???
                                 
@@ -649,93 +671,6 @@ public class SheetBuilder //extends ... implements ...
     }
 //}}}
 
-//{{{ calcConcavity
-//##############################################################################
-    /**
-    * Returns an angle btw the CaCb vector and the local "concavity vector."
-    * Goal: to indicate whether CaCb points toward the concave or the convex 
-    * side of the sheet (< 90 concave, > 90 convex).
-    */
-    double calcConcavity(Residue res, ModelState state, Collection peptides)
-    {
-        Peptide nPep = null, cPep = null;
-        for(Iterator iter = peptides.iterator(); iter.hasNext(); )
-        {
-            Peptide p = (Peptide) iter.next();
-            if(p.nRes != null && p.nRes.equals(res))   nPep = p;
-            if(p.cRes != null && p.cRes.equals(res))   cPep = p;
-        }
-        
-        if(cPep != null && cPep.hbondN != null && cPep.hbondO != null
-        && nPep != null && nPep.hbondN != null && nPep.hbondO != null
-        && cPep.isBeta && cPep.hbondN.isBeta && cPep.hbondO.isBeta
-        && nPep.isBeta && nPep.hbondN.isBeta && nPep.hbondO.isBeta)
-        {
-            // Normal1: thru cPep's C=O ("opposite" strand for plus aromatics)
-            Collection guidePts1 = new ArrayList();
-            guidePts1.add(cPep.midpoint);
-            guidePts1.add(nPep.midpoint);
-            guidePts1.add(cPep.hbondO.midpoint);
-            guidePts1.add(nPep.hbondN.midpoint);
-            LsqPlane lsqPlane1 = new LsqPlane(guidePts1);
-            Triple normal1 = new Triple(lsqPlane1.getNormal());
-            Triple anchor1 = new Triple(lsqPlane1.getAnchor());
-            try // to make this normal point toward the middle strand
-            {
-                AtomState ca = state.get(res.getAtom(" CA "));
-                Triple toCa = new Triple(ca).sub(anchor1);
-                if(normal1.dot(toCa) < 0)   normal1.neg();
-            }
-            catch(AtomException ex) {}
-            
-            // Normal2: thru cPep's N-H
-            Collection guidePts2 = new ArrayList();
-            guidePts2.add(cPep.midpoint);
-            guidePts2.add(nPep.midpoint);
-            guidePts2.add(cPep.hbondN.midpoint);
-            guidePts2.add(nPep.hbondO.midpoint);
-            LsqPlane lsqPlane2 = new LsqPlane(guidePts2);
-            Triple normal2 = new Triple(lsqPlane2.getNormal());
-            Triple anchor2 = new Triple(lsqPlane2.getAnchor());
-            try // to make this normal point toward the middle strand
-            {
-                AtomState ca = state.get(res.getAtom(" CA "));
-                Triple toCa = new Triple(ca).sub(anchor2);
-                if(normal2.dot(toCa) < 0)   normal2.neg();
-            }
-            catch(AtomException ex) {}
-            
-            // Now that the two side-planes' normals are pointing toward the
-            // central strand, we know that their vector sum indicates the
-            // *concave* direction of the local beta sheet!
-            // Therefore, the angle btw CaCb and the normals' vector sum tells
-            // us whether the CaCb vector points toward the concave or convex
-            // side of the sheet: < 90 concave, > 90 convex.
-            try
-            {
-                Triple normalsSum = new Triple().likeSum(normal1, normal2).unit();
-                AtomState ca = state.get(res.getAtom(" CA "));
-                AtomState cb = state.get(res.getAtom(" CB "));
-                Triple cacb = new Triple(cb).sub(ca);
-                //if (verbose)
-                //{
-                //    System.out.println("@group {"+res+" concav norms} dominant");
-                //    System.out.println("@vectorlist");
-                //    System.out.println("{norm1 anchor}P "+anchor1.toString().replace(',', ' '));
-                //    System.out.println("{norm1 head} "+anchor1.add(normal1).toString().replace(',', ' '));
-                //    System.out.println("{norm2 anchor}P "+anchor2.toString().replace(',', ' '));
-                //    System.out.println("{norm2 head} "+anchor2.add(normal2).toString().replace(',', ' '));
-                //    System.out.println("{cacb anchor}P "+new Triple(ca).toString().replace(',', ' '));
-                //    System.out.println("{cacb head} "+new Triple(cb).toString().replace(',', ' '));
-                //}
-                return normalsSum.angle(cacb);
-            }
-            catch(AtomException ex) {} // oh well (e.g. Gly)
-        }
-        return Double.NaN; 
-    }
-//}}}
-
 //{{{ calcSheetNormals
 //##############################################################################
     /**
@@ -831,6 +766,381 @@ public class SheetBuilder //extends ... implements ...
     }
 //}}}
 
+//{{{ calcAcrossSheetNormals
+//##############################################################################
+    /**
+    * Returns a Map&lt;Residue, Triple[2]&gt; that maps each Residue in model
+    * that falls in a "reasonable" part of the beta sheet to a Triple[2] containing 
+    * the unit vector sum of the normals of planes defined by a dipeptide on the 
+    * central strand and a corresponding dipeptide on the "opposite" (thru cPep's C=O) 
+    * and "other opposite" (thru cPep's C=O) strands, as well as a vector pointing 
+    * from the former plane's centroid to the latter plane's centroid.
+    * This only works if there's a strand on both sides!
+    * Note that before their summation and unit-vector-ification, the two normals 
+    * have been inverted if necessary so that they both point toward the central 
+    * strand. However, this *hasn't* been done to CaCb! This way, the normals' 
+    * unit sum forms a local "concavity vector" for comparison with CaCb once 
+    * the requisite projections are performed (happens within SheetAxes2).
+    */
+    Map calcAcrossSheetNormals(Collection peptides, Model model, ModelState state)
+    {
+        // Allow mapping from residues to the peptides that hold them.
+        Map cPeptides = new HashMap(), nPeptides = new HashMap();
+        for(Iterator iter = peptides.iterator(); iter.hasNext(); )
+        {
+            Peptide p = (Peptide) iter.next();
+            if(p.cRes != null) cPeptides.put(p.cRes, p);
+            if(p.nRes != null) nPeptides.put(p.nRes, p);
+        }
+        
+        Map normals2 = new HashMap();
+        for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
+        {
+            Residue res = (Residue) iter.next();
+            Peptide cPep = (Peptide) cPeptides.get(res);
+            Peptide nPep = (Peptide) nPeptides.get(res);
+            if(cPep != null && cPep.hbondN != null && cPep.hbondO != null
+            && nPep != null && nPep.hbondN != null && nPep.hbondO != null
+            && cPep.isBeta && cPep.hbondN.isBeta && cPep.hbondO.isBeta
+            && nPep.isBeta && nPep.hbondN.isBeta && nPep.hbondO.isBeta)
+            {
+                String aromResnum = cPep.cRes.getSequenceNumber();
+                // Normal1: thru cPep's C=O ("opposite" strand for plus aromatics)
+                Collection guidePts1 = new ArrayList();
+                guidePts1.add(cPep.midpoint);
+                guidePts1.add(nPep.midpoint);
+                guidePts1.add(cPep.hbondO.midpoint);
+                guidePts1.add(nPep.hbondN.midpoint);
+                LsqPlane lsqPlane1 = new LsqPlane(guidePts1);
+                Triple normal1 = new Triple(lsqPlane1.getNormal());
+                Triple anchor1 = new Triple(lsqPlane1.getAnchor());
+                if (doKin)
+                {
+                    Triple anchor1PlusNormal1 = new Triple().likeSum(anchor1, new Triple(normal1).mult(2));
+                    System.out.println("{"+aromResnum+" orig across normal1}P "+
+                        anchor1.getX()+" "+
+                        anchor1.getY()+" "+
+                        anchor1.getZ());
+                    System.out.println("{"+aromResnum+" orig across normal1} "+
+                        anchor1PlusNormal1.getX()+" "+
+                        anchor1PlusNormal1.getY()+" "+
+                        anchor1PlusNormal1.getZ());
+                }
+                
+                // Normal2: thru cPep's N-H
+                Collection guidePts2 = new ArrayList();
+                guidePts2.add(cPep.midpoint);
+                guidePts2.add(nPep.midpoint);
+                guidePts2.add(cPep.hbondN.midpoint);
+                guidePts2.add(nPep.hbondO.midpoint);
+                LsqPlane lsqPlane2 = new LsqPlane(guidePts2);
+                Triple normal2 = new Triple(lsqPlane2.getNormal());
+                Triple anchor2 = new Triple(lsqPlane2.getAnchor());
+                if (doKin)
+                {
+                    Triple anchor2PlusNormal2 = new Triple().likeSum(anchor2, new Triple(normal2).mult(2));
+                    System.out.println("{"+aromResnum+" orig across normal2}P "+
+                        anchor2.getX()+" "+
+                        anchor2.getY()+" "+
+                        anchor2.getZ());
+                    System.out.println("{"+aromResnum+" orig across normal2} "+
+                        anchor2PlusNormal2.getX()+" "+
+                        anchor2PlusNormal2.getY()+" "+
+                        anchor2PlusNormal2.getZ());
+                }
+                
+                // Try to make both normals point toward the middle strand
+                Triple anchor1to2 = new Triple().likeVector(anchor1, anchor2);
+                Triple anchor2to1 = new Triple().likeVector(anchor2, anchor1);
+                if(normal1.dot(anchor1to2) < 0)   normal1.neg();
+                if(normal2.dot(anchor2to1) < 0)   normal2.neg();
+                if (doKin)
+                {
+                    Triple newAnchor1PlusNormal1 = new Triple().likeSum(anchor1, new Triple(normal1).mult(2));
+                    System.out.println("{"+aromResnum+" new across normal1}P "+
+                        anchor1.getX()+" "+
+                        anchor1.getY()+" "+
+                        anchor1.getZ());
+                    System.out.println("{"+aromResnum+" new across normal1} "+
+                        newAnchor1PlusNormal1.getX()+" "+
+                        newAnchor1PlusNormal1.getY()+" "+
+                        newAnchor1PlusNormal1.getZ());
+                    Triple newAnchor2PlusNormal2 = new Triple().likeSum(anchor2, new Triple(normal2).mult(2));
+                    System.out.println("{"+aromResnum+" new across normal2}P "+
+                        anchor2.getX()+" "+
+                        anchor2.getY()+" "+
+                        anchor2.getZ());
+                    System.out.println("{"+aromResnum+" new across normal2} "+
+                        newAnchor2PlusNormal2.getX()+" "+
+                        newAnchor2PlusNormal2.getY()+" "+
+                        newAnchor2PlusNormal2.getZ());
+                }
+                
+                if (verbose) System.out.println(
+                    "'"+cPep.cRes+"' across-strand normal1-2\t"+normal1.angle(normal2));
+                if (normal1.angle(normal2) < 90)
+                {
+                    //   ...res...                   \ ...res... /    <= bad normals
+                    //  /         \    instead of     /         \     <= planes
+                    //   \       /                                    <= good normals
+                    
+                    // Now that the two side-planes' normals are pointing toward the
+                    // central strand (as above), we know that their vector sum 
+                    // indicates the *concave* direction of the local beta sheet!
+                    Triple[] vectors = new Triple[2];
+                    vectors[0] = new Triple().likeSum(normal1, normal2).unit();
+                    vectors[1] = new Triple(anchor2).sub(anchor1);
+                    normals2.put(res, vectors);
+                }
+            }
+        }
+        return normals2;
+    }
+//}}}
+
+//{{{ measureAcrossSheetAngles
+//##############################################################################
+    /** Returns a map of Residues to SheetAxes2 */
+    Map measureAcrossSheetAngles(Collection peptides, Map normals2, ModelState state)
+    {
+        // Allow mapping from residues to the peptides that hold them.
+        Map cPeptides = new HashMap(), nPeptides = new HashMap();
+        for(Iterator iter = peptides.iterator(); iter.hasNext(); )
+        {
+            Peptide p = (Peptide) iter.next();
+            if(p.cRes != null) cPeptides.put(p.cRes, p);
+            if(p.nRes != null) nPeptides.put(p.nRes, p);
+        }
+        
+        Map angles2 = new HashMap();
+        for(Iterator iter = normals2.keySet().iterator(); iter.hasNext(); )
+        {
+            Residue res      = (Residue) iter.next();
+            Triple[] vectors = (Triple[]) normals2.get(res);
+            Peptide cPep     = (Peptide) cPeptides.get(res);
+            Peptide nPep     = (Peptide) nPeptides.get(res);
+            if(cPep == null || nPep == null) continue;
+            Triple  n2c      = new Triple(cPep.midpoint).sub(nPep.midpoint);
+            try
+            {
+                AtomState   ca      = state.get(res.getAtom(" CA "));
+                AtomState   cb      = state.get(res.getAtom(" CB "));
+                Triple      cacb    = new Triple(cb).sub(ca);
+                SheetAxes2  axes2   = new SheetAxes2(vectors[0], vectors[1], n2c, cacb);
+                angles2.put(res, axes2);
+            }
+            catch(AtomException ex) {}
+        }
+        return angles2;
+    }
+//}}}
+
+//{{{ calcAlongSheetNormals
+//##############################################################################
+    /**
+    * Returns a Map&lt;Residue, Triple[3]&gt; that maps each Residue in model
+    * that falls in a "reasonable" part of the beta sheet to a Triple[3] containing:
+    *   (1) the unit vector sum of the normals of the two planes defined by
+    *       the most and second-most N-ward (relative to the central strand) 
+    *       peptides on each of the two adjacent strands, and the most and 
+    *       second-most C-ward (relative to the central strand) peptides on each
+    *       of the two adjacent strands
+    *   (2) a vector pointing from the former plane's centroid to the 
+    *       latter plane's centroid
+    *   (3) a normal to the central four peptides' plane (not counting the central
+    *       strand), to serve at an approximation to the local along-strand coord
+    *       system.
+    * This only works for a given central residue if there's a "reasonable" 
+    * strand on both sides!
+    * Note that before their summation and unit-vector-ification, the two normals 
+    * have been inverted if necessary so that they both point in the general
+    * direction of the central residue. However, this *hasn't* been done to CaCb! 
+    * This way, the normals' unit sum forms a local "concavity vector" for 
+    * comparison with CaCb once the requisite projections are performed (happens
+    * within SheetAxes3).
+    */
+    Map calcAlongSheetNormals(Collection peptides, Model model, ModelState state)
+    {
+        // Allow mapping from residues to the peptides that hold them.
+        Map cPeptides = new HashMap(), nPeptides = new HashMap();
+        for(Iterator iter = peptides.iterator(); iter.hasNext(); )
+        {
+            Peptide p = (Peptide) iter.next();
+            if(p.cRes != null) cPeptides.put(p.cRes, p);
+            if(p.nRes != null) nPeptides.put(p.nRes, p);
+        }
+        
+        Map normals3 = new HashMap();
+        for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
+        {
+            Residue res = (Residue) iter.next();
+            Peptide cPep = (Peptide) cPeptides.get(res);
+            Peptide nPep = (Peptide) nPeptides.get(res);
+            if(cPep != null && cPep.hbondN != null && cPep.hbondO != null
+            && nPep != null && nPep.hbondN != null && nPep.hbondO != null
+            && cPep.isBeta && cPep.hbondN.isBeta && cPep.hbondO.isBeta
+            && nPep.isBeta && nPep.hbondN.isBeta && nPep.hbondO.isBeta)
+            {
+                // Figure out which peptide relative to each of the (c,n)Pep.hbond(N,O)
+                // is closest to the central Calpha and therefore should be used.
+                // This just depends on whether we're in || or anti-|| sheet.
+                Peptide nPepHbNNeighbor = null, nPepHbONeighbor = null, 
+                        cPepHbNNeighbor = null, cPepHbONeighbor = null;
+                if (nPep.isParallelN)  nPepHbNNeighbor = nPep.hbondN.prev;
+                else                   nPepHbNNeighbor = nPep.hbondN.next; // anti-||
+                if (nPep.isParallelO)  nPepHbONeighbor = nPep.hbondO.prev;
+                else                   nPepHbONeighbor = nPep.hbondO.next; // anti-||
+                if (cPep.isParallelN)  cPepHbNNeighbor = cPep.hbondN.next;
+                else                   cPepHbNNeighbor = cPep.hbondN.prev; // anti-||
+                if (cPep.isParallelO)  cPepHbONeighbor = cPep.hbondO.next;
+                else                   cPepHbONeighbor = cPep.hbondO.prev; // anti-||
+                if (nPepHbNNeighbor != null && nPepHbONeighbor != null
+                &&  cPepHbNNeighbor != null && cPepHbONeighbor != null
+                &&  nPepHbNNeighbor.isBeta  && nPepHbONeighbor.isBeta
+                &&  cPepHbNNeighbor.isBeta  && cPepHbONeighbor.isBeta)
+                {
+                    String aromResnum = cPep.cRes.getSequenceNumber();
+                    // Normal1: N-ward on central strand
+                    Collection guidePts1 = new ArrayList();
+                    guidePts1.add(nPep.hbondN.midpoint);
+                    guidePts1.add(nPep.hbondO.midpoint);
+                    guidePts1.add(nPepHbNNeighbor.midpoint);
+                    guidePts1.add(nPepHbONeighbor.midpoint);
+                    LsqPlane lsqPlane1 = new LsqPlane(guidePts1);
+                    Triple normal1 = new Triple(lsqPlane1.getNormal());
+                    Triple anchor1 = new Triple(lsqPlane1.getAnchor());
+                    if (doKin)
+                    {
+                        Triple anchor1PlusNormal1 = new Triple().likeSum(anchor1, new Triple(normal1).mult(2));
+                        System.out.println("{"+aromResnum+" orig along normal1}P "+
+                            anchor1.getX()+" "+
+                            anchor1.getY()+" "+
+                            anchor1.getZ());
+                        System.out.println("{"+aromResnum+" orig along normal1} "+
+                            anchor1PlusNormal1.getX()+" "+
+                            anchor1PlusNormal1.getY()+" "+
+                            anchor1PlusNormal1.getZ());
+                    }
+                    
+                    // Normal2: C-ward on central strand
+                    Collection guidePts2 = new ArrayList();
+                    guidePts2.add(cPep.hbondN.midpoint);
+                    guidePts2.add(cPep.hbondO.midpoint);
+                    guidePts2.add(cPepHbNNeighbor.midpoint);
+                    guidePts2.add(cPepHbONeighbor.midpoint);
+                    LsqPlane lsqPlane2 = new LsqPlane(guidePts2);
+                    Triple normal2 = new Triple(lsqPlane2.getNormal());
+                    Triple anchor2 = new Triple(lsqPlane2.getAnchor());
+                    if (doKin)
+                    {
+                        Triple anchor2PlusNormal2 = new Triple().likeSum(anchor2, new Triple(normal2).mult(2));
+                        System.out.println("{"+aromResnum+" orig along normal2}P "+
+                            anchor2.getX()+" "+
+                            anchor2.getY()+" "+
+                            anchor2.getZ());
+                        System.out.println("{"+aromResnum+" orig along normal2} "+
+                            anchor2PlusNormal2.getX()+" "+
+                            anchor2PlusNormal2.getY()+" "+
+                            anchor2PlusNormal2.getZ());
+                    }
+                    
+                    // Try to make both normals point in the general direction of
+                    // the central residue
+                    Triple anchor1to2 = new Triple().likeVector(anchor1, anchor2);
+                    Triple anchor2to1 = new Triple().likeVector(anchor2, anchor1);
+                    if(normal1.dot(anchor1to2) < 0)   normal1.neg();
+                    if(normal2.dot(anchor2to1) < 0)   normal2.neg();
+                    if (doKin)
+                    {
+                        Triple newAnchor1PlusNormal1 = new Triple().likeSum(anchor1, new Triple(normal1).mult(2));
+                        System.out.println("{"+aromResnum+" new along normal1}P "+
+                            anchor1.getX()+" "+
+                            anchor1.getY()+" "+
+                            anchor1.getZ());
+                        System.out.println("{"+aromResnum+" new along normal1} "+
+                            newAnchor1PlusNormal1.getX()+" "+
+                            newAnchor1PlusNormal1.getY()+" "+
+                            newAnchor1PlusNormal1.getZ());
+                        Triple newAnchor2PlusNormal2 = new Triple().likeSum(anchor2, new Triple(normal2).mult(2));
+                        System.out.println("{"+aromResnum+" new along normal2}P "+
+                            anchor2.getX()+" "+
+                            anchor2.getY()+" "+
+                            anchor2.getZ());
+                        System.out.println("{"+aromResnum+" new along normal2} "+
+                            newAnchor2PlusNormal2.getX()+" "+
+                            newAnchor2PlusNormal2.getY()+" "+
+                            newAnchor2PlusNormal2.getZ());
+                    }
+                    
+                    // Make an approximation to the Z axis in order to define the
+                    // coordinate plane. Its up-or-down direction is irrelevant
+                    // since CaCb and the normals' sum will be defined in the same 
+                    // coord system, i.e. relative to zAxis, so comparisons btw 
+                    // them are valid.
+                    Collection guidePts3 = new ArrayList();
+                    guidePts3.add(nPep.hbondN.midpoint);
+                    guidePts3.add(nPep.hbondO.midpoint);
+                    guidePts3.add(cPep.hbondN.midpoint);
+                    guidePts3.add(cPep.hbondO.midpoint);
+                    LsqPlane lsqPlane3 = new LsqPlane(guidePts3);
+                    
+                    if (verbose) System.out.println(
+                        "'"+cPep.cRes+"' along-strand normal1-2\t"+normal1.angle(normal2));
+                    if (normal1.angle(normal2) < 90)
+                    {
+                        // Now that the two side-planes' normals are pointing toward the
+                        // central residue, we know that their vector sum indicates the
+                        // *concave* direction of the local beta sheet!
+                        Triple[] vectors = new Triple[3];
+                        vectors[0] = new Triple().likeSum(normal1, normal2).unit();
+                        vectors[1] = new Triple(anchor2).sub(anchor1);
+                        vectors[2] = new Triple(lsqPlane3.getNormal()); // the approx Z axis
+                        normals3.put(res, vectors);
+                    }
+                }
+            }
+        }
+        return normals3;
+    }
+//}}}
+
+//{{{ measureAlongSheetAngles
+//##############################################################################
+    /** Returns a map of Residues to SheetAxes2 */
+    Map measureAlongSheetAngles(Collection peptides, Map normals3, ModelState state)
+    {
+        // Allow mapping from residues to the peptides that hold them.
+        Map cPeptides = new HashMap(), nPeptides = new HashMap();
+        for(Iterator iter = peptides.iterator(); iter.hasNext(); )
+        {
+            Peptide p = (Peptide) iter.next();
+            if(p.cRes != null) cPeptides.put(p.cRes, p);
+            if(p.nRes != null) nPeptides.put(p.nRes, p);
+        }
+        
+        Map angles3 = new HashMap();
+        for(Iterator iter = normals3.keySet().iterator(); iter.hasNext(); )
+        {
+            Residue res      = (Residue) iter.next();
+            Triple[] vectors = (Triple[]) normals3.get(res);
+            Peptide cPep     = (Peptide) cPeptides.get(res);
+            Peptide nPep     = (Peptide) nPeptides.get(res);
+            if(cPep == null || nPep == null) continue;
+            Triple  n2c      = new Triple(cPep.midpoint).sub(nPep.midpoint);
+            try
+            {
+                AtomState   ca      = state.get(res.getAtom(" CA "));
+                AtomState   cb      = state.get(res.getAtom(" CB "));
+                Triple      cacb    = new Triple(cb).sub(ca);
+                SheetAxes3  axes3   = new SheetAxes3(vectors[0], vectors[1], vectors[2], cacb);
+                angles3.put(res, axes3);
+            }
+            catch(AtomException ex) {}
+        }
+        return angles3;
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##############################################################################
 //}}}
@@ -920,7 +1230,7 @@ public class SheetBuilder //extends ... implements ...
     {
         DecimalFormat df = new DecimalFormat("0.0###");
         out.println("@group {p aroms in beta}");
-        out.println("@balllist {p aroms in beta} radius= 0.3 color= hotpink");
+        out.println("@balllist {BetaAroms} radius= 0.3 color= hotpink");
         try
         {
             for (BetaArom ba : betaAroms)
@@ -935,6 +1245,126 @@ public class SheetBuilder //extends ... implements ...
         catch (AtomException ae)
         {
             System.err.println("Can't get coords to sketch ball for beta arom CA...");
+        }
+        
+        out.println("@vectorlist {across SheetAxes2 vectors} color= yellow off");
+        try
+        {
+            for (BetaArom ba : betaAroms)
+            {
+                for(Iterator iter = resToAcrossSheetAxes2.keySet().iterator(); iter.hasNext(); )
+                {
+                    Residue res = (Residue) iter.next();
+                    if (res.equals(ba.aromRes))
+                    {
+                        AtomState ca = state.get(ba.aromRes.getAtom(" CA "));
+                        SheetAxes2 axes2 = (SheetAxes2) resToAcrossSheetAxes2.get(res);
+                        
+                        Triple caPlusNormal12 = new Triple().likeSum(ca, axes2.normal.mult(2));
+                        out.println("{normal1+2 unit vector}P "+
+                            df.format(ca.getX())+" "+
+                            df.format(ca.getY())+" "+
+                            df.format(ca.getZ()));
+                        out.println("{normal1+2 unit vector} "+
+                            df.format(caPlusNormal12.getX())+" "+
+                            df.format(caPlusNormal12.getY())+" "+
+                            df.format(caPlusNormal12.getZ()));
+                        
+                        Triple caPlusStrand = new Triple().likeSum(ca, axes2.strand.mult(2));
+                        out.println("{strand}P "+
+                            df.format(ca.getX())+" "+
+                            df.format(ca.getY())+" "+
+                            df.format(ca.getZ()));
+                        out.println("{strand} "+
+                            df.format(caPlusStrand.getX())+" "+
+                            df.format(caPlusStrand.getY())+" "+
+                            df.format(caPlusStrand.getZ()));
+                        
+                        Triple caPlusZAxis = new Triple().likeSum(ca, axes2.zAxis.mult(2));
+                        out.println("{zAxis}P "+
+                            df.format(ca.getX())+" "+
+                            df.format(ca.getY())+" "+
+                            df.format(ca.getZ()));
+                        out.println("{zAxis} "+    df.format(caPlusZAxis.getX())+" "+
+                            df.format(caPlusZAxis.getY())+" "+
+                            df.format(caPlusZAxis.getZ()));
+                        
+                        Triple caPlusCross = new Triple().likeSum(ca, axes2.cross.mult(2));
+                        out.println("{cross}P "+
+                            df.format(ca.getX())+" "+
+                            df.format(ca.getY())+" "+
+                            df.format(ca.getZ()));
+                        out.println("{cross} "+
+                            df.format(caPlusCross.getX())+" "+
+                            df.format(caPlusCross.getY())+" "+
+                            df.format(caPlusCross.getZ()));
+                    }
+                }
+            }
+        }
+        catch (AtomException ae)
+        {
+            System.err.println("Can't get coords to sketch SheetAxes2 vectors...");
+        }
+        
+        out.println("@vectorlist {along SheetAxes3 vectors} color= sky off");
+        try
+        {
+            for (BetaArom ba : betaAroms)
+            {
+                for(Iterator iter = resToAlongSheetAxes3.keySet().iterator(); iter.hasNext(); )
+                {
+                    Residue res = (Residue) iter.next();
+                    if (res.equals(ba.aromRes))
+                    {
+                        AtomState ca = state.get(ba.aromRes.getAtom(" CA "));
+                        SheetAxes3 axes3 = (SheetAxes3) resToAlongSheetAxes3.get(res);
+                        
+                        Triple caPlusNormal12 = new Triple().likeSum(ca, axes3.normal.mult(2));
+                        out.println("{normal1+2 unit vector}P "+
+                            df.format(ca.getX())+" "+
+                            df.format(ca.getY())+" "+
+                            df.format(ca.getZ()));
+                        out.println("{normal1+2 unit vector} "+
+                            df.format(caPlusNormal12.getX())+" "+
+                            df.format(caPlusNormal12.getY())+" "+
+                            df.format(caPlusNormal12.getZ()));
+                        
+                        Triple caPlusStrand = new Triple().likeSum(ca, axes3.strand.mult(2));
+                        out.println("{strand}P "+
+                            df.format(ca.getX())+" "+
+                            df.format(ca.getY())+" "+
+                            df.format(ca.getZ()));
+                        out.println("{strand} "+
+                            df.format(caPlusStrand.getX())+" "+
+                            df.format(caPlusStrand.getY())+" "+
+                            df.format(caPlusStrand.getZ()));
+                        
+                        Triple caPlusZAxis = new Triple().likeSum(ca, axes3.zAxis.mult(2));
+                        out.println("{zAxis}P "+
+                            df.format(ca.getX())+" "+
+                            df.format(ca.getY())+" "+
+                            df.format(ca.getZ()));
+                        out.println("{zAxis} "+    df.format(caPlusZAxis.getX())+" "+
+                            df.format(caPlusZAxis.getY())+" "+
+                            df.format(caPlusZAxis.getZ()));
+                        
+                        Triple caPlusCross = new Triple().likeSum(ca, axes3.cross.mult(2));
+                        out.println("{cross}P "+
+                            df.format(ca.getX())+" "+
+                            df.format(ca.getY())+" "+
+                            df.format(ca.getZ()));
+                        out.println("{cross} "+
+                            df.format(caPlusCross.getX())+" "+
+                            df.format(caPlusCross.getY())+" "+
+                            df.format(caPlusCross.getZ()));
+                    }
+                }
+            }
+        }
+        catch (AtomException ae)
+        {
+            System.err.println("Can't get coords to sketch SheetAxes3 vectors...");
         }
     }
 //}}}
@@ -1157,24 +1587,21 @@ public class SheetBuilder //extends ... implements ...
     void printBetaAromStats(PrintStream out)
     {
         DecimalFormat df = new DecimalFormat("0.0###");
+        
+        // Header
         out.println("pdb:arom_res:arom_res_type:opp_res:opp_res_type:"+
             "aromNumBetaResN:aromNumBetaResC:oppNumBetaResN:oppNumBetaResC:"+
             "CbCaCa:nwardDhdrl:cwardDhdrl:minusDhdrl:plusDhdrl:"+
             "aromSimpAng:oppSimpAng:"+
             "fray:tilt:"+
-            "CaCb_Concavity:"+
-            "CaCb_6CaNormal:CaCb_Across:CaCb_Along");
-            //"cb(arom)_ca(arom)_ca(opp):"+
-            //"ca(arom,i-1)_ca(arom,i)_ca(opp,i)_ca(opp,i+1):"+
-            //"ca(arom,i+1)_ca(arom,i)_ca(opp,i)_ca(opp,i-1):"+
-            //"ca(arom,i-1)_ca(arom,i)_ca(opp,i)_ca(opp,i-1):"+
-            //"ca(arom,i+1)_ca(arom,i)_ca(opp,i)_ca(opp,i+1):"+
-            //"arom_simple_angle:"+
-            //"opp_simple_angle:"+
-            
+            "CaCb_6CaNormal:CaCb_Across:CaCb_Along:"+
+            "CaCb_AcrossConcavity:"+
+            "CaCb_AlongConcavity");
+        
+        // Data
         for (BetaArom ba : betaAroms)
         {
-            // DAK's beta aromatic angles
+            // BetaArom angles
             out.print(ba.pdb+
                 ":"+ba.aromRes+
                 ":"+ba.aromRes.getName()+
@@ -1193,10 +1620,8 @@ public class SheetBuilder //extends ... implements ...
                 ":"+ba.oppAngle+
                 ":"+ba.fray+
                 ":"+ba.tilt);
-            if (!Double.isNaN(ba.cacb_Concavity)) out.print(":"+ba.cacb_Concavity);
-            else                                  out.print(":");
             
-            // IWD's sheet axis angles
+            // SheetAxes angles
             String sheetAxesAngles = ":::";
             for(Iterator iter = resToSheetAxes.keySet().iterator(); iter.hasNext(); )
             {
@@ -1209,7 +1634,35 @@ public class SheetBuilder //extends ... implements ...
                                       ":"+axes.angleAlong;
                 }
             }
-            out.println(sheetAxesAngles);
+            out.print(sheetAxesAngles);
+            
+            // Across-strand SheetAxes2 angle(s)
+            String acrossAngles = ":";
+            for(Iterator iter = resToAcrossSheetAxes2.keySet().iterator(); iter.hasNext(); )
+            {
+                Residue res = (Residue) iter.next();
+                if (res.equals(ba.aromRes))
+                {
+                    SheetAxes2 axes2 = (SheetAxes2) resToAcrossSheetAxes2.get(res);
+                    acrossAngles = ":"+axes2.cacb_acrossConcavity;
+                }
+            }
+            out.print(acrossAngles);
+            
+            // Along-strand SheetAxes3 angle(s)
+            String alongAngles = ":";
+            for(Iterator iter = resToAlongSheetAxes3.keySet().iterator(); iter.hasNext(); )
+            {
+                Residue res = (Residue) iter.next();
+                if (res.equals(ba.aromRes))
+                {
+                    SheetAxes3 axes3 = (SheetAxes3) resToAlongSheetAxes3.get(res);
+                    alongAngles = ":"+axes3.cacb_alongConcavity;
+                }
+            }
+            out.print(alongAngles);
+            
+            out.println();
         }
     }
 //}}}
