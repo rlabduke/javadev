@@ -142,7 +142,7 @@ public class FragFiller implements Filler {
       ArrayList<String> listofMatches = filledMap.get(gap);
       dm.select(sqlSelect);
       while (dm.next()) {
-        System.out.println(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4));
+        //System.out.println(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4));
         listofMatches.add(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4));
       }
     }
@@ -269,7 +269,7 @@ public class FragFiller implements Filler {
       ArrayList<String> listofFiller = filledMap.get(gap);
       //ArrayList<Triple> gapFrameStates = gapFrameAtomsMap.get(gap);
       System.out.println(listofFiller.size());
-      for (int ind = 0; ((ind < 500)&&(ind < listofFiller.size())); ind++) {
+      for (int ind = 0; ((ind < 10000)&&(ind < listofFiller.size())); ind++) {
         String info = listofFiller.get(ind);
         String[] splitInfo = info.split(" ");
         String pdbName = splitInfo[0]; // should be pdbname

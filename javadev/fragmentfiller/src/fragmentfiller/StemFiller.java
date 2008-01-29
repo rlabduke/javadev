@@ -104,32 +104,38 @@ public class StemFiller implements Filler {
   //}}}
     
   //{{{ searchDB
-  public void searchDB(ArrayList<ProteinStem> stems, int matchDiff) {
+  public void searchDB(int matchDiff) {
     DatabaseManager dm = new DatabaseManager();
     //dm.connectToDatabase("//spiral.research.duhs.duke.edu/qDBrDB");
     dm.connectToDatabase("//quality.biochem.duke.edu/vbc3");
-    for (ProteinStem stem : stems) {
+    for (ProteinStem stem : filledMap.keySet()) {
       ArrayList<Double> stemParams = stem.getParameters();
       //int gapLength = gap.getSize();
       String sqlSelect = "SELECT pdb_id, chain_id, frag_length, start_res_num FROM parameters5200 ";
       if (matchDiff==0) {
-        sqlSelect = sqlSelect.concat("WHERE frag_length = "+Integer.toString(5)+" \n");
+        sqlSelect = sqlSelect.concat("WHERE frag_length = "+Integer.toString(4)+" \n");
       } else {
         //sqlSelect = sqlSelect.concat("WHERE (frag_length <= "+Integer.toString(gapLength+matchDiff));
         //sqlSelect = sqlSelect.concat(" AND frag_length >= "+Integer.toString(gapLength-matchDiff)+") \n");
         sqlSelect = sqlSelect.concat("WHERE frag_length = "+Integer.toString(matchDiff)+" \n");
       }
       double startAng = stemParams.get(0);
-      sqlSelect = sqlSelect.concat(createWhereQuery(startAng, "start_pair_angle") + " \n");
       double endAng = stemParams.get(1);
-      sqlSelect = sqlSelect.concat(createWhereQuery(endAng, "sp_n_angle") + " \n");
       double startDih = stemParams.get(2);
-      sqlSelect = sqlSelect.concat(createWhereQuery(startDih, "sp_c_dihedral") + ";");
+      if (stem.getStemType() == ProteinStem.N_TERM) {
+        sqlSelect = sqlSelect.concat(createWhereQuery(startAng, "start_pair_angle", 15) + " \n");
+        sqlSelect = sqlSelect.concat(createWhereQuery(endAng, "sp_n_dihedral", 10) + " \n");
+        sqlSelect = sqlSelect.concat(createWhereQuery(startDih, "sp_c_dihedral", 10) + ";");
+      } else {
+        sqlSelect = sqlSelect.concat(createWhereQuery(startAng, "end_pair_angle", 15) + " \n");
+        sqlSelect = sqlSelect.concat(createWhereQuery(endAng, "ep_n_dihedral", 10) + " \n");
+        sqlSelect = sqlSelect.concat(createWhereQuery(startDih, "ep_c_dihedral", 10) + ";");
+      }
       System.out.println(sqlSelect);
       ArrayList<String> listofMatches = filledMap.get(stem);
       dm.select(sqlSelect);
       while (dm.next()) {
-        System.out.println(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4));
+        //System.out.println(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4));
         listofMatches.add(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4));
       }
     }
@@ -148,13 +154,13 @@ public class StemFiller implements Filler {
   //}}}
   
   //{{{ createWhereQuery
-  public String createWhereQuery(double frameVal, String colName) {
-    if (frameVal > 180 - 25) {
-      return "AND ("+colName+" >= "+Double.toString(frameVal-25)+" OR "+colName+" <= "+Double.toString(-360+25+frameVal)+")";
-    } else if (frameVal < -180 + 25) {
-      return "AND ("+colName+" <= "+Double.toString(frameVal+25)+" OR "+colName+" >= "+Double.toString(frameVal+360-25)+")";
+  public String createWhereQuery(double frameVal, String colName, int sigma) {
+    if (frameVal > 180 - sigma) {
+      return "AND ("+colName+" >= "+Double.toString(frameVal-sigma)+" OR "+colName+" <= "+Double.toString(-360+sigma+frameVal)+")";
+    } else if (frameVal < -180 + sigma) {
+      return "AND ("+colName+" <= "+Double.toString(frameVal+sigma)+" OR "+colName+" >= "+Double.toString(frameVal+360-sigma)+")";
     } else {
-      return "AND ("+colName+" <= "+Double.toString(frameVal+25)+" AND "+colName+" >= "+Double.toString(frameVal-25)+")";
+      return "AND ("+colName+" <= "+Double.toString(frameVal+sigma)+" AND "+colName+" >= "+Double.toString(frameVal-sigma)+")";
     }
   }
   //}}}
@@ -256,13 +262,13 @@ public class StemFiller implements Filler {
       ArrayList<String> listofFiller = filledMap.get(stem);
       //ArrayList<Triple> stemFrameStates = stemFrameAtomsMap.get(stem);
       System.out.println(listofFiller.size());
-      for (int ind = 0; ((ind < 100000)&&(ind < listofFiller.size())); ind++) {
+      for (int ind = 0; ((ind < 5000)&&(ind < listofFiller.size())); ind++) {
         String info = listofFiller.get(ind);
         String[] splitInfo = info.split(" ");
         String pdbName = splitInfo[0]; // should be pdbname
         String chain = splitInfo[1];
-        int length = Integer.parseInt(splitInfo[1]);
-        int startRes = Integer.parseInt(splitInfo[2]);
+        int length = Integer.parseInt(splitInfo[2]);
+        int startRes = Integer.parseInt(splitInfo[3]);
         libReader.setCurrentPdb(pdbName, chain);
         Model frag = libReader.getFragment(Integer.toString(ind), chain, startRes, length); //set of residues
         if (frag != null) {

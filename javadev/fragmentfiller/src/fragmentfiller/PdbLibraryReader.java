@@ -40,7 +40,7 @@ public class PdbLibraryReader {
               //System.out.println(zEntry.getName().substring(7, 11));
               String[] splitInfo = zEntry.getName().split("/");
               String pdbFileName = splitInfo[splitInfo.length - 1];
-              System.out.println(pdbFileName + ":"+ pdbFileName.substring(0,5));
+              //System.out.println(pdbFileName + ":"+ pdbFileName.substring(0,5));
               pdbMap.put(pdbFileName.substring(0, 5).toLowerCase(), zEntry);
             }
           }
@@ -99,7 +99,7 @@ public class PdbLibraryReader {
         while ((fragModel.getResidues().size() <= length + 2)&&(iter.hasNext())) {
           Residue res = (Residue) iter.next();
           int resNum = res.getSequenceInteger();
-          if ((resNum >= startRes)&&(resNum <= startRes + length + 2)) {
+          if ((resNum >= startRes)&&(resNum <= startRes + length + 2)&&(res.getInsertionCode().equals(" "))) {
             try {
               if (isResidueComplete(res)) {
                 fragModel.add(res);

@@ -120,6 +120,21 @@ public class PdbFileAnalyzer {
   }
   //}}}
   
+  //{{{ getStems
+  public Map<String, ArrayList<ProteinStem>> getStems() {
+    TreeMap<String, ArrayList<ProteinStem>> statesMap = new TreeMap<String, ArrayList<ProteinStem>>();
+    for (Model mod : masterStemMap.keySet()) {
+      //ModelState modState = mod.getState();
+      Map<String, ArrayList> chainGapMap = (Map<String, ArrayList>) masterStemMap.get(mod);
+      for (String chain : chainGapMap.keySet()) {
+        ArrayList<ProteinStem> stems = chainGapMap.get(chain);
+        statesMap.put(mod.getName()+","+chain, stems);
+      }
+    }
+    return statesMap;
+  }
+  //}}}
+  
   //{{{ findGaps
   //public Map<Integer, ArrayList> findGaps(ModelState modState, Set<Residue> chainofRes) {
   public ArrayList<ProteinGap> findGaps(Model mod, String chainId, Set<Residue> chainofRes) {
@@ -162,22 +177,36 @@ public class PdbFileAnalyzer {
     for (Model mod : masterGapMap.keySet()) {
       //ModelState modState = mod.getState();
       HashMap<String, ArrayList> chainMap = masterGapMap.get(mod);
+      HashMap<String, ArrayList> stemChainMap = masterStemMap.get(mod);
       for (String chain : chainMap.keySet()) {
         ArrayList<ProteinGap> gaps = chainMap.get(chain);
+        ArrayList<ProteinStem> stems = stemChainMap.get(chain);
         Set<Residue> residues = mod.getChain(chain);
+        Residue minusRes = null;
         Residue zeroRes = null;
         Residue oneRes = null;
         Residue nRes = null;
         Residue n1Res = null;
+        Residue n1StemRes = null;
+        Residue n2Res = null;
         for (Residue res : residues) {
           int seqNum = res.getSequenceInteger();
+          if ((seqNum == oneResNum-2)&&(containsCaO(res))) minusRes = res;
           if ((seqNum == oneResNum-1)&&(containsCaO(res))) zeroRes = res;
           if ((seqNum == oneResNum)&&(containsCa(res))) oneRes = res;
           if ((seqNum == nResNum)&&(containsCaO(res))) nRes = res;
           if ((seqNum == nResNum+1)&&(containsCa(res))) n1Res = res;
+          if ((seqNum == nResNum+1)&&(containsCaO(res))) n1StemRes = res;
+          if ((seqNum == nResNum+2)&&(containsCa(res))) n2Res = res;
         }
         if ((zeroRes!=null)&&(oneRes!=null)&&(nRes!=null)&&(n1Res!=null)) {
           gaps.add(new ProteinGap(mod, chain, zeroRes, oneRes, nRes, n1Res));
+        }
+        if ((minusRes!=null)&&(zeroRes!=null)&&(oneRes!=null)) {
+          stems.add(new ProteinStem(mod, chain, minusRes, zeroRes, oneRes, ProteinStem.N_TERM));
+        }
+        if ((nRes!=null)&&(n1StemRes!=null)&&(n2Res!=null)) {
+          stems.add(new ProteinStem(mod, chain, nRes, n1StemRes, n2Res, ProteinStem.C_TERM));
         }
       }
     }
@@ -188,7 +217,7 @@ public class PdbFileAnalyzer {
   public Map<String, ArrayList<ProteinGap>> getGaps() {
     TreeMap<String, ArrayList<ProteinGap>> statesMap = new TreeMap<String, ArrayList<ProteinGap>>();
     for (Model mod : masterGapMap.keySet()) {
-      ModelState modState = mod.getState();
+      //ModelState modState = mod.getState();
       Map<String, ArrayList> chainGapMap = (Map<String, ArrayList>) masterGapMap.get(mod);
       for (String chain : chainGapMap.keySet()) {
         ArrayList<ProteinGap> gaps = chainGapMap.get(chain);
