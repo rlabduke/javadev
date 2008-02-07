@@ -631,6 +631,7 @@ public class SheetBuilder //extends ... implements ...
                 if (!resIsBeta(currRes, model, peptides))   endOfStrand = true;
                 else                                        numN += 1;
             }
+            else    endOfStrand = true;
         }
         // C-ward
         endOfStrand = false;
@@ -643,6 +644,7 @@ public class SheetBuilder //extends ... implements ...
                 if (!resIsBeta(currRes, model, peptides))   endOfStrand = true;
                 else                                        numC += 1;
             }
+            else    endOfStrand = true;
         }
         if (verbose)
         {

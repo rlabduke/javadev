@@ -69,6 +69,7 @@ public class SubImpose //extends ... implements ...
                                 // added by dak
     Collection rmsd = new ArrayList(); // selection strings to do rmsd over
     double leskSieve = 0;
+    double rmsdCutoff = Double.NaN; // above which PDB is not written out
 //}}}
 
 //{{{ Constructor(s)
@@ -430,12 +431,22 @@ public class SubImpose //extends ... implements ...
             if(kinOut != null) writeKin(atoms, lenAtomsUsed);
             
             // Write superimposed PDB file:
+            // (... but only do so if we don't care about the RMSD to the target
+            // or if that RMSD does not exceed our designated threshold):
             if(pdbOut != null)
             {
-                PdbWriter pdbWriter = new PdbWriter(new File(pdbOut));
-                pdbWriter.writeCoordinateFile(coord1);
-                pdbWriter.close();
+                if (Double.isNaN(rmsdCutoff) || superpos.calcRMSD(R) < rmsdCutoff)
+                {
+                    PdbWriter pdbWriter = new PdbWriter(new File(pdbOut));
+                    pdbWriter.writeCoordinateFile(coord1);
+                    pdbWriter.close();
+                    if (verbose) System.err.println("Writing to "+pdbOut+" b/c RMSD="+
+                        df.format(superpos.calcRMSD(R))+" < cutoff="+rmsdCutoff);
+                }
+                else if (verbose) System.err.println("Not writing to "+pdbOut+" b/c RMSD="+
+                    df.format(superpos.calcRMSD(R))+" > cutoff="+rmsdCutoff);
             }
+            
         }
         else
         {
@@ -617,6 +628,13 @@ public class SubImpose //extends ... implements ...
             pdbOut = param;
         else if(flag.equals("-rms"))
             rmsd.add(param);
+        else if(flag.equals("-rmsdcutoff"))
+        {
+            try { rmsdCutoff = Double.parseDouble(param); }
+            catch(NumberFormatException ex) { throw new IllegalArgumentException(param+" isn't a number!"); }
+            if (Double.isNaN(rmsdCutoff) || rmsdCutoff < 0)
+                System.err.println("Problem with "+param+" as param for -rmsdcutoff");
+        }
         else if(flag.equals("-dummy_option"))
         {
             // handle option here
