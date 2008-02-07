@@ -4,33 +4,43 @@ Usage:
 
 SUBIMPOSESCRIPTER is a simple stand-alone class to make a Bash script 
 that will run Ian's chiropraxis.mc.SubImpose on each helix in a HelixBuilder 
-output list (the input "file") and superimpose it onto the first helix in 
-that list using a designated set of residues. Note that the program auto-
-matically picks the first helix in the list for superpositions and the 
-number of C-alphas for superpositions must be the same, so if using the 
--ncapidxs=allhelix flag, you are limited to the number of residues in that
-first helix!
+or SheetBuilder output list (the input "file") and superimpose it onto the first
+helix or plus beta-sheet aromatic in that list using a designated set of 
+residues. Note that the program automatically picks the first helix/aromatic in 
+the list for superpositions and the number of C-alphas for superpositions must 
+be the same, so if using the -ncapidxs=allhelix flag, you are limited to the 
+number of residues in that first helix!
 
-*Note* Make sure the first line in the input file is a representative example!
+*WARNING* Make sure the first line in the input file is a representative example!
 
 Options:
-    -ncapidxs=text | -ncapindices=text
-	Tells which residues relative to the N cap will be used for helix 
-	  alignment.
-	Options for text:
-	  -1,1,2     uses N', N1, and N2 residues
-          1,2,3      uses N1, N2, and N3 residues
-	  allhelix   uses all residues in helix except N cap (default)
+    -helixbuilder | -ncaps
+        Required to use HelixBuilder output (default).
+    -sheetbuilder | -betaarom
+        Required to use SheetBuilder output.
+    -idxs=text | -indices=text
+        Tells which residues relative to the N cap/aromatic and opposite residue
+        will be used for helix/sheet alignment.	Options for text:
+        N caps
+            -1,1,2     uses N', N1, and N2 residues
+            1,2,3      uses N1, N2, and N3 residues
+            allhelix   uses all residues in helix except N cap (default)
+        Beta p aromatics
+            5closest   uses arom(i-1,i+1), opp(i-1,i,i+1) residues
+            3closest   uses arom(i-1,i+1), opp(i) residues
     -range=#,#
         Modifies prekin part of output script to include only these indexed
           residues (e.g. -1,5 => 1 prev and 5 next residues in kin)
+    -rmsdcutoff=#.#
+        If RMSD above this threshold, no superimposed PDB is written out. 
+        (Passed on to SubImpose.)
     -kin=text
-	Tells name of output kinemage overlaying all superpositions.
+	    Tells name of output kinemage overlaying all superpositions.
     -master=text
-	Tells name of master for every group in this superposed kinemage
-	  (in addition to master= {all} which is on every group by default).
+	    Tells name of master for every group in this superposed kinemage
+        (in addition to master= {all} which is on every group by default).
     -verbose
-	Gives extra info when running the program.
+	    Gives extra info when running the program.
     -help
-	Gives what you're reading now.
+	    Gives what you're reading now.
 

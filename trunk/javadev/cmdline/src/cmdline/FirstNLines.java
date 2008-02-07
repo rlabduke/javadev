@@ -124,7 +124,7 @@ public class FirstNLines //extends ... implements ...
         if (flag.equals("-help") || flag.equals("-h"))
         {
             System.err.println();
-            System.err.println("  Usage: java FirstNLines [file]");
+            System.err.println("  Usage: java FirstNLines -n=# 'file'");
             System.err.println();
             System.exit(0);
         }
