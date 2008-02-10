@@ -141,7 +141,11 @@ OUTPUT FORMATS
     -ndft               (optional)
         Write a binary file that can be read by the old NDFloatTable class.
         Some loss of precision will occur. This option implies -dense.
-        
+    
+    -hillmodes
+        Outputs only a text file of the modal peaks found by the 'hills' method
+        above. This option requires the ue of -hillclimb[=#].    
+    
     -v                  (optional)
         Verbose output -- extra status messages.
         

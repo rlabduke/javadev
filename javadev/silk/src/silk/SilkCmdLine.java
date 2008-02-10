@@ -132,7 +132,9 @@ public class SilkCmdLine //extends ... implements ...
     {
         DecimalFormat df = null;
         
-        if(opt.outputMode == SilkOptions.OUTPUT_VALUE_LAST)
+        if (opt.outputMode == SilkOptions.OUTPUT_HILL_MODES)
+            densityTrace.writeText(opt.outputSink, df, true); // true/false irrelevant here...
+        else if(opt.outputMode == SilkOptions.OUTPUT_VALUE_LAST)
             densityTrace.writeText(opt.outputSink, df, false);
         else if(opt.outputMode == SilkOptions.OUTPUT_VALUE_FIRST)
             densityTrace.writeText(opt.outputSink, df, true);
@@ -348,6 +350,7 @@ public class SilkCmdLine //extends ... implements ...
             if(param != null) opt.hillSquash = Double.parseDouble(param);
         }
         else if(flag.equals("-title"))          opt.title = param;
+        else if(flag.equals("-hillmodes"))      opt.outputMode = SilkOptions.OUTPUT_HILL_MODES;
         else if(flag.equals("-first"))          opt.outputMode = SilkOptions.OUTPUT_VALUE_FIRST;
         else if(flag.equals("-ndft"))           opt.outputMode = SilkOptions.OUTPUT_NDFT;
         else if(flag.equals("-kin"))            opt.outputMode = SilkOptions.OUTPUT_KINEMAGE;
