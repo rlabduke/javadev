@@ -680,6 +680,7 @@ abstract public class NDimTable //extends ... implements ...
 //{{{ classifyByHills, recurseHills, hillsRecurseMaxNeighbor
 //##############################################################################
     int[] hillTable = null; // holds the labels, since we can't climb in place!
+    ArrayList<String> hillModes = null; // to hold modal peaks from hills
     
     /**
     * Traverses the table, transforming each positive (non-zero) value into
@@ -689,8 +690,9 @@ abstract public class NDimTable //extends ... implements ...
     * (ie, diagonal neighbors are included) is queried, and the largest
     * positive value is followed recursively, until the top is reached.
     */
-    public void classifyByHills()
+    public void classifyByHills(boolean printHillModes)
     {
+        if (printHillModes) hillModes = new ArrayList<String>();
         tgf_b = 1.0; // used for next unused label
         tgf_pt = new double[nDim]; // could be null, or someone else's var!
         hillTable = new int[lookupTable.length];
@@ -736,6 +738,13 @@ abstract public class NDimTable //extends ... implements ...
             centerOf(va_current, tgf_pt);
             for(int i = 0; i < nDim; i++) System.err.print(" "+tgf_pt[i]);
             System.err.println(" -> "+tgf_a);
+            if (hillModes != null)
+            {
+                String mode = "";//"peak"+((int)label);
+                for(int i = 0; i < nDim; i++)   mode += (tgf_pt[i]+" ");
+                mode += lookupTable[idx];
+                hillModes.add(mode);
+            }
         }
         else // further up and further in: try the next highest point
             label = recurseHills(nextIdx);
@@ -925,50 +934,57 @@ abstract public class NDimTable //extends ... implements ...
         ps.println("# For each dimension, 1 to "+nDim+": lower_bound  upper_bound  number_of_bins  wrapping");
         for(i = 0; i < nDim; i++)
         { ps.println("#   x"+(i+1)+": "+minVal[i]+" "+maxVal[i]+" "+nBins[i]+" "+doWrap[i]); }
-        if(valuesFirst) ps.println("# List of table coordinates and values. (Value is first number on each line.)");
-        else            ps.println("# List of table coordinates and values. (Value is last number on each line.)");
         
-        if(df == null)
+        if(hillModes != null)   
         {
-            for(i = 0; i < lookupTable.length; i++)
+            ps.println("# List of hills modal coordinates and values");
+            for(i = 0; i < hillModes.size(); i++) ps.println(hillModes.get(i));
+        }
+        else 
+        {
+            if(valuesFirst) ps.println("# List of table coordinates and values. (Value is first number on each line.)");
+            else            ps.println("# List of table coordinates and values. (Value is last number on each line.)");
+            if(df == null)
             {
-                if(lookupTable[i] == 0) continue; // only print non-zeros; zeros may be undef bins
-                index2bin(i, binIndices);
-                centerOf(binIndices, binCoords);
-                if(valuesFirst)
+                for(i = 0; i < lookupTable.length; i++)
                 {
-                    ps.print(lookupTable[i]);
-                    for(j = 0; j < nDim; j++) { ps.print(" "); ps.print(binCoords[j]); }
-                    ps.println();
+                    if(lookupTable[i] == 0) continue; // only print non-zeros; zeros may be undef bins
+                    index2bin(i, binIndices);
+                    centerOf(binIndices, binCoords);
+                    if(valuesFirst)
+                    {
+                        ps.print(lookupTable[i]);
+                        for(j = 0; j < nDim; j++) { ps.print(" "); ps.print(binCoords[j]); }
+                        ps.println();
+                    }
+                    else
+                    {
+                        for(j = 0; j < nDim; j++) { ps.print(binCoords[j]); ps.print(" "); }
+                        ps.println(lookupTable[i]);
+                    }
                 }
-                else
+            }
+            else
+            {
+                for(i = 0; i < lookupTable.length; i++)
                 {
-                    for(j = 0; j < nDim; j++) { ps.print(binCoords[j]); ps.print(" "); }
-                    ps.println(lookupTable[i]);
+                    if(lookupTable[i] == 0) continue; // only print non-zeros; zeros may be undef bins
+                    index2bin(i, binIndices);
+                    centerOf(binIndices, binCoords);
+                    if(valuesFirst)
+                    {
+                        ps.print(df.format(lookupTable[i]));
+                        for(j = 0; j < nDim; j++) { ps.print(" "); ps.print(df.format(binCoords[j])); }
+                        ps.println();
+                    }
+                    else
+                    {
+                        for(j = 0; j < nDim; j++) { ps.print(df.format(binCoords[j])); ps.print(" "); }
+                        ps.println(df.format(lookupTable[i]));
+                    }
                 }
             }
         }
-        else
-        {
-            for(i = 0; i < lookupTable.length; i++)
-            {
-                if(lookupTable[i] == 0) continue; // only print non-zeros; zeros may be undef bins
-                index2bin(i, binIndices);
-                centerOf(binIndices, binCoords);
-                if(valuesFirst)
-                {
-                    ps.print(df.format(lookupTable[i]));
-                    for(j = 0; j < nDim; j++) { ps.print(" "); ps.print(df.format(binCoords[j])); }
-                    ps.println();
-                }
-                else
-                {
-                    for(j = 0; j < nDim; j++) { ps.print(df.format(binCoords[j])); ps.print(" "); }
-                    ps.println(df.format(lookupTable[i]));
-                }
-            }
-        }
-        
         ps.flush();
     }
 //}}}
