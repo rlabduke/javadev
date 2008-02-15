@@ -194,7 +194,7 @@ public class FMain {
     }
     readPdbLibrary();
     CoordinateFile[] pdbOut;
-    Map<String, ArrayList<ProteinGap>> gaps = analyzer.getGaps();
+    Map<String, ArrayList<ProteinGap>> gaps = analyzer.getGaps(); // stems need gaps!
     if (!useStems) {
       FragFiller fragFill = new FragFiller(gaps);
       ArrayList<ProteinGap> allGaps = new ArrayList<ProteinGap>();

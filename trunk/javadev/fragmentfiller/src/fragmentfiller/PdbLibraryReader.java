@@ -177,7 +177,7 @@ public class PdbLibraryReader {
   //}}}
   
   //{{{ getFragmentEndpointAtoms
-  public Tuple3[] getFragmentEndpointAtoms(Model fragment) {
+  public Tuple3[] getFragmentEndpointAtoms(Model fragment) throws AtomException {
     //UberSet fragRes = (UberSet) residues;
     UberSet fragRes = new UberSet(fragment.getResidues());
     Tuple3[] endAtomStates = new Tuple3[4];
@@ -189,30 +189,31 @@ public class PdbLibraryReader {
       Residue n1Res = (Residue) fragRes.lastItem();
       Residue nRes = (Residue) fragRes.itemBefore(n1Res);
       //System.out.println(zeroRes.getSequenceInteger() + " " + oneRes.getSequenceInteger() + " " + nRes.getSequenceInteger() + " " + n1Res.getSequenceInteger());
-      try {
+      //try {
         endAtomStates[0] = modState.get(zeroRes.getAtom(" CA "));
         endAtomStates[1] =modState.get(oneRes.getAtom(" CA "));
         endAtomStates[2] =modState.get(nRes.getAtom(" CA "));
         endAtomStates[3] =modState.get(n1Res.getAtom(" CA "));
-      } catch (AtomException ae) {
-        System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + currentPdb.toString());
-      }
+        return endAtomStates;
+      //} catch (AtomException ae) {
+      //  System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + currentPdb.toString());
+      //}
     } else {
       System.err.println("No pdb set in PdbLibraryReader!");
     }
-    return endAtomStates;
+    return null;
   }
   //}}}
   
   //{{{ getStemNtermAtoms
-  public Tuple3[] getStemNtermAtoms(Model fragment) {
+  public Tuple3[] getStemNtermAtoms(Model fragment) throws AtomException, NoSuchElementException {
     //UberSet fragRes = (UberSet) residues;
     UberSet fragRes = new UberSet(fragment.getResidues());
     Tuple3[] endAtomStates = new Tuple3[3];
     if (currentPdb != null) {
       //Model firstMod = currentPdb.getFirstModel();
       ModelState modState = fragment.getState();
-      try {
+      //try {
         Residue zeroRes = (Residue) fragRes.firstItem();
         Residue oneRes = (Residue) fragRes.itemAfter(zeroRes);
         Residue twoRes = (Residue) fragRes.itemAfter(oneRes);
@@ -225,27 +226,28 @@ public class PdbLibraryReader {
         endAtomStates[2] = modState.get(twoRes.getAtom(" CA "));
         //endAtomStates[2] =modState.get(nRes.getAtom(" CA "));
         //endAtomStates[3] =modState.get(n1Res.getAtom(" CA "));
-      } catch (AtomException ae) {
-        System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + currentPdb.getIdCode());
-      } catch (NoSuchElementException nsee) {
-        System.err.println("Problem with residue "+fragRes.firstItem().toString()+" in pdb "+currentPdb.getIdCode());
-      }
+        return endAtomStates;
+      //} catch (AtomException ae) {
+      //  System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + currentPdb.getIdCode());
+      //} catch (NoSuchElementException nsee) {
+      //  System.err.println("Problem with residue "+fragRes.firstItem().toString()+" in pdb "+currentPdb.getIdCode());
+      //}
     } else {
       System.err.println("No pdb set in PdbLibraryReader!");
     }
-    return endAtomStates;
+    return null;
   }
   //}}}
   
   //{{{ getStemCtermAtoms
-  public Tuple3[] getStemCtermAtoms(Model fragment) {
+  public Tuple3[] getStemCtermAtoms(Model fragment) throws AtomException, NoSuchElementException {
     //UberSet fragRes = (UberSet) residues;
     UberSet fragRes = new UberSet(fragment.getResidues());
     Tuple3[] endAtomStates = new Tuple3[3];
     if (currentPdb != null) {
       //Model firstMod = currentPdb.getFirstModel();
       ModelState modState = fragment.getState();
-      try {
+      //try {
         Residue n1Res = (Residue) fragRes.lastItem();
         Residue nRes = (Residue) fragRes.itemBefore(n1Res);
         Residue mRes = (Residue) fragRes.itemBefore(nRes);
@@ -257,20 +259,21 @@ public class PdbLibraryReader {
         endAtomStates[2] = modState.get(n1Res.getAtom(" CA "));
         //endAtomStates[2] =modState.get(nRes.getAtom(" CA "));
         //endAtomStates[3] =modState.get(n1Res.getAtom(" CA "));
-      } catch (AtomException ae) {
-        System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + currentPdb.toString());
-      } catch (NoSuchElementException nsee) {
-        System.err.println("Problem with residue "+fragRes.lastItem().toString()+" in pdb "+currentPdb.toString());
-      }
+        return endAtomStates;
+      //} catch (AtomException ae) {
+      //  System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + currentPdb.toString());
+      //} catch (NoSuchElementException nsee) {
+      //  System.err.println("Problem with residue "+fragRes.lastItem().toString()+" in pdb "+currentPdb.toString());
+      //}
     } else {
       System.err.println("No pdb set in PdbLibraryReader!");
     }
-    return endAtomStates;
+    return null;
   }
   //}}}
   
   //{{{ getFragmentNtermAtoms
-  public Tuple3[] getFragmentNtermAtoms(Model fragment) {
+  public Tuple3[] getFragmentNtermAtoms(Model fragment) throws AtomException {
     UberSet fragRes = new UberSet(fragment.getResidues());
     Tuple3[] endAtomStates = new Tuple3[3];
     if (currentPdb != null) {
@@ -281,18 +284,19 @@ public class PdbLibraryReader {
       //Residue n1Res = (Residue) fragRes.lastItem();
       //Residue nRes = (Residue) fragRes.itemBefore(n1Res);
       //System.out.println(zeroRes.getSequenceInteger() + " " + oneRes.getSequenceInteger() + " " + nRes.getSequenceInteger() + " " + n1Res.getSequenceInteger());
-      try {
+      //try {
         endAtomStates[0] = modState.get(zeroRes.getAtom(" CA "));
         endAtomStates[1] =modState.get(zeroRes.getAtom(" O  "));
         endAtomStates[2] =modState.get(oneRes.getAtom(" CA "));
         //endAtomStates[3] =modState.get(n1Res.getAtom(" CA "));
-      } catch (AtomException ae) {
-        System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + currentPdb.toString());
-      }
+        return endAtomStates;
+      //} catch (AtomException ae) {
+      //  System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + currentPdb.toString());
+      //}
     } else {
       System.err.println("No pdb set in PdbLibraryReader!");
     }
-    return endAtomStates;
+    return null;
   }
   //}}}
   
