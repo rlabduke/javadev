@@ -226,9 +226,9 @@ public class PdbLibraryReader {
         //endAtomStates[2] =modState.get(nRes.getAtom(" CA "));
         //endAtomStates[3] =modState.get(n1Res.getAtom(" CA "));
       } catch (AtomException ae) {
-        System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + currentPdb.toString());
+        System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + currentPdb.getIdCode());
       } catch (NoSuchElementException nsee) {
-        System.err.println("Problem with residue "+fragRes.firstItem().toString()+" in pdb "+currentPdb.toString());
+        System.err.println("Problem with residue "+fragRes.firstItem().toString()+" in pdb "+currentPdb.getIdCode());
       }
     } else {
       System.err.println("No pdb set in PdbLibraryReader!");

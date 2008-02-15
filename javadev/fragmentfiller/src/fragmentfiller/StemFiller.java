@@ -125,12 +125,13 @@ public class StemFiller implements Filler {
       if (stem.getStemType() == ProteinStem.N_TERM) {
         sqlSelect = sqlSelect.concat(createWhereQuery(startAng, "start_pair_angle", 5) + " \n");
         sqlSelect = sqlSelect.concat(createWhereQuery(endAng, "sp_n_dihedral", 5) + " \n");
-        sqlSelect = sqlSelect.concat(createWhereQuery(startDih, "sp_c_dihedral", 5) + ";");
+        sqlSelect = sqlSelect.concat(createWhereQuery(startDih, "sp_c_dihedral", 5) + "\n");
       } else {
         sqlSelect = sqlSelect.concat(createWhereQuery(startAng, "end_pair_angle", 5) + " \n");
         sqlSelect = sqlSelect.concat(createWhereQuery(endAng, "ep_n_dihedral", 5) + " \n");
-        sqlSelect = sqlSelect.concat(createWhereQuery(startDih, "ep_c_dihedral", 5) + ";");
+        sqlSelect = sqlSelect.concat(createWhereQuery(startDih, "ep_c_dihedral", 5) + " \n");
       }
+      sqlSelect = sqlSelect.concat("AND max_B_factor <= 35;");
       System.out.println(sqlSelect);
       ArrayList<String> listofMatches = filledMap.get(stem);
       dm.select(sqlSelect);
@@ -262,7 +263,7 @@ public class StemFiller implements Filler {
       ArrayList<String> listofFiller = filledMap.get(stem);
       //ArrayList<Triple> stemFrameStates = stemFrameAtomsMap.get(stem);
       System.out.println(listofFiller.size());
-      for (int ind = 0; ((ind < 10000)&&(ind < listofFiller.size())); ind++) {
+      for (int ind = 0; ((ind < 20000)&&(ind < listofFiller.size())); ind++) {
         String info = listofFiller.get(ind);
         String[] splitInfo = info.split(" ");
         String pdbName = splitInfo[0]; // should be pdbname
