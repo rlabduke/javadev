@@ -274,36 +274,42 @@ public class StemFiller implements Filler {
         Model frag = libReader.getFragment(Integer.toString(ind), chain, startRes, length); //set of residues
         if (frag != null) {
           //SuperPoser poser = null;
-          Transform t = null;
-          if (!ntermsup) {
-            SuperPoser poser;
-            if (stem.getStemType() == ProteinStem.N_TERM) {
-              poser = new SuperPoser(stem.getTupleArray(), libReader.getStemNtermAtoms(frag));
+          try {
+            Transform t = null;
+            if (!ntermsup) {
+              SuperPoser poser;
+              if (stem.getStemType() == ProteinStem.N_TERM) {
+                poser = new SuperPoser(stem.getTupleArray(), libReader.getStemNtermAtoms(frag));
+              } else {
+                poser = new SuperPoser(stem.getTupleArray(), libReader.getStemCtermAtoms(frag));
+              }
+              t = poser.superpos();
             } else {
-              poser = new SuperPoser(stem.getTupleArray(), libReader.getStemCtermAtoms(frag));
+              Builder builder = new Builder();
+              if (stem.getStemType() == ProteinStem.N_TERM) {
+                Tuple3[] stemArray = stem.getTupleArray();
+                Tuple3[] fragArray = libReader.getStemNtermAtoms(frag);
+                t = builder.dock3on3(
+                stemArray[2], stemArray[1], stemArray[0],
+                fragArray[2], fragArray[1], fragArray[0]);
+              } else {
+                Tuple3[] stemArray = stem.getTupleArray();
+                Tuple3[] fragArray = libReader.getStemCtermAtoms(frag);
+                t = builder.dock3on3(
+                stemArray[0], stemArray[1], stemArray[2],
+                fragArray[0], fragArray[1], fragArray[2]);
+              }
             }
-            t = poser.superpos();
-          } else {
-            Builder builder = new Builder();
-            if (stem.getStemType() == ProteinStem.N_TERM) {
-              Tuple3[] stemArray = stem.getTupleArray();
-              Tuple3[] fragArray = libReader.getStemNtermAtoms(frag);
-              t = builder.dock3on3(
-              stemArray[2], stemArray[1], stemArray[0],
-              fragArray[2], fragArray[1], fragArray[0]);
-            } else {
-              Tuple3[] stemArray = stem.getTupleArray();
-              Tuple3[] fragArray = libReader.getStemCtermAtoms(frag);
-              t = builder.dock3on3(
-              stemArray[0], stemArray[1], stemArray[2],
-              fragArray[0], fragArray[1], fragArray[2]);
+            //System.out.println(poser.calcRMSD(t));
+            transform(frag, t);
+            fragPdbOut[i].add(frag);
+            if (Math.IEEEremainder((double) ind, 100.0) == 0) {
+              System.out.println("Opened: " + ind);
             }
-          }
-          //System.out.println(poser.calcRMSD(t));
-          transform(frag, t);
-          fragPdbOut[i].add(frag);
-          if (Math.IEEEremainder((double) ind, 100.0) == 0) {
-            System.out.println("Opened: " + ind);
+          } catch (AtomException ae) {
+            System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + pdbName);
+          } catch (NoSuchElementException nsee) {
+            System.err.println("Problem with residue "+chain+" "+startRes+" in pdb "+pdbName);
           }
         }
       }
