@@ -137,7 +137,8 @@ public class FragFiller implements Filler {
       double middleDih = gapFrame.get(4);
       sqlSelect = sqlSelect.concat(createWhereQuery(middleDih, "middle_dihedral") + " \n");
       double endDih = gapFrame.get(5);
-      sqlSelect = sqlSelect.concat(createWhereQuery(endDih, "end_dihedral") + ";");
+      sqlSelect = sqlSelect.concat(createWhereQuery(endDih, "end_dihedral") + " \n");
+      sqlSelect = sqlSelect.concat("AND max_B_factor <= 35;");
       System.out.println(sqlSelect);
       ArrayList<String> listofMatches = filledMap.get(gap);
       dm.select(sqlSelect);
