@@ -1,0 +1,5 @@
+motej
+Copyright 2007-2008 Volker Fritzsch
+
+This product includes software developed by
+Volker Fritzsch (http://motej.sourceforge.net/).
