@@ -1,0 +1,2 @@
+Main-Class: moteking.demos.buttons.ButtonsDemo
+Class-Path: bluecove-2.0.2.jar commons-logging-1.1.1.jar
