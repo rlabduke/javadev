@@ -5,10 +5,9 @@ import king.*;
 import king.core.*;
 
 import motej.*;
-import motej.event.CoreButtonEvent;
-import motej.event.CoreButtonListener;
+import motej.event.*;
 
-public class MoteTool extends BasicTool {
+public class MoteTool extends BasicTool implements CoreButtonListener, AccelerometerListener {
   
   //{{{ Constants
   //}}}
@@ -28,21 +27,28 @@ public class MoteTool extends BasicTool {
   {
     mote = MoteFinder.getMoteFinder().findMote();
     System.out.println("mote found!");
-		mote.addCoreButtonListener(new CoreButtonListener() {
-		
-			public void buttonPressed(CoreButtonEvent evt) {
-				if (evt.isButtonAPressed()) {
-					System.out.println("Button A pressed!");
-				}
-				if (evt.isButtonBPressed()) {
-					System.out.println("Button B pressed!");
-				}
-				if (evt.isNoButtonPressed()) {
-					System.out.println("No button pressed.");
-				}
-			}
-		
-		});
+		mote.addCoreButtonListener(this);
+    mote.addAccelerometerListener(this);
+  }
+  //}}}
+  
+  //{{{ buttonPressed
+  public void buttonPressed(CoreButtonEvent evt) {
+    if (evt.isButtonAPressed()) {
+      System.out.println("Button A pressed!");
+    }
+    if (evt.isButtonBPressed()) {
+      System.out.println("Button B pressed!");
+    }
+    //if (evt.isNoButtonPressed()) {
+    //  System.out.println("No button pressed.");
+    //}
+  }
+  //}}}
+  
+  //{{{ accelerometerChanged
+  public void accelerometerChanged(AccelerometerEvent evt) {
+    System.out.println(evt.getX() + " : " + evt.getY() + " : " + evt.getZ());
   }
   //}}}
   
