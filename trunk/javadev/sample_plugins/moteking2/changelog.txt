@@ -1,0 +1,36 @@
+WIIREMOTEJ CHANGELOG
+---------------------------------------------------------------------------------------------------------------------
+1/14/08 - v1.2
+-Workaround for BlueSoleil bug added.
+-GuitarExtension added
+---------------------------------------------------------------------------------------------------------------------
+12/26/07 - v1.1
+-Numerous bug fixes. I've forgotten what they all are.
+-Added support for systems that don't have mice.
+---------------------------------------------------------------------------------------------------------------------
+6/25/07 - v1.0
+ -Totally redid ButtonMaps to allow multiple types of actions (key presses, mouse
+    clicks, and mouse scrolls) to coexist.
+ -ButtonMap subclasses still exist, but now serve only to provide convenience
+    constructors. They have no additional or specialized functionality.
+ -ButtonMaps can also now require buttons to be pressed on both the remote and a
+    peripheral to trigger.
+ -Added isAnyPressed and isOnlyPressed as button evaluation methods.
+ -By default, no lights turn on when the remote is connected (all four lights used to turn
+    on). You should turn on at least one light so that users know the remote is on.
+ -Got my hands on and tested a classic controller. There were bugs. They are fixed.
+ -Changed left and right triggers on the classic controller to percents instead of values.
+ -Fixed a lot of bugs.
+ -Improved IRAccelerometerMouse to be more reliable when the mouse is being
+    moved around (there is some acceleration). It's not where I want it yet, but it's better.
+---------------------------------------------------------------------------------------------------------------------
+4/19/07 - v0.9
+ -Fixed a memory leak with WRButtonEvents
+ -Fixed/clarified some documentation
+ -Added mouse-wheel button mapping support
+ -Fixed bug where button mapping could cause keys to "stick"
+ -Improved efficiency of button mapping in general
+ -Many changes to the test/sample file WRLImpl.java (to demo scrolling)
+---------------------------------------------------------------------------------------------------------------------
+4/03/07 - v0.8
+ -Initial release!
