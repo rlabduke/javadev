@@ -28,10 +28,13 @@ public class RotamerSampler //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
-    String      aaType      = null;
-    File        inFile      = null;
-    Residue     res         = null; // our "template" residue
-    boolean     allAngles   = true;
+    String      aaType       = null;
+    File        inFile       = null;
+    Residue     res          = null; // our "template" residue
+    boolean     allAngles    = true;
+    boolean     plotChis     = false;
+    String      group        = null;
+    String      color        = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -101,35 +104,58 @@ public class RotamerSampler //extends ... implements ...
             maxWeight = Math.max(maxWeight, vals[nAngles]);
         }
 
-        // Create conformers
-        PdbWriter pdbWriter = new PdbWriter(System.out);
-        pdbWriter.setRenumberAtoms(true);
-        int i = 1;
-        for(Iterator iter = data.iterator(); iter.hasNext(); i++)
+        
+        if (plotChis)
         {
-            try
+            // Plot chis in kin format instead of creating rotamers PDB
+            DecimalFormat df = new DecimalFormat("###.#");
+            if (group == null) group = aaType+" samp chis";
+            if (color == null) color = "blue";
+            System.out.println("@group {"+group+"} dominant");
+            System.out.println("@balllist {"+group+"} radius= 3 color= "+color);
+            for(Iterator iter = data.iterator(); iter.hasNext(); )
             {
                 double[] vals = (double[])iter.next();
-                Residue tempRes = new Residue(res, " ", "", Integer.toString(i), " ", res.getName());
-                ModelState tempState = tempRes.cloneStates(res, modelState, new ModelState(modelState));
-                if(allAngles)
-                    tempState = angles.setAllAngles(tempRes, tempState, vals);
-                else
-                    tempState = angles.setChiAngles(tempRes, tempState, vals);
-                for(Iterator ai = tempRes.getAtoms().iterator(); ai.hasNext(); )
-                {
-                    Atom a = (Atom)ai.next();
-                    // Makes all weights make best use of the 6.2 formatted field available to them
-                    double occ = 999.0 * vals[nAngles]/maxWeight;
-                    if(occ >= 1000.0) throw new Error("Logical error in occupancy weighting scheme");
-                    tempState.get(a).setOccupancy(occ);
-                }
-                pdbWriter.writeResidues(Collections.singletonList(tempRes), tempState);
+                //System.out.print("{"+vals[vals.length-2]+","+vals[vals.length-1]);
+                System.out.print("{");
+                for (int i = 0; i < vals.length-2; i ++) System.out.print(df.format(vals[i])+", ");
+                System.out.print("} ");
+                for (int i = 0; i < vals.length-2; i ++) System.out.print(df.format(vals[i])+" ");
+                System.out.println();
             }
-            catch(AtomException ex) { ex.printStackTrace(); }
         }
-        System.out.flush();
-        pdbWriter.close();
+        else
+        {
+            // Create conformers
+            PdbWriter pdbWriter = new PdbWriter(System.out);
+            pdbWriter.setRenumberAtoms(true);
+            int i = 1;
+            for(Iterator iter = data.iterator(); iter.hasNext(); i++)
+            {
+                try
+                {
+                    double[] vals = (double[])iter.next();
+                    Residue tempRes = new Residue(res, " ", "", Integer.toString(i), " ", res.getName());
+                    ModelState tempState = tempRes.cloneStates(res, modelState, new ModelState(modelState));
+                    if(allAngles)
+                        tempState = angles.setAllAngles(tempRes, tempState, vals);
+                    else
+                        tempState = angles.setChiAngles(tempRes, tempState, vals);
+                    for(Iterator ai = tempRes.getAtoms().iterator(); ai.hasNext(); )
+                    {
+                        Atom a = (Atom)ai.next();
+                        // Makes all weights make best use of the 6.2 formatted field available to them
+                        double occ = 999.0 * vals[nAngles]/maxWeight;
+                        if(occ >= 1000.0) throw new Error("Logical error in occupancy weighting scheme");
+                        tempState.get(a).setOccupancy(occ);
+                    }
+                    pdbWriter.writeResidues(Collections.singletonList(tempRes), tempState);
+                }
+                catch(AtomException ex) { ex.printStackTrace(); }
+            }
+            System.out.flush();
+            pdbWriter.close();
+        }
     }
 
     public static void main(String[] args)
@@ -254,6 +280,18 @@ public class RotamerSampler //extends ... implements ...
         else if(flag.equals("-chionly"))
         {
             allAngles = false;
+        }
+        else if(flag.equals("-plotchis"))
+        {
+            plotChis= true;
+        }
+        else if(flag.equals("-group"))
+        {
+            group = param;
+        }
+        else if(flag.equals("-color"))
+        {
+            color = param;
         }
         else if(flag.equals("-dummy_option"))
         {

@@ -31,12 +31,16 @@ public class VariableRegions //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
-    String        filename1 = null;
-    String        filename2 = null;
-    boolean       verbose   = false;
-    boolean       absVal    = false;
-    boolean       allRes    = false;
-    PrintStream   out       = System.out;
+    String        filename1     = null;
+    String        filename2     = null;
+    boolean       verbose       = false;
+    boolean       doKin1        = false;
+    boolean       doKin2        = false;
+    boolean       absVal        = false;
+    boolean       allRes        = false;
+    PrintStream   out           = System.out;
+    double        dCaScale      = 100;
+    double        dPhiPsiScale  = 50;
 //}}}
 
 //{{{ Constructor(s)
@@ -49,6 +53,10 @@ public class VariableRegions //extends ... implements ...
 
 //{{{ searchModel
 //##############################################################################
+    /** 
+    * For evaluating variability in alternate conformation regions within a 
+    * single PDB file. 
+    */
     void searchModel(String label, Model model)
     {
         if (verbose) System.err.println("Looking for regions that vary in "+filename1);
@@ -80,7 +88,9 @@ public class VariableRegions //extends ... implements ...
                             dPhi = (absVal ? Math.abs(phi2-phi1) : phi2-phi1);
                             dPsi = (absVal ? Math.abs(psi2-psi1) : psi2-psi1);
                         }
-                        if ( allRes || (!Double.isNaN(dPhi) && !Double.isNaN(dPsi) 
+                        if (doKin1)      doKinForRes1(dPhi, dPsi, res, state1, ca2);
+                        else if (doKin2) doKinForRes2(dPhi, dPsi, res, state1, ca2);
+                        else if ( allRes || (!Double.isNaN(dPhi) && !Double.isNaN(dPsi) 
                         && (dPhi != 0 || dPsi != 0 || caTravel != 0)) )
                         {
                             // Either something changed and is therefore worth printing 
@@ -92,7 +102,8 @@ public class VariableRegions //extends ... implements ...
                             else                     out.print("__?__:");
                             if (!Double.isNaN(dPsi)) out.print(df.format(dPsi)+":");
                             else                     out.print("__?__:");
-                            out.println(df.format(caTravel));
+                            out.print(df.format(caTravel)+":");
+                            out.println(df.format(caTravel*dCaScale));
                         }
                     }
                     catch (AtomException ae) { }
@@ -105,6 +116,10 @@ public class VariableRegions //extends ... implements ...
 
 //{{{ searchModels
 //##############################################################################
+    /** 
+    * For evaluating variability in corresponding regions between two related 
+    * PDB files, e.g. from the flexible backbone DEE ("BD") algorithm. 
+    */
     void searchModels(Model model1, Model model2, String label1, String label2)
     {
         if (verbose) System.err.println("Looking for regions that vary between "
@@ -167,7 +182,9 @@ public class VariableRegions //extends ... implements ...
                     dPsi = (absVal ? Math.abs(psi2-psi1) : psi2-psi1);
                 }
                 
-                if ( allRes || (!Double.isNaN(dPhi) && !Double.isNaN(dPsi) 
+                if (doKin1)      doKinForRes1(dPhi, dPsi, res1, state1, ca2);
+                else if (doKin2) doKinForRes2(dPhi, dPsi, res1, state1, ca2);
+                else if ( allRes || (!Double.isNaN(dPhi) && !Double.isNaN(dPsi) 
                 && (dPhi != 0 || dPsi != 0 || caTravel != 0)) )
                 {
                     // Either something changed and is therefore worth printing 
@@ -181,7 +198,8 @@ public class VariableRegions //extends ... implements ...
                     else                     out.print("__?__:");
                     if (!Double.isNaN(dPsi)) out.print(df.format(dPsi)+":");
                     else                     out.print("__?__:");
-                    out.println(df.format(caTravel));
+                    out.print(df.format(caTravel)+":");
+                    out.println(df.format(caTravel*dCaScale));
                 }
             }
             catch (AtomException ae) { }
@@ -231,6 +249,139 @@ public class VariableRegions //extends ... implements ...
     }
 //}}}
 
+//{{{ (doKinForRes1)
+//##############################################################################
+    /** 
+    * Uses colored balls for d(phi,psi).
+    */
+    void doKinForRes1(double dPhi, double dPsi, Residue r1, ModelState s1, AtomState ca2)
+    {
+        try
+        {
+            DecimalFormat df = new DecimalFormat("#.###");
+            
+            AtomState n1  = s1.get(r1.getAtom(" N  "));
+            AtomState c1  = s1.get(r1.getAtom(" C  "));
+            AtomState ca1 = s1.get(r1.getAtom(" CA "));
+            
+            // d(phi)
+            if (!Double.isNaN(dPhi))
+            {
+                Triple mp = new Triple().likeMidpoint(n1, ca1);
+                out.print("@balllist {"+r1+" d(phi)} master= {d(phi)} radius="+df.format(Math.abs(dPhi)));
+                if (dPhi > 0) out.println(" color= {red}");
+                else          out.println(" color= {blue}");
+                out.println("{"+r1+" d(phi)} "+df.format(mp.getX())+" "+
+                    df.format(mp.getY())+" "+df.format(mp.getZ()));
+            }
+            // d(psi)
+            if (!Double.isNaN(dPsi))
+            {
+                Triple mp = new Triple().likeMidpoint(ca1, c1);
+                out.print("@balllist {"+r1+" d(psi)} master= {d(psi)} radius="+df.format(Math.abs(dPsi)));
+                if (dPsi > 0) out.println(" color= {red}");
+                else          out.println(" color= {blue}");
+                out.println("{"+r1+" d(psi)} "+df.format(mp.getX())+" "+
+                    df.format(mp.getY())+" "+df.format(mp.getZ()));
+            }
+            // d(Ca)
+            Triple ca1ca2 = new Triple().likeVector(ca1, ca2).mult(dCaScale);
+            if ( !(ca1ca2.getX() == 0 && ca1ca2.getY() == 0 && ca1ca2.getZ() == 0) )
+            {
+                Triple tip = new Triple().likeSum(ca1, ca1ca2);
+                out.println("@vectorlist {"+r1+" Ca1-Ca2} master= {Ca1-Ca2} color= {green}");
+                out.println("{"+r1+" Ca1-Ca2} "+ca1.getX()+" "+ca1.getY()+" "+ca1.getZ());
+                out.println("{"+r1+" Ca1-Ca2} "+tip.getX()+" "+tip.getY()+" "+tip.getZ());
+                out.println("@balllist {"+r1+" Ca1-Ca2} master= {Ca1-Ca2} color= {green} radius= 0.15");
+                out.println("{"+r1+" Ca1-Ca2} "+tip.getX()+" "+tip.getY()+" "+tip.getZ());
+            }
+        }
+        catch (AtomException ae) { System.err.println("Couldn't do kin for '"+r1+"'.."); }
+    }
+//}}}
+
+//{{{ doKinForRes2
+//##############################################################################
+    /** 
+    * Uses vector "fans" for d(phi,psi).
+    */
+    void doKinForRes2(double dPhi, double dPsi, Residue r1, ModelState s1, AtomState ca2)
+    {
+        try
+        {
+            DecimalFormat df  = new DecimalFormat("#.###");
+            DecimalFormat df2 = new DecimalFormat("#");
+            
+            AtomState n1  = s1.get(r1.getAtom(" N  "));
+            AtomState c1  = s1.get(r1.getAtom(" C  "));
+            AtomState ca1 = s1.get(r1.getAtom(" CA "));
+            
+            // d(phi)
+            if (!Double.isNaN(dPhi) && dPhi != 0)
+            {
+                Triple normal  = new Triple().likeNormal(c1, ca1, n1);
+                for (int i = 0; i < 3; i ++)
+                {
+                    Transform rotate = new Transform();
+                    rotate = rotate.likeRotation(normal, (dPhi*dPhiPsiScale) * (1.00-0.33*i));
+                    Triple bond = new Triple().likeVector(ca1, n1);
+                    rotate.transform(bond);
+                    Triple fan = bond.mult(0.75).add(ca1);
+                    out.print("@vectorlist {"+r1+" d(phi)} master= {d(phi) x "+df2.format(dPhiPsiScale)+"} color= ");
+                    out.print(dPhi > 0 ? "{red}" : "{blue}");
+                    out.println(" width= "+(3-i));
+                    out.println("{"+r1+" d(phi)}P "+df.format(ca1.getX())+" "
+                                                   +df.format(ca1.getY())+" "
+                                                   +df.format(ca1.getZ()));
+                    out.println("{"+r1+" d(phi)}  "+df.format(fan.getX())+" "
+                                                   +df.format(fan.getY())+" "
+                                                   +df.format(fan.getZ()));
+                }
+            }
+            // d(psi)
+            if (!Double.isNaN(dPsi) && dPsi != 0)
+            {
+                Triple normal  = new Triple().likeNormal(n1, ca1, c1);
+                for (int i = 0; i < 3; i ++)
+                {
+                    Transform rotate = new Transform();
+                    rotate = rotate.likeRotation(normal, (dPsi*dPhiPsiScale) * (1.00-0.33*i));
+                    Triple bond = new Triple().likeVector(ca1, c1);
+                    rotate.transform(bond);
+                    Triple fan = bond.mult(0.75).add(ca1);
+                    out.print("@vectorlist {"+r1+" d(psi)} master= {d(psi) x "+df2.format(dPhiPsiScale)+"} color= ");
+                    out.print(dPsi > 0 ? "{red}" : "{blue}");
+                    out.println(" width= "+(3-i));
+                    out.println("{"+r1+" d(psi)}P "+df.format(ca1.getX())+" "
+                                                   +df.format(ca1.getY())+" "
+                                                   +df.format(ca1.getZ()));
+                    out.println("{"+r1+" d(psi)}  "+df.format(fan.getX())+" "
+                                                   +df.format(fan.getY())+" "
+                                                   +df.format(fan.getZ()));
+                }
+            }
+            // d(Ca)
+            Triple ca1ca2 = new Triple().likeVector(ca1, ca2).mult(dCaScale);
+            if ( !(ca1ca2.getX() == 0 && ca1ca2.getY() == 0 && ca1ca2.getZ() == 0) )
+            {
+                Triple tip = new Triple().likeSum(ca1, ca1ca2);
+                out.println("@vectorlist {"+r1+" d(Ca)} master= {d(Ca) x "+df2.format(dCaScale)+"} color= {green}");
+                out.println("{"+r1+" d(Ca)}P "+df.format(ca1.getX())+" "
+                                              +df.format(ca1.getY())+" "
+                                              +df.format(ca1.getZ()));
+                out.println("{"+r1+" d(Ca)}  "+df.format(tip.getX())+" "
+                                              +df.format(tip.getY())+" "
+                                              +df.format(tip.getZ()));
+                out.println("@balllist {"+r1+" d(Ca)} master= {d(Ca) x "+df2.format(dCaScale)+"} color= {green} radius= 0.1");
+                out.println("{"+r1+" d(Ca)} "+df.format(tip.getX())+" "
+                                             +df.format(tip.getY())+" "
+                                             +df.format(tip.getZ()));
+            }
+        }
+        catch (AtomException ae) { System.err.println("Couldn't do kin for '"+r1+"'.."); }
+    }
+//}}}
+
 //{{{ CLASS: SimpleResAligner
 //##############################################################################
     static class SimpleResAligner implements Alignment.Scorer
@@ -262,6 +413,7 @@ public class VariableRegions //extends ... implements ...
             System.err.println("Need at least one filename!");
             System.exit(0);
         }
+        if ((doKin1 || doKin2) && dCaScale == 100) dCaScale = 10; // different default for kins
         try
         {
             if (filename1 != null && filename2 == null)
@@ -270,7 +422,8 @@ public class VariableRegions //extends ... implements ...
                 PdbReader reader = new PdbReader();
                 File f = new File(filename1);
                 CoordinateFile cf = reader.read(f);
-                out.println("label:model:chain:res_type:res_num:dPhi:dPsi:Ca-Ca");
+                if (doKin1 || doKin2) out.println("@group {VariableRegions} dominant");
+                else                  out.println("label:model:chain:res_type:res_num:dPhi:dPsi:dCa:dCa*"+dCaScale);
                 for(Iterator models = cf.getModels().iterator(); models.hasNext(); )
                 {
                     Model m = (Model) models.next();
@@ -291,7 +444,8 @@ public class VariableRegions //extends ... implements ...
                 Model m2 = cf2.getFirstModel();
                 String label1 = f1.toString();
                 String label2 = f2.toString();
-                out.println("label1:label2:model1:model2:chain1:chain2:res_type1:res_type2:res_num1:res_num2:dPhi:dPsi:Ca-Ca");
+                if (doKin1 || doKin2) out.println("@group {VariableRegions} dominant");
+                else                  out.println("label1:label2:model1:model2:chain1:chain2:res_type1:res_type2:res_num1:res_num2:dPhi:dPsi:dCa:dCa*"+dCaScale);
                 searchModels(m1, m2, label1, label2);
             }
         }
@@ -415,6 +569,17 @@ public class VariableRegions //extends ... implements ...
         {
             verbose = true;
         }
+        else if(flag.equals("-kin1"))
+        {
+            doKin1 = true;
+            doKin2 = false;
+        }
+        else if(flag.equals("-kin2") || (flag.equals("-kin")))
+        {
+            // This one takes precedence over -kin1
+            doKin2 = true;
+            doKin1 = false;
+        }
         else if(flag.equals("-absval") || flag.equals("-abs"))
         {
             absVal = true;
@@ -422,6 +587,16 @@ public class VariableRegions //extends ... implements ...
         else if(flag.equals("-allres") || flag.equals("-all"))
         {
             allRes = true;
+        }
+        else if(flag.equals("-dcascale"))
+        {
+            try { dCaScale = Double.parseDouble(param); }
+            catch (NumberFormatException nfe) { System.err.println("Can't parse "+param+" as a double!"); };
+        }
+        else if(flag.equals("-dphipsiscale"))
+        {
+            try { dPhiPsiScale = Double.parseDouble(param); }
+            catch (NumberFormatException nfe) { System.err.println("Can't parse "+param+" as a double!"); };
         }
         else if(flag.equals("-dummy_option"))
         {

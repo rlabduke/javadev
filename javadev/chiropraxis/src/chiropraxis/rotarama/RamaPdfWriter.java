@@ -21,6 +21,8 @@ import com.lowagie.text.pdf.*;
 * <code>RamaPdfWriter</code> uses the iText PDF libraries to produce a PDF
 * plot of the four Richardson Ramachandran plots.
 *
+* WILL REQUIRE EXTENSIVE FORMATTING CHANGES TO ACCOMMODATE CIS/TRANS PROLINES!
+*
 * <p>When run as an application, it just copies its template file to standard out.
 *
 * <p>Copyright (C) 2004 by Ian W. Davis. All rights reserved.
@@ -116,17 +118,21 @@ public class RamaPdfWriter //extends ... implements ...
         PdfContentByte content, PdfTemplate template) throws DocumentException
     {
         int i = 0;
-        PdfTemplate[] generalTemplates = new PdfTemplate[analyses.size()];
-        PdfTemplate[] glycineTemplates = new PdfTemplate[analyses.size()];
-        PdfTemplate[] prolineTemplates = new PdfTemplate[analyses.size()];
-        PdfTemplate[] preproTemplates = new PdfTemplate[analyses.size()];
+        PdfTemplate[] generalTemplates  = new PdfTemplate[analyses.size()];
+        PdfTemplate[] glycineTemplates  = new PdfTemplate[analyses.size()];
+        PdfTemplate[] prolineTemplates  = new PdfTemplate[analyses.size()];
+        //PdfTemplate[] cisproTemplates   = new PdfTemplate[analyses.size()];
+        //PdfTemplate[] transproTemplates = new PdfTemplate[analyses.size()];
+        PdfTemplate[] preproTemplates   = new PdfTemplate[analyses.size()];
         for(Iterator iter = analyses.keySet().iterator(); iter.hasNext(); i++)
         {
-            Collection analysis = (Collection) iter.next();
-            generalTemplates[i] = makeAnalysisTemplate(content, Ramalyze.RamaEval.GENERAL, analysis);
-            glycineTemplates[i] = makeAnalysisTemplate(content, Ramalyze.RamaEval.GLYCINE, analysis);
+            Collection analysis  = (Collection) iter.next();
+            generalTemplates[i]  = makeAnalysisTemplate(content, Ramalyze.RamaEval.GENERAL, analysis);
+            glycineTemplates[i]  = makeAnalysisTemplate(content, Ramalyze.RamaEval.GLYCINE, analysis);
             prolineTemplates[i] = makeAnalysisTemplate(content, Ramalyze.RamaEval.PROLINE, analysis);
-            preproTemplates[i]  = makeAnalysisTemplate(content, Ramalyze.RamaEval.PREPRO, analysis);
+            //cisproTemplates[i]   = makeAnalysisTemplate(content, Ramalyze.RamaEval.PREPRO, analysis);
+            //transproTemplates[i] = makeAnalysisTemplate(content, Ramalyze.RamaEval.PREPRO, analysis);
+            preproTemplates[i]   = makeAnalysisTemplate(content, Ramalyze.RamaEval.PREPRO, analysis);
         }
         
         // Do all plots superimposed

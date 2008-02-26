@@ -32,8 +32,9 @@ public class Ramachandran //extends ... implements ...
 //##################################################################################################
     static private Ramachandran instance    = null;
     float[]                     phipsi      = new float[2];
-    NDFloatTable                genTable = null, glyTable = null,
-                                proTable = null, preproTable = null;
+    NDFloatTable                genTable    = null, glyTable = null,
+                                preproTable = null, proTable = null;
+                                //cisproTable = null, transproTable = null;
 //}}}
 
 //{{{ getInstance, freeInstance
@@ -76,13 +77,15 @@ public class Ramachandran //extends ... implements ...
     */
     private Ramachandran() throws IOException
     {
-        InputStream sGen, sGly, sPro, sPrepro;
-        sGen    = this.getClass().getResourceAsStream("rama/general.ndft");
-        sGly    = this.getClass().getResourceAsStream("rama/glycine.ndft");
-        sPro    = this.getClass().getResourceAsStream("rama/proline.ndft");
-        sPrepro = this.getClass().getResourceAsStream("rama/prepro.ndft");
+        InputStream sGen, sGly, sPro, sPrepro;//sCispro, sTranspro;
+        sGen      = this.getClass().getResourceAsStream("rama/general.ndft");
+        sGly      = this.getClass().getResourceAsStream("rama/glycine.ndft");
+        sPro      = this.getClass().getResourceAsStream("rama/proline.ndft");
+        //sCispro   = this.getClass().getResourceAsStream("rama/proline-cis.ndft");
+        //sTranspro = this.getClass().getResourceAsStream("rama/proline-trans.ndft");
+        sPrepro   = this.getClass().getResourceAsStream("rama/prepro.ndft");
         
-        if(sGen == null || sGly == null || sPro == null || sPrepro == null)
+        if(sGen == null || sGly == null || sPro == null || sPrepro == null)//sCispro == null || sTranspro == null 
             throw new IOException("Could not find required .ndft files");
         
         DataInputStream dis;
@@ -92,12 +95,18 @@ public class Ramachandran //extends ... implements ...
         glyTable = new NDFloatTable(dis);
         dis = new DataInputStream(new BufferedInputStream(sPro));
         proTable = new NDFloatTable(dis);
+        //dis = new DataInputStream(new BufferedInputStream(sCispro));
+        //cisproTable = new NDFloatTable(dis);
+        //dis = new DataInputStream(new BufferedInputStream(sTranspro));
+        //transproTable = new NDFloatTable(dis);
         dis = new DataInputStream(new BufferedInputStream(sPrepro));
         preproTable = new NDFloatTable(dis);
 
         sGen.close();
         sGly.close();
         sPro.close();
+        //sCispro.close();
+        //sTranspro.close();
         sPrepro.close();
     }
 //}}}
@@ -128,6 +137,18 @@ public class Ramachandran //extends ... implements ...
             score = glyTable.valueAt(phipsi);
         else if(name.equals("PRO"))
             score = proTable.valueAt(phipsi);
+        //{
+        //    if (AminoAcid.isCis(model, res, state))
+        //    {
+        //        score = cisproTable.valueAt(phipsi);
+        //        System.err.println("'"+res+"' is cis!");
+        //    }
+        //    else
+        //    {
+        //        score = transproTable.valueAt(phipsi);
+        //        System.err.println("'"+res+"' is trans!");
+        //    }
+        //}
         else if(AminoAcid.isPrepro(model, res, state))
             score = preproTable.valueAt(phipsi);
         else

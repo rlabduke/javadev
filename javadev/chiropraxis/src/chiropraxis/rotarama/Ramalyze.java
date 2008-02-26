@@ -42,11 +42,13 @@ public class Ramalyze //extends ... implements ...
         public static final String OUTLIER = "OUTLIER";
         public static final String NOSCORE = "Not evaluated";
         
-        public static final String GENERAL = "General case";
-        public static final String GLYCINE = "Glycine";
-        public static final String PROLINE = "Proline";
-        public static final String PREPRO  = "Pre-proline";
-        public static final String NOTYPE  = "Unknown type";
+        public static final String GENERAL  = "General case";
+        public static final String GLYCINE  = "Glycine";
+        public static final String PROLINE  = "Proline";
+        //public static final String CISPRO   = "Cis Proline";
+        //public static final String TRANSPRO = "Trans Proline";
+        public static final String PREPRO   = "Pre-proline";
+        public static final String NOTYPE   = "Unknown type";
         
         Residue res;
         String name; // starts as res.toString(), may be improved later
@@ -169,6 +171,10 @@ public class Ramalyze //extends ... implements ...
                     
                     if(res.getName().equals("GLY"))             eval.type = RamaEval.GLYCINE;
                     else if(res.getName().equals("PRO"))        eval.type = RamaEval.PROLINE;
+                    //{
+                    //    if (AminoAcid.isCis(model, res, ms))    eval.type = RamaEval.CISPRO;
+                    //    else                                    eval.type = RamaEval.TRANSPRO;
+                    //}
                     else if(AminoAcid.isPrepro(model, res, ms)) eval.type = RamaEval.PREPRO;
                     else                                        eval.type = RamaEval.GENERAL;
                     
@@ -225,6 +231,7 @@ public class Ramalyze //extends ... implements ...
         
         if(mode == MODE_PDF)
         {
+            System.err.println("Creating PDF document...");
             RamaPdfWriter writer = new RamaPdfWriter();
             writer.createRamaPDF(analyses, label, out);
             try { out.flush(); }
