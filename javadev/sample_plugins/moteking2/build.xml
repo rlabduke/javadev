@@ -48,7 +48,7 @@
            excludes="**/old/"
            debug="on" debuglevel="lines,source">
          <classpath>
-            <!-- <pathelement location="../../driftwood/build"/> -->
+            <pathelement location="../../driftwood/build"/>
             <pathelement location="../../king/build"/>
             <pathelement location="bluecove-2.0.2.jar"/>
             <pathelement location="WiiRemoteJ.jar"/>
