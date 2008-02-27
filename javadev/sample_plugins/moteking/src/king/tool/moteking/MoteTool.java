@@ -6,6 +6,7 @@ import king.core.*;
 
 import motej.*;
 import motej.event.*;
+import motej.request.*;
 
 public class MoteTool extends BasicTool implements CoreButtonListener, AccelerometerListener {
   
@@ -28,7 +29,10 @@ public class MoteTool extends BasicTool implements CoreButtonListener, Accelerom
     mote = MoteFinder.getMoteFinder().findMote();
     System.out.println("mote found!");
 		mote.addCoreButtonListener(this);
+    System.out.println("adding accel listener");
     mote.addAccelerometerListener(this);
+    mote.setReportMode(ReportModeRequest.DATA_REPORT_0x31, true);
+    System.out.println("mote ready!");
   }
   //}}}
   
@@ -54,6 +58,7 @@ public class MoteTool extends BasicTool implements CoreButtonListener, Accelerom
   
   //{{{ stop
   public void stop() {
+    mote.setReportMode(ReportModeRequest.DATA_REPORT_0x30);
     mote.disconnect();
   }
   //}}}

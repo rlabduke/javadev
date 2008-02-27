@@ -172,11 +172,11 @@ class IncomingThread extends Thread {
 				byte[] buf = new byte[23];
 				incoming.receive(buf);
 
-//				 System.out.println("received: ");
-//				 for (int i = 0; i < buf.length; i++) {
-//				 System.out.print((int) buf[i] + " ");
-//				 }
-//				 System.out.println();
+				 System.out.println("received: ");
+				 for (int i = 0; i < buf.length; i++) {
+				 System.out.print((int) buf[i] + " ");
+				 }
+				 System.out.println();
 //								
 //				 System.out.println("as bitset: ");
 //				 for (int i = 0; i < buf.length; i++) {
