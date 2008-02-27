@@ -171,7 +171,12 @@ public class MoteTool extends BasicTool implements WiiRemoteListener {
       //mouse = null;
     }
     if (evt.isOnlyPressed(WRButtonEvent.B)) {
-      System.out.println("Button B pressed!");
+      Kinemage k = kMain.getKinemage();
+      if(k != null) k.animate(-1);
+    }
+    if (evt.isOnlyPressed(WRButtonEvent.A)) {
+      Kinemage k = kMain.getKinemage();
+      if(k != null) k.animate(1);
     }
     if (evt.isOnlyPressed(WRButtonEvent.PLUS)) {
       services.adjustZoom(1);

@@ -34,7 +34,7 @@ public class RdcVisWindow implements ActionListener, WindowListener {
   KinCanvas           kCanvas;
   ModelManager2       modelman;
   MagneticResonanceFile mrf;
-  RdcDrawer           drawer;
+  RdcDrawer2           drawer;
   TreeMap             currentRdcs;
   HashMap             transAtomMap;
   RdcSolver           solver;
@@ -132,7 +132,7 @@ public class RdcVisWindow implements ActionListener, WindowListener {
       ModelState  state   = modelman.getFrozenState();
       solver = solveRdcs(model, state, currentRdcs, rdcType);
       if (solver != null) {
-        drawer = new RdcDrawer(solver.getSaupeDiagonalized(), solver.getSaupeEigenvectors());
+        drawer = new RdcDrawer2(solver.getSaupeDiagonalized(), solver.getSaupeEigenvectors());
       }
       //Matrix saupeDiagonal = solver.getSaupeDiagonalized();
     } else {
@@ -228,7 +228,7 @@ public class RdcVisWindow implements ActionListener, WindowListener {
   //}}}
   
   //{{{ get functions
-  public RdcDrawer getDrawer() {
+  public RdcDrawer2 getDrawer() {
     return drawer;
   }
   

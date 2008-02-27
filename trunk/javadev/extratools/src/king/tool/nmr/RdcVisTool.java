@@ -226,11 +226,13 @@ public class RdcVisTool extends ModelingTool {
       //DipolarRestraint dr = (DipolarRestraint) currentRdcs.get(seq);
       
       System.out.println("res num= "+seq+" rdc val= "+df.format(rdcVal)+" calc rdc= "+df.format(backcalcRdc));
-      rdcWin.getDrawer().drawCurve(rdcVal, p, backcalcRdc, list);
+      //rdcWin.getDrawer().drawCurve(rdcVal, p, backcalcRdc, list);
       //rdcWin.getDrawer().drawCurve(rdcVal - 2, p, backcalcRdc, list);
       //rdcWin.getDrawer().drawCurve(rdcVal + 2, p, backcalcRdc, list);
-            
-
+      //rdcWin.getDrawer().drawCurve(rdcVal, p, 1, 60, backcalcRdc, list);
+      //rdcWin.getDrawer().drawCurve(rdcVal-0.5, p, 1, 60, backcalcRdc, list);
+      //rdcWin.getDrawer().drawCurve(rdcVal+0.5, p, 1, 60, backcalcRdc, list);
+      rdcWin.getDrawer().drawAll(p, 1, 60, backcalcRdc, list);
     } else {
       System.out.println("this residue does not appear to have an rdc");
     }
