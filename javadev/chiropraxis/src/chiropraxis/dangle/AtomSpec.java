@@ -53,8 +53,24 @@ public class AtomSpec extends XyzSpec
         else
         {
             this.regexName  = null;
-            this.primeName  = atomName.replace('*', '\'');
-            this.starName   = primeName.replace('\'', '*');
+            if (" OP1: OP2: OP3".indexOf(atomName) != -1)      
+            {
+                // PDB v3.0 RNA phosphate oxygens
+                this.primeName  = atomName;
+                this.starName   = " O"+atomName.substring(3)+"P"; // " OP#" => " O#P"
+            }
+            else if (" O1P: O2P: O3P".indexOf(atomName) != -1)
+            {
+                // PDB v2.3 RNA phosphate oxygens
+                this.primeName  = " OP"+atomName.substring(2,3);  // " O#P" => " OP#"
+                this.starName   = atomName;
+            }
+            else
+            {
+                // Some other atom type
+                this.primeName  = atomName.replace('*', '\'');
+                this.starName   = primeName.replace('\'', '*');
+            }
         }
     }
 //}}}
@@ -186,7 +202,8 @@ public class AtomSpec extends XyzSpec
         String res = "i";
         if(resOffset > 0)       res += "+" + resOffset;
         else if(resOffset < 0)  res += resOffset;
-        return res+" "+starName.replace(' ', '_');
+        return res+" "+primeName.replace(' ', '_'); // now PDB v3.0
+        //return res+" "+starName.replace(' ', '_');
     }
 //}}}
 

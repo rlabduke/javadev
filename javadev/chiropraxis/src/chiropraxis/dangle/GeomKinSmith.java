@@ -38,11 +38,13 @@ public class GeomKinSmith //extends ... implements ...
     boolean ignoreDNA;
     boolean subgroupNotGroup;
     boolean doHets;
+    ArrayList<Integer> resnums;
+    int[] resrange;
 //}}}
 
 //{{{ Constructor
 //##############################################################################
-    public GeomKinSmith(ArrayList<Measurement> m, String l, CoordinateFile c, boolean dist, boolean ang, boolean head, double sc, boolean id, boolean sgng, boolean dh)
+    public GeomKinSmith(ArrayList<Measurement> m, String l, CoordinateFile c, boolean dist, boolean ang, boolean head, double sc, boolean id, boolean sgng, boolean dh, ArrayList<Integer> rn, int[] rr)
     {
         meas = (Measurement[]) m.toArray(new Measurement[m.size()]);
         label = l;
@@ -54,6 +56,8 @@ public class GeomKinSmith //extends ... implements ...
         ignoreDNA = id;
         subgroupNotGroup = sgng;
         doHets = dh;
+        resnums = rn;
+        resrange = rr;
     }
 //}}}
 
@@ -78,107 +82,110 @@ public class GeomKinSmith //extends ... implements ...
             for(Iterator residues = model.getResidues().iterator(); residues.hasNext(); )
             {
                 Residue res = (Residue) residues.next();
-                
-                //System.out.println(res);
-                
-                boolean print = true;
-                
-                // Get c2o2index ("// Print headings" in Dangle.java)
-                int c2o2index = 999; // placeholder value
-                for(int i = 0; i < meas.length; i++)
+                int resnum = res.getSequenceInteger();
+                if((resnums  == null && resrange == null)
+                || (resnums  != null && resnums.contains(resnum))
+                || (resrange != null && resrange[0] <= resnum && resrange[1] >= resnum) )
                 {
-                    if (ignoreDNA && (meas[i].getLabel()).equals("c2o2") && c2o2index == 999)
-                    {
-                        c2o2index = i;
-                    }
-                }
-                
-                // If c2o2 (for purpose of discrimination btw DNA & RNA) comes up 
-                // NaN, we wanna omit this residue --> set 'print' to false
-                for(int i = 0; i < meas.length; i++)
-                {
-                    if (ignoreDNA && c2o2index != 999)
-                    {
-                        if ( Double.isNaN(meas[c2o2index].measure(model, state, res, doHets)) )
-                            print = false;
-                    }
-                }
-                
-                if (print)
-                {
+                    boolean print = true;
+                    
+                    // Get c2o2index ("// Print headings" in Dangle.java)
+                    int c2o2index = 999; // placeholder value
                     for(int i = 0; i < meas.length; i++)
                     {
-                        // See if this Measurement is a Group of potentially interesting 
-                        // Measurements, or just a regualar individual Measurement
-                        
-                        Measurement.Group potentiallyAGroup = null;
-                        try { potentiallyAGroup = (Measurement.Group) meas[i]; }
-                        catch (java.lang.ClassCastException cce) { ; }
-                        
-                        if (potentiallyAGroup != null) // then meas[i] is a Measurement.Group 
-                                                       // (subclass of Measurement)
+                        if (ignoreDNA && (meas[i].getLabel()).equals("c2o2") && c2o2index == 999)
                         {
-                            boolean doneWithGroup = false;
+                            c2o2index = i;
+                        }
+                    }
+                    
+                    // If c2o2 (for purpose of discrimination btw DNA & RNA) comes up 
+                    // NaN, we wanna omit this residue --> set 'print' to false
+                    for(int i = 0; i < meas.length; i++)
+                    {
+                        if (ignoreDNA && c2o2index != 999)
+                        {
+                            if ( Double.isNaN(meas[c2o2index].measure(model, state, res, doHets)) )
+                                print = false;
+                        }
+                    }
+                    
+                    if (print)
+                    {
+                        for(int i = 0; i < meas.length; i++)
+                        {
+                            // See if this Measurement is a Group of potentially interesting 
+                            // Measurements, or just a regualar individual Measurement
                             
-                            Measurement.Group temp = (Measurement.Group) meas[i];
-                            ArrayList<Measurement> measAL = ( ArrayList<Measurement> ) temp.group; // variable in Group
+                            Measurement.Group potentiallyAGroup = null;
+                            try { potentiallyAGroup = (Measurement.Group) meas[i]; }
+                            catch (java.lang.ClassCastException cce) { ; }
                             
-                            for (Measurement m : measAL)
+                            if (potentiallyAGroup != null) // then meas[i] is a Measurement.Group 
+                                                           // (subclass of Measurement)
                             {
-                                double val = m.measure(model, state, res, doHets);
-                                double dev = m.getDeviation();
-                                double ideal = m.mean;
-                                if(!Double.isNaN(val) && !doneWithGroup)
+                                boolean doneWithGroup = false;
+                                
+                                Measurement.Group temp = (Measurement.Group) meas[i];
+                                ArrayList<Measurement> measAL = ( ArrayList<Measurement> ) temp.group; // variable in Group
+                                
+                                for (Measurement m : measAL)
                                 {
-                                    // We've found the valid Measurement in this Group
-                                    doneWithGroup = true;
-                                    
-                                    if (!Double.isNaN(dev) && Math.abs(dev) >= sigmaCutoff)
+                                    double val = m.measure(model, state, res, doHets);
+                                    double dev = m.getDeviation();
+                                    double ideal = m.mean;
+                                    if(!Double.isNaN(val) && !doneWithGroup)
                                     {
-                                        if(m.getType().equals("distance"))
+                                        // We've found the valid Measurement in this Group
+                                        doneWithGroup = true;
+                                        
+                                        if (!Double.isNaN(dev) && Math.abs(dev) >= sigmaCutoff)
                                         {
-                                            //System.out.println(res.toString()+" "+m.toString()+
-                                            //    " "+val+" "+dev);
-                                            
-                                            distImpl(m, model, state, res, val, ideal, dev);
-                                        }
-                                        if(m.getType().equals("angle"))
-                                        {
-                                            angleImpl(m, model, state, res, val, ideal);
+                                            if(m.getType().equals("distance"))
+                                            {
+                                                //System.out.println(res.toString()+" "+m.toString()+
+                                                //    " "+val+" "+dev);
+                                                
+                                                distImpl(m, model, state, res, val, ideal, dev);
+                                            }
+                                            if(m.getType().equals("angle"))
+                                            {
+                                                angleImpl(m, model, state, res, val, ideal);
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                        
-                        else // meas[i] is NOT a Measurement.Group; probably a 
-                             // regular Measurement.Distance or Measurement.Angle
-                        {
-                            double val = meas[i].measure(model, state, res, doHets);
-                            double dev = meas[i].getDeviation();
-                            double ideal = meas[i].mean;
                             
-                            //System.out.println("val: "+val);
-                            //System.out.println("dev: "+dev);
-                            
-                            if(!Double.isNaN(val) && !Double.isNaN(dev) && Math.abs(dev) >= sigmaCutoff)
+                            else // meas[i] is NOT a Measurement.Group; probably a 
+                                 // regular Measurement.Distance or Measurement.Angle
                             {
-                                //System.out.println("meas[i]: "+meas[i]);
+                                double val = meas[i].measure(model, state, res, doHets);
+                                double dev = meas[i].getDeviation();
+                                double ideal = meas[i].mean;
                                 
-                                if(meas[i].getType().equals("distance"))
+                                //System.out.println("val: "+val);
+                                //System.out.println("dev: "+dev);
+                                
+                                if(!Double.isNaN(val) && !Double.isNaN(dev) && Math.abs(dev) >= sigmaCutoff)
                                 {
-                                    distImpl(meas[i], model, state, res, val, ideal, dev);
-                                }
-                                if(meas[i].getType().equals("angle"))
-                                {
-                                    angleImpl(meas[i], model, state, res, val, ideal);
+                                    //System.out.println("meas[i]: "+meas[i]);
+                                    
+                                    if(meas[i].getType().equals("distance"))
+                                    {
+                                        distImpl(meas[i], model, state, res, val, ideal, dev);
+                                    }
+                                    if(meas[i].getType().equals("angle"))
+                                    {
+                                        angleImpl(meas[i], model, state, res, val, ideal);
+                                    }
                                 }
                             }
-                        }
+                            
+                        } //for (each meas[i] in meas)
                         
-                    } //for (each meas[i] in meas)
-                    
-                } //if (print)
+                    } //if (print)
+                }
             }
             
             printModel(model);

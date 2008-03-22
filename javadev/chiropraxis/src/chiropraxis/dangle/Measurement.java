@@ -32,6 +32,7 @@ abstract public class Measurement //extends ... implements ...
     public static final Object TYPE_MINQ        = "minq";
     public static final Object TYPE_PLANARITY   = "planarity";
     public static final Object TYPE_PUCKER   	= "pucker";
+    public static final Object TYPE_BASEPPERP  	= "basePperp";
 //}}}
 
 //{{{ Variable definitions
@@ -40,8 +41,9 @@ abstract public class Measurement //extends ... implements ...
     String label;
     double mean = Double.NaN;
     double sigma = Double.NaN;
+    double mean2 = Double.NaN;  // for 2' ribose pucker in RNA ('mean' for 3')
+    double sigma2 = Double.NaN; // for 2' ribose pucker in RNA ('mean' for 3')
     double deviation = Double.NaN;
-    boolean doHets = false;
 //}}}
 
 //{{{ Constructor(s)
@@ -53,7 +55,7 @@ abstract public class Measurement //extends ... implements ...
     }
 //}}}
 
-//{{{ measure, getDeviation, measureImpl, getLabel/Type, setResSpec
+//{{{ measure
 //##############################################################################
     /**
     * Returns the specified measure in the given state,
@@ -61,14 +63,13 @@ abstract public class Measurement //extends ... implements ...
     * (usually because 1+ atoms/residues don't exist).
     * @return the measure, or NaN if undefined
     */
-    public double measure(Model model, ModelState state, Residue res, boolean doHetsPassedArg)
+    public double measure(Model model, ModelState state, Residue res, boolean doHetsInGeneral)
     {
         // Check to make sure there are no het atoms in this residue
         // (Wouldn't want to give deviations for molecules not described 
         // by the distribution this code is using!)
-        if (!doHetsPassedArg)
+        if (!doHetsInGeneral && !isProtOrNucAcid(res))
         {
-            this.doHets = true;
             Collection<Atom> thisResiduesAtoms = res.getAtoms();
             Iterator iter = thisResiduesAtoms.iterator();
             while (iter.hasNext())
@@ -82,13 +83,36 @@ abstract public class Measurement //extends ... implements ...
             }
         }
         
+        // For angles and distances in RNA ribose, decide whether 2' pucker (in which
+        // case keep the alternate mean2 and sigma2) or 3' pucker (in which case 
+        // eliminate them).
+        boolean useIdealVals2 = false;
+        if(this.getType() == TYPE_DISTANCE || this.getType() == TYPE_ANGLE 
+        && !Double.isNaN(mean2) && !Double.isNaN(sigma2))
+        {
+            Measurement.BasePhosPerp pPerp = new Measurement.BasePhosPerp("pPerpPuckerTest");
+            double pPerpDist = pPerp.measure(model, state, res);
+            if (!Double.isNaN(pPerpDist) && (pPerpDist > Double.NEGATIVE_INFINITY && pPerpDist < Double.POSITIVE_INFINITY))
+            {
+                // Clearly an RNA residue with 2' pucker => mean2 + sigma2 are appropriate
+                //System.err.println("Base-P perp in range => using mean2+sigma2");
+                useIdealVals2 = true;
+            }
+            // else either this residue is not RNA, or it is RNA but its ribose is not in the
+            // 2' pucker range (so has 3' pucker or the pucker is ambiguous) => default to the 
+            // original (3' or non-RNA) mean + sigma
+        }
+        
         // Either (1) allowing hets or (2) not allowing hets but there are none in this residue
         double measure;
         if(resSpec == null || resSpec.isMatch(model, state, res))
             measure = measureImpl(model, state, res);
         else
             measure = Double.NaN;
-        this.deviation = (measure - mean) / sigma;
+        if (useIdealVals2 && !Double.isNaN(mean2) && !Double.isNaN(sigma2))
+            this.deviation = (measure - mean2) / sigma2;
+        else
+            this.deviation = (measure - mean) / sigma;
         return measure;
     }
     
@@ -99,7 +123,10 @@ abstract public class Measurement //extends ... implements ...
     {
         return measure(model, state, res, false);
     }
-    
+//}}}
+
+//{{{ getDeviation, measureImpl, getLabel/Type, setResSpec, isProtOrNucAcid
+//##############################################################################
     /**
     * Returns the deviation from the mean in standard-deviation units (sigmas)
     * for the last call to measure().
@@ -120,9 +147,20 @@ abstract public class Measurement //extends ... implements ...
     public void setResSpec(ResSpec resSpec)
     { this.resSpec = resSpec; }
     
+    public boolean isProtOrNucAcid(Residue res)
+    {
+        //String lowerCa = ":gly:ala:val:phe:pro:met:ile:leu:asp:glu:lys:arg:ser:thr:tyr:his:cys:asn:gln:trp:asx:glx:ace:for:nh2:nme:mse:aib:abu:pca:mly:cyo:m3l:dgn:csd:";
+        String aaNames = ":GLY:ALA:VAL:PHE:PRO:MET:ILE:LEU:ASP:GLU:LYS:ARG:SER:THR:TYR:HIS:CYS:ASN:GLN:TRP:ASX:GLX:ACE:FOR:NH2:NME:MSE:AIB:ABU:PCA:MLY:CYO:M3L:DGN:CSD:";
+        String naNames = ":  C:  G:  A:  T:  U:CYT:GUA:ADE:THY:URA:URI:CTP:CDP:CMP:GTP:GDP:GMP:ATP:ADP:AMP:TTP:TDP:TMP:UTP:UDP:UMP:GSP:H2U:PSU:4SU:1MG:2MG:M2G:5MC:5MU:T6A:1MA:RIA:OMC:OMG: YG:  I:7MG:C  :G  :A  :T  :U  :YG :I  : rC: rG: rA: rT: rU: dC: dG: dA: dT: dU: DC: DG: DA: DT: DU:";
+        
+        String resname = res.getName();
+        if (aaNames.indexOf(resname) != -1 || naNames.indexOf(resname) != -1) 
+            return true; // it's a valid protein or nucleic acid residue name
+        return false;
+    }
 //}}}
 
-//{{{ setMeanAndSigma, toString, toStringImpl
+//{{{ setMeanAndSigma(2), toString, toStringImpl
 //##############################################################################
     /**
     * Sets the mean value and (expected) standard deviation for this measure,
@@ -136,11 +174,24 @@ abstract public class Measurement //extends ... implements ...
         return this;
     }
     
+    /**
+    * Sets the *second* mean value and (expected) standard deviation for this 
+    * measure, if applicable (e.g. for 3' instead of 2' ribose pucker in RNA).
+    * @return this, for chaining
+    */
+    public Measurement setMeanAndSigma2(double mean2, double sigma2)
+    {
+        this.mean2 = mean2;
+        this.sigma2 = sigma2;
+        return this;
+    }
+    
     public String toString()
     {
         return (resSpec == null ? "" : resSpec+" ")
             + toStringImpl()
-            + (!Double.isNaN(mean) && !Double.isNaN(sigma) ? " ideal "+mean+" "+sigma : "");
+            + (!Double.isNaN(mean)  && !Double.isNaN(sigma)  ? " ideal "+mean+" "+sigma : "")
+            + (!Double.isNaN(mean2) && !Double.isNaN(sigma2) ? " (ideal2 "+mean2+" "+sigma2+")" : "");
     }
     
     abstract protected String toStringImpl();
@@ -243,6 +294,7 @@ abstract public class Measurement //extends ... implements ...
                 new AtomSpec( 0, "/_[ACNOS]G[_1]/"),
                 new AtomSpec( 0, "/_[ACNOS]D[_1]/")
             );
+        // NEED TO EDIT REGEX FOR 'SE  ', 2ND-TO-LAST ATOM OF SELENOMETHIONINE (MSE)
         else if("chi3".equals(label))
             return new Dihedral(label,
                 new AtomSpec( 0, "_CB_"),
@@ -1140,6 +1192,55 @@ abstract public class Measurement //extends ... implements ...
         
         public Object getType()
         { return TYPE_PUCKER; }
+    }
+//}}}
+
+//{{{ CLASS: BasePhosPerp
+//##############################################################################
+    public static class BasePhosPerp extends Measurement
+    {
+        public BasePhosPerp(String label)
+        { super(label); }
+        
+        protected double measureImpl(Model model, ModelState state, Residue res)
+        {
+            double pperpDist = Double.NaN;
+            try
+            {
+                Residue next = res.getNext(model); // want 3' P (later in seq!)
+                if (next != null)
+                {
+                    // Get relevant atom coords
+                    Atom phos = next.getAtom(" P  ");
+                    Atom carb =  res.getAtom(" C1'");
+                    Atom nitr =  res.getAtom(" N9 ");
+                    if (carb == null)   carb = res.getAtom(" C1*");
+                    if (nitr == null)   nitr = res.getAtom(" N1 ");
+                    AtomState p   = state.get(phos);
+                    AtomState c1  = state.get(carb);
+                    AtomState n19 = state.get(nitr);
+                    // Draw appropriate vectors
+                    Triple n19_p  = new Triple().likeVector(n19, p);
+                    Triple n19_c1 = new Triple().likeVector(n19, c1);
+                    // Get distance from N19 to the intersection point of the N19->C1
+                    // line and the perpendicular line
+                    double dist_n19_corner = n19_p.dot(n19_c1);
+                    // Move along the N19->C1 vector by that amount to the "corner"
+                    Triple n19_corner = new Triple(n19_c1).unit().mult(dist_n19_corner);
+                    Triple corner = new Triple().likeSum(n19, n19_corner);
+                    // Measure the final result
+                    pperpDist = Triple.distance(corner, p);
+                }
+            }
+            catch (AtomException ae) {}
+            return pperpDist;
+        }
+        
+        protected String toStringImpl()
+        { return getLabel(); }
+        
+        public Object getType()
+        { return TYPE_BASEPPERP; }
     }
 //}}}
 

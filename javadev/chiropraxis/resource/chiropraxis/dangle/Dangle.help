@@ -192,3 +192,17 @@ ADVANCED DANGLE TRICKS
   -dohets or -hets flags, which tell Dangle to report geometry information for 
   het groups, both in command line and geom dev viz kin forms.
 
+  Dangle can also calculate the the base-phosphate perpendicular distance, the 
+  perpendicular distance from the 3' phosphate to the N1/N9 to C1' vector. This
+  is useful in determining the pucker state of the ribose.
+
+  # Base-phosphate perpindicular
+    dangle basepperp FILE.pdb
+    dangle pperp FILE.pdb
+
+  You can restrict Dangle's output to only certain residues in any mode (please
+  use either a range separated by '-' or a set separated by ',').
+    dangle 'some measurement' FILE.pdb -res=1
+    dangle 'some measurement' FILE.pdb -res=1,3,10,43
+    dangle 'some measurement' FILE.pdb -res=1-99
+

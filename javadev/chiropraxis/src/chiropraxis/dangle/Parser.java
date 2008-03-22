@@ -31,6 +31,7 @@ import driftwood.parser.*;
 * <li>minq &rarr; ("minq" | "mino" | "minocc") label atomspec</li>
 * <li>planarity &rarr; "planarity" label "(" xyzspec+ ")"</li>
 * <li>pucker &rarr; "pucker"</li>
+* <li>pperp &rarr; ("pperp" | "basepperp")</li>
 * <li>label &rarr; [A-Za-z0-9*'_.-]+</li>
 * <li>xyzspec &rarr; avg | idealtet | vector | normal | atomspec</li>
 * <li>avg &rarr; "avg" "(" xyzspec+ ")"</li>
@@ -82,6 +83,7 @@ public class Parser //extends ... implements ...
     final Matcher MINQ      = Pattern.compile("minq|mino|minocc", Pattern.CASE_INSENSITIVE).matcher("");
     final Matcher PLANARITY = Pattern.compile("planarity").matcher("");
     final Matcher PUCKER    = Pattern.compile("pucker").matcher("");
+    final Matcher BASEPPERP = Pattern.compile("basepperp|pperp").matcher("");
     final Matcher LABEL     = Pattern.compile("[A-Za-z0-9*'_.+-]+").matcher("");
     final Matcher AVG       = Pattern.compile("avg").matcher("");
     final Matcher IDEALTET  = Pattern.compile("idealtet").matcher("");
@@ -230,6 +232,8 @@ public class Parser //extends ... implements ...
             );
             if(t.accept(IDEAL))
                 m.setMeanAndSigma(realnum(), realnum());
+            if(t.accept(IDEAL))
+                m.setMeanAndSigma2(realnum(), realnum()); // for 2' RNA pucker
             return new Measurement[] {m};
         }
         else if(t.accept(ANGLE))
@@ -242,6 +246,8 @@ public class Parser //extends ... implements ...
             );
             if(t.accept(IDEAL))
                 m.setMeanAndSigma(realnum(), realnum());
+            if(t.accept(IDEAL))
+                m.setMeanAndSigma2(realnum(), realnum()); // for 2' RNA pucker
             return new Measurement[] {m};
         }
         else if(t.accept(DIHEDRAL))
@@ -291,12 +297,16 @@ public class Parser //extends ... implements ...
         else if(t.accept(PUCKER))
         {
             String angLabel = "pseudorot_angle";
-	    Measurement.PuckerAng ang = new Measurement.PuckerAng(angLabel);
-	    
-	    String ampLabel = "amplitude";
-	    Measurement.PuckerAmp amp = new Measurement.PuckerAmp(ampLabel);
-	    
-	    return new Measurement[] {ang, amp};
+            Measurement.PuckerAng ang = new Measurement.PuckerAng(angLabel);
+            String ampLabel = "amplitude";
+            Measurement.PuckerAmp amp = new Measurement.PuckerAmp(ampLabel);
+            return new Measurement[] {ang, amp};
+        }
+        else if(t.accept(BASEPPERP))
+        {
+            String bppLabel = "base-P perp";
+            Measurement.BasePhosPerp bpp = new Measurement.BasePhosPerp(bppLabel);
+            return new Measurement[] {bpp};
         }
         else throw t.syntaxError("Expected measurement type ('distance', 'angle', 'dihedral', etc) ["+t.token()+"]");
     }

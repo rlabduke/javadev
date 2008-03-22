@@ -8,62 +8,62 @@
 # 1.1 RNA bond lengths
 # 1.1.1 RNA backbone bond lengths
 
-            distance    P--O1P      _P__, _O1P                      ideal 1.485 0.017
-            distance    P--O2P      _P__, _O2P                      ideal 1.485 0.017
-            distance    P--O5'      _P__, _O5*                      ideal 1.593 0.010
-            distance    P--O3'      _P__, i-1 _O3*                  ideal 1.607 0.012
-            distance    O5'--C5'    _O5*, _C5*                      ideal 1.440 0.016
-            
-# 1.1.2 RNA sugar bond lengths
-
-            distance    C5'--C4'    _C5*, _C4*                      ideal 1.510 0.013
-            distance    C4'--C3'    _C4*, _C3*                      ideal 1.524 0.011
-            distance    C3'--C2'    _C3*, _C2*                      ideal 1.525 0.011
-            distance    C2'--C1'    _C2*, _C1*                      ideal 1.528 0.010
-            distance    O4'--C1'    _O4*, _C1*                      ideal 1.414 0.012
-            distance    O4'--C4'    _O4*, _C4*                      ideal 1.453 0.012
-            distance    O3'--C3'    _O3*, _C3*                      ideal 1.423 0.014
-            distance    C2'--O2'    _C2*, _O2*                      ideal 1.413 0.013
+            distance    P--OP1      _P__, _OP1                      ideal 1.485 0.017 
+            distance    P--OP2      _P__, _OP2                      ideal 1.485 0.017
+            distance    P--O5'      _P__, _O5'                      ideal 1.593 0.010
+            distance    P--O3'      _P__, i-1 _O3'                  ideal 1.607 0.012
+            distance    O5'--C5'    _O5', _C5'                      ideal 1.440 0.016
+                                                                                     
+# 1.1.2 RNA sugar bond lengths                                                       
+                                                                                     
+            distance    C5'--C4'    _C5', _C4'                      ideal 1.510 0.013
+            distance    C4'--C3'    _C4', _C3'                      ideal 1.524 0.011
+            distance    C3'--C2'    _C3', _C2'                      ideal 1.525 0.011
+            distance    C2'--C1'    _C2', _C1'                      ideal 1.528 0.010
+            distance    O4'--C1'    _O4', _C1'                      ideal 1.414 0.012
+            distance    O4'--C4'    _O4', _C4'                      ideal 1.453 0.012
+            distance    O3'--C3'    _O3', _C3'                      ideal 1.423 0.014
+            distance    C2'--O2'    _C2', _O2'                      ideal 1.413 0.013
             
 # 1.1.3 RNA base bond lengths
 
 # 1.2 RNA bond angles
 # 1.2.1 RNA backbone bond angles
 
-            angle       O1P-P-O2P   _O1P, _P__, _O2P                ideal 119.6 1.5
-#### WTF?!  O1P and O2P should be the same, but they aren't: ####
-            angle       O5'-P-O1P   _O5*, _P__, _O1P                ideal 108.1 2.9
-            angle       O5'-P-O2P   _O5*, _P__, _O2P                ideal 108.3 2.7
-            angle       O3'-P-O5'   i-1 _O3*, _P__, _O5*            ideal 104.0 1.9
-#### WTF?!  O1P and O2P should be the same, but they aren't: ####
-            angle       O2P-P-O3'   _O2P, _P__, i-1 _O3*            ideal 108.3 3.2
-            angle       O1P-P-O3'   _O1P, _P__, i-1 _O3*            ideal 107.4 3.2
-            angle       O5'-C5'-C4' _O5*, _C5*, _C4*                ideal 110.2 1.4
-            angle       P-O5'-C5'   _P__, _O5*, _C5*                ideal 120.9 1.6
-            angle       P-O3'-C3'   _P__, i-1 _O3*, i-1 _C3*        ideal 119.7 1.2
+            angle       OP1-P-OP2   _OP1, _P__, _OP2                ideal 119.6 1.5
+#### WTF?!  OP1 and OP2 should be the same, but they aren't: ####                  
+            angle       O5'-P-OP1   _O5', _P__, _OP1                ideal 108.1 2.9
+            angle       O5'-P-OP2   _O5', _P__, _OP2                ideal 108.3 2.7
+            angle       O3'-P-O5'   i-1 _O3', _P__, _O5'            ideal 104.0 1.9
+#### WTF?!  OP1 and OP2 should be the same, but they aren't: ####                  
+            angle       OP2-P-O3'   _OP2, _P__, i-1 _O3'            ideal 108.3 3.2
+            angle       OP1-P-O3'   _OP1, _P__, i-1 _O3'            ideal 107.4 3.2
+            angle       O5'-C5'-C4' _O5', _C5', _C4'                ideal 110.2 1.4
+            angle       P-O5'-C5'   _P__, _O5', _C5'                ideal 120.9 1.6
+            angle       P-O3'-C3'   _P__, i-1 _O3', i-1 _C3'        ideal 119.7 1.2
 
 # 1.2.2 RNA sugar bond angles
 
-            angle       O4'-C4'-C3' _O4*, _C4*, _C3*                ideal 105.5 1.4
-            angle       C5'-C4'-C3' _C5*, _C4*, _C3*                ideal 115.5 1.5
-            angle       C5'-C4'-O4' _C5*, _C4*, _O4*                ideal 109.2 1.4
-            angle       C1'-O4'-C4' _C1*, _O4*, _C4*                ideal 109.6 0.9
-            angle       C4'-C3'-C2' _C4*, _C3*, _C2*                ideal 102.7 1.0
-            angle       C3'-C2'-C1' _C3*, _C2*, _C1*                ideal 101.5 0.9
-            angle       O4'-C1'-C2' _O4*, _C1*, _C2*                ideal 106.4 1.4
+            angle       O4'-C4'-C3' _O4', _C4', _C3'                ideal 105.5 1.4
+            angle       C5'-C4'-C3' _C5', _C4', _C3'                ideal 115.5 1.5
+            angle       C5'-C4'-O4' _C5', _C4', _O4'                ideal 109.2 1.4
+            angle       C1'-O4'-C4' _C1', _O4', _C4'                ideal 109.6 0.9
+            angle       C4'-C3'-C2' _C4', _C3', _C2'                ideal 102.7 1.0
+            angle       C3'-C2'-C1' _C3', _C2', _C1'                ideal 101.5 0.9
+            angle       O4'-C1'-C2' _O4', _C1', _C2'                ideal 106.4 1.4
 
 # Residues with an N9 (A, G) will use that; others will use N1:
-# Note: Fixed "C4'-C3'-O4' _C4*, _C3*, _O3*" to "C4'-C3'-O3' _C4*, _C3*, _O3*"
+# Note: Fixed "C4'-C3'-O4' _C4', _C3', _O3'" to "C4'-C3'-O3' _C4', _C3', _O3'"
 # (DAK 10/3/07)
-            angle       N19-C1'-C2' _N9_, _C1*, _C2*                ideal 113.4 1.6
-            angle       N19-C1'-C2' _N1_, _C1*, _C2*                ideal 113.4 1.6
-            angle       O4'-C1'-N19 _O4*, _C1*, _N9_                ideal 108.2 1.0
-            angle       O4'-C1'-N19 _O4*, _C1*, _N1_                ideal 108.2 1.0
-            
-            angle       C1'-C2'-O2' _C1*, _C2*, _O2*                ideal 110.6 3.0
-            angle       C3'-C2'-O2' _C3*, _C2*, _O2*                ideal 113.3 2.9
-            angle       C4'-C3'-O3' _C4*, _C3*, _O3*                ideal 110.6 2.6
-            angle       C2'-C3'-O3' _C2*, _C3*, _O3*                ideal 111.0 2.8
+            angle       N19-C1'-C2' _N9_, _C1', _C2'                ideal 113.4 1.6
+            angle       N19-C1'-C2' _N1_, _C1', _C2'                ideal 113.4 1.6
+            angle       O4'-C1'-N19 _O4', _C1', _N9_                ideal 108.2 1.0
+            angle       O4'-C1'-N19 _O4', _C1', _N1_                ideal 108.2 1.0
+                                                                                   
+            angle       C1'-C2'-O2' _C1', _C2', _O2'                ideal 110.6 3.0
+            angle       C3'-C2'-O2' _C3', _C2', _O2'                ideal 113.3 2.9
+            angle       C4'-C3'-O3' _C4', _C3', _O3'                ideal 110.6 2.6
+            angle       C2'-C3'-O3' _C2', _C3', _O3'                ideal 111.0 2.8
 
 # 1.2.3 RNA base bond angles
 
