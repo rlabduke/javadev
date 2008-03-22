@@ -17,7 +17,7 @@
   ? How does molten state interact with replacing the Model frequently?
     Dangle:
         do disulfides as a separate class/program/mode
-        do base-P distance, etc
+        do base-P distance, etc   <-- what could "etc" mean?...
         GUI for defining measures?
         "for deoxy ..." ???
         new func? avgall() should call getAll() instead of get() on AtomSpecs
@@ -29,6 +29,26 @@
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 0.95 ### (dak)
+- Completed implementation in Dangle of including hets that should be 
+  considered part of chain
+- Changed style of measurement specifications in Parkinson file to PDB v3; 
+  affects output header (aesthetic)
+- Changed internal treatment of RNA phosphate oxygens to handle PDB v2.3 and 
+  v3 (func'l)
+- Added base-P perpendicular ('pperp') built-in measurement to Dangle
+- Set up Dangle to decide whether each RNA ribose is 2' or 3' pucker based on
+  the base-phosph perp and use the appropriate mean and sigma values for a 
+  subset of lengths and angles (new values aren't in yet though...)
+- Added -parcoor flag for model-by-row output for Jeremy's NMR stuff
+- Added -res=(#-# | #,#,...) flag to Dangle; applies to all output modes
+
+### 0.94 ### (dak)
+- Put res type exceptions in Dangle that should be considered part of chain
+  even if labeled as hets, e.g. selenoMet (not yet fully operational...)
+- Updated mc.VariableRegions kinemage portions to draw only the most variable 
+  parts and draw fans better
 
 ### 0.93 ### (dak)
 (Lots of stuff this time!)

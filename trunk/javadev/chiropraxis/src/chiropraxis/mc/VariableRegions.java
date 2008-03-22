@@ -20,6 +20,7 @@ import driftwood.r3.*;
 * residue between the hinge points.
 * It can also do the same for two provided PDB files, e.g. from the Donald lab's
 * BD backbone-DEE protein design algorithm.
+* Alternative output modes: text (csv) or kinemage.
 *
 * <p>Copyright (C) 2007 by Daniel A. Keedy. All rights reserved.
 * <br>Begun on Mon Feb. 11, 2007.
@@ -34,13 +35,14 @@ public class VariableRegions //extends ... implements ...
     String        filename1     = null;
     String        filename2     = null;
     boolean       verbose       = false;
-    boolean       doKin1        = false;
-    boolean       doKin2        = false;
+    boolean       doKin         = false;
     boolean       absVal        = false;
     boolean       allRes        = false;
+    boolean       hinges        = true;
     PrintStream   out           = System.out;
-    double        dCaScale      = 100;
-    double        dPhiPsiScale  = 50;
+    double        dCaMin        = Double.NaN;
+    double        dCaScale      = Double.NaN; // for text and kin
+    double        dPhiPsiScale  = Double.NaN; // for kin only
 //}}}
 
 //{{{ Constructor(s)
@@ -65,6 +67,9 @@ public class VariableRegions //extends ... implements ...
         ModelState state2 = model.getState("B");
         if (state2 != null)
         {
+            // Get residues that move
+            TreeMap<Residue, double[]> moved = new TreeMap<Residue, double[]>();
+            TreeMap<Residue, Triple>   ca2s  = new TreeMap<Residue, Triple>();
             for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
             {
                 Residue res = (Residue) iter.next();
@@ -88,25 +93,71 @@ public class VariableRegions //extends ... implements ...
                             dPhi = (absVal ? Math.abs(phi2-phi1) : phi2-phi1);
                             dPsi = (absVal ? Math.abs(psi2-psi1) : psi2-psi1);
                         }
-                        if (doKin1)      doKinForRes1(dPhi, dPsi, res, state1, ca2);
-                        else if (doKin2) doKinForRes2(dPhi, dPsi, res, state1, ca2);
-                        else if ( allRes || (!Double.isNaN(dPhi) && !Double.isNaN(dPsi) 
-                        && (dPhi != 0 || dPsi != 0 || caTravel != 0)) )
+                        if (hinges || ( (!Double.isNaN(dPhi) && dPhi != 0) || (!Double.isNaN(dPsi) && dPsi != 0) || caTravel != 0) )
                         {
-                            // Either something changed and is therefore worth printing 
-                            // or we want to print stats for all residues regardless of 
-                            // whether anything changed.
-                            out.print(label+":"+model+":"+res.getChain()+":"+
-                                res.getName()+":"+res.getSequenceInteger()+":");
-                            if (!Double.isNaN(dPhi)) out.print(df.format(dPhi)+":");
-                            else                     out.print("__?__:");
-                            if (!Double.isNaN(dPsi)) out.print(df.format(dPsi)+":");
-                            else                     out.print("__?__:");
-                            out.print(df.format(caTravel)+":");
-                            out.println(df.format(caTravel*dCaScale));
+                            // This residue moved, or we ultimately want just "hinge" residues and will 
+                            // excise the ones in between in the next step
+                            double[] movements = new double[3];
+                            movements[0] = dPhi; movements[1] = dPsi; movements[2] = caTravel;
+                            moved.put(res, movements);
+                            ca2s.put(res, ca2);
                         }
                     }
                     catch (AtomException ae) { }
+                }
+            } //for each residue
+            
+            if (hinges)
+            {
+                // Draw just Ca-Ca arrows for residues in middle of hinged loop and just
+                // dphi/dpsi fans for residue on each end of that loop
+                doHinges(model, moved);
+            }
+            
+            // Output (kin or text) for residues that move
+            for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
+            {
+                Residue res = (Residue) iter.next();
+                if (res != null && moves(res, moved))
+                {
+                    // Something moved
+                    double[] mvmts = moved.get(res);
+                    double dPhi     = mvmts[0];
+                    double dPsi     = mvmts[1];
+                    double caTravel = mvmts[2];
+                    if (doKin)
+                    {
+                        if (dPhi == Double.POSITIVE_INFINITY && dPsi == Double.POSITIVE_INFINITY)
+                        {
+                            // Draw arrows, not phi/psi fans 
+                            doKinForRes(res, state1, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, new Triple(ca2s.get(res)));
+                        }
+                        else if (caTravel == Double.POSITIVE_INFINITY) 
+                        {
+                            // Draw phi/psi fans, not arrows
+                            doKinForRes(res, state1, dPhi, dPsi, null);
+                        }
+                        else
+                        {
+                            // (default)
+                            doKinForRes(res, state1, dPhi, dPsi, new Triple(ca2s.get(res)));
+                        }
+                    }
+                    else if ( allRes || (!Double.isNaN(dPhi) && !Double.isNaN(dPsi) 
+                    && (dPhi != 0 || dPsi != 0 || caTravel != 0)) )
+                    {
+                        // Either something changed and is therefore worth printing 
+                        // or we want to print stats for all residues regardless of 
+                        // whether anything changed.
+                        out.print(label+":"+model+":"+res.getChain()+":"+
+                            res.getName()+":"+res.getSequenceInteger()+":");
+                        if (!Double.isNaN(dPhi)) out.print(df.format(dPhi)+":");
+                        else                     out.print("__?__:");
+                        if (!Double.isNaN(dPsi)) out.print(df.format(dPsi)+":");
+                        else                     out.print("__?__:");
+                        out.print(df.format(caTravel)+":");
+                        out.println(df.format(caTravel*dCaScale));
+                    }
                 }
             } //for each residue
         }
@@ -141,6 +192,9 @@ public class VariableRegions //extends ... implements ...
             System.err.println();
         }
         
+        // Get residues that move
+        TreeMap<Residue, double[]> moved = new TreeMap<Residue, double[]>();
+        TreeMap<Residue, Triple>   ca2s  = new TreeMap<Residue, Triple>();
         for(int i = 0, len = align.a.length; i < len; i++)
         {
             if (align.a[i] == null || align.b[i] == null) continue;
@@ -161,6 +215,11 @@ public class VariableRegions //extends ... implements ...
                 AtomState ca1 = state1.get(calpha1);
                 AtomState ca2 = state2.get(calpha2);
                 double caTravel = Triple.distance(ca1, ca2);
+                if (verbose)
+                {
+                    System.err.println("Dist ("+ca1.getX()+","+ca1.getY()+","+ca1.getZ()+") to ("
+                        +ca2.getX()+","+ca2.getY()+","+ca2.getZ()+") = "+caTravel+" (caTravel)");
+                }
                 
                 double phi1 = Double.NaN, psi1 = Double.NaN;
                 if (prev1 != null && next1 != null)
@@ -182,8 +241,58 @@ public class VariableRegions //extends ... implements ...
                     dPsi = (absVal ? Math.abs(psi2-psi1) : psi2-psi1);
                 }
                 
-                if (doKin1)      doKinForRes1(dPhi, dPsi, res1, state1, ca2);
-                else if (doKin2) doKinForRes2(dPhi, dPsi, res1, state1, ca2);
+                //if (hinges || ( (!Double.isNaN(dPhi) && dPhi != 0) || (!Double.isNaN(dPsi) && dPsi != 0) || caTravel != 0) )
+                if (hinges || (!Double.isNaN(dPhi) && !Double.isNaN(dPsi) && caTravel > dCaMin) )
+                {
+                    // This residue moved ENOUGH, or we ultimately want just "hinge" residues and will 
+                    // excise the ones in between in the next step
+                    double[] movements = new double[3];
+                    movements[0] = dPhi; movements[1] = dPsi; movements[2] = caTravel;
+                    moved.put(res1, movements);
+                    ca2s.put(res1, ca2);
+                }
+            }
+            catch (AtomException ae) { }
+        } //for each residue pair in alignment
+        
+        if (hinges)
+        {
+            // Draw just Ca-Ca arrows for residues in middle of hinged loop and just
+            // dphi/dpsi fans for residue on each end of that loop
+            doHinges(model1, moved);
+        }
+        
+        // Output (kin or text) for residues that move
+        for(int i = 0, len = align.a.length; i < len; i++)
+        {
+            if (align.a[i] == null || align.b[i] == null) continue;
+            Residue res1 = (Residue) align.a[i];
+            Residue res2 = (Residue) align.b[i];
+            if (res1 != null && moves(res1, moved)) // DO want moves method here, not caMovesEnough (that was determined earlier)
+            {
+                // Something moved ENOUGH
+                double[] mvmts = moved.get(res1);
+                double dPhi     = mvmts[0];
+                double dPsi     = mvmts[1];
+                double caTravel = mvmts[2];
+                if (doKin)
+                {
+                    if (dPhi == Double.POSITIVE_INFINITY && dPsi == Double.POSITIVE_INFINITY)
+                    {
+                        // Draw arrows, not phi/psi fans 
+                        doKinForRes(res1, state1, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, new Triple(ca2s.get(res1)));
+                    }
+                    else if (caTravel == Double.POSITIVE_INFINITY) 
+                    {
+                        // Draw phi/psi fans, not arrows
+                        doKinForRes(res1, state1, dPhi, dPsi, null);
+                    }
+                    else
+                    {
+                        // (default)
+                        doKinForRes(res1, state1, dPhi, dPsi, new Triple(ca2s.get(res1)));
+                    }
+                }
                 else if ( allRes || (!Double.isNaN(dPhi) && !Double.isNaN(dPsi) 
                 && (dPhi != 0 || dPsi != 0 || caTravel != 0)) )
                 {
@@ -202,9 +311,228 @@ public class VariableRegions //extends ... implements ...
                     out.println(df.format(caTravel*dCaScale));
                 }
             }
-            catch (AtomException ae) { }
-            
         } //for each residue pair in alignment
+    }
+//}}}
+
+//{{{ (OLD_searchModels)
+////##############################################################################
+//    /** 
+//    * For evaluating variability in corresponding regions between two related 
+//    * PDB files, e.g. from the flexible backbone DEE ("BD") algorithm. 
+//    */
+//    void searchModels(Model model1, Model model2, String label1, String label2)
+//    {
+//        if (verbose) System.err.println("Looking for regions that vary between "
+//            +filename1+" and "+filename2+"...");
+//        
+//        DecimalFormat df = new DecimalFormat("#.###");
+//        ModelState state1 = model1.getState();
+//        ModelState state2 = model2.getState();
+//        
+//        // Align residues by sequence
+//        // For now we just take all residues as they appear in the file,
+//        // without regard to chain IDs, etc.
+//        Alignment align = Alignment.needlemanWunsch(model1.getResidues().toArray(), model2.getResidues().toArray(), new SimpleResAligner());
+//        if (verbose)
+//        {
+//            System.err.println("Residue alignments:");
+//            for (int i = 0; i < align.a.length; i++)
+//                System.err.println("  "+align.a[i]+" <==> "+align.b[i]);
+//            System.err.println();
+//        }
+//        
+//        for(int i = 0, len = align.a.length; i < len; i++)
+//        {
+//            if (align.a[i] == null || align.b[i] == null) continue;
+//            Residue res1 = (Residue) align.a[i];
+//            Residue res2 = (Residue) align.b[i];
+//            if (!res1.getName().equals(res2.getName())) continue; // sequence mismatch
+//            if (verbose) System.err.println("Comparing "+res1+" to "+res2+"...");
+//            
+//            Residue prev1 = res1.getPrev(model1);
+//            Residue next1 = res1.getNext(model1);
+//            Residue prev2 = res2.getPrev(model2);
+//            Residue next2 = res2.getNext(model2);
+//            
+//            try
+//            {
+//                Atom calpha1 = res1.getAtom(" CA ");
+//                Atom calpha2 = res2.getAtom(" CA ");
+//                AtomState ca1 = state1.get(calpha1);
+//                AtomState ca2 = state2.get(calpha2);
+//                double caTravel = Triple.distance(ca1, ca2);
+//                
+//                double phi1 = Double.NaN, psi1 = Double.NaN;
+//                if (prev1 != null && next1 != null)
+//                {
+//                    phi1 = calcPhi(prev1, res1, state1);
+//                    psi1 = calcPsi(res1, next1, state1);
+//                }
+//                double phi2 = Double.NaN, psi2 = Double.NaN;
+//                if (prev2 != null && next2 != null)
+//                {
+//                    phi2 = calcPhi(prev2, res2, state2);
+//                    psi2 = calcPsi(res2, next2, state2);
+//                }
+//                double dPhi = Double.NaN, dPsi = Double.NaN;
+//                if(!Double.isNaN(phi1) && !Double.isNaN(psi1)
+//                && !Double.isNaN(phi2) && !Double.isNaN(psi2))
+//                {
+//                    dPhi = (absVal ? Math.abs(phi2-phi1) : phi2-phi1);
+//                    dPsi = (absVal ? Math.abs(psi2-psi1) : psi2-psi1);
+//                }
+//                
+//                if (doKin)
+//                {
+//                    //???
+//                    doKinForRes(res1, state1, dPhi, dPsi, ca2);
+//                }
+//                else if ( allRes || (!Double.isNaN(dPhi) && !Double.isNaN(dPsi) 
+//                && (dPhi != 0 || dPsi != 0 || caTravel != 0)) )
+//                {
+//                    // Either something changed and is therefore worth printing 
+//                    // or we want to print stats for all residues regardless of 
+//                    // whether anything changed.
+//                    out.print(label1+":"+label2+":"+model1+":"+model2+":"
+//                        +res1.getChain()+":"+res2.getChain()+":"
+//                        +res1.getName()+":"+res2.getName()+":"
+//                        +res1.getSequenceInteger()+":"+res2.getSequenceInteger()+":");
+//                    if (!Double.isNaN(dPhi)) out.print(df.format(dPhi)+":");
+//                    else                     out.print("__?__:");
+//                    if (!Double.isNaN(dPsi)) out.print(df.format(dPsi)+":");
+//                    else                     out.print("__?__:");
+//                    out.print(df.format(caTravel)+":");
+//                    out.println(df.format(caTravel*dCaScale));
+//                }
+//            }
+//            catch (AtomException ae) { }
+//            
+//        } //for each residue pair in alignment
+//    }
+////}}}
+
+//{{{ doHinges, moves, caMovesEnough
+//##############################################################################
+    TreeMap<Residue, double[]> doHinges(Model model, TreeMap<Residue, double[]> moved)
+    {
+        // Get first residue in model
+        Residue firstRes = null;
+        for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
+        {
+            Residue testRes = (Residue) iter.next();
+            if (firstRes == null)                                                  firstRes = testRes;
+            else if (testRes.getSequenceInteger() < firstRes.getSequenceInteger()) firstRes = testRes;
+        }
+        if (verbose) System.err.println("Found first residue: "+firstRes);
+        
+        // Get stretches of residues that move; keep only ends ("hinge" residues)
+        Residue res = firstRes;
+        ArrayList<Residue> stretch = new ArrayList<Residue>();
+        boolean endOfChain = false;
+        while (!endOfChain)
+        {
+            if (res.getNext(model) != null)
+            {
+                Residue temp = res.getNext(model);   res = temp;
+                
+                // Decide whether to treat as move or not
+                boolean treatAsMove = false;
+                if (!Double.isNaN(dCaMin) && caMovesEnough(res, moved))   treatAsMove = true;
+                else if (moves(res, moved))                               treatAsMove = true;
+                
+                if (treatAsMove) stretch.add(res);
+                else if (stretch.size() > 0)
+                {
+                    // End of stretch of residues that move (enough) => treat first and last as having 
+                    // moved only phi/psi and residues in btw as having moved only Ca; reset stretch
+                    System.err.println("Variable region from '"+stretch.get(0)+"' to '"+stretch.get(stretch.size()-1)+"'");
+                    if (stretch.size() > 2)
+                    {
+                        double[] oldMvmts = moved.get(stretch.get(0));
+                        double[] newMvmts = new double[3];
+                        newMvmts[0] = oldMvmts[0];
+                        newMvmts[1] = oldMvmts[1];
+                        newMvmts[2] = Double.POSITIVE_INFINITY;
+                        moved.put(stretch.get(0), newMvmts);
+                        for (int i = 1; i < stretch.size()-1; i ++)
+                        {
+                            oldMvmts = moved.get(stretch.get(i));
+                            newMvmts = new double[3];
+                            newMvmts[0] = Double.POSITIVE_INFINITY;
+                            newMvmts[1] = Double.POSITIVE_INFINITY;
+                            newMvmts[2] = oldMvmts[2];
+                            moved.put(stretch.get(i), newMvmts);
+                        }
+                        oldMvmts = moved.get(stretch.get(stretch.size()-1));
+                        newMvmts = new double[3];
+                        newMvmts[0] = oldMvmts[0];
+                        newMvmts[1] = oldMvmts[1];
+                        newMvmts[2] = Double.POSITIVE_INFINITY;
+                        moved.put(stretch.get(stretch.size()-1), newMvmts);
+                    }
+                    stretch = new ArrayList<Residue>();
+                }
+                // else if nothing yet in this stretch (size() == 0) and res doesn't move, do nothing
+            }
+            else endOfChain = true;
+        }
+        // If have stretch leading up to end of chain, treat all but first as not having moved
+        if (stretch.size() > 0)
+            for (int i = 1; i < stretch.size(); i ++)
+            {
+                double[] newMvmts = new double[3];
+                newMvmts[0] = 0;   newMvmts[1] = 0;   newMvmts[2] = 0;
+                moved.put(stretch.get(i), newMvmts);
+            }
+        return moved;
+    }
+
+    boolean moves(Residue res, TreeMap<Residue, double[]> moved)
+    {
+        DecimalFormat df = new DecimalFormat("#.#");
+        try
+        {
+            double[] mvmts = moved.get(res);
+            if (!Double.isNaN(mvmts[0]) && !Double.isNaN(mvmts[1]))
+                if (mvmts[0] != 0 || mvmts[1] != 0 || mvmts[2] != 0)
+                {
+                    if (verbose) System.err.println("moves(): "+res+" mvmts = ("+
+                        df.format(mvmts[0])+","+df.format(mvmts[1])+","+df.format(mvmts[2])+") => MOVES");
+                    return true;
+                }
+            else
+            {
+                if (verbose) System.err.println("moves(): "+res+" mvmts = ("+
+                    df.format(mvmts[0])+","+df.format(mvmts[1])+","+df.format(mvmts[2])+") ...");
+                return false;
+            }
+        }
+        catch (NullPointerException npe) { }
+        return false;
+    }
+
+    boolean caMovesEnough(Residue res, TreeMap<Residue, double[]> moved)
+    {
+        DecimalFormat df = new DecimalFormat("#.###");
+        try
+        {
+            double[] mvmts = moved.get(res);
+            if (!Double.isNaN(mvmts[2]) && mvmts[2] > dCaMin)
+            {
+                if (verbose) System.err.println("caMovesEnough(): "+res+"\tCa-Ca = "+
+                    df.format(mvmts[2])+" > "+df.format(dCaMin)+") => MOVES");
+                return true;
+            }
+            else
+            {
+                if (verbose) System.err.println("caMovesEnough(): "+res+"\tCa-Ca = "+
+                    df.format(mvmts[2])+" < "+df.format(dCaMin)+") ...");
+                return false;
+            }
+        }
+        catch (NullPointerException npe) { }
+        return false;
     }
 //}}}
 
@@ -249,133 +577,103 @@ public class VariableRegions //extends ... implements ...
     }
 //}}}
 
-//{{{ (doKinForRes1)
+//{{{ doKinForRes
 //##############################################################################
-    /** 
-    * Uses colored balls for d(phi,psi).
-    */
-    void doKinForRes1(double dPhi, double dPsi, Residue r1, ModelState s1, AtomState ca2)
+    void doKinForRes(Residue r1, ModelState s1, double dPhi, double dPsi)
     {
-        try
-        {
-            DecimalFormat df = new DecimalFormat("#.###");
-            
-            AtomState n1  = s1.get(r1.getAtom(" N  "));
-            AtomState c1  = s1.get(r1.getAtom(" C  "));
-            AtomState ca1 = s1.get(r1.getAtom(" CA "));
-            
-            // d(phi)
-            if (!Double.isNaN(dPhi))
-            {
-                Triple mp = new Triple().likeMidpoint(n1, ca1);
-                out.print("@balllist {"+r1+" d(phi)} master= {d(phi)} radius="+df.format(Math.abs(dPhi)));
-                if (dPhi > 0) out.println(" color= {red}");
-                else          out.println(" color= {blue}");
-                out.println("{"+r1+" d(phi)} "+df.format(mp.getX())+" "+
-                    df.format(mp.getY())+" "+df.format(mp.getZ()));
-            }
-            // d(psi)
-            if (!Double.isNaN(dPsi))
-            {
-                Triple mp = new Triple().likeMidpoint(ca1, c1);
-                out.print("@balllist {"+r1+" d(psi)} master= {d(psi)} radius="+df.format(Math.abs(dPsi)));
-                if (dPsi > 0) out.println(" color= {red}");
-                else          out.println(" color= {blue}");
-                out.println("{"+r1+" d(psi)} "+df.format(mp.getX())+" "+
-                    df.format(mp.getY())+" "+df.format(mp.getZ()));
-            }
-            // d(Ca)
-            Triple ca1ca2 = new Triple().likeVector(ca1, ca2).mult(dCaScale);
-            if ( !(ca1ca2.getX() == 0 && ca1ca2.getY() == 0 && ca1ca2.getZ() == 0) )
-            {
-                Triple tip = new Triple().likeSum(ca1, ca1ca2);
-                out.println("@vectorlist {"+r1+" Ca1-Ca2} master= {Ca1-Ca2} color= {green}");
-                out.println("{"+r1+" Ca1-Ca2} "+ca1.getX()+" "+ca1.getY()+" "+ca1.getZ());
-                out.println("{"+r1+" Ca1-Ca2} "+tip.getX()+" "+tip.getY()+" "+tip.getZ());
-                out.println("@balllist {"+r1+" Ca1-Ca2} master= {Ca1-Ca2} color= {green} radius= 0.15");
-                out.println("{"+r1+" Ca1-Ca2} "+tip.getX()+" "+tip.getY()+" "+tip.getZ());
-            }
-        }
-        catch (AtomException ae) { System.err.println("Couldn't do kin for '"+r1+"'.."); }
+        doKinForRes(r1, s1, dPhi, dPsi, null);
     }
-//}}}
 
-//{{{ doKinForRes2
-//##############################################################################
+    void doKinForRes(Residue r1, ModelState s1, Triple ca2)
+    {
+        doKinForRes(r1, s1, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, ca2);
+    }
+
     /** 
     * Uses vector "fans" for d(phi,psi).
     */
-    void doKinForRes2(double dPhi, double dPsi, Residue r1, ModelState s1, AtomState ca2)
+    void doKinForRes(Residue r1, ModelState s1, double dPhi, double dPsi, Triple ca2)
     {
         try
         {
             DecimalFormat df  = new DecimalFormat("#.###");
-            DecimalFormat df2 = new DecimalFormat("#");
+            DecimalFormat df2 = new DecimalFormat("#.#");
             
             AtomState n1  = s1.get(r1.getAtom(" N  "));
             AtomState c1  = s1.get(r1.getAtom(" C  "));
             AtomState ca1 = s1.get(r1.getAtom(" CA "));
             
             // d(phi)
-            if (!Double.isNaN(dPhi) && dPhi != 0)
+            if (!Double.isNaN(dPhi) && dPhi != 0 && dPhi != Double.POSITIVE_INFINITY)
             {
-                Triple normal  = new Triple().likeNormal(c1, ca1, n1);
+                Triple axis  = new Triple().likeVector(n1, ca1);
                 for (int i = 0; i < 3; i ++)
                 {
                     Transform rotate = new Transform();
-                    rotate = rotate.likeRotation(normal, (dPhi*dPhiPsiScale) * (1.00-0.33*i));
-                    Triple bond = new Triple().likeVector(ca1, n1);
-                    rotate.transform(bond);
-                    Triple fan = bond.mult(0.75).add(ca1);
+                    rotate = rotate.likeRotation(axis, (dPhi*dPhiPsiScale) * (1.00-0.33*i));
+                    
+                    Triple midpt = new Triple().likeMidpoint(n1, ca1);
+                    Triple fan = new Triple().likeNormal(n1, ca1, c1);
+                    rotate.transform(fan);
+                    Triple fanAtMidpt = fan.mult(1.0).add(midpt);
+                    
                     out.print("@vectorlist {"+r1+" d(phi)} master= {d(phi) x "+df2.format(dPhiPsiScale)+"} color= ");
                     out.print(dPhi > 0 ? "{red}" : "{blue}");
-                    out.println(" width= "+(3-i));
-                    out.println("{"+r1+" d(phi)}P "+df.format(ca1.getX())+" "
-                                                   +df.format(ca1.getY())+" "
-                                                   +df.format(ca1.getZ()));
-                    out.println("{"+r1+" d(phi)}  "+df.format(fan.getX())+" "
-                                                   +df.format(fan.getY())+" "
-                                                   +df.format(fan.getZ()));
+                    out.println(" width= "+(i+1));
+                    out.println("{"+r1+" d(phi)}P "+df.format(midpt.getX())+" "
+                                                   +df.format(midpt.getY())+" "
+                                                   +df.format(midpt.getZ()));
+                    out.println("{"+r1+" d(phi)}  "+df.format(fanAtMidpt.getX())+" "
+                                                   +df.format(fanAtMidpt.getY())+" "
+                                                   +df.format(fanAtMidpt.getZ()));
                 }
             }
+            
             // d(psi)
-            if (!Double.isNaN(dPsi) && dPsi != 0)
+            if (!Double.isNaN(dPsi) && dPsi != 0 && dPsi != Double.POSITIVE_INFINITY)
             {
-                Triple normal  = new Triple().likeNormal(n1, ca1, c1);
+                Triple axis  = new Triple().likeVector(ca1, c1);
                 for (int i = 0; i < 3; i ++)
                 {
                     Transform rotate = new Transform();
-                    rotate = rotate.likeRotation(normal, (dPsi*dPhiPsiScale) * (1.00-0.33*i));
-                    Triple bond = new Triple().likeVector(ca1, c1);
-                    rotate.transform(bond);
-                    Triple fan = bond.mult(0.75).add(ca1);
+                    rotate = rotate.likeRotation(axis, (dPsi*dPhiPsiScale) * (1.00-0.33*i));
+                    
+                    Triple midpt = new Triple().likeMidpoint(ca1, c1);
+                    Triple fan = new Triple().likeNormal(c1, n1, ca1);
+                    rotate.transform(fan);
+                    Triple fanAtMidpt = fan.mult(1.0).add(midpt);
+                    
                     out.print("@vectorlist {"+r1+" d(psi)} master= {d(psi) x "+df2.format(dPhiPsiScale)+"} color= ");
                     out.print(dPsi > 0 ? "{red}" : "{blue}");
-                    out.println(" width= "+(3-i));
-                    out.println("{"+r1+" d(psi)}P "+df.format(ca1.getX())+" "
-                                                   +df.format(ca1.getY())+" "
-                                                   +df.format(ca1.getZ()));
-                    out.println("{"+r1+" d(psi)}  "+df.format(fan.getX())+" "
-                                                   +df.format(fan.getY())+" "
-                                                   +df.format(fan.getZ()));
+                    out.println(" width= "+(i+1));
+                    out.println("{"+r1+" d(psi)}P "+df.format(midpt.getX())+" "
+                                                   +df.format(midpt.getY())+" "
+                                                   +df.format(midpt.getZ()));
+                    out.println("{"+r1+" d(psi)}  "+df.format(fanAtMidpt.getX())+" "
+                                                   +df.format(fanAtMidpt.getY())+" "
+                                                   +df.format(fanAtMidpt.getZ()));
                 }
             }
+            
             // d(Ca)
-            Triple ca1ca2 = new Triple().likeVector(ca1, ca2).mult(dCaScale);
-            if ( !(ca1ca2.getX() == 0 && ca1ca2.getY() == 0 && ca1ca2.getZ() == 0) )
+            if (ca2 != null)
             {
-                Triple tip = new Triple().likeSum(ca1, ca1ca2);
-                out.println("@vectorlist {"+r1+" d(Ca)} master= {d(Ca) x "+df2.format(dCaScale)+"} color= {green}");
-                out.println("{"+r1+" d(Ca)}P "+df.format(ca1.getX())+" "
-                                              +df.format(ca1.getY())+" "
-                                              +df.format(ca1.getZ()));
-                out.println("{"+r1+" d(Ca)}  "+df.format(tip.getX())+" "
-                                              +df.format(tip.getY())+" "
-                                              +df.format(tip.getZ()));
-                out.println("@balllist {"+r1+" d(Ca)} master= {d(Ca) x "+df2.format(dCaScale)+"} color= {green} radius= 0.1");
-                out.println("{"+r1+" d(Ca)} "+df.format(tip.getX())+" "
-                                             +df.format(tip.getY())+" "
-                                             +df.format(tip.getZ()));
+                Triple ca1ca2 = new Triple().likeVector(ca1, ca2).mult(dCaScale);
+                if ( !(ca1ca2.getX() == 0 && ca1ca2.getY() == 0 && ca1ca2.getZ() == 0) )
+                {
+                    Triple tip = new Triple().likeSum(ca1, ca1ca2);
+                    out.println("@vectorlist {"+r1+" d(Ca)} master= {d(Ca) x "+df2.format(dCaScale)+"} color= {green}");
+                    out.println("{"+r1+" d(Ca)}P "+df.format(ca1.getX())+" "
+                                                  +df.format(ca1.getY())+" "
+                                                  +df.format(ca1.getZ()));
+                    out.println("{"+r1+" d(Ca)}  "+df.format(tip.getX())+" "
+                                                  +df.format(tip.getY())+" "
+                                                  +df.format(tip.getZ()));
+                    out.println("@balllist {"+r1+" d(Ca)} master= {d(Ca) x "+df2.format(dCaScale)+"} color= {green} radius= 0.1");
+                    out.println("{"+r1+" d(Ca)} "+df.format(tip.getX())+" "
+                                                 +df.format(tip.getY())+" "
+                                                 +df.format(tip.getZ()));
+                }
             }
         }
         catch (AtomException ae) { System.err.println("Couldn't do kin for '"+r1+"'.."); }
@@ -413,17 +711,23 @@ public class VariableRegions //extends ... implements ...
             System.err.println("Need at least one filename!");
             System.exit(0);
         }
-        if ((doKin1 || doKin2) && dCaScale == 100) dCaScale = 10; // different default for kins
+        if (!doKin && Double.isNaN(dCaScale)) dCaScale = 100; // default for text
         try
         {
             if (filename1 != null && filename2 == null)
             {
                 // Looking for alt conf loops in one structure
+                if (doKin)
+                {
+                    if (Double.isNaN(dCaScale))      dCaScale     = 5;
+                    if (Double.isNaN(dPhiPsiScale))  dPhiPsiScale = 1;
+                }
+                
                 PdbReader reader = new PdbReader();
                 File f = new File(filename1);
                 CoordinateFile cf = reader.read(f);
-                if (doKin1 || doKin2) out.println("@group {VariableRegions} dominant");
-                else                  out.println("label:model:chain:res_type:res_num:dPhi:dPsi:dCa:dCa*"+dCaScale);
+                if (doKin) out.println("@group {VariableRegions} dominant");
+                else       out.println("label:model:chain:res_type:res_num:dPhi:dPsi:dCa:dCa*"+dCaScale);
                 for(Iterator models = cf.getModels().iterator(); models.hasNext(); )
                 {
                     Model m = (Model) models.next();
@@ -435,6 +739,13 @@ public class VariableRegions //extends ... implements ...
             else if (filename1 != null && filename2 != null)
             {
                 // Looking for regions that vary between two structures
+                if (doKin)
+                {
+                    if (Double.isNaN(dCaScale))         dCaScale     = 10;
+                    if (Double.isNaN(dPhiPsiScale))     dPhiPsiScale = 500;
+                    if (hinges && Double.isNaN(dCaMin)) dCaMin       = 0.1;
+                }
+                
                 PdbReader reader = new PdbReader();
                 File f1 = new File(filename1);
                 File f2 = new File(filename2);
@@ -444,8 +755,8 @@ public class VariableRegions //extends ... implements ...
                 Model m2 = cf2.getFirstModel();
                 String label1 = f1.toString();
                 String label2 = f2.toString();
-                if (doKin1 || doKin2) out.println("@group {VariableRegions} dominant");
-                else                  out.println("label1:label2:model1:model2:chain1:chain2:res_type1:res_type2:res_num1:res_num2:dPhi:dPsi:dCa:dCa*"+dCaScale);
+                if (doKin) out.println("@group {VariableRegions} dominant");
+                else       out.println("label1:label2:model1:model2:chain1:chain2:res_type1:res_type2:res_num1:res_num2:dPhi:dPsi:dCa:dCa*"+dCaScale);
                 searchModels(m1, m2, label1, label2);
             }
         }
@@ -569,16 +880,9 @@ public class VariableRegions //extends ... implements ...
         {
             verbose = true;
         }
-        else if(flag.equals("-kin1"))
+        else if(flag.equals("-kin"))
         {
-            doKin1 = true;
-            doKin2 = false;
-        }
-        else if(flag.equals("-kin2") || (flag.equals("-kin")))
-        {
-            // This one takes precedence over -kin1
-            doKin2 = true;
-            doKin1 = false;
+            doKin = true;
         }
         else if(flag.equals("-absval") || flag.equals("-abs"))
         {
@@ -588,9 +892,22 @@ public class VariableRegions //extends ... implements ...
         {
             allRes = true;
         }
+        else if(flag.equals("-hinges"))
+        {
+            hinges = true;
+        }
+        else if(flag.equals("-nohinges"))
+        {
+            hinges = false;
+        }
         else if(flag.equals("-dcascale"))
         {
             try { dCaScale = Double.parseDouble(param); }
+            catch (NumberFormatException nfe) { System.err.println("Can't parse "+param+" as a double!"); };
+        }
+        else if(flag.equals("-dcamin"))
+        {
+            try { dCaMin = Double.parseDouble(param); }
             catch (NumberFormatException nfe) { System.err.println("Can't parse "+param+" as a double!"); };
         }
         else if(flag.equals("-dphipsiscale"))
