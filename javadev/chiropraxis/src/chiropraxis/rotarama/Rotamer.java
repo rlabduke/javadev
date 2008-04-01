@@ -83,6 +83,25 @@ public class Rotamer //extends ... implements ...
     }
 //}}}
 
+//{{{ dumpRotamerNames
+  public String dumpRotamerNames() {
+    String allRotamerNames = "";
+    loadRotamerNames();
+    Iterator keys = names.keySet().iterator();
+    while (keys.hasNext()) {
+      String resName = (String) keys.next();
+      ArrayList rotaList = (ArrayList) names.get(resName);
+      Iterator namedRots = rotaList.iterator();
+      while (namedRots.hasNext()) {
+        NamedRot rot = (NamedRot) namedRots.next();
+        String bounds = Arrays.toString(rot.bounds);
+        allRotamerNames = allRotamerNames+resName+" "+rot.getName()+"="+bounds.substring(1, bounds.length()-1)+"\n";
+      }
+    }
+    return allRotamerNames;
+  }
+//}}}
+
 //{{{ loadTablesFromJar
 //##################################################################################################
     private void loadTablesFromJar() throws IOException
