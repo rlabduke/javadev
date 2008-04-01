@@ -75,6 +75,13 @@ public class Rotalyze //extends ... implements ...
                        chis[i] = chis[i] % 360;
                        if(chis[i] < 0) chis[i] += 360;
                     }
+                    // (vbc3 080401) for these residues, the last chi is only 0 -> 180
+                    if("asp".equals(res.getName()) || "glu".equals(res.getName()) || "phe".equals(res.getName()) || "tyr".equals(res.getName()))
+                    {
+                      int i = chis.length - 1;
+                      chis[i] = chis[i] % 180;
+                      if(chis[i] < 0) chis[i] += 180;
+                    }
                     
                     out.print(res.getCNIT());
                     out.print(":");
@@ -240,6 +247,15 @@ public class Rotalyze //extends ... implements ...
         {
             showHelp(true);
             System.exit(0);
+        }
+        else if(flag.equals("-dump_rotamer_bins") || flag.equals("-dump")) 
+        {
+          try {
+            System.out.println(Rotamer.getInstance().dumpRotamerNames());
+          } catch (IOException ie) {
+            System.out.println("Jar file is missing some resources");
+          }
+          System.exit(0);
         }
         else if(flag.equals("-dummy_option"))
         {
