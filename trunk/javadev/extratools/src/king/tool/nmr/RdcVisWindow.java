@@ -233,6 +233,7 @@ public class RdcVisWindow implements ActionListener, WindowListener {
   }
   
   public double getRdcValue(String seqNum) {
+    System.out.println(seqNum);
     DipolarRestraint dr = (DipolarRestraint) currentRdcs.get(seqNum);
     System.out.println(dr);
     if (dr != null) {

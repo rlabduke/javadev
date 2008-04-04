@@ -23,8 +23,9 @@ public class NMRRestraintsReader {
   //}}}
   
   //{{{ Variables
-  TreeMap restraintsMap = null; // String of restraint type -> list of assigns.
+  ArrayList restraintsList = null; // list of lists of assigns.
   MagneticResonanceFile mrFile = null;
+  ArrayList<String> assignList = null;
   //}}}
   
   
@@ -32,7 +33,7 @@ public class NMRRestraintsReader {
   * Basic constructor for NMRRestraintsReader
   */
   public NMRRestraintsReader() {
-    restraintsMap = new TreeMap();
+    restraintsList = new ArrayList();
     mrFile = new MagneticResonanceFile();
   }
     
@@ -74,10 +75,31 @@ public class NMRRestraintsReader {
       
       BufferedReader reader = new BufferedReader(new FileReader(f));
       String currentAssign = null;
-      ArrayList currentList = null;
+      assignList = new ArrayList<String>();
       String line;
       while((line = reader.readLine())!=null) {
         line = line.trim();
+        if ((line.length() > 2)&&(!line.startsWith("!"))) {
+          if (line.startsWith("assign")) {
+            // new restraint
+            if (currentAssign != null) {
+              //System.out.println(currentAssign);
+              assignList.add(currentAssign);
+              currentAssign = line;
+            } else {
+              currentAssign = line;
+            }
+          } else if (currentAssign != null) {
+            //System.out.println("currentAssign is not null " + line);
+            currentAssign = currentAssign.concat(line);
+          }
+        } else {
+          // line is close to empty or starts with !
+          if (currentAssign != null) assignList.add(currentAssign);
+          currentAssign = null;
+        }
+      }
+        /*
         if ((line.length() > 2)&&(!line.startsWith("!"))) {
           if (line.substring(0,2).matches("[A-Z]\\.")) {
             // new section of restraints
@@ -106,18 +128,28 @@ public class NMRRestraintsReader {
         //String[] strings = Strings.explode(line, delimiter.charAt(0), false, true);
         //allPoints.add(strings);
       }
-      reader.close();        
+      */
+      reader.close();
+    
+      for (String assign : assignList) {
+        System.out.println("assign:" + assign + " count: " + Strings.count(assign, "resid"));
+      }
     }
   }
   //}}}
   
   //{{{ analyzeFileContents
   public MagneticResonanceFile analyzeFileContents() {
-    Iterator keys = restraintsMap.keySet().iterator();
-    while (keys.hasNext()) {
-      String key = (String) keys.next();
-      if (key.indexOf("DIPOLAR") > -1) readDipolarCouplings((ArrayList) restraintsMap.get(key));
+    Iterator lists = assignList.iterator();
+    ArrayList<String> rdcList = new ArrayList<String>();
+    
+    while (lists.hasNext()) {
+      String list = (String) lists.next();
+      if (Strings.count(list, "resid") == 6) rdcList.add(list);
+      //if ((key.indexOf("DIPOLAR") > -1)||(key.indexOf("RDC") > -1)) readDipolarCouplings((ArrayList) restraintsMap.get(key));
+      
     }
+    readDipolarCouplings(rdcList);
     return mrFile;
   }
   //}}}
@@ -133,10 +165,17 @@ public class NMRRestraintsReader {
       String resFrom = pieces[5].substring(0, pieces[5].indexOf(")"));
       String resTo = pieces[6].substring(0, pieces[6].indexOf(")"));
       String values = pieces[6].substring(pieces[6].indexOf(")")+1, pieces[6].length());
-      String fromNum = resFrom.substring(7, 11);
-      String fromName = resFrom.substring(21, 25);
-      String toNum = resTo.substring(7, 11);
-      String toName = resTo.substring(21, 25);
+      String[] resFromPieces = Strings.explode(resFrom, " ".charAt(0), false, true);
+      String[] resToPieces = Strings.explode(resTo, " ".charAt(0), false, true);
+
+      //String fromNum = resFrom.substring(7, 11);
+      //String fromName = resFrom.substring(21, 25);
+      //String toNum = resTo.substring(7, 11);
+      //String toName = resTo.substring(21, 25);
+      String fromNum = resFromPieces[1];
+      String fromName = resFromPieces[4];
+      String toNum = resToPieces[1];
+      String toName = resToPieces[4];
       double[] vals = Strings.explodeDoubles(values, " ".charAt(0));
       System.out.println(fromNum + ":" + fromName + ":" + toNum + ":" + toName + ":" + vals[0]);
       DipolarRestraint dr = new DipolarRestraint(fromName, fromNum, toName, toNum, vals);

@@ -229,10 +229,11 @@ public class RdcVisTool extends ModelingTool {
       //rdcWin.getDrawer().drawCurve(rdcVal, p, backcalcRdc, list);
       //rdcWin.getDrawer().drawCurve(rdcVal - 2, p, backcalcRdc, list);
       //rdcWin.getDrawer().drawCurve(rdcVal + 2, p, backcalcRdc, list);
-      //rdcWin.getDrawer().drawCurve(rdcVal, p, 1, 60, backcalcRdc, list);
-      //rdcWin.getDrawer().drawCurve(rdcVal-0.5, p, 1, 60, backcalcRdc, list);
-      //rdcWin.getDrawer().drawCurve(rdcVal+0.5, p, 1, 60, backcalcRdc, list);
-      rdcWin.getDrawer().drawAll(p, 1, 60, backcalcRdc, list);
+      rdcWin.getDrawer().drawCurve(rdcVal, p, 1, 60, backcalcRdc, list);
+      rdcWin.getDrawer().drawCurve(rdcVal-0.5, p, 1, 60, backcalcRdc, list);
+      rdcWin.getDrawer().drawCurve(rdcVal+0.5, p, 1, 60, backcalcRdc, list);
+      rdcWin.getDrawer().drawCurve(backcalcRdc, p, 1, 60, backcalcRdc, list);
+      //rdcWin.getDrawer().drawAll(p, 1, 60, backcalcRdc, list);
     } else {
       System.out.println("this residue does not appear to have an rdc");
     }
