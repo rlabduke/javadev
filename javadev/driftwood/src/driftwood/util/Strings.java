@@ -233,6 +233,19 @@ public class Strings //extends ... implements ...
     }
 //}}}
 
+//{{{ count
+  public static int count(String s, String sub) {
+    int count = 0;
+    int i = s.indexOf(sub);
+    while (i != -1) {
+      count++;
+      i = s.indexOf(sub, i+1);
+      //System.out.println(i);
+    }
+    return count;
+  }
+//}}}
+
 //{{{ explode
 //##################################################################################################
     /**
