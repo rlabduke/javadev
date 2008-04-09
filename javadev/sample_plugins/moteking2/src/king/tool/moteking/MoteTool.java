@@ -25,6 +25,9 @@ public class MoteTool extends BasicTool implements WiiRemoteListener {
   JButton connectButton;
   JCheckBox accelBox, irBox;
   IRMouse mouse = null;
+  double prevIRDist = -1;
+  double prevXAvg = Double.NaN;
+  double prevYAvg = Double.NaN;
   //}}}
   
   //{{{ Constructor
@@ -103,10 +106,10 @@ public class MoteTool extends BasicTool implements WiiRemoteListener {
         try {
           if (irBox.isSelected()) {
             remote.setIRSensorEnabled(true, WRIREvent.BASIC);
-            mouse = IRMouse.getDefault();
+            //mouse = IRMouse.getDefault();
           } else {
             remote.setIRSensorEnabled(false, WRIREvent.BASIC);
-            mouse = null;
+            //mouse = null;
           }
         } catch (IOException ie) {
           ioeHandler(ie);
@@ -127,7 +130,8 @@ public class MoteTool extends BasicTool implements WiiRemoteListener {
         remote.addWiiRemoteListener(this);
         accelBox.setEnabled(true);
         irBox.setEnabled(true);
-        remote.setLEDIlluminated(0, true);
+        remote.vibrateFor(50);
+        //remote.setLEDIlluminated(0, true);
       }
     } catch (IOException ie) {
       ioeHandler(ie);
@@ -214,14 +218,42 @@ public class MoteTool extends BasicTool implements WiiRemoteListener {
   //{{{ irInputReceived
   public void IRInputReceived(WRIREvent evt) {
     //System.out.println("Seeing some IR lights?");
-    for (IRLight light : evt.getIRLights())
-    {
-      if (light != null)
-      {
-        if (mouse != null) {
-          mouse.processMouseEvent(evt);
-        }
+    //for (IRLight light : evt.getIRLights())
+    //{
+    //  if (light != null)
+    //  {
+    //    if (mouse != null) {
+    //      mouse.processMouseEvent(evt);
+    //    }
+    //    
+    //  }
+    //}
+    
+    IRLight[] lights = evt.getIRLights();
+    IRLight first = lights[0];
+    IRLight second = lights[1];
+    if ((first != null)&&(second != null)) {
+      remote.setLEDIlluminated(0, true);
+      remote.setLEDIlluminated(3, true);
+      //System.out.println(first.getX());
+      double dx = first.getX() - second.getX();
+      double dy = first.getY() - second.getY();
+      double dist = Math.sqrt(dx*dx+dy*dy)*100;
+      //System.out.println("IR Light distance: "+dist);
+      if (prevIRDist > 0) {
+        //services.adjustZoom((float)-((dist-prevIRDist))); // Smaller dist is closer!
       }
+      //prevIRDist = dist;
+      double xAvg = (first.getX()*1024 - second.getX()*1024) / 2;
+      double yAvg = (first.getY()*768 - second.getY()*768) / 2;
+      if ((!Double.isNaN(prevXAvg))&&(!Double.isNaN(prevYAvg))) {
+        services.rotate((int)(Math.rint(xAvg - prevXAvg)), (int)(Math.rint(yAvg - prevYAvg)));
+      }
+      prevXAvg = xAvg;
+      prevYAvg = yAvg;
+    } else {
+      if (first == null) remote.setLEDIlluminated(0, false);
+      if (second == null) remote.setLEDIlluminated(3, false);
     }
   }
   //}}}

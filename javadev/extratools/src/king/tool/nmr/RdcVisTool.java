@@ -188,7 +188,12 @@ public class RdcVisTool extends ModelingTool {
   //{{{ getOriginAtom
   public AtomState getOriginAtom(ModelState state, Residue orig) {
     String atoms[] = rdcWin.parseAtomNames();
-    Atom origin = orig.getAtom(atoms[0]);
+    Atom origin;
+    if (atoms[0].indexOf("H") > -1) {
+      origin = orig.getAtom(atoms[1]);
+    } else {
+      origin = orig.getAtom(atoms[0]);
+    }
     try {
       AtomState originState = state.get(origin);
       return originState;
@@ -220,6 +225,7 @@ public class RdcVisTool extends ModelingTool {
     double backcalcRdc = rdcWin.getBackcalcRdc(rdcVect);
     if ((!Double.isNaN(rdcVal))&&(!Double.isNaN(backcalcRdc))) {
       KList list = new KList(KList.VECTOR, "Points");
+      list.setWidth(4);
       subgroup.add(list);
       //System.out.println(seq);
       //String seq = String.valueOf(KinUtil.getResNumber(p));
@@ -230,9 +236,9 @@ public class RdcVisTool extends ModelingTool {
       //rdcWin.getDrawer().drawCurve(rdcVal - 2, p, backcalcRdc, list);
       //rdcWin.getDrawer().drawCurve(rdcVal + 2, p, backcalcRdc, list);
       rdcWin.getDrawer().drawCurve(rdcVal, p, 1, 60, backcalcRdc, list);
-      rdcWin.getDrawer().drawCurve(rdcVal-0.5, p, 1, 60, backcalcRdc, list);
-      rdcWin.getDrawer().drawCurve(rdcVal+0.5, p, 1, 60, backcalcRdc, list);
-      rdcWin.getDrawer().drawCurve(backcalcRdc, p, 1, 60, backcalcRdc, list);
+      //rdcWin.getDrawer().drawCurve(rdcVal-0.5, p, 1, 60, backcalcRdc, list);
+      //rdcWin.getDrawer().drawCurve(rdcVal+0.5, p, 1, 60, backcalcRdc, list);
+      //rdcWin.getDrawer().drawCurve(backcalcRdc, p, 1, 60, backcalcRdc, list);
       //rdcWin.getDrawer().drawAll(p, 1, 60, backcalcRdc, list);
     } else {
       System.out.println("this residue does not appear to have an rdc");
