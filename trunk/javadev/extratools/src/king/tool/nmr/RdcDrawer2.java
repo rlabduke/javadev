@@ -74,15 +74,15 @@ public class RdcDrawer2 {
         adjFrame.timesEquals(r);
         VectorPoint point = new VectorPoint("Point " + df.format(rdcVal), old);
         point.setXYZ(adjFrame.get(0, 0)+center.getX(), adjFrame.get(1, 0)+center.getY(), adjFrame.get(2, 0)+center.getZ());      
-        if (Math.abs(rdcVal - backcalcRdc) < 0.25) point.setColor(KPalette.green);
-        else if (Math.abs(rdcVal - backcalcRdc) < 0.5) point.setColor(KPalette.yellow);
+        if (Math.abs(rdcVal - backcalcRdc) < 1) point.setColor(KPalette.greentint);
+        else if (Math.abs(rdcVal - backcalcRdc) < 2) point.setColor(KPalette.orange);
         else point.setColor(KPalette.red);
         posPoints.add(point);
         old = point;
         VectorPoint negPoint = new VectorPoint("Neg Point " + df.format(rdcVal), negOld);
         negPoint.setXYZ(-adjFrame.get(0, 0)+center.getX(), -adjFrame.get(1, 0)+center.getY(), -adjFrame.get(2, 0)+center.getZ());      
-        if (Math.abs(rdcVal - backcalcRdc) < 0.25) negPoint.setColor(KPalette.green);
-        else if (Math.abs(rdcVal - backcalcRdc) < 0.5) negPoint.setColor(KPalette.yellow);
+        if (Math.abs(rdcVal - backcalcRdc) < 1) negPoint.setColor(KPalette.greentint);
+        else if (Math.abs(rdcVal - backcalcRdc) < 2) negPoint.setColor(KPalette.orange);
         else negPoint.setColor(KPalette.red);
         negPoints.add(negPoint);
         negOld = negPoint;
@@ -160,7 +160,7 @@ public class RdcDrawer2 {
       
   //{{{ drawAll
   public void drawAll(Tuple3 center, double r, int numPoints, double backcalcRdc, KList list) {
-    for (double d = sxx; d <= szz; d=d+0.25) {
+    for (double d = sxx; d <= szz; d=d+1) {
       drawCurve(d, center, r, numPoints, backcalcRdc, list);
     }
   }
