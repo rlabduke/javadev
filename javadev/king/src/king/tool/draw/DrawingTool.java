@@ -526,6 +526,7 @@ public class DrawingTool extends BasicTool
         }
         else// if(lineseg2 == null)
         {
+          if (!lineseg1.equals(p)) { // should fix bug where clicking on same point twice causes bugs with zooming
             lineseg2 = p;
             KList list = this.getDrawingList(KList.VECTOR, "lineSegment");
             if(list == null) return;
@@ -556,6 +557,7 @@ public class DrawingTool extends BasicTool
             
             Kinemage kin = kMain.getKinemage();
             if(kin == null) return;
+          }
         }
     }
 //}}}
