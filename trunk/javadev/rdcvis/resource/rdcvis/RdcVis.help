@@ -1,0 +1,12 @@
+
+USAGE
+  rdcvis ['arguments'] [input pdb] [input mr] [output kinemage]
+
+  ("rdcvis" is "java -jar rdcvis.jar")
+
+
+ARGUMENTS
+
+  -h                  Prints this help text.
+  -ensembletensor     Uses all the models to calculate one universal alignment tensor.
+  -modeltensor        Calculates an aligment tensor for each model separately.
