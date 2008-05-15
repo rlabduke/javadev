@@ -121,6 +121,8 @@ public class SubImposeScripter //extends ... implements ...
         }
         cmd += " "+pdbPath+" ";
         
+        if (rmsdCutoff != null)   cmd += " -rmsdcutoff="+rmsdCutoff+" ";
+        
         // Use command
         if (ref == null)
         {
