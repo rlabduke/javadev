@@ -92,7 +92,7 @@ abstract public class Measurement //extends ... implements ...
         {
             Measurement.BasePhosPerp pPerp = new Measurement.BasePhosPerp("pPerpPuckerTest");
             double pPerpDist = pPerp.measure(model, state, res);
-            if (!Double.isNaN(pPerpDist) && (pPerpDist > Double.NEGATIVE_INFINITY && pPerpDist < Double.POSITIVE_INFINITY))
+            if (!Double.isNaN(pPerpDist) && pPerpDist <= 2.9)
             {
                 // Clearly an RNA residue with 2' pucker => mean2 + sigma2 are appropriate
                 //System.err.println("Base-P perp in range => using mean2+sigma2");
