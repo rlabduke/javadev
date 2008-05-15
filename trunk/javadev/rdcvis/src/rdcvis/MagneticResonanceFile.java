@@ -30,8 +30,16 @@ public class MagneticResonanceFile {
   //}}}
   
   //{{{ addDipolarCoupling
+  /** This function adds both the name and the reversed name of an RDC to the map
+      to try to get around if a user specifies an unexpected name (N-HN vs HN-N) **/
   public void addDipolarCoupling(DipolarRestraint dr) {
     String drName = processName(dr);
+    addCouplingToMap(dr, drName);
+    String drRevName = processReverseName(dr);
+    addCouplingToMap(dr, drRevName);
+  }
+  
+  private void addCouplingToMap(DipolarRestraint dr, String drName) {
     //System.out.println(drName);
     if (dipolarCouplings.containsKey(drName)) {
       TreeMap couplingMap = (TreeMap) dipolarCouplings.get(drName);
@@ -44,7 +52,7 @@ public class MagneticResonanceFile {
     } else {
       TreeMap couplingMap = new TreeMap();
       couplingMap.put(dr.getFromNum().trim(), dr);
-      dipolarCouplings.put(processName(dr), couplingMap);
+      dipolarCouplings.put(drName, couplingMap);
     }
   }
   //}}}
@@ -71,6 +79,16 @@ public class MagneticResonanceFile {
     if (fName.endsWith("#")) fName = fName.substring(0, fName.length()-1);
     if (tName.endsWith("#")) tName = tName.substring(0, tName.length()-1);
     return fName+"-"+tName;
+  }
+  //}}}
+  
+    //{{{ processReverseName
+  public String processReverseName(DipolarRestraint dr) {
+    String fName = dr.getFromName().trim();
+    String tName = dr.getToName().trim();
+    if (fName.endsWith("#")) fName = fName.substring(0, fName.length()-1);
+    if (tName.endsWith("#")) tName = tName.substring(0, tName.length()-1);
+    return tName+"-"+fName;
   }
   //}}}
   

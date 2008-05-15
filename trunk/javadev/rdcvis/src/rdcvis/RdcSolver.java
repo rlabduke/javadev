@@ -33,10 +33,10 @@ public class RdcSolver {
     //printBigMatrix(vectors,8);
     rdcs = rs.copy();
     Matrix vectMat = calculateVectorMatrix();
-    vectMat.print(1, 4);
+    //vectMat.print(1, 4);
     Matrix pInv = pseudoInverse(vectMat, 0.00000001);
     Matrix saupeVect = pInv.times(rdcs.transpose());
-    printBigMatrix(pInv, 8);
+    //printBigMatrix(pInv, 8);
     saupe = new Matrix(3,3);
     saupe.set(0, 0, saupeVect.get(0, 0));
     saupe.set(0, 1, saupeVect.get(1, 0));
@@ -47,9 +47,9 @@ public class RdcSolver {
     saupe.set(1, 2, saupeVect.get(4, 0));
     saupe.set(2, 1, saupeVect.get(4, 0));
     saupe.set(2, 2, - saupeVect.get(0, 0) - saupeVect.get(3, 0));
-    saupeVect.print(4, 4);
-    saupe.print(4, 4);
-    diagonalize(saupe).print(4, 4);
+    //saupeVect.print(4, 4);
+    //saupe.print(4, 4);
+    //diagonalize(saupe).print(4, 4);
     //Matrix test = vectMat.times(pInv);
     //test.print(4,4);
     //test();

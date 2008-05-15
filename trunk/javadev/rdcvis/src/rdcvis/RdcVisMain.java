@@ -56,7 +56,6 @@ public class RdcVisMain {
   //###############################################################
   public void Main(ArrayList<String> argList) {
     //simulatedGaps = new HashMap<Integer, Integer>();
-    rdcTypes = new ArrayList<String>();
     //ArrayList<String> argList = parseArgs(args);
     if (argList.size() < 2) {
 	    System.out.println("Not enough arguments: you must have an input pdb and an input mr file!");
@@ -77,16 +76,18 @@ public class RdcVisMain {
       pdb = readPdb(new File(pdbFile.getAbsolutePath()));
       MagneticResonanceFile mr = readMR(new File(mrFile.getAbsolutePath()));
       fi = new FileInterpreter(pdb, mr);
-      for (String rdcName : rdcTypes) {
-        fi.solveRdcsEnsemble(rdcName);
-        
-        writeKin(new File(outKinFile.getAbsolutePath()), rdcName);
-      }
+      //for (String rdcName : rdcTypes) {
+      //  fi.solveRdcsEnsemble(rdcName);
+      //  
+      Kinemage kin = createKin(fi);
+        writeKin(kin, new File(outKinFile.getAbsolutePath()));
+      //}
     }
   }
   
   public static void main(String[] args) {
     RdcVisMain mainprog = new RdcVisMain();
+    rdcTypes = new ArrayList<String>();
     ArrayList<String> argList = mainprog.parseArgs(args);
     mainprog.Main(argList);
     
@@ -202,43 +203,92 @@ public class RdcVisMain {
   }
   //}}}
   
-  //{{{ writeKin
-  public void writeKin(File outKinFile, String rdcName) {
+  //{{{ createKin
+  public Kinemage createKin(FileInterpreter fi) {
     Kinemage kin = new Kinemage();
-    Iterator models = (pdb.getModels()).iterator();
-    String[] atoms = fi.parseAtomNames(rdcName);
-    while (models.hasNext()) {
-      //System.out.print(".");
-      Model mod = (Model) models.next();
-      ModelState state = mod.getState();
-      group = new KGroup("RDCs "+mod.toString());
-      group.addMaster("Curves");
-      group.setDominant(true);
-      group.setAnimate(true);
-      kin.add(group);
-      subgroup = new KGroup("sub");
-      subgroup.setHasButton(true);
-      group.add(subgroup);
-      if (drawErrors) {
-        subError = new KGroup("suberrorbars");
-        subError.setHasButton(true);
-        group.add(subError);
+    for (String rdcName : rdcTypes) {
+      if (ensembleTensor) {
+        fi.solveRdcsEnsemble(rdcName);
       }
-      Iterator iter = mod.getResidues().iterator();
-      while (iter.hasNext()) {
-        Residue orig = (Residue) iter.next();
-        Triple rdcVect = getResidueRdcVect(state, orig, atoms);
-        AtomState origin = getOriginAtom(state, orig, atoms);
-        if ((rdcVect != null)&&(origin != null)) {
-          drawCurve(kin, origin, rdcVect, orig);
-        } else {
-          //JOptionPane.showMessageDialog(kMain.getTopWindow(),
-          //"Sorry, the atoms needed for this RDC do not seem to be in this residue.",
-          //"Selected RDC atoms not found",
-          //JOptionPane.ERROR_MESSAGE);
+      String[] atoms = fi.parseAtomNames(rdcName);
+      Iterator models = (pdb.getModels()).iterator();
+      while (models.hasNext()) {
+        //System.out.print(".");
+        Model mod = (Model) models.next();
+        ModelState state = mod.getState();
+        if (!ensembleTensor) {
+          fi.solveRdcsSingleModel(rdcName, mod.toString());
+        }
+        group = new KGroup("RDCs "+mod.toString());
+        group.addMaster("Curves");
+        group.setDominant(true);
+        group.setAnimate(true);
+        kin.add(group);
+        subgroup = new KGroup("sub");
+        subgroup.setHasButton(true);
+        group.add(subgroup);
+        if (drawErrors) {
+          subError = new KGroup("suberrorbars");
+          subError.setHasButton(true);
+          group.add(subError);
+        }
+        Iterator iter = mod.getResidues().iterator();
+        while (iter.hasNext()) {
+          Residue orig = (Residue) iter.next();
+          Triple rdcVect = getResidueRdcVect(state, orig, atoms);
+          AtomState origin = getOriginAtom(state, orig, atoms);
+          if ((rdcVect != null)&&(origin != null)) {
+            drawCurve(kin, origin, rdcVect, orig);
+          } else {
+            //JOptionPane.showMessageDialog(kMain.getTopWindow(),
+            //"Sorry, the atoms needed for this RDC do not seem to be in this residue.",
+            //"Selected RDC atoms not found",
+            //JOptionPane.ERROR_MESSAGE);
+          }
         }
       }
     }
+    return kin;
+  }
+  //}}}
+  
+  //{{{ writeKin
+  public void writeKin(Kinemage kin, File outKinFile) {
+    //Kinemage kin = new Kinemage();
+    //Iterator models = (pdb.getModels()).iterator();
+    //String[] atoms = fi.parseAtomNames(rdcName);
+    //while (models.hasNext()) {
+    //  //System.out.print(".");
+    //  Model mod = (Model) models.next();
+    //  ModelState state = mod.getState();
+    //  group = new KGroup("RDCs "+mod.toString());
+    //  group.addMaster("Curves");
+    //  group.setDominant(true);
+    //  group.setAnimate(true);
+    //  kin.add(group);
+    //  subgroup = new KGroup("sub");
+    //  subgroup.setHasButton(true);
+    //  group.add(subgroup);
+    //  if (drawErrors) {
+    //    subError = new KGroup("suberrorbars");
+    //    subError.setHasButton(true);
+    //    group.add(subError);
+    //  }
+    //  Iterator iter = mod.getResidues().iterator();
+    //  while (iter.hasNext()) {
+    //    Residue orig = (Residue) iter.next();
+    //    Triple rdcVect = getResidueRdcVect(state, orig, atoms);
+    //    AtomState origin = getOriginAtom(state, orig, atoms);
+    //    if ((rdcVect != null)&&(origin != null)) {
+    //      drawCurve(kin, origin, rdcVect, orig);
+    //    } else {
+    //      //JOptionPane.showMessageDialog(kMain.getTopWindow(),
+    //      //"Sorry, the atoms needed for this RDC do not seem to be in this residue.",
+    //      //"Selected RDC atoms not found",
+    //      //JOptionPane.ERROR_MESSAGE);
+    //    }
+    //  }
+    //}
     ArrayList<Kinemage> kins = new ArrayList<Kinemage>();
     kins.add(kin);
     KinfileWriter writer = new KinfileWriter();
@@ -309,26 +359,29 @@ public class RdcVisMain {
     double backcalcRdc = fi.getBackcalcRdc(rdcVect);
     if ((!Double.isNaN(rdcVal))&&(!Double.isNaN(backcalcRdc))) {
       KList list = new KList(KList.VECTOR, "RDCs");
-      KList errorBars = new KList(KList.VECTOR, "Error Bars");
+      if (Math.abs(rdcVal - backcalcRdc) < 1)      list.addMaster("Good RDC Match");
+      else if (Math.abs(rdcVal - backcalcRdc) < 2) list.addMaster("Mild RDC Match");
+      else                                         list.addMaster("Bad RDC Match");
       list.setWidth(4);
-      errorBars.setWidth(2);
       subgroup.add(list);
-      subError.add(errorBars);
-      //System.out.println(seq);
-      //String seq = String.valueOf(KinUtil.getResNumber(p));
-      //DipolarRestraint dr = (DipolarRestraint) currentRdcs.get(seq);
       String text = "res= "+seq+" rdc= "+df.format(rdcVal)+" backcalc= "+df.format(backcalcRdc);
       System.out.println(text);
       //fi.getDrawer().drawCurve(rdcVal, p, backcalcRdc, list);
-      if (drawErrors) {
-        fi.getDrawer().drawCurve(rdcVal - 2, p, 1, 60, backcalcRdc, errorBars, "-2 error bar");
-        fi.getDrawer().drawCurve(rdcVal + 2, p, 1, 60, backcalcRdc, errorBars, "+2 error bar");
-      }
       fi.getDrawer().drawCurve(rdcVal, p, 1, 60, backcalcRdc, list, text);
       //fi.getDrawer().drawCurve(rdcVal-0.5, p, 1, 60, backcalcRdc, list);
       //fi.getDrawer().drawCurve(rdcVal+0.5, p, 1, 60, backcalcRdc, list);
       //fi.getDrawer().drawCurve(backcalcRdc, p, 1, 60, backcalcRdc, list);
       //fi.getDrawer().drawAll(p, 1, 60, backcalcRdc, list);
+      if (drawErrors) {
+        KList errorBars = new KList(KList.VECTOR, "Error Bars");
+        for (String master : list.getMasters()) {
+          errorBars.addMaster(master);
+        }
+        errorBars.setWidth(2);
+        subError.add(errorBars);
+        fi.getDrawer().drawCurve(rdcVal - 2, p, 1, 60, backcalcRdc, errorBars, "-2 error bar");
+        fi.getDrawer().drawCurve(rdcVal + 2, p, 1, 60, backcalcRdc, errorBars, "+2 error bar");
+      }
     } else {
       System.out.println("this residue does not appear to have an rdc");
     }
