@@ -8,9 +8,9 @@ import java.text.ParseException;
 //}}}
 /**
 * This is a simple utility class to take a (Dssp)HelixBuilder output list and 
-* output only those lines that match the given Ncap amino acid and Hbond types.
+* output only those lines that match the given N-cap amino acid and H-bond types.
 */
-public class RightNcapPsi //extends ... implements ...
+public class RightNcapPhiPsi //extends ... implements ...
 {
 //{{{ Constants
 //##############################################################################
@@ -22,13 +22,15 @@ public class RightNcapPsi //extends ... implements ...
     String filename = null;
     String res      = null;
     String hbond    = null;
+    int phiMin      = -999;
+    int phiMax      = 999;
     int psiMin      = -999;
     int psiMax      = 999;
 //}}}
 
 //{{{ Constructor(s)
 //##############################################################################
-    public RightNcapPsi()
+    public RightNcapPhiPsi()
     {
         super();
     }
@@ -63,6 +65,16 @@ public class RightNcapPsi //extends ... implements ...
                 line.substring(line.indexOf("i+3"), line.indexOf("i+3")+3));
             if (verbose && line.indexOf("i+2") >= 0)    System.out.println(
                 line.substring(line.indexOf("i+2"), line.indexOf("i+2")+3));
+        }
+        
+        if (phiMin != -999 && phiMax != 999)
+        {
+            Scanner s = new Scanner(line).useDelimiter(":");
+            for (int i = 0; i < 12; i ++)   s.next();
+            double thisPhi = Double.parseDouble(s.next());
+            if (thisPhi < 0)    thisPhi += 360;
+            if (verbose) System.out.println("thisPhi wrapped360: "+thisPhi);
+            if (thisPhi < phiMin || thisPhi > phiMax)  violatesCriterion = true;
         }
         
         if (psiMin != -999 && psiMax != 999)
@@ -107,7 +119,7 @@ public class RightNcapPsi //extends ... implements ...
 
     public static void main(String[] args)
     {
-        RightNcapPsi mainprog = new RightNcapPsi();
+        RightNcapPhiPsi mainprog = new RightNcapPhiPsi();
         try
         {
             mainprog.parseArguments(args);
@@ -184,11 +196,11 @@ public class RightNcapPsi //extends ... implements ...
     {
         if(showAll)
         {
-            String help = "RightNcapPsi Help\n\n"
+            String help = "RightNcapPhiPsi Help\n\n"
                 +"   -res=AAA\n   -hb=i3|i2\n   -psi=##-## (0->360, not -180->180\n";
             System.out.println(help);
         }
-        System.err.println("chiropraxis.mc.RightNcapPsi");
+        System.err.println("chiropraxis.mc.RightNcapPhiPsi");
         System.err.println("Copyright (C) 2007 by Daniel Keedy. All rights reserved.");
     }
 
@@ -235,6 +247,12 @@ public class RightNcapPsi //extends ... implements ...
             Scanner s = new Scanner(param).useDelimiter("-");
             psiMin = Integer.parseInt(s.next());
             psiMax = Integer.parseInt(s.next());
+        }
+        else if(flag.equals("-phi"))
+        {
+            Scanner s = new Scanner(param).useDelimiter("-");
+            phiMin = Integer.parseInt(s.next());
+            phiMax = Integer.parseInt(s.next());
         }
         else if(flag.equals("-dummy_option"))
         {
