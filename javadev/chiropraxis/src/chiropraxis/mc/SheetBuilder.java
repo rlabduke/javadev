@@ -478,6 +478,20 @@ public class SheetBuilder //extends ... implements ...
                                 Triple normOpp  = new Triple().likeNormal(ca_iminus1Opp, caOpp, ca_iplus1Opp);
                                 ba.tilt = normArom.angle(normOpp);
                                 
+                                // Tau angle of aromatic residue
+                                Triple nAromPrev  = state.get(pepM.cRes.getPrev(model).getAtom(" N  "));
+                                Triple caAromPrev = state.get(pepM.cRes.getPrev(model).getAtom(" CA "));
+                                Triple cAromPrev  = state.get(pepM.cRes.getPrev(model).getAtom(" C  "));
+                                Triple nArom      = state.get(pepM.cRes.getAtom(" N  "));
+                                //Triple caArom      = state.get(pepM.cRes.getAtom(" CA ")); <-- already defined
+                                Triple cArom      = state.get(pepM.cRes.getAtom(" C  "));
+                                Triple nAromNext  = state.get(pepM.cRes.getNext(model).getAtom(" N  "));
+                                Triple caAromNext = state.get(pepM.cRes.getNext(model).getAtom(" CA "));
+                                Triple cAromNext  = state.get(pepM.cRes.getNext(model).getAtom(" C  "));
+                                ba.aromPrevTau = Triple.angle(nAromPrev, caAromPrev, cAromPrev);
+                                ba.aromTau     = Triple.angle(nArom,     caArom,     cArom    );
+                                ba.aromNextTau = Triple.angle(nAromNext, caAromNext, cAromNext);
+                                
                                 // Some other angles/measurements...
                                 //???
                                 
@@ -1143,18 +1157,6 @@ public class SheetBuilder //extends ... implements ...
     }
 //}}}
 
-//{{{ empty_code_segment
-//##############################################################################
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
-//}}}
-
 //{{{ sketchHbonds
 //##############################################################################
     void sketchHbonds(PrintStream out, Collection peptides, ModelState state)
@@ -1596,6 +1598,7 @@ public class SheetBuilder //extends ... implements ...
             "CbCaCa:nwardDhdrl:cwardDhdrl:minusDhdrl:plusDhdrl:"+
             "aromSimpAng:oppSimpAng:"+
             "fray:tilt:"+
+            "tau_arom_i-1:tau_arom:tau_arom_i+1:"+
             "CaCb_6CaNormal:CaCb_Across:CaCb_Along:"+
             "CaCb_AcrossConcavity:"+
             "CaCb_AlongConcavity");
@@ -1621,7 +1624,10 @@ public class SheetBuilder //extends ... implements ...
                 ":"+ba.aromAngle+
                 ":"+ba.oppAngle+
                 ":"+ba.fray+
-                ":"+ba.tilt);
+                ":"+ba.tilt+
+                ":"+ba.aromPrevTau+
+                ":"+ba.aromTau+
+                ":"+ba.aromNextTau);
             
             // SheetAxes angles
             String sheetAxesAngles = ":::";

@@ -30,6 +30,24 @@
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 0.97 ### (dak)
+- Added tau(arom_i-1,i,i+1) measurements to mc.SheetBuilder and mc.BetaArom
+- Added counter-rotation functionality and ability to use resource file for
+  ideal alpha & beta starting coordinates to mc.BackrubRama
+- Added sc.DisulfSampler to make PDB format disulfides from Top5200 dihedrals
+- Added sc.DihedralPlotter to make multi-D kins of pct and rotasamp values
+  and see where the sampled rotamers fall 
+- Added mc.AvgStrucGenerator to calc avg coords over local region for set
+  of PDBs; for comparison of representatives from ensembles
+- Fixed some minor bugs in VariableRegions
+
+### 0.96 ### (dak)
+- Added beta aromatic tau measurement to mc.SheetBuilder
+- Added -chi234 flag to sc.RotamerSampler to be used in conjunction with 
+  -plotchis for 4-chi sidechains (Arg, Lys)
+- Added mc.BackrubRama class to perform backrub central and counter-rotations
+  and see effects on phi,psi
+
 ### 0.95 ### (dak)
 - Completed implementation in Dangle of including hets that should be 
   considered part of chain

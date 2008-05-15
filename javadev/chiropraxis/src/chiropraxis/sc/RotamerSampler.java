@@ -30,11 +30,13 @@ public class RotamerSampler //extends ... implements ...
 //##############################################################################
     String      aaType       = null;
     File        inFile       = null;
-    Residue     res          = null; // our "template" residue
+    Residue     res          = null;  // our "template" residue
     boolean     allAngles    = true;
     boolean     plotChis     = false;
+    boolean     printData    = false; // chis; prob vals from inFile; atomic x,y,z (srcdata format)
     String      group        = null;
     String      color        = null;
+    boolean     doChi234     = false;
 //}}}
 
 //{{{ Constructor(s)
@@ -97,13 +99,13 @@ public class RotamerSampler //extends ... implements ...
         // Determine figure of merit
         SidechainAngles2 angles = new SidechainAngles2();
         int nAngles = (allAngles ? angles.countAllAngles(res) : angles.countChiAngles(res));
+        //System.err.println("nAngles = "+nAngles);
         double maxWeight = 0;
         for(Iterator iter = data.iterator(); iter.hasNext(); )
         {
             double[] vals = (double[])iter.next();
             maxWeight = Math.max(maxWeight, vals[nAngles]);
         }
-
         
         if (plotChis)
         {
@@ -115,12 +117,16 @@ public class RotamerSampler //extends ... implements ...
             System.out.println("@balllist {"+group+"} radius= 3 color= "+color);
             for(Iterator iter = data.iterator(); iter.hasNext(); )
             {
+                // Point ID
                 double[] vals = (double[])iter.next();
-                //System.out.print("{"+vals[vals.length-2]+","+vals[vals.length-1]);
                 System.out.print("{");
                 for (int i = 0; i < vals.length-2; i ++) System.out.print(df.format(vals[i])+", ");
                 System.out.print("} ");
-                for (int i = 0; i < vals.length-2; i ++) System.out.print(df.format(vals[i])+" ");
+                
+                // Actual x,y,z coordinates
+                int numCoords = (vals.length-2 >= 4 ? 3 : vals.length-2); // max = 3, min = 1
+                for (int i = (doChi234 ? 1 : 0); i < (doChi234 ? numCoords+1 : numCoords); i ++) 
+                    System.out.print(df.format(vals[i])+" ");
                 System.out.println();
             }
         }
@@ -129,6 +135,16 @@ public class RotamerSampler //extends ... implements ...
             // Create conformers
             PdbWriter pdbWriter = new PdbWriter(System.out);
             pdbWriter.setRenumberAtoms(true);
+            
+            int nDim = 0;
+            if (printData) // header for opt'l top5200-angles srcdata-esque output mode
+            {
+                int nChis = ((double[])data.get(0)).length-2; // last 2 in .list file are pct and stat
+                System.out.print("atom_name ");
+                for (int i = 1; i <= nChis; i++)  System.out.print("chi"+i+" ");
+                System.out.println("pct? pct? x y z");
+            }
+            
             int i = 1;
             for(Iterator iter = data.iterator(); iter.hasNext(); i++)
             {
@@ -149,7 +165,28 @@ public class RotamerSampler //extends ... implements ...
                         if(occ >= 1000.0) throw new Error("Logical error in occupancy weighting scheme");
                         tempState.get(a).setOccupancy(occ);
                     }
-                    pdbWriter.writeResidues(Collections.singletonList(tempRes), tempState);
+                    if (printData)
+                    {
+                        // Spit out chi dihedrals; probability measures from the input .list file (could be
+                        // pct and stat); and x,y,z for each atom in sampled sidechain conformation
+                        for(Iterator ai = tempRes.getAtoms().iterator(); ai.hasNext(); )
+                        {
+                            Atom a = (Atom)ai.next();
+                            AtomState as = tempState.get(a);
+                            String bbAtomNames = " N  , CA , C  , O  , H  , HA ";
+                            if (bbAtomNames.indexOf(as.getName()) == -1)
+                            {
+                                System.out.print(tempRes.getName()+" conf"+i+" "+as.getName()+":");
+                                for (int j = 0; j < vals.length; j++)  System.out.print(vals[j]+":");
+                                System.out.println(as.getX()+":"+as.getY()+":"+as.getZ());
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // "Normal" PDB output
+                        pdbWriter.writeResidues(Collections.singletonList(tempRes), tempState);
+                    }
                 }
                 catch(AtomException ex) { ex.printStackTrace(); }
             }
@@ -283,7 +320,13 @@ public class RotamerSampler //extends ... implements ...
         }
         else if(flag.equals("-plotchis"))
         {
-            plotChis= true;
+            plotChis  = true;
+            printData = false;
+        }
+        else if(flag.equals("-data") || flag.equals("-printdata"))
+        {
+            plotChis  = false;
+            printData = true;
         }
         else if(flag.equals("-group"))
         {
@@ -292,6 +335,10 @@ public class RotamerSampler //extends ... implements ...
         else if(flag.equals("-color"))
         {
             color = param;
+        }
+        else if(flag.equals("-chi234"))
+        {
+            doChi234 = true;
         }
         else if(flag.equals("-dummy_option"))
         {
