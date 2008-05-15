@@ -34,8 +34,7 @@ public class SubImposeScripter //extends ... implements ...
     /** The name of the file of Helix-/SheetBuilder text output. */
     String file = null;
     
-    /** The first helix/aromatic in the set, onto which all others will be 
-    * superimposed. */
+    /** The first helix/aromatic in the set, onto which all others will be superimposed. */
     String ref = null;
     
     /** PDB ID (e.g. 1B8AH) and full file path for the first-in-set, reference  
@@ -59,10 +58,8 @@ public class SubImposeScripter //extends ... implements ...
     /** Number residues in the above ref helix. */
     int refHelixNumRes;
     
-    /** Threshold above which a superimposed PDB is not written out (passed on
-    * to SubImpose). */
+    /** Threshold above which a superimposed PDB is not written out (passed on to SubImpose). */
     String rmsdCutoff = null;
-    
 //}}}
 
 //{{{ Constructor(s)
@@ -329,6 +326,14 @@ public class SubImposeScripter //extends ... implements ...
                 stretches = new String[2];
                 stretches[0] = (resnum-1)+"-"+(resnum-1); // e.g. "305-305"
                 stretches[1] = (resnum+1)+"-"+(resnum+3); // e.g. "307-309"
+            }
+            else if (idxs.equals("-1,0,1,2,3"))
+            {
+                // "Ncap A  306 ASP" > "306 " > "306 "
+                String resnumString = ncapSubstring.substring(7,11).trim();
+                int resnum = Integer.parseInt(resnumString);
+                stretches = new String[1];
+                stretches[0] = (resnum-1)+"-"+(resnum+3); // e.g. "305-309"
             }
             else if (idxs.equals("1,2,3"))
             {
