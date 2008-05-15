@@ -40,7 +40,7 @@ public class RightNcapPhiPsi //extends ... implements ...
 //##############################################################################
     public boolean meetsCriteria(String line)
     {
-        if (verbose) System.out.println("Starting meetsCriteria for '"+line+"'");
+        if (verbose) System.err.println("Starting meetsCriteria for '"+line+"'");
         boolean violatesCriterion = false;
         
         // "Hop_1a-f/1a2pAH.pdb:helix from A    6 THR to A   17 TYR:Ncap A    6 THR:133.251:104.671:108.465:102.025:113.628:111.539:112.262:-141.896:23.545:-100.605:163.878:-56.031:-49.15:3.557:2.122:5.048:3.821::i+3::1:0:"
@@ -49,7 +49,7 @@ public class RightNcapPhiPsi //extends ... implements ...
         {
             String ncapOnwards = line.substring(line.indexOf("Ncap"));
             String thisRestype = ncapOnwards.substring(12,15);
-            if (verbose) System.out.println("thisRestype: "+thisRestype);
+            if (verbose) System.err.println("thisRestype: "+thisRestype);
             if (!thisRestype.equals(res))        violatesCriterion = true;
         }
         
@@ -72,8 +72,8 @@ public class RightNcapPhiPsi //extends ... implements ...
             Scanner s = new Scanner(line).useDelimiter(":");
             for (int i = 0; i < 12; i ++)   s.next();
             double thisPhi = Double.parseDouble(s.next());
-            if (thisPhi < 0)    thisPhi += 360;
-            if (verbose) System.out.println("thisPhi wrapped360: "+thisPhi);
+            if (thisPhi < -180)    thisPhi += 360;
+            if (verbose) System.err.println("thisPhi wrapped180: "+thisPhi);
             if (thisPhi < phiMin || thisPhi > phiMax)  violatesCriterion = true;
         }
         
@@ -82,12 +82,12 @@ public class RightNcapPhiPsi //extends ... implements ...
             Scanner s = new Scanner(line).useDelimiter(":");
             for (int i = 0; i < 13; i ++)   s.next();
             double thisPsi = Double.parseDouble(s.next());
-            if (thisPsi < 0)    thisPsi += 360;
-            if (verbose) System.out.println("thisPsi wrapped360: "+thisPsi);
+            if (thisPsi < -180)    thisPsi += 360;
+            if (verbose) System.err.println("thisPsi wrapped180: "+thisPsi);
             if (thisPsi < psiMin || thisPsi > psiMax)  violatesCriterion = true;
         }
         
-        if (verbose) System.out.println("violatesCriterion: "+violatesCriterion+"\n");
+        if (verbose) System.err.println("violatesCriterion: "+violatesCriterion+"\n");
         if (violatesCriterion)   return false;
         return true;
     }
@@ -100,7 +100,7 @@ public class RightNcapPhiPsi //extends ... implements ...
     */
     public void Main() throws IOException, ParseException
     {
-        if (verbose) System.out.println("Starting Main...");
+        if (verbose) System.err.println("Starting Main...");
         if (filename == null)
         {
             System.err.println("Need input file!");
