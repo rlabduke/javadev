@@ -298,6 +298,7 @@ public class SubImposeScripter //extends ... implements ...
             "' and substring '"+substring+"'...");
         String[] stretches = null;
         
+        // HELIX
         if (helixOrSheet.equals("helix"))
         {
             String ncapSubstring = substring;
@@ -310,13 +311,15 @@ public class SubImposeScripter //extends ... implements ...
                 stretches[0] = (resnum-1)+"-"+(resnum-1); // e.g. "305-305"
                 stretches[1] = (resnum+1)+"-"+(resnum+2); // e.g. "307-308"
             }
-            else if (idxs.equals("1,2,3"))
+            if (idxs.equals("-1,1,3"))
             {
                 // "Ncap A  306 ASP" > "306 " > "306 "
                 String resnumString = ncapSubstring.substring(7,11).trim();
                 int resnum = Integer.parseInt(resnumString);
-                stretches = new String[1];
-                stretches[0] = (resnum+1)+"-"+(resnum+3); // e.g. "307-309"
+                stretches = new String[3];
+                stretches[0] = (resnum-1)+"-"+(resnum-1); // e.g. "305-305"
+                stretches[1] = (resnum+1)+"-"+(resnum+2); // e.g. "307-307"
+                stretches[2] = (resnum+3)+"-"+(resnum+3); // e.g. "309-309"
             }
             else if (idxs.equals("-1,1,2,3"))
             {
@@ -326,6 +329,14 @@ public class SubImposeScripter //extends ... implements ...
                 stretches = new String[2];
                 stretches[0] = (resnum-1)+"-"+(resnum-1); // e.g. "305-305"
                 stretches[1] = (resnum+1)+"-"+(resnum+3); // e.g. "307-309"
+            }
+            else if (idxs.equals("1,2,3"))
+            {
+                // "Ncap A  306 ASP" > "306 " > "306 "
+                String resnumString = ncapSubstring.substring(7,11).trim();
+                int resnum = Integer.parseInt(resnumString);
+                stretches = new String[1];
+                stretches[0] = (resnum+1)+"-"+(resnum+3); // e.g. "307-309"
             }
             else if (idxs.equals("allhelix"))
             {
@@ -368,8 +379,9 @@ public class SubImposeScripter //extends ... implements ...
                     stretches[0] = (firstResnum+1)+"-"+lastResnum;
                 }
             }
-        }
+        } //if helix
         
+        // SHEET
         else if (helixOrSheet.equals("sheet"))
         {
             // "91:79"
@@ -390,9 +402,9 @@ public class SubImposeScripter //extends ... implements ...
             {
                 stretches[0] = (aromResnum-1)+"-"+(aromResnum-1); // e.g. "90-90"
                 stretches[1] = (aromResnum+1)+"-"+(aromResnum+1); // e.g. "92-92"
-                stretches[2] = (oppResnum) +"-"+(oppResnum);  // e.g. "78-80"
+                stretches[2] = (oppResnum) +"-"+(oppResnum);  // e.g. "79-79"
             }
-        }
+        }//if sheet
         
         if (verbose) System.out.println("stretches: "+stretches);
         return stretches;
@@ -647,9 +659,13 @@ public class SubImposeScripter //extends ... implements ...
             verbose = true;
         }
         else if (flag.equals("-helixbuilder") || flag.equals("-ncaps"))
+        {
             helixOrSheet = "helix";
+        }
         else if (flag.equals("-sheetbuilder") || flag.equals("-betaarom"))
+        {
             helixOrSheet = "sheet";
+        }
         else if(flag.equals("-idxs") || flag.equals("-indices"))
         {
             idxs = param;
