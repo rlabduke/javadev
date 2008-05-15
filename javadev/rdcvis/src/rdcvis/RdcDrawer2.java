@@ -133,7 +133,7 @@ public class RdcDrawer2 {
     int i = 0;
     for (Double d : sorter.keySet()) {
       Matrix col = sorter.get(d);
-      col.print(4, 4);
+      //col.print(4, 4);
       saupeD.set(i, 0, d.doubleValue());
       newV.set(0, i, col.get(0, 0));
       newV.set(1, i, col.get(1, 0));

@@ -1,6 +1,6 @@
 
 USAGE
-  rdcvis ['arguments'] [input pdb] [input mr] [output kinemage]
+  rdcvis ['arguments'] [input pdb] [input mr]
 
   ("rdcvis" is "java -jar rdcvis.jar")
 

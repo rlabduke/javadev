@@ -104,8 +104,8 @@ public class FileInterpreter {
       //System.out.println(seq);
       if (rdcs.containsKey(seq)) {
         String[] atoms = parseAtomNames(rdcType);
-        System.out.println(atoms[0]);
-        System.out.println(atoms[1]);
+        //System.out.println(atoms[0]);
+        //System.out.println(atoms[1]);
         Atom from = res.getAtom(atoms[0]);
         Atom to = res.getAtom(atoms[1]);
         try {
@@ -116,7 +116,7 @@ public class FileInterpreter {
           //System.out.println(vect);
           atomVects.add(vect);
           rdcValues.add(rdcs.get(seq));
-          System.out.println(seq + " " + dr.getValues()[0]);
+          //System.out.println(seq + " " + dr.getValues()[0]);
         } catch (AtomException ae) {
           System.out.println(ae + " thrown, atom is missing");
         }

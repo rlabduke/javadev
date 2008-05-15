@@ -131,9 +131,9 @@ public class NMRRestraintsReader {
       */
       reader.close();
     
-      for (String assign : assignList) {
-        System.out.println("assign:" + assign + " count: " + Strings.count(assign, "resid"));
-      }
+      //for (String assign : assignList) {
+      //  System.out.println("assign:" + assign + " count: " + Strings.count(assign, "resid"));
+      //}
     }
   }
   //}}}
@@ -177,7 +177,7 @@ public class NMRRestraintsReader {
       String toNum = resToPieces[1];
       String toName = resToPieces[4];
       double[] vals = Strings.explodeDoubles(values, " ".charAt(0));
-      System.out.println(fromNum + ":" + fromName + ":" + toNum + ":" + toName + ":" + vals[0]);
+      //System.out.println(fromNum + ":" + fromName + ":" + toNum + ":" + toName + ":" + vals[0]);
       DipolarRestraint dr = new DipolarRestraint(fromName, fromNum, toName, toNum, vals);
       mrFile.addDipolarCoupling(dr);
     }
