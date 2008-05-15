@@ -244,13 +244,13 @@ public class RightNcapPhiPsi //extends ... implements ...
         }
         else if(flag.equals("-psi"))
         {
-            Scanner s = new Scanner(param).useDelimiter("-");
+            Scanner s = new Scanner(param).useDelimiter(",");
             psiMin = Integer.parseInt(s.next());
             psiMax = Integer.parseInt(s.next());
         }
         else if(flag.equals("-phi"))
         {
-            Scanner s = new Scanner(param).useDelimiter("-");
+            Scanner s = new Scanner(param).useDelimiter(",");
             phiMin = Integer.parseInt(s.next());
             phiMax = Integer.parseInt(s.next());
         }
