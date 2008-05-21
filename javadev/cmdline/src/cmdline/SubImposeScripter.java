@@ -398,18 +398,25 @@ public class SubImposeScripter //extends ... implements ...
             if (verbose) System.out.println("Resnums are "+aromResnum+" & "+oppResnum+
                 " for "+substring);
             
-            stretches = new String[3];
+            else if (idxs.equals("3closest"))
+            {
+                stretches = new String[3];
+                stretches[0] = (aromResnum-1)+"-"+(aromResnum-1); // e.g. "90-90"
+                stretches[1] = (aromResnum+1)+"-"+(aromResnum+1); // e.g. "92-92"
+                stretches[2] = (oppResnum) +"-"+(oppResnum);      // e.g. "79-79"
+            }
             if (idxs.equals("5closest"))
             {
+                stretches = new String[3];
                 stretches[0] = (aromResnum-1)+"-"+(aromResnum-1); // e.g. "90-90"
                 stretches[1] = (aromResnum+1)+"-"+(aromResnum+1); // e.g. "92-92"
                 stretches[2] = (oppResnum-1) +"-"+(oppResnum+1);  // e.g. "78-80"
             }
-            else if (idxs.equals("3closest"))
+            if (idxs.equals("6closest"))
             {
-                stretches[0] = (aromResnum-1)+"-"+(aromResnum-1); // e.g. "90-90"
-                stretches[1] = (aromResnum+1)+"-"+(aromResnum+1); // e.g. "92-92"
-                stretches[2] = (oppResnum) +"-"+(oppResnum);  // e.g. "79-79"
+                stretches = new String[2];
+                stretches[0] = (aromResnum-1)+"-"+(aromResnum+1); // e.g. "90-92"
+                stretches[1] = (oppResnum-1) +"-"+(oppResnum+1);  // e.g. "78-80"
             }
         }//if sheet
         
