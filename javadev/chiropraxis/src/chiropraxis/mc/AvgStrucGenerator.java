@@ -55,10 +55,19 @@ public class AvgStrucGenerator //extends ... implements ...
     * according to the coords in localCoords and output as the average structure */
     Model                  refModel     = null;
     ModelState             refState     = null;
+    double[]               refCoords    = null;
     
     /** Ensemble of (xyz)n vectors representing coords of local model+states.
     * Ultimately used to calculate average coords */
     ArrayList<double[]>    localCoords  = null;
+    
+    /** Single (xyz)n vector representing coords of average model+state and
+    * corresponding std dev for each coordinate */
+    double[]               avgCoords    = null;
+    double[]               stdevs       = null;
+    
+    /** Number of structures contributing to avgCoords */
+    int                    mdlCount     = 0;
     
     /** Column in anglesFile containing res #. 0-indexed */
     int                    resnumIdx    = 2;
@@ -215,6 +224,7 @@ public class AvgStrucGenerator //extends ... implements ...
                             // This is the new reference local state
                             refModel = localModel;
                             refState = localState;
+                            setRefCoords();
                             if (verbose)  System.err.println("Setting "+localModel+" as reference");
                         }
                         else
@@ -268,36 +278,235 @@ public class AvgStrucGenerator //extends ... implements ...
                 System.err.println("Residue alignments:");
                 for (int i = 0; i < align.a.length; i++)
                     System.err.println("  "+align.a[i]+" <==> "+align.b[i]);
-                System.err.println();
             }
             
-            // Add coords for local residues' atoms to growing ensemble of n(xyz) vectors
-            ArrayList<Double> coords = new ArrayList<Double>();
+            // Make sure the seq alignment was "successful"...
+            boolean alnmtOK = true;
             for(int i = 0, len = align.a.length; i < len; i++)
+                if (align.a[i] == null || align.b[i] == null)  alnmtOK = false;
+            if (alnmtOK)
             {
-                if (align.a[i] == null || align.b[i] == null) continue;
-                Residue localRes = (Residue) align.b[i];
-                
-                // Make n(xyz) vector and add it
-                for(Iterator ai = localRes.getAtoms().iterator(); ai.hasNext(); )
+                // Add coords for local residues' atoms to growing ensemble of n(xyz) vectors
+                ArrayList<Double> coords = new ArrayList<Double>();
+                for(int i = 0, len = align.a.length; i < len; i++)
                 {
-                    Atom a = (Atom) ai.next();
-                    if (bbAtoms.indexOf(a.getName()) != -1)
+                    Residue localRes = (Residue) align.b[i];
+                    
+                    // Make local n(xyz) vector and add it
+                    for(Iterator ai = localRes.getAtoms().iterator(); ai.hasNext(); )
                     {
-                        AtomState as = localState.get(a);
-                        coords.add(as.getX());
-                        coords.add(as.getY());
-                        coords.add(as.getZ());
+                        Atom a = (Atom) ai.next();
+                        if (bbAtoms.indexOf(a.getName()) != -1)
+                        {
+                            AtomState as = localState.get(a);
+                            coords.add(as.getX());
+                            coords.add(as.getY());
+                            coords.add(as.getZ());
+                        }
                     }
                 }
+                double[] coordsArray = new double[coords.size()];
+                for (int j = 0; j < coords.size(); j++)  coordsArray[j] = coords.get(j);
+                localCoords.add(coordsArray);
             }
-            double[] coordsArray = new double[coords.size()];
-            for (int j = 0; j < coords.size(); j++)  coordsArray[j] = coords.get(j);
-            localCoords.add(coordsArray);
+            else System.err.println("... bad alnmt => not using these coords for avg struc");
+            
+            System.err.println();
         }
         catch (AtomException ae)
         {
             System.err.println("Trouble with an atom in addToLocalCoords()...");
+        }
+    }
+//}}}
+
+//{{{ setRefCoords
+//##############################################################################
+    /**
+    * Very similar to addToLocalCoords, but simply makes and stores an n(xyz)
+    * vector for the reference model+state for later use
+    */
+    public void setRefCoords()
+    {
+        try
+        {
+            // Align residues by sequence
+            // For now we just take all residues as they appear in the file,
+            // without regard to chain IDs, etc.
+            Alignment align = Alignment.needlemanWunsch(refModel.getResidues().toArray(), refModel.getResidues().toArray(), new SimpleResAligner());
+            if (verbose)
+            {
+                System.err.println("setRefCoords residue alignments:");
+                for (int i = 0; i < align.a.length; i++)
+                    System.err.println("  "+align.a[i]+" <==> "+align.b[i]);
+            }
+            
+            // Make sure the seq alignment was "successful"...
+            boolean alnmtOK = true;
+            for(int i = 0, len = align.a.length; i < len; i++)
+                if (align.a[i] == null || align.b[i] == null)  alnmtOK = false;
+            if (alnmtOK)
+            {
+                // Add coords for local residues' atoms to growing ensemble of n(xyz) vectors
+                ArrayList<Double> coords = new ArrayList<Double>();
+                for(int i = 0, len = align.a.length; i < len; i++)
+                {
+                    Residue refRes   = (Residue) align.a[i];
+                    
+                    // Make ref n(xyz) vector and store it
+                    for(Iterator ai = refRes.getAtoms().iterator(); ai.hasNext(); )
+                    {
+                        Atom a = (Atom) ai.next();
+                        if (bbAtoms.indexOf(a.getName()) != -1)
+                        {
+                            AtomState as = refState.get(a);
+                            coords.add(as.getX());
+                            coords.add(as.getY());
+                            coords.add(as.getZ());
+                        }
+                    }
+                }
+                refCoords = new double[coords.size()];
+                for (int j = 0; j < coords.size(); j++)  refCoords[j] = coords.get(j);
+            }
+            else System.err.println("... bad alnmt during setRefCoords");
+            
+            System.err.println();
+        }
+        catch (AtomException ae)
+        {
+            System.err.println("Trouble with an atom in setRefCoords...");
+        }
+    }
+//}}}
+
+//{{{ averageCoords
+//##############################################################################
+    /**
+    * The first time this method is called (recognized b/c avgCoords is null), 
+    * it averages the coordinates of structures that are not incomplete from 
+    * localCoords. The second time it's run, it re-averages after eliminating
+    * structures that have at least one atoms that's too far from its previously
+    * determined average position
+    */
+    public void averageCoords()
+    {
+        // Get sums and counts for calc'ing averages
+        int numXYZs = 3 * (Strings.explode(bbAtoms,',')).length * (finalIdx-initIdx+1);
+        double[] sums = new double[numXYZs];
+        for (int i = 0; i < numXYZs; i++)   sums[i] = 0.0;
+        mdlCount = 0;
+        TreeSet<Integer> idxsToKeep = new TreeSet<Integer>();
+        for (int i = 0; i < localCoords.size(); i++)
+        {
+            // x1 y1 z1 x2 y2 z2 ...
+            double[] nXYZvector = localCoords.get(i);
+            if (nXYZvector.length == numXYZs && !tooFarAway(nXYZvector))
+            {
+                // Acceptable contributor to avg struc
+                idxsToKeep.add(i);
+                for (int j = 0; j < nXYZvector.length; j++)
+                    sums[j] = sums[j] + nXYZvector[j];
+                mdlCount++;
+                if (verbose)
+                {
+                    System.err.print("contrib struc "+mdlCount);
+                    if (avgCoords == null)  System.err.print(": ");
+                    else                    System.err.print(" (close enough): ");
+                    for (int j = 0; j < nXYZvector.length; j++)
+                        System.err.print(df.format(nXYZvector[j])+",");
+                    System.err.println();
+                }
+            }
+        }
+        ArrayList<double[]> tempLocalCoords = new ArrayList<double[]>();
+        for (int i = 0; i < localCoords.size(); i++)
+        {
+            if (idxsToKeep.contains(i))  tempLocalCoords.add(localCoords.get(i));
+        }
+        localCoords = tempLocalCoords;
+        System.err.println("# contributors to average structure: "+mdlCount);
+        
+        // Average the coordinates
+        avgCoords = new double[numXYZs];
+        for (int i = 0; i < numXYZs; i++)  avgCoords[i] = sums[i] / (1.0*mdlCount);
+        if (verbose)
+        {
+            System.err.println("# entries per n(xyz) vector: "+avgCoords.length);
+            System.err.print("avg coords: ");
+            for (int i = 0; i < avgCoords.length; i++)
+            {
+                if (i%3 == 0)  System.err.print(df.format(avgCoords[i])+"  ");
+                else           System.err.print(df.format(avgCoords[i])+", ");
+            }
+            System.err.println();
+        }
+        
+        // Also get standard deviations of coordinates
+        stdevs = new double[numXYZs];
+        for (int i = 0; i < numXYZs; i++)   stdevs[i] = 0.0;
+        mdlCount = 0;
+        for (double[] nXYZvector : localCoords)
+        {
+            // x1 y1 z1 x2 y2 z2 ...
+            if (nXYZvector.length == numXYZs)
+            {
+                for (int i = 0; i < nXYZvector.length; i++)
+                    stdevs[i] = stdevs[i] + Math.pow(nXYZvector[i]-avgCoords[i], 2);
+                mdlCount++;
+            }
+        }
+        for (int i = 0; i < numXYZs; i++)  stdevs[i] = Math.sqrt(stdevs[i] / (1.0*mdlCount));
+    }
+//}}}
+
+//{{{ tooFarAway
+//##############################################################################
+    /**
+    * Tells if a potentially contributing structure in the form of an n(xyz) 
+    * vector is too far away from the main ensemble (defined as 2 Angstroms 
+    * [formerly 2sigmas] in Cartesian space for any one of the bb heavy atoms
+    * in the current *average* coords).
+    * If avgCoords not yet defined, eliminates this n(xyz) vector if any of its
+    * atoms are more than 2 Angstroms from the *reference* n(xyz) vector; this 
+    * eliminates input PDBs that are very poorly aligned and off in space some-
+    * where.
+    */
+    public boolean tooFarAway(double[] nXYZvector)
+    {
+        //if (avgCoords == null || stdevs == null)
+        //{
+        //    if (verbose) System.err.println("1st averageCoords run => "
+        //        +"can't say whether "+nXYZvector+" is too far from avg");
+        //    return false;
+        //}
+        if (avgCoords == null)
+        {
+            for (int i = 0; i < nXYZvector.length; i++)
+            {
+                if (Math.abs(nXYZvector[i]-refCoords[i]) > 2)//Math.abs(2*stdevs[i]))
+                {
+                    if (verbose) System.err.println(df.format(nXYZvector[i])
+                        +" too far away from ref: "+df.format(refCoords[i]));
+                    return true;
+                }
+            }
+            if (verbose) System.err.println(nXYZvector+" not too far from ref");
+            return false;
+        }
+        else
+        {
+            for (int i = 0; i < nXYZvector.length; i++)
+            {
+                if (Math.abs(nXYZvector[i]-avgCoords[i]) > 2)//Math.abs(2*stdevs[i]))
+                {
+                    if (verbose) System.err.println(df.format(nXYZvector[i])
+                        +" too far away from avg: "+df.format(avgCoords[i]));
+                    return true;
+                }
+            }
+            if (verbose) System.err.println(nXYZvector+" not too far from avg");
+            return false;
         }
     }
 //}}}
@@ -310,68 +519,11 @@ public class AvgStrucGenerator //extends ... implements ...
     public void printAvgStruc()
     {
         try
-        {
-            int numXYZs = 3 * (Strings.explode(bbAtoms,',')).length * (finalIdx-initIdx+1);
-            
-            //{{{ Some pre-output statistics
-            
-            
-            
-            // Average the coordinates
-            double[] sums = new double[numXYZs];
-            for (int i = 0; i < numXYZs; i++)   sums[i] = 0.0;
-            int count = 0;
-            for (double[] nXYZvector : localCoords)
-            {
-                // as String: "98.693 55.476 23.792 99.011 56.78 24.366 ..."
-                // as String: "100.91 58.299 24.262 102.349 58.601 24.308..."
-                if (nXYZvector.length == numXYZs)
-                {
-                    for (int i = 0; i < nXYZvector.length; i++)
-                        sums[i] = sums[i] + nXYZvector[i];
-                    count++;
-                }
-            }
-            System.err.println("# contributors to average structure: "+count);
-            double[] avgCoords = new double[numXYZs];
-            for (int i = 0; i < numXYZs; i++)  avgCoords[i] = sums[i] / (1.0*count);
-            if (verbose)
-            {
-                System.err.println("# entries per n(xyz) vector: "+avgCoords.length);
-                System.err.print("avg coords: ");
-                for (int i = 0; i < avgCoords.length; i++)
-                {
-                    if (i%3 == 0)  System.err.print(df.format(avgCoords[i])+"  ");
-                    else           System.err.print(df.format(avgCoords[i])+", ");
-                }
-                System.err.println();
-            }
-            
-            // Also get standard deviations of coordinates
-            double[] stdevs = new double[numXYZs];
-            for (int i = 0; i < numXYZs; i++)   stdevs[i] = 0.0;
-            count = 0;
-            for (double[] nXYZvector : localCoords)
-            {
-                // as String: "98.693 55.476 23.792 99.011 56.78 24.366 ..."
-                // as String: "100.91 58.299 24.262 102.349 58.601 24.308..."
-                if (nXYZvector.length == numXYZs)
-                {
-                    for (int i = 0; i < nXYZvector.length; i++)
-                        stdevs[i] = stdevs[i] + Math.pow(nXYZvector[i]-avgCoords[i], 2);
-                    count++;
-                }
-            }
-            for (int i = 0; i < numXYZs; i++)  stdevs[i] = Math.sqrt(stdevs[i] / (1.0*count));
-            
-            
-            
-            //}}}
-            
+        {            
             // Make new average model+state (containing only certaina atom types)
             Model      avgModel = new Model("avg model");
             ModelState avgState = new ModelState();
-            count = 0;
+            int count = 0;
             for(Iterator ri = refModel.getResidues().iterator(); ri.hasNext(); )
             {
                 Residue res = (Residue) ri.next();
@@ -399,6 +551,7 @@ public class AvgStrucGenerator //extends ... implements ...
             
             // Print out new average model+state as a PDB
             if (verbose) System.err.println("Printing average structure...");
+            System.out.println("USER  MOD "+mdlCount+" contributing structures");
             PdbWriter pdbWriter = new PdbWriter(System.out);
             pdbWriter.writeResidues(avgModel.getResidues(), avgState);
             pdbWriter.close();
@@ -447,6 +600,8 @@ public class AvgStrucGenerator //extends ... implements ...
         }
         populatePdbidMap();
         getLocalCoords();
+        averageCoords(); // 1) let all structures with correct # atoms contribute
+        //averageCoords(); // 2) eliminate structures too far from ^avg and re-calculate
         printAvgStruc();
     }
 
