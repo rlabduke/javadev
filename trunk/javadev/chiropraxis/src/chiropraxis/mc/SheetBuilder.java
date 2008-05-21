@@ -51,7 +51,7 @@ public class SheetBuilder //extends ... implements ...
 //##############################################################################
     void processModel(String modelName, Model model, ModelState state)
     {
-        if (verbose) System.out.println("Processing model "+model+"...");
+        if (verbose) System.err.println("Processing model "+model+"...");
         
         // Create a set of Peptides and connect them up
         Collection peptides = createPeptides(model, state);
@@ -308,8 +308,7 @@ public class SheetBuilder //extends ... implements ...
     */
     void assignSecStruct(Collection peptides)
     {
-        if (verbose)
-            System.out.println("Starting assignSecStruct...");
+        if (verbose) System.err.println("Starting assignSecStruct...");
         
         for(Iterator iter = peptides.iterator(); iter.hasNext(); )
         {
@@ -356,8 +355,7 @@ public class SheetBuilder //extends ... implements ...
 //##############################################################################
     void addBetaAroms(Collection peptides, Model model, ModelState state)
     {
-        if (verbose)
-            System.out.println("Starting addBetaArom...");
+        if (verbose) System.err.println("Starting addBetaArom...");
         
         for(Iterator iter = peptides.iterator(); iter.hasNext(); )
         {
@@ -390,9 +388,8 @@ public class SheetBuilder //extends ... implements ...
                     {
                         try
                         {
-                            if (verbose)
-                                System.out.println("Let's make a BetaArom for "+pepM.cRes+
-                                    " hanging over "+pepN.nRes);
+                            if (verbose) System.err.println("Let's make a BetaArom for "
+                                +pepM.cRes+" hanging over "+pepN.nRes);
                             
                             //{{{ Basic info about the BetaArom
                                 // Make a BetaArom object representing local region and
@@ -478,16 +475,27 @@ public class SheetBuilder //extends ... implements ...
                                 Triple normOpp  = new Triple().likeNormal(ca_iminus1Opp, caOpp, ca_iplus1Opp);
                                 ba.tilt = normArom.angle(normOpp);
                                 
+                                // Phi,psi of arom(i-1,i,i+1)
+                                Triple cAromPrevPrev  = state.get(pepM.cRes.getPrev(model).getPrev(model).getAtom(" C  "));
+                                Triple nAromPrev      = state.get(pepM.cRes.getPrev(model).getAtom(" N  "));
+                                Triple caAromPrev     = state.get(pepM.cRes.getPrev(model).getAtom(" CA "));
+                                Triple cAromPrev      = state.get(pepM.cRes.getPrev(model).getAtom(" C  "));
+                                Triple nArom          = state.get(pepM.cRes.getAtom(" N  "));
+                                //Triple caArom         = state.get(pepM.cRes.getAtom(" CA ")); <-- already defined
+                                Triple cArom          = state.get(pepM.cRes.getAtom(" C  "));
+                                Triple nAromNext      = state.get(pepM.cRes.getNext(model).getAtom(" N  "));
+                                Triple caAromNext     = state.get(pepM.cRes.getNext(model).getAtom(" CA "));
+                                Triple cAromNext      = state.get(pepM.cRes.getNext(model).getAtom(" C  "));
+                                Triple nAromNextNext  = state.get(pepM.cRes.getNext(model).getNext(model).getAtom(" N  "));
+                                
+                                ba.aromPrevPhi = Triple.dihedral(cAromPrevPrev, nAromPrev , caAromPrev, cAromPrev    );
+                                ba.aromPrevPsi = Triple.dihedral(nAromPrev    , caAromPrev, cAromPrev , nArom        );
+                                ba.aromPhi     = Triple.dihedral(cAromPrev    , nArom     , caArom    , cArom        );
+                                ba.aromPsi     = Triple.dihedral(nArom        , caArom    , cArom     , nAromNext    );
+                                ba.aromNextPhi = Triple.dihedral(cArom        , nAromNext , caAromNext, cAromNext    );
+                                ba.aromNextPsi = Triple.dihedral(nAromNext    , caAromNext, cAromNext , nAromNextNext);
+                                
                                 // Tau angle of aromatic residue
-                                Triple nAromPrev  = state.get(pepM.cRes.getPrev(model).getAtom(" N  "));
-                                Triple caAromPrev = state.get(pepM.cRes.getPrev(model).getAtom(" CA "));
-                                Triple cAromPrev  = state.get(pepM.cRes.getPrev(model).getAtom(" C  "));
-                                Triple nArom      = state.get(pepM.cRes.getAtom(" N  "));
-                                //Triple caArom      = state.get(pepM.cRes.getAtom(" CA ")); <-- already defined
-                                Triple cArom      = state.get(pepM.cRes.getAtom(" C  "));
-                                Triple nAromNext  = state.get(pepM.cRes.getNext(model).getAtom(" N  "));
-                                Triple caAromNext = state.get(pepM.cRes.getNext(model).getAtom(" CA "));
-                                Triple cAromNext  = state.get(pepM.cRes.getNext(model).getAtom(" C  "));
                                 ba.aromPrevTau = Triple.angle(nAromPrev, caAromPrev, cAromPrev);
                                 ba.aromTau     = Triple.angle(nArom,     caArom,     cArom    );
                                 ba.aromNextTau = Triple.angle(nAromNext, caAromNext, cAromNext);
@@ -591,23 +599,23 @@ public class SheetBuilder //extends ... implements ...
     {
         if (verbose)
         {
-            System.out.print("Trying to figure out if "+res+" is a ");
+            System.err.print("Trying to figure out if "+res+" is a ");
             Scanner s = new Scanner(aaNames).useDelimiter(",");
             while (s.hasNext())
-                System.out.print(s.next()+" or ");
-            System.out.println();
+                System.err.print(s.next()+" or ");
+            System.err.println();
         }
         
         if (oppResTypes.contains(res.getName()))
         {
             if (verbose)
             {
-                System.out.print("  Decided that "+res+" is a ");
+                System.err.print("  Decided that "+res+" is a ");
                 Scanner s = new Scanner(aaNames).useDelimiter(",");
                 while (s.hasNext())
-                    System.out.print(s.next()+" or ");
-                System.out.println();
-                System.out.println();
+                    System.err.print(s.next()+" or ");
+                System.err.println();
+                System.err.println();
             }
             return true;
         }
@@ -615,12 +623,12 @@ public class SheetBuilder //extends ... implements ...
         {
             if (verbose)
             {
-                System.out.print("  Decided that "+res+" is *NOT* a ");
+                System.err.print("  Decided that "+res+" is *NOT* a ");
                 Scanner s = new Scanner(aaNames).useDelimiter(",");
                 while (s.hasNext())
-                    System.out.print(s.next()+" or ");
-                System.out.println();
-                System.out.println();
+                    System.err.print(s.next()+" or ");
+                System.err.println();
+                System.err.println();
             }
             return false;
         }
@@ -662,8 +670,8 @@ public class SheetBuilder //extends ... implements ...
         }
         if (verbose)
         {
-            System.out.println("# res N-ward of '"+res+"': "+numN);
-            System.out.println("# res C-ward of '"+res+"': "+numC);
+            System.err.println("# res N-ward of '"+res+"': "+numN);
+            System.err.println("# res C-ward of '"+res+"': "+numC);
         }
         
         int[] numBetaResNC = new int[2];
@@ -892,7 +900,7 @@ public class SheetBuilder //extends ... implements ...
                         newAnchor2PlusNormal2.getZ());
                 }
                 
-                if (verbose) System.out.println(
+                if (verbose) System.err.println(
                     "'"+cPep.cRes+"' across-strand normal1-2\t"+normal1.angle(normal2));
                 if (normal1.angle(normal2) < 90)
                 {
@@ -1100,7 +1108,7 @@ public class SheetBuilder //extends ... implements ...
                     guidePts3.add(cPep.hbondO.midpoint);
                     LsqPlane lsqPlane3 = new LsqPlane(guidePts3);
                     
-                    if (verbose) System.out.println(
+                    if (verbose) System.err.println(
                         "'"+cPep.cRes+"' along-strand normal1-2\t"+normal1.angle(normal2));
                     if (normal1.angle(normal2) < 90)
                     {
@@ -1540,52 +1548,6 @@ public class SheetBuilder //extends ... implements ...
     }
 //}}}
 
-//{{{ Main, main
-//##############################################################################
-    /**
-    * Main() function for running as an application
-    */
-    public void Main() throws IOException
-    {
-        if (verbose)
-            System.out.println("Starting Main method...");
-        
-        // Load model group from PDB files
-        File file = new File(filename);
-        LineNumberReader in = new LineNumberReader(new FileReader(file));
-        PdbReader pdbReader = new PdbReader();
-        CoordinateFile cf = pdbReader.read(in);
-        
-        Model m = cf.getFirstModel();
-        ModelState state = m.getState();
-        processModel(cf.getIdCode(), m, state);
-        
-        if (doPrint)
-            printBetaAromStats(System.out);
-        
-    }
-
-    public static void main(String[] args)
-    {
-        SheetBuilder mainprog = new SheetBuilder();
-        try
-        {
-            mainprog.parseArguments(args);
-            //System.out.println("Finished parsing args...");
-            mainprog.Main();
-        }
-        catch(Exception ex)
-        {
-            ex.printStackTrace();
-            System.err.println();
-            mainprog.showHelp(true);
-            System.err.println();
-            System.err.println("*** Error parsing arguments: "+ex.getMessage());
-            System.exit(1);
-        }
-    }
-//}}}
-
 //{{{ printBetaAromStats
 //##############################################################################
     void printBetaAromStats(PrintStream out)
@@ -1598,6 +1560,7 @@ public class SheetBuilder //extends ... implements ...
             "CbCaCa:nwardDhdrl:cwardDhdrl:minusDhdrl:plusDhdrl:"+
             "aromSimpAng:oppSimpAng:"+
             "fray:tilt:"+
+            "phi_arom_i-1:psi_arom_i-1:phi_arom_i:psi_arom_i:phi_arom_i+1:psi_arom_i+1:"+
             "tau_arom_i-1:tau_arom:tau_arom_i+1:"+
             "CaCb_6CaNormal:CaCb_Across:CaCb_Along:"+
             "CaCb_AcrossConcavity:"+
@@ -1625,6 +1588,12 @@ public class SheetBuilder //extends ... implements ...
                 ":"+ba.oppAngle+
                 ":"+ba.fray+
                 ":"+ba.tilt+
+                ":"+ba.aromPrevPhi+
+                ":"+ba.aromPrevPsi+
+                ":"+ba.aromPhi+
+                ":"+ba.aromPsi+
+                ":"+ba.aromNextPhi+
+                ":"+ba.aromNextPsi+
                 ":"+ba.aromPrevTau+
                 ":"+ba.aromTau+
                 ":"+ba.aromNextTau);
@@ -1671,6 +1640,51 @@ public class SheetBuilder //extends ... implements ...
             out.print(alongAngles);
             
             out.println();
+        }
+    }
+//}}}
+
+//{{{ Main, main
+//##############################################################################
+    /**
+    * Main() function for running as an application
+    */
+    public void Main() throws IOException
+    {
+        if (verbose) System.err.println("Starting Main method...");
+        
+        // Load model group from PDB files
+        File file = new File(filename);
+        LineNumberReader in = new LineNumberReader(new FileReader(file));
+        PdbReader pdbReader = new PdbReader();
+        CoordinateFile cf = pdbReader.read(in);
+        
+        Model m = cf.getFirstModel();
+        ModelState state = m.getState();
+        processModel(cf.getIdCode(), m, state);
+        
+        if (doPrint)
+            printBetaAromStats(System.out);
+        
+    }
+
+    public static void main(String[] args)
+    {
+        SheetBuilder mainprog = new SheetBuilder();
+        try
+        {
+            mainprog.parseArguments(args);
+            //System.out.println("Finished parsing args...");
+            mainprog.Main();
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+            System.err.println();
+            mainprog.showHelp(true);
+            System.err.println();
+            System.err.println("*** Error parsing arguments: "+ex.getMessage());
+            System.exit(1);
         }
     }
 //}}}

@@ -91,6 +91,9 @@ public class BetaArom //extends ... implements ...
     /** "Tilt": angle btw Ca(arom)(i-1,i,i+1)-Ca(opp)(i-1,i,i+1): /...\  or \.../ */
     public double tilt;
     
+    /** Phi,psi of arom(i-1,i,i+1) */
+    public double aromPrevPhi, aromPrevPsi, aromPhi, aromPsi, aromNextPhi, aromNextPsi;
+    
     /** Tau (N-Ca-C) angle of aromatic, aromatic i-1, & aromatic i+1 */
     public double aromPrevTau, aromTau, aromNextTau;
     
