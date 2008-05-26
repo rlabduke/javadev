@@ -15,7 +15,8 @@ Options:
 	Outputs csv format information about helices and (opt'l) N caps.
 	On by default.
     -ncaps
-	Turns on opt'l N cap analysis.
+	Turns on N cap analysis.
+        On by default.
     -onlyhbncaps
 	Reports as N caps only those residues that are a Ser/Thr/Asn/Asp and 
 	  make a sc Hbond to i+2 or i+3 mc.
@@ -29,8 +30,4 @@ Options:
 	  local changes in helix direction.
     -verbose || -v
 	Prints extra information you probably don't even wanna know...
-    -list 
-	Gives list of filenames instead of one pdb. (Currently not operational!)
-    -nokinheading
-	If doing kinemage output, don't print the @kinemage at the top.
-	
+    
