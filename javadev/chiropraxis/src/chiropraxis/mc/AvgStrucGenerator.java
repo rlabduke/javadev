@@ -51,11 +51,13 @@ public class AvgStrucGenerator //extends ... implements ...
     /** Links 4-character PDB ID codes to above PDB filenames */
     TreeMap<String,String> pdbidsToFilenames = null;
     
-    /** Identity and coords for reference model, which will ultimately be modified
+    /** Identity and coords for reference model(s), which will ultimately be modified
     * according to the coords in localCoords and output as the average structure */
     Model                  refModel     = null;
     ModelState             refState     = null;
-    double[]               refCoords    = null;
+    Model                  refModel2    = null;
+    ModelState             refState2    = null;
+    double[]               refCoords    = null; // if applicable, has beta arom THEN opp, regardless of seq order
     
     /** Ensemble of (xyz)n vectors representing coords of local model+states.
     * Ultimately used to calculate average coords */
@@ -71,11 +73,18 @@ public class AvgStrucGenerator //extends ... implements ...
     
     /** Column in anglesFile containing res #. 0-indexed */
     int                    resnumIdx    = 2;
+    int                    resnum2idx   = Integer.MAX_VALUE; // NOTE: code associated with this variable 
+                                                             // doesn't really work as advertised right now!
     
     /** Residue indices relative to the N-cap (helices) or the aromatic and its 
     * opposite residue (sheet) for inclusion in the output coordinates */
     int                    initIdx      = -2;
     int                    finalIdx     = 2;
+    
+    /** Maximum displacement for any one atom in the alignment for which we will
+    * still consider the superposition good enough to use that structure in the
+    * coordinate averaging */
+    double                 distCutoff   = 2;
     
     boolean                verbose      = false;
 //}}}
@@ -160,6 +169,7 @@ public class AvgStrucGenerator //extends ... implements ...
                 try
                 {
                     // "/localspace/neo500/Hoptimize/1a8dAH.pdb:helix from A 234 ASN to A 243 THR:Ncap A 234 ASN:117.362:119.372:94.484:96.115:112.275:108.998:112.512:-61.576:146.823:-89.646:165.213:-56.85:-30.271:2.148:1.737:5.318:3.803::i+3:GLU:2:3:"
+                    // "/localspace/neo500/Hoptimize/1a8dAH.pdb:A 91 PHE:PHE:A 171 ILE:ILE:4:3:2:4:111.19179555930297:4.323971397633469:-33.19818538964804:129.3644904319606:-158.23870442397526:143.89442845284785:124.97723272643277:18.604961060866437:109.33519492709395:24.209048379449346:23.51539906628312:-6.456628588536039:156.768185070337:"
                     String line = s.nextLine();
                     
                     // Get PDB ID and chain
@@ -167,16 +177,11 @@ public class AvgStrucGenerator //extends ... implements ...
                     String pdbid = line.substring(dotPdbIdx-6, dotPdbIdx-2);
                     String chain = line.substring(dotPdbIdx-2, dotPdbIdx-1);
                     
-                    // Get res #
-                    // "Ncap A 234 ASN", "Ncap A   19A ASN", "Ncap A 1069 ASP", etc.
-                    String[] tokens = Strings.explode(line, ':');
-                    String token = tokens[resnumIdx];
-                    String resnumString = token.substring(token.length()-8,token.length()-4).trim();
-                    int resnum = Integer.MAX_VALUE;
-                    try
-                    { resnum = Integer.parseInt(resnumString); }
-                    catch (NumberFormatException nfex)
-                    { resnum = Integer.parseInt(resnumString.substring(0,resnumString.length()-1)); }
+                    // Get res #(s)
+                    int resnum  = getResnum(line, resnumIdx);
+                    int resnum2 = Integer.MAX_VALUE;
+                    if (resnum2idx != Integer.MAX_VALUE)
+                        resnum2 = getResnum(line, resnum2idx); // assume same chain...
                     
                     String fn = pdbidsToFilenames.get(pdbid);
                     if (fn != null)
@@ -195,12 +200,19 @@ public class AvgStrucGenerator //extends ... implements ...
                         // Make model+coords of local region
                         Model      localModel = new Model("local model "+pdbid+" "+resnum);
                         ModelState localState = new ModelState();
+                        // For a 2nd segment of seq, e.g. opp beta strand:
+                        Model      localModel2 = 
+                            (resnum2 == Integer.MAX_VALUE ? null : new Model("local model2 "+pdbid+" "+resnum2)); 
+                        ModelState localState2 = 
+                            (resnum2 == Integer.MAX_VALUE ? null : new ModelState());
+                        
                         for(Iterator ri = m.getResidues().iterator(); ri.hasNext(); )
                         {
                             Residue res = (Residue) ri.next();
                             int currResnum = res.getSequenceInteger();
+                            
                             if (res != null && chain.equals(res.getChain()) && 
-                                currResnum >= resnum+initIdx && currResnum <= resnum+finalIdx)
+                                (currResnum >= resnum+initIdx && currResnum <= resnum+finalIdx))
                             {
                                 // Add this residue to the local model+state
                                 if (verbose)  System.err.println("... found "+res);
@@ -216,6 +228,23 @@ public class AvgStrucGenerator //extends ... implements ...
                                     }
                                 }
                             }
+                            else if (res != null && chain.equals(res.getChain()) && resnum2 != Integer.MAX_VALUE && 
+                                (currResnum >= resnum2+initIdx && currResnum <= resnum2+finalIdx))
+                            {
+                                // Add this residue to the local model+state
+                                if (verbose)  System.err.println("... found "+res);
+                                for(Iterator ai = res.getAtoms().iterator(); ai.hasNext(); )
+                                {
+                                    Atom a = (Atom) ai.next();
+                                    if (bbAtoms.indexOf(a.getName()) != -1)
+                                    {
+                                        if (!localModel2.contains(res))
+                                            localModel2.add(res); // may remove res from m, but that should be OK
+                                        AtomState as = ms.get(a);
+                                        localState2.add(as);
+                                    }
+                                }
+                            }
                         }
                         
                         // Do something with new local state
@@ -224,13 +253,20 @@ public class AvgStrucGenerator //extends ... implements ...
                             // This is the new reference local state
                             refModel = localModel;
                             refState = localState;
+                            if (resnum2idx != Integer.MAX_VALUE)
+                            {
+                                refModel2 = localModel2;
+                                refState2 = localState2;
+                            }
                             setRefCoords();
-                            if (verbose)  System.err.println("Setting "+localModel+" as reference");
+                            if (verbose) System.err.println("Setting "+localModel+
+                                (resnum2idx != Integer.MAX_VALUE ? " and "+localModel2 : "")
+                                +" as reference");
                         }
                         else
                         {
                             // Add this local state's coords to the growing list of n(xyz) vectors
-                            addToLocalCoords(localModel, localState);
+                            addToLocalCoords(localModel, localState, localModel2, localState2);
                         }
                     }
                 }
@@ -244,14 +280,51 @@ public class AvgStrucGenerator //extends ... implements ...
                 }
             }// done w/ this local motif
         }
-        catch (NumberFormatException nfe)
-        {
-            System.err.println("Trouble with a number in getLocalCoords()...");
-        }
         catch (IOException ioe)
         {
             System.err.println("Trouble with I/O in getLocalCoords()...");
         }
+    }
+//}}}
+
+//{{{ getResnum
+//##############################################################################
+    /**
+    * Extracts residue # integer from a line of Helix-/SheetBuilder text output.
+    */
+    public int getResnum(String line, int thisResnumIdx)
+    {
+        try
+        {
+            // "Ncap A 234 ASN", "Ncap A   19A ASN", "Ncap A 1069 ASP", etc.
+            // "A 91 PHE"      , "A   60 PHE"      , "A  578 TYR"     , etc.
+            String[] tokens = Strings.explode(line, ':');
+            String token = tokens[thisResnumIdx];
+            int resnum = Integer.MAX_VALUE;
+            String resnumString = null;
+            if (token.startsWith("Ncap"))
+            {
+                // helix: "Ncap A 234 ASN"
+                //resnumString = token.substring(token.length()-8, token.length()-4).trim();
+                resnumString = token.substring(6, token.length()-3).trim();
+            }
+            else
+            {
+                // sheet: "A 91 PHE"
+                resnumString = token.substring(1, token.length()-3).trim();
+            }
+            try
+            { resnum = Integer.parseInt(resnumString); }
+            catch (NumberFormatException nfex)
+            { resnum = Integer.parseInt(resnumString.substring(0,resnumString.length()-1)); }
+            
+            return resnum;
+        }
+        catch (NumberFormatException nfe)
+        {
+            System.err.println("Trouble with a number in getLocalCoords()...");
+        }
+        return Integer.MAX_VALUE;
     }
 //}}}
 
@@ -265,11 +338,11 @@ public class AvgStrucGenerator //extends ... implements ...
     * (i.e. for different local model+states vs. the same reference), which will 
     * be necessary for making an average local structure!
     */
-    public void addToLocalCoords(Model localModel, ModelState localState)
+    public void addToLocalCoords(Model localModel, ModelState localState, Model localModel2, ModelState localState2)
     {
         try
         {
-            // Align residues by sequence
+            //{{{ Align residues by sequence
             // For now we just take all residues as they appear in the file,
             // without regard to chain IDs, etc.
             Alignment align = Alignment.needlemanWunsch(refModel.getResidues().toArray(), localModel.getResidues().toArray(), new SimpleResAligner());
@@ -279,20 +352,34 @@ public class AvgStrucGenerator //extends ... implements ...
                 for (int i = 0; i < align.a.length; i++)
                     System.err.println("  "+align.a[i]+" <==> "+align.b[i]);
             }
-            
-            // Make sure the seq alignment was "successful"...
-            boolean alnmtOK = true;
-            for(int i = 0, len = align.a.length; i < len; i++)
-                if (align.a[i] == null || align.b[i] == null)  alnmtOK = false;
-            if (alnmtOK)
+            Alignment align2 = null;
+            if (localModel2 != null && localState2 != null)
             {
-                // Add coords for local residues' atoms to growing ensemble of n(xyz) vectors
+                align2 = Alignment.needlemanWunsch(refModel2.getResidues().toArray(), localModel2.getResidues().toArray(), new SimpleResAligner());
+                if (verbose)
+                {
+                    System.err.println("Residue2 alignments:");
+                    for (int i = 0; i < align2.a.length; i++)
+                        System.err.println("  "+align2.a[i]+" <==> "+align2.b[i]);
+                }
+            }
+            
+            // Make sure the seq alignment(s) was/were "successful"...
+            boolean alnmtsOK = true;
+            for(int i = 0, len = align.a.length; i < len; i++)
+                if (align.a[i] == null || align.b[i] == null)  alnmtsOK = false;
+            if (align2 != null)  for(int i = 0, len = align2.a.length; i < len; i++)
+                if (align2.a[i] == null || align2.b[i] == null)  alnmtsOK = false;
+            //}}}
+            
+            if (alnmtsOK)
+            {
                 ArrayList<Double> coords = new ArrayList<Double>();
+                
+                //{{{ Add coords for stretch #1
                 for(int i = 0, len = align.a.length; i < len; i++)
                 {
                     Residue localRes = (Residue) align.b[i];
-                    
-                    // Make local n(xyz) vector and add it
                     for(Iterator ai = localRes.getAtoms().iterator(); ai.hasNext(); )
                     {
                         Atom a = (Atom) ai.next();
@@ -305,6 +392,32 @@ public class AvgStrucGenerator //extends ... implements ...
                         }
                     }
                 }
+                //}}}
+                
+                //{{{ Add coords for stretch #2 (opt'l)
+                // Note that these coords will come after stretch #1's coords, 
+                // regardless of sequence!
+                if (align2 != null)
+                {
+                    for(int i = 0, len = align2.a.length; i < len; i++)
+                    {
+                        Residue localRes = (Residue) align2.a[i];
+                        // Make ref xyz vector and store it
+                        for(Iterator ai = localRes.getAtoms().iterator(); ai.hasNext(); )
+                        {
+                            Atom a = (Atom) ai.next();
+                            if (bbAtoms.indexOf(a.getName()) != -1)
+                            {
+                                AtomState as = localState2.get(a);
+                                coords.add(as.getX());
+                                coords.add(as.getY());
+                                coords.add(as.getZ());
+                            }
+                        }
+                    }
+                }
+                //}}}
+                
                 double[] coordsArray = new double[coords.size()];
                 for (int j = 0; j < coords.size(); j++)  coordsArray[j] = coords.get(j);
                 localCoords.add(coordsArray);
@@ -330,7 +443,7 @@ public class AvgStrucGenerator //extends ... implements ...
     {
         try
         {
-            // Align residues by sequence
+            //{{{ Align residues by sequence
             // For now we just take all residues as they appear in the file,
             // without regard to chain IDs, etc.
             Alignment align = Alignment.needlemanWunsch(refModel.getResidues().toArray(), refModel.getResidues().toArray(), new SimpleResAligner());
@@ -340,20 +453,35 @@ public class AvgStrucGenerator //extends ... implements ...
                 for (int i = 0; i < align.a.length; i++)
                     System.err.println("  "+align.a[i]+" <==> "+align.b[i]);
             }
-            
-            // Make sure the seq alignment was "successful"...
-            boolean alnmtOK = true;
-            for(int i = 0, len = align.a.length; i < len; i++)
-                if (align.a[i] == null || align.b[i] == null)  alnmtOK = false;
-            if (alnmtOK)
+            Alignment align2 = null;
+            if (refModel2 != null)
             {
-                // Add coords for local residues' atoms to growing ensemble of n(xyz) vectors
+                align2 = Alignment.needlemanWunsch(refModel2.getResidues().toArray(), refModel2.getResidues().toArray(), new SimpleResAligner());
+                if (verbose)
+                {
+                    System.err.println("setRefCoords residue2 alignments:");
+                    for (int i = 0; i < align2.a.length; i++)
+                        System.err.println("  "+align2.a[i]+" <==> "+align2.b[i]);
+                }
+            }
+            
+            // Make sure the seq alignment(s) was/were "successful"...
+            boolean alnmtsOK = true;
+            for(int i = 0, len = align.a.length; i < len; i++)
+                if (align.a[i] == null || align.b[i] == null)    alnmtsOK = false;
+            if (align2 != null)  for(int i = 0, len = align2.a.length; i < len; i++)
+                if (align2.a[i] == null || align2.b[i] == null)  alnmtsOK = false;
+            //}}}
+            
+            if (alnmtsOK)
+            {
                 ArrayList<Double> coords = new ArrayList<Double>();
+                
+                //{{{ Add coords for stretch #1
                 for(int i = 0, len = align.a.length; i < len; i++)
                 {
                     Residue refRes   = (Residue) align.a[i];
-                    
-                    // Make ref n(xyz) vector and store it
+                    // Make ref xyz vector and store it
                     for(Iterator ai = refRes.getAtoms().iterator(); ai.hasNext(); )
                     {
                         Atom a = (Atom) ai.next();
@@ -366,8 +494,35 @@ public class AvgStrucGenerator //extends ... implements ...
                         }
                     }
                 }
+                //}}}
+                
+                //{{{ Add coords for stretch #2 (opt'l)
+                // Note that these coords will come after stretch #1's coords, 
+                // regardless of sequence!
+                if (align2 != null)
+                {
+                    for(int i = 0, len = align2.a.length; i < len; i++)
+                    {
+                        Residue refRes   = (Residue) align2.a[i];
+                        // Make ref xyz vector and store it
+                        for(Iterator ai = refRes.getAtoms().iterator(); ai.hasNext(); )
+                        {
+                            Atom a = (Atom) ai.next();
+                            if (bbAtoms.indexOf(a.getName()) != -1)
+                            {
+                                AtomState as = refState2.get(a);
+                                coords.add(as.getX());
+                                coords.add(as.getY());
+                                coords.add(as.getZ());
+                            }
+                        }
+                    }
+                }
+                //}}}
+                
+                // Add coords for local residues' atoms to growing ensemble of n(xyz) vectors
                 refCoords = new double[coords.size()];
-                for (int j = 0; j < coords.size(); j++)  refCoords[j] = coords.get(j);
+                for (int i = 0; i < coords.size(); i++)  refCoords[i] = coords.get(i);
             }
             else System.err.println("... bad alnmt during setRefCoords");
             
@@ -393,6 +548,7 @@ public class AvgStrucGenerator //extends ... implements ...
     {
         // Get sums and counts for calc'ing averages
         int numXYZs = 3 * (Strings.explode(bbAtoms,',')).length * (finalIdx-initIdx+1);
+        if (resnum2idx != Integer.MAX_VALUE)  numXYZs *= 2;
         double[] sums = new double[numXYZs];
         for (int i = 0; i < numXYZs; i++)   sums[i] = 0.0;
         mdlCount = 0;
@@ -418,6 +574,8 @@ public class AvgStrucGenerator //extends ... implements ...
                     System.err.println();
                 }
             }
+            else System.err.println(nXYZvector+" too far away or not right length ("+
+                nXYZvector.length+" instead of "+numXYZs+")");
         }
         ArrayList<double[]> tempLocalCoords = new ArrayList<double[]>();
         for (int i = 0; i < localCoords.size(); i++)
@@ -474,17 +632,20 @@ public class AvgStrucGenerator //extends ... implements ...
     */
     public boolean tooFarAway(double[] nXYZvector)
     {
+        //{{{ [unused]
         //if (avgCoords == null || stdevs == null)
         //{
         //    if (verbose) System.err.println("1st averageCoords run => "
         //        +"can't say whether "+nXYZvector+" is too far from avg");
         //    return false;
         //}
+        //}}}
+        
         if (avgCoords == null)
         {
             for (int i = 0; i < nXYZvector.length; i++)
             {
-                if (Math.abs(nXYZvector[i]-refCoords[i]) > 2)//Math.abs(2*stdevs[i]))
+                if (Math.abs(nXYZvector[i]-refCoords[i]) > distCutoff)
                 {
                     if (verbose) System.err.println(df.format(nXYZvector[i])
                         +" too far away from ref: "+df.format(refCoords[i]));
@@ -598,10 +759,16 @@ public class AvgStrucGenerator //extends ... implements ...
             System.err.println("Need a file supplying res #'s!");
             System.exit(0);
         }
+        
         populatePdbidMap();
         getLocalCoords();
-        averageCoords(); // 1) let all structures with correct # atoms contribute
-        //averageCoords(); // 2) eliminate structures too far from ^avg and re-calculate
+        
+        // 1) let all structures with correct # atoms contribute (if <= 2 Ang from ref)
+        averageCoords(); 
+        
+        //// 2) eliminate structures too far from ^avg and re-calculate
+        //averageCoords(); 
+        
         printAvgStruc();
     }
 
@@ -750,6 +917,29 @@ public class AvgStrucGenerator //extends ... implements ...
             catch (NumberFormatException nfe)
             {
                 System.err.println("Couldn't parse "+param+" as an integer for resnumIdx");
+            }
+        }
+        else if(flag.equals("-res2idx"))
+        {
+            try
+            {
+                resnum2idx = Integer.parseInt(param);
+            }
+            catch (NumberFormatException nfe)
+            {
+                System.err.println("Couldn't parse "+param+" as an integer for resnum2idx");
+            }
+            System.err.println("Warning: -res2idx=# doesn't work quite right!");
+        }
+        else if(flag.equals("-distcutoff"))
+        {
+            try
+            {
+                distCutoff = Double.parseDouble(param);
+            }
+            catch (NumberFormatException nfe)
+            {
+                System.err.println("Couldn't parse "+param+" as a double for distCutoff");
             }
         }
         else if(flag.equals("-dummy_option"))

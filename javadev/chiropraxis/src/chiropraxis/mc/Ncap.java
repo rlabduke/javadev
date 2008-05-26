@@ -30,7 +30,7 @@ public class Ncap //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     /** Residues in the Ncap and capping box positions for this helix. */
-    public Residue res, res3;
+    public Residue res;
     
     /** Angle between plane of Ncap Ca(i,i-1,i+1) and local helix axis. */
     public double planeNormalAngle;
@@ -62,8 +62,8 @@ public class Ncap //extends ... implements ...
     * For the first two, the atoms involved depend on the sc type. */
     double distNcapScToN2H, distNcapScToN3H, distNcapCaToN3Ca, distNprimeCaToN3Ca;
     
-    /** Whether or not Ncap Hbonds to i+2/3's NH */
-    boolean hb_i2, hb_i3;
+    /** Tells whether N-cap H-bonds to "i+2" or "i+3" NH. Default: "(unknown)" */
+    public String hbType;
     
     /** Residue type of capping box, iff its sc makes an Hbond to i's NH */
     String cappingBoxResType;
@@ -85,8 +85,7 @@ public class Ncap //extends ... implements ...
     public Ncap(Residue residue)
     {
         super();
-        res = residue;
-        res3               = null;
+        res                = residue;
         planeNormalAngle   = Double.NaN;
         caCbAngle          = Double.NaN;
         caPlanesAngle      = Double.NaN;
@@ -106,14 +105,12 @@ public class Ncap //extends ... implements ...
         psi                = Double.NaN;
         n1Phi              = Double.NaN;
         n1Psi              = Double.NaN;
-        hb_i2              = false;
-        hb_i3              = false;
+        hbType             = "(unknown)";
         cappingBoxResType  = "";
         ncapNumChis        = 999;
         n3NumChis          = 999;
         normalTail         = null;
         normalHead         = null;
-        
     }
 //}}}
 
@@ -121,7 +118,7 @@ public class Ncap //extends ... implements ...
 //##############################################################################
     public String toString()
     {
-        return res.getName();//"Ncap "+res;
+        return res.toString();//.getName();//"Ncap "+res;
     }
 //}}}
 
