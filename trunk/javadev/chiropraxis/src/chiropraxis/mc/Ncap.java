@@ -30,7 +30,7 @@ public class Ncap //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     /** Residues in the Ncap and capping box positions for this helix. */
-    public Residue res;
+    public Residue res, res3;
     
     /** Angle between plane of Ncap Ca(i,i-1,i+1) and local helix axis. */
     public double planeNormalAngle;
@@ -86,6 +86,7 @@ public class Ncap //extends ... implements ...
     {
         super();
         res                = residue;
+        res3               = null;
         planeNormalAngle   = Double.NaN;
         caCbAngle          = Double.NaN;
         caPlanesAngle      = Double.NaN;
@@ -106,7 +107,7 @@ public class Ncap //extends ... implements ...
         n1Phi              = Double.NaN;
         n1Psi              = Double.NaN;
         hbType             = "(unknown)";
-        cappingBoxResType  = "";
+        cappingBoxResType  = "(none/unknown)";
         ncapNumChis        = 999;
         n3NumChis          = 999;
         normalTail         = null;

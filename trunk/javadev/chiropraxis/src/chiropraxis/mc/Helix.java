@@ -24,6 +24,7 @@ import driftwood.r3.*;
 public class Helix //extends ... implements ...
 {
 //{{{ Constants
+    DecimalFormat df        = new DecimalFormat("###.###");
 //}}}
 
 //{{{ Variable definitions
@@ -110,12 +111,12 @@ public class Helix //extends ... implements ...
                 Triple likeNcapCa   = new Triple(state.get(res.getAtom(" CA ")));
                 Triple likeN3Ca     = new Triple(state.get(res3.getAtom(" CA ")));
                 Triple likeNprimeCa = new Triple(state.get(resminus1.getAtom(" CA ")));
-                if (verbose)
-                {
-                    System.err.println("likeNcapCa: '"+likeNcapCa+"'");
-                    System.err.println("likeN3Ca: '"+likeN3Ca+"'");
-                    System.err.println("likeNprimeCa: '"+likeNprimeCa+"'");
-                }
+                //if (verbose)
+                //{
+                //    System.err.println("likeNcapCa: '"+likeNcapCa+"'");
+                //    System.err.println("likeN3Ca: '"+likeN3Ca+"'");
+                //    System.err.println("likeNprimeCa: '"+likeNprimeCa+"'");
+                //}
                 
                 // Set distNcapScToN2H
                 double dist = Triple.distance(scAtom, likeH2);
@@ -157,18 +158,20 @@ public class Helix //extends ... implements ...
     {
         try
         {
+            Residue res = ncap.res;
+            
             // One option is angle between the local helix axis for the Ncap residue
             // and the normal to the plane formed by Ca(i,i-1,i+1).
-            AtomState ca = state.get(ncap.res.getAtom(" CA "));
+            AtomState ca = state.get(res.getAtom(" CA "));
             Triple tail = axisTails.get(0);
             Triple head = axisHeads.get(0);
             Triple axisAtOrigin = new Triple(head.getX()-tail.getX(),
                 head.getY()-tail.getY(), head.getZ()-tail.getZ() );
-            if (ncap.res.getPrev(model) != null && ncap.res.getNext(model) != null)
+            if (res.getPrev(model) != null && res.getNext(model) != null)
             {
                 // this angle defined
-                AtomState prevCa = state.get(ncap.res.getPrev(model).getAtom(" CA "));
-                AtomState nextCa = state.get(ncap.res.getNext(model).getAtom(" CA "));
+                AtomState prevCa = state.get(res.getPrev(model).getAtom(" CA "));
+                AtomState nextCa = state.get(res.getNext(model).getAtom(" CA "));
                 
                 Triple normal = new Triple().likeNormal(prevCa, ca, nextCa); 
                 
@@ -184,13 +187,101 @@ public class Helix //extends ... implements ...
             // A second option is the angle between the Ncap Ca_Cb vector 
             // and the local helix axis
             Triple likeCa = new Triple(ca); // same coords as ca above but different object
-            if (!ncap.res.getName().equals("GLY"))
+            if (!res.getName().equals("GLY"))
             {
-                Triple likeCb = new Triple(state.get(ncap.res.getAtom(" CB ")));
+                Triple likeCb = new Triple(state.get(res.getAtom(" CB ")));
                 Triple caCbAtOrigin = new Triple().likeVector(likeCa, likeCb);
                 ncap.caCbAngle = caCbAtOrigin.angle(axisAtOrigin);
             }
             // else (default in Ncap constructor: Double.NaN)
+            
+            // Another two measures involve Ca's so we'll do them together.
+            // (1) The first is another option to describe the backrub state 
+            //     that ignores my artificial local helix axes and defines
+            //     the backrub as the angle between the Ca(i-1,i+1,i+2) and
+            //     Ca(i-1,i,i+1) planes: first = reference, second = backrub.
+            // (2) The second is the angle btw the virtual bonds Ca(i-1,i+1) 
+            //     and Ca(i+1,i+2), which was visually observed to potentially be
+            //     different for short Ser/Thr vs. long Asn/Asp Ncaps.
+            if (res.getPrev(model) != null && res.getNext(model) != null)
+            {
+                Residue resNext = res.getNext(model);
+                Residue resPrev = res.getPrev(model);
+                if (resNext.getNext(model) != null)
+                {
+                    Residue resNext2 = resNext.getNext(model);
+                    
+                    Triple likeCaPrev  = new Triple(state.get(resPrev.getAtom(" CA ")));
+                           likeCa      = new Triple(state.get(res.getAtom(" CA ")));
+                    Triple likeCaNext  = new Triple(state.get(resNext.getAtom(" CA ")));
+                    Triple likeCaNext2 = new Triple(state.get(resNext2.getAtom(" CA ")));
+                    
+                    // (1) caPlanesAngle
+                    Triple norm1 = new Triple().likeNormal(likeCaPrev, likeCa, likeCaNext);
+                    Triple norm2 = new Triple().likeNormal(likeCaPrev, likeCaNext, likeCaNext2);
+                    ncap.caPlanesAngle = norm1.angle(norm2);
+                    
+                    // (2) caEntryAngle
+                    ncap.caEntryAngle = new Triple().angle(
+                        likeCaPrev, likeCaNext, likeCaNext2);
+                }
+            }
+            
+            // Another set of measures is the tau angles (N-Ca-C) for i, i-1, i+1.
+            // They may be strained if a backrub occurs
+            Triple likeN =  new Triple(state.get(res.getAtom(" N  ")));
+                   likeCa = new Triple(state.get(res.getAtom(" CA ")));
+            Triple likeC =  new Triple(state.get(res.getAtom(" C  ")));
+            ncap.tau = Triple.angle(likeN, likeCa, likeC);
+            if (res.getPrev(model) != null)
+            {
+                likeN  = new Triple(state.get(res.getPrev(model).getAtom(" N  ")));
+                likeCa = new Triple(state.get(res.getPrev(model).getAtom(" CA ")));
+                likeC  = new Triple(state.get(res.getPrev(model).getAtom(" C  ")));
+                ncap.nprimeTau = Triple.angle(likeN, likeCa, likeC);
+            }
+            if (res.getNext(model) != null)
+            {
+                likeN  = new Triple(state.get(res.getNext(model).getAtom(" N  ")));
+                likeCa = new Triple(state.get(res.getNext(model).getAtom(" CA ")));
+                likeC  = new Triple(state.get(res.getNext(model).getAtom(" C  ")));
+                ncap.n1Tau = Triple.angle(likeN, likeCa, likeC);
+            }
+            
+            // These measures look at N3's N-H vector to see if it points in
+            // different directions based on the Ncap Hbond type.
+            // We'll use two different "references."
+            likeCa = new Triple(state.get(res.getAtom(" CA ")));
+            if (res.getNext(model) != null)
+            {
+                Residue res1 = res.getNext(model);
+                Triple likeCa1 = new Triple(state.get(res1.getAtom(" CA ")));
+                if (res1.getNext(model) != null)
+                {
+                    Residue res2 = res1.getNext(model);
+                    Triple likeCa2 = new Triple(state.get(res2.getAtom(" CA ")));
+                    if (res2.getNext(model) != null)
+                    {
+                        Residue res3 = res2.getNext(model);
+                        if (!res3.getName().equals("PRO"))
+                        {
+                            Triple likeN3N = new Triple(state.get(res3.getAtom(" N  ")));
+                            Triple likeN3H = new Triple(state.get(res3.getAtom(" H  ")));
+                            Triple n3NH = new Triple().likeVector(likeN3N, likeN3H);
+                            
+                            // n3NH_precCaCaCA
+                            if (!res.getName().equals("GLY"))
+                            {
+                                Triple norm = new Triple().likeNormal(likeCa, likeCa1, likeCa2);
+                                ncap.n3NH_precCaCaCa = n3NH.angle(norm);
+                            }
+                            
+                            // n3NH_axis
+                            ncap.n3NH_axis = n3NH.angle(axisAtOrigin);
+                        }
+                    }
+                }
+            }
         }
         catch (driftwood.moldb2.AtomException ae)
         {
@@ -360,12 +451,135 @@ public class Helix //extends ... implements ...
                 if      (energy310   < bestBondE)  typeAtNcap = "3_10";
                 else if (energyAlpha < bestBondE)  typeAtNcap = "alpha";
                 // else typeAtNcap remains "(ambiguous)"
-                System.err.println("N-cap "+ncap+" is "+typeAtNcap);
+                //if (verbose) System.err.println("N-cap "+ncap+" is "+typeAtNcap);
             }
         }
         catch (AtomException ae)
         {
             System.err.println("Trouble w/ H-bonding for alpha vs. 3-10 at "+ncap);
+        }
+    }
+//}}}
+
+//{{{ setCappingBox
+//##############################################################################
+    public void setCappingBox(Model model, ModelState state, boolean verbose)
+    /** 
+    * This is a simple geometric routine akin to HelixBuilder.typeOfNcapHbond.
+    * For a given valid N cap, if residue N3 exists, it documents what aa type
+    * it is and whether or not it's a Gln/Glu that makes a "capping box" 
+    * hydrogen bond.
+    * These two values are stored as fields in the Ncap class.
+    */
+    {
+        try
+        {
+            Residue res0 = ncap.res;
+            if (res0.getNext(model) != null)
+            {
+                Residue res1 = res0.getNext(model);
+                if (res1.getNext(model) != null)
+                {
+                    Residue res2 = res1.getNext(model);
+                    if (res2.getNext(model) != null)
+                    {
+                        // Set res3
+                        Residue res3 = res2.getNext(model);
+                        ncap.res3 = res3;
+                        
+                        // Get potentially Hbonded capping box sc3 & mc0 coordinates
+                        Atom h0 = res0.getAtom(" H  ");
+                        Atom n0 = res0.getAtom(" N  ");
+                        Triple likeH0  = null;
+                        Triple likeN0 = null;
+                        if (h0 != null)     likeH0 = new Triple(state.get(h0));
+                        if (n0 != null)     likeN0 = new Triple(state.get(n0));
+                        
+                        Triple likeO3   = null;
+                        Triple likeO3_2 = null;
+                        Triple likeC3   = null;
+                        if (res3.getName().equals("GLN"))
+                        {
+                            Atom o3 = res3.getAtom(" OE1");
+                            Atom c3 = res3.getAtom(" CD ");
+                            if (o3 != null)     likeO3 = new Triple(state.get(o3));
+                            if (c3 != null)     likeC3 = new Triple(state.get(c3));
+                        }
+                        if (res3.getName().equals("GLU"))
+                        {
+                            Atom o3   = res3.getAtom(" OE1");
+                            Atom o3_2 = res3.getAtom(" OE2");
+                            Atom c3   = res3.getAtom(" CD ");
+                            if (o3 != null)     likeO3   = new Triple(state.get(o3));
+                            if (o3_2 != null)   likeO3_2 = new Triple(state.get(o3_2));
+                            if (c3 != null)     likeC3 = new Triple(state.get(c3));
+                        }
+                        if (res3.getName().equals("ASN"))
+                        {
+                            Atom o3 = res3.getAtom(" OD1");
+                            Atom c3 = res3.getAtom(" CG ");
+                            if (o3 != null)     likeO3 = new Triple(state.get(o3));
+                            if (c3 != null)     likeC3 = new Triple(state.get(c3));
+                        }
+                        if (res3.getName().equals("ASP"))
+                        {
+                            Atom o3   = res3.getAtom(" OD1");
+                            Atom o3_2 = res3.getAtom(" OD2");
+                            Atom c3   = res3.getAtom(" CG ");
+                            if (o3 != null)     likeO3   = new Triple(state.get(o3));
+                            if (o3_2 != null)   likeO3_2 = new Triple(state.get(o3_2));
+                            if (c3 != null)     likeC3 = new Triple(state.get(c3));
+                        }
+                        if (res3.getName().equals("SER"))
+                        {
+                            Atom o3 = res3.getAtom(" OG ");
+                            Atom c3 = res3.getAtom(" CB ");
+                            if (o3 != null)     likeO3 = new Triple(state.get(o3));
+                            if (c3 != null)     likeC3 = new Triple(state.get(c3));
+                        }
+                        if (res3.getName().equals("THR"))
+                        {
+                            Atom o3 = res3.getAtom(" OG1");
+                            Atom c3 = res3.getAtom(" CB ");
+                            if (o3 != null)     likeO3 = new Triple(state.get(o3));
+                            if (c3 != null)     likeC3 = new Triple(state.get(c3));
+                        }
+                        
+                        // Accept Hbond according to Kabsch & Sander criterion:
+                        // E = 0.42*0.20*332*(1/rON + 1/rCH - 1/rOH - 1/rCN) 
+                        // is less than -0.5 kcal/mol.
+                        // The difference is we're now dealing with a sc-mc 
+                        // Hbond, but it should work about as well (?).
+                        if (likeH0 != null && likeN0 != null && 
+                            likeO3 != null && likeC3 != null)
+                        {
+                            double rON = likeO3.distance(likeN0);
+                            double rCH = likeC3.distance(likeH0);
+                            double rOH = likeO3.distance(likeH0);
+                            double rCN = likeC3.distance(likeN0);
+                            double energy = 27.9*(1/rON + 1/rCH - 1/rOH - 1/rCN);
+                            if (likeO3_2 != null)
+                            {
+                                double rON_2 = likeO3_2.distance(likeN0);
+                                double rOH_2 = likeO3_2.distance(likeH0);
+                                double energy2 = 27.9*(1/rON_2 + 1/rCH - 1/rOH_2 - 1/rCN);
+                                if (energy2 < energy)       energy = energy2;
+                            }
+                            if (energy < -0.5)
+                            {
+                                ncap.cappingBoxResType = res3.getName();
+                                if (verbose) System.err.println("'"+res3+"' makes capping "
+                                    +"box Hb to '"+res0+"'\t(energy="+df.format(energy)+")");
+                            }
+                        }
+                        else if (verbose) System.err.println("No EQNDST capping box for "+toString());
+                    }
+                }
+            }
+        }
+        catch (AtomException ae)
+        {
+            System.err.println("Trouble looking for capping box in '"+toString()+"'");
         }
     }
 //}}}
