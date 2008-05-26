@@ -26,13 +26,8 @@ Options:
 	  times (default: once). Multiple rounds of smoothing leads to 
 	  straighter local helical axes that are less affected by subtle
 	  local changes in helix direction.
-    -vectorsumaxis
-	Makes a single helix end-to-end axis from DAK's local helix axes.
-	Alternative to -smoothaxes.
     -verbose || -v
 	Prints extra information you probably don't even wanna know...
-    -list 
-	Gives list of filenames instead of one pdb. (Currently not operational!)
-    -nokinheading
+    -append
 	If doing kinemage output, don't print the @kinemage at the top.
 	

@@ -443,7 +443,7 @@ public class SubImpose //extends ... implements ...
                     if (verbose) System.err.println("Writing to "+pdbOut+" b/c RMSD="+
                         df.format(superpos.calcRMSD(R))+" < cutoff="+rmsdCutoff);
                 }
-                else if (verbose) System.err.println("Not writing to "+pdbOut+" b/c RMSD="+
+                else System.err.println("Not writing to "+pdbOut+" b/c RMSD="+
                     df.format(superpos.calcRMSD(R))+" > cutoff="+rmsdCutoff);
             }
             

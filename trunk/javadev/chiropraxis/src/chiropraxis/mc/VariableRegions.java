@@ -102,7 +102,7 @@ public class VariableRegions //extends ... implements ...
                             dPhi = angleDiff(phi1, phi2);
                             dPsi = angleDiff(psi1, psi2);
                         }
-                        if (hinges || ( (!Double.isNaN(dPhi) && dPhi != 0) || (!Double.isNaN(dPsi) && dPsi != 0) || caTravel != 0) )
+                        if (hinges || (!Double.isNaN(dPhi) && dPhi != 0) || (!Double.isNaN(dPsi) && dPsi != 0) || caTravel != 0)
                         {
                             // This residue moved, or we ultimately want just "hinge" residues and will 
                             // excise the ones in between in the next step
@@ -276,11 +276,9 @@ public class VariableRegions //extends ... implements ...
                     dPhi = angleDiff(phi1, phi2);
                     dPsi = angleDiff(psi1, psi2);
                 }
-                
-                //if (hinges || ( (!Double.isNaN(dPhi) && dPhi != 0) || (!Double.isNaN(dPsi) && dPsi != 0) || caTravel != 0) )
-                if (hinges || (!Double.isNaN(dPhi) && !Double.isNaN(dPsi) && caTravel > dCaMin) )
+                if (hinges || !Double.isNaN(dPhi) || !Double.isNaN(dPsi) || caTravel != 0)//> dCaMin)
                 {
-                    // This residue moved ENOUGH, or we ultimately want just "hinge" residues and will 
+                    // This residue moved, or we ultimately want just "hinge" residues and will 
                     // excise the ones in between in the next step
                     double[] movements = new double[3];
                     movements[0] = dPhi; movements[1] = dPsi; movements[2] = caTravel;
