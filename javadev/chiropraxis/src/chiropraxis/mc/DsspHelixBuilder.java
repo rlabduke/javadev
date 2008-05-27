@@ -820,7 +820,7 @@ public class DsspHelixBuilder //extends ... implements ...
                 helix.setCappingBox(model, state, verbose);
                 
                 // Set "alpha" or "3-10" at N-cap
-                helix.setTypeAtNcap(model, state);
+                helix.setTypeAtNcap(model, state, verbose);
             }
         }
     }
@@ -1132,7 +1132,8 @@ public class DsspHelixBuilder //extends ... implements ...
                 "phi(i-1),psi(i-1),phi(i),psi(i),phi(i+1),psi(i+1),"+
                 "NcapO_N2H,NcapO_N3H,NcapCa_N3Ca,"+
                 "N'Ca_N3Ca,Ncap_HB_type,"+
-                "cappingBox,NcapChis,N3Chis,helixTypeAtNcap,ncapResType");
+                "ncapResType,cappingBoxResType,NcapChis,N3Chis,"+
+                "helixTypeAtNcap,NcapHbEnergy3_10,NcapHbEnergyAlpha,NcapHbEnergySum,");
             
             for (Helix helix : helices)
             {
@@ -1163,12 +1164,17 @@ public class DsspHelixBuilder //extends ... implements ...
                     
                     out.print(n.hbType+",");
                     
+                    out.print(n.res.getName()+",");
                     out.print(n.cappingBoxResType == null        ? "__?__," : n.cappingBoxResType+",");
                     out.print(n.ncapNumChis == 999               ? "__?__," : n.ncapNumChis      +",");
                     out.print(n.n3NumChis == 999                 ? "__?__," : n.n3NumChis        +",");
                     
                     out.print(helix.typeAtNcap+",");
-                    out.print(n.res.getName()+",");
+                    out.print(Double.isNaN(n.hbondEnergy3_10)    ? "__?__," : df.format(n.hbondEnergy3_10)  +",");
+                    out.print(Double.isNaN(n.hbondEnergyAlpha)   ? "__?__," : df.format(n.hbondEnergyAlpha) +",");
+                    out.print(Double.isNaN(n.hbondEnergy3_10) || Double.isNaN(n.hbondEnergyAlpha) ? "__?__," : 
+                        df.format(n.hbondEnergyAlpha+n.hbondEnergy3_10)+",");
+                    
                     out.println();
                     
                     //{{{ old

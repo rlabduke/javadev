@@ -54,8 +54,8 @@ public class Helix //extends ... implements ...
     * the 4-Ca helix axis starting at each residue. */
     public Triple vectorSumAxisHead;
     
-    /** Type of helix, either alpha or 3-10. Depends on H-bonding pattern at 
-    * N-cap, so only completed if N-cap is not null */
+    /** Type of helix, either alpha or 3-10. Depends on H-bonding at N-cap, so 
+    * only completed if N-cap is not null.  */
     public String typeAtNcap;
     
     // Don't need separate ArrayList<Triple> smoothAxisTails/Heads b/c
@@ -78,7 +78,7 @@ public class Helix //extends ... implements ...
         axisHeads         = null;
         vectorSumAxisTail = null;
         vectorSumAxisHead = null;
-        typeAtNcap        = "(ambiguous)";
+        typeAtNcap        = "(unknown)";
     }
 //}}}
 
@@ -404,8 +404,11 @@ public class Helix //extends ... implements ...
 //##############################################################################
     /** 
     * Sets type to "alpha" or "3-10" depending on the mc H-bonding at the N-cap.
-    * If the i_i+3 (3-10) H-bond exists, we'll call it 3-10 regardless of whether
-    * the i_i+4 (alpha) H-bond also exists. Otherwise, it's alpha.
+    * If the 3_10 H-bond exists and the alpha one does not, we'llcall it 3_10.
+    * If the alpha one exists and the 3_10 one does not, we'll call it alpha.
+    * If they both exist and it's close (w/in "0.5 kcal/mol"), it's 3_10.
+    * If they both exist and it's not close, it's both/ambiguous.
+    * If neither exists, it's neither.
     * 
     * As in HelixBuilder.findHBonds, H-bonds are based on the criteria defined in
     * W. Kabsch and C. Sander (1983) Biopolymers, 22:2577.
@@ -416,7 +419,7 @@ public class Helix //extends ... implements ...
     * ideal distance allows angles up to 63 degrees.
     * Be careful -- it will try to pick up i to {i, i+1, i+2} "H-bonds".
     */
-    public void setTypeAtNcap(Model model, ModelState state)
+    public void setTypeAtNcap(Model model, ModelState state, boolean verbose)
     {
         try
         {
@@ -438,20 +441,36 @@ public class Helix //extends ... implements ...
                 double rCH = carbon0.distance(hydrogen3);
                 double rOH = oxygen0.distance(hydrogen3);
                 double rCN = carbon0.distance(nitrogen3);
-                double energy310   = 27.9*(1/rON + 1/rCH - 1/rOH - 1/rCN);
+                ncap.hbondEnergy3_10   = 27.9*(1/rON + 1/rCH - 1/rOH - 1/rCN);
                 
-                //// alpha (i to i+4)
+                // alpha (i to i+4)
                 rON        = oxygen0.distance(nitrogen4);
                 rCH        = carbon0.distance(hydrogen4);
                 rOH        = oxygen0.distance(hydrogen4);
                 rCN        = carbon0.distance(nitrogen4);
-                double energyAlpha = 27.9*(1/rON + 1/rCH - 1/rOH - 1/rCN);
+                ncap.hbondEnergyAlpha = 27.9*(1/rON + 1/rCH - 1/rOH - 1/rCN);
                 
-                double bestBondE = -0.6;//-0.5;
-                if      (energy310   < bestBondE)  typeAtNcap = "3_10";
-                else if (energyAlpha < bestBondE)  typeAtNcap = "alpha";
-                // else typeAtNcap remains "(ambiguous)"
-                //if (verbose) System.err.println("N-cap "+ncap+" is "+typeAtNcap);
+                // default: typeAtNcap = "(unknown)"
+                double en = -0.5;
+                if (ncap.hbondEnergy3_10  < en && ncap.hbondEnergyAlpha > en)
+                    typeAtNcap = "3_10";
+                if (ncap.hbondEnergyAlpha < en && ncap.hbondEnergy3_10  > en)
+                    typeAtNcap = "alpha";
+                if (ncap.hbondEnergyAlpha > en && ncap.hbondEnergy3_10  > en)
+                    typeAtNcap = "neither";
+                if (ncap.hbondEnergy3_10 < en && ncap.hbondEnergyAlpha < en)
+                {
+                    if (Math.abs(ncap.hbondEnergyAlpha)-Math.abs(ncap.hbondEnergy3_10) < Math.abs(en))
+                        typeAtNcap = "3_10";
+                    else typeAtNcap = "both/ambiguous";
+                    //if (Math.abs(ncap.hbondEnergyAlpha) - Math.abs(ncap.hbondEnergy3_10) < Math.abs(0.5*en))
+                    //    typeAtNcap = "ambiguous";
+                    //else if (ncap.hbondEnergy3_10  < ncap.hbondEnergyAlpha) typeAtNcap = "3_10 (iffy)";
+                    //else if (ncap.hbondEnergyAlpha < ncap.hbondEnergy3_10 ) typeAtNcap = "alpha (iffy)";  
+                }
+                
+                if (verbose) System.err.println(ncap+" is "+typeAtNcap+"   E(3_10)="
+                    +df.format(ncap.hbondEnergy3_10)+", E(alpha)="+df.format(ncap.hbondEnergyAlpha));
             }
         }
         catch (AtomException ae)
