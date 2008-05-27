@@ -78,6 +78,8 @@ public class Ncap //extends ... implements ...
     /** Head position (i.e. end of vector) of the normal to the Ncap plane */
     public Triple normalHead;
     
+    /** Kabsch & Sander "energies" used in the determination.of Helix.typeAtNcap */
+    public double hbondEnergy3_10, hbondEnergyAlpha;
 //}}}
 
 //{{{ Constructor(s)
@@ -112,6 +114,8 @@ public class Ncap //extends ... implements ...
         n3NumChis          = 999;
         normalTail         = null;
         normalHead         = null;
+        hbondEnergy3_10    = Double.NaN;
+        hbondEnergyAlpha   = Double.NaN;
     }
 //}}}
 
