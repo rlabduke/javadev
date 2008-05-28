@@ -39,7 +39,7 @@ public class RdcVisMain {
   //}}}
   
   //{{{ Variables
-   static String versionNumber = "1.00.080513";
+  static String versionNumber = "1.00.080528";
   
   FileInterpreter fi;
   CoordinateFile pdb;
