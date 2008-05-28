@@ -20,7 +20,7 @@ import java.io.*;
 //import javax.swing.*;
 //import java.awt.event.*;
 import java.text.*;
-//import java.util.zip.*;
+import java.util.zip.*;
 //import java.sql.*;
 
 //}}}
@@ -55,33 +55,38 @@ public class RdcVisMain {
   //{{{ main
   //###############################################################
   public void Main(ArrayList<String> argList) {
-    //simulatedGaps = new HashMap<Integer, Integer>();
-    //ArrayList<String> argList = parseArgs(args);
     if (argList.size() < 2) {
 	    System.out.println("Not enough arguments: you must have an input pdb and an input mr file!");
     } else if (rdcTypes.size() == 0) {
       System.out.println("No RDCs specified: you must put it in the format of atom1-atom2.");
     } else {
-      //args[0]
-	    //File[] inputs = new File[args.length];
-	    //for (int i = 0; i < args.length; i++) {
-      //File pdbFile = new File(System.getProperty("user.dir") + "/" + args[0]);
-      //File outKinFile = new File(System.getProperty("user.dir") + "/" + args[1]);
       File pdbFile = new File(argList.get(0));
-      File outKinFile = new File(argList.get(0).substring(0, argList.get(0).length()-3)+"kin");
+      String outKinName = argList.get(0).substring(0, argList.get(0).length()-4);
+      if (ensembleTensor) {
+        outKinName = outKinName+"rdcvis-enstensor.kin";
+      } else {
+        outKinName = outKinName+"rdcvis-modeltensor.kin";
+      }
+      File outKinFile = new File(outKinName);
       File mrFile = new File(argList.get(1));
-	    //}
-      //System.out.println(pdbFile);
-	    //RdcVisMain main = new RdcVisMain(new File(pdbFile.getAbsolutePath()), new File(outKinFile.getAbsolutePath()), new File(mrFile.getAbsolutePath()));
-      pdb = readPdb(new File(pdbFile.getAbsolutePath()));
+      Collection<Kinemage> inputKins = null;
+      if (argList.size() > 2) {
+        File inputKinFile = new File(argList.get(2));
+        inputKins = readKinemage(inputKinFile);
+      }
+	    pdb = readPdb(new File(pdbFile.getAbsolutePath()));
       MagneticResonanceFile mr = readMR(new File(mrFile.getAbsolutePath()));
       fi = new FileInterpreter(pdb, mr);
-      //for (String rdcName : rdcTypes) {
-      //  fi.solveRdcsEnsemble(rdcName);
-      //  
-      Kinemage kin = createKin(fi);
-        writeKin(kin, new File(outKinFile.getAbsolutePath()));
-      //}
+      Kinemage rdcKin = createKin(fi);
+      ArrayList<Kinemage> kins = new ArrayList<Kinemage>();
+      if (inputKins != null) {
+        for (Kinemage inKin : inputKins) {
+          kins.add(mergeKins(inKin, rdcKin));
+        }
+      } else {
+        kins.add(rdcKin);
+      }
+      writeKin(kins, new File(outKinFile.getAbsolutePath()));
     }
   }
   
@@ -91,6 +96,58 @@ public class RdcVisMain {
     ArrayList<String> argList = mainprog.parseArgs(args);
     mainprog.Main(argList);
     
+  }
+  //}}}
+  
+  //{{{ mergeKins
+  /** for merging groups of kins (ie RDC groups into their corresponding model groups in
+  a multi-model multikin. **/
+  public Kinemage mergeKins(Kinemage toKin, Kinemage fromKin) {
+    ArrayList<KGroup> toGroups = toKin.getChildren();
+    ArrayList<KGroup> fromGroups = fromKin.getChildren();
+    for (int i = 0; i < toGroups.size(); i++) {
+      if (i < fromGroups.size()) {
+        KGroup toGrp = toGroups.get(i);
+        KGroup fromGrp = fromGroups.get(i);
+        for (AGE subs : fromGrp.getChildren()) {
+          toGrp.add(subs);
+        }
+      }
+    }
+    return toKin;
+  }
+  //}}}
+  
+  //{{{ readKinemage
+  /** from KiNG's KinfileLoader. **/
+  public Collection<Kinemage> readKinemage(File f) {
+    try {
+      InputStream input = new FileInputStream(f);
+      LineNumberReader    lnr;
+      
+      // Test for GZIPped files
+      input = new BufferedInputStream(input);
+      input.mark(10);
+      if(input.read() == 31 && input.read() == 139)
+      {
+        // We've found the gzip magic numbers...
+        input.reset();
+        input = new GZIPInputStream(input);
+      }
+      else input.reset();
+      
+      lnr = new LineNumberReader(new InputStreamReader(input));
+      KinfileParser parser = new KinfileParser();
+      parser.parse(lnr);
+      
+      
+      lnr.close();
+      
+      return parser.getKinemages();
+    } catch (IOException ie) {
+      System.err.println("Problem when reading kinemage\n" + ie.getMessage());
+    }
+    return null;
   }
   //}}}
   
@@ -253,7 +310,7 @@ public class RdcVisMain {
   //}}}
   
   //{{{ writeKin
-  public void writeKin(Kinemage kin, File outKinFile) {
+  public void writeKin(ArrayList<Kinemage> kins, File outKinFile) {
     //Kinemage kin = new Kinemage();
     //Iterator models = (pdb.getModels()).iterator();
     //String[] atoms = fi.parseAtomNames(rdcName);
@@ -289,8 +346,8 @@ public class RdcVisMain {
     //    }
     //  }
     //}
-    ArrayList<Kinemage> kins = new ArrayList<Kinemage>();
-    kins.add(kin);
+    //ArrayList<Kinemage> kins = new ArrayList<Kinemage>();
+    //kins.add(kin);
     KinfileWriter writer = new KinfileWriter();
     try {
       writer.save(new PrintWriter(new BufferedWriter(new FileWriter(outKinFile))), "RDC visualization text", kins);
@@ -335,23 +392,6 @@ public class RdcVisMain {
   
   //{{{ drawCurve
   public void drawCurve(Kinemage kin, Tuple3 p, Triple rdcVect, Residue orig) {
-    //if(kin == null) return null;
-    //if (group == null) {
-    //  group = new KGroup("RDCs");
-    //  group.addMaster("Curves");
-    //  group.setDominant(true);
-    //  kin.add(group);
-    //}
-    //if (subgroup == null) {
-    //  subgroup = new KGroup("sub");
-    //  subgroup.setHasButton(true);
-    //  group.add(subgroup);
-    //}
-    //if (subError == null) {
-    //  subError = new KGroup("suberrorbars");
-    //  subError.setHasButton(true);
-    //  group.add(subError);
-    //}
     String seq = orig.getSequenceNumber().trim();
     double rdcVal = fi.getRdcValue(seq);
     //System.out.println(rdcVal);

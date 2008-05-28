@@ -877,7 +877,7 @@ public class KinFudgerTool extends BasicTool {
         if (atomName.equals("UNK ")) {
           
         }
-        out.print(PointComparator.getAtomName(point.getName().toUpperCase()) + " ");
+        out.print(PointComparator.getAtomName(point.getName().toUpperCase()));
         out.print(KinUtil.getResAA(point.getName().toUpperCase()) + "  ");
         out.print(formatStrings(String.valueOf(KinUtil.getResNumber(point.getName().toUpperCase())), 4) + "    ");
         out.print(formatStrings(df.format(point.getX()), 8));
