@@ -44,6 +44,8 @@ public class RdcVisWindow implements ActionListener, WindowListener {
   //GUI
   TablePane2          pane;
   JComboBox           rdcBox;
+  JButton             modelButton;
+  JCheckBox           errorBarBox;
   //}}}
   
   //{{{ Constructor
@@ -95,10 +97,17 @@ public class RdcVisWindow implements ActionListener, WindowListener {
     rdcBox = new JComboBox(rdcTypes);
     rdcBox.setSelectedIndex(0);
     rdcBox.addActionListener(this);
+    solveRdcs((String) rdcBox.getSelectedItem());
+    modelButton = new JButton(new ReflectiveAction("Open multi-model file", null, this, "onMulti"));
+    errorBarBox = new JCheckBox("Draw error curves");
     
     pane = new TablePane2();
     pane.newRow();
     pane.add(rdcBox);
+    pane.newRow();
+    pane.add(modelButton);
+    pane.newRow();
+    pane.add(errorBarBox);
     dialog = new JDialog(kMain.getTopWindow(), "RDC Viewer", false);
     //dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
     dialog.addWindowListener(this);
@@ -118,6 +127,12 @@ public class RdcVisWindow implements ActionListener, WindowListener {
     //updateLabels();
     //kCanvas.repaint();
   }
+  
+  //{{{ onMulti
+  public void onMulti(ActionEvent ev) {
+    System.out.println("Open file");
+  }
+  //}}}
   
   //{{{ analyzeFile
   public void solveRdcs(String rdcType) {
@@ -245,6 +260,12 @@ public class RdcVisWindow implements ActionListener, WindowListener {
   
   public double getBackcalcRdc(Triple vector) {
     return solver.backCalculateRdc(vector);
+  }
+  //}}}
+  
+  //{{{ drawErrorsIsSelected
+  public boolean drawErrorsIsSelected() {
+    return errorBarBox.isSelected();
   }
   //}}}
   

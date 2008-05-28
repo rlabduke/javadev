@@ -41,6 +41,7 @@ public class RdcVisTool extends ModelingTool {
   TreeMap currentRdcs;
   KGroup group = null;
   KGroup subgroup = null;
+  KGroup subError = null;
   //}}}
   
   //{{{ Constructors
@@ -208,15 +209,20 @@ public class RdcVisTool extends ModelingTool {
     Kinemage kin = kMain.getKinemage();
     //if(kin == null) return null;
     if (group == null) {
-      group = new KGroup("group");
+      group = new KGroup("RDCs");
       group.addMaster("Curves");
       group.setDominant(true);
       kin.add(group);
     }
     if (subgroup == null) {
       subgroup = new KGroup("sub");
-      subgroup.setHasButton(false);
+      subgroup.setHasButton(true);
       group.add(subgroup);
+    }
+    if (subError == null) {
+      subError = new KGroup("suberrorbars");
+      subError.setHasButton(true);
+      group.add(subError);
     }
     String seq = orig.getSequenceNumber().trim();
     double rdcVal = rdcWin.getRdcValue(seq);
@@ -224,18 +230,23 @@ public class RdcVisTool extends ModelingTool {
     //System.out.println((rdcVal != Double.NaN));
     double backcalcRdc = rdcWin.getBackcalcRdc(rdcVect);
     if ((!Double.isNaN(rdcVal))&&(!Double.isNaN(backcalcRdc))) {
-      KList list = new KList(KList.VECTOR, "Points");
+      KList list = new KList(KList.VECTOR, "RDCs");
+      KList errorBars = new KList(KList.VECTOR, "Error Bars");
       list.setWidth(4);
+      errorBars.setWidth(2);
       subgroup.add(list);
+      subError.add(errorBars);
       //System.out.println(seq);
       //String seq = String.valueOf(KinUtil.getResNumber(p));
       //DipolarRestraint dr = (DipolarRestraint) currentRdcs.get(seq);
-      
-      System.out.println("res num= "+seq+" rdc val= "+df.format(rdcVal)+" calc rdc= "+df.format(backcalcRdc));
+      String text = "res= "+seq+" rdc= "+df.format(rdcVal)+" backcalc= "+df.format(backcalcRdc);
+      System.out.println(text);
       //rdcWin.getDrawer().drawCurve(rdcVal, p, backcalcRdc, list);
-      //rdcWin.getDrawer().drawCurve(rdcVal - 2, p, backcalcRdc, list);
-      //rdcWin.getDrawer().drawCurve(rdcVal + 2, p, backcalcRdc, list);
-      rdcWin.getDrawer().drawCurve(rdcVal, p, 1, 60, backcalcRdc, list);
+      if (rdcWin.drawErrorsIsSelected()) {
+        rdcWin.getDrawer().drawCurve(rdcVal - 2, p, 1, 60, backcalcRdc, errorBars, "-2 error bar");
+        rdcWin.getDrawer().drawCurve(rdcVal + 2, p, 1, 60, backcalcRdc, errorBars, "+2 error bar");
+      }
+      rdcWin.getDrawer().drawCurve(rdcVal, p, 1, 60, backcalcRdc, list, text);
       //rdcWin.getDrawer().drawCurve(rdcVal-0.5, p, 1, 60, backcalcRdc, list);
       //rdcWin.getDrawer().drawCurve(rdcVal+0.5, p, 1, 60, backcalcRdc, list);
       //rdcWin.getDrawer().drawCurve(backcalcRdc, p, 1, 60, backcalcRdc, list);

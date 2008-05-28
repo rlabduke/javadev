@@ -40,7 +40,7 @@ public class RdcDrawer2 {
   //}}}
   
   //{{{ drawCurve
-  public void drawCurve(double rdcVal, Tuple3 center, double r, int numPoints, double backcalcRdc, KList list) {
+  public void drawCurve(double rdcVal, Tuple3 center, double r, int numPoints, double backcalcRdc, KList list, String text) {
     VectorPoint old = null;
     VectorPoint negOld = null;
     ArrayList<KPoint> posPoints = new ArrayList<KPoint>();
@@ -72,18 +72,18 @@ public class RdcDrawer2 {
         changeBase.set(2, 0, z);
         Matrix adjFrame = matV.times(changeBase);
         adjFrame.timesEquals(r);
-        VectorPoint point = new VectorPoint("Point " + df.format(rdcVal), old);
+        VectorPoint point = new VectorPoint("Pos " + text, old);
         point.setXYZ(adjFrame.get(0, 0)+center.getX(), adjFrame.get(1, 0)+center.getY(), adjFrame.get(2, 0)+center.getZ());      
         if (Math.abs(rdcVal - backcalcRdc) < 1) point.setColor(KPalette.greentint);
         else if (Math.abs(rdcVal - backcalcRdc) < 2) point.setColor(KPalette.orange);
-        else point.setColor(KPalette.red);
+        else point.setColor(KPalette.hotpink);
         posPoints.add(point);
         old = point;
-        VectorPoint negPoint = new VectorPoint("Neg Point " + df.format(rdcVal), negOld);
+        VectorPoint negPoint = new VectorPoint("Neg " + text, negOld);
         negPoint.setXYZ(-adjFrame.get(0, 0)+center.getX(), -adjFrame.get(1, 0)+center.getY(), -adjFrame.get(2, 0)+center.getZ());      
         if (Math.abs(rdcVal - backcalcRdc) < 1) negPoint.setColor(KPalette.greentint);
         else if (Math.abs(rdcVal - backcalcRdc) < 2) negPoint.setColor(KPalette.orange);
-        else negPoint.setColor(KPalette.red);
+        else negPoint.setColor(KPalette.hotpink);
         negPoints.add(negPoint);
         negOld = negPoint;
       }
@@ -161,7 +161,7 @@ public class RdcDrawer2 {
   //{{{ drawAll
   public void drawAll(Tuple3 center, double r, int numPoints, double backcalcRdc, KList list) {
     for (double d = sxx; d <= szz; d=d+1) {
-      drawCurve(d, center, r, numPoints, backcalcRdc, list);
+      drawCurve(d, center, r, numPoints, backcalcRdc, list, df.format(d));
     }
   }
   //}}}
