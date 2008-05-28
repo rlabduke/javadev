@@ -1,12 +1,16 @@
 
 USAGE
-  rdcvis ['arguments'] [input pdb] [input mr]
+  rdcvis ['arguments'] [rdcnames] [input pdb] [input mr] {[input kin]}
 
   ("rdcvis" is "java -jar rdcvis.jar")
 
+  rdcnames are in the format CA-HA or N-HN, for example
+  [input kin] is optional; if given, rdcvis will attempt to merge rdcvis groups with
+                           the input kin groups.
 
 ARGUMENTS
 
   -h                  Prints this help text.
-  -ensembletensor     Uses all the models to calculate one universal alignment tensor.
+  -ensembletensor     Uses all the models to calculate one universal alignment 
+                        tensor. (default)
   -modeltensor        Calculates an aligment tensor for each model separately.
