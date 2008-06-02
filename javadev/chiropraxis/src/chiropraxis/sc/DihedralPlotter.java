@@ -13,26 +13,15 @@ import java.util.*;
 import driftwood.util.Strings;
 //}}}
 /**
-* <code>DihedralPlotter</code> is a utility program used to plot dihedrals and probability
-* values from a Silk -fraction run (typically files ending in '.data') with e.g. the
-* top5200-angles data into 
-*   (1) -kin  : a multi-dimensional kinemage.
-*   (2) -list : a list ready-made for rotamer sampling (skips extra check steps), or 
-*
-* (1) DihedralPlotter can make a .kin file of sets of dihedrals and their probabilites
-* in the same space. If a second, '.list', e.g. file from silk.util.RotamerSampler,
-* is also provided, the user can see where those sampled rotamers fall in the 
-* dihedral/probability space. In this output mode, the probability value (e.g. a 
-* Silk 'pct' value) for each peak is the last column of each line of the input 
-* '__.data' file and is plotted as an additional dimension.
-*
-* *NOT YET IMPLEMENTED*
-* (2) DihedralPlotter can also make a .list file of dihedrals followed by two 
-* equivalent probabilities given a '.data' file from Silk -fraction. This could
-* be useful for generating a list of *just the peaks* for sidechains of high 
-* dimensionality (e.g. disulfides with 5 chis) which silk.util.RotamerSampler 
-* can't handle due to memory issues. The resulting '.list' file would then be 
-* passed on to chiropraxis.sc.RotamerSampler to make a PDB.
+* <code>DihedralPlotter</code> is a utility program used to plot dihedrals and 
+* probability values from a Silk -fraction run (typically files ending in '.data') 
+* with e.g. the top5200-angles data into a multi-dimensional kinemage. The output
+* is a .kin file of sets of dihedrals and their probabilites in the same space. 
+* If a second, '.list', e.g. file from silk.util.RotamerSampler, is also provided,
+* the user can see where those sampled rotamers fall in the dihedral/probability
+* space. The probability value (e.g. a Silk 'pct' value) for each peak is the 
+* last column of each line of the input '__.data' file and is plotted as an 
+* additional dimension.
 *
 * The template for the structure of this class was (roughly) silk.util.RotamerSampler.
 *
@@ -51,14 +40,13 @@ public class DihedralPlotter //extends ... implements ...
     boolean     verbose      = false;
     File        pctFile      = null;
     File        sampFile     = null;
-    boolean     doList       = false;
-    boolean     doKin        = true;
     double      sampCutoff   = Double.NaN;
     int         nDim         = Integer.MAX_VALUE; // includes prob at end (so #chis +1)
     double      maxProb      = Double.NaN;
     String      label        = null;
-    int[]       min          = null; // actual min/max of data; will be used to
-    int[]       max          = null; // shift up to a 0,360 range
+    int[]       min          = null;  // actual min/max of data; will be used to
+    int[]       max          = null;  // shift up to a 0,360 range (does not rescale!)
+    boolean     scale        = false; // actually rescales everything according to min/max
     boolean     append       = false;
 //}}}
 
@@ -74,10 +62,6 @@ public class DihedralPlotter //extends ... implements ...
 //##############################################################################
     public void doKin() throws FileNotFoundException
     {
-        //int refmin = 0; // default
-        //for (int i = 0; i < nDim; i++)
-        //    if (min[i] < refmin)  refmin = min[i];
-        
         if (!append) 
         {
             if (label == null)  label = pctFile.getName();
@@ -156,9 +140,17 @@ public class DihedralPlotter //extends ... implements ...
                 // Actual multi-D coordinates
                 for (int i = 0; i < coords.length-1; i ++)
                 {
-                    // e.g. -85 from -90->90 data => -85+(0--90) = -85+90 = 5
-                    coords[i] = coords[i] + (0 - min[i]); 
-                    if (coords[i] > 360)  coords[i] = coords[i] - 360;
+                    if (scale)
+                    {
+                        double scaledCoord = ( (coords[i]-1.0*min[i]) / (1.0*max[i]-1.0*min[i]) ) * 360;
+                        coords[i] = scaledCoord;
+                    }
+                    else
+                    {
+                        // e.g. -85 from -90->90 data => -85+(0--90) = -85+90 = 5
+                        coords[i] = coords[i] + (0 - min[i]);
+                        if (coords[i] > 360)  coords[i] = coords[i] - 360;
+                    }
                 }
                 for (int i = 0; i < coords.length-1; i ++)
                     System.out.print( df.format(coords[i])+" " );
@@ -199,9 +191,17 @@ public class DihedralPlotter //extends ... implements ...
                         // Actual multi-D coordinates
                         for (int i = 0; i < coords.length-1; i ++)
                         {
-                            // e.g. -85 from -90->90 data => -85+(0--90) = -85+90 = 5
-                            coords[i] = coords[i] + (0 - min[i]); 
-                            if (coords[i] > 360)  coords[i] = coords[i] - 360;
+                            if (scale)
+                            {
+                                double scaledCoord = ( (coords[i]-1.0*min[i]) / (1.0*max[i]-1.0*min[i]) ) * 360;
+                                coords[i] = scaledCoord;
+                            }
+                            else
+                            {
+                                // e.g. -85 from -90->90 data => -85+(0--90) = -85+90 = 5
+                                coords[i] = coords[i] + (0 - min[i]); 
+                                if (coords[i] > 360)  coords[i] = coords[i] - 360;
+                            }
                         }
                         for (int i = 0; i < coords.length-1; i ++)
                             System.out.print( df.format(coords[i])+" " );
@@ -239,9 +239,17 @@ public class DihedralPlotter //extends ... implements ...
                     // Actual multi-D coordinates
                     for (int i = 0; i < coords.length-2; i ++)
                     {
-                        // e.g. -85 from -90->90 data => -85+(0--90) = -85+90 = 5
-                        coords[i] = coords[i] + (0 - min[i]); 
-                        if (coords[i] > 360)  coords[i] = coords[i] - 360;
+                        if (scale)
+                        {
+                            double scaledCoord = ( (coords[i]-1.0*min[i]) / (1.0*max[i]-1.0*min[i]) ) * 360;
+                            coords[i] = scaledCoord;
+                        }
+                        else
+                        {
+                            // e.g. -85 from -90->90 data => -85+(0--90) = -85+90 = 5
+                            coords[i] = coords[i] + (0 - min[i]); 
+                            if (coords[i] > 360)  coords[i] = coords[i] - 360;
+                        }
                     }
                     for (int i = 0; i < coords.length-2; i ++)
                         System.out.print( df.format(coords[i])+" " );
@@ -257,20 +265,6 @@ public class DihedralPlotter //extends ... implements ...
     }
 //}}}
 
-//{{{ doList
-//##############################################################################
-    public void doList()
-    {
-        
-        System.err.println("Functionality to output lists not coded yet... :( ");
-        
-    }
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
-//}}}
-
 //{{{ Main, main
 //##############################################################################
     /**
@@ -280,6 +274,11 @@ public class DihedralPlotter //extends ... implements ...
     {
         // Checks
         if(pctFile == null)throw new IllegalArgumentException("Must specify at leat one file name");
+        if(scale && (min == null || max == null))
+        {
+            System.err.println("Need -min=# and -max=# if using -scale");
+            scale = false;
+        }
         
         // Get facts about input data
         Scanner s1 = new Scanner(pctFile);
@@ -317,11 +316,7 @@ public class DihedralPlotter //extends ... implements ...
         }
         
         // Output
-        if (nDim != Integer.MAX_VALUE)
-        {
-            if (doKin)  doKin();
-            if (doList) doList();
-        }
+        if (nDim != Integer.MAX_VALUE)  doKin();
         else
         {
             System.err.println("Couldn't figure out # dims...");
@@ -460,16 +455,6 @@ public class DihedralPlotter //extends ... implements ...
             {
                 verbose = true;
             }
-            else if(flag.equals("-list"))
-            {
-                doList = true;
-                doKin = false;
-            }
-            else if(flag.equals("-kin"))
-            {
-                doList = false;
-                doKin = true;
-            }
             else if(flag.equals("-label"))
             {
                 label = param;
@@ -498,6 +483,10 @@ public class DihedralPlotter //extends ... implements ...
                 min = new int[s.length];
                 for(int i = 0; i < s.length; i++) min[i] = Integer.parseInt(s[i]);
                 
+            }
+            else if(flag.equals("-scale"))
+            {
+                scale = true;
             }
             else if(flag.equals("-append"))
             {

@@ -293,9 +293,11 @@ public class DsspHelixBuilder //extends ... implements ...
 //##############################################################################
     public static class NTurn
     {
+        // Variables
         int n = 0;
         Residue firstRes = null, lastRes = null;
         
+        // Constructor
         public NTurn(Residue first, Residue last, int length)
         {
             firstRes = first;
@@ -303,7 +305,7 @@ public class DsspHelixBuilder //extends ... implements ...
             n        = length;
         }
         
-        // UNUSED
+        //{{{ [unused]
         public int overlap(NTurn other)
         {
             TreeSet<Integer> thisResNums = new TreeSet<Integer>();
@@ -335,6 +337,7 @@ public class DsspHelixBuilder //extends ... implements ...
             
             return intersection.size();
         }
+        //}}}
         
         public String toString()
         {
@@ -347,9 +350,11 @@ public class DsspHelixBuilder //extends ... implements ...
 //##############################################################################
     public static class MinHelix
     {
+        // Variables
         int n = 0;
         Residue firstRes = null, lastRes = null;
         
+        // Constructor
         public MinHelix(Residue first, Residue last, int length)
         {
             firstRes = first;
@@ -419,25 +424,24 @@ public class DsspHelixBuilder //extends ... implements ...
                 if (verbose) System.err.println("Making n-turn(s) with '"+pep+"'...");
                 if (pep.hbondO != null)
                 {
-                    Peptide pep2 = pep.hbondO;
+                    Peptide pep2 = pep.hbondO;                    
                     Residue first = pep.cRes;  // cRes = "residue containing CO"
                     Residue last  = pep2.nRes; // nRes = "residue containing NH"
                     if (first != null && last != null)
                     {
                         int length = last.getSequenceInteger() - first.getSequenceInteger();
                         
-                        if (length == 3 || length == 4 || length == 5)
+                        if (length == 3 || length == 4)// || length == 5)
                         {
                             NTurn nTurn = new NTurn(first, last, length);
-                            if (verbose) System.err.println("Made  '"+nTurn+"' !");
+                            if (verbose) System.err.println(".. made & added '"+nTurn+"' !");
                             nTurns.add(nTurn);
-                            if (verbose) System.err.println("Added '"+nTurn+"' !");
                         }
-                        else if (verbose) System.err.println("'"+pep.cRes+"' HB's through "
-                                +"its CO to a residue "+length+" away => not making an NTurn!");
+                        else if (verbose) System.err.println(".. '"+pep.cRes+"' HB's through "
+                            +"its CO to a residue "+length+" away => not making an NTurn!");
                     }
                 }
-                else if (verbose) System.err.println("No HB partner for '"+pep.cRes+"'"
+                else if (verbose) System.err.println(".. no HB partner for '"+pep.cRes+"'"
                     +" through its CO => not making an NTurn!");
             }
         }
@@ -450,6 +454,7 @@ public class DsspHelixBuilder //extends ... implements ...
             NTurn nTurn = nTurns.get(i);
             if (nTurnsForMinHelix.size() == 0)
             {
+                // Start a new putative minimal helix
                 nTurnsForMinHelix.add(nTurn);
             }
             else //if (nTurnsForMinHelix.size() >= 1)
@@ -458,9 +463,12 @@ public class DsspHelixBuilder //extends ... implements ...
                 if (prevNTurn.firstRes.getNext(model).equals(nTurn.firstRes))
                 {
                     // These n-turns are consecutive => make a MinHelix
+                    // If n-turn1:1-4 and n-turn2:2-5, minhelix:1-5
+                    Residue mhfr = prevNTurn.firstRes;
+                    Residue mhlr = nTurn.lastRes;
                     // If n-turn1:1-4 and n-turn2:2-5, minhelix:2-4
-                    Residue mhfr = nTurn.firstRes;
-                    Residue mhlr = prevNTurn.lastRes;
+                    //Residue mhfr = nTurn.firstRes;
+                    //Residue mhlr = prevNTurn.lastRes;
                     int diff = mhlr.getSequenceInteger() - mhfr.getSequenceInteger();
                     MinHelix mh = new MinHelix(mhfr, mhlr, diff);
                     minHelices.add(mh);
@@ -469,7 +477,7 @@ public class DsspHelixBuilder //extends ... implements ...
                 // Whether we made a MinHelix or not, start a new AL<NTurn> for
                 // the next putative MinHelix
                 nTurnsForMinHelix = new ArrayList<NTurn>();
-                nTurnsForMinHelix.add(nTurn); // b/c haven't used this nTurn yet
+                nTurnsForMinHelix.add(nTurn); // b/c haven't used this n-turn yet
             }
         }
         
@@ -514,12 +522,9 @@ public class DsspHelixBuilder //extends ... implements ...
                     if (verbose) System.err.println("Adding '"+minHelix+"' to consecMinHelices");
                     consecMinHelices.add(minHelix);
                 }
-                else
-                {
-                    doneConnecting = true;
-                }
+                else doneConnecting = true;
             }
-            if (i == minHelices.size()-1)    doneConnecting = true;
+            if (i == minHelices.size()-1)  doneConnecting = true;
             
             if (doneConnecting)
             {
@@ -546,9 +551,9 @@ public class DsspHelixBuilder //extends ... implements ...
                 }
                 Helix helix = new Helix(resSet);
                 helices.add(helix);
-                if (verbose) System.err.println("Added '"+helix+"' for MinHelix set:"
-                        +"\n   ("+consecMinHelices.get(0)+") to "
-                        +"("+consecMinHelices.get(consecMinHelices.size()-1)+")");
+                if (verbose) System.err.println("Added '"+helix+"' made from MinHelix set:"
+                    +"\n   ("+consecMinHelices.get(0)+") to "
+                    +"("+consecMinHelices.get(consecMinHelices.size()-1)+")");
                 
                 // Reset => start new set of overlapping MinHelix objects
                 consecMinHelices = new ArrayList<MinHelix>();
@@ -564,9 +569,9 @@ public class DsspHelixBuilder //extends ... implements ...
         // original HelixBuilder.
         // A convenient approach: add the preceding residue to each helix iff
         // Ca(i)-Ca(i+3) distance < 5.9 A (N-term)
-        try
+        for (Helix helix : helices)
         {
-            for (Helix helix : helices)
+            try
             {
                 Residue first  = helix.getRes("first");
                 Residue prev   = first.getPrev(model);
@@ -591,11 +596,11 @@ public class DsspHelixBuilder //extends ... implements ...
                     }
                 }
             }
-        }
-        catch (AtomException ae)
-        {
-            System.err.println("Couldn't find one/both of res i-1 or i+2 for the "
-                +"first residue of some helix...");
+            catch (AtomException ae)
+            {
+                System.err.println("Couldn't find one/both of res i-1 or i+2 for the "
+                    +"first residue of "+helix+"...");
+            }
         }
     }
 //}}}
