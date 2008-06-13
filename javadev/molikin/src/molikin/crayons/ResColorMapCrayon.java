@@ -23,7 +23,7 @@ import driftwood.r3.*;
 public class ResColorMapCrayon extends AbstractCrayon implements AtomCrayon, BondCrayon, RibbonCrayon
 {
 //{{{ Constants
-    static final String[] RAINBOW = { "red", "orange", "gold", "yellow", "lime", "green", "sea", "cyan", "sky", "blue" };
+    static final String[] RAINBOW = { "blue", "sky", "cyan", "sea", "green", "lime", "yellow" ,"gold" ,"orange" ,"red"  };
 //}}}
 
 //{{{ Variable definitions

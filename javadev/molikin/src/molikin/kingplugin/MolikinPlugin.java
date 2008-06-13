@@ -111,9 +111,10 @@ public class MolikinPlugin extends king.Plugin
                 File f = openChooser.getSelectedFile();
                 if(f != null && f.exists())
                 {
-                    if(pdbFilter.accept(f))         doPDB(f);
-                    else if(cifFilter.accept(f))    doCIF(f);
-                    else throw new IOException("Can't identify file type");
+                    //if(pdbFilter.accept(f))         doPDB(f);
+                    if(cifFilter.accept(f))    doCIF(f);
+                    else                       doPDB(f);
+                    //else throw new IOException("Can't identify file type");
                 }
             }
             catch(IOException ex)
