@@ -327,7 +327,7 @@ public class SubImposeScripter //extends ... implements ...
                 int resnum = Integer.parseInt(resnumString);
                 stretches = new String[3];
                 stretches[0] = (resnum-1)+"-"+(resnum-1); // e.g. "305-305"
-                stretches[1] = (resnum+1)+"-"+(resnum+2); // e.g. "307-307"
+                stretches[1] = (resnum+1)+"-"+(resnum+1); // e.g. "307-307"
                 stretches[2] = (resnum+3)+"-"+(resnum+3); // e.g. "309-309"
             }
             else if (idxs.equals("-1,1,2,3"))
