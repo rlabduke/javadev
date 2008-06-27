@@ -80,13 +80,23 @@ public class SubImposeScripter //extends ... implements ...
             System.out.println(line);
         }
         
+        String delim = ":";
+        if (line.indexOf(":") == -1)  delim = ",";
+        
         // Prep
         // "pdbs/Hoptimize/1B8AH.pdb"
-        String pdbPath = line.substring(0,line.indexOf(":"));
-        // "Ncap A  306 ASP:..."
-        String ncapOnwards = line.substring(line.indexOf("Ncap"));
+        String pdbPath = line.substring(0,line.indexOf(delim));
+        String ncapOnwards = "";
+        if (line.indexOf("Ncap") != -1)  // "Ncap A  306 ASP:..."
+            ncapOnwards = line.substring(line.indexOf("Ncap"));
+        else                             // "A  306 ASP:..."
+        {
+            Scanner s = new Scanner(line).useDelimiter(delim);
+            s.next();  s.next();
+            ncapOnwards = "Ncap "+s.next()+delim;
+        }
         // "Ncap A  306 ASP"
-        String ncapSubstring = ncapOnwards.substring(0,ncapOnwards.indexOf(":"));
+        String ncapSubstring = ncapOnwards.substring(0,ncapOnwards.indexOf(delim));
         // "A"
         String chain = ncapSubstring.substring(5,6).trim();
         String[] stretches = getStretches(line, ncapSubstring);
