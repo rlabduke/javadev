@@ -22,7 +22,7 @@ import driftwood.r3.*;
 * helices according to DSSP into two helices.
 * Like HelixBuilder, this class creates Helix objects, which hold information 
 * about alpha helices, for an input PDB file.
-* Specifically, it measures parameters related to the N cap of each helix in 
+* Specifically, it measures parameters related to the N-cap of each helix in 
 * the file.
 * Note that this now contains some bug fixes (e.g. handles Pro at N2 or N3) that
 * the original HelixBuilder does not.
@@ -70,6 +70,12 @@ public class DsspHelixBuilder //extends ... implements ...
         // Create a set of Peptides and connect them up
         Collection peptides = createPeptides(model, state);
         connectPeptides(peptides);
+        
+        
+        for (Iterator iter = peptides.iterator(); iter.hasNext(); )
+            System.err.println((Peptide) iter.next());
+        
+        
         findHBonds(peptides, state);
         getPsiPhis(peptides, state);
         
@@ -77,7 +83,12 @@ public class DsspHelixBuilder //extends ... implements ...
         buildMinHelices(peptides, model);
         buildHelices(model, state);
         
-        // Axis & Ncap stuff
+        
+        System.err.println(".. done testing.");
+        System.exit(0);
+        
+        
+        // Axis & N-cap stuff
         findAxes(model, state);
         if (smoothAxes)
             for (int i = 0; i < smoothAxesTimes; i ++)  smoothAxes();
@@ -563,9 +574,9 @@ public class DsspHelixBuilder //extends ... implements ...
         }
         
         if (verbose) System.err.println("After connecting MinHelices but before "
-            +"adding putative Ncap residue, # helices = "+helices.size());
+            +"adding putative N-cap residue, # helices = "+helices.size());
         
-        // Also add putative Ncap residues based on i,i+3 distance < 5.9 A as in my
+        // Also add putative N-cap residues based on i,i+3 distance < 5.9 A as in my
         // original HelixBuilder.
         // A convenient approach: add the preceding residue to each helix iff
         // Ca(i)-Ca(i+3) distance < 5.9 A (N-term)
@@ -815,10 +826,10 @@ public class DsspHelixBuilder //extends ... implements ...
                 helix.setNcapDistances(model, state, verbose);
                 helix.setNcapAngles(model, state);
                 
-                // Set phi, psi for Ncap i, i+1, and i-1 residues
+                // Set phi, psi for N-cap i, i+1, and i-1 residues
                 helix.setNcapPhiPsis(model, state);
                 
-                // Set "sc length" for Ncap & N3
+                // Set "sc length" for N-cap & N3
                 helix.setNcapScLengths(model);
                 
                 // Set residue at capping box for N-cap

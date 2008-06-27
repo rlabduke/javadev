@@ -808,7 +808,7 @@ public class HelixBuilder //extends ... implements ...
                 helix.setNcapScLengths(model);
                 
                 // Set "alpha" or "3-10" at N-cap
-                helix.setTypeAtNcap(model, state);
+                helix.setTypeAtNcap(model, state, verbose);
             }
         }
     }
