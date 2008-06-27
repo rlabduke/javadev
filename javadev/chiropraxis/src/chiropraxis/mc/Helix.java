@@ -160,7 +160,7 @@ public class Helix //extends ... implements ...
         {
             Residue res = ncap.res;
             
-            // One option is angle between the local helix axis for the Ncap residue
+            // One option is angle between the local helix axis for the N-cap residue
             // and the normal to the plane formed by Ca(i,i-1,i+1).
             AtomState ca = state.get(res.getAtom(" CA "));
             Triple tail = axisTails.get(0);
@@ -184,7 +184,7 @@ public class Helix //extends ... implements ...
             }
             // else (default in Ncap constructor: Double.NaN)
             
-            // A second option is the angle between the Ncap Ca_Cb vector 
+            // A second option is the angle between the N-cap Ca_Cb vector 
             // and the local helix axis
             Triple likeCa = new Triple(ca); // same coords as ca above but different object
             if (!res.getName().equals("GLY"))
@@ -249,7 +249,7 @@ public class Helix //extends ... implements ...
             }
             
             // These measures look at N3's N-H vector to see if it points in
-            // different directions based on the Ncap Hbond type.
+            // different directions based on the N-cap Hbond type.
             // We'll use two different "references."
             likeCa = new Triple(state.get(res.getAtom(" CA ")));
             if (res.getNext(model) != null)
@@ -285,7 +285,7 @@ public class Helix //extends ... implements ...
         }
         catch (driftwood.moldb2.AtomException ae)
         {
-            System.err.println("Problem calculating Ncap angles...");
+            System.err.println("Problem calculating N-cap angles...");
         }
     }
 //}}}
@@ -296,7 +296,7 @@ public class Helix //extends ... implements ...
     {
         try
         {
-            // Phi, psi for Ncap residue
+            // Phi, psi for N-cap residue
             Triple likeCa = new Triple(state.get(ncap.res.getAtom(" CA ")));
             Triple likeN = new Triple(state.get(ncap.res.getAtom(" N  ")));
             Triple likeC = new Triple(state.get(ncap.res.getAtom(" C  ")));
@@ -311,7 +311,7 @@ public class Helix //extends ... implements ...
                 ncap.psi = Triple.dihedral(likeN, likeCa, likeC, likeNextN);
             }
             
-            // Phi, psi for Ncap i+1 residue ("N1")
+            // Phi, psi for N-cap i+1 residue ("N1")
             if (ncap.res.getNext(model) != null)
             {
                 Residue n1 = ncap.res.getNext(model);
@@ -326,7 +326,7 @@ public class Helix //extends ... implements ...
                 }
             }
             
-            // Phi, psi for Ncap i-1 residue ("N'")
+            // Phi, psi for N-cap i-1 residue ("N'")
             if (ncap.res.getPrev(model) != null)
             {
                 Residue nprime = ncap.res.getPrev(model);

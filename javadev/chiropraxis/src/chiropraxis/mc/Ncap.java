@@ -29,13 +29,13 @@ public class Ncap //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
-    /** Residues in the Ncap and capping box positions for this helix. */
+    /** Residues in the N-cap and capping box positions for this helix. */
     public Residue res, res3;
     
-    /** Angle between plane of Ncap Ca(i,i-1,i+1) and local helix axis. */
+    /** Angle between plane of N-cap Ca(i,i-1,i+1) and local helix axis. */
     public double planeNormalAngle;
     
-    /** Angle between Ncap Ca_Cb vector and local helix axis. */
+    /** Angle between N-cap Ca_Cb vector and local helix axis. */
     public double caCbAngle;
     
     /** Angle between Ca(i-1,i+1,i+2) and Ca(i-1,i,i+1) planes */
@@ -48,17 +48,17 @@ public class Ncap //extends ... implements ...
     * helix axis. */
     public double n3NH_precCaCaCa, n3NH_axis; 
     
-    /** Ncap i-1,i,i+1 residues' tau angles. May be strained if a backrub
+    /** N-cap i-1,i,i+1 residues' tau angles. May be strained if a backrub
     * occurs. */
     public double nprimeTau, tau, n1Tau;
     
-    /** Ncap i-1,i,i+1 residues' phi, psi dihedrals. i+/-1 angles may be better 
+    /** N-cap i-1,i,i+1 residues' phi, psi dihedrals. i+/-1 angles may be better 
     * indicators of a backrub b/c they actually cause the change during KiNG's 
     * backrub tool.*/
     public double nprimePhi, nprimePsi, phi, psi, n1Phi, n1Psi;
     
-    /** Distances that may vary between Ncap types (e.g. i+2 vs. i+3) or 
-    * indicate where a residue is an Ncap vs. just continuation of a helix. 
+    /** Distances that may vary between N-cap types (e.g. i+2 vs. i+3) or 
+    * indicate where a residue is an N-cap vs. just continuation of a helix. 
     * For the first two, the atoms involved depend on the sc type. */
     double distNcapScToN2H, distNcapScToN3H, distNcapCaToN3Ca, distNprimeCaToN3Ca;
     
@@ -69,13 +69,13 @@ public class Ncap //extends ... implements ...
     String cappingBoxResType;
     
     /** Number of chi angles (a measure of sidechain length) for two potentially
-    * important residues for this Ncap. */
+    * important residues for this N-cap. */
     int ncapNumChis, n3NumChis;
     
-    /** Tail position (i.e. beg. of vector) of the normal to the Ncap plane */
+    /** Tail position (i.e. beg. of vector) of the normal to the N-cap plane */
     public Triple normalTail;
     
-    /** Head position (i.e. end of vector) of the normal to the Ncap plane */
+    /** Head position (i.e. end of vector) of the normal to the N-cap plane */
     public Triple normalHead;
     
     /** Kabsch & Sander "energies" used in the determination.of Helix.typeAtNcap */
