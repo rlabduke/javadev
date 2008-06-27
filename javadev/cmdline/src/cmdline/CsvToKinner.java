@@ -98,7 +98,6 @@ public class CsvToKinner
         groupName = "";
         altFrame = false;
         color = "white";
-        
     }
 //}}}
 
@@ -497,6 +496,7 @@ public class CsvToKinner
             while (fileScan.hasNextLine())
             {
                 String line = fileScan.nextLine();
+                //System.err.println(line);
                 if (!firstLine)
                 {
                     try

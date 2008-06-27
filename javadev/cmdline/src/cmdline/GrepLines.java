@@ -184,7 +184,7 @@ public class GrepLines //extends ... implements ...
         if (flag.equals("-help") || flag.equals("-h"))
         {
             System.err.println();
-            System.err.println("  Usage: java FirstNLines [firstN=#|lastN=#|nRange=#,#] 'file'");
+            System.err.println("  Usage: java GrepLines [-range=#,#|-first=#|-last=#] 'file'");
             System.err.println();
             System.err.println("  Line numbers start at 0");
             System.err.println();
