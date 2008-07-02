@@ -498,14 +498,14 @@ public class CsvToKinner
                 {
                     String[] parts1 = Strings.explode(s1, delim[0]);
                     String[] parts2 = Strings.explode(s2, delim[0]);
-                    if (delim.length == 1) System.err.println(
-                        "Can't find '"+delim[0]+"' in line ... try different delimiter?");
+                    if (parts1.length == 1) System.err.println(
+                        "Can't find '"+delim[0]+"' in line of csv #1 ... try different delimiter?");
+                    if (parts2.length == 1) System.err.println(
+                        "Can't find '"+delim[0]+"' in line of csv #2 ... try different delimiter?");
                     
                     String data = "";
-                    for (int c = 0; c < cols.length; c++)
-                        data += parts1[c]+delimiter;
-                    for (int c = 0; c < cols.length; c++)
-                        data += parts2[c]+delimiter;
+                    for (int c = 0; c < cols.length; c++)  data += parts1[cols[c]]+delimiter;
+                    for (int c = 0; c < cols.length; c++)  data += parts2[cols[c]]+delimiter;
                     data = data.substring(0,data.length()-1);
                     
                     System.out.println(data);
