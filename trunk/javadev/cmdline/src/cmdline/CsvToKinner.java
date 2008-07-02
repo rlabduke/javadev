@@ -7,15 +7,16 @@ import java.io.*;
 import java.util.*;
 import java.text.DecimalFormat;
 import driftwood.r3.*;
+import driftwood.util.Strings;
 //}}}
 
 /**
 * <code>CsvToKinner</code> takes in a delimited text file and outputs
 * either a kinemage that plots the values in the n columns specified by 
 * the user in 3D space or writes those n columns back out in csv format.
+* It can also concatenate two csv files row-by-row, yielding 2*n columns.
 *
 * <p>Copyright (C) 2007 by Daniel Keedy. All rights reserved.
-* 
 */
 public class CsvToKinner
 { 
@@ -28,57 +29,34 @@ public class CsvToKinner
 
 //{{{ Variable Definitions
 //##################################################################################################
-    int numDims;    
-    String csvFilename;
-    File csv;
-    int[] cols;                 // column ids/indices to look for in csv for n-D data
-    int[] ptidcols;             // column ids/indices to look for in csv for pointids
-    String[] labels;            // one for each column 
-    ArrayList<double[]> pts;    // size() is # rows in csv file
-    ArrayList<String> ptids;    // size() is # rows in csv file
-    double[] maxes;             // for axis placement purposes
-    double[] mins;              // for axis placement purposes
-    double[] avgs;
-    String delimiter;           // ":", ",", etc.
-    boolean kinHeading;
-    boolean[] wrap360;
-    boolean[] wrap180;
-    boolean scaleZ;
-    int scalingFactorZ;
-    boolean noKin;
+    int                 numDims;
+    String              csvFilename;
+    File                csv;
+    String              csv2filename;  // for row-by-row concatenation of designated
+    File                csv2;          //   columns from two different files
+    int[]               cols;          // column ids/idxs to look for in csv for n-D data
+    int[]               ptidcols;      // column ids/idxs to look for in csv for pointids
+    String[]            labels;        // one for each column 
+    ArrayList<double[]> pts;           // size() is # rows in csv file
+    ArrayList<String>   ptids;         // size() is # rows in csv file
+    double[]            maxes;         // for axis placement purposes
+    double[]            mins;          // for axis placement purposes
+    double[]            avgs;
+    String              delimiter;     // ":", ",", etc.
+    boolean             kinHeading;
+    boolean[]           wrap360;
+    boolean[]           wrap180;
+    boolean             scaleZ;
+    int                 scalingFactorZ = Integer.MAX_VALUE;
+    boolean             noKin;
     ArrayList<String[]> noKinPts;
-    boolean noFrame;
-    String groupName;
-    ArrayList<String> rotaBalls;
-    boolean altFrame;
-    String color;
+    boolean             noFrame;
+    String              groupName;
+    ArrayList<String>   rotaBalls;
+    boolean             altFrame;
+    String              color;
+    boolean             verbose;
     
-//}}}
-
-//{{{ main
-//##################################################################################################
-	public static void main(String[] args)
-	{
-		CsvToKinner ctk = new CsvToKinner();
-		
-        // Must get number of dimensions first to avoid arrayIndexOutOfBoundsErrors, etc. below
-        // Use specified columns to do so
-        ctk.getNumDims(args);
-        
-        ctk.setUpArrays();
-        ctk.parseArgs(args);
-        ctk.doChecks();
-        
-        // If not doing kin (last command in this case)
-        ctk.getAndPrintDesiredColumns();
-        
-        // If doing kin
-        ctk.readInput();
-        ctk.getMaxes();
-        ctk.getMins();
-        ctk.getAvgs();
-        ctk.printOutput();
-	}
 //}}}
 
 //{{{ Constructor
@@ -86,332 +64,27 @@ public class CsvToKinner
 	public CsvToKinner()
 	{
         // Initialize defaults
-        numDims = 3;
-        csv = null;
-        csvFilename = "no_filename_given";
-        String delimiter = ":";
-        kinHeading = false;
-        scaleZ = false;
-        scalingFactorZ = 10;
-        noKin = false;
-        noFrame = false;
-        groupName = "";
-        altFrame = false;
-        color = "white";
-    }
-//}}}
-
-//{{{ getNumDims
-//##################################################################################################
-	public void getNumDims(String[] args)
-	{
-		String  arg, flag, param;
-        for (int i = 0; i < args.length; i++)
-        {
-            arg = args[i];
-            if(!arg.startsWith("-") )
-            {
-                // This is probably a filename or something
-                //csvFilename = arg;
-                //csv = new File(arg);
-            }
-            else
-            {
-                // This is a flag. It may have a param after the = sign
-                int eq = arg.indexOf('=');
-                if(eq != -1)
-                {
-                    flag    = arg.substring(0, eq);
-                    param   = arg.substring(eq+1);
-                }
-                else
-                {
-                    flag    = arg;
-                    param   = null;
-                }
-                
-                // This flag will give us # dimensions
-                if(flag.equals("-columns") || flag.equals("-cols"))
-                {
-                    if (param != null)
-                    {
-                        Scanner s = new Scanner(param).useDelimiter(",");
-                        int numCols = 0;
-                        ArrayList<Integer> colsAL = new ArrayList<Integer>();
-                        while (s.hasNext())
-                        {
-                            colsAL.add(Integer.parseInt(s.next()));
-                            numCols ++;
-                        }
-                        cols = new int[colsAL.size()];
-                        for (int j = 0; j < colsAL.size(); j ++)
-                            cols[j] = colsAL.get(j);
-                        numDims = colsAL.size();
-                    }
-                    else 
-                    {
-                        System.out.println("Need n comma-separated #s with this flag: "
-                            +"-columns=3,5,8 or -columns=0,3,4,5,8,67");
-                        System.out.println("Default: 0,1,2");
-                        System.out.println("Indicates x,y,z,... data for kinemage");
-                    }
-                }
-            }
-        }
-    }
-//}}}
-
-//{{{ setUpArrays
-//##################################################################################################
-	public void setUpArrays()
-	{
-        //cols = new int[numDims];
-        //for (int i = 0; i < numDims; i ++)
-        //    cols[i] = i;
-        
-        labels = new String[numDims];
-        char xChar = 'X';
-        for (int i = 0; i < numDims; i ++)
-            labels[i] = "" + (int) xChar + i;  // should give 'X', 'Y', 'Z', ...
-        
-        wrap360 = new boolean[numDims];
-        for (int i = 0; i < numDims; i ++)
-            wrap360[i] = false;
-        wrap180 = new boolean[numDims];
-        for (int i = 0; i < numDims; i ++)
-            wrap180[i] = false;
-        
-        rotaBalls = null;
-        ptidcols = null;
-        ptids = null;
-    }
-//}}}
-
-//{{{ parseArgs
-//##################################################################################################
-	public void parseArgs(String[] args)
-	{
-		String  arg, flag, param;
-        for(int i = 0; i < args.length; i++)
-        {
-            arg = args[i];
-            if(!arg.startsWith("-") )
-            {
-                // This is probably a filename or something
-                csvFilename = arg;
-                csv = new File(arg);
-            }
-            else
-            {
-                // This is a flag. It may have a param after the = sign
-                int eq = arg.indexOf('=');
-                if(eq != -1)
-                {
-                    flag    = arg.substring(0, eq);
-                    param   = arg.substring(eq+1);
-                }
-                else
-                {
-                    flag    = arg;
-                    param   = null;
-                }
-                
-                // Look thru options for this flag
-                if(flag.equals("-help") || flag.equals("-h"))
-                {
-                    showHelp(true);
-                    System.exit(0);
-                }
-                else if(flag.equals("-delimiter") || flag.equals("-delim"))
-                {
-                    if (param != null)
-                    {
-                        delimiter = param;
-                    }
-                    else 
-                    {
-                        System.out.println("Need a delimiter with this flag: "
-                            +"-delimiter=[text] where text is : or ; or ...");
-                        System.out.println("Default is :");
-                    }
-                }
-                else if(flag.equals("-kinheading") || flag.equals("-kinhead"))
-                {
-                    kinHeading = true;
-                }
-                else if(flag.equals("-labels"))
-                {
-                    if (param != null)
-                    {
-                        Scanner s = new Scanner(param).useDelimiter(",");
-                        int numLabels = 0;
-                        ArrayList<String> labelsAL = new ArrayList<String>();
-                        while (s.hasNext() && numLabels < cols.length)
-                        {
-                            labelsAL.add(s.next());
-                            numLabels ++;
-                        }
-                        labels = new String[labelsAL.size()];
-                        for (int j = 0; j < labelsAL.size(); j ++)
-                            labels[j] = labelsAL.get(j);
-                        numDims = labelsAL.size();
-                    }
-                    else
-                    {
-                        System.out.println("Need comma-sep'd labels with this flag: "
-                            +"-labels=[word],[word],... where word is X, phi, etc.");
-                        System.out.println("Default: X,Y,Z");
-                    }
-                }
-                else if(flag.equals("-wrap360"))
-                {
-                    if (param != null)
-                    {
-                        Scanner s = new Scanner(param).useDelimiter(",");
-                        while (s.hasNext())
-                        {
-                            String elem = s.next();
-                            int colToWrap360 = 999;
-                            colToWrap360 = Integer.parseInt(elem);
-                            if (colToWrap360 != 999) // i.e. a valid column specifier is given
-                                wrap360[colToWrap360] = true;
-                            else
-                            {
-                                System.out.println("Couldn't understand parameter '"+elem+"'");
-                                System.out.println("Expected an integer");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        System.out.println("Need comma-sep'd labels with this flag: "
-                            +"-wrap360=0,2,4 or -wrap360=0 for example");
-                    }
-                }
-                else if(flag.equals("-wrap180"))
-                {
-                    if (param != null)
-                    {
-                        Scanner s = new Scanner(param).useDelimiter(",");
-                        while (s.hasNext())
-                        {
-                            String elem = s.next();
-                            int colToWrap180 = 999;
-                            colToWrap180 = Integer.parseInt(elem);
-                            if (colToWrap180 != 999) // i.e. a valid column specifier is given
-                                wrap180[colToWrap180] = true;
-                            else
-                            {
-                                System.out.println("Couldn't understand parameter '"+elem+"'");
-                                System.out.println("Expected an integer");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        System.out.println("Need comma-sep'd labels with this flag: "
-                            +"-wrap180=0,2,4 or -wrap180=0 for example");
-                    }
-                }
-                else if(flag.equals("-scalez"))
-                {
-                    scaleZ = true;
-                    if (param != null)
-                        scalingFactorZ = Integer.parseInt(param);
-                }
-                else if(flag.equals("-nokin"))
-                {
-                    noKin = true;
-                    noKinPts = new ArrayList<String[]>();
-                }
-                else if(flag.equals("-noframe"))
-                {
-                    noFrame = true;
-                }
-                else if(flag.equals("-groupname") || flag.equals("-group"))
-                {
-                    if (param != null)
-                        groupName = param;
-                    else
-                        System.out.println("Need a word for the kinemage group's name with this flag!");
-                }
-                else if(flag.equals("-rotaballs"))
-                {
-                    rotaBalls = new ArrayList<String>();
-                    if (param != null)
-                    {
-                        Scanner s = new Scanner(param).useDelimiter(",");
-                        while (s.hasNext())
-                        {
-                            String elem = s.next();
-                            String possAaName = (elem.substring(0,3)).toLowerCase();
-                            if (AA_NAMES_NO_ALA_GLY.indexOf(possAaName) != -1)
-                                rotaBalls.add(elem);
-                            else
-                            {
-                                System.out.println("Couldn't understand parameter '"+elem+"'");
-                                System.out.println("Expected an amino acid name + rotamer,");
-                                System.out.println("  e.g. leutp");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        System.out.println("Need comma-sep'd labels with this flag: "
-                            +"-rotaballs=leutp,leupp or -rotaballs=leuall for example");
-                    }
-                }
-                else if(flag.equals("-pointidcols"))
-                {
-                    ArrayList<Integer> ptidcolsAL = new ArrayList<Integer>(); // temporary
-                    ptids = new ArrayList<String>();
-                    if (param != null)
-                    {
-                        Scanner s = new Scanner(param).useDelimiter(",");
-                        while (s.hasNext())
-                        {
-                            String elem = s.next();
-                            int ptidcol = 999;
-                            ptidcol = Integer.parseInt(elem);
-                            if (ptidcol != 999) // i.e. a valid column specifier is given
-                                ptidcolsAL.add(ptidcol);
-                            else
-                            {
-                                System.out.println("Couldn't understand parameter '"+elem+"'");
-                                System.out.println("Expected an integer");
-                            }
-                        }
-                        
-                        ptidcols = new int[ptidcolsAL.size()]; // permanent ptidcol container
-                        for (int j = 0; j < ptidcolsAL.size(); j++)
-                            ptidcols[j] = ptidcolsAL.get(j);
-                        
-                    }
-                    else
-                    {
-                        System.out.println("Need comma-sep'd integers with this flag: "
-                            +"-pointidcols=0 or -pointidcols=0,1 for example");
-                    }
-                }
-                else if(flag.equals("-altframe"))
-                {
-                    altFrame = true;
-                }
-                else if(flag.equals("-color"))
-                {
-                    color = param;
-                }
-                else if(flag.equals("-dummy-option"))
-                {
-                    // Do something...
-                }
-                else
-                {
-                    if (!flag.equals("-columns") && !flag.equals("-cols"))
-                        System.out.println("Couldn't understand flag: "+flag);   
-                }
-            }
-        }//for(each arg in args)
+        numDims         = Integer.MAX_VALUE;
+        csv             = null;
+        csvFilename     = null;
+        csv2            = null;
+        csv2filename    = null;
+        ptidcols        = null;
+        ptids           = null;
+        labels          = null;
+        wrap360         = null;
+        wrap180         = null;
+        delimiter       = ":";
+        kinHeading      = false;
+        scaleZ          = false;
+        scalingFactorZ  = 10;
+        noKin           = false;
+        noFrame         = false;
+        groupName       = "";
+        rotaBalls       = null;
+        altFrame        = false;
+        color           = "white";
+        verbose         = false;
     }
 //}}}
 
@@ -419,73 +92,125 @@ public class CsvToKinner
 //##################################################################################################
 	void doChecks()
     {
-        // Make sure there is a file provided
-        if (csv == null)
+        if (verbose) System.err.println("doing checks...");
+        
+        if (numDims == Integer.MAX_VALUE)
         {
-            System.out.println("Didn't specify an input csv file!");
+            System.err.println("Need to provide -cols=#[,#,#,...]!");
             System.exit(0);
         }
         
-        if (!noKin)
-            // Make sure there are enough labels for the # columns requested
-            if (labels.length < cols.length)
+        if (csv2 != null && csv2filename != null)
+        {
+            if (!noKin)
             {
-                System.out.println("Not enough labels for the # columns requested!");
-                String[] labelsNew = new String[cols.length];
-                for (int i = 0; i < cols.length; i ++)
+                System.err.println("Setting -nokin option b/c doing row-by-row "
+                    +"concatenation of two files");
+                noKin = true;
+            }
+            return; // no need to do other checks
+        }
+        
+        // Labels array
+        if (!noKin)
+        {
+            if (labels != null) // provided by user
+            {
+                // Make sure there are enough labels for the # columns requested
+                if (labels.length < cols.length)
                 {
-                    if (i < labels.length)
-                        labelsNew[i] = labels[i];
-                    else
-                        labelsNew[i] = "???";
+                    System.err.println("Not enough labels for the # columns requested!"
+                        +" ... setting extra(s) to ???");
+                    String[] newLabels = new String[cols.length];
+                    for (int i = 0; i < cols.length; i ++)
+                    {
+                        if (i < labels.length)  newLabels[i] = labels[i];
+                        else                    newLabels[i] = "???";
+                    }
+                    labels = newLabels;
                 }
             }
+            else // default labels: 'X', 'Y', 'Z', ...
+            {
+                labels = new String[numDims];
+                char xChar = 'X';
+                for (int i = 0; i < numDims; i ++)
+                    labels[i] = "" + (int) xChar + i;
+            }
+        }
+        
+        // Wrap360/180 arrays
+        if (wrap360 != null) // provided by user
+        {
+            if (wrap360.length < numDims)
+            {
+                System.err.println("Not enough wrap360 designations for the # columns requested!"
+                    +" ... setting extra "+(numDims-wrap360.length)+" to false");
+                boolean[] newWrap360 = new boolean[numDims];
+                for (int i = 0; i < wrap360.length; i++)        newWrap360[i] = wrap360[i];
+                for (int i = wrap360.length; i < numDims; i++)  newWrap360[i] = false;
+                wrap360 = newWrap360;
+            }
+            // else if (wrap360.length >= numDims) that's fine
+        }
+        else // default: all false
+        {
+            wrap360 = new boolean[numDims];
+            for (int i = 0; i < numDims; i ++)
+                wrap360[i] = false;
+            wrap180 = new boolean[numDims];
+            for (int i = 0; i < numDims; i ++)
+                wrap180[i] = false;
+        }
+        if (wrap180 != null) // provided by user
+        {
+            if (wrap180.length < numDims)
+            {
+                System.err.println("Not enough wrap180 designations for the # columns requested!"
+                    +" ... setting extra "+(numDims-wrap180.length)+" to false");
+                boolean[] newWrap180 = new boolean[numDims];
+                for (int i = 0; i < wrap180.length; i++)        newWrap180[i] = wrap180[i];
+                for (int i = wrap180.length; i < numDims; i++)  newWrap180[i] = false;
+                wrap180 = newWrap180;
+            }
+            // else if (wrap180.length >= numDims) that's fine
+        }
+        else // default: all false
+        {
+            wrap180 = new boolean[numDims];
+            for (int i = 0; i < numDims; i ++)
+                wrap180[i] = false;
+            wrap180 = new boolean[numDims];
+            for (int i = 0; i < numDims; i ++)
+                wrap180[i] = false;
+        }
+        
+        // Make sure there is a file provided
+        if (csv == null)
+        {
+            System.err.println("Didn't specify an input csv file!");
+            System.exit(0);
+        }
         
         // Make sure user didn't try to do -scalez with numDims != 3
         // (scaleZ option assumes & requires x,y,z coordinate system)
         if (scaleZ && numDims != 3)
         {
-            System.out.println("Can't to -scalez if # coordinates is not 3!");
-            System.out.println("Disregarding -scalez ...");
+            System.err.println("Can't do -scalez if # coordinates is not 3!");
+            System.err.println("Disregarding -scalez ...");
             scaleZ = false;
         }
     }
 //}}}
 
-//{{{ showHelp
-//##################################################################################################
-	// Display help information
-    void showHelp(boolean showAll)
-    {
-        if(showAll)
-        {
-            InputStream is = getClass().getResourceAsStream("CsvToKinner.help");
-            if(is == null)
-                System.err.println("\n*** Unable to locate help information in 'CsvToKinner.help' ***\n");
-            else
-            {
-                try { streamcopy(is, System.out); }
-                catch(IOException ex) { ex.printStackTrace(); }
-            }
-        }
-        System.err.println("cmdline.CsvToKinner");
-        System.err.println("Copyright (C) 2007 by Daniel Keedy. All rights reserved.");
-    }
-
-    // Copies src to dst until we hit EOF
-    void streamcopy(InputStream src, OutputStream dst) throws IOException
-    {
-        byte[] buffer = new byte[2048];
-        int len;
-        while((len = src.read(buffer)) != -1) dst.write(buffer, 0, len);
-    }
-//}}}
 
 //{{{ readInput
 //##################################################################################################
 	private void readInput()
 	{
-		// Mission: Fill points with n-dimensional arrays from cols[0], cols[1], ...
+		if (verbose) System.err.println("reading input...");
+        
+        // Mission: Fill points with n-dimensional arrays from cols[0], cols[1], ...
         try
         {
             pts = new ArrayList<double[]>();
@@ -496,9 +221,10 @@ public class CsvToKinner
             while (fileScan.hasNextLine())
             {
                 String line = fileScan.nextLine();
-                //System.err.println(line);
                 if (!firstLine)
                 {
+                    String currToken = "a desired column";
+                    int    currCol   = Integer.MAX_VALUE;
                     try
                     {
                         if (ptidcols != null)
@@ -529,26 +255,32 @@ public class CsvToKinner
                             lineScan.useDelimiter(delimiter);
                             for (int j = 0; j < col; j++)
                                 lineScan.next();
-                            thisPoint[c] = Double.parseDouble(lineScan.next());
+                            currToken = lineScan.next();
+                            currCol   = c;
+                            thisPoint[c] = Double.parseDouble(currToken);
                         }
                         // Put this multi-D "point" into our ArrayList
                         pts.add(thisPoint);
                     }
                     catch (java.util.NoSuchElementException nsee)
                     {
-                        System.out.println("Couldn't find indicated columns...");
-                        System.out.println("Try using different delimiter instead of "+delimiter+"?");
+                        System.err.println("Couldn't find indicated columns...");
+                        System.err.println("Try using different delimiter instead of "+delimiter+" ?");
+                        System.err.println();
                         System.exit(0);
                     }
-                    
+                    catch (NumberFormatException nfe)
+                    {
+                        System.err.println("Can't parse "+currToken+" in column "+currCol+" as double");
+                    }
                 }
-                
+                else System.err.println("skipping first line: \""+line+"\"");
                 firstLine = false;
             }
         }
         catch (FileNotFoundException fnfe)
         {
-            System.out.println("Can't read through csv input file...");   
+            System.err.println("Can't read through csv input file...");   
         }
 	}
 //}}}
@@ -561,7 +293,7 @@ public class CsvToKinner
         double[] maxesArray = new double[numDims];
         for (int xi = 0; xi < numDims; xi ++)
         {
-            double xiMax = -999999999;
+            double xiMax = Double.NEGATIVE_INFINITY;
             for (double[] pt : pts)
             {
                 if (pt[xi] > xiMax)    xiMax = pt[xi];
@@ -589,7 +321,7 @@ public class CsvToKinner
         double[] minsArray = new double[numDims];
         for (int xi = 0; xi < numDims; xi ++)
         {
-            double xiMin = 999999999;
+            double xiMin = Double.POSITIVE_INFINITY;
             for (double[] pt : pts)
             {
                 if (pt[xi] < xiMin)    xiMin = pt[xi];
@@ -640,7 +372,7 @@ public class CsvToKinner
 //##################################################################################################
 	private double wrap360(double angle)
     {
-        
+        //if (verbose) System.err.println("wrapping "+angle+" to 0->360");
         angle = angle % 360;
         if(angle < 0) return angle + 360;
         else return angle;
@@ -650,6 +382,7 @@ public class CsvToKinner
     {
         // Anything over 180 gets 360 subtracted from it
         // e.g. 210 --> 210 - 360 --> -150
+        //if (verbose) System.err.println("wrapping "+angle+" to 0->180");
         if(angle > 180) return angle - 360;
         else return angle;
     }
@@ -675,71 +408,124 @@ public class CsvToKinner
 //##################################################################################################
 	private void getAndPrintDesiredColumns()
 	{
-        //for (int col : cols)
-        //    System.out.println("col: "+col);
-        
-        if (noKin)
+        // Not doing a kin, just spitting certain columns of data back out
+        if (verbose)
         {
-            // Get data from input csv
-            try
+            System.err.print("col idxs: ");
+            for (int i = 0; i < cols.length-1; i++) System.err.print(cols[i]+",");
+            System.err.println(cols[cols.length-1]);
+        }
+        
+        // Get data from input csv
+        try
+        {
+            for (String[] noKinArray : noKinPts)
+                noKinArray = new String[cols.length];
+            Scanner fileScan = new Scanner(csv);
+            boolean firstLine = true;
+            while (fileScan.hasNextLine())
             {
-                for (String[] noKinArray : noKinPts)
-                    noKinArray = new String[cols.length];
-                Scanner fileScan = new Scanner(csv);
-                boolean firstLine = true;
-                while (fileScan.hasNextLine())
+                String line = fileScan.nextLine();
+                if (!firstLine)
                 {
-                    String line = fileScan.nextLine();
-                    if (!firstLine)
+                    // Make a multi-D set of Strings for this line
+                    String[] thisNoKinPoint = new String[cols.length];
+                    try
                     {
-                        // Make a multi-D set of Strings for this line
-                        String[] thisNoKinPoint = new String[cols.length];
-                        try
+                        for (int c = 0; c < cols.length; c ++)
                         {
-                            for (int c = 0; c < cols.length; c ++)
-                            {
-                                // Skip to ith column
-                                Scanner lineScan_c = new Scanner(line);
-                                lineScan_c.useDelimiter(delimiter);
-                                for (int j = 0; j < cols[c]; j++)
-                                    lineScan_c.next();
-                                thisNoKinPoint[c] = lineScan_c.next();
-                            }
+                            // Skip to ith column
+                            Scanner lineScan_c = new Scanner(line);
+                            lineScan_c.useDelimiter(delimiter);
+                            for (int j = 0; j < cols[c]; j++)
+                                lineScan_c.next();
+                            thisNoKinPoint[c] = lineScan_c.next();
                         }
-                        catch (java.util.NoSuchElementException nsee)
-                        {
-                            System.out.println("Couldn't find indicated columns...");
-                            System.out.println("Try using different delimiter?");
-                            System.exit(0);
-                        }
-                        
-                        // Put this multi-D set of Strings into our ArrayList
-                        noKinPts.add(thisNoKinPoint);
+                    }
+                    catch (java.util.NoSuchElementException nsee)
+                    {
+                        System.err.println("Couldn't find indicated columns...");
+                        System.err.println("Try using different delimiter instead of "+delimiter+" ?");
+                        System.err.println();
+                        System.exit(0);
                     }
                     
-                    firstLine = false;
+                    // Put this multi-D set of Strings into our ArrayList
+                    noKinPts.add(thisNoKinPoint);
                 }
+                else if (verbose) System.err.println("skipping first line: \""+line+"\"");
+                firstLine = false;
             }
-            catch (FileNotFoundException fnfe)
-            {
-                System.out.println("Can't read through csv input file...");   
-            }
-            
-            
-            // Print data to screen
-            for (String[] noKinPt : noKinPts) // each row in csv
-            {
-                for (int c = 0; c < cols.length; c ++)
-                    System.out.print(noKinPt[c] + delimiter);
-                System.out.println();
-            }
-        
-        // If not doing a kin, we're done!
-        System.exit(0);
-        
         }
+        catch (FileNotFoundException fnfe)
+        {
+            System.err.println("Can't read through csv input file...");   
+        }
+        
+        // Print data to stdout
+        for (String[] noKinPt : noKinPts) // each row in csv
+        {
+            for (int c = 0; c < cols.length-1; c ++)
+                System.out.print(noKinPt[c]+delimiter);
+            System.out.println(noKinPt[cols.length-1]);
+        }
+        
+        // We're done!
+        System.exit(0);
     }
 //}}}
+
+//{{{ concatFilesByRow
+//##################################################################################################
+	private void concatFilesByRow()
+	{
+        if (verbose)
+        {
+            System.err.print("col idxs: ");
+            for (int i = 0; i < cols.length-1; i++) System.err.print(cols[i]+",");
+            System.err.println(cols[cols.length-1]);
+        }
+        
+        char[] delim = delimiter.toCharArray();
+        try
+        {
+            LineNumberReader lnr1 = new LineNumberReader(new FileReader(csv ));
+            LineNumberReader lnr2 = new LineNumberReader(new FileReader(csv2));
+            String s1, s2;
+            while((s1 = lnr1.readLine()) != null && (s2 = lnr2.readLine()) != null)
+            {
+                try
+                {
+                    String[] parts1 = Strings.explode(s1, delim[0]);
+                    String[] parts2 = Strings.explode(s2, delim[0]);
+                    if (delim.length == 1) System.err.println(
+                        "Can't find '"+delim[0]+"' in line ... try different delimiter?");
+                    
+                    String data = "";
+                    for (int c = 0; c < cols.length; c++)
+                        data += parts1[c]+delimiter;
+                    for (int c = 0; c < cols.length; c++)
+                        data += parts2[c]+delimiter;
+                    data = data.substring(0,data.length()-1);
+                    
+                    System.out.println(data);
+                }
+                catch(IndexOutOfBoundsException ex)
+                { System.err.println("Error reading from csv file #1 or #2, line "+lnr1.getLineNumber()); }
+                catch(NumberFormatException ex)
+                { System.err.println("Error reading from csv file #2 or #2, line "+lnr1.getLineNumber()); }
+            }
+        }
+        catch(FileNotFoundException fnfe)
+        { System.err.println("Cannot find either csv file #1 or #2"); }
+        catch(IOException ioe)
+        { System.err.println("I/O error reading from either csv file #1 or #2"); }
+        
+        // We're done!
+        System.exit(0);
+    }
+//}}}
+
 
 //{{{ printOutput
 //##################################################################################################
@@ -776,13 +562,11 @@ public class CsvToKinner
 	private void printHeading()
 	{
         // @kin, if desired
-        if (kinHeading)
-            System.out.println("@kin {"+csvFilename+"}");
+        if (kinHeading) System.out.println("@kin {"+csvFilename+"}");
         
         // Masters
         System.out.println("@master {data}");
-        if (rotaBalls != null)
-	    System.out.println("@master {rota centers}");
+        if (rotaBalls != null) System.out.println("@master {rota centers}");
 
         // Multi-D kin heading stuff (@dimension...) for sc's with >=3 chis
         if (numDims > 3)
@@ -865,6 +649,8 @@ public class CsvToKinner
 //##################################################################################################
 	private void printAltFrame(DecimalFormat df)
 	{
+        if (verbose) System.err.println("adding alt frame...");
+        
         System.out.println("@group {frame} dominant ");
         System.out.println("@vectorlist {frame} color= white");
         
@@ -958,6 +744,8 @@ public class CsvToKinner
 //##################################################################################################
 	private void printAltLabels(DecimalFormat df)
 	{
+        if (verbose) System.err.println("adding alt labels...");
+        
         System.out.println("@group {labels} dominant");
         System.out.println("@labellist {XYZ} color= white");
         
@@ -975,10 +763,10 @@ public class CsvToKinner
                 // Want bottom of Z axis to be below that plane or at least in it
                 // Likewise, want top of Z axis to be above that plane or at least in it
                 // (This is just for visual effect)
-                if (scale(mins[2], 2) > 0)
-                    System.out.println("{"+labels[2]+" "+df.format(inverseScale(0,2))+"} 0 0 0");
-                else
-                    System.out.println("{"+labels[2]+" "+df.format(mins[2] )+"} "+"0 0 "+scale(mins[2], 2));
+                //if (scale(mins[2], 2) > 0)
+                //    System.out.println("{"+labels[2]+" "+df.format(inverseScale(0,2))+"} 0 0 0");
+                //else
+                //    System.out.println("{"+labels[2]+" "+df.format(mins[2] )+"} "+"0 0 "+scale(mins[2], 2));
                 
                 if (scale(maxes[2], 2) < 0)
                     System.out.println("{"+labels[2]+" "+df.format(inverseScale(0,2))+"} 0 0 0");
@@ -989,13 +777,13 @@ public class CsvToKinner
             {
                 if (wrap360[i])
                 {
-                    System.out.print("{"+labels[i]+" 0  }P ");
-                    for (int c = 0; c < i; c ++)
-                        System.out.print(" 0.000 ");
-                    System.out.print(" 0 ");
-                    for (int c = i+1; c < numDims; c ++)
-                        System.out.print(" 0.000 ");
-                    System.out.println();
+                    //System.out.print("{"+labels[i]+" 0  }P ");
+                    //for (int c = 0; c < i; c ++)
+                    //    System.out.print(" 0.000 ");
+                    //System.out.print(" 0 ");
+                    //for (int c = i+1; c < numDims; c ++)
+                    //    System.out.print(" 0.000 ");
+                    //System.out.println();
                     
                     System.out.print("{"+labels[i]+" 360} ");
                     for (int c = 0; c < i; c ++)
@@ -1007,13 +795,13 @@ public class CsvToKinner
                 }
                 else if (wrap180[i])
                 {
-                    System.out.print("{"+labels[i]+" -180}P ");
-                    for (int c = 0; c < i; c ++)
-                        System.out.print(" 0.000 ");
-                    System.out.print(" -180 ");
-                    for (int c = i+1; c < numDims; c ++)
-                        System.out.print(" 0.000 ");
-                    System.out.println();
+                    //System.out.print("{"+labels[i]+" -180}P ");
+                    //for (int c = 0; c < i; c ++)
+                    //    System.out.print(" 0.000 ");
+                    //System.out.print(" -180 ");
+                    //for (int c = i+1; c < numDims; c ++)
+                    //    System.out.print(" 0.000 ");
+                    //System.out.println();
                     
                     System.out.print("{"+labels[i]+" 180} ");
                     for (int c = 0; c < i; c ++)
@@ -1025,13 +813,13 @@ public class CsvToKinner
                 }
                 else
                 {
-                    System.out.print("{"+labels[i]+" "+mins[i] +"} ");
-                    for (int c = 0; c < i; c ++)
-                        System.out.print(" 0.000 ");
-                    System.out.print(" "+mins[i]+" ");
-                    for (int c = i+1; c < numDims; c ++)
-                        System.out.print(" 0.000 ");
-                    System.out.println();
+                    //System.out.print("{"+labels[i]+" "+mins[i] +"} ");
+                    //for (int c = 0; c < i; c ++)
+                    //    System.out.print(" 0.000 ");
+                    //System.out.print(" "+mins[i]+" ");
+                    //for (int c = i+1; c < numDims; c ++)
+                    //    System.out.print(" 0.000 ");
+                    //System.out.println();
                     
                     System.out.print("{"+labels[i]+" "+maxes[i] +"} ");
                     for (int c = 0; c < i; c ++)
@@ -1051,8 +839,7 @@ public class CsvToKinner
 	private void printDataGroup()
 	{
         
-        if (!groupName.equals(""))
-            System.out.print("@group {"+groupName);
+        if (!groupName.equals("")) System.out.print("@group {"+groupName);
         else
         {
             System.out.print("@group {"+groupName+" ");
@@ -1063,8 +850,7 @@ public class CsvToKinner
             }
         }
         System.out.print("} animate dominant ");
-        if (numDims > 3)
-            System.out.print("dimension="+numDims+" ");   // select???
+        if (numDims > 3) System.out.print("dimension="+numDims+" "); // select???
         System.out.println();
         
         // Dotlist
@@ -1087,13 +873,12 @@ public class CsvToKinner
             // Coordinates
             for (int c = 0; c < cols.length; c ++)
             {
-                if (c == 2) // Treat Z differently than X and Y
+                if (c == 2 && scaleZ) // Treat Z differently than X and Y
                 {
                     // For scaling Z to X- & Y-like dimensions, if desired
                     // First added for Karplus's PGD bb geometry stuff, to get tau
                     // angles on same scale as 0to360 (or -180to180) phi & psi.
-                    if (scaleZ)
-                        pt[c] = scale(pt[c], 2);
+                    pt[c] = scale(pt[c], 2);
                     System.out.print(pt[c]+" ");
                 }
                 else
@@ -1241,6 +1026,408 @@ public class CsvToKinner
         }
         
         return lines;
+    }
+//}}}
+
+
+//{{{ Main, main
+//##############################################################################
+    /**
+    * Main() function for running as an application
+    */
+    public void Main() throws IOException
+    {
+    	doChecks();
+        
+        // If not doing kin (last command in this case)
+        if (noKin)
+        {
+            if (csv2 != null && csv2filename != null) concatFilesByRow();
+            else                                      getAndPrintDesiredColumns();
+        }
+        
+        // If doing kin
+        readInput();
+        getMaxes();
+        getMins();
+        getAvgs();
+        if (verbose) for (int i = 0; i < maxes.length; i++)
+            System.err.println("coord"+i+"  min, max, avg, wrap360, wrap180:  ("
+                +mins[i]+", "+maxes[i]+", "+avgs[i]+", "+wrap360[i]+", "+wrap180[i]+")");
+        
+        // Rework mins if nec. so axes actually touch each other in kin
+        for (int i = 0; i < mins.length; i++)  if (mins[i] > 0)  mins[i] = 0;
+        
+        printOutput();
+	}
+    
+    public static void main(String[] args)
+	{
+        CsvToKinner mainprog = new CsvToKinner();
+        try
+        {
+            mainprog.parseArguments(args);
+            mainprog.Main();
+        }
+        catch(IllegalArgumentException ex)
+        {
+            ex.printStackTrace();
+            System.err.println();
+            mainprog.showHelp(true);
+            System.err.println();
+            System.err.println("*** Error parsing arguments: "+ex.getMessage());
+            System.exit(1);
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+            System.err.println();
+            System.err.println("*** Error in execution: "+ex.getMessage());
+            System.exit(1);
+        }
+    }
+//}}}
+
+//{{{ parseArguments, showHelp
+//##############################################################################
+    /**
+    * Parse the command-line options for this program.
+    * @param args the command-line options, as received by main()
+    * @throws IllegalArgumentException if any argument is unrecognized, ambiguous, missing
+    *   a required parameter, has a malformed parameter, or is otherwise unacceptable.
+    */
+    void parseArguments(String[] args)
+    {
+        String  arg, flag, param;
+        boolean interpFlags = true;
+        
+        for(int i = 0; i < args.length; i++)
+        {
+            arg = args[i];
+            if(!arg.startsWith("-") || !interpFlags || arg.equals("-"))
+            {
+                // This is probably a filename or something
+                interpretArg(arg);
+            }
+            else if(arg.equals("--"))
+            {
+                // Stop treating things as flags once we find --
+                interpFlags = false;
+            }
+            else
+            {
+                // This is a flag. It may have a param after the = sign
+                int eq = arg.indexOf('=');
+                if(eq != -1)
+                {
+                    flag    = arg.substring(0, eq);
+                    param   = arg.substring(eq+1);
+                }
+                else
+                {
+                    flag    = arg;
+                    param   = null;
+                }
+                
+                try { interpretFlag(flag, param); }
+                catch(NullPointerException ex)
+                { throw new IllegalArgumentException("'"+arg
+                    +"' expects to be followed by a parameter"); }
+            }
+        }//for(each arg in args)
+    }
+    
+    // Display help information
+    void showHelp(boolean showAll)
+    {
+        if(showAll)
+        {
+            InputStream is = getClass().getResourceAsStream("CsvToKinner.help");
+            if(is == null) System.err.println(
+                "\n*** Unable to locate help information in 'DihedralPlotter.help' ***\n");
+            else
+            {
+                try { streamcopy(is, System.out); }
+                catch(IOException ex) { ex.printStackTrace(); }
+            }
+        }
+        System.err.println("cmdline.CsvToKinner");
+        System.err.println("Copyright (C) 2007 by Daniel A. Keedy. All rights reserved.");
+    }
+
+    // Copies src to dst until we hit EOF
+    void streamcopy(InputStream src, OutputStream dst) throws IOException
+    {
+        byte[] buffer = new byte[2048];
+        int len;
+        while((len = src.read(buffer)) != -1) dst.write(buffer, 0, len);
+    }
+//}}}
+
+//{{{ interpretArg, interpretFlag
+//##############################################################################
+    void interpretArg(String arg)
+    {
+        // Handle files, etc. here
+        if(csv == null && csvFilename == null)
+        {
+            csvFilename = arg;
+            csv  = new File(arg);
+        }
+        else if (csv2 == null && csv2filename == null)
+        {
+            csv2filename = arg;
+            csv2  = new File(arg);
+        }
+        else throw new IllegalArgumentException("Too many file names: "+arg);
+    }
+    
+    void interpretFlag(String flag, String param)
+    {
+        try
+        {
+            if(flag.equals("-help") || flag.equals("-h"))
+            {
+                showHelp(true);
+                System.exit(0);
+            }
+            else if(flag.equals("-verbose") || flag.equals("-v"))
+            {
+                verbose = true;
+            }
+            else if(flag.equals("-columns") || flag.equals("-cols"))
+            {
+                if (param != null)
+                {
+                    Scanner s = new Scanner(param).useDelimiter(",");
+                    int numCols = 0;
+                    ArrayList<Integer> colsAL = new ArrayList<Integer>();
+                    while (s.hasNext())
+                    {
+                        colsAL.add(Integer.parseInt(s.next()));
+                        numCols ++;
+                    }
+                    cols = new int[colsAL.size()];
+                    for (int j = 0; j < colsAL.size(); j ++)
+                        cols[j] = colsAL.get(j);
+                    numDims = colsAL.size();
+                }
+                else 
+                {
+                    System.err.println("Need n comma-separated #s with this flag: "
+                        +"-columns=3,5,8 or -columns=0,3,4,5,8,67");
+                    System.err.println("Default: 0,1,2");
+                    System.err.println("Indicates x,y,z,... data for kinemage");
+                }
+            }
+            else if(flag.equals("-delimiter") || flag.equals("-delim"))
+            {
+                if (param != null)
+                {
+                    delimiter = param;
+                }
+                else 
+                {
+                    System.err.println("Need a delimiter with this flag: "
+                        +"-delimiter=[text] where text is : or ; or ...");
+                    System.err.println("Default is :");
+                }
+            }
+            else if(flag.equals("-kinheading") || flag.equals("-kinhead"))
+            {
+                kinHeading = true;
+            }
+            else if(flag.equals("-labels"))
+            {
+                if (param != null)
+                {
+                    Scanner s = new Scanner(param).useDelimiter(",");
+                    int numLabels = 0;
+                    ArrayList<String> labelsAL = new ArrayList<String>();
+                    while (s.hasNext() && numLabels < cols.length)
+                    {
+                        labelsAL.add(s.next());
+                        numLabels ++;
+                    }
+                    labels = new String[labelsAL.size()];
+                    for (int j = 0; j < labelsAL.size(); j ++)
+                        labels[j] = labelsAL.get(j);
+                }
+                else
+                {
+                    System.err.println("Need comma-sep'd labels with this flag: "
+                        +"-labels=[word],[word],... where word is X, phi, etc.");
+                    System.err.println("Default: X,Y,Z");
+                }
+            }
+            else if(flag.equals("-wrap360"))
+            {
+                if (param != null)
+                {
+                    Scanner s = new Scanner(param).useDelimiter(",");
+                    ArrayList<String> wrap360AL = new ArrayList<String>();
+                    while (s.hasNext())
+                    {
+                        String elem = s.next();
+                        try
+                        {
+                            int colToWrap360 = 999;
+                            colToWrap360 = Integer.parseInt(elem);
+                            if (colToWrap360 != 999) // i.e. a valid column specifier is given
+                                wrap360AL.add("true");
+                        }
+                        catch (NumberFormatException nfe)
+                        {
+                            System.err.println("Couldn't parse '"+elem+"' as an integer");
+                        }
+                    }
+                    wrap360 = new boolean[wrap360AL.size()];
+                    for (int i = 0; i < wrap360AL.size(); i++)
+                    {
+                        if (wrap360AL.get(i).equals("true"))  wrap360[i] = true;
+                        else                                  wrap360[i] = false;
+                    }
+                }
+                else
+                {
+                    System.err.println("Need comma-sep'd labels with this flag: "
+                        +"-wrap360=0,2,4 or -wrap360=0 for example");
+                }
+            }
+            else if(flag.equals("-wrap180"))
+            {
+                if (param != null)
+                {
+                    Scanner s = new Scanner(param).useDelimiter(",");
+                    ArrayList<String> wrap180AL = new ArrayList<String>();
+                    while (s.hasNext())
+                    {
+                        String elem = s.next();
+                        try
+                        {
+                            int colToWrap180 = 999;
+                            colToWrap180 = Integer.parseInt(elem);
+                            if (colToWrap180 != 999) // i.e. a valid column specifier is given
+                                wrap180AL.add("true");
+                        }
+                        catch (NumberFormatException nfe)
+                        {
+                            System.err.println("Couldn't parse '"+elem+"' as an integer");
+                        }
+                    }
+                    wrap180 = new boolean[wrap180AL.size()];
+                    for (int i = 0; i < wrap180AL.size(); i++)
+                    {
+                        if (wrap180AL.get(i).equals("true"))  wrap180[i] = true;
+                        else                                  wrap180[i] = false;
+                    }
+                }
+                else
+                {
+                    System.err.println("Need comma-sep'd labels with this flag: "
+                        +"-wrap180=0,2,4 or -wrap180=0 for example");
+                }
+            }
+            else if(flag.equals("-scalez"))
+            {
+                scaleZ = true;
+                if (param != null)
+                    scalingFactorZ = Integer.parseInt(param);
+            }
+            else if(flag.equals("-nokin"))
+            {
+                noKin = true;
+                noKinPts = new ArrayList<String[]>();
+            }
+            else if(flag.equals("-kin"))
+            {
+                noKin = false;
+                noKinPts = null;
+            }
+            else if(flag.equals("-noframe"))
+            {
+                noFrame = true;
+            }
+            else if(flag.equals("-groupname") || flag.equals("-group"))
+            {
+                if (param != null)
+                    groupName = param;
+                else
+                    System.out.println("Need a word for the kinemage group's name with this flag!");
+            }
+            else if(flag.equals("-rotaballs"))
+            {
+                rotaBalls = new ArrayList<String>();
+                if (param != null)
+                {
+                    Scanner s = new Scanner(param).useDelimiter(",");
+                    while (s.hasNext())
+                    {
+                        String elem = s.next();
+                        String possAaName = (elem.substring(0,3)).toLowerCase();
+                        if (AA_NAMES_NO_ALA_GLY.indexOf(possAaName) != -1)
+                            rotaBalls.add(elem);
+                        else
+                        {
+                            System.err.println("Couldn't understand parameter '"+elem+"'");
+                            System.err.println("Expected an amino acid name + rotamer,");
+                            System.err.println("  e.g. leutp");
+                        }
+                    }
+                }
+                else
+                {
+                    System.err.println("Need comma-sep'd labels with this flag: "
+                        +"-rotaballs=leutp,leupp or -rotaballs=leuall for example");
+                }
+            }
+            else if(flag.equals("-pointidcols"))
+            {
+                ArrayList<Integer> ptidcolsAL = new ArrayList<Integer>(); // temporary
+                ptids = new ArrayList<String>();
+                if (param != null)
+                {
+                    Scanner s = new Scanner(param).useDelimiter(",");
+                    while (s.hasNext())
+                    {
+                        String elem = s.next();
+                        int ptidcol = 999;
+                        ptidcol = Integer.parseInt(elem);
+                        if (ptidcol != 999) // i.e. a valid column specifier is given
+                            ptidcolsAL.add(ptidcol);
+                        else
+                        {
+                            System.err.println("Couldn't understand parameter '"+elem+"'");
+                            System.err.println("Expected an integer");
+                        }
+                    }
+                    ptidcols = new int[ptidcolsAL.size()]; // permanent ptidcol container
+                    for (int j = 0; j < ptidcolsAL.size(); j++)
+                        ptidcols[j] = ptidcolsAL.get(j);
+                    
+                }
+                else
+                {
+                    System.err.println("Need comma-sep'd integers with this flag: "
+                        +"-pointidcols=0 or -pointidcols=0,1 for example");
+                }
+            }
+            else if(flag.equals("-altframe"))
+            {
+                altFrame = true;
+            }
+            else if(flag.equals("-color"))
+            {
+                color = param;
+            }
+            else if(flag.equals("-dummy-option"))
+            {
+                // Do something...
+            }
+            else throw new IllegalArgumentException("'"+flag+"' is not recognized as a valid flag");
+        }
+        catch(NumberFormatException ex)
+        { throw new IllegalArgumentException("Non-number argument to "+flag+": '"+param+"'"); }
     }
 //}}}
 

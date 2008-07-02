@@ -4,8 +4,10 @@ Usage:
 
 CSVTOKINNER makes a kin or outputs desired columns in csv format from data in 
 a comma-separated value (csv) input file. We assume rows and columns are 
-measured 0 to n and row 0 is headings. Values must be parseable as doubles 
-unless using -nokin.
+measured 0 to n and row 0 is a header. Values must be parseable as doubles 
+unless using -nokin. New functionality: if two filenames and -cols are
+provided, you'll get row-by-row concatenations of those columns to stdout
+(useful e.g. when x & y for a plot come from different source files).
 
 Usage: java -cp cmdline.CsvToKinner [flags] [filename]            
 
@@ -18,10 +20,10 @@ Flags:
     -KINHEADing
         Prints @kin header in output.
     -WRAP180=#,#,#,... | -WRAP360=#,#,#,...                        
-        Wraps data and axes -180 --> 180 or 0 --> 360 and sets max & min for
-          these axes to angle-like #s (e.g. 0-360 inst. of 12-344 depending
-	  on data).
-        Doesn't work for z axis right now...           
+        Wraps data and axes -180->180 or 0->360 and sets max & min for these
+          axes to angle-like #s (e.g. 0-360 inst. of 12-344 depending on data).
+        Example: -wrap360=0,2 would wrap the 1st(X) and 3rd(Y), but not 2nd(Z),
+          axes to 0->360
     -SCALEZ[=#]
         Subtracts the average Z from each Z point, then (opt'l) multiplies 
 	  by the provided integer.
@@ -46,4 +48,6 @@ Flags:
         Possible values for text: 'leutp' or 'argmtt85,argptp180'
     -NOKIN
         Outputs columns indicated in csv (not kin) form.
+    -KIN
+        Outputs kinemage (not csv) (default).
 
