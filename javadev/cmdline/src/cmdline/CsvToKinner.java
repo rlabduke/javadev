@@ -208,9 +208,10 @@ public class CsvToKinner
 //##################################################################################################
 	private void readInput()
 	{
-		if (verbose) System.err.println("reading input...");
+		if (verbose) System.err.println("reading input (for kin)...");
         
         // Mission: Fill points with n-dimensional arrays from cols[0], cols[1], ...
+        // Goal   : Make kin
         try
         {
             pts = new ArrayList<double[]>();
@@ -218,64 +219,62 @@ public class CsvToKinner
                 array = new double[cols.length];
             Scanner fileScan = new Scanner(csv);
             boolean firstLine = true;
+            int count = 0;
             while (fileScan.hasNextLine())
             {
                 String line = fileScan.nextLine();
-                if (!firstLine)
+                String currToken = "a desired column";
+                int    currCol   = Integer.MAX_VALUE;
+                try
                 {
-                    String currToken = "a desired column";
-                    int    currCol   = Integer.MAX_VALUE;
-                    try
+                    if (ptidcols != null)
                     {
-                        if (ptidcols != null)
-                        {
-                            // Get data for pointid from this line
-                            String ptid = "";
-                            for (int p = 0; p < ptidcols.length; p ++)
-                            {
-                                // Skip to jth column in this particular line
-                                int ptidcol = ptidcols[p];
-                                Scanner lineScan = new Scanner(line);
-                                lineScan.useDelimiter(delimiter);
-                                for (int j = 0; j < ptidcol; j++)
-                                    lineScan.next();
-                                ptid += " "+lineScan.next();
-                            }
-                            // Put this multi-D point's pointid into our ptids ArrayList
-                            ptids.add(ptid);
-                        }
-                        
-                        // Make a multi-D "point" for this line
-                        double[] thisPoint = new double[cols.length];
-                        for (int c = 0; c < cols.length; c ++)
+                        // Get data for pointid from this line
+                        String ptid = "";
+                        for (int p = 0; p < ptidcols.length; p ++)
                         {
                             // Skip to jth column in this particular line
-                            int col = cols[c];
+                            int ptidcol = ptidcols[p];
                             Scanner lineScan = new Scanner(line);
                             lineScan.useDelimiter(delimiter);
-                            for (int j = 0; j < col; j++)
+                            for (int j = 0; j < ptidcol; j++)
                                 lineScan.next();
-                            currToken = lineScan.next();
-                            currCol   = c;
-                            thisPoint[c] = Double.parseDouble(currToken);
+                            ptid += " "+lineScan.next();
                         }
-                        // Put this multi-D "point" into our ArrayList
-                        pts.add(thisPoint);
+                        // Put this multi-D point's pointid into our ptids ArrayList
+                        ptids.add(ptid);
                     }
-                    catch (java.util.NoSuchElementException nsee)
+                    
+                    // Make a multi-D "point" for this line
+                    double[] thisPoint = new double[cols.length];
+                    for (int c = 0; c < cols.length; c ++)
                     {
-                        System.err.println("Couldn't find indicated columns...");
-                        System.err.println("Try using different delimiter instead of "+delimiter+" ?");
-                        System.err.println();
-                        System.exit(0);
+                        // Skip to jth column in this particular line
+                        int col = cols[c];
+                        Scanner lineScan = new Scanner(line);
+                        lineScan.useDelimiter(delimiter);
+                        for (int j = 0; j < col; j++)
+                            lineScan.next();
+                        currToken = lineScan.next();
+                        currCol   = c;
+                        thisPoint[c] = Double.parseDouble(currToken);
                     }
-                    catch (NumberFormatException nfe)
-                    {
-                        System.err.println("Can't parse "+currToken+" in column "+currCol+" as double");
-                    }
+                    // Put this multi-D "point" into our ArrayList
+                    pts.add(thisPoint);
                 }
-                else System.err.println("skipping first line: \""+line+"\"");
-                firstLine = false;
+                catch (java.util.NoSuchElementException nsee)
+                {
+                    System.err.println("Couldn't find indicated columns ...try using different delimiter instead of "+delimiter+" ?\n");
+                    System.exit(0);
+                }
+                catch (NumberFormatException nfe)
+                {
+                    if (count == 0)
+                        System.err.println("Couldn't parse \""+currToken+"\" in column "+cols[currCol]+" as double in first line, so skipping:\n  \""+line+"\"");
+                    else
+                        System.err.println("Couldn't parse \""+currToken+"\" in column "+cols[currCol]+" as double");
+                }
+                count ++;
             }
         }
         catch (FileNotFoundException fnfe)
@@ -564,6 +563,9 @@ public class CsvToKinner
         // @kin, if desired
         if (kinHeading) System.out.println("@kin {"+csvFilename+"}");
         
+        // @flat, if appropriate
+        if (numDims == 2) System.out.println("@flat");
+        
         // Masters
         System.out.println("@master {data}");
         if (rotaBalls != null) System.out.println("@master {rota centers}");
@@ -684,55 +686,43 @@ public class CsvToKinner
                 if (wrap360[i])
                 {
                     System.out.print("{min 0  }P ");
-                    for (int c = 0; c < i; c ++)
-                        System.out.print(" 0.000 ");
+                    for (int c = 0; c < i; c ++)          System.out.print(" 0.000 ");
                     System.out.print(" 0 ");
-                    for (int c = i+1; c < numDims; c ++)
-                        System.out.print(" 0.000 ");
+                    for (int c = i+1; c < numDims; c ++)  System.out.print(" 0.000 ");
                     System.out.println();
                     
                     System.out.print("{max 360} ");
-                    for (int c = 0; c < i; c ++)
-                        System.out.print(" 0.000 ");
+                    for (int c = 0; c < i; c ++)          System.out.print(" 0.000 ");
                     System.out.print(" 360 ");
-                    for (int c = i+1; c < numDims; c ++)
-                        System.out.print(" 0.000 ");
+                    for (int c = i+1; c < numDims; c ++)  System.out.print(" 0.000 ");
                     System.out.println();
                 }
                 else if (wrap180[i])
                 {
                     System.out.print("{min -180}P ");
-                    for (int c = 0; c < i; c ++)
-                        System.out.print(" 0.000 ");
+                    for (int c = 0; c < i; c ++)          System.out.print(" 0.000 ");
                     System.out.print(" -180 ");
-                    for (int c = i+1; c < numDims; c ++)
-                        System.out.print(" 0.000 ");
+                    for (int c = i+1; c < numDims; c ++)  System.out.print(" 0.000 ");
                     System.out.println();
                     
                     System.out.print("{max 180} ");
-                    for (int c = 0; c < i; c ++)
-                        System.out.print(" 0.000 ");
+                    for (int c = 0; c < i; c ++)          System.out.print(" 0.000 ");
                     System.out.print(" 180 ");
-                    for (int c = i+1; c < numDims; c ++)
-                        System.out.print(" 0.000 ");
+                    for (int c = i+1; c < numDims; c ++)  System.out.print(" 0.000 ");
                     System.out.println();
                 }
                 else // don't use angle-like "180/360" axes; instead, do it based on the data
                 {
                     System.out.print("{min "+mins[i]+"}P ");
-                    for (int c = 0; c < i; c ++)
-                        System.out.print(" 0.000 ");
+                    for (int c = 0; c < i; c ++)          System.out.print(" 0.000 ");
                     System.out.print(" "+mins[i]+" ");
-                    for (int c = i+1; c < numDims; c ++)
-                        System.out.print(" 0.000 ");
+                    for (int c = i+1; c < numDims; c ++)  System.out.print(" 0.000 ");
                     System.out.println();
                     
-                    System.out.print("{max "+maxes[i]+"} ");
-                    for (int c = 0; c < i; c ++)
-                        System.out.print(" 0.000 ");
-                    System.out.print(" "+maxes[i]+" ");
-                    for (int c = i+1; c < numDims; c ++)
-                        System.out.print(" 0.000 ");
+                    System.out.print("{max "+df.format(maxes[i])+"} ");
+                    for (int c = 0; c < i; c ++)          System.out.print(" 0.000 ");
+                    System.out.print(" "+df.format(maxes[i])+" ");
+                    for (int c = i+1; c < numDims; c ++)  System.out.print(" 0.000 ");
                     System.out.println();
                 }
             }
@@ -786,11 +776,9 @@ public class CsvToKinner
                     //System.out.println();
                     
                     System.out.print("{"+labels[i]+" 360} ");
-                    for (int c = 0; c < i; c ++)
-                        System.out.print(" 0.000 ");
+                    for (int c = 0; c < i; c ++)          System.out.print(" 0.000 ");
                     System.out.print(" 360 ");
-                    for (int c = i+1; c < numDims; c ++)
-                        System.out.print(" 0.000 ");
+                    for (int c = i+1; c < numDims; c ++)  System.out.print(" 0.000 ");
                     System.out.println();
                 }
                 else if (wrap180[i])
@@ -804,11 +792,9 @@ public class CsvToKinner
                     //System.out.println();
                     
                     System.out.print("{"+labels[i]+" 180} ");
-                    for (int c = 0; c < i; c ++)
-                        System.out.print(" 0.000 ");
+                    for (int c = 0; c < i; c ++)          System.out.print(" 0.000 ");
                     System.out.print(" 180 ");
-                    for (int c = i+1; c < numDims; c ++)
-                        System.out.print(" 0.000 ");
+                    for (int c = i+1; c < numDims; c ++)  System.out.print(" 0.000 ");
                     System.out.println();
                 }
                 else
@@ -821,12 +807,10 @@ public class CsvToKinner
                     //    System.out.print(" 0.000 ");
                     //System.out.println();
                     
-                    System.out.print("{"+labels[i]+" "+maxes[i] +"} ");
-                    for (int c = 0; c < i; c ++)
-                        System.out.print(" 0.000 ");
-                    System.out.print(" "+maxes[i]+" ");
-                    for (int c = i+1; c < numDims; c ++)
-                        System.out.print(" 0.000 ");
+                    System.out.print("{"+labels[i]+" "+df.format(maxes[i]) +"} ");
+                    for (int c = 0; c < i; c ++)          System.out.print(" 0.000 ");
+                    System.out.print(" "+df.format(maxes[i])+" ");
+                    for (int c = i+1; c < numDims; c ++)  System.out.print(" 0.000 ");
                     System.out.println();
                 }
             }
