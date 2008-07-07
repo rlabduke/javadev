@@ -76,7 +76,7 @@ public class Rotalyze //extends ... implements ...
                        if(chis[i] < 0) chis[i] += 360;
                     }
                     // (vbc3 080401) for these residues, the last chi is only 0 -> 180
-                    if("asp".equals(res.getName()) || "glu".equals(res.getName()) || "phe".equals(res.getName()) || "tyr".equals(res.getName()))
+                    if("ASP".equals(res.getName()) || "GLU".equals(res.getName()) || "PHE".equals(res.getName()) || "TYR".equals(res.getName()))
                     {
                       int i = chis.length - 1;
                       chis[i] = chis[i] % 180;
