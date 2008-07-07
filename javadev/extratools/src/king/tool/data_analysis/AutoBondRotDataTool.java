@@ -59,6 +59,54 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 
 //}}}
 
+  //{{{ class: RamaTable
+  class RamaTable {
+    
+    //{{{ Variables
+    TreeMap<Double, TreeMap<Double, Double>> ramaMap;
+    //}}}
+    
+    public RamaTable() {
+      ramaMap = new TreeMap<Double, TreeMap<Double, Double>>();
+    }
+    
+    public void add(double phiDoub, double psiDoub, double valDoub) {
+      Double phi = new Double(wrap(phiDoub));
+      Double psi = new Double(wrap(psiDoub));
+      Double val = new Double(valDoub);
+      if (ramaMap.containsKey(phi)) {
+        TreeMap psiMap = ramaMap.get(phi);
+        psiMap.put(psi, val);
+      } else {
+        TreeMap psiMap = new TreeMap<Double, Double>();
+        psiMap.put(psi, val);
+        ramaMap.put(phi, psiMap);
+      }
+    }
+    
+    public double get(double phiDoub, double psiDoub) {
+      Double phi = new Double(wrap(phiDoub));
+      Double psi = new Double(wrap(psiDoub));
+      Double val = null;
+      TreeMap<Double, Double> psiMap = ramaMap.get(phi);
+      if (psiMap != null) {
+        val = psiMap.get(psi);
+      }
+      if (val != null) {
+        return val.doubleValue();
+      }
+      return Double.NaN;
+    }
+    
+    public double wrap(double value) {
+      if (value < -180) return value+360;
+      if (value > 180) return value-360;
+      return value;
+    }
+    
+  }
+  //}}}
+
 //{{{ Constructor(s)
 //##################################################################################################
     /**
@@ -136,6 +184,12 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
 	menu.add(item);
 	item = new JMenuItem(new ReflectiveAction("Take Difference", null, this, "onDifference"));
 	menu.add(item);
+  item = new JMenuItem(new ReflectiveAction("Take Average", null, this, "onAverage"));
+  menu.add(item);
+  item = new JMenuItem(new ReflectiveAction("Re-zero", null, this, "onZero"));
+  menu.add(item);
+  item = new JMenuItem(new ReflectiveAction("Shift Up", null, this, "onAdd"));
+  menu.add(item);
 	item = new JMenuItem(new ReflectiveAction("Export", null, this, "onExport"));
 	menu.add(item);
 	item = new JMenuItem(new ReflectiveAction("Restore Default", null, this, "onSetDefault"));
@@ -601,41 +655,29 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     }
 //}}}
 
-//{{{ addAllDataPoints
-
-    private void addAllDataPoints() {
-	Kinemage kin = kMain.getKinemage();
-	Iterator iter = kin.iterator();
-	allPoints.clear();
-	//long startTime = System.currentTimeMillis();
-	while (iter.hasNext()) {
-    KGroup group = (KGroup) iter.next();
-    if (group.isOn()) {
-      if (group.getMasters().contains("Data Points")) {
-        KIterator<KPoint> points = KIterator.allPoints(group);
-        for (KPoint point : points) {
-          //KGroup subgroup = (KSubgroup) group.getChildAt(0);
-          
-          //KList list = (KList) subgroup.getChildAt(0);
-          //if (list.isOn()) {
-            
-            //Iterator points = list.iterator();
-            //while (points.hasNext()) {
-              //KPoint point = (KPoint) points.next();
-              allPoints.add(point);
-		    }
-            //}
+  //{{{ addAllDataPoints
+  private void addAllDataPoints() {
+    Kinemage kin = kMain.getKinemage();
+    Iterator iter = kin.iterator();
+    allPoints.clear();
+    //long startTime = System.currentTimeMillis();
+    while (iter.hasNext()) {
+      KGroup group = (KGroup) iter.next();
+      if (group.isOn()) {
+        if (group.getMasters().contains("Data Points")) {
+          KIterator<KPoint> points = KIterator.allPoints(group);
+          for (KPoint point : points) {
+            allPoints.add(point);
+          }
+        }
       }
     }
-	}
-
-	PointSorter ps = new PointSorter(allPoints, PointSorter.SORTBY_Y);
-	allPoints = (ArrayList) ps.sortPhiPsi();
-        ps = new PointSorter(allPoints, PointSorter.SORTBY_X);
-	allPoints = (ArrayList) ps.sortPhiPsi();
-
-    }
-//}}}
+    PointSorter ps = new PointSorter(allPoints, PointSorter.SORTBY_Y);
+    allPoints = (ArrayList) ps.sortPhiPsi();
+    ps = new PointSorter(allPoints, PointSorter.SORTBY_X);
+    allPoints = (ArrayList) ps.sortPhiPsi();
+  }
+  //}}}
 
 //{{{ onExport
 
@@ -771,56 +813,89 @@ public class AutoBondRotDataTool extends BasicTool implements ActionListener
     }
      //}}}
 
-//{{{ onSmoothing
-          
-    public void onSmoothing(ActionEvent ev) {
-	/*
-	Kinemage kin = kMain.getKinemage();
-	Iterator iter = kin.iterator();
-	long startTime = System.currentTimeMillis();
-	allPoints.clear();
-	while (iter.hasNext()) {
-	    KGroup group = (KGroup) iter.next();
-	    if ((group.hasMaster("Data Points"))&&(group.isOn())) {
-		KSubgroup subgroup = (KSubgroup) group.getChildAt(0);
-		KList list = (KList) subgroup.getChildAt(0);
-		Iterator points = list.iterator();
-		while (points.hasNext()) {
-		    KPoint point = (KPoint) points.next();
-		    allPoints.add(point);
-		}
-	    }
-	}
-
-	PointSorter ps = new PointSorter(allPoints, PointSorter.SORTBY_Y);
-	allPoints = (ArrayList) ps.sortPhiPsi();
-        ps = new PointSorter(allPoints, PointSorter.SORTBY_X);
-	allPoints = (ArrayList) ps.sortPhiPsi();
-	*/
-	long startTime = System.currentTimeMillis();
-	addAllDataPoints();
-	for (int i = 0; i < allPoints.size(); i++) {
-	    KPoint point = (KPoint) allPoints.get(i);
-	    if ((i+1) < allPoints.size()) {
-		KPoint nextPoint = (KPoint) allPoints.get(i+1);
-		if ((point.getX()==nextPoint.getX())&&(point.getY()==nextPoint.getY())&&(point.getZ()!=nextPoint.getZ())) {
-		    double z = point.getZ();
-		    double npz = nextPoint.getZ();
-		    point.setZ(z+npz);
-		    nextPoint.setZ(z+npz);
-		}
-	    }
-
-	    //newList.add(point);
-	}
-	long endTime = System.currentTimeMillis();
-	
-	System.out.println("Total Time to smooth: " + ((endTime-startTime)/1000) + " seconds");
-	//kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
-	
+  //{{{ onSmoothing
+  public void onSmoothing(ActionEvent ev) {
+    long startTime = System.currentTimeMillis();
+    addAllDataPoints();
+    for (int i = 0; i < allPoints.size(); i++) {
+      KPoint point = (KPoint) allPoints.get(i);
+      if ((i+1) < allPoints.size()) {
+        KPoint nextPoint = (KPoint) allPoints.get(i+1);
+        if ((point.getX()==nextPoint.getX())&&(point.getY()==nextPoint.getY())&&(point.getZ()!=nextPoint.getZ())) {
+          double z = point.getZ();
+          double npz = nextPoint.getZ();
+          point.setZ(z+npz);
+          nextPoint.setZ(z+npz);
+        }
+      }
     }
-//}}}
+    long endTime = System.currentTimeMillis();
+    
+    System.out.println("Total Time to smooth: " + ((endTime-startTime)/1000) + " seconds");
+  }
+  //}}}
 
+  //{{{ onAverage
+  public void onAverage(ActionEvent ev) {
+    int interval = 6;
+    long startTime = System.currentTimeMillis();
+    TreeMap phiMap = new TreeMap<Double, ArrayList>();
+    addAllDataPoints();
+    Iterator iter = allPoints.iterator();
+    RamaTable rama = new RamaTable();
+    while (iter.hasNext()) {
+      KPoint pt = (KPoint) iter.next();
+      rama.add(pt.getX(), pt.getY(), pt.getZ());
+    }
+    iter = allPoints.iterator();
+    while (iter.hasNext()) {
+      KPoint pt = (KPoint) iter.next();
+      double mm = rama.get(pt.getX()-interval, pt.getY()-interval);
+      double mp = rama.get(pt.getX()-interval, pt.getY()+interval);
+      double pm = rama.get(pt.getX()+interval, pt.getY()-interval);
+      double pp = rama.get(pt.getX()+interval, pt.getY()+interval);
+      if (!Double.isNaN(mm)&&!Double.isNaN(mp)&&!Double.isNaN(pm)&&!Double.isNaN(pp)) {
+        double val = pt.getZ();
+        pt.setZ((val+mm+mp+pm+pp)/5);
+      }
+    }
+    long endTime = System.currentTimeMillis();
+    
+    System.out.println("Total Time to avg: " + ((endTime-startTime)/1000) + " seconds");
+  }
+  //}}}
+  
+  //{{{ onZero
+  public void onZero(ActionEvent ev) {
+    addAllDataPoints();
+    Iterator iter = allPoints.iterator();
+    double maxVal = -100000;
+    while (iter.hasNext()) {
+      KPoint pt = (KPoint) iter.next();
+      double val = pt.getZ();
+      if (val > maxVal) {
+        maxVal = val;
+      }
+    }
+    iter = allPoints.iterator();
+    while (iter.hasNext()) {
+      KPoint pt = (KPoint) iter.next();
+      pt.setZ(pt.getZ() - maxVal);
+    }
+  }
+  //}}}
+  
+  //{{{ onAdd
+  public void onAdd(ActionEvent ev) {
+    addAllDataPoints();
+    Iterator iter = allPoints.iterator();
+    while (iter.hasNext()) {
+      KPoint pt = (KPoint) iter.next();
+      pt.setZ(pt.getZ() + 0.5);
+    }
+  }
+  //}}}
+  
 //{{{ event functions
 //###############################################################################################
     /**
