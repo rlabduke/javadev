@@ -6,6 +6,7 @@ import driftwood.r3.*;
 
 import java.util.*;
 import java.io.*;
+import java.util.zip.*;
 import java.text.*;
 
 /**
@@ -68,9 +69,9 @@ public class FragmentLibraryCreator {
     ArrayList<String> argList = parseArgs(args);
     long startTime = System.currentTimeMillis();
     if (argList.size() < 3) {
-	    System.out.println("Not enough arguments, you need a size range, a directory, and an outfile, in that order!");
+	    System.out.println("Not enough arguments, you need a size range, a directory, and an outfile prefix, in that order!");
     } else if (argList.size() > 3) {
-      System.out.println("Too many arguments, you need a size range, a directory, and an outfile, in that order!");
+      System.out.println("Too many arguments, you need a size range, a directory, and an outfile prefix, in that order!");
     } else {
       //int size = Integer.parseInt(args[0]);
       File pdbsDirectory = new File(argList.get(1));
@@ -122,7 +123,7 @@ public class FragmentLibraryCreator {
     for (File f : files) {
       String name = f.getName();
       System.out.println(name);
-      if (name.endsWith(".pdb")) {
+      if (name.endsWith(".pdb")||name.endsWith(".pdb.gz")) {
         pdbs.add(f);
       }
     }
@@ -140,11 +141,28 @@ public class FragmentLibraryCreator {
   public CoordinateFile readFile(File f) {
     try {
 	    //System.out.println("reading in file");
+      InputStream input = new FileInputStream(f);
+      LineNumberReader    lnr;
+      
+      // Test for GZIPped files
+      input = new BufferedInputStream(input);
+      input.mark(10);
+      if(input.read() == 31 && input.read() == 139)
+      {
+        // We've found the gzip magic numbers...
+        input.reset();
+        input = new GZIPInputStream(input);
+      }
+      else input.reset();
+      
+      lnr = new LineNumberReader(new InputStreamReader(input));
+      
 	    PdbReader reader = new PdbReader();
 	    reader.setUseSegID(false);
       //File pdb = new File(f);
-	    CoordinateFile coordFile = reader.read(f);
+	    CoordinateFile coordFile = reader.read(lnr);
 	    System.out.println(coordFile.getIdCode()+" has been read");
+      lnr.close();
       return coordFile;
     }
     catch (IOException e) {
