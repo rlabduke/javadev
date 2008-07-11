@@ -9,6 +9,8 @@ import java.text.*;
 
 import driftwood.r3.*;
 import driftwood.moldb2.*;
+import driftwood.data.*;
+import molikin.logic.*;
 //}}}
 
 public class Absigner {
@@ -19,6 +21,8 @@ public class Absigner {
   
   //{{{ Variables
   Parameters params = null;
+  CoordinateFile pdb = null;
+  HashMap<Residue, Integer> alphaMap = null;
   //}}}
   
   //{{{ main
@@ -38,13 +42,13 @@ public class Absigner {
   public Absigner(File f) {
     String name = f.getName();
     System.out.println(name);
-    CoordinateFile pdb = null;
+    pdb = null;
     if (name.endsWith(".pdb")||name.endsWith(".pdb.gz")) {
       pdb = readFile(f);
     }
     params = new Parameters();
-    analyzePdb(1, pdb);
-    analyzePdb(2, pdb);
+    analyzePdb(1);
+    analyzePdb(2);
   }
   //}}}
   
@@ -60,6 +64,8 @@ public class Absigner {
         if(arg.equals("-h") || arg.equals("-help")) {
           System.err.println("Help not available. Sorry!");
           System.exit(0);
+        } else if (arg.equals("-kin")) {
+          
         } else {
           System.err.println("*** Unrecognized option: "+arg);
         }
@@ -108,7 +114,7 @@ public class Absigner {
   //}}}
   
   //{{{ analyzePdb
-  public void analyzePdb(int fraglength, CoordinateFile pdb) {
+  public void analyzePdb(int fraglength) {
     //String libParams = "";
     //CoordinateFile pdb = readFile(f);
     if (pdb == null) {
@@ -129,7 +135,7 @@ public class Absigner {
   //{{{ fragalyze
   public void fragalyze(String pdbId, Model mod, Set<Residue> residues, int size) {
     ArrayList<Residue> currFrag = new ArrayList();
-    HashMap<Residue, Integer> alphaMap = new HashMap<Residue, Integer>();
+    alphaMap = new HashMap<Residue, Integer>();
     for (Residue res : residues) {
       alphaMap.put(res, new Integer(0));
     }
@@ -158,6 +164,9 @@ public class Absigner {
         }
         currFrag.remove(0);
       }
+    }
+    for (Residue res : residues) {
+      System.out.println(res.toString() + " " + alphaMap.get(res).toString());
     }
   }
   //}}}
@@ -247,6 +256,36 @@ public class Absigner {
       }
     }
     return inRange;
+  }
+  //}}}
+  
+  //{{{ gets
+  public CoordinateFile getPdb() {
+    return pdb;
+  }
+  
+  public HashMap<Residue, Integer> getAlphaMap() {
+    return alphaMap;
+  }
+  //}}}
+  
+  //{{{ printKinemage
+  public void printKinemage(CoordinateFile inputPdb, PrintWriter out) {
+    //File pdbout = new File(f, sub.getName() + ".pdb");
+    out.println("@kinemage");
+    BallAndStickLogic bsl = new BallAndStickLogic();
+    bsl.doProtein = true;
+    bsl.doBackbone = true;
+    bsl.doSidechains = true;
+    bsl.doHydrogens = true;
+    bsl.colorBy = BallAndStickLogic.COLOR_BY_MC_SC;
+    Iterator iter = inputPdb.getModels().iterator();
+    while (iter.hasNext()) {
+      Model mod = (Model) iter.next();
+      out.println("@group {"+inputPdb.getIdCode()+" "+mod.getName()+"} dominant master= {input pdb}");
+      bsl.printKinemage(out, mod, new UberSet(mod.getResidues()), "bluetint");
+    }
+    out.flush();
   }
   //}}}
   
