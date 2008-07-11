@@ -36,9 +36,9 @@ public class Parameters {
     alphaParams = new ArrayList<Parameter>();
     alphaSD = new ArrayList<Parameter>();
     Parameter alpha1 = new Parameter(   3.788, 91.2, 92.2, -74, 51, 125);
-    Parameter alpha1sd = new Parameter( 0.2  ,  3  ,  3  ,   5,  4,   5);
+    Parameter alpha1sd = new Parameter( 0.2  ,  5  ,  5  ,   5,  4,   5);
     Parameter alpha2 = new Parameter(5.4, 66, 62, -37, 113, 160.5);
-    Parameter alpha2sd = new Parameter(0.4, 3, 3, 6, 6, 6);
+    Parameter alpha2sd = new Parameter(0.4, 5, 5, 6, 6, 6);
     alphaParams.add(alpha1);
     alphaParams.add(alpha2);
     alphaSD.add(alpha1sd);
