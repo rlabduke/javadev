@@ -115,6 +115,11 @@ public class Absigner {
   
   //{{{ analyzePdb
   public void analyzePdb(int fraglength) {
+    double[] multipliers = new double[] {1, 1, 1, 1, 1, 1};
+    analyzePdb(fraglength, multipliers);
+  }
+  
+  public void analyzePdb(int fraglength, double[] sdMultipliers) {
     //String libParams = "";
     //CoordinateFile pdb = readFile(f);
     if (pdb == null) {
@@ -125,7 +130,7 @@ public class Absigner {
       for (String cid : chains) {
         System.out.println("Chain -" + cid + "-");
         Set<Residue> residues = first.getChain(cid);
-        fragalyze(pdb.getIdCode(), first, residues, fraglength);
+        fragalyze(pdb.getIdCode(), first, residues, fraglength, sdMultipliers);
       }
     }
     //return libParams+"\n";
@@ -133,7 +138,7 @@ public class Absigner {
   //}}}
 
   //{{{ fragalyze
-  public void fragalyze(String pdbId, Model mod, Set<Residue> residues, int size) {
+  public void fragalyze(String pdbId, Model mod, Set<Residue> residues, int size, double[] sdMultipliers) {
     ArrayList<Residue> currFrag = new ArrayList();
     alphaMap = new HashMap<Residue, Integer>();
     for (Residue res : residues) {
@@ -155,9 +160,14 @@ public class Absigner {
       }
       if (currFrag.size() == size + 3) {
         double[] currParams = parameterize(mod, currFrag, size);
-        if (inAlphaRange(currParams, params.getAlphaSize(size), params.getAlphaSD(size))) {
+        double[] alphaSD = multiply(params.getAlphaSD(size), sdMultipliers);
+        //for (double sd : alphaSD) {
+        //  System.out.print(sd+" ");
+        //}
+        //System.out.println();
+        if (inAlphaRange(currParams, params.getAlphaSize(size), alphaSD)) {
           for (Residue alphaLike : currFrag) {
-            System.out.println(alphaLike.toString()+" is alpha-like");
+            //System.out.println(alphaLike.toString()+" is alpha-like");
             Integer count = alphaMap.get(alphaLike);
             alphaMap.put(alphaLike, new Integer(count.intValue() + 1));
           }
@@ -166,7 +176,7 @@ public class Absigner {
       }
     }
     for (Residue res : residues) {
-      System.out.println(res.toString() + " " + alphaMap.get(res).toString());
+      //System.out.println(res.toString() + " " + alphaMap.get(res).toString());
     }
   }
   //}}}
@@ -219,8 +229,8 @@ public class Absigner {
       parameters = frameAnalyze(ca0, ca1, caN, caN1, co0, coN);
       //return parameters;
       //params = params.concat(String.valueOf(size)+":"+zeroRes.getSequenceNumber().trim()+":");
-      for (double d : parameters) { System.out.print(df.format(d)+":"); }
-      System.out.println();
+      //for (double d : parameters) { System.out.print(df.format(d)+":"); }
+      //System.out.println();
     } catch (AtomException ae) {
       System.err.println("Problem with atom " + ae.getMessage());
     }
@@ -259,12 +269,32 @@ public class Absigner {
   }
   //}}}
   
+  //{{{ multiply
+  public double[] multiply(double[] sd, double[] multiplier) {
+    double[] newSd = new double[sd.length];
+    for (int i = 0; i < sd.length; i++) {
+      newSd[i] = sd[i] * multiplier[i];
+    }
+    return newSd;
+  }
+  //}}}
+  
   //{{{ gets
   public CoordinateFile getPdb() {
     return pdb;
   }
   
   public HashMap<Residue, Integer> getAlphaMap() {
+    for (int i = 1; i <= 2; i++) {
+      analyzePdb(i);
+    }
+    return alphaMap;
+  }
+  
+  public HashMap<Residue, Integer> getAlphaMap(double[] sdMultiplier) {
+    for (int i = 1; i <= 2; i++) {
+      analyzePdb(i, sdMultiplier);
+    }
     return alphaMap;
   }
   //}}}

@@ -17,6 +17,7 @@ import molikin.*;
 //import driftwood.data.*;
 
 //import driftwood.util.*;
+//}}}
 
 public class AbsignerPlugin extends king.Plugin {
   
@@ -48,7 +49,8 @@ public class AbsignerPlugin extends king.Plugin {
         if(f != null && f.exists()) {
           ab = new Absigner(f);
           buildKinemage(null);
-          recolorKinemage(kMain.getKinemage());
+          exploreParameters();
+          //recolorKinemage(kMain.getKinemage());
         }
       //}
       //catch(IOException ex) {
@@ -76,11 +78,11 @@ public class AbsignerPlugin extends king.Plugin {
   }
   //}}}
   
-  //{{{ recolorKinemage
-  public void recolorKinemage(Kinemage kin) {
+  //{{{ recolorGroup
+  public void recolorGroup(KGroup group, double[] multiplier) {
     PrekinIDer ider = new PrekinIDer();
     HashMap<String, Integer> pointMap = new HashMap<String, Integer>();
-    HashMap<Residue, Integer> alphaMap = ab.getAlphaMap();
+    HashMap<Residue, Integer> alphaMap = ab.getAlphaMap(multiplier);
     CoordinateFile pdb = ab.getPdb();
     Model first = pdb.getFirstModel();
     ModelState state = first.getState();
@@ -101,18 +103,36 @@ public class AbsignerPlugin extends king.Plugin {
         }
       }
     }
-    KIterator<KPoint> points = KIterator.allPoints(kin);
+    KIterator<KPoint> points = KIterator.allPoints(group);
     for (KPoint pt : points) {
-      int alphaValue = pointMap.get(pt.getName()).intValue();
-      if (alphaValue == 0) {
-        pt.setColor(KPalette.white);
-      } else if (alphaValue == 1) {
-        pt.setColor(KPalette.yellowtint);
-      } else if (alphaValue == 2) {
-        pt.setColor(KPalette.greentint);
-      } else if (alphaValue > 2) {
-        pt.setColor(KPalette.green);
+      if (pointMap.containsKey(pt.getName())) {
+        int alphaValue = pointMap.get(pt.getName()).intValue();
+        if (alphaValue == 0) {
+          pt.setColor(KPalette.white);
+        } else if (alphaValue == 1) {
+          pt.setColor(KPalette.yellowtint);
+        } else if (alphaValue == 2) {
+          pt.setColor(KPalette.greentint);
+        } else if (alphaValue >= 3) {
+          pt.setColor(KPalette.green);
+        }
+      } else {
+        System.err.println("Point Map does not have key for " + pt);
       }
+    }
+  }
+  //}}}
+  
+  //{{{ exploreParameters
+  public void exploreParameters() {
+    Kinemage kin = kMain.getKinemage();
+    KGroup group = (KGroup) kin.getChildren().get(0);
+    for (int i = 1; i <= 30; i++) {
+      group.setAnimate(true);
+      KGroup gClone = group.clone(true);
+      double[] mult = new double[] {i, i, i, i, i, i};
+      recolorGroup(gClone, mult);
+      kin.add(gClone);
     }
   }
   //}}}
