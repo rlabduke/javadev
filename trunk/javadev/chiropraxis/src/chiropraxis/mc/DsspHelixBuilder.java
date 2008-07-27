@@ -71,10 +71,8 @@ public class DsspHelixBuilder //extends ... implements ...
         Collection peptides = createPeptides(model, state);
         connectPeptides(peptides);
         
-        
-        for (Iterator iter = peptides.iterator(); iter.hasNext(); )
+        if (verbose) for (Iterator iter = peptides.iterator(); iter.hasNext(); )
             System.err.println((Peptide) iter.next());
-        
         
         findHBonds(peptides, state);
         getPsiPhis(peptides, state);
@@ -83,10 +81,8 @@ public class DsspHelixBuilder //extends ... implements ...
         buildMinHelices(peptides, model);
         buildHelices(model, state);
         
-        
-        System.err.println(".. done testing.");
-        System.exit(0);
-        
+        //System.err.println(".. done testing.");
+        //System.exit(0);
         
         // Axis & N-cap stuff
         findAxes(model, state);
