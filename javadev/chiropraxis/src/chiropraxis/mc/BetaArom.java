@@ -97,6 +97,9 @@ public class BetaArom //extends ... implements ...
     /** Tau (N-Ca-C) angle of aromatic, aromatic i-1, & aromatic i+1 */
     public double aromPrevTau, aromTau, aromNextTau;
     
+    /** Angle from Cg(i,arom)-Cb(i,arom)-Ca(i,arom) */
+    public double cgcbcaAngle;
+    
     /** Some other angle not yet defined... */
     //?????
     
