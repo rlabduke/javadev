@@ -431,6 +431,7 @@ public class SheetBuilder //extends ... implements ...
                             
                             //{{{ Angles, dihedrals, & other msrmts
                                 // Ed's angle btw Cb(arom)-Ca(arom)-Ca(opp)
+                                Triple cgArom = state.get(pepM.cRes.getAtom(" CG "));
                                 Triple cbArom = state.get(pepM.cRes.getAtom(" CB "));
                                 Triple caArom = state.get(pepM.cRes.getAtom(" CA "));
                                 Triple caOpp  = state.get(pepN.nRes.getAtom(" CA "));
@@ -499,6 +500,9 @@ public class SheetBuilder //extends ... implements ...
                                 ba.aromPrevTau = Triple.angle(nAromPrev, caAromPrev, cAromPrev);
                                 ba.aromTau     = Triple.angle(nArom,     caArom,     cArom    );
                                 ba.aromNextTau = Triple.angle(nAromNext, caAromNext, cAromNext);
+                                
+                                // Angle btw Cg(i,arom)-Cb(i,arom)-Ca(i,arom)
+                                ba.cgcbcaAngle = Triple.angle(cgArom, cbArom, caArom);
                                 
                                 // Some other angles/measurements...
                                 //???
@@ -1564,7 +1568,8 @@ public class SheetBuilder //extends ... implements ...
             "tau_arom_i-1:tau_arom:tau_arom_i+1:"+
             "CaCb_6CaNormal:CaCb_Across:CaCb_Along:"+
             "CaCb_AcrossConcavity:"+
-            "CaCb_AlongConcavity");
+            "CaCb_AlongConcavity:"+
+            "CgCbCa");
         
         // Data
         for (BetaArom ba : betaAroms)
@@ -1638,6 +1643,8 @@ public class SheetBuilder //extends ... implements ...
                 }
             }
             out.print(alongAngles);
+            
+            out.print(":"+ba.cgcbcaAngle);
             
             out.println();
         }
