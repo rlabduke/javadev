@@ -8,6 +8,7 @@ import java.io.*;
 import driftwood.moldb2.*;
 import driftwood.data.*;
 import driftwood.r3.*;
+import driftwood.util.*;
 //}}}
 
 public class PdbLibraryReader {
@@ -20,10 +21,12 @@ public class PdbLibraryReader {
   CoordinateFile currentPdb;
   String currentChain;
   ZipFile zip;
+  boolean renumber;
   //}}}
   
   //{{{ Constructor
-  public PdbLibraryReader(File location) {
+  public PdbLibraryReader(File location, boolean renum) {
+    renumber = renum;
     File[] pdbFiles = location.listFiles();
     pdbMap = new HashMap<String, ZipEntry>();
     for (File f : pdbFiles) {
@@ -81,7 +84,7 @@ public class PdbLibraryReader {
   //}}}
   
   //{{{ getFragment
-  public Model getFragment(String modNum, String chain, int startRes, int length) {
+  public Model getFragment(String modNum, String chain, int startRes, int length, int renum) {
     //CoordinateFile pdbFile = readPdb(pdbName);
     //UberSet fragRes = new UberSet();
     Model fragModel = new Model(modNum);
@@ -124,7 +127,53 @@ public class PdbLibraryReader {
       System.err.println("No pdb set in PdbLibraryReader!");
     }
     trimFragment(fragModel);
+    if (renumber) {
+      fragModel = renumberFragment(fragModel, renum);
+    }
     return fragModel;
+  }
+  //}}}
+  
+  //{{{ renumberFragment
+  public Model renumberFragment(Model frag, int startNum) {
+    ModelState fragState = frag.getState();
+    Model newModel = new Model(frag.getName());
+    ModelState newState = new ModelState();
+    TreeMap stateMap = new TreeMap();
+    stateMap.put(" ", newState);
+    newModel.setStates(stateMap);
+    Set<String> chains = frag.getChainIDs();
+    for (String chain : chains) {
+      try {
+        Collection<Residue> modResidues = frag.getChain(chain);
+        for (Residue res : modResidues) {
+          String newSeqNum = Strings.justifyRight(Integer.toString(startNum), 4);
+          //System.out.println(newSeqNum);
+          Residue resClone = new Residue(res, res.getChain(), res.getSegment(), newSeqNum, res.getInsertionCode(), res.getName());
+          newModel.add(resClone);
+          ArrayList resAtoms = new ArrayList(res.getAtoms());
+          ArrayList cloneAtoms = new ArrayList(resClone.getAtoms());
+          for (int i = 0; i < resAtoms.size(); i++) {
+            Atom resAt = (Atom) resAtoms.get(i);
+            //System.out.print(resAt + "->");
+            Atom cloneAt = (Atom) cloneAtoms.get(i);
+            //System.out.println(cloneAt);
+            AtomState resState = fragState.get(resAt);
+            //System.out.print(resState.getElement() + "->");
+            newState.add(resState.cloneFor(cloneAt));
+            //System.out.println(resState.cloneFor(cloneAt).getElement());
+          }
+          //newModel.add(resClone);
+          //resClone.cloneStates(res, fragState, newState);
+          startNum++;
+        }
+      } catch (AtomException ae) {
+        System.err.println("Error occurred during renumbering of atom in PdbLibraryReader.");
+      } catch (ResidueException re) {
+        System.err.println("Error occurred during renumbering of residue in PdbLibraryReader.");
+      }
+    }
+    return newModel;
   }
   //}}}
   

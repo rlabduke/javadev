@@ -278,7 +278,7 @@ public class FragFiller implements Filler {
         int length = Integer.parseInt(splitInfo[2]);
         int startRes = Integer.parseInt(splitInfo[3]);
         libReader.setCurrentPdb(pdbName, chain);
-        Model frag = libReader.getFragment(Integer.toString(ind), chain, startRes, length); //set of residues
+        Model frag = libReader.getFragment(Integer.toString(ind), chain, startRes, length, gap.getOneNum()-1); //set of residues
         if (frag != null) {
           //SuperPoser poser = null;
           try {
@@ -302,6 +302,7 @@ public class FragFiller implements Filler {
             }
           } catch (AtomException ae) {
             System.err.println("Problem with atom " + ae.getMessage() + " in pdb " + pdbName);
+            ae.printStackTrace(System.err);
           }
         }
       }

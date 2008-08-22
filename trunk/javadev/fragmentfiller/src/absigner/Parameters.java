@@ -45,8 +45,14 @@ public class Parameters {
     alphaParams.add(alpha2);
     alphaSD.add(alpha1sd);
     alphaSD.add(alpha2sd);
+    betaParams = new ArrayList<Parameter>();
+    betaSD = new ArrayList<Parameter>();
+    Parameter beta1 = new Parameter(    3.8,     122.8,   117.2,  -60,    -169,   -85     );
+    Parameter beta1sd = new Parameter(  0.1,       1,       1,      5,      1,      5     );
     Parameter beta2 = new Parameter(    6.357,   161.6,   167,   -124.6,   12.8,  -31.9   );
-    Parameter beta2sd = new Parameter(  0.1,       1,       1,      1,      1,      1     );
+    Parameter beta2sd = new Parameter(  0.1,       1,       1,      5,      5,      5     );
+    betaParams.add(beta1);
+    betaSD.add(beta1sd);
     betaParams.add(beta2);
     betaSD.add(beta2sd);
   }
@@ -102,11 +108,13 @@ public class Parameters {
   
   //{{{ inRange
   public static boolean inRange(double[] currFrag, double[] ssParams, double[] paramsSD) {
-    if ((currFrag[0] > ssParams[0] + paramsSD[0]) || (currFrag[0] < ssParams[0] - paramsSD[0])) {
-      return false;
+    for (int i = 0; i < 3; i++) {
+      if ((currFrag[i] > ssParams[i] + paramsSD[i]) || (currFrag[i] < ssParams[i] - paramsSD[i])) {
+        return false;
+      }
     }
-    for (int i = 1; i < ssParams.length; i++) {
-      if (angleInRange(currFrag[i], ssParams[i], paramsSD[i])) {
+    for (int i = 3; i < ssParams.length; i++) {
+      if (!angleInRange(currFrag[i], ssParams[i], paramsSD[i])) {
         return false;
       }
     }
@@ -116,16 +124,16 @@ public class Parameters {
   
   //{{{ angleInRange
   public static boolean angleInRange(double value, double param, double sd) {
-    if (param > 180 - sd) {
+    if (param >= 180 - sd) {
       if (!((value >= param - sd) || (value <= -360 + param + sd))) {
         return false;
       }
-    } else if (param < -180 + sd) {
+    } else if (param <= -180 + sd) {
       if (!((value <= param + sd) || (value >= 360 + param - sd))) {
         return false;
       }
     } else {
-      if ((value > param + sd) || (value < param + sd)) {
+      if ((value > param + sd) || (value < param - sd)) {
         return false;
       }
     }
