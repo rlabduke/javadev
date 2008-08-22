@@ -263,7 +263,7 @@ public class StemFiller implements Filler {
       ArrayList<String> listofFiller = filledMap.get(stem);
       //ArrayList<Triple> stemFrameStates = stemFrameAtomsMap.get(stem);
       System.out.println(listofFiller.size());
-      for (int ind = 0; ((ind < 20000)&&(ind < listofFiller.size())); ind++) {
+      for (int ind = 0; ((ind < 100)&&(ind < listofFiller.size())); ind++) {
         String info = listofFiller.get(ind);
         String[] splitInfo = info.split(" ");
         String pdbName = splitInfo[0]; // should be pdbname
@@ -271,7 +271,12 @@ public class StemFiller implements Filler {
         int length = Integer.parseInt(splitInfo[2]);
         int startRes = Integer.parseInt(splitInfo[3]);
         libReader.setCurrentPdb(pdbName, chain);
-        Model frag = libReader.getFragment(Integer.toString(ind), chain, startRes, length); //set of residues
+        Model frag;
+        if (stem.getStemType() == ProteinStem.N_TERM) {
+          frag = libReader.getFragment(Integer.toString(ind), chain, startRes, length, stem.getOneNum()-1); //set of residues
+        } else {
+          frag = libReader.getFragment(Integer.toString(ind), chain, startRes, length, stem.getOneNum()-length-1);
+        }
         if (frag != null) {
           //SuperPoser poser = null;
           try {

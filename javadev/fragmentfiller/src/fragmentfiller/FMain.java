@@ -59,6 +59,7 @@ public class FMain {
   static int matchDiff;
   static boolean ntermsup = false;
   static boolean useStems = false;
+  static boolean renumber = false;
   //JFileChooser        filechooser     = null;
   //ProgressDialog progDiag;
   //KGroup group;
@@ -135,8 +136,10 @@ public class FMain {
           }
         } else if (arg.equals("-ntermsup")) {
           ntermsup = true;
-        } else if (arg.equals("-stems")) {
+        } else if (arg.equals("-stems")||arg.equals("-stem")) {
           useStems = true;
+        } else if (arg.equals("-renumber")) {
+          renumber = true;
         } else {
           System.err.println("*** Unrecognized option: "+arg);
         }
@@ -192,7 +195,7 @@ public class FMain {
       Integer end = simulatedGaps.get(start);
       analyzer.simulateGap(start.intValue(), end.intValue());
     }
-    readPdbLibrary();
+    libReader = new PdbLibraryReader(pdbLibrary, renumber);
     CoordinateFile[] pdbOut;
     Map<String, ArrayList<ProteinGap>> gaps = analyzer.getGaps(); // stems need gaps!
     if (!useStems) {
@@ -238,11 +241,11 @@ public class FMain {
   //}}}
   
   //{{{ readPdbLibrary
-  public void readPdbLibrary() {
-
-    libReader = new PdbLibraryReader(pdbLibrary);
-
-  }
+  //public void readPdbLibrary() {
+  //
+  //  libReader = new PdbLibraryReader(pdbLibrary);
+  //
+  //}
   //}}}
   
   //{{{ writePdbs

@@ -23,6 +23,7 @@ public class Absigner {
   Parameters params = null;
   CoordinateFile pdb = null;
   HashMap<Residue, Integer> alphaMap = null;
+  HashMap<Residue, Integer> betaMap = null;
   //}}}
   
   //{{{ main
@@ -47,7 +48,7 @@ public class Absigner {
       pdb = readFile(f);
     }
     params = new Parameters();
-    analyzePdb(1);
+    //analyzePdb(1);
     analyzePdb(2);
   }
   //}}}
@@ -125,10 +126,13 @@ public class Absigner {
     if (pdb == null) {
       System.err.println("Somehow a file wasn't readable");
     } else {
+      alphaMap = new HashMap<Residue, Integer>();
+      betaMap = new HashMap<Residue, Integer>();
+
       Model first = pdb.getFirstModel();
       Set<String> chains = first.getChainIDs();
       for (String cid : chains) {
-        System.out.println("Chain -" + cid + "-");
+        //System.out.println("Chain -" + cid + "-");
         Set<Residue> residues = first.getChain(cid);
         fragalyze(pdb.getIdCode(), first, residues, fraglength, sdMultipliers);
       }
@@ -140,9 +144,13 @@ public class Absigner {
   //{{{ fragalyze
   public void fragalyze(String pdbId, Model mod, Set<Residue> residues, int size, double[] sdMultipliers) {
     ArrayList<Residue> currFrag = new ArrayList();
-    alphaMap = new HashMap<Residue, Integer>();
     for (Residue res : residues) {
-      alphaMap.put(res, new Integer(0));
+      if (!alphaMap.containsKey(res)) {
+        alphaMap.put(res, new Integer(0));
+      }
+      if (!betaMap.containsKey(res)) {
+        betaMap.put(res, new Integer(0));
+      }
     }
     //double maxBfactor = 0;
     //String params = "";
@@ -165,11 +173,20 @@ public class Absigner {
         //  System.out.print(sd+" ");
         //}
         //System.out.println();
-        if (inAlphaRange(currParams, params.getAlphaSize(size), alphaSD)) {
+        if (Parameters.inRange(currParams, params.getAlphaSize(size), alphaSD)) {
           for (Residue alphaLike : currFrag) {
             //System.out.println(alphaLike.toString()+" is alpha-like");
             Integer count = alphaMap.get(alphaLike);
             alphaMap.put(alphaLike, new Integer(count.intValue() + 1));
+          }
+        }
+        double[] betaSD = multiply(params.getBetaSD(size), sdMultipliers);
+        if (Parameters.inRange(currParams, params.getBetaSize(size), betaSD)) {
+          for (Residue betaLike : currFrag) {
+            
+            Integer count = betaMap.get(betaLike);
+            System.out.println(betaLike + " " + count);
+            betaMap.put(betaLike, new Integer(count.intValue() - 1));
           }
         }
         currFrag.remove(0);
@@ -177,6 +194,7 @@ public class Absigner {
     }
     for (Residue res : residues) {
       //System.out.println(res.toString() + " " + alphaMap.get(res).toString());
+      //System.out.println(res.toString() + " " + betaMap.get(res).toString());
     }
   }
   //}}}
@@ -257,16 +275,16 @@ public class Absigner {
   }
   //}}}
   
-  //{{{ inAlphaRange
-  public boolean inAlphaRange(double[] currFrag, double[] ssParams, double[] paramsSD) {
-    boolean inRange = true;
-    for (int i = 0; i < ssParams.length; i++) {
-      if ((currFrag[i] > ssParams[i] + paramsSD[i]) || (currFrag[i] < ssParams[i] - paramsSD[i])) {
-        inRange = false;
-      }
-    }
-    return inRange;
-  }
+  //{{{ inRange
+  //public boolean inRange(double[] currFrag, double[] ssParams, double[] paramsSD) {
+  //  boolean inRange = true;
+  //  for (int i = 0; i < ssParams.length; i++) {
+  //    if ((currFrag[i] > ssParams[i] + paramsSD[i]) || (currFrag[i] < ssParams[i] - paramsSD[i])) {
+  //      inRange = false;
+  //    }
+  //  }
+  //  return inRange;
+  //}
   //}}}
   
   //{{{ multiply
@@ -279,16 +297,28 @@ public class Absigner {
   }
   //}}}
   
+  //{{{ recalculate
+  public void recalculate(int[] paramSizes, double[] sdMultiplier) {
+    for (int i : paramSizes) {
+      analyzePdb(i, sdMultiplier);
+    }
+  }
+  //}}}
+  
   //{{{ gets
   public CoordinateFile getPdb() {
     return pdb;
   }
   
   public HashMap<Residue, Integer> getAlphaMap() {
-    for (int i = 1; i <= 2; i++) {
-      analyzePdb(i);
-    }
+    //for (int i = 1; i <= 2; i++) {
+    //  analyzePdb(i);
+    //}
     return alphaMap;
+  }
+  
+  public HashMap<Residue, Integer> getBetaMap() {
+    return betaMap;
   }
   
   public HashMap<Residue, Integer> getAlphaMap(double[] sdMultiplier) {
@@ -296,6 +326,13 @@ public class Absigner {
       analyzePdb(i, sdMultiplier);
     }
     return alphaMap;
+  }
+  
+  public HashMap<Residue, Integer> getBetaMap(double[] sdMultiplier) {
+    for (int i = 1; i <= 2; i++) {
+      analyzePdb(i, sdMultiplier);
+    }
+    return betaMap;
   }
   //}}}
   

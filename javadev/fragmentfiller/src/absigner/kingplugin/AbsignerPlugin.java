@@ -82,7 +82,10 @@ public class AbsignerPlugin extends king.Plugin {
   public void recolorGroup(KGroup group, double[] multiplier) {
     PrekinIDer ider = new PrekinIDer();
     HashMap<String, Integer> pointMap = new HashMap<String, Integer>();
-    HashMap<Residue, Integer> alphaMap = ab.getAlphaMap(multiplier);
+    int[] paramSizes = {2};
+    ab.recalculate(paramSizes, multiplier);
+    HashMap<Residue, Integer> alphaMap = ab.getAlphaMap();
+    HashMap<Residue, Integer> betaMap = ab.getBetaMap();
     CoordinateFile pdb = ab.getPdb();
     Model first = pdb.getFirstModel();
     ModelState state = first.getState();
@@ -96,7 +99,11 @@ public class AbsignerPlugin extends king.Plugin {
             Atom at = (Atom) atoms.next();
             AtomState atst = state.get(at);
             String pointID = ider.identifyAtom(atst);
-            pointMap.put(pointID, alphaMap.get(res));
+            // I'm assuming in the following line that alpha and beta params are exclusive of each other.
+            pointMap.put(pointID, new Integer(alphaMap.get(res).intValue() + betaMap.get(res).intValue()));
+            if (betaMap.get(res).intValue() != 0) {
+              //System.out.println(new Integer(betaMap.get(res).intValue()));
+            }
           } catch (AtomException ae) {
             //shouldn't ever happen...i think
           }
@@ -115,6 +122,12 @@ public class AbsignerPlugin extends king.Plugin {
           pt.setColor(KPalette.greentint);
         } else if (alphaValue >= 3) {
           pt.setColor(KPalette.green);
+        } else if (alphaValue == -1) {
+          pt.setColor(KPalette.pinktint);
+        } else if (alphaValue == -2) {
+          pt.setColor(KPalette.pink);
+        } else if (alphaValue <= -3) {
+          pt.setColor(KPalette.hotpink);
         }
       } else {
         System.err.println("Point Map does not have key for " + pt);
@@ -158,7 +171,32 @@ public class AbsignerPlugin extends king.Plugin {
   public JMenuItem getToolsMenuItem()
   {
     JMenuItem item = new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onOpenFile"));
+    //JMenuItem item = new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onTest"));
     return item;
+  }
+  //}}}
+  
+  //{{{ onTest
+  public void onTest(ActionEvent ev) {
+    checkAngleInRange(150, 160, 15, true);
+    checkAngleInRange(150, 160, 10, true);
+    checkAngleInRange(150, 150, 0, true);
+    checkAngleInRange(170, -170, 20, true);
+    checkAngleInRange(-170, 170, 20, true);
+    checkAngleInRange(-180, 180, 0, true);
+    checkAngleInRange(180, -180, 0, true);
+    checkAngleInRange(0, 5, 10, true);
+    checkAngleInRange(0, -5, 10, true);
+    checkAngleInRange(150, 151, 0, false);
+    checkAngleInRange(170, -170, 10, false);
+    checkAngleInRange(-170, 170, 10, false);
+    System.out.println("Test complete");
+  }
+  
+  private void checkAngleInRange(double val, double param, double sd, boolean result) {
+    if (Parameters.angleInRange(val, param, sd) != result) {
+      System.out.println("ERROR: "+Double.toString(val)+" +/- "+Double.toString(sd)+" not "+result+" of "+Double.toString(param));
+    }
   }
   //}}}
   
