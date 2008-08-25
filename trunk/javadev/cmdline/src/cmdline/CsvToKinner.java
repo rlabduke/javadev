@@ -55,6 +55,7 @@ public class CsvToKinner
     ArrayList<String>   rotaBalls;
     boolean             altFrame;
     String              color;
+    ArrayList<String>   masters;
     boolean             verbose;
     
 //}}}
@@ -84,6 +85,7 @@ public class CsvToKinner
         rotaBalls       = null;
         altFrame        = false;
         color           = "white";
+        masters         = null;
         verbose         = false;
     }
 //}}}
@@ -535,6 +537,9 @@ public class CsvToKinner
         // Heading stuff
         printHeading();
         
+        // Group containing data
+        printDataGroup();
+        
         // Frame and labels
         if (!noFrame)
         {
@@ -546,9 +551,6 @@ public class CsvToKinner
             else
                 printDavesFrameAndLabels();
         }
-        
-        // Group containing data
-        printDataGroup();
         
         // Dotlist for common-atom value for each rotamer
         if (rotaBalls != null)
@@ -595,7 +597,7 @@ public class CsvToKinner
 //##################################################################################################
 	private void printDavesFrameAndLabels()
 	{
-        System.out.println("@group {frame} dominant");
+        System.out.println("@subgroup {Dave's frame} dominant master= {frame}");
         System.out.println("@vectorlist {frame} color= white");
         System.out.println("P  0.000 0.000 0.000");
         System.out.println(" 5.000 0.000 0.000");
@@ -627,6 +629,7 @@ public class CsvToKinner
         System.out.println(" 0.000 0.000 280.000");
         System.out.println("P  0.000 0.000 320.000");
         System.out.println(" 0.000 0.000 360.000");
+        System.out.println("@subgroup {Dave's labels} dominant master= {labels}");
         System.out.println("@labellist {XYZ} color= white");
         System.out.println("{X} 20.000 -5.000 -5.000");
         System.out.println("{X} 380.000 -5.000 -5.000");
@@ -653,8 +656,8 @@ public class CsvToKinner
 	{
         if (verbose) System.err.println("adding alt frame...");
         
-        System.out.println("@group {frame} dominant ");
-        System.out.println("@vectorlist {frame} color= white");
+        System.out.println("@subgroup {frame} dominant master= {frame} ");
+        System.out.println("@vectorlist {frame} color= white ");
         
         // Now, axis generation is general so that only the columns the user
         // desires to be wrapped (but not necessarily all of the columns the user
@@ -736,8 +739,8 @@ public class CsvToKinner
 	{
         if (verbose) System.err.println("adding alt labels...");
         
-        System.out.println("@group {labels} dominant");
-        System.out.println("@labellist {XYZ} color= white");
+        System.out.println("@subgroup {labels} dominant master= {labels} ");
+        System.out.println("@labellist {XYZ} color= white ");
         
         // Now, axis generation is general so that only the columns the user
         // desires to be wrapped (but not necessarily all of the columns the user
@@ -833,12 +836,14 @@ public class CsvToKinner
                 else                     System.out.print("col"+cols[i]);
             }
         }
-        System.out.print("} animate dominant ");
-        if (numDims > 3) System.out.print("dimension="+numDims+" "); // select???
+        System.out.print("} animate ");
+        if (masters != null)  for (String master : masters)  System.out.print("master= {"+master+"} ");
+        if (numDims > 3)  System.out.print("dimension="+numDims+" "); // select???
         System.out.println();
         
-        // Dotlist
-        System.out.println("@dotlist {data} master= {data} color= "+color);
+        // Subgroup & dotlist
+        System.out.println("@subgroup {data} master= {data} dominant ");
+        System.out.println("@dotlist {data} color= "+color);
         for (int i = 0; i < pts.size(); i ++)
         {
             double[] pt = pts.get(i);
@@ -1403,6 +1408,12 @@ public class CsvToKinner
             else if(flag.equals("-color"))
             {
                 color = param;
+            }
+            else if(flag.equals("-master"))
+            {
+                masters = new ArrayList<String>();
+                String[] ms = Strings.explode(param, ',');
+                for (String m : ms)  masters.add(m);
             }
             else if(flag.equals("-dummy-option"))
             {
