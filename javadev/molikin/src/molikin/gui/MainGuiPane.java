@@ -92,7 +92,7 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
         JButton removeAll = new JButton(new ReflectiveAction("All", redMinus, this, "onRemoveAll"));
             removeAll.setHorizontalAlignment(JButton.LEFT);
         
-        String bugReporting = "Doesn't work? Send the PDB/CIF file, the kinemage, and a description of your problem to iwd@duke.edu";
+        String bugReporting = "Doesn't work? Send the PDB/CIF file, the kinemage, and a description of your problem to vbc3@duke.edu";
         
         final int insetSize = 10;
         this.insets(insetSize).memorize();
