@@ -221,9 +221,13 @@ public class SidechainAngles2 //extends ... implements ...
   public AtomState[] getAngleAtomStates(String angleName, Residue res, ModelState state) throws AtomException {
     String resDotAngle = (res.getName()+"."+angleName).toLowerCase();
     String[] atomNames = (String[])atomsForAngle.get(resDotAngle);
+    if (atomNames == null) {
+      resDotAngle = (res.getName()+".p"+angleName).toLowerCase(); // for pchi angles in pro
+      atomNames = (String[])atomsForAngle.get(resDotAngle);
+    }
     if(atomNames == null || atomNames.length < 4)
       throw new IllegalArgumentException("Angle definition bad or not found for '"+resDotAngle+"'");
-
+      
     AtomState[] asArray = new AtomState[4];
     for (int i = 0; i < asArray.length; i++) {
       String[] namelist = Strings.explode(atomNames[i], ';');
