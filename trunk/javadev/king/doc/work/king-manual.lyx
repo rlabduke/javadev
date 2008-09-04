@@ -1,4 +1,4 @@
-#LyX 1.5.1 created this file. For more info see http://www.lyx.org/
+#LyX 1.5.6 created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
@@ -218,7 +218,7 @@ Make sure you have Java
 
 \begin_layout Standard
 KiNG is written in the Java programming language, and so requires that the
- Java libraries (version 1.3 or later) be present on your computer in order
+ Java libraries (version 1.5 or later) be present on your computer in order
  for it to run.
  Newer Apple computers (those running Mac OS X) come with Java.
  Most PCs do not, though recently several manufacturers have agreed to pre-insta
@@ -244,7 +244,7 @@ target "http://java.sun.com/getjava/index.html"
 
 .
  The software is free and available for Windows, Linux, and Solaris computers.
- We recommend getting the newest version that is available (1.4.2 as of this
+ We recommend getting the newest version that is available (1.6.0 as of this
  writing).
 \end_layout
 
@@ -283,7 +283,7 @@ For Unix types who want a shell script, we recommend something like this:
 \end_layout
 
 \begin_layout LyX-Code
-exec java -Xms32m -Xmx128m -jar /home/ian/bin/jars/king.jar "$@"
+exec java -Xms32m -Xmx512m -jar /home/ian/bin/jars/king.jar "$@"
 \end_layout
 
 \begin_layout Standard
@@ -300,9 +300,10 @@ The
  The default maximum of 64 MB should be enough for almost any kinemage,
  but a few of the largest require more (hence the 
 \family typewriter
--Xmx128m
+-Xmx512m
 \family default
  recommendation).
+ 
 \end_layout
 
 \begin_layout Standard
@@ -1398,43 +1399,23 @@ jogl.jar
 .jnilib
 \family default
 ).
- As of spring 2005, the JOGL folks were distributing their native libraries
- packaged in a JAR file, too; they'll need to be extracted with a 
-\family typewriter
-jar xvf NATIVE-LIBS.JAR
-\family default
- command.
- You can remove the 
-\family typewriter
-META-INF
-\family default
- directory; it doesn't serve any purpose.
- The JOGL JAR file goes in 
-\family typewriter
-jre/lib/ext
-\family default
- of your Java installation, and the native libraries go in 
-\family typewriter
-jre/bin
-\family default
- (Windows) or 
-\family typewriter
-jre/lib/i386
-\family default
- (Linux).
- On Mac OS X, all the files go in 
-\family typewriter
-/Library/Java/Extensions
-\family default
-.
- If you're on a Unix-style system (including Mac OS X), be sure to check
- your permissions as well.
+ 
+\emph on
+2008 update
+\emph default
+: It is no longer necessary to download separate files; everything needed
+ is included in the platform specific downloads at the JOGL site.
+ The download includes directions for installing JOGL (which discourage
+ dropping the JAR files in the extension directories as originally recommended).
+ Essentially, the JOGL JAR and the GLUEGEN_RT JAR need to be added to the
+ classpath in order for JOGL to work.
  If you downloaded a platform-specific version of KiNG, the necessary libraries
  may already be included.
 \end_layout
 
 \begin_layout Standard
-This feature has been tested with Java 1.4.2 and JOGL 1.1.
+This feature has been tested with various combinations of Java 1.4.2 through
+ Java 1.6.0 and JOGL 1.1 through JOGL 1.1.1.
  JOGL is still under development, as is this feature, and interacting so
  directly with the hardware is always risky, so it's possible that OpenGL
  rendering may hang KiNG on your computer.
@@ -3286,7 +3267,7 @@ Revision status
 \end_layout
 
 \begin_layout Standard
-This manual was last updated 26 October 2005 by IWD for KiNG version 1.46.
+This manual was last updated 3 September 2008 by VBC for KiNG version 2.14.
 \end_layout
 
 \begin_layout Chapter
@@ -3321,7 +3302,7 @@ The KiNG License
 \end_layout
 
 \begin_layout Standard
-Copyright (C) 2002-2007 Ian W.
+Copyright (C) 2002-2008 Ian W.
  Davis & Vincent B.
  Chen.
  All rights reserved.
