@@ -58,7 +58,8 @@ public class CoCenterTool extends BasicTool {
     if(p != null)
     {
       String pName = p.getName();
-      if (pName.length() > 13) pName = pName.substring(0, 13);
+      if (pName.length() > 14) pName = pName.substring(0, 14);
+      System.out.println(pName);
       Kinemage kin = kMain.getKinemage();
       Iterator iter = kin.iterator();
 	    while (iter.hasNext()) {
@@ -71,7 +72,7 @@ public class CoCenterTool extends BasicTool {
         while (pts.hasNext() && !foundPt) {
           KPoint test = pts.next();
           String testName = test.getName();
-          if (testName.length() > 13) testName = testName.substring(0, 13);
+          if (testName.length() > 14) testName = testName.substring(0, 14);
           if (testName.equals(pName)) {
             foundPt = true;
             xtrans = test.getX()-p.getX();
