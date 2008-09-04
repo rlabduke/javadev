@@ -1,17 +1,25 @@
-#LyX 1.4.1 created this file. For more info see http://www.lyx.org/
-\lyxformat 245
+#LyX 1.5.6 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
 \begin_document
 \begin_header
 \textclass report
 \language english
 \inputencoding auto
-\fontscheme pslatex
+\font_roman times
+\font_sans helvet
+\font_typewriter courier
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
 \graphics default
 \paperfontsize default
 \spacing single
 \papersize default
 \use_geometry false
 \use_amsmath 1
+\use_esint 0
 \cite_engine basic
 \use_bibtopic false
 \paperorientation portrait
@@ -24,7 +32,8 @@
 \papersides 1
 \paperpagestyle default
 \tracking_changes false
-\output_changes true
+\output_changes false
+\author "" 
 \end_header
 
 \begin_body
@@ -54,7 +63,7 @@ Ian W.
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand \tableofcontents{}
+\begin_inset LatexCommand tableofcontents
 
 \end_inset
 
@@ -67,7 +76,8 @@ The Tools
 
 \begin_layout Section
 Dock 3-on-3: Geometric construction
-\begin_inset LatexCommand \label{dock3-tool}
+\begin_inset LatexCommand label
+name "dock3-tool"
 
 \end_inset
 
@@ -107,7 +117,8 @@ If you'd like to dock several of the same object with respect to each other,
 
 \begin_layout Section
 Least-Squares Docking: Getting the best fit
-\begin_inset LatexCommand \label{lsqdock-tool}
+\begin_inset LatexCommand label
+name "lsqdock-tool"
 
 \end_inset
 
@@ -149,7 +160,8 @@ If you'd like to dock several of the same object with respect to each other,
 
 \begin_layout Section
 Dock By Picking
-\begin_inset LatexCommand \label{dockbypicking-tool}
+\begin_inset LatexCommand label
+name "dockbypicking-tool"
 
 \end_inset
 
@@ -189,7 +201,8 @@ RNA Maps: Finding the phosphates
 (not active by default)
 \shape default
 
-\begin_inset LatexCommand \label{rnamap-tool}
+\begin_inset LatexCommand label
+name "rnamap-tool"
 
 \end_inset
 
@@ -239,7 +252,8 @@ This tool does not differentiate between a point in the electron density
 
 \begin_layout Section
 90 Degree Rotations: Seeing precisely
-\begin_inset LatexCommand \label{rot90-plugin}
+\begin_inset LatexCommand label
+name "rot90-plugin"
 
 \end_inset
 
@@ -269,7 +283,8 @@ Lathe
 \end_inset
 
  tool: Just for fun
-\begin_inset LatexCommand \label{lathe-plugin}
+\begin_inset LatexCommand label
+name "lathe-plugin"
 
 \end_inset
 
@@ -304,7 +319,8 @@ Several new tools have been created that allow kinemages to be more easily
 
 \begin_layout Section
 Recoloring
-\begin_inset LatexCommand \label{recolor-tool}
+\begin_inset LatexCommand label
+name "recolor-tool"
 
 \end_inset
 
@@ -352,7 +368,8 @@ Pick Objects
 
 \begin_layout Section
 Kinemage Fudging
-\begin_inset LatexCommand \label{kinfudger-tool}
+\begin_inset LatexCommand label
+name "kinfudger-tool"
 
 \end_inset
 
@@ -429,7 +446,8 @@ UNK
 
 \begin_layout Section
 Loop Tool
-\begin_inset LatexCommand \label{loop-tool}
+\begin_inset LatexCommand label
+name "loop-tool"
 
 \end_inset
 
@@ -517,6 +535,51 @@ The LoopTool makes heavy use of the information in the point IDs of the
  
 \end_layout
 
+\begin_layout Section
+Co-centering Tool
+\begin_inset LatexCommand label
+name "co-centering-tool"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The Co-centeringTool is primarily for use with NMR-derived ensembles of
+ models; it will translate all groups in kinemage onto a single selected
+ point.
+ 
+\end_layout
+
+\begin_layout Subsection
+Basic Usage
+\end_layout
+
+\begin_layout Standard
+Currently, there is no dialog box associated with this tool.
+ Just middle-click or ctrl-click on an atom in a kinemage to cocenter all
+ the groups of that kinemage onto that point.
+ 
+\end_layout
+
+\begin_layout Subsection
+Warnings
+\end_layout
+
+\begin_layout Standard
+This functionality is based on the point ID of the points in the different
+ groups.
+ The tool uses the first 14 characters of the point ID clicked on to search
+ the other groups.
+ If a group does not have a point with the same first 14 characters in the
+ point ID, the group will not get moved.
+ It's important to note also that this tool only does translation; it does
+ not do any rotations at all.
+ Superpositions of the different models may be necessary before using this
+ tool.
+\end_layout
+
 \begin_layout Chapter
 Exporting kinemages in other formats
 \end_layout
@@ -531,7 +594,8 @@ Several facilities are provided that can help get data out of kinemage format
 
 \begin_layout Section
 Exporting for POV-Ray
-\begin_inset LatexCommand \label{export-povray}
+\begin_inset LatexCommand label
+name "export-povray"
 
 \end_inset
 
@@ -569,12 +633,14 @@ etc.
 
 \begin_layout Section
 Deprecated export formats
-\begin_inset LatexCommand \label{export-xml}
+\begin_inset LatexCommand label
+name "export-xml"
 
 \end_inset
 
 
-\begin_inset LatexCommand \label{export-vrml97}
+\begin_inset LatexCommand label
+name "export-vrml97"
 
 \end_inset
 
@@ -648,7 +714,8 @@ Structural biology tools
 
 \begin_layout Section
 Analyze Geometry Plugin
-\begin_inset LatexCommand \label{geometry-plugin}
+\begin_inset LatexCommand label
+name "geometry-plugin"
 
 \end_inset
 
@@ -698,7 +765,8 @@ As with many of the tools dealing with protein residues, this tool is sensitive
 
 \begin_layout Section
 Fill-Gap Plugin
-\begin_inset LatexCommand \label{fillgap-plugin}
+\begin_inset LatexCommand label
+name "fillgap-plugin"
 
 \end_inset
 
@@ -738,8 +806,8 @@ Revision status
 \end_layout
 
 \begin_layout Standard
-This manual was last updated 23 Feb 2007 by VBC for Extratools version 2.00
- (tools shifted to more public menus in KiNG).
+This manual was last updated 4 September 2008 by VBC for Extratools version
+ 2.15 (tools shifted to more public menus in KiNG).
 \end_layout
 
 \end_body
