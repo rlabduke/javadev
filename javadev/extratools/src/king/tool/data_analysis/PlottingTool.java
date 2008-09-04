@@ -290,31 +290,30 @@ public class PlottingTool extends BasicTool {
     
 //}}}
 
-//{{{ scanFile
-//##################################################################################################
-    /**
-     * Does most of the work reading and analyzing the data files.
-     **/
-    private void scanFile(BufferedReader reader, String delimiter) {
-	String line;
-	try {
-	    while((line = reader.readLine())!=null){
-		line = line.trim();
-		String[] strings = Strings.explode(line, delimiter.charAt(0), false, true);
-		//for (int i = 0; i < strings.length; i++) {
-		
-		//float[] values = new float[strings.length];
-		allPoints.add(strings);
-	    }
-	}
-	catch (IOException ex) {
-	    JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                "An I/O error occurred while loading the file:\n"+ex.getMessage(),
-                "Sorry!", JOptionPane.ERROR_MESSAGE);
-            //ex.printStackTrace(SoftLog.err);
+  //{{{ scanFile
+  //##################################################################################################
+  /**
+  * Does most of the work reading and analyzing the data files.
+  **/
+  private void scanFile(BufferedReader reader, String delimiter) {
+    String line;
+    try {
+      while((line = reader.readLine())!=null){
+        line = line.trim();
+        if (!line.startsWith("#")) {
+          String[] strings = Strings.explode(line, delimiter.charAt(0), false, true);
+          allPoints.add(strings);
         }
+      }
     }
-//}}}
+    catch (IOException ex) {
+      JOptionPane.showMessageDialog(kMain.getTopWindow(),
+      "An I/O error occurred while loading the file:\n"+ex.getMessage(),
+      "Sorry!", JOptionPane.ERROR_MESSAGE);
+      //ex.printStackTrace(SoftLog.err);
+    }
+  }
+  //}}}
     
   //{{{ onPlot
   public void onPlot(ActionEvent ev) {
