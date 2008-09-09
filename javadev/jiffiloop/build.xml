@@ -1,5 +1,5 @@
 <!-- (jEdit options) :folding=explicit:collapseFolds=1: -->
-<project name="fragmentfiller" default="dist" basedir=".">
+<project name="jiffiloop" default="dist" basedir=".">
 <description>Making a program that analyzes geometry of protein PDB files</description>
 
 <!-- global properties that we always want defined {{{ -->
