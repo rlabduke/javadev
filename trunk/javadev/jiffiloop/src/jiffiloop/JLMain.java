@@ -1,6 +1,6 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
-package fragmentfiller;
+package jiffiloop;
 
 //import king.*;
 //import king.core.*;
@@ -29,7 +29,7 @@ import java.sql.*;
 //}}}
 
 /**
-* <code>FragFiller</code> is based off a plugin to make it easy to fill gaps in protein structures.  
+* <code>JiffiLoop</code> is based off a plugin to make it easy to fill gaps in protein structures.  
 * It combines functionality originally made for FramerTool, LoopTool, and the docking tools.
 * It scans through a protein structure kin for gaps, analyzes the framing peptides of that gap,
 * searches through my database of loops for matches, finds kins of those matches, and superimposes
@@ -40,7 +40,7 @@ import java.sql.*;
 * <p>Copyright (C) 2007 by Vincent Chen. All rights reserved.
 * 
 */
-public class FMain {
+public class JLMain {
   
   //{{{ Constants
   static final DecimalFormat df = new DecimalFormat("0.000");
@@ -83,7 +83,7 @@ public class FMain {
       File outPrefix = new File(argList.get(1));
 	    //}
       //System.out.println(pdbFile);
-	    FMain main = new FMain(new File(pdbFile.getAbsolutePath()), new File(outKinFile.getAbsolutePath()), outPrefix.getAbsolutePath());
+	    JLMain main = new JLMain(new File(pdbFile.getAbsolutePath()), new File(outKinFile.getAbsolutePath()), outPrefix.getAbsolutePath());
     }
   }
   //}}}
@@ -185,7 +185,7 @@ public class FMain {
   //}}}
 
   //{{{ Constructors
-  public FMain(File pdbFile, File outKinFile, String outPrefix) {
+  public JLMain(File pdbFile, File outKinFile, String outPrefix) {
     setDefaults();
     //filledMap = new HashMap<ProteinGap, ArrayList<String>>();
     //gapFrameAtomsMap = new HashMap<ArrayList<Double>, ArrayList<Triple>>();

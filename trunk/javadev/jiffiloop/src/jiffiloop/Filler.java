@@ -1,6 +1,6 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
-package fragmentfiller;
+package jiffiloop;
 
 import java.util.*;
 import driftwood.r3.*;
