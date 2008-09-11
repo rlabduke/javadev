@@ -1,5 +1,33 @@
 WIIREMOTEJ CHANGELOG
 ---------------------------------------------------------------------------------------------------------------------
+8/13/08 - v1.5b
+-Modified how pitch and roll work.
+---------------------------------------------------------------------------------------------------------------------
+7/15/08 - v1.5a
+-Fixed bug where the outgoing connection would fail sometimes after initialization
+-Fixed bug in Balance Board discovery
+-Fixed a few typos in the docs
+-Added button mapping for Wii Guitar
+---------------------------------------------------------------------------------------------------------------------
+7/08/08 - v1.5
+-Added ability to fetch both remotes and balance boards (both implement WiiDevice)
+-Added support for full IR mode
+-Updated README appropriately
+-Added IRSensitivitySettings class which contains the default Wii sensitivity settings
+-Made IR enabling more reliable. It shouldn't fail any more
+-Corrected bug in balance board mass calculation
+---------------------------------------------------------------------------------------------------------------------
+7/03/08 - v1.4
+-Fixed bugs with multiple remotes
+-Made Exceptions thrown when connecting via findRemote() propagate to user
+-Added Balance Board support
+-Updated README and LICENSE appropriately
+---------------------------------------------------------------------------------------------------------------------
+2/24/08 - v1.3
+-Improved thread cleanup after disconnect.
+-Added ability to create "fake" WiiRemotes for use in initializing events
+-Updated README and LICENSE
+---------------------------------------------------------------------------------------------------------------------
 1/14/08 - v1.2
 -Workaround for BlueSoleil bug added.
 -GuitarExtension added

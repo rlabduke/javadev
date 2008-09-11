@@ -233,8 +233,8 @@ public class MoteTool extends BasicTool implements WiiRemoteListener {
     IRLight first = lights[0];
     IRLight second = lights[1];
     if ((first != null)&&(second != null)) {
-      remote.setLEDIlluminated(0, true);
-      remote.setLEDIlluminated(3, true);
+      //remote.setLEDIlluminated(0, true);
+      //remote.setLEDIlluminated(3, true);
       //System.out.println(first.getX());
       double dx = first.getX() - second.getX();
       double dy = first.getY() - second.getY();
@@ -252,8 +252,8 @@ public class MoteTool extends BasicTool implements WiiRemoteListener {
       prevXAvg = xAvg;
       prevYAvg = yAvg;
     } else {
-      if (first == null) remote.setLEDIlluminated(0, false);
-      if (second == null) remote.setLEDIlluminated(3, false);
+      //if (first == null) remote.setLEDIlluminated(0, false);
+      //if (second == null) remote.setLEDIlluminated(3, false);
     }
   }
   //}}}
