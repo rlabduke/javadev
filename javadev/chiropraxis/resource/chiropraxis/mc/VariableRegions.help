@@ -1,0 +1,42 @@
+
+Usage:
+    VariableRegions file1.pdb [file2.pdb] [options]
+
+VARIABLEREGIONS compares the alternate conformations in one PDB, or two PDBs if 
+provided, and reports on / highlights the phi,psi and Calpha differences between
+them. Output can go to kinemage format to append to the structure(s) of 
+interest, or to csv format for e.g. chart-making in Excel. Signs of d(phi,psi)
+reflect "change" from altA->altB or file1->file2 (e.g. 10deg->20deg = +10deg 
+change). By default, movement information (d(phi,psi,Ca)) is reported only for
+residues that move, but this can be changed with flags.
+
+Options:
+    -kin
+        Kinemage of d(phi,psi,Ca) to stdout. On by default.
+    -csv | -nokin
+        Comma-separated text of d(phi,psi,Ca) to stdout.
+    
+    * KIN OUTPUT *
+    -hinges
+        Draw phi,psi fans only for ~unmoving residues flanking "hinged regions",
+          and Ca arrows only for residues within said regions.
+        On by default if two PDBs provided.
+    -nohinges
+        Turns off hinges & defaults back to kin of all residues that ~moved..
+    -dcamin=#
+        Modifies def'n of hinged region for -hinges (min Ca mvmnt on ends).
+        Default: 0.1 A for hinges, 0 A otherwise.
+    -dphipsiscale=#, -dcascale=#
+        Spread out/collapse d(phi,psi) fans and lengthen/shorten d(Ca) arrows.
+        Defaults for file1-file2 kin output: x10 d(Ca), x500 d(phi,psi)
+        Defaults for altA-altB   kin output: x5  d(Ca), x1   d(phi,psi)
+    
+    * CSV OUTPUT *
+    -delim="text"
+        Use "text" as delimiter, if using -csv option.
+    -allres
+        Output info for all residues instead of just the ones that moved, if 
+          using -csv option.
+    -absval
+        Report on absolute instead of signed (d(phi,psi)).
+    
