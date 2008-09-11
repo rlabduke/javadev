@@ -1,0 +1,208 @@
+
+USAGE
+  dangle ['measurement specifier(s)'] [input file(s)]
+
+  ("dangle" is "java -cp dangle.jar dangle.Dangle" or "java -jar dangle.jar")
+
+INPUT FILES
+  Dangle accepts either PDB or mmCIF files as input.  It tries to guess the
+  format based on file extensions, but you can force one or the other with
+  the -pdb and -cif switches.  If no file name is provided, Dangle will read
+  from standard input.
+
+  The output from Dangle always goes to standard output.
+
+MEASUREMENT SPECIFIERS
+  Dangle can be configured to measure many different distances, angles, and
+  dihedrals in protein and nucleic acid structures.  Some examples are given
+  below, but keep in mind the following points:
+  
+    * Use underscores (_) rather than spaces in atom names and regexps.
+    * Atom names can be 4 chars or a regexp enclosed in slashes (/regexp/).
+    * Use either * or ' for nucleic acid atoms; both match either convention.
+    * Commas and semicolons can be used for clarity but are not required.
+      The convention is commas between atoms and semicolons between definitions.
+    * Names for the various measurements ARE required (no spaces, but numbers,
+      letters, and symbols other than commas and semicolons are OK).
+    * If multiple definitions are given for the same name, they are tried in
+      order until one "works" (i.e. all the atoms it calls for are present).
+      This is how to specify things like RNA chi angles.  If it's not enough to
+      have the first definition take precedence, see the "for" option, below.
+    * Residue numbers are optional and default to "i" unless specified.
+    * Use the "-360" switch to make dihedrals go from 0 to 360 instead.
+    * Use quotes to keep Bash / Csh from breaking the string apart.
+    
+  Dangle also has several "built in" measurement specifiers that you can use:
+    phi, psi, omega, chi1, chi2, chi3, chi4, tau, cbdev             # proteins
+    alpha, beta, gamma, delta, epsilon, zeta, eta, theta, chi       # RNA / DNA
+    alpha-1, beta-1, gamma-1, delta-1, epsilon-1, zeta-1, chi-1     # RNA / DNA
+    
+  There are also some extra-terse shortcuts:
+    rnabb = "alpha, beta, gamma, delta, epsilon, zeta"
+
+  Examples:
+    
+    dangle "phi, psi, chi1, chi2, chi3, chi4"                       # built-ins
+
+    dangle "distance Ca--Ca i-1 _CA_, i _CA_"
+    dangle "dist Ca--Ca i-1 _CA_, _CA_"                             # synonym
+    dangle "dist before i-1 _CA_, _CA_; dist after _CA_, i+1 _CA_"  # two meas.
+  
+    dangle "angle Virtual i-1 _CA_, i _CA_, i+1 _CA_"
+  
+    dangle "torsion Chi_1 _N__, _CA_, _CB_, /_[COS]G[_1]/"          # reg. exp.
+    dangle "dihedral Chi_1 _N__, _CA_, _CB_, /_[COS]G[_1]/"         # synonym
+    
+    dangle "maxb mcMaxB /..[_A]./"                                  # B-factor
+    dangle "minq scMinQ /..[^_A]./"                                 # occupancy
+    dangle "minocc scMinQ /..[^_A]./"                               # synonym
+    
+  For distances and angles, one can also define an ideal (mean) value and the
+  expected standard deviation, and Dangle will report on the deviation from
+  ideal in units of standard deviation (sigmas).  In order to see this output,
+  you *must* be in validation mode (see below).  For example:
+  
+    dangle -validate "dist Ca--Ca i-1 _CA_, _CA_ ideal 3.8085 0.0242"
+
+  For really complicated measurements, one can define special cases using "for".
+  Because the first definition takes precedence, the default case should come
+  last.  Residue numbers and residue names or regular expressions are accepted,
+  as is the qualifier "cis" (meaning the residue's N is in a cis peptide bond
+  to the previous residue's C).  For example:
+  
+    dangle -validate "
+      # This is a demo ONLY.  The rules/values are made-up (and kinda stupid)!
+      for cis PRO    angle  C-N-CA  i-1 _C__, _N__, _CA_  ideal 127.0 2.4
+      for /PHE|TYR/  angle  C-N-CA  i-1 _C__, _N__, _CA_  ideal 119.3 1.5
+      for i-1 GLY    angle  C-N-CA  i-1 _C__, _N__, _CA_  ideal 122.3 2.1
+                     angle  C-N-CA  i-1 _C__, _N__, _CA_  ideal 121.7 2.5
+    "
+
+VALIDATION MODE
+  Dangle can operate in "validation mode", in which case the focus is on
+  finding aberant bond lengths and angles as opposed to measuring them per se.
+  One specifies either -validate or -outliers, and usually at least one of
+  -protein, -rna, or -dna.
+  
+  -validate
+    If given this flag, Dangle reports two columns for every measurement:  the
+    actual measured value, and the number of standard deviations from ideal.
+    (Two columns appear even for measures where "deviation" is meaningless.)
+    
+  -outliers
+    If given this flag, Dangle reports one line for every individual residue/
+    measurement combination where deviation exceeds 4 sigma.  Thus, one residue
+    may produce 0, 1, or several lines.
+    
+  -sigma=#.#
+    Sets the threshold for number of sigmas to be considered an outlier. The
+    default is 4 sigmas.
+    
+  -protein      loads protein validation presets (Engh & Huber, 1999)
+  -rna          loads RNA validation presets (Parkinson ... Berman, 1996)
+  -dna          loads DNA validation presets (Parkinson ... Berman, 1996)
+  
+  Because there are many potential measurements of interest and their
+  definitions can be complicated, these flags are almost always used in place
+  of defining measures at the command line.
+
+ADVANCED DANGLE TRICKS
+  The Unix "sort" utility can be applied to the output of Dangle, so the
+  measurements are from smallest to largest instead of in residue order.  For
+  instance, if there is only one measurement, it appears in the 7th column:
+  
+    dangle 'dist ...' FILE.pdb | sort -n -t : -k 7
+    
+  The Unix "tr" utility is helpful for converting colon-delimited output into a
+  CSV file that Excel can read directly:
+  
+    dangle 'dist ...' FILE.pdb | tr : ,
+    
+  Dangle's distances, angles, and dihedrals can be calculated from any points,
+  not just atom coordinates.  The avg() function computes mean positions:
+  
+    # Distance from one peptide midpoint to another:
+    distance PeptideCtrs avg(i-1 _CA_, i _CA_) avg(i _CA_, i+1 _CA_)
+    
+  The idealtet() function constructs an ideal atom position in the style of
+  the C-beta deviation.  To calculate ideal position D, the parameters are (in
+  order) three points A, B, and C; the desired C--D distance, the B-C-D angle,
+  the A-C-D angle, the A-B-C-D dihedral, and the B-A-C-D dihedral.  Two points
+  are constructed and averaged together, and that distance to C is re-idealized:
+  
+    # Distance from actual CB to ideal CB:
+    distance CbDev _CB_ idealtet(_N__ _C__ _CA_ 1.536 110.4 110.6 123.1 -123.0)
+    
+  Dangle can calculate the angle between two arbitrary vectors, and those can
+  be generated with vector(FROM, TO) or normal().  The normal is obtained by
+  fitting a plane to the collection of (three or more) points by least squares.
+  Regular expressions can be used to specify multiple atoms to include:
+  
+    # In pyrimidines, angle from glycosidic bond to plane of ring atoms:
+    vector_angle Glycos2PyBase vector(_N1_ _C1*) normal(/_N[13]_/ /_C[2456]_/)
+    
+  Dangle can also calculate the planarity (or not) of a group of atoms.  The
+  algorithm calculates a normal for every possible set of three atoms, including
+  those that are not bonded but excluding those that are nearly co-linear.  The
+  normals are then searched to find the two that form the largest angle between
+  them:  if all the points are in the same plane, this will be 0;  if not, it
+  may range all the way up to 90 degrees.  This captures many kinds of non-
+  planarity including bowing and zig-zagging, but the downside is that the
+  precise meaning of the number is unclear.  For example:
+  
+    # Planarity of all atoms in the base plus the C1':
+    planarity BasePlane (_C1* /_[CNO][1-9]_/)
+
+  Dangle can output the relevant distances, angles, and dihedrals required for 
+  constructing suite conformations in suitefit.  It is also possible to specify
+  some subset of these measurements as well, as seen below.  If your first 
+  attempt at outputting such selected suitefit measures fails, try swapping 
+  the order of the atoms (e.g. "O5'-C5'" instead of "C5'-O5'").
+
+    dangle suitefit FILE.pdb  
+    dangle "O5'-C5'" FILE.pdb
+    dangle "O5'--C5'" FILE.pdb
+    dangle "C4'-C3'-C2'-C1'" FILE.pdb
+    
+  Dangle can output measures of RNA sugar pucker.  Output includes the 
+  pseudorotation angle P from Altona et al, JACS, 1972 and the amplitude of 
+  pseudorotation from Rao et al, Acta Cryst, 1981.
+  
+    dangle pucker FILE.pdb
+
+  Dangle can output a kinemage with visualizations of distance and angle 
+  geometry outliers.  Red outlier visualizations indicate the value in the 
+  model is greater than ideal; blue means the value in the model is less than 
+  ideal.  Like the rest of Dangle, geom dev viz kins work for protein and RNA 
+  but not DNA.  Ideal bond length corresponds to 6 turns in the distance 
+  deviation "springs" and each sigma deviation adds +/- 0.25 turns.  The 
+  following flags suppress csv output and send kinemage format output to the 
+  screen:
+
+    -kin/-geomkin/-geometrykin      distance + angle outliers
+    -distancedevskin/-distdevskin   just distance outliers
+    -angledevskin/-angdevskin       just angle outliers
+
+  Other flags for geom dev viz kins:
+
+    -kinheading                     @kinemage + @master(s) at top
+    -sub/-subgroup                  @subgroup instead of @group
+
+  By default Dangle ignores het atoms, but this can be overridden with the 
+  -dohets or -hets flags, which tell Dangle to report geometry information for 
+  het groups, both in command line and geom dev viz kin forms.
+
+  Dangle can also calculate the the base-phosphate perpendicular distance, the 
+  perpendicular distance from the 3' phosphate to the N1/N9 to C1' vector. This
+  is useful in determining the pucker state of the ribose.
+
+  # Base-phosphate perpindicular
+    dangle basepperp FILE.pdb
+    dangle pperp FILE.pdb
+
+  You can restrict Dangle's output to only certain residues in any mode (please
+  use either a range separated by '-' or a set separated by ',').
+    dangle 'some measurement' FILE.pdb -res=1
+    dangle 'some measurement' FILE.pdb -res=1,3,10,43
+    dangle 'some measurement' FILE.pdb -res=1-99
+
