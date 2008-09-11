@@ -1,1 +1,1 @@
-Class-Path: bluecove-2.0.2.jar WiiRemoteJ.jar
+Class-Path: bluecove-2.0.3.jar WiiRemoteJ.jar

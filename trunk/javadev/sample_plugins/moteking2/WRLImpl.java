@@ -45,22 +45,9 @@ public class WRLImpl extends WiiRemoteAdapter
         //basic console logging options...
         WiiRemoteJ.setConsoleLoggingAll();
         //WiiRemoteJ.setConsoleLoggingOff();
-    
+        
         try
         {
-            WiiRemoteDiscoveryListener listener = new WiiRemoteDiscoveryListener()
-            {
-                public void wiiRemoteDiscovered(WiiRemoteDiscoveredEvent evt)
-                {
-                    evt.getWiiRemote().addWiiRemoteListener(new WRLImpl(evt.getWiiRemote()));
-                }
-                
-                public void findFinished(int numberFound)
-                {
-                    System.out.println("Found " + numberFound + " remotes!");
-                }
-            };
-            
             mouseTestFrame = new JFrame();
             mouseTestFrame.setTitle("Mouse test");
             final int LS = 50; //line spacing
@@ -133,6 +120,7 @@ public class WRLImpl extends WiiRemoteAdapter
             
             //Find and connect to a Wii Remote
             WiiRemote remote = WiiRemoteJ.findRemote();
+            //WiiRemote remote = WiiRemoteJ.connectToRemote("btl2cap://0017AB29BB7B");
             remote.addWiiRemoteListener(new WRLImpl(remote));
             remote.setAccelerometerEnabled(true);
             remote.setSpeakerEnabled(true);
@@ -150,6 +138,9 @@ public class WRLImpl extends WiiRemoteAdapter
             time = System.currentTimeMillis()-time;
             time /= 1000;
             System.out.println("Prebuf done: " + time + " seconds.");
+            
+            final WiiRemote remoteF = remote;
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){public void run(){remoteF.disconnect();}}));
         }
         catch(Exception e){e.printStackTrace();}
     }
@@ -231,7 +222,7 @@ public class WRLImpl extends WiiRemoteAdapter
                 graph.repaint();
             }
             
-            if (NEvt.wasPressed(WRNunchukExtensionEvent.C))System.out.println("Jump...");
+            if (NEvt.wasReleased(WRNunchukExtensionEvent.C))System.out.println("Jump...");
             if (NEvt.wasPressed(WRNunchukExtensionEvent.Z))System.out.println("And crouch.");
         }
         else if (evt instanceof WRClassicControllerExtensionEvent)
@@ -354,7 +345,12 @@ public class WRLImpl extends WiiRemoteAdapter
             if (evt.isPressed(WRButtonEvent.HOME))
             {
                 boolean lightChanged = false;
-                if (evt.wasPressed(WRButtonEvent.PLUS) && !mouseTestingOn)
+                if (evt.wasPressed(WRButtonEvent.A + WRButtonEvent.B))
+                {
+                    remote.disconnect();
+                    System.exit(0);
+                }
+                else if (evt.wasPressed(WRButtonEvent.PLUS) && !mouseTestingOn)
                 {
                     mouseTestingOn = true;
                     remote.getButtonMaps().add(new ButtonMouseMap(WRButtonEvent.B, java.awt.event.InputEvent.BUTTON1_MASK));
