@@ -15,20 +15,17 @@
     Show histogram of cluster sizes for SequenceSpacer (maybe in kin text?)
     Make USER MODs in ModelManager2 undoable by storing them in ModelStatePair
   ? How does molten state interact with replacing the Model frequently?
-    Dangle:
-        do disulfides as a separate class/program/mode
-        do base-P distance, etc   <-- what could "etc" mean?... -->
-        GUI for defining measures?
-        "for deoxy ..." ???
-        new func? avgall() should call getAll() instead of get() on AtomSpecs
     Bugs:  Stuart has issues saving when using Backrub and sidechain rotator at 
     the same time.  When you open sidechain rotator from backrub, make changes,
     doesn't save changes when you close it. (Snaps back to original backrub coords).
     Multiple sequential backrubs open at once seems to have similar issues.
-        
+    
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+### 0.99 ### dak
+- Separated out dangle to its own package (now standalone program)
+
 ### 0.98 ### vbc3
 - Fixed bug in sidechainangles2 which prevented rotating Proline angles correctly.
 
