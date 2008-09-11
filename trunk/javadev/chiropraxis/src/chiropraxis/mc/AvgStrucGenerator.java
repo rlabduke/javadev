@@ -20,7 +20,7 @@ import driftwood.util.Strings;
 * This is done over a local structural region. 
 * It takes as input:
 * (1) a list containing central residue numbers
-* (2) any number of PDB files in "1234CH.pdb" (where C is chain)
+* (2) any number of PDB files w/ "1234CH.pdb" (where C is chain) filename format
 * (3) indices relative to the central residue via -range=#,# (opt'l)
 * 
 * Note that sequence alignment (i.e. correspondence) is handled internally, but 
@@ -34,7 +34,8 @@ import driftwood.util.Strings;
 public class AvgStrucGenerator //extends ... implements ...
 {
 //{{{ Constants
-    String        bbAtoms   = " N  , CA , C  , O  ";//, CB , HA "; // Pro doesn't have ' H  '
+    String        bbAtomsNoCb  = " N  , CA , C  , O  ";     //, HA "; // Pro doesn't have ' H  '
+    String        bbAtomsCb    = " N  , CA , C  , O  , CB ";//, HA "; // Pro doesn't have ' H  '
     DecimalFormat df        = new DecimalFormat("###.###");
 //}}}
 
@@ -85,6 +86,10 @@ public class AvgStrucGenerator //extends ... implements ...
     * still consider the superposition good enough to use that structure in the
     * coordinate averaging */
     double                 distCutoff   = 2;
+    
+    /** List of atoms considered backbone & therefore used to get average structure.
+    * Dependent on -cb. */
+    String                 bbAtoms      = bbAtomsNoCb;
     
     boolean                verbose      = false;
 //}}}
@@ -941,6 +946,10 @@ public class AvgStrucGenerator //extends ... implements ...
             {
                 System.err.println("Couldn't parse "+param+" as a double for distCutoff");
             }
+        }
+        else if(flag.equals("-cb"))
+        {
+            bbAtoms = bbAtomsCb;
         }
         else if(flag.equals("-dummy_option"))
         {

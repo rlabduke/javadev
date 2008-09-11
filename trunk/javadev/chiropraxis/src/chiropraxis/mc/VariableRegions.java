@@ -21,7 +21,7 @@ import driftwood.r3.*;
 *
 * It can also do the same for two provided PDB files, e.g. from the Donald lab's
 * BD backbone-DEE protein design algorithm (the '-hinges' option is on by default
-* in this mode.
+* in this mode).
 *
 * Alternative output modes: kinemage (default) or text/csv
 *
@@ -43,6 +43,7 @@ public class VariableRegions //extends ... implements ...
     String        filename2     = null;
     String        label1        = null;
     String        label2        = null;
+    String        delim         = ",";
     boolean       verbose       = false;
     boolean       doKin         = true;
     boolean       absVal        = false;
@@ -61,6 +62,7 @@ public class VariableRegions //extends ... implements ...
         super();
     }
 //}}}
+
 
 //{{{ searchOneModel
 //##############################################################################
@@ -158,6 +160,9 @@ public class VariableRegions //extends ... implements ...
             System.err.println("Max d(Ca) : "+df2.format(maxAbsMvmts[2]));
         }
         
+        if (doKin) out.println("@group {var-reg} dominant");
+        else       out.println("label:model:chain:res_type:res_num:dPhi:dPsi:dCa");
+        
         // Output (kin or text) for residues that move
         for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
         {
@@ -194,14 +199,14 @@ public class VariableRegions //extends ... implements ...
                     // Either something changed and is therefore worth printing 
                     // or we want to print stats for all residues regardless of 
                     // whether anything changed.
-                    out.print(label1+":"+model+":"+res.getChain()+":"+
-                        res.getName()+":"+res.getSequenceInteger()+":");
-                    if (!Double.isNaN(dPhi)) out.print(df.format(dPhi)+":");
-                    else                     out.print("__?__:");
-                    if (!Double.isNaN(dPsi)) out.print(df.format(dPsi)+":");
-                    else                     out.print("__?__:");
-                    out.print(df.format(caTravel)+":");
-                    out.println(df.format(caTravel*dCaScale));
+                    out.print(label1+delim+model+delim+res.getChain()+delim+
+                        res.getName()+delim+res.getSequenceInteger()+delim);
+                    if (!Double.isNaN(dPhi))     out.print(df.format(dPhi)+delim);
+                    else                         out.print("__?__"+delim);
+                    if (!Double.isNaN(dPsi))     out.print(df.format(dPsi)+delim);
+                    else                         out.print("__?__"+delim);
+                    if (!Double.isNaN(caTravel)) out.println(df.format(caTravel));
+                    else                         out.print("__?__");
                 }
             }
         } //for each residue
@@ -331,6 +336,9 @@ public class VariableRegions //extends ... implements ...
             System.err.println("Max d(Ca) : "+df2.format(maxAbsMvmts[2]));
         }
         
+        if (doKin) out.println("@group {var-reg} dominant");
+        else       out.println("label1:label2:model1:model2:chain1:chain2:res_type1:res_type2:res_num1:res_num2:dPhi:dPsi:dCa");
+        
         // Output (kin or text) for residues that move
         for(int i = 0, len = align.a.length; i < len; i++)
         {
@@ -368,21 +376,22 @@ public class VariableRegions //extends ... implements ...
                     // Either something changed and is therefore worth printing 
                     // or we want to print stats for all residues regardless of 
                     // whether anything changed.
-                    out.print(label1+":"+label2+":"+model1+":"+model2+":"
-                        +res1.getChain()+":"+res2.getChain()+":"
-                        +res1.getName()+":"+res2.getName()+":"
-                        +res1.getSequenceInteger()+":"+res2.getSequenceInteger()+":");
-                    if (!Double.isNaN(dPhi)) out.print(df.format(dPhi)+":");
-                    else                     out.print("__?__:");
-                    if (!Double.isNaN(dPsi)) out.print(df.format(dPsi)+":");
-                    else                     out.print("__?__:");
-                    out.print(df.format(caTravel)+":");
-                    out.println(df.format(caTravel*dCaScale));
+                    out.print(label1+delim+label2+delim+model1+delim+model2+delim
+                        +res1.getChain()+delim+res2.getChain()+delim
+                        +res1.getName()+delim+res2.getName()+delim
+                        +res1.getSequenceInteger()+delim+res2.getSequenceInteger()+delim);
+                    if (!Double.isNaN(dPhi))     out.print(df.format(dPhi)+delim);
+                    else                         out.print("__?__"+delim);
+                    if (!Double.isNaN(dPsi))     out.print(df.format(dPsi)+delim);
+                    else                         out.print("__?__"+delim);
+                    if (!Double.isNaN(caTravel)) out.println(df.format(caTravel));
+                    else                         out.print("__?__");
                 }
             }
         } //for each residue pair in alignment
     }
 //}}}
+
 
 //{{{ doHinges
 //##############################################################################
@@ -422,7 +431,8 @@ public class VariableRegions //extends ... implements ...
                 {
                     // End of stretch of residues that move (enough) => treat first and last as having 
                     // moved only phi/psi and residues in btw as having moved only Ca; reset stretch
-                    System.err.println("Variable region from '"+stretch.get(0)+"' to '"+stretch.get(stretch.size()-1)+"'");
+                    if (verbose) System.err.println(
+                        "Variable region from '"+stretch.get(0)+"' to '"+stretch.get(stretch.size()-1)+"'");
                     if (stretch.size() > 2)
                     {
                         double[] oldMvmts = moved.get(stretch.get(0));
@@ -705,6 +715,7 @@ public class VariableRegions //extends ... implements ...
     }
 //}}}
 
+
 //{{{ Main, main
 //##############################################################################
     /**
@@ -717,25 +728,39 @@ public class VariableRegions //extends ... implements ...
             System.err.println("Need at least one filename!");
             System.exit(0);
         }
-        if (!hinges)  dCaMin = 0;
-        if (!doKin && Double.isNaN(dCaScale)) dCaScale = 100; // default for text
         
+        // Parameters
+        if (doKin)
+        {
+            if (hinges)  dCaMin = 0.1;
+            if (filename1 != null && filename2 == null)
+            {
+                if (Double.isNaN(dCaScale))      dCaScale     = 5;
+                if (Double.isNaN(dPhiPsiScale))  dPhiPsiScale = 1;
+            }
+            else if (filename1 != null && filename2 != null)
+            {
+                if (Double.isNaN(dCaScale))         dCaScale     = 10;
+                if (Double.isNaN(dPhiPsiScale))     dPhiPsiScale = 500;
+            }
+            
+            System.err.println("Kin parameters:");
+            System.err.println("d(phi,psi) scale: "+
+                (Double.isNaN(dPhiPsiScale) ? "1 (default)" : df2.format(dPhiPsiScale)) );
+            System.err.println("d(Ca)      scale: "+
+                (Double.isNaN(dCaScale)     ? "1 (default)" : df2.format(dCaScale))     );
+            System.err.println("d(Ca)      min  : "+df2.format(dCaMin));
+        }
+        
+        // Main program
         try
         {
             // Looking for alt conf loops in one structure
             if (filename1 != null && filename2 == null)
             {
-                if (doKin)
-                {
-                    if (Double.isNaN(dCaScale))      dCaScale     = 5;
-                    if (Double.isNaN(dPhiPsiScale))  dPhiPsiScale = 1;
-                }
-                
                 PdbReader reader = new PdbReader();
                 File f = new File(filename1);
                 CoordinateFile cf = reader.read(f);
-                if (doKin) out.println("@group {var-reg} dominant");
-                else       out.println("label:model:chain:res_type:res_num:dPhi:dPsi:dCa:dCa*"+dCaScale);
                 for(Iterator models = cf.getModels().iterator(); models.hasNext(); )
                 {
                     Model m = (Model) models.next();
@@ -748,13 +773,6 @@ public class VariableRegions //extends ... implements ...
             // Looking for regions that vary between two structures
             else if (filename1 != null && filename2 != null)
             {
-                if (doKin)
-                {
-                    if (Double.isNaN(dCaScale))         dCaScale     = 10;
-                    if (Double.isNaN(dPhiPsiScale))     dPhiPsiScale = 500;
-                    if (hinges && Double.isNaN(dCaMin)) dCaMin       = 0.1;
-                }
-                
                 PdbReader reader = new PdbReader();
                 File f1 = new File(filename1);
                 File f2 = new File(filename2);
@@ -764,8 +782,6 @@ public class VariableRegions //extends ... implements ...
                 Model m2 = cf2.getFirstModel();
                 label1 = f1.toString();
                 label2 = f2.toString();
-                if (doKin) out.println("@group {var-reg} dominant");
-                else       out.println("label1:label2:model1:model2:chain1:chain2:res_type1:res_type2:res_num1:res_num2:dPhi:dPsi:dCa:dCa*"+dCaScale);
                 searchTwoModels(m1, m2);
             }
         }
@@ -893,6 +909,14 @@ public class VariableRegions //extends ... implements ...
         {
             doKin = true;
         }
+        else if(flag.equals("-nokin") || flag.equals("-csv"))
+        {
+            doKin = false;
+        }
+        else if(flag.equals("-delim"))
+        {
+            delim = param;
+        }
         else if(flag.equals("-absval") || flag.equals("-abs"))
         {
             absVal = true;
@@ -909,14 +933,14 @@ public class VariableRegions //extends ... implements ...
         {
             hinges = false;
         }
-        else if(flag.equals("-dcascale"))
-        {
-            try { dCaScale = Double.parseDouble(param); }
-            catch (NumberFormatException nfe) { System.err.println("Can't parse "+param+" as a double!"); };
-        }
         else if(flag.equals("-dcamin"))
         {
             try { dCaMin = Double.parseDouble(param); }
+            catch (NumberFormatException nfe) { System.err.println("Can't parse "+param+" as a double!"); };
+        }
+        else if(flag.equals("-dcascale"))
+        {
+            try { dCaScale = Double.parseDouble(param); }
             catch (NumberFormatException nfe) { System.err.println("Can't parse "+param+" as a double!"); };
         }
         else if(flag.equals("-dphipsiscale"))
