@@ -151,7 +151,7 @@ abstract public class Measurement //extends ... implements ...
     {
         //String lowerCa = ":gly:ala:val:phe:pro:met:ile:leu:asp:glu:lys:arg:ser:thr:tyr:his:cys:asn:gln:trp:asx:glx:ace:for:nh2:nme:mse:aib:abu:pca:mly:cyo:m3l:dgn:csd:";
         String aaNames = ":GLY:ALA:VAL:PHE:PRO:MET:ILE:LEU:ASP:GLU:LYS:ARG:SER:THR:TYR:HIS:CYS:ASN:GLN:TRP:ASX:GLX:ACE:FOR:NH2:NME:MSE:AIB:ABU:PCA:MLY:CYO:M3L:DGN:CSD:";
-        String naNames = ":  C:  G:  A:  T:  U:CYT:GUA:ADE:THY:URA:URI:CTP:CDP:CMP:GTP:GDP:GMP:ATP:ADP:AMP:TTP:TDP:TMP:UTP:UDP:UMP:GSP:H2U:PSU:4SU:1MG:2MG:M2G:5MC:5MU:T6A:1MA:RIA:OMC:OMG: YG:  I:7MG:C  :G  :A  :T  :U  :YG :I  : rC: rG: rA: rT: rU: dC: dG: dA: dT: dU: DC: DG: DA: DT: DU:";
+        String naNames = ":  C:  G:  A:  T:  U:CYT:GUA:ADE:THY:URA:URI:CTP:CDP:CMP:GTP:GDP:GMP:ATP:ADP:AMP:TTP:TDP:TMP:UTP:UDP:UMP:GSP:H2U:PSU:4SU:1MG:2MG:M2G:5MC:5MU:T6A:1MA:RIA:OMC:OMG: YG:  I:7MG:YYG:C  :G  :A  :T  :U  :YG :I  : rC: rG: rA: rT: rU: dC: dG: dA: dT: dU: DC: DG: DA: DT: DU:";
         
         String resname = res.getName();
         if (aaNames.indexOf(resname) != -1 || naNames.indexOf(resname) != -1) 
