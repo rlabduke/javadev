@@ -32,6 +32,8 @@ public class ResSpec //extends ... implements ...
     int         resOffset;
     Matcher     regexName;
     boolean     requireCis;
+    boolean     require2prime;
+    boolean     requireDeoxy;
 //}}}
 
 //{{{ Constructor(s)
@@ -40,11 +42,13 @@ public class ResSpec //extends ... implements ...
     * @param requireCis if true, requires that the peptide bond preceding the residue
     * be cis rather than trans.  If false, doesn't care whether cis or trans.
     */
-    public ResSpec(int resOffset, boolean requireCis, String resName)
+    public ResSpec(int resOffset, boolean requireCis, boolean require2prime, boolean requireDeoxy, String resName)
     {
         super();
         this.resOffset      = resOffset;
         this.requireCis     = requireCis;
+        this.require2prime  = require2prime;
+        this.requireDeoxy   = requireDeoxy;
         this.origResName    = resName;
         
         resName = resName.replace('_', ' ');
@@ -78,6 +82,19 @@ public class ResSpec //extends ... implements ...
             }
             catch(AtomException ex)
             { return false; }
+        }
+        
+        if(require2prime)
+        {
+            System.err.println(
+                "RNA 2'-pucker-specific bond lengths & angles not yet implemented!");
+            return false;
+        }
+        
+        if(requireDeoxy)
+        {
+            System.err.println("DNA-specific bond lengths & angles not yet implemented!");
+            return false;
         }
         
         return regexName.reset(curr.getName()).matches();

@@ -35,16 +35,16 @@ public class GeomKinSmith //extends ... implements ...
     boolean doKinHeadings;
     double sigmaCutoff;
     File kinout;
-    boolean ignoreDNA;
     boolean subgroupNotGroup;
     boolean doHets;
+    boolean ignoreDNA;
     ArrayList<Integer> resnums;
     int[] resrange;
 //}}}
 
 //{{{ Constructor
 //##############################################################################
-    public GeomKinSmith(ArrayList<Measurement> m, String l, CoordinateFile c, boolean dist, boolean ang, boolean head, double sc, boolean id, boolean sgng, boolean dh, ArrayList<Integer> rn, int[] rr)
+    public GeomKinSmith(ArrayList<Measurement> m, String l, CoordinateFile c, boolean dist, boolean ang, boolean head, double sc, boolean sgng, boolean dh, boolean id, ArrayList<Integer> rn, int[] rr)
     {
         meas = (Measurement[]) m.toArray(new Measurement[m.size()]);
         label = l;
@@ -53,9 +53,9 @@ public class GeomKinSmith //extends ... implements ...
         doAngleDevsKin = ang;
         doKinHeadings = head;
         sigmaCutoff = sc;
-        ignoreDNA = id;
         subgroupNotGroup = sgng;
         doHets = dh;
+        ignoreDNA = id;
         resnums = rn;
         resrange = rr;
     }
@@ -88,38 +88,23 @@ public class GeomKinSmith //extends ... implements ...
                 || (resrange != null && resrange[0] <= resnum && resrange[1] >= resnum) )
                 {
                     boolean print = true;
-                    
-                    // Get c2o2index ("// Print headings" in Dangle.java)
-                    int c2o2index = 999; // placeholder value
-                    for(int i = 0; i < meas.length; i++)
+                    if(ignoreDNA)
                     {
-                        if (ignoreDNA && (meas[i].getLabel()).equals("c2o2") && c2o2index == 999)
-                        {
-                            c2o2index = i;
-                        }
+                        Measurement c2o2 = Measurement.newBuiltin("c2o2");
+                        double c2o2dist = c2o2.measure(model, state, res);
+                        if(Double.isNaN(c2o2dist)) print = false;
                     }
-                    
-                    // If c2o2 (for purpose of discrimination btw DNA & RNA) comes up 
-                    // NaN, we wanna omit this residue --> set 'print' to false
-                    for(int i = 0; i < meas.length; i++)
-                    {
-                        if (ignoreDNA && c2o2index != 999)
-                        {
-                            if ( Double.isNaN(meas[c2o2index].measure(model, state, res, doHets)) )
-                                print = false;
-                        }
-                    }
-                    
-                    if (print)
+                    if(print)
                     {
                         for(int i = 0; i < meas.length; i++)
                         {
                             // See if this Measurement is a Group of potentially interesting 
                             // Measurements, or just a regualar individual Measurement
-                            
                             Measurement.Group potentiallyAGroup = null;
                             try { potentiallyAGroup = (Measurement.Group) meas[i]; }
                             catch (java.lang.ClassCastException cce) { ; }
+                            
+                            //{{{ output if Group
                             
                             if (potentiallyAGroup != null) // then meas[i] is a Measurement.Group 
                                                            // (subclass of Measurement)
@@ -156,16 +141,15 @@ public class GeomKinSmith //extends ... implements ...
                                     }
                                 }
                             }
+                            //}}}
                             
+                            //{{{ output otherwise
                             else // meas[i] is NOT a Measurement.Group; probably a 
                                  // regular Measurement.Distance or Measurement.Angle
                             {
                                 double val = meas[i].measure(model, state, res, doHets);
                                 double dev = meas[i].getDeviation();
                                 double ideal = meas[i].mean;
-                                
-                                //System.out.println("val: "+val);
-                                //System.out.println("dev: "+dev);
                                 
                                 if(!Double.isNaN(val) && !Double.isNaN(dev) && Math.abs(dev) >= sigmaCutoff)
                                 {
@@ -181,10 +165,10 @@ public class GeomKinSmith //extends ... implements ...
                                     }
                                 }
                             }
+                            //}}}
                             
                         } //for (each meas[i] in meas)
-                        
-                    } //if (print)
+                    }
                 }
             }
             

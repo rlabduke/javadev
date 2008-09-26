@@ -41,8 +41,6 @@ abstract public class Measurement //extends ... implements ...
     String label;
     double mean = Double.NaN;
     double sigma = Double.NaN;
-    double mean2 = Double.NaN;  // for 2' ribose pucker in RNA ('mean' for 3')
-    double sigma2 = Double.NaN; // for 2' ribose pucker in RNA ('mean' for 3')
     double deviation = Double.NaN;
 //}}}
 
@@ -65,54 +63,38 @@ abstract public class Measurement //extends ... implements ...
     */
     public double measure(Model model, ModelState state, Residue res, boolean doHetsInGeneral)
     {
-        // Check to make sure there are no het atoms in this residue
-        // (Wouldn't want to give deviations for molecules not described 
-        // by the distribution this code is using!)
+        // Wouldn't want to give deviations for molecules not described by the 
+        // distribution this code is using, so check for hets and/or DNA.
         if (!doHetsInGeneral && !isProtOrNucAcid(res))
         {
             Collection<Atom> thisResiduesAtoms = res.getAtoms();
-            Iterator iter = thisResiduesAtoms.iterator();
-            while (iter.hasNext())
-            {
-                Atom atom = (Atom) iter.next();
-                if (atom.isHet())
+            for(Iterator iter = thisResiduesAtoms.iterator(); iter.hasNext(); )
+                if( ((Atom)iter.next()).isHet() )
                 {
                     this.deviation = Double.NaN;
                     return Double.NaN;
                 }
-            }
+            //{{{ old
+            //Iterator iter = thisResiduesAtoms.iterator();
+            //while (iter.hasNext())
+            //{
+            //    Atom atom = (Atom) iter.next();
+            //    if (atom.isHet())
+            //    {
+            //        this.deviation = Double.NaN;
+            //        return Double.NaN;
+            //    }
+            //}
+            //}}}
         }
         
-        // For angles and distances in RNA ribose, decide whether 2' pucker (in which
-        // case keep the alternate mean2 and sigma2) or 3' pucker (in which case 
-        // eliminate them).
-        boolean useIdealVals2 = false;
-        if(this.getType() == TYPE_DISTANCE || this.getType() == TYPE_ANGLE 
-        && !Double.isNaN(mean2) && !Double.isNaN(sigma2))
-        {
-            Measurement.BasePhosPerp pPerp = new Measurement.BasePhosPerp("pPerpPuckerTest");
-            double pPerpDist = pPerp.measure(model, state, res);
-            if (!Double.isNaN(pPerpDist) && pPerpDist <= 2.9)
-            {
-                // Clearly an RNA residue with 2' pucker => mean2 + sigma2 are appropriate
-                //System.err.println("Base-P perp in range => using mean2+sigma2");
-                useIdealVals2 = true;
-            }
-            // else either this residue is not RNA, or it is RNA but its ribose is not in the
-            // 2' pucker range (so has 3' pucker or the pucker is ambiguous) => default to the 
-            // original (3' or non-RNA) mean + sigma
-        }
-        
-        // Either (1) allowing hets or (2) not allowing hets but there are none in this residue
+        // Proceed with measurement for this residue
         double measure;
         if(resSpec == null || resSpec.isMatch(model, state, res))
             measure = measureImpl(model, state, res);
         else
             measure = Double.NaN;
-        if (useIdealVals2 && !Double.isNaN(mean2) && !Double.isNaN(sigma2))
-            this.deviation = (measure - mean2) / sigma2;
-        else
-            this.deviation = (measure - mean) / sigma;
+        this.deviation = (measure - mean) / sigma;
         return measure;
     }
     
@@ -160,7 +142,7 @@ abstract public class Measurement //extends ... implements ...
     }
 //}}}
 
-//{{{ setMeanAndSigma(2), toString, toStringImpl
+//{{{ setMeanAndSigma, toString, toStringImpl
 //##############################################################################
     /**
     * Sets the mean value and (expected) standard deviation for this measure,
@@ -174,24 +156,11 @@ abstract public class Measurement //extends ... implements ...
         return this;
     }
     
-    /**
-    * Sets the *second* mean value and (expected) standard deviation for this 
-    * measure, if applicable (e.g. for 3' instead of 2' ribose pucker in RNA).
-    * @return this, for chaining
-    */
-    public Measurement setMeanAndSigma2(double mean2, double sigma2)
-    {
-        this.mean2 = mean2;
-        this.sigma2 = sigma2;
-        return this;
-    }
-    
     public String toString()
     {
         return (resSpec == null ? "" : resSpec+" ")
             + toStringImpl()
-            + (!Double.isNaN(mean)  && !Double.isNaN(sigma)  ? " ideal "+mean+" "+sigma : "")
-            + (!Double.isNaN(mean2) && !Double.isNaN(sigma2) ? " (ideal2 "+mean2+" "+sigma2+")" : "");
+            + (!Double.isNaN(mean)  && !Double.isNaN(sigma)  ? " ideal "+mean+" "+sigma : "");
     }
     
     abstract protected String toStringImpl();

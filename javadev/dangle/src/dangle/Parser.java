@@ -66,6 +66,8 @@ public class Parser //extends ... implements ...
 //{{{ Constants
     final Matcher FOR       = Pattern.compile("for").matcher("");
     final Matcher CIS       = Pattern.compile("cis").matcher("");
+    final Matcher TWOPRIME  = Pattern.compile("2'").matcher(""); // 2' endo pucker for RNA ribose instead of more common 3'
+    final Matcher DEOXY     = Pattern.compile("deoxy").matcher("");
     final Matcher RESNAME   = Pattern.compile("[_A-Z0-9]{3}|/[^/ ]*/").matcher("");
     // If you add super-builtins here, you should also modify
     // Measurement.newSuperBuiltin(), the javadoc above, and the man page.
@@ -197,12 +199,16 @@ public class Parser //extends ... implements ...
                 catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing residue number ["+t.token()+"]", 0); }
             }
         }
-        boolean requireCis = t.accept(CIS);
+        boolean requireCis    = t.accept(CIS);
+        boolean require2prime = t.accept(TWOPRIME);
+        boolean requireDeoxy  = t.accept(DEOXY);
         if(t.accept(RESNAME))
         {
             ResSpec r = new ResSpec(
                 resOffset,
                 requireCis,
+                require2prime,
+                requireDeoxy,
                 RESNAME.group()
             );
             return r;
@@ -232,8 +238,6 @@ public class Parser //extends ... implements ...
             );
             if(t.accept(IDEAL))
                 m.setMeanAndSigma(realnum(), realnum());
-            if(t.accept(IDEAL))
-                m.setMeanAndSigma2(realnum(), realnum()); // for 2' RNA pucker
             return new Measurement[] {m};
         }
         else if(t.accept(ANGLE))
@@ -246,8 +250,6 @@ public class Parser //extends ... implements ...
             );
             if(t.accept(IDEAL))
                 m.setMeanAndSigma(realnum(), realnum());
-            if(t.accept(IDEAL))
-                m.setMeanAndSigma2(realnum(), realnum()); // for 2' RNA pucker
             return new Measurement[] {m};
         }
         else if(t.accept(DIHEDRAL))
