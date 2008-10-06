@@ -386,7 +386,7 @@ public class RamaPdfWriter //extends ... implements ...
     void addPageTitle(String title, PdfContentByte content)
     {
         Document doc = content.getPdfDocument();
-        PdfTemplate canvas = content.createTemplate(doc.getPageSize().width(), doc.getPageSize().height());
+        PdfTemplate canvas = content.createTemplate(doc.getPageSize().getWidth(), doc.getPageSize().getHeight());
         Graphics2D g2 = canvas.createGraphics(canvas.getWidth(), canvas.getHeight());
         
         java.awt.Font font = new java.awt.Font("Serif", java.awt.Font.PLAIN, 10);
