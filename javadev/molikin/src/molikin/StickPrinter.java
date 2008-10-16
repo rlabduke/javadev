@@ -65,7 +65,12 @@ public class StickPrinter //extends ... implements ...
         // Doing the selection inline saves a bit of time on allocating selectedBonds,
         // but much greater savings are achieved through bond order optimization.
         selectedBonds.clear();
+        //System.out.println("Pre-selection bonds");
+        //testBonds(bonds);
+        //System.out.println("\n\n\nPost-selection bonds");
         Util.selectBondsBetween(bonds, srcA, dstA, srcR, dstR, selectedBonds);
+        //testBonds(selectedBonds);
+        //System.out.println(srcA);
         // The optimization reduces total bond drawing time by ~20%
         // because it reduces kinemage size by ~15%. Less output, faster code!
         Bond[] b = (Bond[]) selectedBonds.toArray(new Bond[selectedBonds.size()]);
@@ -96,6 +101,9 @@ public class StickPrinter //extends ... implements ...
         {
             Bond curr = b[i];
             crayon.forBond(curr.higher, curr.lower);
+            //System.out.println(curr);
+            //System.out.println(curr.higher.getName()+"->"+curr.lower.getName());
+            
             // This may cause inefficiencies by introducing breaks into the
             // carefully ordered series of bonds, but we'll live with it.
             if(!crayon.shouldPrint()) continue;
@@ -173,6 +181,17 @@ public class StickPrinter //extends ... implements ...
     public void setAtomIDer(AtomIDer ai)
     { this.ider = ai; }
 //}}}
+
+  //{{{ testBonds
+  public void testBonds(Collection bonds) {
+    Iterator iter = bonds.iterator();
+    while (iter.hasNext()) {
+      Bond b = (Bond) iter.next();
+      System.out.print(b.higher.getName()+"->"+b.lower.getName()+"; ");
+    }
+  }
+  //}}}
+
 
 //{{{ empty_code_segment
 //##############################################################################
