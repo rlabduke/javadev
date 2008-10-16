@@ -60,7 +60,7 @@ public class Util //extends ... implements ...
 //{{{ isMainchain, isWater
 //##############################################################################
     /** Based on Prekin PKINCSBS.c decidemainside() */
-    static String mcPattern = ".N[ T].|.C[A ].|.O .|.OXT|[^2][HDQ][A ] |.[HDQ].['*]|.P  |.O[123]P|.[CO][1-5]['*]| CM2";
+    static String mcPattern = ".N[ T].|.C[A ].|.O .|.OXT|[^2][HDQ][A ] |.[HDQ].['*]|.P  |.O[123]P|.[CO][1-5]['*]| CM2|.OP[123]|H.''";
     //                                                   ^^^^
     //                              makes one Gly H sidechain, the other mainchain
     // added _CM2 and _O3P for tr0001 on 051114
@@ -100,7 +100,7 @@ public class Util //extends ... implements ...
     }
 
     /** Based on Prekin's NAList */
-    static String nucacidPattern = "  C|  G|  A|  T|  U|CYT|GUA|ADE|THY|URA|URI|CTP|CDP|CMP|GTP|GDP|GMP|ATP|ADP|AMP|TTP|TDP|TMP|UTP|UDP|UMP|GSP|H2U|PSU|1MG|2MG|M2G|5MC|5MU|T6A|1MA|RIA|OMC|OMG| YG|  I|7MG|C  |G  |A  |T  |U  |YG |I  ";
+    static String nucacidPattern = "  C|  G|  A|  T|  U|CYT|GUA|ADE|THY|URA|URI|CTP|CDP|CMP|GTP|GDP|GMP|ATP|ADP|AMP|TTP|TDP|TMP|UTP|UDP|UMP|GSP|H2U|PSU|1MG|2MG|M2G|5MC|5MU|T6A|1MA|RIA|OMC|OMG| YG|  I|7MG|C  |G  |A  |T  |U  |YG |I  | DG| DC| DA| DT";
     //7mg added 001114 for tRNA 1EHZ
     static Matcher nucacidMatcher = null;
     static public boolean isNucleicAcid(Residue res)

@@ -62,6 +62,7 @@ public class ResTypeCrayon extends AbstractCrayon implements AtomCrayon, BondCra
             // A type bases
             resColors.put("  A", "pink");
             resColors.put("A  ", "pink");
+            resColors.put(" DA", "pink");
             resColors.put("ADE", "pink");
             resColors.put("ATP", "pink");
             resColors.put("ADP", "pink");
@@ -71,6 +72,7 @@ public class ResTypeCrayon extends AbstractCrayon implements AtomCrayon, BondCra
             resColors.put("T6A", "pink");
             // T,U type bases
             resColors.put("  T", "sky");
+            resColors.put(" DT", "sky");
             resColors.put("T  ", "sky");
             resColors.put("THY", "sky");
             resColors.put("TTP", "sky");
@@ -89,6 +91,7 @@ public class ResTypeCrayon extends AbstractCrayon implements AtomCrayon, BondCra
             resColors.put("H2U", "sky");
             // G type bases
             resColors.put("  G", "sea");
+            resColors.put(" DG", "sea");
             resColors.put("G  ", "sea");
             resColors.put("GUA", "sea");
             resColors.put("GTP", "sea");
@@ -102,6 +105,7 @@ public class ResTypeCrayon extends AbstractCrayon implements AtomCrayon, BondCra
             resColors.put("OMG", "sea");
             // C type bases
             resColors.put("  C", "yellow");
+            resColors.put(" DC", "yellow");
             resColors.put("C  ", "yellow");
             resColors.put("CYT", "yellow");
             resColors.put("CTP", "yellow");
