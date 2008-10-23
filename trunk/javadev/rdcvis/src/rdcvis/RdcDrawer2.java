@@ -106,6 +106,35 @@ public class RdcDrawer2 {
   }
   //}}}
   
+  //{{{ drawSurface
+  public void drawSurface(double rdcVal, Tuple3 center, KList list) {
+    for (double xVal = -1; xVal <= 1; xVal = xVal + 0.05) {
+      for (double yVal = -1; yVal <= 1; yVal = yVal + 0.05) {
+        double zVal = Math.sqrt(sxx/szz*xVal*xVal+syy/szz*yVal*yVal-rdcVal/szz);
+        if (!Double.isNaN(zVal)) {
+          Matrix changeBase = new Matrix(3, 1);
+          changeBase.set(0, 0, xVal);
+          changeBase.set(1, 0, yVal);
+          changeBase.set(2, 0, zVal);
+          Matrix adjFrame = matV.times(changeBase);
+          //adjFrame.timesEquals(r); //adjust radius
+          double x = adjFrame.get(0, 0);
+          double y = adjFrame.get(1, 0);
+          double z = adjFrame.get(2, 0);
+          BallPoint point = new BallPoint("surface");
+          point.setRadius((float)0.01);
+          point.setXYZ(x+center.getX(), y+center.getY(), z+center.getZ());
+          list.add(point);
+          BallPoint negPoint = new BallPoint("surface");
+          negPoint.setRadius((float)0.01);
+          negPoint.setXYZ(-x+center.getX(), -y+center.getY(), -z+center.getZ());
+          list.add(negPoint);
+        }
+      }
+    }
+  }
+  //}}}
+  
   //{{{ calcVariables
   public void calcVariables() {
     sxx = saupeD.get(0, 0);
