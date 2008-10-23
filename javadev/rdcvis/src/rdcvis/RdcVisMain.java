@@ -296,6 +296,7 @@ public class RdcVisMain {
           AtomState origin = getOriginAtom(state, orig, atoms);
           if ((rdcVect != null)&&(origin != null)) {
             drawCurve(kin, origin, rdcVect, orig);
+            drawSurface(kin, origin, orig);
           } else {
             //JOptionPane.showMessageDialog(kMain.getTopWindow(),
             //"Sorry, the atoms needed for this RDC do not seem to be in this residue.",
@@ -424,6 +425,18 @@ public class RdcVisMain {
       }
     } else {
       System.out.println("this residue does not appear to have an rdc");
+    }
+  }
+  //}}}
+  
+  //{{{ drawSurface
+  public void drawSurface(Kinemage kin, Tuple3 p, Residue orig) {
+    String seq = orig.getSequenceNumber().trim();
+    double rdcVal = fi.getRdcValue(seq);
+    if (!Double.isNaN(rdcVal)) {
+      KList list = new KList(KList.BALL, "surfaces");
+      subgroup.add(list);
+      fi.getDrawer().drawSurface(rdcVal, p, list);
     }
   }
   //}}}
