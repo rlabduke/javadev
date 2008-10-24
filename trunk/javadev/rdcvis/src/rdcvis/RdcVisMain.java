@@ -435,6 +435,8 @@ public class RdcVisMain {
     double rdcVal = fi.getRdcValue(seq);
     if (!Double.isNaN(rdcVal)) {
       KList list = new KList(KList.BALL, "surfaces");
+      list.setNoHighlight(true);
+      list.setAlpha(100);
       subgroup.add(list);
       fi.getDrawer().drawSurface(rdcVal, p, list);
     }

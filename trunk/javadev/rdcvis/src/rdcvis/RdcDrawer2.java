@@ -108,30 +108,53 @@ public class RdcDrawer2 {
   
   //{{{ drawSurface
   public void drawSurface(double rdcVal, Tuple3 center, KList list) {
-    for (double xVal = -1; xVal <= 1; xVal = xVal + 0.05) {
-      for (double yVal = -1; yVal <= 1; yVal = yVal + 0.05) {
-        double zVal = Math.sqrt(sxx/szz*xVal*xVal+syy/szz*yVal*yVal-rdcVal/szz);
-        if (!Double.isNaN(zVal)) {
-          Matrix changeBase = new Matrix(3, 1);
-          changeBase.set(0, 0, xVal);
-          changeBase.set(1, 0, yVal);
-          changeBase.set(2, 0, zVal);
-          Matrix adjFrame = matV.times(changeBase);
-          //adjFrame.timesEquals(r); //adjust radius
-          double x = adjFrame.get(0, 0);
-          double y = adjFrame.get(1, 0);
-          double z = adjFrame.get(2, 0);
-          BallPoint point = new BallPoint("surface");
-          point.setRadius((float)0.01);
-          point.setXYZ(x+center.getX(), y+center.getY(), z+center.getZ());
-          list.add(point);
-          BallPoint negPoint = new BallPoint("surface");
-          negPoint.setRadius((float)0.01);
-          negPoint.setXYZ(-x+center.getX(), -y+center.getY(), -z+center.getZ());
-          list.add(negPoint);
-        }
+    //for (double xVal = -1; xVal <= 1; xVal = xVal + 0.05) {
+    //  for (double yVal = -1; yVal <= 1; yVal = yVal + 0.05) {
+    //for (double radius = 0; radius <=1.1; radius = radius + 0.05) {
+    //  for (double xVal = -radius*5; xVal <= radius*5; xVal = xVal+0.01) {
+    //    double yTemp = Math.sqrt(radius-xVal*xVal);
+    //    for (int i = -1; i <= 1; i = i + 2) {
+    //      double yVal = yTemp*i;
+    for (double radius = 0; radius <=1.1; radius = radius + 0.025) {
+      for (double tau = 0; tau <= 2 * Math.PI; tau += 2 * Math.PI / (10+radius*200)) {
+        double xVal = shake(radius*Math.sin(tau));
+        double yVal = shake(radius*Math.cos(tau));
+          double zVal = Math.sqrt(-sxx/szz*xVal*xVal-syy/szz*yVal*yVal+rdcVal/szz);
+          if (!Double.isNaN(zVal)) {
+            Matrix changeBase = new Matrix(3, 1);
+            changeBase.set(0, 0, xVal);
+            changeBase.set(1, 0, yVal);
+            changeBase.set(2, 0, zVal);
+            Matrix adjFrame = matV.times(changeBase);
+            //adjFrame.timesEquals(r); //adjust radius
+            double x = adjFrame.get(0, 0);
+            double y = adjFrame.get(1, 0);
+            double z = adjFrame.get(2, 0);
+            BallPoint point = new BallPoint("surface "+df.format(xVal)+","+df.format(yVal)+","+df.format(zVal));
+            point.setRadius((float)0.01);
+            point.setXYZ(x+center.getX(), y+center.getY(), z+center.getZ());
+            list.add(point);
+            BallPoint negPoint = new BallPoint("-surface "+df.format(xVal)+","+df.format(yVal)+","+df.format(zVal));
+            negPoint.setRadius((float)0.01);
+            negPoint.setXYZ(-x+center.getX(), -y+center.getY(), -z+center.getZ());
+            list.add(negPoint);
+          }
+        //}
       }
     }
+    BallPoint inSphere = new BallPoint("internuclear sphere");
+    inSphere.setRadius((float)1);
+    inSphere.setXYZ(center.getX(),center.getY(),center.getZ());
+    inSphere.setColor(KPalette.sky);
+    list.add(inSphere);
+  }
+  //}}}
+  
+  //{{{ shake
+  public double shake(double d) {
+    //double shakeFactor = d/10;
+    double randFactor = (2*Math.random()-1)*0.01;
+    return d + randFactor;
   }
   //}}}
   
