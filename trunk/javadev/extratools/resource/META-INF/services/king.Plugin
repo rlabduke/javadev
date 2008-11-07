@@ -15,6 +15,7 @@ king.tool.postkin.KinimolPlugin
 king.tool.data_analysis.HighDimSliderPlugin
 king.tool.data_analysis.RdcPlayPlugin
 king.tool.vr.VRKinTool
+king.tool.export.RenderExport
 
 # Tools
 king.tool.docking.Dock3On3Tool

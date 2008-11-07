@@ -38,3 +38,4 @@ king.tool.data_analysis.RdcPlayPlugin.menuName = Specialty
 king.tool.vr.VRKinTool.menuName = Specialty
 king.tool.nmr.RdcVisTool.menuName = Specialty
 king.tool.nmr.CoCenterTool.menuName = Kin editing
+king.tool.export.RenderExport.menuName = <export>
