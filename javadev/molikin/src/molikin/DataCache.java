@@ -107,6 +107,13 @@ public class DataCache //extends ... implements ...
     }
 //}}}
 
+  //{{{ getModelId
+  public String getModelId() {
+    return model.toString();
+  }
+  //}}}
+
+
 //{{{ empty_code_segment
 //##############################################################################
 //}}}

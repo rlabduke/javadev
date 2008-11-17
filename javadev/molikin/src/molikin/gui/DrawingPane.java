@@ -25,7 +25,7 @@ public interface DrawingPane //extends ... implements ...
     public String toString();
     
     /** Emits the kinemage (text) representation as selected by the user */
-    public void printKinemage(PrintWriter out, Model m, String chainID, String bbColor);
+    public void printKinemage(PrintWriter out, Model m, String chainID, String idCode, String bbColor);
     
     /** As a Collection of Model objects. */
     public Collection getSelectedModels();

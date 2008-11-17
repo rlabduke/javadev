@@ -202,9 +202,9 @@ public class Test //extends ... implements ...
         sp.printSticks(bonds, atomC.bbHydro, atomC.bbHeavy);
         out.println("@subgroup {sidechain}");
         out.println("@vectorlist {heavy} color= cyan"); // includes disulfides, for now
-        sp.printSticks(bonds, atomC.scHeavy, atomC.bioHeavy, selectedResidues, allResidues); // to scHeavy if we want stubs to ribbon instead
+        sp.printSticks(bonds, atomC.scHeavy, atomC.bioHeavy, selectedResidues, allResidues, model.toString()); // to scHeavy if we want stubs to ribbon instead
         out.println("@vectorlist {H} color= gray master= {Hs}");
-        sp.printSticks(bonds, atomC.scHydro, atomC.bioHeavy, selectedResidues, allResidues); // makes sure Gly 2HA connects to bb
+        sp.printSticks(bonds, atomC.scHydro, atomC.bioHeavy, selectedResidues, allResidues, model.toString()); // makes sure Gly 2HA connects to bb
         if(atomC.hetHeavy.size() > 0)
         {
             out.println("@subgroup {hets}");

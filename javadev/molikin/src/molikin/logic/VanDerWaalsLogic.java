@@ -54,7 +54,7 @@ public class VanDerWaalsLogic
 //{{{ printKinemage
 //##############################################################################
     /** Emits the kinemage (text) representation as selected by the user */
-    public void printKinemage(PrintWriter out, Model m, Set residues, String bbColor)
+    public void printKinemage(PrintWriter out, Model m, Set residues, String pdbId, String bbColor)
     {
         this.out = out;
         this.bp = new BallPrinter(out);
