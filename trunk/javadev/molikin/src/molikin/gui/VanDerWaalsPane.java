@@ -112,7 +112,7 @@ public class VanDerWaalsPane extends TablePane2 implements DrawingPane
 //{{{ printKinemage
 //##############################################################################
     /** Emits the kinemage (text) representation as selected by the user */
-    public void printKinemage(PrintWriter out, Model m, String chainID, String bbColor)
+    public void printKinemage(PrintWriter out, Model m, String chainID, String pdbId, String bbColor)
     {
         Collection models = selector.getSelectedModels();
         if(!models.contains(m)) return;
@@ -137,7 +137,7 @@ public class VanDerWaalsPane extends TablePane2 implements DrawingPane
         logic.doHydrogens   = this.cbHydrogens.isSelected();
         logic.doUseSpheres  = this.cbUseSpheres.isSelected();
         logic.colorBy       = this.cmColorBy.getSelectedItem();
-        logic.printKinemage(out, m, residues, bbColor);
+        logic.printKinemage(out, m, residues, pdbId, bbColor);
     }
 //}}}
 

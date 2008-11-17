@@ -248,7 +248,7 @@ public class MainGuiPane extends TablePane2 implements ListSelectionListener
                   {
                     DrawingPane p = (DrawingPane) iter.next();
                     String bbColor = BACKBONE_COLORS[ (groupByModel ? modelCount : chainCount) % BACKBONE_COLORS.length];
-                    p.printKinemage(out, m, chainID, bbColor);
+                    p.printKinemage(out, m, chainID, idCode, bbColor);
                   }
                 }
             }

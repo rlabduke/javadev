@@ -48,7 +48,7 @@ public class BallPrinter //extends ... implements ...
     * but only if they belong to the given set of Residues (may be null).
     * Only points are generated; the client is responsible for writing "@balllist ...".
     */
-    public void printBalls(Collection atoms, Set res)
+    public void printBalls(Collection atoms, Set res, String modelId)
     {
         for(Iterator iter = atoms.iterator(); iter.hasNext(); )
         {
@@ -56,7 +56,7 @@ public class BallPrinter //extends ... implements ...
             crayon.forAtom(curr);
             if(crayon.shouldPrint() && (res == null || res.contains(curr.getResidue())))
             {
-                out.println("{"+ider.identifyAtom(curr)+"}"+crayon.getKinString()+" "+curr.format(df));
+                out.println("{"+ider.identifyAtom(curr)+modelId+"}"+crayon.getKinString()+" "+curr.format(df));
             }
         }
         
@@ -68,7 +68,7 @@ public class BallPrinter //extends ... implements ...
     * Only points are generated; the client is responsible for writing "@balllist ...".
     */
     public void printBalls(Collection atoms)
-    { printBalls(atoms, null); }
+    { printBalls(atoms, null, null); }
 //}}}
 
 //{{{ get/setCrayon, get/setAtomIDer

@@ -119,7 +119,7 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
 //{{{ printKinemage
 //##############################################################################
     /** Emits the kinemage (text) representation as selected by the user */
-    public void printKinemage(PrintWriter out, Model m, String chainID, String bbColor)
+    public void printKinemage(PrintWriter out, Model m, String chainID, String pdbId, String bbColor)
     {
         Collection models = selector.getSelectedModels();
         if(!models.contains(m)) return;
@@ -147,7 +147,7 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
         logic.doBallsOnCarbon   = this.cbBallsOnCarbon.isSelected();
         logic.doBallsOnAtoms    = this.cbBallsOnAtoms.isSelected();
         logic.colorBy           = this.cmColorBy.getSelectedItem();
-        logic.printKinemage(out, m, residues, bbColor);
+        logic.printKinemage(out, m, residues, pdbId, bbColor);
     }
 //}}}
 

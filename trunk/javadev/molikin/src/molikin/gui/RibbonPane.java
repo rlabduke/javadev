@@ -103,7 +103,7 @@ public class RibbonPane extends TablePane2 implements DrawingPane
 //{{{ printKinemage
 //##############################################################################
     /** Emits the kinemage (text) representation as selected by the user */
-    public void printKinemage(PrintWriter out, Model m, String chainID, String bbColor)
+    public void printKinemage(PrintWriter out, Model m, String chainID, String pdbId, String bbColor)
     {
         Collection models = selector.getSelectedModels();
         if(!models.contains(m)) return;
