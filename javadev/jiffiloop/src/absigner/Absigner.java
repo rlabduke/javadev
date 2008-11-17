@@ -350,7 +350,7 @@ public class Absigner {
     while (iter.hasNext()) {
       Model mod = (Model) iter.next();
       out.println("@group {"+inputPdb.getIdCode()+" "+mod.getName()+"} dominant master= {input pdb}");
-      bsl.printKinemage(out, mod, new UberSet(mod.getResidues()), "bluetint");
+      bsl.printKinemage(out, mod, new UberSet(mod.getResidues()), inputPdb.getIdCode(), "bluetint");
     }
     out.flush();
   }

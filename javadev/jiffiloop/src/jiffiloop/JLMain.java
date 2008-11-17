@@ -191,9 +191,10 @@ public class JLMain {
     //gapFrameAtomsMap = new HashMap<ArrayList<Double>, ArrayList<Triple>>();
     //System.out.println(pdbFile.toString());
     PdbFileAnalyzer analyzer = new PdbFileAnalyzer(pdbFile);
+    analyzer.analyzePdb();
     for (Integer start : simulatedGaps.keySet()) {
       Integer end = simulatedGaps.get(start);
-      analyzer.simulateGap(start.intValue(), end.intValue());
+      analyzer.simulateGap(start.intValue(), end.intValue(), useStems);
     }
     libReader = new PdbLibraryReader(pdbLibrary, renumber);
     CoordinateFile[] pdbOut;
@@ -280,14 +281,14 @@ public class JLMain {
       while (iter.hasNext()) {
         Model mod = (Model) iter.next();
         out.println("@group {"+inputPdb.getIdCode()+" "+mod.getName()+"} dominant master= {input pdb}");
-        bsl.printKinemage(out, mod, new UberSet(mod.getResidues()), "bluetint");
+        bsl.printKinemage(out, mod, new UberSet(mod.getResidues()), inputPdb.getIdCode(), "bluetint");
       }
       for (CoordinateFile pdb : pdbs) {
         Iterator models = pdb.getModels().iterator();
         while (models.hasNext()) {
           Model mod = (Model) models.next();
           out.println("@group {"+pdb.getIdCode()+" "+mod.getName()+"} dominant animate master= {all models}");
-          bsl.printKinemage(out, mod, new UberSet(mod.getResidues()), "white");
+          bsl.printKinemage(out, mod, new UberSet(mod.getResidues()), inputPdb.getIdCode(), "white");
         }
       }
       out.flush();

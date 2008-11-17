@@ -20,20 +20,33 @@ public class PdbFileAnalyzer {
   //}}}
   
   //{{{ Constructor
-  public PdbFileAnalyzer(File pdbFile) {
+  public PdbFileAnalyzer(File pdb) {
     masterGapMap = new HashMap<Model, HashMap<String, ArrayList>>();
     masterStemMap = new HashMap<Model, HashMap<String, ArrayList>>();
-    readPdb(pdbFile);
-    test();
-  }
-  //}}}
-  
-  //{{{ readPdb
-  public void readPdb(File pdb) {
     PdbReader reader = new PdbReader();
     try {
       pdbFile = reader.read(pdb);
 	    pdbFile.setIdCode(pdb.getName());
+    } catch (IOException ie) {
+      System.err.println("Problem when reading pdb file");
+    }
+    //test();
+  }
+  //}}}
+  
+  //{{{ clear
+  public void clear() {
+    masterGapMap = new HashMap<Model, HashMap<String, ArrayList>>();
+    masterStemMap = new HashMap<Model, HashMap<String, ArrayList>>();
+  }
+  //}}}
+  
+  //{{{ analyzePdb
+  public void analyzePdb() {
+    //PdbReader reader = new PdbReader();
+    //try {
+    //  pdbFile = reader.read(pdb);
+	  //  pdbFile.setIdCode(pdb.getName());
 	    Iterator models = (pdbFile.getModels()).iterator();
 	    while (models.hasNext()) {
         //System.out.print(".");
@@ -41,9 +54,9 @@ public class PdbFileAnalyzer {
         masterGapMap.put(mod, analyzeModelforGaps(mod));
         masterStemMap.put(mod, analyzeModelforStems(mod));
 	    }
-    } catch (IOException ie) {
-	    System.err.println("Problem when reading pdb file");
-    }
+    //} catch (IOException ie) {
+	  //  System.err.println("Problem when reading pdb file");
+    //}
   }
   //}}}
   
@@ -181,14 +194,35 @@ public class PdbFileAnalyzer {
   //}}}
   
   //{{{ simulateGap
-  public void simulateGap(int oneResNum, int nResNum) {
-    for (Model mod : masterGapMap.keySet()) {
-      //ModelState modState = mod.getState();
+  public void simulateGap(int oneResNum, int nResNum, boolean doStems) {
+    Iterator models = (pdbFile.getModels()).iterator();
+    while (models.hasNext()) {
+      //System.out.print(".");
+      Model mod = (Model) models.next();
+      //HashMap<String, ArrayList> chainGapMap = new HashMap<String, ArrayList>();
       HashMap<String, ArrayList> chainMap = masterGapMap.get(mod);
+      if (chainMap == null) {
+        chainMap = new HashMap<String, ArrayList>();
+        masterGapMap.put(mod, chainMap);
+      }
       HashMap<String, ArrayList> stemChainMap = masterStemMap.get(mod);
-      for (String chain : chainMap.keySet()) {
+      if (stemChainMap == null) {
+        stemChainMap = new HashMap<String, ArrayList>();
+        masterStemMap.put(mod, stemChainMap);
+      }
+      Set<String> chainSet = mod.getChainIDs();
+      for (String chain : chainSet) {
+        //ModelState modState = mod.getState();
         ArrayList<ProteinGap> gaps = chainMap.get(chain);
+        if (gaps == null) {
+          gaps = new ArrayList<ProteinGap>();
+          chainMap.put(chain, gaps);
+        }
         ArrayList<ProteinStem> stems = stemChainMap.get(chain);
+        if (stems == null) {
+          stems = new ArrayList<ProteinStem>();
+          stemChainMap.put(chain, stems);
+        }
         Set<Residue> residues = mod.getChain(chain);
         Residue minusRes = null;
         Residue zeroRes = null;
@@ -210,11 +244,13 @@ public class PdbFileAnalyzer {
         if ((zeroRes!=null)&&(oneRes!=null)&&(nRes!=null)&&(n1Res!=null)) {
           gaps.add(new ProteinGap(mod, chain, zeroRes, oneRes, nRes, n1Res));
         }
-        if ((minusRes!=null)&&(zeroRes!=null)&&(oneRes!=null)) {
-          stems.add(new ProteinStem(mod, chain, minusRes, zeroRes, oneRes, ProteinStem.N_TERM));
-        }
-        if ((nRes!=null)&&(n1StemRes!=null)&&(n2Res!=null)) {
-          stems.add(new ProteinStem(mod, chain, nRes, n1StemRes, n2Res, ProteinStem.C_TERM));
+        if (doStems) {
+          if ((minusRes!=null)&&(zeroRes!=null)&&(oneRes!=null)) {
+            stems.add(new ProteinStem(mod, chain, minusRes, zeroRes, oneRes, ProteinStem.N_TERM));
+          }
+          if ((nRes!=null)&&(n1StemRes!=null)&&(n2Res!=null)) {
+            stems.add(new ProteinStem(mod, chain, nRes, n1StemRes, n2Res, ProteinStem.C_TERM));
+          }
         }
       }
     }
