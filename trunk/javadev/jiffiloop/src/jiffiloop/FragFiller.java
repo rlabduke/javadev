@@ -265,11 +265,11 @@ public class FragFiller implements Filler {
     int i = 0;
     for (ProteinGap gap : filledMap.keySet()) {
       fragPdbOut[i] = new CoordinateFile();
-      System.out.println(gap.getSourceString() + "." + gap.getOneNum() + "-" + gap.getNNum());
+      //System.out.println(gap.getSourceString() + "." + gap.getOneNum() + "-" + gap.getNNum());
       fragPdbOut[i].setIdCode(gap.getSourceString() + "." + gap.getOneNum() + "-" + gap.getNNum());
       ArrayList<String> listofFiller = filledMap.get(gap);
       //ArrayList<Triple> gapFrameStates = gapFrameAtomsMap.get(gap);
-      System.out.println(listofFiller.size());
+      //System.out.println(listofFiller.size());
       for (int ind = 0; ((ind < 10000)&&(ind < listofFiller.size())); ind++) {
         String info = listofFiller.get(ind);
         String[] splitInfo = info.split(" ");

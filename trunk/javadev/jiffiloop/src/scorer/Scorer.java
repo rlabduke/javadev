@@ -33,8 +33,17 @@ public class Scorer {
     if (argList.size() < 1) {
 	    System.out.println("Not enough arguments: you must have an input pdb!");
     } else {
-      File pdbFile = new File(argList.get(0));
-	    Scorer scorer = new Scorer(new File(pdbFile.getAbsolutePath()));
+      File argFile = new File(argList.get(0));
+      if (argFile.isDirectory()) {
+        File[] subFiles = argFile.listFiles();
+        for (File subFile : subFiles) {
+          if (subFile.isFile()) {
+            Scorer scorer = new Scorer(new File(subFile.getAbsolutePath()));
+          }
+        }
+      } else {
+        Scorer scorer = new Scorer(new File(argFile.getAbsolutePath()));
+      }
     }
   }
   //}}}
@@ -68,20 +77,22 @@ public class Scorer {
 
   //{{{ Constructors
   public Scorer(File f) {
-    int score = 0;
     String name = f.getName();
-    System.out.println(name);
+    //System.out.println(name);
     analyzer = new PdbFileAnalyzer(f);
     createAllGaps(5);
     Map<String, ArrayList<ProteinGap>> gaps = analyzer.getGaps();
     dm = new DatabaseManager();
     //dm.connectToDatabase("//spiral.research.duhs.duke.edu/qDBrDB");
     dm.connectToDatabase("//quality.biochem.duke.edu/vbc3");
-    for (ArrayList<ProteinGap> gapList : gaps.values()) {
-      score = score + countDb(gapList);
+    for (String gapString : gaps.keySet()) {
+      ArrayList<ProteinGap> gapList = gaps.get(gapString);
+      System.out.print(name+","+gapString+","+gapList.size());
+      int score = countDb(gapList);
+      System.out.println(","+score);
     }
-    System.out.println();
-    System.out.println("Score is: " + score);
+    //System.out.println();
+    //System.out.println("Score is: " + score);
     dm.close();
   }
   //}}}
@@ -128,14 +139,17 @@ public class Scorer {
       sqlSelect = sqlSelect.concat("AND max_B_factor <= 35;");
       //System.out.println(sqlSelect);
       //ArrayList<String> listofMatches = filledMap.get(gap);
-      System.out.print(".");
+      System.err.print(".");
       dm.select(sqlSelect);
       while (dm.next()) {
-        score = score + Integer.parseInt(dm.getString(1));
+        String count = dm.getString(1);
+        score = score + Integer.parseInt(count);
+        System.out.print(","+count);
         //System.out.println("count= "+dm.getString(1));
         //listofMatches.add(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4));
       }
     }
+    System.err.println();
     return score;
   }
   //}}}
