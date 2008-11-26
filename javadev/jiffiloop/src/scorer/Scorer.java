@@ -77,6 +77,7 @@ public class Scorer {
 
   //{{{ Constructors
   public Scorer(File f) {
+    long startTime = System.currentTimeMillis();
     String name = f.getName();
     //System.out.println(name);
     analyzer = new PdbFileAnalyzer(f);
@@ -94,6 +95,7 @@ public class Scorer {
     //System.out.println();
     //System.out.println("Score is: " + score);
     dm.close();
+    System.err.println("Scorer took "+(System.currentTimeMillis() - startTime)/1000+" seconds");
   }
   //}}}
   
@@ -117,14 +119,24 @@ public class Scorer {
 
   //{{{ countDb
   public int countDb(Collection<ProteinGap> gapList) {
+    long longestTime = 0;
+    String longestSelect = "none?";
     int score = 0;
+    int counter = 1;
     for (ProteinGap gap : gapList) {
+      long startTime = System.currentTimeMillis();
       ArrayList<Double> gapFrame = gap.getParameters();
       int gapLength = gap.getSize();
-      String sqlSelect = "SELECT count(*) FROM parameters5200 ";
-      sqlSelect = sqlSelect.concat("WHERE frag_length = "+Integer.toString(gapLength)+" \n");
+      int oneNum = gap.getOneNum();
+      while (counter < oneNum) {
+        System.out.print(",");
+        counter++;
+      }
+      String sqlSelect = "SELECT count(*) FROM parameters5200frag_length_5 ";
+      //sqlSelect = sqlSelect.concat("WHERE frag_length = "+Integer.toString(gapLength)+" \n");
       double dist = gapFrame.get(0);
-      sqlSelect = sqlSelect.concat("AND (distance <= "+df.format(gapFrame.get(0)+1)+" AND distance >= "+df.format(gapFrame.get(0)-1));
+      //sqlSelect = sqlSelect.concat("WHERE (distance <= "+df.format(gapFrame.get(0)+1)+" AND distance >= "+df.format(gapFrame.get(0)-1));
+      sqlSelect = sqlSelect.concat("WHERE (distance BETWEEN "+df.format(gapFrame.get(0)-1)+" AND "+df.format(gapFrame.get(0)+1));
       sqlSelect = sqlSelect.concat(") \n");
       double startAng = gapFrame.get(1);
       sqlSelect = sqlSelect.concat(createWhereQuery(startAng, "start_angle") + " \n");
@@ -145,17 +157,37 @@ public class Scorer {
         String count = dm.getString(1);
         score = score + Integer.parseInt(count);
         System.out.print(","+count);
+        counter++;
         //System.out.println("count= "+dm.getString(1));
         //listofMatches.add(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4));
       }
+      long totalTime = System.currentTimeMillis() - startTime;
+      if (totalTime >= longestTime) {
+        longestTime = totalTime;
+        longestSelect = sqlSelect;
+      }
     }
     System.err.println();
+    System.err.println("Longest Time was "+longestTime+" milliseconds");
+    System.err.println(longestSelect);
     return score;
   }
   //}}}
 
   //{{{ createWhereQuery
   public String createWhereQuery(double frameVal, String colName) {
+    if (frameVal > 180 - 25) {
+      return "AND ("+colName+" >= "+Double.toString(frameVal-25)+" OR "+colName+" <= "+Double.toString(-360+25+frameVal)+")";
+    } else if (frameVal < -180 + 25) {
+      return "AND ("+colName+" <= "+Double.toString(frameVal+25)+" OR "+colName+" >= "+Double.toString(frameVal+360-25)+")";
+    } else {
+      return "AND ("+colName+" BETWEEN "+Double.toString(frameVal-25)+" AND "+Double.toString(frameVal+25)+")";
+    }
+  }
+  //}}}
+  
+  //{{{ createOldWhereQuery
+  public String createOldWhereQuery(double frameVal, String colName) {
     if (frameVal > 180 - 25) {
       return "AND ("+colName+" >= "+Double.toString(frameVal-25)+" OR "+colName+" <= "+Double.toString(-360+25+frameVal)+")";
     } else if (frameVal < -180 + 25) {
