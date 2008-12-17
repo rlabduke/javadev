@@ -348,7 +348,7 @@ public class StateManager //extends ... implements ...
 //##############################################################################
 //}}}
 
-/*
+
 //{{{ main (for testing)
 //##############################################################################
     public static void main(String[] args)
@@ -359,19 +359,21 @@ public class StateManager //extends ... implements ...
         points[points.length-2] = new Triple(0,0,0);
         points[points.length-1] = new Triple(10,10,10);
         
-        ArrayList terms = new ArrayList();
+        ArrayList bondTerms = new ArrayList();
         for(int i = 0; i < points.length-3; i++)
-            terms.add(new BondTerm(i, i+1, 1, 1));
-        terms.add(new BondTerm(points.length-3, points.length-1, 0, 1));
-        terms.add(new BondTerm(0,               points.length-2, 0, 1));
+            bondTerms.add(new BondTerm(i, i+1, 1, 1));
+        bondTerms.add(new BondTerm(points.length-3, points.length-1, 0, 1));
+        bondTerms.add(new BondTerm(0,               points.length-2, 0, 1));
         // For faking angle restraints with distances:
         //for(int i = 0; i < points.length-4; i++)
         //    terms.add(new BondTerm(i, i+2, 1.5, 1));
+        ArrayList angleTerms = new ArrayList();
         for(int i = 0; i < points.length-4; i++)
-            terms.add(new AngleTerm(i, i+1, i+2, 120, 1));
+            angleTerms.add(new AngleTerm(i, i+1, i+2, 120, 1));
         
         StateManager stateman = new StateManager(points, points.length-2);
-        stateman.setEnergyTerms((EnergyTerm[])terms.toArray(new EnergyTerm[terms.size()]));
+        stateman.setBondTerms(bondTerms);
+        stateman.setAngleTerms(angleTerms);
         GradientMinimizer min = new GradientMinimizer(stateman);
         
         PrintStream out = System.out;
@@ -402,6 +404,6 @@ public class StateManager //extends ... implements ...
         // System.err.println(time+" millis to do 100,000 CG minimization steps.");
     }
 //}}}
-*/
+
 }//class
 
