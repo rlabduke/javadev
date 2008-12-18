@@ -39,9 +39,11 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
     SidechainAngles2    scAngles;
     Rotamer             rotamer;
     SidechainIdealizer  scIdealizer     = null;
+    SidechainsLtoD      scFlipper       = null;
     
     JDialog             dialog;
     JCheckBox           cbIdealize;
+    JCheckBox           useDaa;
     JList               rotamerList;
     AngleDial[]         dials;
     JLabel              rotaQuality;
@@ -65,6 +67,7 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
         this.modelman   = mm;
         this.scAngles   = new SidechainAngles2();
         this.rotamer    = Rotamer.getInstance();
+        this.scFlipper  = new SidechainsLtoD();
         try {
             scIdealizer = new SidechainIdealizer();
         } catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
@@ -127,10 +130,16 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
         twistPane.add(rotamerPane, BorderLayout.CENTER);
         
         // Other controls
+        TablePane optionPane = new TablePane();
         cbIdealize = new JCheckBox(new ReflectiveAction("Idealize sidechain", null, this, "onIdealizeOnOff"));
         if(scIdealizer != null) cbIdealize.setSelected(true);
         else                    cbIdealize.setEnabled(false);
-        twistPane.add(cbIdealize, BorderLayout.NORTH);
+        optionPane.addCell(cbIdealize);
+        
+        useDaa = new JCheckBox(new ReflectiveAction("Use D-amino acid", null, this, "onDaminoAcid"));
+        useDaa.setSelected(false);
+        optionPane.addCell(useDaa);
+        twistPane.add(optionPane, BorderLayout.NORTH);
         
         JButton btnRelease = new JButton(new ReflectiveAction("Finished", null, this, "onReleaseResidue"));
         JButton btnBackrub = new JButton(new ReflectiveAction("BACKRUB mainchain", null, this, "onBackrub"));
@@ -149,7 +158,7 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
     }
 //}}}
 
-//{{{ onReleaseResidue, onIdealizeOnOff
+//{{{ onReleaseResidue, onIdealizeOnOff, onDaminoAcid
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     /**
@@ -190,6 +199,10 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
     public void onIdealizeOnOff(ActionEvent ev)
     {
         stateChanged(null);
+    }
+    
+    public void onDaminoAcid(ActionEvent ev) {
+      stateChanged(null);
     }
 //}}}
 
@@ -331,11 +344,17 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
     */
     public ModelState updateModelState(ModelState s)
     {
-        ModelState ret;
+        ModelState ret = s;
         if(scIdealizer != null && cbIdealize.isSelected())
             ret = scIdealizer.idealizeSidechain(targetRes, s);
-        else
+        if (useDaa.isSelected()) {
+          try {
+            ret = scFlipper.changeSidechainLtoD(targetRes, s);
+          } catch (AtomException ae) {
+            ae.printStackTrace(SoftLog.err);
             ret = s;
+          }
+        }
         
         ret = scAngles.setAllAngles(targetRes, ret, this.getAllAngles());
         return ret;            
