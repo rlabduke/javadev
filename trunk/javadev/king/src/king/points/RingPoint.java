@@ -56,6 +56,9 @@ public class RingPoint extends AbstractPoint // implements ...
     
     public float getRadius()
     { return r0; }
+    
+    public float getDrawRadius()
+    { return r; }
 //}}}
 
 //{{{ doTransform
