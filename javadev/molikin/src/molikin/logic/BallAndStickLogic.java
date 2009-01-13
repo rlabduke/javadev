@@ -120,7 +120,7 @@ public class BallAndStickLogic
         AtomClassifier  atomC   = data.getAtomClassifier();
         Collection      bonds   = data.getCovalentGraph().getBonds();
         
-        String identifier = "m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
+        String identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
         
         if(doPseudoBB)
         {
@@ -275,7 +275,7 @@ public class BallAndStickLogic
         AtomClassifier  atomC   = data.getAtomClassifier();
         Collection      bonds   = data.getCovalentGraph().getBonds();
         
-        String identifier = "m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
+        String identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
         
         // First, the hets themselves.
         if(atomC.hetHeavy.size() == 0) return;
@@ -345,7 +345,7 @@ public class BallAndStickLogic
         AtomClassifier  atomC   = data.getAtomClassifier();
         if(atomC.ion.size() == 0) return;
         
-        String identifier = "m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
+        String identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
         
         // 0.5 is the Prekin default metal radius
         out.println("@spherelist {ions} color= gray radius= 0.5 master= {ions}");
@@ -367,7 +367,7 @@ public class BallAndStickLogic
         AtomClassifier  atomC   = data.getAtomClassifier();
         if(atomC.watHeavy.size() == 0) return;
         
-        String identifier = "m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
+        String identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
         
         out.println("@balllist {waters} color= peachtint radius= 0.15 master= {waters}");
         bp.printBalls(atomC.watHeavy, waterRes, identifier);
