@@ -54,12 +54,13 @@ public class PrekinIDer implements AtomIDer
         buf.append(res.getSequenceNumber().trim());     // 1 - 4 (or more)
         buf.append(res.getInsertionCode());             // 1
         
-        if(as.getTempFactor() > 0.0)
+        if((as.getTempFactor() > 0.0)||(as.getOccupancy() < 1.0))
         {
             StringBuffer buf2 = new StringBuffer(buf.length() + 8);
             // lowercasing is somewhat expensive, computationally.
             buf2.append(buf.toString().toLowerCase());
-            buf2.append(" B");                              // 2
+            if (as.getOccupancy() < 1.0) buf2.append(" "+df2.format(as.getOccupancy())+"B");
+            else buf2.append(" B");                              // 2
             buf2.append(df2.format(as.getTempFactor()));    // 4 - 5 (or more)
             return buf2.toString();
         }
