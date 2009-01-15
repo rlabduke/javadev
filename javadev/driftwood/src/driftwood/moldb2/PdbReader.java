@@ -229,9 +229,9 @@ public class PdbReader //extends ... implements ...
                 }
             }
             catch(IndexOutOfBoundsException ex)
-            { SoftLog.err.println("Error reading from PDB file, line "+r.getLineNumber()+": "+ex.getMessage()); }
+            { SoftLog.err.println("Error reading from PDB file, line "+r.getLineNumber()+": "+s); }
             catch(NumberFormatException ex)
-            { SoftLog.err.println("Error reading from PDB file, line "+r.getLineNumber()+": "+ex.getMessage()); }
+            { SoftLog.err.println("Error reading from PDB file, line "+r.getLineNumber()+": "+s); }
         }//while more lines
         if(model != null) model.setStates(states);
                     

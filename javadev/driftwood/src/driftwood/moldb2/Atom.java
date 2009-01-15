@@ -84,7 +84,7 @@ public class Atom
     * @param    template    the atom to copy / clone
     */
     public Atom(Atom template)
-    { this(template.getName(), template.isHet()); }
+    { this(template.getName(), template.getElement(), template.isHet()); }
 //}}}
 
 //{{{ getName, getElement, getResidue, isHet, toString
