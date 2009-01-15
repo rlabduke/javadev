@@ -43,7 +43,7 @@ public class RenderExport extends Plugin {
   //}}}
   
   //{{{ askExport
-  public void askExport() {
+  public void askExport(boolean doRaw) {
     // Show the Save dialog
     String currdir = System.getProperty("user.dir");
     JFileChooser chooser = new JFileChooser();
@@ -56,11 +56,23 @@ public class RenderExport extends Plugin {
       "This file exists -- do you want to overwrite it?",
       "Overwrite file?", JOptionPane.YES_NO_OPTION))
       {
-        try { exportImage(f); }
+        try { 
+          if (doRaw) {
+            exportR3d(f);
+          } else {
+            exportImage(f);
+          }
+        }
         catch(IOException ex)
         {
           JOptionPane.showMessageDialog(kMain.getTopWindow(),
           "An I/O error occurred while saving the file:\n"+ex.getMessage(),
+          "Sorry!", JOptionPane.ERROR_MESSAGE);
+          ex.printStackTrace(SoftLog.err);
+        }
+        catch(InterruptedException ex) {
+          JOptionPane.showMessageDialog(kMain.getTopWindow(),
+          "A process error occurred with render while saving the file:\n"+ex.getMessage(),
           "Sorry!", JOptionPane.ERROR_MESSAGE);
           ex.printStackTrace(SoftLog.err);
         }
@@ -69,61 +81,111 @@ public class RenderExport extends Plugin {
   }
   //}}}
 
-  //{{{ exportImage
-  public void exportImage(File f) throws IOException {
+  //{{{ exportR3d
+  public void exportR3d(File f) throws IOException {
     out = new PrintWriter(new BufferedWriter(new FileWriter(f)));
-    out.println("kingoutput.kin");
-    out.println("64 64      NTX,NTY  tiles in x,y ");
-    out.println("16 16      NPX,NPY   pixels (x,y) per tile ");
-    out.println("4          SCHEME anti-aliasing level ");
-    out.println("0 0 0      BKGND background, 0 0 0 for black (1 1 1 for white) ");
-    out.println("F       SHADOW  T with, F omit shadows ");
-    out.println("25         IPHONG Phong power ");
-    out.println("0.25       STRAIT  secondary light percent contribution ");
-    out.println("0.05       AMBIEN  ambient light percent contribution ");
-    out.println("0.25       SPECLR  specular reflection  percent contribution ");
-    out.println("0          EYPOS for perspective, 0 for orthographic ");
-    out.println("-1 1 1     SOURCE primary light position, 1 1 1 right shoulder ");
-    out.println("1 0 0 0    TMAT  post-multipy a horizontal vector x y z 1 ");
-    out.println("0 -1 0 0   TMAT ");
-    out.println("0 0 1 0    TMAT ");
-    out.println("-450.000 450.000 -450.000 900.000    TMAT ");
-    out.println("3          INMODE input mode must be 3 for flagged type ");
-    out.println("*          INFMTS free format for triangles and planes, type 1 (normals: 13) ");
-    out.println("*          INFMTS free format for sphere descriptors, type 2 ");
-    out.println("*          INFMTS free format for cylinder descriptors, type 3 ");
     
-    out.println(renderView());
+    out.println(createR3dString());
+    renderView(out);
     
     out.flush();
+    out.close();
+  }
+  //}}}
+  
+  //{{{ exportImage
+  public void exportImage(File f) throws IOException, InterruptedException {
+    Process proc = Runtime.getRuntime().exec("render -jpeg");
+    BufferedWriter renderIn = new BufferedWriter(new OutputStreamWriter(proc.getOutputStream()));
+    BufferedInputStream renderOut = new BufferedInputStream(proc.getInputStream());
+    BufferedReader renderErr = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+    BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(f));
+    String r3d = "hello\n";//createR3dString();
+    System.out.println("writing to render");
+    renderIn.write(r3d, 0, r3d.length());
+    System.out.println("done writing to render");
+    //int exitVal = proc.waitFor();
+    //System.out.println("ExitValue: " + exitVal);
+    String errLine;
+    System.out.println("writing errors");
+    while ((errLine = renderErr.readLine()) != null) {
+      System.out.println(errLine);
+      renderIn.write(r3d, 0, r3d.length());
+    }
+    System.out.println("Writing image");
+    int in = 0;
+    while ((in = renderOut.read()) != -1) {
+      out.write(in);
+    }
+    System.out.println("Done");
+    out.flush();
+    out.close();
+    renderOut.close();
+  }
+  //}}}
+  
+  //{{{ createR3dString
+  public String createR3dString() {
+    String r3d = new String();
+    r3d = r3d.concat("kingoutput.kin\n");
+    r3d = r3d.concat("64 64      NTX,NTY  tiles in x,y \n");
+    r3d = r3d.concat("16 16      NPX,NPY   pixels (x,y) per tile \n");
+    r3d = r3d.concat("4          SCHEME anti-aliasing level \n");
+    r3d = r3d.concat("0 0 0      BKGND background, 0 0 0 for black (1 1 1 for white) \n");
+    r3d = r3d.concat("F       SHADOW  T with, F omit shadows \n");
+    r3d = r3d.concat("25         IPHONG Phong power \n");
+    r3d = r3d.concat("0.25       STRAIT  secondary light percent contribution \n");
+    r3d = r3d.concat("0.05       AMBIEN  ambient light percent contribution \n");
+    r3d = r3d.concat("0.25       SPECLR  specular reflection  percent contribution \n");
+    r3d = r3d.concat("0          EYPOS for perspective, 0 for orthographic \n");
+    r3d = r3d.concat("-1 1 1     SOURCE primary light position, 1 1 1 right shoulder \n");
+    r3d = r3d.concat("1 0 0 0    TMAT  post-multipy a horizontal vector x y z 1 \n");
+    r3d = r3d.concat("0 -1 0 0   TMAT \n");
+    r3d = r3d.concat("0 0 1 0    TMAT \n");
+    r3d = r3d.concat("-450.000 450.000 -450.000 900.000    TMAT \n");
+    r3d = r3d.concat("3          INMODE input mode must be 3 for flagged type \n");
+    r3d = r3d.concat("*          INFMTS free format for triangles and planes, type 1 (normals: 13) \n");
+    r3d = r3d.concat("*          INFMTS free format for sphere descriptors, type 2 \n");
+    r3d = r3d.concat("*          INFMTS free format for cylinder descriptors, type 3 \n");
+    
+    //r3d = r3d.concat(renderView());
+    return r3d;
   }
   //}}}
   
   //{{{ renderView
-  public String renderView() {
-    String render = "";
+  public void renderView(Writer out) throws IOException {
+    //String render = "";
     Dimension dim = kCanvas.getCanvasSize();
     ////kCanvas.paintCanvas(g2, dim, KinCanvas.QUALITY_BEST);
     Rectangle bounds = new Rectangle(dim);
     width   = bounds.getWidth();
     height  = bounds.getHeight();
-    System.out.println(width + "," + height);
+    //System.out.println(width + "," + height);
     ////kCanvas.syncToKin(engine, kin);
     //KView view = kCanvas.getCurrentView();
     eng = kCanvas.getEngine();
-    System.out.println(eng.clipBack+", "+eng.clipFront);
+    //System.out.println(eng.clipBack+", "+eng.clipFront);
     //render(kCanvas, view, bounds, eng);
     KIterator<KList> lists = KIterator.allLists(kMain.getKinemage());
     for (KList list : lists) {
+      int alpha = list.getAlpha();
+      if ((alpha < 255)&&(alpha > 0)) {
+        out.write("8 \n");
+        out.write("25.0 0.25   -1 -1 -1 "+df.format((double)alpha/255.0)+" 0 0 0 0 \n");
+      }
       String type = list.getType();
-      if (type.equals(KList.VECTOR))        render = render + renderVector(list);
-      else if (type.equals(KList.BALL))     render = render + renderBall(list);
-      else if (type.equals(KList.SPHERE))   render = render + renderBall(list);
-      else if (type.equals(KList.TRIANGLE)) render = render + renderTriangle(list);
-      else if (type.equals(KList.RIBBON))   render = render + renderTriangle(list);
+      if (type.equals(KList.VECTOR))        out.write(renderVector(list));
+      else if (type.equals(KList.BALL))     out.write(renderBall(list));
+      else if (type.equals(KList.SPHERE))   out.write(renderBall(list));
+      else if (type.equals(KList.TRIANGLE)) out.write(renderTriangle(list));
+      else if (type.equals(KList.RIBBON))   out.write(renderTriangle(list));
       //else System.out.println(type + " is not supported yet!");
+      if ((alpha < 255)&&(alpha > 0)) {
+        out.write("9 \n");
+      }
     }
-    return render;
+    //return render;
   }
   //}}}
   
@@ -133,7 +195,7 @@ public class RenderExport extends Plugin {
     KIterator<KPoint> points = KIterator.visiblePoints(list);
     for (KPoint pt : points) {
       if (pt instanceof BallPoint) {
-        System.out.println(pt.getWidth());
+        //System.out.println(pt.getWidth());
         render = render + "2 \n";
         render = render + df.format(pt.getDrawX())+" "+df.format(pt.getDrawY())+" "+df.format(pt.getDrawZ())+" ";
         render = render + df.format(((BallPoint)pt).getDrawRadius()) + " ";
@@ -165,8 +227,8 @@ public class RenderExport extends Plugin {
       render = render + df.format(end.getDrawX())+" "+df.format(end.getDrawY())+" "+df.format(end.getDrawZ())+" ";
       render = render + "1.000 ";
       render = render + convertColor(end.getDrawingColor(eng))+"\n";
-      System.out.print("X: "+df.format(start.getDrawX())+" Y: "+df.format(start.getDrawY())+" Z: "+df.format(start.getDrawZ()) +"->");
-      System.out.println("X: "+df.format(end.getDrawX())+" Y: "+df.format(end.getDrawY())+" Z: "+df.format(end.getDrawZ()));
+      //System.out.print("X: "+df.format(start.getDrawX())+" Y: "+df.format(start.getDrawY())+" Z: "+df.format(start.getDrawZ()) +"->");
+      //System.out.println("X: "+df.format(end.getDrawX())+" Y: "+df.format(end.getDrawY())+" Z: "+df.format(end.getDrawZ()));
     }
     return render;
   }
@@ -181,7 +243,7 @@ public class RenderExport extends Plugin {
         
         TrianglePoint tpt = (TrianglePoint)pt;
         if(tpt.getPrev() == null || tpt.getPrev().getPrev() == null/* || maincolor.isInvisible()*/) {
-          System.out.println("no prev points");
+          //System.out.println("no prev points");
         } else {
           TrianglePoint A = tpt, B = tpt.getPrev(), C = tpt.getPrev().getPrev();
           render = render + "1 \n";
@@ -192,7 +254,7 @@ public class RenderExport extends Plugin {
         }
       }
     }
-    System.out.println(render);
+    //System.out.println(render);
     return render;
   }
   //}}}
@@ -266,7 +328,10 @@ public class RenderExport extends Plugin {
   //##################################################################################################
   public JMenuItem getToolsMenuItem()
   {
-    return new JMenuItem(new ReflectiveAction(this.toString()+"...", null, this, "onExport"));
+    JMenu menu = new JMenu(this.toString());
+    menu.add(new JMenuItem(new ReflectiveAction("Export r3d file", null, this, "onRaw")));
+    //menu.add(new JMenuItem(new ReflectiveAction("Export image file", null, this, "onImage")));
+    return menu;
   }
   
   public JMenuItem getHelpMenuItem()
@@ -276,8 +341,12 @@ public class RenderExport extends Plugin {
   { return "Render Image"; }
   
   // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-  public void onExport(ActionEvent ev)
-  { this.askExport(); }
+  public void onRaw(ActionEvent ev)
+  { this.askExport(true); }
+  
+  public void onImage(ActionEvent ev) {
+    this.askExport(false);
+  }
   
   static public boolean isAppletSafe()
   { return false; }
