@@ -42,17 +42,18 @@ public class SubImpose //extends ... implements ...
     static class SimpleResAligner implements Alignment.Scorer
     {
         // High is good, low is bad.
-        public int score(Object a, Object b)
+        public double score(Object a, Object b)
         {
             Residue r = (Residue) a;
             Residue s = (Residue) b;
-            if(r == null || s == null)
-                return -1;  // gap
-            else if(r.getName().equals(s.getName()))
-                return 2;   // match
+            if(r.getName().equals(s.getName()))
+                return 4;   // match
             else
-                return 0;   // mismatch
+                return -1;   // mismatch
         }
+        
+        public double open_gap(Object a) { return -8; }
+        public double extend_gap(Object a) { return -2; }
     }
 //}}}
 
@@ -139,6 +140,20 @@ public class SubImpose //extends ... implements ...
         }
         
         return s1.createCollapsed();
+    }
+//}}}
+
+//{{{ getChains
+//##############################################################################
+    Collection getChains(Model m)
+    {
+        Collection chains = new ArrayList();
+        for(Iterator iter = m.getChainIDs().iterator(); iter.hasNext(); )
+        {
+            String chainID = (String) iter.next();
+            chains.add( m.getChain(chainID) );
+        }
+        return chains;
     }
 //}}}
 
@@ -373,7 +388,10 @@ public class SubImpose //extends ... implements ...
         // Align residues by sequence
         // For now we just take all residues as they appear in the file,
         // without regard to chain IDs, etc.
-        Alignment align = Alignment.needlemanWunsch(m1.getResidues().toArray(), m2.getResidues().toArray(), new SimpleResAligner());
+        //Alignment align = Alignment.needlemanWunsch(m1.getResidues().toArray(), m2.getResidues().toArray(), new SimpleResAligner());
+        // With this approach, alignments can't cross chain boundaries.
+        // As many chains as possible are aligned, without doubling up.
+        Alignment align = Alignment.alignChains(getChains(m1), getChains(m2), new Alignment.NeedlemanWunsch(), new SimpleResAligner());
         if(verbose)
         {
             System.err.println("Residue alignments:");

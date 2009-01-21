@@ -738,7 +738,7 @@ public class AvgStrucGenerator //extends ... implements ...
     static class SimpleResAligner implements Alignment.Scorer
     {
         // High is good, low is bad.
-        public int score(Object a, Object b)
+        public double score(Object a, Object b)
         {
             Residue r = (Residue) a;
             Residue s = (Residue) b;
@@ -749,6 +749,9 @@ public class AvgStrucGenerator //extends ... implements ...
             else
                 return 0;   // mismatch
         }
+        
+        public double open_gap(Object a) { return extend_gap(a); }
+        public double extend_gap(Object a) { return score(a, null); }
     }
 //}}}
 
