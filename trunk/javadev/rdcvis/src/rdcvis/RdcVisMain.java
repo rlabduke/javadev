@@ -391,6 +391,12 @@ public class RdcVisMain {
   }
   //}}}
   
+  //{{{ addRdc
+  public void addRdc(String rdc) {
+    rdcTypes.add(rdc);
+  }
+  //}}}
+  
   //{{{ drawCurve
   public void drawCurve(Kinemage kin, Tuple3 p, Triple rdcVect, Residue orig) {
     String seq = orig.getSequenceNumber().trim();
