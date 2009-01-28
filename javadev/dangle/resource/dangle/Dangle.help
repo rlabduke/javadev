@@ -42,7 +42,7 @@ MEASUREMENT SPECIFIERS
 
   Examples:
     
-    dangle "phi, psi, chi1, chi2, chi3, chi4"                       # built-ins
+    dangle "phi, psi, chi1, chi2, chi3, chi4, isprepro"             # built-ins
 
     dangle "distance Ca--Ca i-1 _CA_, i _CA_"
     dangle "dist Ca--Ca i-1 _CA_, _CA_"                             # synonym
