@@ -33,6 +33,7 @@ abstract public class Measurement //extends ... implements ...
     public static final Object TYPE_PLANARITY   = "planarity";
     public static final Object TYPE_PUCKER   	= "pucker";
     public static final Object TYPE_BASEPPERP  	= "basePperp";
+    public static final Object TYPE_ISPREPRO  	= "isprepro";
 //}}}
 
 //{{{ Variable definitions
@@ -293,6 +294,9 @@ abstract public class Measurement //extends ... implements ...
                     new AtomSpec(0, "_CA_"),
                     1.536, 110.4, 110.6, 123.1, -123.0
             ));
+        else if("isprepro".equals(label))
+            return new IsPrePro(label)
+            ;
         //}}} proteins
         //{{{ nucleic acids
         else if("alpha".equals(label))
@@ -1266,6 +1270,32 @@ abstract public class Measurement //extends ... implements ...
         
         public Object getType()
         { return type; }
+    }
+//}}}
+
+//{{{ CLASS: IsPrePro
+//##############################################################################
+    /** Simply tells whether (1) or not (0) the next residue in sequence, counting ins codes, is proline. */
+    static public class IsPrePro extends Measurement
+    {
+        public IsPrePro(String label)
+        { super(label); }
+        
+        protected double measureImpl(Model model, ModelState state, Residue res)
+        {
+            double isPrePro = 0;
+            Residue next = res.getNext(model);
+            if (next != null)
+                if (next.getName().equals("PRO"))
+                    isPrePro = 1;
+            return isPrePro;
+        }
+        
+        protected String toStringImpl()
+        { return getLabel(); }
+        
+        public Object getType()
+        { return TYPE_ISPREPRO; }  // ???
     }
 //}}}
 
