@@ -203,6 +203,10 @@ public class FileInterpreter {
   public double getBackcalcRdc(Triple vector) {
     return solver.backCalculateRdc(vector);
   }
+  
+  public CoordinateFile getPdb() {
+    return pdb;
+  }
   //}}}
   
   //{{{ isNumeric

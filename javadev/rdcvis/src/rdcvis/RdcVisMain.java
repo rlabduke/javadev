@@ -41,8 +41,8 @@ public class RdcVisMain {
   //{{{ Variables
   static String versionNumber = "1.00.080528";
   
-  FileInterpreter fi;
-  CoordinateFile pdb;
+  //FileInterpreter fi;
+  //CoordinateFile pdb;
   
   KGroup group = null;
   KGroup subgroup = null;
@@ -74,9 +74,9 @@ public class RdcVisMain {
         File inputKinFile = new File(argList.get(2));
         inputKins = readKinemage(inputKinFile);
       }
-	    pdb = readPdb(new File(pdbFile.getAbsolutePath()));
+	    CoordinateFile pdb = readPdb(new File(pdbFile.getAbsolutePath()));
       MagneticResonanceFile mr = readMR(new File(mrFile.getAbsolutePath()));
-      fi = new FileInterpreter(pdb, mr);
+      FileInterpreter fi = new FileInterpreter(pdb, mr);
       Kinemage rdcKin = createKin(fi);
       ArrayList<Kinemage> kins = new ArrayList<Kinemage>();
       if (inputKins != null) {
@@ -92,7 +92,7 @@ public class RdcVisMain {
   
   public static void main(String[] args) {
     RdcVisMain mainprog = new RdcVisMain();
-    rdcTypes = new ArrayList<String>();
+    //rdcTypes = new ArrayList<String>();
     ArrayList<String> argList = mainprog.parseArgs(args);
     mainprog.Main(argList);
     
@@ -215,6 +215,7 @@ public class RdcVisMain {
 
   //{{{ Constructors
   public RdcVisMain() {
+    rdcTypes = new ArrayList<String>();
     //setDefaults();
     
     //readPdbLibrary();
@@ -256,6 +257,7 @@ public class RdcVisMain {
       System.err.println("An I/O error occurred while loading the file:\n"+ex.getMessage());
       //ex.printStackTrace(SoftLog.err);
     }
+    System.err.println("An error occurred while loading the mr file");
     return null;
   }
   //}}}
@@ -263,6 +265,7 @@ public class RdcVisMain {
   //{{{ createKin
   public Kinemage createKin(FileInterpreter fi) {
     Kinemage kin = new Kinemage();
+    CoordinateFile pdb = fi.getPdb();
     for (String rdcName : rdcTypes) {
       if (ensembleTensor) {
         fi.solveRdcsEnsemble(rdcName);
@@ -295,8 +298,8 @@ public class RdcVisMain {
           Triple rdcVect = getResidueRdcVect(state, orig, atoms);
           AtomState origin = getOriginAtom(state, orig, atoms);
           if ((rdcVect != null)&&(origin != null)) {
-            drawCurve(kin, origin, rdcVect, orig);
-            drawSurface(kin, origin, orig);
+            drawCurve(kin, origin, rdcVect, orig, fi);
+            drawSurface(kin, origin, orig, fi);
           } else {
             //JOptionPane.showMessageDialog(kMain.getTopWindow(),
             //"Sorry, the atoms needed for this RDC do not seem to be in this residue.",
@@ -398,13 +401,14 @@ public class RdcVisMain {
   //}}}
   
   //{{{ drawCurve
-  public void drawCurve(Kinemage kin, Tuple3 p, Triple rdcVect, Residue orig) {
+  public void drawCurve(Kinemage kin, Tuple3 p, Triple rdcVect, Residue orig, FileInterpreter fi) {
     String seq = orig.getSequenceNumber().trim();
     double rdcVal = fi.getRdcValue(seq);
     //System.out.println(rdcVal);
     //System.out.println((rdcVal != Double.NaN));
     double backcalcRdc = fi.getBackcalcRdc(rdcVect);
     if ((!Double.isNaN(rdcVal))&&(!Double.isNaN(backcalcRdc))) {
+      double radius = rdcVect.distance(new Triple(0, 0, 0));
       KList list = new KList(KList.VECTOR, "RDCs");
       if (Math.abs(rdcVal - backcalcRdc) < 1)      list.addMaster("Good RDC Match");
       else if (Math.abs(rdcVal - backcalcRdc) < 2) list.addMaster("Mild RDC Match");
@@ -412,9 +416,9 @@ public class RdcVisMain {
       list.setWidth(4);
       subgroup.add(list);
       String text = "res= "+seq+" rdc= "+df.format(rdcVal)+" backcalc= "+df.format(backcalcRdc);
-      System.out.println(text);
+      //System.out.println(text);
       //fi.getDrawer().drawCurve(rdcVal, p, backcalcRdc, list);
-      fi.getDrawer().drawCurve(rdcVal, p, 1, 60, backcalcRdc, list, text);
+      fi.getDrawer().drawCurve(rdcVal, p, radius, 60, backcalcRdc, list, text);
       //fi.getDrawer().drawCurve(rdcVal-0.5, p, 1, 60, backcalcRdc, list);
       //fi.getDrawer().drawCurve(rdcVal+0.5, p, 1, 60, backcalcRdc, list);
       //fi.getDrawer().drawCurve(backcalcRdc, p, 1, 60, backcalcRdc, list);
@@ -426,8 +430,8 @@ public class RdcVisMain {
         }
         errorBars.setWidth(2);
         subError.add(errorBars);
-        fi.getDrawer().drawCurve(rdcVal - 2, p, 1, 60, backcalcRdc, errorBars, "-2 error bar");
-        fi.getDrawer().drawCurve(rdcVal + 2, p, 1, 60, backcalcRdc, errorBars, "+2 error bar");
+        fi.getDrawer().drawCurve(rdcVal - 2, p, radius, 60, backcalcRdc, errorBars, "-2 error bar");
+        fi.getDrawer().drawCurve(rdcVal + 2, p, radius, 60, backcalcRdc, errorBars, "+2 error bar");
       }
     } else {
       System.out.println("this residue does not appear to have an rdc");
@@ -436,7 +440,7 @@ public class RdcVisMain {
   //}}}
   
   //{{{ drawSurface
-  public void drawSurface(Kinemage kin, Tuple3 p, Residue orig) {
+  public void drawSurface(Kinemage kin, Tuple3 p, Residue orig, FileInterpreter fi) {
     String seq = orig.getSequenceNumber().trim();
     double rdcVal = fi.getRdcValue(seq);
     if (!Double.isNaN(rdcVal)) {
@@ -445,6 +449,10 @@ public class RdcVisMain {
       list.setAlpha(100);
       subgroup.add(list);
       fi.getDrawer().drawSurface(rdcVal, p, list);
+      //KList tlist = new KList(KList.TRIANGLE, "surfaces2");
+      //tlist.setAlpha(100);
+      //subgroup.add(tlist);
+      //fi.getDrawer().drawTriangleSurface(rdcVal, p, tlist);
     }
   }
   //}}}

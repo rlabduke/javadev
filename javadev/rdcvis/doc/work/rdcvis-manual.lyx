@@ -1,0 +1,255 @@
+#LyX 1.5.6 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass article
+\language english
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+\begin_inset VSpace vfill
+\end_inset
+
+
+\end_layout
+
+\begin_layout Title
+RDCvis Manual
+\begin_inset VSpace vfill
+\end_inset
+
+
+\end_layout
+
+\begin_layout Author
+Vincent B.
+ Chen
+\end_layout
+
+\begin_layout Abstract
+RDCvis (Residual Dipolar Coupling visualizer) is a system for generating
+ visualizations of RDC data in their macromolecular structural context.
+ It interprets specifically formatted NMR data files, along with PDB files
+ in order to calculate and draw RDC representations.
+ It takes advantage of the flexibility of the Kinemage graphics language
+ by outputing directly to a kinemage file, or directly incorporating the
+ RDC curves into a pre-existing kinemage.
+ The RDCvis package is written in the Java programming language, controlled
+ mainly by a command-line interface, but also includes a KiNG plugin for
+ more interactive control of the software.
+ 
+\end_layout
+
+\begin_layout Section
+Getting Started
+\end_layout
+
+\begin_layout Subsection
+What is a kinemage?
+\end_layout
+
+\begin_layout Standard
+A kinemage is a 
+\begin_inset Quotes eld
+\end_inset
+
+kinetic image,
+\begin_inset Quotes erd
+\end_inset
+
+ an interactive, three-dimensional illustration.
+ Because kinemages contain simple geometric objects --- points, lines, spheres,
+ 
+\emph on
+etc.
+
+\emph default
+ --- they are suited to a great variety of subjects, from simple sketches
+ to sophisticated plots to detailed schematics of 3-D objects.
+ Their strength is in 
+\emph on
+selective
+\emph default
+ presentation of information --- they were originally intended as an alternative
+ to flat, static illustrations in scientific journals.
+\end_layout
+
+\begin_layout Standard
+In fact, kinemages were first created as a way of visualizing macromolecular
+ structures, particularly x-ray crystal structures of proteins.
+ However, such a kinemage is a 
+\emph on
+drawing
+\emph default
+ of a molecule, albeit a 3-D drawing, and not the molecule itself.
+ Thus, the kinemage lacks most of the information in a PDB file, and kinemage
+ display program cannot read PDB files directly.
+ Since their creation, kinemages have been extended to a variety of other
+ fields, from the social sciences to ecology to education.
+\end_layout
+
+\begin_layout Standard
+The kinemage concept is the brainchild of Drs.
+ David and Jane Richardson at Duke University in Durham, North Carolina,
+ USA.
+ Their website is at 
+\begin_inset LatexCommand htmlurl
+target "http://kinemage.biochem.duke.edu"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+Download RDCvis
+\end_layout
+
+\begin_layout Standard
+If you don't already have a copy of RDCvis, you can download it from 
+\begin_inset LatexCommand htmlurl
+target "http://kinemage.biochem.duke.edu/software/rdcvis.php"
+
+\end_inset
+
+.
+ Even if you have a copy already, you might check periodically for new version
+ that add features and fix bugs.
+ 
+\end_layout
+
+\begin_layout Subsection
+Make sure you have Java
+\end_layout
+
+\begin_layout Standard
+RDCvis is written in the Java programming language, and so requires that
+ the Java libraries (version 1.5 or later) be present on your computer in
+ order for it to run.
+ Newer Apple computers (those running Mac OS X) come with Java.
+ Most PCs do not, though recently several manufacturers have agreed to pre-insta
+ll Java on their new computers.
+ Look for the coffee-cup icon in your Windows task bar or in the Control
+ Panel.
+\end_layout
+
+\begin_layout Standard
+If you don't have Java, point your web browser to 
+\begin_inset LatexCommand htmlurl
+target "http://java.sun.com/getjava/index.html"
+
+\end_inset
+
+.
+ The software is free and available for Windows, Linux, and Solaris computers.
+ We recommend getting the newest version that is available (1.6.0 as of this
+ writing).
+\end_layout
+
+\begin_layout Section
+Running RDCvis
+\end_layout
+
+\begin_layout Subsection
+Required Files
+\end_layout
+
+\begin_layout Standard
+In order to use RDCvis, you need to have a structure file, in standard PDB
+ format, and an NMR data file, typically a .mr file, that contains RDC data.
+ Currently, RDCvis only recognizes one format of RDC data.
+ In order to use RDCvis, you will need to convert your .mr file so that the
+ RDC data looks like the following example:
+\end_layout
+
+\begin_layout LyX-Code
+assign ( resid 500  and name OO  )
+\end_layout
+
+\begin_layout LyX-Code
+       ( resid 500  and name Z   )
+\end_layout
+
+\begin_layout LyX-Code
+       ( resid 500  and name X   )
+\end_layout
+
+\begin_layout LyX-Code
+       ( resid 500  and name Y   )
+\end_layout
+
+\begin_layout LyX-Code
+       ( resid  10  and name N   )
+\end_layout
+
+\begin_layout LyX-Code
+       ( resid  10  and name HN  )  -1.3000  1.000
+\end_layout
+
+\begin_layout Standard
+Future releases of RDCvis will hopefully add support for more formats of
+ RDC data.
+\end_layout
+
+\begin_layout Subsection
+From the command line
+\end_layout
+
+\begin_layout Standard
+The RDCvis jar has been built so that the standard 
+\begin_inset Quotes eld
+\end_inset
+
+java -jar
+\begin_inset Quotes erd
+\end_inset
+
+ command will automatically run the command line functions.
+ An example of a simple command to obtain a kinemage with CA-HA RDC visualizatio
+ns is the following:
+\end_layout
+
+\begin_layout LyX-Code
+java -jar rdcvis.jar file.pdb file.mr CA-HA
+\end_layout
+
+\begin_layout Standard
+Running this command will automatically generate a kinemage, named filerdcvis-en
+stensor.kin which can be viewed in any of our kinemage viewers.
+ Using a -help flag will give more detailed information about the various
+ command line options.
+\end_layout
+
+\end_body
+\end_document
