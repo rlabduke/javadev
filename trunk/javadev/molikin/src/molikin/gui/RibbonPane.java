@@ -79,7 +79,8 @@ public class RibbonPane extends TablePane2 implements DrawingPane
         this.addCell(cbProtein).skip().newRow();
         this.addCell(cbNucleic).skip().newRow();
         this.addCell(this.strut(0,6)).newRow();
-        this.addCell(cbDnaStyle).addCell(cbUntwistRibbons).newRow();
+        //this.addCell(cbDnaStyle).addCell(cbUntwistRibbons).newRow();
+        this.addCell(cbDnaStyle).newRow();
         this.addCell(this.strut(0,6)).newRow();
         
         this.setBorder( BorderFactory.createTitledBorder(null, "Ribbons") );
