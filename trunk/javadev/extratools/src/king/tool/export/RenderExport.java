@@ -167,7 +167,7 @@ public class RenderExport extends Plugin {
     eng = kCanvas.getEngine();
     //System.out.println(eng.clipBack+", "+eng.clipFront);
     //render(kCanvas, view, bounds, eng);
-    KIterator<KList> lists = KIterator.allLists(kMain.getKinemage());
+    KIterator<KList> lists = KIterator.visibleLists(kMain.getKinemage());
     for (KList list : lists) {
       int alpha = list.getAlpha();
       if ((alpha < 255)&&(alpha > 0)) {
