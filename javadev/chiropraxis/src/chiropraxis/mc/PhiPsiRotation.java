@@ -156,6 +156,17 @@ public class PhiPsiRotation //extends ... implements ...
                     atoms.add(a);
             }
         }
+        else if (upstream && phi)
+        {
+            // Add the last-in-sequence (first-in-array) mobile residue, H only
+            for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
+            {
+                Atom    a   = (Atom)ai.next();
+                String  an  = a.getName();
+                if(an.equals(" H  "))
+                    atoms.add(a);
+            }
+        }
         else if (upstream && !phi)
         {
             // Add the last-in-sequence (first-in-array) mobile residue, N and H only
