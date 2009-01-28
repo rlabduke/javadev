@@ -25,7 +25,7 @@ import java.awt.event.*;
 * <br>Begun Tue Nov 27 19:43:16 EST 2007
 **/
 
-public class RdcVisWindow implements ActionListener, WindowListener {
+public class RdcVisWindow implements /*ActionListener, */WindowListener {
   
   //{{{ Constants
   //}}}
@@ -34,11 +34,11 @@ public class RdcVisWindow implements ActionListener, WindowListener {
   KingMain            kMain;
   KinCanvas           kCanvas;
   //ModelManager2       modelman;
-  MagneticResonanceFile mrf;
-  RdcDrawer2           drawer;
-  TreeMap             currentRdcs;
-  HashMap             transAtomMap;
-  RdcSolver           solver;
+  //MagneticResonanceFile mrf;
+ //RdcDrawer2           drawer;
+  //TreeMap             currentRdcs;
+  //HashMap             transAtomMap;
+  //RdcSolver           solver;
   
   JDialog             dialog;
   
@@ -57,8 +57,8 @@ public class RdcVisWindow implements ActionListener, WindowListener {
     this.kCanvas = kMain.getCanvas();
     //this.modelman = mm;
     //this.mrf = mrfile;
-    transAtomMap = new HashMap();
-    transAtomMap.put("HN", "H");
+    //transAtomMap = new HashMap();
+    //transAtomMap.put("HN", "H");
     //this.ctrRes = target;
     //this.anchorList = new KList(KList.BALL);
     //anchorList.setColor( KPalette.peach );
@@ -136,14 +136,14 @@ public class RdcVisWindow implements ActionListener, WindowListener {
   //}}}
   
   // ev may be null!
-  public void actionPerformed(ActionEvent ev)
-  {
-    System.out.println("rdcBox changed to :" + rdcBox.getSelectedItem());
-    solveRdcs((String) rdcBox.getSelectedItem());
-    //modelman.requestStateRefresh(); // will call this.updateModelState()
-    //updateLabels();
-    //kCanvas.repaint();
-  }
+  //public void actionPerformed(ActionEvent ev)
+  //{
+  //  System.out.println("rdcBox changed to :" + rdcBox.getSelectedItem());
+  //  solveRdcs((String) rdcBox.getSelectedItem());
+  //  //modelman.requestStateRefresh(); // will call this.updateModelState()
+  //  //updateLabels();
+  //  //kCanvas.repaint();
+  //}
   
   //{{{ onMulti
   public void onMulti(ActionEvent ev) {
@@ -200,24 +200,27 @@ public class RdcVisWindow implements ActionListener, WindowListener {
   public void onDraw(ActionEvent ev) {
     String pdbLoc = pdbLocation.getText();
     String mrLoc = mrLocation.getText();
+    System.out.println(pdbLoc+":"+mrLoc);
     File pdbFile = new File(pdbLoc);
     File mrFile = new File(mrLoc);
     if (pdbFile.isFile() && mrFile.isFile()) {
       RdcVisMain rdcviser = new RdcVisMain();
       CoordinateFile pdb = rdcviser.readPdb(pdbFile);
-      MagneticResonanceFile mr = rdcviser.readMR(mrFile);
-      FileInterpreter fi = new FileInterpreter(pdb, mr);
+      MagneticResonanceFile mrf = rdcviser.readMR(mrFile);
+      FileInterpreter fi = new FileInterpreter(pdb, mrf);
+      System.out.println(mrf);
       Object[] rdcTypes = mrf.getRdcTypeSet().toArray();
       String reply = makeOptionPane(rdcTypes);
       if((reply != null)&&(!reply.equals(JOptionPane.UNINITIALIZED_VALUE))) {
         rdcviser.addRdc(reply);
+        
         Kinemage rdcKin = rdcviser.createKin(fi);
         //ArrayList<Kinemage> kins = new ArrayList<Kinemage>();
         Kinemage current = kMain.getKinemage();
         if (current != null) {
           rdcviser.mergeKins(current, rdcKin);
         } else {
-          kMain.getStable().append(Arrays.asList(new Kinemage[] {current}));
+          kMain.getStable().append(Arrays.asList(new Kinemage[] {rdcKin}));
         }
       //if (inputKins != null) {
       //  for (Kinemage inKin : inputKins) {
@@ -249,6 +252,7 @@ public class RdcVisWindow implements ActionListener, WindowListener {
   }
   //}}}
   
+  /*
   //{{{ analyzeFile
   public void solveRdcs(String rdcType) {
 
@@ -377,6 +381,7 @@ public class RdcVisWindow implements ActionListener, WindowListener {
     return solver.backCalculateRdc(vector);
   }
   //}}}
+  */
   
   //{{{ isNumeric
   public static boolean isNumeric(String s) {
