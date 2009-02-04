@@ -45,6 +45,7 @@ public class ParaPoint extends VectorPoint
     public ParaPoint(KPoint proxyFor, int dimIdx, ParaPoint start, ParaParams params)
     {
         super(proxyFor.getName(), start);
+        this.setParent(proxyFor.getParent());
         this.proxyFor   = proxyFor;
         this.dimIdx     = dimIdx;
         this.params     = params;
