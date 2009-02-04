@@ -5,14 +5,14 @@ import king.*;
 import king.core.*;
 
 //import java.io.*;
-//import javax.swing.*;
+import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.net.*;
 import java.util.*;
 //import java.text.*;
 //
-//import driftwood.gui.*;
+import driftwood.gui.*;
 //import driftwood.r3.*;
 //import Jama.*;
 //import driftwood.moldb2.*;
@@ -35,6 +35,9 @@ public class CoCenterTool extends BasicTool {
   //}}}
   
   //{{{ Variables
+  TablePane2 pane;
+  JButton resetButton;
+  ArrayList origCoords = null;
   //}}}
   
   //{{{ Constructors
@@ -45,8 +48,20 @@ public class CoCenterTool extends BasicTool {
   
   //{{{ start
   public void start() {
+    buildGUI();
+    show();
     // Helpful hint for users:
     this.services.setID("Ctrl-click, option-click, or middle-click a point to co-center");
+  }
+  //}}}
+  
+  //{{{ buildGUI
+  public void buildGUI() {
+    resetButton = new JButton(new ReflectiveAction("Reset Coordinates", null, this, "onReset"));
+    
+    pane = new TablePane2();
+    pane.newRow();
+    pane.add(resetButton);
   }
   //}}}
   
@@ -55,6 +70,15 @@ public class CoCenterTool extends BasicTool {
   /** Override this function for middle-button/control clicks */
   public void c_click(int x, int y, KPoint p, MouseEvent ev)
   {
+    if (origCoords == null) {
+      origCoords = new ArrayList();
+      Iterator groups = kMain.getKinemage().iterator();
+      while (groups.hasNext()) {
+        KGroup group = (KGroup) groups.next();
+        KGroup clone = group.clone(true);
+        origCoords.add(clone);
+      }
+    }
     if(p != null)
     {
       String pName = p.getName();
@@ -93,11 +117,56 @@ public class CoCenterTool extends BasicTool {
   }
   //}}}
   
+  //{{{ onReset
+  public void onReset(ActionEvent ev) {
+    if (origCoords == null) return;
+    Kinemage kin = kMain.getKinemage();
+    Iterator iter = kin.iterator();
+    int i = 0;
+    System.out.println("Testing");
+    while (iter.hasNext()) {
+      KGroup group = (KGroup) iter.next();
+      KIterator<KPoint> points = KIterator.allPoints(group);
+      if (points.hasNext()) {
+        KPoint p = points.next();
+        String pName = p.getName();
+        KGroup origGroup = (KGroup) origCoords.get(i);
+        KIterator<KPoint> pts = KIterator.allPoints(origGroup);
+        boolean foundPt = false;
+        double xtrans = Double.NaN;
+        double ytrans = Double.NaN;
+        double ztrans = Double.NaN;
+        while (pts.hasNext() && !foundPt) {
+          KPoint test = pts.next();
+          String testName = test.getName();
+          if (testName.equals(pName)) {
+            foundPt = true;
+            xtrans = p.getX()-test.getX();
+            ytrans = p.getY()-test.getY();
+            ztrans = p.getZ()-test.getZ();
+            System.out.println(new Double(test.getX()) +","+ new Double(test.getY()) +","+ new Double(test.getZ()));
+          }
+        }
+        if (foundPt) {
+          pts = KIterator.allPoints(group);
+          for (KPoint pt : pts) {
+            pt.setX(pt.getX() - xtrans);
+            pt.setY(pt.getY() - ytrans);
+            pt.setZ(pt.getZ() - ztrans);
+          }
+        }
+        
+      }
+      i++;
+    }
+  }
+  //}}}
+  
   //{{{ getToolPanel, getHelpAnchor, toString
   //##################################################################################################
   /** Returns a component with controls and options for this tool */
   protected Container getToolPanel()
-  { return null; }
+  { return pane; }
   
   /** Returns the URL of a web page explaining use of this tool */
   public URL getHelpURL()
