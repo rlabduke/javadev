@@ -161,94 +161,92 @@ public class RdcVisTool extends BasicTool {
   //}}}
   
   //{{{ getResidueRdcVect
-  /** returns RdcVect for orig residue based on what is selected in rdcWin **/
-  public Triple getResidueRdcVect(ModelState state, Residue orig) {
-    String atoms[] = rdcWin.parseAtomNames();
-    Atom from = orig.getAtom(atoms[0]);
-    Atom to = orig.getAtom(atoms[1]);
-    try {
-      AtomState fromState = state.get(from);
-      AtomState toState = state.get(to);
-      Triple rdcVect = new Triple().likeVector(fromState, toState).unit();
-      return rdcVect;
-    } catch (AtomException ae) {
-    }
-    return null;
-  }
+  ///** returns RdcVect for orig residue based on what is selected in rdcWin **/
+  //public Triple getResidueRdcVect(ModelState state, Residue orig) {
+  //  String atoms[] = rdcWin.parseAtomNames();
+  //  Atom from = orig.getAtom(atoms[0]);
+  //  Atom to = orig.getAtom(atoms[1]);
+  //  try {
+  //    AtomState fromState = state.get(from);
+  //    AtomState toState = state.get(to);
+  //    Triple rdcVect = new Triple().likeVector(fromState, toState).unit();
+  //    return rdcVect;
+  //  } catch (AtomException ae) {
+  //  }
+  //  return null;
+  //}
   //}}}
   
   //{{{ getOriginAtom
-  public AtomState getOriginAtom(ModelState state, Residue orig) {
-    String atoms[] = rdcWin.parseAtomNames();
-    Atom origin;
-    if (atoms[0].indexOf("H") > -1) {
-      origin = orig.getAtom(atoms[1]);
-    } else {
-      origin = orig.getAtom(atoms[0]);
-    }
-    try {
-      AtomState originState = state.get(origin);
-      return originState;
-    } catch (AtomException ae) {
-    }
-    return null;
-  }
+  //public AtomState getOriginAtom(ModelState state, Residue orig) {
+  //  String atoms[] = rdcWin.parseAtomNames();
+  //  Atom origin;
+  //  if (atoms[0].indexOf("H") > -1) {
+  //    origin = orig.getAtom(atoms[1]);
+  //  } else {
+  //    origin = orig.getAtom(atoms[0]);
+  //  }
+  //  try {
+  //    AtomState originState = state.get(origin);
+  //    return originState;
+  //  } catch (AtomException ae) {
+  //  }
+  //  return null;
+  //}
   //}}}
   
   //{{{ drawCurve
-  public void drawCurve(Tuple3 p, Triple rdcVect, Residue orig) {
-    Kinemage kin = kMain.getKinemage();
-    //if(kin == null) return null;
-    if (group == null) {
-      group = new KGroup("RDCs");
-      group.addMaster("Curves");
-      group.setDominant(true);
-      kin.add(group);
-    }
-    if (subgroup == null) {
-      subgroup = new KGroup("sub");
-      subgroup.setHasButton(true);
-      group.add(subgroup);
-    }
-    if (subError == null) {
-      subError = new KGroup("suberrorbars");
-      subError.setHasButton(true);
-      group.add(subError);
-    }
-    String seq = orig.getSequenceNumber().trim();
-    double rdcVal = rdcWin.getRdcValue(seq);
-    //System.out.println(rdcVal);
-    //System.out.println((rdcVal != Double.NaN));
-    double backcalcRdc = rdcWin.getBackcalcRdc(rdcVect);
-    if ((!Double.isNaN(rdcVal))&&(!Double.isNaN(backcalcRdc))) {
-      KList list = new KList(KList.VECTOR, "RDCs");
-      KList errorBars = new KList(KList.VECTOR, "Error Bars");
-      list.setWidth(4);
-      errorBars.setWidth(2);
-      subgroup.add(list);
-      subError.add(errorBars);
-      //System.out.println(seq);
-      //String seq = String.valueOf(KinUtil.getResNumber(p));
-      //DipolarRestraint dr = (DipolarRestraint) currentRdcs.get(seq);
-      String text = "res= "+seq+" rdc= "+df.format(rdcVal)+" backcalc= "+df.format(backcalcRdc);
-      System.out.println(text);
-      //rdcWin.getDrawer().drawCurve(rdcVal, p, backcalcRdc, list);
-      if (rdcWin.drawErrorsIsSelected()) {
-        rdcWin.getDrawer().drawCurve(rdcVal - 2, p, 1, 60, backcalcRdc, errorBars, "-2 error bar");
-        rdcWin.getDrawer().drawCurve(rdcVal + 2, p, 1, 60, backcalcRdc, errorBars, "+2 error bar");
-      }
-      rdcWin.getDrawer().drawCurve(rdcVal, p, 1, 60, backcalcRdc, list, text);
-      //rdcWin.getDrawer().drawCurve(rdcVal-0.5, p, 1, 60, backcalcRdc, list);
-      //rdcWin.getDrawer().drawCurve(rdcVal+0.5, p, 1, 60, backcalcRdc, list);
-      //rdcWin.getDrawer().drawCurve(backcalcRdc, p, 1, 60, backcalcRdc, list);
-      //rdcWin.getDrawer().drawAll(p, 1, 60, backcalcRdc, list);
-    } else {
-      System.out.println("this residue does not appear to have an rdc");
-    }
-  }
+  //public void drawCurve(Tuple3 p, Triple rdcVect, Residue orig) {
+  //  Kinemage kin = kMain.getKinemage();
+  //  //if(kin == null) return null;
+  //  if (group == null) {
+  //    group = new KGroup("RDCs");
+  //    group.addMaster("Curves");
+  //    group.setDominant(true);
+  //    kin.add(group);
+  //  }
+  //  if (subgroup == null) {
+  //    subgroup = new KGroup("sub");
+  //    subgroup.setHasButton(true);
+  //    group.add(subgroup);
+  //  }
+  //  if (subError == null) {
+  //    subError = new KGroup("suberrorbars");
+  //    subError.setHasButton(true);
+  //    group.add(subError);
+  //  }
+  //  String seq = orig.getSequenceNumber().trim();
+  //  double rdcVal = rdcWin.getRdcValue(seq);
+  //  //System.out.println(rdcVal);
+  //  //System.out.println((rdcVal != Double.NaN));
+  //  double backcalcRdc = rdcWin.getBackcalcRdc(rdcVect);
+  //  if ((!Double.isNaN(rdcVal))&&(!Double.isNaN(backcalcRdc))) {
+  //    KList list = new KList(KList.VECTOR, "RDCs");
+  //    KList errorBars = new KList(KList.VECTOR, "Error Bars");
+  //    list.setWidth(4);
+  //    errorBars.setWidth(2);
+  //    subgroup.add(list);
+  //    subError.add(errorBars);
+  //    //System.out.println(seq);
+  //    //String seq = String.valueOf(KinUtil.getResNumber(p));
+  //    //DipolarRestraint dr = (DipolarRestraint) currentRdcs.get(seq);
+  //    String text = "res= "+seq+" rdc= "+df.format(rdcVal)+" backcalc= "+df.format(backcalcRdc);
+  //    System.out.println(text);
+  //    //rdcWin.getDrawer().drawCurve(rdcVal, p, backcalcRdc, list);
+  //    if (rdcWin.drawErrorsIsSelected()) {
+  //      rdcWin.getDrawer().drawCurve(rdcVal - 2, p, 1, 60, backcalcRdc, errorBars, "-2 error bar");
+  //      rdcWin.getDrawer().drawCurve(rdcVal + 2, p, 1, 60, backcalcRdc, errorBars, "+2 error bar");
+  //    }
+  //    rdcWin.getDrawer().drawCurve(rdcVal, p, 1, 60, backcalcRdc, list, text);
+  //    //rdcWin.getDrawer().drawCurve(rdcVal-0.5, p, 1, 60, backcalcRdc, list);
+  //    //rdcWin.getDrawer().drawCurve(rdcVal+0.5, p, 1, 60, backcalcRdc, list);
+  //    //rdcWin.getDrawer().drawCurve(backcalcRdc, p, 1, 60, backcalcRdc, list);
+  //    //rdcWin.getDrawer().drawAll(p, 1, 60, backcalcRdc, list);
+  //  } else {
+  //    System.out.println("this residue does not appear to have an rdc");
+  //  }
+  //}
   //}}}
-  
-
   
   //{{{ showRdcCurve
   //##############################################################################
