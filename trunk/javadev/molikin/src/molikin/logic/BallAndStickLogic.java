@@ -23,7 +23,7 @@ import driftwood.moldb2.*;
 * <p>Copyright (C) 2005 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Oct  5 10:58:41 EDT 2005
 */
-public class BallAndStickLogic
+public class BallAndStickLogic implements Logic
 {
 //{{{ Constants
     public static final Object COLOR_BY_MC_SC       = "backbone / sidechain";

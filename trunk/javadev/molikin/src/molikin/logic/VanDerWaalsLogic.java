@@ -23,7 +23,7 @@ import driftwood.moldb2.*;
 * <p>Copyright (C) 2005 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Oct  5 10:58:41 EDT 2005
 */
-public class VanDerWaalsLogic
+public class VanDerWaalsLogic implements Logic
 {
 //{{{ Constants
     static final DecimalFormat df2 = driftwood.util.Strings.usDecimalFormat("0.0#");
