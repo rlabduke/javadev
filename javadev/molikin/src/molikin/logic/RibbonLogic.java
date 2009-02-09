@@ -23,7 +23,7 @@ import driftwood.moldb2.*;
 * <p>Copyright (C) 2005 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Oct  5 10:58:41 EDT 2005
 */
-public class RibbonLogic
+public class RibbonLogic implements Logic
 {
 //{{{ Constants
     public static final Object COLOR_BY_SEC_STRUCT  = "secondary structure";
@@ -74,6 +74,11 @@ public class RibbonLogic
         this.out.flush();
         this.out = null;
         this.rp = null;
+    }
+    
+    // to satisfy the interface
+    public void printKinemage(PrintWriter out, Model m, Set residues, String pdbId, String bbColor) {
+      printKinemage(out, m, residues, bbColor);
     }
 //}}}
 
