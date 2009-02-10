@@ -14,8 +14,15 @@ import java.util.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.io.*;
+import java.net.URL;
 //}}}
-
+/**
+* <code>QuickinPlugin</code> is a tool for quickly generating kinemages of
+* a particular CoordinateFile in KiNG.
+*
+* <p>Copyright (C) 2009 by Vincent B. Chen. All rights reserved.
+* <br>Begun on Tue Feb 9 13:37:31 EST 2009
+**/
 public class QuickinPlugin extends MolikinPlugin {
   
   //{{{ Constants
@@ -23,7 +30,6 @@ public class QuickinPlugin extends MolikinPlugin {
   
   //{{{ Variables
   int                     kinNumber = 1;
-
   //}}}
   
   //{{{ Constructors
@@ -48,7 +54,7 @@ public class QuickinPlugin extends MolikinPlugin {
     logic.doDisulfides      = true;
     logic.doBallsOnCarbon   = false;
     logic.doBallsOnAtoms    = false;
-    logic.colorBy           = "backbone / sidechain";
+    logic.colorBy           = BallAndStickLogic.COLOR_BY_MC_SC;
     buildKinemage(null, coordFile, logic);
     //logic.printKinemage(out, m, residues, pdbId, bbColor);
   }
@@ -62,6 +68,44 @@ public class QuickinPlugin extends MolikinPlugin {
     logic.doUntwistRibbons      = true;
     logic.doDnaStyle            = false;
     logic.colorBy               = RibbonLogic.COLOR_BY_RAINBOW;
+    buildKinemage(null, coordFile, logic);
+  }
+  
+  public void onPseudo(ActionEvent ev) {
+    CoordinateFile coordFile = onOpenFile();
+    BallAndStickLogic logic = new BallAndStickLogic();
+    logic.doProtein         = true;
+    logic.doNucleic         = true;
+    logic.doHets            = true;
+    logic.doIons            = false;
+    logic.doWater           = false;
+    logic.doPseudoBB        = true;
+    logic.doBackbone        = false;
+    logic.doSidechains      = false;
+    logic.doHydrogens       = false;
+    logic.doDisulfides      = true;
+    logic.doBallsOnCarbon   = false;
+    logic.doBallsOnAtoms    = false;
+    logic.colorBy           = BallAndStickLogic.COLOR_BY_MC_SC;
+    buildKinemage(null, coordFile, logic);
+  }
+  
+  public void onResidue(ActionEvent ev) {
+    CoordinateFile coordFile = onOpenFile();
+    BallAndStickLogic logic = new BallAndStickLogic();
+    logic.doProtein         = true;
+    logic.doNucleic         = true;
+    logic.doHets            = true;
+    logic.doIons            = false;
+    logic.doWater           = false;
+    logic.doPseudoBB        = false;
+    logic.doBackbone        = true;
+    logic.doSidechains      = true;
+    logic.doHydrogens       = false;
+    logic.doDisulfides      = true;
+    logic.doBallsOnCarbon   = false;
+    logic.doBallsOnAtoms    = false;
+    logic.colorBy           = BallAndStickLogic.COLOR_BY_RES_TYPE;
     buildKinemage(null, coordFile, logic);
   }
   //}}}
@@ -172,7 +216,7 @@ public class QuickinPlugin extends MolikinPlugin {
   //##################################################################################################
   public String toString()
   {
-    return "Quick kinemages";
+    return "To quick kin...";
   }
   
   /**
@@ -193,8 +237,41 @@ public class QuickinPlugin extends MolikinPlugin {
     menu.add(item);
     item = new JMenuItem(new ReflectiveAction("Ribbons", null, this, "onRibbons"));
     menu.add(item);
+    item = new JMenuItem(new ReflectiveAction("Pseudo-backbone", null, this, "onPseudo"));
+    menu.add(item);
+    item = new JMenuItem(new ReflectiveAction("Separate res", null, this, "onResidue"));
+    menu.add(item);
     return menu;
   }
   //}}}
 
+  //{{{ getHelpURL, getHelpAnchor
+  //##################################################################################################
+  /** Returns the URL of a web page explaining use of this tool */
+  public URL getHelpURL()
+  {
+    return null; // until we document this...
+    
+    /*URL     url     = getClass().getResource("/extratools/tools-manual.html");
+    String  anchor  = getHelpAnchor();
+    if(url != null && anchor != null)
+    {
+      try { url = new URL(url, anchor); }
+      catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+      return url;
+    }
+    else return null;*/
+  }
+  
+  /**
+  * Returns an anchor marking a place within <code>king-manual.html</code>
+  * that is the help for this plugin. This is called by the default
+  * implementation of <code>getHelpURL()</code>. 
+  * If you override that function, you can safely ignore this one.
+  * @return for example, "#edmap-plugin" (or null)
+  */
+  public String getHelpAnchor()
+  { return null; }
+  //}}}
+  
 }
