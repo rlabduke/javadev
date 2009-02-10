@@ -108,6 +108,34 @@ public class QuickinPlugin extends MolikinPlugin {
     logic.colorBy           = BallAndStickLogic.COLOR_BY_RES_TYPE;
     buildKinemage(null, coordFile, logic);
   }
+  
+  public void onRibbonLots(ActionEvent ev) {
+    CoordinateFile coordFile = onOpenFile();
+    BallAndStickLogic logic = new BallAndStickLogic();
+    logic.doProtein         = true;
+    logic.doNucleic         = true;
+    logic.doHets            = true;
+    logic.doIons            = false;
+    logic.doWater           = false;
+    logic.doPseudoBB        = false;
+    logic.doBackbone        = true;
+    logic.doSidechains      = true;
+    logic.doHydrogens       = true;
+    logic.doDisulfides      = true;
+    logic.doBallsOnCarbon   = false;
+    logic.doBallsOnAtoms    = false;
+    logic.colorBy           = BallAndStickLogic.COLOR_BY_MC_SC;
+    buildKinemage(null, coordFile, logic);
+    Kinemage current = kMain.getKinemage();
+    RibbonLogic ribbLogic = new RibbonLogic();
+    ribbLogic.secondaryStructure    = coordFile.getSecondaryStructure();
+    ribbLogic.doProtein             = true;
+    ribbLogic.doNucleic             = true;
+    ribbLogic.doUntwistRibbons      = true;
+    ribbLogic.doDnaStyle            = false;
+    ribbLogic.colorBy               = RibbonLogic.COLOR_BY_RAINBOW;
+    buildKinemage(current, coordFile, ribbLogic);
+  }
   //}}}
   
   //{{{ onOpenFile, doPDB/CIF
@@ -240,6 +268,8 @@ public class QuickinPlugin extends MolikinPlugin {
     item = new JMenuItem(new ReflectiveAction("Pseudo-backbone", null, this, "onPseudo"));
     menu.add(item);
     item = new JMenuItem(new ReflectiveAction("Separate res", null, this, "onResidue"));
+    menu.add(item);
+    item = new JMenuItem(new ReflectiveAction("Lots+Ribbons", null, this, "onRibbonLots"));
     menu.add(item);
     return menu;
   }
