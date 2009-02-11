@@ -213,7 +213,7 @@ public class RdcVisWindow implements /*ActionListener, */WindowListener {
       String reply = makeOptionPane(rdcTypes);
       if((reply != null)&&(!reply.equals(JOptionPane.UNINITIALIZED_VALUE))) {
         rdcviser.addRdc(reply);
-        
+        rdcviser.setDrawErrors(drawErrorsIsSelected());
         Kinemage rdcKin = rdcviser.createKin(fi);
         //ArrayList<Kinemage> kins = new ArrayList<Kinemage>();
         Kinemage current = kMain.getKinemage();
