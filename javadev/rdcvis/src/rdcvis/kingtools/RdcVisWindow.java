@@ -46,7 +46,7 @@ public class RdcVisWindow implements /*ActionListener, */WindowListener {
   TablePane2          pane;
   JComboBox           rdcBox;
   JButton             modelButton;
-  JCheckBox           errorBarBox;
+  JCheckBox           errorBarBox, surfaceBox;
   JTextField          pdbLocation;
   JTextField          mrLocation;
   //}}}
@@ -105,6 +105,7 @@ public class RdcVisWindow implements /*ActionListener, */WindowListener {
     */
     modelButton = new JButton(new ReflectiveAction("Open multi-model file", null, this, "onMulti"));
     errorBarBox = new JCheckBox("Draw error curves");
+    surfaceBox = new JCheckBox("Draw surfaces");
     pdbLocation = new JTextField(10);
     mrLocation = new JTextField(10);
     
@@ -124,6 +125,7 @@ public class RdcVisWindow implements /*ActionListener, */WindowListener {
     //pane.add(modelButton);
     pane.newRow();
     pane.add(errorBarBox);
+    pane.add(surfaceBox);
     pane.add(new JButton(new ReflectiveAction("Draw RDCs", null, this, "onDraw")));
     dialog = new JDialog(kMain.getTopWindow(), "RDC Viewer", false);
     //dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
@@ -214,6 +216,7 @@ public class RdcVisWindow implements /*ActionListener, */WindowListener {
       if((reply != null)&&(!reply.equals(JOptionPane.UNINITIALIZED_VALUE))) {
         rdcviser.addRdc(reply);
         rdcviser.setDrawErrors(drawErrorsIsSelected());
+        rdcviser.setDrawSurfaces(surfaceBox.isSelected());
         Kinemage rdcKin = rdcviser.createKin(fi);
         //ArrayList<Kinemage> kins = new ArrayList<Kinemage>();
         Kinemage current = kMain.getKinemage();
