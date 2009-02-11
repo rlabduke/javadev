@@ -39,7 +39,7 @@ public class RdcVisMain {
   //}}}
   
   //{{{ Variables
-  static String versionNumber = "1.02.090209";
+  static String versionNumber = "1.02.090211";
   
   //FileInterpreter fi;
   //CoordinateFile pdb;
@@ -47,6 +47,7 @@ public class RdcVisMain {
   KGroup group = null;
   KGroup subgroup = null;
   KGroup subError = null;
+  KGroup subSurface = null;
   boolean drawErrors = false;
   boolean ensembleTensor = true;
   boolean drawSurface = false;
@@ -295,6 +296,12 @@ public class RdcVisMain {
           subError.setHasButton(true);
           group.add(subError);
         }
+        if (drawSurface) {
+          subSurface = new KGroup("surfaces");
+          subSurface.setHasButton(true);
+          group.add(subSurface);
+          subSurface.addMaster("RDC surfaces");
+        }
         Iterator iter = mod.getResidues().iterator();
         while (iter.hasNext()) {
           Residue orig = (Residue) iter.next();
@@ -409,6 +416,10 @@ public class RdcVisMain {
   public void setDrawErrors(boolean value) {
     drawErrors = value;
   }
+  
+  public void setDrawSurfaces(boolean value) {
+    drawSurface = value;
+  }
   //}}}
   
   //{{{ drawCurve
@@ -458,7 +469,7 @@ public class RdcVisMain {
       KList list = new KList(KList.BALL, "surfaces");
       list.setNoHighlight(true);
       list.setAlpha(100);
-      subgroup.add(list);
+      subSurface.add(list);
       fi.getDrawer().drawSurface(rdcVal, p, list);
       //KList tlist = new KList(KList.TRIANGLE, "surfaces2");
       //tlist.setAlpha(100);
