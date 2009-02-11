@@ -57,6 +57,10 @@ public class BallAndStickLogic implements Logic
 //{{{ printKinemage
 //##############################################################################
     /** Emits the kinemage (text) representation as selected by the user */
+    public void printKinemage(PrintWriter out, Model m, Set residues, String bbColor) {
+      printKinemage(out, m, residues, "", bbColor);
+    }
+
     public void printKinemage(PrintWriter out, Model m, Set residues, String pdbId, String bbColor)
     {
         this.out = out;
