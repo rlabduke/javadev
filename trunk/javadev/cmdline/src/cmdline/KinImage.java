@@ -1,6 +1,7 @@
 // (jEdit options) :folding=explicit:collapseFolds=1:
 //{{{ Package, imports
 package cmdline;
+import driftwood.r3.*;
 
 import java.io.*;
 import java.awt.*;
@@ -13,7 +14,7 @@ import java.util.*;
 import java.text.DecimalFormat;
 //}}}
 /**
-* <code>KinImage</code> makes kinemages from images ("kin <- image").
+* <code>KinImage</code> makes kinemages from images ("kin << image").
 * Note that, cleverly, "KinImage" sounds like "kinemage."  (wild applause)
 * Thank you; you're too kind...
 */
@@ -167,6 +168,64 @@ public class KinImage //extends ... implements ...
         
         frame.setTitle("\"kin <- image\" from "+imageName+" ... Done!");
     }
+    
+    public void doKin2(BufferedImage image)
+    {
+      int w = image.getWidth();
+      int h = image.getHeight();
+      
+      int[] pixels = new int[w * h];
+      
+      System.out.println("@flat");
+      HashSet<Triple> newColorSet = new HashSet<Triple>();
+      HashMap<Triple, String> colorMap = new HashMap<Triple, String>();
+      for (int i = 0; i < pixels.length; i += imageResol)
+      {
+        int x      = i % w;
+        int y      = h - i / w;
+        int y_flip =     i / w;  // Java images start with row 0 at top!
+        pixels[i] = image.getRGB(x, y_flip);
+        
+        if (x % imageResol == 0 && y % imageResol == 0)
+        {
+          Color col = new Color(pixels[i]);
+          int[] rgb = new int[] {col.getRed(), col.getGreen(), col.getBlue()};
+          float[] hsb0to1 = Color.RGBtoHSB(rgb[0], rgb[1], rgb[2], new float[3]);
+          float[] hsb = new float[] {hsb0to1[0]*360f, hsb0to1[1]*100f, hsb0to1[2]*100f}; // 0-360, 0-100, 0-100
+          Triple hsbTrip = new Triple((double)Math.rint(hsb[0]/5)*5,(double)Math.rint(hsb[1]/5)*5,(double)Math.rint(hsb[2]/5)*5);
+          newColorSet.add(hsbTrip);
+        }
+      }
+      int colorInt=0;
+      for (Triple hsbTrip : newColorSet) {
+        //System.out.println(hsbTrip.getX()+" "+hsbTrip.getY()+" "+hsbTrip.getZ());
+        System.out.println("@hsvcolor {color" + colorInt+"} "+hsbTrip.getX()+" "+hsbTrip.getY()+" "+hsbTrip.getZ());
+        colorMap.put(hsbTrip, "color"+colorInt);
+        colorInt++;
+      }
+      System.out.println("@group {"+imageName+"} dominant");
+      System.out.println("@dotlist {pixels}");
+      for (int i = 0; i < pixels.length; i += imageResol)
+      {
+        int x      = i % w;
+        int y      = h - i / w;
+        int y_flip =     i / w;  // Java images start with row 0 at top!
+        pixels[i] = image.getRGB(x, y_flip);
+        
+        if (x % imageResol == 0 && y % imageResol == 0)
+        {
+          Color col = new Color(pixels[i]);
+          int[] rgb = new int[] {col.getRed(), col.getGreen(), col.getBlue()};
+          float[] hsb0to1 = Color.RGBtoHSB(rgb[0], rgb[1], rgb[2], new float[3]);
+          float[] hsb = new float[] {hsb0to1[0]*360f, hsb0to1[1]*100f, hsb0to1[2]*100f}; // 0-360, 0-100, 0-100
+          Triple hsbTrip = new Triple((double)Math.rint(hsb[0]/5)*5,(double)Math.rint(hsb[1]/5)*5,(double)Math.rint(hsb[2]/5)*5);
+          String kcolor = colorMap.get(hsbTrip);
+          if (!kcolor.equals("deadblack")) System.out.println("{pixel "+x+","+y+" hsb "+df.format(hsb[0])+","
+            +df.format(hsb[1])+","+df.format(hsb[2])+" "+kcolor+"}"+kcolor+" "+x+" "+y);
+        }
+      }
+      frame.setTitle("\"kin <- image\" from "+imageName+" ... Done!");
+    }
 //}}}
 
 //{{{ getKinColor
@@ -176,8 +235,9 @@ public class KinImage //extends ... implements ...
     * close enough to HSV as to be indistinguishable */
     public String getKinColor(float[] hsb)
     {
-        double minDist = 361;
+        double minDist = 100000;
         String bestColor = null;
+        float[] bestHSV = null;
         
         for (Iterator iter = colors.keySet().iterator(); iter.hasNext(); )
         {
@@ -188,18 +248,19 @@ public class KinImage //extends ... implements ...
             float hDist2 = Math.abs( hsb[0]-360 - ref[0] ); // 359-360 - 1 => -1 - 1 =>   2
             float hDist = (hDist1 < hDist2 ? hDist1 : hDist2); // account for 0 <=> 360 wrap
             float sDist = Math.abs( hsb[1] - ref[1] );
-            float bDist = Math.abs( hsb[2] - ref[2] );
+            float bDist = Math.abs( hsb[2] - ref[2] )*2;
             double dist = Math.sqrt( Math.pow(hDist,2) + Math.pow(sDist,2) + Math.pow(bDist,2) );
             
             if (dist < minDist)
             {
                 minDist = dist;
                 bestColor = color;
+                bestHSV = ref;
             }
             // else keep current best color
         }
         
-        if (verbose) System.err.println("kin color nearest to "+hsb[0]+" "+hsb[1]+" "+hsb[2]+" is "+bestColor);
+        if (verbose&&!bestColor.equals("deadblack")) System.err.println("kin color nearest to "+hsb[0]+" "+hsb[1]+" "+hsb[2]+" is "+bestColor+" "+bestHSV[0]+" "+bestHSV[1]+" "+bestHSV[2]);
         return bestColor;
     }
 //}}}
@@ -317,7 +378,7 @@ public class KinImage //extends ... implements ...
         if (image != null)
         {
             showImage(image);
-            doKin(image);
+            doKin2(image);
         }
         else System.err.println("couldn't find image!");
     }
