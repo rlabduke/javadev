@@ -39,7 +39,7 @@ public class RdcVisMain {
   //}}}
   
   //{{{ Variables
-  static String versionNumber = "1.00.080528";
+  static String versionNumber = "1.02.090209";
   
   //FileInterpreter fi;
   //CoordinateFile pdb;
@@ -49,6 +49,7 @@ public class RdcVisMain {
   KGroup subError = null;
   boolean drawErrors = false;
   boolean ensembleTensor = true;
+  boolean drawSurface = false;
   static ArrayList<String> rdcTypes = null;
   //}}}
   
@@ -179,6 +180,8 @@ public class RdcVisMain {
           ensembleTensor = true;
         } else if (arg.equals("-modeltensor")) {
           ensembleTensor = false;
+        } else if (arg.equals("-surface")) {
+          drawSurface = true;
         } else {
           System.err.println("*** Unrecognized option: "+arg);
         }
@@ -299,7 +302,9 @@ public class RdcVisMain {
           AtomState origin = getOriginAtom(state, orig, atoms);
           if ((rdcVect != null)&&(origin != null)) {
             drawCurve(kin, origin, rdcVect, orig, fi);
-            drawSurface(kin, origin, orig, fi);
+            if (drawSurface) {
+              drawSurface(kin, origin, orig, fi);
+            }
           } else {
             //JOptionPane.showMessageDialog(kMain.getTopWindow(),
             //"Sorry, the atoms needed for this RDC do not seem to be in this residue.",
@@ -397,6 +402,12 @@ public class RdcVisMain {
   //{{{ addRdc
   public void addRdc(String rdc) {
     rdcTypes.add(rdc);
+  }
+  //}}}
+  
+  //{{{ set functions
+  public void setDrawErrors(boolean value) {
+    drawErrors = value;
   }
   //}}}
   
