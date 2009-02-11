@@ -272,7 +272,7 @@ public class CsvToKinner
                 catch (NumberFormatException nfe)
                 {
                     if (count == 0)
-                        System.err.println("Couldn't parse \""+currToken+"\" in column "+cols[currCol]+" as double in first line, so skipping:\n  \""+line+"\"");
+                        System.err.println("Couldn't parse \""+currToken+"\" in column "+cols[currCol]+" as double, so skipping first line:\n  \""+line+"\"");
                     else
                         System.err.println("Couldn't parse \""+currToken+"\" in column "+cols[currCol]+" as double");
                 }
@@ -1230,17 +1230,18 @@ public class CsvToKinner
             {
                 if (param != null)
                 {
-                    Scanner s = new Scanner(param).useDelimiter(",");
-                    int numLabels = 0;
-                    ArrayList<String> labelsAL = new ArrayList<String>();
-                    while (s.hasNext() && numLabels < cols.length)
-                    {
-                        labelsAL.add(s.next());
-                        numLabels ++;
-                    }
-                    labels = new String[labelsAL.size()];
-                    for (int j = 0; j < labelsAL.size(); j ++)
-                        labels[j] = labelsAL.get(j);
+                    labels = Strings.explode(param, ',');
+                    //Scanner s = new Scanner(param).useDelimiter(",");
+                    //int numLabels = 0;
+                    //ArrayList<String> labelsAL = new ArrayList<String>();
+                    //while (s.hasNext() && numLabels < cols.length)
+                    //{
+                    //    labelsAL.add(s.next());
+                    //    numLabels ++;
+                    //}
+                    //labels = new String[labelsAL.size()];
+                    //for (int j = 0; j < labelsAL.size(); j ++)
+                    //    labels[j] = labelsAL.get(j);
                 }
                 else
                 {
