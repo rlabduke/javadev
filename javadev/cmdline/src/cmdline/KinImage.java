@@ -125,7 +125,7 @@ public class KinImage //extends ... implements ...
     }
 //}}}
 
-//{{{ doKin
+//{{{ doKin [not used]
 //##############################################################################
     /** Prints out sparse kinemage dotlist starting from pixel array */
     public void doKin(BufferedImage image)
@@ -168,8 +168,12 @@ public class KinImage //extends ... implements ...
         
         frame.setTitle("\"kin <- image\" from "+imageName+" ... Done!");
     }
-    
-    public void doKin2(BufferedImage image)
+//}}}
+
+//{{{ doKin2
+//##############################################################################
+/** Prints out sparse kinemage dotlist starting from pixel array */
+public void doKin2(BufferedImage image)
     {
       int w = image.getWidth();
       int h = image.getHeight();
@@ -220,7 +224,8 @@ public class KinImage //extends ... implements ...
           float[] hsb = new float[] {hsb0to1[0]*360f, hsb0to1[1]*100f, hsb0to1[2]*100f}; // 0-360, 0-100, 0-100
           Triple hsbTrip = new Triple((double)Math.rint(hsb[0]/5)*5,(double)Math.rint(hsb[1]/5)*5,(double)Math.rint(hsb[2]/5)*5);
           String kcolor = colorMap.get(hsbTrip);
-          if (!kcolor.equals("deadblack")) System.out.println("{pixel "+x+","+y+" hsb "+df.format(hsb[0])+","
+          if (!(hsb[0] == 0 && hsb[1] == 0 && hsb[2] == 0))//kcolor.equals("deadblack")) 
+            System.out.println("{pixel "+x+","+y+" hsb "+df.format(hsb[0])+","
             +df.format(hsb[1])+","+df.format(hsb[2])+" "+kcolor+"}"+kcolor+" "+x+" "+y);
         }
       }
@@ -506,7 +511,7 @@ public class KinImage //extends ... implements ...
         {
             urlname = param;
         }
-        else if(flag.equals("-resolution") || flag.equals("resol") || flag.equals("r"))
+        else if(flag.equals("-resolution") || flag.equals("-resol") || flag.equals("-r"))
         {
             try { imageResol = Integer.parseInt(param); }
             catch (NumberFormatException nfe)
