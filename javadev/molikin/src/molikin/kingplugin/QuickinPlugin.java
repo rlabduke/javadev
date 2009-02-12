@@ -23,94 +23,144 @@ import java.net.URL;
 * <p>Copyright (C) 2009 by Vincent B. Chen. All rights reserved.
 * <br>Begun on Tue Feb 9 13:37:31 EST 2009
 **/
-public class QuickinPlugin extends MolikinPlugin {
+public class QuickinPlugin extends king.Plugin {
   
   //{{{ Constants
   //}}}
   
+  //{{{ CLASS: CoordFileOpen
+  //##############################################################################
+  private class CoordFileOpen implements FileDropHandler.Listener
+  {
+    String menuText;
+    Logic logic;
+    
+    public CoordFileOpen(String text, Logic log) {
+      menuText = text;
+      logic = log;
+    }
+    
+    public String toString()
+    { return menuText; }
+    
+    public boolean canHandleDroppedFile(File file)
+    {
+      return pdbFilter.accept(file) || cifFilter.accept(file);
+    }
+    
+    public void handleDroppedFile(File f)
+    {
+      try
+      {
+        CoordinateFile coordFile = null;
+        if(pdbFilter.accept(f))        coordFile = readPDB(f);
+        else if(cifFilter.accept(f))   coordFile = readCIF(f);
+        if (logic instanceof RibbonLogic) {
+          ((RibbonLogic)logic).secondaryStructure = coordFile.getSecondaryStructure();
+        }
+        buildKinemage(null, coordFile, logic);
+      }
+      catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
+    }
+  }
+  //}}}
+  
   //{{{ Variables
   int                     kinNumber = 1;
+  SuffixFileFilter        pdbFilter, cifFilter, allFilter;
+  JFileChooser            openChooser;
   //}}}
   
   //{{{ Constructors
   public QuickinPlugin(ToolBox tb) {
     super(tb);
+    buildFileChooser();
+    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make lots kinemage", getLotsLogic()));
+    BallAndStickLogic logic = getLotsLogic();
+    logic.doPseudoBB        = true;
+    logic.doBackbone        = false;
+    logic.doSidechains      = false;
+    logic.doHydrogens       = false;
+    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make pseudo-backbone kinemage", logic));
+    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make ribbons kinemage", getRibbonLogic()));
+  }
+  //}}}
+  
+  //{{{ buildFileChooser
+  //##################################################################################################
+  /** Constructs the Open file chooser */
+  private void buildFileChooser()
+  {
+    allFilter = new SuffixFileFilter("PDB and mmCIF files");
+    allFilter.addSuffix(".pdb");
+    allFilter.addSuffix(".xyz");
+    allFilter.addSuffix(".ent");
+    allFilter.addSuffix(".cif");
+    allFilter.addSuffix(".mmcif");
+    pdbFilter = new SuffixFileFilter("Protein Data Bank (PDB) files");
+    pdbFilter.addSuffix(".pdb");
+    pdbFilter.addSuffix(".xyz");
+    pdbFilter.addSuffix(".ent");
+    cifFilter = new SuffixFileFilter("mmCIF files");
+    cifFilter.addSuffix(".cif");
+    cifFilter.addSuffix(".mmcif");
+    
+    String currdir = System.getProperty("user.dir");
+    
+    openChooser = new JFileChooser();
+    openChooser.addChoosableFileFilter(allFilter);
+    openChooser.addChoosableFileFilter(pdbFilter);
+    openChooser.addChoosableFileFilter(cifFilter);
+    openChooser.setFileFilter(allFilter);
+    if(currdir != null) openChooser.setCurrentDirectory(new File(currdir));
   }
   //}}}
   
   //{{{ on___
   public void onLots(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
-    BallAndStickLogic logic = new BallAndStickLogic();
-    logic.doProtein         = true;
-    logic.doNucleic         = true;
-    logic.doHets            = true;
-    logic.doIons            = false;
-    logic.doWater           = false;
-    logic.doPseudoBB        = false;
-    logic.doBackbone        = true;
-    logic.doSidechains      = true;
-    logic.doHydrogens       = true;
-    logic.doDisulfides      = true;
-    logic.doBallsOnCarbon   = false;
-    logic.doBallsOnAtoms    = false;
-    logic.colorBy           = BallAndStickLogic.COLOR_BY_MC_SC;
-    buildKinemage(null, coordFile, logic);
+    buildKinemage(null, coordFile, getLotsLogic());
     //logic.printKinemage(out, m, residues, pdbId, bbColor);
   }
+
   
   public void onRibbons(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
-    RibbonLogic logic = new RibbonLogic();
+    RibbonLogic logic = getRibbonLogic();
     logic.secondaryStructure    = coordFile.getSecondaryStructure();
-    logic.doProtein             = true;
-    logic.doNucleic             = true;
-    logic.doUntwistRibbons      = true;
-    logic.doDnaStyle            = false;
-    logic.colorBy               = RibbonLogic.COLOR_BY_RAINBOW;
     buildKinemage(null, coordFile, logic);
   }
   
   public void onPseudo(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
-    BallAndStickLogic logic = new BallAndStickLogic();
-    logic.doProtein         = true;
-    logic.doNucleic         = true;
-    logic.doHets            = true;
-    logic.doIons            = false;
-    logic.doWater           = false;
+    BallAndStickLogic logic = getLotsLogic();
     logic.doPseudoBB        = true;
     logic.doBackbone        = false;
     logic.doSidechains      = false;
     logic.doHydrogens       = false;
-    logic.doDisulfides      = true;
-    logic.doBallsOnCarbon   = false;
-    logic.doBallsOnAtoms    = false;
-    logic.colorBy           = BallAndStickLogic.COLOR_BY_MC_SC;
     buildKinemage(null, coordFile, logic);
   }
   
   public void onResidue(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
-    BallAndStickLogic logic = new BallAndStickLogic();
-    logic.doProtein         = true;
-    logic.doNucleic         = true;
-    logic.doHets            = true;
-    logic.doIons            = false;
-    logic.doWater           = false;
-    logic.doPseudoBB        = false;
-    logic.doBackbone        = true;
-    logic.doSidechains      = true;
+    BallAndStickLogic logic = getLotsLogic();
     logic.doHydrogens       = false;
-    logic.doDisulfides      = true;
-    logic.doBallsOnCarbon   = false;
-    logic.doBallsOnAtoms    = false;
     logic.colorBy           = BallAndStickLogic.COLOR_BY_RES_TYPE;
     buildKinemage(null, coordFile, logic);
   }
   
   public void onRibbonLots(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
+    buildKinemage(null, coordFile, getLotsLogic());
+    Kinemage current = kMain.getKinemage();
+    RibbonLogic ribbLogic = getRibbonLogic();
+    ribbLogic.secondaryStructure    = coordFile.getSecondaryStructure();
+    buildKinemage(current, coordFile, ribbLogic);
+  }
+  //}}}
+  
+  //{{{ getLogics
+  public BallAndStickLogic getLotsLogic() {
     BallAndStickLogic logic = new BallAndStickLogic();
     logic.doProtein         = true;
     logic.doNucleic         = true;
@@ -125,16 +175,17 @@ public class QuickinPlugin extends MolikinPlugin {
     logic.doBallsOnCarbon   = false;
     logic.doBallsOnAtoms    = false;
     logic.colorBy           = BallAndStickLogic.COLOR_BY_MC_SC;
-    buildKinemage(null, coordFile, logic);
-    Kinemage current = kMain.getKinemage();
-    RibbonLogic ribbLogic = new RibbonLogic();
-    ribbLogic.secondaryStructure    = coordFile.getSecondaryStructure();
-    ribbLogic.doProtein             = true;
-    ribbLogic.doNucleic             = true;
-    ribbLogic.doUntwistRibbons      = true;
-    ribbLogic.doDnaStyle            = false;
-    ribbLogic.colorBy               = RibbonLogic.COLOR_BY_RAINBOW;
-    buildKinemage(current, coordFile, ribbLogic);
+    return logic;
+  }
+  
+  public RibbonLogic getRibbonLogic() {
+    RibbonLogic logic = new RibbonLogic();
+    logic.doProtein             = true;
+    logic.doNucleic             = true;
+    logic.doUntwistRibbons      = true;
+    logic.doDnaStyle            = false;
+    logic.colorBy               = RibbonLogic.COLOR_BY_RAINBOW;
+    return logic;
   }
   //}}}
   
