@@ -119,43 +119,53 @@ public class QuickinPlugin extends king.Plugin {
   //{{{ on___
   public void onLots(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
-    buildKinemage(null, coordFile, getLotsLogic());
-    //logic.printKinemage(out, m, residues, pdbId, bbColor);
+    if (coordFile != null) {
+      buildKinemage(null, coordFile, getLotsLogic());
+      //logic.printKinemage(out, m, residues, pdbId, bbColor);
+    }
   }
 
   
   public void onRibbons(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
-    RibbonLogic logic = getRibbonLogic();
-    logic.secondaryStructure    = coordFile.getSecondaryStructure();
-    buildKinemage(null, coordFile, logic);
+    if (coordFile != null) {
+      RibbonLogic logic = getRibbonLogic();
+      logic.secondaryStructure    = coordFile.getSecondaryStructure();
+      buildKinemage(null, coordFile, logic);
+    }
   }
   
   public void onPseudo(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
-    BallAndStickLogic logic = getLotsLogic();
-    logic.doPseudoBB        = true;
-    logic.doBackbone        = false;
-    logic.doSidechains      = false;
-    logic.doHydrogens       = false;
-    buildKinemage(null, coordFile, logic);
+    if (coordFile != null) {
+      BallAndStickLogic logic = getLotsLogic();
+      logic.doPseudoBB        = true;
+      logic.doBackbone        = false;
+      logic.doSidechains      = false;
+      logic.doHydrogens       = false;
+      buildKinemage(null, coordFile, logic);
+    }
   }
   
   public void onResidue(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
-    BallAndStickLogic logic = getLotsLogic();
-    logic.doHydrogens       = false;
-    logic.colorBy           = BallAndStickLogic.COLOR_BY_RES_TYPE;
-    buildKinemage(null, coordFile, logic);
+    if (coordFile != null) {
+      BallAndStickLogic logic = getLotsLogic();
+      logic.doHydrogens       = false;
+      logic.colorBy           = BallAndStickLogic.COLOR_BY_RES_TYPE;
+      buildKinemage(null, coordFile, logic);
+    }
   }
   
   public void onRibbonLots(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
-    buildKinemage(null, coordFile, getLotsLogic());
-    Kinemage current = kMain.getKinemage();
-    RibbonLogic ribbLogic = getRibbonLogic();
-    ribbLogic.secondaryStructure    = coordFile.getSecondaryStructure();
-    buildKinemage(current, coordFile, ribbLogic);
+    if (coordFile != null) {
+      buildKinemage(null, coordFile, getLotsLogic());
+      Kinemage current = kMain.getKinemage();
+      RibbonLogic ribbLogic = getRibbonLogic();
+      ribbLogic.secondaryStructure    = coordFile.getSecondaryStructure();
+      buildKinemage(current, coordFile, ribbLogic);
+    }
   }
   //}}}
   
