@@ -176,6 +176,8 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
         propertyChange(null);
         
         // Show the Save dialog
+        String currdir = System.getProperty("user.dir");
+        if(currdir != null) chooser.setCurrentDirectory(new File(currdir));
         if(JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(kMain.getTopWindow()))
         {
             String fmt = getFormat();
@@ -204,6 +206,7 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
                         "Sorry!", JOptionPane.ERROR_MESSAGE);
                     ex.printStackTrace(SoftLog.err);
                 }
+                System.setProperty("user.dir", f.getAbsolutePath());
             }
         }
     }

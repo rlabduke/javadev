@@ -343,10 +343,13 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
         // Create file chooser on demand
         if(filechooser == null) makeFileChooser();
         
+        String currdir = System.getProperty("user.dir");
+        if(currdir != null) filechooser.setCurrentDirectory(new File(currdir));
         if(JFileChooser.APPROVE_OPTION == filechooser.showOpenDialog(kMain.getTopWindow()))
         {
             File f = filechooser.getSelectedFile();
             openMapFile(f);
+            System.setProperty("user.dir", f.getAbsolutePath());
         }
     }
 
