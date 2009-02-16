@@ -382,6 +382,8 @@ public class ModelManager2 extends Plugin
         }
         
         // Open the new file
+        String currdir = System.getProperty("user.dir");
+        if(currdir != null) openChooser.setCurrentDirectory(new File(currdir));
         if(JFileChooser.APPROVE_OPTION == openChooser.showOpenDialog(kMain.getTopWindow()))
         {
             try
@@ -389,6 +391,7 @@ public class ModelManager2 extends Plugin
                 File f = openChooser.getSelectedFile();
                 if(f != null && f.exists())
                     openPDB(f);
+                System.setProperty("user.dir", f.getAbsolutePath());
             }
             catch(IOException ex)
             {
@@ -521,6 +524,9 @@ public class ModelManager2 extends Plugin
         saveChooser.resetChoosableFileFilters();
         saveChooser.setFileFilter(pdbFilter);
         
+        String currdir = System.getProperty("user.dir");
+        if(currdir != null) saveChooser.setCurrentDirectory(new File(currdir));
+        
         // Ganked auto-versioning code from KinfileIO
         File f = srcfile;
         String name = f.getName();
@@ -546,6 +552,8 @@ public class ModelManager2 extends Plugin
         saveChooser.setSelectedFile(new File(name));
         
         savePDB(true);
+        
+        System.setProperty("user.dir", f.getAbsolutePath());
     }
 //}}}
 
@@ -1006,6 +1014,8 @@ public class ModelManager2 extends Plugin
     public void onOpenNOE(ActionEvent ev)
     {
         // Open the new file
+        String currdir = System.getProperty("user.dir");
+        if(currdir != null) noeChooser.setCurrentDirectory(new File(currdir));
         if(JFileChooser.APPROVE_OPTION == noeChooser.showOpenDialog(kMain.getTopWindow()))
         {
             File f = noeChooser.getSelectedFile();
@@ -1025,6 +1035,7 @@ public class ModelManager2 extends Plugin
                     noeFormat = choice;
                 noeFile = f;
                 refreshGUI();
+                System.setProperty("user.dir", f.getAbsolutePath());
             }
         }
     }
