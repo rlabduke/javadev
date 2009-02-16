@@ -104,6 +104,8 @@ public class MolikinPlugin extends king.Plugin
     public void onOpenFile(ActionEvent ev)
     {
         // Open the new file
+        String currdir = System.getProperty("user.dir");
+        if(currdir != null) openChooser.setCurrentDirectory(new File(currdir));
         if(JFileChooser.APPROVE_OPTION == openChooser.showOpenDialog(kMain.getTopWindow()))
         {
             try
@@ -114,6 +116,7 @@ public class MolikinPlugin extends king.Plugin
                     //if(pdbFilter.accept(f))         doPDB(f);
                     if(cifFilter.accept(f))    doCIF(f);
                     else                       doPDB(f);
+                    System.setProperty("user.dir", f.getAbsolutePath());
                     //else throw new IOException("Can't identify file type");
                 }
             }
