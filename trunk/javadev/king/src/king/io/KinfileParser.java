@@ -478,6 +478,7 @@ public class KinfileParser //extends ... implements ...
                     }
                     storeBondRot(bondNum, list.getName(), angle);
                 }
+                else if(s.startsWith("screen")) list.setScreen(true);  // DAK 090212
                 else error("Unrecognized literal '"+s+"' will be ignored");
                 token.advance();
             }

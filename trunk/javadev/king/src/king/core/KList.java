@@ -60,6 +60,7 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
     protected int       style       = 0;        // style for MarkerPoints; could be alignment for labels
     protected Object    clipMode    = null;     // null for default, else some object key
     protected int       dimension   = 3;        // for high-dimensional kinemages
+    protected boolean   screen      = false;    // scale w/ screen but don't rotate/translate (like ala_dipept in Mage) (DAK 090212)
 //}}}
 
 //{{{ Constructor(s)
@@ -158,7 +159,7 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
     }
 //}}}
 
-//{{{ get/set{Type, Color, Width, Radius, Alpha}
+//{{{ get/set{Type, Color, Width, Radius, Alpha, Screen}
 //##################################################################################################
     /** Determines the type of points held by this list */
     public String getType()
@@ -200,6 +201,17 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
     /** Sets the translucency of points in this list, from 0 (invisible) to 255 (opaque). */
     public void setAlpha(int a)
     { alpha = a; }
+    
+    /** Sets screen variable for this list (DAK 090212). */
+    public void setScreen(boolean scr)
+    {
+        this.screen = scr;
+        // also set width & radius to defaults to avoid scaling-on-zoom confusion?
+        fireKinChanged(CHANGE_LIST_PROPERTIES);
+    }
+    /** Gets screen variable for this list (DAK 090212). */
+    public boolean getScreen()
+    { return this.screen; }
 //}}}
 
 //{{{ get/set{Angle, Style, ClipMode, Dimension, NoHighlight}
@@ -277,8 +289,41 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
         Transform myXform = xform;
         if(this.getTransform() != null)
             myXform = new Transform().like(this.getTransform()).append(xform);
+        
         for(KPoint child : this.getChildren()) child.doTransform(engine, myXform, engine.zoom3D);
-
+        
+        // Messing with 'screen' keyword on lists for keeping children fixed on screen
+        /*
+        if(this.screen)
+        {
+            for(KPoint child : this.getChildren())
+            {
+                  System.err.println("canvas rect:"+engine.pickingRect);
+                double width, height, size, xOff, yOff;
+                width   = engine.pickingRect.getWidth();
+                height  = engine.pickingRect.getHeight();
+                size    = Math.min(width, height);
+                xOff    = engine.pickingRect.getX() + width/2.0;
+                yOff    = engine.pickingRect.getY() + height/2.0;
+                
+                Transform ret = new Transform(), work = new Transform();
+                work.likeTranslation(xOff-child.getDrawX(), yOff-child.getDrawY(), 0);
+                    ret.append(work);
+                work.likeScale(200.0);  // <- ??
+                    ret.append(work);
+                
+                  System.err.println(child+" orig : ("+child.getX()+","+child.getY()+","+child.getZ()+")");
+                  //System.err.println(child+" b4 mv: ("+child.getDrawX()+","+child.getDrawY()+","+child.getDrawZ()+")");
+                child.doTransform(engine, ret, engine.zoom3D);
+                  System.err.println(child+" xfrmd: ("+child.getDrawX()+","+child.getDrawY()+","+child.getDrawZ()+")");
+                  System.err.println(child+" xform:\n"+ret);
+                  //System.err.println();
+            }
+        }
+        else
+            for(KPoint child : this.getChildren()) child.doTransform(engine, myXform, engine.zoom3D);
+        */
+        
         if(this.clipMode != null) engine.chooseClipMode(null); // reset to default
     }
 //}}}

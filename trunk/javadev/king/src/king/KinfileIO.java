@@ -203,10 +203,13 @@ public class KinfileIO implements KinfileLoader.Listener, ListSelectionListener
     {
         if(fileOpenChooser == null) return false;
         
+        String currdir = System.getProperty("user.dir");
+        if(currdir != null) fileOpenChooser.setCurrentDirectory(new File(currdir));
         if(fileOpenChooser.APPROVE_OPTION == fileOpenChooser.showOpenDialog(kMain.getTopWindow()))
         {
             File f = fileOpenChooser.getSelectedFile();
             loadFile(f, kin);
+            System.setProperty("user.dir", f.getAbsolutePath());
             return true;
         }
         else return false;
@@ -449,6 +452,8 @@ public class KinfileIO implements KinfileLoader.Listener, ListSelectionListener
         if(fileSaveChooser == null) return;
         
         setMangledName();
+        String currdir = System.getProperty("user.dir");
+        if(currdir != null) fileSaveChooser.setCurrentDirectory(new File(currdir));
         if(fileSaveChooser.APPROVE_OPTION == fileSaveChooser.showSaveDialog(kMain.getTopWindow()))
         {
             File f = fileSaveChooser.getSelectedFile();
@@ -459,6 +464,7 @@ public class KinfileIO implements KinfileLoader.Listener, ListSelectionListener
                 == JOptionPane.YES_OPTION )
             {
                 saveFile(f, kinsToSave);
+                System.setProperty("user.dir", f.getAbsolutePath());
             }
         }
     }
