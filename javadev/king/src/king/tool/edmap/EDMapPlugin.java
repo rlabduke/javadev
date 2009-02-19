@@ -245,6 +245,25 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
     }
 //}}}
 
+  //{{{ loadFileFromCmdline
+  /** Plugins that can work on files from the king cmdline should overwrite this function */
+  public void loadFileFromCmdline(ArrayList<File> args) {
+      for (File f : args) {
+        try {
+          if(mapFilter.accept(f))
+            if (kMain.getKinemage() != null) {
+              openMapFile(f);
+            } else {
+              JOptionPane.showMessageDialog(kMain.getTopWindow(),
+					      "In order to run KiNG with a map from cmdline,\n you must also give a kin or PDB file!",
+					      "Sorry!", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
+      }
+      
+  }
+  //}}}
+
 //{{{ getToolsMenuItem, toString
 //##################################################################################################
     /**

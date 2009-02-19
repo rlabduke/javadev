@@ -58,6 +58,7 @@ public class KingMain implements WindowListener
     boolean             isAppletFlat    = true;
     
     ArrayList<File>     filesToOpen     = null;
+    ArrayList<File>     pdbFilesToOpen  = null;
     boolean             doMerge         = true;
     
     Set<KMessage.Subscriber> subscribers = new LinkedHashSet<KMessage.Subscriber>();
@@ -236,34 +237,36 @@ public class KingMain implements WindowListener
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void loadFiles()
     {
-      //SuffixFileFilter kinFilter = new SuffixFileFilter("PDB and mmCIF files");
-      //pdbFilter.addSuffix(".pdb");
-      //pdbFilter.addSuffix(".xyz");
-      //pdbFilter.addSuffix(".ent");
-      //pdbFilter.addSuffix(".cif");
-      //pdbFilter.addSuffix(".mmcif");
-      if(filesToOpen != null && filesToOpen.size() > 0)
+      SuffixFileFilter kinFilter = new SuffixFileFilter("Kinemage files");
+      kinFilter.addSuffix(".kin");
+      kinFilter.addSuffix(".kip");
+      kinFilter.addSuffix(".kin.gz");
+      kinFilter.addSuffix(".kip.gz");
+      if((filesToOpen != null && filesToOpen.size() > 0)||(pdbFilesToOpen != null && pdbFilesToOpen.size() > 0))
         {
+          for(File f : filesToOpen) {
             Kinemage kin = null;
-            if(doMerge && filesToOpen.size() > 1)
+            if(doMerge && kinFilter.accept(f))
               kin = new Kinemage(KinfileParser.DEFAULT_KINEMAGE_NAME+"1");
-
-            //ArrayList<File> pdbFiles = new ArrayList<File>();
-            for(File f : filesToOpen) {
-              //if (pdbFilter.accept(f)) {
-              //  pdbFiles.add(f);
-              //} else {
-                kinIO.loadFile(f, kin);
-              //}
-            }
-            Collection plugins = kinCanvas.toolbox.getPluginList();
-            Iterator iter = plugins.iterator();
+            kinIO.loadFile(f, kin);
+            if(kin != null) this.getStable().append(Arrays.asList(new Kinemage[] {kin}));
+          }
+          
+          Collection plugins = kinCanvas.toolbox.getPluginList();
+          Iterator iter = plugins.iterator();
+          if (pdbFilesToOpen != null && pdbFilesToOpen.size() > 0) {
             while (iter.hasNext()) {
               Plugin plug = (Plugin) iter.next();
-              plug.loadFileFromCmdline(filesToOpen);
+              plug.loadFileFromCmdline(pdbFilesToOpen);
             }
-            
-            if(kin != null) this.getStable().append(Arrays.asList(new Kinemage[] {kin}));
+          }
+          // the reason I scan through plugins twice is so pdb files get processed
+          // first in order to make sure a kin is available before anything else.
+          iter = plugins.iterator();
+          while (iter.hasNext()) {
+            Plugin plug = (Plugin) iter.next();
+            plug.loadFileFromCmdline(filesToOpen);
+          }
         }
         
         this.publish(new KMessage(this, KMessage.KING_STARTUP));
@@ -416,7 +419,15 @@ public class KingMain implements WindowListener
     // Interpret command-line arguments
     void parseArguments(String[] args)
     {
+        SuffixFileFilter pdbFilter = new SuffixFileFilter("PDB files");
+        pdbFilter.addSuffix(".pdb");
+        pdbFilter.addSuffix(".xyz");
+        pdbFilter.addSuffix(".ent");
+        pdbFilter.addSuffix(".cif");
+        pdbFilter.addSuffix(".mmcif");
+        
         filesToOpen = new ArrayList<File>();
+        pdbFilesToOpen = new ArrayList<File>();
         
         String arg;
         for(int i = 0; i < args.length; i++)
@@ -442,7 +453,10 @@ public class KingMain implements WindowListener
             // this is a file, etc.
             else
             {
-                filesToOpen.add(new File(arg));
+                if (pdbFilter.accept(arg)) 
+                  pdbFilesToOpen.add(new File(arg));
+                else 
+                  filesToOpen.add(new File(arg));
             }
         }
     }
