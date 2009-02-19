@@ -51,7 +51,7 @@
            includes="**/*.java"
            excludes="**/old/"
            debug="on" debuglevel="lines,source"
-           target="1.3" source="1.3">
+           target="1.5" source="1.5">
          <classpath>
             <pathelement location="../driftwood/build"/>
             <pathelement location="../king/build"/>

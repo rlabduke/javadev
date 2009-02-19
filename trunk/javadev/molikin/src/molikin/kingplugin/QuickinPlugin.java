@@ -160,11 +160,11 @@ public class QuickinPlugin extends king.Plugin {
   public void onRibbonLots(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
     if (coordFile != null) {
-      buildKinemage(null, coordFile, getLotsLogic());
-      Kinemage current = kMain.getKinemage();
-      RibbonLogic ribbLogic = getRibbonLogic();
-      ribbLogic.secondaryStructure    = coordFile.getSecondaryStructure();
-      buildKinemage(current, coordFile, ribbLogic);
+      Logic[] logicList = new Logic[2];
+      logicList[0] = getLotsLogic();
+      logicList[1] = getRibbonLogic();
+      ((RibbonLogic)logicList[1]).secondaryStructure    = coordFile.getSecondaryStructure();
+      buildKinemage(null, coordFile, logicList);
     }
   }
   //}}}
@@ -244,16 +244,41 @@ public class QuickinPlugin extends king.Plugin {
   }
   //}}}
   
+  //{{{ loadFileFromCmdline
+  /** Plugins that can work on files from the king cmdline should overwrite this function */
+  public void loadFileFromCmdline(ArrayList<File> args) {
+    for (File f : args) {
+      try {
+        CoordinateFile coordFile = null;
+        if(pdbFilter.accept(f))        coordFile = readPDB(f);
+        else if(cifFilter.accept(f))   coordFile = readCIF(f);
+        if (coordFile != null) {
+          Logic[] logicList = new Logic[2];
+          logicList[0] = getLotsLogic();
+          logicList[1] = getRibbonLogic();
+          ((RibbonLogic)logicList[1]).secondaryStructure    = coordFile.getSecondaryStructure();
+          buildKinemage(null, coordFile, logicList);
+        }
+      } catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
+    }
+  }
+  //}}}
+  
   //{{{ buildKinemage
   //##############################################################################
   void buildKinemage(Kinemage appendTo, CoordinateFile coordFile, Logic logic)
+  {
+    buildKinemage(appendTo, coordFile, new Logic[] {logic});
+  }
+  
+  void buildKinemage(Kinemage appendTo, CoordinateFile coordFile, Logic[] logiclist)
   {
     StreamTank kinData = new StreamTank();
     PrintWriter out = new PrintWriter(new OutputStreamWriter(kinData));
     
     out.println("@kinemage "+(kinNumber++));
     out.println("@onewidth");
-    printKinemage(out, coordFile, logic);
+    printKinemage(out, coordFile, logiclist);
     
     out.flush();
     kinData.close();
@@ -264,7 +289,7 @@ public class QuickinPlugin extends king.Plugin {
   //{{{ printKinemage
   //##############################################################################
   /** Emits the kinemage (text) representation as selected by the user */
-  public void printKinemage(PrintWriter out, CoordinateFile coordFile, Logic logic)
+  public void printKinemage(PrintWriter out, CoordinateFile coordFile, Logic[] logiclist)
   {
     String idCode = "macromol";
     if(coordFile.getIdCode() != null)       idCode = coordFile.getIdCode();
@@ -292,7 +317,8 @@ public class QuickinPlugin extends king.Plugin {
           
           
           String bbColor = MainGuiPane.BACKBONE_COLORS[ (groupByModel ? modelCount : chainCount) % MainGuiPane.BACKBONE_COLORS.length];
-          logic.printKinemage(out, m, m.getChain(chainID), idCode, bbColor);
+          for (Logic logic : logiclist)
+            logic.printKinemage(out, m, m.getChain(chainID), idCode, bbColor);
         }
       }
     }
