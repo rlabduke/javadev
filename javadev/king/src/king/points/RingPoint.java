@@ -70,7 +70,12 @@ public class RingPoint extends AbstractPoint // implements ...
     public void doTransform(Engine engine, Transform xform, double zoom)
     {
         // Don't call super.doTransform() b/c we do it all here
-        
+        if (parent.getScreen() == true) {
+          //Kinemage ancestor = getKinemage();
+          //float span = ancestor.getSpan();
+          r = 50;
+          super.doTransform(engine, xform, zoom);
+        } else {
         if(r0 <= 0 && parent != null) r = (float)(parent.getRadius() * zoom);
         else                          r = (float)(r0 * zoom);
         xform.transform(this, engine.work1);
@@ -92,6 +97,7 @@ public class RingPoint extends AbstractPoint // implements ...
         engine.addPaintable(this, z);
         
         // Rings don't do line shortening around them -- the point is to see the center.
+        }
     }
 //}}}
 
