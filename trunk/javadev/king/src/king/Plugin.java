@@ -169,7 +169,12 @@ abstract public class Plugin //extends ... implements ...
 //}}}
 
 //{{{ loadFileFromCmdline
-/** Plugins that can work on files from the king cmdline should overwrite this function */
+/** 
+* Plugins that can work on files from the king cmdline should overwrite this function 
+* Currently, KingMain passes ALL files read in from cmdline to this function,
+* so any plugin that wants to deal with them should filter the files to only
+* work on the ones it can deal with.  
+*/
 public void loadFileFromCmdline(ArrayList<File> args) {}
 //}}}
 
