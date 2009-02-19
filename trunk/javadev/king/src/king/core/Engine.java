@@ -132,8 +132,8 @@ abstract public class Engine //extends ... implements ...
         xform3D = create3DTransform(view, bounds);
         xform2D = create2DTransform(bounds);
         this.chooseClipMode(null); // default to std clipping planes
-        xformable.doTransform(this, xform3D);
         pickingRect.setBounds(bounds); // save these bounds as the picking region
+        xformable.doTransform(this, xform3D);
     }    
 //}}}
 

@@ -236,14 +236,32 @@ public class KingMain implements WindowListener
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void loadFiles()
     {
-        if(filesToOpen != null && filesToOpen.size() > 0)
+      //SuffixFileFilter kinFilter = new SuffixFileFilter("PDB and mmCIF files");
+      //pdbFilter.addSuffix(".pdb");
+      //pdbFilter.addSuffix(".xyz");
+      //pdbFilter.addSuffix(".ent");
+      //pdbFilter.addSuffix(".cif");
+      //pdbFilter.addSuffix(".mmcif");
+      if(filesToOpen != null && filesToOpen.size() > 0)
         {
             Kinemage kin = null;
             if(doMerge && filesToOpen.size() > 1)
-                kin = new Kinemage(KinfileParser.DEFAULT_KINEMAGE_NAME+"1");
-            
-            for(File f : filesToOpen)
+              kin = new Kinemage(KinfileParser.DEFAULT_KINEMAGE_NAME+"1");
+
+            //ArrayList<File> pdbFiles = new ArrayList<File>();
+            for(File f : filesToOpen) {
+              //if (pdbFilter.accept(f)) {
+              //  pdbFiles.add(f);
+              //} else {
                 kinIO.loadFile(f, kin);
+              //}
+            }
+            Collection plugins = kinCanvas.toolbox.getPluginList();
+            Iterator iter = plugins.iterator();
+            while (iter.hasNext()) {
+              Plugin plug = (Plugin) iter.next();
+              plug.loadFileFromCmdline(filesToOpen);
+            }
             
             if(kin != null) this.getStable().append(Arrays.asList(new Kinemage[] {kin}));
         }

@@ -168,6 +168,11 @@ abstract public class Plugin //extends ... implements ...
     }
 //}}}
 
+//{{{ loadFileFromCmdline
+/** Plugins that can work on files from the king cmdline should overwrite this function */
+public void loadFileFromCmdline(ArrayList<File> args) {}
+//}}}
+
 //{{{ empty_code_segment
 //##################################################################################################
 //}}}
