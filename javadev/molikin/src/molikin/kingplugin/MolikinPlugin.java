@@ -170,6 +170,8 @@ public class MolikinPlugin extends king.Plugin
     public JMenuItem getToolsMenuItem()
     {
         JMenuItem item = new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onOpenFile"));
+        item.setMnemonic(KeyEvent.VK_I);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, kMain.MENU_ACCEL_MASK));
         return item;
     }
 //}}}
