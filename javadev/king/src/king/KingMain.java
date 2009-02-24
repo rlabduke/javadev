@@ -237,20 +237,19 @@ public class KingMain implements WindowListener
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void loadFiles()
     {
-      SuffixFileFilter kinFilter = new SuffixFileFilter("Kinemage files");
-      kinFilter.addSuffix(".kin");
-      kinFilter.addSuffix(".kip");
-      kinFilter.addSuffix(".kin.gz");
-      kinFilter.addSuffix(".kip.gz");
+      //SuffixFileFilter kinFilter = new SuffixFileFilter("Kinemage files");
+      //kinFilter.addSuffix(".kin");
+      //kinFilter.addSuffix(".kip");
+      //kinFilter.addSuffix(".kin.gz");
+      //kinFilter.addSuffix(".kip.gz");
       if((filesToOpen != null && filesToOpen.size() > 0)||(pdbFilesToOpen != null && pdbFilesToOpen.size() > 0))
         {
-          for(File f : filesToOpen) {
-            Kinemage kin = null;
-            if(doMerge && kinFilter.accept(f))
-              kin = new Kinemage(KinfileParser.DEFAULT_KINEMAGE_NAME+"1");
+          Kinemage kin = null;
+          if(doMerge && (filesToOpen.size()-pdbFilesToOpen.size()) > 1)
+            kin = new Kinemage(KinfileParser.DEFAULT_KINEMAGE_NAME+"1");
+          for(File f : filesToOpen)
             kinIO.loadFile(f, kin);
-            if(kin != null) this.getStable().append(Arrays.asList(new Kinemage[] {kin}));
-          }
+          if(kin != null) this.getStable().append(Arrays.asList(new Kinemage[] {kin}));
           
           Collection plugins = kinCanvas.toolbox.getPluginList();
           Iterator iter = plugins.iterator();
@@ -303,6 +302,16 @@ public class KingMain implements WindowListener
         
         if(kinsrc != null) return new URL(theApplet.getDocumentBase(), kinsrc);
         else return null;
+    }
+    
+    public URL getAppletPdbURL() throws MalformedURLException {
+      String pdbsrc = theApplet.getParameter("pdbSource");
+      if(pdbsrc == null) pdbsrc = theApplet.getParameter("pdbFile");
+      if(pdbsrc == null) pdbsrc = theApplet.getParameter("pdbURL");
+      if(pdbsrc == null) pdbsrc = theApplet.getParameter("pdb");
+      
+      if(pdbsrc != null) return new URL(theApplet.getDocumentBase(), pdbsrc);
+      else return null;
     }
 //}}}
 
