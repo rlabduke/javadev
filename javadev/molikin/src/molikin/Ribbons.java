@@ -95,7 +95,12 @@ public class Ribbons //extends ... implements ...
         {
             Residue currRes = (Residue) iter.next();
             if(resC.classify(currRes) != ResClassifier.NUCACID) continue;
-            else if(prevRes == null) { currContig.add(currRes); prevRes = currRes; }
+            else if(prevRes == null) { 
+              if ((currRes.getAtom(" P  ")!=null)||(currRes.getAtom(" O5*")!=null)||(currRes.getAtom(" O5'")!=null)) {
+                currContig.add(currRes);
+                prevRes = currRes; 
+              }
+            }
             else
             {
                 try
@@ -120,7 +125,8 @@ public class Ribbons //extends ... implements ...
                     }
                     prevRes = currRes;
                 }
-                catch(AtomException ex) {}
+                catch(AtomException ex) {
+                }
             }
         }
         if(currContig.size() > 0) allContigs.add(currContig);
