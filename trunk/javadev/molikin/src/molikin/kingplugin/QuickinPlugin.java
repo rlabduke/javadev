@@ -2,6 +2,7 @@
 //{{{ Package, imports
 package molikin.kingplugin;
 import molikin.logic.*;
+import molikin.*;
 
 import king.*;
 import king.core.*;
@@ -14,7 +15,7 @@ import java.util.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.io.*;
-import java.net.URL;
+import java.net.*;
 //}}}
 /**
 * <code>QuickinPlugin</code> is a tool for quickly generating kinemages of
@@ -53,8 +54,8 @@ public class QuickinPlugin extends king.Plugin {
       try
       {
         CoordinateFile coordFile = null;
-        if(pdbFilter.accept(f))        coordFile = readPDB(f);
-        else if(cifFilter.accept(f))   coordFile = readCIF(f);
+        if(pdbFilter.accept(f))        coordFile = Quickin.readPDB(f);
+        else if(cifFilter.accept(f))   coordFile = Quickin.readCIF(f);
         if (logic instanceof RibbonLogic) {
           ((RibbonLogic)logic).secondaryStructure = coordFile.getSecondaryStructure();
         }
@@ -75,14 +76,14 @@ public class QuickinPlugin extends king.Plugin {
   public QuickinPlugin(ToolBox tb) {
     super(tb);
     buildFileChooser();
-    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make lots kinemage", getLotsLogic()));
-    BallAndStickLogic logic = getLotsLogic();
+    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make lots kinemage", Quickin.getLotsLogic()));
+    BallAndStickLogic logic = Quickin.getLotsLogic();
     logic.doPseudoBB        = true;
     logic.doBackbone        = false;
     logic.doSidechains      = false;
     logic.doHydrogens       = false;
     kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make pseudo-backbone kinemage", logic));
-    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make ribbons kinemage", getRibbonLogic()));
+    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make ribbons kinemage", Quickin.getRibbonLogic()));
   }
   //}}}
   
@@ -120,7 +121,7 @@ public class QuickinPlugin extends king.Plugin {
   public void onLots(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
     if (coordFile != null) {
-      buildKinemage(null, coordFile, getLotsLogic());
+      buildKinemage(null, coordFile, Quickin.getLotsLogic());
       //logic.printKinemage(out, m, residues, pdbId, bbColor);
     }
   }
@@ -129,7 +130,7 @@ public class QuickinPlugin extends king.Plugin {
   public void onRibbons(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
     if (coordFile != null) {
-      RibbonLogic logic = getRibbonLogic();
+      RibbonLogic logic = Quickin.getRibbonLogic();
       logic.secondaryStructure    = coordFile.getSecondaryStructure();
       buildKinemage(null, coordFile, logic);
     }
@@ -138,7 +139,7 @@ public class QuickinPlugin extends king.Plugin {
   public void onPseudo(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
     if (coordFile != null) {
-      BallAndStickLogic logic = getLotsLogic();
+      BallAndStickLogic logic = Quickin.getLotsLogic();
       logic.doPseudoBB        = true;
       logic.doBackbone        = false;
       logic.doSidechains      = false;
@@ -150,7 +151,7 @@ public class QuickinPlugin extends king.Plugin {
   public void onResidue(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
     if (coordFile != null) {
-      BallAndStickLogic logic = getLotsLogic();
+      BallAndStickLogic logic = Quickin.getLotsLogic();
       logic.doHydrogens       = false;
       logic.colorBy           = BallAndStickLogic.COLOR_BY_RES_TYPE;
       buildKinemage(null, coordFile, logic);
@@ -161,45 +162,15 @@ public class QuickinPlugin extends king.Plugin {
     CoordinateFile coordFile = onOpenFile();
     if (coordFile != null) {
       Logic[] logicList = new Logic[2];
-      logicList[0] = getLotsLogic();
-      logicList[1] = getRibbonLogic();
+      logicList[0] = Quickin.getLotsLogic();
+      logicList[1] = Quickin.getRibbonLogic();
       ((RibbonLogic)logicList[1]).secondaryStructure    = coordFile.getSecondaryStructure();
       buildKinemage(null, coordFile, logicList);
     }
   }
   //}}}
   
-  //{{{ getLogics
-  public BallAndStickLogic getLotsLogic() {
-    BallAndStickLogic logic = new BallAndStickLogic();
-    logic.doProtein         = true;
-    logic.doNucleic         = true;
-    logic.doHets            = true;
-    logic.doIons            = false;
-    logic.doWater           = false;
-    logic.doPseudoBB        = false;
-    logic.doBackbone        = true;
-    logic.doSidechains      = true;
-    logic.doHydrogens       = true;
-    logic.doDisulfides      = true;
-    logic.doBallsOnCarbon   = false;
-    logic.doBallsOnAtoms    = false;
-    logic.colorBy           = BallAndStickLogic.COLOR_BY_MC_SC;
-    return logic;
-  }
-  
-  public RibbonLogic getRibbonLogic() {
-    RibbonLogic logic = new RibbonLogic();
-    logic.doProtein             = true;
-    logic.doNucleic             = true;
-    logic.doUntwistRibbons      = true;
-    logic.doDnaStyle            = false;
-    logic.colorBy               = RibbonLogic.COLOR_BY_RAINBOW;
-    return logic;
-  }
-  //}}}
-  
-  //{{{ onOpenFile, doPDB/CIF
+  //{{{ onOpenFile, readPDB/CIF
   //##############################################################################
   // This method is the target of reflection -- DO NOT CHANGE ITS NAME
   public CoordinateFile onOpenFile()
@@ -213,8 +184,8 @@ public class QuickinPlugin extends king.Plugin {
         if(f != null && f.exists())
         {
           //if(pdbFilter.accept(f))         doPDB(f);
-          if(cifFilter.accept(f))    return readCIF(f);
-          else                       return readPDB(f);
+          if(cifFilter.accept(f))    return Quickin.readCIF(f);
+          else                       return Quickin.readPDB(f);
           //else throw new IOException("Can't identify file type");
         }
       }
@@ -229,14 +200,14 @@ public class QuickinPlugin extends king.Plugin {
     return null;
   }
   
-  public CoordinateFile readPDB(File f) throws IOException
+  public CoordinateFile readPDB(InputStream f) throws IOException
   {
     PdbReader       pdbReader   = new PdbReader();
     CoordinateFile  coordFile   = pdbReader.read(f);
     return coordFile;
   }
   
-  public CoordinateFile readCIF(File f) throws IOException
+  public CoordinateFile readCIF(InputStream f) throws IOException
   {
     CifReader       cifReader   = new CifReader();
     CoordinateFile  coordFile   = cifReader.read(f);
@@ -250,17 +221,66 @@ public class QuickinPlugin extends king.Plugin {
     for (File f : args) {
       try {
         CoordinateFile coordFile = null;
-        if(pdbFilter.accept(f))        coordFile = readPDB(f);
-        else if(cifFilter.accept(f))   coordFile = readCIF(f);
+        if(pdbFilter.accept(f))        coordFile = Quickin.readPDB(f);
+        else if(cifFilter.accept(f))   coordFile = Quickin.readCIF(f);
         if (coordFile != null) {
           Logic[] logicList = new Logic[2];
-          logicList[0] = getLotsLogic();
-          logicList[1] = getRibbonLogic();
+          logicList[0] = Quickin.getLotsLogic();
+          logicList[1] = Quickin.getRibbonLogic();
           ((RibbonLogic)logicList[1]).secondaryStructure    = coordFile.getSecondaryStructure();
           buildKinemage(null, coordFile, logicList);
         }
       } catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
     }
+  }
+  //}}}
+  
+  //{{{ loadFromURL
+  public void loadFromURL(URL url) {
+    String fName = null;
+    try
+    {
+      fName = url.getFile();
+      
+      URLConnection uconn = url.openConnection();
+      uconn.setAllowUserInteraction(false);
+      uconn.connect();
+      
+      CoordinateFile coordFile = null;
+      if(pdbFilter.accept(fName))        coordFile = readPDB(uconn.getInputStream());
+      else if(cifFilter.accept(fName))   coordFile = readCIF(uconn.getInputStream());
+      if (coordFile != null) {
+        Logic[] logicList = new Logic[2];
+        logicList[0] = Quickin.getLotsLogic();
+        logicList[1] = Quickin.getRibbonLogic();
+        ((RibbonLogic)logicList[1]).secondaryStructure    = coordFile.getSecondaryStructure();
+        buildKinemage(null, coordFile, logicList);
+      }
+      //loadStream(uconn.getInputStream(), uconn.getContentLength());
+      // Execution halts here until ioException()
+      // or loadingComplete() closes the dialog.
+    }
+    catch(IOException ex)
+    { ex.printStackTrace(SoftLog.err);
+      JOptionPane.showMessageDialog(kMain.getTopWindow(),
+        "The file '"+fName+"'\ncould not be opened due to an exception:\n"+ex.getMessage(),
+         "Error", JOptionPane.ERROR_MESSAGE); }
+  }
+  
+  /** Like loadFile, but it takes an InputStream. */
+  public void loadStream(InputStream in, int dataLen)
+  {
+    //mergeTarget = kin;
+    //new KinfileLoader(in, this);
+    
+    //progBar.setMaximum(dataLen);
+    //progBar.setValue(0);
+    //
+    //progDialog.pack();
+    //progDialog.setLocationRelativeTo(kMain.getTopWindow());
+    //progDialog.setVisible(true);
+    // Execution halts here until ioException()
+    // or loadingComplete() closes the dialog.
   }
   //}}}
   
@@ -278,52 +298,11 @@ public class QuickinPlugin extends king.Plugin {
     
     out.println("@kinemage "+(kinNumber++));
     out.println("@onewidth");
-    printKinemage(out, coordFile, logiclist);
+    Quickin.printKinemage(out, coordFile, logiclist);
     
     out.flush();
     kinData.close();
     kMain.getKinIO().loadStream(kinData.getInputStream(), kinData.size(), appendTo);
-  }
-  //}}}
-  
-  //{{{ printKinemage
-  //##############################################################################
-  /** Emits the kinemage (text) representation as selected by the user */
-  public void printKinemage(PrintWriter out, CoordinateFile coordFile, Logic[] logiclist)
-  {
-    String idCode = "macromol";
-    if(coordFile.getIdCode() != null)       idCode = coordFile.getIdCode();
-    else if(coordFile.getFile() != null)    idCode = coordFile.getFile().getName();
-    
-    Collection models = coordFile.getModels();
-    boolean groupByModel = (models.size() > 1);
-    //Collection chains = this.getSelectedChains();
-    
-    int modelCount = 0;
-    for(Iterator mi = models.iterator(); mi.hasNext(); modelCount++)
-    {
-      Model m = (Model) mi.next();
-      if(groupByModel) out.println("@group {"+idCode+" "+m+"} dominant animate master= {all models}");
-      
-      Collection chains = m.getChainIDs();
-      int chainCount = 0;
-      for(Iterator ci = chains.iterator(); ci.hasNext(); chainCount++)
-      {
-        String chainID = (String) ci.next();
-        if (m.getChain(chainID)!=null) {
-          
-          if(groupByModel)    out.println("@subgroup {chain"+chainID+"} dominant master= {chain"+chainID+"}");
-          else                out.println("@group {"+idCode+" "+chainID+"} dominant");
-          
-          
-          String bbColor = MainGuiPane.BACKBONE_COLORS[ (groupByModel ? modelCount : chainCount) % MainGuiPane.BACKBONE_COLORS.length];
-          for (Logic logic : logiclist)
-            logic.printKinemage(out, m, m.getChain(chainID), idCode, bbColor);
-        }
-      }
-    }
-    
-    out.flush();
   }
   //}}}
   
