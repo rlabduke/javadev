@@ -10,6 +10,7 @@ king.tool.draw.LathePlugin
 king.tool.draw.PointColorPlugin
 king.tool.draw.SkylightPlugin
 king.tool.movie.MoviePlugin
+king.tool.image.KinImagePlugin
 king.tool.postkin.ColorGrouperPlugin
 king.tool.postkin.KinimolPlugin
 king.tool.data_analysis.HighDimSliderPlugin

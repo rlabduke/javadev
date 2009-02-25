@@ -9,6 +9,7 @@ king.tool.draw.LathePlugin.menuName = Kin editing
 king.tool.draw.PointColorPlugin.menuName = Kin editing
 king.tool.draw.SkylightPlugin.menuName = Kin editing
 king.tool.movie.MoviePlugin.menuName = Kin editing
+king.tool.image.KinImagePlugin.menuName = Specialty
 king.tool.data_analysis.CrossWindowPickTool.menuName = Specialty
 king.tool.data_analysis.AutoBondRotDataTool.menuName = Specialty
 king.tool.docking.Dock3On3Tool.menuName = Kin editing
