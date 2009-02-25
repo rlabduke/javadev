@@ -260,6 +260,8 @@ public class CifReader //extends ... implements ...
         if(state == null)
         {
             state = new ModelState();
+            if (model != null)
+              state.setName(coordFile.getIdCode()+" "+model.toString());
             modelStateMap.put(stateID, state);
             if(! " ".equals(stateID))
                 state.setParent(this.makeState(model, " "));
