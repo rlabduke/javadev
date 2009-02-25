@@ -52,7 +52,12 @@ public class Ribbons //extends ... implements ...
         {
             Residue currRes = (Residue) iter.next();
             if(resC.classify(currRes) != ResClassifier.PROTEIN) continue;
-            else if(prevRes == null) { currContig.add(currRes); prevRes = currRes; }
+            else if(prevRes == null) { 
+              if (currRes.getAtom(" CA ")!=null) {
+                currContig.add(currRes);
+                prevRes = currRes;
+              }
+            }
             else
             {
                 try

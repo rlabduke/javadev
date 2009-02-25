@@ -79,6 +79,7 @@ public class Cmdliner {
               if (l instanceof RibbonLogic) 
                 ((RibbonLogic)l).secondaryStructure    = coords.getSecondaryStructure();
               logicList[i] = l;
+              i++;
             }
           } else {
             logicList = new Logic[2];

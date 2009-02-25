@@ -37,6 +37,7 @@ public class ModelState //extends ... implements ...
     /** The Map&lt;Atom, AtomState&gt; that defines this state. */
     Map             stateMap;
     Map             unmodMap    = null;
+    String          pdbName     = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -45,6 +46,8 @@ public class ModelState //extends ... implements ...
     public ModelState(ModelState parent, int sizeHint)
     {
         this.parent = parent;
+        if (parent != null)
+          this.pdbName = parent.getName();
         stateMap = new HashMap(sizeHint);
     }
     
@@ -52,6 +55,8 @@ public class ModelState //extends ... implements ...
     public ModelState(ModelState parent)
     {
         this.parent = parent;
+        if (parent != null) 
+          this.pdbName = parent.getName();
         stateMap = new HashMap();
     }
     
@@ -134,7 +139,7 @@ public class ModelState //extends ... implements ...
     {
         Atom key = state.getAtom();
         if(stateMap.containsKey(key))
-            throw new AtomException(this+" already contains a state for "+key);
+            throw new AtomException(this.toString()+" already contains a state for "+key);
         
         stateMap.put(key, state);
     }
@@ -176,6 +181,16 @@ public class ModelState //extends ... implements ...
         
         this.parent = parent;
     }
+//}}}
+
+//{{{ get/setName
+public String getName() {
+  return pdbName;
+}
+
+public void setName(String nm) {
+  pdbName = nm;
+}
 //}}}
 
 //{{{ createCollapsed
@@ -338,6 +353,12 @@ public class ModelState //extends ... implements ...
         }// for all residues
         return m;
     }
+//}}}
+
+//{{{ toString
+public String toString() {
+  return (pdbName+" modelstate");
+}
 //}}}
 
 //{{{ empty_code_segment

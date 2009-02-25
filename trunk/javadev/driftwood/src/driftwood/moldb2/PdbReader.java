@@ -260,7 +260,7 @@ public class PdbReader //extends ... implements ...
     }
 //}}}
 
-//{{{ testVersion
+//{{{ isVersion23
 /** for testing an atom to see if it is pdb v2.3 **/
 public boolean isVersion23(String atomLine) {
   String atomRes = atomLine.substring(12, 16) + " " + atomLine.substring(17, 20);
@@ -417,6 +417,8 @@ public boolean isVersion23(String atomLine) {
         if(state == null)
         {
             state = new ModelState();
+            if (model != null) 
+              state.setName(coordFile.getIdCode()+" "+model.toString());
             states.put(stateID, state);
             if(! " ".equals(stateID))
                 state.setParent(this.makeState(" "));
