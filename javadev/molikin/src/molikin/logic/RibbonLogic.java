@@ -129,6 +129,7 @@ public class RibbonLogic implements Logic
             Collection contig = (Collection) iter.next();
             if(contig.size() < 2) continue; // too small to use!
             GuidePoint[] guides = ribbons.makeProteinGuidepoints(contig, state);
+            //System.out.println("prot: "+contig.size()+" "+guides.length);
             if(doUntwistRibbons) ribbons.untwistRibbon(guides);
             
             //rp.printGuidepoints(guides);
@@ -185,6 +186,7 @@ public class RibbonLogic implements Logic
             //System.err.println(res[0]+" --> "+res[res.length-1]);
             if(contig.size() < 2) continue; // too small to use!
             GuidePoint[] guides = ribbons.makeNucleicAcidGuidepoints(contig, state);
+            //System.out.println("nuc: "+contig.size()+" "+guides.length);
             // Makes very little difference for nucleic acid, but occasionally does.
             if(doUntwistRibbons) ribbons.untwistRibbon(guides);
             if(doDnaStyle) ribbons.swapEdgeAndFace(guides);
