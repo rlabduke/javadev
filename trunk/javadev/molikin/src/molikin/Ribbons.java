@@ -290,6 +290,8 @@ public class Ribbons //extends ... implements ...
         //{{{ Make normal guidepoints at middle of residues
         for(int i = 0; i < res.length-1; i++)
         {
+          //for (GuidePoint gbug : guides) System.out.print(gbug+" ");
+          //System.out.println();
             g = guides[i+2] = new GuidePoint();
             // Ensure prevRes and nextRes are not null if there's an AtomException.
             //g.prevRes = g.nextRes = res[i]; // both really "this" res
@@ -353,7 +355,7 @@ public class Ribbons //extends ... implements ...
                 g.cvec.likeCross(avec, bvec).unit();
                 g.dvec.likeCross(g.cvec, avec).unit();
             }
-            catch(AtomException ex) {}
+            catch(AtomException ex) {System.out.println("1 "+ex);}
         }
         //}}} Make normal guidepoints at middle of peptides
         
@@ -376,7 +378,7 @@ public class Ribbons //extends ... implements ...
             g.prevRes = g.nextRes = res[0];
             guides[0] = guides[1] = g;
         }
-        catch(AtomException ex) {}
+        catch(AtomException ex) {System.out.println("2 "+ex);}
         try
         {
             // Prekin: 3' guide point is 2/3 of the way to the O3' from the last guide point
@@ -389,6 +391,9 @@ public class Ribbons //extends ... implements ...
             g = new GuidePoint();
             Atom carbon3 = res[res.length-1].getAtom(" C3*");
             if(carbon3 == null) carbon3 = res[res.length-1].getAtom(" C3'");
+            if(carbon3 == null) carbon3 = res[res.length-1].getAtom(" P  ");
+            if(carbon3 == null) carbon3 = res[res.length-1].getAtom(" O5'");
+            if(carbon3 == null) carbon3 = res[res.length-1].getAtom(" O5*");
             AtomState c3 = state.get(carbon3);
             g.xyz.like(c3);
             g.cvec.like(guides[guides.length-3].cvec);
@@ -398,9 +403,10 @@ public class Ribbons //extends ... implements ...
             g.prevRes = g.nextRes = res[res.length-1];
             guides[guides.length-1] = guides[guides.length-2] = g;
         }
-        catch(AtomException ex) {}
+        catch(AtomException ex) {System.out.println("3 "+ex);}
         //}}} Make dummy guidepoints at beginning and end
-        
+        //for (GuidePoint gbug : guides) System.out.print(gbug+" ");
+        //System.out.println();
         return guides;
     }
 //}}}
