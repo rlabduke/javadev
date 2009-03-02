@@ -8,6 +8,7 @@ import java.io.*;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.zip.*;
 //import java.util.regex.*;
 //import javax.swing.*;
 //import driftwood.*;
@@ -85,7 +86,7 @@ public class CifReader //extends ... implements ...
 //##################################################################################################
     public CoordinateFile read(File f) throws IOException
     {
-        Reader r = new FileReader(f);
+        InputStream r = new FileInputStream(f);
         CoordinateFile rv = read(r);
         rv.setFile(f);
         r.close();
@@ -94,7 +95,17 @@ public class CifReader //extends ... implements ...
 
     public CoordinateFile read(InputStream is) throws IOException
     {
-        return read(new InputStreamReader(is));
+      // Test for GZIPped files
+      is = new BufferedInputStream(is);
+      is.mark(10);
+      if(is.read() == 31 && is.read() == 139)
+      {
+        // We've found the gzip magic numbers...
+        is.reset();
+        is = new GZIPInputStream(is);
+      }
+      else is.reset();
+      return read(new InputStreamReader(is));
     }
 
     public CoordinateFile read(Reader r) throws IOException
