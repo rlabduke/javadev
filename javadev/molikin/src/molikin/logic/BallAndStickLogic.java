@@ -126,9 +126,9 @@ public class BallAndStickLogic implements Logic
         
         String identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
         
-        if(doPseudoBB)
+        if(doPseudoBB||atomC.bbNotCa==0)
         {
-            String off = (doBackbone ? " off" : "");
+            String off = ((doBackbone&&atomC.bbNotCa!=0) ? " off" : "");
             out.println("@vectorlist {protein ca} color= "+bbColor+" master= {protein} master= {Calphas}"+off);
             PseudoBackbone pseudoBB = data.getPseudoBackbone();
             sp.printSticks(pseudoBB.getProteinBonds(), null, null, proteinRes, proteinRes, identifier);

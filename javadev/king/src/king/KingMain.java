@@ -434,6 +434,11 @@ public class KingMain implements WindowListener
         pdbFilter.addSuffix(".ent");
         pdbFilter.addSuffix(".cif");
         pdbFilter.addSuffix(".mmcif");
+        pdbFilter.addSuffix(".pdb.gz");
+        pdbFilter.addSuffix(".xyz.gz");
+        pdbFilter.addSuffix(".ent.gz");
+        pdbFilter.addSuffix(".cif.gz");
+        pdbFilter.addSuffix(".mmcif.gz");
         
         filesToOpen = new ArrayList<File>();
         pdbFilesToOpen = new ArrayList<File>();
