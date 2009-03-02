@@ -96,7 +96,7 @@ public class Util //extends ... implements ...
     {
         if(protMatcher == null) protMatcher = Pattern.compile(protPattern).matcher("");
         protMatcher.reset(res.getName());
-        return protMatcher.matches();
+        return (protMatcher.matches()||(res.getAtom(" CA ")!=null));
     }
 
     /** Based on Prekin's NAList */

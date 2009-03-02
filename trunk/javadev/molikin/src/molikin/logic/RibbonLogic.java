@@ -99,8 +99,11 @@ public class RibbonLogic implements Logic
     void printProtein(Model model, Set selectedRes, String chainID, String bbColor)
     {
         DataCache       data    = DataCache.getDataFor(model);
+        AtomClassifier  atomC   = data.getAtomClassifier();
         ResClassifier   resC    = data.getResClassifier();
         ModelState      state   = model.getState();
+        if (atomC.bbNotCa==0) secondaryStructure = new SecondaryStructure.AllCoil(); //to fix bug where CA only 
+        //structure has helix classifications. See PDB 1hr3
         
         Ribbons ribbons = new Ribbons();
         Collection contigs = ribbons.getProteinContigs(selectedRes, state, resC);

@@ -98,13 +98,23 @@ public class QuickinPlugin extends king.Plugin {
     allFilter.addSuffix(".ent");
     allFilter.addSuffix(".cif");
     allFilter.addSuffix(".mmcif");
+    allFilter.addSuffix(".pdb.gz");
+    allFilter.addSuffix(".xyz.gz");
+    allFilter.addSuffix(".ent.gz");
+    allFilter.addSuffix(".cif.gz");
+    allFilter.addSuffix(".mmcif.gz");
     pdbFilter = new SuffixFileFilter("Protein Data Bank (PDB) files");
     pdbFilter.addSuffix(".pdb");
     pdbFilter.addSuffix(".xyz");
     pdbFilter.addSuffix(".ent");
+    pdbFilter.addSuffix(".pdb.gz");
+    pdbFilter.addSuffix(".xyz.gz");
+    pdbFilter.addSuffix(".ent.gz");
     cifFilter = new SuffixFileFilter("mmCIF files");
     cifFilter.addSuffix(".cif");
     cifFilter.addSuffix(".mmcif");
+    cifFilter.addSuffix(".cif.gz");
+    cifFilter.addSuffix(".mmcif.gz");
     
     String currdir = System.getProperty("user.dir");
     

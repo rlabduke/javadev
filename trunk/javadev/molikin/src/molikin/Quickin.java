@@ -39,7 +39,7 @@ public class Quickin {
     logic.doProtein         = true;
     logic.doNucleic         = true;
     logic.doHets            = true;
-    logic.doIons            = false;
+    logic.doIons            = true;
     logic.doWater           = false;
     logic.doPseudoBB        = false;
     logic.doBackbone        = true;

@@ -35,6 +35,7 @@ public class AtomClassifier //extends ... implements ...
     
     // First, the disjoint sets:
     public Set bbHeavy      = new CheapSet(new IdentityHashFunction());
+    public int bbNotCa      = 0;
     public Set bbHydro      = new CheapSet(new IdentityHashFunction());
     public Set scHeavy      = new CheapSet(new IdentityHashFunction());
     public Set scHydro      = new CheapSet(new IdentityHashFunction());
@@ -66,8 +67,11 @@ public class AtomClassifier //extends ... implements ...
             {
                 if(Util.isMainchain(as))
                 {
-                    if(isH) bbHydro.add(as);
-                    else    bbHeavy.add(as);
+                  if(isH) { bbHydro.add(as); }
+                  else {   
+                    bbHeavy.add(as);
+                    if (!as.getName().equals(" CA ")) bbNotCa++;
+                  }
                 }
                 else // sidechain
                 {
