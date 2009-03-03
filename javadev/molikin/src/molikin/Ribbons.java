@@ -303,8 +303,13 @@ public class Ribbons //extends ... implements ...
                 Atom phos1 = res[i].getAtom(" P  ");
                 if(phos1 == null) phos1 = res[i].getAtom(" O5*");
                 if(phos1 == null) phos1 = res[i].getAtom(" O5'");
+                //System.out.println("phos1 "+phos1);
                 AtomState p1 = state.get(phos1);
-                AtomState p2 = state.get(res[i+1].getAtom(" P  "));
+                Atom phos2 = res[i+1].getAtom(" P  ");
+                if(phos2 == null) phos2 = res[i+1].getAtom(" O5*");
+                if(phos2 == null) phos2 = res[i+1].getAtom(" O5'");
+                //System.out.println("phos2 "+phos2);
+                AtomState p2 = state.get(phos2);
                 g.xyz.likeMidpoint(p1, p2);
                 
                 // Based on P(i-1) to P(i+1) or P(i) to P(i+2) distance, we may offset guide points.
@@ -316,7 +321,10 @@ public class Ribbons //extends ... implements ...
                     if(phos0 == null) phos0 = res[i-1].getAtom(" O5*");
                     if(phos0 == null) phos0 = res[i-1].getAtom(" O5'");
                     AtomState p0 = state.get(phos0);
-                    AtomState p3 = state.get(res[i+2].getAtom(" P  "));
+                    Atom phos3 = res[i+2].getAtom(" P  ");
+                    if(phos3 == null) phos3 = res[i+2].getAtom(" O5*");
+                    if(phos3 == null) phos3 = res[i+2].getAtom(" O5'");
+                    AtomState p3 = state.get(phos3);
                     double ppDist1 = g.xyz.distance(p0);
                     double ppDist2 = g.xyz.distance(p3);
                     // Default values for regions of low curvature:
@@ -355,7 +363,7 @@ public class Ribbons //extends ... implements ...
                 g.cvec.likeCross(avec, bvec).unit();
                 g.dvec.likeCross(g.cvec, avec).unit();
             }
-            catch(AtomException ex) {System.out.println("1 "+ex);}
+            catch(AtomException ex) {}
         }
         //}}} Make normal guidepoints at middle of peptides
         
@@ -378,7 +386,7 @@ public class Ribbons //extends ... implements ...
             g.prevRes = g.nextRes = res[0];
             guides[0] = guides[1] = g;
         }
-        catch(AtomException ex) {System.out.println("2 "+ex);}
+        catch(AtomException ex) {}
         try
         {
             // Prekin: 3' guide point is 2/3 of the way to the O3' from the last guide point
@@ -403,7 +411,7 @@ public class Ribbons //extends ... implements ...
             g.prevRes = g.nextRes = res[res.length-1];
             guides[guides.length-1] = guides[guides.length-2] = g;
         }
-        catch(AtomException ex) {System.out.println("3 "+ex);}
+        catch(AtomException ex) {}
         //}}} Make dummy guidepoints at beginning and end
         //for (GuidePoint gbug : guides) System.out.print(gbug+" ");
         //System.out.println();
