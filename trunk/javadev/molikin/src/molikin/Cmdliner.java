@@ -31,6 +31,7 @@ public class Cmdliner {
   SuffixFileFilter        pdbFilter, cifFilter, allFilter;
   ArrayList<File>         filesToOpen;
   ArrayList<Logic>        logics;
+  int                     numModels = -1;
   //}}}
   
   //{{{ Constructors
@@ -121,7 +122,8 @@ public class Cmdliner {
     System.out.println("@kinemage "+(kinNumber++));
     System.out.println("@onewidth");
     PrintWriter out = new PrintWriter(System.out);
-    Quickin.printKinemage(out, coordFile, logiclist);
+    if (numModels == -1)   Quickin.printKinemage(out, coordFile, logiclist);
+    else                   Quickin.printKinemage(out, coordFile, logiclist, numModels);
     out.flush();
     out.close();
   }
@@ -156,6 +158,8 @@ public class Cmdliner {
           logics.add(Quickin.getLotsLogic());
         } else if(arg.equals("-r") || arg.equals("-ribbons")) {
           logics.add(Quickin.getRibbonLogic());
+        } else if(arg.equals("-single")) {
+          numModels = 1;
         } else {
           System.err.println("*** Unrecognized option: "+arg);
         }
