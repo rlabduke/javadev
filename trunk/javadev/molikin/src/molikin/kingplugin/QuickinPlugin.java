@@ -75,7 +75,10 @@ public class QuickinPlugin extends king.Plugin {
   //{{{ Constructors
   public QuickinPlugin(ToolBox tb) {
     super(tb);
-    buildFileChooser();
+    buildFilter();
+    if (kMain.getApplet() == null) {
+      buildFileChooser();
+    }
     kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make lots kinemage", Quickin.getLotsLogic()));
     BallAndStickLogic logic = Quickin.getLotsLogic();
     logic.doPseudoBB        = true;
@@ -87,11 +90,8 @@ public class QuickinPlugin extends king.Plugin {
   }
   //}}}
   
-  //{{{ buildFileChooser
-  //##################################################################################################
-  /** Constructs the Open file chooser */
-  private void buildFileChooser()
-  {
+  //{{{ buildFilter
+  public void buildFilter() {
     allFilter = new SuffixFileFilter("PDB and mmCIF files");
     allFilter.addSuffix(".pdb");
     allFilter.addSuffix(".xyz");
@@ -115,7 +115,14 @@ public class QuickinPlugin extends king.Plugin {
     cifFilter.addSuffix(".mmcif");
     cifFilter.addSuffix(".cif.gz");
     cifFilter.addSuffix(".mmcif.gz");
-    
+  }
+  //}}}
+  
+  //{{{ buildFileChooser
+  //##################################################################################################
+  /** Constructs the Open file chooser */
+  private void buildFileChooser()
+  {
     String currdir = System.getProperty("user.dir");
     
     openChooser = new JFileChooser();
@@ -255,16 +262,25 @@ public class QuickinPlugin extends king.Plugin {
       URLConnection uconn = url.openConnection();
       uconn.setAllowUserInteraction(false);
       uconn.connect();
-      
+      int urlSize = uconn.getContentLength();
+      //System.out.println(urlSize);
+
       CoordinateFile coordFile = null;
       if(pdbFilter.accept(fName))        coordFile = readPDB(uconn.getInputStream());
       else if(cifFilter.accept(fName))   coordFile = readCIF(uconn.getInputStream());
+      //System.out.println(coordFile);
       if (coordFile != null) {
-        Logic[] logicList = new Logic[2];
-        logicList[0] = Quickin.getLotsLogic();
-        logicList[1] = Quickin.getRibbonLogic();
-        ((RibbonLogic)logicList[1]).secondaryStructure    = coordFile.getSecondaryStructure();
-        buildKinemage(null, coordFile, logicList);
+        if (urlSize < 25000000) {
+          Logic[] logicList = new Logic[2];
+          logicList[0] = Quickin.getLotsLogic();
+          logicList[1] = Quickin.getRibbonLogic();
+          ((RibbonLogic)logicList[1]).secondaryStructure    = coordFile.getSecondaryStructure();
+          buildKinemage(null, coordFile, logicList);
+        } else {
+          RibbonLogic ribbon = Quickin.getRibbonLogic();
+          ribbon.secondaryStructure = coordFile.getSecondaryStructure();
+          buildKinemage(null, coordFile, ribbon);
+        }
       }
       //loadStream(uconn.getInputStream(), uconn.getContentLength());
       // Execution halts here until ioException()
