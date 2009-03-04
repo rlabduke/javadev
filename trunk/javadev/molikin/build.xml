@@ -43,7 +43,6 @@
         <!-- inherited properties go here -->
     </ant>
     <ant antfile="../king/build.xml" inheritAll="false" target="compile">
-        <!-- inherited properties go here -->
     </ant>
     <mkdir dir="${build}"/>
     <javac srcdir="${src}"

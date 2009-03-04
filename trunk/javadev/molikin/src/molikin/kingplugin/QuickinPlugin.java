@@ -270,7 +270,7 @@ public class QuickinPlugin extends king.Plugin {
       else if(cifFilter.accept(fName))   coordFile = readCIF(uconn.getInputStream());
       //System.out.println(coordFile);
       if (coordFile != null) {
-        if (urlSize < 25000000) {
+        if (urlSize < 10000000) {
           Logic[] logicList = new Logic[2];
           logicList[0] = Quickin.getLotsLogic();
           logicList[1] = Quickin.getRibbonLogic();
