@@ -50,6 +50,7 @@ public class CifReader //extends ... implements ...
     List    bIsoOrEquiv     = null; // NOT required, a float
     List    uIsoOrEquiv     = null; // NOT required, B = 8*pi*pi*U
     List    pdbModelNum     = null; // NOT required, any string
+    String  pdbId         = null;
     
     CoordinateFile coordFile = null;
     Map modelMap = null; // maps model names as Strings to Model objects
@@ -165,6 +166,7 @@ public class CifReader //extends ... implements ...
         }
         
         coordFile.setSecondaryStructure(new CifSecondaryStructure(db));
+        if (pdbId != null) coordFile.setIdCode(pdbId);
         
         // This little dance makes sure that all alt confs define some state for every atom.
         for(Iterator iter = coordFile.getModels().iterator(); iter.hasNext(); )
@@ -189,6 +191,7 @@ public class CifReader //extends ... implements ...
     /** Loads needed items as Lists of Strings from the given data cell. */
     void loadItems(DataCell data) throws IOException
     {
+        pdbId         = data.getSingleItem("_entry.id");
         groupPdb        = data.getItem("_atom_site.group_PDB");
         atomSiteId      = data.getItem("_atom_site.id");
         pdbAtomName     = data.getItem("_atom_site.pdbx_PDB_atom_name");

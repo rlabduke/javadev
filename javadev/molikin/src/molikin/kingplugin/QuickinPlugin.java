@@ -317,14 +317,18 @@ public class QuickinPlugin extends king.Plugin {
     buildKinemage(appendTo, coordFile, new Logic[] {logic});
   }
   
-  void buildKinemage(Kinemage appendTo, CoordinateFile coordFile, Logic[] logiclist)
+  void buildKinemage(Kinemage appendTo, CoordinateFile coordFile, Logic[] logiclist) {
+    buildKinemage(appendTo, coordFile, logiclist, coordFile.getModels().size());
+  }
+  
+  void buildKinemage(Kinemage appendTo, CoordinateFile coordFile, Logic[] logiclist, int numModels)
   {
     StreamTank kinData = new StreamTank();
     PrintWriter out = new PrintWriter(new OutputStreamWriter(kinData));
     
     out.println("@kinemage "+(kinNumber++));
     out.println("@onewidth");
-    Quickin.printKinemage(out, coordFile, logiclist);
+    Quickin.printKinemage(out, coordFile, logiclist, numModels);
     
     out.flush();
     kinData.close();

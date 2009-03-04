@@ -83,18 +83,22 @@ public class Quickin {
   //{{{ printKinemage
   //##############################################################################
   /** Emits the kinemage (text) representation as selected by the user */
-  static public void printKinemage(PrintWriter out, CoordinateFile coordFile, Logic[] logiclist)
+  static public void printKinemage(PrintWriter out, CoordinateFile coordFile, Logic[] logiclist) {
+    printKinemage(out, coordFile, logiclist, coordFile.getModels().size());
+  }
+  
+  static public void printKinemage(PrintWriter out, CoordinateFile coordFile, Logic[] logiclist, int numModels)
   {
     String idCode = "macromol";
     if(coordFile.getIdCode() != null)       idCode = coordFile.getIdCode();
     else if(coordFile.getFile() != null)    idCode = coordFile.getFile().getName();
     
     Collection models = coordFile.getModels();
-    boolean groupByModel = (models.size() > 1);
+    boolean groupByModel = (models.size() > 1)&&(numModels > 1);
     //Collection chains = this.getSelectedChains();
     
     int modelCount = 0;
-    for(Iterator mi = models.iterator(); mi.hasNext(); modelCount++)
+    for(Iterator mi = models.iterator(); (mi.hasNext()&&modelCount<numModels); modelCount++)
     {
       Model m = (Model) mi.next();
       if(groupByModel) out.println("@group {"+idCode+" "+m+"} dominant animate master= {all models}");
