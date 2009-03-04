@@ -286,6 +286,23 @@ public class KingMain implements WindowListener
         }
         catch(MalformedURLException ex)
         { SoftLog.err.println("<PARAM> kinSource specified an unresolvable URL."); }
+        
+        try {
+          URL pdbURL = getAppletPdbURL();
+          if (pdbURL != null) {
+            Collection plugins = kinCanvas.toolbox.getPluginList();
+            Iterator iter = plugins.iterator();
+            while (iter.hasNext()) {
+              Plugin plug = (Plugin) iter.next();
+              try {
+                plug.loadFromURL(pdbURL);
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
+            }
+          }
+        } catch(MalformedURLException ex)
+        { SoftLog.err.println("<PARAM> pdbSource specified an unresolvable URL."); }
 
         this.publish(new KMessage(this, KMessage.KING_STARTUP));
     }

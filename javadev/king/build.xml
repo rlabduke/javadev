@@ -30,8 +30,19 @@
 <!-- build, compile, compile-mac, compile-jogl {{{ -->
 <!-- Bundles up all needed class and resource files into a JAR -->
 <target name="build" description="Build class files" depends="init,compile,compile-mac,compile-jogl">
+    <ant antfile="../molikin/build.xml" inheritAll="false" target="compile">
+        <!-- inherited properties go here -->
+    </ant>
     <echo message="Version ${version}"/>
     <echo message="Build # ${buildnum}"/>
+    <concat destfile="${resource}/king/king_prefs" append="false">
+      <filelist dir="${resource}/king/" files="source_king_prefs"/>
+      <filelist dir="../molikin/resource/king" files="king_prefs"/>
+    </concat>
+    <concat destfile="${resource}/META-INF/services/king.Plugin" append="false">
+      <filelist dir="${resource}/META-INF/services/" files="source.king.Plugin"/>
+      <filelist dir="../molikin/resource/META-INF/services/" files="king.Plugin"/>
+    </concat>
     <!-- As of 1.5.2, Ant screws up the INDEX by not considering Class-Path -->
     <jar jarfile="${ant.project.name}.jar" manifest="Manifest.mf" index="false">
         <fileset dir="${build}"/>
@@ -41,6 +52,11 @@
         </fileset>
         <fileset dir="../driftwood/resource/">
            <!--<exclude name="driftwood/moldb*/"/>-->
+        </fileset>
+        <fileset dir="../molikin/build/"/>
+        <fileset dir="../molikin/resource/">
+          <exclude name="king/"/>
+          <exclude name="META-INF/"/>
         </fileset>
         <!-- iText library is in a separate JAR -->
     </jar>
@@ -175,6 +191,9 @@
 <!-- Also cleans driftwood -->
 <target name="clean-all" depends="clean" description="Clean up king and driftwood">
     <ant antfile="../driftwood/build.xml" inheritAll="false" target="clean">
+        <!-- inherited properties go here -->
+    </ant>
+    <ant antfile="../molikin/build.xml" inheritAll="false" target="clean">
         <!-- inherited properties go here -->
     </ant>
 </target>
