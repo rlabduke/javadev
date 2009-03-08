@@ -182,10 +182,23 @@ public class PdbReader //extends ... implements ...
     {
         initData();
         
+        Runtime runtime = Runtime.getRuntime();
+        
+        long maxMemory = runtime.maxMemory();
+        long allocatedMemory = runtime.totalMemory();
+        long freeMemory = runtime.freeMemory();
+        long totalFree = (freeMemory + (maxMemory - allocatedMemory));
+        
+        //SoftLog.err.println("max memory: " + maxMemory /1024);
+        //SoftLog.err.println("total free memory: " + (freeMemory + (maxMemory - allocatedMemory)) / 1024); 
+        
         int pdbv2atoms = 0;
         String s;
-        while((s = r.readLine()) != null)
+        while(((s = r.readLine()) != null)&&((double)totalFree/(double)maxMemory > 0.05))
         {
+          allocatedMemory = runtime.totalMemory();
+          freeMemory = runtime.freeMemory();
+          totalFree = (freeMemory + (maxMemory - allocatedMemory));
             try
             {
                 if(s.startsWith("ATOM  ") || s.startsWith("HETATM"))
@@ -244,8 +257,12 @@ public class PdbReader //extends ... implements ...
             catch(NumberFormatException ex)
             { SoftLog.err.println("Error reading from PDB file, line "+r.getLineNumber()+": "+s); }
         }//while more lines
+        if (!((double)totalFree/(double)maxMemory > 0.05)) {
+          SoftLog.err.println("PDB file too large, aborting read, removing partial model "+model);
+          coordFile.remove(model);
+          model = null; 
+        }
         if(model != null) model.setStates(states);
-                    
         
         CoordinateFile rv = coordFile;
         clearData();
