@@ -74,7 +74,7 @@ public class CoordinateFile //extends ... implements ...
     }
 //}}}
 
-//{{{ add
+//{{{ add, replace, remove
 //##################################################################################################
     /** Adds a model to this group */
     public void add(Model m)
@@ -91,6 +91,10 @@ public class CoordinateFile //extends ... implements ...
         int idx = models.indexOf(oldModel);
         if(idx == -1)   models.add(newModel);
         else            models.set(idx, newModel);
+    }
+    
+    public void remove(Model oldModel) {
+      models.remove(oldModel);
     }
 //}}}
 
