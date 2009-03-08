@@ -264,13 +264,16 @@ public class QuickinPlugin extends king.Plugin {
       uconn.connect();
       int urlSize = uconn.getContentLength();
       //System.out.println(urlSize);
+      SuffixFileFilter gzipFilter = new SuffixFileFilter("GZipped files");
+      gzipFilter.addSuffix(".gz");
 
       CoordinateFile coordFile = null;
       if(pdbFilter.accept(fName))        coordFile = readPDB(uconn.getInputStream());
       else if(cifFilter.accept(fName))   coordFile = readCIF(uconn.getInputStream());
-      //System.out.println(coordFile);
+      int                           maxSize = 5000000;
+      if (gzipFilter.accept(fName)) maxSize = 1000000;
       if (coordFile != null) {
-        if (urlSize < 10000000) {
+        if (urlSize < maxSize) {
           Logic[] logicList = new Logic[2];
           logicList[0] = Quickin.getLotsLogic();
           logicList[1] = Quickin.getRibbonLogic();
@@ -279,7 +282,7 @@ public class QuickinPlugin extends king.Plugin {
         } else {
           RibbonLogic ribbon = Quickin.getRibbonLogic();
           ribbon.secondaryStructure = coordFile.getSecondaryStructure();
-          buildKinemage(null, coordFile, ribbon);
+          buildKinemage(null, coordFile, new Logic[] {ribbon}, 5);
         }
       }
       //loadStream(uconn.getInputStream(), uconn.getContentLength());
