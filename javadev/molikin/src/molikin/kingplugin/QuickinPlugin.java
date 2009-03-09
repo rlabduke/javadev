@@ -280,6 +280,9 @@ public class QuickinPlugin extends king.Plugin {
           ((RibbonLogic)logicList[1]).secondaryStructure    = coordFile.getSecondaryStructure();
           buildKinemage(null, coordFile, logicList);
         } else {
+          JOptionPane.showMessageDialog(kMain.getTopWindow(),
+            "Your input file may have been truncated for display in this applet due to limited memory.  If you see less of the structure\nthan you expect, try increasing the amount of memory available for Java applets or download the standalone version of KiNG.",
+            "Warning", JOptionPane.WARNING_MESSAGE);
           RibbonLogic ribbon = Quickin.getRibbonLogic();
           ribbon.secondaryStructure = coordFile.getSecondaryStructure();
           buildKinemage(null, coordFile, new Logic[] {ribbon}, 5);
@@ -333,6 +336,7 @@ public class QuickinPlugin extends king.Plugin {
     out.println("@onewidth");
     Quickin.printKinemage(out, coordFile, logiclist, numModels);
     
+    coordFile = null; // hopefully to save memory?
     out.flush();
     kinData.close();
     kMain.getKinIO().loadStream(kinData.getInputStream(), kinData.size(), appendTo);
