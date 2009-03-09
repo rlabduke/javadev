@@ -9,6 +9,7 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.*;
+import driftwood.moldb2.PartialFileException;
 //import java.util.regex.*;
 //import javax.swing.*;
 //import driftwood.*;
@@ -30,6 +31,7 @@ public class StarReader //extends ... implements ...
     LineNumberReader    input   = null;
     StarTokenizer       token   = null;
     StarFile            dom     = null;
+    double              percentMemFree;
 //}}}
 
 //{{{ Constructor(s)
@@ -37,6 +39,7 @@ public class StarReader //extends ... implements ...
     public StarReader()
     {
         super();
+        percentMemFree = 0.3;
     }
 //}}}
 
@@ -165,18 +168,31 @@ public class StarReader //extends ... implements ...
         while(!token.isEOF() && token.isName())
         {
             names.add(token.getString());
+            //System.out.println(token.getString());
             token.advance();
         }
         if(names.size() == 0)
             throw new ParseException("[line "+(input.getLineNumber()+1)+"] "
             +"No data names declared for loop_ (0 columns)", input.getLineNumber()+1);
+            
+        Runtime runtime = Runtime.getRuntime();
+        
+        long maxMemory = runtime.maxMemory();
+        long allocatedMemory = runtime.totalMemory();
+        long freeMemory = runtime.freeMemory();
+        long totalFree = (freeMemory + (maxMemory - allocatedMemory));            
+        
+        //System.out.println((double)totalFree/(double)maxMemory + " " +percentMemFree);
         
         List[] values = new List[names.size()];
         for(int i = 0; i < values.length; i++) values[i] = new ArrayList();
         
         int row = 0, col = 0;
-        while(!token.isEOF() && !token.isLoopEnd() && token.isValue())
+        while(!token.isEOF() && !token.isLoopEnd() && token.isValue()&&((double)totalFree/(double)maxMemory > percentMemFree))
         {
+
+          //System.out.println(totalFree);
+          
             values[col].add(token.getString());
             token.advance();
             col++;
@@ -185,8 +201,34 @@ public class StarReader //extends ... implements ...
                 col = 0;
                 row++;
             }
+            allocatedMemory = runtime.totalMemory();
+            freeMemory = runtime.freeMemory();
+            totalFree = (freeMemory + (maxMemory - allocatedMemory));
         }
-        
+        if (!((double)totalFree/(double)maxMemory > percentMemFree)) {
+          //throw new PartialFileException("Cif file too large, aborting at [line "+(input.getLineNumber()+1)+"] ");
+          //SoftLog.err.println("Cif file too large, aborting read");
+          while (col != 0) {
+            values[col].add(token.getString());
+            token.advance();
+            col++;
+            if(col % values.length == 0)
+            {
+                col = 0;
+                row++;
+            }
+          }
+          while(!token.isEOF() && !token.isLoopEnd() && token.isValue()) {
+            token.advance();
+          }
+          allocatedMemory = runtime.totalMemory();
+          freeMemory = runtime.freeMemory();
+          totalFree = (freeMemory + (maxMemory - allocatedMemory));
+          percentMemFree = (double)totalFree/(double)maxMemory - 0.05;
+
+          //coordFile.remove(model);
+          //model = null; 
+        }
         // Skip the meaningless stop_ token if any (NMR-STAR)
         if(token.isLoopEnd()) token.advance();
         
@@ -212,6 +254,7 @@ public class StarReader //extends ... implements ...
         
         for(int i = 0; i < names.size(); i++)
             cell.putItem((String)names.get(i), values[i]);
+        //System.out.println("done with loop");
     }
 //}}}
 
