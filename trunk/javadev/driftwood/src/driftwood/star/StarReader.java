@@ -9,7 +9,6 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.*;
-import driftwood.moldb2.PartialFileException;
 //import java.util.regex.*;
 //import javax.swing.*;
 //import driftwood.*;
