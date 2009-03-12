@@ -144,27 +144,39 @@ public class CifReader //extends ... implements ...
         this.resMap     = new HashMap();
         this.fakeResNumber = 1;
         this.stringCache.clear();
+        //String prevAlt = "";
+        //String prevRes = "";
         for(int i = 0; i < numRecords; i++)
         {
+          
             Model       model   = getModel(i);
             Residue     res     = getResidue(model, i);
             Atom        atom    = getAtom(res, i);
             AtomState   as      = buildAtomState(atom, i);
             ModelState  ms      = makeState(model, as.getAltConf());
             
+            //System.out.println("i "+i);
+            //System.out.println(res);
+            //System.out.println(atom);
+            //System.out.println(as);
+            //System.out.println(as.getAltConf());
             // Waters, etc. don't have sequence IDs
             // Assume same residue until we get an atom name collision.
-            if(ms.hasState(atom))
+            String  seqId = (String) labelSeqId.get(i);
+            if(ms.hasState(atom)/*&&(prevAlt.equals(as.getAltConf()))*/&&(".".equals(seqId) || "?".equals(seqId)))
             {
                 fakeResNumber++;    // bump up the residue number
                 i--;                // reprocess this line
                 continue;
             }
+            //prevAlt = as.getAltConf();
             
             try { ms.add(as); }
-            catch(AtomException ex) { ex.printStackTrace(); } // logically unreachable
+            catch(AtomException ex) { 
+              System.err.println(pdbId+" "+model.toString()+" modelstate already contains a state for "+as.toString());
+            } // logically unreachable, except when a residue has the same atomstate (see 1MSD).
         }
-        
+
         coordFile.setSecondaryStructure(new CifSecondaryStructure(db));
         if (pdbId != null) coordFile.setIdCode(pdbId);
         

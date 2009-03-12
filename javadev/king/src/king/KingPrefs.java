@@ -84,12 +84,13 @@ public class KingPrefs extends Props // implements ...
     /**
     * Constructor
     */
-    public KingPrefs()
+    public KingPrefs(boolean isApplet)
     {
         super();
         
         // Self-awareness
-        jarFileDirectory = locateJarFile();
+        if (!isApplet) 
+          jarFileDirectory = locateJarFile();
         
         // Default settings
         Props defaults = new Props();

@@ -60,7 +60,7 @@ public class Util //extends ... implements ...
 //{{{ isMainchain, isWater
 //##############################################################################
     /** Based on Prekin PKINCSBS.c decidemainside() */
-    static String mcPattern = ".N[ T].|.C[A ].|.O .|.OXT|[^2][HDQ][A ] |.[HDQ].['*]|.P  |.O[123]P|.[CO][1-5]['*]| CM2|.OP[123]|H.''";
+    static String mcPattern = ".N[ T].|.C[A ].|.O .|.OXT|[^2][HDQ][A ] |.[HDQ].['*]|.P  |.O[123]P|.[CNO][1-8]['*]| CM2|.OP[123]|H.''";
     //                                                   ^^^^
     //                              makes one Gly H sidechain, the other mainchain
     // added _CM2 and _O3P for tr0001 on 051114
@@ -96,6 +96,7 @@ public class Util //extends ... implements ...
     {
         if(protMatcher == null) protMatcher = Pattern.compile(protPattern).matcher("");
         protMatcher.reset(res.getName());
+        //System.out.println(res+" "+res.getAtom(" CA "));
         return (protMatcher.matches()||(res.getAtom(" CA ")!=null));
     }
 

@@ -119,6 +119,8 @@ public class ResClassifier //extends ... implements ...
                     {
                         prevRes = (Residue) i.next();
                         if(isSameChain(prevRes, res)) map.put(prevRes, clas);
+                        if(clas == PROTEIN)         proteinRes.add(prevRes);
+                        else if(clas == NUCACID)    nucAcidRes.add(prevRes);
                     }
                     unknowns.clear();
                 }
@@ -126,7 +128,7 @@ public class ResClassifier //extends ... implements ...
             // If current is ion or water, any preceding unknowns
             // have to remain just that -- unknown.
             else unknowns.clear();
-            
+            //System.out.println(res +" "+ clas);
             map.put(res, clas);
             if(clas == PROTEIN)         proteinRes.add(res);
             else if(clas == NUCACID)    nucAcidRes.add(res);
@@ -138,6 +140,7 @@ public class ResClassifier //extends ... implements ...
             prevRes = res;
             prevClas = clas;
         }
+        //System.out.println("prot=" + proteinRes);
     }
 //}}}
 

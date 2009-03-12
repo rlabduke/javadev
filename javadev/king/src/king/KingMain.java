@@ -80,7 +80,7 @@ public class KingMain implements WindowListener
         try { Locale.setDefault(Locale.US); }
         catch(SecurityException ex) { SoftLog.err.println("Can't change to US locale; numbers may be garbled on kinemage write."); }
         
-        prefs = new KingPrefs();
+        prefs = new KingPrefs(false);
         if(prefs.getBoolean("checkNewVersion"))
         {
             // "Timeout" after 2.000 seconds
@@ -96,7 +96,7 @@ public class KingMain implements WindowListener
     */
     public KingMain(JApplet plet, boolean isFlat)
     {
-        prefs           = new KingPrefs();
+        prefs           = new KingPrefs(true);
         theApplet       = plet;
         isAppletFlat    = isFlat;
         
@@ -191,7 +191,7 @@ public class KingMain implements WindowListener
         }
         
         if(!SoftLog.replaceSystemStreams())
-            SoftLog.err.println("Unable to subvert System.err; some exception traces may be lost.");
+            if (theApplet == null) SoftLog.err.println("Unable to subvert System.err; some exception traces may be lost.");
         
         if(theApplet == null || !isAppletFlat)
             mainWin = new MainWindow(this); // doesn't create GUI yet, but other dlgs may depend on this one (?)
