@@ -51,6 +51,7 @@ UTIL: {{{
 - added gzip reading support to cifreader and pdbreader
 - CifReader now adds pdb entry id to resulting coordinatefile.
 - Changed PdbReader and CifReader to read as much of input files as memory allows (mainly for applet).
+- Fixed bug in CifReader that was looping forever when identical (except coords) atoms in cif file.
 
 ### 0.86 ###
 - Uses new Hybrid-36 system for dealing with big files (specifically, the seqence

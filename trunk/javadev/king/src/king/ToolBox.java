@@ -179,11 +179,12 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
                         catch(MalformedURLException ex) { SoftLog.err.println(ex.getMessage()); }
                     }
                 }
-            }
+            //}
                 
             URLClassLoader jarLoader = new URLClassLoader(
                 (URL[]) urls.toArray(new URL[urls.size()]), defaultLoader);
             return jarLoader;
+            }
         }
         catch(Exception ex) //IO, Security, MalformedURL, etc. etc.
         { ex.printStackTrace(SoftLog.err); }
@@ -322,7 +323,8 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
         catch(Throwable t)
         {
             //t.printStackTrace(SoftLog.err);
-            SoftLog.err.println(t.getClass().getSimpleName()+": "+t.getMessage());
+            if (kMain.isTrusted())
+              SoftLog.err.println(t.getClass().getSimpleName()+": "+t.getMessage());
             return false; // can't load because of a reflection error
         }
     }
