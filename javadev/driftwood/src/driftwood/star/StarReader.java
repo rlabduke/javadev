@@ -38,7 +38,7 @@ public class StarReader //extends ... implements ...
     public StarReader()
     {
         super();
-        percentMemFree = 0.3;
+        percentMemFree = 0.4;
     }
 //}}}
 
@@ -207,7 +207,7 @@ public class StarReader //extends ... implements ...
         if (!((double)totalFree/(double)maxMemory > percentMemFree)) {
           //throw new PartialFileException("Cif file too large, aborting at [line "+(input.getLineNumber()+1)+"] ");
           //SoftLog.err.println("Cif file too large, aborting read");
-          while (col != 0) {
+          while (row == 0 || col != 0) {
             values[col].add(token.getString());
             token.advance();
             col++;
@@ -223,7 +223,7 @@ public class StarReader //extends ... implements ...
           allocatedMemory = runtime.totalMemory();
           freeMemory = runtime.freeMemory();
           totalFree = (freeMemory + (maxMemory - allocatedMemory));
-          percentMemFree = (double)totalFree/(double)maxMemory - 0.05;
+          percentMemFree = (double)totalFree/(double)maxMemory - 0.04;
 
           //coordFile.remove(model);
           //model = null; 
