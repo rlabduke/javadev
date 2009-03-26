@@ -234,8 +234,8 @@ public class QuickinPlugin extends king.Plugin {
   
   //{{{ loadFileFromCmdline
   /** Plugins that can work on files from the king cmdline should overwrite this function */
-  public void loadFileFromCmdline(ArrayList<File> args) {
-    for (File f : args) {
+  public void loadFileFromCmdline(ArrayList<File> files, ArrayList<String> args) {
+    for (File f : files) {
       try {
         CoordinateFile coordFile = null;
         if(pdbFilter.accept(f))        coordFile = Quickin.readPDB(f);
@@ -245,7 +245,11 @@ public class QuickinPlugin extends king.Plugin {
           logicList[0] = Quickin.getLotsLogic();
           logicList[1] = Quickin.getRibbonLogic();
           ((RibbonLogic)logicList[1]).secondaryStructure    = coordFile.getSecondaryStructure();
-          buildKinemage(null, coordFile, logicList);
+          Kinemage kin = null;
+          if (args.contains("-merge")||args.contains("-m")) {
+            kin = kMain.getKinemage();
+          }
+          buildKinemage(kin, coordFile, logicList);
         }
       } catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
     }

@@ -247,8 +247,8 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
 
   //{{{ loadFileFromCmdline
   /** Plugins that can work on files from the king cmdline should overwrite this function */
-  public void loadFileFromCmdline(ArrayList<File> args) {
-      for (File f : args) {
+  public void loadFileFromCmdline(ArrayList<File> files, ArrayList<String> args) {
+      for (File f : files) {
         try {
           if(mapFilter.accept(f))
             if (kMain.getKinemage() != null) {

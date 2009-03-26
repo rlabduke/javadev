@@ -175,7 +175,7 @@ abstract public class Plugin //extends ... implements ...
 * so any plugin that wants to deal with them should filter the files to only
 * work on the ones it can deal with.  
 */
-public void loadFileFromCmdline(ArrayList<File> args) {}
+public void loadFileFromCmdline(ArrayList<File> files, ArrayList<String> args) {}
 
 public void loadFromURL(URL url) {}
 //}}}
