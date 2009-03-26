@@ -60,6 +60,7 @@ public class KingMain implements WindowListener
     ArrayList<File>     filesToOpen     = null;
     ArrayList<File>     pdbFilesToOpen  = null;
     boolean             doMerge         = true;
+    ArrayList<String>   pluginArgs      = null;
     
     Set<KMessage.Subscriber> subscribers = new LinkedHashSet<KMessage.Subscriber>();
 //}}}
@@ -74,6 +75,7 @@ public class KingMain implements WindowListener
     */
     public KingMain(String[] args)
     {
+      pluginArgs = new ArrayList<String>();
         // This prevents number formatting problems when writing kins in
         // e.g. Germany. Kludgy, but KiNG isn't internationalized anyway.
         // Ideally, this will go away one day.
@@ -96,6 +98,7 @@ public class KingMain implements WindowListener
     */
     public KingMain(JApplet plet, boolean isFlat)
     {
+      pluginArgs = new ArrayList<String>();
         prefs           = new KingPrefs(true);
         theApplet       = plet;
         isAppletFlat    = isFlat;
@@ -256,7 +259,7 @@ public class KingMain implements WindowListener
           if (pdbFilesToOpen != null && pdbFilesToOpen.size() > 0) {
             while (iter.hasNext()) {
               Plugin plug = (Plugin) iter.next();
-              plug.loadFileFromCmdline(pdbFilesToOpen);
+              plug.loadFileFromCmdline(pdbFilesToOpen, pluginArgs);
             }
           }
           // the reason I scan through plugins twice is so pdb files get processed
@@ -264,7 +267,7 @@ public class KingMain implements WindowListener
           iter = plugins.iterator();
           while (iter.hasNext()) {
             Plugin plug = (Plugin) iter.next();
-            plug.loadFileFromCmdline(filesToOpen);
+            plug.loadFileFromCmdline(filesToOpen, pluginArgs);
           }
         }
         
@@ -475,6 +478,7 @@ public class KingMain implements WindowListener
                     System.exit(0);
                 } else if(arg.equals("-m") || arg.equals("-merge")) {
                     doMerge = true;
+                    pluginArgs.add(arg);
                 } else if(arg.equals("-s") || arg.equals("-single")) {
                     doMerge = false;
                 } else {
