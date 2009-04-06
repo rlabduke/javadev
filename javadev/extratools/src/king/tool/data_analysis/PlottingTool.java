@@ -33,7 +33,7 @@ public class PlottingTool extends BasicTool {
     JTextField xMultField, yMultField, zMultField;
     JTextField xFiltField, yFiltField, zFiltField;
     JTextField xFiltRange, yFiltRange, zFiltRange;
-    JCheckBox clickColorBox;
+    JCheckBox clickColorBox, wrapBox;
     //JComboBox[] comboBoxes;
     //JRadioButton[] xButtons, yButtons, zButtons;
     //ButtonGroup xGroup, yGroup, zGroup;
@@ -157,6 +157,7 @@ public class PlottingTool extends BasicTool {
 	zFiltField = new JTextField("0", 4);
 	zFiltRange = new JTextField("-1", 4);
 
+  wrapBox = new JCheckBox("Wrap values to 0-360");
 	filterButton = new JButton(new ReflectiveAction("Filter!", null, this, "onFilter"));
 	resetButton = new JButton(new ReflectiveAction("ResetFilt", null, this, "onReset"));
 		
@@ -166,6 +167,7 @@ public class PlottingTool extends BasicTool {
 	pane.add(xLab2);
 	pane.add(xFiltField);
 	pane.add(xFiltRange);
+  pane.add(wrapBox);
 	
 	pane.newRow();
 	pane.add(yLabel);
@@ -408,6 +410,7 @@ public class PlottingTool extends BasicTool {
         for (int i = 0; i < value.length; i++) {
           if (KinUtil.isNumeric(value[i])) {
             floats[floatInd] = Float.parseFloat(value[i]);
+            if (wrapBox.isSelected()) floats[floatInd] = wrapValue(floats[floatInd]);
             updateMinMax(dimMinMax, floatInd, floats[floatInd]);
             floatInd++;
           }
@@ -481,6 +484,13 @@ public class PlottingTool extends BasicTool {
   }
   //}}}
     
+  //{{{ wrapValue
+  public float wrapValue(float value) {
+    if (value >= 0) return value;
+    else return value + 360;
+  }
+  //}}}
+  
   //{{{ createBins
   public void createBins(int numInd, ArrayList colors, int color) {
     if (color != -1) {
