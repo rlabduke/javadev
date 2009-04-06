@@ -85,8 +85,9 @@ public class RenderExport extends Plugin {
   public void exportR3d(File f) throws IOException {
     out = new PrintWriter(new BufferedWriter(new FileWriter(f)));
     
-    out.println(createR3dString());
+    out.print(createR3dString());
     renderView(out);
+    out.print("0");
     
     out.flush();
     out.close();
