@@ -224,9 +224,11 @@ public class CoCenterTool extends BasicTool {
       services.pick(point);
       services.centerOnPoint(point);
     } else {
-      cocenter(lowPoint, kin);
-      services.pick(lowPoint);
-      services.centerOnPoint(lowPoint);
+      if (lowPoint != null) {
+        cocenter(lowPoint, kin);
+        services.pick(lowPoint);
+        services.centerOnPoint(lowPoint);
+      }
     }
   }
   
@@ -254,9 +256,11 @@ public class CoCenterTool extends BasicTool {
       services.pick(point);
       services.centerOnPoint(point);
     } else {
-      cocenter(highPoint, kin);
-      services.pick(highPoint);
-      services.centerOnPoint(highPoint);
+      if (highPoint != null) {
+        cocenter(highPoint, kin);
+        services.pick(highPoint);
+        services.centerOnPoint(highPoint);
+      }
     }
   }
   //}}}
