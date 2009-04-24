@@ -14,6 +14,7 @@ import java.io.*;
 import java.text.*;
 import driftwood.gui.*;
 import driftwood.util.*;
+import driftwood.r3.*;
 //}}}
 /**
 * <code>RenderExport</code> allows the current graphics to be exported for use
@@ -216,42 +217,102 @@ public class RenderExport extends Plugin {
       if (pt instanceof VectorPoint) {
         KPoint prev = pt.getPrev();
         if ((prev != null)&&((isDrawn(prev))||(isDrawn(pt)))) {
-          drawnPoints.put(prev, pt);
+          //drawnPoints.put(prev, pt);
+          KPoint end = drawnPoints.get(prev);
+          render = render + "3 \n";
+          render = render + df.format(prev.getDrawX())+" "+df.format(prev.getDrawY())+" "+df.format(prev.getDrawZ())+" ";
+          render = render /*+ df.format(list.getWidth())*/+"1.500 ";
+          render = render + df.format(pt.getDrawX())+" "+df.format(pt.getDrawY())+" "+df.format(pt.getDrawZ())+" ";
+          render = render + "1.000 ";
+          render = render + convertColor(pt.getDrawingColor(eng))+"\n";
         }
       }
     }
-    for (KPoint start : drawnPoints.keySet()) {
-      KPoint end = drawnPoints.get(start);
-      render = render + "3 \n";
-      render = render + df.format(start.getDrawX())+" "+df.format(start.getDrawY())+" "+df.format(start.getDrawZ())+" ";
-      render = render /*+ df.format(list.getWidth())*/+"1.500 ";
-      render = render + df.format(end.getDrawX())+" "+df.format(end.getDrawY())+" "+df.format(end.getDrawZ())+" ";
-      render = render + "1.000 ";
-      render = render + convertColor(end.getDrawingColor(eng))+"\n";
-      //System.out.print("X: "+df.format(start.getDrawX())+" Y: "+df.format(start.getDrawY())+" Z: "+df.format(start.getDrawZ()) +"->");
-      //System.out.println("X: "+df.format(end.getDrawX())+" Y: "+df.format(end.getDrawY())+" Z: "+df.format(end.getDrawZ()));
-    }
+    //for (KPoint start : drawnPoints.keySet()) {
+    //  KPoint end = drawnPoints.get(start);
+    //  render = render + "3 \n";
+    //  render = render + df.format(start.getDrawX())+" "+df.format(start.getDrawY())+" "+df.format(start.getDrawZ())+" ";
+    //  render = render /*+ df.format(list.getWidth())*/+"1.500 ";
+    //  render = render + df.format(end.getDrawX())+" "+df.format(end.getDrawY())+" "+df.format(end.getDrawZ())+" ";
+    //  render = render + "1.000 ";
+    //  render = render + convertColor(end.getDrawingColor(eng))+"\n";
+    //  //System.out.print("X: "+df.format(start.getDrawX())+" Y: "+df.format(start.getDrawY())+" Z: "+df.format(start.getDrawZ()) +"->");
+    //  //System.out.println("X: "+df.format(end.getDrawX())+" Y: "+df.format(end.getDrawY())+" Z: "+df.format(end.getDrawZ()));
+    //}
     return render;
   }
   //}}}
   
   //{{{ renderTriangle
   public String renderTriangle(KList list) {
+    //KList test = test();
     String render = "";
     KIterator<KPoint> points = KIterator.visiblePoints(list);
+    Triple oldNormal = null;
+    boolean flip = false;
     for (KPoint pt : points) {
       if (pt instanceof TrianglePoint) {
         
         TrianglePoint tpt = (TrianglePoint)pt;
         if(tpt.getPrev() == null || tpt.getPrev().getPrev() == null/* || maincolor.isInvisible()*/) {
+          oldNormal = null;
           //System.out.println("no prev points");
         } else {
           TrianglePoint A = tpt, B = tpt.getPrev(), C = tpt.getPrev().getPrev();
+          if (flip) {
+            TrianglePoint temp = C;
+            C = A;
+            A = temp;
+          }
+          flip = !flip;
           render = render + "1 \n";
           render = render + df.format(A.getDrawX())+" "+df.format(A.getDrawY())+" "+df.format(A.getDrawZ())+" ";
           render = render + df.format(B.getDrawX())+" "+df.format(B.getDrawY())+" "+df.format(B.getDrawZ())+" ";
           render = render + df.format(C.getDrawX())+" "+df.format(C.getDrawY())+" "+df.format(C.getDrawZ())+" ";
           render = render + convertColor(pt.getDrawingColor(eng))+"\n";
+          render = render + "7 \n";
+          Triple normal = (new Triple().likeNormal(new Triple(A.getDrawX(), A.getDrawY(), A.getDrawZ()), new Triple(B.getDrawX(), B.getDrawY(), B.getDrawZ()), new Triple(C.getDrawX(), C.getDrawY(), C.getDrawZ()))).unit();
+          
+          //VectorPoint origPt = new VectorPoint("normal", null);
+          //origPt.setXYZ(A.getX(), A.getY(), A.getZ());
+          //Triple testNormal = new Triple().likeNormal(A, B, C);
+          //VectorPoint normPt = new VectorPoint("normal", origPt);
+          //normPt.setXYZ(testNormal.getX()+A.getX(), testNormal.getY()+A.getY(), testNormal.getZ()+A.getZ());
+          //test.add(origPt);
+          //test.add(normPt);
+          
+          render = render + df.format(normal.getX())+" "+df.format(normal.getY())+" "+df.format(normal.getZ())+" ";
+          if (oldNormal != null) {
+            render = render + df.format((normal.getX()+oldNormal.getX())/2)+" "+df.format((normal.getY()+oldNormal.getY())/2)+" "+df.format((normal.getZ()+oldNormal.getZ())/2)+" ";
+          } else {
+            render = render + df.format(normal.getX())+" "+df.format(normal.getY())+" "+df.format(normal.getZ())+" ";
+          }
+          if (oldNormal != null) {
+            render = render + df.format((normal.getX()+oldNormal.getX())/2)+" "+df.format((normal.getY()+oldNormal.getY())/2)+" "+df.format((normal.getZ()+oldNormal.getZ())/2)+" \n";
+          } else {
+            render = render + df.format(normal.getX())+" "+df.format(normal.getY())+" "+df.format(normal.getZ())+" \n";
+          }
+          render = render + "1 \n";
+          render = render + df.format(A.getDrawX())+" "+df.format(A.getDrawY())+" "+df.format(A.getDrawZ())+" ";
+          render = render + df.format(B.getDrawX())+" "+df.format(B.getDrawY())+" "+df.format(B.getDrawZ())+" ";
+          render = render + df.format(C.getDrawX())+" "+df.format(C.getDrawY())+" "+df.format(C.getDrawZ())+" ";
+          render = render + convertColor(pt.getDrawingColor(eng))+"\n";
+          render = render + "7 \n";
+          render = render + df.format(-normal.getX())+" "+df.format(-normal.getY())+" "+df.format(-normal.getZ())+" ";
+          //render = render + df.format(-normal.getX())+" "+df.format(-normal.getY())+" "+df.format(-normal.getZ())+" ";
+          //render = render + df.format(-normal.getX())+" "+df.format(-normal.getY())+" "+df.format(-normal.getZ())+" \n";
+          if (oldNormal != null) {
+            render = render + df.format(-(normal.getX()+oldNormal.getX())/2)+" "+df.format(-(normal.getY()+oldNormal.getY())/2)+" "+df.format(-(normal.getZ()+oldNormal.getZ())/2)+" ";
+          } else {
+            render = render + df.format(-normal.getX())+" "+df.format(-normal.getY())+" "+df.format(-normal.getZ())+" ";
+          }
+          if (oldNormal != null) {
+            render = render + df.format(-(normal.getX()+oldNormal.getX())/2)+" "+df.format(-(normal.getY()+oldNormal.getY())/2)+" "+df.format(-(normal.getZ()+oldNormal.getZ())/2)+" \n";
+          } else {
+            render = render + df.format(-normal.getX())+" "+df.format(-normal.getY())+" "+df.format(-normal.getZ())+" \n";
+          }
+          oldNormal = normal;
+          
         }
       }
     }
@@ -323,6 +384,17 @@ public class RenderExport extends Plugin {
   //    }
   //  }
   //}    
+  //}}}
+  
+  //{{{ test
+  public KList test() {
+    Kinemage kin = kMain.getKinemage();
+    KGroup group = new KGroup("test");
+    KList list = new KList(KList.VECTOR, "test");
+    kin.add(group);
+    group.add(list);
+    return list;
+  }
   //}}}
   
   //{{{ getToolsMenuItem, getHelpMenuItem, toString, onExport, isAppletSafe
