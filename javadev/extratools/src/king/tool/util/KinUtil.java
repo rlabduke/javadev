@@ -189,18 +189,20 @@ public class KinUtil {
   }
   
   public static String getAtomName(String name) {
-    String[] uncleanParsed = name.split(" ");
-    String[] parsed = new String[uncleanParsed.length];
-    int i2 = 0;
-    // To clean out the empty strings from the split name.
-    
-    for (int i = 0; i < uncleanParsed.length; i++) {
-	    String unclean = uncleanParsed[i];
-	    if ((!unclean.equals(""))&&(!unclean.equals(" "))) {
-        parsed[i2] = unclean;
-        i2++;
-	    }
-    }
+    //String[] uncleanParsed = name.split(" ");
+    //String[] parsed = new String[uncleanParsed.length];
+    //int i2 = 0;
+    //// To clean out the empty strings from the split name.
+    //
+    //for (int i = 0; i < uncleanParsed.length; i++) {
+	  //  String unclean = uncleanParsed[i];
+	  //  if ((!unclean.equals(""))&&(!unclean.equals(" "))) {
+    //    parsed[i2] = unclean;
+    //    i2++;
+	  //  }
+    //}
+    String[] parsed = Strings.explode(name, " ".charAt(0), false, true);
+
     return parsed[0];
   }
   
@@ -233,36 +235,6 @@ public class KinUtil {
   //more robust way of getting residue name, but limited to real AAs.
   public static String getResAA(String name) {
     return AminoAcid.getAAName(name);
-    /*
-    String[] uncleanParsed = name.split(" ");
-    String[] parsed = new String[uncleanParsed.length];
-    int i2 = 0;
-    // To clean out the empty strings from the split name.
-    
-    for (int i = 0; i < uncleanParsed.length; i++) {
-	    String unclean = uncleanParsed[i];
-	    //System.out.println(unclean);
-	    if ((!unclean.equals(""))&&(!unclean.equals(" "))&&(unclean != null)) {
-        parsed[i2] = unclean;
-        i2++;
-	    }
-	    //if (unclean
-    }
-    for (int i = 0; i < i2; i++) {
-	    String parseValue = parsed[i];
-	    if (parseValue == null) {
-        System.out.println(name + ", " + i + ", " + parsed.length);
-	    }
-	    //System.out.println(parseValue);
-	    //System.out.println(parseValue + ", " + i);
-	    if ((parseValue.length()==3)||(parseValue.length()==4)) {
-        if (AminoAcid.isExtendedAminoAcid(parseValue)) {
-          return parseValue;
-        }
-	    }
-    }
-    return "UNK";
-    */
   }
   
   public static double getBvalue(KPoint point) {

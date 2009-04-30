@@ -25,7 +25,7 @@ import king.tool.util.*;
 
 /**
 * <code>CoCenterTool</code> is for cocentering an ensemble of structures on a
-* a single point..
+* a single point.
 * 
 * <p>Copyright (C) 2007 by Vincent B. Chen. All rights reserved.
 * <br>Begun Wed Nov 07 14:17:42 EST 2007
@@ -39,8 +39,10 @@ public class CoCenterTool extends BasicTool {
   TablePane2 pane;
   JButton resetButton;
   JComboBox atomsBox;
+  JCheckBox doParensBox;
   ArrayList origCoords = null;
   int current = Integer.MIN_VALUE;
+  int currentParen = Integer.MIN_VALUE;
   ReflectiveAction backAct;
   ReflectiveAction fwdAct;
   //}}}
@@ -85,6 +87,7 @@ public class CoCenterTool extends BasicTool {
     JButton fwdButton = new JButton(fwdAct);
     fwdButton.setToolTipText("Cocenter and center on next residue");
     //fwdButton.setMnemonic(KeyEvent.VK_N);
+    doParensBox = new JCheckBox("Cocenter on parens");
 
     pane = new TablePane2();
     pane.newRow();
@@ -93,6 +96,8 @@ public class CoCenterTool extends BasicTool {
     pane.add(fwdButton);
     pane.newRow();
     pane.add(resetButton, 3, 1);
+    pane.newRow();
+    pane.add(doParensBox, 3, 1);
     
   }
   //}}}
@@ -119,6 +124,7 @@ public class CoCenterTool extends BasicTool {
   
   //{{{ cocenter
   public void cocenter(KPoint p, Kinemage kin) {
+    setOrigCoords();
     current = KinUtil.getResNumber(p);
     String pName = p.getName();
     if (pName.length() > 14) pName = pName.substring(0, 14);
@@ -154,13 +160,64 @@ public class CoCenterTool extends BasicTool {
   }
   //}}}
   
+  //{{{ cocenterParens
+  /** Cocenters on a number in parens in point ID **/
+  public void cocenterParens(KPoint p, Kinemage kin) {
+    setOrigCoords();
+    String matchParen = getParen(p);
+    //System.out.println(matchParen);
+    currentParen = Integer.parseInt(matchParen);
+    Iterator iter = kin.iterator();
+    while (iter.hasNext()) {
+      KGroup group = (KGroup) iter.next();
+      KIterator<KPoint> pts = KIterator.allPoints(group);
+      boolean foundPt = false;
+      double xtrans = Double.NaN;
+      double ytrans = Double.NaN;
+      double ztrans = Double.NaN;
+      while (pts.hasNext() && !foundPt) {
+        KPoint test = pts.next();
+        String testParen = getParen(test);
+        if (testParen.equals(matchParen)) {
+          foundPt = true;
+          xtrans = test.getX()-p.getX();
+          ytrans = test.getY()-p.getY();
+          ztrans = test.getZ()-p.getZ();
+        }
+      }
+      if (foundPt) {
+        pts = KIterator.allPoints(group);
+        for (KPoint pt : pts) {
+          pt.setX(pt.getX() - xtrans);
+          pt.setY(pt.getY() - ytrans);
+          pt.setZ(pt.getZ() - ztrans);
+        }
+      }
+    }
+  }
+  //}}}
+  
+  //{{{ setOrigCoords
+  public void setOrigCoords() {
+    if (origCoords == null) {
+      origCoords = new ArrayList();
+      Iterator groups = kMain.getKinemage().iterator();
+      while (groups.hasNext()) {
+        KGroup group = (KGroup) groups.next();
+        KGroup clone = group.clone(true);
+        origCoords.add(clone);
+      }
+    }
+  }
+  //}}}
+  
   //{{{ onReset
   public void onReset(ActionEvent ev) {
     if (origCoords == null) return;
     Kinemage kin = kMain.getKinemage();
     Iterator iter = kin.iterator();
     int i = 0;
-    System.out.println("Testing");
+    //System.out.println("Testing");
     while (iter.hasNext()) {
       KGroup group = (KGroup) iter.next();
       KIterator<KPoint> points = KIterator.allPoints(group);
@@ -181,7 +238,7 @@ public class CoCenterTool extends BasicTool {
             xtrans = p.getX()-test.getX();
             ytrans = p.getY()-test.getY();
             ztrans = p.getZ()-test.getZ();
-            System.out.println(new Double(test.getX()) +","+ new Double(test.getY()) +","+ new Double(test.getZ()));
+            //System.out.println(new Double(test.getX()) +","+ new Double(test.getY()) +","+ new Double(test.getZ()));
           }
         }
         if (foundPt) {
@@ -201,35 +258,41 @@ public class CoCenterTool extends BasicTool {
   
   //{{{ onForward/Backward
   public void onForward(ActionEvent ev) {
-    Kinemage kin = kMain.getKinemage();
-    KIterator<KPoint> points = KIterator.visiblePoints(kin);
-    KPoint point = null;
-    KPoint lowPoint = null;
-    int lowResNum = Integer.MAX_VALUE;
-    while (point == null && points.hasNext()) {
-      KPoint testPt = points.next();
-      String atomName = KinUtil.getAtomName(testPt).toLowerCase();
-      if (atomName.equals((String)atomsBox.getSelectedItem())) {
-        int resNum = KinUtil.getResNumber(testPt);
-        if (resNum == current + 1) {
-          point = testPt;
-        } else if (resNum < lowResNum) {
-          lowResNum = resNum;
-          lowPoint = testPt;
+    long startTime = System.currentTimeMillis();
+    if (doParensBox.isSelected()) {
+      forwardParens();
+    } else {
+      Kinemage kin = kMain.getKinemage();
+      KIterator<KPoint> points = KIterator.visiblePoints(kin);
+      KPoint point = null; // for cocentering on res+1 point
+      KPoint lowPoint = null; // for cocentering on next lowest point, if no res+1
+      int lowResNum = Integer.MAX_VALUE;
+      while (point == null && points.hasNext()) {
+        KPoint testPt = points.next();
+        String atomName = KinUtil.getAtomName(testPt).toLowerCase();
+        if (atomName.equals((String)atomsBox.getSelectedItem())) {
+          int resNum = KinUtil.getResNumber(testPt);
+          if (resNum == current + 1) {
+            point = testPt;
+          } else if (resNum < lowResNum) {
+            lowResNum = resNum;
+            lowPoint = testPt;
+          }
+        }
+      }
+      if (point != null) {
+        cocenter(point, kin);
+        services.pick(point);
+        services.centerOnPoint(point);
+      } else {
+        if (lowPoint != null) {
+          cocenter(lowPoint, kin);
+          services.pick(lowPoint);
+          services.centerOnPoint(lowPoint);
         }
       }
     }
-    if (point != null) {
-      cocenter(point, kin);
-      services.pick(point);
-      services.centerOnPoint(point);
-    } else {
-      if (lowPoint != null) {
-        cocenter(lowPoint, kin);
-        services.pick(lowPoint);
-        services.centerOnPoint(lowPoint);
-      }
-    }
+    System.out.println("Cocenter took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
   }
   
   public void onBackward(ActionEvent ev) {
@@ -265,6 +328,58 @@ public class CoCenterTool extends BasicTool {
   }
   //}}}
   
+  //{{{ onForwardParen
+  public void forwardParens() {
+    Kinemage kin = kMain.getKinemage();
+    KIterator<KPoint> points = KIterator.visiblePoints(kin);
+    KPoint point = null;
+    KPoint lowPoint = null;
+    int lowResNum = Integer.MAX_VALUE;
+    int lowParen = Integer.MAX_VALUE;
+    while (point == null && points.hasNext()) {
+      KPoint testPt = points.next();
+      String paren = getParen(testPt);
+      if (!paren.equals("")) {
+        int parenNum = Integer.parseInt(paren);
+        //System.out.println(paren);
+        if ((parenNum > currentParen)&&(parenNum < lowParen)) {
+          point = testPt;
+          lowParen = parenNum;
+        } else if (parenNum < lowResNum) {
+          System.out.println(parenNum);
+          lowResNum = parenNum;
+          lowPoint = testPt;
+        }
+      }
+    }
+    if (point != null) {
+      cocenterParens(point, kin);
+      services.pick(point);
+      services.centerOnPoint(point);
+    } else {
+      if (lowPoint != null) {
+        cocenterParens(lowPoint, kin);
+        services.pick(lowPoint);
+        services.centerOnPoint(lowPoint);
+      }
+    }
+  }
+  //}}}
+  
+  //{{{ getParen
+  public String getParen(KPoint p) {
+    String name = p.getName();
+    String[] parsed = Strings.explode(p.getName(), " ".charAt(0), false, true);
+    //String matchParen = "";
+    for (String s : parsed) {
+      if (s.matches("\\([0-9]*\\)")) {
+        return s.substring(1, s.length()-1);
+      }
+    }
+    return "";
+  }
+  //}}}
+
   //{{{ getToolPanel, getHelpAnchor, toString
   //##################################################################################################
   /** Returns a component with controls and options for this tool */

@@ -85,6 +85,7 @@ public class RenderExport extends Plugin {
   //{{{ exportR3d
   public void exportR3d(File f) throws IOException {
     out = new PrintWriter(new BufferedWriter(new FileWriter(f)));
+    eng = kCanvas.getEngine();
     
     out.print(createR3dString());
     renderView(out);
@@ -133,7 +134,9 @@ public class RenderExport extends Plugin {
     r3d = r3d.concat("64 64      NTX,NTY  tiles in x,y \n");
     r3d = r3d.concat("16 16      NPX,NPY   pixels (x,y) per tile \n");
     r3d = r3d.concat("4          SCHEME anti-aliasing level \n");
-    r3d = r3d.concat("0 0 0      BKGND background, 0 0 0 for black (1 1 1 for white) \n");
+    if (eng.whiteBackground) r3d = r3d.concat("1 1 1");
+    else                     r3d = r3d.concat("0 0 0");
+    r3d = r3d.concat("      BKGND background, 0 0 0 for black (1 1 1 for white) \n");
     r3d = r3d.concat("F       SHADOW  T with, F omit shadows \n");
     r3d = r3d.concat("25         IPHONG Phong power \n");
     r3d = r3d.concat("0.25       STRAIT  secondary light percent contribution \n");
@@ -166,7 +169,7 @@ public class RenderExport extends Plugin {
     //System.out.println(width + "," + height);
     ////kCanvas.syncToKin(engine, kin);
     //KView view = kCanvas.getCurrentView();
-    eng = kCanvas.getEngine();
+    //eng = kCanvas.getEngine();
     //System.out.println(eng.clipBack+", "+eng.clipFront);
     //render(kCanvas, view, bounds, eng);
     KIterator<KList> lists = KIterator.visibleLists(kMain.getKinemage());
