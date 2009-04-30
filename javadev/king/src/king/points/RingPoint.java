@@ -73,11 +73,19 @@ public class RingPoint extends AbstractPoint // implements ...
         if (parent.getScreen() == true) {
           //Kinemage ancestor = getKinemage();
           //float span = ancestor.getSpan();
-          r = 50;
+          
+          double width  = engine.pickingRect.getWidth();
+          double height = engine.pickingRect.getHeight();
+          if(r0 <= 0 && parent != null)
+               r = (float)parent.getRadius() * (float)(Math.min(width,height) / 400.0);
+          else r = r0                        * (float)(Math.min(width,height) / 400.0);
+          //System.err.println("scaled radius from "+r0+" to "+r+" for zoom "+zoom);
+          
           super.doTransform(engine, xform, zoom);
         } else {
         if(r0 <= 0 && parent != null) r = (float)(parent.getRadius() * zoom);
         else                          r = (float)(r0 * zoom);
+        //System.err.println("scaled radius from "+r0+" to "+r);
         xform.transform(this, engine.work1);
         setDrawXYZ(engine.work1);
 

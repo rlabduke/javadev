@@ -341,7 +341,11 @@ abstract public class AbstractPoint extends AHEImpl<KList> implements KPoint
           //r = 50;
           //System.out.println((getX()+center[0]*xmult/2)*xmult+" "+(-getY()+center[1]*ymult/2)*ymult);
           //setDrawXYZ(new Triple((getX()-center[0])*xmult, (-getY()-center[1])*ymult, getZ()));
-          setDrawXYZ(new Triple(getX()+width/2, -getY()+height/2, getZ()));
+          //setDrawXYZ(new Triple(getX()+width/2, -getY()+height/2, getZ()));
+          double x = width/2  + getX()/200.0 * (width < height ? width : height)/2;
+          double y = height/2 - getY()/200.0 * (width < height ? width : height)/2;
+          setDrawXYZ(new Triple(x, y, getZ()));
+          
           engine.addPaintable(this, -100);
         } else {
         xform.transform(this, engine.work1);

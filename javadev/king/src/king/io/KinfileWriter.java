@@ -216,7 +216,10 @@ public class KinfileWriter //extends ... implements ...
         for(String master : list.getMasters())
             out.print(" master= {"+master+"}");
         
-        if(list.getDimension() != 3) out.print(" dimension= "+list.getDimension());
+        //if(list.getDimension() != 3) out.print(" dimension= "+list.getDimension());
+        if(list.getDimension() > 3) out.print(" dimension= "+list.getDimension());
+        
+        if(list.getScreen()) out.print(" screen");
         out.println();
 
         lastPointID = null;
