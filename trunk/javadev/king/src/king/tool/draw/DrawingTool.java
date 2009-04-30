@@ -114,7 +114,8 @@ public class DrawingTool extends BasicTool
                     rbEditPoint, rbPaintPoints, rbMovePoint;
     JRadioButton    rbLineSegment, rbDottedLine, rbArcSegment,
                     rbBalls, rbLabels, rbDots, rbTriangle;
-    JRadioButton    rbPunch, rbPrune, rbAuger, rbSphereCrop, rbColorAuger;
+    JRadioButton    rbPunch, rbPrune, rbAuger, rbSphereCrop,
+                    rbColorAuger, rbDeleteInvis;
     
     Builder         builder = new Builder();
     KPoint          lineseg1 = null, lineseg2 = null;
@@ -206,6 +207,9 @@ public class DrawingTool extends BasicTool
         rbSphereCrop = new JRadioButton("Spherical crop");
         buttonGroup.add(rbSphereCrop);
         
+        rbDeleteInvis = new JRadioButton("Delete invisible");
+        buttonGroup.add(rbDeleteInvis);
+        
         // Create the extra control panels
         cmPaintMode = new JComboBox(new String[] { PAINT_CYLINDER, PAINT_SPHERE, PAINT_POINT, PAINT_POLY } );
         cmPaintMode.setSelectedItem(PAINT_CYLINDER);
@@ -284,6 +288,12 @@ public class DrawingTool extends BasicTool
         fbSphereCrop.setAutoPack(true);
         fbSphereCrop.setIndent(10);
         
+        TablePane tpDeleteInvis = new TablePane();
+        tpDeleteInvis.addCell(new JLabel("Click on any point! "));
+        FoldingBox fbDeleteInvis = new FoldingBox(rbDeleteInvis, tpDeleteInvis);
+        fbDeleteInvis.setAutoPack(true);
+        fbDeleteInvis.setIndent(10);
+        
         // Choose default drawing tool
         rbEditList.setSelected(true);
         
@@ -326,6 +336,8 @@ public class DrawingTool extends BasicTool
             ui.addCell(fbAugerPalette).newRow();
         ui.addCell(rbSphereCrop).newRow();
             ui.addCell(fbSphereCrop).newRow();
+        ui.addCell(rbDeleteInvis).newRow();
+            ui.addCell(fbDeleteInvis).newRow();
         ui.addCell(btnNewSubgroup).newRow();
         ui.addCell(btnUndo).newRow();
     }
@@ -357,6 +369,7 @@ public class DrawingTool extends BasicTool
         else if(rbAuger.isSelected())           doAuger(x, y, p, ev);
         else if(rbColorAuger.isSelected())      doColorAuger(x ,y, p, ev);
         else if(rbSphereCrop.isSelected())      doSphereCrop(x, y, p, ev);
+        else if(rbDeleteInvis.isSelected())     doDeleteInvis(x, y, p, ev);
         
         Kinemage k = kMain.getKinemage();
         if(k != null) k.setModified(true);
@@ -1053,6 +1066,35 @@ public class DrawingTool extends BasicTool
         toKeep.addAll( engine.pickAll3D(p.getX(), p.getY(), p.getZ(), true, r) );
         Collection<KPoint> toRemove = new ArrayList<KPoint>();
         for(KPoint q : KIterator.visiblePoints(kin))
+            if(!toKeep.contains(q))
+                toRemove.add(q);
+        for(KPoint q : toRemove)
+            excisePoint(q, null);
+    }
+//}}}
+
+//{{{ doDeleteInvis
+//##############################################################################
+    protected void doDeleteInvis(int x, int y, KPoint p, MouseEvent ev)
+    {
+        // added by DAK 090430
+        
+        if(p == null) return;
+        Kinemage kin = p.getKinemage();
+        if(kin == null) return;
+        
+        // Cropping can't be undone because so many
+        // points following those removed might be modified.
+        
+        // Find all the points THAT ARE CURRENTLY *IN*VISIBLE.
+        // Have to do this in two steps so we don't get a
+        // ConcurrentModificationException from KIterator.
+        Engine engine = kCanvas.getEngine();
+        Set<KPoint> toKeep = new CheapSet(new IdentityHashFunction());
+        for(KPoint q : KIterator.visiblePoints(kin))
+            toKeep.add(q);
+        Collection<KPoint> toRemove = new ArrayList<KPoint>();
+        for(KPoint q : KIterator.allPoints(kin))
             if(!toKeep.contains(q))
                 toRemove.add(q);
         for(KPoint q : toRemove)
