@@ -31,6 +31,7 @@ public class DrawingTool extends BasicTool
     static final String PAINT_CYLINDER  = "circle";
     static final String PAINT_SPHERE    = "sphere";
     static final String PAINT_POINT     = "one point";
+    static final String PAINT_POLY      = "polyline";
 //}}}
 
 //{{{ Interface: UndoStep
@@ -113,7 +114,7 @@ public class DrawingTool extends BasicTool
                     rbEditPoint, rbPaintPoints, rbMovePoint;
     JRadioButton    rbLineSegment, rbDottedLine, rbArcSegment,
                     rbBalls, rbLabels, rbDots, rbTriangle;
-    JRadioButton    rbPunch, rbPrune, rbAuger, rbSphereCrop;
+    JRadioButton    rbPunch, rbPrune, rbAuger, rbSphereCrop, rbColorAuger;
     
     Builder         builder = new Builder();
     KPoint          lineseg1 = null, lineseg2 = null;
@@ -124,7 +125,7 @@ public class DrawingTool extends BasicTool
     KPoint          draggedPoint = null;
     KPoint[]        allPoints = null;
     
-    JComboBox       cmPaintMode, cmPointPaint;
+    JComboBox       cmPaintMode, cmPointPaint, cmAugerPalette;
     JTextField      tfShortenLine;
     JCheckBox       cbLabelIsID;
     JTextField      tfNumDots;
@@ -198,11 +199,15 @@ public class DrawingTool extends BasicTool
         buttonGroup.add(rbPrune);
         rbAuger = new JRadioButton("Auger a region");
         buttonGroup.add(rbAuger);
+        
+        rbColorAuger = new JRadioButton("Auger a color");
+        buttonGroup.add(rbColorAuger);
+        
         rbSphereCrop = new JRadioButton("Spherical crop");
         buttonGroup.add(rbSphereCrop);
         
         // Create the extra control panels
-        cmPaintMode = new JComboBox(new String[] { PAINT_CYLINDER, PAINT_SPHERE, PAINT_POINT } );
+        cmPaintMode = new JComboBox(new String[] { PAINT_CYLINDER, PAINT_SPHERE, PAINT_POINT, PAINT_POLY } );
         cmPaintMode.setSelectedItem(PAINT_CYLINDER);
         cmPointPaint = new JComboBox(KPalette.getStandardMap().values().toArray());
         cmPointPaint.setSelectedItem(KPalette.green);
@@ -216,6 +221,15 @@ public class DrawingTool extends BasicTool
         fbPaintPts.setAutoPack(true);
         fbPaintPts.setIndent(10);
 
+        cmAugerPalette = new JComboBox(KPalette.getStandardMap().values().toArray());
+        cmAugerPalette.setSelectedItem(KPalette.cyan);
+        TablePane2 tpAugerPalette = new TablePane2();
+        tpAugerPalette.addCell(new JLabel("Remove color:"));
+        tpAugerPalette.hfill(true).addCell(cmAugerPalette);
+        FoldingBox fbAugerPalette = new FoldingBox(rbColorAuger, tpAugerPalette);
+        fbAugerPalette.setAutoPack(true);
+        fbAugerPalette.setIndent(10);
+        
         tfShortenLine = new JTextField("0.0", 6);
         TablePane tpLineSeg = new TablePane();
         tpLineSeg.addCell(new JLabel("Shorten lines by:"));
@@ -308,6 +322,8 @@ public class DrawingTool extends BasicTool
         ui.addCell(rbPunch).newRow();
         ui.addCell(rbPrune).newRow();
         ui.addCell(rbAuger).newRow();
+        ui.addCell(rbColorAuger).newRow();
+            ui.addCell(fbAugerPalette).newRow();
         ui.addCell(rbSphereCrop).newRow();
             ui.addCell(fbSphereCrop).newRow();
         ui.addCell(btnNewSubgroup).newRow();
@@ -339,6 +355,7 @@ public class DrawingTool extends BasicTool
         else if(rbPunch.isSelected())           doPunch(x, y, p, ev);
         else if(rbPrune.isSelected())           doPrune(x, y, p, ev);
         else if(rbAuger.isSelected())           doAuger(x, y, p, ev);
+        else if(rbColorAuger.isSelected())      doColorAuger(x ,y, p, ev);
         else if(rbSphereCrop.isSelected())      doSphereCrop(x, y, p, ev);
         
         Kinemage k = kMain.getKinemage();
@@ -501,7 +518,37 @@ public class DrawingTool extends BasicTool
             points = engine.pickAll3D(p.getX(), p.getY(), p.getZ(), services.doSuperpick.isSelected(), AUGER_RADIUS / engine.zoom3D);
         else if(mode == PAINT_POINT && p != null)
             points = Collections.singleton(p);
-        
+        else if(mode == PAINT_POLY && p != null)
+        {
+            KList list = (KList) p.getParent();
+            if(list == null)
+            {
+                points = Collections.singleton(p);
+            }
+            ArrayList parray = new ArrayList();
+            for(ListIterator iter = list.getChildren().listIterator(); iter.hasNext(); )
+            {
+                KPoint q = (KPoint) iter.next();
+                if(q == p)  //find the selected point
+                {
+                    while(iter.hasPrevious()) //go to beginning of its polyline
+                    {
+                        q = (KPoint) iter.previous();
+                        if(q.getPrev() == null) break;
+                    }
+                    q = (KPoint) iter.next(); //advance one to prevent endless loop
+                    parray.add(q);
+                    while(iter.hasNext()) //get all members of that polyline
+                    {
+                        q = (KPoint) iter.next();
+                        if(q.getPrev() == null) break;
+                        parray.add(q);
+                    }
+                }
+            }
+            points = parray;
+        }
+            
         // Painting can't be undone because ... ?
         
         // Paint all the points
@@ -945,6 +992,42 @@ public class DrawingTool extends BasicTool
     }
 //}}}
 
+//{{{ doColorAuger
+//##############################################################################
+    protected void doColorAuger(int x, int y, KPoint p, MouseEvent ev)
+    {
+        Engine engine = kCanvas.getEngine();
+        Collection points = engine.pickAll2D(x, y, services.doSuperpick.isSelected(), AUGER_RADIUS);
+        
+        // Augering can't be undone because so many
+        // points following those removed might be modified.
+        
+        // points matching the selected color (killColor) will be removed
+        KPaint killColor = (KPaint) cmAugerPalette.getSelectedItem();
+        for(Iterator iter = points.iterator(); iter.hasNext(); )
+        {
+            p = (KPoint) iter.next();
+            
+            // if a point hasn't been specifically painted, its color must be retrieved from its parent
+            if (p.getColor() == null)
+            {    
+                KList plist = (KList) p.getParent();
+                if (plist.getColor().equals(killColor)) //matches parent color
+                {
+                    excisePoint(p, null);
+                }
+            }
+            else if(p.getColor().equals(killColor)) //matches point color
+            {
+                excisePoint(p, null);
+            }
+        }
+        
+        Kinemage kin = kMain.getKinemage();
+        if(kin == null) return;
+    }
+//}}}
+
 //{{{ doSphereCrop
 //##############################################################################
     protected void doSphereCrop(int x, int y, KPoint p, MouseEvent ev)
@@ -1142,7 +1225,7 @@ public class DrawingTool extends BasicTool
     
     /** Do we need to see the circle that marks area of effect for Auger and similar tools? */
     boolean needAugerCircle()
-    { return rbAuger.isSelected() || (rbPaintPoints.isSelected() && cmPaintMode.getSelectedItem() != PAINT_POINT); }
+    { return rbAuger.isSelected() || rbColorAuger.isSelected() || (rbPaintPoints.isSelected() && cmPaintMode.getSelectedItem() != PAINT_POINT && cmPaintMode.getSelectedItem() != PAINT_POLY); }
     
     /**
     * Called by KinCanvas after all kinemage painting is complete,
