@@ -42,7 +42,7 @@ public class CoCenterTool extends BasicTool {
   JCheckBox doParensBox;
   ArrayList origCoords = null;
   int current = Integer.MIN_VALUE;
-  int currentParen = Integer.MIN_VALUE;
+  //int currentParen = Integer.MIN_VALUE;
   ReflectiveAction backAct;
   ReflectiveAction fwdAct;
   //}}}
@@ -72,7 +72,7 @@ public class CoCenterTool extends BasicTool {
   
   //{{{ buildGUI
   public void buildGUI() {
-    String[] atoms = {"n", "ca", "c", "o"};
+    String[] atoms = {"n", "ca", "c", "o", "p"};
     atomsBox = new JComboBox(atoms);
     resetButton = new JButton(new ReflectiveAction("Reset Coordinates", null, this, "onReset"));
     backAct = new ReflectiveAction(null, kMain.getPrefs().stepBackIcon, this, "onBackward");
@@ -124,6 +124,7 @@ public class CoCenterTool extends BasicTool {
   
   //{{{ cocenter
   public void cocenter(KPoint p, Kinemage kin) {
+    long startTime = System.currentTimeMillis();
     setOrigCoords();
     current = KinUtil.getResNumber(p);
     String pName = p.getName();
@@ -157,16 +158,18 @@ public class CoCenterTool extends BasicTool {
         }
       }
     }
+    System.out.println("Cocenter took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
   }
   //}}}
   
   //{{{ cocenterParens
   /** Cocenters on a number in parens in point ID **/
   public void cocenterParens(KPoint p, Kinemage kin) {
+    long startTime = System.currentTimeMillis();
     setOrigCoords();
     String matchParen = getParen(p);
     //System.out.println(matchParen);
-    currentParen = Integer.parseInt(matchParen);
+    current = Integer.parseInt(matchParen);
     Iterator iter = kin.iterator();
     while (iter.hasNext()) {
       KGroup group = (KGroup) iter.next();
@@ -194,6 +197,7 @@ public class CoCenterTool extends BasicTool {
         }
       }
     }
+    System.out.println("Cocenter took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
   }
   //}}}
   
@@ -259,109 +263,197 @@ public class CoCenterTool extends BasicTool {
   //{{{ onForward/Backward
   public void onForward(ActionEvent ev) {
     long startTime = System.currentTimeMillis();
-    if (doParensBox.isSelected()) {
-      forwardParens();
-    } else {
-      Kinemage kin = kMain.getKinemage();
-      KIterator<KPoint> points = KIterator.visiblePoints(kin);
-      KPoint point = null; // for cocentering on res+1 point
-      KPoint lowPoint = null; // for cocentering on next lowest point, if no res+1
-      int lowResNum = Integer.MAX_VALUE;
-      while (point == null && points.hasNext()) {
-        KPoint testPt = points.next();
-        String atomName = KinUtil.getAtomName(testPt).toLowerCase();
-        if (atomName.equals((String)atomsBox.getSelectedItem())) {
-          int resNum = KinUtil.getResNumber(testPt);
-          if (resNum == current + 1) {
-            point = testPt;
-          } else if (resNum < lowResNum) {
-            lowResNum = resNum;
-            lowPoint = testPt;
-          }
-        }
-      }
-      if (point != null) {
-        cocenter(point, kin);
-        services.pick(point);
-        services.centerOnPoint(point);
-      } else {
-        if (lowPoint != null) {
-          cocenter(lowPoint, kin);
-          services.pick(lowPoint);
-          services.centerOnPoint(lowPoint);
-        }
-      }
-    }
-    System.out.println("Cocenter took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
+    KPoint next = findNextPoint(doParensBox.isSelected());
+      //Kinemage kin = kMain.getKinemage();
+      //KIterator<KPoint> points = KIterator.visiblePoints(kin);
+      //KPoint point = null; // for cocentering on res+1 point
+      //KPoint lowPoint = null; // for cocentering on next lowest point, if no res+1
+      //int lowResNum = Integer.MAX_VALUE;
+      //while (point == null && points.hasNext()) {
+      //  KPoint testPt = points.next();
+      //  String atomName = KinUtil.getAtomName(testPt).toLowerCase();
+      //  if (atomName.equals((String)atomsBox.getSelectedItem())) {
+      //    int resNum = KinUtil.getResNumber(testPt);
+      //    if (resNum == current + 1) {
+      //      point = testPt;
+      //    } else if (resNum < lowResNum) {
+      //      lowResNum = resNum;
+      //      lowPoint = testPt;
+      //    }
+      //  }
+      //}
+      System.out.println("Finding match point took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
+      //if (point != null) {
+      //  cocenter(point, kin);
+      //  services.pick(point);
+      //  services.centerOnPoint(point);
+      //} else {
+      //  if (lowPoint != null) {
+      //    cocenter(lowPoint, kin);
+      //    services.pick(lowPoint);
+      //    services.centerOnPoint(lowPoint);
+      //  }
+      //}
+    
+    coReCenter(next, doParensBox.isSelected());
   }
   
   public void onBackward(ActionEvent ev) {
-    Kinemage kin = kMain.getKinemage();
-    KIterator<KPoint> points = KIterator.visiblePoints(kin);
-    KPoint point = null;
-    KPoint highPoint = null;
-    int highResNum = Integer.MIN_VALUE;
-    while (point == null && points.hasNext()) {
-      KPoint testPt = points.next();
-      String atomName = KinUtil.getAtomName(testPt).toLowerCase();
-      if (atomName.equals((String)atomsBox.getSelectedItem())) {
-        int resNum = KinUtil.getResNumber(testPt);
-        if (resNum == current - 1) {
-          point = testPt;
-        } else if (resNum > highResNum) {
-          highResNum = resNum;
-          highPoint = testPt;
-        }
-      }
-    }
-    if (point != null) {
-      cocenter(point, kin);
-      services.pick(point);
-      services.centerOnPoint(point);
-    } else {
-      if (highPoint != null) {
-        cocenter(highPoint, kin);
-        services.pick(highPoint);
-        services.centerOnPoint(highPoint);
-      }
-    }
+    long startTime = System.currentTimeMillis();
+    KPoint prev = findPrevPoint(doParensBox.isSelected());
+    System.out.println("Finding match point took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
+    coReCenter(prev, doParensBox.isSelected());
+    //Kinemage kin = kMain.getKinemage();
+    //KIterator<KPoint> points = KIterator.visiblePoints(kin);
+    //KPoint point = null;
+    //KPoint highPoint = null;
+    //int highResNum = Integer.MIN_VALUE;
+    //while (point == null && points.hasNext()) {
+    //  KPoint testPt = points.next();
+    //  String atomName = KinUtil.getAtomName(testPt).toLowerCase();
+    //  if (atomName.equals((String)atomsBox.getSelectedItem())) {
+    //    int resNum = KinUtil.getResNumber(testPt);
+    //    if (resNum == current - 1) {
+    //      point = testPt;
+    //    } else if (resNum > highResNum) {
+    //      highResNum = resNum;
+    //      highPoint = testPt;
+    //    }
+    //  }
+    //}
+    //if (point != null) {
+    //  cocenter(point, kin);
+    //  services.pick(point);
+    //  services.centerOnPoint(point);
+    //} else {
+    //  if (highPoint != null) {
+    //    cocenter(highPoint, kin);
+    //    services.pick(highPoint);
+    //    services.centerOnPoint(highPoint);
+    //  }
+    //}
   }
   //}}}
   
   //{{{ onForwardParen
-  public void forwardParens() {
+  //public void forwardParens() {
+  //  long startTime = System.currentTimeMillis();
+  //  //Kinemage kin = kMain.getKinemage();
+  //  //KIterator<KPoint> points = KIterator.visiblePoints(kin);
+  //  //KPoint point = null;
+  //  //KPoint lowPoint = null;
+  //  //int lowResNum = Integer.MAX_VALUE;
+  //  //int lowParen = Integer.MAX_VALUE;
+  //  //while (points.hasNext()) {
+  //  //  KPoint testPt = points.next();
+  //  //  String paren = getParen(testPt);
+  //  //  if (!paren.equals("")) {
+  //  //    int parenNum = Integer.parseInt(paren);
+  //  //    //System.out.println(paren);
+  //  //    if ((parenNum > currentParen)&&(parenNum < lowParen)) {
+  //  //      point = testPt;
+  //  //      lowParen = parenNum;
+  //  //    } else if (parenNum < lowResNum) {
+  //  //      lowResNum = parenNum;
+  //  //      lowPoint = testPt;
+  //  //    }
+  //  //  }
+  //  //}
+  //  System.out.println("Finding match point took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
+  //  if (point != null) {
+  //    cocenterParens(point, kin);
+  //    services.pick(point);
+  //    services.centerOnPoint(point);
+  //  } else {
+  //    if (lowPoint != null) {
+  //      cocenterParens(lowPoint, kin);
+  //      services.pick(lowPoint);
+  //      services.centerOnPoint(lowPoint);
+  //    }
+  //  }
+  //}
+  //}}}
+  
+  //{{{ findNextPoint
+  public KPoint findNextPoint(boolean useParens) {
     Kinemage kin = kMain.getKinemage();
     KIterator<KPoint> points = KIterator.visiblePoints(kin);
     KPoint point = null;
-    KPoint lowPoint = null;
-    int lowResNum = Integer.MAX_VALUE;
-    int lowParen = Integer.MAX_VALUE;
-    while (point == null && points.hasNext()) {
+    KPoint lowestPoint = null;
+    int lowestNum = Integer.MAX_VALUE;
+    int nearestNum = Integer.MAX_VALUE;
+    while (points.hasNext()) {
       KPoint testPt = points.next();
-      String paren = getParen(testPt);
-      if (!paren.equals("")) {
-        int parenNum = Integer.parseInt(paren);
-        //System.out.println(paren);
-        if ((parenNum > currentParen)&&(parenNum < lowParen)) {
+      int testNum = Integer.MIN_VALUE;
+      if (useParens) {
+        String paren = getParen(testPt);
+        if (!paren.equals("")) testNum = Integer.parseInt(paren);
+      } else {
+        String atomName = KinUtil.getAtomName(testPt).toLowerCase();
+        if (atomName.equals((String)atomsBox.getSelectedItem())) {
+          testNum = KinUtil.getResNumber(testPt);
+        }
+      }
+      if (testNum != Integer.MIN_VALUE) {
+        if (testNum == current + 1) return testPt;
+        if ((testNum > current)&&(testNum < nearestNum)) {
           point = testPt;
-          lowParen = parenNum;
-        } else if (parenNum < lowResNum) {
-          System.out.println(parenNum);
-          lowResNum = parenNum;
-          lowPoint = testPt;
+          nearestNum = testNum;
+        } else if (testNum < lowestNum) {
+          lowestNum = testNum;
+          lowestPoint = testPt;
         }
       }
     }
+    if (point != null) return point;
+    return lowestPoint;
+  }
+  //}}}
+
+  //{{{ findPrevPoint
+  public KPoint findPrevPoint(boolean useParens) {
+    Kinemage kin = kMain.getKinemage();
+    KIterator<KPoint> points = KIterator.visiblePoints(kin);
+    KPoint point = null;
+    KPoint highestPoint = null;
+    int highestNum = Integer.MIN_VALUE;
+    int nearestNum = Integer.MIN_VALUE;
+    while (points.hasNext()) {
+      KPoint testPt = points.next();
+      int testNum = Integer.MAX_VALUE;
+      if (useParens) {
+        String paren = getParen(testPt);
+        if (!paren.equals("")) testNum = Integer.parseInt(paren);
+      } else {
+        String atomName = KinUtil.getAtomName(testPt).toLowerCase();
+        if (atomName.equals((String)atomsBox.getSelectedItem())) {
+          testNum = KinUtil.getResNumber(testPt);
+        }
+      }
+      if (testNum != Integer.MAX_VALUE) {
+        if (testNum == current - 1) return testPt;
+        if ((testNum < current)&&(testNum > nearestNum)) {
+          point = testPt;
+          nearestNum = testNum;
+        } else if (testNum > highestNum) {
+          highestNum = testNum;
+          highestPoint = testPt;
+        }
+      }
+    }
+    if (point != null) return point;
+    return highestPoint;
+  }
+  //}}}
+  
+  //{{{ coReCenter
+  public void coReCenter(KPoint point, boolean doParens) {
+    Kinemage kin = kMain.getKinemage();
     if (point != null) {
-      cocenterParens(point, kin);
+      if (doParens)  cocenterParens(point, kin);
+      else           cocenter(point, kin);
       services.pick(point);
       services.centerOnPoint(point);
-    } else {
-      if (lowPoint != null) {
-        cocenterParens(lowPoint, kin);
-        services.pick(lowPoint);
-        services.centerOnPoint(lowPoint);
-      }
     }
   }
   //}}}
@@ -369,11 +461,13 @@ public class CoCenterTool extends BasicTool {
   //{{{ getParen
   public String getParen(KPoint p) {
     String name = p.getName();
-    String[] parsed = Strings.explode(p.getName(), " ".charAt(0), false, true);
-    //String matchParen = "";
-    for (String s : parsed) {
-      if (s.matches("\\([0-9]*\\)")) {
-        return s.substring(1, s.length()-1);
+    if (name.matches("\\([0-9]*\\).*")) {
+      String[] parsed = Strings.explode(p.getName(), " ".charAt(0), false, true);
+      //String matchParen = "";
+      for (String s : parsed) {
+        if (s.matches("\\([0-9]*\\)")) {
+          return s.substring(1, s.length()-1);
+        }
       }
     }
     return "";
