@@ -191,6 +191,8 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
         // Build the buttons later; create a scrolling panel for them now
         buttonScroll = new JScrollPane();
         buttonScroll.setPreferredSize(new Dimension(150,200));
+        buttonScroll.getVerticalScrollBar().setUnitIncrement(16);
+        // This ^ makes scrolling reasonably fast, like other programs - DAK 090501
         
         // Build the kinemage chooser
         JScrollPane chooserScroll = new JScrollPane(kMain.getStable().getChooser());
