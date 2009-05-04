@@ -6,6 +6,7 @@ import king.core.*;
 
 //import java.io.*;
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.event.*;
 import java.awt.*;
 import java.net.*;
@@ -40,11 +41,19 @@ public class CoCenterTool extends BasicTool {
   JButton resetButton;
   JComboBox atomsBox;
   JCheckBox doParensBox;
+  JCheckBox doSlideBox;
   ArrayList origCoords = null;
   int current = Integer.MIN_VALUE;
   //int currentParen = Integer.MIN_VALUE;
   ReflectiveAction backAct;
   ReflectiveAction fwdAct;
+  
+  Timer smoothTimer;
+  float xincr;
+  float yincr;
+  float zincr;
+  float[] center;
+  int slideCounter;
   //}}}
   
   //{{{ Constructors
@@ -65,6 +74,9 @@ public class CoCenterTool extends BasicTool {
     pane.getActionMap().put("doBack", backAct);
     kMain.getContentPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('J'), "doBack");
     kMain.getContentPane().getActionMap().put("doBack", backAct);
+    
+    smoothTimer = new Timer(20, new ReflectiveAction(null, null, this, "onSmooth"));
+    slideCounter = 1;
     // Helpful hint for users:
     this.services.setID("Ctrl-click, option-click, or middle-click a point to co-center");
   }
@@ -88,7 +100,8 @@ public class CoCenterTool extends BasicTool {
     fwdButton.setToolTipText("Cocenter and center on next residue");
     //fwdButton.setMnemonic(KeyEvent.VK_N);
     doParensBox = new JCheckBox("Cocenter on parens");
-
+    doSlideBox = new JCheckBox("Slide to next point");
+    
     pane = new TablePane2();
     pane.newRow();
     pane.add(atomsBox);
@@ -98,7 +111,8 @@ public class CoCenterTool extends BasicTool {
     pane.add(resetButton, 3, 1);
     pane.newRow();
     pane.add(doParensBox, 3, 1);
-    
+    pane.newRow();
+    pane.add(doSlideBox, 3, 1);
   }
   //}}}
   
@@ -128,6 +142,9 @@ public class CoCenterTool extends BasicTool {
     setOrigCoords();
     current = KinUtil.getResNumber(p);
     String pName = p.getName();
+    if (pName.matches("\\([0-9]*\\).*")) {
+      pName = pName.substring(pName.indexOf(")")+1, pName.length()).trim();
+    }
     if (pName.length() > 14) pName = pName.substring(0, 14);
     //System.out.println(pName);
     Iterator iter = kin.iterator();
@@ -141,6 +158,9 @@ public class CoCenterTool extends BasicTool {
       while (pts.hasNext() && !foundPt) {
         KPoint test = pts.next();
         String testName = test.getName();
+        if (testName.matches("\\([0-9]*\\).*")) {
+          testName = testName.substring(testName.indexOf(")")+1, testName.length()).trim();
+        }
         if (testName.length() > 14) testName = testName.substring(0, 14);
         if (testName.equals(pName)) {
           foundPt = true;
@@ -264,37 +284,7 @@ public class CoCenterTool extends BasicTool {
   public void onForward(ActionEvent ev) {
     long startTime = System.currentTimeMillis();
     KPoint next = findNextPoint(doParensBox.isSelected());
-      //Kinemage kin = kMain.getKinemage();
-      //KIterator<KPoint> points = KIterator.visiblePoints(kin);
-      //KPoint point = null; // for cocentering on res+1 point
-      //KPoint lowPoint = null; // for cocentering on next lowest point, if no res+1
-      //int lowResNum = Integer.MAX_VALUE;
-      //while (point == null && points.hasNext()) {
-      //  KPoint testPt = points.next();
-      //  String atomName = KinUtil.getAtomName(testPt).toLowerCase();
-      //  if (atomName.equals((String)atomsBox.getSelectedItem())) {
-      //    int resNum = KinUtil.getResNumber(testPt);
-      //    if (resNum == current + 1) {
-      //      point = testPt;
-      //    } else if (resNum < lowResNum) {
-      //      lowResNum = resNum;
-      //      lowPoint = testPt;
-      //    }
-      //  }
-      //}
-      System.out.println("Finding match point took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
-      //if (point != null) {
-      //  cocenter(point, kin);
-      //  services.pick(point);
-      //  services.centerOnPoint(point);
-      //} else {
-      //  if (lowPoint != null) {
-      //    cocenter(lowPoint, kin);
-      //    services.pick(lowPoint);
-      //    services.centerOnPoint(lowPoint);
-      //  }
-      //}
-    
+    System.out.println("Finding match point took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
     coReCenter(next, doParensBox.isSelected());
   }
   
@@ -450,10 +440,44 @@ public class CoCenterTool extends BasicTool {
   public void coReCenter(KPoint point, boolean doParens) {
     Kinemage kin = kMain.getKinemage();
     if (point != null) {
+      if (doSlideBox.isSelected()) smoothCenter(point);
+      else                         services.centerOnPoint(point);
       if (doParens)  cocenterParens(point, kin);
       else           cocenter(point, kin);
       services.pick(point);
-      services.centerOnPoint(point);
+      //services.centerOnPoint(point);
+
+    }
+  }
+  //}}}
+  
+  //{{{ smoothCenter
+  public void smoothCenter(KPoint point) {
+    KView view = kMain.getView();
+    center = view.getCenter();
+    //for (float f : center) System.out.println(f);
+    float xdiff = (float) point.getX() - center[0];
+    float ydiff = (float) point.getY() - center[1];
+    float zdiff = (float) point.getZ() - center[2];
+    xincr = xdiff / 30;
+    yincr = ydiff / 30;
+    zincr = zdiff / 30;
+    smoothTimer.start();
+    //for (int i = 1; i <= 20; i++) {
+    //  view.setCenter(center[0]+xincr*i, center[1]+yincr*i, center[2]+zincr*i);
+    //}
+  }
+  
+  public void onSmooth(ActionEvent ev) {
+    KView view = kMain.getView();
+    //for (float f : center) System.out.print(f+" ");
+    //System.out.println();
+    view.setCenter(center[0]+(float)(xincr*15*(Math.sin(Math.PI*slideCounter/30-Math.PI/2)+1)), center[1]+(float)(yincr*15*(Math.sin(Math.PI*slideCounter/30-Math.PI/2)+1)), center[2]+(float)(zincr*15*(Math.sin(Math.PI*slideCounter/30-Math.PI/2)+1)));
+    slideCounter++;
+    if (slideCounter > 30) {
+      //for (float f : view.getCenter()) System.out.println(f);
+      slideCounter = 1;
+      smoothTimer.stop();
     }
   }
   //}}}
