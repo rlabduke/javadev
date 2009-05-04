@@ -202,7 +202,7 @@ public class KinUtil {
 	  //  }
     //}
     String[] parsed = Strings.explode(name, " ".charAt(0), false, true);
-
+    if (parsed[0].matches("\\([0-9]*\\).*")) return parsed[1];
     return parsed[0];
   }
   
