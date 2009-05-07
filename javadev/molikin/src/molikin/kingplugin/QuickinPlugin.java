@@ -79,9 +79,8 @@ public class QuickinPlugin extends king.Plugin {
     if (kMain.getApplet() == null) {
       buildFileChooser();
     }
-    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make lots kinemage", Quickin.getLotsLogic()));
-    BallAndStickLogic logic = Quickin.getLotsLogic();
-    logic.doPseudoBB        = true;
+    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make lots kinemage", Quickin.getLotsLogic(true)));
+    BallAndStickLogic logic = Quickin.getLotsLogic(true);
     logic.doBackbone        = false;
     logic.doSidechains      = false;
     logic.doHydrogens       = false;
