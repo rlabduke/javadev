@@ -41,3 +41,4 @@ king.tool.loops.PatchGapPlugin
 king.tool.loops.LoopRmsdTool
 # king.tool.nmr.RdcVisTool
 king.tool.nmr.CoCenterTool
+king.tool.nmr.ParenTool

@@ -64,7 +64,9 @@ public class CoCenterTool extends BasicTool {
   
   //{{{ start
   public void start() {
-    buildGUI();
+    if (pane == null) {
+      buildGUI();
+    }
     show();
     pane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('j'), "doFwd");
     pane.getActionMap().put("doFwd", fwdAct);
@@ -79,6 +81,13 @@ public class CoCenterTool extends BasicTool {
     slideCounter = 1;
     // Helpful hint for users:
     this.services.setID("Ctrl-click, option-click, or middle-click a point to co-center");
+  }
+  
+  public void stop()
+  {
+    onReset(null);
+    origCoords = null;
+    hide();
   }
   //}}}
   
