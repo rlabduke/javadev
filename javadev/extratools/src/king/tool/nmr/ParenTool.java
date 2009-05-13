@@ -45,7 +45,7 @@ public class ParenTool extends BasicTool implements ListSelectionListener {
     JButton removeButton = new JButton(new ReflectiveAction("Remove group", redMinus, this, "onMinus"));
     
     drawingPaneList = new FatJList(0, 4);
-    drawingPaneList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    drawingPaneList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     drawingPaneList.setVisibleRowCount(8);
     drawingPaneList.addListSelectionListener(this);
     
@@ -96,7 +96,9 @@ public class ParenTool extends BasicTool implements ListSelectionListener {
         }
       }
     }
-    drawingPaneList.setListData(groupData.values().toArray());
+    Object[] groups = groupData.values().toArray();
+    Arrays.sort(groups);
+    drawingPaneList.setListData(groups);
   }
   //}}}
   
@@ -108,7 +110,9 @@ public class ParenTool extends BasicTool implements ListSelectionListener {
     }
     ParenGroup pGroup = new ParenGroup(Integer.parseInt(inputValue));
     groupData.put(inputValue, pGroup);
-    drawingPaneList.setListData(groupData.values().toArray());
+    Object[] groups = groupData.values().toArray();
+    Arrays.sort(groups);
+    drawingPaneList.setListData(groups);
   }
   
   public void onMinus(ActionEvent ev) {
@@ -117,7 +121,9 @@ public class ParenTool extends BasicTool implements ListSelectionListener {
       selected.clear();
     }
     groupData.remove(selected.getParen());
-    drawingPaneList.setListData(groupData.values().toArray());
+    Object[] groups = groupData.values().toArray();
+    Arrays.sort(groups);
+    drawingPaneList.setListData(groups);
     kMain.getKinemage().fireKinChanged(AGE.CHANGE_POINT_CONTENTS);
   }
   //}}}
