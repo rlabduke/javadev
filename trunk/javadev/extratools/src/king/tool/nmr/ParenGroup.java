@@ -15,7 +15,7 @@ import driftwood.r3.*;
 * <p>Copyright (C) 2009 by Vincent B. Chen. All rights reserved.
 * <br>Begun Fri May 08 15:08:17 EDT 2009
 **/
-public class ParenGroup {
+public class ParenGroup implements Comparable {
 
   //{{{ Constants
   //}}}
@@ -29,6 +29,7 @@ public class ParenGroup {
   //{{{ Constructors
   public ParenGroup(int n) {
     labelList = new KList(KList.LABEL);
+    labelList.setColor(KPalette.deadwhite);
     points = new ArrayList<KPoint>();
     num = n;
   }
@@ -103,6 +104,21 @@ public class ParenGroup {
   //{{{ getParen
   public String getParen() {
     return Integer.toString(num);
+  }
+  //}}}
+  
+  //{{{ compareTo
+  public int compareTo(Object o) {
+    if(o == null) return 1; // null sorts to front
+    ParenGroup g1 = this;
+    ParenGroup g2 = (ParenGroup)o;
+    
+    int comp = g1.getParen().compareTo(g2.getParen());
+    if(comp != 0) return comp;
+    comp = g1.getList().getChildren().size() - g2.getList().getChildren().size();
+    if(comp != 0) return comp;
+    
+    return 0;
   }
   //}}}
   
