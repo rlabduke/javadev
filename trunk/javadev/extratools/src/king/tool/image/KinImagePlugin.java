@@ -23,16 +23,22 @@ import java.text.DecimalFormat;
 //}}}
 /**
 * <code>KinImagePlugin</code> makes kinemages from images (kin <- image).
-* 
-* The resulting kin will fit within a 400 x 400 box and its lists will have
-* the 'screen' keyword so it stays immobile with zooms and flatland drags.
-* It should, however, rescale to the screen's max dimension if the KiNG 
-* window gets resized.
-* 
+*
 * Note that, cleverly, "KinImage" sounds like "kinemage."
 * (wild applause)  Thank you - you're too kind!
+* 
+* The resulting kin will fit inside a 400 x 400 box (-200 to +200 in x and y).
+* 
+* Its lists will have the 'screen' keyword so it stays immobile with zooms, rotations,  
+* and translations (e.g. flatland drags).
+*
+* If the KiNG window gets resized, all such screen-centered lists will rescale to 
+* fully encompass the smaller of the graphics area's two dimensions (x and y). 
+* 
+* <p>Copyright (C) 2009 by Daniel A. Keedy & Vincent B. Chen. All rights reserved.
+* <br>Begun on March(?) ?? 2009
 */
-public class KinImagePlugin extends BasicTool
+public class KinImagePlugin extends Plugin
 {
 //{{{ Constants
 //##############################################################################
@@ -43,21 +49,31 @@ public class KinImagePlugin extends BasicTool
 
 //{{{ Variable definitions
 //##############################################################################
-    /** Take 1 of every n pixels from original image */
-    int                     imageResol   = 1;
     
-    BufferedImage           image        = null;
-    String                  imageName    = null;
-    JFrame                  imageFrame   = null;
+    /** Input */
+    BufferedImage image     = null;
+    String        imageName = null;
     
+    /** GUI stuff */
+    JDialog       dialog;
+    JRadioButton  rbLoc, rbWeb, rbNewKin, rbAppend;
+    JComboBox     imageResolBox;
+    JCheckBox     preview;
+    JCheckBox     unpickable;
+    JFileChooser  fileChooser  = null;
+    
+    /** Output options */
+    int           imageResol   = 1; // take 1 of every n pixels from original image
+    JFrame        previewFrame;
+    
+    /** Under-the-hood, operational stuff */
     HashSet<Triple>         newColorSet  = null;
     HashMap<Triple, String> colorMap     = null;
+    int[]                   rawBounds    = null; // for scaling down to 400 x 400
+    int[]                   scaledBounds = null; // for scaling down to 400 x 400
+    int                     zDepth       = 0;    // how "far back" the image will be in kinemage xyz space
+                                                 // (but screen keyword changes where it's rendered by engine)
     
-    /** For scaling down to 400 x 400 */
-    int[]                   rawBounds    = null;
-    int[]                   scaledBounds = null;
-    
-    JFileChooser  fileChooser  = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -65,16 +81,90 @@ public class KinImagePlugin extends BasicTool
     public KinImagePlugin(ToolBox tb)
     {
         super(tb);
+        buildGUI();
     }
 //}}}
 
-//{{{ onStart
-//##################################################################################################
-    public void onStart(ActionEvent ev)
+//{{{ buildGUI
+//##############################################################################
+    protected void buildGUI()
     {
-	    loadImage();
-        showImage();
-        doKin(); // actually based on Vince's doKin2() from cmdline.KinImage
+        JLabel labSrc = new JLabel("Image Source:");
+        rbLoc = new JRadioButton("Local image file", true);
+        rbWeb = new JRadioButton("DaveTheMage from web", false);
+        ButtonGroup btnGrpSrc = new ButtonGroup();
+        btnGrpSrc.add(rbLoc);
+        btnGrpSrc.add(rbWeb);
+        
+        String[] imageResols = { "high-res (use all input pixels)", 
+                                 "medium-res (use 1/2 input pixels)", 
+                                 "low-res (use 1/4 input pixels)" };
+        imageResolBox = new JComboBox(imageResols);
+        imageResolBox.setSelectedItem("medium-res (use 1/2 input pixels)");
+	    
+        JLabel labOut = new JLabel("Output:");
+        rbNewKin = new JRadioButton("Make new kinemage", false);
+        rbAppend = new JRadioButton("Append to current", true);
+        ButtonGroup btnGrpOut = new ButtonGroup();
+        btnGrpOut.add(rbNewKin);
+        btnGrpOut.add(rbAppend);
+        
+        JLabel labOpts = new JLabel("Other Options:");
+        unpickable = new JCheckBox("Background image unpickable?", true);
+        preview    = new JCheckBox("Preview in popup window?", false);
+        
+        JButton confirm = new JButton(new ReflectiveAction(
+            "Mmmmkay!", null, this, "onConfirm"));
+        
+        TablePane2 cp = new TablePane2();
+        cp.newRow();
+        cp.startSubtable(1, 1).hfill(true).memorize();
+            cp.addCell(labSrc);
+            cp.newRow();
+            cp.addCell(rbLoc);
+            cp.newRow();
+            cp.addCell(rbWeb);
+        cp.endSubtable();
+        cp.newRow();
+        cp.add(imageResolBox);
+        cp.newRow();
+        cp.startSubtable(1, 1).hfill(true).memorize();
+            cp.addCell(labOut);
+            cp.newRow();
+            cp.addCell(rbNewKin);
+            cp.newRow();
+            cp.addCell(rbAppend);
+        cp.endSubtable();
+        cp.newRow();
+        cp.add(labOpts);
+        cp.newRow();
+        cp.add(unpickable);
+        cp.newRow();
+        cp.add(preview);
+        cp.newRow();
+        cp.addCell(confirm);
+        
+        dialog = new JDialog(kMain.getTopWindow(), this.toString(), false);
+        dialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
+        dialog.setContentPane(cp);
+    }
+//}}}
+
+//{{{ onConfirm
+//##############################################################################
+    public void onConfirm(ActionEvent ev)
+    {
+        String r = (String)imageResolBox.getSelectedItem();
+        imageResol = 1;
+        //if      (r.equals("high-res (use all input pixels)"  ))  imageResol = 1;
+        if      (r.equals("medium-res (use 1/2 input pixels)"))  imageResol = 2;
+        else if (r.equals("low-res (use 1/4 input pixels)"   ))  imageResol = 4;
+        
+        loadImage();
+        
+        if(preview.isSelected())  previewImage();
+        
+        doKin();
     }
 //}}}
 
@@ -82,11 +172,14 @@ public class KinImagePlugin extends BasicTool
 //##############################################################################
     public void loadImage()
     {
-        String imageSource = askImageSource();
-        if(imageSource.equals("local file"))
+        if(rbLoc.isSelected())
         {
-            // Create file chooser on demand
-            if(fileChooser == null) makeFileChooser();
+            // Make file chooser.  Will throw an exception if we're running as an applet (?)
+            TablePane acc = new TablePane();
+            fileChooser = new JFileChooser();
+            String currDir = System.getProperty("user.dir");
+            if(currDir != null) fileChooser.setCurrentDirectory(new File(currDir));
+            fileChooser.setAccessory(acc);
             if(JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(kMain.getTopWindow()))
             {
                 try 
@@ -95,19 +188,21 @@ public class KinImagePlugin extends BasicTool
                     image = ImageIO.read(f);
                     imageName = f.getName();
                 }
-                catch(IOException ex) {
+                catch(IOException ex)
+                {
                     JOptionPane.showMessageDialog(kMain.getTopWindow(),
                     "An I/O error occurred while loading the file:\n"+ex.getMessage(),
                     "Sorry!", JOptionPane.ERROR_MESSAGE);
                 }
-                catch(IllegalArgumentException ex) {
+                catch(IllegalArgumentException ex)
+                {
                     JOptionPane.showMessageDialog(kMain.getTopWindow(),
                     "Wrong file format was chosen, or file is corrupt:\n"+ex.getMessage(),
                     "Sorry!", JOptionPane.ERROR_MESSAGE);
                 }
             }
         }
-        else //imageSource.equals("URL")
+        else //rbWeb.isSelected()
         {
             try
             {
@@ -121,78 +216,29 @@ public class KinImagePlugin extends BasicTool
                 "Sorry!", JOptionPane.ERROR_MESSAGE);
             }
         }
-        
-        //// Ask for desired kin resolution relative to starting image
-        //imageResol = askResol();
     }
 //}}}
 
-//{{{ askImageSource, askResol, askAppend
-//##############################################################################
-    private String askImageSource()
-    {
-        Object[] choices = {"local file", "DaveTheMage from web"};
-        String choice = (String) JOptionPane.showInputDialog(
-            kMain.getTopWindow(), "Please indicate the source of your image.", 
-            "Choose", JOptionPane.PLAIN_MESSAGE, null, choices, "local file");
-        return choice;
-    }
-    
-    private int askResol()
-    {
-        int resol = 1; // CHANGE LATER
-        
-        //?????????????
-        
-        return resol;
-    }
-    
-    private boolean askAppend()
-    {
-        Object[] choices = {"new kinemage", "append to current kinemage"};
-        String choice = (String) JOptionPane.showInputDialog(
-            kMain.getTopWindow(), "Make new kin w/ this image or append to current kin?", 
-            "Choose", JOptionPane.PLAIN_MESSAGE, null, choices, "new kinemage");
-        return (choice.equals("new kinemage") ? false : true);
-    }
-//}}}
-
-//{{{ makeFileChooser
-//##################################################################################################
-    void makeFileChooser()
-    {
-        // Make accessory for file chooser
-        TablePane acc = new TablePane();
-
-        // Make actual file chooser -- will throw an exception if we're running as an applet
-        fileChooser = new JFileChooser();
-        String currDir = System.getProperty("user.dir");
-        if(currDir != null) fileChooser.setCurrentDirectory(new File(currDir));
-        
-        fileChooser.setAccessory(acc);
-    }
-//}}}
-
-//{{{ showImage
+//{{{ previewImage
 //##############################################################################
     /** Uses a Java window to display the starting image */
-    public void showImage()
+    public void previewImage()
     {
-        imageFrame = new JFrame();
+        previewFrame = new JFrame();
         JLabel label = new JLabel(new ImageIcon(image));
-        imageFrame.getContentPane().add(label, BorderLayout.CENTER);
-        imageFrame.pack();
-        imageFrame.setVisible(true);
-        imageFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        imageFrame.setTitle("kin << image from "+imageName+" .. running");
-        imageFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        previewFrame.getContentPane().add(label, BorderLayout.CENTER);
+        previewFrame.pack();
+        previewFrame.setVisible(true);
+        previewFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        previewFrame.setTitle(this.toString()+" from "+imageName+" ... running");
+        previewFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
 //}}}
 
 //{{{ doKin
 //##############################################################################
-    /** Puts together the coordinates for a kin, scaled to fit 
-    * inside a 400 x 400 square, from the provided image */
+    /** Makes a kin, scaled to fit inside a 400 x 400 square.
+    * Based on Vince's doKin2() from the old cmdline.KinImage */
     private void doKin()
 	{
         int w = image.getWidth();
@@ -231,9 +277,8 @@ public class KinImagePlugin extends BasicTool
         
         // Instead of printing out dots in kin format to stdout, as when 
         // KinImage was in cmdline, now we append to the existing Kinemage 
-        // object or make a new oneSystem.out.println("@group {"+imageName+"} dominant");
-        boolean append = askAppend();
-        plot(pixels, append);
+        // object or make a new one
+        plot(pixels);
     }
 //}}}
 
@@ -323,7 +368,7 @@ public class KinImagePlugin extends BasicTool
 //{{{ plot
 //##############################################################################
     /** Actually plots the kin to a KiNG Kinemage object */
-    private void plot(int[] pixels, boolean append)
+    private void plot(int[] pixels)
 	{
         // Dotlist
         KList list = new KList(KList.DOT, "pixels");
@@ -337,29 +382,29 @@ public class KinImagePlugin extends BasicTool
         group.add(list);
         
         // Kinemage
-        if(append) // append if possible; new kin otherwise
+        if(rbAppend.isSelected()) // append if possible; new kin otherwise
         {
             Kinemage kin = kMain.getKinemage();
             if(kin == null)  kin = new Kinemage(KinfileParser.DEFAULT_KINEMAGE_NAME+"1");
-            kin.atFlat = true;
+            //kin.atFlat = true; // 'screen' keyword takes care of this
             kin.add(group);
             for(KPaint kp : newKPaints)  kin.addPaint(kp);
             if(kMain.getKinemage() == null)
                 kMain.getStable().append(Arrays.asList(new Kinemage[] {kin}));
-            System.err.println("appended kin w/ group '"+imageName+"' to current kin");
+            //System.err.println("appended kin w/ group '"+imageName+"' to current kin");
         }
         else // new kin
         {
             Kinemage kin = new Kinemage(imageName);
-            kin.atFlat = true;
+            //kin.atFlat = true; // 'screen' keyword takes care of this
             kin.add(group);
             for(KPaint kp : newKPaints)  kin.addPaint(kp);
             kMain.getStable().append(Arrays.asList(new Kinemage[] {kin}));
-            System.err.println("made kin w/ group '"+imageName+"'");
+            //System.err.println("made kin w/ group '"+imageName+"'");
         }
         
-        imageFrame.setTitle("kin << image from "+imageName+" .. done!");
-        
+        if(preview.isSelected())
+            previewFrame.setTitle(this.toString()+" from "+imageName+" ... done!");
     }
 //}}}
 
@@ -394,8 +439,12 @@ public class KinImagePlugin extends BasicTool
                 Color col = new Color(pixels[i]);
                 int[] rgb = new int[] {col.getRed(), col.getGreen(), col.getBlue()};
                 float[] hsb0to1 = Color.RGBtoHSB(rgb[0], rgb[1], rgb[2], new float[3]);
-                float[] hsb = new float[] {hsb0to1[0]*360f, hsb0to1[1]*100f, hsb0to1[2]*100f}; // 0-360, 0-100, 0-100
-                Triple hsbTrip = new Triple((double)Math.rint(hsb[0]/5)*5,(double)Math.rint(hsb[1]/5)*5,(double)Math.rint(hsb[2]/5)*5);
+                float[] hsb = new float[] { hsb0to1[0]*360f,   // 0-360
+                                            hsb0to1[1]*100f,   // 0-100
+                                            hsb0to1[2]*100f }; // 0-100
+                Triple hsbTrip = new Triple((double)Math.rint(hsb[0]/5)*5,
+                                            (double)Math.rint(hsb[1]/5)*5,
+                                            (double)Math.rint(hsb[2]/5)*5);
                 String kcolor = colorMap.get(hsbTrip);
                 
                 if(!(hsb[0] == 0 && hsb[1] == 0 && hsb[2] == 0)) // i.e. not black
@@ -403,7 +452,9 @@ public class KinImagePlugin extends BasicTool
                     // Dotpoint
                     DotPoint point = new DotPoint(
                         "pixel "+df3.format(x2)+", "+df3.format(y2));
-                    point.setXYZ(x2, y2, 0);
+                    point.setXYZ(x2, y2, zDepth);
+                    
+                    if(unpickable.isSelected())  point.setUnpickable(true);
                     
                     KPaint c = KPaint.createLightweightHSV(kcolor, 
                         hsb[0], hsb[1], hsb[2], hsb[0], hsb[1], hsb[2]);
@@ -422,13 +473,21 @@ public class KinImagePlugin extends BasicTool
 //{{{ getToolsMenuItem, getHelpAnchor, toString
 //##################################################################################################
     public JMenuItem getToolsMenuItem()
-    { return new JMenuItem(new ReflectiveAction("Kin <- Image", null, this, "onStart")); }
+    { return new JMenuItem(new ReflectiveAction("Kin <- Image", null, this, "onShowDialog")); }
     
     public JMenuItem getHelpMenuItem()
     { return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onHelp")); }
     
     public String toString()
     { return "Kin <- Image"; }
+    
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onShowDialog(ActionEvent ev)
+    {
+        dialog.pack();
+        dialog.setLocationRelativeTo(kMain.getTopWindow());
+        dialog.setVisible(true);
+    }
 //}}}
 
 }//class
