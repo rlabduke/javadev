@@ -112,6 +112,7 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
         defaultTool = activeTool = new BasicTool(this);
         plugins.add(activeTool);
         loadPlugins();
+        scanForVersion();
         activeTool.start();
         
         kMain.subscribe(this);
@@ -180,9 +181,13 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
                     }
                 }
             //}
-                
+
             URLClassLoader jarLoader = new URLClassLoader(
                 (URL[]) urls.toArray(new URL[urls.size()]), defaultLoader);
+            //URL[] test = jarLoader.getURLs();
+            //for (URL u : test) { 
+            //  System.out.println(u);
+            //}
             return jarLoader;
             }
         }
@@ -248,6 +253,7 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
                 URL url = (URL) urls.nextElement();
                 try
                 {
+                  //System.out.println(url.toString());
                     InputStream is = url.openStream();
                     pluginProps.load(is);
                     is.close();
@@ -255,6 +261,8 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
                 catch(IOException ex)
                 { SoftLog.err.println("Plugin SPI error: "+ex.getMessage()); }
             }
+
+            
         }
         catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
         
@@ -269,6 +277,7 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
                 URL url = (URL) urls.nextElement();
                 try
                 {
+                  //System.out.println(url);
                     LineNumberReader in = new LineNumberReader(new InputStreamReader(url.openStream()));
                     String s;
                     while((s = in.readLine()) != null)
@@ -287,6 +296,67 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
         return pluginNames;
     }
 //}}}
+
+  //{{{ scanForVersion
+  /**
+  * Scans plugins and jars for their version and buildnum info.  Adds the info 
+  * directly to KingPrefs (mainly for use in the About King panel).
+  **/
+  public void scanForVersion() {
+    try
+    {
+      // This stupid dance is to get the names of the various plugin jars being loaded
+      // because I don't understand classloaders well enough to just use that.
+      Enumeration urls = pluginClassLoader.getResources("king/king_prefs");
+      ArrayList<String> jarNames = new ArrayList<String>();
+      while(urls.hasMoreElements())
+      {
+        URL url = (URL) urls.nextElement();
+        //System.out.println(url);
+        String jarFile = (new File(url.getFile())).getParentFile().getParentFile().getName();
+        jarNames.add(jarFile.substring(0, jarFile.lastIndexOf(".")));
+        jarNames.remove("king");
+      }
+      for (String jar : jarNames) {
+        urls = pluginClassLoader.getResources(jar+"/version.props");
+        while(urls.hasMoreElements())
+        {
+          URL url = (URL) urls.nextElement();
+          LineNumberReader in = new LineNumberReader(new InputStreamReader(url.openStream()));
+          String s;
+          while((s = in.readLine()) != null)
+          {
+            s = s.trim();
+            if(!s.equals("") && !s.startsWith("#")) {
+              String[] parts = Strings.explode(s, "=".charAt(0));
+              //System.out.println(jar+"."+parts[0] + "->" + parts[1]);
+              kMain.getPrefs().setProperty(jar+" "+parts[0], parts[1]);
+            }
+          }
+        }
+      }
+      for (String jar : jarNames) {
+        urls = pluginClassLoader.getResources(jar+"/buildnum.props");
+        while(urls.hasMoreElements())
+        {
+          URL url = (URL) urls.nextElement();
+          LineNumberReader in = new LineNumberReader(new InputStreamReader(url.openStream()));
+          String s;
+          while((s = in.readLine()) != null)
+          {
+            s = s.trim();
+            if(!s.equals("") && !s.startsWith("#")) {
+              String[] parts = Strings.explode(s, "=".charAt(0));
+              //System.out.println(jar+"."+parts[0] + "->" + parts[1]);
+              kMain.getPrefs().setProperty(jar+" "+parts[0], parts[1]);
+            }
+          }
+        }
+      }
+    }
+    catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
+  }
+  //}}}
 
 //{{{ canLoadPlugin
 //##################################################################################################

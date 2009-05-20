@@ -799,10 +799,21 @@ public class UIMenus implements KMessage.Subscriber
                 msgs.add(new JLabel("Installed in "+prefs.jarFileDirectory.getCanonicalPath()));
         } catch(IOException ex) {}
         msgs.add(new JLabel(" "));
+        msgs.add(new JLabel("Installed Plugins:"));
+        Enumeration propNames = prefs.propertyNames();
+        while (propNames.hasMoreElements()) {
+          String propName = (String) propNames.nextElement();
+          if (propName.matches(".* version")) {
+            String jarName = propName.substring(0, propName.lastIndexOf(" "));
+            String buildNum = prefs.getProperty(jarName+" buildnum");
+            msgs.add(new JLabel(propName+": "+prefs.getProperty(propName)+"."+buildNum));
+          }
+        }
+        msgs.add(new JLabel(" "));
         msgs.add(new JLabel("Created in the Richardson lab at Duke University"));
         msgs.add(new JLabel("http://kinemage.biochem.duke.edu"));
         msgs.add(new JLabel(" "));
-        msgs.add(new JLabel("Copyright (C) 2002-2007 Ian W. Davis and Vincent B. Chen"));
+        msgs.add(new JLabel("Copyright (C) 2002-2009 Ian W. Davis and Vincent B. Chen"));
         msgs.add(new JLabel("All rights reserved."));
 
         msgs.add(new JLabel(" "));
