@@ -14,7 +14,7 @@ import java.util.*;
 //import java.text.*;
 //
 import driftwood.gui.*;
-//import driftwood.r3.*;
+import driftwood.data.*;
 //import Jama.*;
 //import driftwood.moldb2.*;
 import driftwood.util.*;
@@ -39,14 +39,19 @@ public class CoCenterTool extends BasicTool {
   //{{{ Variables
   TablePane2 pane;
   JButton resetButton;
+  JTextField prevNumField;
+  JTextField currNumField;
+  JTextField nextNumField;
   JComboBox atomsBox;
-  JCheckBox doParensBox;
+  JRadioButton doNormalButton;
+  JRadioButton doParensButton;
   JCheckBox doSlideBox;
   ArrayList origCoords = null;
   int current = Integer.MIN_VALUE;
   //int currentParen = Integer.MIN_VALUE;
   ReflectiveAction backAct;
   ReflectiveAction fwdAct;
+  WrapMap groupData;
   
   Timer smoothTimer;
   float xincr;
@@ -64,6 +69,8 @@ public class CoCenterTool extends BasicTool {
   
   //{{{ start
   public void start() {
+    groupData = new WrapMap();
+    analyzeKin(kMain.getKinemage());
     if (pane == null) {
       buildGUI();
     }
@@ -91,37 +98,94 @@ public class CoCenterTool extends BasicTool {
   }
   //}}}
   
+  //{{{ analyzeKin
+  public void analyzeKin(Kinemage kin) {
+    KIterator<KPoint> points = KIterator.allPoints(kin);
+    for (KPoint p : points) {
+      String pName = p.getName();
+      if (pName.matches("\\([0-9]*\\).*")) {
+        String paren = getParen(p);
+        if (groupData.containsKey(paren)) {
+          ParenGroup pGroup = (ParenGroup) groupData.get(paren);
+          pGroup.add(p);
+        } else {
+          ParenGroup pGroup = new ParenGroup(Integer.parseInt(paren));
+          pGroup.add(p);
+          groupData.put(paren, pGroup);
+        }
+      }
+    }
+  }
+  //}}}
+  
+  //{{{ onSelected
+  public void onSelected(ActionEvent ev) {
+    if (ev.getActionCommand().equals("Cocenter on parens")) {
+      if (current == Integer.MIN_VALUE) {
+        nextNumField.setText("("+groupData.firstKey()+")");
+        prevNumField.setText("("+groupData.lastKey()+")");
+      } else {
+        nextNumField.setText("");
+        prevNumField.setText("");
+        currNumField.setText("");
+      }
+    } else {
+      nextNumField.setText("");
+      prevNumField.setText("");
+      currNumField.setText(Integer.toString(current));
+    }
+  }
+  //}}}
+  
   //{{{ buildGUI
   public void buildGUI() {
     String[] atoms = {"n", "ca", "c", "o", "p"};
     atomsBox = new JComboBox(atoms);
     resetButton = new JButton(new ReflectiveAction("Reset Coordinates", null, this, "onReset"));
+    prevNumField = new JTextField(4);
+    currNumField = new JTextField(4);
+    nextNumField = new JTextField(4);
+    
     backAct = new ReflectiveAction(null, kMain.getPrefs().stepBackIcon, this, "onBackward");
     //backAct.setAccelerator(KeyStroke.getKeyStroke('N'));
     JMenuItem backMenu = new JMenuItem(backAct);
     JButton backButton = new JButton(backAct);
     backButton.setToolTipText("Cocenter and center on previous residue");
+    
+    JButton currButton = new JButton(new ReflectiveAction("||", null, this, "onCurrent"));
+    
     fwdAct = new ReflectiveAction(null, kMain.getPrefs().stepForwardIcon, this, "onForward");
-    //fwdAct.setAccelerator(KeyStroke.getKeyStroke('n'));
     JMenuItem fwdMenu = new JMenuItem(fwdAct);
-    //System.out.println("accel:"+fwdMenu.getAccelerator()+" "+backMenu.getAccelerator());
     JButton fwdButton = new JButton(fwdAct);
     fwdButton.setToolTipText("Cocenter and center on next residue");
-    //fwdButton.setMnemonic(KeyEvent.VK_N);
-    doParensBox = new JCheckBox("Cocenter on parens");
+    
+    doNormalButton = new JRadioButton(new ReflectiveAction("Cocenter normally", null, this, "onSelected"));
+    doNormalButton.setSelected(true);
+    doParensButton = new JRadioButton(new ReflectiveAction("Cocenter on parens", null, this, "onSelected"));
+    ButtonGroup cocGroup = new ButtonGroup();
+    cocGroup.add(doNormalButton);
+    cocGroup.add(doParensButton);
     doSlideBox = new JCheckBox("Slide to next point");
     
     pane = new TablePane2();
     pane.newRow();
+    pane.skip();
+    pane.add(prevNumField);
+    pane.add(currNumField);
+    pane.add(nextNumField);
+    pane.newRow();
     pane.add(atomsBox);
     pane.add(backButton);
+    pane.add(currButton);
     pane.add(fwdButton);
     pane.newRow();
-    pane.add(resetButton, 3, 1);
+    pane.add(resetButton, 4, 1);
     pane.newRow();
-    pane.add(doParensBox, 3, 1);
+    pane.add(doNormalButton, 4, 1);
     pane.newRow();
-    pane.add(doSlideBox, 3, 1);
+    pane.add(doParensButton, 4, 1);
+    pane.newRow();
+    pane.add(doSlideBox, 4, 1);
   }
   //}}}
   
@@ -292,16 +356,16 @@ public class CoCenterTool extends BasicTool {
   //{{{ onForward/Backward
   public void onForward(ActionEvent ev) {
     long startTime = System.currentTimeMillis();
-    KPoint next = findNextPoint(doParensBox.isSelected());
+    KPoint next = findNextPoint(doParensButton.isSelected());
     System.out.println("Finding match point took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
-    coReCenter(next, doParensBox.isSelected());
+    coReCenter(next, doParensButton.isSelected());
   }
   
   public void onBackward(ActionEvent ev) {
     long startTime = System.currentTimeMillis();
-    KPoint prev = findPrevPoint(doParensBox.isSelected());
+    KPoint prev = findPrevPoint(doParensButton.isSelected());
     System.out.println("Finding match point took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
-    coReCenter(prev, doParensBox.isSelected());
+    coReCenter(prev, doParensButton.isSelected());
     //Kinemage kin = kMain.getKinemage();
     //KIterator<KPoint> points = KIterator.visiblePoints(kin);
     //KPoint point = null;
@@ -334,43 +398,38 @@ public class CoCenterTool extends BasicTool {
   }
   //}}}
   
-  //{{{ onForwardParen
-  //public void forwardParens() {
-  //  long startTime = System.currentTimeMillis();
-  //  //Kinemage kin = kMain.getKinemage();
-  //  //KIterator<KPoint> points = KIterator.visiblePoints(kin);
-  //  //KPoint point = null;
-  //  //KPoint lowPoint = null;
-  //  //int lowResNum = Integer.MAX_VALUE;
-  //  //int lowParen = Integer.MAX_VALUE;
-  //  //while (points.hasNext()) {
-  //  //  KPoint testPt = points.next();
-  //  //  String paren = getParen(testPt);
-  //  //  if (!paren.equals("")) {
-  //  //    int parenNum = Integer.parseInt(paren);
-  //  //    //System.out.println(paren);
-  //  //    if ((parenNum > currentParen)&&(parenNum < lowParen)) {
-  //  //      point = testPt;
-  //  //      lowParen = parenNum;
-  //  //    } else if (parenNum < lowResNum) {
-  //  //      lowResNum = parenNum;
-  //  //      lowPoint = testPt;
-  //  //    }
-  //  //  }
-  //  //}
-  //  System.out.println("Finding match point took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
-  //  if (point != null) {
-  //    cocenterParens(point, kin);
-  //    services.pick(point);
-  //    services.centerOnPoint(point);
-  //  } else {
-  //    if (lowPoint != null) {
-  //      cocenterParens(lowPoint, kin);
-  //      services.pick(lowPoint);
-  //      services.centerOnPoint(lowPoint);
-  //    }
-  //  }
-  //}
+  //{{{ onCurrent
+  public void onCurrent(ActionEvent ev) {
+    KPoint curr = findCurrentPoint(doParensButton.isSelected());
+    coReCenter(curr, doParensButton.isSelected());
+  }
+  //}}}
+  
+  //{{{ findCurrentPoint
+  public KPoint findCurrentPoint(boolean useParens) {
+    Kinemage kin = kMain.getKinemage();
+    KIterator<KPoint> points = KIterator.visiblePoints(kin);
+    KPoint point = null;
+    while (points.hasNext()) {
+      KPoint testPt = points.next();
+      int testNum = Integer.MIN_VALUE;
+      if (useParens) {
+        String paren = getParen(testPt);
+        if (!paren.equals("")) testNum = Integer.parseInt(paren);
+      } else {
+        String atomName = KinUtil.getAtomName(testPt).toLowerCase();
+        if (atomName.equals((String)atomsBox.getSelectedItem())) {
+          testNum = KinUtil.getResNumber(testPt);
+        }
+      }
+      if (testNum != Integer.MIN_VALUE) {
+        if (testNum == current) {
+          return testPt;
+        }
+      }
+    }
+    return null;
+  }
   //}}}
   
   //{{{ findNextPoint
@@ -394,7 +453,10 @@ public class CoCenterTool extends BasicTool {
         }
       }
       if (testNum != Integer.MIN_VALUE) {
-        if (testNum == current + 1) return testPt;
+        if (testNum == current + 1) {
+          currNumField.setText(Integer.toString(testNum));
+          return testPt;
+        }
         if ((testNum > current)&&(testNum < nearestNum)) {
           point = testPt;
           nearestNum = testNum;
@@ -404,8 +466,22 @@ public class CoCenterTool extends BasicTool {
         }
       }
     }
-    if (point != null) return point;
-    return lowestPoint;
+    String text = null;
+    KPoint retPoint = null;
+    if (point != null) {
+      text = Integer.toString(nearestNum);
+      retPoint = point;
+    } else if (lowestPoint != null) {
+      text = Integer.toString(lowestNum);
+      retPoint = lowestPoint;
+    }
+    if (useParens) {
+      prevNumField.setText("("+groupData.keyBefore(text)+")");
+      nextNumField.setText("("+groupData.keyAfter(text)+")");
+      text = "("+text+")";
+    }
+    currNumField.setText(text);
+    return retPoint;
   }
   //}}}
 
@@ -430,7 +506,10 @@ public class CoCenterTool extends BasicTool {
         }
       }
       if (testNum != Integer.MAX_VALUE) {
-        if (testNum == current - 1) return testPt;
+        if (testNum == current - 1) {
+          currNumField.setText(Integer.toString(testNum));
+          return testPt;
+        }
         if ((testNum < current)&&(testNum > nearestNum)) {
           point = testPt;
           nearestNum = testNum;
@@ -440,8 +519,22 @@ public class CoCenterTool extends BasicTool {
         }
       }
     }
-    if (point != null) return point;
-    return highestPoint;
+    String text = null;
+    KPoint retPoint = null;
+    if (point != null) {
+      text = Integer.toString(nearestNum);
+      retPoint = point;
+    } else if (highestPoint != null) {
+      text = Integer.toString(highestNum);
+      retPoint = highestPoint;
+    }
+    if (useParens) {
+      prevNumField.setText("("+groupData.keyBefore(text)+")");
+      nextNumField.setText("("+groupData.keyAfter(text)+")");
+      text = "("+text+")";
+    }
+    currNumField.setText(text);
+    return retPoint;
   }
   //}}}
   
