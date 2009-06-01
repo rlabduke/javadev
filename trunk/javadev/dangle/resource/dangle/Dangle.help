@@ -33,7 +33,8 @@ MEASUREMENT SPECIFIERS
     * Use quotes to keep Bash / Csh from breaking the string apart.
     
   Dangle also has several "built in" measurement specifiers that you can use:
-    phi, psi, omega, chi1, chi2, chi3, chi4, tau, cbdev             # proteins
+    phi, psi, omega, chi1, chi2, chi3, chi4, tau, cbdev, hadev,     # proteins
+    nhdev, codev
     alpha, beta, gamma, delta, epsilon, zeta, eta, theta, chi       # RNA / DNA
     alpha-1, beta-1, gamma-1, delta-1, epsilon-1, zeta-1, chi-1     # RNA / DNA
     
