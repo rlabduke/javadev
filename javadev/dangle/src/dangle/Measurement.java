@@ -289,10 +289,40 @@ abstract public class Measurement //extends ... implements ...
             return new Distance(label,
                 new AtomSpec( 0, "_CB_"),
                 new XyzSpec.IdealTetrahedral(
-                    new AtomSpec(0, "_N__"),
-                    new AtomSpec(0, "_C__"),
-                    new AtomSpec(0, "_CA_"),
+                    new AtomSpec( 0, "_N__"),
+                    new AtomSpec( 0, "_C__"),
+                    new AtomSpec( 0, "_CA_"),
                     1.536, 110.4, 110.6, 123.1, -123.0
+            ));
+        else if("hadev".equals(label))
+            return new Distance(label,
+                new AtomSpec( 0, "_HA_"),
+                new XyzSpec.IdealTetrahedral(
+                    new AtomSpec( 0, "_N__"),
+                    new AtomSpec( 0, "_C__"),
+                    new AtomSpec( 0, "_CA_"),
+                    1.100, 107.9, 108.1, -118.3, 118.2 // from IWD's SidechainIdealizer.idealizeCB()
+            ));
+        else if("nhdev".equals(label))
+            return new Distance(label,
+                new AtomSpec( 0, "_H__"),
+                new XyzSpec.IdealTetrahedral(
+                    new AtomSpec(-1, "_C__"),
+                    new AtomSpec( 0, "_CA_"),
+                    new AtomSpec( 0, "_N__"),
+                    // N--H, CA-N-H, C-N-H, C-CA-N-H, CA-C-N-H
+                    //1.000, 114.4, 123.8, 180.0, 180.0 // raw idealpolyala12-[alpha/beta].pdb with H's from ??
+                    1.000, 114.3, 123.9, 180.0, 180.0 // what Reduce does to idealpolyala12-[alpha/beta].pdb
+            ));
+        else if("codev".equals(label))
+            return new Distance(label,
+                new AtomSpec( 0, "_O__"),
+                new XyzSpec.IdealTetrahedral(
+                    new AtomSpec( 0, "_CA_"),
+                    new AtomSpec( 1, "_N__"),
+                    new AtomSpec( 0, "_C__"),
+                    // C--O, N-C-O, CA-C-O, CA-N-C-O, N-CA-C-O
+                    1.229, 122.7, 120.1, 180.0, 180.0 // from Engh & Huber resource file in this package
             ));
         else if("isprepro".equals(label))
             return new IsPrePro(label)
