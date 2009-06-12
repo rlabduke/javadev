@@ -151,12 +151,18 @@ public class FileInterpreter {
   //}}}
   
   //{{{ parseAtomNames
-  //public String[] parseAtomNames() {
-  //  return parseAtomNames((String) rdcBox.getSelectedItem());
-  //}
-  
+  /** 
+  * Parses atom names out of RDC type selection.  
+  * If one of the atoms has an H, it will switch the order so
+  * that atom is returned second, so vector points toward H.
+  **/
   public String[] parseAtomNames(String rdcType) {
     String[] atoms = Strings.explode(rdcType, '-');
+    if (atoms[0].indexOf("H") > -1) {
+      String temp = atoms[0];
+      atoms[0] = atoms[1];
+      atoms[1] = temp;
+    }
     for (int i = 0; i < atoms.length; i++) {
       String atom = atoms[i];
       if (transAtomMap.containsKey(atom)) {
@@ -192,10 +198,19 @@ public class FileInterpreter {
   public double getRdcValue(String seqNum) {
     //System.out.println(seqNum);
     DipolarRestraint dr = (DipolarRestraint) currentRdcs.get(seqNum);
-    System.out.println(dr);
     if (dr != null) {
+      //System.out.println(dr);
       double rdcVal = dr.getValues()[0];
       return rdcVal;
+    }
+    return Double.NaN;
+  }
+  
+  public double getRdcError(String seqNum) {
+    DipolarRestraint dr = (DipolarRestraint) currentRdcs.get(seqNum);
+    if (dr != null) {
+      double error = dr.getValues()[1];
+      return error;
     }
     return Double.NaN;
   }

@@ -40,11 +40,12 @@ public class RdcDrawer2 {
   //}}}
   
   //{{{ drawCurve
-  public void drawCurve(double rdcVal, Tuple3 center, double r, int numPoints, double backcalcRdc, KList list, String text) {
+  public void drawCurve(double rdcVal, Tuple3 center, Triple modelVect, double r, int numPoints, double backcalcRdc, KList list, String text, double error) {
     VectorPoint old = null;
     VectorPoint negOld = null;
     ArrayList<KPoint> posPoints = new ArrayList<KPoint>();
     ArrayList<KPoint> negPoints = new ArrayList<KPoint>();
+    list.setColor(KPalette.hotpink);
     //need to catch special cases where rdcVal == sxx or szz
     for (double tau = 0; tau <= 2 * Math.PI; tau += 2 * Math.PI / numPoints) {
       double a=Double.NaN, b=Double.NaN, y=Double.NaN, z=Double.NaN, x=Double.NaN;
@@ -53,13 +54,13 @@ public class RdcDrawer2 {
         b = Math.sqrt((rdcVal-sxx)/(szz-sxx));
         y = a * Math.cos(tau);
         z = b * Math.sin(tau);
-        x = Math.sqrt(1 - Math.pow(y, 2) - Math.pow(z, 2));
+        x = Math.sqrt(r - Math.pow(y, 2) - Math.pow(z, 2));
       } else if ((syy<=rdcVal) && (rdcVal < szz)) {
         a = Math.sqrt((szz-rdcVal)/(szz-sxx));
         b = Math.sqrt((szz-rdcVal)/(szz-syy));
         x = a * Math.cos(tau);
         y = b * Math.sin(tau);
-        z = Math.sqrt(1 - Math.pow(x, 2) - Math.pow(y, 2));
+        z = Math.sqrt(r - Math.pow(x, 2) - Math.pow(y, 2));
       } else {
         System.out.println("RDC value not in range!");
         //a = Double.NaN;
@@ -74,16 +75,29 @@ public class RdcDrawer2 {
         adjFrame.timesEquals(r);
         VectorPoint point = new VectorPoint("Pos " + text, old);
         point.setXYZ(adjFrame.get(0, 0)+center.getX(), adjFrame.get(1, 0)+center.getY(), adjFrame.get(2, 0)+center.getZ());      
-        if (Math.abs(rdcVal - backcalcRdc) < 1) point.setColor(KPalette.greentint);
-        else if (Math.abs(rdcVal - backcalcRdc) < 2) point.setColor(KPalette.orange);
-        else point.setColor(KPalette.hotpink);
+        if (modelVect != null) {
+          double dist = modelVect.distance(new Triple(adjFrame.get(0, 0), adjFrame.get(1, 0), adjFrame.get(2, 0)));
+          if (dist < 0.1) list.setColor(KPalette.green);
+          else if ((dist < 0.5)&&(!list.getColor().equals(KPalette.green))) list.setColor(KPalette.orange);
+        }// else {
+          if (Math.abs(rdcVal - backcalcRdc) < error) point.setColor(KPalette.greentint);
+          else if (Math.abs(rdcVal - backcalcRdc) < 2*error) point.setColor(KPalette.orange);
+          else point.setColor(KPalette.hotpink);
+        //}
         posPoints.add(point);
         old = point;
         VectorPoint negPoint = new VectorPoint("Neg " + text, negOld);
         negPoint.setXYZ(-adjFrame.get(0, 0)+center.getX(), -adjFrame.get(1, 0)+center.getY(), -adjFrame.get(2, 0)+center.getZ());      
-        if (Math.abs(rdcVal - backcalcRdc) < 1) negPoint.setColor(KPalette.greentint);
-        else if (Math.abs(rdcVal - backcalcRdc) < 2) negPoint.setColor(KPalette.orange);
-        else negPoint.setColor(KPalette.hotpink);
+        if (modelVect != null) {
+          double dist = modelVect.distance(new Triple(-adjFrame.get(0, 0), -adjFrame.get(1, 0), -adjFrame.get(2, 0)));
+          if (dist < 0.1) list.setColor(KPalette.green);
+          else if ((dist < 0.5)&&(!list.getColor().equals(KPalette.green))) list.setColor(KPalette.orange);
+          //else negPoint.setColor(KPalette.hotpink);
+        }// else {
+          if (Math.abs(rdcVal - backcalcRdc) < error) negPoint.setColor(KPalette.greentint);
+          else if (Math.abs(rdcVal - backcalcRdc) < 2*error) negPoint.setColor(KPalette.orange);
+          else negPoint.setColor(KPalette.hotpink);
+        //}
         negPoints.add(negPoint);
         negOld = negPoint;
       }
@@ -103,6 +117,58 @@ public class RdcDrawer2 {
         //System.out.println(negPt);
       //}
     }
+  }
+  //}}}
+  
+  //{{{ analyzeVector
+  /** @return double containing info about how well a vector matches a curve */
+  public double analyzeVector(double rdcVal, Tuple3 center, Triple modelVect, double r, int numPoints) {
+    VectorPoint old = null;
+    VectorPoint negOld = null;
+    ArrayList<KPoint> posPoints = new ArrayList<KPoint>();
+    ArrayList<KPoint> negPoints = new ArrayList<KPoint>();
+    //need to catch special cases where rdcVal == sxx or szz
+    double minDist = Double.MAX_VALUE;
+    for (double tau = 0; tau <= 2 * Math.PI; tau += 2 * Math.PI / numPoints) {
+      double a=Double.NaN, b=Double.NaN, y=Double.NaN, z=Double.NaN, x=Double.NaN;
+      if ((sxx < rdcVal) && (rdcVal < syy)) {
+        a = Math.sqrt((rdcVal-sxx)/(syy-sxx));
+        b = Math.sqrt((rdcVal-sxx)/(szz-sxx));
+        y = a * Math.cos(tau);
+        z = b * Math.sin(tau);
+        x = Math.sqrt(r - Math.pow(y, 2) - Math.pow(z, 2));
+      } else if ((syy<=rdcVal) && (rdcVal < szz)) {
+        a = Math.sqrt((szz-rdcVal)/(szz-sxx));
+        b = Math.sqrt((szz-rdcVal)/(szz-syy));
+        x = a * Math.cos(tau);
+        y = b * Math.sin(tau);
+        z = Math.sqrt(r - Math.pow(x, 2) - Math.pow(y, 2));
+      } else {
+        System.out.println("RDC value not in range!");
+      }
+      if (!Double.isNaN(a)) {
+        Matrix changeBase = new Matrix(3, 1);
+        changeBase.set(0, 0, x);
+        changeBase.set(1, 0, y);
+        changeBase.set(2, 0, z);
+        Matrix adjFrame = matV.times(changeBase);
+        adjFrame.timesEquals(r);
+        Triple point = new Triple();
+        point.setXYZ(adjFrame.get(0, 0)+center.getX(), adjFrame.get(1, 0)+center.getY(), adjFrame.get(2, 0)+center.getZ());      
+        if (modelVect != null) {
+          double dist = modelVect.distance(new Triple(adjFrame.get(0, 0), adjFrame.get(1, 0), adjFrame.get(2, 0)));
+          if (dist < minDist) minDist = dist;
+        }
+        
+        Triple negPoint = new Triple();
+        negPoint.setXYZ(-adjFrame.get(0, 0)+center.getX(), -adjFrame.get(1, 0)+center.getY(), -adjFrame.get(2, 0)+center.getZ());      
+        if (modelVect != null) {
+          double dist = modelVect.distance(new Triple(-adjFrame.get(0, 0), -adjFrame.get(1, 0), -adjFrame.get(2, 0)));
+          if (dist < minDist) minDist = dist;
+        }
+      }
+    }
+    return minDist;
   }
   //}}}
   
@@ -268,7 +334,7 @@ public class RdcDrawer2 {
   //{{{ drawAll
   public void drawAll(Tuple3 center, double r, int numPoints, double backcalcRdc, KList list) {
     for (double d = sxx; d <= szz; d=d+1) {
-      drawCurve(d, center, r, numPoints, backcalcRdc, list, df.format(d));
+      drawCurve(d, center, null, r, numPoints, backcalcRdc, list, df.format(d), 2);
     }
   }
   //}}}
