@@ -62,7 +62,7 @@ public class RdcVisTool extends BasicTool {
     //analyzeFile(mrf);
     rdcWin = new RdcVisWindow(kMain);
     // Helpful hint for users:
-    this.services.setID("Ctrl-click, option-click, or middle-click a residue to see RDC curves");
+    //this.services.setID("Ctrl-click, option-click, or middle-click a residue to see RDC curves");
   }
   //}}}
   
@@ -158,41 +158,6 @@ public class RdcVisTool extends BasicTool {
     */
     }
   }
-  //}}}
-  
-  //{{{ getResidueRdcVect
-  ///** returns RdcVect for orig residue based on what is selected in rdcWin **/
-  //public Triple getResidueRdcVect(ModelState state, Residue orig) {
-  //  String atoms[] = rdcWin.parseAtomNames();
-  //  Atom from = orig.getAtom(atoms[0]);
-  //  Atom to = orig.getAtom(atoms[1]);
-  //  try {
-  //    AtomState fromState = state.get(from);
-  //    AtomState toState = state.get(to);
-  //    Triple rdcVect = new Triple().likeVector(fromState, toState).unit();
-  //    return rdcVect;
-  //  } catch (AtomException ae) {
-  //  }
-  //  return null;
-  //}
-  //}}}
-  
-  //{{{ getOriginAtom
-  //public AtomState getOriginAtom(ModelState state, Residue orig) {
-  //  String atoms[] = rdcWin.parseAtomNames();
-  //  Atom origin;
-  //  if (atoms[0].indexOf("H") > -1) {
-  //    origin = orig.getAtom(atoms[1]);
-  //  } else {
-  //    origin = orig.getAtom(atoms[0]);
-  //  }
-  //  try {
-  //    AtomState originState = state.get(origin);
-  //    return originState;
-  //  } catch (AtomException ae) {
-  //  }
-  //  return null;
-  //}
   //}}}
   
   //{{{ drawCurve

@@ -39,7 +39,7 @@ public class RdcVisMain {
   //}}}
   
   //{{{ Variables
-  static String versionNumber = "1.02.090211";
+  static String versionNumber = "1.03.090612";
   
   //FileInterpreter fi;
   //CoordinateFile pdb;
@@ -51,6 +51,7 @@ public class RdcVisMain {
   boolean drawErrors = false;
   boolean ensembleTensor = true;
   boolean drawSurface = false;
+  boolean textOutput = false;
   static ArrayList<String> rdcTypes = null;
   //}}}
   
@@ -61,6 +62,14 @@ public class RdcVisMain {
 	    System.out.println("Not enough arguments: you must have an input pdb and an input mr file!");
     } else if (rdcTypes.size() == 0) {
       System.out.println("No RDCs specified: you must put it in the format of atom1-atom2.");
+    } else if (textOutput) {
+      File pdbFile = new File(argList.get(0));
+      File mrFile = new File(argList.get(1));
+      CoordinateFile pdb = readPdb(new File(pdbFile.getAbsolutePath()));
+      MagneticResonanceFile mr = readMR(new File(mrFile.getAbsolutePath()));
+      FileInterpreter fi = new FileInterpreter(pdb, mr);
+      RdcAnalyzer analyzer = new RdcAnalyzer();
+      analyzer.analyzeCoordFile(fi, rdcTypes, ensembleTensor);
     } else {
       File pdbFile = new File(argList.get(0));
       String outKinName = argList.get(0).substring(0, argList.get(0).length()-4);
@@ -183,6 +192,8 @@ public class RdcVisMain {
           ensembleTensor = false;
         } else if (arg.equals("-surface")) {
           drawSurface = true;
+        } else if (arg.equals("-text")) {
+          textOutput = true;
         } else {
           System.err.println("*** Unrecognized option: "+arg);
         }
@@ -305,8 +316,8 @@ public class RdcVisMain {
         Iterator iter = mod.getResidues().iterator();
         while (iter.hasNext()) {
           Residue orig = (Residue) iter.next();
-          Triple rdcVect = getResidueRdcVect(state, orig, atoms);
-          AtomState origin = getOriginAtom(state, orig, atoms);
+          Triple rdcVect = RdcAnalyzer.getResidueRdcVect(state, orig, atoms);
+          AtomState origin = RdcAnalyzer.getOriginAtom(state, orig, atoms);
           if ((rdcVect != null)&&(origin != null)) {
             drawCurve(kin, origin, rdcVect, orig, fi);
             if (drawSurface) {
@@ -373,39 +384,6 @@ public class RdcVisMain {
   }
   //}}}
   
-  //{{{ getResidueRdcVect
-  /** returns RdcVect for orig residue based on what is selected in fi **/
-  public Triple getResidueRdcVect(ModelState state, Residue orig, String[] atoms) {
-    Atom from = orig.getAtom(atoms[0]);
-    Atom to = orig.getAtom(atoms[1]);
-    try {
-      AtomState fromState = state.get(from);
-      AtomState toState = state.get(to);
-      Triple rdcVect = new Triple().likeVector(fromState, toState).unit();
-      return rdcVect;
-    } catch (AtomException ae) {
-    }
-    return null;
-  }
-  //}}}
-  
-  //{{{ getOriginAtom
-  public AtomState getOriginAtom(ModelState state, Residue orig, String[] atoms) {
-    Atom origin;
-    if (atoms[0].indexOf("H") > -1) {
-      origin = orig.getAtom(atoms[1]);
-    } else {
-      origin = orig.getAtom(atoms[0]);
-    }
-    try {
-      AtomState originState = state.get(origin);
-      return originState;
-    } catch (AtomException ae) {
-    }
-    return null;
-  }
-  //}}}
-  
   //{{{ addRdc
   public void addRdc(String rdc) {
     rdcTypes.add(rdc);
@@ -429,31 +407,35 @@ public class RdcVisMain {
     //System.out.println(rdcVal);
     //System.out.println((rdcVal != Double.NaN));
     double backcalcRdc = fi.getBackcalcRdc(rdcVect);
+    double rdcError = fi.getRdcError(seq);
+    if (Double.isNaN(rdcError)) rdcError = 1;
     if ((!Double.isNaN(rdcVal))&&(!Double.isNaN(backcalcRdc))) {
       double radius = rdcVect.distance(new Triple(0, 0, 0));
       KList list = new KList(KList.VECTOR, "RDCs");
-      if (Math.abs(rdcVal - backcalcRdc) < 1)      list.addMaster("Good RDC Match");
-      else if (Math.abs(rdcVal - backcalcRdc) < 2) list.addMaster("Mild RDC Match");
-      else                                         list.addMaster("Bad RDC Match");
+      list.addMaster("RDCs");
+      if (Math.abs(rdcVal - backcalcRdc) < rdcError)      list.addMaster("Good RDC match");
+      else if (Math.abs(rdcVal - backcalcRdc) < 2*rdcError) list.addMaster("Mild RDC match");
+      else                                         list.addMaster("Bad RDC match");
       list.setWidth(4);
       subgroup.add(list);
-      String text = "res= "+seq+" rdc= "+df.format(rdcVal)+" backcalc= "+df.format(backcalcRdc);
+      String text = "res= "+seq+" rdc= "+df.format(rdcVal)+"+/-"+df.format(rdcError)+" backcalc= "+df.format(backcalcRdc);
       //System.out.println(text);
       //fi.getDrawer().drawCurve(rdcVal, p, backcalcRdc, list);
-      fi.getDrawer().drawCurve(rdcVal, p, radius, 60, backcalcRdc, list, text);
+      fi.getDrawer().drawCurve(rdcVal, p, rdcVect, radius, 60, backcalcRdc, list, text, rdcError);
       //fi.getDrawer().drawCurve(rdcVal-0.5, p, 1, 60, backcalcRdc, list);
       //fi.getDrawer().drawCurve(rdcVal+0.5, p, 1, 60, backcalcRdc, list);
       //fi.getDrawer().drawCurve(backcalcRdc, p, 1, 60, backcalcRdc, list);
       //fi.getDrawer().drawAll(p, 1, 60, backcalcRdc, list);
       if (drawErrors) {
         KList errorBars = new KList(KList.VECTOR, "Error Bars");
+        list.addMaster("RDC error bars");
         for (String master : list.getMasters()) {
           errorBars.addMaster(master);
         }
         errorBars.setWidth(2);
         subError.add(errorBars);
-        fi.getDrawer().drawCurve(rdcVal - 2, p, radius, 60, backcalcRdc, errorBars, "-2 error bar");
-        fi.getDrawer().drawCurve(rdcVal + 2, p, radius, 60, backcalcRdc, errorBars, "+2 error bar");
+        fi.getDrawer().drawCurve(rdcVal - rdcError*2, p, rdcVect, radius, 60, backcalcRdc, errorBars, "-2x error bar", rdcError);
+        fi.getDrawer().drawCurve(rdcVal + rdcError*2, p, rdcVect, radius, 60, backcalcRdc, errorBars, "+2x error bar", rdcError);
       }
     } else {
       System.out.println("this residue does not appear to have an rdc");

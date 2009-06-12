@@ -1,3 +1,5 @@
+090612 -text flag output, and list coloring by distance of vector from curve
+
 090211 Surfaces added to gui, and with separate masters.
 
 090209 Draw hyperboloid surfaces with -surfaces flag.
