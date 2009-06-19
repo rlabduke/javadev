@@ -432,6 +432,34 @@ public class Strings //extends ... implements ...
     }
 //}}}
 
+//{{{ arrayInParens
+//##################################################################################################
+    /**
+    * Writes array of integers like this: "(1, 2, 3)"
+    */
+    static public String arrayInParens(int[] values)
+    {
+        String s = "(";
+        for(int i = 0; i < values.length-1; i++)
+            s += values[i] + ", ";
+        s += values[values.length-1] + ")";
+        return s;
+    }
+
+    /**
+    * Writes array of doubles like this: "(931.238, 2.001, 13.000)"
+    */
+    static public String arrayInParens(double[] values)
+    {
+        DecimalFormat df = new DecimalFormat("###.###");
+        String s = "(";
+        for(int i = 0; i < values.length-1; i++)
+            s += df.format(values[i]) + ", ";
+        s += df.format(values[values.length-1]) + ")";
+        return s;
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##################################################################################################
 //}}}
