@@ -34,6 +34,7 @@ public class PointColorPlugin extends Plugin
 //##############################################################################
     JDialog dialog;
     JList   conditions, colors;
+    JFileChooser    fileChooser;
 //}}}
 
 //{{{ Constructor(s)
@@ -49,6 +50,10 @@ public class PointColorPlugin extends Plugin
 //##############################################################################
     private void buildGUI()
     {
+        fileChooser = new JFileChooser();
+        String currdir = System.getProperty("user.dir");
+        if(currdir != null) fileChooser.setCurrentDirectory(new File(currdir));
+        
         conditions = new FatJList(0, 10);
         conditions.setListData(CONDITIONS);
         conditions.setSelectedValue(DO_IF, true);
@@ -62,6 +67,7 @@ public class PointColorPlugin extends Plugin
         JButton toggle = new JButton(new ReflectiveAction("Toggle", null, this, "onToggle"));
         JButton extract = new JButton(new ReflectiveAction("Extract", null, this, "onExtract"));
         JButton bleach = new JButton(new ReflectiveAction("Bleach visible", null, this, "onBleachVisible"));
+        JButton export = new JButton(new ReflectiveAction("Export text", null, this, "onExport"));
         
         TablePane2 cp = new TablePane2();
         cp.hfill(true).addCell(new JScrollPane(conditions));
@@ -75,6 +81,8 @@ public class PointColorPlugin extends Plugin
             cp.addCell(cp.strut(0,8), 2, 1);
             cp.newRow();
             cp.addCell(bleach, 2, 1);
+            cp.newRow();
+            cp.addCell(export, 2, 1);
         cp.endSubtable();
         
         dialog = new JDialog(kMain.getTopWindow(), this.toString(), false);
@@ -201,6 +209,7 @@ public class PointColorPlugin extends Plugin
         {
             KGroup group = new KGroup(name);
             group.setDominant(true);
+            group.setSelect(true);
             KGroup subgroup = new KGroup(name);
             subgroup.setDominant(true);
             kin.add(group);
@@ -222,6 +231,37 @@ public class PointColorPlugin extends Plugin
                 p.setColor(null);
     }
 //}}}
+
+  //{{{ onExport
+  public void onExport(ActionEvent ev) {
+    int result = fileChooser.showSaveDialog(kMain.getTopWindow());
+    if(result != JFileChooser.APPROVE_OPTION) return;
+
+    try {
+      File saveFile = fileChooser.getSelectedFile();
+      if( !saveFile.exists() ||
+           JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+           "This file exists -- do you want to overwrite it?",
+           "Overwrite file?", JOptionPane.YES_NO_OPTION)
+           == JOptionPane.YES_OPTION )
+      {
+        Writer w = new FileWriter(saveFile);
+        PrintWriter out = new PrintWriter(new BufferedWriter(w));
+        Kinemage kin = kMain.getKinemage();
+        if (kin == null) return;
+        for (KPoint p : KIterator.visiblePoints(kin)) {
+          if (isSelectable(p)) out.println(p.toString());
+        }
+        out.flush();
+        w.close();
+      }
+    } catch (IOException ex) {
+	    JOptionPane.showMessageDialog(kMain.getTopWindow(),
+      "An error occurred while saving the file.",
+      "Sorry!", JOptionPane.ERROR_MESSAGE);
+    }
+  }
+  //}}}
 
 //{{{ getToolsMenuItem, getHelpAnchor, toString, onShowDialog
 //##################################################################################################
