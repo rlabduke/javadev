@@ -249,9 +249,19 @@ public class PointColorPlugin extends Plugin
         PrintWriter out = new PrintWriter(new BufferedWriter(w));
         Kinemage kin = kMain.getKinemage();
         if (kin == null) return;
+        HashSet<String> pointSet = new HashSet<String>();
         for (KPoint p : KIterator.visiblePoints(kin)) {
-          if (isSelectable(p)) out.println(p.toString());
+          String ptTxt = "";
+          if (isSelectable(p)) {
+            ptTxt = "{"+p.toString()+"}";
+            float[] coords = p.getAllCoords();
+            for (float f : coords) {
+              ptTxt = ptTxt+":"+Float.toString(f);
+            }
+            pointSet.add(ptTxt);
+          }
         }
+        for (String s : pointSet) out.println(s);
         out.flush();
         w.close();
       }
