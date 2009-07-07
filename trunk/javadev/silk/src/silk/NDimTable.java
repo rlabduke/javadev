@@ -677,11 +677,11 @@ abstract public class NDimTable //extends ... implements ...
     }
 //}}}
 
-//{{{ classifyByHills, recurseHills, hillsRecurseMaxNeighbor
+//{{{ classifyByHills, recurseHills, hillsRecurseMaxNeighbor, assignDataToHills
 //##############################################################################
     int[] hillTable = null; // holds the labels, since we can't climb in place!
-    ArrayList<String> hillModes = null; // to hold modal peaks from hills
-    
+    HashMap<Integer,double[]> hillModes = null; // peak ID -> peak coords
+    HashMap<Integer,ArrayList<DataSample>> hillAssign = null;  // peak ID -> list of data samples
     /**
     * Traverses the table, transforming each positive (non-zero) value into
     * a negative integer label, such that each point is labeled according to
@@ -689,20 +689,39 @@ abstract public class NDimTable //extends ... implements ...
     * <p>In an N-dimensional space, each of the 3^N - 1 neighbor points
     * (ie, diagonal neighbors are included) is queried, and the largest
     * positive value is followed recursively, until the top is reached.
+    * @param data - same as SilkOptions.data: raw, discrete, unfiltered input.
     */
-    public void classifyByHills(boolean printHillModes)
+    public void classifyByHills(boolean findHillModes, Collection data)
     {
-        if (printHillModes) hillModes = new ArrayList<String>();
         tgf_b = 1.0; // used for next unused label
         tgf_pt = new double[nDim]; // could be null, or someone else's var!
+        
         hillTable = new int[lookupTable.length];
+        double[] origTable = new double[lookupTable.length];
+        if(findHillModes)
+            hillModes = new HashMap<Integer,double[]>();
         
         for(int i = 0; i < lookupTable.length; i++)
             recurseHills(i);
         
         for(int i = 0; i < lookupTable.length; i++)
-            lookupTable[i] = hillTable[i];
+            origTable[i] = lookupTable[i]; // [store density values]
+        for(int i = 0; i < lookupTable.length; i++)
+            lookupTable[i] = hillTable[i]; // lookup = hill IDs
         
+        if(data != null)
+            assignDataToHills(data);
+        
+        for(int i = 0; i < lookupTable.length; i++)
+            lookupTable[i] = origTable[i]; // lookup = density values
+        // Basis for ^, changed by DAK 6 July 2009:
+        // "Make climbHills return a List of peaks
+        //    This is a bit hard, because you probably want the peak heights too.
+        //    Which are gone when you overwrite them with peak labels.
+        //    Maybe classifyByHills() shouldn't alter the table after all?" - IWD
+        
+        
+        origTable = null;
         hillTable = null;
     }
     
@@ -734,16 +753,14 @@ abstract public class NDimTable //extends ... implements ...
         if(nextIdx == idx) // we're the highest value: we've reached the hill top
         {
             label = tgf_b++; // next label is more positive than this one: +1, +2, +3, ...
-            System.err.print("    peak "+((int)label)+":");
             centerOf(va_current, tgf_pt);
-            for(int i = 0; i < nDim; i++) System.err.print(" "+tgf_pt[i]);
-            System.err.println(" -> "+tgf_a);
-            if (hillModes != null)
+            if(hillModes != null)
             {
-                String mode = "";//"peak"+((int)label);
-                for(int i = 0; i < nDim; i++)   mode += (tgf_pt[i]+" ");
-                mode += lookupTable[idx];
-                hillModes.add(mode);
+                double[] hillMode = new double[nDim+1];
+                for(int i = 0; i < nDim; i++)
+                    hillMode[i] = tgf_pt[i];
+                hillMode[nDim] = lookupTable[idx];
+                hillModes.put((int)label, hillMode);
             }
         }
         else // further up and further in: try the next highest point
@@ -778,6 +795,30 @@ abstract public class NDimTable //extends ... implements ...
                 }
             }
         }
+    }
+
+    // Assigns each data sample (from raw input) to nearest hill based on hills grid.
+    // For each hill, makes list of data samples mapped to it.
+    private void assignDataToHills(Collection data)
+    {
+        hillAssign = new HashMap<Integer,ArrayList<DataSample>>();
+        for(Iterator dItr = data.iterator(); dItr.hasNext(); )
+        {
+            DataSample dataSample = (DataSample) dItr.next();
+            
+            // Hill nearest to this data sample
+            int hillId = (int) Math.round(valueAt(dataSample.coords));
+            // Values are interpolated, which is fine for doubles but a bit weird
+            // for integers here (you get stuff like 1.99999...), but 
+            // rounding should take care of things.
+            
+            // Store
+            ArrayList<DataSample> hillData = (hillAssign.containsKey(hillId) ? 
+                hillAssign.get(hillId) : new ArrayList<DataSample>());
+            hillData.add(dataSample);
+            hillAssign.put(hillId, hillData);
+        }
+        
     }
 //}}}
 
@@ -935,53 +976,45 @@ abstract public class NDimTable //extends ... implements ...
         for(i = 0; i < nDim; i++)
         { ps.println("#   x"+(i+1)+": "+minVal[i]+" "+maxVal[i]+" "+nBins[i]+" "+doWrap[i]); }
         
-        if(hillModes != null)   
+        if(valuesFirst) ps.println("# List of table coordinates and values. (Value is first number on each line.)");
+        else            ps.println("# List of table coordinates and values. (Value is last number on each line.)");
+        if(df == null)
         {
-            ps.println("# List of hills modal coordinates and values");
-            for(i = 0; i < hillModes.size(); i++) ps.println(hillModes.get(i));
-        }
-        else 
-        {
-            if(valuesFirst) ps.println("# List of table coordinates and values. (Value is first number on each line.)");
-            else            ps.println("# List of table coordinates and values. (Value is last number on each line.)");
-            if(df == null)
+            for(i = 0; i < lookupTable.length; i++)
             {
-                for(i = 0; i < lookupTable.length; i++)
+                if(lookupTable[i] == 0) continue; // only print non-zeros; zeros may be undef bins
+                index2bin(i, binIndices);
+                centerOf(binIndices, binCoords);
+                if(valuesFirst)
                 {
-                    if(lookupTable[i] == 0) continue; // only print non-zeros; zeros may be undef bins
-                    index2bin(i, binIndices);
-                    centerOf(binIndices, binCoords);
-                    if(valuesFirst)
-                    {
-                        ps.print(lookupTable[i]);
-                        for(j = 0; j < nDim; j++) { ps.print(" "); ps.print(binCoords[j]); }
-                        ps.println();
-                    }
-                    else
-                    {
-                        for(j = 0; j < nDim; j++) { ps.print(binCoords[j]); ps.print(" "); }
-                        ps.println(lookupTable[i]);
-                    }
+                    ps.print(lookupTable[i]);
+                    for(j = 0; j < nDim; j++) { ps.print(" "); ps.print(binCoords[j]); }
+                    ps.println();
+                }
+                else
+                {
+                    for(j = 0; j < nDim; j++) { ps.print(binCoords[j]); ps.print(" "); }
+                    ps.println(lookupTable[i]);
                 }
             }
-            else
+        }
+        else
+        {
+            for(i = 0; i < lookupTable.length; i++)
             {
-                for(i = 0; i < lookupTable.length; i++)
+                if(lookupTable[i] == 0) continue; // only print non-zeros; zeros may be undef bins
+                index2bin(i, binIndices);
+                centerOf(binIndices, binCoords);
+                if(valuesFirst)
                 {
-                    if(lookupTable[i] == 0) continue; // only print non-zeros; zeros may be undef bins
-                    index2bin(i, binIndices);
-                    centerOf(binIndices, binCoords);
-                    if(valuesFirst)
-                    {
-                        ps.print(df.format(lookupTable[i]));
-                        for(j = 0; j < nDim; j++) { ps.print(" "); ps.print(df.format(binCoords[j])); }
-                        ps.println();
-                    }
-                    else
-                    {
-                        for(j = 0; j < nDim; j++) { ps.print(df.format(binCoords[j])); ps.print(" "); }
-                        ps.println(df.format(lookupTable[i]));
-                    }
+                    ps.print(df.format(lookupTable[i]));
+                    for(j = 0; j < nDim; j++) { ps.print(" "); ps.print(df.format(binCoords[j])); }
+                    ps.println();
+                }
+                else
+                {
+                    for(j = 0; j < nDim; j++) { ps.print(df.format(binCoords[j])); ps.print(" "); }
+                    ps.println(df.format(lookupTable[i]));
                 }
             }
         }

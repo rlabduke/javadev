@@ -20,13 +20,17 @@ import driftwood.util.Strings;
 * it will sample at different rates in each dimension to give a list of chi angles,
 * their (unnormalized) statistical probabilities, and their rotamer score.
 * It's also easy to eliminate those below a given level, e.g. 1% (maybe 5% or 10% for Homme's application).
-*
-* (Added by DAK 2/9/08) I've added some features so peaks themselves are guaranteed
-* to be sampled if a modal peaks file from Silk is also supplied. Now, the variable
-* samples is the # steps you want to move away from the mode in each direction,
-* not the total # samples over the relevant range. In other words, samples is how
-* many points you want in each direction of each dimension IN ADDITION TO the peaks.
-*
+* 
+* If a 'hillmodes' peaks file from Silk is also specified, samples can be chosen
+* locally near peaks; the exact peaks themselves will also be included (DAK 2/9/08).
+* 
+* IDEAS / TO-DO:
+*  - incorporate MonteCarlo & chiropraxis.sc.RotamerSampler R3 functionality here?
+*     * maybe just call chiropraxis.sc.RotamerSampler R3 functionality - don't port over whole class
+*  - smarter "conflict resolution" btw ~overlapping samples
+*  - why "WRONG # VALUES IN..." ??
+*  - 
+* 
 * <p>Copyright (C) 2004 by Ian W. Davis. All rights reserved.
 * <br>Begun on Tue Jan  6 11:25:18 EST 2004
 */
@@ -34,26 +38,53 @@ public class RotamerSampler //extends ... implements ...
 {
 //{{{ Constants
     static DecimalFormat df  = new DecimalFormat("0.####");
-    static DecimalFormat df2 = new DecimalFormat("#.##");
+    static DecimalFormat df2 = new DecimalFormat("#.#");
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    // Note the following correspondences for the Top500 and Top5200 Makefiles:
-    //    'stat'                           file1, ndtMain
-    //    'pct'                            file2, ndtCheck
-    //    'stat|pct', hills modal peaks    file3
-    boolean               verbose = false;
-    File                  file1 = null, file2 = null, file3 = null;
-    NDimTable             ndtMain = null, ndtCheck = null;
-    int[]                 samples = null;
-    int[]                 degrees = null; // max degrees from the peaks in each dimension
-    double[]              minBounds = null, maxBounds = null;
-    double                mainGE = Double.NEGATIVE_INFINITY, checkGE = Double.NEGATIVE_INFINITY;
-    ArrayList<double[]>   sampPts = null;
-    ArrayList<double[]>   peaks = null;
-    int[]                 max = null;
-    int[]                 min = null;
+    
+    boolean verbose = false;
+    
+    /** Simply adds comment line with peak coordinates before the set of samples built near 
+    * that peak. Could be used by other programs later for rotamer-specific analysis. */
+    boolean  byPeak = false;
+    
+    /** Correspond to stat, pct, & hillmodes from Top500/Top5200 Makefile. */
+    File  file1, file2, file3;
+    
+    /** Correspond to stat & pct from Top500/Top5200 Makefile. */
+    NDimTable  ndtMain, ndtCheck;
+    
+    /** Threshold stat & pct for including a sample. */
+    double  mainGE = Double.NEGATIVE_INFINITY, checkGE = Double.NEGATIVE_INFINITY;
+    
+    /** Bounds of sampling space: min1,max1,...,minN,maxN. Used for wrapping. 
+    * This and <code>minBounds</code>/<code>maxBounds</code> both span the whole space
+    * if sampling on even grid, but if sampling near peaks this still spans the whole
+    * space whereas <code>minBounds</code>/<code>maxBounds</code> localize to peaks. */
+    int[]  bounds;
+    
+    /** If sampling on even grid, actual bounds from ndtMain. 
+    * If sampling near peaks, peaks +/- desired distance (degrees x samples). */
+    double[]  minBounds, maxBounds;
+    
+    /** If sampling on even grid, number of samples total in each dimension. 
+    * If sampling near peaks, number of samples in *each direction* of each dimension 
+    * from a peak in addition to that peak itself. */
+    int[]  samples;
+    
+    // Specific to sampling near peaks approach:
+    
+    /** Number of degrees per sample from peaks in each dimension (i.e. step size). */
+    int[]  degrees;
+    
+    /** Integer peak ID => chis & pct (no stat). */
+    HashMap<Integer,double[]>  peaks;
+    
+    /** Chis, stat, & pct => integer peak ID. */
+    HashMap<double[],Integer>  samps;
+    
 //}}}
 
 //{{{ Constructor(s)
@@ -64,412 +95,12 @@ public class RotamerSampler //extends ... implements ...
     }
 //}}}
 
-//{{{ empty_code_segment
+//{{{ sampleOnGrid
 //##############################################################################
-//}}}
-
-//{{{ takeSamplesAroundPeaks
-//##############################################################################
-    /** Takes samples from both tables around the modal peaks (recursive).*/
-    void takeSamplesAroundPeaks() throws IOException
-    {
-        DecimalFormat df2 = new DecimalFormat("#.#");
-        System.err.println("Sampling around peaks...");
-        
-        Scanner ls = new Scanner(file3);
-        for (int i = 0; i < ndtMain.getDimensions()+4; i++) ls.nextLine(); // skip headers
-        while (ls.hasNextLine())
-        {
-            String line = ls.nextLine(); // e.g. "65.0 85.0 0.05649024553933026"
-            String[] coordinates = Strings.explode(line, ' ');
-            double[] peak = new double[coordinates.length];
-            for (int i = 0; i < ndtMain.getDimensions(); i++)
-                peak[i] = Double.parseDouble(coordinates[i]);
-            peaks.add(peak);
-            
-            for (int i = 0; i < ndtMain.getDimensions(); i++)
-            {
-                minBounds[i] = peak[i] - degrees[i];//samples[i]*degrees[i];
-                maxBounds[i] = peak[i] + degrees[i];//samples[i]*degrees[i];
-            }
-            if (verbose)
-            {
-                System.err.print("Sampling around peak (");
-                for (int i = 0; i < peak.length-2; i++)  System.err.print(df2.format(peak[i])+",");
-                System.err.print(df2.format(peak[peak.length-2])+"): from (");
-                for (int i = 0; i < minBounds.length-1; i++)   System.err.print(df2.format(minBounds[i])+",");
-                System.err.print(df2.format(minBounds[minBounds.length-1])+") to (");
-                for (int i = 0; i < maxBounds.length-1; i++)   System.err.print(df2.format(maxBounds[i])+",");
-                System.err.println(df2.format(maxBounds[maxBounds.length-1])+")...");
-            }
-            takeSamplesAroundPeak(new double[ndtMain.getDimensions()], 0); // will use new min/maxBounds!
-        }
-        //{{{ Old "above vs. below" code
-//        // To avoid repeating the peak sample points
-//        int[] samplesCopy  = new int[ndtMain.getDimensions()];
-//        int[] samplesBelow = new int[ndtMain.getDimensions()];
-//        int[] samplesAbove = new int[ndtMain.getDimensions()];
-//        for (int depth = 0; depth < samples.length; depth++)
-//        {
-//            samplesCopy[depth]  = samples[depth];
-//            samplesBelow[depth] = (int) Math.floor( (1.0*samples[depth]/2) );
-//            samplesAbove[depth] = (int) Math.ceil( (1.0*samples[depth]/2) );
-//            System.err.println("chi"+(depth+1)+": "+samplesCopy[depth]+" samples total, "+
-//                samplesBelow[depth]+" samples below, "+
-//                samplesAbove[depth]+" samples at/above");
-//        }
-//        
-//        Scanner ls = new Scanner(file3);
-//        for (int i = 0; i < ndtMain.getDimensions()+4; i++) ls.nextLine(); // skip headers
-//        while (ls.hasNextLine())
-//        {
-//            String line = ls.nextLine(); // e.g. "65.0 85.0 0.05649024553933026"
-//            String[] peaks  = Strings.explode(line, ' ');
-//            double[] peakCoords = new double[peaks.length];
-//            for (int i = 0; i < ndtMain.getDimensions(); i++)
-//                peakCoords[i] = Double.parseDouble(peaks[i]);
-//            
-//            for (int i = 0; i < ndtMain.getDimensions(); i++)
-//            {
-//                minBounds[i] = peakCoords[i] - degrees[i];
-//                maxBounds[i] = peakCoords[i];
-//            }
-//            if (verbose)
-//            {
-//                System.err.print("Sampling below    peak (");
-//                for (int i = 0; i < peakCoords.length-2; i++)  System.err.print(peakCoords[i]+",");
-//                System.err.print(peakCoords[peakCoords.length-2]+"): from (");
-//                for (int i = 0; i < minBounds.length-1; i++)   System.err.print(minBounds[i]+",");
-//                System.err.print(minBounds[minBounds.length-1]+") to (");
-//                for (int i = 0; i < maxBounds.length-1; i++)   System.err.print(maxBounds[i]+",");
-//                System.err.println(maxBounds[maxBounds.length-1]+")...");
-//            }
-//            samples = samplesBelow;
-//            takeSamples(new double[ndtMain.getDimensions()], 0); // will use new min/maxBounds!
-//            
-//            for (int i = 0; i < ndtMain.getDimensions(); i++)
-//            {
-//                minBounds[i] = peakCoords[i];
-//                maxBounds[i] = peakCoords[i] + degrees[i];
-//            }
-//            if (verbose)
-//            {
-//                System.err.print("Sampling at/above peak (");
-//                for (int i = 0; i < peakCoords.length-2; i++)  System.err.print(peakCoords[i]+",");
-//                System.err.print(peakCoords[peakCoords.length-2]+"): from (");
-//                for (int i = 0; i < minBounds.length-1; i++)   System.err.print(minBounds[i]+",");
-//                System.err.print(minBounds[minBounds.length-1]+") to (");
-//                for (int i = 0; i < maxBounds.length-1; i++)   System.err.print(maxBounds[i]+",");
-//                System.err.println(maxBounds[maxBounds.length-1]+")...");
-//            }
-//            samples = samplesAbove;
-//            takeSamples(new double[ndtMain.getDimensions()], 0); // will use new min/maxBounds!
-//            samples = samplesCopy;
-//        }
-//        
-//        System.err.println("...done.");
-        //}}}
-    }
-//}}}
-
-//{{{ takeSamplesAroundPeak
-//##############################################################################
-    /** Takes samples at the specified intervals from both tables (recursive).*/
-    void takeSamplesAroundPeak(double[] coords, int depth)
-    {
-        if(depth >= coords.length)
-        {
-            double mainVal = ndtMain.valueAt(coords);
-            double checkVal = ndtCheck.valueAt(coords);
-            if(mainVal >= mainGE && checkVal >= checkGE || isPeak(coords)) // want to include peaks even if below our sampling threshold
-            {
-                coords = wrapCoords(coords);
-                if (verbose)
-                {
-                    System.err.print("\npct="+checkVal+" >= cutoff="+checkGE+" @ ");
-                    for (int i = 0; i < coords.length; i ++)
-                        System.err.print(coords[i]+",");
-                    System.err.println(" (or it's a peak)");
-                }
-                double[] sampPt = new double[coords.length+2];
-                for(int i = 0; i < coords.length; i++) sampPt[i] = coords[i];
-                sampPt[sampPt.length-2] = mainVal;
-                sampPt[sampPt.length-1] = checkVal;
-                sampPts.add(sampPt);
-                if (isPeak(coords)) peaks.add(sampPt);
-            }
-            else if (verbose)
-            {
-                System.err.print("\n(pct="+checkVal+" < cutoff="+checkGE+" @ ");
-                for (int i = 0; i < coords.length; i ++)
-                    System.err.print(coords[i]+",");
-                System.err.println(")");
-            }
-        }
-        else
-        {
-            for(int i = 0; i < (samples[depth]*2)+1; i++)
-            {
-                double frac = 0;
-                if ((samples[depth]*2) != 0)   frac = (1.0*i) / ( (samples[depth]*2) );
-                if (verbose) System.err.println("frac="+frac);
-                // Equation below: (left edge) + (frac)*(left-to-right width)
-                coords[depth] = minBounds[depth] + frac*(maxBounds[depth]-minBounds[depth]);
-                takeSamplesAroundPeak(coords, depth+1);
-            }
-        }
-    }
-
-    /** Utility method.*/
-    double[] wrapCoords(double[] oldCoords)
-    {
-        double[] newCoords = new double[oldCoords.length];
-        for (int i = 0; i < oldCoords.length; i ++)
-        {
-            double val = oldCoords[i];
-            if (val > max[i])    val -= max[i]; // e.g. 370 => 370-360 = +10
-            if (val < min[i])    val += max[i]; // e.g. -10 => -10+360 = 350
-            newCoords[i] = val;
-        }
-        return newCoords;
-    }
-
-    /** Utility method.*/
-    boolean isPeak(double[] coords)
-    {
-        for (double[] peak : peaks)
-        {
-            boolean allCoordsMatch = true;
-            for (int i = 0; i < ndtMain.getDimensions(); i++)
-                if (coords[i] != peak[i])   allCoordsMatch = false;
-            if (allCoordsMatch)   return true;
-        }
-        return false;
-    }
-//}}}
-
-//{{{ printSamplesAroundPeaks
-//##############################################################################
-    /** Checks peaks then prints 'em out. */
-    void printSamplesAroundPeaks()
-    {
-        // Do checks
-        sampPts = resolveConflictingPeaks(sampPts);
-        
-        // Print remaining peaks
-        for (double[] sampPt : sampPts)
-        {
-            for(int i = 0; i < sampPt.length-2; i++)
-                System.out.print(df.format(sampPt[i])+":");
-            System.out.print(sampPt[sampPt.length-2]+":"); // mainVal
-            System.out.println(sampPt[sampPt.length-1]);   // checkVal
-        }
-    }
-
-    /** Makes sure samples around peaks aren't too close to each other. Recursive! */
-    ArrayList<double[]> resolveConflictingPeaks(ArrayList<double[]> currSampPts)
-    {
-        //if (verbose) System.err.println("currSampPts.size() = "+currSampPts.size());
-        
-        double minDist = Double.POSITIVE_INFINITY;
-        for (int i = 0; i < degrees.length; i++)
-            if ((degrees[i]*1.0)/(samples[i]*1.0) < minDist)   minDist = (degrees[i]*1.0)/(samples[i]*1.0);
-        
-        for (double[] sampPt : currSampPts)
-        {
-            for (double[] otherPt : currSampPts)
-            {
-                if (!sampPt.equals(otherPt))
-                {
-                    //double squares = 0;
-                    //for (int k = 0; k < ndtMain.getDimensions(); k ++) // per dimension
-                    //{
-                    //    // Takes care of wrapping from 0 => max (default: 360)
-                    //    double x1 = sampPt[k];    double x1wrap = x1 - max[k];
-                    //    double x2 = otherPt[k];   double x2wrap = x2 - max[k];
-                    //    
-                    //    double x1_x2         = Math.abs(x1     - x2);
-                    //    double x1wrap_x2     = Math.abs(x1wrap - x2);
-                    //    double x1_x2wrap     = Math.abs(x1     - x2wrap);
-                    //    double x1wrap_x2wrap = Math.abs(x1wrap - x2wrap);
-                    //    
-                    //    double closest = Double.POSITIVE_INFINITY;
-                    //    if (x1_x2 < closest)         { closest = x1_x2;         x1 = x1;     x2 = x2;     }
-                    //    if (x1wrap_x2 < closest)     { closest = x1wrap_x2;     x1 = x1wrap; x2 = x2;     }
-                    //    if (x1_x2wrap < closest)     { closest = x1_x2wrap;     x1 = x1;     x2 = x2wrap; }
-                    //    if (x1wrap_x2wrap < closest) { closest = x1wrap_x2wrap; x1 = x1wrap; x2 = x2wrap; }
-                    //    
-                    //    squares += Math.pow( (x1-x2), 2);
-                    //}
-                    //double dist = Math.sqrt(squares);
-                    //
-                    //if (dist < minDist && !peaks.contains(otherPt))
-                    if (tooClose(sampPt, otherPt) && !peaks.contains(otherPt))
-                    {
-                        // Make a new sampPts and recursively resolve peak-peak conflicts in it
-                        ArrayList<double[]> newSampPts = new ArrayList<double[]>();
-                        for (double[] temp : currSampPts)   newSampPts.add(temp);
-                        
-                        if (verbose) System.err.println("otherPt "+ptString(otherPt)+" too close to "+ptString(sampPt)+
-                            " => removing "+ptString(otherPt));
-                        newSampPts.remove(otherPt);
-                        
-                        return resolveConflictingPeaks(newSampPts);
-                    }
-                    // else don't remove anything because both are peaks (weird but could happen with large value for degrees)
-                }
-            }
-        }
-        if (verbose) System.err.println("Reached end of recursive loop...");
-        return currSampPts; // final exit point from recursive loop
-    }
-    
-    /** Decides that a given pair of peaks are too close to each other if they're
-    * closer than the sampling spacing in all dimensions. */
-    boolean tooClose(double[] pt1, double[] pt2)
-    {
-        // Get distances between the two points in all dimensions
-        double[] closests = new double[ndtMain.getDimensions()];
-        for (int k = 0; k < ndtMain.getDimensions(); k ++) // per dimension
-        {
-            // Take care of wrapping from 0 => max (default: 360)
-            double x1 = pt1[k];   double x1wrap = x1 - max[k];
-            double x2 = pt2[k];   double x2wrap = x2 - max[k];
-            
-            double x1_x2         = Math.abs(x1     - x2);
-            double x1wrap_x2     = Math.abs(x1wrap - x2);
-            double x1_x2wrap     = Math.abs(x1     - x2wrap);
-            double x1wrap_x2wrap = Math.abs(x1wrap - x2wrap);
-            
-            closests[k] = Double.POSITIVE_INFINITY;
-            if (x1_x2 < closests[k])         { closests[k] = x1_x2;         x1 = x1;     x2 = x2;     }
-            if (x1wrap_x2 < closests[k])     { closests[k] = x1wrap_x2;     x1 = x1wrap; x2 = x2;     }
-            if (x1_x2wrap < closests[k])     { closests[k] = x1_x2wrap;     x1 = x1;     x2 = x2wrap; }
-            if (x1wrap_x2wrap < closests[k]) { closests[k] = x1wrap_x2wrap; x1 = x1wrap; x2 = x2wrap; }
-        }
-        
-        // For each dimension, compare the distance between the two points in that
-        // dimension to the sampling spacing in that dimension. If the distance is
-        // the smaller number for all dimensions, pt1 is within the "sampling box"
-        // (an n-dimensional rectangular prism) of pt2
-        for (int k = 0; k < ndtMain.getDimensions(); k ++) // per dimension
-        {
-            double sampSpacing = degrees[k] / (1.0*samples[k]);
-            if (closests[k] >= sampSpacing)
-            {
-                if (verbose) System.err.println("Far enough away in chi"+(k+1)+
-                    ": "+df.format(closests[k])+" > "+df.format(sampSpacing));
-                return false;
-            }
-        }
-        if (verbose) System.err.println(ptString(pt1)+" too close to "+ptString(pt2));
-        return true;
-    }
-    
-    /** Returns String representing point: "(33, 44, 78, ..., 99)". */
-    String ptString(double[] pt)
-    {
-        String ptStr = "(";
-        for (int k = 0; k < pt.length-3; k ++)   ptStr += df2.format(pt[k])+",";
-        ptStr += df2.format(pt[pt.length-3])+")";
-        return ptStr;
-    }
-    
-//{{{ old code for resolveConflictingPeaks
-//    /** Makes sure samples around peaks aren't too close to each other. */
-//    void resolveConflictingPeaks()
-//    {
-//        ArrayList<double[]> toRemove  = new ArrayList<double[]>();
-//        ArrayList<double[]> toKeep    = new ArrayList<double[]>();
-//        
-//        double minDegTravel = Double.POSITIVE_INFINITY;
-//        for (int degree : degrees) if (degree < minDegTravel) minDegTravel = 1.0*degree;
-//        
-//        for (double[] sampPt : sampPts) if (peaks.contains(sampPt)) toKeep.add(sampPt);
-//        
-//        for (double[] sampPt : sampPts)//int i = 0; i < sampPts.size(); i ++)
-//        {
-//            //double[] sampPt = sampPts.get(i);
-//            for (double[] otherPt : sampPts)//int j = i+1; j < sampPts.size(); j ++)
-//            {
-//                //double[] otherPt = sampPts.get(j); // guaranteed to not reference the same point
-//                if (!sampPt.equals(otherPt))
-//                {
-//                    double squares = 0;
-//                    for (int k = 0; k < ndtMain.getDimensions(); k ++) // per dimension
-//                    {
-//                        // Takes care of wrapping from 0 => max (default: 360)
-//                        double x1 = sampPt[k];    double x1wrap = x1 - max[k];
-//                        double x2 = otherPt[k];   double x2wrap = x2 - max[k];
-//                        
-//                        double x1_x2         = Math.abs(x1     - x2);
-//                        double x1wrap_x2     = Math.abs(x1wrap - x2);
-//                        double x1_x2wrap     = Math.abs(x1     - x2wrap);
-//                        double x1wrap_x2wrap = Math.abs(x1wrap - x2wrap);
-//                        
-//                        double closest = Double.POSITIVE_INFINITY;
-//                        if (x1_x2 < closest)         { closest = x1_x2;         x1 = x1;     x2 = x2;     }
-//                        if (x1wrap_x2 < closest)     { closest = x1wrap_x2;     x1 = x1wrap; x2 = x2;     }
-//                        if (x1_x2wrap < closest)     { closest = x1_x2wrap;     x1 = x1;     x2 = x2wrap; }
-//                        if (x1wrap_x2wrap < closest) { closest = x1wrap_x2wrap; x1 = x1wrap; x2 = x2wrap; }
-//                        
-//                        squares += Math.pow( (x1-x2), 2);
-//                    }
-//                    double dist = Math.sqrt(squares);
-//                    // Only delete this point if:
-//                    //    - it's too close to another point
-//                    //      and
-//                    //    - not planning to keep this point (e.g. because it's a peak) or remove
-//                    //      the other point (in which case there would be no conflict to resolve!)
-//                    //      or
-//                    //    - somehow planning to keep both already, in which case if one is a peak
-//                    //      delete the other, but if neither is remove sampPt
-//                    if (dist < minDegTravel)
-//                    {
-//                        if ( (!toKeep.contains(sampPt) && !toRemove.contains(otherPt))
-//                          || ( toKeep.contains(sampPt) && toKeep.contains(otherPt) &&  peaks.contains(otherPt) && !peaks.contains(sampPt))
-//                          || ( toKeep.contains(sampPt) && toKeep.contains(otherPt) && !peaks.contains(otherPt) && !peaks.contains(sampPt)) )
-//                        {
-//                            if (verbose)
-//                            {
-//                                System.err.print("(");
-//                                for (int k = 0; k < sampPt.length-3; k ++) System.err.print(df2.format(sampPt[k])+",");
-//                                System.err.print(df2.format(sampPt[sampPt.length-3])+") vs. (");
-//                                for (int k = 0; k < otherPt.length-3; k ++) System.err.print(df2.format(otherPt[k])+",");
-//                                System.err.print(df2.format(otherPt[otherPt.length-3])+")\t dist="+df2.format(dist)+" ?< "+df2.format(minDegTravel));
-//                                System.err.println("   \t => removing");
-//                            }
-//                            toRemove.add(sampPt);
-//                            toKeep.add(otherPt);
-//                        }
-//                        else if (toKeep.contains(sampPt) && toKeep.contains(otherPt) && peaks.contains(sampPt) && !peaks.contains(otherPt))
-//                        {
-//                            if (verbose)
-//                            {
-//                                System.err.print("(");
-//                                for (int k = 0; k < sampPt.length-3; k ++) System.err.print(df2.format(otherPt[k])+",");
-//                                System.err.print(df2.format(otherPt[otherPt.length-3])+") vs. (");
-//                                for (int k = 0; k < sampPt.length-3; k ++) System.err.print(df2.format(sampPt[k])+",");
-//                                System.err.print(df2.format(sampPt[sampPt.length-3])+")\t dist="+df2.format(dist)+" ?< "+df2.format(minDegTravel));
-//                                System.err.println("   \t => removing");
-//                            }
-//                            toRemove.add(otherPt);
-//                            toKeep.add(sampPt);
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        for (double[] sampPt : toRemove)     sampPts.remove(sampPt);
-//    }
-//}}}
-
-//}}}
-
-//{{{ takeSamples
-//##############################################################################
-    /** Takes samples at the specified intervals from both tables (recursive).*/
-    void takeSamples(double[] coords, int depth)
+    /**
+    * Takes samples at the specified intervals w/o regard to peaks. Recursive!
+    */
+    void sampleOnGrid(double[] coords, int depth)
     {
         if(depth >= coords.length)
         {
@@ -477,24 +108,14 @@ public class RotamerSampler //extends ... implements ...
             double checkVal = ndtCheck.valueAt(coords);
             if(mainVal >= mainGE && checkVal >= checkGE)
             {
-                if (verbose)
-                {
-                    System.err.print("\npct="+checkVal+" >= cutoff="+checkGE+" @ ");
-                    for (int i = 0; i < coords.length; i ++)
-                        System.err.print(coords[i]+",");
-                    System.err.println();
-                }
+                if(verbose) System.err.println(mainVal+" >= "+mainGE+" (stat) and "
+                    +checkVal+" >= "+checkGE+" (pct) @ "+Strings.arrayInParens(coords));
                 for(int i = 0; i < coords.length; i++)
                     System.out.print(df.format(coords[i])+":");
                 System.out.println(mainVal+":"+checkVal);
             }
-            else if (verbose)
-            {
-                System.err.print("\npct="+checkVal+" < cutoff="+checkGE+" @ ");
-                for (int i = 0; i < coords.length; i ++)
-                    System.err.print(coords[i]+",");
-                System.err.println();
-            }
+            else if(verbose) System.err.println(mainVal+" < "+mainGE+" (stat) or "
+                +checkVal+" < "+checkGE+" (pct) @ "+Strings.arrayInParens(coords));
         }
         else
         {
@@ -502,22 +123,399 @@ public class RotamerSampler //extends ... implements ...
             {
                 double frac = (i+0.5)/(samples[depth]);
                 coords[depth] = (1.0-frac)*minBounds[depth] + frac*maxBounds[depth];
-                takeSamples(coords, depth+1);
+                sampleOnGrid(coords, depth+1);
             }
         }
     }
 //}}}
 
-//{{{ getLine
+//{{{ sampleNearPeaks
 //##############################################################################
-    /** Returns a trimmed line, discarding everything up to and including the 
-    * first colon. */
-    static private String getLine(LineNumberReader in) throws IOException
+    void sampleNearPeaks() throws IOException
     {
-        String s = in.readLine();
-        if(s == null) throw new EOFException("No lines remaining in "+in);
-        if(s.indexOf(':') > 0) s = s.substring(s.indexOf(':')+1);
-        return s.trim();
+        if(verbose) System.err.println("Sampling near peaks...");
+        
+        peaks = new HashMap<Integer,double[]>();
+        Scanner ls = new Scanner(file3);
+        for(int i = 0; i < ndtMain.getDimensions()+4; i++) ls.nextLine(); // skip headers
+        while(ls.hasNextLine())
+        {
+            String line = ls.nextLine(); // e.g. "1 65.0 85.0 0.05649024553933026"
+            String[] coordinates = Strings.explode(line, ' ');
+            int peakId = -1;
+            try
+            { peakId = Integer.parseInt(coordinates[0]); }
+            catch(NumberFormatException ex)
+            { System.err.println("Error parsing "+coordinates[0]+" as int peak ID!"); }
+            double[] peak = new double[coordinates.length-1];
+            for(int i = 0; i < ndtMain.getDimensions()+1; i++)
+                peak[i] = Double.parseDouble(coordinates[i+1]); // chis & pct (no stat)
+            peaks.put(peakId, peak);
+        }
+        
+        samps = new HashMap<double[],Integer>();
+        for(Iterator pItr = peaks.keySet().iterator(); pItr.hasNext(); )
+        {
+            int peakId = (Integer) pItr.next();
+            double[] peak = peaks.get(peakId);
+            
+            // Sample near peak using new min/maxBounds
+            for(int i = 0; i < ndtMain.getDimensions(); i++)
+            {
+                minBounds[i] = peak[i] - samples[i]*degrees[i]; // steps x step size
+                maxBounds[i] = peak[i] + samples[i]*degrees[i]; // steps x step size
+            }
+            if(verbose) System.err.println("Sampling around peak "+peakId+" @ "+Strings.arrayInParens(peak)+
+                " from "+Strings.arrayInParens(minBounds)+" to "+Strings.arrayInParens(maxBounds));
+            sampleNearPeak(peakId, new double[ndtMain.getDimensions()], 0);
+        }
+        
+        printSamplesNearPeaks();
+    }
+//}}}
+
+//{{{ sampleNearPeak
+//##############################################################################
+    /**
+    * Takes samples at the specified intervals starting from peaks. Recursive!
+    */
+    void sampleNearPeak(int peakId, double[] coords, int depth)
+    {
+        if(depth >= coords.length)
+        {
+            double mainVal = ndtMain.valueAt(coords);
+            double checkVal = ndtCheck.valueAt(coords);
+            // we'll take samples above threshold or peaks even if below threshold
+            if((mainVal >= mainGE && checkVal >= checkGE) || isPeak(coords))
+            {
+                coords = wrapCoords(coords);
+                if(verbose) System.err.println(mainVal+" >= "+mainGE+" (stat) and "+checkVal+
+                    " >= "+checkGE+" (pct) @ "+Strings.arrayInParens(coords)+" (or it's a peak)");
+                
+                double[] samp = new double[coords.length+2];
+                for(int i = 0; i < coords.length; i++)
+                    samp[i] = coords[i];        // chis
+                samp[samp.length-2] = mainVal;  // stat = mainVal
+                samp[samp.length-1] = checkVal; // pct = checkVal
+                
+                samps.put(samp, peakId);
+            }
+            else if(verbose) System.err.println(mainVal+" < "+mainGE+" (stat) or "+checkVal+
+                " < "+checkGE+" (pct) @ "+Strings.arrayInParens(coords)+" (and not a peak)");
+        }
+        else
+        {
+            for(int i = 0; i < (samples[depth]*2)+1; i++)
+            {
+                double frac = 0;
+                if((samples[depth]*2) != 0)
+                    frac = (1.0*i) / (samples[depth]*2);
+                // equation below: (left edge) + (frac)*(left-to-right width)
+                coords[depth] = minBounds[depth] + frac*(maxBounds[depth]-minBounds[depth]);
+                sampleNearPeak(peakId, coords, depth+1);
+            }
+        }
+    }
+//}}}
+
+//{{{ printSamplesNearPeaks
+//##############################################################################
+    /** Checks peaks then prints 'em out. */
+    void printSamplesNearPeaks()
+    {
+        /*samps = resolveConflicts(samps);*/
+        // This ^ ends up basically eliminating points 
+        // in concentrated regions - not what I wanted!
+        
+        // Print remaining peaks
+        if(byPeak)
+        {
+            // Goal: allow subsequent analyses to find max/min of some value, 
+            // e.g. steric clash, w/in each peak separately.
+            for(Iterator pItr = peaks.keySet().iterator(); pItr.hasNext(); )
+            {
+                int peakId = (Integer) pItr.next();
+                double[] peak = peaks.get(peakId);
+                
+                // Print comment indicating parent peak of following sample points.
+                System.out.print("#"+peakId+":");
+                for(int p = 0; p < peak.length-1; p++) 
+                    System.out.print(df2.format(peak[p])+":"); // chis
+                System.out.print("__?__:");                    // (no stat)
+                System.out.println(peak[peak.length-1]);       // pct
+                
+                // Print samples derived from current peak
+                for(Iterator sItr = samps.keySet().iterator(); sItr.hasNext(); )
+                {
+                    double[] samp = (double[]) sItr.next();
+                    int sampPeakId = samps.get(samp);
+                    if(sampPeakId == peakId)
+                    {
+                        // Sample derived from current peak
+                        if(samp.length == ndtMain.getDimensions()+2)
+                        {
+                            for(int i = 0; i < samp.length-2; i++)
+                                System.out.print(df.format(samp[i])+":"); // chis
+                            System.out.print(  samp[samp.length-2]+":");  // stat = mainVal
+                            System.out.println(samp[samp.length-1]);      // pct = checkVal
+                        }
+                        else System.err.println(
+                            "WRONG # VALUES IN "+Strings.arrayInParens(samp)+" - SHOULD NEVER HAPPEN!!! - IGNORING FOR NOW");
+                    }
+                }
+            }
+        }
+        else
+        {
+            for(Iterator sItr = samps.keySet().iterator(); sItr.hasNext(); )
+            {
+                double[] samp = (double[]) sItr.next();
+                if(samp.length == ndtMain.getDimensions()+2)
+                {
+                    for(int i = 0; i < samp.length-2; i++)
+                        System.out.print(df.format(samp[i])+":"); // chis
+                    System.out.print(  samp[samp.length-2]+":");  // stat = mainVal
+                    System.out.println(samp[samp.length-1]);      // pct = checkVal
+                }
+                else System.err.println(
+                    "WRONG # VALUES IN "+Strings.arrayInParens(samp)+" - SHOULD NEVER HAPPEN!!! - IGNORING FOR NOW");
+            }
+        }
+    }
+//}}}
+
+//{{{ resolveConflicts
+//##############################################################################
+    /**
+    * If samples are too close to each other from sampling near peaks, 
+    * this method drops the non-peak sample of the two if possible; 
+    * otherwise it averages them. Recursive!
+    */
+    HashMap<double[],Integer> resolveConflicts(HashMap<double[],Integer> currSamps)
+    {
+        double minDist = Double.POSITIVE_INFINITY;
+        for(int i = 0; i < degrees.length; i++)
+            if(degrees[i] < minDist)
+                minDist = degrees[i];
+        
+        for(Iterator s1Itr = currSamps.keySet().iterator(); s1Itr.hasNext(); )
+        {
+            double[] samp1 = (double[]) s1Itr.next();
+            for(Iterator s2Itr = currSamps.keySet().iterator(); s2Itr.hasNext(); )
+            {
+                double[] samp2 = (double[]) s2Itr.next();
+                if(!sameSample(samp1, samp2))
+                {
+                    double[] avg = tooClose(samp1, samp2);
+                    if(avg != null) // means they're too close
+                    {
+                        // Make a new currSamps and recursively resolve peak-peak conflicts in it
+                        HashMap<double[],Integer> newSamps = new HashMap<double[],Integer>();
+                        for(Iterator sItr = currSamps.keySet().iterator(); sItr.hasNext(); )
+                        {
+                            double[] samp = (double[]) sItr.next();
+                            newSamps.put(samp, currSamps.get(samp));
+                        }
+                        
+                        if(isPeak(samp1) && !isPeak(samp2))
+                        {
+                            if(verbose) System.err.println(Strings.arrayInParens(samp1)+" is peak but "
+                                +Strings.arrayInParens(samp2)+" is not => dropping latter");
+                            newSamps.remove(samp2);
+                        }
+                        else if(!isPeak(samp1) && isPeak(samp2))
+                        {
+                            if(verbose) System.err.println(Strings.arrayInParens(samp2)+" is peak but "
+                                +Strings.arrayInParens(samp1)+" is not => dropping latter");
+                            newSamps.remove(samp1);
+                        }
+                        else if(isPeak(samp1) && isPeak(samp2))
+                        {
+                            throw new IllegalArgumentException(Strings.arrayInParens(samp2)+" and "
+                                +Strings.arrayInParens(samp1)+" are conflicting PEAKS - should never happen!");
+                        }
+                        else // neither is a peak
+                        {
+                            if(verbose) System.err.println("samples "+Strings.arrayInParens(samp2)+
+                                " and "+Strings.arrayInParens(samp1)+" too close => averaging them");
+                            newSamps.remove(samp2);
+                            newSamps.remove(samp1);
+                            int peakId1 = currSamps.get(samp1);
+                            int peakId2 = currSamps.get(samp2);
+                            if(peakId1 <= peakId2) newSamps.put(avg, peakId1); // take the lower peak ID int 
+                            else                   newSamps.put(avg, peakId2); //    if forced to choose
+                        }
+                        
+                        return resolveConflicts(newSamps);
+                    }//if too close
+                }//if not same sample
+            }//2
+        }//1
+        if(verbose) System.err.println("Reached end of recursive sample-conflict resolution");
+        return currSamps; // final exit point from recursive loop
+    }
+//}}}
+
+//{{{ tooClose
+//##############################################################################
+    /**
+    * Decides that a given pair of samples are too close to each other if 
+    * they're closer than the sampling spacing in all dimensions.
+    * If that's true, returns the average of the two samples; if not, returns null.
+    * Wrapping is considered.
+    * @param pt1 = chis, stat, & pct
+    * @param pt2 = chis, stat, & pct
+    */
+    double[] tooClose(double[] pt1, double[] pt2)
+    {
+        // Get distances between the two points in all dimensions.
+        // Calculate average of the two in dihedral space (considering wrap)
+        //   while we're at it.
+        double[] closests = new double[ndtMain.getDimensions()];
+        double[] avg      = new double[ndtMain.getDimensions()+1];
+        for(int k = 0; k < ndtMain.getDimensions(); k++) // per dimension
+        {
+            // Consider wrapping (default: 0 = 360)
+            //double x1 = pt1[k];   double x1wrap = x1 - max[k];
+            //double x2 = pt2[k];   double x2wrap = x2 - max[k];
+            double x1 = pt1[k];   double x1wrap = x1 - (bounds[k+1]-bounds[k]); //    62 - (360 -    0)
+            double x2 = pt2[k];   double x2wrap = x2 - (bounds[k+1]-bounds[k]); // or 62 - (180 - -180)
+            
+            double x1_x2         = Math.abs(x1     - x2);
+            double x1wrap_x2     = Math.abs(x1wrap - x2);
+            double x1_x2wrap     = Math.abs(x1     - x2wrap);
+            double x1wrap_x2wrap = Math.abs(x1wrap - x2wrap);
+            
+            closests[k] = Double.POSITIVE_INFINITY;
+            if(x1_x2 < closests[k])         { closests[k] = x1_x2;         x1 = x1;     x2 = x2;     }
+            if(x1wrap_x2 < closests[k])     { closests[k] = x1wrap_x2;     x1 = x1wrap; x2 = x2;     }
+            if(x1_x2wrap < closests[k])     { closests[k] = x1_x2wrap;     x1 = x1;     x2 = x2wrap; }
+            if(x1wrap_x2wrap < closests[k]) { closests[k] = x1wrap_x2wrap; x1 = x1wrap; x2 = x2wrap; }
+            avg[k] = (x1+x2)/2;
+        }
+        avg[avg.length-2] = pt1[pt1.length-2]; // stat = mainVal
+        avg[avg.length-1] = pt1[pt1.length-1]; // pct = checkVal
+        
+        // For each dimension, compare the distance between the two points in that
+        // dimension to the sampling spacing in that dimension. If the distance is
+        // the smaller number for all dimensions, pt1 is within the "sampling box"
+        // (an n-dimensional rectangular prism) of pt2
+        for(int k = 0; k < ndtMain.getDimensions(); k++) // per dimension
+        {
+            if(closests[k] >= degrees[k])
+            {
+                if(verbose) System.err.println("Far enough away in chi"+(k+1)+
+                    ": "+df.format(closests[k])+" > "+df.format(degrees[k]));
+                return null;
+            }
+        }
+        if(verbose)
+        {
+            System.err.println(Strings.arrayInParens(pt1)+" too close to "+Strings.arrayInParens(pt2));
+            System.err.println("avg of the two: "+Strings.arrayInParens(avg));
+        }
+        return avg;
+    }
+//}}}
+
+//{{{ (helper functions)
+//##############################################################################
+    /** Copied directly from SilkCmdLine. */
+    int[] explodeInts(String s) throws NumberFormatException
+    {
+        String[]    strings = Strings.explode(s, ',', true, true);
+        int[]       ints    = new int[strings.length];
+        for(int i = 0; i < strings.length; i++)
+            ints[i] = Integer.parseInt(strings[i]);
+        return ints;
+    }
+
+    /**
+    * Modifies chis of provided sample to lie within user-dictated bounds
+    *   if they don't already.
+    * @param coords = (chis) OR (chis & pct)
+    */
+    double[] wrapCoords(double[] coords)
+    {
+        for(int i = 0; i < ndtMain.getDimensions(); i++)
+        {
+            if(coords[i] > bounds[i+1]) coords[i] -= bounds[i+1]; // e.g. 370 => 370-360 = +10
+            if(coords[i] < bounds[i]  ) coords[i] += bounds[i+1]; // e.g. -10 => -10+360 = 350
+        }
+        return coords;
+    }
+
+    /**
+    * Uses just chis (no stat or pct) to tell if given sample matches any peak.
+    * @param coords = (chis) OR (chis & pct)
+    */
+    boolean isPeak(double[] coords)
+    {
+        for(Iterator pItr = peaks.keySet().iterator(); pItr.hasNext(); )
+        {
+            int peakId = (Integer) pItr.next();
+            double[] peak = peaks.get(peakId);
+            
+            boolean allCoordsMatch = true;
+            for(int i = 0; i < ndtMain.getDimensions(); i++)
+                if(coords[i] != peak[i])
+                    allCoordsMatch = false;
+            if(allCoordsMatch)
+                return true;
+        }
+        return false;
+    }
+
+    /**
+    * Uses all values (chis, stat, & pct) to tell if given samples match each other.
+    */
+    boolean sameSample(double[] s1, double[] s2)
+    {
+        for(int i = 0; i < s1.length; i++)
+            if(s1[i] != s2[i])
+                return false;
+        return true;
+    }
+//}}}
+
+//{{{ doChecks
+//##############################################################################
+    /** Checks that a bunch on input parameters are OK. */
+    public void doChecks()
+    {
+        if(samples == null || samples.length != ndtMain.getDimensions() 
+        || samples.length != ndtCheck.getDimensions()
+        || (degrees != null && degrees.length != ndtMain.getDimensions()))
+            System.err.println("Samples not specified, or mismatch in tables and/or number of samples");
+        
+        if(bounds == null)
+        {
+            System.err.println("No -bounds=#,#,.. specified -> assuming 0-360 in all dimensions");
+            bounds = new int[2*ndtMain.getDimensions()];
+            for(int i = 0; i < 2*ndtMain.getDimensions(); i += 2)
+            {
+                bounds[i]   =   0;
+                bounds[i+1] = 360;
+            }
+        }
+        else if(bounds.length != 2*ndtMain.getDimensions())
+            System.err.println("bounds=#,#,.. should have "+(2*ndtMain.getDimensions())+" entries!");
+        
+        if(file3 == null)
+        {
+            System.err.println("Third (hillmodes) file not provided -> sampling evenly on grid");
+            if(byPeak)
+                System.err.println("Ignoring -bypeak b/c third (hillmodes) file not provided");
+        }
+        else //if(file3 != null)
+        {
+            System.err.println("Third (hillmodes) file provided -> sampling near peaks");
+            if(degrees == null)
+            {
+                System.err.println("Must specify -degrees=#,#,.. to accompany third (hillmodes) file");
+                System.exit(0);
+            }
+        }
     }
 //}}}
 
@@ -534,73 +532,31 @@ public class RotamerSampler //extends ... implements ...
         // Load tables from disk
         InputStream in1 = new FileInputStream(file1);
         InputStream in2 = new FileInputStream(file2);
-        //if (samples.length >= 5) try
-        //{
-        //    System.err.println("High-dimensional data -> using sparse hash table...");
-        //    ndtMain     = NDimTable_Sparse.createFromText(in1);
-        //    ndtCheck    = NDimTable_Sparse.createFromText(in2);
-        //}
-        //catch (IOException ioe) // Is this even the right exception to expect?...
-        //{
-        //    System.err.println("Sparse hash table failed...");
-            ndtMain     = NDimTable_Dense.createFromText(in1);
-            ndtCheck    = NDimTable_Dense.createFromText(in2);
-        //}
+        ndtMain  = NDimTable_Dense.createFromText(in1);
+        ndtCheck = NDimTable_Dense.createFromText(in2);
         in1.close();
         in2.close();
         
-        minBounds = ndtMain.getMinBounds();
-        maxBounds = ndtMain.getMaxBounds();
+        doChecks();
         
-        if (samples == null || samples.length != ndtMain.getDimensions() || samples.length != ndtCheck.getDimensions() || (degrees != null && degrees.length != ndtMain.getDimensions()))
-            throw new IllegalArgumentException("Samples not specified, or mismatch in tables and/or number of samples");
-        if (file3 == null && degrees != null)
-        {
-            System.err.println("Hills modal peaks file and -degrees=#[,#,...] flag must accompany each other!");
-            System.exit(0);
-        }
-        if (max == null)
-        {
-            max = new int[ndtMain.getDimensions()];
-            for (int i = 0; i < ndtMain.getDimensions(); i++) max[i] = 360;
-        }
-        if (min == null)
-        {
-            min = new int[ndtMain.getDimensions()];
-            for (int i = 0; i < ndtMain.getDimensions(); i++) min[i] = 0;
-        }
-        else if (max.length != ndtMain.getDimensions())
-            System.err.println("max=#,#,... should have "+ndtMain.getDimensions()+" dimensions!");
-        
-        boolean allZero = true;
-        if (degrees != null) for (int degree : degrees) if (degree != 0) allZero = false;
-        if (allZero || (file3 != null && degrees == null))
-        {
-            System.err.println("Current -degrees=0,0,... => changing to -sample=0,0,...");
-            degrees = new int[samples.length];
-            for (int i = 0; i < samples.length; i++) 
-            {
-                degrees[i] = 0;   samples[i] = 0;
-            }
-        }
-            
-        System.out.print("# ");
+        System.out.print("# "+(byPeak ? "peak" : ""));
         for(int i = 1; i <= ndtMain.getDimensions(); i++)
             System.out.print("chi"+i+":");
         System.out.println("main:check");
-        if (file3 != null && degrees != null)
+        
+        minBounds = ndtMain.getMinBounds(); // values may change later if sampling near 
+        maxBounds = ndtMain.getMaxBounds(); // peaks, but this sets the dimensionality
+        
+        if(file3 == null || degrees == null)
         {
-            // Take N samples in each dimension within a set distance from each modal peak
-            // and print them out
-            sampPts = new ArrayList<double[]>();
-            peaks   = new ArrayList<double[]>();
-            takeSamplesAroundPeaks();
-            printSamplesAroundPeaks();
+            // Take samples in each dimension w/o regard to peaks
+            // (i.e. what Ian's original RotamerSampler did).
+            sampleOnGrid(new double[ndtMain.getDimensions()], 0);
         }
         else
         {
-            // Take N samples in each dimension and print them out
-            takeSamples(new double[ndtMain.getDimensions()], 0);
+            // Take samples in each dimension outward from each peak.
+            sampleNearPeaks();
         }
         System.out.flush();
     }
@@ -687,8 +643,9 @@ public class RotamerSampler //extends ... implements ...
         if(showAll)
         {
             InputStream is = getClass().getResourceAsStream("RotamerSampler.help");
-            if(is == null)
-                System.err.println("\n*** Unable to locate help information in 'RotamerSampler.help' ***\n");
+            if(is == null) System.err.println(
+                "\n*** Usage: silk.util.RotamerSampler stat.data pct.data [hillmodes.data] "+
+                    "-bounds=#,#,.. -samples=#,#,.. [-degrees=#,#,..] ***\n");
             else
             {
                 try { streamcopy(is, System.out); }
@@ -728,17 +685,9 @@ public class RotamerSampler //extends ... implements ...
                 showHelp(true);
                 System.exit(0);
             }
-            else if(flag.equals("-sample"))
+            else if(flag.equals("-verbose") || flag.equals("-v"))
             {
-                String[] s = Strings.explode(param, ',');
-                samples = new int[s.length];
-                for(int i = 0; i < s.length; i++) samples[i] = Integer.parseInt(s[i]);
-            }
-            else if(flag.equals("-degrees"))
-            {
-                String[] s = Strings.explode(param, ',');
-                degrees = new int[s.length];
-                for(int i = 0; i < s.length; i++) degrees[i] = Integer.parseInt(s[i]);
+                verbose = true;
             }
             else if(flag.equals("-1ge")) // 'stat' in Makefile
             {
@@ -748,23 +697,21 @@ public class RotamerSampler //extends ... implements ...
             {
                 checkGE = Double.parseDouble(param);
             }
-            else if(flag.equals("-max"))
+            else if(flag.equals("-samples") || flag.equals("-samp"))
             {
-                String[] s = Strings.explode(param, ',');
-                max = new int[s.length];
-                for(int i = 0; i < s.length; i++) max[i] = Integer.parseInt(s[i]);
-                
+                samples = explodeInts(param);
             }
-            else if(flag.equals("-min"))
+            else if(flag.equals("-degrees") || flag.equals("-deg"))
             {
-                String[] s = Strings.explode(param, ',');
-                min = new int[s.length];
-                for(int i = 0; i < s.length; i++) min[i] = Integer.parseInt(s[i]);
-                
+                degrees = explodeInts(param);
             }
-            else if(flag.equals("-verbose") || flag.equals("-v"))
+            else if(flag.equals("-bounds"))
             {
-                verbose = true;
+                bounds = explodeInts(param);
+            }
+            else if(flag.equals("-bypeak"))
+            {
+                byPeak = true;
             }
             else if(flag.equals("-dummy_option"))
             {

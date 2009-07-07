@@ -131,9 +131,70 @@ public class SilkCmdLine //extends ... implements ...
     void doOutput(Collection data, NDimTable densityTrace, SilkEngine engine)
     {
         DecimalFormat df = null;
+        DecimalFormat df2 = new DecimalFormat("##0.0");
+        DecimalFormat df3 = new DecimalFormat("##0.00");
+        DecimalFormat df4 = new DecimalFormat("0.000000");
         
-        if (opt.outputMode == SilkOptions.OUTPUT_HILL_MODES)
-            densityTrace.writeText(opt.outputSink, df, true); // true/false irrelevant here...
+        if(opt.outputMode == SilkOptions.OUTPUT_HILL_MODES)
+        {
+            String outSep = ""+opt.inSep;
+            PrintStream ps = new PrintStream(opt.outputSink);
+            ps.println("# List of hills modal coordinates and values");
+            for(int h = 1; h < densityTrace.hillModes.size(); h++)
+            {
+                double[] hillMode = densityTrace.hillModes.get(h);
+                ps.print(h); // int peak ID
+                for(int i = 0; i < hillMode.length-1; i++)
+                    ps.print(outSep + df2.format(hillMode[i])); // coords
+                ps.println(outSep + hillMode[hillMode.length-1]); // value
+            }
+            ps.flush();
+        }
+        else if(opt.outputMode == SilkOptions.OUTPUT_HILL_ASSIGN)
+        {
+            String outSep = ""+opt.inSep;
+            PrintStream ps = new PrintStream(opt.outputSink);
+            ps.println("# List of input data coordinates and values"
+                +" and corresponding hills modal coordinates and values");
+            
+            ArrayList<Integer> hillIdsInOrder = new ArrayList<Integer>();
+            for(Iterator hItr = densityTrace.hillAssign.keySet().iterator(); hItr.hasNext(); )
+                hillIdsInOrder.add((Integer) hItr.next());
+            Collections.sort(hillIdsInOrder);
+            
+            for(int h = 0; h < hillIdsInOrder.size(); h++)
+            {
+                int hillId = hillIdsInOrder.get(h);
+                if(!densityTrace.hillModes.keySet().contains(hillId)) continue;
+                
+                double[] hillMode = densityTrace.hillModes.get(hillId);
+                ArrayList<DataSample> dataInHill = densityTrace.hillAssign.get(hillId);
+                
+                ps.print("# hill " + hillId + " "); // int peak ID
+                for(int i = 0; i < hillMode.length-1; i++)
+                    ps.print(" " + df2.format(hillMode[i])); // coords
+                ps.print("  " + hillMode[hillMode.length-1]); // value
+                double fracInHill = (1.0*dataInHill.size()) / (1.0*data.size()); 
+                ps.println("  " + dataInHill.size() + "/" + data.size() + " = " 
+                    + df4.format(fracInHill) + " samples");
+                
+                for(int d = 0; d < dataInHill.size(); d++)
+                {
+                    DataSample dataSample = dataInHill.get(d);
+                    // data sample itself
+                    ps.print(dataSample.label); // orig label
+                    for(int i = 0; i < dataSample.coords.length; i++)
+                        ps.print(outSep + df3.format(dataSample.coords[i])); // coords
+                    ps.print(outSep + densityTrace.valueAt(dataSample.coords)); // value
+                    // corresponding peak
+                    ps.print(outSep + hillId); // int peak ID
+                    for(int i = 0; i < hillMode.length-1; i++)
+                        ps.print(outSep + df2.format(hillMode[i])); // coords
+                    ps.println(outSep + hillMode[hillMode.length-1]); // value
+                }
+            }
+            ps.flush();
+        }
         else if(opt.outputMode == SilkOptions.OUTPUT_VALUE_LAST)
             densityTrace.writeText(opt.outputSink, df, false);
         else if(opt.outputMode == SilkOptions.OUTPUT_VALUE_FIRST)
@@ -349,8 +410,9 @@ public class SilkCmdLine //extends ... implements ...
             opt.hillClimb = true;
             if(param != null) opt.hillSquash = Double.parseDouble(param);
         }
-        else if(flag.equals("-title"))          opt.title = param;
         else if(flag.equals("-hillmodes"))      opt.outputMode = SilkOptions.OUTPUT_HILL_MODES;
+        else if(flag.equals("-hillassign"))     opt.outputMode = SilkOptions.OUTPUT_HILL_ASSIGN;
+        else if(flag.equals("-title"))          opt.title = param;
         else if(flag.equals("-first"))          opt.outputMode = SilkOptions.OUTPUT_VALUE_FIRST;
         else if(flag.equals("-ndft"))           opt.outputMode = SilkOptions.OUTPUT_NDFT;
         else if(flag.equals("-kin"))            opt.outputMode = SilkOptions.OUTPUT_KINEMAGE;

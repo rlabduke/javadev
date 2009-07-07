@@ -147,9 +147,12 @@ public class SilkEngine //extends ... implements ...
         {
             if(options.hillSquash > 0) densityTrace.squash(options.hillSquash); // squash(0) has no effect
             // Label remaining values by hill climbing
-            if (options.outputMode == options.OUTPUT_HILL_MODES) 
-                 densityTrace.classifyByHills(true);
-            else densityTrace.classifyByHills(false);
+            if(options.outputMode == options.OUTPUT_HILL_MODES) // simply find hill climbing modes
+                densityTrace.classifyByHills(true, null);
+            else if(options.outputMode == options.OUTPUT_HILL_ASSIGN) // assign discrete input data to hills
+                densityTrace.classifyByHills(true, options.data);
+            else
+                densityTrace.classifyByHills(false, null); // no modes involved; just hill climbing grid
         }
         
         return densityTrace;
