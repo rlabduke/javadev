@@ -40,6 +40,7 @@ public class SilkOptions //extends ... implements ...
     public static final String      OUTPUT_KINEMAGE     = "kinemage";
     public static final String      OUTPUT_NDFT         = "binary (NDFT)";
     public static final String      OUTPUT_HILL_MODES   = "hills modal peaks";
+    public static final String      OUTPUT_HILL_ASSIGN  = "data assignments to hills";
     public static final int         V_STANDARD          = 0;
     public static final int         V_QUIET             = -10;
     public static final int         V_VERBOSE           = 10;
@@ -244,11 +245,12 @@ public class SilkOptions //extends ... implements ...
         // Output
         if(outputSink == null) outputSink = new BufferedOutputStream(System.out);
         if(outputMode == OUTPUT_NDFT) sparse = false; // must use dense table to write NDFT
-        if(outputMode == OUTPUT_HILL_MODES && !hillClimb)
+        if((outputMode == OUTPUT_HILL_MODES || outputMode == OUTPUT_HILL_ASSIGN) && !hillClimb)
         {
-            System.err.println("Must use -hillclimb if using -hillmodes!");
+            System.err.println("Must use -hillclimb if using -hillmodes or -hillassign!");
             System.exit(0);
         }
+        
         
         // Bayesian
         if(prior != null) sparse = false; // addPrior() doesn't work for sparse tables right now
