@@ -102,7 +102,15 @@ public class ArgFlipConfirmer
             Triple preNormal  = getNormal(quasiCNIT, false);
             Triple postNormal = getNormal(quasiCNIT, true);
             
-            double angle = preNormal.angle(postNormal);// / (2*Math.PI) * 360;
+            // Made default change in guanidinium normal 0 degrees (July 8 2009 - DAK).
+            // The problem is that disordered (or incomplete for whatever other reasons)
+            // sidechains prevent calculation of a guanidinium normal.  To Jeff and I, 
+            // the best strategy at this point is to simply report 0 for such cases so
+            // that downstream applications ignore these Args as "not changing".  Not a
+            // particularly elegant solution, but hey, neither is this class in general!
+            double angle = 0;
+            if(preNormal != null && postNormal != null)
+                angle = preNormal.angle(postNormal);// / (2*Math.PI) * 360;
             
             // Add angle to output ArrayList 
             cnitsAndAngles.add(quasiCNIT+":"+df.format(angle));
@@ -144,16 +152,9 @@ public class ArgFlipConfirmer
         if (afterRefit)
             cf = cf_after;
         
-        //Scanner s = new Scanner(argLine);
-        //String chain   = s.next();
-        //String resno   = s.next();
         String chain = quasiCNIT.substring(0,1);
         String resno = (quasiCNIT.substring(1,5)).trim();
         String restype = "ARG";
-        
-        //System.out.println("chain: '"+chain+"'");
-        //System.out.println("resno: '"+resno+"'");
-        //System.out.println("restype: '"+restype+"'");
         
         Triple cz  = null;
         Triple nh1 = null;
@@ -188,44 +189,23 @@ public class ArgFlipConfirmer
                         {
                             String thisAtomName = atom.getName();
                             
-                            //System.out.println("atom: '"+thisAtomName+"'");
-                            
-                            if (thisAtomName.equals(" CZ ") )
-                            {
-                                //System.out.println("Found CZ...");
-                                cz = (Triple) state.get(atom);
-                                //System.out.println("cz.getX() == "+cz.getX());
-                            }
-                            else if (thisAtomName.equals(" NH1"))
-                            {
-                                //System.out.println("Found NH1...");
-                                nh1 = (Triple) state.get(atom);
-                                //System.out.println("nh1.getX() == "+nh1.getX());
-                            }
-                            else if (thisAtomName.equals(" NH2"))
-                            {
-                                //System.out.println("Found NH2...");
-                                nh2 = (Triple) state.get(atom);
-                                //System.out.println("nh2.getX() == "+nh2.getX());
-                            }
+                            if(     thisAtomName.equals(" CZ "))  cz  = (Triple) state.get(atom);
+                            else if(thisAtomName.equals(" NH1"))  nh1 = (Triple) state.get(atom);
+                            else if(thisAtomName.equals(" NH2"))  nh2 = (Triple) state.get(atom);
                             
                         }
                         catch (AtomException ae)
-                        {
-                            System.out.println("Couldn't extract CZ/NH1/NH2 coords");
-                        }
+                        { System.out.println("Couldn't extract CZ/NH1/NH2 coords"); }
                         
                         if (cz != null && nh1 != null && nh2 != null)
                         {
                             // Found all three Triples... Now to calculate normal
                             Triple t = new Triple();
-                            
-                            //System.out.println("return Triple = "+t.getX()+", "+t.getY()+", "+t.getZ());
-                            
                             return t.likeNormal(cz, nh1, nh2);
                         }
                     }
-                
+                    if(verbose && (cz == null || nh1 == null || nh2 == null))
+                        System.err.println("*** Warning: At least 1/3 atoms null in "+quasiCNIT+"!");
                 }
             }
         }
