@@ -97,6 +97,22 @@ public class VectorPoint extends AbstractPoint // implements ...
         // The idea is to add points based on the midpoint of the *visible* range.
         if(from != null)
         {
+          KList par = (KList) this.getParent();
+          if (par != null && par.getRear() == true) {
+            if (from.z < z && from.z <= engine.clipFront && z >= engine.clipBack) {
+              engine.addPaintable(this, Math.max(from.z, engine.clipBack)-1);
+            } else if (from.z >= engine.clipBack && z <= engine.clipFront) {
+              engine.addPaintable(this, Math.max(z, engine.clipBack)-1);
+            }
+            
+          } else if (par != null && par.getFore() == true) {
+            if (from.z < z && from.z <= engine.clipFront && z >= engine.clipBack) {
+              engine.addPaintable(this, Math.min(z, engine.clipFront)+1);
+            } else if (from.z >= engine.clipBack && z <= engine.clipFront) {
+              engine.addPaintable(this, Math.min(from.z, engine.clipFront)+1);
+            }
+            
+          } else {
             if(from.z < z && from.z <= engine.clipFront && z >= engine.clipBack)
             {
                 engine.addPaintable(this,
@@ -108,6 +124,7 @@ public class VectorPoint extends AbstractPoint // implements ...
                     (Math.max(z, engine.clipBack)+Math.min(from.z, engine.clipFront)) / 2.0);
             }
             // else don't paint
+          }
         }
         else engine.addPaintable(this, z); // won't be painted, but will be pickable
     }

@@ -479,6 +479,8 @@ public class KinfileParser //extends ... implements ...
                     storeBondRot(bondNum, list.getName(), angle);
                 }
                 else if(s.startsWith("screen")) list.setScreen(true);  // DAK 090212
+                else if(s.startsWith("rear")) list.setRear(true);
+                else if(s.startsWith("fore")) list.setFore(true);
                 else error("Unrecognized literal '"+s+"' will be ignored");
                 token.advance();
             }

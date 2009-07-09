@@ -220,6 +220,11 @@ public class KinfileWriter //extends ... implements ...
         if(list.getDimension() > 3) out.print(" dimension= "+list.getDimension());
         
         if(list.getScreen()) out.print(" screen");
+        
+        if(list.getRear()) out.print(" rear");
+        
+        if(list.getFore()) out.print(" fore");
+
         out.println();
 
         lastPointID = null;
