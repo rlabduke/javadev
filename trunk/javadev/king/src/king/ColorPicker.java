@@ -96,6 +96,10 @@ public class ColorPicker extends TablePane2 implements MouseListener
     
     /** List of listeners for ChangeEvents */
     protected Collection<ChangeListener> changeListeners = new ArrayList<ChangeListener>();
+    
+    /** Seems to be roughly the practical limit for fitting color patches into
+    * 'Edit list/point properties' windows (DAK 090507) */
+    int maxNumNewColors = 36;
 //}}}
 
 //{{{ Constructor(s)
@@ -273,6 +277,11 @@ public class ColorPicker extends TablePane2 implements MouseListener
         tp.setOpaque(false); // lets black/white show through
         for(KPaint paint : kPaints)
         {
+            if(i >= maxNumNewColors)
+            {
+                System.err.println("Too many user-defined colors: "+kPaints.size()+" (max = "+maxNumNewColors+")");
+                break;
+            }
             ColorPatch patch = new ColorPatch(paint);
             tp.addCell(patch);
             extraMap.put(paint.toString(), patch);

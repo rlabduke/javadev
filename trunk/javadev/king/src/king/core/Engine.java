@@ -326,6 +326,12 @@ abstract public class Engine //extends ... implements ...
     public void addPaintableToLayer(KPoint p, int layer)
     {
         if(layer < 0 || layer > TOP_LAYER || p == null) return;
+        
+        // Screen-oriented hack added (DAK 090506).  If screen keyword on list,
+        // sets this point to be rendered first and furthest from the observer
+        KList l = (KList)p.getParent();
+        if(l != null && l.getScreen()) layer = 0;
+        
         zbuffer[layer].add(p);
         parents[layer].add(actingParent);
     }

@@ -90,6 +90,15 @@
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 2.18 ### DAK
+- changes to Engine and Engine2D so that points in 'screen'-oriented lists are
+  drawn at the bottom of the Z-buffer, i.e. truly in the background, and are
+  not subject to cue by intensity
+- changed VectorPoint so 'screen' keyword "works"
+- added a limit in ColorPicker to the # colors visible on 'Edit point/list
+  properties' (previously errors when lots of new colors user-defined)
+- small tweaks to point classes like AbstractPoint to improve code readability
+
 ### 2.17 ###
 - added paint by polyline to paint points
 - added new auger by color tool
