@@ -61,6 +61,8 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
     protected Object    clipMode    = null;     // null for default, else some object key
     protected int       dimension   = 3;        // for high-dimensional kinemages
     protected boolean   screen      = false;    // scale w/ screen but don't rotate/translate (like ala_dipept in Mage) (DAK 090212)
+    protected boolean   rear        = false;    // use the rearmost point to determine zbuffer bin.
+    protected boolean   fore        = false;
 //}}}
 
 //{{{ Constructor(s)
@@ -212,6 +214,26 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
     /** Gets screen variable for this list (DAK 090212). */
     public boolean getScreen()
     { return this.screen; }
+    
+    /** Sets rear variable for this list. */
+    public void setRear(boolean rr) {
+      this.rear = rr;
+      fireKinChanged(CHANGE_LIST_PROPERTIES);
+    }
+    /** Gets rear variable for this list. */
+    public boolean getRear() {
+      return this.rear; 
+    }
+    
+    /** Sets fore variable for this list. */
+    public void setFore(boolean rr) {
+      this.fore = rr;
+      fireKinChanged(CHANGE_LIST_PROPERTIES);
+    }
+    /** Gets fore variable for this list. */
+    public boolean getFore() {
+      return this.fore; 
+    }
 //}}}
 
 //{{{ get/set{Angle, Style, ClipMode, Dimension, NoHighlight}
