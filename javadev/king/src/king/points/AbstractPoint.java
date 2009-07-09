@@ -288,12 +288,15 @@ abstract public class AbstractPoint extends AHEImpl<KList> implements KPoint
 //##################################################################################################
     public void calcBoundingBox(float[] bound)
     {
-        if(x0 < bound[0]) bound[0] = x0;
-        if(y0 < bound[1]) bound[1] = y0;
-        if(z0 < bound[2]) bound[2] = z0;
-        if(x0 > bound[3]) bound[3] = x0;
-        if(y0 > bound[4]) bound[4] = y0;
-        if(z0 > bound[5]) bound[5] = z0;
+        if(!parent.getScreen())
+        {
+            if(x0 < bound[0]) bound[0] = x0;
+            if(y0 < bound[1]) bound[1] = y0;
+            if(z0 < bound[2]) bound[2] = z0;
+            if(x0 > bound[3]) bound[3] = x0;
+            if(y0 > bound[4]) bound[4] = y0;
+            if(z0 > bound[5]) bound[5] = z0;
+        }
     }
 
     public float calcRadiusSq(float[] center)
@@ -316,42 +319,48 @@ abstract public class AbstractPoint extends AHEImpl<KList> implements KPoint
         // We have to transform whether we're on or not, because dependent points
         // (vectors, triangles) may be on and expect our coords to be valid.
         // Point-on is checked during drawing and picking by getDrawingColor.
-        if (parent.getScreen() == true) {
-          //Kinemage ancestor = getKinemage();
-          //float span = ancestor.getSpan();
-          //float[] bounds = { Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE,
-          //-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE };
-          //
-          //parent.calcBoundingBox(bounds);
-          //
-          //float[] center = new float[3];
-          //center[0] = (bounds[3] + bounds[0])/2f;
-          //center[1] = (bounds[4] + bounds[1])/2f;
-          //center[2] = (bounds[5] + bounds[2])/2f;
-          //System.out.println("bounds"+bounds[3]+" "+bounds[0]);
-          //System.out.println("bounds"+bounds[4]+" "+bounds[1]);
-          
-          double width   = engine.pickingRect.getWidth();
-          double height  = engine.pickingRect.getHeight();
-          //System.out.println("W: "+width+" H: "+height);
-          //double xmult = (width/(bounds[3] - bounds[0]));
-          //double ymult = (height/(bounds[4] - bounds[1]));
-          //float width = center[0];
-          //float height = center[1];
-          //r = 50;
-          //System.out.println((getX()+center[0]*xmult/2)*xmult+" "+(-getY()+center[1]*ymult/2)*ymult);
-          //setDrawXYZ(new Triple((getX()-center[0])*xmult, (-getY()-center[1])*ymult, getZ()));
-          //setDrawXYZ(new Triple(getX()+width/2, -getY()+height/2, getZ()));
-          double x = width/2  + getX()/200.0 * (width < height ? width : height)/2;
-          double y = height/2 - getY()/200.0 * (width < height ? width : height)/2;
-          setDrawXYZ(new Triple(x, y, getZ()));
-          
-          engine.addPaintable(this, -100);
-        } else {
-        xform.transform(this, engine.work1);
-        setDrawXYZ(engine.work1);
-        
-        engine.addPaintable(this, z);
+        if(parent.getScreen())
+        {
+            //{{{ [old code - ignore]
+            //Kinemage ancestor = getKinemage();
+            //float span = ancestor.getSpan();
+            //float[] bounds = { Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE,
+            //-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE };
+            //parent.calcBoundingBox(bounds);
+            //float[] center = new float[3];
+            //center[0] = (bounds[3] + bounds[0])/2f;
+            //center[1] = (bounds[4] + bounds[1])/2f;
+            //center[2] = (bounds[5] + bounds[2])/2f;
+            //System.out.println("bounds"+bounds[3]+" "+bounds[0]);
+            //System.out.println("bounds"+bounds[4]+" "+bounds[1]);
+            //double width  = engine.pickingRect.getWidth();
+            //double height = engine.pickingRect.getHeight();
+            //System.out.println("W: "+width+" H: "+height);
+            //double xmult = (width/(bounds[3] - bounds[0]));
+            //double ymult = (height/(bounds[4] - bounds[1]));
+            //float width = center[0];
+            //float height = center[1];
+            //r = 50;
+            //System.out.println((getX()+center[0]*xmult/2)*xmult+" "+(-getY()+center[1]*ymult/2)*ymult);
+            //setDrawXYZ(new Triple((getX()-center[0])*xmult, (-getY()-center[1])*ymult, getZ()));
+            //setDrawXYZ(new Triple(getX()+width/2, -getY()+height/2, getZ()));
+            //}}}
+            
+            double width  = engine.pickingRect.getWidth();
+            double height = engine.pickingRect.getHeight();
+            double x = width /2 + getX()/200.0 * Math.min(width, height)/2;
+            double y = height/2 - getY()/200.0 * Math.min(width, height)/2;
+            setDrawXYZ(new Triple(x, y, getZ()));
+            
+            // Choice of second param shouldn't matter b/c engine handles 'screen' parent lists
+            engine.addPaintable(this, z);
+        }
+        else
+        {
+            xform.transform(this, engine.work1);
+            setDrawXYZ(engine.work1);
+            
+            engine.addPaintable(this, z);
         }
     }
 //}}}

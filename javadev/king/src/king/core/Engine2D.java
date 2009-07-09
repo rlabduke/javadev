@@ -153,7 +153,7 @@ public class Engine2D extends Engine
             //if(colorCue >= KPaint.COLOR_LEVELS)
             //    SoftLog.err.println("colorCue = "+colorCue+"; i = "+i+"; TOP_LAYER = "+TOP_LAYER);
             
-            // Render all points at this level (faster to not use iterators)
+            // Render all non-screen points at this level (faster to not use iterators)
             ArrayList<KPoint>   zb      = zbuffer[i];
             ArrayList<KList>    pnt     = parents[i];
             for(int j = 0, end_j = zb.size(); j < end_j; j++)
@@ -161,7 +161,24 @@ public class Engine2D extends Engine
                 KPoint  pt  = (KPoint) zb.get(j);
                 KList   l   = (KList) pnt.get(j);
                 if(l == null)
-                    pt.paint2D(this);
+                {
+                    KList parent = pt.getParent();
+                    if(!parent.getScreen()) pt.paint2D(this);
+                    else
+                    {
+                        // Screen-oriented hack (DAK 090506)
+                        // Seems like Ian took pains to speed up operations in this 
+                        // method, but my hack addition here should be accessed only
+                        // rarely and thus shouldn't slow KiNG down too much.
+                        int oldColorCue = colorCue;
+                        int oldWidthCue = widthCue;
+                        colorCue = KPaint.COLOR_LEVELS/2;//-1;
+                        widthCue = KPaint.COLOR_LEVELS/2;//-1;
+                        pt.paint2D(this);
+                        colorCue = oldColorCue;
+                        widthCue = oldWidthCue;
+                    }
+                }
                 else // see setActingParent() for an explanation
                 {
                     KList oldPnt = pt.getParent();

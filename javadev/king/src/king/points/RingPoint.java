@@ -70,41 +70,46 @@ public class RingPoint extends AbstractPoint // implements ...
     public void doTransform(Engine engine, Transform xform, double zoom)
     {
         // Don't call super.doTransform() b/c we do it all here
-        if (parent.getScreen() == true) {
-          //Kinemage ancestor = getKinemage();
-          //float span = ancestor.getSpan();
-          
-          double width  = engine.pickingRect.getWidth();
-          double height = engine.pickingRect.getHeight();
-          if(r0 <= 0 && parent != null)
-               r = (float)parent.getRadius() * (float)(Math.min(width,height) / 400.0);
-          else r = r0                        * (float)(Math.min(width,height) / 400.0);
-          //System.err.println("scaled radius from "+r0+" to "+r+" for zoom "+zoom);
-          
-          super.doTransform(engine, xform, zoom);
-        } else {
-        if(r0 <= 0 && parent != null) r = (float)(parent.getRadius() * zoom);
-        else                          r = (float)(r0 * zoom);
-        //System.err.println("scaled radius from "+r0+" to "+r);
-        xform.transform(this, engine.work1);
-        setDrawXYZ(engine.work1);
-
-        if(engine.usePerspective)
+        
+        if(parent.getScreen())
         {
-            // multiply radius by perspDist/(perspDist - originalZ)
-            // This is a very subtle effect -- barely notable.
-            r *= (engine.perspDist) / (engine.perspDist - z);
+            //Kinemage ancestor = getKinemage();
+            //float span = ancestor.getSpan();
             
-            // This is the old code -- seems to be wrong. (031017)
-            //r *= (engine.perspDist + z) / engine.perspDist;
+            double width  = engine.pickingRect.getWidth();
+            double height = engine.pickingRect.getHeight();
+            if(r0 <= 0 && parent != null)
+                 r = (float)parent.getRadius() * (float)(Math.min(width,height) / 400.0);
+            else r = r0                        * (float)(Math.min(width,height) / 400.0);
+            //System.err.println("scaled radius from "+r0+" to "+r+" for zoom "+zoom);
+            
+            super.doTransform(engine, xform, zoom);
         }
-        
-        // Can't handle (artificial) thickness cues here
-        // b/c engine.widthCue isn't set yet.
-        
-        engine.addPaintable(this, z);
-        
-        // Rings don't do line shortening around them -- the point is to see the center.
+        else
+        {
+            if(r0 <= 0 && parent != null) r = (float)(parent.getRadius() * zoom);
+            else                          r = (float)(r0 * zoom);
+            //System.err.println("scaled radius from "+r0+" to "+r);
+            
+            xform.transform(this, engine.work1);
+            setDrawXYZ(engine.work1);
+            
+            if(engine.usePerspective)
+            {
+                // multiply radius by perspDist/(perspDist - originalZ)
+                // This is a very subtle effect -- barely notable.
+                r *= (engine.perspDist) / (engine.perspDist - z);
+                
+                // This is the old code -- seems to be wrong. (031017)
+                //r *= (engine.perspDist + z) / engine.perspDist;
+            }
+            
+            // Can't handle (artificial) thickness cues here
+            // b/c engine.widthCue isn't set yet.
+            
+            engine.addPaintable(this, z);
+            
+            // Rings don't do line shortening around them -- the point is to see the center.
         }
     }
 //}}}

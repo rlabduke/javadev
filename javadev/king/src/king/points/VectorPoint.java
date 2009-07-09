@@ -78,8 +78,19 @@ public class VectorPoint extends AbstractPoint // implements ...
     {
         // Don't call super.doTransform() b/c we do it all here
         
-        xform.transform(this, engine.work1);
-        setDrawXYZ(engine.work1);
+        if(parent.getScreen())
+        {
+            double width  = engine.pickingRect.getWidth();
+            double height = engine.pickingRect.getHeight();
+            double x = width /2 + getX()/200.0 * Math.min(width, height)/2;
+            double y = height/2 - getY()/200.0 * Math.min(width, height)/2;
+            setDrawXYZ(new Triple(x, y, getZ()));
+        }
+        else
+        {
+            xform.transform(this, engine.work1);
+            setDrawXYZ(engine.work1);
+        }
         
         // This only works because starting points are listed before ending points
         // in a kinemage, thus, from has already been transformed when we get here!
