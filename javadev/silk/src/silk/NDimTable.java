@@ -3,6 +3,7 @@ package silk;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.*;
+import driftwood.util.Strings;
 /**
 * <code>NDimTable</code> implements an n-dimensional lookup table of real-number values.
 * The table covers a "rectangular" range; i.e., each dimension <i>d</i>
@@ -807,10 +808,13 @@ abstract public class NDimTable //extends ... implements ...
             DataSample dataSample = (DataSample) dItr.next();
             
             // Hill nearest to this data sample
-            int hillId = (int) Math.round(valueAt(dataSample.coords));
-            // Values are interpolated, which is fine for doubles but a bit weird
-            // for integers here (you get stuff like 1.99999...), but 
-            // rounding should take care of things.
+            /*// Old method: interpolate hill IDs of surrounding grid points, 
+            // then round off to get hill ID assignment.
+            // Doesn't work so well for samples near boundaries!
+            int hillId = (int) Math.round(valueAt(dataSample.coords));*/
+            // New method: find nearest(?) grid point with whereIs(), 
+            // then get hill ID of that point.  Much better!
+            int hillId = (int) Math.round(valueAt(whereIs(dataSample.coords)));
             
             // Store
             ArrayList<DataSample> hillData = (hillAssign.containsKey(hillId) ? 
