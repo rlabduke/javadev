@@ -99,36 +99,7 @@ public class NMRRestraintsReader {
           currentAssign = null;
         }
       }
-        /*
-        if ((line.length() > 2)&&(!line.startsWith("!"))) {
-          if (line.substring(0,2).matches("[A-Z]\\.")) {
-            // new section of restraints
-            if (currentAssign != null) currentList.add(currentAssign);
-            System.out.print(line + " ");
-            currentList = new ArrayList();
-            restraintsMap.put(line, currentList);
-          } else if (line.startsWith("assign")) {
-            // new restraint
-            if (currentAssign != null) {
-              //System.out.println(currentAssign);
-              currentList.add(currentAssign);
-              currentAssign = line;
-            } else {
-              currentAssign = line;
-            }
-          } else if (currentAssign != null) {
-            //System.out.println("currentAssign is not null " + line);
-            currentAssign = currentAssign.concat(line);
-          }
-        } else {
-          //System.out.println("line is false " + line);
-          if (currentAssign != null) currentList.add(currentAssign);
-          currentAssign = null;
-        }
-        //String[] strings = Strings.explode(line, delimiter.charAt(0), false, true);
-        //allPoints.add(strings);
-      }
-      */
+      if (currentAssign != null) assignList.add(currentAssign);
       reader.close();
     
       //for (String assign : assignList) {

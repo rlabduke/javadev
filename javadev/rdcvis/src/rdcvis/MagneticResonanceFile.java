@@ -82,7 +82,7 @@ public class MagneticResonanceFile {
   }
   //}}}
   
-    //{{{ processReverseName
+  //{{{ processReverseName
   public String processReverseName(DipolarRestraint dr) {
     String fName = dr.getFromName().trim();
     String tName = dr.getToName().trim();

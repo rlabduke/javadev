@@ -319,6 +319,7 @@ public class RdcVisMain {
           Triple rdcVect = RdcAnalyzer.getResidueRdcVect(state, orig, atoms);
           AtomState origin = RdcAnalyzer.getOriginAtom(state, orig, atoms);
           if ((rdcVect != null)&&(origin != null)) {
+            //System.out.println(orig);
             drawCurve(kin, origin, rdcVect, orig, fi);
             if (drawSurface) {
               drawSurface(kin, origin, orig, fi);

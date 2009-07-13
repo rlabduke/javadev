@@ -37,7 +37,7 @@ public class RdcVisTool extends BasicTool {
   
   //{{{ Variables
   JFileChooser filechooser;
-  RdcDrawer drawer;
+  //RdcDrawer drawer;
   RdcVisWindow rdcWin;
   TreeMap currentRdcs;
   KGroup group = null;
