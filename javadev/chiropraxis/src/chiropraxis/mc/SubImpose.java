@@ -39,7 +39,7 @@ public class SubImpose //extends ... implements ...
 
 //{{{ CLASS: SimpleResAligner
 //##############################################################################
-    static class SimpleResAligner implements Alignment.Scorer
+    public static class SimpleResAligner implements Alignment.Scorer
     {
         // High is good, low is bad.
         public double score(Object a, Object b)
@@ -145,7 +145,7 @@ public class SubImpose //extends ... implements ...
 
 //{{{ getChains
 //##############################################################################
-    Collection getChains(Model m)
+    public static Collection getChains(Model m)
     {
         Collection chains = new ArrayList();
         for(Iterator iter = m.getChainIDs().iterator(); iter.hasNext(); )
@@ -277,7 +277,7 @@ public class SubImpose //extends ... implements ...
     *
     * THESE ARRAYS ARE SORTED IN PLACE (probabably in O(n**2) time).
     */
-    static void sortByLeskSieve(Tuple3[] sm1, Tuple3[] sm2)
+    public static void sortByLeskSieve(Tuple3[] sm1, Tuple3[] sm2)
     {
         int i, len = sm1.length;
         
