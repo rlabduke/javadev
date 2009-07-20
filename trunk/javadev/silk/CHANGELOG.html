@@ -26,6 +26,8 @@
 - Change to hillassign mode: now finds closest hill grid point to each data 
   sample *then* gets hill ID, rather than interpolating hill ID from neighbor
   hill grid points
+- Fixed bug where -hills thought all hill IDs were ~equal b/c program was
+  erroneously using density values in place of integer peak labels
 
 ### 0.95 ### dak
 - Tweaks to RotamerSampler...
