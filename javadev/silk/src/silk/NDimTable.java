@@ -681,6 +681,7 @@ abstract public class NDimTable //extends ... implements ...
 //{{{ classifyByHills, recurseHills, hillsRecurseMaxNeighbor, assignDataToHills
 //##############################################################################
     int[] hillTable = null; // holds the labels, since we can't climb in place!
+    double[] origTable = null; // copy of original density values
     HashMap<Integer,double[]> hillModes = null; // peak ID -> peak coords
     HashMap<Integer,ArrayList<DataSample>> hillAssign = null;  // peak ID -> list of data samples
     /**
@@ -690,7 +691,7 @@ abstract public class NDimTable //extends ... implements ...
     * <p>In an N-dimensional space, each of the 3^N - 1 neighbor points
     * (ie, diagonal neighbors are included) is queried, and the largest
     * positive value is followed recursively, until the top is reached.
-    * @param data - same as SilkOptions.data: raw, discrete, unfiltered input.
+    * @param data raw, discrete, unfiltered input (same as SilkOptions.data)
     */
     public void classifyByHills(boolean findHillModes, Collection data)
     {
@@ -698,31 +699,42 @@ abstract public class NDimTable //extends ... implements ...
         tgf_pt = new double[nDim]; // could be null, or someone else's var!
         
         hillTable = new int[lookupTable.length];
-        double[] origTable = new double[lookupTable.length];
+        
         if(findHillModes)
             hillModes = new HashMap<Integer,double[]>();
+        
+        if(data != null) // -hillassign
+        {
+            origTable = new double[lookupTable.length];
+            for(int i = 0; i < lookupTable.length; i++)
+                origTable[i] = lookupTable[i]; // store original density values
+        }
         
         for(int i = 0; i < lookupTable.length; i++)
             recurseHills(i);
         
         for(int i = 0; i < lookupTable.length; i++)
-            origTable[i] = lookupTable[i]; // [store density values]
-        for(int i = 0; i < lookupTable.length; i++)
-            lookupTable[i] = hillTable[i]; // lookup = hill IDs
+            lookupTable[i] = hillTable[i]; // now lookup -> hill IDs
         
-        if(data != null)
+        if(data != null) // -hillassign
+        {
             assignDataToHills(data);
+            
+            // Changed by DAK 20 July 2009.
+            // If you're outputting hill grid points e.g. for a kinemage (-hills), 
+            //   you must change to hill IDs in this table.
+            // If you're outputting hill mode points and values (-hillmodes), 
+            //   hill mode points & values are stored in the separate variable hillModes so 
+            //   it doesn't matter what's in this table.
+            // However, if you're outputting data points, their density values, 
+            //   and the labels of their corresponding hills (-hillassign), like we are here, 
+            //   you must retain the original density values in this table 
+            //   so SilkCmdLine.doOutput can call densityTrace.valueAt(dataSample.coords)).
+            for(int i = 0; i < lookupTable.length; i++)
+                lookupTable[i] = origTable[i]; // switch back to lookup -> original density values
+            origTable = null;
+        }
         
-        for(int i = 0; i < lookupTable.length; i++)
-            lookupTable[i] = origTable[i]; // lookup = density values
-        // Basis for ^, changed by DAK 6 July 2009:
-        // "Make climbHills return a List of peaks
-        //    This is a bit hard, because you probably want the peak heights too.
-        //    Which are gone when you overwrite them with peak labels.
-        //    Maybe classifyByHills() shouldn't alter the table after all?" - IWD
-        
-        
-        origTable = null;
         hillTable = null;
     }
     
@@ -759,8 +771,8 @@ abstract public class NDimTable //extends ... implements ...
             {
                 double[] hillMode = new double[nDim+1];
                 for(int i = 0; i < nDim; i++)
-                    hillMode[i] = tgf_pt[i];
-                hillMode[nDim] = lookupTable[idx];
+                    hillMode[i] = tgf_pt[i]; // coords
+                hillMode[nDim] = lookupTable[idx]; // value (peak height)
                 hillModes.put((int)label, hillMode);
             }
         }
