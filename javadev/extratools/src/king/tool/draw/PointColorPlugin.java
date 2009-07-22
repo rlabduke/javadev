@@ -28,6 +28,7 @@ public class PointColorPlugin extends Plugin
     static final String     DO_IF       = "if";
     static final String     DO_IF_NOT   = "if not";
     static final String[]   CONDITIONS  = {DO_IF, DO_IF_NOT};
+    static final DecimalFormat df = new DecimalFormat("0.000");
 //}}}
 
 //{{{ Variable definitions
@@ -255,8 +256,14 @@ public class PointColorPlugin extends Plugin
           if (isSelectable(p)) {
             ptTxt = "{"+p.toString()+"}";
             float[] coords = p.getAllCoords();
-            for (float f : coords) {
-              ptTxt = ptTxt+":"+Float.toString(f);
+            if (coords != null) {
+              for (float f : coords) {
+                ptTxt = ptTxt+":"+Float.toString(f);
+              }
+            } else {
+              ptTxt = ptTxt+":"+df.format(p.getX());
+              ptTxt = ptTxt+":"+df.format(p.getY());
+              ptTxt = ptTxt+":"+df.format(p.getZ());
             }
             pointSet.add(ptTxt);
           }
