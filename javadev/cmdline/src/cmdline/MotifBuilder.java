@@ -43,6 +43,9 @@ public class MotifBuilder //extends ... implements ...
     * as many additional "CNIT" residue specifiers as you want from that PDB */
     File descriptorsFile;
     
+    /** Names for output PDBs: [PDBid][chain][resnum] */
+    HashMap<CoordinateFile,String> substrucNames;
+    
     /** Directory to which motif PDBs will be written */
     File outDir;
     
@@ -50,6 +53,10 @@ public class MotifBuilder //extends ... implements ...
     int nWard = 0;
     /** How many additional residues we'll add in the C direction */
     int cWard = 0;
+    /** Include entire PDB file: all chains, residues, hets, ... 
+    * Is all that stuff included, though, if we're getting 
+    * coordinates from Top5200 single-chain files!? */
+    boolean wholePdb = false;
     
 //}}}
 
@@ -155,6 +162,7 @@ public class MotifBuilder //extends ... implements ...
         // 1a8o,A,195,,ASN,A,203,,LYS,A,222,,LYS,A,234,,GLY
         
         ArrayList<CoordinateFile> motifAL = new ArrayList<CoordinateFile>();
+        substrucNames = new HashMap<CoordinateFile,String>();
         
         for(int i = 0; i < descriptors.length; i++)
         {
@@ -166,6 +174,12 @@ public class MotifBuilder //extends ... implements ...
                 CoordinateFile substruc = readRemotePdb(descriptor);
                 motifAL.add(substruc);
                 if(verbose) System.err.println("Added "+substruc+" to "+motifAL);
+                
+                String substrucName = descriptor[0]; // PDB ID
+                for(int j = 1; j < descriptor.length; j += 4) substrucName += 
+                    "_"+descriptor[j]+descriptor[j+1]+descriptor[j+3]; // CNT (skip I)
+                substrucName += ".pdb";
+                substrucNames.put(substruc, substrucName);
             }
             catch(NumberFormatException ex)
             { System.err.println("Error formating "+descriptor[2]+" or "+descriptor[5]); }
@@ -212,6 +226,8 @@ public class MotifBuilder //extends ... implements ...
         if(substruc.getModels().size() < 1) // file too big & read failed, or only partial
             return null;                    // model(s), or I removed too many models
         Model model = substruc.getFirstModel();
+        
+        if(wholePdb) return substruc;
         
         // Find residues we wanna keep
         ArrayList<Residue> resToKeep  = new ArrayList<Residue>();
@@ -341,7 +357,8 @@ public class MotifBuilder //extends ... implements ...
         int i = 1;
         for(CoordinateFile substruc : motif)
         {
-            String filename = outDir+"/"+i+"_"+substruc.getIdCode()+".pdb"; // NEEDS RES RANGE!!
+            //String filename = outDir+"/"+i+"_"+substruc.getIdCode()+".pdb"; // NEEDS RES RANGE!!
+            String filename = outDir+"/"+i+"_"+substrucNames.get(substruc);
             try
             {
                 PdbWriter writer = new PdbWriter( new File(filename) );
@@ -503,6 +520,10 @@ public class MotifBuilder //extends ... implements ...
             {
                 verbose = true;
             }
+            else if(flag.equals("-wholepdb") || flag.equals("-whole"))
+            {
+                wholePdb = true;
+            }
             else if(flag.equals("-n") || flag.equals("-nward"))
             {
                 try
@@ -527,6 +548,5 @@ public class MotifBuilder //extends ... implements ...
         { throw new IllegalArgumentException("Non-number argument to "+flag+": '"+param+"'"); }
     }
 //}}}
-
 }//class
 
