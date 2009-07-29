@@ -140,10 +140,10 @@ public class SilkCmdLine //extends ... implements ...
             String outSep = ""+opt.inSep;
             PrintStream ps = new PrintStream(opt.outputSink);
             ps.println("# List of hills modal coordinates and values");
-            for(int h = 1; h < densityTrace.hillModes.size(); h++)
+            for(int hillId = 1; hillId <= densityTrace.hillModes.size(); hillId++)
             {
-                double[] hillMode = densityTrace.hillModes.get(h);
-                ps.print(h); // int peak ID
+                double[] hillMode = densityTrace.hillModes.get(hillId);
+                ps.print(hillId); // int peak ID
                 for(int i = 0; i < hillMode.length-1; i++)
                     ps.print(outSep + df2.format(hillMode[i])); // coords
                 ps.println(outSep + hillMode[hillMode.length-1]); // value
@@ -157,18 +157,26 @@ public class SilkCmdLine //extends ... implements ...
             ps.println("# List of input data coordinates and values"
                 +" and corresponding hills modal coordinates and values");
             
-            ArrayList<Integer> hillIdsInOrder = new ArrayList<Integer>();
-            for(Iterator hItr = densityTrace.hillAssign.keySet().iterator(); hItr.hasNext(); )
-                hillIdsInOrder.add((Integer) hItr.next());
-            Collections.sort(hillIdsInOrder);
-            
-            for(int h = 0; h < hillIdsInOrder.size(); h++)
+            //ArrayList<Integer> hillIdsInOrder = new ArrayList<Integer>();
+            //for(Iterator hItr = densityTrace.hillAssign.keySet().iterator(); hItr.hasNext(); )
+            //    hillIdsInOrder.add((Integer) hItr.next());
+            //Collections.sort(hillIdsInOrder);
+            //
+            //for(int h = 0; h < hillIdsInOrder.size(); h++)
+            //{
+                //int hillId = hillIdsInOrder.get(h);
+                //if(!densityTrace.hillModes.keySet().contains(hillId))
+                //{
+                //    System.err.println("ERROR: Can't find mode for hill "+hillId+"!");
+                //    continue;
+                //}
+            for(int hillId = 1; hillId <= densityTrace.hillModes.size(); hillId++)
             {
-                int hillId = hillIdsInOrder.get(h);
-                if(!densityTrace.hillModes.keySet().contains(hillId)) continue;
+                // cover ourselves in case no data points assigned to this hill!
+                ArrayList<DataSample> dataInHill = (densityTrace.hillAssign.keySet().contains(hillId)
+                    ? densityTrace.hillAssign.get(hillId) : new ArrayList<DataSample>());
                 
                 double[] hillMode = densityTrace.hillModes.get(hillId);
-                ArrayList<DataSample> dataInHill = densityTrace.hillAssign.get(hillId);
                 
                 ps.print("# hill " + hillId + " "); // int peak ID
                 for(int i = 0; i < hillMode.length-1; i++)

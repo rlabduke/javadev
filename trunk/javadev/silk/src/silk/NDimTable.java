@@ -820,13 +820,23 @@ abstract public class NDimTable //extends ... implements ...
             DataSample dataSample = (DataSample) dItr.next();
             
             // Hill nearest to this data sample
-            /*// Old method: interpolate hill IDs of surrounding grid points, 
-            // then round off to get hill ID assignment.
-            // Doesn't work so well for samples near boundaries!
-            int hillId = (int) Math.round(valueAt(dataSample.coords));*/
-            // New method: find nearest(?) grid point with whereIs(), 
-            // then get hill ID of that point.  Much better!
+            // Default approach: find nearest(?) grid point with whereIs(), 
+            // then get hill ID of that point.
+            // Seems to handles pretty much everything everything except the ones 
+            // out in space near extremely minor hills, where "hill ID" gets set to 0.
             int hillId = (int) Math.round(valueAt(whereIs(dataSample.coords)));
+            
+            /* Bad idea: ends up rounding up to hill 1 way too often!
+            if(hillId == 0)
+            {
+                System.err.print(Strings.arrayInParens(dataSample.coords)+" assigned to \"nullll\" hill");
+                // Try alternative approach: interpolate hill IDs of surrounding grid points, 
+                // then round off to get hill ID assignment.
+                double interp = valueAt(dataSample.coords);
+                if(interp < 0.5) hillId = (int) Math.ceil(interp); // make sure we don't fall back to 0
+                else             hillId = (int) Math.round(interp);
+                if(verbose) System.err.println(" .. reassigned to hill "+hillId);
+            }*/
             
             // Store
             ArrayList<DataSample> hillData = (hillAssign.containsKey(hillId) ? 
