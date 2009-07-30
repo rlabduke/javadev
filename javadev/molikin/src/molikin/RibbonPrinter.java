@@ -228,7 +228,13 @@ public class RibbonPrinter //extends ... implements ...
     * Several lists are generated, but with additional parameters specified below.
     */
     public void printFancyRibbon(GuidePoint[] guides, SecondaryStructure secStruct,
-        double widthAlpha, double widthBeta, String listAlpha, String listBeta, String listCoil)
+      double widthAlpha, double widthBeta, String listAlpha, String listBeta, String listCoil) 
+    {
+      printFancyRibbon(guides, secStruct, widthAlpha, widthBeta, listAlpha, listBeta, listCoil, null);
+    }
+    
+    public void printFancyRibbon(GuidePoint[] guides, SecondaryStructure secStruct,
+        double widthAlpha, double widthBeta, String listAlpha, String listBeta, String listCoil, String listCoilOutline)
     {
         // Data allocation, splining {{{
         final int   nIntervals = 4;
@@ -364,6 +370,13 @@ public class RibbonPrinter //extends ... implements ...
             } //}}}
             else // COIL {{{
             {
+                // for black outlines on coils
+                if (listCoilOutline != null) {
+                  this.setCrayon(normalCrayon);
+                  out.println("@vectorlist {fancy coil edges} "+listCoilOutline);
+                  for(int i = ribElement.start; i <= ribElement.end; i++)
+                    printFancy(guides, splinepts[0], i);
+                }
                 this.setCrayon(normalCrayon);
                 out.println("@vectorlist {fancy coil} "+listCoil);
                 for(int i = ribElement.start; i <= ribElement.end; i++)

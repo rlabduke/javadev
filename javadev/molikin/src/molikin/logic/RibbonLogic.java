@@ -40,6 +40,7 @@ public class RibbonLogic implements Logic
     
     public boolean  doProtein, doNucleic;
     public boolean  doUntwistRibbons, doDnaStyle;
+    public boolean  doPlainCoils = false;
     public Object   colorBy = COLOR_BY_SEC_STRUCT;
     
     public SecondaryStructure secondaryStructure = null;
@@ -139,10 +140,18 @@ public class RibbonLogic implements Logic
             
             if(secondaryStructure != null)
             {
+              if (doPlainCoils) {
                 rp.printFancyRibbon(guides, secondaryStructure, 2, 2.2,
                     "color= {alph"+chainID+"} master= {protein} master= {ribbon} master= {alpha}",
                     "color= {beta"+chainID+"} master= {protein} master= {ribbon} master= {beta}",
                     "width= 4 color= {coil"+chainID+"} master= {protein} master= {ribbon} master= {coil}");
+              } else {
+                rp.printFancyRibbon(guides, secondaryStructure, 2, 2.2,
+                    "color= {alph"+chainID+"} master= {protein} master= {ribbon} master= {alpha}",
+                    "color= {beta"+chainID+"} master= {protein} master= {ribbon} master= {beta}",
+                    "width= 4 fore color= {coil"+chainID+"} master= {protein} master= {ribbon} master= {coil}",
+                    "width= 5 rear color= deadblack master= {protein} master= {ribbon} master= {coil}");
+              }
             }
             else
             {
