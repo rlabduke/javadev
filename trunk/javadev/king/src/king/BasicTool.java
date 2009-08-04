@@ -38,8 +38,10 @@ public class BasicTool extends Plugin implements MouseListener, MouseMotionListe
     protected boolean isNearTop = false, isNearBottom = false;
     protected Object mouseDragMode = MODE_UNDECIDED;
     
+    protected JFrame        frame           = null;
     protected JDialog       dialog          = null;
     private   boolean       hasBeenCentered = false;
+    KingPrefs prefs = kMain.getPrefs();
 //}}}
 
 //{{{ Constructors
@@ -76,18 +78,50 @@ public class BasicTool extends Plugin implements MouseListener, MouseMotionListe
         Container content = this.getToolPanel();
         if(content == null) return;
         
-        dialog = new JDialog(kMain.getTopWindow(), this.toString(), false); // false => not modal
-        //dialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
-        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        dialog.addWindowListener(this); // to make the window close button work
-        dialog.setContentPane(content);
-        //dialog.invalidate();
-        //dialog.validate();
-        dialog.pack();
+        if (prefs.getBoolean("minimizableTools")) {
+          frame = new JFrame(this.toString());
+          frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+          frame.addWindowListener(this);
+          frame.setContentPane(content);
+          frame.pack();
+        } else {
+          dialog = new JDialog(kMain.getTopWindow(), this.toString(), false); // false => not modal
+          //dialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
+          dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+          dialog.addWindowListener(this); // to make the window close button work
+          dialog.setContentPane(content);
+          //dialog.invalidate();
+          //dialog.validate();
+          dialog.pack();
+        }
     }
     
     protected void show()
     {
+      if (prefs.getBoolean("minimizableTools")) {
+        if(frame == null) initDialog();
+        if(frame == null) return;
+        
+        if(!frame.isVisible())
+        {
+            frame.pack();
+            Container w = kMain.getContentContainer();
+            if(w != null)
+            {
+                Point p = w.getLocation();
+                Dimension dimDlg = frame.getSize();
+                Dimension dimWin = w.getSize();
+                p.x += dimWin.width - (dimDlg.width / 2) ;
+                p.y += (dimWin.height - dimDlg.height) / 2;
+                frame.setLocation(p);
+            }
+            frame.setVisible(true);
+        }
+        else
+        {
+            frame.toFront();
+        }
+      } else {
         if(dialog == null) initDialog();
         if(dialog == null) return;
         
@@ -110,11 +144,13 @@ public class BasicTool extends Plugin implements MouseListener, MouseMotionListe
         {
             dialog.toFront();
         }
+      }
     }
     
     protected void hide()
     {
         if(dialog != null) dialog.setVisible(false);
+        if(frame != null)  frame.setVisible(false);
     }
 //}}}
 
