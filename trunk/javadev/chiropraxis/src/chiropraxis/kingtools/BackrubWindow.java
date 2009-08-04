@@ -45,7 +45,7 @@ public class BackrubWindow implements Remodeler, ChangeListener, WindowListener
     KingMain            kMain;
     KinCanvas           kCanvas;
     ModelManager2       modelman;
-    JDialog             dialog;
+    Window             dialog;
     
     Residue             anchor1, ctrRes, anchor2;
     KList               anchorList;
@@ -161,10 +161,18 @@ public class BackrubWindow implements Remodeler, ChangeListener, WindowListener
         menu.add(this.getHelpMenuItem());*/
         
         // Assemble the dialog
-        dialog = new JDialog(frame, "BACKRUB: "+ctrRes.toString(), false);
-        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        if (kMain.getPrefs().getBoolean("minimizableTools")) {
+          JFrame fm = new JFrame("BACKRUB: "+ctrRes.toString());
+          fm.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+          fm.setContentPane(toolpane);
+          dialog = fm;
+        } else {
+          JDialog dial = new JDialog(frame, "BACKRUB: "+ctrRes.toString(), false);
+          dial.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+          dial.setContentPane(toolpane);
+          dialog = dial;
+        }
         dialog.addWindowListener(this);
-        dialog.setContentPane(toolpane);
         //dialog.setJMenuBar(menubar);
         dialog.pack();
         dialog.setVisible(true);
