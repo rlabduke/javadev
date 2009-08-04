@@ -4,7 +4,7 @@ package king;
 import king.core.*;
 import king.points.*;
 
-//import java.awt.*;
+import java.awt.Dimension;
 //import java.awt.event.*;
 import java.io.*;
 import java.lang.ref.WeakReference;
@@ -138,6 +138,11 @@ public class ParaParams implements KMessage.Subscriber, Transformable
     public void toParallelCoords()
     {
         if(inParallelMode) return;
+        
+      Dimension dim = kMain.getCanvas().getCanvasSize();
+      ////kCanvas.paintCanvas(g2, dim, KinCanvas.QUALITY_BEST);
+      double width   = dim.getWidth();      
+      
         isUpdating = true;
         normalChildren.clear(); // to remove any stale entries
         for(KList l : KIterator.allLists(kin))
@@ -145,7 +150,7 @@ public class ParaParams implements KMessage.Subscriber, Transformable
             ArrayList<KPoint> newChildren = parallelChildren.get(l);
             if(newChildren == null)
             {
-                newChildren = makeParallelPlot(l);
+                newChildren = makeParallelPlot(l, width);
                 parallelChildren.put(l, newChildren);
             }
             normalChildren.put(l, l.getChildren());
@@ -197,7 +202,7 @@ public class ParaParams implements KMessage.Subscriber, Transformable
 
 //{{{ makeParallelPlot
 //##############################################################################
-    ArrayList<KPoint> makeParallelPlot(KList list)
+    ArrayList<KPoint> makeParallelPlot(KList list, double width)
     {
         ArrayList<KPoint> out = new ArrayList<KPoint>();
         for(Iterator iter = list.iterator(); iter.hasNext(); )
@@ -211,7 +216,7 @@ public class ParaParams implements KMessage.Subscriber, Transformable
             ParaPoint ppLast = null;
             for(int i = 0; i < allCoords.length; i++)
             {
-                ParaPoint pp = new ParaPoint(normalPt, i, ppLast, this);
+                ParaPoint pp = new ParaPoint(normalPt, i, ppLast, this, width);
                 out.add(pp);
                 ppLast = pp;
             }
@@ -224,6 +229,11 @@ public class ParaParams implements KMessage.Subscriber, Transformable
 //##############################################################################
     void makeParallelAxes()
     {
+      Dimension dim = kMain.getCanvas().getCanvasSize();
+      ////kCanvas.paintCanvas(g2, dim, KinCanvas.QUALITY_BEST);
+      double width   = dim.getWidth();
+      //System.out.println(width);
+      
         boolean newAxes = (axisGroup == null || axisGroup.getKinemage() == null);
         if(newAxes)
         {
@@ -248,27 +258,29 @@ public class ParaParams implements KMessage.Subscriber, Transformable
         DecimalFormat df = new DecimalFormat("0.###");
         for(int i = 0; i < numDim; i++)
         {
+          if (width < 900) width = 900;
+          double xcoord = (double)i / (double)(numDim-1)+((double)i-(double)numDim/2)/ (double)(numDim-1)*(width-900)/900;
             VectorPoint v1 = new VectorPoint("", null);
-            v1.setXYZ((double)i / (double)(numDim-1), 0, 0);
+            v1.setXYZ(xcoord, 0, 0);
             v1.setUnpickable(true);
             axisList.add(v1);
             VectorPoint v2 = new VectorPoint("", v1);
-            v2.setXYZ((double)i / (double)(numDim-1), 1, 0);
+            v2.setXYZ(xcoord, 1, 0);
             v2.setUnpickable(true);
             axisList.add(v2);
             
             LabelPoint l1 = new LabelPoint(dimNames[i]);
-            l1.setXYZ((double)i / (double)(numDim-1), 1.05, 0);
+            l1.setXYZ(xcoord, 1.05, 0);
             l1.setUnpickable(true);
             l1.setHorizontalAlignment(LabelPoint.CENTER);
             labelList.add(l1);
             l1 = new LabelPoint(df.format(max[i]));
-            l1.setXYZ((double)i / (double)(numDim-1), 1.02, 0);
+            l1.setXYZ(xcoord, 1.02, 0);
             l1.setUnpickable(true);
             l1.setHorizontalAlignment(LabelPoint.CENTER);
             labelList.add(l1);
             l1 = new LabelPoint(df.format(min[i]));
-            l1.setXYZ((double)i / (double)(numDim-1), -0.03, 0);
+            l1.setXYZ(xcoord, -0.03, 0);
             l1.setUnpickable(true);
             l1.setHorizontalAlignment(LabelPoint.CENTER);
             labelList.add(l1);

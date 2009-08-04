@@ -30,6 +30,7 @@ public class ParaPoint extends VectorPoint
     KPoint      proxyFor;
     int         dimIdx;
     ParaParams  params;
+    double      width;
 //}}}
 
 //{{{ Constructor(s)
@@ -42,13 +43,15 @@ public class ParaPoint extends VectorPoint
     *                   (Could probably be figured by tracing back along start.)
     * @param start      where this line is drawn from, or null if it's the starting point
     */
-    public ParaPoint(KPoint proxyFor, int dimIdx, ParaPoint start, ParaParams params)
+    public ParaPoint(KPoint proxyFor, int dimIdx, ParaPoint start, ParaParams params, double width)
     {
         super(proxyFor.getName(), start);
         this.setParent(proxyFor.getParent());
         this.proxyFor   = proxyFor;
         this.dimIdx     = dimIdx;
         this.params     = params;
+        this.width      = width;
+        if (width < 900) this.width = 900;
         syncCoords();
     }
 //}}}
@@ -61,7 +64,7 @@ public class ParaPoint extends VectorPoint
         if(allCoords == null || allCoords.length <= dimIdx)
             throw new IllegalArgumentException("Not enough coordinates in proxy to support parallel coords");
         
-        this.x0 = (float) (1.0 * dimIdx / (params.getNumDim() - 1)); // [0, 1]
+        this.x0 = (float) (1.0 * dimIdx / (params.getNumDim() - 1)+((float)dimIdx-(float)params.getNumDim()/2)/ (float)(params.getNumDim()-1)*(width-900)/900); // [0, 1]
         this.y0 = (float) ((allCoords[dimIdx] - params.getMin(dimIdx)) / params.getRange(dimIdx)); // [0, 1]
         this.z0 = 0; // may use this for something later, not now
     }

@@ -95,6 +95,8 @@ showHelperErrors    = false
 showHelperOutput    = false
 # How long can a background job run before being killed? In seconds.
 helperTimeout       = 15
+# Use minimizable windows for tools?
+minimizableTools    = false
 
 ######################################################################
 ### TOOL MENU PLACEMENT ##############################################

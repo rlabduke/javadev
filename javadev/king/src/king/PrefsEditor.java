@@ -39,6 +39,7 @@ public class PrefsEditor //extends ... implements ...
     JCheckBox joglByDefault, textOpenOnStart, textAllowEdits;
     JCheckBox treeConfirmDelete, treeConfirmMerge;
     JCheckBox checkNewVersion;
+    JCheckBox minimizableTools;
     Map pluginMenuMap; // maps plugin class name to a JComboBox
     JButton btnDone, btnDefaults, btnSave;
 //}}}
@@ -100,6 +101,7 @@ public class PrefsEditor //extends ... implements ...
         treeConfirmDelete   = new JCheckBox("Ask before deleting groups");
         treeConfirmMerge    = new JCheckBox("Ask before merging groups");
         checkNewVersion     = new JCheckBox("Check for new version online");
+        minimizableTools    = new JCheckBox("Use minimizable tool windows");
         
         TablePane2 innerPane = new TablePane2();
         innerPane.addCell(new JLabel("Menu font magnification (requires restart)")).addCell(fontMagnification).newRow();
@@ -112,6 +114,7 @@ public class PrefsEditor //extends ... implements ...
         innerPane.addCell(treeConfirmDelete, 2, 1).newRow();
         innerPane.addCell(treeConfirmMerge, 2, 1).newRow();
         innerPane.addCell(checkNewVersion, 2, 1).newRow();
+        innerPane.addCell(minimizableTools, 2, 1).newRow();
         
         return innerPane;
     }
@@ -198,6 +201,7 @@ public class PrefsEditor //extends ... implements ...
         treeConfirmDelete.setSelected(p.getBoolean("treeConfirmDelete"));
         treeConfirmMerge.setSelected(p.getBoolean("treeConfirmMerge"));
         checkNewVersion.setSelected(p.getBoolean("checkNewVersion"));
+        minimizableTools.setSelected(p.getBoolean("minimizableTools"));
     }
     
     private void fromGUI()
@@ -231,6 +235,7 @@ public class PrefsEditor //extends ... implements ...
         p.setProperty("treeConfirmDelete", new Boolean(treeConfirmDelete.isSelected()).toString());
         p.setProperty("treeConfirmMerge",  new Boolean(treeConfirmMerge.isSelected()).toString());
         p.setProperty("checkNewVersion",  new Boolean(checkNewVersion.isSelected()).toString());
+        p.setProperty("minimizableTools", new Boolean(minimizableTools.isSelected()).toString());
         
         for(Iterator iter = pluginMenuMap.keySet().iterator(); iter.hasNext(); )
         {

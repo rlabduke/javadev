@@ -42,7 +42,7 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
     EDMapPlotter            plotter1, plotter2;
     String                  title;
     
-    protected JDialog     dialog;
+    protected Window     dialog;
     JSlider     extent, slider1, slider2;
     JCheckBox   label1, label2;
     JComboBox   color1, color2;
@@ -89,8 +89,6 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
 //##################################################################################################
     void buildGUI()
     {
-        dialog = new JDialog(kMain.getTopWindow(), title+" - EDMap", false);
-        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         
         label1 = new JCheckBox("1.2 sigma", true);
         label2 = new JCheckBox("3.0 sigma", false);
@@ -161,8 +159,6 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         pane.newRow();
         pane.add(discard, 2, 1);
         
-        dialog.setContentPane(pane);
-        
         JMenuBar menubar = new JMenuBar();
         JMenu menu;
         JMenuItem item;
@@ -179,7 +175,20 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, KingMain.MENU_ACCEL_MASK));
         menu.add(item);
         
-        dialog.setJMenuBar(menubar);
+        if (kMain.getPrefs().getBoolean("minimizableTools")) {
+          JFrame fm = new JFrame(title+" - EDMap");
+          fm.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+          fm.setContentPane(pane);
+          fm.setJMenuBar(menubar);
+          dialog = fm;
+        } else {
+          JDialog dial = new JDialog(kMain.getTopWindow(), title+" - EDMap", false);
+          dial.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+          dial.setContentPane(pane);
+          dial.setJMenuBar(menubar);
+          dialog = dial;
+        }
+
     }
 //}}}
 
