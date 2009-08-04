@@ -41,7 +41,7 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
     SidechainIdealizer  scIdealizer     = null;
     SidechainsLtoD      scFlipper       = null;
     
-    JDialog             dialog;
+    Window             dialog;
     JCheckBox           cbIdealize;
     JCheckBox           useDaa;
     JList               rotamerList;
@@ -149,10 +149,18 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
         twistPane.add(btnPane, BorderLayout.SOUTH);
         
         // Assemble the dialog
-        dialog = new JDialog(frame, targetRes.toString(), false);
-        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        if (kMain.getPrefs().getBoolean("minimizableTools")) {
+          JFrame fm = new JFrame(targetRes.toString()+" rotator");
+          fm.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+          fm.setContentPane(twistPane);
+          dialog = fm;
+        } else {
+          JDialog dial = new JDialog(frame, targetRes.toString(), false);
+          dial.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+          dial.setContentPane(twistPane);
+          dialog = dial;
+        }
         dialog.addWindowListener(this);
-        dialog.setContentPane(twistPane);
         dialog.pack();
         dialog.setVisible(true);
     }
