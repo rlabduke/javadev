@@ -434,9 +434,7 @@ public class Strings //extends ... implements ...
 
 //{{{ arrayInParens
 //##################################################################################################
-    /**
-    * Writes array of integers like this: "(1, 2, 3)"
-    */
+    /** Writes array of integers like this: "(1, 2, 3)" */
     static public String arrayInParens(int[] values)
     {
         String s = "(";
@@ -446,9 +444,7 @@ public class Strings //extends ... implements ...
         return s;
     }
 
-    /**
-    * Writes array of doubles like this: "(931.238, 2.001, 13.000)"
-    */
+    /** Writes array of doubles like this: "(931.238, 2.001, 13.000)" */
     static public String arrayInParens(double[] values)
     {
         DecimalFormat df = new DecimalFormat("###.###");
@@ -456,6 +452,53 @@ public class Strings //extends ... implements ...
         for(int i = 0; i < values.length-1; i++)
             s += df.format(values[i]) + ", ";
         s += df.format(values[values.length-1]) + ")";
+        return s;
+    }
+//}}}
+
+//{{{ kinPt
+//##################################################################################################
+    /** Utility method */
+    static public String kinPt(int[] values)
+    {
+        return kinPt(values, false);
+    }
+    /** Utility method */
+    static public String kinPt(int[] values, boolean p)
+    {
+        String label = "";
+        for(int i = 0; i < values.length-1; i++)  label += values[i] + " ";
+        label += values[values.length-1];
+        return kinPt(values, p, label);
+    }
+    /** Writes array of integers like a kinemage point: "{label}[P] 1 2 3" */
+    static public String kinPt(int[] values, boolean p, String label)
+    {
+        String s = "{" + label + "}" + (p ? "P" : "");
+        for(int i = 0; i < values.length; i++)  s += " " + values[i];
+        return s;
+    }
+
+    /** Utility method */
+    static public String kinPt(double[] values)
+    {
+        return kinPt(values, false);
+    }
+    /** Utility method */
+    static public String kinPt(double[] values, boolean p)
+    {
+        DecimalFormat df = new DecimalFormat("###.###");
+        String label = "";
+        for(int i = 0; i < values.length-1; i++)  label += df.format(values[i]) + " ";
+        label += df.format(values[values.length-1]);
+        return kinPt(values, p, label);
+    }
+    /** Writes array of doubles like a kinemage point: "{label}[P] 1 2 3" */
+    static public String kinPt(double[] values, boolean p, String label)
+    {
+        DecimalFormat df = new DecimalFormat("###.###");
+        String s = "{" + label + "}" + (p ? "P" : "");
+        for(int i = 0; i < values.length; i++)  s += " " + df.format(values[i]);
         return s;
     }
 //}}}
