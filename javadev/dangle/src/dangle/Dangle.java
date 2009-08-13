@@ -585,9 +585,9 @@ public class Dangle //extends ... implements ...
         }
         else if(flag.equalsIgnoreCase("-dna"))
         {
-            //try { loadMeasures("ParkinsonBerman_ActaCrystD_1996_DNA.txt"); }
-            //catch(Exception ex) { ex.printStackTrace(); }
-            throw new IllegalArgumentException("No DNA parameters defined yet!");
+            try { loadMeasures("GelbinBerman_JACS_1996_DNA.txt"); }
+            catch(Exception ex) { ex.printStackTrace(); }
+            //throw new IllegalArgumentException("No DNA parameters defined yet!");
         }
         else if(flag.equals("-outliers"))
         {

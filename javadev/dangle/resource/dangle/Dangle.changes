@@ -28,4 +28,6 @@ Changes to chiropraxis.dangle.Dangle
 
 080911 (dak [& vbc3])
 - Separated dangle from chiropraxis; now at version 1.00
+090813 (gjk)
+- updated to use DNA parameters; -dna now works properly
 
