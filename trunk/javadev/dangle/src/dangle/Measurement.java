@@ -64,29 +64,20 @@ abstract public class Measurement //extends ... implements ...
     */
     public double measure(Model model, ModelState state, Residue res, boolean doHetsInGeneral)
     {
-        // Wouldn't want to give deviations for molecules not described by the 
-        // distribution this code is using, so check for hets and/or DNA.
-        if (!doHetsInGeneral && !isProtOrNucAcid(res))
+        // Wouldn't want to give deviations for molecules not described by 
+        // the ideal values this code is using, so check for hets
+        if(!doHetsInGeneral && !isProtOrNucAcid(res))
         {
             Collection<Atom> thisResiduesAtoms = res.getAtoms();
             for(Iterator iter = thisResiduesAtoms.iterator(); iter.hasNext(); )
+            {
                 if( ((Atom)iter.next()).isHet() )
                 {
+                    // There's at least one "het" atom in this residue - abort!
                     this.deviation = Double.NaN;
                     return Double.NaN;
                 }
-            //{{{ old
-            //Iterator iter = thisResiduesAtoms.iterator();
-            //while (iter.hasNext())
-            //{
-            //    Atom atom = (Atom) iter.next();
-            //    if (atom.isHet())
-            //    {
-            //        this.deviation = Double.NaN;
-            //        return Double.NaN;
-            //    }
-            //}
-            //}}}
+            }
         }
         
         // Proceed with measurement for this residue
@@ -174,7 +165,6 @@ abstract public class Measurement //extends ... implements ...
         // If you add super-builtins here, you should also modify
         // Parser.SUPERBLTN, the Parser javadoc, and the man page.
         if("rnabb".equals(label))
-            
             return new Measurement[] 
             {
                 newBuiltin("alpha"),
@@ -185,7 +175,17 @@ abstract public class Measurement //extends ... implements ...
                 newBuiltin("zeta"),
                 //newBuiltin("c2o2")      // added 7/31/07 -- DK
             };
-        if ("suitefit".equals(label))  	// added 6/20/07 -- DK
+        else if("dnabb".equals(label))    // added 8/19/09 -- DK
+            return new Measurement[] 
+            {
+                newBuiltin("alpha"),
+                newBuiltin("beta"),
+                newBuiltin("gamma"),
+                newBuiltin("delta"),
+                newBuiltin("epsilon"),
+                newBuiltin("zeta"),
+            };
+        else if("suitefit".equals(label))  	// added 6/20/07 -- DK
 	        return new Measurement[] 
             {
                 newBuiltin("O5'-C5'"),

@@ -12,9 +12,16 @@
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
-### 1.03 ### gjk
+### 1.03 ###
+gjk
 - Added Gelbin....DNA.txt to resources (source file for DNA parameters)
-- modified Dangle.java to incorporate DNA instead of skipping it
+- Modified Dangle.java to incorporate DNA instead of skipping it
+keedy
+- Fixed bug where "-dna" also evaluated RNA.  Now, "-dna" ignores RNA and 
+  "-rna" ignores DNA.  Both simultaneously evaulates both but (WARNING!) 
+  still acts weird, especially with "-validate" or "-outliers"!
+- Added "dnabb" superbuiltin analogous to "rnabb"
+- Made Dangle.java automatically pull version # out of version.props
 
 ### 1.02 ### keedy
 - Added builtins like cbdev - hadev, nhdev, codev - for diagnosing RDC-based

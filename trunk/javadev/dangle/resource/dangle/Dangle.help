@@ -105,7 +105,10 @@ VALIDATION MODE
   
   Because there are many potential measurements of interest and their
   definitions can be complicated, these flags are almost always used in place
-  of defining measures at the command line.
+  of defining measures at the command line.  WARNING: Strange behavior may occur
+  when both -rna and -dna are used simultaneously!  In general it is best to use
+  just one at a time (though -protein can safely be combined with either -dna or
+  -rna).
 
 ADVANCED DANGLE TRICKS
   The Unix "sort" utility can be applied to the output of Dangle, so the
