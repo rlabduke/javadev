@@ -31,29 +31,33 @@ public class PdbLibraryReader {
     reResid = reRes;
     File[] pdbFiles = location.listFiles();
     pdbMap = new HashMap<String, ZipEntry>();
-    for (File f : pdbFiles) {
-      if (f.getName().endsWith(".zip")) {
-        try {
-          System.out.println("Opening file: " + f.getName());
-          zip = new ZipFile(f);
-          Enumeration entries= zip.entries();
-          while (entries.hasMoreElements()) {
-            ZipEntry zEntry = (ZipEntry) entries.nextElement();
-            if (zEntry.getName().indexOf(".pdb") > -1) {
-              //System.out.println("Scanning: " + zEntry.getName());
-              //LineNumberReader reader = new LineNumberReader(new InputStreamReader(zip.getInputStream(zEntry)));
-              //System.out.println(zEntry.getName().substring(7, 11));
-              String[] splitInfo = zEntry.getName().split("/");
-              String pdbFileName = splitInfo[splitInfo.length - 1];
-              //System.out.println(pdbFileName + ":"+ pdbFileName.substring(0,5));
-              pdbMap.put(pdbFileName.substring(0, 5).toLowerCase(), zEntry);
+    if ((pdbFiles != null)&&(pdbFiles.length != 0)) {
+      for (File f : pdbFiles) {
+        if (f.getName().endsWith(".zip")) {
+          try {
+            System.out.println("Opening file: " + f.getName());
+            zip = new ZipFile(f);
+            Enumeration entries= zip.entries();
+            while (entries.hasMoreElements()) {
+              ZipEntry zEntry = (ZipEntry) entries.nextElement();
+              if (zEntry.getName().indexOf(".pdb") > -1) {
+                //System.out.println("Scanning: " + zEntry.getName());
+                //LineNumberReader reader = new LineNumberReader(new InputStreamReader(zip.getInputStream(zEntry)));
+                //System.out.println(zEntry.getName().substring(7, 11));
+                String[] splitInfo = zEntry.getName().split("/");
+                String pdbFileName = splitInfo[splitInfo.length - 1];
+                //System.out.println(pdbFileName + ":"+ pdbFileName.substring(0,5));
+                pdbMap.put(pdbFileName.substring(0, 5).toLowerCase(), zEntry);
+              }
             }
+            
+          } catch (IOException ie) {
+            System.err.println("An I/O error occurred while loading the file:\n"+ie.getMessage());
           }
-          
-        } catch (IOException ie) {
-          System.err.println("An I/O error occurred while loading the file:\n"+ie.getMessage());
         }
       }
+    } else {
+      System.err.println("PDB library not found, make sure to use -pdbloc to set the location to the directory of the PDB library zip file!");
     }
   }
   //}}}
