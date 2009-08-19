@@ -59,7 +59,9 @@ public class JLMain {
   static int matchDiff;
   static boolean ntermsup = false;
   static boolean useStems = false;
-  static boolean renumber = false;
+  static boolean renumber = true;
+  boolean keepSequence = false;
+  int fragmentLimit = 100;
   //JFileChooser        filechooser     = null;
   //ProgressDialog progDiag;
   //KGroup group;
@@ -68,61 +70,131 @@ public class JLMain {
   //{{{ main
   //###############################################################
   public static void main(String[] args) {
+    JLMain main = new JLMain();
     simulatedGaps = new HashMap<Integer, Integer>();
-    ArrayList<String> argList = parseArgs(args);
-    if (argList.size() < 2) {
-	    System.out.println("Not enough arguments: you must have an input pdb and an output prefix!");
-    } else {
-      //args[0]
-	    //File[] inputs = new File[args.length];
-	    //for (int i = 0; i < args.length; i++) {
-      //File pdbFile = new File(System.getProperty("user.dir") + "/" + args[0]);
-      //File outKinFile = new File(System.getProperty("user.dir") + "/" + args[1]);
+    try {
+      ArrayList<String> argList = main.parseArgs(args);
       File pdbFile = new File(argList.get(0));
       File outKinFile = new File(argList.get(1)+".kin");
       File outPrefix = new File(argList.get(1));
 	    //}
       //System.out.println(pdbFile);
-	    JLMain main = new JLMain(new File(pdbFile.getAbsolutePath()), new File(outKinFile.getAbsolutePath()), outPrefix.getAbsolutePath());
+	    main.runAnalysis(new File(pdbFile.getAbsolutePath()), new File(outKinFile.getAbsolutePath()), outPrefix.getAbsolutePath());
+    } catch (IllegalArgumentException ex) {
+      ex.printStackTrace();
+      System.err.println();
+      main.showHelp(true);
+      System.exit(0);
     }
   }
   //}}}
   
+  //{{{ showHelp, showChanges, getVersion
+  //##############################################################################
+  /**
+  * Parse the command-line options for this program.
+  * @param args the command-line options, as received by main()
+  * @throws IllegalArgumentException if any argument is unrecognized, ambiguous, missing
+  *   a required parameter, has a malformed parameter, or is otherwise unacceptable.
+  */
+  // Display help information
+  void showHelp(boolean showAll)
+  {
+    if(showAll)
+    {
+      InputStream is = getClass().getResourceAsStream("jiffiloop.help");
+      if(is == null)
+        System.err.println("\n*** Unable to locate help information in 'jiffiloop.help' ***\n");
+      else
+      {
+        try { streamcopy(is, System.out); }
+        catch(IOException ex) { ex.printStackTrace(); }
+      }
+    }
+    System.err.println("jiffiloop.JLMain " + getVersion("version")+" "+getVersion("buildnum"));
+    System.err.println("Copyright (C) 2007-2009 by Vincent B. Chen. All rights reserved.");
+  }
+  
+  // Display changes information
+  void showChanges(boolean showAll)
+  {
+    if(showAll)
+    {
+      InputStream is = getClass().getResourceAsStream("jiffiloop.changes");
+      if(is == null)
+        System.err.println("\n*** Unable to locate changes information in 'jiffiloop.changes' ***\n");
+      else
+      {
+        try { streamcopy(is, System.out); }
+        catch(IOException ex) { ex.printStackTrace(); }
+      }
+    }
+    System.err.print("jiffiloop.JLMain " + getVersion("version")+" "+getVersion("buildnum"));
+    System.err.println();
+    System.err.println("Copyright (C) 2007-2009 by Vincent B. Chen. All rights reserved.");
+  }
+  
+  // Copies src to dst until we hit EOF
+  void streamcopy(InputStream src, OutputStream dst) throws IOException
+  {
+    byte[] buffer = new byte[2048];
+    int len;
+    while((len = src.read(buffer)) != -1) dst.write(buffer, 0, len);
+  }
+  
+  public String getVersion(String type) {
+    String version = "";
+    InputStream is = getClass().getResourceAsStream(type+".props");
+    if(is == null) {
+      System.err.println("\n*** Unable to locate changes information in '"+type+".props' ***\n");
+    } else { 
+      try {
+        BufferedReader read = new BufferedReader(new InputStreamReader(is));
+        String line = read.readLine();
+        while (line != null) {
+          if (!line.startsWith("#")) version = line;
+          line = read.readLine();
+        }
+        read.close();
+      } catch (IOException ex) { ex.printStackTrace(); }
+    }
+    return version;
+  }
+  //}}}
+  
   //{{{ parseArgs
-  public static ArrayList parseArgs(String[] args) {
+  public ArrayList parseArgs(String[] args) throws IllegalArgumentException {
     //Pattern p = Pattern.compile("^[0-9]*-[0-9]*$");
     ArrayList<String> argList = new ArrayList<String>();
     String arg;
+    if (args.length < 2)
+      throw new IllegalArgumentException("Not enough arguments: you must have an input pdb and an output prefix!");
     for (int i = 0; i < args.length; i++) {
       arg = args[i];
       // this is an option
       if(arg.startsWith("-")) {
         if(arg.equals("-h") || arg.equals("-help")) {
-          System.err.println("Help not available. Sorry!");
+          showHelp(true);
           System.exit(0);
         } else if(arg.equals("-libloc") || arg.equals("-librarylocation")) {
           if (i+1 < args.length) {
             fragLibrary = new File(args[i+1]);
             if (!fragLibrary.canRead()) {
-              System.err.println("Invalid input for fragment library location");
-              System.exit(0);
+              throw new IllegalArgumentException("Invalid input for fragment library location");
             }
             i++;
           } else {
-            System.err.println("No argument given for fragment library location");
-            System.exit(0);
+            throw new IllegalArgumentException("No argument given for fragment library location");
           }
         } else if(arg.equals("-pdbloc") || arg.equals("-pdblocation")) {
           if (i+1 < args.length) {
             pdbLibrary = new File(args[i+1]);
             if (!pdbLibrary.canRead()) {
-              System.err.println("Invalid input for pdb library location");
-              System.exit(0);
+              throw new IllegalArgumentException("Invalid input for pdb library location");
             }
             i++;
           } else {
-            System.err.println("No argument given for pdb library location");
-            System.exit(0);
+            throw new IllegalArgumentException("No argument given for pdb library location");
           }
         } else if (arg.equals("-nomatchsize")) {
           if (i+1 < args.length) {
@@ -131,17 +203,27 @@ public class JLMain {
               i++;
             }
           } else {
-            System.err.println("No integer given for -nomatchsize");
-            System.exit(0);
+            throw new IllegalArgumentException("No integer given for -nomatchsize");
+          }
+        } else if (arg.equals("-fragments")) {
+          if (i+1 < args.length) {
+            if (isInteger(args[i+1])) {
+              fragmentLimit = Integer.parseInt(args[i+1]);
+              i++;
+            }
+          } else {
+            throw new IllegalArgumentException("No integer given for -fragments");
           }
         } else if (arg.equals("-ntermsup")) {
           ntermsup = true;
         } else if (arg.equals("-stems")||arg.equals("-stem")) {
           useStems = true;
-        } else if (arg.equals("-renumber")) {
-          renumber = true;
+        } else if (arg.equals("-norenumber")) {
+          renumber = false;
+        } else if (arg.equals("-sequence")) {
+          keepSequence = true;
         } else {
-          System.err.println("*** Unrecognized option: "+arg);
+          throw new IllegalArgumentException("*** Unrecognized option: "+arg);
         }
       } else {
         if (arg.matches("[0-9]*-[0-9]*")) {
@@ -153,8 +235,7 @@ public class JLMain {
           } else if (sec > first) {
             simulatedGaps.put(first, sec);
           } else {
-            System.err.println("You are trying to simulate a gap of size zero!");
-            System.exit(0);
+            throw new IllegalArgumentException("You are trying to simulate a gap of size zero!");
           }
         } else {
           System.out.println(arg);
@@ -185,7 +266,12 @@ public class JLMain {
   //}}}
 
   //{{{ Constructors
-  public JLMain(File pdbFile, File outKinFile, String outPrefix) {
+  public JLMain() {
+  }
+  //}}}
+  
+  //{{{ runAnalysis
+  public void runAnalysis(File pdbFile, File outKinFile, String outPrefix) {
     setDefaults();
     //filledMap = new HashMap<ProteinGap, ArrayList<String>>();
     //gapFrameAtomsMap = new HashMap<ArrayList<Double>, ArrayList<Triple>>();
@@ -196,7 +282,7 @@ public class JLMain {
       Integer end = simulatedGaps.get(start);
       analyzer.simulateGap(start.intValue(), end.intValue(), useStems);
     }
-    libReader = new PdbLibraryReader(pdbLibrary, renumber);
+    libReader = new PdbLibraryReader(pdbLibrary, renumber, !keepSequence);
     CoordinateFile[] pdbOut;
     Map<String, ArrayList<ProteinGap>> gaps = analyzer.getGaps(); // stems need gaps!
     if (!useStems) {
@@ -210,14 +296,14 @@ public class JLMain {
       }
       */
       System.out.println(fragFill.getMatchesInfo());
-      pdbOut = fragFill.getFragments(libReader, ntermsup);
+      pdbOut = fragFill.getFragments(libReader, ntermsup, fragmentLimit);
     } else {
       Map<String, ArrayList<ProteinStem>> stems = analyzer.getStems();
       StemFiller stemFill = new StemFiller(stems);
       ArrayList<ProteinStem> allStems = new ArrayList<ProteinStem>();
       stemFill.searchDB(matchDiff);
       System.out.println(stemFill.getMatchesInfo());
-      pdbOut = stemFill.getFragments(libReader, ntermsup);
+      pdbOut = stemFill.getFragments(libReader, ntermsup, fragmentLimit);
     }
     writePdbs(pdbOut, outPrefix);
     writeKin(analyzer.getCoordFile(), pdbOut, outKinFile);

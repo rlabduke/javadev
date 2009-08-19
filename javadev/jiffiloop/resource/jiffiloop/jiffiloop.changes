@@ -1,0 +1,4 @@
+1.09  Added jiffiloop.changes and help files.
+      Added -fragment to limit number of fragments generated.
+      Added -sequence to keep residue name info.
+      Changed functionality to renumber and rename residues by default.

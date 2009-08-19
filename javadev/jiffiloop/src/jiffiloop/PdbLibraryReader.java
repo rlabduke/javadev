@@ -22,11 +22,13 @@ public class PdbLibraryReader {
   String currentChain;
   ZipFile zip;
   boolean renumber;
+  boolean reResid;  // to remove all residue sequence info
   //}}}
   
   //{{{ Constructor
-  public PdbLibraryReader(File location, boolean renum) {
+  public PdbLibraryReader(File location, boolean renum, boolean reRes) {
     renumber = renum;
+    reResid = reRes;
     File[] pdbFiles = location.listFiles();
     pdbMap = new HashMap<String, ZipEntry>();
     for (File f : pdbFiles) {
@@ -84,7 +86,7 @@ public class PdbLibraryReader {
   //}}}
   
   //{{{ getFragment
-  public Model getFragment(String modNum, String chain, int startRes, int length, int renum) {
+  public Model getFragment(String modNum, String chain, int startRes, int length, int startNum) {
     //CoordinateFile pdbFile = readPdb(pdbName);
     //UberSet fragRes = new UberSet();
     Model fragModel = new Model(modNum);
@@ -127,15 +129,15 @@ public class PdbLibraryReader {
       System.err.println("No pdb set in PdbLibraryReader!");
     }
     trimFragment(fragModel);
-    if (renumber) {
-      fragModel = renumberFragment(fragModel, renum);
+    if (renumber||reResid) {
+      fragModel = revampFragment(fragModel, startNum);
     }
     return fragModel;
   }
   //}}}
   
-  //{{{ renumberFragment
-  public Model renumberFragment(Model frag, int startNum) {
+  //{{{ revampFragment
+  public Model revampFragment(Model frag, int startNum) {
     ModelState fragState = frag.getState();
     Model newModel = new Model(frag.getName());
     ModelState newState = new ModelState();
@@ -147,21 +149,29 @@ public class PdbLibraryReader {
       try {
         Collection<Residue> modResidues = frag.getChain(chain);
         for (Residue res : modResidues) {
-          String newSeqNum = Strings.justifyRight(Integer.toString(startNum), 4);
+          String newSeqNum = res.getSequenceNumber();
+          if (renumber) newSeqNum = Strings.justifyRight(Integer.toString(startNum), 4);
+          String resName = res.getName();
+          if (reResid && !resName.equals("PRO") && !resName.equals("GLY")) resName = "ALA";
           //System.out.println(newSeqNum);
-          Residue resClone = new Residue(res, res.getChain(), res.getSegment(), newSeqNum, res.getInsertionCode(), res.getName());
+          Residue resClone = new Residue(res.getChain(), res.getSegment(), newSeqNum, res.getInsertionCode(), resName);
           newModel.add(resClone);
           ArrayList resAtoms = new ArrayList(res.getAtoms());
-          ArrayList cloneAtoms = new ArrayList(resClone.getAtoms());
+          //ArrayList cloneAtoms = new ArrayList(resClone.getAtoms());
           for (int i = 0; i < resAtoms.size(); i++) {
             Atom resAt = (Atom) resAtoms.get(i);
-            //System.out.print(resAt + "->");
-            Atom cloneAt = (Atom) cloneAtoms.get(i);
-            //System.out.println(cloneAt);
-            AtomState resState = fragState.get(resAt);
-            //System.out.print(resState.getElement() + "->");
-            newState.add(resState.cloneFor(cloneAt));
-            //System.out.println(resState.cloneFor(cloneAt).getElement());
+            Atom cloneAt = new Atom(resAt);
+            if (reResid) {
+              if (isBackboneAtom(resAt)) {
+                resClone.add(cloneAt);
+                AtomState resState = fragState.get(resAt);
+                newState.add(resState.cloneFor(cloneAt));
+              }
+            } else {
+              resClone.add(cloneAt);
+              AtomState resState = fragState.get(resAt);
+              newState.add(resState.cloneFor(cloneAt));
+            }
           }
           //newModel.add(resClone);
           //resClone.cloneStates(res, fragState, newState);
@@ -222,6 +232,20 @@ public class PdbLibraryReader {
             (res.getAtom(" CA ")!=null)&&
             (res.getAtom(" C  ")!=null)&&
             (res.getAtom(" O  ")!=null));
+  }
+  //}}}
+  
+  //{{{ isBackboneAtom
+  public boolean isBackboneAtom(Atom a) {
+    String name = a.getName();
+    return ((name.equals(" N  "))||
+            (name.equals(" CA "))||
+            (name.equals(" C  "))||
+            (name.equals(" O  "))||
+            (name.equals(" H  "))||
+            (name.equals(" HA "))||
+            (name.equals(" HA2"))||
+            (name.equals(" HA3")));
   }
   //}}}
   
