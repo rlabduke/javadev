@@ -1,0 +1,28 @@
+USAGE
+  jiffiloop arguments [input PDB] [output prefix]
+
+  ("jiffiloop" is "java -jar jiffiloop.jar")
+
+ARGUMENTS
+  -fragments #                       Limits number of returned fragments.
+  -libloc or -librarylocation        Specifies location of fragment parameters 
+                                     on local machine. (not really used anymore
+                                     with mysql queries, but may be useful for
+                                     anyone without access to our mysql
+                                     database).
+  -pdbloc or -pdblocation            Specifies location of source PDBs on local
+                                     machine (important for getting fragments
+                                     superimposed on structure).
+  -nomatchsize                       Don't match the size of gap.  Useful for
+                                     finding fragments which have all same 
+                                     parameters except fragment size.
+  -ntermsup                          Superimpose fragments with N-terminal
+                                     C-alpha on stem's C-alpha.
+  -stems or -stem                    Use stem mode (match only one end).
+  -norenumber                        Don't renumber the fragments.
+  -sequence                          Keep fragment residue identities. Default
+                                     is to rename all non-gly, non-pro to ala
+                                     and remove sidechains.
+  #-#                                Enter integers for the two # signs to
+                                     "simulate" a gap to search.
+  

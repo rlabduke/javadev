@@ -253,7 +253,11 @@ public class StemFiller implements Filler {
   //}}}
   
   //{{{ getFragments
-  public CoordinateFile[] getFragments(PdbLibraryReader libReader, boolean ntermsup) {
+  //public CoordinateFile[] getFragments(PdbLibraryReader libReader, boolean ntermsup) {
+  //  return getFragments(libReader, ntermsup, 100);
+  //}
+  
+  public CoordinateFile[] getFragments(PdbLibraryReader libReader, boolean ntermsup, int limit) {
     CoordinateFile[] fragPdbOut = new CoordinateFile[filledMap.keySet().size()];
     int i = 0;
     for (ProteinStem stem : filledMap.keySet()) {
@@ -263,7 +267,7 @@ public class StemFiller implements Filler {
       ArrayList<String> listofFiller = filledMap.get(stem);
       //ArrayList<Triple> stemFrameStates = stemFrameAtomsMap.get(stem);
       System.out.println(listofFiller.size());
-      for (int ind = 0; ((ind < 100)&&(ind < listofFiller.size())); ind++) {
+      for (int ind = 0; ((ind < limit)&&(ind < listofFiller.size())); ind++) {
         String info = listofFiller.get(ind);
         String[] splitInfo = info.split(" ");
         String pdbName = splitInfo[0]; // should be pdbname
