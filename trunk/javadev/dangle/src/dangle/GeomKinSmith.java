@@ -90,12 +90,6 @@ public class GeomKinSmith //extends ... implements ...
                 || (resrange != null && resrange[0] <= resnum && resrange[1] >= resnum) )
                 {
                     boolean print = true;
-                    /*if(ignoreDNA)
-                    {
-                        Measurement c2o2 = Measurement.newBuiltin("c2o2");
-                        double c2o2dist = c2o2.measure(model, state, res);
-                        if(Double.isNaN(c2o2dist)) print = false;
-                    }*/
                     if(Dangle.isNucAcid(res))
                     {
                         if     (Dangle.isRNA(model, state, res) && ignoreRNA)  print = false;

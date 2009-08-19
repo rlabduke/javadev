@@ -26,10 +26,8 @@ public class Dangle //extends ... implements ...
 //{{{ Constants
 //}}}
 
-//{{{ Variable definitions (+ version number!)
+//{{{ Variable definitions
 //##############################################################################
-    
-    //String versionNumber = "1.02.090518";
     
     boolean forcePDB = false, forceCIF = false;
     boolean doWrap = false; // if true wrap dihedrals to 0 to 360 instead of -180 to 180
@@ -110,12 +108,6 @@ public class Dangle //extends ... implements ...
                                 vals[i] = wrap360(vals[i]);
                         }
                     }
-                    /*if(ignoreDNA && print) // not worth checking if print already false
-                    {
-                        Measurement c2o2 = Measurement.newBuiltin("c2o2");
-                        double c2o2dist = c2o2.measure(model, state, res);
-                        if(Double.isNaN(c2o2dist)) print = false;
-                    }*/
                     if(isNucAcid(res))
                     {
                         if     (isRNA(model, state, res) && ignoreRNA)  print = false;
@@ -188,12 +180,6 @@ public class Dangle //extends ... implements ...
                                 vals[i] = wrap360(vals[i]);
                         }
                     }
-                    /*if(ignoreDNA && print) // not worth checking if print already false
-                    {
-                        Measurement c2o2 = Measurement.newBuiltin("c2o2");
-                        double c2o2dist = c2o2.measure(model, state, res);
-                        if(Double.isNaN(c2o2dist)) print = false;
-                    }*/
                     if(isNucAcid(res))
                     {
                         if     (isRNA(model, state, res) && ignoreRNA)  print = false;
@@ -276,12 +262,6 @@ public class Dangle //extends ... implements ...
                                 vals[i] = wrap360(vals[i]);
                         }
                     }
-                    /*if(ignoreDNA && print) // not worth checking if print already false
-                    {
-                        Measurement c2o2 = Measurement.newBuiltin("c2o2");
-                        double c2o2dist = c2o2.measure(model, state, res);
-                        if(Double.isNaN(c2o2dist)) print = false;
-                    }*/
                     if(isNucAcid(res))
                     {
                         if     (isRNA(model, state, res) && ignoreRNA)  print = false;
@@ -481,9 +461,6 @@ public class Dangle //extends ... implements ...
             System.exit(1);
         }
         
-        /*for(String arg : args)
-            if(arg.equals("rnabb") || arg.equals("-rna"))
-                ignoreDNA = true;*/
         boolean doDNA = false;
         boolean doRNA = false;
         for(String arg : args)
