@@ -29,7 +29,7 @@ public class Dangle //extends ... implements ...
 //{{{ Variable definitions (+ version number!)
 //##############################################################################
     
-    String versionNumber = "1.02.090518";
+    //String versionNumber = "1.02.090518";
     
     boolean forcePDB = false, forceCIF = false;
     boolean doWrap = false; // if true wrap dihedrals to 0 to 360 instead of -180 to 180
@@ -46,6 +46,7 @@ public class Dangle //extends ... implements ...
     Collection files = new ArrayList();
     Collection measurements = new ArrayList();
     boolean ignoreDNA = false;
+    boolean ignoreRNA = false;
     boolean doHets = false;
     ArrayList<Integer> resnums = null;
     int[] resrange = null;
@@ -109,11 +110,16 @@ public class Dangle //extends ... implements ...
                                 vals[i] = wrap360(vals[i]);
                         }
                     }
-                    if(ignoreDNA && print) // not worth checking if print already false
+                    /*if(ignoreDNA && print) // not worth checking if print already false
                     {
                         Measurement c2o2 = Measurement.newBuiltin("c2o2");
                         double c2o2dist = c2o2.measure(model, state, res);
                         if(Double.isNaN(c2o2dist)) print = false;
+                    }*/
+                    if(isNucAcid(res))
+                    {
+                        if     (isRNA(model, state, res) && ignoreRNA)  print = false;
+                        else if(isDNA(model, state, res) && ignoreDNA)  print = false;
                     }
                     if(print)
                     {
@@ -182,11 +188,16 @@ public class Dangle //extends ... implements ...
                                 vals[i] = wrap360(vals[i]);
                         }
                     }
-                    if(ignoreDNA && print) // not worth checking if print already false
+                    /*if(ignoreDNA && print) // not worth checking if print already false
                     {
                         Measurement c2o2 = Measurement.newBuiltin("c2o2");
                         double c2o2dist = c2o2.measure(model, state, res);
                         if(Double.isNaN(c2o2dist)) print = false;
+                    }*/
+                    if(isNucAcid(res))
+                    {
+                        if     (isRNA(model, state, res) && ignoreRNA)  print = false;
+                        else if(isDNA(model, state, res) && ignoreDNA)  print = false;
                     }
                     if(print)
                     {
@@ -225,9 +236,9 @@ public class Dangle //extends ... implements ...
         for(Iterator residues = model1.getResidues().iterator(); residues.hasNext(); )
         {
             Residue res = (Residue) residues.next();
-            if (resnums == null || resnums.contains(res.getSequenceInteger()))
+            if(resnums == null || resnums.contains(res.getSequenceInteger()))
             {
-                if (isProtOrNucAcid(res))
+                if(isProtOrNucAcid(res))
                 {
                     for(int i = 0; i < meas.length; i++)
                         out.print(":"+res+" "+meas[i].getLabel());
@@ -265,11 +276,16 @@ public class Dangle //extends ... implements ...
                                 vals[i] = wrap360(vals[i]);
                         }
                     }
-                    if(ignoreDNA && print) // not worth checking if print already false
+                    /*if(ignoreDNA && print) // not worth checking if print already false
                     {
                         Measurement c2o2 = Measurement.newBuiltin("c2o2");
                         double c2o2dist = c2o2.measure(model, state, res);
                         if(Double.isNaN(c2o2dist)) print = false;
+                    }*/
+                    if(isNucAcid(res))
+                    {
+                        if     (isRNA(model, state, res) && ignoreRNA)  print = false;
+                        else if(isDNA(model, state, res) && ignoreDNA)  print = false;
                     }
                     if(print)
                     {
@@ -290,18 +306,51 @@ public class Dangle //extends ... implements ...
     }
 //}}}
 
-//{{{ isProtOrNucAcid
+//{{{ isProtOrNucAcid, isNucAcid, isRNA, isDNA
 //##############################################################################
-    boolean isProtOrNucAcid(Residue res)
+    //static String lowerCa = ":gly:ala:val:phe:pro:met:ile:leu:asp:glu:lys:arg:ser:thr:tyr:his:cys:asn:gln:trp:asx:glx:ace:for:nh2:nme:mse:aib:abu:pca:mly:cyo:m3l:dgn:csd:";
+    static String aaNames = ":GLY:ALA:VAL:PHE:PRO:MET:ILE:LEU:ASP:GLU:LYS:ARG:SER:THR:TYR:HIS:CYS:ASN:GLN:TRP:ASX:GLX:ACE:FOR:NH2:NME:MSE:AIB:ABU:PCA:MLY:CYO:M3L:DGN:CSD:";
+    static String naNames = ":  C:  G:  A:  T:  U:CYT:GUA:ADE:THY:URA:URI:CTP:CDP:CMP:GTP:GDP:GMP:ATP:ADP:AMP:TTP:TDP:TMP:UTP:UDP:UMP:GSP:H2U:PSU:4SU:1MG:2MG:M2G:5MC:5MU:T6A:1MA:RIA:OMC:OMG: YG:  I:7MG:C  :G  :A  :T  :U  :YG :I  : rC: rG: rA: rT: rU: dC: dG: dA: dT: dU: DC: DG: DA: DT: DU:";
+    
+    static boolean isProtOrNucAcid(Residue res)
     {
-        //String lowerCa = ":gly:ala:val:phe:pro:met:ile:leu:asp:glu:lys:arg:ser:thr:tyr:his:cys:asn:gln:trp:asx:glx:ace:for:nh2:nme:mse:aib:abu:pca:mly:cyo:m3l:dgn:csd:";
-        String aaNames = ":GLY:ALA:VAL:PHE:PRO:MET:ILE:LEU:ASP:GLU:LYS:ARG:SER:THR:TYR:HIS:CYS:ASN:GLN:TRP:ASX:GLX:ACE:FOR:NH2:NME:MSE:AIB:ABU:PCA:MLY:CYO:M3L:DGN:CSD:";
-        String naNames = ":  C:  G:  A:  T:  U:CYT:GUA:ADE:THY:URA:URI:CTP:CDP:CMP:GTP:GDP:GMP:ATP:ADP:AMP:TTP:TDP:TMP:UTP:UDP:UMP:GSP:H2U:PSU:4SU:1MG:2MG:M2G:5MC:5MU:T6A:1MA:RIA:OMC:OMG: YG:  I:7MG:C  :G  :A  :T  :U  :YG :I  : rC: rG: rA: rT: rU: dC: dG: dA: dT: dU: DC: DG: DA: DT: DU:";
-        
         String resname = res.getName();
-        if (aaNames.indexOf(resname) != -1 || naNames.indexOf(resname) != -1) 
+        if(aaNames.indexOf(resname) != -1 || naNames.indexOf(resname) != -1) 
             return true; // it's a valid protein or nucleic acid residue name
         return false;
+    }
+
+    /** Decides that residue <code>res</code> is nucleic acid simply based simply on residue name */
+    static boolean isNucAcid(Residue res)
+    {
+        String resname = res.getName();
+        if(naNames.indexOf(resname) != -1)
+            return true; // it's a valid nucleic acid residue name
+        return false;
+    }
+
+    /**
+    * Decides that residue <code>res</code> is RNA if the C2'-O2' distance is measurable.
+    * Should only be called on residues you've already decided are nucleic acid!
+    */
+    static boolean isRNA(Model model, ModelState state, Residue res)
+    {
+        Measurement c2o2 = Measurement.newBuiltin("c2o2");
+        double c2o2dist = c2o2.measure(model, state, res);
+        if(Double.isNaN(c2o2dist)) return false; // O2' undetectable - assuming not RNA
+        return true;                             // O2' detectable   - assuming RNA
+    }
+
+    /**
+    * Decides that residue <code>res</code> is DNA if the C2'-O2' distance is NOT measurable.
+    * Should only be called on residues you've already decided are nucleic acid!
+    */
+    static boolean isDNA(Model model, ModelState state, Residue res)
+    {
+        Measurement c2o2 = Measurement.newBuiltin("c2o2");
+        double c2o2dist = c2o2.measure(model, state, res);
+        if(Double.isNaN(c2o2dist)) return true; // O2' undetectable - assuming DNA
+        return false;                           // O2' detectable   - assuming not DNA
     }
 //}}}
 
@@ -381,7 +430,7 @@ public class Dangle //extends ... implements ...
                         (ArrayList<Measurement>) measurements, f.getName(), 
                         coords, doDistDevsKin, doAngleDevsKin, doKinHeadings, 
                         sigmaCutoff, subgroupNotGroup, doHets, ignoreDNA, 
-                        resnums, resrange);
+                        ignoreRNA, resnums, resrange);
                     gks.makeKin();
                 }
                 else if (doParCoor)
@@ -426,9 +475,26 @@ public class Dangle //extends ... implements ...
     */
     void parseArguments(String[] args)
     {
-        for (String arg : args)
-            if ( (arg.equals("rnabb") || arg.equals("-rna")) && !ignoreDNA )
-                ignoreDNA = true;
+        if(args.length == 0)
+        {
+            showHelp(true);
+            System.exit(1);
+        }
+        
+        /*for(String arg : args)
+            if(arg.equals("rnabb") || arg.equals("-rna"))
+                ignoreDNA = true;*/
+        boolean doDNA = false;
+        boolean doRNA = false;
+        for(String arg : args)
+        {
+            if(arg.equals("-rna") || arg.equals("rnabb"))  doRNA = true;
+            if(arg.equals("-dna") || arg.equals("dnabb"))  doDNA = true;
+        }
+        if     (!doDNA &&  doRNA) ignoreDNA = true;   // eval just RNA
+        else if( doDNA && !doRNA) ignoreRNA = true;   // eval just DNA
+        else if( doDNA &&  doRNA) System.err.println( // eval both DNA + RNA w/ diff ideal vals
+            "WARNING: Simultaneous use of -dna & -rna may cause strange behavior!");
         
         String  arg, flag, param;
         boolean interpFlags = true;
@@ -492,6 +558,7 @@ public class Dangle //extends ... implements ...
                 catch(IOException ex) { ex.printStackTrace(); }
             }
         }
+        String versionNumber = getVersion();
         System.err.println("dangle.Dangle version " + versionNumber);
         System.err.println("Copyright (C) 2007 by Ian W. Davis. All rights reserved.");
     }
@@ -510,9 +577,30 @@ public class Dangle //extends ... implements ...
                 catch(IOException ex) { ex.printStackTrace(); }
             }
         }
-        System.err.print("dangle.Dangle version " + versionNumber);
-        System.err.println();
+        String versionNumber = getVersion();
+        System.err.println("dangle.Dangle version " + versionNumber);
         System.err.println("Copyright (C) 2007 by Ian W. Davis. All rights reserved.");
+    }
+
+    // Get version number
+    String getVersion()
+    {
+        InputStream is = getClass().getResourceAsStream("version.props");
+        if(is == null)
+            System.err.println("\n*** Unable to locate version number in 'version.props' ***\n");
+        else
+        {
+            try
+            {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                String line = reader.readLine();
+                line = reader.readLine();
+                if(line != null && line.indexOf("version=") != -1)
+                    return line.substring( line.indexOf("=")+1 );
+            }
+            catch(IOException ex) { ex.printStackTrace(); }
+        }
+        return "?.??";
     }
 
     // Copies src to dst until we hit EOF
@@ -628,7 +716,7 @@ public class Dangle //extends ... implements ...
         }
         else if(flag.equals("-res") || flag.equals("-resnum"))
         {
-            if (param.indexOf("-") != -1)
+            if(param.indexOf("-") != -1)
             {
                 // Range of residue numbers ("1-99")
                 try
@@ -636,10 +724,10 @@ public class Dangle //extends ... implements ...
                     String[] resNumbers = Strings.explode(param, '-', false, true);
                     resrange = new int[2];
                     resnums = null;
-                    for (int i = 0; i < resNumbers.length; i ++)
+                    for(int i = 0; i < resNumbers.length; i ++)
                         resrange[i] = Integer.parseInt(resNumbers[i]);
                 }
-                catch (NumberFormatException nfe) { resrange = null; }
+                catch(NumberFormatException nfe) { resrange = null; }
             }
             else
             {
@@ -649,10 +737,10 @@ public class Dangle //extends ... implements ...
                     String[] resNumbers = Strings.explode(param, ',', false, true);
                     resnums = new ArrayList<Integer>();
                     resrange = null;
-                    for (String resNumber : resNumbers)
+                    for(String resNumber : resNumbers)
                         resnums.add(Integer.parseInt(resNumber));
                 }
-                catch (NumberFormatException nfe) { resnums = null; }
+                catch(NumberFormatException nfe) { resnums = null; }
             }
         }
         else if(flag.equals("-dummy_option"))

@@ -21,7 +21,7 @@ import driftwood.parser.*;
 * <li>measurement_for &rarr; ("for" resspec)? measurement</li>
 * <li>resspec &rarr; resno? "cis"? ([_A-Z0-9]{3} | "/" regex "/")</li>
 * <li>measurement &rarr; super_builtin | builtin | distance | angle | dihedral | vector_angle | maxb | minq | planarity</li>
-* <li>super_builtin &rarr; ("rnabb" | "suitefit")</li>
+* <li>super_builtin &rarr; ("rnabb" | "dnabb" | "suitefit")</li>
 * <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "cbdev" | "hadev" | "nhdev" | "codev" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi" | "alpha-1" | "beta-1" | "gamma-1" | "delta-1" | "epsilon-1" | "zeta-1" | "chi-1" | "O5'-C5'" | "O5'--C5'" | "C5'-C4'" | "C5'--C4'" | "C4'-C3'" | "C4'--C3'" | "C3'-C2'" | "C3'--C2'" | "C2'-C1'" | "C2'--C1'" | "O4'-C1'" | "O4'--C1'" | "O4'-C4'" | "O4'--C4'" | "O3'--C3'" | "O3'-C3'" | "C2'-O2'" | "C2'--O2'" | "C4'-O4'-C1'" | "O4'-C1'-C2'" | "C1'-C2'-C3'" | "C4'-C3'-C2'" | "C3'-C2'-C1'" | "C2'-C1'-O4'" | "C1'-O4'-C4'" | "O3'-C3'-C4'" | "C3'-C4'-C5'" | "C3'-C4'-O4'-C1'" | "C4'-O4'-C1'-C2'" | "O4'-C1'-C2'-C3'" | "C4'-C3'-C2'-C1'" | "C3'-C2'-C1'-O4'" | "C2'-C1'-O4'-C4'" | "O3'-C4'-C3'-C2'" | "C5'-C3'-C4'-O4'" | "c2o2" | "isprepro"</li>
 * <li>distance &rarr; ("distance" | "dist") label xyzspec xyzspec ideal_clause?</li>
 * <li>angle &rarr; "angle" label xyzspec xyzspec xyzspec ideal_clause?</li>
@@ -72,7 +72,7 @@ public class Parser //extends ... implements ...
     // If you add super-builtins here, you should also modify
     // Measurement.newSuperBuiltin(), the javadoc above, and the man page.
     // Added "suitefit" SUPERBLTN 6/20/07. -- DK
-    final Matcher SUPERBLTN = Pattern.compile("rnabb|suitefit").matcher(""); 
+    final Matcher SUPERBLTN = Pattern.compile("rnabb|dnabb|suitefit").matcher(""); 
     // If you add built-ins here, you should also modify
     // Measurement.newBuiltin(), the javadoc above, and the man page.
     // Added BUILTINs for "suitefit" SUPERBLTN 6/28/07. -- DK

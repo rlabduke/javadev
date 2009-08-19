@@ -38,13 +38,14 @@ public class GeomKinSmith //extends ... implements ...
     boolean subgroupNotGroup;
     boolean doHets;
     boolean ignoreDNA;
+    boolean ignoreRNA;
     ArrayList<Integer> resnums;
     int[] resrange;
 //}}}
 
 //{{{ Constructor
 //##############################################################################
-    public GeomKinSmith(ArrayList<Measurement> m, String l, CoordinateFile c, boolean dist, boolean ang, boolean head, double sc, boolean sgng, boolean dh, boolean id, ArrayList<Integer> rn, int[] rr)
+    public GeomKinSmith(ArrayList<Measurement> m, String l, CoordinateFile c, boolean dist, boolean ang, boolean head, double sc, boolean sgng, boolean dh, boolean id, boolean ir, ArrayList<Integer> rn, int[] rr)
     {
         meas = (Measurement[]) m.toArray(new Measurement[m.size()]);
         label = l;
@@ -56,6 +57,7 @@ public class GeomKinSmith //extends ... implements ...
         subgroupNotGroup = sgng;
         doHets = dh;
         ignoreDNA = id;
+        ignoreRNA = ir;
         resnums = rn;
         resrange = rr;
     }
@@ -88,11 +90,16 @@ public class GeomKinSmith //extends ... implements ...
                 || (resrange != null && resrange[0] <= resnum && resrange[1] >= resnum) )
                 {
                     boolean print = true;
-                    if(ignoreDNA)
+                    /*if(ignoreDNA)
                     {
                         Measurement c2o2 = Measurement.newBuiltin("c2o2");
                         double c2o2dist = c2o2.measure(model, state, res);
                         if(Double.isNaN(c2o2dist)) print = false;
+                    }*/
+                    if(Dangle.isNucAcid(res))
+                    {
+                        if     (Dangle.isRNA(model, state, res) && ignoreRNA)  print = false;
+                        else if(Dangle.isDNA(model, state, res) && ignoreDNA)  print = false;
                     }
                     if(print)
                     {
