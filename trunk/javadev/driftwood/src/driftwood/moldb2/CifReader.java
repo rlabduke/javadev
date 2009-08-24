@@ -49,6 +49,8 @@ public class CifReader //extends ... implements ...
     List    occupancy       = null; // NOT required, a float
     List    bIsoOrEquiv     = null; // NOT required, a float
     List    uIsoOrEquiv     = null; // NOT required, B = 8*pi*pi*U
+    List    authSeqId       = null; // required
+    List    authAsymId      = null; // required
     List    pdbModelNum     = null; // NOT required, any string
     String  pdbId         = null;
     
@@ -221,6 +223,8 @@ public class CifReader //extends ... implements ...
         occupancy       = data.getItem("_atom_site.occupancy");
         bIsoOrEquiv     = data.getItem("_atom_site.B_iso_or_equiv");
         uIsoOrEquiv     = data.getItem("_atom_site.U_iso_or_equiv");
+        authSeqId       = data.getItem("_atom_site.auth_seq_id");
+        authAsymId      = data.getItem("_atom_site.auth_asym_id");
         pdbModelNum     = data.getItem("_atom_site.pdbx_PDB_model_num");
         
         numRecords = labelAtomId.size();
@@ -234,7 +238,9 @@ public class CifReader //extends ... implements ...
         || labelEntityId.size() != numRecords
         || cartnX.size()        != numRecords
         || cartnY.size()        != numRecords
-        || cartnZ.size()        != numRecords)
+        || cartnZ.size()        != numRecords
+        || authSeqId.size()     != numRecords
+        || authAsymId.size()    != numRecords)
             throw new IOException("Required atom_site data items are missing or disagree in length.");
         
         if(groupPdb.size()      == 0) groupPdb      = null;
@@ -301,11 +307,13 @@ public class CifReader //extends ... implements ...
     /** Returns the residue for the given record number. */
     Residue getResidue(Model m, int i)
     {
-        String asymId = (String) labelAsymId.get(i);
+        //String asymId = (String) labelAsymId.get(i); //removed cause this line uses internal PDB chains, which don't match author assigned chains
+        String asymId = (String) authAsymId.get(i);
         // Waters, etc. don't have sequence IDs
         // Assume same residue until we get an atom name collision.
         // Collision is handled at the top level, before adding AtomState to ModelState
-        String  seqId = (String) labelSeqId.get(i);
+        //String  seqId = (String) labelSeqId.get(i); //removed cause this line uses internal PDB seq, which don't match author assigned res numbers
+        String seqId = (String) authSeqId.get(i);
         if(".".equals(seqId) || "?".equals(seqId)) seqId = Integer.toString(fakeResNumber);
         // Residue names are case-insensitive, so we convert to uppercase.
         String compId = ((String) labelCompId.get(i)).toUpperCase();
