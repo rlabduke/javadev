@@ -150,7 +150,7 @@ public class RibbonLogic implements Logic
                     "color= {alph"+chainID+"} master= {protein} master= {ribbon} master= {alpha}",
                     "color= {beta"+chainID+"} master= {protein} master= {ribbon} master= {beta}",
                     "width= 4 fore color= {coil"+chainID+"} master= {protein} master= {ribbon} master= {coil}",
-                    "width= 5 rear color= deadblack master= {protein} master= {ribbon} master= {coil}");
+                    "width= 6 rear color= deadblack master= {protein} master= {ribbon} master= {coil}");
               }
             }
             else
