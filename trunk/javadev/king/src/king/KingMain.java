@@ -18,6 +18,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 import driftwood.util.*;
 import driftwood.isosurface.*;
 import driftwood.gui.*;
+import driftwood.moldb2.*;
 //}}}
 /**
 * <code>KingMain</code> is the control center of the King program.
@@ -448,17 +449,7 @@ public class KingMain implements WindowListener
     // Interpret command-line arguments
     void parseArguments(String[] args)
     {
-        SuffixFileFilter pdbFilter = new SuffixFileFilter("PDB files");
-        pdbFilter.addSuffix(".pdb");
-        pdbFilter.addSuffix(".xyz");
-        pdbFilter.addSuffix(".ent");
-        pdbFilter.addSuffix(".cif");
-        pdbFilter.addSuffix(".mmcif");
-        pdbFilter.addSuffix(".pdb.gz");
-        pdbFilter.addSuffix(".xyz.gz");
-        pdbFilter.addSuffix(".ent.gz");
-        pdbFilter.addSuffix(".cif.gz");
-        pdbFilter.addSuffix(".mmcif.gz");
+        SuffixFileFilter pdbFilter = CoordinateFile.getCoordFileFilter();
         
         filesToOpen = new ArrayList<File>();
         pdbFilesToOpen = new ArrayList<File>();
