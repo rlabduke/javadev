@@ -49,6 +49,9 @@ UTIL: {{{
 ### 0.89 ###
 - Changed CifReader to use author defined sequence and chain identifiers; using
   label identifiers means kins don't match residue numbers given on webpage, articles, etc.
+- Changed CoordinateFile to contain the common PDB file suffixes,
+  including regex pattern for pdb#.gz, like PDB uses for biological units.
+- Changed SuffixFileFilter to take in regex expression strings also.
   
 ### 0.88 ###
 - added WrapMap.  Like UberMap, but wraps from start to end and vise versa

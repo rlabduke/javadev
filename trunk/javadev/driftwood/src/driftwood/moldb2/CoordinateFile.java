@@ -8,6 +8,7 @@ import java.io.*;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
+import driftwood.gui.*;
 //import java.util.regex.*;
 //import javax.swing.*;
 //import driftwood.*;
@@ -161,6 +162,43 @@ public void setPdbv2Count(int count) {
 
 public int getPdbv2Count() {
   return pdbv2atoms;
+}
+//}}}
+
+//{{{ getFileFilters
+public static SuffixFileFilter getCoordFileFilter() {
+  SuffixFileFilter allFilter = new SuffixFileFilter("Structural (PDB or mmCIF) files");
+  allFilter.addSuffix(".pdb");
+  allFilter.addSuffix(".xyz");
+  allFilter.addSuffix(".ent");
+  allFilter.addSuffix(".cif");
+  allFilter.addSuffix(".mmcif");
+  allFilter.addPattern(".*\\.pdb.*\\.gz");
+  allFilter.addSuffix(".xyz.gz");
+  allFilter.addSuffix(".ent.gz");
+  allFilter.addSuffix(".cif.gz");
+  allFilter.addSuffix(".mmcif.gz");
+  return allFilter;
+}
+
+public static SuffixFileFilter getPdbFileFilter() {
+  SuffixFileFilter pdbFilter = new SuffixFileFilter("Protein Data Bank (PDB) files");
+  pdbFilter.addSuffix(".pdb");
+  pdbFilter.addSuffix(".xyz");
+  pdbFilter.addSuffix(".ent");
+  pdbFilter.addPattern(".*\\.pdb.*\\.gz");
+  pdbFilter.addSuffix(".xyz.gz");
+  pdbFilter.addSuffix(".ent.gz");
+  return pdbFilter;
+}
+
+static public SuffixFileFilter getCifFileFilter() {
+  SuffixFileFilter cifFilter = new SuffixFileFilter("mmCIF files");
+  cifFilter.addSuffix(".cif");
+  cifFilter.addSuffix(".mmcif");
+  cifFilter.addSuffix(".cif.gz");
+  cifFilter.addSuffix(".mmcif.gz");
+  return cifFilter;
 }
 //}}}
 
