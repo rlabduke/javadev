@@ -28,6 +28,7 @@ public class SuffixFileFilter extends javax.swing.filechooser.FileFilter impleme
 //##################################################################################################
     String      description;
     ArrayList   suffixes;
+    ArrayList   patterns;
     boolean     caseSensitive;
 //}}}
 
@@ -51,6 +52,7 @@ public class SuffixFileFilter extends javax.swing.filechooser.FileFilter impleme
         this.description    = description;
         this.caseSensitive  = caseSensitive;
         suffixes = new ArrayList();
+        patterns = new ArrayList();
     }
 //}}}
 
@@ -66,6 +68,15 @@ public class SuffixFileFilter extends javax.swing.filechooser.FileFilter impleme
         if(!caseSensitive) suffix = suffix.toLowerCase();
         suffixes.add(suffix);
     }
+//}}}
+
+//{{{ addPattern
+/**
+* Adds a new regular expression String to match.
+*/
+public void addPattern(String pattern) {
+  patterns.add(pattern);
+}
 //}}}
 
 //{{{ getDescription
@@ -99,12 +110,26 @@ public class SuffixFileFilter extends javax.swing.filechooser.FileFilter impleme
             if(name.endsWith(suffix)) ok = true;
         }
         
-        return ok;
+        return (ok||acceptPattern(name));
     }
     
     public boolean accept(File path, String filename)
     {
         return accept(filename);
+    }
+    
+    public boolean acceptPattern(String name) {
+      if(name == null) return false;
+      
+      String pattern;
+      boolean ok = false;
+      for(Iterator iter = patterns.iterator(); iter.hasNext() && !ok; )
+      {
+        pattern = (String)iter.next();
+        if(name.matches(pattern)) ok = true;
+      }
+      
+      return ok;
     }
 //}}}
 
