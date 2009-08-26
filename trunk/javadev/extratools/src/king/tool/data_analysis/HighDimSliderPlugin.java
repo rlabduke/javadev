@@ -41,6 +41,7 @@ public class HighDimSliderPlugin extends Plugin implements ChangeListener {
     TablePane2 pane = new TablePane2();
     int numDim = kin.dimensionNames.size();
     ArrayList<Number> minMax = new ArrayList<Number>(kin.dimensionMinMax);
+    ArrayList<String> dimNames = new ArrayList<String>(kin.dimensionNames);
     sliders = new HighLowSliders[numDim];
     for (int i = 0; i < numDim; i++) {
       int lowVal = (int) Math.floor(minMax.get(i*2).doubleValue());
@@ -49,6 +50,9 @@ public class HighDimSliderPlugin extends Plugin implements ChangeListener {
       sliders[i].setMajorTickSpacing(20);
       sliders[i].setPaintTicks(true);
       sliders[i].addChangeListener(this);
+      pane.top();
+      pane.addCell(new JLabel(dimNames.get(i)), 1, 2);
+      pane.middle();
       pane.add(sliders[i].getLowSlider());
       pane.add(sliders[i].getHighSlider());
       pane.newRow();
@@ -69,37 +73,77 @@ public class HighDimSliderPlugin extends Plugin implements ChangeListener {
   //{{{ stateChanged
   public void stateChanged(ChangeEvent ev) {
     Kinemage kin = kMain.getKinemage();
-    KIterator<KList> lists = KIterator.visibleLists(kin);
-    for (KList list : lists) {
-      KIterator<KPoint> points = KIterator.allPoints(list);
-      for (KPoint point : points) {
-        point.setOn(true);
-      }
-    }
+    if(kin == null) return;
     for (HighLowSliders slider : sliders) {
       slider.stateChanged(ev);
     }
-    turnOffPoints();
+    String key = ParaParams.class.getName()+".instance";
+    ParaParams params = (ParaParams) kin.metadata.get(key);
+    if((params != null)&&(params.isInParallelMode())) {
+      //params.parallelChildren.clear();
+      setPoints();
+      //params.redrawParallel();
+    } else {
+      setPoints();
+    }
   }
   //}}}
   
-  //{{{ turnOffPoints
-  public void turnOffPoints() {
+  //{{{ setPoints
+  public void setPoints() {
     Kinemage kin = kMain.getKinemage();
-    KIterator<KPoint> points = KIterator.visiblePoints(kin);
-    for (KPoint point : points) {
-      float[] coords = point.getAllCoords();
-      if (coords != null) {
-        for (int i = 0; (i < coords.length && point.isOn()) ; i++) {
-          float value = coords[i];
-          HighLowSliders hls = sliders[i];
-          if ((value < hls.getLowValue())||(value > hls.getHighValue())) {
-            point.setOn(false);
+    KIterator<KList> lists = KIterator.allLists(kin);
+    for (KList list : lists) {
+      if (list.isOn()) {
+        KIterator<KPoint> points = KIterator.allPoints(list);
+        for (KPoint point : points) {
+          point.setOn(true);
+        }
+        points = KIterator.allPoints(list);
+        for (KPoint point : points) {
+          float[] coords = point.getAllCoords();
+          if (coords != null) {
+            for (int i = 0; (i < coords.length && point.isOn()) ; i++) {
+              float value = coords[i];
+              HighLowSliders hls = sliders[i];
+              if ((value < hls.getLowValue())||(value > hls.getHighValue())) {
+                point.setOn(false);
+              }
+            }
           }
         }
       }
     }
   }
+  //}}}
+  
+  //{{{ setParallelPoints
+  //public void setParallelPoints() {
+  //  Kinemage kin = kMain.getKinemage();
+  //  KIterator<KList> lists = KIterator.allLists(kin);
+  //  for (KList list : lists) {
+  //    if (list.isOn()) {
+  //      
+  //}}}
+  
+  //{{{ turnOffPoints
+  //public void turnOffPoints() {
+  //  Kinemage kin = kMain.getKinemage();
+  //  KIterator<KPoint> points = KIterator.visiblePoints(kin);
+  //  for (KPoint point : points) {
+  //    //System.out.println(point);
+  //    float[] coords = point.getAllCoords();
+  //    if (coords != null) {
+  //      for (int i = 0; (i < coords.length && point.isOn()) ; i++) {
+  //        float value = coords[i];
+  //        HighLowSliders hls = sliders[i];
+  //        if ((value < hls.getLowValue())||(value > hls.getHighValue())) {
+  //          point.setOn(false);
+  //        }
+  //      }
+  //    }
+  //  }
+  //}
   //}}}
   
   //{{{ getToolsMenuItem
