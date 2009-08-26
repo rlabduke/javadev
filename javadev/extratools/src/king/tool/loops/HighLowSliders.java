@@ -25,9 +25,9 @@ public class HighLowSliders {
   public HighLowSliders(int lowVal, int highVal, int mult) {
     multiplier = mult;
     lowSlider = new JSlider(lowVal * mult, highVal * mult, lowVal * mult);
-    lowLabel = new JLabel(Integer.toString(lowVal));
+    lowLabel = new JLabel(df.format((double)lowVal));
     highSlider = new JSlider(lowVal * mult, highVal * mult, highVal * mult);
-    highLabel = new JLabel(Integer.toString(highVal));
+    highLabel = new JLabel(df.format((double)highVal));
   }
   //}}}
   
