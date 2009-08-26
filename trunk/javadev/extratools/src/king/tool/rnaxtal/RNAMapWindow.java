@@ -110,102 +110,50 @@ public class RNAMapWindow extends EDMapWindow //implements ChangeListener, Actio
     }
 //}}}
 
-//{{{ buildGUI
-//##################################################################################################
-    void addToGUI()
-    {
-        //dialog = new JDialog(kMain.getTopWindow(), title+" - RNAMap", false);
-        //dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        
-        //label1 = new JCheckBox("1.2 sigma", false);
-        //label2 = new JCheckBox("3.0 sigma", true);
-
-	polyPicker = new JCheckBox("Poly Picker", true);
-	planePicker = new JCheckBox("Plane Picker", false);
-        
-        //color1 = new JComboBox(kMain.getKinemage().getAllPaintMap().values().toArray());
-        //color1.setSelectedItem(KPalette.gray);
-        //color2 = new JComboBox(kMain.getKinemage().getAllPaintMap().values().toArray());
-        //color2.setSelectedItem(KPalette.purple);
-
-	polyColor = new JComboBox(kMain.getKinemage().getAllPaintMap().values().toArray());
-	polyColor.setSelectedItem(KPalette.gold);
-        
-        //extent = new JSlider(0, 40, 10);
-        //extent.setMajorTickSpacing(10);
-        //extent.setMinorTickSpacing(2);
-        //extent.setPaintTicks(true);
-        //extent.setPaintLabels(true);
-        
-        //slider1 = new JSlider(-80, 80, 12);
-        //slider1.setMajorTickSpacing(10);
-        //slider1.setPaintTicks(true);
-        //slider1.setPaintLabels(false);
-
-        //slider2 = new JSlider(-80, 80, 30);
-        //slider2.setMajorTickSpacing(10);
-        //slider2.setPaintTicks(true);
-        //slider2.setPaintLabels(false);
-        
-        //discard = new JButton(new ReflectiveAction("Discard this map", null, this, "onMapDiscard"));
-        //export  = new JButton(new ReflectiveAction("Export to kinemage", null, this, "onMapExport"));
-	draw = new JButton(new ReflectiveAction("Draw perpendicular", null, this, "onDraw"));
-        
-        //label1.addActionListener(this);
-        //label2.addActionListener(this);
-	polyPicker.addActionListener(this);
-	planePicker.addActionListener(this);
-        //color1.addActionListener(this);
-        //color2.addActionListener(this);
-	polyColor.addActionListener(this);
-        //extent.addChangeListener(this);
-        //slider1.addChangeListener(this);
-        //slider2.addChangeListener(this);
-        
-        TablePane pane = (TablePane) dialog.getContentPane();
-	/*
-        pane.save().hfill(true).addCell(extent, 2, 1).restore();
-        pane.newRow();
-        pane.add(pane.strut(0,8));
-        pane.newRow();
-        pane.add(label1);
-        pane.add(color1);
-        pane.newRow();
-        pane.save().hfill(true).addCell(slider1, 2, 1).restore();
-        pane.newRow();
-        pane.add(pane.strut(0,4));
-        pane.newRow();
-        pane.add(label2);
-        pane.add(color2);
-        pane.newRow();
-        pane.save().hfill(true).addCell(slider2, 2, 1).restore();
-        pane.newRow();
-        pane.add(pane.strut(0,4));
-	pane.newRow();
-	pane.add(polyPicker);
-	pane.add(polyColor);
-        pane.newRow();
-	pane.add(planePicker);
-	pane.newRow();
-        pane.center().hfill(true);
-	pane.add(draw, 2, 1);
-	pane.newRow();
-        pane.add(export, 2, 1);
-        pane.newRow();
-        pane.add(discard, 2, 1);
-        */
-	pane.add(pane.strut(0,4));
-	pane.newRow();
-	pane.add(polyPicker);
-	pane.add(polyColor);
-        pane.newRow();
-	pane.add(planePicker);
-	pane.newRow();
-        pane.center().hfill(true);
-	pane.add(draw, 2, 1);
-        dialog.setContentPane(pane);
+  //{{{ addToGUI
+  //##################################################################################################
+  void addToGUI()
+  {
+    polyPicker = new JCheckBox("Poly Picker", true);
+    planePicker = new JCheckBox("Plane Picker", false);
+    
+    polyColor = new JComboBox(kMain.getKinemage().getAllPaintMap().values().toArray());
+    polyColor.setSelectedItem(KPalette.gold);
+    
+    draw = new JButton(new ReflectiveAction("Draw perpendicular", null, this, "onDraw"));
+    
+    polyPicker.addActionListener(this);
+    planePicker.addActionListener(this);
+    
+    polyColor.addActionListener(this);
+    
+    TablePane pane;
+    if (kMain.getPrefs().getBoolean("minimizableTools")) {
+      JFrame dial = (JFrame) dialog;
+      pane = (TablePane)dial.getContentPane();
+    } else {
+      JDialog dial = (JDialog) dialog;
+      pane = (TablePane)dial.getContentPane();
     }
-//}}}
+    //TablePane pane = (TablePane) dialog.getContentPane();
+    pane.add(pane.strut(0,4));
+    pane.newRow();
+    pane.add(polyPicker);
+    pane.add(polyColor);
+    pane.newRow();
+    pane.add(planePicker);
+    pane.newRow();
+    pane.center().hfill(true);
+    pane.add(draw, 2, 1);
+    if (kMain.getPrefs().getBoolean("minimizableTools")) {
+      JFrame dial = (JFrame) dialog;
+      dial.setContentPane(pane);
+    } else {
+      JDialog dial = (JDialog) dialog;
+      dial.setContentPane(pane);
+    }
+  }
+  //}}}
 
 //{{{ stateChanged, actionPerformed, calcSliderValue
 //##################################################################################################
