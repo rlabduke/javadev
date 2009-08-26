@@ -133,6 +133,12 @@ public class ParaParams implements KMessage.Subscriber, Transformable
     }
 //}}}
 
+//{{{ isInParallelMode
+public boolean isInParallelMode() {
+  return inParallelMode;
+}
+//}}}
+
 //{{{ toParallelCoords
 //##############################################################################
     public void toParallelCoords()

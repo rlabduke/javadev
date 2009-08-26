@@ -120,7 +120,7 @@ public class ParaPoint extends VectorPoint
     * Retrieves the "high-dimensional" coordinates of this point, or null if not set.
     * The float[] is returned without cloning and so is subject to overwrite.
     */
-    //public float[] getAllCoords() { return proxyFor.getAllCoords(); }
+    public float[] getAllCoords() { return proxyFor.getAllCoords(); }
     
     /**
     * Copies the high-dimensional coordinates at the specified indices
