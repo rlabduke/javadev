@@ -107,6 +107,10 @@ public class KinimolPlugin extends Plugin {
     JMenuItem menu = new JMenuItem(new ReflectiveAction("Kin -> PDB", null, this, "onConvert"));
     return menu;
   }
+  
+  public String toString() {
+    return "Kin -> PDB";
+  }
   //}}}
   
 }

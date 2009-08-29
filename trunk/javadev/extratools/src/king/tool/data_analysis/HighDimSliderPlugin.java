@@ -11,7 +11,8 @@ import javax.swing.event.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
-
+import driftwood.util.*;
+import java.net.*;
 //}}}
 
 public class HighDimSliderPlugin extends Plugin implements ChangeListener {
@@ -148,8 +149,31 @@ public class HighDimSliderPlugin extends Plugin implements ChangeListener {
   
   //{{{ getToolsMenuItem
   public JMenuItem getToolsMenuItem() {
-    return new JMenuItem(new ReflectiveAction("High Dimensional Sliders", null, this, "onStart"));
+    return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onStart"));
   }
   //}}}
   
+  //{{{ getHelpAnchor, toString
+  //##################################################################################################
+  public String getHelpAnchor()
+  { return "#high-d-sliders"; }
+  
+  /** Returns the URL of a web page explaining use of this tool */
+  public URL getHelpURL()
+  {
+    URL     url     = getClass().getResource("/extratools/tools-manual.html");
+    String  anchor  = getHelpAnchor();
+    if(url != null && anchor != null)
+    {
+      try { url = new URL(url, anchor); }
+      catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+      return url;
+    }
+    else return null;
+  }
+  
+  public String toString() {
+    return "High-Dimensional sliders";
+  }
+  //}}}
 }

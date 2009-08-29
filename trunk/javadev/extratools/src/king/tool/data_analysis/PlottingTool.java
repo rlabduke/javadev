@@ -11,9 +11,10 @@ import java.awt.event.*;
 import java.util.*;
 import java.io.*;
 import java.awt.*;
+import java.net.*;
 import javax.swing.*;
 import driftwood.gui.*;
-import driftwood.util.Strings;
+import driftwood.util.*;
 import driftwood.r3.*;
 //}}}
 
@@ -780,7 +781,21 @@ public class PlottingTool extends BasicTool {
 //{{{ getHelpAnchor, toString
 //##################################################################################################
     public String getHelpAnchor()
-    { return null; }
+    { return "#plotting-tool"; }
+    
+    /** Returns the URL of a web page explaining use of this tool */
+    public URL getHelpURL()
+    {
+        URL     url     = getClass().getResource("/extratools/tools-manual.html");
+        String  anchor  = getHelpAnchor();
+        if(url != null && anchor != null)
+        {
+            try { url = new URL(url, anchor); }
+            catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+            return url;
+        }
+        else return null;
+    }
 
     public Container getToolPanel()
     { return pane; }
