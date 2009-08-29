@@ -1,8 +1,9 @@
-#LyX 1.5.6 created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass report
+\use_default_options false
 \language english
 \inputencoding auto
 \font_roman default
@@ -13,9 +14,11 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
+
 \graphics default
 \paperfontsize default
 \spacing single
+\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 1
@@ -108,7 +111,8 @@ kinemage
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand tableofcontents
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
 
 \end_inset
 
@@ -168,8 +172,13 @@ The kinemage concept is the brainchild of Drs.
  David and Jane Richardson at Duke University in Durham, North Carolina,
  USA.
  Their website is at 
-\begin_inset LatexCommand htmlurl
-target "http://kinemage.biochem.duke.edu"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://kinemage.biochem.duke.edu
+\end_layout
 
 \end_inset
 
@@ -192,8 +201,13 @@ Download KiNG
 
 \begin_layout Standard
 If you don't already have a copy of KiNG, you can download it from 
-\begin_inset LatexCommand htmlurl
-target "http://kinemage.biochem.duke.edu"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://kinemage.biochem.duke.edu
+\end_layout
 
 \end_inset
 
@@ -237,8 +251,13 @@ If you don't have Java, you may have downloaded a copy of KiNG that was
 \begin_layout Standard
 If you don't have Java and you didn't download the bundled version of KiNG,
  point your web browser to 
-\begin_inset LatexCommand htmlurl
-target "http://java.sun.com/getjava/index.html"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://java.sun.com/getjava/index.html
+\end_layout
 
 \end_inset
 
@@ -344,7 +363,8 @@ Help | Built-in kinemages
 \family default
 , and select one of the provided files to explore.
  See 
-\begin_inset LatexCommand vref
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "additional-resources"
 
 \end_inset
@@ -358,7 +378,8 @@ Basic kinemage reading: Using KiNG to view a kinemage
 
 \begin_layout Subsection
 Basic interaction
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "basic-interaction"
 
 \end_inset
@@ -520,7 +541,8 @@ For more ways to explore the kinemage and interact with it, be sure to read
 Navigate
 \family default
  tool (see 
-\begin_inset LatexCommand vref
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "navigate-tool"
 
 \end_inset
@@ -612,7 +634,8 @@ The kinemage format also allows for flip-book style animations, automatic
  There is also a rich selection of features to control exactly how the graphics
  are rendered.
  See 
-\begin_inset LatexCommand vref
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "advanced-kinemage-reading"
 
 \end_inset
@@ -695,9 +718,18 @@ You can also drag and drop kinemages into the KiNG graphics window in order
 \begin_layout Standard
 Additionally, files can be specified on the command line, as in 
 \family typewriter
-king\InsetSpace ~
--s\InsetSpace ~
-foo.kin\InsetSpace ~
+king
+\begin_inset space ~
+\end_inset
+
+-s
+\begin_inset space ~
+\end_inset
+
+foo.kin
+\begin_inset space ~
+\end_inset
+
 bar.kin
 \family default
 , which will load all the kinemages in those two files upon startup.
@@ -764,7 +796,8 @@ more
 
 \begin_layout Section
 Appending a kinemage
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "appending-a-kinemage"
 
 \end_inset
@@ -795,9 +828,18 @@ all
 This behavior can be achieved on the command line by specifying multiple
  files, as in 
 \family typewriter
-king\InsetSpace ~
--m\InsetSpace ~
-foo.kin\InsetSpace ~
+king
+\begin_inset space ~
+\end_inset
+
+-m
+\begin_inset space ~
+\end_inset
+
+foo.kin
+\begin_inset space ~
+\end_inset
+
 bar.kip1
 \family default
 , which will merge all the kinemages in those two files upon startup.
@@ -950,15 +992,25 @@ PDF
  stands for Portable Document Format, the successor to PostScript as the
  standard for vector graphics.
  You can learn more about PDFs at 
-\begin_inset LatexCommand htmlurl
-target "http://www.adobe.com"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://www.adobe.com
+\end_layout
 
 \end_inset
 
 .
  It does require the (free) iText PDF library from 
-\begin_inset LatexCommand htmlurl
-target "http://www.lowagie.com/iText/"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://www.lowagie.com/iText/
+\end_layout
 
 \end_inset
 
@@ -1010,7 +1062,8 @@ e.g.
 
 \begin_layout Chapter
 Advanced kinemage reading
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "advanced-kinemage-reading"
 
 \end_inset
@@ -1286,7 +1339,8 @@ The first level of grouping above the individual point is the list; every
 
 \begin_layout Subsection
 Stereo
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "using_stereo"
 
 \end_inset
@@ -1359,7 +1413,8 @@ info-vis
  kinemages, you can examine (for instance) the x-y plane and the y-z plane
  at the same time using this trick.
  It pairs well with the 90-degree rotations plugin (
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "rot90-plugin"
 
 \end_inset
@@ -1376,8 +1431,13 @@ KiNG is capable of using OpenGL rendering commands to take advantage of
  your graphics hardware and get (hopefully) accelerated graphics performance.
  You'll need to have an up-to-date version of Java installed, along with
  the JOGL libraries (
-\begin_inset LatexCommand htmlurl
-target "https://jogl.dev.java.net/"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+https://jogl.dev.java.net/
+\end_layout
 
 \end_inset
 
@@ -1495,7 +1555,8 @@ The most basic sort of editing is to combine two kinemages into one.
 File | Append
 \family default
  command (see 
-\begin_inset LatexCommand vref
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "appending-a-kinemage"
 
 \end_inset
@@ -1782,7 +1843,8 @@ Some tools also use the up & down arrow keys on the keyboard; these have
 
 \begin_layout Section
 Navigate: Exploring in 3-D
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "navigate-tool"
 
 \end_inset
@@ -1796,7 +1858,8 @@ The Navigate tool encompasses all the usual modes of interacting with a
  This is the tool that is active when KiNG is launched, and is probably
  the only tool many people will ever use.
  See 
-\begin_inset LatexCommand vref
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "basic-interaction"
 
 \end_inset
@@ -1884,13 +1947,13 @@ Command reference
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0sp">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0sp">
-<row topline="true" bottomline="true">
+<column alignment="center" valignment="top" width="0sp">
+<column alignment="center" valignment="top" width="0sp">
+<row>
 <cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Mouse clicks
 \end_layout
 
@@ -1899,18 +1962,18 @@ Mouse clicks
 <cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Normal
 \end_layout
 
@@ -1919,18 +1982,18 @@ Normal
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Mark and identify point; make measurement (pick)
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 With Shift
 \end_layout
 
@@ -1939,18 +2002,18 @@ With Shift
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Center on selected point (pickcenter)
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 With Ctrl
 \end_layout
 
@@ -1959,27 +2022,27 @@ With Ctrl
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 -
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 With Shift+Ctrl
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 -
 \end_layout
 
@@ -1999,13 +2062,13 @@ With Shift+Ctrl
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0sp">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0sp">
-<row topline="true" bottomline="true">
+<column alignment="center" valignment="top" width="0sp">
+<column alignment="center" valignment="top" width="0sp">
+<row>
 <cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Mouse drags
 \end_layout
 
@@ -2014,18 +2077,18 @@ Mouse drags
 <cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Normal
 \end_layout
 
@@ -2034,18 +2097,18 @@ Normal
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Rotate around X and Y axes; Z-rotate (pinwheel) near top of screen
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 With Shift
 \end_layout
 
@@ -2054,18 +2117,18 @@ With Shift
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Adjust zoom (up/down); Adjust clipping (left/right) 
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 With Ctrl
 \end_layout
 
@@ -2074,27 +2137,27 @@ With Ctrl
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Translate in X-Y plane (flatland); Z-translate near top of screen
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 With Shift+Ctrl
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Rotate around Y axis only
 \end_layout
 
@@ -2114,13 +2177,13 @@ Rotate around Y axis only
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0sp">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0sp">
-<row topline="true" bottomline="true">
+<column alignment="center" valignment="top" width="0sp">
+<column alignment="center" valignment="top" width="0sp">
+<row>
 <cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Mouse wheel / Up & Down arrow keys
 \end_layout
 
@@ -2129,18 +2192,18 @@ Mouse wheel / Up & Down arrow keys
 <cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Normal
 \end_layout
 
@@ -2149,18 +2212,18 @@ Normal
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Adjust zoom
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 With Shift
 \end_layout
 
@@ -2169,18 +2232,18 @@ With Shift
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Adjust clipping
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 With Ctrl
 \end_layout
 
@@ -2189,27 +2252,27 @@ With Ctrl
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 -
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 With Shift+Ctrl
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 -
 \end_layout
 
@@ -2225,7 +2288,8 @@ With Shift+Ctrl
 
 \begin_layout Section
 Draw New: Reworking the kinemage
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "drawnew-tool"
 
 \end_inset
@@ -2239,10 +2303,16 @@ The Draw New tool provides a variety of simple tools for creating new objects
 \end_layout
 
 \begin_layout Description
-Edit\InsetSpace ~
-list\InsetSpace ~
-props Picking a point opens the editing window for that point's
- list, where you can set color, width, radius, 
+Edit
+\begin_inset space ~
+\end_inset
+
+list
+\begin_inset space ~
+\end_inset
+
+props Picking a point opens the editing window for that point's list, where
+ you can set color, width, radius, 
 \emph on
 etc
 \emph default
@@ -2255,10 +2325,16 @@ Tools | Superpick
 \end_layout
 
 \begin_layout Description
-Edit\InsetSpace ~
-point\InsetSpace ~
-props Picking a point opens the editing window for that point,
- where you can set color, position, point ID, 
+Edit
+\begin_inset space ~
+\end_inset
+
+point
+\begin_inset space ~
+\end_inset
+
+props Picking a point opens the editing window for that point, where you
+ can set color, position, point ID, 
 \emph on
 etc
 \emph default
@@ -2271,9 +2347,12 @@ Tools | Superpick
 \end_layout
 
 \begin_layout Description
-Move\InsetSpace ~
-points Allows you to click on individual points and drag them around
- to new positions.
+Move
+\begin_inset space ~
+\end_inset
+
+points Allows you to click on individual points and drag them around to
+ new positions.
  Dragging them with the mouse moves them in the plane of the screen.
  Using the mouse wheel or up & down arrow keys moves them in and out (this
  is easier to see with Perspective enabled and Stereo on).
@@ -2298,20 +2377,31 @@ Tools | Superpick
 \end_layout
 
 \begin_layout Description
-Draw\InsetSpace ~
-line\InsetSpace ~
-segments Simply draws a line between the first point picked and
- the second.
+Draw
+\begin_inset space ~
+\end_inset
+
+line
+\begin_inset space ~
+\end_inset
+
+segments Simply draws a line between the first point picked and the second.
  Every pair of picks forms a new line.
  Lines can be shortened from their natural length (or lengthened, using
  negative numbers), which is sometimes useful for making illustrations.
 \end_layout
 
 \begin_layout Description
-Draw\InsetSpace ~
-dotted\InsetSpace ~
-lines Like drawing ordinary lines, except a string of dots is
- created instead of a single line.
+Draw
+\begin_inset space ~
+\end_inset
+
+dotted
+\begin_inset space ~
+\end_inset
+
+lines Like drawing ordinary lines, except a string of dots is created instead
+ of a single line.
  The number of dots is configurable.
  This can serve as a 
 \begin_inset Quotes eld
@@ -2326,10 +2416,16 @@ template
 \end_layout
 
 \begin_layout Description
-Draw\InsetSpace ~
-curved\InsetSpace ~
-arc Draws an arc from the second point picked to the third one,
- with the arc curving toward the first point picked.
+Draw
+\begin_inset space ~
+\end_inset
+
+curved
+\begin_inset space ~
+\end_inset
+
+arc Draws an arc from the second point picked to the third one, with the
+ arc curving toward the first point picked.
  The user specifies how many degrees out of a circle will be used to create
  the arc, so small numbers give flat arcs and large numbers give exagerated
  ones.
@@ -2338,24 +2434,36 @@ arc Draws an arc from the second point picked to the third one,
 \end_layout
 
 \begin_layout Description
-Draw\InsetSpace ~
+Draw
+\begin_inset space ~
+\end_inset
+
 balls Places a small ball at each point picked with the mouse.
 \end_layout
 
 \begin_layout Description
-Draw\InsetSpace ~
-labels Creates a label at the picked point, with its text taken from
- the picked point's ID.
+Draw
+\begin_inset space ~
+\end_inset
+
+labels Creates a label at the picked point, with its text taken from the
+ picked point's ID.
  The label text can be changed using Edit Properties.
 \end_layout
 
 \begin_layout Description
-Draw\InsetSpace ~
+Draw
+\begin_inset space ~
+\end_inset
+
 dots Creates a dot at each point picked with the mouse.
 \end_layout
 
 \begin_layout Description
-Draw\InsetSpace ~
+Draw
+\begin_inset space ~
+\end_inset
+
 triangles Draws a triangle for each set of three points picked.
  Triangles can also be shrunk (values between 0 and 1) or grown (values
  greater than 1).
@@ -2364,8 +2472,14 @@ triangles Draws a triangle for each set of three points picked.
 \end_layout
 
 \begin_layout Description
-Prune\InsetSpace ~
-one\InsetSpace ~
+Prune
+\begin_inset space ~
+\end_inset
+
+one
+\begin_inset space ~
+\end_inset
+
 point Removes the single point picked with the mouse.
  In the case of polylines and triangle strips, it will stop things from
  being drawn that depend on the removed point.
@@ -2377,8 +2491,14 @@ point Removes the single point picked with the mouse.
 \end_layout
 
 \begin_layout Description
-Punch\InsetSpace ~
-a\InsetSpace ~
+Punch
+\begin_inset space ~
+\end_inset
+
+a
+\begin_inset space ~
+\end_inset
+
 polyline Removes all the line segments in a particular 
 \emph on
 polyline
@@ -2389,8 +2509,14 @@ polyline
 \end_layout
 
 \begin_layout Description
-Auger\InsetSpace ~
-a\InsetSpace ~
+Auger
+\begin_inset space ~
+\end_inset
+
+a
+\begin_inset space ~
+\end_inset
+
 region Removes all points that fall under the giant eraser.
  The eraser is drawn as a large circle that follows the mouse around the
  graphics area.
@@ -2398,18 +2524,24 @@ region Removes all points that fall under the giant eraser.
 \end_layout
 
 \begin_layout Description
-Spherical\InsetSpace ~
-crop Removes all points that fall more than a specified distance
- away from the picked point.
+Spherical
+\begin_inset space ~
+\end_inset
+
+crop Removes all points that fall more than a specified distance away from
+ the picked point.
  Only visible points are cropped.
  Crop operations cannot be undone, so save your file first and click carefully.
 \end_layout
 
 \begin_layout Description
-New\InsetSpace ~
-subgroup Kinemage elements created by each drawing option are placed
- into their own list, and all of those lists are placed in one subgroup
- under the 
+New
+\begin_inset space ~
+\end_inset
+
+subgroup Kinemage elements created by each drawing option are placed into
+ their own list, and all of those lists are placed in one subgroup under
+ the 
 \begin_inset Quotes eld
 \end_inset
 
@@ -2433,7 +2565,8 @@ Undo The Undo button undoes the last drawing action, with a few exceptions
 
 \begin_layout Section
 Electron Density: Visualizing maps
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "edmap-plugin"
 
 \end_inset
@@ -2487,8 +2620,13 @@ Discard
 \begin_layout Standard
 If you don't have an electron density map for the structure you're interested
  in, you can try looking at the Uppsala Electron Density Server (
-\begin_inset LatexCommand htmlurl
-target "http://fsrv1.bmc.uu.se/eds/"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://fsrv1.bmc.uu.se/eds/
+\end_layout
 
 \end_inset
 
@@ -2546,7 +2684,8 @@ EDMAPLIST
 
 \begin_layout Section
 Update KiNG: Upgrading without the hassle
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "update-plugin"
 
 \end_inset
@@ -2685,11 +2824,16 @@ Launching KiNG
 \begin_layout Standard
 KiNG runs both as a stand-alone application, and as an applet that can be
  included in web pages.
- In any case, KiNG requires a Java Virtual Machine (JVM), version 1.3 or
+ In any case, KiNG requires a Java Virtual Machine (JVM), version 1.5 or
  higher.
  You can get Java from 
-\begin_inset LatexCommand htmlurl
-target "http://java.sun.com"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://java.sun.com
+\end_layout
 
 \end_inset
 
@@ -2724,12 +2868,20 @@ java -jar king.jar [-merge | -single] [file1 file2 ...]
 
 \begin_layout Standard
 All the files listed on the command line will be merged together into one
- kinemage,, unless the 
+ kinemage, unless the 
 \family typewriter
 -s
 \family default
  flag is included, in which case all the files will be opened as separate
  kinemages.
+ 
+\end_layout
+
+\begin_layout Standard
+As of KiNG 2.16, the files KiNG can read in from the command line include
+ kinemages, PDB, mmCIF, and electron density maps.
+ For the structure files, QuickKin is used to generate quick-browsing ribbon+sti
+ck representations of the structures.
 \end_layout
 
 \begin_layout Section
@@ -3059,9 +3211,30 @@ Some Tools and Plugins may define their own <PARAM> tags, which will be
  described in their documentation.
 \end_layout
 
+\begin_layout Standard
+As of KiNG version 2.16, the KiNG applet can read PDB or CIF files as well
+ as kinemages.
+ In order to supply a PDB or CIF file for KiNG, instead of the 
+\family typewriter
+kinSource
+\family default
+ parameter, use 
+\family typewriter
+pdbSource
+\family default
+ or 
+\family typewriter
+pdbFile
+\family default
+.
+ This feature uses QuickKin to generate a quick ribbons and stick representation
+ of the input file.
+\end_layout
+
 \begin_layout Chapter
 Additional resources
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "additional-resources"
 
 \end_inset
@@ -3104,8 +3277,13 @@ External documentation
 \begin_layout Standard
 The best resource for learning more about kinemages is the Richardson lab
  website, 
-\begin_inset LatexCommand htmlurl
-target "http://kinemage.biochem.duke.edu"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://kinemage.biochem.duke.edu
+\end_layout
 
 \end_inset
 
@@ -3122,8 +3300,13 @@ Bug reporting and contact info
 Ian Davis, the original author of KiNG, has graduated.
  KiNG is currently being maintained by Vincent Chen, who may be reached
  via email at 
-\begin_inset LatexCommand htmlurl
-target "mailto:vbc3@duke.edu"
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+mailto:vbc3@duke.edu
+\end_layout
 
 \end_inset
 
@@ -3146,7 +3329,7 @@ Copyright
 
 \begin_layout Standard
 The KiNG program and all its associated original resources and documentation
- are copyright (C) 2002-2007 by Ian W.
+ are copyright (C) 2002-2009 by Ian W.
  Davis & Vincent B.
  Chen.
  KiNG makes use of the gnu.regexp library, which is copyright (C) by Wes
@@ -3163,7 +3346,8 @@ Licenses
 \begin_layout Standard
 KiNG is free software available under the terms of its own BSD-style license
  (see 
-\begin_inset LatexCommand vref
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "KiNG-License"
 
 \end_inset
@@ -3171,8 +3355,13 @@ reference "KiNG-License"
 ).
  The source code and new versions can be downloaded from the Richardson
  lab website, 
-\begin_inset LatexCommand htmlurl
-target "http://kinemage.biochem.duke.edu"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://kinemage.biochem.duke.edu
+\end_layout
 
 \end_inset
 
@@ -3181,8 +3370,13 @@ target "http://kinemage.biochem.duke.edu"
  (LGPL).
  In accordance with that license, the full source of the gnu.regexp library
  is available from its website at 
-\begin_inset LatexCommand htmlurl
-target "http://www.cacas.org/java/gnu/regexp/"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://www.cacas.org/java/gnu/regexp/
+\end_layout
 
 \end_inset
 
@@ -3190,23 +3384,38 @@ target "http://www.cacas.org/java/gnu/regexp/"
  The iText library is dual-licensed under the LGPL and the Mozilla Public
  License (MPL).
  iText is available from 
-\begin_inset LatexCommand htmlurl
-target "http://www.lowagie.com/iText/"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://www.lowagie.com/iText/
+\end_layout
 
 \end_inset
 
 .
  JOGL is available under a BSD-style license from 
-\begin_inset LatexCommand htmlurl
-target "https://jogl.dev.java.net/"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+https://jogl.dev.java.net/
+\end_layout
 
 \end_inset
 
 .
  Many of the icons are the property of Sun Microsystems and have their own
  license; they are available from 
-\begin_inset LatexCommand htmlurl
-target "http://developer.java.sun.com/developer/techDocs/hi/repository/"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://developer.java.sun.com/developer/techDocs/hi/repository/
+\end_layout
 
 \end_inset
 
@@ -3221,7 +3430,8 @@ doc/
 \family default
  directory.
  Additionally, the KiNG license appears in the Appendix (see 
-\begin_inset LatexCommand vref
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "KiNG-License"
 
 \end_inset
@@ -3267,13 +3477,14 @@ Revision status
 \end_layout
 
 \begin_layout Standard
-This manual was last updated 3 September 2008 by VBC for KiNG version 2.14.
+This manual was last updated 29 August 2009 by VBC for KiNG version 2.17.
 \end_layout
 
 \begin_layout Chapter
 \start_of_appendix
 KiNG License
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "KiNG-License"
 
 \end_inset
@@ -3302,7 +3513,7 @@ The KiNG License
 \end_layout
 
 \begin_layout Standard
-Copyright (C) 2002-2008 Ian W.
+Copyright (C) 2002-2009 Ian W.
  Davis & Vincent B.
  Chen.
  All rights reserved.
@@ -3375,8 +3586,13 @@ Where this license came from
 \begin_layout Standard
 This license is based on the BSD and Apache licenses.
  See 
-\begin_inset LatexCommand htmlurl
-target "http://www.opensource.org/"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://www.opensource.org/
+\end_layout
 
 \end_inset
 

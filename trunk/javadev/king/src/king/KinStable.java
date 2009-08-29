@@ -192,6 +192,13 @@ public class KinStable implements ListSelectionListener, KMessage.Subscriber, Ac
         if(0 <= kinNum && kinNum < children.size())
             kinChooser.setSelectedValue(children.get(kinNum), true);
     }
+    
+    public void changeCurrentKinemage(String kinName) {
+      for (Kinemage kin : children) {
+        if (kin.getName().equals(kinName)) 
+          kinChooser.setSelectedValue(kin, true);
+      }
+    }
 //}}}
 
 //{{{ empty_code_segment

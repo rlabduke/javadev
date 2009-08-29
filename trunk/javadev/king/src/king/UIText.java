@@ -5,12 +5,13 @@ import king.core.*;
 
 import java.awt.*;
 import java.awt.event.*;
-//import java.io.*;
+import java.io.*;
 //import java.text.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import driftwood.gui.*;
+import driftwood.util.*;
 //}}}
 /**
 * <code>UIText</code> is the kinemage text manager.
@@ -55,6 +56,7 @@ public class UIText implements MouseListener, KMessage.Subscriber
     JCheckBox allowTextEdits;
     
     JButton popupButton;
+    JFileChooser fileSaveChooser;
     
     Collection mageHypertextListeners = new ArrayList();
 //}}}
@@ -88,11 +90,45 @@ public class UIText implements MouseListener, KMessage.Subscriber
         new TextCutCopyPasteMenu(textarea);
         this.addHypertextListener(new MageHypertext(kMain));
         
+        initSaveFileChooser();
+        JButton exportText = new JButton(new ReflectiveAction("Export text to file", null, this, "onExportText"));
+        //exportText.setPreferredSize(new Dimension(10, 20));
+        //exportText.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        
         frame.getContentPane().add(allowTextEdits, BorderLayout.NORTH);
         frame.getContentPane().add(textScroll, BorderLayout.CENTER);
+        frame.getContentPane().add(exportText, BorderLayout.SOUTH);
         kMain.subscribe(this);
     }
 //}}}
+
+  //{{{ initSaveFileChooser
+  private void initSaveFileChooser() {
+    try {
+      SuffixFileFilter fileFilter = new SuffixFileFilter("text files (*.txt)");
+      // New suffixes:
+      fileFilter.addSuffix(".txt");
+      fileSaveChooser = new JFileChooser();
+      fileSaveChooser.addChoosableFileFilter(fileFilter);
+      fileSaveChooser.setFileFilter(fileFilter);
+      
+      String currdir = System.getProperty("user.dir");
+      if(currdir != null)
+      {
+        fileSaveChooser.setCurrentDirectory(new File(currdir));
+      }
+    }
+    catch(SecurityException ex) {}
+    // Temporary fix for Java 6 bug # 6570445:  JFileChooser in unsigned applet
+    catch(java.lang.ExceptionInInitializerError ex)
+    {
+      if(!(ex.getCause() instanceof java.security.AccessControlException))
+        throw ex;
+    }
+    // Subsequent attempts to create JFileChooser cause NoClassDefFound
+    catch(java.lang.NoClassDefFoundError ex) {}
+  }
+  //}}}
 
 //{{{ get/set/appendText()
 //##################################################################################################
@@ -172,6 +208,40 @@ public class UIText implements MouseListener, KMessage.Subscriber
     
     public JButton getButton() { return popupButton; }
 //}}}
+
+  //{{{ onExportText
+  public void onExportText(ActionEvent ev) {
+    String currdir = System.getProperty("user.dir");
+    if(currdir != null) fileSaveChooser.setCurrentDirectory(new File(currdir));
+    if(fileSaveChooser.APPROVE_OPTION == fileSaveChooser.showSaveDialog(kMain.getTopWindow()))
+    {
+      File f = fileSaveChooser.getSelectedFile();
+      if( !f.exists() ||
+        JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+          "This file exists -- do you want to overwrite it?",
+          "Overwrite file?", JOptionPane.YES_NO_OPTION)
+        == JOptionPane.YES_OPTION )
+      {
+        saveFile(f, getText());
+        System.setProperty("user.dir", f.getAbsolutePath());
+      }
+    }
+  }
+  
+  public void saveFile(File f, String text) { 
+    try {
+      PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(f)));
+      out.println(text);
+      out.flush();
+      out.close();
+    } catch (IOException ie) {
+      ie.printStackTrace(SoftLog.err);
+      JOptionPane.showMessageDialog(kMain.getTopWindow(),
+        "An error occurred while saving the file.",
+        "Sorry!", JOptionPane.ERROR_MESSAGE);
+    }
+  }
+  //}}}
 
 //{{{ Mouse listeners (for hypertext)
 //##################################################################################################
