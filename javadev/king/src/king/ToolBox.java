@@ -522,6 +522,11 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
             p = (Plugin)iter.next();
             item = p.getHelpMenuItem();
             if(item != null) menu.add(item);
+            if (menu.getItemCount() > 20) {
+              JMenu newMenu = new JMenu("more...");
+              menu.add(newMenu);
+              menu = newMenu;
+            }
         }
     }
 //}}}

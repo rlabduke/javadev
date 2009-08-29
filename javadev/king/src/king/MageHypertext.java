@@ -70,7 +70,8 @@ public class MageHypertext implements UIText.HypertextListener
     {
         if(token.isInteger())
         {
-            kMain.getStable().changeCurrentKinemage(token.getInt());
+            //kMain.getStable().changeCurrentKinemage(token.getInt()); //switches to wrong kin if file doesn't start with kin 1
+            kMain.getStable().changeCurrentKinemage("Kinemage #"+token.getString());
             token.advance();
         }
     }
