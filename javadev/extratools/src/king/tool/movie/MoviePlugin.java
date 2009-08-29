@@ -49,6 +49,10 @@ public class MoviePlugin extends Plugin
     {
         return false;
     }
+    
+    public String toString() {
+      return "Movie-maker plugin";
+    }
 //}}}
 
 //{{{ onMakeMovie

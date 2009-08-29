@@ -608,6 +608,10 @@ public class PatchGapPlugin extends Plugin {
     menu.add(new JMenuItem(new ReflectiveAction("Export Loops", null, this, "onExport")));
     return menu;
   }
+  
+  public String toString() {
+    return "Fill Model Tool";
+  }
   //}}}
   
   /** Returns the URL of a web page explaining use of this tool */

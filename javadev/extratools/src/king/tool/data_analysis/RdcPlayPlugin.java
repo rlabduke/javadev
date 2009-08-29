@@ -201,7 +201,11 @@ public class RdcPlayPlugin extends Plugin implements ChangeListener {
   
   //{{{ getToolsMenuItem
   public JMenuItem getToolsMenuItem() {
-    return new JMenuItem(new ReflectiveAction("RDC Play", null, this, "onStart"));
+    return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onStart"));
+  }
+  
+  public String toString() {
+    return "RDC Play";
   }
   //}}}
   

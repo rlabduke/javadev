@@ -84,10 +84,14 @@ public class VRKinTool extends Plugin implements KMessage.Subscriber
 //##############################################################################
     public JMenuItem getToolsMenuItem()
     {
-        JMenu menu = new JMenu("VRKin plugin");
+        JMenu menu = new JMenu(this.toString());
         JMenuItem item = new JMenuItem(new ReflectiveAction("Connect ...", null, this, "onConnectToMaster"));
         menu.add(item);
         return menu;
+    }
+    
+    public String toString() {
+      return "VRKin plugin";
     }
 //}}}
 
