@@ -425,6 +425,7 @@ public class PlottingTool extends BasicTool {
         if (y == -1) point.setY(0);
         if (z == -1) point.setZ(0);
         point.useCoordsXYZ(x-1, y-1, z-1); // since the first value is a string identifier, indices are off by 1
+        rescalePoint(point);
         if (color != -1) {
           Iterator keys = binnedPoints.keySet().iterator();
           Double binValue = null;
@@ -554,31 +555,38 @@ public class PlottingTool extends BasicTool {
   }
   //}}}
   
-//{{{ onPlotParallel
-        public void onPlotParallel(ActionEvent ev) {
-	Kinemage kin = kMain.getKinemage();
-	KGroup group = new KGroup("parallel");
-	kin.add(group);
-	KGroup subgroup = new KGroup("partest");
-	subgroup.setHasButton(false);
-	group.add(subgroup);
-	Iterator iter = allPoints.iterator();
-	while (iter.hasNext()) {
-	    String[] value = (String[]) iter.next();
-	    if (value.length > 0) {
-		int[] order = {2, 5, 3, 6, 4, 7, 2};
-		KList list = makeList(value, order);
-		subgroup.add(list);
-		//list.setParent(subgroup);
-		list.setWidth(1);
-		list.setAlpha(128);
-		list.setHasButton(false);
-	    }
-	}
-	//kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
-	
+  //{{{ onPlotParallel
+  public void onPlotParallel(ActionEvent ev) {
+    Kinemage kin = kMain.getKinemage();
+    String key = ParaParams.class.getName()+".instance";
+    ParaParams params = (ParaParams) kin.metadata.get(key);
+    if (params == null) {
+      params = new ParaParams(kMain, kin);
+      kin.metadata.put(key, params);
     }
-//}}}
+    params.swap();
+    //KGroup group = new KGroup("parallel");
+    //kin.add(group);
+    //KGroup subgroup = new KGroup("partest");
+    //subgroup.setHasButton(false);
+    //group.add(subgroup);
+    //Iterator iter = allPoints.iterator();
+    //while (iter.hasNext()) {
+	  //  String[] value = (String[]) iter.next();
+	  //  if (value.length > 0) {
+    //    int[] order = {2, 5, 3, 6, 4, 7, 2};
+    //    KList list = makeList(value, order);
+    //    subgroup.add(list);
+    //    //list.setParent(subgroup);
+    //    list.setWidth(1);
+    //    list.setAlpha(128);
+    //    list.setHasButton(false);
+	  //  }
+    //}
+    //kMain.notifyChange(KingMain.EM_EDIT_GROSS | KingMain.EM_ON_OFF);
+    
+  }
+  //}}}
 
 //{{{ makeList
         public KList makeList(String[] value, int[] order) {
@@ -598,26 +606,24 @@ public class PlottingTool extends BasicTool {
     }
 //}}}	    
 
-//{{{ onRescale
+  //{{{ rescalePoint
   /**
   * Handles rescaling the plotted points.  Used to scale the tranformed coordinates, but due
   * to setDrawXYZ functions disappearing in King 2.0, this function will have to actually 
   * rescale the values of the coordinates.
   **/
-    public void onRescale(ActionEvent ev) {
-	Collection points = plottedPoints.values();
-	Iterator iter = points.iterator();
-	while (iter.hasNext()) {
-	    AbstractPoint point = (AbstractPoint) iter.next();
+  public void rescalePoint(KPoint point) {
+    //Collection points = plottedPoints.values();
+    //Iterator iter = points.iterator();
+    //while (iter.hasNext()) {
+      //    AbstractPoint point = (AbstractPoint) iter.next();
 	    if (KinUtil.isNumeric(xMultField.getText()) && KinUtil.isNumeric(yMultField.getText()) && KinUtil.isNumeric(zMultField.getText())) {
-		point.setX(point.getX() * Double.parseDouble(xMultField.getText()));
-		point.setY(point.getY() * Double.parseDouble(yMultField.getText()));
-		point.setZ(point.getZ() * Double.parseDouble(zMultField.getText()));
+        point.setX(point.getX() * Double.parseDouble(xMultField.getText()));
+        point.setY(point.getY() * Double.parseDouble(yMultField.getText()));
+        point.setZ(point.getZ() * Double.parseDouble(zMultField.getText()));
 	    }
 	}
-	kCanvas.repaint();
-    }
-//}}}
+  //}}}
     
 //{{{ xx_click() functions
 //##################################################################################################
