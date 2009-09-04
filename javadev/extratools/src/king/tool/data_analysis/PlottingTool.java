@@ -26,15 +26,15 @@ public class PlottingTool extends BasicTool {
     TreeMap binnedPoints; //points split by bin (color) value.
     HashMap plottedPoints; //points split by value.
     JFileChooser filechooser;
-    JComboBox color1;
+    //JComboBox color1;
 
     TablePane pane;
-    JButton plotButton, exportButton, parallelButton, filterButton, resetButton;
+    JButton plotButton, /*exportButton,*/ parallelButton/*, filterButton, resetButton*/;
     JTextField numBinsField;
     JTextField xMultField, yMultField, zMultField;
-    JTextField xFiltField, yFiltField, zFiltField;
-    JTextField xFiltRange, yFiltRange, zFiltRange;
-    JCheckBox clickColorBox, wrapBox;
+    //JTextField xFiltField, yFiltField, zFiltField;
+    //JTextField xFiltRange, yFiltRange, zFiltRange;
+    JCheckBox /*clickColorBox, */wrapBox;
     //JComboBox[] comboBoxes;
     //JRadioButton[] xButtons, yButtons, zButtons;
     //ButtonGroup xGroup, yGroup, zGroup;
@@ -68,6 +68,7 @@ public class PlottingTool extends BasicTool {
 	JLabel infoLabel = new JLabel("Data Plotter has detected " + numColumns + " columns of data;  Row 1 shown below.");
 	pane.add(infoLabel, numColumns, 1);
 	pane.newRow();
+
 	String[] axLabels = new String[numColumns];
 	//axLabels[0] = "Axis 0";
 	for(int i = 0; i < numColumns; i++) {
@@ -79,9 +80,22 @@ public class PlottingTool extends BasicTool {
 	if (numColumns > 20) {
 	    numColumns = 20;
 	}
+  
+  //ArrayList labelList = new ArrayList();
+  //for (String lab : values) {
+  //  JLabel newLab = new JLabel(lab);
+  //  labelList.add(newLab);
+  //}
+  
 	labelList = new FatJList(0, 10);
 	labelList.setListData(values);
 	labelList.setVisibleRowCount(numColumns + 3);
+  // I didn't know you could redefine functions when you make a new instance of something,
+  // but apparently the following lines works to make the list unselectable!
+  labelList.setSelectionModel(new DefaultListSelectionModel() {
+    public void addSelectionInterval(int index0, int index1) {}
+    public void setSelectionInterval(int index0, int index1) {}
+  });
 
 	xList = new FatJList(0, 10);
 	xList.setListData(axLabels);
@@ -101,17 +115,18 @@ public class PlottingTool extends BasicTool {
 
 	plotButton = new JButton(new ReflectiveAction("Plot!", null, this, "onPlot"));
 
-	color1 = new JComboBox(KPalette.getStandardMap().values().toArray());
-	color1.setSelectedItem(KPalette.blue);
+	//color1 = new JComboBox(KPalette.getStandardMap().values().toArray());
+	//color1.setSelectedItem(KPalette.blue);
 	//pane.add(color1, 2, 1);
 
-	clickColorBox = new JCheckBox("Color on click");
-	clickColorBox.setSelected(false);
+	//clickColorBox = new JCheckBox("Color on click");
+	//clickColorBox.setSelected(false);
 
-	exportButton = new JButton(new ReflectiveAction("Export!", null, this, "onExport"));
+	//exportButton = new JButton(new ReflectiveAction("Export!", null, this, "onExport"));
 	parallelButton = new JButton(new ReflectiveAction("Parallel!", null, this, "onPlotParallel"));
 	numBinsField = new JTextField("10", 4);
-	
+  wrapBox = new JCheckBox("Wrap to 0-360");
+  
 	pane.newRow();
 	pane.add(new JLabel(" Row 1"));
 	pane.add(new JLabel(" X axis"));
@@ -129,65 +144,70 @@ public class PlottingTool extends BasicTool {
 	pane.newRow();
 	pane.addCell(parallelButton);
 	pane.newRow();
-	pane.addCell(exportButton);
+	//pane.addCell(exportButton);
+  pane.add(new JLabel(" "));
 	pane.newRow();
 	pane.add(new JLabel("# of Bins:"));
 	pane.newRow();
 	pane.add(numBinsField);
 	pane.newRow();
-	pane.add(color1, 2, 1);
+  pane.add(new JLabel(" "));
+  pane.newRow();
+  pane.add(wrapBox);
+	//pane.add(color1, 2, 1);
 	pane.newRow();
-	pane.add(clickColorBox, 2, 1);
+	//pane.add(clickColorBox, 2, 1);
 	pane.newRow();
 	pane.newRow();
-	JLabel xLabel = new JLabel("x mult=");
+	JLabel multLabel = new JLabel("multiplier:");
 	xMultField = new JTextField("1", 4);
-	JLabel yLabel = new JLabel("y mult=");
+	//JLabel yLabel = new JLabel("y mult=");
 	yMultField = new JTextField("1", 4);
-	JLabel zLabel = new JLabel("z mult=");
+	//JLabel zLabel = new JLabel("z mult=");
 	zMultField = new JTextField("1", 4);
 
 
-	JLabel xLab2 = new JLabel("keep x=");
-	xFiltField = new JTextField("0", 4);
-	xFiltRange = new JTextField("-1", 4);
-	JLabel yLab2 = new JLabel("keep y=");
-	yFiltField = new JTextField("0", 4);
-	yFiltRange = new JTextField("-1", 4);
-	JLabel zLab2 = new JLabel("keep z=");
-	zFiltField = new JTextField("0", 4);
-	zFiltRange = new JTextField("-1", 4);
+	//JLabel xLab2 = new JLabel("keep x=");
+	//xFiltField = new JTextField("0", 4);
+	//xFiltRange = new JTextField("-1", 4);
+	//JLabel yLab2 = new JLabel("keep y=");
+	//yFiltField = new JTextField("0", 4);
+	//yFiltRange = new JTextField("-1", 4);
+	//JLabel zLab2 = new JLabel("keep z=");
+	//zFiltField = new JTextField("0", 4);
+	//zFiltRange = new JTextField("-1", 4);
 
-  wrapBox = new JCheckBox("Wrap values to 0-360");
-	filterButton = new JButton(new ReflectiveAction("Filter!", null, this, "onFilter"));
-	resetButton = new JButton(new ReflectiveAction("ResetFilt", null, this, "onReset"));
+
+	//filterButton = new JButton(new ReflectiveAction("Filter!", null, this, "onFilter"));
+	//resetButton = new JButton(new ReflectiveAction("ResetFilt", null, this, "onReset"));
 		
-	pane.add(xLabel);
+	pane.add(multLabel);
 	pane.add(xMultField);
 
-	pane.add(xLab2);
-	pane.add(xFiltField);
-	pane.add(xFiltRange);
-  pane.add(wrapBox);
-	
-	pane.newRow();
-	pane.add(yLabel);
 	pane.add(yMultField);
-
-	pane.add(yLab2);
-	pane.add(yFiltField);
-	pane.add(yFiltRange);
-
-	pane.add(filterButton);
-	pane.newRow();
-	pane.add(zLabel);
 	pane.add(zMultField);
+	//pane.add(xFiltRange);
+  //pane.skip();
 
-	pane.add(zLab2);
-	pane.add(zFiltField);
-	pane.add(zFiltRange);
+	
+	//pane.newRow();
+	//pane.add(yLabel);
+	//pane.add(yMultField);
+  //
+	//pane.add(yLab2);
+	//pane.add(yFiltField);
+	//pane.add(yFiltRange);
 
-	pane.add(resetButton);
+	//pane.add(filterButton);
+	//pane.newRow();
+	//pane.add(zLabel);
+	//pane.add(zMultField);
+  //
+	//pane.add(zLab2);
+	//pane.add(zFiltField);
+	//pane.add(zFiltRange);
+  //
+	//pane.add(resetButton);
 	//pane.hfill(true);
 	
   dialog.addWindowListener(this);
@@ -627,161 +647,161 @@ public class PlottingTool extends BasicTool {
     
 //{{{ xx_click() functions
 //##################################################################################################
-    /** Override this function for (left-button) clicks */
-    public void click(int x, int y, KPoint p, MouseEvent ev)
-    {
-        super.click(x, y, p, ev);    
-	if (p != null) {
-	    if (clickColorBox.isSelected()) {
-		p.setColor((KPaint)color1.getSelectedItem());
-	    }
-	}
-    }
+  //  /** Override this function for (left-button) clicks */
+  //  public void click(int x, int y, KPoint p, MouseEvent ev)
+  //  {
+  //      super.click(x, y, p, ev);    
+	//if (p != null) {
+	//    if (clickColorBox.isSelected()) {
+	//	p.setColor((KPaint)color1.getSelectedItem());
+	//    }
+	//}
+  //  }
 //}}}
 
 //{{{ onExport
-    public void onExport(ActionEvent ev) {
-	//addAllDataPoints();
-	JFileChooser saveChooser = new JFileChooser();
-	String currdir = System.getProperty("user.dir");
-	if(currdir != null) {
-	    saveChooser.setCurrentDirectory(new File(currdir));
-	}
-	if (saveChooser.APPROVE_OPTION == saveChooser.showSaveDialog(kMain.getTopWindow())) {
-	    File f = saveChooser.getSelectedFile();
-	    if( !f.exists() ||
-                JOptionPane.showConfirmDialog(kMain.getTopWindow(),
-                    "This file exists -- do you want to overwrite it?",
-                    "Overwrite file?", JOptionPane.YES_NO_OPTION)
-                == JOptionPane.YES_OPTION )
-            {
-                saveDataFile(f);
-            }
-	}
-
-    }
+  //  public void onExport(ActionEvent ev) {
+	////addAllDataPoints();
+	//JFileChooser saveChooser = new JFileChooser();
+	//String currdir = System.getProperty("user.dir");
+	//if(currdir != null) {
+	//    saveChooser.setCurrentDirectory(new File(currdir));
+	//}
+	//if (saveChooser.APPROVE_OPTION == saveChooser.showSaveDialog(kMain.getTopWindow())) {
+	//    File f = saveChooser.getSelectedFile();
+	//    if( !f.exists() ||
+  //              JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+  //                  "This file exists -- do you want to overwrite it?",
+  //                  "Overwrite file?", JOptionPane.YES_NO_OPTION)
+  //              == JOptionPane.YES_OPTION )
+  //          {
+  //              saveDataFile(f);
+  //          }
+	//}
+  //
+  //  }
 //}}}
 
 //{{{ onFilter
     
-    public void onFilter(ActionEvent ev) {
-	double x, xrange, y, yrange, z, zrange;
-	if ((KinUtil.isNumeric(xFiltField.getText()))&&(KinUtil.isNumeric(xFiltRange.getText()))&& 
-	    (KinUtil.isNumeric(yFiltField.getText()))&&(KinUtil.isNumeric(yFiltRange.getText()))&& 
-	    (KinUtil.isNumeric(zFiltField.getText()))&&(KinUtil.isNumeric(zFiltRange.getText()))) {
-		
-	    x = Double.parseDouble(xFiltField.getText());
-	    xrange = Double.parseDouble(xFiltRange.getText());
-	    y = Double.parseDouble(yFiltField.getText());
-	    yrange = Double.parseDouble(yFiltRange.getText());
-	    z = Double.parseDouble(zFiltField.getText());
-	    zrange = Double.parseDouble(zFiltRange.getText());
-	    filterCoord(x, xrange, y, yrange, z, zrange);
-	} else {
-	    JOptionPane.showMessageDialog(pane, "You have to put numbers in the text boxes!", "Error",
-					  JOptionPane.ERROR_MESSAGE);
-	    
-	}
-
-    }
+  //  public void onFilter(ActionEvent ev) {
+	//double x, xrange, y, yrange, z, zrange;
+	//if ((KinUtil.isNumeric(xFiltField.getText()))&&(KinUtil.isNumeric(xFiltRange.getText()))&& 
+	//    (KinUtil.isNumeric(yFiltField.getText()))&&(KinUtil.isNumeric(yFiltRange.getText()))&& 
+	//    (KinUtil.isNumeric(zFiltField.getText()))&&(KinUtil.isNumeric(zFiltRange.getText()))) {
+	//	
+	//    x = Double.parseDouble(xFiltField.getText());
+	//    xrange = Double.parseDouble(xFiltRange.getText());
+	//    y = Double.parseDouble(yFiltField.getText());
+	//    yrange = Double.parseDouble(yFiltRange.getText());
+	//    z = Double.parseDouble(zFiltField.getText());
+	//    zrange = Double.parseDouble(zFiltRange.getText());
+	//    filterCoord(x, xrange, y, yrange, z, zrange);
+	//} else {
+	//    JOptionPane.showMessageDialog(pane, "You have to put numbers in the text boxes!", "Error",
+	//				  JOptionPane.ERROR_MESSAGE);
+	//    
+	//}
+  //
+  //  }
 
 ///}}}
 
 //{{{ filterCoord
 
-    public void filterCoord(double x, double xrange, double y, double yrange, double z, double zrange) {
-	double lowX = x - xrange;
-	double highX = x + xrange;
-	double lowY = y - yrange;
-	double highY = y + yrange;
-	double lowZ = z - zrange;
-	double highZ = z + zrange;
-	
-	Set keys = plottedPoints.keySet();
-	HashMap newPlottedPoints = new HashMap();
-	Iterator iter = keys.iterator();
-	while (iter.hasNext()) {
-	    String[] key = (String[]) iter.next();
-	    KPoint point = (KPoint) plottedPoints.get(key);
-	    double xCoord = point.getX();
-	    double yCoord = point.getY();
-	    double zCoord = point.getZ();
-	    if (xrange != -1) {
-		if ((xCoord >= lowX)&&(xCoord <= highX)) {
-		    newPlottedPoints.put(key, point);
-		} else {
-		    point.setColor(KPalette.invisible);
-		}
-	    }
-	    if (yrange != -1) {
-		if ((yCoord >= lowY)&&(yCoord <= highY)) {
-		    newPlottedPoints.put(key, point);
-		} else {
-		    point.setColor(KPalette.invisible);
-		}
-	    }
-	    if (zrange != -1) {
-		if ((zCoord >= lowZ)&&(zCoord <= highZ)) {
-		    newPlottedPoints.put(key, point);
-		} else {
-		    point.setColor(KPalette.invisible);
-		}
-	    }
-	}
-	//plottedPoints = newPlottedPoints;
-	kCanvas.repaint();
-
-    }
+  //  public void filterCoord(double x, double xrange, double y, double yrange, double z, double zrange) {
+	//double lowX = x - xrange;
+	//double highX = x + xrange;
+	//double lowY = y - yrange;
+	//double highY = y + yrange;
+	//double lowZ = z - zrange;
+	//double highZ = z + zrange;
+	//
+	//Set keys = plottedPoints.keySet();
+	//HashMap newPlottedPoints = new HashMap();
+	//Iterator iter = keys.iterator();
+	//while (iter.hasNext()) {
+	//    String[] key = (String[]) iter.next();
+	//    KPoint point = (KPoint) plottedPoints.get(key);
+	//    double xCoord = point.getX();
+	//    double yCoord = point.getY();
+	//    double zCoord = point.getZ();
+	//    if (xrange != -1) {
+	//	if ((xCoord >= lowX)&&(xCoord <= highX)) {
+	//	    newPlottedPoints.put(key, point);
+	//	} else {
+	//	    point.setColor(KPalette.invisible);
+	//	}
+	//    }
+	//    if (yrange != -1) {
+	//	if ((yCoord >= lowY)&&(yCoord <= highY)) {
+	//	    newPlottedPoints.put(key, point);
+	//	} else {
+	//	    point.setColor(KPalette.invisible);
+	//	}
+	//    }
+	//    if (zrange != -1) {
+	//	if ((zCoord >= lowZ)&&(zCoord <= highZ)) {
+	//	    newPlottedPoints.put(key, point);
+	//	} else {
+	//	    point.setColor(KPalette.invisible);
+	//	}
+	//    }
+	//}
+	////plottedPoints = newPlottedPoints;
+	//kCanvas.repaint();
+  //
+  //  }
 
 ///}}}
 
   //{{{ onReset
-  public void onReset(ActionEvent ev) {
-    xFiltField.setText("0");
-    yFiltField.setText("0");
-    zFiltField.setText("0");
-    xFiltRange.setText("-1");
-    yFiltRange.setText("-1");
-    zFiltRange.setText("-1");
-  }
+  //public void onReset(ActionEvent ev) {
+  //  xFiltField.setText("0");
+  //  yFiltField.setText("0");
+  //  zFiltField.setText("0");
+  //  xFiltRange.setText("-1");
+  //  yFiltRange.setText("-1");
+  //  zFiltRange.setText("-1");
+  //}
    //}}}
   
 //{{{ saveDataFile
 
-    public void saveDataFile(File f) {
-	try {
-	    Writer w = new FileWriter(f);
-	    PrintWriter out = new PrintWriter(new BufferedWriter(w));
-	    //addAllDataPoints();
-	    out.println("@kinemage 0");
-	    //out.println("@group {" + f.getName() + "} dimension=7 wrap=360 select");
-	    //out.println("@balllist {" + f.getName() + "} nohilite");
-	    //Iterator iter = allPoints.iterator();
-	    String[] zeroVal = (String[]) allPoints.get(0);
-	    out.println("@group {" + f.getName() + "} dimension=" + (zeroVal.length - 1) + " wrap=360 select");
-	    out.println("@balllist {" + f.getName() + "} nohilite");
-	    //int length = value.length;
-	    Iterator iter = allPoints.iterator();
-	    while (iter.hasNext()) {
-		String[] value = (String[]) iter.next();
-		out.print("{" + value[0] + "} ");
-		for (int i = 1; i < value.length; i++) {
-		    out.print(value[i]);
-		    if (i != value.length - 1) {
-			out.print(", ");
-		    }
-		}
-		out.println("");
-	    }
-	    out.flush();
-	    w.close();
-
-	} catch (IOException ex) {
-	    JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                "An error occurred while saving the file.",
-                "Sorry!", JOptionPane.ERROR_MESSAGE);
-        }
-    }
+  //  public void saveDataFile(File f) {
+	//try {
+	//    Writer w = new FileWriter(f);
+	//    PrintWriter out = new PrintWriter(new BufferedWriter(w));
+	//    //addAllDataPoints();
+	//    out.println("@kinemage 0");
+	//    //out.println("@group {" + f.getName() + "} dimension=7 wrap=360 select");
+	//    //out.println("@balllist {" + f.getName() + "} nohilite");
+	//    //Iterator iter = allPoints.iterator();
+	//    String[] zeroVal = (String[]) allPoints.get(0);
+	//    out.println("@group {" + f.getName() + "} dimension=" + (zeroVal.length - 1) + " wrap=360 select");
+	//    out.println("@balllist {" + f.getName() + "} nohilite");
+	//    //int length = value.length;
+	//    Iterator iter = allPoints.iterator();
+	//    while (iter.hasNext()) {
+	//	String[] value = (String[]) iter.next();
+	//	out.print("{" + value[0] + "} ");
+	//	for (int i = 1; i < value.length; i++) {
+	//	    out.print(value[i]);
+	//	    if (i != value.length - 1) {
+	//		out.print(", ");
+	//	    }
+	//	}
+	//	out.println("");
+	//    }
+	//    out.flush();
+	//    w.close();
+  //
+	//} catch (IOException ex) {
+	//    JOptionPane.showMessageDialog(kMain.getTopWindow(),
+  //              "An error occurred while saving the file.",
+  //              "Sorry!", JOptionPane.ERROR_MESSAGE);
+  //      }
+  //  }
 //}}}
 
 //{{{ getHelpAnchor, toString
