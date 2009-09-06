@@ -66,14 +66,20 @@ public class DisulfideParameterer //extends ... implements ...
         }
         if(initRes == null)
         {
-            System.err.println("*** Couldn't find "+disulfide.getInitChainId()
-                +" "+disulfide.getInitSeqNum()+" "+disulfide.getInitICode()+"!");
+            System.err.println("*** Couldn't find res1 CNIT '"+disulfide.getInitChainId()
+                +disulfide.getInitSeqNum()+disulfide.getInitICode()+"CYS'!");
+            //System.out.print("__?__,"+endRes);
+            //for(int i = 0; i < 17; i++) System.out.print(",__?__");
+            //System.out.println();
             return;
         }
         if(endRes == null)
         {
-            System.err.println("*** Couldn't find "+disulfide.getEndChainId()
-                +" "+disulfide.getEndSeqNum()+" "+disulfide.getEndICode()+"!");
+            System.err.println("*** Couldn't find res2 CNIT '"+disulfide.getEndChainId()
+                +disulfide.getEndSeqNum()+disulfide.getEndICode()+"CYS'!");
+            //System.out.print(initRes+",__?__");
+            //for(int i = 0; i < 17; i++) System.out.print(",__?__");
+            //System.out.println();
             return;
         }
         if(verbose) System.err.println("Found "+initRes+" :: "+endRes);
