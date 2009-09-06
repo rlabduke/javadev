@@ -58,6 +58,7 @@ class PdbDisulfides extends Disulfides
     Disulfide forDisulfide(String s) throws NumberFormatException
     {
         // "SSBOND   1 CYS A   31    CYS A   73                                             "
+        // "SSBOND *** CYS A  190    CYS C  190"
         Disulfide d = new Disulfide();
         d.initChainId = s.substring(15,16);
         d.endChainId  = s.substring(29,30);
@@ -68,7 +69,10 @@ class PdbDisulfides extends Disulfides
         d.initSeqNum = Integer.parseInt(s.substring(17,21).trim());
         d.endSeqNum  = Integer.parseInt(s.substring(31,35).trim());
         d.initICode = s.substring(21,22);
-        d.endICode  = s.substring(35,36);
+        if(s.length() >= 36) // if space, may be truncated in non-std file
+            d.endICode  = s.substring(35,36);
+        else
+            d.endICode = " "; // (default anyway)
         return d;
     }
 //}}}
