@@ -52,6 +52,8 @@ public class DihedralPlotter //extends ... implements ...
     /** Scale probability values to min out at this floor and max out at this ceiling */
     float   probFlor   = 0;
     float   probCeil   = 100;
+    /** Grid points with pct below this value won't be displayed */
+    float   probMin    = (float) 0.0005; // 99.95% = general noGPpreP Rama outlier cutoff
     
     /** Includes prob at end, so #dihedrals + 1 */
     int     nDim       = Integer.MAX_VALUE;
@@ -213,58 +215,63 @@ public class DihedralPlotter //extends ... implements ...
     {
         o.println("@balllist {pct} master= {pct} dimension= "+nDim);
         Scanner s = new Scanner(pctFile);
-        while (s.hasNextLine())
+        while(s.hasNextLine())
         {
             String line = s.nextLine();
             if(!line.startsWith("#"))
             {
-                // Point ID
                 String[] parts = Strings.explode(line, ' ');
-                if(parts.length == 1)  parts = Strings.explode(line, ':');
+                if(parts.length == 1) parts = Strings.explode(line, ':');
+                if(parts.length == 1)
+                { System.err.println("*** Error parsing line: "+line); continue; }
                 float[] coords = new float[parts.length];
-                for(int i = 0; i < parts.length; i++)  coords[i] = Float.parseFloat(parts[i]);
-                o.print( "{"+df.format(coords[0]) );
-                for(int i = 1; i < coords.length-1; i++)  o.print( ", "+df.format(coords[i]) );
-                o.print( ", pct="+df2.format(coords[coords.length-1])+"} " );
-                
-                // Radius
+                for(int i = 0; i < parts.length; i++) coords[i] = Float.parseFloat(parts[i]);
                 float prob = coords[coords.length-1];
-                float rad = prob*2; // radii scale linearly
-                //double rad = 2 * Math.pow( (3*prob)/(4*Math.PI) , 0.333); // volumes scale linearly
-                o.print("r="+rad+" ");
-                
-                // Coloring
-                if(prob < 0.1)                     o.print("peachtint ");
-                else if(prob >= 0.1 && prob < 0.2) o.print("peach ");
-                else                               o.print("orange ");
-                
-                // Actual multi-D coordinates
-                /*
-                for(int i = 0; i < coords.length-1; i++)
+                if(prob >= probMin)
                 {
-                    if(scale)
+                    // Point ID
+                    o.print( "{"+df.format(coords[0]) );
+                    for(int i = 1; i < coords.length-1; i++) o.print( ", "+df.format(coords[i]) );
+                    o.print( ", pct="+df2.format(prob)+"} " );
+                    
+                    // Radius
+                    float rad = prob*2; // radii scale linearly
+                    //double rad = 2 * Math.pow( (3*prob)/(4*Math.PI) , 0.333); // volumes scale linearly
+                    o.print("r="+rad+" ");
+                    
+                    // Coloring
+                    if(prob < 0.1)                     o.print("peachtint ");
+                    else if(prob >= 0.1 && prob < 0.2) o.print("peach ");
+                    else                               o.print("orange ");
+                    
+                    // Actual multi-D coordinates
+                    /*
+                    for(int i = 0; i < coords.length-1; i++)
                     {
-                        double scaledCoord = ( (coords[i]-1.0*min[i]) / (1.0*max[i]-1.0*min[i]) ) * 360;
-                        coords[i] = scaledCoord;
+                        if(scale)
+                        {
+                            double scaledCoord = ( (coords[i]-1.0*min[i]) / (1.0*max[i]-1.0*min[i]) ) * 360;
+                            coords[i] = scaledCoord;
+                        }
+                        else
+                        {
+                            // e.g. -85 from -90->90 data => -85+(0--90) = -85+90 = 5
+                            coords[i] = coords[i] + (0 - min[i]);
+                            if(coords[i] > 360)  coords[i] = coords[i] - 360;
+                        }
                     }
-                    else
+                    */
+                    for(int i = 0; i < coords.length-1; i++)
                     {
                         // e.g. -85 from -90->90 data => -85+(0--90) = -85+90 = 5
-                        coords[i] = coords[i] + (0 - min[i]);
-                        if(coords[i] > 360)  coords[i] = coords[i] - 360;
+                        coords[i] = coords[i] + (0 - bounds[2*i]);        // min
+                        if(coords[i] > 360)  coords[i] = coords[i] - 360; // max
                     }
+                    for(int i = 0; i < coords.length-1; i++) o.print( df.format(coords[i])+" " );
+                    float normProb = probCeil * (prob / maxProb);
+                    o.println( df2.format(normProb) );
                 }
-                */
-                for(int i = 0; i < coords.length-1; i++)
-                {
-                    // e.g. -85 from -90->90 data => -85+(0--90) = -85+90 = 5
-                    coords[i] = coords[i] + (0 - bounds[2*i]);        // min
-                    if(coords[i] > 360)  coords[i] = coords[i] - 360; // max
-                }
-                
-                for(int i = 0; i < coords.length-1; i++) o.print( df.format(coords[i])+" " );
-                float normProb = probCeil * (prob / maxProb);
-                o.println( df2.format(normProb) );
+                //else System.err.println(prob+" NOT >= "+probMin);
             }
         }
     }
@@ -281,45 +288,51 @@ public class DihedralPlotter //extends ... implements ...
             String line = s.nextLine();
             if(!line.startsWith("#"))
             {
-                // Point ID
                 String[] parts = Strings.explode(line, ' ');
                 if(parts.length == 1) parts = Strings.explode(line, ':');
+                if(parts.length == 1)
+                { System.err.println("*** Error parsing line: "+line); continue; }
                 float[] coords = new float[parts.length];
                 for(int i = 0; i < parts.length; i++) coords[i] = Float.parseFloat(parts[i]);
-                o.print( "{"+df.format(coords[0]) );
-                // skip last 2 instead of 1 columns b/c .list files report stat AND pct, not just pct
-                for(int i = 1; i < coords.length-2; i++) o.print( ", "+df.format(coords[i]) );
-                o.print( ", pct="+df2.format(coords[coords.length-1])+"} " );
-                
-                // Actual multi-D coordinates
-                /*
-                for(int i = 0; i < coords.length-2; i++)
+                float prob = coords[coords.length-1];
+                if(prob >= probMin)
                 {
-                    if(scale)
+                    // Point ID
+                    o.print( "{"+df.format(coords[0]) );
+                    // skip last 2 instead of 1 columns b/c .list files report stat AND pct, not just pct
+                    for(int i = 1; i < coords.length-2; i++) o.print( ", "+df.format(coords[i]) );
+                    o.print( ", pct="+df2.format(prob)+"} " );
+                    
+                    // Actual multi-D coordinates
+                    /*
+                    for(int i = 0; i < coords.length-2; i++)
                     {
-                        double scaledCoord = ( (coords[i]-1.0*min[i]) / (1.0*max[i]-1.0*min[i]) ) * 360;
-                        coords[i] = scaledCoord;
+                        if(scale)
+                        {
+                            double scaledCoord = ( (coords[i]-1.0*min[i]) / (1.0*max[i]-1.0*min[i]) ) * 360;
+                            coords[i] = scaledCoord;
+                        }
+                        else
+                        {
+                            // e.g. -85 from -90->90 data => -85+(0--90) = -85+90 = 5
+                            coords[i] = coords[i] + (0 - min[i]); 
+                            if(coords[i] > 360)  coords[i] = coords[i] - 360;
+                        }
                     }
-                    else
+                    */
+                    for(int i = 0; i < coords.length-2; i++)
                     {
                         // e.g. -85 from -90->90 data => -85+(0--90) = -85+90 = 5
-                        coords[i] = coords[i] + (0 - min[i]); 
-                        if(coords[i] > 360)  coords[i] = coords[i] - 360;
+                        coords[i] = coords[i] + (0 - bounds[2*i]);        // min
+                        if(coords[i] > 360)  coords[i] = coords[i] - 360; // max
                     }
+                    
+                    // skip last 2 instead of 1 columns b/c .list files report stat AND pct, not just pct
+                    for(int i = 0; i < coords.length-2; i++) o.print( df.format(coords[i])+" " );
+                    float normProb = probCeil * (prob / maxProb);
+                    o.println( df2.format(normProb) );
                 }
-                */
-                for(int i = 0; i < coords.length-2; i++)
-                {
-                    // e.g. -85 from -90->90 data => -85+(0--90) = -85+90 = 5
-                    coords[i] = coords[i] + (0 - bounds[2*i]);        // min
-                    if(coords[i] > 360)  coords[i] = coords[i] - 360; // max
-                }
-                
-                // skip last 2 instead of 1 columns b/c .list files report stat AND pct, not just pct
-                for(int i = 0; i < coords.length-2; i++) o.print( df.format(coords[i])+" " );
-                float prob = coords[coords.length-1];
-                float normProb = probCeil * (prob / maxProb);
-                o.println( df2.format(normProb) );
+                //else System.err.println(prob+" NOT >= "+probMin);
             }
         }
     }

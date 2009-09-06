@@ -33,6 +33,17 @@
   be called from SupKitchenTool, so don't have to duplicate that code
 - Some tweaks to DihedralPlotter, like scaling of balls'  radii based on value
   for visual effect
+- Added -pdbs=[dir] output & hard rmsd cutoff options to SupKitchen
+- Fixed some chain-separation bugs/problems in SupKitchen
+- Added & subtracted GUI options to & from SupKitchenTool
+- Made DihedralPlotter not plot stuff below Rama general outlier level of 
+  99.95% - cleans up look of resulting kins
+- Uncommented original residue alignment method in SubImpose as alternative
+  if newer, non-chain-boundary-crossing method fails (usually when ref is
+  shorter than mobile?)
+- Added SubImpose.SimpleNonWaterResAligner class for eliminating the HOH-HOH
+  residue pairings that annoyingly often screw up alignments & thus super-
+  positions.  Makes SubImpose less generalized but hopefully much more usable!
 
 ### 1.02 ### dak
 - Added PhiPsiTool (shows up as "Tweak phi/psi tool" in KiNG) to kingtools

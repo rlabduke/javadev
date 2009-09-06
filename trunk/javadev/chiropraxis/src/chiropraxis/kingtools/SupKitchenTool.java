@@ -19,6 +19,8 @@ import chiropraxis.mc.SupKitchen;
 /**
 * <code>SupKitchenTool</code> is a graphical front-end for mc.SupKitchen.
 *
+* NEEDS GRAPHICAL VERSION OF RMSD STRAIGHT CUTOFF VS. LESK SIEVE!!!
+*
 * <p>Copyright (C) 2009 by Daniel A. Keedy. All rights reserved.
 * <br>Begun on Thu May 14 2009
 */
@@ -34,20 +36,23 @@ public class SupKitchenTool extends BasicTool
     JCheckBox         cbVerbose; // for debugging
     JTextField        tfRefFile;
     JRadioButton      rbMdlDir;
-    JRadioButton      rbMdlFile; // e.g. NMR
     JTextField        tfMdlDir;
+    JRadioButton      rbMdlFile; // e.g. NMR
     JTextField        tfMdlFile; // e.g. NMR
+    JTextField        tfMaxEnsemSize;
+    
     JCheckBox         cbSplitChains;
     JRadioButton      rbBbAtmsCa;
     JRadioButton      rbBbAtmsAllHvy;
     JRadioButton      rbBbAtmsAllHvyCb;
     JTextField        tfLesk;
     JCheckBox         cbKinEnsem;
-    JCheckBox         cbKinPca;
+    
     JTextField        tfPcChoice;
     JTextField        tfPcScale;
     JRadioButton      rbDistort;
     JRadioButton      rbRigidXform;
+    JCheckBox         cbKinPca;
     
     /** Does all the under-the-hood work of superposition & PCA. */
     SupKitchen        kitchen;
@@ -74,7 +79,6 @@ public class SupKitchenTool extends BasicTool
         JLabel labInputHeader = new JLabel("***  INPUT  ***");
         
         cbVerbose = new JCheckBox("Spit extra messages to stderr (for debugging)", false);
-        // ADD ACTION EVENT LISTENER!
         
         rbMdlDir  = new JRadioButton("Models directory: ", true );
         rbMdlFile = new JRadioButton("Models NMR file: " , false);
@@ -100,12 +104,16 @@ public class SupKitchenTool extends BasicTool
         btnSetMdlFile.setEnabled(true);
         btnSetRefFile.setEnabled(true);
         
-        cbSplitChains = new JCheckBox("Split input into chains", true);
+        JLabel labMaxEnsemSize1 = new JLabel("Max ensem size: ");
+        tfMaxEnsemSize = new JTextField(""+kitchen.getMaxEnsemSize());
+        JLabel labMaxEnsemSize2 = new JLabel("                ");
         
         JLabel labBreak1 = new JLabel("======================================");
         
         // ENSEMBLE
         JLabel labSupHeader = new JLabel("***  ENSEMBLE SUPERPOSITION  ***");
+        
+        cbSplitChains = new JCheckBox("Split input into chains", true);
         
         JLabel labBbAtms = new JLabel("Atoms for superposition:");
         rbBbAtmsCa       = new JRadioButton("Calphas only"               , false);
@@ -117,7 +125,7 @@ public class SupKitchenTool extends BasicTool
         btnGrpBbAtms.add(rbBbAtmsAllHvyCb);
         
         JLabel labLesk1 = new JLabel("Trim w/ Lesk sieve to max RMSD:");
-        tfLesk = new JTextField(""+kitchen.getLeskSieve());
+        tfLesk = new JTextField(""+kitchen.getRmsdLesk());
         tfLesk.setEditable(true);
         JLabel labLesk2 = new JLabel("(-1 = no trimming)");
         
@@ -181,6 +189,12 @@ public class SupKitchenTool extends BasicTool
             pane.add(labRef);
             pane.add(tfRefFile);
             pane.add(btnSetRefFile);
+        pane.endSubtable();
+        pane.newRow();
+        pane.startSubtable(1, 1).hfill(true).memorize(); // max ensem size
+            pane.add(labMaxEnsemSize1);
+            pane.add(tfMaxEnsemSize);
+            pane.add(labMaxEnsemSize2);
         pane.endSubtable();
         pane.newRow();
         
@@ -273,7 +287,7 @@ public class SupKitchenTool extends BasicTool
                 tfMdlFile.setText("none selected");
                 rbMdlFile.setSelected(false);
                 System.err.println("Set models dir: " + mdlDir.getName());
-                kitchen.setMdlFilename(mdlDir.getName());
+                kitchen.setMdlFilename(mdlDir.getPath());
             }
             catch(IllegalArgumentException ex)
             {
@@ -310,7 +324,7 @@ public class SupKitchenTool extends BasicTool
                 tfMdlDir.setText("none selected");
                 rbMdlDir.setSelected(false);
                 System.err.println("Set models file: " + mdlFile.getName());
-                kitchen.setMdlFilename(mdlFile.getName());
+                kitchen.setMdlFilename(mdlFile.getPath());
             }
             catch(IllegalArgumentException ex)
             {
@@ -342,7 +356,7 @@ public class SupKitchenTool extends BasicTool
             {
                 tfRefFile.setText(refFile.getName());
                 System.err.println("Set ref file: " + refFile.getName());
-                kitchen.setRefFilename(refFile.getName());
+                kitchen.setRefFilename(refFile.getPath());
             }
             catch(IllegalArgumentException ex)
             {
@@ -360,6 +374,13 @@ public class SupKitchenTool extends BasicTool
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onSup(ActionEvent ev)
     {
+        if(tfMdlDir.getText().equals("none selected") && tfMdlFile.getText().equals("none selected"))
+        {
+            String error = "No models directory/file specified yet -- can't superpose!";
+            JOptionPane.showMessageDialog(null, error, error, JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         kitchen.setVerbose(cbVerbose.isSelected());
         if(rbBbAtmsCa.isSelected())                kitchen.setSuperimpose(kitchen.SELECT_CA);
         else if(rbBbAtmsAllHvy.isSelected())       kitchen.setSuperimpose(kitchen.SELECT_BB_HEAVY);
@@ -367,12 +388,22 @@ public class SupKitchenTool extends BasicTool
         try
         {
             double leskSieve = Double.parseDouble(tfLesk.getText());
-            kitchen.setLeskSieve(leskSieve);
+            kitchen.setRmsdLesk(leskSieve);
         }
         catch(NumberFormatException ex)
         {
             System.err.println("*** Error: Can't parse "+tfLesk.getText()+" as double for Lesk rmsd!");
-            System.err.println("*** Simply using default: "+kitchen.getLeskSieve()+"...");
+            System.err.println("*** Simply using default: "+kitchen.getRmsdLesk()+"...");
+        }
+        try
+        {
+            int maxEnsemSize = Integer.parseInt(tfMaxEnsemSize.getText());
+            kitchen.setMaxEnsemSize(maxEnsemSize);
+        }
+        catch(NumberFormatException ex)
+        {
+            System.err.println("*** Error: Can't parse "+tfMaxEnsemSize.getText()+" as integer for max ensem size!");
+            System.err.println("*** Simply using default: "+kitchen.getMaxEnsemSize()+"...");
         }
         
         kitchen.makeSup();
@@ -387,6 +418,13 @@ public class SupKitchenTool extends BasicTool
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onPca(ActionEvent ev)
     {
+        if(kitchen.getEnsemCoordFile() == null)
+        {
+            JOptionPane.showMessageDialog(null, "No ensemble constructed yet -- can't do PCA!", 
+                "No ensemble constructed yet -- can't do PCA!", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         kitchen.setVerbose(cbVerbose.isSelected());
         if(rbBbAtmsCa.isSelected())                kitchen.setSuperimpose(kitchen.SELECT_CA);
         else if(rbBbAtmsAllHvy.isSelected())       kitchen.setSuperimpose(kitchen.SELECT_BB_HEAVY);
@@ -418,8 +456,8 @@ public class SupKitchenTool extends BasicTool
     {
         if(kitchen.getEnsemCoordFile() == null)
         {
-            // WARNING POPUP WINDOW HERE INSTEAD?
-            System.err.println("No ensemble constructed yet -- can't save!");
+            String error = "No ensemble constructed yet -- can't save!";
+            JOptionPane.showMessageDialog(null, error, error, JOptionPane.ERROR_MESSAGE);
             return;
         }
         
@@ -458,7 +496,11 @@ public class SupKitchenTool extends BasicTool
                         System.err.println("Done writing PDB to " + f.getName());
                     }
                     catch(FileNotFoundException ex)
-                    { System.err.println("*** Error writing to " + f.getName() + "!"); }
+                    {
+                        String error = "Error writing to "+f.getName()+"!";
+                        System.err.println(error);
+                        JOptionPane.showMessageDialog(null, error, error, JOptionPane.ERROR_MESSAGE);
+                    }
                 }
             }
             catch(IllegalArgumentException ex)
@@ -477,6 +519,13 @@ public class SupKitchenTool extends BasicTool
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onSavePcaPdb(ActionEvent ev)
     {
+        if(kitchen.getPcaCoordFile() == null)
+        {
+            String error = "PCA \"ensemble\" not constructed yet -- can't save!";
+            JOptionPane.showMessageDialog(null, error, error, JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         // Make file chooser.  Will throw an exception if we're running as an applet (?)
         TablePane acc = new TablePane();
         JFileChooser fileChooser = new JFileChooser();
@@ -512,7 +561,11 @@ public class SupKitchenTool extends BasicTool
                         System.err.println("Done writing PDB to " + f.getName());
                     }
                     catch(FileNotFoundException ex)
-                    { System.err.println("*** Error writing to " + f.getName() + "!"); }
+                    {
+                        String error = "Error writing to "+f.getName()+"!";
+                        System.err.println(error);
+                        JOptionPane.showMessageDialog(null, error, error, JOptionPane.ERROR_MESSAGE);
+                    }
                 }
             }
             catch(IllegalArgumentException ex)

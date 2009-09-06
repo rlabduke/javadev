@@ -24,10 +24,11 @@ import Jama.SingularValueDecomposition;
 * It tries to construct ensembles intelligently when the sequences are different, 
 * there are insertion loops in the reference and/or some of the other models, etc.
 *
-* A *lot* of this code comes from Ian's chiropraxis.mc.SubImpose.
+* A LOT of this code comes from Ian's chiropraxis.mc.SubImpose.
 *
 * REMAINING TO-DO:
 *  - regularize bb after distortion?
+*  - keep rsds w/in a certain radius of sup chain for -nosplit option?
 *
 * <p>Copyright (C) 2009 by Daniel A. Keedy. All rights reserved.
 * <br>Begun on Thu June 25 2009
@@ -37,9 +38,10 @@ public class SupKitchen //extends ... implements ...
 //{{{ Constants
     DecimalFormat df  = new DecimalFormat("###0.00");
     DecimalFormat df2 = new DecimalFormat("###0.0");
-    public final String SELECT_CA          = "(!resHOH)&(atom_CA_)";
-    public final String SELECT_BB_HEAVY    = "(!resHOH)&(atom_CA_|atom_N__|atom_C__|atom_O__)";
-    public final String SELECT_BB_HEAVY_CB = "(!resHOH)&(atom_CA_|atom_N__|atom_C__|atom_O__|atom_CB_)";
+    DecimalFormat df3 = new DecimalFormat("#0.00");
+    public final String SELECT_CA          = "(atom_CA_)";
+    public final String SELECT_BB_HEAVY    = "(atom_CA_|atom_N__|atom_C__|atom_O__)";
+    public final String SELECT_BB_HEAVY_CB = "(atom_CA_|atom_N__|atom_C__|atom_O__|atom_CB_)";
 //}}}
 
 //{{{ Variable definitions
@@ -53,12 +55,20 @@ public class SupKitchen //extends ... implements ...
     String   refFilename;
     File     refFile;
     String   title;
-    String   superimpose;
-    boolean  splitChains = true;
+    String   superimpose = SELECT_BB_HEAVY;
     boolean  distort = true;
-    double   leskSieve = 2.0;  // max acceptable RMSD
+    /** Max acceptable RMSD, effected by simple yes-or-no after sup.  On by default */
+    double   rmsdMax  = 5.0;
+    /** Max acceptable RMSD, achieved by Lesk sieve process.  Overrides rmsdMax */
+    double   rmsdLesk = -1;
     
     // ENSEMBLE
+    /** If true, we split up all models by chain.
+    * Required for PCA b/c allows formation of a square matrix of superpositions 
+    *   (some models may have lots of structure surrounding them whereas some may not).
+    * Applies only to models; just one chain is taken from the ref regardless of this 
+    *   option so models will all superpose onto the same ref chain. */
+    boolean            splitChains = true;
     /** Holds models with however-many chains are present from the ref structure. */
     CoordinateFile     refCoordFile;
     /** Holds models with >=1 chains (depending on user's options) from other structures. 
@@ -70,6 +80,8 @@ public class SupKitchen //extends ... implements ...
     * sequence alignment of model to ref.  Coords in array[0]s should already be 
     * superposed onto ref; array[1]s *are* static ref. */
     Map                ensemAtoms;
+    /** RMSD of each model to ref (after Lesk if applicable). */
+    Map                rmsds;
     /** Intersection of ref atoms from all model-to-ref atom alignments. 
     * If any atoms were Lesk-sieved, they're ALREADY GONE from this set. */
     HashSet<AtomState> intersection;
@@ -97,11 +109,14 @@ public class SupKitchen //extends ... implements ...
     
     // OUTPUT
     boolean  kinOut = true;
-    /** Specifies how coordinates will be displayed in kinemage form.  
-    * Default: -lots with Calphas. */
+    boolean  append = false;
+    /** Backbone color for non-ref models. */
+    String   color;
+    /** Specifies how coords will be displayed in kin form.  Default: -lots with Calphas. */
     Logic[]           logicList;
-    
-    
+    /** Specifies directory where ensemble PDBs will be written.  Alternative to
+    * output kinemage or multi-MODEL, single PDB file. */
+    String   pdbsDirname;
     
 //}}}
 
@@ -134,14 +149,16 @@ public class SupKitchen //extends ... implements ...
 //##############################################################################
     public String getTitle()
     { return title; }
-    public double getLeskSieve()
-    { return leskSieve; }
+    public double getRmsdLesk()
+    { return rmsdLesk; }
     public CoordinateFile getEnsemCoordFile()
     { return ensemCoordFile; }
     public CoordinateFile getPcaCoordFile()
     { return pcaCoordFile; }
     public double getScale()
     { return scale; }
+    public int getMaxEnsemSize()
+    { return maxEnsemSize; }
     
     public void setRefFilename(String n)
     { refFilename = n; }
@@ -149,10 +166,12 @@ public class SupKitchen //extends ... implements ...
     { mdlFilename = n; }
     public void setSuperimpose(String s)
     { superimpose = s; }
-    public void setLeskSieve(double l)
-    { leskSieve = l; }
+    public void setRmsdLesk(double l)
+    { rmsdLesk = l; }
     public void setScale(double s)
     { scale = s; }
+    public void setMaxEnsemSize(int i)
+    { maxEnsemSize = i; }
     public void setDistort(boolean d)
     { distort = d; }
     public void setVerbose(boolean v)
@@ -163,36 +182,26 @@ public class SupKitchen //extends ... implements ...
 //{{{ makeSup
 //##############################################################################
     /** Reads input files and superposes entire ensemble. */
-    public void makeSup ()
+    public void makeSup()
     {
         // Models
-        if(mdlFilename == null)
-            throw new IllegalArgumentException("*** Must provide models dir or file!");
+        if(mdlFilename == null) throw new IllegalArgumentException(
+            "*** Must provide models dir or file!");
         File mf = new File(mdlFilename);
-        if(mf.isDirectory())
-            readMdlDir(mf, splitChains);
-        else
-            readMdlFile(mf, splitChains);
+        if(mf.isDirectory()) readMdlDir( mf, splitChains);
+        else                 readMdlFile(mf, splitChains);
         
         // Ref
-        boolean didAdHoc = false;
-        if(refFilename == null)
-        {
-            pickAdHocRefFile();
-            didAdHoc = true;
-        }
+        if(refFilename == null) pickAdHocRefFile();
         else refFile = new File(refFilename);
         readRefFile(refFile);
         Model refModel = refCoordFile.getFirstModel();
-        if(refModel.getChainIDs().size() > 1)
-        {
-            System.err.println("*** Ref structure (model 1 from "+refFile+
-                ") has multiple chains - superposition will be bad! .. exiting");
-            System.exit(0);
-        }
+        if(refModel.getChainIDs().size() > 1) throw new IllegalArgumentException(
+            "*** Ref (model 1 from "+refFile+") has > 1 chain .. sup will be bad .. exiting!");
         String[] parts = Strings.explode(refCoordFile.getFile().getName(), '/');
         String basename = parts[parts.length-1];
-        refModel.getState().setName(basename.substring(0,basename.indexOf(".pdb")));
+        //String refChId = (String) refModel.getChainIDs().iterator().next();
+        refModel.getState().setName(basename.substring(0,basename.indexOf(".pdb")));//+refChId);
         
         // Title
         String refChID = (String) refCoordFile.getFirstModel().getChainIDs().iterator().next();
@@ -208,77 +217,124 @@ public class SupKitchen //extends ... implements ...
         ensemCoordFile.setIdCode(title);
         ensemCoordFile.add(refModel);
         ensemAtoms = new HashMap<Model,AtomState[][]>();
+        rmsds = new HashMap<Model,Double>();
+        System.err.println("rmsd\tn_atoms\tselection\tmodel");
         for(int i = 0; i < mdlCoordFiles.length; i++)
         {
             CoordinateFile mdlCoordFile = (CoordinateFile) mdlCoordFiles[i];
             if(mdlCoordFile.getModels().size() != 0)
             {
-                for(Iterator mIter = mdlCoordFile.getModels().iterator(); mIter.hasNext() && ensemModelCount < maxEnsemSize; )
+                // Skip if from same PDB as ref, implying either ref chain duplicate
+                // or totally unrelated protein that would screw up superposition.
+                String mFilename = mdlCoordFile.getFile().getName();
+                String rFilename = refCoordFile.getFile().getName();
+                if(mFilename.equals(rFilename))
                 {
-                    Model ensemModel = (Model) mIter.next();
-                    if(didAdHoc && isRefDuplicate(ensemModel, refModel))
-                    {
-                        System.err.println(ensemModel+" is duplicate of ad hoc ref "+refModel+" - leaving out");
-                        continue;
-                    }
+                    System.err.println("Skipping additional model from ref file: "+rFilename);
+                    continue;
+                }
+                Iterator mItr;
+                for(mItr = mdlCoordFile.getModels().iterator(); mItr.hasNext() 
+                && ensemModelCount < maxEnsemSize-1; ) // -1 b/c we've already added ref
+                {
+                    Model ensemModel = (Model) mItr.next();
+                    
                     parts = Strings.explode(mdlCoordFile.getFile().getName(), '/');
                     basename = parts[parts.length-1];
-                    ensemModel.getState().setName(basename.substring(0,basename.indexOf(".pdb")));
+                    String mName = basename.substring(0,basename.indexOf(".pdb"));
+                    //if(splitChains) mName += (String) ensemModel.getChainIDs().iterator().next();
+                    ensemModel.getState().setName(mName);
                     
-                    AtomState[][] atoms = sup(ensemModel, refModel); // Lesk happens here
+                    if(refDupl(ensemModel, refModel))
+                    {
+                        System.err.println("Mdl "+ensemModel.getState().getName()+" "+ensemModel+
+                            " is duplicate of ref "+refModel.getState().getName()+" "+refModel+" .. leaving out");
+                        continue;
+                    }
+                    
+                    AtomState[][] atoms = sup(ensemModel, refModel); // Lesk happens here (if at all)
+                    if(atoms == null) continue; // error or rmsd too high
                     ensemModelCount++;
                     ensemModel.setName(""+ensemModelCount);
                     ensemCoordFile.add(ensemModel);
-                    if(atoms != null) ensemAtoms.put(ensemModel, atoms);
-                    else System.err.println("*** Error making atom-atom alignment for "+ensemModel+"!");
+                    ensemAtoms.put(ensemModel, atoms);
                 }//model
+                if(mItr.hasNext() && ensemModelCount == maxEnsemSize-1)
+                {
+                    System.err.println("Ensemble has reached max size ("+maxEnsemSize+" members) - skipping the rest!");
+                    break;
+                }
             }
             else System.err.println("Skipping: "+mdlCoordFile+" because no models found");
         }//coord file
+        
+        if(ensemAtoms.keySet().size() == 0)
+        {
+            System.err.println("*** No models left after superposition & trimming/pruning! ***");
+            System.exit(0);
+        }
         mEnsem = ensemAtoms.keySet().size() + 1; // to include the ref
         
         intersect();
         
-        trimEnsem();
+        if(splitChains) trimEnsem();
         
-        System.err.println("M = "+mEnsem+"\tsamples"); // cols
-        System.err.println("N = "+nAtoms+"\tatoms");   // rows/3
+        System.err.println("M = "+mEnsem+"\tmodels"); // cols
+        System.err.println("N = "+nAtoms+"\tatoms");  // rows/3
     }
 //}}}
 
-//{{{ splitChains
+//{{{ splitChains, chainIsProt
 //##############################################################################
     /** Divvies up the input CoordinateFile into single-chain CoordinateFiles. */
     public Collection splitChains(CoordinateFile orig)
     {
-        Model model = orig.getFirstModel();               // ~input
-        Collection ret = new ArrayList<CoordinateFile>(); // output
-        
-        for(Iterator cItr = model.getChainIDs().iterator(); cItr.hasNext(); )
+        Collection chains = new ArrayList<CoordinateFile>();
+        for(Iterator mItr = orig.getModels().iterator(); mItr.hasNext(); )
         {
-            String chainID = (String) cItr.next();
-            Model clone = (Model) model.clone();
-            for(Iterator rItr = model.getResidues().iterator(); rItr.hasNext(); )
+            Model model = (Model) mItr.next();
+            for(Iterator cItr = model.getChainIDs().iterator(); cItr.hasNext(); )
             {
-                Residue res = (Residue) rItr.next();
-                if(!res.getChain().equals(chainID) && clone.contains(res))
+                String chainID = (String) cItr.next();
+                Model clone = (Model) model.clone();
+                for(Iterator rItr = model.getResidues().iterator(); rItr.hasNext(); )
                 {
-                    try
+                    Residue res = (Residue) rItr.next();
+                    if(!res.getChain().equals(chainID) && clone.contains(res))
                     {
-                        clone.remove(res);
-                        //System.err.println("Removed "+res+" from new chain"+chainID+" model");
+                        try
+                        { clone.remove(res); }
+                        catch(ResidueException ex)
+                        { System.err.println("*** Error removing "+res+" from new chain"+chainID+" model!"); }
                     }
-                    catch(ResidueException ex)
-                    { System.err.println("*** Error removing "+res+" from new chain"+chainID+" model!"); }
-                }
-                // else probably wanna keep this residue b/c in right chain
-            }
-            CoordinateFile cf = new CoordinateFile();
-            cf.add(clone);
-            ret.add(cf);
+                    // else probably wanna keep this residue b/c in right chain
+                }//residue
+                CoordinateFile cf = new CoordinateFile();
+                cf.add(clone);
+                chains.add(cf);
+            }//chain
+        }//model
+        return chains;
+    }
+
+    /**
+    * Decides the given chain is protein if it has more amino acid residues than anything else.
+    * @param chain  a single-model, single-chain CoordinateFile
+    */
+    public boolean chainIsProt(CoordinateFile chain)
+    {
+        final String aaNames = 
+            "GLY:ALA:VAL:PHE:PRO:MET:ILE:LEU:ASP:GLU:LYS:ARG:SER:THR:TYR:HIS:CYS:ASN:GLN:TRP";
+        int countProt = 0;
+        int countOth  = 0;
+        for(Iterator rItr = chain.getFirstModel().getResidues().iterator(); rItr.hasNext(); )
+        {
+            Residue r = (Residue) rItr.next();
+            if(aaNames.indexOf(r.getName()) != -1)  countProt++;
+            else                                    countOth++;
         }
-        
-        return ret;
+        if(countProt > countOth && countProt >= 30) return true; // try to avoid short, bound peptides
+        return false;
     }
 //}}}
 
@@ -312,15 +368,17 @@ public class SupKitchen //extends ... implements ...
     }
 //}}}
 
-//{{{ isRefDuplicate
+//{{{ refDupl
 //##############################################################################
     /**
     * Tells whether provided model is equivalent to ref model and thus should be 
     * removed to avoid double-counting.  Important when ref was chosen ad hoc.
+    * Assumes that if all atoms in <code>m</code> can find some atom in <code>r</code>
+    * with exactly the same coordinates, <code>m</code> and <code>r</code> are the same.
     * @param  m - model
     * @param  r - ref
     */
-    public boolean isRefDuplicate(Model mdl, Model ref)
+    public boolean refDupl(Model mdl, Model ref)
     {
         // mdl
         ArrayList<AtomState> mdlAtSt = new ArrayList<AtomState>();
@@ -360,8 +418,6 @@ public class SupKitchen //extends ... implements ...
             }
         }
         
-        // Let's assume that if all mdl atoms can find some ref w/ 
-        // exactly the same coordinates, the two models are the same.
         for(AtomState m : mdlAtSt)
         {
             boolean matchExists = false;
@@ -385,7 +441,7 @@ public class SupKitchen //extends ... implements ...
     * Superposes 1 (mobile) onto 2 (ref).
     * Mostly stolen directly from Ian's chiropraxis.mc.SubImpose.
     */
-    public AtomState[][] sup (Model m1, Model m2)
+    public AtomState[][] sup(Model m1, Model m2)
     {
         if(verbose) System.err.println("\nSuperposing model"+m1+" ("+SubImpose.getChains(m1).size()+
             " chains) onto model"+m2+" ("+SubImpose.getChains(m2).size()+" chains)");
@@ -428,16 +484,16 @@ public class SupKitchen //extends ... implements ...
             SuperPoser superpos = new SuperPoser(atoms[1], atoms[0]);
             Transform R = new Transform(); // identity, defaults to no superposition
             R = superpos.superpos();
-            System.err.println("rmsd\tn_atoms\tselection");
-            System.err.println(df.format(superpos.calcRMSD(R))+"\t"+atoms[0].length+"\t"+superimpose);
             
             ArrayList<AtomState> sieved = null; // remember ref atoms sieved below, if any, for later
-            if(leskSieve >= 0)
+            if(rmsdLesk >= 0)
             {
                 // Eliminate selected atoms one-by-one until RMSD <= cutoff (default: 1A)
                 sieved = new ArrayList<AtomState>();
                 int sieveCount = 0;
-                while(superpos.calcRMSD(R) > leskSieve && atoms[0].length > 3)
+                System.err.println(df.format(superpos.calcRMSD(R))+"\t"
+                    +atoms[0].length+"\t[Lesk's sieve start]");
+                while(superpos.calcRMSD(R) > rmsdLesk)
                 {
                     sieveCount++;
                     SubImpose.sortByLeskSieve(atoms[0], atoms[1]); // messes up order!
@@ -448,14 +504,31 @@ public class SupKitchen //extends ... implements ...
                     for(int i = 0; i < 2; i++) for(int j = 0; j < len; j++) newAtoms[i][j] = atoms[i][j];
                     atoms = newAtoms;
                     
+                    if(atoms[0].length < 3) throw new IllegalArgumentException(
+                        "Can't achieve target rmsd of "+rmsdLesk+"A .. would have to trim to < 3 atoms!");
+                    
                     superpos.reset(atoms[1], atoms[0]);
                     R = superpos.superpos();
-                    
-                    System.err.println(
-                        df.format(superpos.calcRMSD(R))+"\t"+atoms[0].length+"\t[Lesk's sieve x"+sieveCount+"]");
+                    rmsds.put(m1, superpos.calcRMSD(R));
+                    System.err.println(df.format(superpos.calcRMSD(R))+"\t"
+                        +atoms[0].length+"\t[Lesk's sieve #"+sieveCount+"]");
                 }
             }
-            if(verbose) System.err.println();
+            else
+            {
+                if(rmsdMax >= 0 && superpos.calcRMSD(R) > rmsdMax) // RMSD too high
+                {
+                    System.err.println(df.format(superpos.calcRMSD(R))+"\t"
+                        +atoms[0].length+"\t"+superimpose+"\t"+m1.getState().getName()+"\t"+"***  rmsd > "+rmsdMax+" max - skipping!");
+                    return null;
+                }
+                else                                               // RMSD OK
+                {
+                    rmsds.put(m1, superpos.calcRMSD(R));
+                    System.err.println(df.format(superpos.calcRMSD(R))+"\t"
+                        +atoms[0].length+"\t"+superimpose+"\t"+m1.getState().getName());
+                }
+            }
             
             // Transform model 1 so transformed coords will be used in the future
             for(Iterator iter = Model.extractOrderedStatesByName(m1).iterator(); iter.hasNext(); )
@@ -635,6 +708,7 @@ public class SupKitchen //extends ... implements ...
     */
     public void trimEnsem()
     {
+        System.err.println("Trimming ensemble...");
         for(Iterator mItr = ensemAtoms.keySet().iterator(); mItr.hasNext(); )
         {
             Model ensemModel = (Model) mItr.next();
@@ -1057,7 +1131,7 @@ public class SupKitchen //extends ... implements ...
 //}}}
 
 
-//{{{ read...
+//{{{ readMdlDir/File, readPdb
 //##############################################################################
     /** Reads through several PDB files containing models from a directory. */
     public void readMdlDir(File mf, boolean splitChains)
@@ -1067,11 +1141,6 @@ public class SupKitchen //extends ... implements ...
         
         File[] children = mdlDir.listFiles();
         int numFilesToRead = children.length;
-        if(children.length > maxEnsemSize)
-        {
-            System.err.println("Found "+children.length+" models - too many! Using first "+maxEnsemSize);
-            numFilesToRead = maxEnsemSize;
-        }
         if(children != null)
         {
             ArrayList<CoordinateFile> cfs = new ArrayList<CoordinateFile>();
@@ -1088,8 +1157,11 @@ public class SupKitchen //extends ... implements ...
                             for(Iterator cfi = splitChains(inputCoordFile).iterator(); cfi.hasNext(); )
                             {
                                 CoordinateFile cf = (CoordinateFile) cfi.next();
-                                cf.setFile(f);
-                                cfs.add(cf);
+                                if(chainIsProt(cf))
+                                {
+                                    cf.setFile(f);
+                                    cfs.add(cf);
+                                }
                             }
                         }
                         else // all input chains kept in their original mdl coord file
@@ -1097,7 +1169,7 @@ public class SupKitchen //extends ... implements ...
                             inputCoordFile.setFile(f);
                             cfs.add(inputCoordFile);
                         }
-                        System.err.println("Extracted model coords: " + inputCoordFile.toString());
+                        System.err.println("Extracted model coords from " + inputCoordFile.getFile().getName());
                     }
                     catch(IOException ex)
                     { System.err.println("*** Error reading model .pdb:" + f.getName() + "!"); }
@@ -1130,8 +1202,11 @@ public class SupKitchen //extends ... implements ...
                     for(Iterator cfi = splitChains(inputCoordFile).iterator(); cfi.hasNext(); )
                     {
                         CoordinateFile cf = (CoordinateFile) cfi.next();
-                        cf.setFile(mdlFile);
-                        cfs.add(cf);
+                        if(chainIsProt(cf))
+                        {
+                            cf.setFile(mdlFile);
+                            cfs.add(cf);
+                        }
                     }
                 }
                 else // all input chains kept in their original mdl coord file
@@ -1143,55 +1218,12 @@ public class SupKitchen //extends ... implements ...
                 mdlCoordFiles = new CoordinateFile[cfs.size()];
                 for(int i = 0; i < cfs.size(); i++)
                     mdlCoordFiles[i] = (CoordinateFile) cfs.get(i); // could have just 1
+                System.err.println("Extracted model coords from " + inputCoordFile.getFile().getName());
             }
             catch(IOException ex)
             { System.err.println("*** Error reading models .pdb:" + mdlFile.getName() + "!"); }
         }
         else System.err.println("Selected models file not a .pdb: " + mdlFile.toString());
-    }
-
-    public void readRefFile(File refFile)
-    {
-        if(refFile.getName().indexOf(".pdb") != -1)
-        {
-            try
-            {
-                // Take just one chain, so models will all sup to same chain.
-                CoordinateFile inputCoordFile = readPdb(refFile);
-                ArrayList<CoordinateFile> chains = (ArrayList<CoordinateFile>) splitChains(inputCoordFile);
-                if(chains.size() == 0)
-                    throw new IllegalArgumentException("No chains found in ref file "+refFile+"!");
-                String chainID = null;
-                // Try and pick a reasonable chain, not just one at random.
-                for(int i = 0; i < chains.size(); i++)
-                {
-                    CoordinateFile chain = chains.get(i);
-                    chainID = (String) chain.getFirstModel().getChainIDs().iterator().next();
-                    if(chainID.equals("A") || chainID.equals("_") || chainID.equals(" "))
-                    {
-                        refCoordFile = chain;
-                        refCoordFile.setFile(refFile);
-                        break;
-                    }
-                }
-                if(refCoordFile == null) // no chain "A" or "_" or " "
-                {
-                    refCoordFile = chains.get(0);
-                    refCoordFile.setFile(refFile);
-                    chainID = (String) refCoordFile.getFirstModel().getChainIDs().iterator().next();
-                }
-                if(verbose)
-                {
-                    System.err.print("Using chain "+chainID+" from ref file "+refFile);
-                    if(chains.size() > 1) System.err.print(" - there was/were "+(chains.size()-1)+" other(s)");
-                    System.err.println();
-                }
-                System.err.println("Extracted ref coords: " + refCoordFile.toString());
-            }
-            catch(IOException ex)
-            { System.err.println("*** Error reading ref .pdb:" + refFile.getName() + "!"); }
-        }
-        else System.err.println("Selected ref file not a .pdb: " + refFile.toString());
     }
     
     static public CoordinateFile readPdb(File f) throws IOException
@@ -1202,38 +1234,133 @@ public class SupKitchen //extends ... implements ...
     }
 //}}}
 
-//{{{ write...
+//{{{ readRefFile, pickRefChain
+//##############################################################################
+    /** Reads in ref file and chooses a chain. */
+    public void readRefFile(File refFile)
+    {
+        if(refFile.getName().indexOf(".pdb") != -1)
+        {
+            try
+            {
+                CoordinateFile inputCoordFile = readPdb(refFile);
+                System.err.println("Extracted ref coords from " + inputCoordFile.getFile().getName());
+                // Take just one chain, so models will all sup to same chain.
+                refCoordFile = pickRefChain(inputCoordFile);
+                refCoordFile.setFile(refFile);
+            }
+            catch(IOException ex)
+            { System.err.println("*** Error reading ref .pdb: " + refFile.getName() + "!"); }
+        }
+        else System.err.println("Selected ref file not a .pdb: " + refFile.toString());
+    }
+    
+    /** Picks which chain in ref file we will superimpose onto. */
+    public CoordinateFile pickRefChain(CoordinateFile inputCoordFile)
+    {
+        ArrayList<CoordinateFile> chains = (ArrayList<CoordinateFile>) splitChains(inputCoordFile);
+        if(chains.size() == 0)
+            throw new IllegalArgumentException("No chains found in ref file "+refFile+"!");
+        
+        CoordinateFile retCh   = null;
+        String         retChId = null;
+        
+        // Try and pick a "common" (protein) chain, not just one at random.
+        for(int i = 0; i < chains.size(); i++)
+        {
+            CoordinateFile chain = chains.get(i);
+            if(chainIsProt(chain))
+            {
+                String chainID = (String) chain.getFirstModel().getChainIDs().iterator().next();
+                if(chainID.equals(" "))
+                { retCh = chain; retChId = chainID; }
+                if(chainID.equals("A"))
+                { retCh = chain; retChId = chainID; }
+                if(chainID.equals("_"))
+                { retCh = chain; retChId = chainID; }
+            }
+        }
+        if(retCh == null)
+        {
+            // Resort to random (protein) chain
+            for(int i = 0; i < chains.size(); i++)
+            {
+                CoordinateFile chain = chains.get(i);
+                String chainID = (String) chain.getFirstModel().getChainIDs().iterator().next();
+                if(chainIsProt(chain))
+                { retCh = chain; retChId = chainID; }
+            }
+        }
+        
+        // Return
+        if(retCh != null)
+        {
+            System.err.print("Using chain "+retChId+" from ref file "+inputCoordFile.getFile().getName());
+            if(chains.size() > 1) System.err.print(" - there was/were "+(chains.size()-1)+" other(s)");
+            System.err.println();
+            return retCh;
+        }
+        throw new IllegalArgumentException("*** Error: Ref file contains no protein chains - aborting!");
+    }
+//}}}
+
+//{{{ writeKin
 //##############################################################################
     /** 
     * Writes kinemage of ensemble to desired output (usually System.out).
     */
     public PrintWriter writeKin(PrintWriter out, CoordinateFile cf, String name)
     {
-        out.println("@kinemage {"+name+"}");
+        if(!append) out.println("@kinemage {"+name+"}");
         out.println("@onewidth");
-        out.println("@master {models}");
-        out.println("@master {ref}");
-        out.println("@master {"+title+"}");
+        
+        String mMstr = title;
+        out.println("@master {"+mMstr+"}");
+        
+        double[] rmsdBins  = getRmsdBins(cf);
+        String[] rmsdMstrs = getRmsdMasters(rmsdBins);
+        for(String rmsdMstr : rmsdMstrs) out.println("@master {"+mMstr+" "+rmsdMstr+"}");
+        
+        String rMstr = "sup ref: "+refCoordFile.getFirstModel().getState().getName();
+        out.println("@master {"+rMstr+"}");
+        
         Logic logic = logicList[0];
         for(Iterator mItr = cf.getModels().iterator(); mItr.hasNext(); )
         {
             Model m = (Model) mItr.next();
+            
+            if(append && m.getName().equals("0")) continue; // skip ref if appending
+            
             String mName = m.getName();
-            if(m.getState().getName().indexOf("null") == -1) mName += " "+m.getState().getName();
-            if(m.getName().equals("0")) out.println("@group {"+mName+"} dominant master= {"+title+"} master= {ref}");
-            else                        out.println("@group {"+mName+"} dominant master= {"+title+"} master= {models} animate");
+            if(m.getState().getName().indexOf("null") == -1) // true for ensem; false for PCA
+                mName += " "+m.getState().getName()+((String)m.getChainIDs().iterator().next());
+            
+            if(m.getName().equals("0"))
+                out.println("@group {"+mName+"} dominant master= {"+rMstr+"}");
+            else
+            {
+                int rmsdMstrIdx = getRmsdMasterIdx(m, rmsdBins);
+                String rmsdMstr = (rmsdMstrIdx != -1 ? rmsdMstrs[rmsdMstrIdx] : "rmsd ???");
+                out.println("@group {"+mName+"} dominant master= {"+mMstr+"} master= {"+rmsdMstr+"} animate");
+            }
+            
             for(Iterator cItr = m.getChainIDs().iterator(); cItr.hasNext(); )
             {
                 String c = (String) cItr.next();
                 out.println("@subgroup {chain"+c+"} dominant master= {chain"+c+"}");
-                String color = (m.getName().equals("0") ? "yellowtint" : "white");
-                logic.printKinemage(out, m, m.getChain(c), mName, color);
+                String col = null;
+                if(m.getName().equals("0")) col = "yellowtint";
+                else col = (color != null ? color : "white"); // model: user choice or white
+                logic.printKinemage(out, m, m.getChain(c), mName, col);
             }
         }
         out.flush();
         return out;
     }
+//}}}
 
+//{{{ writePdb(s)
+//##############################################################################
     /**
     * Writes a single, multi-MODEL PDB holding entire ensemble.
     */
@@ -1247,14 +1374,123 @@ public class SupKitchen //extends ... implements ...
     }
 
     /**
-    * Makes a new "ensemble directory" and writes into it a separate PDB for  
-    * each superposed ensemble member.
+    * Makes a new "ensemble directory" and writes into it a separate PDB 
+    * for each superposed ensemble member.
     * Intended for cmdline mode, not for KiNG tool.
     */
     public void writePdbs(CoordinateFile cf)
     {
-        System.err.println("*** Haven't implemented writePdbs(...) method! ***");
-        System.exit(0);
+        // Make sure output directory exists.  If not, make it.
+        File pdbsDir = new File(pdbsDirname);
+        if(!pdbsDir.exists())
+        {
+            boolean success = (new File(pdbsDirname).mkdir());
+            if(success) System.err.println("Created "+pdbsDirname+"/");
+            else
+            {
+                System.err.println("ERROR: Couldn't create output PDBs directory: "+pdbsDirname+"/");
+                System.exit(1);
+            }
+        }
+        
+        // Write separate PDB file for each ensemble member
+        for(Iterator mItr = cf.getModels().iterator(); mItr.hasNext(); )
+        {
+            Model m = (Model) mItr.next();
+            
+            if(refCoordFile.getFile().getName().indexOf(m.getState().getName()) != -1)
+            {
+                System.err.println("Skipping model from ref file: "+m.getState().getName());
+                continue;
+            }
+            
+            CoordinateFile c = new CoordinateFile();
+            c.add(m);
+            String pdbFilename = pdbsDirname + "/" + m.getState().getName() + "_" + m.getName() + ".pdb";
+            File pdbFile = new File(pdbFilename);
+            try
+            {
+                System.err.println("Writing to "+pdbFilename);
+                PrintWriter out = new PrintWriter(pdbFile);
+                PdbWriter pdbWriter = new PdbWriter(out);
+                pdbWriter.writeCoordinateFile(c, new HashMap());
+                out.flush();
+                pdbWriter.close();
+            }
+            catch(FileNotFoundException ex)
+            { System.err.println("Error writing ensemble PDBs to "+pdbFilename); }
+            catch(IOException ex)
+            { System.err.println("Error writing ensemble PDBs to "+pdbFilename); }
+        }
+    }
+//}}}
+
+//{{{ getRmsdBins, getRmsdMasters, getRmsdMasterIdx
+//##############################################################################
+    int bins = 5;
+
+    /** Puts model RMSDs into equally spaced bins. */
+    public double[] getRmsdBins(CoordinateFile cf)
+    {
+        ArrayList<Double> rmsdList = new ArrayList<Double>();
+        for(Iterator mItr = cf.getModels().iterator(); mItr.hasNext(); )
+        {
+            Model m = (Model) mItr.next();
+            if(!rmsds.keySet().contains(m)) continue;
+            rmsdList.add((Double) rmsds.get(m));
+        }
+        Collections.sort(rmsdList);
+        
+        double range = rmsdList.get(rmsdList.size()-1) - rmsdList.get(0);
+        double step = range / bins;
+        double[] rmsdBins = new double[bins*2];
+        double rmsd = rmsdList.get(0);
+        for(int i = 0; i < bins; i++)
+        {
+            rmsdBins[2*i] = rmsd;
+            rmsd += step;
+            rmsdBins[2*i+1] = rmsd;
+        }
+        return rmsdBins;
+    }
+
+    /**
+    * Makes masters corresponding to equally spaced RMSD bins
+    * so user can easily turn subsets of models on/off.
+    */
+    public String[] getRmsdMasters(double[] rmsdBins)
+    {
+        String[] rmsdMstrs = new String[bins];
+        for(int i = 0; i < bins; i++)
+        {
+            double rmsdLo = rmsdBins[2*i];
+            double rmsdHi = rmsdBins[2*i+1];
+            rmsdMstrs[i] = "rmsd "+df3.format(rmsdLo)+"-"+df3.format(rmsdHi);
+        }
+        return rmsdMstrs;
+    }
+
+    /**
+    * Finds master for this model's RMSD bin.
+    * @return  index in rmsdMstrs
+    */
+    public int getRmsdMasterIdx(Model m, double[] rmsdBins)
+    {
+        if(!rmsds.keySet().contains(m))
+        {
+            System.err.println("*** Error: Can't find rmsd for "+m.getState().getName());
+            return -1;
+        }
+        double rmsd = (Double) rmsds.get(m);
+        for(int i = 0; i < bins-1; i++)
+        {
+            double rmsdLo = rmsdBins[2*i];
+            double rmsdHi = rmsdBins[2*i+1];
+            if(rmsd >= rmsdLo && rmsd <= rmsdHi) return i;
+        }
+        if(rmsd >= rmsdBins[2*(bins-1)]) return bins-1;
+        System.err.println("*** Error: Can't find rmsd MASTER for "+m.getState().getName());
+        return -1;
     }
 //}}}
 
@@ -1308,29 +1544,48 @@ public class SupKitchen //extends ... implements ...
     public void Main() throws IOException, ParseException
     {
         System.err.println("The SupKitchen is busy preparing your order ...");
-        System.err.println("Desired output: "+(kinOut ? "kin" : "PDB"));
-        if(leskSieve >= 0)
-            System.err.println("Trimming to "+leskSieve+"A rmsd");
+        if(append && !kinOut && pdbsDirname == null)
+        {
+            System.err.println("Assuming that -append implies -kin");
+            kinOut = true;
+        }
+        if(!splitChains)
+        {
+            System.err.println("Not splitting models into chains precludes PCA!");
+            pcChoice = null;
+        }
+        else //if(splitChains)
+            System.err.println("Splitting models into chains, so also trimming ensemble to consensus alignment");
+        System.err.println("Desired output: "+(kinOut ? "kin" : (pdbsDirname == null ? "PDB" : "PDBs")));
+        // RMSD trimming
+        if(rmsdLesk >= 0)
+        {
+            System.err.println("Trimming to "+rmsdLesk+" rmsd w/ Lesk sieve");
+            if(rmsdMax >= 0)
+            {
+                rmsdMax = -1;
+                System.err.println("(Ignoring straight "+rmsdMax+" rmsd cutoff)");
+            }
+        }
+        else if(rmsdMax >= 0)
+            System.err.println("Using straight "+rmsdMax+" rmsd cutoff");
         else
-            System.err.println("Not trimming to an rmsd cutoff");
-        if(superimpose == null)
-            superimpose = SELECT_BB_HEAVY;
+            System.err.println("No trimming/pruning regardless of rmsd");
+        
         makeSup();
         if(pcChoice == null) // not doing PCA
         {
-            if(kinOut)
-                writeKin(new PrintWriter(System.out), ensemCoordFile, title);
-            else
-                writePdb(System.out, ensemCoordFile);
+            if(kinOut)                   writeKin(new PrintWriter(System.out), ensemCoordFile, title);
+            else if(pdbsDirname != null) writePdbs(ensemCoordFile);
+            else                         writePdb(System.out, ensemCoordFile);
             System.err.println("... Your steaming-hot sup is served!");
         }
         else
         {
             doPca();
-            if(kinOut)
-                writeKin(new PrintWriter(System.out), pcaCoordFile, title);
-            else
-                writePdb(System.out, pcaCoordFile);
+            if(kinOut)                   writeKin(new PrintWriter(System.out), pcaCoordFile, title);
+            else if(pdbsDirname != null) writePdbs(ensemCoordFile);
+            else                         writePdb(System.out, pcaCoordFile);
             System.err.println("... Your steaming-hot sup (w/ a side of PCA) is served!");
         }
     }
@@ -1460,6 +1715,14 @@ public class SupKitchen //extends ... implements ...
         {
             verbose = true;
         }
+        else if(flag.equals("-append"))
+        {
+            append = true;
+        }
+        else if(flag.equals("-color"))
+        {
+            color = param;
+        }
         else if(flag.equals("-kin"))
         {
             kinOut = true;
@@ -1467,6 +1730,11 @@ public class SupKitchen //extends ... implements ...
         else if(flag.equals("-pdb"))
         {
             kinOut = false;
+        }
+        else if(flag.equals("-pdbs"))
+        {
+            kinOut = false;
+            pdbsDirname = param;
         }
         else if(flag.equals("-nosplit"))
         {
@@ -1483,16 +1751,46 @@ public class SupKitchen //extends ... implements ...
             catch(NumberFormatException ex)
             { System.err.println("*** Error formatting "+param+" as double for scale!"); }
         }
+        else if(flag.equals("-maxensemsize") || flag.equals("-maxm"))
+        {
+            try
+            { maxEnsemSize = Integer.parseInt(param); }
+            catch(NumberFormatException ex)
+            { throw new IllegalArgumentException(param+" isn't a number!"); }
+        }
+        else if(flag.equals("-rmsdmax"))
+        {
+            try
+            { rmsdMax = Double.parseDouble(param); }
+            catch(NumberFormatException ex)
+            { throw new IllegalArgumentException(param+" isn't a number!"); }
+        }
+        else if(flag.equals("-normsdmax"))
+        {
+            rmsdMax = -1;
+        }
         else if(flag.equals("-lesk"))
         {
             try
-            { leskSieve = Double.parseDouble(param); }
+            { rmsdLesk = Double.parseDouble(param); }
             catch(NumberFormatException ex)
             { throw new IllegalArgumentException(param+" isn't a number!"); }
         }
         else if(flag.equals("-nolesk"))
         {
-            leskSieve = -1;
+            rmsdLesk = -1;
+        }
+        else if(flag.equals("-ca"))
+        {
+            superimpose = SELECT_CA;
+        }
+        else if(flag.equals("-bbheavy"))
+        {
+            superimpose = SELECT_BB_HEAVY;
+        }
+        else if(flag.equals("-bbheavycb"))
+        {
+            superimpose = SELECT_BB_HEAVY_CB;
         }
         else if(flag.equals("-dummy_option"))
         {
