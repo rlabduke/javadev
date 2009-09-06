@@ -367,6 +367,7 @@ public class GroupEditor implements ChangeListener
         
         // Display dialog box
         kiDialog.pack();
+        kiDialog.getRootPane().setDefaultButton(kiOK); // DAK July 26 2009
         kiDialog.setLocationRelativeTo(ownerWindow);
         kiDialog.setVisible(true);
         // remember, execution of this thread stops here until dialog is closed
@@ -408,6 +409,7 @@ public class GroupEditor implements ChangeListener
         
         // Display dialog box
         grDialog.pack();
+        grDialog.getRootPane().setDefaultButton(grOK); // DAK July 26 2009
         grDialog.setLocationRelativeTo(ownerWindow);
         grDialog.setVisible(true);
         // remember, execution of this thread stops here until dialog is closed
@@ -446,6 +448,7 @@ public class GroupEditor implements ChangeListener
         
         // Display dialog box
         suDialog.pack();
+        suDialog.getRootPane().setDefaultButton(suOK); // DAK July 26 2009
         suDialog.setLocationRelativeTo(ownerWindow);
         suDialog.setVisible(true);
         // remember, execution of this thread stops here until dialog is closed
@@ -488,6 +491,7 @@ public class GroupEditor implements ChangeListener
         
         // Display dialog box
         liDialog.pack();
+        liDialog.getRootPane().setDefaultButton(liOK); // DAK July 26 2009
         if(liFirstShow) { liDialog.setLocationRelativeTo(ownerWindow); liFirstShow = false; }
         liDialog.setVisible(true);
         // remember, execution of this thread stops here until dialog is closed

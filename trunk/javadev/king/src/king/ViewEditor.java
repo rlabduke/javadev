@@ -30,6 +30,7 @@ public class ViewEditor //extends ... implements ...
     KingMain    kMain;
     
     JDialog     dialog;
+    JButton     close; // DAK July 26 2009
     JList       list;
 //}}}
 
@@ -51,14 +52,14 @@ public class ViewEditor //extends ... implements ...
         list.setBorder( BorderFactory.createEtchedBorder() );
         JScrollPane listScroll = new JScrollPane(list);
         
-        JButton close   = new JButton(new ReflectiveAction("Close", null, this, "onClose"));
-        JButton up      = new JButton(new ReflectiveAction("Move up", kMain.prefs.moveUpIcon, this, "onMoveUp"));
-        JButton down    = new JButton(new ReflectiveAction("Move down", kMain.prefs.moveDownIcon, this, "onMoveDown"));
-        JButton go      = new JButton(new ReflectiveAction("Go to", null, this, "onGoTo"));
-        JButton gonext  = new JButton(new ReflectiveAction("Go Next", kMain.prefs.stepForwardIcon, this, "onGoNext"));
-        JButton goprev  = new JButton(new ReflectiveAction("Go Prev", kMain.prefs.stepBackIcon, this, "onGoPrev"));
-        JButton rename  = new JButton(new ReflectiveAction("Rename", null, this, "onRename"));
-        JButton delete  = new JButton(new ReflectiveAction("Delete", kMain.prefs.deleteIcon, this, "onDelete"));
+        /*JButton*/ close = new JButton(new ReflectiveAction("Close", null, this, "onClose"));
+        JButton up        = new JButton(new ReflectiveAction("Move up", kMain.prefs.moveUpIcon, this, "onMoveUp"));
+        JButton down      = new JButton(new ReflectiveAction("Move down", kMain.prefs.moveDownIcon, this, "onMoveDown"));
+        JButton go        = new JButton(new ReflectiveAction("Go to", null, this, "onGoTo"));
+        JButton gonext    = new JButton(new ReflectiveAction("Go Next", kMain.prefs.stepForwardIcon, this, "onGoNext"));
+        JButton goprev    = new JButton(new ReflectiveAction("Go Prev", kMain.prefs.stepBackIcon, this, "onGoPrev"));
+        JButton rename    = new JButton(new ReflectiveAction("Rename", null, this, "onRename"));
+        JButton delete    = new JButton(new ReflectiveAction("Delete", kMain.prefs.deleteIcon, this, "onDelete"));
 
         up.setMnemonic(KeyEvent.VK_U);
         down.setMnemonic(KeyEvent.VK_D);
@@ -243,6 +244,9 @@ public class ViewEditor //extends ... implements ...
         
         // Display dialog box
         dialog.pack();
+        dialog.getRootPane().setDefaultButton(close); // DAK July 26 2009
+        // How can we set focus on the close button EVERY time this window is opened, 
+        // not just the first time?  This doesn't work, BTW: close.requestFocusInWindow();
         dialog.setLocationRelativeTo(kMain.getTopWindow());
         dialog.setVisible(true);
         // remember, execution of this thread stops here until dialog is closed
