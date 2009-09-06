@@ -57,6 +57,37 @@ public class SubImpose //extends ... implements ...
     }
 //}}}
 
+//{{{ CLASS: SimpleNonWaterResAligner
+//##############################################################################
+    /**
+    * Extends SimpleResAligner by not rewarding HOH-HOH residue pairings, 
+    * which in my experience often screwed up alignments and thereby prevented 
+    * superpositions that were anywhere close to reasonable.
+    * ~DAK, 24 Aug 2009
+    */
+    public static class SimpleNonWaterResAligner extends SimpleResAligner
+    {
+        // High is good, low is bad.
+        public double score(Object a, Object b)
+        {
+            Residue r = (Residue) a;
+            Residue s = (Residue) b;
+            if(r.getName().equals(s.getName()))
+            {
+                if(r.getName().equals("HOH"))
+                    return 0; // don't reward HOH-HOH pairing
+                else
+                    return 4; // match
+            }
+            else
+                return -1;    // mismatch
+        }
+        
+        public double open_gap(Object a) { return -8; }
+        public double extend_gap(Object a) { return -2; }
+    }
+//}}}
+
 //{{{ Variable definitions
 //##############################################################################
     boolean verbose = false;
@@ -386,12 +417,26 @@ public class SubImpose //extends ... implements ...
         System.err.println("rmsd\tn_atoms\tselection");
         
         // Align residues by sequence
-        // For now we just take all residues as they appear in the file,
-        // without regard to chain IDs, etc.
-        //Alignment align = Alignment.needlemanWunsch(m1.getResidues().toArray(), m2.getResidues().toArray(), new SimpleResAligner());
         // With this approach, alignments can't cross chain boundaries.
         // As many chains as possible are aligned, without doubling up.
-        Alignment align = Alignment.alignChains(getChains(m1), getChains(m2), new Alignment.NeedlemanWunsch(), new SimpleResAligner());
+        /*Alignment align = Alignment.alignChains(getChains(m1), getChains(m2), new Alignment.NeedlemanWunsch(), new SimpleResAligner());*/
+        Alignment align = Alignment.alignChains(getChains(m1), getChains(m2), new Alignment.NeedlemanWunsch(), new SimpleNonWaterResAligner());
+        if(align.a.length == 0)
+        {
+            // Just take all residues as they appear in the file,
+            // without regard to chain IDs, etc.
+            // NB: This is what was originally the default in the code 
+            // before Ian added the non-chain-crossing alternative ^ above.
+            // Unfortunately it rejects residue alignments with lots of gaps, 
+            // e.g. when the ref is shorter, resulting in lots of nulls.  
+            // The program then throws exceptions like Vince Young does interceptions.
+            // Here's the original alignment method as an alternative 
+            // that accepts such imperfect residue alignments:
+            // ~DAK, 24 Aug 2009
+            if(verbose) System.err.println("Using alternative, chain-break-crossing residue alignment method");
+            /*align = Alignment.needlemanWunsch(m1.getResidues().toArray(), m2.getResidues().toArray(), new SubImpose.SimpleResAligner());*/
+            align = Alignment.needlemanWunsch(m1.getResidues().toArray(), m2.getResidues().toArray(), new SubImpose.SimpleNonWaterResAligner());
+        }
         if(verbose)
         {
             System.err.println("Residue alignments:");
@@ -458,7 +503,7 @@ public class SubImpose //extends ... implements ...
                     PdbWriter pdbWriter = new PdbWriter(new File(pdbOut));
                     pdbWriter.writeCoordinateFile(coord1);
                     pdbWriter.close();
-                    if (verbose) System.err.println("Writing to "+pdbOut+" b/c RMSD="+
+                    if(verbose) System.err.println("Writing to "+pdbOut+" b/c RMSD="+
                         df.format(superpos.calcRMSD(R))+" < cutoff="+rmsdCutoff);
                 }
                 else System.err.println("Not writing to "+pdbOut+" b/c RMSD="+

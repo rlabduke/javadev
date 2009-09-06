@@ -19,59 +19,78 @@ import driftwood.util.Strings;
 * figures of merit, and translates them into PDB-format coordinates
 * for one amino acid type.
 *
+* It can also prune samples such that the remaining samples are 
+* as "spread out" as possible in terms of the position & orientation 
+* of the sidechain's tip with respect to the residue's own backbone.
+* 
+* IDEAS / TO-DO:
+*  - include pct &/o stat as "terms" in quats' "electrostatic repulsion" "energy"?
+*     * that's one way to fuse the R3 & bioinformatic worlds in one method
+*     * another would be to make the quat repulsion stuff call-able from silk RotSamp
+*  - repulse only w/in peaks?
+*     * would be faster, but...
+*     * would require knowledge of peaks (maybe if called by silk?)
+*     * how to deal with edges of adjoining peaks?
+*
 * <p>Copyright (C) 2004 by Ian W. Davis. All rights reserved.
 * <br>Begun on Tue Jan  6 15:33:28 EST 2004
 */
 public class RotamerSampler //extends ... implements ...
 {
 //{{{ Constants
-    DecimalFormat df  = new DecimalFormat("###.###");
-    DecimalFormat df2 = new DecimalFormat("###");
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    String                          aaType           = null;
-    File                            inFile           = null;
-    /** Our "template" residue */
-    Residue                         res              = null;
-    boolean                         allAngles        = true;
-    String                          group            = null;
-    String                          color            = null;
-    boolean                         verbose          = false;
-                                    
-    boolean                         plotChis         = false;
-    /** For plotChis */
-    boolean                         doChi234         = false;
-    /** Chis; prob vals from inFile; atomic x,y,z (srcdata format) */
-    boolean                         printData        = false;
-                                    
-    /** Prints chis remaining after pruning in same format as silk.RotamerSampler 
-    * to new file (separate from stdout output) */
-    File                            notPrunedOutFile = null;
-    /** 4-char sc atom names from " CB " on out, incl'ing H's */
-    ArrayList<String>               atomNames        = null;
-    /** Store coordinates & residues of rotamers and enable their lookup using 
-    * double[]'s of chi (and pct and stat) values */
-    HashMap<double[], ModelState>   valsToStates     = null;
-    HashMap<double[], Residue>      valsToResidues   = null;
     
-    // MY ORIGINAL AVERAGE-AVERAGE-DISTANCE-MAXIMIZATION METHOD
-    /** Eliminate (1-fracNotPruned) of samples based on R3 spread */
-    double                          fracNotPruned    = Double.NaN;
-    /** Eliminate samples based on R3 spread until numNotPruned samples are left */
-    int                             numNotPruned     = Integer.MIN_VALUE;
+    // INPUT
     
-    // JEFF'S DISTANCE-TO-CLUSTER-CENTROID METHOD
-    /** Add samples based on distance from rotamer cluster centers in R3 
-    * until have numSelected samples */
-    int                             numSelected      = Integer.MIN_VALUE;
-    /** Stores rotamer cluster "identities" for all sample points and enables their
-    * lookup using double[]'s of chi (and pct and stat) values. Two sample points
-    * are in the same rotamer cluster if all their chis are within 60 degrees */
-    HashMap<double[], String>       valsToClusters   = null;
-    /** Number of unique rotamer clusters in the above */
-    ArrayList<String>               clusters         = null;
+    boolean  verbose    = false;
+    
+    String   aaType;
+    File     inFile;
+    
+    /** Our "template" residue. */
+    Residue  res;
+    
+    boolean  allAngles  = true;
+    
+    String   group;
+    String   color;
+    
+    // OUTPUT
+    
+    /** Do "inverse rotamers": superpose sc end instead of bb. */
+    boolean  inverse    = false;
+    
+    /** Output input-formatted strings of remaining samples instead of PDB-format coordinates. */
+    boolean  printSamples  = false;
+    
+    /** Output chi values in kinemage format instead of PDB-format coordinates. */
+    boolean  plotChis  = false;
+    /** If plotting chi values, plot chis 2,3,4 instead of chis 1,2,3. */
+    boolean  chi234  = false;
+    
+    /** Output quaternion x,y,z,w in kinemage format instead of PDB-format coordinates. */
+    boolean  plotQuats  = false;
+    
+    /** Number of samples to keep; eliminate the rest to maximize spread in quaternion space. */
+    int     keepCnt  = Integer.MAX_VALUE;
+    /** Fraction of samples to keep; eliminate the rest to maximize spread in quaternion space. */
+    double  keepFrc  = Double.NaN;
+    
+    // FOR INTERNAL USE
+    
+    /** Numbered residues for sampled sidechain conformers, keyed by chis. */
+    HashMap<double[], Residue>     residues;
+    /** States for sampled sidechain conformers, keyed by chis. */
+    HashMap<double[], ModelState>  states;
+    
+    /** Quaternions describing orientation of sidechain tip relative to own backbone, keyed by chis. */
+    HashMap<double[], Quaternion>  quats;
+    /** Quaternions describing orientation of sidechain tip relative to own backbone, keyed by chis. 
+    * Nothing pruned from this guy in subsequent steps. */
+    HashMap<double[], Quaternion>  quatsOrig;
     
 //}}}
 
@@ -83,362 +102,425 @@ public class RotamerSampler //extends ... implements ...
     }
 //}}}
 
-//{{{ prepForR3
+//{{{ buildConformers
 //##############################################################################
     /**
-    * Fills in atomNames and valsToStates so we don't have to calculate them repeatedly
-    * during the recursive method pruneR3 (which itself calls calcSpread repeatedly)
+    * Builds sidechains using chis. Stores in global hash map for possible
+    * modification and output later.
     */
-    public void prepForR3(ArrayList<double[]> data, Residue res, ModelState modelState)
+    public void buildConformers(ArrayList<double[]> data) throws IOException
     {
-        // Store atom names for this sc type in advance
-        String exclude = " N  , H  , CA , HA , C  , O  ";
-        atomNames = new ArrayList<String>();
-        for(Iterator ai = res.getAtoms().iterator(); ai.hasNext(); )
+        // Obtain template residue
+        PdbReader       pdbReader   = new PdbReader();
+        CoordinateFile  coordFile   = pdbReader.read(this.getClass().getResourceAsStream("singleres.pdb"));
+        Model           model       = coordFile.getFirstModel();
+        ModelState      modelState  = model.getState();
+        Residue         res         = null;
+        for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
         {
-            Atom a = (Atom)ai.next();
-            if (exclude.indexOf(a.getName()) == -1)   atomNames.add(a.getName());
+            Residue r = (Residue)iter.next();
+            if(aaType.equals(r.getName()))
+                res = r;
+        }
+        if(res == null)
+            throw new IllegalArgumentException("Couldn't find a residue called '"+aaType+"'");
+        
+        SidechainAngles2 angles = new SidechainAngles2();
+        int nAngles = (allAngles ? angles.countAllAngles(res) : angles.countChiAngles(res));
+        
+        // Determine figure of merit
+        double maxWeight = 0;
+        for(Iterator iter = data.iterator(); iter.hasNext(); )
+        {
+            double[] vals = (double[]) iter.next();
+            maxWeight = Math.max(maxWeight, vals[nAngles]);
         }
         
-        // Store dihedral values <=> coordinates correspondences in advance
-        valsToStates   = new HashMap<double[], ModelState>();
-        valsToResidues = new HashMap<double[], Residue>();
-        int k = 1;
-        for(Iterator iter = data.iterator(); iter.hasNext(); k++)
+        // Build & store conformers
+        residues = new HashMap<double[], Residue   >();
+        states   = new HashMap<double[], ModelState>();
+        int i = 1;
+        for(Iterator iter = data.iterator(); iter.hasNext(); i++)
         {
             try
             {
-                // Make conformation
                 double[] vals = (double[])iter.next();
-                Residue tempRes = new Residue(res, " ", "", Integer.toString(k), " ", res.getName());
+                Residue tempRes = new Residue(res, " ", "", Integer.toString(i), " ", res.getName());
                 ModelState tempState = tempRes.cloneStates(res, modelState, new ModelState(modelState));
-                SidechainAngles2 angles = new SidechainAngles2();
-                tempState = angles.setChiAngles(tempRes, tempState, vals);
-                
-                // Store it
-                valsToStates.put(vals, tempState);
-                valsToResidues.put(vals, tempRes);
+                if(allAngles)
+                    tempState = angles.setAllAngles(tempRes, tempState, vals);
+                else
+                    tempState = angles.setChiAngles(tempRes, tempState, vals);
+                for(Iterator ai = tempRes.getAtoms().iterator(); ai.hasNext(); )
+                {
+                    Atom a = (Atom)ai.next();
+                    // Makes all weights make best use of the 6.2 formatted field available to them
+                    double occ = 999.0 * vals[nAngles]/maxWeight;
+                    if(occ >= 1000.0) throw new Error("Logical error in occupancy weighting scheme");
+                    tempState.get(a).setOccupancy(occ);
+                }
+                residues.put(vals, tempRes);
+                states.put(vals, tempState);
             }
             catch(AtomException ex) { ex.printStackTrace(); }
-            catch(IOException   ex) { ex.printStackTrace(); }
-        }
-        
-        // If using distance-to-cluster-centroid method, assign sample points to rotamer clusters
-        if (numSelected != Integer.MIN_VALUE)
-        {
-            valsToClusters = new HashMap<double[], String>();
-            
-            int idx = 1;
-            for (int i = 0; i < data.size(); i++)
-            {
-                double[] vals = (double[])data.get(i);
-                boolean assigned = false;
-                
-                // If this sample is in the same cluster as a previously assigned sample, 
-                // put this one in that cluster
-                for (int j = 0; j < data.size() && !assigned; j++)
-                {
-                    if (i == j) continue;
-                    double[] vals2 = (double[])data.get(j);
-                    String cluster = valsToClusters.get(vals2);
-                    if (cluster == null) continue;
-                    if (sameCluster(vals, vals2))
-                    {
-                        //if (verbose) System.err.println("  found match");
-                        valsToClusters.put(vals, cluster);
-                        assigned = true;
-                    }
-                }
-                
-                // Otherwise, start a new cluster with this one
-                if (!assigned)
-                {
-                    //if (verbose) System.err.println("  new cluster");
-                    valsToClusters.put(vals, "'cluster "+idx+"'");
-                    idx++;
-                }
-            }
-            
-            if (verbose)
-            {
-                for (Iterator iter = valsToClusters.keySet().iterator(); iter.hasNext(); )
-                {
-                    double[] vals = (double[])iter.next();
-                    String cluster = valsToClusters.get(vals);
-                    System.err.println(chisString(vals)+" belongs to "+cluster);
-                }
-            }
-            
-            // Get list of unique clusters just assigned
-            TreeSet<String> clustersSet = new TreeSet<String>();
-            for (Iterator iter = valsToClusters.values().iterator(); iter.hasNext(); )
-                clustersSet.add((String)iter.next());
-            clusters = new ArrayList<String>();
-            for (Iterator iter = clustersSet.iterator(); iter.hasNext(); )
-                clusters.add( (String)iter.next());
-            if (verbose)
-            {
-                System.err.println("Unique clusters: ");
-                for (String cluster : clusters)  System.err.println("  "+cluster);
-            }
         }
     }
 //}}}
 
-//{{{ selectR3
+//{{{ calcQuats
 //##############################################################################
     /**
-    * Finds all representative central rotamers (if not yet done), then adds the sample
-    * from the provided data that is "farthest" from all previously selected samples.
-    * If not yet reached desired # sample points, calls this function again (recursive).
+    * Maps each set of chis to a quaternion describing the relationship
+    * between the sidechain's end and the backbone.
     */
-    public ArrayList<double[]> selectR3(ArrayList<double[]> data, ArrayList<double[]> selData, int targetNumRotas, Residue res)
+    public void calcQuats(ArrayList<double[]> data)
     {
-        if (verbose)
-        {
-            System.err.println("\nrotamers selected: "+selData.size()+" / "+targetNumRotas);
-            for (Iterator iter = selData.iterator(); iter.hasNext(); )
-                System.err.println("  "+chisString((double[])iter.next()));
-        }
+        String[] scEnd = null;
+        if(aaType.equals("ASN")) scEnd = new String[] {" CG ", " OD1", " ND2"};
+        if(aaType.equals("GLN")) scEnd = new String[] {" CD ", " OE1", " NE2"};
+        if(aaType.equals("ARG")) scEnd = new String[] {" CZ ", " NH1", " NH2"};
+        // ...
+        if(scEnd == null) throw new IllegalArgumentException("Unrecognized aa type: "+aaType+"!");
         
-        // See if we've reached final level of recursion
-        if (selData.size() >= targetNumRotas)   return selData;
+        quats     = new HashMap<double[], Quaternion>();
+        quatsOrig = new HashMap<double[], Quaternion>(); // for our records
         
-        // If representatives from each cluster not yet added, finish that
-        if (selData.size() < clusters.size())
+        for(Iterator iter = data.iterator(); iter.hasNext(); )
         {
-            ArrayList<double[]> reps = findClusterReps(data, res);
-            for (Iterator iter = reps.iterator(); iter.hasNext(); )
-                selData.add((double[])iter.next());
-        }
-        
-        // Add the sample for which the sum of its atoms' distances to the 
-        // corresponding atoms added to its cluster so far is highest
-        else
-        {
-            double[] farthestVals    = null;
-            double   farthestSumDist = Double.NEGATIVE_INFINITY;
-            for (Iterator iter = data.iterator(); iter.hasNext(); )
-            {
-                double[] candVals = (double[])iter.next();
-                if (selData.contains(candVals))  continue; // already assigned
-                
-                // Get the "sum distance" to the portion of its cluster that's already been added
-                // for this candidate for next sample to be added
-                ModelState candState = valsToStates.get(candVals);
-                double sumDist = 0;
-                Residue candRes = valsToResidues.get(candVals);
-                //if (verbose) System.err.println("residue for "+chisString(candVals)+"is "+candRes+" with "+candRes.getAtoms().size()+" atoms");
-                //for (Iterator ai = res.getAtoms().iterator(); ai.hasNext(); )
-                for (Iterator ai = candRes.getAtoms().iterator(); ai.hasNext(); )
-                {
-                    Atom a = (Atom)ai.next();
-                    for (String atomName : atomNames)
-                    {
-                        if (a.getName().equals(atomName))
-                        {
-                            //if (verbose) System.err.println("matched "+a.getName()+" to "+atomName);
-                            try
-                            {
-                                // Look thru already added samples in this cluster
-                                AtomState cand = candState.get(a);
-                                for (Iterator exstIter = selData.iterator(); exstIter.hasNext(); )
-                                {
-                                    double[] exstVals = (double[])exstIter.next();
-                                    //if (verbose) System.err.println("seeing if "+atomName+" in "+chisString(exstVals)+" is in same cluster as "+chisString(candVals));
-                                    String candCluster = valsToClusters.get(candVals);
-                                    String exstCluster = valsToClusters.get(exstVals);
-                                    if (candCluster.equals(exstCluster))
-                                    {
-                                        //if (verbose) System.err.println(chisString(exstVals)+" and "+chisString(candVals)+" are in same cluster: "+valsToClusters.get(candVals));
-                                        ModelState exstState = valsToStates.get(exstVals);
-                                        
-                                        Residue exstRes = valsToResidues.get(exstVals);
-                                        Atom a2 = null;
-                                        for (Iterator ai2 = exstRes.getAtoms().iterator(); ai2.hasNext(); )
-                                        {
-                                            Atom temp = (Atom)ai2.next();
-                                            if (atomName.equals(temp.getName()))  a2 = temp;
-                                        }
-                                        AtomState exst = exstState.get(a2);
-                                        
-                                        //if (verbose) System.err.println("found "+a2.getName()+" in        "+chisString(exstVals)+":\t("+df.format(exst.getX())+", "+df.format(exst.getY())+", "+df.format(exst.getZ())+")");
-                                        //if (verbose) System.err.println("comparing to "+a.getName()+" in "+chisString(candVals)+":\t("+df.format(cand.getX())+", "+df.format(cand.getY())+", "+df.format(cand.getZ())+")");
-                                        //if (verbose) System.err.println("dist = "+Triple.distance(cand, exst));
-                                        sumDist += Triple.distance(cand, exst);
-                                    }
-                                }
-                            }
-                            catch(AtomException ex) { ex.printStackTrace(); }
-                        }
-                    }
-                }
-                
-                // See if this candidate is the best (i.e. most distant from its cluster) so far
-                if (verbose) System.err.println("sum_dist for "+chisString(candVals)+" = "+df.format(sumDist)+" Angstroms");
-                if (sumDist > farthestSumDist)
-                {
-                    farthestSumDist = sumDist;
-                    farthestVals = candVals;
-                }
-            }
-            selData.add(farthestVals);
-        }
-        
-        return selectR3(data, selData, targetNumRotas, res);
-    }
-//}}}
-
-//{{{ findClusterReps
-//##############################################################################
-    /**
-    * Finds a representative central rotamer for each cluster based on closeness 
-    * to Cartesian centroid of the cluster
-    */
-    public ArrayList<double[]> findClusterReps(ArrayList<double[]> data, Residue res)
-    {
-        ArrayList<double[]> reps = new ArrayList<double[]>(clusters.size());
-        //clustersToReps = new HashMap<String, double[]>();
-        for (String cluster : clusters)
-        {
-            // Collect coordinates belonging to this cluster
-            HashMap<double[], ModelState> valsToClusterStates = new HashMap<double[], ModelState>();
-            for (Iterator iter = valsToClusters.keySet().iterator(); iter.hasNext(); )
+            try
             {
                 double[] vals = (double[])iter.next();
-                if (valsToClusters.get(vals).equals(cluster))
-                {
-                    // Found a(nother) member of this cluster
-                    ModelState clusterState = valsToStates.get(vals);
-                    valsToClusterStates.put(vals, clusterState);
-                }
-            }
-            
-            // Calculate centroid of this cluster
-            Iterator iter = valsToClusterStates.keySet().iterator();
-            ModelState template = valsToClusterStates.get( (double[])iter.next() );
-            ModelState centroid = new ModelState(template);
-            for (Iterator ai = res.getAtoms().iterator(); ai.hasNext(); )
-            {
-                Atom a = (Atom)ai.next();
-                for (String atomName : atomNames)
-                {
-                    if (a.getName().equals(atomName))
-                    {
-                        try
-                        {
-                            // Get coords for all atoms of this type
-                            ArrayList<AtomState> clusterAtomStates = new ArrayList<AtomState>();
-                            for (ModelState clusterState : valsToClusterStates.values())
-                                clusterAtomStates.add(clusterState.get(a));
-                            
-                            // Average them
-                            double x = 0, y = 0, z = 0;   int count = 0;
-                            for (AtomState xyz : clusterAtomStates)
-                            {
-                                x += xyz.getX();  y += xyz.getY();  z += xyz.getZ();
-                                count++;
-                            }
-                            
-                            AtomState centroidAtomState = centroid.get(a);
-                            centroidAtomState.setX( x/(1.0*count) );
-                            centroidAtomState.setY( y/(1.0*count) );
-                            centroidAtomState.setZ( z/(1.0*count) );
-                        }
-                        catch(AtomException ex) { ex.printStackTrace(); }
-                    }
-                }
-            }
-            
-            // Figure out which sample state is closest to this cluster's centroid
-            // and is therefore this cluster's representative (i.e. is closest to 
-            // the bottom of this rotameric well)
-            // "Closest" is defined on the basis of the sum of atom-atom distances
-            // along the sidechain
-            double[] closestVals = null;
-            double closestSumDist = Double.POSITIVE_INFINITY;
-            for (Iterator iter2 = valsToClusterStates.keySet().iterator(); iter2.hasNext(); )
-            {
-                double[] vals = (double[])iter2.next();
-                ModelState clusterState = valsToClusterStates.get(vals);
+                Residue    tempRes   = residues.get(vals);
+                ModelState tempState = states.get(vals);
                 
-                double sumDist = 0;
-                for (Iterator ai = res.getAtoms().iterator(); ai.hasNext(); )
+                Triple bb1 = null, bb2 = null, bb3 = null;
+                Triple sc1 = null, sc2 = null, sc3 = null;
+                for(Iterator ai = tempRes.getAtoms().iterator(); ai.hasNext(); )
                 {
-                    Atom a = (Atom)ai.next();
-                    for (String atomName : atomNames)
-                    {
-                        if (a.getName().equals(atomName))
-                        {
-                            try
-                            {
-                                AtomState cent = centroid.get(a);
-                                AtomState curr = clusterState.get(a);
-                                sumDist += Triple.distance(cent, curr);
-                            }
-                            catch(AtomException ex) { ex.printStackTrace(); }
-                        }
-                    }
+                    Atom      a  = (Atom) ai.next();
+                    AtomState as = tempState.get(a);
+                    if(a.getName().equals(" CA ")) bb1 = new Triple(as);
+                    if(a.getName().equals(" N  ")) bb2 = new Triple(as);
+                    if(a.getName().equals(" C  ")) bb3 = new Triple(as);
+                    if(a.getName().equals(scEnd[0])) sc1 = new Triple(as);
+                    if(a.getName().equals(scEnd[1])) sc2 = new Triple(as);
+                    if(a.getName().equals(scEnd[2])) sc3 = new Triple(as);
                 }
-                if (sumDist < closestSumDist)
+                if(bb1 == null || bb2 == null || bb3 == null)
+                    throw new IllegalArgumentException("Can't find the 3 bb atoms in "+tempRes+"!");
+                if(sc1 == null || sc2 == null || sc3 == null)
+                    throw new IllegalArgumentException("Can't find the 3 sc atoms in "+tempRes+"!");
+                Triple[] bb = new Triple[] {bb1, bb2, bb3};
+                Triple[] sc = new Triple[] {sc1, sc2, sc3};
+                
+                // Quaternion
+                SuperPoser poser = new SuperPoser(bb, sc);
+                Transform xform = poser.superpos();
+                Quaternion quat = new Quaternion().likeRotation(xform);
+                quats.put(vals, quat);
+                quatsOrig.put(vals, quat);
+                
+                if(inverse) // "inverse rotamers"
                 {
-                    closestSumDist = sumDist;
-                    closestVals = vals;
+                    for(Iterator ai = tempRes.getAtoms().iterator(); ai.hasNext(); )
+                    {
+                        Atom      a  = (Atom) ai.next();
+                        AtomState as = tempState.get(a);
+                        xform.transform(as);
+                    }
+                    states.put(vals, tempState); // overwrite
                 }
             }
-            
-            //clustersToReps.put(cluster, closestVals);
-            if (verbose) System.err.println("representative for "+cluster+", n="+
-                valsToClusterStates.keySet().size()+": "+chisString(closestVals));
-            reps.add(closestVals);
-        }//cluster
+            catch(AtomException ex) { ex.printStackTrace(); }
+        }
         
-        return reps;
+        /*for(Iterator iter = data.iterator(); iter.hasNext(); )
+        {
+            double[] vals = (double[]) iter.next();
+            Quaternion quat = quats.get(vals);
+            System.out.println(Strings.arrayInParens(vals)+" "
+                +quat.getX()+" "+quat.getY()+" "+quat.getZ()+" "+quat.getW());
+        }
+        System.exit(0);*/
     }
 //}}}
 
-//{{{ sameCluster, chisString
+//{{{ rmDuplicates, rmOneDuplicate
 //##############################################################################
     /**
-    * Decides that two sample points are in the same rotamer cluster if all their 
-    * chis are within 60 degrees; otherwise, they're not.
-    * Handles wrapping from 0 to 360.
+    * Makes sure no samples yield the same quaternion, probably (always?) b/c 
+    * they have the same chi values.
     */
-    public boolean sameCluster(double[] vals1, double[] vals2)
+    public void rmDuplicates(ArrayList<double[]> data, ArrayList<double[]> dataOrig)
     {
-        boolean tooFar = false;
-        for (int i = 0; i < vals1.length-2; i++) // last two entries are pct & stat
+        int keep = (keepCnt != Integer.MAX_VALUE ? keepCnt : (int)Math.floor(dataOrig.size()*keepFrc));
+        System.err.println(data.size()+"/"+dataOrig.size()+" samples, goal: "+keep+"  (orig input)");
+        
+        boolean noMoreDuplicates = false;
+        while(!noMoreDuplicates)
         {
-            double y1 = vals1[i];
-            double y2 = vals2[i];
-            
-            if((Math.abs(y1-y2) > 60)
-            && (Math.abs(360-y1)+Math.abs(  0-y2) > 60)
-            && (Math.abs(  0-y1)+Math.abs(360-y2) > 60) )   tooFar = true;
+            int duplicateIdx = rmOneDuplicate(data);
+            if(duplicateIdx == -1)
+                noMoreDuplicates = true;
+            else
+            {
+                double[] vals = data.get(duplicateIdx);
+                quats.remove(vals);
+                data.remove(duplicateIdx);
+            }
         }
-        if (!tooFar)  return true;
-        return false;
     }
 
-    /**
-    * Utility function for converting double[]'s of chi values, one pct value, 
-    * and one stat value into Strings of chi values, e.g. "(185,62)"
-    */
-    public String chisString(double[] vals)
+    public int rmOneDuplicate(ArrayList<double[]> data)
     {
-        String s = "(";
-        for (int i = 0; i < vals.length-3; i++)
+        for(int i = 0; i < data.size(); i++)
         {
-            String spaces = "";
-            if (vals[i] < 10)                    spaces += "  ";
-            if (vals[i] >= 10 && vals[i] < 100)  spaces += " ";
-            s += spaces+df2.format(vals[i])+",";
+            double[] vals1 = data.get(i);
+            Quaternion quat1 = quats.get(vals1);
+            boolean duplicate = false;
+            for(int j = 0; j < data.size() && i != j; j++)
+            {
+                double[] vals2 = data.get(j);
+                Quaternion quat2 = quats.get(vals2);
+                if(quat2.equals(quat1))
+                {
+                    duplicate = true;
+                    if(verbose) System.err.println(
+                        "Removing duplicate for "+Strings.arrayInParens(vals1));
+                    return i;
+                }
+            }
         }
-        String spaces = "";
-        if (vals[vals.length-3] < 10)                                spaces += "  ";
-        if (vals[vals.length-3] >= 10 && vals[vals.length-3] < 100)  spaces += " ";
-        s += spaces+df2.format(vals[vals.length-3])+")";
-        return s;
+        return -1;
+    }
+//}}}
+
+//{{{ repulse
+//##############################################################################
+    /**
+    * Pretends quaternions are electrons on the surface of a sphere, and finds 
+    *   sample point whose omission would most decrease "electrostatic energy".
+    * Called recursively until we're left with the desired number of samples.
+    * Warning: My implementation makes *NO* guarantee of avoiding local minima - 
+    *   that's a significant problem!!!
+    */
+    public ArrayList<double[]> repulse(ArrayList<double[]> data, ArrayList<double[]> dataOrig)
+    {
+        int keep = (keepCnt != Integer.MAX_VALUE ? keepCnt : (int)Math.floor(dataOrig.size()*keepFrc));
+        System.err.println(data.size()+"/"+dataOrig.size()+" samples, goal: "+keep);
+        
+        // See if we've reached final level of recursion.
+        if(data.size() <= keep) return data;
+        
+        // Find sample whose omission would most decrease "electrostatic energy".
+        double minE    = Double.POSITIVE_INFINITY;
+        int    minEidx = -1;
+        for(int i = 0; i < data.size(); i++)
+        {
+            ArrayList<double[]> dataOmit = new ArrayList<double[]>(); // w/o sample i
+            for(int j = 0; j < data.size(); j++)
+                if(j != i)
+                    dataOmit.add(data.get(j));
+            double E = repulsion(dataOmit);
+            if (E < minE)
+            {
+                minE = E;
+                minEidx = i;
+            }
+        }
+        if (minEidx == -1 || minE == Double.NEGATIVE_INFINITY)
+        {
+            System.err.println("Removing any sample would only increase \"energy\"!");
+            return data; // done
+        }
+        
+        // Remove that sample
+        double[] vals = data.get(minEidx);
+        data.remove(minEidx);
+        DecimalFormat df = new DecimalFormat("###.###");
+        if(verbose) System.err.println(
+            "Removed "+Strings.arrayInParens(vals)+",  E -> "+df.format(minE));
+        return repulse(data, dataOrig);
+    }
+//}}}
+
+//{{{ repulsion
+//##############################################################################
+    /**
+    * Calculates "electrostatic energy" for a set of quaternions:
+    *   E = Sum_i Sum_j 1/dist(x_i,x_j)^2
+    */
+    public double repulsion(ArrayList<double[]> dataOmit)
+    {
+        double E = 0;
+        
+        for(int i = 0; i < dataOmit.size(); i++)
+        {
+            for(int j = 0; j < dataOmit.size(); j++)
+            {
+                if(j != i)
+                {
+                    double[] vals_i = dataOmit.get(i);
+                    double[] vals_j = dataOmit.get(j);
+                    Quaternion quat_i = quats.get(vals_i);
+                    Quaternion quat_j = quats.get(vals_j);
+                    
+                    if(quat_i.equals(quat_j) && verbose)
+                        System.err.println("found a duplicate: "+quat_i);
+                    
+                    // distance in quaternion space
+                    double dist = Math.sqrt( Math.pow(quat_i.getX()-quat_j.getX(), 2) +
+                                             Math.pow(quat_i.getY()-quat_j.getY(), 2) +
+                                             Math.pow(quat_i.getZ()-quat_j.getZ(), 2) +
+                                             Math.pow(quat_i.getW()-quat_j.getW(), 2) );
+                    double distSqrd = dist * dist;
+                    E += 1.0 / distSqrd;
+                }
+            }
+        }
+        
+        /*System.err.println("E = "+E);*/
+        return E;
+    }
+//}}}
+
+//{{{ printSamples
+//##############################################################################
+    /** Write out Silk-output-format strings for remaining samples. 
+    * If -keep not used, should be same as input. */
+    public void printSamples(ArrayList<double[]> data)
+    {
+        // Header(s?)
+        try
+        {
+            LineNumberReader in = new LineNumberReader(new FileReader(inFile));
+            String s;
+            while((s = in.readLine()) != null)
+            {
+                // # chi1:chi2:chi3:chi4:main:check
+                if(s.startsWith("#"))
+                    System.out.println(s);
+            }
+            in.close();
+        }
+        catch(IOException ex)
+        { System.err.println("Error reading headers in "+inFile); }
+        
+        // Sample strings
+        for(Iterator iter = data.iterator(); iter.hasNext(); )
+        {
+            // 52.5:182.5:172.5:82.5:4.8326884352494234E-5:0.37011794417325267
+            double[] vals = (double[])iter.next();
+            for(int i = 0; i < vals.length-1; i++)
+                System.out.print(vals[i]+":");
+            System.out.println(vals[vals.length-1]);
+        }
+    }
+//}}}
+
+//{{{ plotChis
+//##############################################################################
+    /** Plot chis in kin format instead of creating rotamers PDB. */
+    public void plotChis(ArrayList<double[]> data)
+    {
+        DecimalFormat df = new DecimalFormat("###.#");
+        if(group == null) group = aaType+" samp chis";
+        if(color == null) color = "blue";
+        System.out.println("@group {"+group+"} dominant");
+        System.out.println("@balllist {"+group+"} radius= 3 color= "+color);
+        for(Iterator iter = data.iterator(); iter.hasNext(); )
+        {
+            // Point ID
+            double[] vals = (double[]) iter.next();
+            System.out.print("{");
+            for(int i = 0; i < vals.length-2; i++)
+                System.out.print(df.format(vals[i])+", ");
+            System.out.print("} ");
+            
+            // Chis as kin coords
+            int numCoords = (vals.length-2 >= 4 ? 3 : vals.length-2); // max = 3, min = 1
+            for(int i = (chi234 ? 1 : 0); i < (chi234 ? numCoords+1 : numCoords); i++) 
+                System.out.print(df.format(vals[i])+" ");
+            System.out.println();
+        }
+    }
+//}}}
+
+//{{{ plotQuats
+//##############################################################################
+    /**
+    * Prints 4-D kinemage of quaternions describing sidechain tip position 
+    * and orientation relative to the residue's own backbone.
+    */
+    public void plotQuats(ArrayList<double[]> data, ArrayList<double[]> dataOrig)
+    {
+        System.out.println("@dimensions {X} {Y} {Z} {W}");
+        System.out.println("@dimminmax -1 1 -1 1 -1 1 -1 1");
+        
+        System.out.println("@group {axis} dominant");
+        System.out.println("@vectorlist {axis}");
+        System.out.println("{axis}P -1 -1 -1");
+        System.out.println("{axis}   1 -1 -1");
+        System.out.println("{axis}   1  1 -1");
+        System.out.println("{axis}  -1  1 -1");
+        System.out.println("{axis}  -1 -1 -1");
+        System.out.println("{axis}P -1 -1  1");
+        System.out.println("{axis}   1 -1  1");
+        System.out.println("{axis}   1  1  1");
+        System.out.println("{axis}  -1  1  1");
+        System.out.println("{axis}  -1 -1  1");
+        System.out.println("{axis}P -1 -1 -1");
+        System.out.println("{axis}  -1 -1  1");
+        System.out.println("{axis}P  1 -1 -1");
+        System.out.println("{axis}   1 -1  1");
+        System.out.println("{axis}P -1  1 -1");
+        System.out.println("{axis}  -1  1  1");
+        System.out.println("{axis}P  1  1 -1");
+        System.out.println("{axis}   1  1  1");
+        
+        System.out.println("@group {"+aaType+" quats "+dataOrig.size()+"/"+dataOrig.size()+"} dominant animate");
+        System.out.println("@balllist {"+aaType+" quats} radius= 0.05 dimension= 4");
+        for(Iterator iter = dataOrig.iterator(); iter.hasNext(); )
+        {
+            double[] vals = (double[]) iter.next();
+            Quaternion quat = quatsOrig.get(vals);
+            System.out.println("{"+Strings.arrayInParens(vals)+"}" + (data.contains(vals) ? " " : "gray ")
+                +quat.getX()+" "+quat.getY()+" "+quat.getZ()+" "+quat.getW());
+        }
+        
+        int keep = (keepCnt != Integer.MAX_VALUE ? keepCnt : (int)Math.floor(dataOrig.size()*keepFrc));
+        System.out.println("@group {"+aaType+" quats "+keep+"/"+dataOrig.size()+"} dominant animate");
+        System.out.println("@balllist {"+aaType+" quats} radius= 0.05 dimension= 4");
+        for(Iterator iter = data.iterator(); iter.hasNext(); )
+        {
+            double[] vals = (double[]) iter.next();
+            Quaternion quat = quats.get(vals);
+            System.out.println("{"+Strings.arrayInParens(vals)+"} "
+                +quat.getX()+" "+quat.getY()+" "+quat.getZ()+" "+quat.getW());
+        }
+    }
+//}}}
+
+//{{{ writePdb
+//##############################################################################
+    /** Write out PDB-format coordinates for conformers. */
+    public void writePdb(ArrayList<double[]> data)
+    {
+        PdbWriter pdbWriter = new PdbWriter(System.out);
+        pdbWriter.setRenumberAtoms(true);
+        int i = 1;
+        for(Iterator iter = data.iterator(); iter.hasNext(); )//i++)
+        {
+            double[] vals = (double[])iter.next();
+            Residue    tempRes   = residues.get(vals);
+            ModelState tempState = states.get(vals);
+            System.out.println("MODEL     "+Strings.forceRight(""+i, 4));
+            pdbWriter.writeResidues(Collections.singletonList(tempRes), tempState);
+            System.out.println("ENDMDL");
+            i++;
+        }
+        System.out.flush();
+        pdbWriter.close();
     }
 //}}}
 
@@ -449,29 +531,14 @@ public class RotamerSampler //extends ... implements ...
     */
     public void Main() throws IOException, NumberFormatException
     {
-        //{{{ Prep
         // Check arguments
         if(aaType == null || inFile == null)
-            throw new IllegalArgumentException("Not enough command line arguments");
-        
-        // Obtain template residue
-        PdbReader       pdbReader   = new PdbReader();
-        CoordinateFile  coordFile   = pdbReader.read(this.getClass().getResourceAsStream("singleres.pdb"));
-        Model           model       = coordFile.getFirstModel();
-        ModelState      modelState  = model.getState();
-        
-        for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
-        {
-            Residue r = (Residue)iter.next();
-            if(aaType.equals(r.getName()))
-                res = r;
-        }
-        if(res == null)
-            throw new IllegalArgumentException("Couldn't find a residue called '"+aaType+"'");
+            throw new IllegalArgumentException("Not enough command line arguments - need aatype & listfile");
         
         // Read data from list file
         LineNumberReader in = new LineNumberReader(new FileReader(inFile));
-        ArrayList data = new ArrayList();
+        ArrayList data     = new ArrayList();
+        ArrayList dataOrig = new ArrayList(); // for our records
         String s;
         int nFields = -1;
         while((s = in.readLine()) != null)
@@ -485,147 +552,31 @@ public class RotamerSampler //extends ... implements ...
             for(int i = 0; i < nFields; i++)
                 vals[i] = Double.parseDouble(parts[i]);
             data.add(vals);
+            dataOrig.add(vals);
         }
         in.close();
-
-        // Determine figure of merit
-        SidechainAngles2 angles = new SidechainAngles2();
-        int nAngles = (allAngles ? angles.countAllAngles(res) : angles.countChiAngles(res));
-        //System.err.println("nAngles = "+nAngles);
-        double maxWeight = 0;
-        for(Iterator iter = data.iterator(); iter.hasNext(); )
-        {
-            double[] vals = (double[])iter.next();
-            maxWeight = Math.max(maxWeight, vals[nAngles]);
-        }
-        //}}}
         
-        // Eliminate some sample points to maximize spread in Cartesian space (opt'l)
-        if (!Double.isNaN(fracNotPruned) || numNotPruned != Integer.MIN_VALUE || numSelected != Integer.MIN_VALUE)
-        {
-            prepForR3(data, res, modelState);
-            int targetNumRotas = 0;
-            if (!Double.isNaN(fracNotPruned) || numNotPruned != Integer.MIN_VALUE)
-            {
-                // My original average-average-distance method (alters data by reference)
-                if (!Double.isNaN(fracNotPruned))           targetNumRotas = (int)(data.size()*fracNotPruned);
-                else if (numNotPruned != Integer.MIN_VALUE) targetNumRotas = numNotPruned;
-                pruneR3(data, targetNumRotas, res);
-            }
-            else if (numSelected != Integer.MIN_VALUE)
-            {
-                // Jeff's distance-to-cluster-centroid method (returns new data)
-                targetNumRotas = numSelected;
-                ArrayList<double[]> selData = new ArrayList<double[]>(targetNumRotas);
-                data = selectR3(data, selData, targetNumRotas, res);
-            }
-            
-            // Print remaining samples in silk.RotamerSampler format (opt'l)
-            if (notPrunedOutFile != null)
-            {
-                PrintWriter out = new PrintWriter(notPrunedOutFile);
-                out.print("# ");
-                for (int i = 1; i <= angles.countChiAngles(res); i++)  out.print("chi"+i+":");
-                out.println("main:check");
-                for(Iterator iter = data.iterator(); iter.hasNext(); )
-                {
-                    double[] vals = (double[])iter.next();
-                    for (int i = 0; i < vals.length-1; i++)  out.print(vals[i]+":");
-                    out.println(vals[vals.length-1]);
-                }
-                out.flush();
-                out.close();
-            }
-        }
-        
-        //{{{ Output
         if (plotChis)
         {
-            // Plot chis in kin format instead of creating rotamers PDB
-            DecimalFormat df = new DecimalFormat("###.#");
-            if (group == null) group = aaType+" samp chis";
-            if (color == null) color = "blue";
-            System.out.println("@group {"+group+"} dominant");
-            System.out.println("@balllist {"+group+"} radius= 3 color= "+color);
-            for(Iterator iter = data.iterator(); iter.hasNext(); )
-            {
-                // Point ID
-                double[] vals = (double[])iter.next();
-                System.out.print("{");
-                for (int i = 0; i < vals.length-2; i ++) System.out.print(df.format(vals[i])+", ");
-                System.out.print("} ");
-                
-                // Actual x,y,z coordinates
-                int numCoords = (vals.length-2 >= 4 ? 3 : vals.length-2); // max = 3, min = 1
-                for (int i = (doChi234 ? 1 : 0); i < (doChi234 ? numCoords+1 : numCoords); i ++) 
-                    System.out.print(df.format(vals[i])+" ");
-                System.out.println();
-            }
+            plotChis(data);
+            return; // done
         }
-        else
+        
+        buildConformers(data);
+        
+        if(keepCnt != Integer.MAX_VALUE || !Double.isNaN(keepFrc))
         {
-            // Create conformers
-            PdbWriter pdbWriter = new PdbWriter(System.out);
-            pdbWriter.setRenumberAtoms(true);
-            
-            int nDim = 0;
-            if (printData) // header for opt'l top5200-angles srcdata-esque output mode
-            {
-                int nChis = ((double[])data.get(0)).length-2; // last 2 in .list file are pct and stat
-                System.out.print("atom_name ");
-                for (int i = 1; i <= nChis; i++)  System.out.print("chi"+i+" ");
-                System.out.println("pct? pct? x y z");
-            }
-            
-            int i = 1;
-            for(Iterator iter = data.iterator(); iter.hasNext(); i++)
-            {
-                try
-                {
-                    double[] vals = (double[])iter.next();
-                    Residue tempRes = new Residue(res, " ", "", Integer.toString(i), " ", res.getName());
-                    ModelState tempState = tempRes.cloneStates(res, modelState, new ModelState(modelState));
-                    if(allAngles)
-                        tempState = angles.setAllAngles(tempRes, tempState, vals);
-                    else
-                        tempState = angles.setChiAngles(tempRes, tempState, vals);
-                    for(Iterator ai = tempRes.getAtoms().iterator(); ai.hasNext(); )
-                    {
-                        Atom a = (Atom)ai.next();
-                        // Makes all weights make best use of the 6.2 formatted field available to them
-                        double occ = 999.0 * vals[nAngles]/maxWeight;
-                        if(occ >= 1000.0) throw new Error("Logical error in occupancy weighting scheme");
-                        tempState.get(a).setOccupancy(occ);
-                    }
-                    if (printData)
-                    {
-                        // Spit out chi dihedrals; probability measures from the input .list file (could be
-                        // pct and stat); and x,y,z for each atom in sampled sidechain conformation
-                        for(Iterator ai = tempRes.getAtoms().iterator(); ai.hasNext(); )
-                        {
-                            Atom a = (Atom)ai.next();
-                            AtomState as = tempState.get(a);
-                            String bbAtomNames = " N  , CA , C  , O  , H  , HA ";
-                            if (bbAtomNames.indexOf(as.getName()) == -1)
-                            {
-                                System.out.print(tempRes.getName()+" conf"+i+" "+as.getName()+":");
-                                for (int j = 0; j < vals.length; j++)  System.out.print(vals[j]+":");
-                                System.out.println(as.getX()+":"+as.getY()+":"+as.getZ());
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // "Normal" PDB output
-                        pdbWriter.writeResidues(Collections.singletonList(tempRes), tempState);
-                    }
-                }
-                catch(AtomException ex) { ex.printStackTrace(); }
-            }
-            System.out.flush();
-            pdbWriter.close();
+            calcQuats(data);
+            rmDuplicates(data, dataOrig); // directly modifies data
+            repulse(data, dataOrig); // directly modifies data
         }
-        //}}}
+        
+        if(printSamples)
+            printSamples(data);
+        else if(plotQuats)
+            plotQuats(data, dataOrig);
+        else
+            writePdb(data);
     }
 
     public static void main(String[] args)
@@ -754,12 +705,14 @@ public class RotamerSampler //extends ... implements ...
         else if(flag.equals("-plotchis"))
         {
             plotChis  = true;
-            printData = false;
         }
-        else if(flag.equals("-data") || flag.equals("-printdata"))
+        else if(flag.equals("-plotquats"))
         {
-            plotChis  = false;
-            printData = true;
+            plotQuats = true;
+        }
+        else if(flag.equals("-printsamples"))
+        {
+            printSamples = true;
         }
         else if(flag.equals("-group"))
         {
@@ -771,51 +724,77 @@ public class RotamerSampler //extends ... implements ...
         }
         else if(flag.equals("-chi234"))
         {
-            doChi234 = true;
+            chi234 = true;
         }
-        else if(flag.equals("-fracnotpruned"))
+        else if(flag.equals("-keep"))
         {
             try
             {
-                fracNotPruned = Double.parseDouble(param);
-                numNotPruned  = Integer.MIN_VALUE;
-                numSelected   = Integer.MIN_VALUE;
+                double keep = Double.parseDouble(param);
+                if     (keep <  0) System.err.println("D'oh!  -keep="+param+" must be >= 0...  Ignoring flag");
+                else if(keep <= 1)
+                {
+                    System.err.println("Treating -keep="+param+" as a fraction");
+                    keepFrc = keep;
+                }
+                else if(keep >  1)
+                {
+                    System.err.println("Treating -keep="+param+" as an integer count");
+                    keepCnt = (int)Math.floor(keep);
+                }
             }
-            catch (NumberFormatException nfe)
-            {
-                System.err.println("Couldn't parse "+param+" as double for fracNotPruned");
-            }
+            catch(NumberFormatException ex)
+            { System.err.println("*** Error: couldn't parse -keep="+param+" as a double!"); }
         }
-        else if(flag.equals("-numnotpruned"))
+        else if(flag.equals("-inverse"))
         {
-            try
-            {
-                numNotPruned  = Integer.parseInt(param);
-                fracNotPruned = Double.NaN;
-                numSelected   = Integer.MIN_VALUE;
-            }
-            catch (NumberFormatException nfe)
-            {
-                System.err.println("Couldn't parse "+param+" as int for numNotPruned");
-            }
+            inverse = true;
         }
-        else if(flag.equals("-numselected"))
-        {
-            try
-            {
-                numSelected   = Integer.parseInt(param);
-                numNotPruned  = Integer.MIN_VALUE;
-                fracNotPruned = Double.NaN;
-            }
-            catch (NumberFormatException nfe)
-            {
-                System.err.println("Couldn't parse "+param+" as int for numNotPruned");
-            }
-        }
-        else if(flag.equals("-notprunedout") || flag.equals("-notprunedoutfile"))
-        {
-            notPrunedOutFile = new File(param);
-        }
+        //{{{ OLD PAIRWISE ATOM-ATOM DISTANCE R3 SAMPLING STUFF
+        //else if(flag.equals("-fracnotpruned"))
+        //{
+        //    try
+        //    {
+        //        fracNotPruned = Double.parseDouble(param);
+        //        numNotPruned  = Integer.MIN_VALUE;
+        //        numSelected   = Integer.MIN_VALUE;
+        //    }
+        //    catch (NumberFormatException nfe)
+        //    {
+        //        System.err.println("Couldn't parse "+param+" as double for fracNotPruned");
+        //    }
+        //}
+        //else if(flag.equals("-numnotpruned"))
+        //{
+        //    try
+        //    {
+        //        numNotPruned  = Integer.parseInt(param);
+        //        fracNotPruned = Double.NaN;
+        //        numSelected   = Integer.MIN_VALUE;
+        //    }
+        //    catch (NumberFormatException nfe)
+        //    {
+        //        System.err.println("Couldn't parse "+param+" as int for numNotPruned");
+        //    }
+        //}
+        //else if(flag.equals("-numselected"))
+        //{
+        //    try
+        //    {
+        //        numSelected   = Integer.parseInt(param);
+        //        numNotPruned  = Integer.MIN_VALUE;
+        //        fracNotPruned = Double.NaN;
+        //    }
+        //    catch (NumberFormatException nfe)
+        //    {
+        //        System.err.println("Couldn't parse "+param+" as int for numNotPruned");
+        //    }
+        //}
+        //else if(flag.equals("-notprunedout") || flag.equals("-notprunedoutfile"))
+        //{
+        //    notPrunedOutFile = new File(param);
+        //}
+        //}}}
         else if(flag.equals("-v") || flag.equals("-verbose"))
         {
             verbose = true;
@@ -827,150 +806,4 @@ public class RotamerSampler //extends ... implements ...
         else throw new IllegalArgumentException("'"+flag+"' is not recognized as a valid flag");
     }
 //}}}
-
-//{{{ pruneR3
-//##############################################################################
-    /**
-    * Finds sample point whose omission would most *increase* average spread (i.e.
-    * average of spread_CB_, spread_CG_, etc.) and removes that sample point.
-    * I define "spread" as:  average aross all atom types of 
-    *                       (average across all sampled rotamers of
-    *                       (average pairwise distances))
-    * So the units of spread are Angstroms.
-    * We want to increase spread, not decrease like you might intuitively expect, 
-    * because we want to maximize dispersion in R3 for a given number of rotamers.
-    * If that brings us down to the target number of sample points, defined as 
-    * (fracNotPruned)*(init # sample points), we're done => return array of sample
-    * points.
-    * If still more sample points than desired, calls this function again (recursive).
-    * This function DIRECTLY removes sample points from data (so it affects the data
-    * in Main b/c the reference to data was passed here).
-    */
-    public ArrayList<double[]> pruneR3(ArrayList<double[]> data, int targetNumRotas, Residue res)
-    {
-        if (verbose) System.err.println("rotamers left = "+data.size()+" (target = "+targetNumRotas+")");
-        
-        // See if we've reached final level of recursion
-        if (data.size() <= targetNumRotas)   return data;
-        
-        // Find sample whose omission would yield highest spread
-        // (No need to explicity find sample whose omission would most increase 
-        // spread relative to initial spread b/c initial spread is a constant.)
-        double origSpread       = calcSpread(data, res);
-        double highestSpread    = Double.NEGATIVE_INFINITY;
-        int    idxHighestSpread = -1;
-        for (int i = 0; i < data.size(); i++)
-        {
-            ArrayList<double[]> data2 = new ArrayList<double[]>(); // w/o sample i
-            for (int j = 0; j < data.size(); j++)  if (j != i)  data2.add(data.get(j));
-            double spread = calcSpread(data2, res);
-            if (spread > highestSpread)
-            {
-                highestSpread = spread;
-                idxHighestSpread = i;
-            }
-        }
-        if (idxHighestSpread == -1 || highestSpread == Double.NEGATIVE_INFINITY)
-        {
-            System.err.println("removing any sample would only decrease spread");
-            return null;
-        }
-        
-        // Remove that sample
-        double[] vals = data.get(idxHighestSpread);
-        data.remove(idxHighestSpread);
-        System.out.print("USER  MOD removed "+chisString(vals)+"\tspread: "+
-            df.format(origSpread)+" -> "+df.format(highestSpread)+" Angstroms");
-        if (verbose) System.err.println(
-            "spread: "+df.format(origSpread)+" -> "+df.format(highestSpread)+" Angstroms");
-        return pruneR3(data, targetNumRotas, res);
-    }
-//}}}
-
-//{{{ calcSpread
-//##############################################################################
-    /**
-    * Given a list of rotamers in dihedral space, generates sidechain conformations
-    * for each using the appropriate aa type and ideal bond lengths+angles, then
-    * calculates the spread, i.e. the average aross all atom types (_CB_, _CG_, etc.)
-    * of (average across all sampled rotamers of (average pairwise distances)).
-    * This includes all sc atoms, heavy and H, from _CB_ on out.
-    */
-    public double calcSpread(ArrayList<double[]> data, Residue res)
-    {
-        // Get list of xyz's (across current rota ensemble) for each sc atom type
-        TreeMap<String, ArrayList<Triple>> atomNamesToXyzLists = new TreeMap<String, ArrayList<Triple>>();
-        for (String atomName : atomNames)
-            atomNamesToXyzLists.put(atomName, new ArrayList<Triple>());
-        //int k = 1;
-        for(Iterator iter = data.iterator(); iter.hasNext(); )//k++)
-        {
-            try
-            {
-                // Look up conformation
-                double[] vals = (double[])iter.next();
-                ModelState tempState = valsToStates.get(vals);
-                Residue    tempRes   = valsToResidues.get(vals);
-                //Residue tempRes = new Residue(res, " ", "", Integer.toString(k), " ", res.getName());
-                //ModelState tempState = tempRes.cloneStates(res, modelState, new ModelState(modelState));
-                //SidechainAngles2 angles = new SidechainAngles2();
-                //tempState = angles.setChiAngles(tempRes, tempState, vals);
-                
-                // For each atom type of interest, find coordinates in this new conformation 
-                // and add to appropriate growing list of coordinates
-                AtomState xyz = null;
-                for (Iterator ai = tempRes.getAtoms().iterator(); ai.hasNext(); )
-                {
-                    Atom a = (Atom)ai.next();
-                    for (String atomName : atomNames)
-                    {
-                        if (a.getName().equals(atomName))
-                        {
-                            xyz = tempState.get(a);
-                            ArrayList<Triple> xyzList = atomNamesToXyzLists.get(atomName);
-                            xyzList.add(xyz);
-                            atomNamesToXyzLists.put(atomName, xyzList);
-                        }
-                    }
-                }
-            }
-            catch(AtomException ex) { ex.printStackTrace(); }
-        }
-        
-        // Calculate average (average distance to all neighbors) for all atom types
-        ArrayList<Double> avgAvgDists = new ArrayList<Double>();
-        for (String atomName : atomNames)
-        {
-            ArrayList<Double> avgDists = new ArrayList<Double>();
-            
-            // Compare each CB (or whatever atom type we're currently working on)
-            // to all other CB's and get its average distance to them
-            ArrayList<Triple> xyzList = atomNamesToXyzLists.get(atomName);
-            for (int i = 0; i < xyzList.size(); i++)
-            {
-                double avgDist = 0;
-                for (int j = 0; j < xyzList.size(); j++)
-                {
-                    if (i == j) continue;
-                    avgDist += Triple.distance(xyzList.get(i), xyzList.get(j));
-                }
-                avgDist /= ( 1.0*(xyzList.size()-1) );
-                avgDists.add(avgDist);
-            }
-            
-            // Average this atom type's (average distance to all neighbors)s -> one final number
-            double sum = 0;
-            for (double avgDist : avgDists)  sum += avgDist;
-            double avgAvgDist = sum / (1.0*avgDists.size());
-            avgAvgDists.add(avgAvgDist);
-        }
-        
-        // Average the average (average distance to all neighbors) across all atom types
-        double spread = 0;
-        for (double avgAvgDist : avgAvgDists)  spread += avgAvgDist;
-        spread /= (1.0*avgAvgDists.size());
-        return spread;
-    }
-//}}}
-
 }//class
