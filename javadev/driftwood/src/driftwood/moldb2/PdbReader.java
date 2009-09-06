@@ -282,6 +282,9 @@ public class PdbReader //extends ... implements ...
         // This sets up secondary structure assignments
         rv.setSecondaryStructure(new PdbSecondaryStructure(rv.getHeaders()));
         
+        // This sets up disulfide bond residue-residue pairings
+        rv.setDisulfides(new PdbDisulfides(rv.getHeaders()));
+        
         rv.setPdbv2Count(pdbv2atoms);
         
         return rv;

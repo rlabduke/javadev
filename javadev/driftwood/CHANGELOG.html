@@ -53,6 +53,11 @@ UTIL: {{{
   including regex pattern for pdb#.gz, like PDB uses for biological units.
 - Changed SuffixFileFilter to take in regex expression strings also.
   
+### 0.89 ### (dak)
+- Added Disulfides & PdbDisulfides in spirit of SecondaryStructure & 
+  PdbSecondaryStructure for reading "SSBOND" cards with PdbReader and storing
+  in CoordinateFile
+
 ### 0.88 ###
 - added WrapMap.  Like UberMap, but wraps from start to end and vise versa
 - Added int[]->String and double[]->String methods to util.Strings (dak)

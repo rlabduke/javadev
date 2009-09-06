@@ -37,6 +37,7 @@ public class CoordinateFile //extends ... implements ...
     int                 pdbv2atoms      = 0;
     
     SecondaryStructure  secondaryStructure = new SecondaryStructure.AllCoil();
+    Disulfides          disulfides         = new Disulfides.NoDisulfides();
     
     File        file = null;
     String      idCode = null;
@@ -152,6 +153,19 @@ public class CoordinateFile //extends ... implements ...
     
     public void setSecondaryStructure(SecondaryStructure s)
     { this.secondaryStructure = s; }
+//}}}
+
+//{{{ get/setDisulfides
+//##################################################################################################
+    // These are associated with a CoordinateFile rather than with a Model
+    // because they're defined at the file level for PDB and mmCIF.
+    
+    /** Default assignment marks everything as COIL. */
+    public Disulfides getDisulfides()
+    { return this.disulfides; }
+    
+    public void setDisulfides(Disulfides d)
+    { this.disulfides = d; }
 //}}}
 
 //{{{ get/setPdbv23Count
