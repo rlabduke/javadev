@@ -40,6 +40,7 @@ public class PointEditor implements ChangeListener
     JCheckBox ptUnpickable;
     JLabel ptIndex;
     JButton split;
+    JButton ok;
     boolean ptFirstShow = true;
     
     KPoint thePoint = null;
@@ -83,7 +84,7 @@ public class PointEditor implements ChangeListener
         ptPicker.addChangeListener(this);
         
         split = new JButton(new ReflectiveAction("Split list before this", null, this, "onPointSplit"));
-        JButton ok = new JButton(new ReflectiveAction("OK", null, this, "onPointOK"));
+        /*JButton*/ ok = new JButton(new ReflectiveAction("OK", null, this, "onPointOK"));
         JButton cancel = new JButton(new ReflectiveAction("Cancel", null, this, "onPointCancel"));
         
         JButton editGroup       = new JButton(new ReflectiveAction("Edit group", null, this, "onEditGroup"));
@@ -212,6 +213,7 @@ public class PointEditor implements ChangeListener
         else            split.setEnabled(true);
         
         ptDialog.pack();
+        ptDialog.getRootPane().setDefaultButton(ok); // DAK July 26 2009
         if(ptFirstShow) { ptDialog.setLocationRelativeTo(kMain.getTopWindow()); ptFirstShow = false; }
         ptDialog.setVisible(true);
         // thread stops here until we hit OK/Cancel
