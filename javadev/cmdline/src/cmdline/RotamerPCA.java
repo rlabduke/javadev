@@ -26,34 +26,54 @@ import Jama.SingularValueDecomposition;
 public class RotamerPCA //extends ... implements ...
 {
 //{{{ Constants
-    DecimalFormat df = new DecimalFormat("#.##");
+    DecimalFormat df = new DecimalFormat("##0.000");
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    boolean  verbose       = false;
+    
+    // INPUT
+    
+    /** Chi values of raw empirical observations w/o rotamers */
+    File  rawFile;
+    
+    /** Chi values of hills grid points w/ rotamers.  
+    *   Used to assign raw points to rotamers. */
+    File  hillsFile;
+    
+    /** Chi values of hill modes (i.e. peaks) w/ rotamers */
+    File  peaksFile;
+    
+    
+    // OPTIONS
+    
+    boolean  verbose  = false;
     
     /** Boundaries for each dimension (min1, max1, min2, max2, ..) */
-    int[]    wrapBounds    = null;
+    int[]  wrapBounds;
+    
     /** Number of chis (dimensions), not including any clusterID at the end */
-    int      nChis         = -1;
+    int  nChis  = -1;
     
-    /** Chi values of raw empirical observations w/o cluster IDs */
-    File     rawFile       = null;
-    HashMap  rawData       = null;
-    /** Chi values of hills grid points w/ cluster IDs. Used for assigning 
-    cluster IDs to raw emprical observations */
-    File     hillsFile     = null;
-    HashMap  hillsData     = null;
+    /** Points farther than this distance from the closest hills grid point 
+    *   will NOT be included in further analysis for that rotamer.  The idea
+    *   is to avoid problems associated with nearby minor clusters that aren't
+    *   quite considered their own hill and therefore get "drawn in" to another 
+    *   hill, thereby skewing analysis at that hill. */
+    double  eventHorizon  = 30;
     
-    /** One per rotamer cluster; raw chi values */
-    HashMap  dataMatrices  = null;
-    /** One per rotamer cluster; chi diffs from cluster peak. Each diff  
-    * matrix is the equivalent of the A matrix of SVD's A = USV^T */
-    HashMap  diffMatrices  = null;
+    // INTERNAL
     
-    /** ??????? */
-    HashMap  avgPrincComps = null;
+    /** Chi values of raw data, pointing to rotamers.  Map:double[]->int */
+    HashMap<double[],Integer>  data;
+    
+    /** Chi values of hills grid points, pointing to rotamers.  Map:double[]->int */
+    HashMap<double[],Integer>  hills;
+    
+    /** Rotamers, pointing to chi values of hill modes.  Map:int->double[] */
+    HashMap<Integer,double[]>  peaks;
+    
+    
 //}}}
 
 //{{{ Constructor(s)
@@ -66,89 +86,109 @@ public class RotamerPCA //extends ... implements ...
 
 //{{{ loadData
 //##############################################################################
-    /** Loads hills grid points text & raw data points text files. Assigns each
-    *   raw data point to a cluster ID from the set of hills clusters. */
+    /**
+    * Loads hills grid points text & raw data points text files.
+    * Assigns each raw data point to a hills rotamer.
+    * Based off code from chiropraxis.sc.RotamerSampler.Main().
+    */
     public void loadData() throws IOException
     {
-        // Based off code from chiropraxis.sc.RotamerSampler.Main()
-        
-        // (1) Hills data points (i.e. the colored points from hills kins)
-        //     Also yields set of cluster IDs
+        // HILLS -- the colored points from hills kins (+ rotamers)
         LineNumberReader hillsIn = new LineNumberReader(new FileReader(hillsFile));
-        hillsData = new HashMap<double[], Integer>();
+        hills = new HashMap<double[],Integer>();
         String s;
         while((s = hillsIn.readLine()) != null)
         {
             if(s.startsWith("#")) continue;
-            
-            // format: "50.0 80.0 1.0" - last column is hills cluster ID
+            // format: "50.0 80.0 1.0"  <- last column is rotamer
             String[] parts = Strings.explode(s,' ');
-            if(nChis < 0) nChis = parts.length-1;
-            else if(parts.length-1 != nChis) throw new IllegalArgumentException("Data fields are of different lengths");
-            double[] vals = new double[nChis]; // does *not* include clusterID
-            for(int i = 0; i < nChis; i++) vals[i] = Double.parseDouble(parts[i]);
-            
-            int clusterID = (int) Double.parseDouble(parts[parts.length-1]);
-            hillsData.put(vals, clusterID);
+            if(parts.length == 1) parts = Strings.explode(s,',');
+            if(parts.length == 1) parts = Strings.explode(s,':');
+            if(nChis < 0)
+                nChis = parts.length-1;
+            else if(parts.length-1 != nChis)
+                throw new IllegalArgumentException("Data fields are of different lengths");
+            double[] vals = new double[nChis]; // does *not* include rotamer
+            for(int i = 0; i < nChis; i++)
+                vals[i] = Double.parseDouble(parts[i]);
+            int rotamer = (int)Double.parseDouble(parts[parts.length-1]);
+            hills.put(vals, rotamer);
         }
         hillsIn.close();
-        
-        // Sanity check on wrap dimensions (1st place we can do this)
+        // sanity check on wrap dimensions (1st place we can do this)
         if(wrapBounds != null && wrapBounds.length != 2*nChis)
         {
-            System.err.println("wrap bounds given for "+wrapBounds.length/2+" dims; "+
-                "doesn't match "+nChis+" chis in data!");
-            System.err.println(".. ignoring wrap bounds!");
+            System.err.println("Wrap bounds given for "+wrapBounds.length/2+
+                " dims -- doesn't match "+nChis+" chis in data! .. ignoring wrap bounds!");
             wrapBounds = null;
         }
                 
-        // (2) Raw data points (i.e. empirical observations),
+        // RAW DATA -- empirical observations
         LineNumberReader rawIn = new LineNumberReader(new FileReader(rawFile));
-        rawData = new HashMap<double[], Integer>();
+        data = new HashMap<double[],Integer>();
         while((s = rawIn.readLine()) != null)
         {
             if(s.startsWith("resname")) continue;
-            
-            // format: "16pk A 14 LEU:-50.176:169.212:NULL:NULL:-120.669:-15.612:13.300:LEU"
-            String[] parts = Strings.explode(s,':');
+            // format: "16pk A 14 LEU,-50.176,169.212,NULL,NULL,-120.669,-15.612,13.300,LEU"
+            String[] parts = Strings.explode(s,',');
+            if(parts.length == 1) parts = Strings.explode(s,':');
             if(parts[nChis].equals("NULL"))
             {
-                System.err.println("not enough chis in "+rawFile+" for line '"+s+"' .. skipping");
+                System.err.println("Not enough chis in "+rawFile+" for line '"+s+"' .. skipping");
                 continue;
             }
-            double[] vals = new double[nChis];
-            for(int i = 0; i < nChis; i++) vals[i] = Double.parseDouble(parts[i+1]);
-            
-            //System.err.println("read data point: "+str(vals));
-            
-            int clusterID = nearestCluster(vals);
-            if(!(clusterID < 0)) rawData.put(vals, clusterID);
-            else if(verbose) System.err.print(
-                "can't assign cluster for raw data point "+str(vals)+" .. skipping");
+            double[] vals = new double[nChis]; // does *not* include rotamer
+            for(int i = 0; i < nChis; i++)
+                vals[i] = Double.parseDouble(parts[i+1]);
+            int rotamer = nearestRotamer(vals, hills);
+            if(rotamer != Integer.MAX_VALUE) // i.e. not beyond "event horizon"
+                data.put(vals, rotamer);
         }
         rawIn.close();
+        
+        // PEAKS -- from Silk hillmodes
+        LineNumberReader peaksIn = new LineNumberReader(new FileReader(peaksFile));
+        peaks = new HashMap<Integer, double[]>();
+        while((s = peaksIn.readLine()) != null)
+        {
+            if(s.startsWith("#")) continue;
+            // format: "1,65.0,85.0,0.04130813357918459"  <- first column is rotamer
+            String[] parts = Strings.explode(s,' ');
+            if(parts.length == 1) parts = Strings.explode(s,',');
+            if(parts.length == 1) parts = Strings.explode(s,':');
+            if(parts.length-2 != nChis)
+                throw new IllegalArgumentException("Data fields are of different lengths");
+            double[] vals = new double[nChis]; // does *not* include rotamer
+            for(int i = 0; i < nChis; i++)
+                vals[i] = Double.parseDouble(parts[i+1]);
+            int rotamer = (int)Double.parseDouble(parts[0]);
+            peaks.put(rotamer, vals);
+        }
+        peaksIn.close();
     }
 //}}}
 
-//{{{ nearestCluster
+//{{{ nearestRotamer
 //##############################################################################
-    /** Assigns a cluster ID to the given raw empirical observation based on 
-    *   the hills grid point to which it is closest. */
-    public int nearestCluster(double[] vals) throws IOException
+    /**
+    * Assigns a rotamer to the given raw empirical observation 
+    * based on the hills grid point to which it is closest.
+    */
+    public int nearestRotamer(double[] vals, HashMap<double[],Integer> hills) throws IOException
     {
-        //System.err.println("finding closest hills point to "+str(vals));
+        //System.err.println("finding closest hills point to "+Strings.arrayInParens(vals));
         
         double[] closest = null;
         double minDist = Double.POSITIVE_INFINITY;
-        for(Iterator iter = hillsData.keySet().iterator(); iter.hasNext(); )
+        for(Iterator iter = hills.keySet().iterator(); iter.hasNext(); )
         {
             double[] other = (double[]) iter.next();
-            if(verbose) if(other.length != vals.length) System.err.println(
+            if(verbose && other.length != vals.length) System.err.println(
                 "ERROR: non-matching # chis in nearestCluster()!!");
             
             double[] dists = new double[other.length]; // one dist per chi; best wrap vs. no wrap
             for(int j = 0; j < other.length; j++)
-                dists[j] = Math.abs(distWithWrap(vals[j], other[j], j));
+                dists[j] = Math.abs(displacement(vals[j], other[j], j));
             
             double sqrd = 0;
             for(int d = 0; d < dists.length; d++) sqrd += Math.pow(dists[d], 2);
@@ -160,283 +200,240 @@ public class RotamerPCA //extends ... implements ...
             }
         }
         
-        //System.err.println("hills point closest to "+str(vals)+" is "+str(closest)
-        //    +" .. dist: "+df.format(minDist));
+        //System.err.println("hills point closest to "+Strings.arrayInParens(vals)
+        //    +" is "+Strings.arrayInParens(closest)+" .. dist: "+df.format(minDist));
         
-        int id = (Integer) hillsData.get(closest); // clusterID
-        return id;
+        if(minDist > eventHorizon)
+        {
+            if(verbose) System.err.println("Can't assign rotamer for "+Strings.arrayInParens(vals)
+                +" b/c "+df.format(minDist)+" > "+eventHorizon+" degrees from nearest hills grid point");
+            return Integer.MAX_VALUE;
+        }
+        
+        int rotamer = (Integer) hills.get(closest);
+        return rotamer;
     }
 //}}}
 
-//{{{ fillMatrices
+//{{{ displacement
 //##############################################################################
-    /** Maps each hills cluster ID to a matrix containing all its raw data 
-    *   points. Note: mapping from ID -> data, not data -> ID. */
-    public void fillMatrices() throws IOException
-    {
-        dataMatrices = new HashMap<Integer, Matrix>();
-        diffMatrices = new HashMap<Integer, Matrix>();
-        
-        TreeSet clusterIDs = new TreeSet<Integer>();
-        for(Iterator iter = rawData.keySet().iterator(); iter.hasNext(); )
-        {
-            double[] vals = (double[]) iter.next();
-            int clusterID = (Integer) rawData.get(vals);
-            clusterIDs.add(clusterID);
-        }
-        
-        for(Iterator iter = clusterIDs.iterator(); iter.hasNext(); )
-        {
-            int clusterID = (Integer) iter.next();
-            
-            // Get all raw data points in this cluster
-            ArrayList dataInCluster = new ArrayList<double[]>();
-            for(Iterator rdi = rawData.keySet().iterator(); rdi.hasNext(); )
-            {
-                double[] vals = (double[]) rdi.next();
-                int clusterNum = (Integer) rawData.get(vals);
-                if(clusterNum == clusterID) dataInCluster.add(vals); // in right cluster
-            }
-            
-            // Make a 2D array for this cluster.
-            // Must be row = sample, col = chi rather than row = chi, col = sample
-            // because for SVD to work, m (# rows) must be >= n (# cols), and for 
-            // rotamer distributions there should always be more samples than chis.
-            System.err.println("# chis     ="+nChis);
-            System.err.println("# data pts ="+ dataInCluster.size());
-            //double[][] dataArray = new double[nChis][dataInCluster.size()];
-            double[][] dataArray = new double[dataInCluster.size()][nChis];
-            for(int i = 0; i < dataInCluster.size(); i++) // row
-            {
-                double[] vals = (double[]) dataInCluster.get(i);
-                for(int j = 0; j < vals.length; j++) // col
-                    //dataArray[j][i] = vals[j];
-                    dataArray[i][j] = vals[j];
-            }
-            
-            // Substract cluster peak
-            double[][] diffArray = subtractPeak(dataArray, clusterID);
-            
-            // Convert those 2D arrays to matrices
-            Matrix dataMatrix = new Matrix(dataArray);
-            Matrix diffMatrix = new Matrix(diffArray);
-            dataMatrices.put(clusterID, dataMatrix);
-            diffMatrices.put(clusterID, diffMatrix);
-            
-            //System.err.print("cluster "+clusterID+" data matrix:");
-            //dataMatrix.print(new DecimalFormat("#.#"), 1);
-            //System.err.print("cluster "+clusterID+" diff matrix:");
-            //diffMatrix.print(new DecimalFormat("#.#"), 1);
-            
-        }//for each cluster
-    }
-//}}}
-
-//{{{ subtractPeak
-//##############################################################################
-    /** Subtracts the cluster peak (from hillmodes) from raw data points in 
-    * that cluster. It's up to the caller to provide data in d that matches
-    * the integer clusterID of the peak to be subtracted in id! */
-    public double[][] subtractPeak(double[][] d, int id)
-    {
-        // Get peak
-        double[] peak = null;
-        for(Iterator iter = hillsData.keySet().iterator(); iter.hasNext(); )
-        {
-            double[] somePeak = (double[]) iter.next();
-            int someClusterID = (Integer) hillsData.get(somePeak);
-            if(someClusterID == id)  peak = somePeak;
-        }
-        if(peak == null)
-        {
-            System.err.println("Can't find peak values for cluster ID "+id+"!");
-            return null;
-        }
-        if(verbose) System.err.println("cluster "+id+" data: "
-            +d.length+" rows, "+d[0].length+" cols, peak "+str(peak));
-        
-        // Subtract it from all raw data points in this cluster
-        double[][] ret = new double[d.length][d[0].length];
-        for(int i = 0; i < d.length; i++)
-        {
-            for(int j = 0; j < d[i].length; j++)
-                //ret[i][j] = distWithWrap(d[i][j], peak[i], i);
-                ret[i][j] = distWithWrap(d[i][j], peak[j], j); // *not* abs val - wanna know directionality
-            
-            //System.err.println("point "+str(d[i])+" is dist "+str(ret[i])
-            //    +" from peak "+str(peak)+(wrapBounds != null ? " w/ wrap" : ""));
-        }
-        
-        return ret;
-    }
-//}}}
-
-//{{{ doSVD
-//##############################################################################
-    /** From reduce() method found here:
-    * http://sujitpal.blogspot.com/2008/10/ir-math-in-java-cluster-visualization.html */
-    public void doSVD()
-    {
-        avgPrincComps = new HashMap<Integer,double[]>();
-        
-        for(Iterator iter = diffMatrices.keySet().iterator(); iter.hasNext(); )
-        {
-            int clusterID = (Integer) iter.next();
-            Matrix diffMatrix = (Matrix) diffMatrices.get(clusterID);
-            SingularValueDecomposition svd = new SingularValueDecomposition(diffMatrix);
-            Matrix u = svd.getU(); // columns = principal componenents
-            Matrix s = svd.getS();
-            Matrix v = svd.getV();
-            
-            System.err.print("SVD U matrix for cluster "+clusterID+":");
-            u.print(new PrintWriter(System.err,true), new DecimalFormat("#.##"), 1);
-            System.err.print("SVD S matrix for cluster "+clusterID+":");
-            s.print(new PrintWriter(System.err,true), new DecimalFormat("#.##"), 1);
-            System.err.print("SVD V matrix for cluster "+clusterID+":");
-            v.print(new PrintWriter(System.err,true), new DecimalFormat("#.##"), 1);
-            
-            // HONESTLY, DON'T UNDERSTAND PCA WELL ENOUGH TO KNOW WHAT THIS IS TRYING TO DO!
-            /*
-            // We know that the diagonal of S is ordered, so we can take the
-            // first 3 cols from V, for use in plot2d and plot3d
-            Matrix vRed = v.getMatrix(0, v.getRowDimension() - 1, 0, 2);
-            for (int i = 0; i < v.getRowDimension(); i++)
-            {
-                System.err.println("cluster"+clusterID+" PC "+i+1+":  "+
-                    Math.abs(vRed.get(i, 0))+" "+Math.abs(vRed.get(i, 1)));
-            }
-            */
-            
-            
-            //WRONG!!!
-            double[][] uArray = u.getArray();
-            double[] avgPC = new double[uArray[0].length]; // #chis
-            for(int j = 0; j < avgPC.length; j++)  avgPC[j] = 0.0;
-            for(int i = 0; i < uArray.length; i++)  for(int j = 0; j < uArray[i].length; j++)
-                avgPC[j] += uArray[i][j];
-            for(int j = 0; j < avgPC.length; j++)  avgPC[j] /= uArray.length; // to get avg
-            avgPrincComps.put(clusterID, avgPC);
-            System.err.println("cluster "+clusterID+" avg U: "+str(avgPC));
-            //WRONG!!!
-        }
-    }
-//}}}
-
-//{{{ doKin
-//##############################################################################
-    /** Prints data @dotlist and principal component @vectorlist for each cluster */
-    public void doKin()
-    {
-        String[] cols = new String[] {
-            "red", "orange", "gold", "yellow", "lime", "green", "sea", "cyan", 
-            "sky", "blue", "purple", "magenta", "hotpink", "pink", "peach", "lilac", 
-            "pinktint", "peachtint", "yellowtint", "greentint", "bluetint", 
-            "lilactint", "white", "gray", "brown", "deadwhite", "deadblack" };
-        
-        System.out.println("@master {data}");
-        System.out.println("@master {prncpl cmpnts}");
-        
-        ArrayList<Integer> ids = new ArrayList<Integer>();
-        for(Iterator iter = diffMatrices.keySet().iterator(); iter.hasNext(); )
-            ids.add( (Integer) iter.next() );
-        Collections.sort(ids);
-        
-        for(int x = 0; x < ids.size(); x++)
-        {
-            int id = ids.get(x);
-            String col = cols[id-1 % cols.length];
-            System.out.println("@group {cluster "+id+"} animate collapsable");
-            
-            double[][] data = ( (Matrix)dataMatrices.get(id) ).getArray();
-            double[][] diff = ( (Matrix)diffMatrices.get(id) ).getArray();
-            
-            System.out.println("@dotlist {data} color= "+col+" alpha= 0.5 width= 2 master= {data}");
-            for(int i = 0; i < data.length; i++)
-            {
-                // one data point from this cluster
-                System.out.println("{point "+str(data[i])+"} "+str2(data[i]));
-            }
-            
-            System.out.println("@arrowlist {-> nearest peak} color= "+col
-                +" alpha= 0.2 radius= 2.0 master= {-> nearest peak}");
-            double[] peak = null;
-            for(int i = 0; i < diff.length; i++)
-            {
-                if(peak == null)
-                {
-                    peak = new double[diff[i].length];
-                    for(int j = 0; j < diff[i].length; j++)  peak[j] = data[i][j] - diff[i][j];
-                }
-                System.out.println("{point "+str(data[i])+" pc??}P "+str2(peak));
-                System.out.println("{\"} "+str2(data[i]));
-            }
-            
-            
-            
-            //WRONG!!!
-            System.out.println("@arrowlist {PC??} color= "+col
-                +" alpha= 1.0 width= 3 radius= 2.0 master= {PCs}");
-            double[] avgPC = (double[]) avgPrincComps.get(id);
-            double[] peakPlusAvgPC = new double[avgPC.length];
-            for(int i = 0; i < peakPlusAvgPC.length; i++)
-                peakPlusAvgPC[i] = peak[i] + 2000*avgPC[i];
-            System.out.println("{cluster "+id+" PC??}P "+str2(peak));
-            System.out.println("{\"} "+str2(peakPlusAvgPC));
-            //WRONG!!!
-            
-            
-            
-        }//per rotamer cluster
-    }
-//}}}
-
-//{{{ distWithWrap, str[2]
-//##############################################################################
-    /** Returns signed (could be + or -) distance with smallest absolute value 
-    * from val to ref in just one dimension (i.e. one chi). 
-    * Handles wrapping if -wrap=.. flag provided by user
-    * @param val chi value of empirical observation point in question
-    * @param ref chi value of reference point, e.g. peak or hills point
-    * @param j   the index of the dimension of val & ref (typically chi+1)
+    /**
+    * Returns signed (could be + or -) displacement with smallest absolute 
+    * value from val to ref in just one dimension (i.e. one chi). 
+    * Handles wrapping if -wrap=.. flag provided by user (0-360 if not)
+    * @param val  chi value of empirical observation point in question
+    * @param ref  chi value of reference point, e.g. peak or hills point
+    * @param j    index of dimension of val & ref (typically chi-1)
     */
-    public double distWithWrap(double val, double ref, int j)
+    public double displacement(double val, double ref, int j)
     {
-        double d0 = val - ref; // 1 - 359 = -358  (just OK)
-        
-        double dw = Double.POSITIVE_INFINITY;
-        if(wrapBounds != null)
+        // Set wrapping if neither provided nor already defined
+        if(wrapBounds == null)
         {
-            double val_min = val + (wrapBounds[j+1] - wrapBounds[j]); // 1 ->  361
-            double dw_min  = val_min - ref;                        // useful:  361 - 359 =    2
-            
-            double val_max = val - (wrapBounds[j+1] - wrapBounds[j]); // 1 -> -361
-            double dw_max  = val_max - ref;                   // not so much: -361 - 359 = -720
-            
-            dw = (Math.abs(dw_min) < Math.abs(dw_max) ? dw_min : dw_max);
+            wrapBounds = new int[2*nChis];
+            for(int i = 0; i < nChis; i++)
+            {
+                wrapBounds[2*i]   =   0;
+                wrapBounds[2*i+1] = 360;
+            }
+            if(verbose)
+            {
+                String s = "Using default -wrapbounds=";
+                for(int i = 0; i < nChis; i++) s += wrapBounds[2*i]+","+wrapBounds[2*i+1]+",";
+                System.err.println(s.substring(0,s.length()-1));
+            }
         }
         
-        double d = (Math.abs(d0) < Math.abs(dw) ? d0 : dw);
-        return d;
+        double min = wrapBounds[2*j];
+        double max = wrapBounds[2*j+1];
+        double range = max - min;
+        
+        double valRange = val % range;
+        if(valRange < min) valRange += range; // to fall within e.g. 0-360
+        
+        double valBelow = valRange - range; // e.g. 2 -> -358
+        double valAbove = valRange + range; // e.g. 2 ->  362
+        
+        double disRange = valRange - ref; // e.g.    2 - 180 = -178  <- winner b/c abs(-178) lowest
+        double disBelow = valBelow - ref; // e.g. -358 - 180 = -538
+        double disAbove = valRange - ref; // e.g.  362 - 180 =  182
+        
+        double dis = disRange;
+        if(Math.abs(disBelow) < Math.abs(dis)) dis = disBelow;
+        if(Math.abs(disAbove) < Math.abs(dis)) dis = disAbove;
+        
+        //System.err.println(val+" is "+(dis>0?"+":"")+df.format(dis)+" away from "+ref+" in chi"+(j+1));
+        return dis;
     }
-    
-    /** Makes a comma+space-delimited, intra-parentheses string 
-    * out of an array of unknown dimension */
-    public String str(double[] a)
+//}}}
+
+//{{{ doPca
+//##############################################################################
+    /**
+    * Finds principal components for each rotamer.
+    */
+    public void doPca()
     {
-        String s = "(";
-        for(int i = 0; i < a.length-1; i++)  s += df.format(a[i]) + ", ";
-        s += df.format(a[a.length-1])+")";
-        return s;
+        TreeSet rotamers = new TreeSet<Integer>();
+        for(Iterator iter = data.keySet().iterator(); iter.hasNext(); )
+        {
+            double[] vals = (double[])iter.next();
+            int rotamer = (Integer)data.get(vals);
+            rotamers.add(rotamer);
+        }
+        
+        for(Iterator rItr = rotamers.iterator(); rItr.hasNext(); )
+        {
+            int rotamer = (Integer)rItr.next();
+            
+            double[][] xArray = buildX(rotamer);
+            //Matrix x = new Matrix(xArray);
+            //System.err.print("Input X matrix:");
+            //x.print(new PrintWriter(System.err, true), new DecimalFormat("#.####"), 1);
+            
+            averageDisplacements(rotamer, xArray);
+            
+            //// Do SVD:   X = USV^T   (S = sigma, V^T = V_transpose)
+            //SingularValueDecomposition svd = new SingularValueDecomposition(x);
+            //Matrix u = svd.getU(); // columns = principal componenents
+            //Matrix s = svd.getS(); // diagonal elements = singular values (weights)
+            //System.err.print("SVD output U Matrix:");
+            //u.print(new PrintWriter(System.err, true), new DecimalFormat("#.####"), 1);
+            //System.err.print("SVD output S matrix:");
+            //s.print(new PrintWriter(System.err, true), new DecimalFormat("#.####"), 1);
+            //
+            //System.err.println("MORE CODE HERE!!!");
+        }
     }
-    
-    /** Makes a space-delimited, parentheses-free string 
-    * out of an array of unknown dimension */
-    public String str2(double[] a)
+//}}}
+
+//{{{ buildX
+//##############################################################################
+    /**
+    * Portrays one rotamer's data points in the guise of an N x M (rows x columns) 2-D array
+    */
+    public double[][] buildX(int rotamer) 
     {
-        String s = "";
-        for(int i = 0; i < a.length-1; i++)  s += df.format(a[i]) + " ";
-        s += df.format(a[a.length-1]);
-        return s;
+        //if(verbose) System.err.println("Building X matrix for rotamer "+rotamer);
+        
+        // Get all data points assigned to this rotamer
+        ArrayList<double[]> inRot = new ArrayList<double[]>();
+        for(Iterator dItr = data.keySet().iterator(); dItr.hasNext(); )
+        {
+            double[] vals = (double[])dItr.next();
+            int r = (Integer)data.get(vals);
+            if(r == rotamer)  inRot.add(vals);
+        }
+        
+        int m = inRot.size(); // data points assigned to this rotamer
+        int n = nChis;        // dimensions i.e. chis
+        
+        if(verbose) System.err.print("Rotamer "+rotamer+": "+inRot.size()+" points");
+        
+        // Build X array
+        double[][] xArray = new double[n][m];
+        for(int i = 0; i < m; i++)
+        {
+            double[] vals = inRot.get(i);
+            for(int j = 0; j < n; j++)
+                xArray[j][i] = vals[j]; // j ~ n = rows = chis;  i ~ m = cols = points
+        }
+        
+        // Subtract peak (determined by Silk hill-climbing a priori)
+        double[] peak = peaks.get(rotamer);
+        for(int i = 0; i < m; i++)
+            for(int j = 0; j < n; j++)
+                xArray[j][i] = displacement(xArray[j][i], peak[j], j); // *not* abs val - wanna know directionality
+        
+        if(verbose) System.err.println(", peak: "+Strings.arrayInParens(peak));
+        
+        return xArray;
+    }
+//}}}
+
+//{{{ averageDisplacements
+//##############################################################################
+    /** Returns <code>nChis</code> displacement vectors for the specified rotamer */
+    public void averageDisplacements(int rotamer, double[][] x)
+    {
+        double[] peak = peaks.get(rotamer);
+        
+        // Which way do data samples in aggregate "point"?
+        ArrayList<double[]> dirVects = new ArrayList<double[]>();
+        double[] prevDirVect = null;
+        for(int d = 0; d < nChis; d++)
+        {
+            double[] dirVect = new double[nChis];
+            for(int i = 0; i < nChis; i++) dirVect[i] = 0;
+            
+            int samples = x[0].length;
+            int used = 0;
+            for(int j = 0; j < samples; j++)
+            {
+                double[] sample = new double[nChis];
+                for(int i = 0; i < nChis; i++) sample[i] = x[i][j];
+                
+                if(prevDirVect == null)
+                {
+                    for(int i = 0; i < nChis; i++)  dirVect[i] += sample[i]; // sum up
+                    used++;
+                }
+                else
+                {
+                    // ignore samples contributing strongly to the previous average displacement
+                    // so the next one will be in a significantly different direction
+                    if(!aligned(sample, prevDirVect))
+                    {
+                        for(int i = 0; i < nChis; i++)  dirVect[i] += sample[i]; // sum up
+                        used++;
+                    }
+                }
+            }
+            double frac = (1.0*used) / (1.0*samples);
+            System.err.println("Using "+used+"/"+samples+" = "+frac+" samples");
+            for(int i = 0; i < nChis; i++) dirVect[i] = dirVect[i] / used; // take avg
+            dirVects.add(dirVect);
+            prevDirVect = dirVect;
+            
+            System.out.println("@group {rot"+rotamer+" chi"+(d+1)+" "+frac+"} dominant animate");
+            System.out.println("@balllist {peak} radius= 2.0 color= pink master= {peak}");
+            System.out.println(Strings.kinPt(peak, false, "peak"));
+            
+            double[] tip = new double[nChis];
+            for(int i = 0; i < nChis; i++) tip[i] = peak[i] + dirVect[i];
+            System.out.println("@arrowlist {dir vect} width= 3 color= hotpink master= {dir vect}");
+            System.out.println(Strings.kinPt(peak, true , "peak"     ));
+            System.out.println(Strings.kinPt(tip , false, "direction"));
+        }
+    }
+//}}}
+
+//{{{ aligned
+//##############################################################################
+    /** ?????? */
+    public boolean aligned(double[] a, double[] b)
+    {
+        // ???
+        //final double dpCutoff = Math.cos(0.52); // ~30 deg - mark as aligned FEWER points
+        final double dpCutoff = Math.cos(0.78); // ~45 deg
+        //final double dpCutoff = Math.cos(1.05); // ~60 deg - mark as aligned MORE points
+        // ???
+        
+        // Normalize to unit vectors
+        double aMag = 0;
+        double bMag = 0;
+        for(int i = 0; i < nChis; i++) aMag += a[i]*a[i];
+        for(int i = 0; i < nChis; i++) bMag += b[i]*b[i];
+        aMag = Math.sqrt(aMag);
+        bMag = Math.sqrt(bMag);
+        if(aMag != 0.0) for(int i = 0; i < nChis; i++) a[i] /= aMag;
+        if(bMag != 0.0) for(int i = 0; i < nChis; i++) b[i] /= bMag;
+        
+        // Dot product
+        double dp = 0;
+        for(int i = 0; i < nChis; i++) dp += a[i] * b[i];
+        if(dp > dpCutoff) return false;
+        return true;
     }
 //}}}
 
@@ -447,23 +444,18 @@ public class RotamerPCA //extends ... implements ...
     */
     public void Main() throws IOException
     {
-        if(rawFile == null || hillsFile == null)
+        if(rawFile == null || hillsFile == null || peaksFile == null)
         {
-            System.err.println("*** Need both (1) raw srcdata .csv and (2) .hillmodes as input!");
-            System.err.println("*** Quitting...");
-            System.exit(0);
+            showHelp(true);
+            return;
         }
-        
         try
         {
             loadData();
-            fillMatrices();
-            doSVD();
-            doKin();
+            doPca();
         }
         catch (IOException ioe)
         { System.err.println("*** Can't find 1 or more of the input files!"); }
-        
         System.err.println(".. done");
     }
 
@@ -550,7 +542,7 @@ public class RotamerPCA //extends ... implements ...
         {
             InputStream is = getClass().getResourceAsStream("RotamerPCA.help");
             if(is == null)
-                System.err.println("\n*** Usage: java RotamerPCA srcdata.cdf whichhill.snglspc ***\n");
+                System.err.println("\n*** Usage: java RotamerPCA  srcdata.csv  hills.spc  peaks.spc ***\n");
             else
             {
                 try { streamcopy(is, System.out); }
@@ -575,8 +567,9 @@ public class RotamerPCA //extends ... implements ...
     void interpretArg(String arg)
     {
         // Handle files, etc. here
-        if(rawFile == null)        rawFile   = new File(arg);
-        else if(hillsFile == null) hillsFile = new File(arg);
+        if     (rawFile   == null)  rawFile   = new File(arg);
+        else if(hillsFile == null)  hillsFile = new File(arg);
+        else if(peaksFile == null)  peaksFile = new File(arg);
         else throw new IllegalArgumentException("Too many file names: "+arg);
     }
     
@@ -588,6 +581,10 @@ public class RotamerPCA //extends ... implements ...
             {
                 showHelp(true);
                 System.exit(0);
+            }
+            else if(flag.equals("-verbose") || flag.equals("-v"))
+            {
+                verbose = true;
             }
             else if(flag.equals("-wrap") || flag.equals("-wrapbounds"))
             {
@@ -604,13 +601,12 @@ public class RotamerPCA //extends ... implements ...
                 }
                 wrapBounds = new int[parts.length];
                 try
-                { for(int i = 0; i < parts.length; i++) wrapBounds[i] = Integer.parseInt(parts[i]); }
+                {
+                    for(int i = 0; i < parts.length; i++)
+                        wrapBounds[i] = Integer.parseInt(parts[i]);
+                }
                 catch (NumberFormatException nfe) 
                 { System.err.println("Can't parse -wrap="+param+" as integers!"); }
-            }
-            else if(flag.equals("-verbose") || flag.equals("-v"))
-            {
-                verbose = true;
             }
             else if(flag.equals("-dummy_option"))
             {
