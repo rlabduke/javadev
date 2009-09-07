@@ -141,7 +141,7 @@ public class DisulfideParameterer //extends ... implements ...
 //##############################################################################
     /** Calculates how far along the sequence a pair of residues is. 
     * Does NOT account for insertion codes and pretends gaps are ordered!
-    * Basically just takes resnum / (highest_resnum - lowest_resnum). */
+    * Simply (resnum - lowest_resnum) / (highest_resnum - lowest_resnum) */
     public double[] calcSeqFracs(Model m, Residue r1, Residue r2)
     {
         double[] seqFracs = new double[] { Double.NaN, Double.NaN };
@@ -165,8 +165,8 @@ public class DisulfideParameterer //extends ... implements ...
         }
         int range = max - min;
         
-        seqFracs[0] = (1.0*r1.getSequenceInteger()) / (1.0*range);
-        seqFracs[1] = (1.0*r2.getSequenceInteger()) / (1.0*range);
+        seqFracs[0] = (1.0*(r1.getSequenceInteger()-min)) / (1.0*range);
+        seqFracs[1] = (1.0*(r2.getSequenceInteger()-min)) / (1.0*range);
         return seqFracs;
     }
 //}}}
