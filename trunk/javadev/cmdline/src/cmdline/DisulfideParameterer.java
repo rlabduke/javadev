@@ -68,30 +68,30 @@ public class DisulfideParameterer //extends ... implements ...
         {
             System.err.println("*** Couldn't find res1 CNIT '"+disulfide.getInitChainId()
                 +disulfide.getInitSeqNum()+disulfide.getInitICode()+"CYS'!");
-            //System.out.print("__?__,"+endRes);
-            //for(int i = 0; i < 17; i++) System.out.print(",__?__");
-            //System.out.println();
             return;
         }
         if(endRes == null)
         {
             System.err.println("*** Couldn't find res2 CNIT '"+disulfide.getEndChainId()
                 +disulfide.getEndSeqNum()+disulfide.getEndICode()+"CYS'!");
-            //System.out.print(initRes+",__?__");
-            //for(int i = 0; i < 17; i++) System.out.print(",__?__");
-            //System.out.println();
             return;
         }
         if(verbose) System.err.println("Found "+initRes+" :: "+endRes);
         
-        // Output parameters
-        double[] angles = calcDisulfAngles(model, initRes, endRes);
-        double[] params = calcDisulfParams(model, initRes, endRes);
-        int seqDif = calcSeqDif(model, initRes, endRes);
-        DecimalFormat df = new DecimalFormat("0.000");
+        // Output stats
+        String   altconf  = getAltConf(model, initRes, endRes);
+        int      seqDif   = endRes.getSequenceInteger() - initRes.getSequenceInteger();
+        double[] seqFracs = calcSeqFracs(model, initRes, endRes);
+        double[] angles   = calcChis(model, initRes, endRes);
+        double[] params   = calcParams(model, initRes, endRes);
         
-        System.out.print(initRes+","+endRes+
-            ","+(seqDif == Integer.MAX_VALUE ? "__?__" : seqDif));
+        DecimalFormat df = new DecimalFormat("0.000");
+        System.out.print(altconf+","
+            +initRes.getChain()+","+initRes.getSequenceInteger()+","+initRes.getInsertionCode()+",CYS,"
+            +endRes.getChain() +","+ endRes.getSequenceInteger()+","+ endRes.getInsertionCode()+",CYS,"
+            +(seqDif == Integer.MAX_VALUE ? "__?__" : seqDif));
+        for(int i = 0; i < seqFracs.length; i++) System.out.print(
+            ","+(Double.isNaN(seqFracs[i]) ? "__?__" : df.format(seqFracs[i])));
         for(int i = 0; i < angles.length; i++) System.out.print(
             ","+(Double.isNaN(angles[i]) ? "__?__" : df.format(angles[i])));
         for(int i = 0; i < params.length; i++) System.out.print(
@@ -100,69 +100,123 @@ public class DisulfideParameterer //extends ... implements ...
     }
 //}}}
 
-//{{{ calcDisulfAngles
+//{{{ getAltConf
 //##############################################################################
-    /** Calculates phi, psi, chi1, chi2, chi3, chi2', chi1', phi', and psi' for
-    * the given pair of residues comprising a disulfide. 
+    /** If any atom in either of the provided residues has an alternate 
+    * conformation ID other than " ", that is immediately returned. 
+    * So I guess this doesn't guarantee there aren't two alts involved! */
+    public String getAltConf(Model m, Residue r1, Residue r2)
+    {
+        String alt1 = getResidueAltConf(m, r1);
+        String alt2 = getResidueAltConf(m, r2);
+        
+        if(!alt1.equals(" ")) return alt1;
+        if(!alt2.equals(" ")) return alt2;
+        return " ";
+    }
+    
+    public String getResidueAltConf(Model m, Residue r)
+    {
+        ModelState ms = m.getState();
+        for(Iterator aItr = r.getAtoms().iterator(); aItr.hasNext(); )
+        {
+            Atom a = (Atom) aItr.next();
+            if(a != null)
+            {
+                try
+                {
+                    AtomState as = ms.get(a);
+                    String alt = as.getAltConf();
+                    if(!alt.equals(" ")) return alt;
+                }
+                catch(AtomException ex)
+                { System.err.println("*** Error getting alt conf for "+r+"!"); }
+            }
+        }
+        return " ";
+    }
+//}}}
+
+//{{{ calcSeqFracs
+//##############################################################################
+    /** Calculates how far along the sequence a pair of residues is. 
+    * Does NOT account for insertion codes and pretends gaps are ordered!
+    * Basically just takes resnum / (highest_resnum - lowest_resnum). */
+    public double[] calcSeqFracs(Model m, Residue r1, Residue r2)
+    {
+        double[] seqFracs = new double[] { Double.NaN, Double.NaN };
+        
+        if(!r1.getChain().equals(r2.getChain())) return seqFracs;
+        
+        TreeSet<Integer> resnums = new TreeSet<Integer>();
+        for(Iterator mItr = m.getResidues().iterator(); mItr.hasNext(); )
+        {
+            Residue r = (Residue) mItr.next();
+            if(r != null) resnums.add(r.getSequenceInteger());
+        }
+        
+        int min = Integer.MAX_VALUE;
+        int max = Integer.MIN_VALUE;
+        for(Iterator rnItr = resnums.iterator(); rnItr.hasNext(); )
+        {
+            int resnum = (Integer) rnItr.next();
+            if(resnum < min) min = resnum;
+            if(resnum > max) max = resnum;
+        }
+        int range = max - min;
+        
+        seqFracs[0] = (1.0*r1.getSequenceInteger()) / (1.0*range);
+        seqFracs[1] = (1.0*r2.getSequenceInteger()) / (1.0*range);
+        return seqFracs;
+    }
+//}}}
+
+//{{{ calcChis
+//##############################################################################
+    /** Calculates chi2, chi3, and chi2' the given pair of residues comprising a 
+    * disulfide.  Phis, psis, and chi1s can be attained elsewhere - I didn't 
+    * want to handle all possible missing atoms here.
     * Ideally I would like to have put this functionality in Dangle, but the 
     * problem is that Dangle deals with fixed i to i+n measurements the same way 
     * across the structure, whereas for disulfides long-range i to i+n measurements 
     * must be made individually or "ad hoc," so this probably works better. */
-    public double[] calcDisulfAngles(Model m, Residue r1, Residue r2)
+    public double[] calcChis(Model m, Residue r1, Residue r2)
     {
-        Residue res0  = r1.getPrev(m);
-        Residue res1  = r1;
-        Residue res2  = r1.getNext(m);
+        double[] angles = new double[3];
+        for(int i = 0; i < angles.length; i++) angles[i] = Double.NaN;
         
-        Residue resN0 = r2.getPrev(m);
+        Residue res1  = r1;
         Residue resN  = r2;
-        Residue resN1 = r2.getNext(m);
         
         ModelState ms = m.getState();
         try
         {
-            Triple c0   = new Triple(ms.get(res0.getAtom(" C  ")));
-            Triple n1   = new Triple(ms.get(res1.getAtom(" N  ")));
             Triple ca1  = new Triple(ms.get(res1.getAtom(" CA ")));
-            Triple c1   = new Triple(ms.get(res1.getAtom(" C  ")));
-            Triple n2   = new Triple(ms.get(res2.getAtom(" N  ")));
-            
             Triple cb1  = new Triple(ms.get(res1.getAtom(" CB ")));
             Triple sg1  = new Triple(ms.get(res1.getAtom(" SG ")));
             Triple sgN  = new Triple(ms.get(resN.getAtom(" SG ")));
             Triple cbN  = new Triple(ms.get(resN.getAtom(" CB ")));
-            
-            Triple cN0  = new Triple(ms.get(resN0.getAtom(" C  ")));
-            Triple nN   = new Triple(ms.get(resN.getAtom(" N  ")));
             Triple caN  = new Triple(ms.get(resN.getAtom(" CA ")));
-            Triple cN   = new Triple(ms.get(resN.getAtom(" C  ")));
-            Triple nN1  = new Triple(ms.get(resN1.getAtom(" N  ")));
             
-            double[] angles = new double[9];
-            for(int i = 0; i < angles.length; i++) angles[i] = Double.NaN;
-            angles[0] = Triple.dihedral(c0, n1, ca1, c1);    // phi
-            angles[1] = Triple.dihedral(n1, ca1, c1, n2);    // psi
-            angles[2] = Triple.dihedral(n1, ca1, cb1, sg1);    // chi1
-            angles[3] = Triple.dihedral(ca1, cb1, sg1, sgN);   // chi2
-            angles[4] = Triple.dihedral(cb1, sg1, sgN, cbN);   // chi3
-            angles[5] = Triple.dihedral(sg1, sgN, cbN, caN);   // chi2'
-            angles[6] = Triple.dihedral(sgN, cbN, caN, nN);    // chi1'
-            angles[7] = Triple.dihedral(cN0, nN, caN, cN);   // phi'
-            angles[8] = Triple.dihedral(nN, caN, cN, nN1);   // psi'
-            return angles;
+            angles[0] = Triple.dihedral(ca1, cb1, sg1, sgN);   // chi2
+            angles[1] = Triple.dihedral(cb1, sg1, sgN, cbN);   // chi3
+            angles[2] = Triple.dihedral(sg1, sgN, cbN, caN);   // chi2'
         }
         catch(AtomException ex)
-        { System.err.println("*** Error calculating 7 parameters for "+r1+" :: "+r2+"!"); }
-        return null;
+        { System.err.println("*** Error calculating chi2, chi3, chi2' for "+r1+" :: "+r2+"!"); }
+        return angles;
     }
 //}}}
 
-//{{{ calcDisulfParams
+//{{{ calcParams
 //##############################################################################
     /** Calculates seven loop/fragment parameters that relate the two residues
     * flanking a disulfide in 3D space.  Re-implements some jiffiloop code. */
-    public double[] calcDisulfParams(Model m, Residue r1, Residue r2)
+    public double[] calcParams(Model m, Residue r1, Residue r2)
     {
+        double[] params = new double[7];
+        for(int i = 0; i < params.length; i++) params[i] = Double.NaN;
+        
         // Setup taken from jiffiloop.ProteinGap.  Residue first in sequence 
         // is analogous to VBC's residues 0 & 1 (before gap in sequence).
         Residue res0  = r1.getPrev(m);
@@ -170,69 +224,130 @@ public class DisulfideParameterer //extends ... implements ...
         Residue resN  = r2;
         Residue resN1 = r2.getNext(m);
         
-        ModelState ms = m.getState();
-        try
+        if(res0 != null && resN1 != null)
         {
-            Triple ca0  = new Triple(ms.get(res0.getAtom(" CA ")));
-            Triple ca1  = new Triple(ms.get(res1.getAtom(" CA ")));
-            Triple caN  = new Triple(ms.get(resN.getAtom(" CA ")));
-            Triple caN1 = new Triple(ms.get(resN1.getAtom(" CA ")));
-            Triple co0  = new Triple(ms.get(res0.getAtom(" O  ")));
-            Triple coN  = new Triple(ms.get(resN.getAtom(" O  ")));
-            Triple cb1  = new Triple(ms.get(res1.getAtom(" CB ")));
-            Triple cbN  = new Triple(ms.get(resN.getAtom(" CB ")));
-            
-            // Parameter calculation taken from jiffiloop.Framer.
-            double[] params = new double[7];
-            for(int i = 0; i < params.length; i++) params[i] = Double.NaN;
-            params[0] = cb1.distance(cbN); // only one VBC doesn't use
-            params[1] = ca1.distance(caN);
-            params[2] = Triple.angle(ca0, ca1, caN);
-            params[3] = Triple.angle(ca1, caN, caN1);
-            params[4] = Triple.dihedral(co0, ca0, ca1, caN);
-            params[5] = Triple.dihedral(ca0, ca1, caN, caN1);
-            params[6] = Triple.dihedral(ca1, caN, caN1, coN);
-            return params;
+            ModelState ms = m.getState();
+            try
+            {
+                Triple ca0  = new Triple(ms.get(res0.getAtom(" CA ")));
+                Triple ca1  = new Triple(ms.get(res1.getAtom(" CA ")));
+                Triple caN  = new Triple(ms.get(resN.getAtom(" CA ")));
+                Triple caN1 = new Triple(ms.get(resN1.getAtom(" CA ")));
+                Triple co0  = new Triple(ms.get(res0.getAtom(" O  ")));
+                Triple coN  = new Triple(ms.get(resN.getAtom(" O  ")));
+                Triple cb1  = new Triple(ms.get(res1.getAtom(" CB ")));
+                Triple cbN  = new Triple(ms.get(resN.getAtom(" CB ")));
+                
+                // Parameter calculation taken from jiffiloop.Framer.
+                params[0] = cb1.distance(cbN); // only one VBC doesn't use
+                params[1] = ca1.distance(caN);
+                params[2] = Triple.angle(ca0, ca1, caN);
+                params[3] = Triple.angle(ca1, caN, caN1);
+                params[4] = Triple.dihedral(co0, ca0, ca1, caN);
+                params[5] = Triple.dihedral(ca0, ca1, caN, caN1);
+                params[6] = Triple.dihedral(ca1, caN, caN1, coN);
+            }
+            catch(AtomException ex)
+            { System.err.println("*** Error calculating 7 parameters for "+r1+" :: "+r2+"!"); }
         }
-        catch(AtomException ex)
-        { System.err.println("*** Error calculating 7 parameters for "+r1+" :: "+r2+"!"); }
-        return null;
+        return params;
     }
 //}}}
 
-//{{{ calcSeqDif
+//{{{ [old calcSeqDif]
 //##############################################################################
-    /** Calculates signed sequence separation of two residues. 
-    * Takes insertion codes and chain IDs into account by using Model 
-    * connectivity instead of simple difference in integer residue numbers. */
-    public int calcSeqDif(Model m, Residue r1, Residue r2)
-    {
-        // Residue.getNext(Model) takes chain IDs into account anyway, but 
-        // why waste time iterating for inter-chain SSs if we don't need to?
-        if(!r1.getChain().equals(r2.getChain())) return Integer.MAX_VALUE;
-        
-        // return r2.getSequenceInteger()-r1.getSequenceInteger();
-        // This ^ would be the easy way, but...
-        
-        // Try C-ward
-        Residue r = r1;
-        int seqDif = 0;
-        while((r = r.getNext(m)) != null)
-        {
-            seqDif++;
-            if(r.getCNIT().equals(r2.getCNIT())) return seqDif;
-        }
-        // Try N-ward
-        r = r1;
-        seqDif = 0;
-        while((r = r.getPrev(m)) != null)
-        {
-            seqDif--;
-            if(r.getCNIT().equals(r2.getCNIT())) return seqDif;
-        }
-        // Something's wrong...
-        return Integer.MAX_VALUE;
-    }
+//    /** Calculates signed sequence separation of two residues. 
+//    * Takes insertion codes and chain IDs into account by using Model 
+//    * connectivity instead of simple difference in integer residue numbers. */
+//    public int calcSeqDif(Model m, Residue r1, Residue r2)
+//    {
+//        // Residue.getNext(Model) takes chain IDs into account anyway, but 
+//        // why waste time iterating for inter-chain SSs if we don't need to?
+//        if(!r1.getChain().equals(r2.getChain())) return Integer.MAX_VALUE;
+//        
+//        // return r2.getSequenceInteger()-r1.getSequenceInteger();
+//        // This ^ would be the easy way, but...
+//        
+//        // Try C-ward
+//        Residue r = r1;
+//        int seqDif = 0;
+//        while((r = r.getNext(m)) != null)
+//        {
+//            seqDif++;
+//            if(r.getCNIT().equals(r2.getCNIT())) return seqDif;
+//        }
+//        // Try N-ward
+//        r = r1;
+//        seqDif = 0;
+//        while((r = r.getPrev(m)) != null)
+//        {
+//            seqDif--;
+//            if(r.getCNIT().equals(r2.getCNIT())) return seqDif;
+//        }
+//        // Something's wrong...
+//        return Integer.MAX_VALUE;
+//    }
+//}}}
+
+//{{{ [old 9D calcDisulfAngles]
+//##############################################################################
+//    /** Calculates phi, psi, chi1, chi2, chi3, chi2', chi1', phi', and psi' for
+//    * the given pair of residues comprising a disulfide.
+//    * If any of the necessary atoms is missing, the whole thing fails!
+//    * Ideally I would like to have put this functionality in Dangle, but the 
+//    * problem is that Dangle deals with fixed i to i+n measurements the same way 
+//    * across the structure, whereas for disulfides long-range i to i+n measurements 
+//    * must be made individually or "ad hoc," so this probably works better. */
+//    public double[] calcDisulfAngles(Model m, Residue r1, Residue r2)
+//    {
+//        double[] angles = new double[9];
+//        for(int i = 0; i < angles.length; i++) angles[i] = Double.NaN;
+//        
+//        Residue res0  = r1.getPrev(m);
+//        Residue res1  = r1;
+//        Residue res2  = r1.getNext(m);
+//        
+//        Residue resN0 = r2.getPrev(m);
+//        Residue resN  = r2;
+//        Residue resN1 = r2.getNext(m);
+//        
+//        if(res0 != null && res2 != null && resN0 != null && resN1 != null)
+//        {
+//            ModelState ms = m.getState();
+//            try
+//            {
+//                Triple c0   = new Triple(ms.get(res0.getAtom(" C  ")));
+//                Triple n1   = new Triple(ms.get(res1.getAtom(" N  ")));
+//                Triple ca1  = new Triple(ms.get(res1.getAtom(" CA ")));
+//                Triple c1   = new Triple(ms.get(res1.getAtom(" C  ")));
+//                Triple n2   = new Triple(ms.get(res2.getAtom(" N  ")));
+//                
+//                Triple cb1  = new Triple(ms.get(res1.getAtom(" CB ")));
+//                Triple sg1  = new Triple(ms.get(res1.getAtom(" SG ")));
+//                Triple sgN  = new Triple(ms.get(resN.getAtom(" SG ")));
+//                Triple cbN  = new Triple(ms.get(resN.getAtom(" CB ")));
+//                
+//                Triple cN0  = new Triple(ms.get(resN0.getAtom(" C  ")));
+//                Triple nN   = new Triple(ms.get(resN.getAtom(" N  ")));
+//                Triple caN  = new Triple(ms.get(resN.getAtom(" CA ")));
+//                Triple cN   = new Triple(ms.get(resN.getAtom(" C  ")));
+//                Triple nN1  = new Triple(ms.get(resN1.getAtom(" N  ")));
+//                
+//                angles[0] = Triple.dihedral(c0, n1, ca1, c1);    // phi
+//                angles[1] = Triple.dihedral(n1, ca1, c1, n2);    // psi
+//                angles[2] = Triple.dihedral(n1, ca1, cb1, sg1);    // chi1
+//                angles[3] = Triple.dihedral(ca1, cb1, sg1, sgN);   // chi2
+//                angles[4] = Triple.dihedral(cb1, sg1, sgN, cbN);   // chi3
+//                angles[5] = Triple.dihedral(sg1, sgN, cbN, caN);   // chi2'
+//                angles[6] = Triple.dihedral(sgN, cbN, caN, nN);    // chi1'
+//                angles[7] = Triple.dihedral(cN0, nN, caN, cN);   // phi'
+//                angles[8] = Triple.dihedral(nN, caN, cN, nN1);   // psi'
+//            }
+//            catch(AtomException ex)
+//            { System.err.println("*** Error calculating phis & chis for "+r1+" :: "+r2+"!"); }
+//        }
+//        return angles;
+//    }
 //}}}
 
 //{{{ Main, main
@@ -245,9 +360,8 @@ public class DisulfideParameterer //extends ... implements ...
         PdbReader reader = new PdbReader();
         CoordinateFile structure = reader.read(file);
         
-        System.out.println("res1,res2,seqdif,"
-            +"phi,psi,chi1,chi2,chi3,chi2p,chi1p,phip,psip,"
-            +"cb1--cbN,ca1--caN,ca0-ca1-caN,ca1-caN-caN1,"
+        System.out.println("alt,chain1,resnum1,inscode1,restype1,chain2,resnum2,inscode2,restype2,"
+            +"seqdif,seqfrac1,seqfrac2,chi2,chi3,chi2p,cb1--cbN,ca1--caN,ca0-ca1-caN,ca1-caN-caN1,"
             +"co0-ca0-ca1-caN,ca0-ca1-caN-caN1,ca1-caN-caN1-coN");
         
         Disulfides disulfides = structure.getDisulfides();
