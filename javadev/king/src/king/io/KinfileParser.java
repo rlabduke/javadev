@@ -323,6 +323,10 @@ public class KinfileParser //extends ... implements ...
                     if(token.isInteger()) groupDimension = token.getInt();
                     else error(s+" was not followed by an integer");
                 }
+                else if(s.equals("moview=")) {
+                  if(token.isInteger())   group.setMoview(token.getInt());
+                  else error(s+" was not followed by an integer");
+                }
                 else error("Unrecognized property '"+s+" "+token.getString()+"' will be ignored");
                 token.advance(); // past value
             }
@@ -444,7 +448,8 @@ public class KinfileParser //extends ... implements ...
         token.advance();
         // Entire @list must be on a single line and may be terminated by the first point ID
         boolean listIdFound = false;
-        while(!token.isEOF() && !token.isKeyword() && (!token.isIdentifier() || !listIdFound) && !token.isBOL())
+        boolean numberFound = false;
+        while(!token.isEOF() && !token.isKeyword() && (!token.isIdentifier() || !listIdFound) && !token.isBOL() && !numberFound)
         {
             if(token.isIdentifier())
             {
@@ -566,7 +571,11 @@ public class KinfileParser //extends ... implements ...
                 else error("Unrecognized property '"+s+" "+token.getString()+"' will be ignored");
                 token.advance(); // past value
             }
-            else { error("Unrecognized token '"+token.getString()+"' will be ignored"); token.advance(); }
+            else if (token.isNumber()) {
+              error("Lone number list token without property detected; switching to points");
+              numberFound = true;
+            }
+            else { error("Unrecognized list token '"+token.getString()+"' will be ignored"); token.advance(); }
         }
         // Done last, after we have our final name
         listsByName.put(list.getName(), list);

@@ -21,6 +21,7 @@ public class KGroup extends AGE<AGE,AGE> implements Cloneable
 {
 //{{{ Variable definitions
 //##################################################################################################
+protected int moview = 0;
 //}}}
 
 //{{{ Constructor(s)
@@ -110,6 +111,21 @@ public class KGroup extends AGE<AGE,AGE> implements Cloneable
         if(flags != oldFlags) fireKinChanged(CHANGE_TREE_PROPERTIES);
     }
 //}}}
+
+  //{{{ is/setMoview
+  /** Checks to see if this group has a moview **/
+  public boolean isMoview() {
+    return (moview > 0);
+  }
+  /** Sets a moview for this group.  Should also have animate set, and be greater than 0 **/
+  public void setMoview(int i) {
+    moview = i;
+  }
+  
+  public int getMoview() {
+    return moview;
+  }
+  //}}}
 
 //{{{ empty_code_segment
 //##################################################################################################

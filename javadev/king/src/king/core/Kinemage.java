@@ -487,8 +487,25 @@ public class Kinemage extends AGE<Kinemage,KGroup> // implements ...
         if(turnOn < 0) turnOn = ages.length-1;
         else if(turnOn >= ages.length) turnOn = 0;
         
-        for(int i = 0; i < ages.length; i++)
+        for(int i = 0; i < ages.length; i++) {
             ages[i].setOn(i == turnOn);
+            // for doing moviews
+            if ((i == turnOn)&&(((KGroup)ages[i]).isMoview())) {
+              KView view = getViewList().get(((KGroup)ages[i]).getMoview() - 1);
+              String currViewKey = null;
+              for (Map.Entry e : metadata.entrySet()) {
+                if (e.getValue() instanceof KView) {
+                  currViewKey = (String)e.getKey();
+                }
+              }
+              if ((currViewKey != null)&&(view != null)) {
+                metadata.put(currViewKey, view.clone());
+                view.activateViewingAxes();
+                fireKinChanged(CHANGE_KIN_METADATA);
+                fireKinChanged(CHANGE_VIEW_TRANSFORM);
+              }
+            }
+        }
         
         for(int i = 0; i < offages.length; i++)
             offages[i].setOn(false);
