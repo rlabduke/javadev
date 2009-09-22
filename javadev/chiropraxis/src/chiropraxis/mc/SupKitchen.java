@@ -375,8 +375,8 @@ public class SupKitchen //extends ... implements ...
     * removed to avoid double-counting.  Important when ref was chosen ad hoc.
     * Assumes that if all atoms in <code>m</code> can find some atom in <code>r</code>
     * with exactly the same coordinates, <code>m</code> and <code>r</code> are the same.
-    * @param  m - model
-    * @param  r - ref
+    * @param mdl is the model
+    * @param ref is the reference structure
     */
     public boolean refDupl(Model mdl, Model ref)
     {
