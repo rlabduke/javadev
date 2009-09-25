@@ -9,9 +9,8 @@ import driftwood.moldb2.*;
 import driftwood.r3.*;
 import driftwood.parser.*;
 //}}}
-
 /**
-* <code>GeomKinMaker</code> takes input from geometry deviation information from 
+* <code>GeomKinSmith</code> takes input from geometry deviation information from 
 * Dangle and makes nice visualizations in kinemage form of said deviations.
 */
 public class GeomKinSmith //extends ... implements ...
@@ -20,155 +19,75 @@ public class GeomKinSmith //extends ... implements ...
 //##############################################################################
     final DecimalFormat df1 = new DecimalFormat("0.##");
     final DecimalFormat df2 = new DecimalFormat("#.###");
+    final DecimalFormat df3 = new DecimalFormat("#.##");
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    ArrayList<String> distList, angList;  
-        // each String entry in the AL is a kinemage-format balllist point or 
-        // vectorlist point for the current model in coords
+    /** Kinemage @balllist, @vectorlist, or point Strings for the current model */
+    ArrayList<String> lengths, angles, cbdevs; //, pperps;
     Measurement[] meas;
     String label;
     CoordinateFile coords;
-    boolean doDistDevsKin;
-    boolean doAngleDevsKin;
-    boolean doKinHeadings;
-    double sigmaCutoff;
-    File kinout;
-    boolean subgroupNotGroup;
+    boolean subgroup; // @subgroup as opposed to @group
     boolean doHets;
-    boolean ignoreDNA;
-    boolean ignoreRNA;
-    ArrayList<Integer> resnums;
-    int[] resrange;
+    double sigmaCutoff;
+    TreeSet resnums;
 //}}}
 
 //{{{ Constructor
 //##############################################################################
-    public GeomKinSmith(ArrayList<Measurement> m, String l, CoordinateFile c, boolean dist, boolean ang, boolean head, double sc, boolean sgng, boolean dh, boolean id, boolean ir, ArrayList<Integer> rn, int[] rr)
+    public GeomKinSmith(String l, CoordinateFile c, ArrayList<Measurement> m, double sc, boolean sg, boolean dh, TreeSet<Integer> rn)
     {
-        meas = (Measurement[]) m.toArray(new Measurement[m.size()]);
         label = l;
         coords = c;
-        doDistDevsKin = dist;
-        doAngleDevsKin = ang;
-        doKinHeadings = head;
+        meas = (Measurement[]) m.toArray(new Measurement[m.size()]);
         sigmaCutoff = sc;
-        subgroupNotGroup = sgng;
+        subgroup = sg;
         doHets = dh;
-        ignoreDNA = id;
-        ignoreRNA = ir;
         resnums = rn;
-        resrange = rr;
     }
 //}}}
 
 //{{{ makeKin
 //##############################################################################
+    /**
+    * Look through models in <code>coords</code>.  For each residue that is a
+    * bond length length or angle outlier, add a visualization in the form of 
+    * kinemage points to the proper global ArrayList.
+    */
     public void makeKin()
     {
-        //System.out.println(doHets);
-        
-        // Look thru models -> residues for this CoordinateFile (from one pdb).
-        // For each residue that is a(n) dist or angle outlier, add a 
-        // geom outlier viz to the proper ArrayList of geom dev viz's for the
-        // current model
         for(Iterator models = coords.getModels().iterator(); models.hasNext(); )
         {
             Model model = (Model) models.next();
             ModelState state = model.getState();
             
-            distList  = new ArrayList<String>();
-            angList   = new ArrayList<String>();
+            lengths = new ArrayList<String>();
+            angles  = new ArrayList<String>();
+            cbdevs  = new ArrayList<String>();
             
             for(Iterator residues = model.getResidues().iterator(); residues.hasNext(); )
             {
                 Residue res = (Residue) residues.next();
-                int resnum = res.getSequenceInteger();
-                if((resnums  == null && resrange == null)
-                || (resnums  != null && resnums.contains(resnum))
-                || (resrange != null && resrange[0] <= resnum && resrange[1] >= resnum) )
+                if(resnums == null || resnums.contains(res.getSequenceInteger()))
                 {
                     boolean print = true;
-                    if(Dangle.isNucAcid(res))
-                    {
-                        if     (Dangle.isRNA(model, state, res) && ignoreRNA)  print = false;
-                        else if(Dangle.isDNA(model, state, res) && ignoreDNA)  print = false;
-                    }
                     if(print)
                     {
                         for(int i = 0; i < meas.length; i++)
                         {
-                            // See if this Measurement is a Group of potentially interesting 
-                            // Measurements, or just a regualar individual Measurement
-                            Measurement.Group potentiallyAGroup = null;
-                            try { potentiallyAGroup = (Measurement.Group) meas[i]; }
-                            catch (java.lang.ClassCastException cce) { ; }
-                            
-                            //{{{ output if Group
-                            
-                            if (potentiallyAGroup != null) // then meas[i] is a Measurement.Group 
-                                                           // (subclass of Measurement)
+                            if(meas[i] instanceof Measurement.Group)
                             {
-                                boolean doneWithGroup = false;
-                                
-                                Measurement.Group temp = (Measurement.Group) meas[i];
-                                ArrayList<Measurement> measAL = ( ArrayList<Measurement> ) temp.group; // variable in Group
-                                
-                                for (Measurement m : measAL)
-                                {
-                                    double val = m.measure(model, state, res, doHets);
-                                    double dev = m.getDeviation();
-                                    double ideal = m.mean;
-                                    if(!Double.isNaN(val) && !doneWithGroup)
-                                    {
-                                        // We've found the valid Measurement in this Group
-                                        doneWithGroup = true;
-                                        
-                                        if (!Double.isNaN(dev) && Math.abs(dev) >= sigmaCutoff)
-                                        {
-                                            if(m.getType().equals("distance"))
-                                            {
-                                                //System.out.println(res.toString()+" "+m.toString()+
-                                                //    " "+val+" "+dev);
-                                                
-                                                distImpl(m, model, state, res, val, ideal, dev);
-                                            }
-                                            if(m.getType().equals("angle"))
-                                            {
-                                                angleImpl(m, model, state, res, val, ideal);
-                                            }
-                                        }
-                                    }
-                                }
+                                Measurement.Group measurement = (Measurement.Group) meas[i];
+                                groupOutput(model, state, res, measurement);
                             }
-                            //}}}
-                            
-                            //{{{ output otherwise
-                            else // meas[i] is NOT a Measurement.Group; probably a 
-                                 // regular Measurement.Distance or Measurement.Angle
+                            else // Measurement.Distance, Measurement.Angle, etc.
                             {
-                                double val = meas[i].measure(model, state, res, doHets);
-                                double dev = meas[i].getDeviation();
-                                double ideal = meas[i].mean;
-                                
-                                if(!Double.isNaN(val) && !Double.isNaN(dev) && Math.abs(dev) >= sigmaCutoff)
-                                {
-                                    //System.out.println("meas[i]: "+meas[i]);
-                                    
-                                    if(meas[i].getType().equals("distance"))
-                                    {
-                                        distImpl(meas[i], model, state, res, val, ideal, dev);
-                                    }
-                                    if(meas[i].getType().equals("angle"))
-                                    {
-                                        angleImpl(meas[i], model, state, res, val, ideal);
-                                    }
-                                }
+                                Measurement measurement = meas[i];
+                                nonGroupOutput(model, state, res, measurement);
                             }
-                            //}}}
-                            
-                        } //for (each meas[i] in meas)
+                        }
                     }
                 }
             }
@@ -178,9 +97,93 @@ public class GeomKinSmith //extends ... implements ...
     }
 //}}}
 
-//{{{ distImpl
+//{{{ group/nonGroupOutput
 //##############################################################################
-    protected void distImpl(Measurement meas, Model model, ModelState state, Residue res, double val, double ideal, double dev)
+    public void groupOutput(Model model, ModelState state, Residue res, Measurement.Group measurement)
+    {
+        boolean doneWithGroup = false;
+        for(Measurement m : (ArrayList<Measurement>) measurement.group) // variable in Measurement.Group
+        {
+            double val = m.measure(model, state, res, doHets);
+            double dev = m.getDeviation();
+            double ideal = m.mean;
+            if(!Double.isNaN(val) && !doneWithGroup)
+            {
+                // We've found the valid Measurement in this Group
+                doneWithGroup = true;
+                if(Double.isNaN(ideal)) // std devs not defined
+                {
+                    if(m.getType().equals(Measurement.TYPE_DISTANCE) && m.getLabel().equals("cbdev"))
+                        cbDevImpl(m, model, state, res, val);
+                    else if(m.getType().equals(Measurement.TYPE_BASEPPERP))
+                        pPerpImpl(m, model, state, res, val);
+                }
+                else if(!Double.isNaN(dev) && Math.abs(dev) >= sigmaCutoff) // std devs defined
+                {
+                    if(m.getType().equals(Measurement.TYPE_DISTANCE))
+                        lengthImpl(m, model, state, res, val, ideal, dev);
+                    else if(m.getType().equals(Measurement.TYPE_ANGLE))
+                        angleImpl(m, model, state, res, val, ideal, dev);
+                }
+            }
+        }
+    }
+
+    public void nonGroupOutput(Model model, ModelState state, Residue res, Measurement m)
+    {
+        double val = m.measure(model, state, res, doHets);
+        double dev = m.getDeviation();
+        double ideal = m.mean;
+        if(Double.isNaN(ideal)) // std devs not defined
+        {
+            if(m.getType().equals(Measurement.TYPE_DISTANCE) && m.getLabel().equals("cbdev"))
+                cbDevImpl(m, model, state, res, val);
+            else if(m.getType().equals(Measurement.TYPE_BASEPPERP))
+                pPerpImpl(m, model, state, res, val);
+        }
+        else if(!Double.isNaN(dev) && Math.abs(dev) >= sigmaCutoff) // std devs defined
+        {
+            if(m.getType().equals(Measurement.TYPE_DISTANCE))
+                lengthImpl(m, model, state, res, val, ideal, dev);
+            else if(m.getType().equals(Measurement.TYPE_ANGLE))
+                angleImpl(m, model, state, res, val, ideal, dev);
+        }
+    }
+//}}}
+
+//{{{ getName
+//##############################################################################
+    protected String getName(AtomSpec atspec)
+    {
+        String origtemp = atspec.toString();
+        String temp = origtemp.substring(origtemp.length() - 4);
+        // e.g. "_C__"
+        
+        int i1 = 99; // first non-underscore character
+        int i2 = 99; // first underscore character after end of non-underscore
+                     // characters
+        
+        // Scan thru "_C__" looking for i1, i2
+        for(int i = 0; i < temp.length(); i ++)
+        {
+            String currChar = temp.substring(i, i+1);
+            if(!currChar.equals("_") && i1 == 99 && i2 == 99)
+                i1 = i;
+            else
+            if( currChar.equals("_") && i1 != 99 && i2 == 99)
+                i2 = i;
+        }
+        
+        if(i2 == 99)
+            return temp.substring(i1);
+        else
+            return temp.substring(i1, i2);
+    }
+//}}}
+
+//{{{ lengthImpl
+//##############################################################################
+    protected void lengthImpl(Measurement meas, Model model, ModelState state, Residue res, double val, double ideal, double dev)
     {
 	    Measurement.Distance d = (Measurement.Distance) meas;
         AtomSpec atomSpec1 = (AtomSpec) d.getA();
@@ -193,14 +196,10 @@ public class GeomKinSmith //extends ... implements ...
         Residue res1 = atomSpec1.getRes(model, state, res);
         Residue res2 = atomSpec2.getRes(model, state, res);
         
-        //System.out.println(model);
-        //System.out.println(state);
-        //System.out.println(res);
-        
-        if (atomSpec1.getResOffset() == -1)      res1 = res.getPrev(model);
-        if (atomSpec1.getResOffset() ==  1)      res1 = res.getNext(model);
-        if (atomSpec2.getResOffset() == -1)      res2 = res.getPrev(model);
-        if (atomSpec2.getResOffset() ==  1)      res2 = res.getNext(model);
+        if(atomSpec1.getResOffset() == -1)      res1 = res.getPrev(model);
+        if(atomSpec1.getResOffset() ==  1)      res1 = res.getNext(model);
+        if(atomSpec2.getResOffset() == -1)      res2 = res.getPrev(model);
+        if(atomSpec2.getResOffset() ==  1)      res2 = res.getNext(model);
         
         // Use correct Residues, look thru their Atoms, and get both Atoms
         // involved in this Distance Measurement
@@ -211,15 +210,11 @@ public class GeomKinSmith //extends ... implements ...
         {
             Atom a = (Atom) i1.next();
             
-            //System.out.println("a1:\t\t "+a.getName().trim());
-            //System.out.println("atomSpec1Name:\t'"+atomSpec1Name+"'");
-            
-            if ( (a.getName().trim()).equals( atomSpec1Name.trim()) ||
-                 (a.getName().trim()).equals((atomSpec1Name.trim()).replace('*', '\'')) ||
-                 (a.getName().trim()).equals((atomSpec1Name.trim()).replace('\'', '*')) )
+            if( (a.getName().trim()).equals( atomSpec1Name.trim()) ||
+                (a.getName().trim()).equals((atomSpec1Name.trim()).replace('*', '\'')) ||
+                (a.getName().trim()).equals((atomSpec1Name.trim()).replace('\'', '*')) )
             {
                 atom1 = a;
-                //System.out.println("MATCH");
             }
         }        
         Iterator i2 = (res2.getAtoms()).iterator();    
@@ -227,20 +222,13 @@ public class GeomKinSmith //extends ... implements ...
         {
             Atom a = (Atom) i2.next();
             
-            //System.out.println("a2:\t\t "+a.getName().trim());
-            //System.out.println("atomSpec2Name:\t'"+atomSpec2Name+"'");
-            
-            if ( (a.getName().trim()).equals( atomSpec2Name.trim()) ||
-                 (a.getName().trim()).equals((atomSpec2Name.trim()).replace('*', '\'')) ||
-                 (a.getName().trim()).equals((atomSpec2Name.trim()).replace('\'', '*')) )
+            if( (a.getName().trim()).equals( atomSpec2Name.trim()) ||
+                (a.getName().trim()).equals((atomSpec2Name.trim()).replace('*', '\'')) ||
+                (a.getName().trim()).equals((atomSpec2Name.trim()).replace('\'', '*')) )
             {
                 atom2 = a;
-                //System.out.println("MATCH");
             }
         }
-        
-        //System.out.println("atom1:\t\t"+atom1.getName().trim());
-        //System.out.println("atom2:\t\t"+atom2.getName().trim());
         
         // Get AtomStates (and thereby coordinates) for the two Atoms found 
         // above, using the ModelState
@@ -251,14 +239,12 @@ public class GeomKinSmith //extends ... implements ...
             atomState1 = state.get(atom1);
             atomState2 = state.get(atom2);
         }
-        catch (AtomException ae) 
-        {
-            System.out.println("Couldn't get AtomState");
-        }
+        catch(AtomException ae) 
+        { System.err.println("Couldn't get AtomState"); }
         
         String devName = label.substring(0,4)+" "+res1.getName()+res1.
             getSequenceInteger()+"-"+res2.getName()+res2.getSequenceInteger()
-            +" "+atom1.getName().trim()+"-"+atom2.getName().trim();
+            +" "+atom1.getName().trim()+"-"+atom2.getName().trim()+" "+df2.format(dev)+" sigma";
         
         // Pass these new Triples instead of (Triple) atomState# so subsequent
         // manipulations of the coordinates don't alter the orig coordinates, 
@@ -274,13 +260,8 @@ public class GeomKinSmith //extends ... implements ...
 	    //addBall(devName, (Triple) as1, (Triple) as2, val, ideal);
         //addBallInMiddle(devName, (Triple) as1, (Triple) as2, val, ideal);
         addSpring(devName, atomState1Triple, atomState2Triple, val, ideal, dev);
-    }
-//}}}
-
-//{{{ empty code segment -- debugging distImpl
-//##############################################################################
-    
-        // for debugging
+        
+        //{{{ [for debugging]
         //String measLabel = meas.toString();
         //System.out.println("measLabel: "+measLabel);
         //System.out.println("atomSpec1 resOffset: "+atomSpec1.getResOffset());
@@ -315,21 +296,21 @@ public class GeomKinSmith //extends ... implements ...
         //while (iter1.hasNext())
         //{
         //    Atom a = (Atom) iter1.next();
-        //    if ((a.getName().trim()).equals("C"))
+        //    if((a.getName().trim()).equals("C"))
         //        res1C = a;
         //}       
         //Iterator iter2 = (res2.getAtoms()).iterator();    
         //while (iter2.hasNext())
         //{
         //    Atom a = (Atom) iter2.next();
-        //    if ((a.getName().trim()).equals("N"))
+        //    if((a.getName().trim()).equals("N"))
         //        res2N = a;
         //}
         //iter1 = (res1.getAtoms()).iterator();
         //while (iter1.hasNext())
         //{
         //    Atom a = (Atom) iter1.next();
-        //    if ((a.getName().trim()).equals("N"))
+        //    if((a.getName().trim()).equals("N"))
         //        res1N = a;
         //}
         //System.out.println("res1C.getName() = "+res1C.getName());
@@ -362,13 +343,13 @@ public class GeomKinSmith //extends ... implements ...
         //}
         //System.out.println("atomState1: "+atomState1.getX()+", "+atomState1.getY()+", "+atomState1.getZ());
         //System.out.println("atomState2: "+atomState2.getX()+", "+atomState2.getY()+", "+atomState2.getZ());
-        //if (res1.equals(res2))
+        //if(res1.equals(res2))
          //   System.out.println("res1 equals res2");
-        //if (res1Cstate == null) System.out.println("res1Cstate == null");
+        //if(res1Cstate == null) System.out.println("res1Cstate == null");
         //else                    System.out.println("res1Cstate != null");
-        //if (res2Nstate == null) System.out.println("res2Nstate == null");
+        //if(res2Nstate == null) System.out.println("res2Nstate == null");
         //else                    System.out.println("res2Nstate != null");
-        //if (res1Nstate == null) System.out.println("res1Nstate == null");
+        //if(res1Nstate == null) System.out.println("res1Nstate == null");
         //else                    System.out.println("res1Nstate != null");
         //System.out.println("res1 = "+res1.toString());
         //System.out.println("res1.getName() = "+res1.getName());
@@ -376,140 +357,17 @@ public class GeomKinSmith //extends ... implements ...
         //System.out.println("label = "+label);
         //System.out.println("atomState1.getName().trim() = "+atomState1.getName().trim());
         //System.out.println("atomState2.getName().trim() = "+atomState2.getName().trim());
-    
-//}}}
-
-//{{{ getName
-//##############################################################################
-    protected String getName(AtomSpec atspec)
-    {
-        String origtemp = atspec.toString();
-        String temp = origtemp.substring(origtemp.length() - 4);
-        // e.g. "_C__"
-        
-        int i1 = 99; // first non-underscore character
-        int i2 = 99; // first underscore character after end of non-underscore
-                     // characters
-        
-        // Scan thru "_C__" looking for i1, i2
-        for (int i = 0; i < temp.length(); i ++)
-        {
-            String currChar = temp.substring(i, i+1);
-            if (!currChar.equals("_") && i1 == 99 && i2 == 99)
-                i1 = i;
-            else
-            if ( currChar.equals("_") && i1 != 99 && i2 == 99)
-                i2 = i;
-        }
-        
-        if (i2 == 99)
-            return temp.substring(i1);
-        else
-            return temp.substring(i1, i2);
-    }
-//}}}
-    
-//{{{ angleImpl
-//##############################################################################
-    protected void angleImpl(Measurement meas, Model model, ModelState state, Residue res, double val, double ideal)
-    {
-	    Measurement.Angle a = (Measurement.Angle) meas;
-        AtomSpec atomSpec1 = a.getA();
-        AtomSpec atomSpec2 = a.getB();
-        AtomSpec atomSpec3 = a.getC();
-        
-        // Get AtomStates with resOffset and atomName
-	    AtomState as1 = atomSpec1.get(model, state, res);
-	    AtomState as2 = atomSpec2.get(model, state, res);
-	    AtomState as3 = atomSpec3.get(model, state, res);
-	    
-	    String devName = label.substring(0,4)+" "+res.getName()+" "+
-		    res.getSequenceInteger()+" "+as1.getName().trim()+"-"+
-            as2.getName().trim()+"-"+as3.getName().trim();
-        
-	    //addLine(devName, (Triple) as1, (Triple) as2, (Triple) as3, val, ideal);
-        //addBlurredLine(devName, (Triple) as1, (Triple) as2, (Triple) as3, val, ideal);
-        addLineAndBlurredLine(devName, (Triple) as1, (Triple) as2, (Triple) as3, val, ideal);
-    }
-//}}}
-
-//{{{ addBall
-//##############################################################################
-    /**
-    * Adds distance outlier indicator to distList.
-    **/
-    public void addBall(String name, Triple trp1, Triple trp2, double val, double ideal) 
-    {
-	    double devValue = val-ideal;
-        String color = "red";
-	    if (devValue < 0) 
-	    {
-		    color = "blue";
-            devValue = - devValue;
-	    }
-	    
-        // set ball's position (x, y, z) next to atom #1
-        Triple origVector = new Triple().likeVector(trp1, trp2);
-	    origVector = origVector.mult(ideal/val).add(trp1);
-	    double x =origVector.getX();
-        double y =origVector.getY();
-        double z =origVector.getZ();
-        
-        String line1 = "@balllist {"+name+"} color= "+color+" radius= "+
-            df1.format(devValue)+" master= {dist devs}";
-        String line2 = "{"+name+"}L "+
-            df2.format(x)+" "+df2.format(y)+" "+df2.format(z);
-        
-        distList.add(line1);
-        distList.add(line2);
-    }
-//}}}
-
-//{{{ addBallInMiddle
-//##############################################################################
-/**
-* Adds distance outlier indicator to kin.
-**/
-    public void addBallInMiddle(String name, Triple trp1, Triple trp2, double val, double ideal) 
-	{
-        double devValue = val-ideal;
-        String color = "red";
-	    if (devValue < 0) 
-	    {
-		    color = "blue";
-		    devValue = - devValue;
-	    }
-		
-		// set ball's position (x, y, z) at midpoint between two atoms
-		Triple midpoint = new Triple().likeMidpoint(trp1, trp2);
-		double x = midpoint.getX();
-		double y = midpoint.getY();
-        double z = midpoint.getZ();
-		
-		String line1 = "@balllist {"+name+"} color= "+color+" radius= "+
-            df1.format(devValue)+" master= {dist devs}";
-        String line2 = "{"+name+"}L "+
-            df2.format(x)+" "+df2.format(y)+" "+df2.format(z);
-        
-        distList.add(line1);
-        distList.add(line2);
+        //}}}
     }
 //}}}
 
 //{{{ addSpring
 //##############################################################################
-/**
-* Adds distance outlier indicator to kin.
-**/
+    /**
+    * Adds a "spring" bond length outlier indicator to <code>lengths</code>.
+    **/
     public void addSpring(String name, Triple trp1, Triple trp2, double val, double ideal, double dev)
 	{
-        //distList.add("@balllist {trp1, trp2} color= cyan radius= "+
-        //    df1.format(0.1)+" master= {dist devs}");
-        //distList.add("{trp1}L "+
-        //    df2.format(trp1.getX())+" "+df2.format(trp1.getY())+" "+df2.format(trp1.getZ()));
-        //distList.add("{trp2}L "+
-        //    df2.format(trp2.getX())+" "+df2.format(trp2.getY())+" "+df2.format(trp2.getZ()));
-        
         Triple trp1Orig = new Triple(trp1.getX(), trp1.getY(), trp1.getZ());
         
         ArrayList<String> lines = new ArrayList<String>();
@@ -526,16 +384,15 @@ public class GeomKinSmith //extends ... implements ...
         bondNormal.mult(0.2);
         
         String  	        color = "red";
-		if (val-ideal < 0)	color = "blue";
+		if(val-ideal < 0)	color = "blue";
         
-        lines.add("@vectorlist {"+name+"} color= "+color+" width= "
-                +3+" master= {dist devs}");
-        lines.add("{"+name+"}P "+df2.format(trp1.getX())+" "+
-                                 df2.format(trp1.getY())+" "+
-                                 df2.format(trp1.getZ()));
-        lines.add("{"+name+"}L "+df2.format(trp1.getX()+bondNormal.getX())+" "+
-                                 df2.format(trp1.getY()+bondNormal.getY())+" "+
-                                 df2.format(trp1.getZ()+bondNormal.getZ()));
+        lines.add("@vectorlist {"+name+"} color= "+color+" width= "+3+" master= {length dev}");
+        lines.add("{"+name+"}P U "+df2.format(trp1.getX())+" "+
+                                   df2.format(trp1.getY())+" "+
+                                   df2.format(trp1.getZ()));
+        lines.add("{"+name+"}  U "+df2.format(trp1.getX()+bondNormal.getX())+" "+
+                                   df2.format(trp1.getY()+bondNormal.getY())+" "+
+                                   df2.format(trp1.getZ()+bondNormal.getZ()));
         
         double posOrigX = trp1.getX() + bondNormal.getX();
         double posOrigY = trp1.getY() + bondNormal.getY();
@@ -564,16 +421,16 @@ public class GeomKinSmith //extends ... implements ...
         // In summary: +/- 90deg (i.e. quarter turn of spring) per sigma
         
         double ang = 36;
-        if (dev >  10) dev =  10;
-        if (dev < -10) dev = -10;
-        if (dev <= 0)
+        if(dev >  10) dev =  10;
+        if(dev < -10) dev = -10;
+        if(dev <= 0)
         {
-            // actual dist < ideal --> scrunched up  --> bigger angle
+            // actual dist < ideal --> scrunched up --> bigger angle
             // further exaggerate w/ 2nd term: for scrunched up dists, angles get even bigger
             // (dev in sigma; usually in range of -10 < dev < 10)
             ang += 1.5*Math.abs(dev);
         }
-        else if (dev > 0)
+        else if(dev > 0)
         {
             // actual dist > ideal --> stretched out --> smaller angle
             // further exaggerate w/ 2nd term: for stretched up dists, angles get even smaller
@@ -583,14 +440,14 @@ public class GeomKinSmith //extends ... implements ...
         
         // Move along bond axis and make the spring
         int n = 60; // 60 pts = 6 turns * 10 points/turn
-                    // (and 10 points/turn --> ang = 360/10 = 36deg/point --> that's why I used
-                    //  a default of ang=36 above)
+                    // (and 10 points/turn --> ang = 360/10 = 36deg/point --> that's why 
+                    // I used a default of ang=36 above)
         double dist = new Triple(trp2.getX()-trp1.getX(), 
                                  trp2.getY()-trp1.getY(), 
                                  trp2.getZ()-trp1.getZ() ).mag();
         Triple pos = bondNormal;
         Triple nextSpringPoint;
-        for (int i = 1; i <= n; i ++)
+        for(int i = 1; i <= n; i ++)
         {
             trp1 = new Triple(trp1Orig.getX(), trp1Orig.getY(), trp1Orig.getZ()); // reset trp1
             v12 = new Triple().likeVector(trp1, trp2);                            // reset v12
@@ -607,72 +464,83 @@ public class GeomKinSmith //extends ... implements ...
             
             nextSpringPoint = trp1.add(pos);
             
-            lines.add("{"+name+"}L "+df2.format(nextSpringPoint.getX())+" "+
-                                     df2.format(nextSpringPoint.getY())+" "+
-                                     df2.format(nextSpringPoint.getZ()) );
+            lines.add("{"+name+"} U "+df2.format(nextSpringPoint.getX())+" "+
+                                      df2.format(nextSpringPoint.getY())+" "+
+                                      df2.format(nextSpringPoint.getZ()) );
         }
-        lines.add("{"+name+"}L "+df2.format(trp2.getX())+" "+
-                                 df2.format(trp2.getY())+" "+
-                                 df2.format(trp2.getZ()) );
+        lines.add("{"+name+"} U "+df2.format(trp2.getX())+" "+
+                                  df2.format(trp2.getY())+" "+
+                                  df2.format(trp2.getZ()) );
         
         // Output
-        for (String line : lines)
-            distList.add(line);
+        for(String line : lines) lengths.add(line);
     }
 //}}}
 
-//{{{ addLine
+//{{{ angleImpl
 //##############################################################################
-/**
-* Adds angle outlier indicator to angList.
-**/
-    public void addLine(String name, Triple trp1, Triple trp2, Triple trp3, double val, double ideal) 
+    protected void angleImpl(Measurement meas, Model model, ModelState state, Residue res, double val, double ideal, double dev)
+    {
+	    Measurement.Angle a = (Measurement.Angle) meas;
+        
+        AtomSpec atomSpec1 = a.getA();
+        AtomSpec atomSpec2 = a.getB();
+        AtomSpec atomSpec3 = a.getC();
+        
+        // Get AtomStates with resOffset and atomName
+	    AtomState as1 = atomSpec1.get(model, state, res);
+	    AtomState as2 = atomSpec2.get(model, state, res);
+	    AtomState as3 = atomSpec3.get(model, state, res);
+	    
+	    String devName = label.substring(0,4)+" "+res.getName()+" "+
+		    res.getSequenceInteger()+" "+as1.getName().trim()+"-"+
+            as2.getName().trim()+"-"+as3.getName().trim()+" "+df2.format(dev)+" sigma";
+        
+	    //addLine(devName, (Triple) as1, (Triple) as2, (Triple) as3, val, ideal);
+        //addBlurredLine(devName, (Triple) as1, (Triple) as2, (Triple) as3, val, ideal);
+        addFan(devName, (Triple) as1, (Triple) as2, (Triple) as3, val, ideal);
+    }
+//}}}
+
+//{{{ addFan
+//##############################################################################
+    /**
+    * Adds a "fan" bond angle outlier indicator to <code>angles</code>: 
+    * a thick line for the ideal value and increasingly thinner lines 
+    * approaching the actual value from the ideal value.
+    **/
+    public void addFan(String name, Triple trp1, Triple trp2, Triple trp3, double val, double ideal) 
 	{
-		// Calculate normal to atoms 1-3 and place at origin
-		// Purpose: set up rotation matrix
-		Triple normal = new Triple().likeNormal(trp1, trp2, trp3);
-		
-		// Set up said rotation matrix, which will rotate around the normal 
-		// by the angle given by (diff btw idea and actual angle)
-		Transform rotate = new Transform();
-        rotate = rotate.likeRotation(normal, val-ideal);
-		
-		// Make new vector from atom 2 (which will not move during rotation)
-		// to atom 3 (which will move), but shifted to origin
-		Triple point = new Triple(trp3.getX() - trp2.getX(),
-                                  trp3.getY() - trp2.getY(),
-                                  trp3.getZ() - trp2.getZ());
+		// Make first, non-blurred line
+        String  	        color = "red";
+		if(val-ideal < 0)	color = "blue";
         
-		// Actually do the rotation, then move vector's tail back to atom 2
-		rotate.transform(point);
-        Triple v = new Triple(trp2.getX() + point.getX(),
-                              trp2.getY() + point.getY(),
-                              trp2.getZ() + point.getZ());
+        Triple v21 = new Triple().likeVector(trp2, trp1);
+        Triple v21short = v21.mult(0.75).add(trp2);
         
-        // Output
-        String              color = "red";
-		if (val-ideal < 0)  color = "blue";
+        String line1 = "@vectorlist {"+name+"} color= "+color+" width= "+4+" master= {angle dev}";
+        String line2 = "{"+name+"}P U "+df2.format(v21short.getX())+" "+
+                                        df2.format(v21short.getY())+" "+
+                                        df2.format(v21short.getZ());
+        String line3 = "{"+name+"}  U "+df2.format(trp2.getX())+" "+
+                                        df2.format(trp2.getY())+" "+
+                                        df2.format(trp2.getZ());
+        angles.add(line1);
+        angles.add(line2);
+        angles.add(line3);
         
-        String line1 = "@vectorlist {"+name+"} color= "+color+" width= 4"
-            +" master= {angle devs}";
-        String line2 = "{"+name+"}P "+df2.format(trp2.getX())+" "+
-                                      df2.format(trp2.getY())+" "+
-                                      df2.format(trp2.getZ());
-        String line3 = "{"+name+"}L "+df2.format(v.getX())+" "+
-                                      df2.format(v.getY())+" "+
-                                      df2.format(v.getZ());
-        angList.add(line1);
-        angList.add(line2);
-        angList.add(line3);
+        // Make second, blurred line
+        addBlur(name, trp1, trp2, trp3, val, ideal);
 	}
 //}}}
 
-//{{{ addBlurredLine
+//{{{ addBlur
 //##############################################################################
-/**
-* Adds angle outlier indicator to angList.
-**/
-    public void addBlurredLine(String name, Triple trp1, Triple trp2, Triple trp3, double val, double ideal) 
+    /**
+    * Adds the thin part of a "fan" bond angle outlier indicator to <code>angles</code>: 
+    * increasingly thinner lines approaching the actual value from the ideal value.
+    **/
+    public void addBlur(String name, Triple trp1, Triple trp2, Triple trp3, double val, double ideal) 
 	{
 		// Calculate normal to atoms 1-3; automatically placed at origin
 		// Purpose: set up rotation matrices
@@ -710,90 +578,123 @@ public class GeomKinSmith //extends ... implements ...
         
         // Output
         String  	        color = "red";
-		if (val-ideal < 0)	color = "blue";
+		if(val-ideal < 0)	color = "blue";
         
         ArrayList<Triple> v1234 = new ArrayList<Triple>();
         v1234.add(v1);
         v1234.add(v2);
         v1234.add(v3);
         v1234.add(v4);
-        for (int i = 0; i < v1234.size(); i ++)
+        for(int i = 0; i < v1234.size(); i ++)
         {
-            String line1 = "@vectorlist {"+name+"} color= "+color+" width= "
-                +(4-i)+" master= {angle devs}";
+            String line1 = "@vectorlist {"+name+"} color= "+color+" width= "+(4-i)+" master= {angle dev}";
             Triple v = v1234.get(i);
-            String line2 = "{"+name+"}P "+df2.format(trp2.getX())+" "+
-                                          df2.format(trp2.getY())+" "+
-                                          df2.format(trp2.getZ());
-            String line3 = "{"+name+"}L "+df2.format(v.getX())+" "+
-                                          df2.format(v.getY())+" "+
-                                          df2.format(v.getZ());
-            angList.add(line1);
-            angList.add(line2);
-            angList.add(line3);
+            String line2 = "{"+name+"}P U "+df2.format(trp2.getX())+" "+
+                                            df2.format(trp2.getY())+" "+
+                                            df2.format(trp2.getZ());
+            String line3 = "{"+name+"}  U "+df2.format(v.getX())+" "+
+                                            df2.format(v.getY())+" "+
+                                            df2.format(v.getZ());
+            angles.add(line1);
+            angles.add(line2);
+            angles.add(line3);
         }
 	}
 //}}}
 
-//{{{ addLineAndBlurredLine
+//{{{ cbDevImpl
 //##############################################################################
-/**
-* Adds angle outlier indicator to angList.
-**/
-    public void addLineAndBlurredLine(String name, Triple trp1, Triple trp2, Triple trp3, double val, double ideal) 
-	{
-		// Make first, non-blurred line
-        String  	        color = "red";
-		if (val-ideal < 0)	color = "blue";
-        
-        Triple v21 = new Triple().likeVector(trp2, trp1);
-        Triple v21short = v21.mult(0.75).add(trp2);
-        
-        String line1 = "@vectorlist {"+name+"} color= "+color+" width= "
-                +4+" master= {angle devs}";
-        String line2 = "{"+name+"}P "+df2.format(v21short.getX())+" "+
-                                      df2.format(v21short.getY())+" "+
-                                      df2.format(v21short.getZ());
-        String line3 = "{"+name+"}L "+df2.format(trp2.getX())+" "+
-                                      df2.format(trp2.getY())+" "+
-                                      df2.format(trp2.getZ());
-        angList.add(line1);
-        angList.add(line2);
-        angList.add(line3);
-        
-        // Make second, blurred line
-        addBlurredLine(name, trp1, trp2, trp3, val, ideal);
-	}
+    protected void cbDevImpl(Measurement meas, Model model, ModelState state, Residue res, double val)
+    {
+	    double cbdevCutoff = 0.25; // from Rama/Calpha paper (Lovell et al., Proteins, 2003)
+        if(val > cbdevCutoff)
+        {
+            Measurement.Distance cbdev = (Measurement.Distance) meas;
+            
+            // Actual
+            AtomSpec  actualSpec = (AtomSpec)  cbdev.getA();
+            AtomState actual     = (AtomState) actualSpec.get(model, state, res);
+            
+            // Ideal
+            XyzSpec.IdealTetrahedral idealSpec = (XyzSpec.IdealTetrahedral) cbdev.getB();
+            Triple                   ideal     = (Triple)                   idealSpec.get(model, state, res);
+            
+            String devName = label.substring(0,4)+" "+res+" Cbeta dev "+df3.format(val)+"A";
+            
+            addBall(devName, ideal, val);
+        }
+    }
+//}}}
+
+//{{{ addBall
+//##############################################################################
+    /**
+    * Adds a "ball" Cbeta deviation outlier indicator to <code>cbdevs</code>: 
+    * a kinemage ball centered at the ideal Cbeta position with radius equal 
+    * to the ideal-actual distance.
+    **/
+    protected void addBall(String name, Triple ideal, double val)
+    {
+        String cbdev1 = "@balllist {"+name+"} color= magenta radius= "+df2.format(val)+" master= {Cbeta dev}";
+        String cbdev2 = "{"+name+"} "+df2.format(ideal.getX())+" "+
+                                        df2.format(ideal.getY())+" "+
+                                        df2.format(ideal.getZ());
+        cbdevs.add(cbdev1);
+        cbdevs.add(cbdev2);
+    }
+//}}}
+
+//{{{ pPerpImpl
+//##############################################################################
+    protected void pPerpImpl(Measurement meas, Model model, ModelState state, Residue res, double val)
+    {
+	    throw new IllegalArgumentException("Base-phosphate perpendicular visualizations not yet implemented!");
+    }
 //}}}
 
 //{{{ printModel
 //##############################################################################
     public void printModel(Model mod)
     {
-        if (doKinHeadings)
+        System.out.println("@master {length dev} on");
+        System.out.println("@master {angle dev} on");
+        System.out.println("@master {Cbeta dev} on");
+        
+        boolean multimodel = coords.getModels().size() > 1;
+        System.out.println((subgroup ? "@subgroup" : "@group")+" {"
+            +label.substring(0,4)+(multimodel ? " "+mod.getName() : "")
+            +" geom devs} dominant"+(multimodel ? " master= {all models}" : ""));
+        
+        // Make sure the measurements we're visualzing were even considered 
+        // before we mistakenly say there are no errors when there really are!
+        boolean triedLngth = false;
+        boolean triedAngle = false;
+        boolean triedCbDev = false;
+        //boolean triedPperp = false;
+        for(int i = 0; i < meas.length; i++)
         {
-            System.out.println("@kinemage {"+label.substring(0,4)+" geom devs}");
-            System.out.println("@master {dist devs}");
-            System.out.println("@master {angle devs}");
+            if(meas[i].getType().equals(Measurement.TYPE_DISTANCE)
+            && meas[i].getLabel().equals("cbdev"))                       triedCbDev = true;
+            else if(meas[i].getType().equals(Measurement.TYPE_DISTANCE)) triedLngth = true;
+            else if(meas[i].getType().equals(Measurement.TYPE_ANGLE))    triedAngle = true;
+            //else if(m.getType().equals(Measurement.TYPE_BASEPPERP))    triedPperp = true;
         }
         
-        if (subgroupNotGroup)
-            System.out.println("@subgroup {"+label.substring(0,4)+" "+
-                mod.getName()+" geom devs} dominant master= {all models}");
-        else
-            System.out.println("@group {"+label.substring(0,4)+" "+
-                mod.getName()+" geom devs} dominant master= {all models}");
+        if(!triedLngth)            System.err.println("(Didn't look for bond length outliers)");
+        else if(lengths.isEmpty()) System.err.println("No bond length outliers (in selected residues)");
+        else for(String lngthLine : lengths) System.out.println(lngthLine);
         
-        // Print geom outlier viz's
-        if (doDistDevsKin)
-            for (String distLine : distList)    System.out.println(distLine);
-        if (doAngleDevsKin)
-            for (String angLine : angList)      System.out.println(angLine);
+        if(!triedAngle)           System.err.println("(Didn't look for bond angle outliers)");
+        else if(angles.isEmpty()) System.err.println("No bond angle outliers (in selected residues)");
+        else for(String angleLine : angles) System.out.println(angleLine);
         
-        if (distList.size() == 0)   System.out.println("<distList is empty>");
-        if (angList.size() == 0)    System.out.println("<angList is empty>");
+        if(!triedCbDev)           System.err.println("(Didn't look for Cbeta dev outliers)");
+        else if(cbdevs.isEmpty()) System.err.println("No Cbeta dev outliers (in selected residues)");
+        else for(String cbdevLine : cbdevs) System.out.println(cbdevLine);
+        
+        //if(!triedPperp)           System.err.println("(Didn't look for base-P perp outliers)");
+        //else if(pperps.isEmpty()) System.err.println("No base-P perp outliers");
+        //else for(String pperpLine : pperps) System.out.println(pperpLine);
     }
 //}}}
-
 }//class
-

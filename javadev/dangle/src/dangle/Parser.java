@@ -19,10 +19,11 @@ import driftwood.parser.*;
 * <ul>
 * <li>expression &rarr; measurement_for*</li>
 * <li>measurement_for &rarr; ("for" resspec)? measurement</li>
-* <li>resspec &rarr; resno? "cis"? ([_A-Z0-9]{3} | "/" regex "/")</li>
+* <li>resspec &rarr; resno? geomspec+ | (geomspec* ([_A-Z0-9]{3} | "/" regex "/"))</li>
+* <li>geomspec &rarr; "cis" | ("2'" | "2p" | "2prime") | (("deoxy" | "dna") | ("oxy" | "rna") | ("disulfides" | "disulfide" | "disulf" | "ss")</li>
 * <li>measurement &rarr; super_builtin | builtin | distance | angle | dihedral | vector_angle | maxb | minq | planarity</li>
-* <li>super_builtin &rarr; ("rnabb" | "dnabb" | "suitefit")</li>
-* <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "cbdev" | "hadev" | "nhdev" | "codev" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi" | "alpha-1" | "beta-1" | "gamma-1" | "delta-1" | "epsilon-1" | "zeta-1" | "chi-1" | "O5'-C5'" | "O5'--C5'" | "C5'-C4'" | "C5'--C4'" | "C4'-C3'" | "C4'--C3'" | "C3'-C2'" | "C3'--C2'" | "C2'-C1'" | "C2'--C1'" | "O4'-C1'" | "O4'--C1'" | "O4'-C4'" | "O4'--C4'" | "O3'--C3'" | "O3'-C3'" | "C2'-O2'" | "C2'--O2'" | "C4'-O4'-C1'" | "O4'-C1'-C2'" | "C1'-C2'-C3'" | "C4'-C3'-C2'" | "C3'-C2'-C1'" | "C2'-C1'-O4'" | "C1'-O4'-C4'" | "O3'-C3'-C4'" | "C3'-C4'-C5'" | "C3'-C4'-O4'-C1'" | "C4'-O4'-C1'-C2'" | "O4'-C1'-C2'-C3'" | "C4'-C3'-C2'-C1'" | "C3'-C2'-C1'-O4'" | "C2'-C1'-O4'-C4'" | "O3'-C4'-C3'-C2'" | "C5'-C3'-C4'-O4'" | "c2o2" | "isprepro"</li>
+* <li>super_builtin &rarr; ("rnabb" | "dnabb" | "suitefit" | ("disulfides" | "disulf" | "ss"))</li>
+* <li>builtin &rarr; "phi" | "psi" | "omega" | "chi1" | "chi2" | "chi3" | "chi4" | "tau" | "cbdev" | "hadev" | "nhdev" | "codev" | "alpha" | "beta" | "gamma" | "delta" | "epsilon" | "zeta" | "eta" | "theta" | "chi" | "alpha-1" | "beta-1" | "gamma-1" | "delta-1" | "epsilon-1" | "zeta-1" | "chi-1" | "O5'-C5'" | "O5'--C5'" | "C5'-C4'" | "C5'--C4'" | "C4'-C3'" | "C4'--C3'" | "C3'-C2'" | "C3'--C2'" | "C2'-C1'" | "C2'--C1'" | "O4'-C1'" | "O4'--C1'" | "O4'-C4'" | "O4'--C4'" | "O3'--C3'" | "O3'-C3'" | "C2'-O2'" | "C2'--O2'" | "C4'-O4'-C1'" | "O4'-C1'-C2'" | "C1'-C2'-C3'" | "C4'-C3'-C2'" | "C3'-C2'-C1'" | "C2'-C1'-O4'" | "C1'-O4'-C4'" | "O3'-C3'-C4'" | "C3'-C4'-C5'" | "C3'-C4'-O4'-C1'" | "C4'-O4'-C1'-C2'" | "O4'-C1'-C2'-C3'" | "C4'-C3'-C2'-C1'" | "C3'-C2'-C1'-O4'" | "C2'-C1'-O4'-C4'" | "O3'-C4'-C3'-C2'" | "C5'-C3'-C4'-O4'" | "c2o2" | "isprepro" | "phi'" | "phip" | "psi'" | "psip" | "chi1'" | "chi1p" | "chi2'" | "chi2p"</li>
 * <li>distance &rarr; ("distance" | "dist") label xyzspec xyzspec ideal_clause?</li>
 * <li>angle &rarr; "angle" label xyzspec xyzspec xyzspec ideal_clause?</li>
 * <li>dihedral &rarr; ("dihedral" | "torsion") label xyzspec xyzspec xyzspec xyzspec</li>
@@ -40,6 +41,7 @@ import driftwood.parser.*;
 * <li>normal &rarr; "normal" "(" xyzspec+ ")"</li>
 * <li>atomspec &rarr; resno? atomname</li>
 * <li>resno &rarr; "i" | "i+" [1-9] | "i-" [1-9]</li>
+* <li>othendss &rarr; "--" | "-ss-" | "-SS-"</li>
 * <li>atomname &rarr; [_A-Z0-9*']{4} | "/" regex "/"</li>
 * <li>regex &rarr; <i>a java.util.regex regular expression; use _ instead of spaces.</i></li>
 * <li>ideal_clause &rarr; "ideal" mean sigma</li>
@@ -61,22 +63,28 @@ import driftwood.parser.*;
 * <p>Copyright (C) 2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Thu Feb 15 11:18:34 EST 2007
 */
+//
+// TEMPORARY BACKUP OF OLD (WRONG) RESSPEC REGEX:
+// * <li>resspec &rarr; resno? "cis"? ("2'" | "2p" | "2prime")? (("deoxy" | "dna") | ("oxy" | "rna"))? ("disulf" | "disulfide" | "ss")? ([_A-Z0-9]{3} | "/" regex "/")?</li>
+//
 public class Parser //extends ... implements ...
 {
 //{{{ Constants
     final Matcher FOR       = Pattern.compile("for").matcher("");
     final Matcher CIS       = Pattern.compile("cis").matcher("");
-    final Matcher TWOPRIME  = Pattern.compile("2'").matcher(""); // 2' endo pucker for RNA ribose instead of more common 3'
-    final Matcher DEOXY     = Pattern.compile("deoxy").matcher("");
+    final Matcher TWOPRIME  = Pattern.compile("2'|2p(rime)?").matcher(""); // 2' endo pucker for nucleic acid ribose instead of more common 3'
+    final Matcher DEOXY     = Pattern.compile("deoxy|dna").matcher("");
+    final Matcher OXY       = Pattern.compile("oxy|rna").matcher("");
+    final Matcher DISULF    = Pattern.compile("disulf(ide(s)?)?|ss").matcher("");
     final Matcher RESNAME   = Pattern.compile("[_A-Z0-9]{3}|/[^/ ]*/").matcher("");
     // If you add super-builtins here, you should also modify
     // Measurement.newSuperBuiltin(), the javadoc above, and the man page.
     // Added "suitefit" SUPERBLTN 6/20/07. -- DK
-    final Matcher SUPERBLTN = Pattern.compile("rnabb|dnabb|suitefit").matcher(""); 
+    final Matcher SUPERBLTN = Pattern.compile("rnabb|dnabb|suitefit|disulfides|disulf|ss").matcher(""); 
     // If you add built-ins here, you should also modify
     // Measurement.newBuiltin(), the javadoc above, and the man page.
     // Added BUILTINs for "suitefit" SUPERBLTN 6/28/07. -- DK
-    final Matcher BUILTIN   = Pattern.compile("phi|psi|omega|chi1|chi2|chi3|chi4|tau|cbdev|hadev|nhdev|codev|alpha|beta|gamma|delta|epsilon|zeta|c2o2|eta|theta|chi|alpha-1|beta-1|gamma-1|delta-1|epsilon-1|zeta-1|chi-1|O5'-C5'|O5'--C5'|C5'-C4'|C5'--C4'|C4'-C3'|C4'--C3'|C3'-C2'|C3'--C2'|C2'-C1'|C2'--C1'|O4'-C1'|O4'--C1'|O4'-C4'|O4'--C4'|O3'--C3'|O3'-C3'|C2'-O2'|C2'--O2'|C4'-O4'-C1'|O4'-C1'-C2'|C1'-C2'-C3'|C4'-C3'-C2'|C3'-C2'-C1'|C2'-C1'-O4'|C1'-O4'-C4'|O3'-C3'-C4'|C3'-C4'-C5'|C3'-C4'-O4'-C1'|C4'-O4'-C1'-C2'|O4'-C1'-C2'-C3'|C4'-C3'-C2'-C1'|C3'-C2'-C1'-O4'|C2'-C1'-O4'-C4'|O3'-C4'-C3'-C2'|C5'-C3'-C4'-O4'|isprepro").matcher("");
+    final Matcher BUILTIN   = Pattern.compile("phi|psi|omega|chi1|chi2|chi3|chi4|tau|cbdev|hadev|nhdev|codev|alpha|beta|gamma|delta|epsilon|zeta|c2o2|eta|theta|chi|alpha-1|beta-1|gamma-1|delta-1|epsilon-1|zeta-1|chi-1|O5'-C5'|O5'--C5'|C5'-C4'|C5'--C4'|C4'-C3'|C4'--C3'|C3'-C2'|C3'--C2'|C2'-C1'|C2'--C1'|O4'-C1'|O4'--C1'|O4'-C4'|O4'--C4'|O3'--C3'|O3'-C3'|C2'-O2'|C2'--O2'|C4'-O4'-C1'|O4'-C1'-C2'|C1'-C2'-C3'|C4'-C3'-C2'|C3'-C2'-C1'|C2'-C1'-O4'|C1'-O4'-C4'|O3'-C3'-C4'|C3'-C4'-C5'|C3'-C4'-O4'-C1'|C4'-O4'-C1'-C2'|O4'-C1'-C2'-C3'|C4'-C3'-C2'-C1'|C3'-C2'-C1'-O4'|C2'-C1'-O4'-C4'|O3'-C4'-C3'-C2'|C5'-C3'-C4'-O4'|isprepro|phi'|phip|psi'|psip|chi1'|chi1p|chi2'|chi2p").matcher("");
     final Matcher DISTANCE  = Pattern.compile("dist(ance)?").matcher("");
     final Matcher ANGLE     = Pattern.compile("angle").matcher("");
     final Matcher DIHEDRAL  = Pattern.compile("dihedral|torsion").matcher("");
@@ -92,6 +100,7 @@ public class Parser //extends ... implements ...
     final Matcher VECTOR    = Pattern.compile("vector").matcher("");
     final Matcher NORMAL    = Pattern.compile("normal").matcher("");
     final Matcher RESNO     = Pattern.compile("i|i(-[1-9])|i\\+([1-9])").matcher("");
+    final Matcher OTHENDSS  = Pattern.compile("--|-ss-|-SS-").matcher("");
     final Matcher ATOMNAME  = Pattern.compile("[_A-Z0-9*']{4}|/[^/ ]*/").matcher("");
     final Matcher IDEAL     = Pattern.compile("ideal").matcher("");
     //final Matcher REALNUM   = Pattern.compile("-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?(0|[1-9][0-9]*)(\\.[0-9]+)?)?").matcher("");
@@ -188,32 +197,62 @@ public class Parser //extends ... implements ...
 //##############################################################################
     ResSpec resspec() throws ParseException, IOException
     {
-        int resOffset = 0;
-        if(t.accept(RESNO))
+        int resOffset         = 0;
+        String resName        = ResSpec.ANY_RESNAME_REGEX;
+        boolean requireCis    = false;
+        boolean requireDeoxy  = false;
+        boolean requireOxy    = false;
+        boolean require2p     = false;
+        boolean requireDisulf = false;
+        
+        // Examine all 'for'-related tokens
+        boolean parsing = true;
+        while(parsing)
         {
-            String grp = RESNO.group(1);
-            if(grp == null) grp = RESNO.group(2);
-            if(grp != null)
+            if(t.accept(RESNO))
             {
-                try { resOffset = Integer.parseInt(grp); }
-                catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing residue number ["+t.token()+"]", 0); }
+                String grp = RESNO.group(1);
+                if(grp == null) grp = RESNO.group(2);
+                if(grp != null)
+                {
+                    try { resOffset = Integer.parseInt(grp); }
+                    catch(NumberFormatException ex)
+                    { throw new ParseException("Unexpected difficulty parsing residue number ["+t.token()+"]", 0); }
+                }
+                continue;
             }
+            if(t.accept(CIS))      { requireCis    = true; continue; }
+            if(t.accept(DEOXY))    { requireDeoxy  = true; continue; }
+            if(t.accept(OXY))      { requireOxy    = true; continue; }
+            if(t.accept(TWOPRIME)) { require2p     = true; continue; }
+            if(t.accept(DISULF))   { requireDisulf = true; continue; }
+            parsing = false; // only reach this point if no more tokens accepted
         }
-        boolean requireCis    = t.accept(CIS);
-        boolean require2prime = t.accept(TWOPRIME);
-        boolean requireDeoxy  = t.accept(DEOXY);
-        if(t.accept(RESNAME))
-        {
-            ResSpec r = new ResSpec(
-                resOffset,
-                requireCis,
-                require2prime,
-                requireDeoxy,
-                RESNAME.group()
-            );
-            return r;
-        }
-        else throw t.syntaxError("Expected residue name ["+t.token()+"]");
+        if(requireDeoxy && requireOxy)
+            throw t.syntaxError("Cannot combine oxy and deoxy residue specifiers!");
+        if(require2p)
+            throw t.syntaxError("RNA 2'-pucker-specific bond lengths & angles not yet implemented!!");
+        
+        if(t.accept(RESNAME)) resName = RESNAME.group();
+        //else throw t.syntaxError("Expected residue name ["+t.token()+"]");
+        // ^ Previously a resname was required, but I made it so if none is supplied 
+        // we default to any 3-letter resname using a regular expression.
+        // As a replacement, we'll throw an error if no post-"for" tokens are 
+        // supplied at all. -- 9/23/09 DK
+        if(resOffset == 0 && resName.equals(ResSpec.ANY_RESNAME_REGEX) 
+        && !requireCis && !requireDeoxy && !requireOxy && !require2p && !requireDisulf)
+            throw t.syntaxError("Expected residue specifier after 'for'!");
+        
+        ResSpec r = new ResSpec(
+            resOffset,
+            requireCis,
+            requireDeoxy,
+            requireOxy,
+            require2p,
+            requireDisulf,
+            resName
+        );
+        return r;
     }
 //}}}
 
@@ -385,23 +424,39 @@ public class Parser //extends ... implements ...
     AtomSpec atomspec() throws ParseException, IOException
     {
         int resOffset = 0;
-        if(t.accept(RESNO))
+        boolean otherEndDisulf = false;
+        
+        // Examine all atom-spec-related tokens
+        boolean parsing = true;
+        while(parsing)
         {
-            String grp = RESNO.group(1);
-	    if(grp == null) grp = RESNO.group(2);
-            if(grp != null)
+            if(t.accept(RESNO))
             {
-                try { resOffset = Integer.parseInt(grp); }
-                catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing residue number ["+t.token()+"]", 0); }
+                String grp = RESNO.group(1);
+                if(grp == null) grp = RESNO.group(2);
+                if(grp != null)
+                {
+                    try { resOffset = Integer.parseInt(grp); }
+                    catch(NumberFormatException ex) { throw new ParseException("Unexpected difficulty parsing residue number ["+t.token()+"]", 0); }
+                }
+                continue;
             }
+            if(t.accept(OTHENDSS))
+            {
+                 otherEndDisulf = true;
+                 continue;
+            }
+            parsing = false; // only reach this point if no more tokens accepted
         }
+        
         if(t.accept(ATOMNAME))
         {
             AtomSpec a = new AtomSpec(
                 resOffset,
                 ATOMNAME.group()
-            );   
-	    return a;
+            );
+            if(otherEndDisulf) a.otherEndDisulf();
+            return a;
         }
         else throw t.syntaxError("Expected atom name ["+t.token()+"]");
     }

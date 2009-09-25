@@ -31,6 +31,8 @@ public class AtomSpec extends XyzSpec
     int resOffset;
     Matcher regexName;
     String starName, primeName;
+    /** If true, use residue at other end of disulfide; res offset still applies */
+    boolean otherEndDisulf = false;
 //}}}
 
 //{{{ Constructor(s)
@@ -38,7 +40,7 @@ public class AtomSpec extends XyzSpec
     public AtomSpec(int resOffset, String atomName)
     {
         super();
-        this.resOffset  = resOffset;
+        this.resOffset = resOffset;
         
         atomName = atomName.replace('_', ' ');
         this.primeName  = atomName.replace('*', '\'');
@@ -72,6 +74,16 @@ public class AtomSpec extends XyzSpec
                 this.starName   = primeName.replace('\'', '*');
             }
         }
+    }
+//}}}
+
+//{{{ otherEndDisulf
+//##############################################################################
+    /** @return this, for chaining */
+    public AtomSpec otherEndDisulf()
+    {
+        this.otherEndDisulf = true;
+        return this;
     }
 //}}}
 
@@ -147,11 +159,23 @@ public class AtomSpec extends XyzSpec
     protected Residue getRes(Model model, ModelState state, Residue curr)
     {
         Residue res = curr;
+        if(otherEndDisulf)
+        {
+            Disulfides disulfs = model.getDisulfides();
+            if(disulfs == null) return null;
+            Disulfide disulf = disulfs.get(res);
+            if(disulf == null) return null;
+            res = disulf.otherEnd(model, res);
+            if(res == null) return null;
+            // NB: res offset still applies!
+        }
         for(int i = 0, end_i = Math.abs(resOffset); i < end_i; i++)
         {
             Residue old = res;
-            if(resOffset > 0) res = curr.getNext(model); // forward search
-            else res = curr.getPrev(model); // backward search
+            //if(resOffset > 0) res = curr.getNext(model); // forward search
+            //else res = curr.getPrev(model); // backward search
+            if(resOffset > 0) res = res.getNext(model); // forward search
+            else res = res.getPrev(model); // backward search
             if(res == null) return null;
             
             if(resOffset > 0)   { if(!checkConnection(model, state, old, res)) return null; }
@@ -202,6 +226,7 @@ public class AtomSpec extends XyzSpec
         String res = "i";
         if(resOffset > 0)       res += "+" + resOffset;
         else if(resOffset < 0)  res += resOffset;
+        if(otherEndDisulf)      res += " -ss-";
         return res+" "+primeName.replace(' ', '_'); // now PDB v3.0
         //return res+" "+starName.replace(' ', '_');
     }

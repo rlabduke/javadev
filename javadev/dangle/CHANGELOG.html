@@ -2,16 +2,37 @@
 ==============================================================================
 ===  TO DO  ==================================================================
 ==============================================================================
-    do disulfides as a separate class/program/mode
     do base-P distance, etc   <-- what could "etc" mean?... -->
     GUI for defining measures?
-    "for deoxy ..." ???
     new func? avgall() should call getAll() instead of get() on AtomSpecs
     different selenoMet bond lengths & angles?
+    expand "isprepro" to generic "ispre AAA"?
+    determine SSs geometrically if no SSBOND headers avail (or even if so)?
+    output residue info for both ends of SSs?
+    base-P perp devs in geom kin
     
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+### 1.04 ### keedy
+- Allowed "for" to be followed by multiple specifiers, e.g. "for deoxy 2'",
+  and to apply to any resname by default if none specified, as opposed to before
+  where a residue name was strictly required.
+- Replaced kludgy ignoreDNA/RNA variables with "for oxy/rna" and "for deoxy/
+  dna", so "-rna -dna" is now handled logically.
+- Hard coded "for oxy/rna" and "for deoxy/dna" into Parkinson & Gelbin resource
+  files as well as dnabb and rnabb builtins.
+- Revamped parsing of -res=#,#-#,... flag to allow a sequence of ranges.
+- Builtin chi3 now works on selenoMet (has 'SE  ' atom).
+- Added disulfide support: "for disulf", "disulfides"/"disulf"/"ss" 
+  superbuiltin, chi2',chi1',phi',psi' builtins, alternate chi2/3 defs, ...
+- Made geom kin springs & fans unpickable (Jane's request via Vince)
+- Added balls for Cbeta devs >0.25A to geometry kin output
+- Implemented Prekin-like aa type specificity for cbdev builtin; both programs 
+  now output the same numbers
+- Changed some geom kin flags (mainly deleted them to make things cleaner!)
+- Made Dangle.java automatically pull build # out of buildnum.props
+
 ### 1.03 ###
 gjk
 - Added Gelbin....DNA.txt to resources (source file for DNA parameters)

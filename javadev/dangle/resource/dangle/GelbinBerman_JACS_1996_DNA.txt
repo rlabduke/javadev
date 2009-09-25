@@ -8,21 +8,21 @@
 # 1.1 DNA bond lengths
 # 1.1.1 DNA backbone bond lengths
 
-            distance    P--OP1      _P__, _OP1                      ideal 1.485 0.017 
-            distance    P--OP2      _P__, _OP2                      ideal 1.485 0.017
-            distance    P--O5'      _P__, _O5'                      ideal 1.593 0.010
-            distance    P--O3'      _P__, i-1 _O3'                  ideal 1.607 0.012
-            distance    O5'--C5'    _O5', _C5'                      ideal 1.440 0.016
+for deoxy   distance    P--OP1      _P__, _OP1                      ideal 1.485 0.017 
+for deoxy   distance    P--OP2      _P__, _OP2                      ideal 1.485 0.017
+for deoxy   distance    P--O5'      _P__, _O5'                      ideal 1.593 0.010
+for deoxy   distance    P--O3'      _P__, i-1 _O3'                  ideal 1.607 0.012
+for deoxy   distance    O5'--C5'    _O5', _C5'                      ideal 1.440 0.016
                                                                                      
 # 1.1.2 DNA sugar bond lengths                                                       
                                                                                      
-            distance    C5'--C4'    _C5', _C4'                      ideal 1.511 0.008
-            distance    C4'--C3'    _C4', _C3'                      ideal 1.528 0.010
-            distance    C3'--C2'    _C3', _C2'                      ideal 1.518 0.010
-            distance    C2'--C1'    _C2', _C1'                      ideal 1.521 0.014
-            distance    O4'--C1'    _O4', _C1'                      ideal 1.420 0.013
-            distance    O4'--C4'    _O4', _C4'                      ideal 1.446 0.011
-            distance    O3'--C3'    _O3', _C3'                      ideal 1.431 0.013
+for deoxy   distance    C5'--C4'    _C5', _C4'                      ideal 1.511 0.008
+for deoxy   distance    C4'--C3'    _C4', _C3'                      ideal 1.528 0.010
+for deoxy   distance    C3'--C2'    _C3', _C2'                      ideal 1.518 0.010
+for deoxy   distance    C2'--C1'    _C2', _C1'                      ideal 1.521 0.014
+for deoxy   distance    O4'--C1'    _O4', _C1'                      ideal 1.420 0.013
+for deoxy   distance    O4'--C4'    _O4', _C4'                      ideal 1.446 0.011
+for deoxy   distance    O3'--C3'    _O3', _C3'                      ideal 1.431 0.013
             
             
 # 1.1.3 DNA base bond lengths
@@ -30,40 +30,40 @@
 # 1.2 DNA bond angles
 # 1.2.1 DNA backbone bond angles
 
-            angle       OP1-P-OP2   _OP1, _P__, _OP2                ideal 119.6 1.5
+for deoxy   angle       OP1-P-OP2   _OP1, _P__, _OP2                ideal 119.6 1.5
 #### WTF?!  OP1 and OP2 should be the same, but they aren't: ####                  
-            angle       O5'-P-OP1   _O5', _P__, _OP1                ideal 108.1 2.9
-            angle       O5'-P-OP2   _O5', _P__, _OP2                ideal 108.3 2.7
-            angle       O3'-P-O5'   i-1 _O3', _P__, _O5'            ideal 104.0 1.9
+for deoxy   angle       O5'-P-OP1   _O5', _P__, _OP1                ideal 108.1 2.9
+for deoxy   angle       O5'-P-OP2   _O5', _P__, _OP2                ideal 108.3 2.7
+for deoxy   angle       O3'-P-O5'   i-1 _O3', _P__, _O5'            ideal 104.0 1.9
 #### WTF?!  OP1 and OP2 should be the same, but they aren't: ####                  
-            angle       OP2-P-O3'   _OP2, _P__, i-1 _O3'            ideal 108.3 3.2
-            angle       OP1-P-O3'   _OP1, _P__, i-1 _O3'            ideal 107.4 3.2
-            angle       O5'-C5'-C4' _O5', _C5', _C4'                ideal 110.2 1.4
-            angle       P-O5'-C5'   _P__, _O5', _C5'                ideal 120.9 1.6
-            angle       P-O3'-C3'   _P__, i-1 _O3', i-1 _C3'        ideal 119.7 1.2
+for deoxy   angle       OP2-P-O3'   _OP2, _P__, i-1 _O3'            ideal 108.3 3.2
+for deoxy   angle       OP1-P-O3'   _OP1, _P__, i-1 _O3'            ideal 107.4 3.2
+for deoxy   angle       O5'-C5'-C4' _O5', _C5', _C4'                ideal 110.2 1.4
+for deoxy   angle       P-O5'-C5'   _P__, _O5', _C5'                ideal 120.9 1.6
+for deoxy   angle       P-O3'-C3'   _P__, i-1 _O3', i-1 _C3'        ideal 119.7 1.2
 
 # 1.2.2 DNA sugar bond angles
 
-            angle       O4'-C4'-C3' _O4', _C4', _C3'                ideal 105.6 1.0
-            angle       C5'-C4'-C3' _C5', _C4', _C3'                ideal 114.7 1.5
-            angle       C5'-C4'-O4' _C5', _C4', _O4'                ideal 109.4 1.6
-            angle       C1'-O4'-C4' _C1', _O4', _C4'                ideal 109.7 1.4
-            angle       C4'-C3'-C2' _C4', _C3', _C2'                ideal 103.2 1.0
-            angle       C3'-C2'-C1' _C3', _C2', _C1'                ideal 102.7 1.4
-            angle       O4'-C1'-C2' _O4', _C1', _C2'                ideal 106.1 1.1
+for deoxy   angle       O4'-C4'-C3' _O4', _C4', _C3'                ideal 105.6 1.0
+for deoxy   angle       C5'-C4'-C3' _C5', _C4', _C3'                ideal 114.7 1.5
+for deoxy   angle       C5'-C4'-O4' _C5', _C4', _O4'                ideal 109.4 1.6
+for deoxy   angle       C1'-O4'-C4' _C1', _O4', _C4'                ideal 109.7 1.4
+for deoxy   angle       C4'-C3'-C2' _C4', _C3', _C2'                ideal 103.2 1.0
+for deoxy   angle       C3'-C2'-C1' _C3', _C2', _C1'                ideal 102.7 1.4
+for deoxy   angle       O4'-C1'-C2' _O4', _C1', _C2'                ideal 106.1 1.1
 
 # Residues with an N9 (A, G) will use that; others will use N1:
 # Note: Fixed "C4'-C3'-O4' _C4', _C3', _O3'" to "C4'-C3'-O3' _C4', _C3', _O3'"
 # (DAK 10/3/07)
-            angle       N19-C1'-C2' _N9_, _C1', _C2'                ideal 114.2 1.6
-            angle       N19-C1'-C2' _N1_, _C1', _C2'                ideal 114.2 1.6
-            angle       O4'-C1'-N19 _O4', _C1', _N9_                ideal 107.8 0.8
-            angle       O4'-C1'-N19 _O4', _C1', _N1_                ideal 107.8 0.8
+for deoxy   angle       N19-C1'-C2' _N9_, _C1', _C2'                ideal 114.2 1.6
+for deoxy   angle       N19-C1'-C2' _N1_, _C1', _C2'                ideal 114.2 1.6
+for deoxy   angle       O4'-C1'-N19 _O4', _C1', _N9_                ideal 107.8 0.8
+for deoxy   angle       O4'-C1'-N19 _O4', _C1', _N1_                ideal 107.8 0.8
                                                                                    
             
             
-            angle       C4'-C3'-O3' _C4', _C3', _O3'                ideal 110.3 2.2
-            angle       C2'-C3'-O3' _C2', _C3', _O3'                ideal 110.6 2.7
+for deoxy   angle       C4'-C3'-O3' _C4', _C3', _O3'                ideal 110.3 2.2
+for deoxy   angle       C2'-C3'-O3' _C2', _C3', _O3'                ideal 110.6 2.7
 
 # 1.2.3 DNA base bond angles
 
