@@ -34,7 +34,7 @@ MEASUREMENT SPECIFIERS
     
   Dangle also has several "built in" measurement specifiers that you can use:
     phi, psi, omega, chi1, chi2, chi3, chi4, tau, cbdev, hadev,     # proteins
-    nhdev, codev
+    nhdev, codev, phi',psi',chi1',chi2'
     alpha, beta, gamma, delta, epsilon, zeta, eta, theta, chi       # RNA / DNA
     alpha-1, beta-1, gamma-1, delta-1, epsilon-1, zeta-1, chi-1     # RNA / DNA
     
@@ -68,9 +68,15 @@ MEASUREMENT SPECIFIERS
   For really complicated measurements, one can define special cases using "for".
   Because the first definition takes precedence, the default case should come
   last.  Residue numbers and residue names or regular expressions are accepted,
-  as is the qualifier "cis" (meaning the residue's N is in a cis peptide bond
-  to the previous residue's C).  For example:
+  as are the following qualifiers:
   
+    for cis         residue's N is in a cis peptide bond to previous residue's C
+    for deoxy/dna   residue is DNA (C2'-O2' bond does not exist)
+    for oxy/rna     residue is RNA (C2'-O2' bond does exist)
+    for 2'/2p(rime) residue has 2' instead of more common 3' ribose pucker
+
+  For example:
+
     dangle -validate "
       # This is a demo ONLY.  The rules/values are made-up (and kinda stupid)!
       for cis PRO    angle  C-N-CA  i-1 _C__, _N__, _CA_  ideal 127.0 2.4
@@ -105,10 +111,7 @@ VALIDATION MODE
   
   Because there are many potential measurements of interest and their
   definitions can be complicated, these flags are almost always used in place
-  of defining measures at the command line.  WARNING: Strange behavior may occur
-  when both -rna and -dna are used simultaneously!  In general it is best to use
-  just one at a time (though -protein can safely be combined with either -dna or
-  -rna).
+  of defining measures at the command line.
 
 ADVANCED DANGLE TRICKS
   The Unix "sort" utility can be applied to the output of Dangle, so the
@@ -156,13 +159,13 @@ ADVANCED DANGLE TRICKS
   
     # Planarity of all atoms in the base plus the C1':
     planarity BasePlane (_C1* /_[CNO][1-9]_/)
-
+    
   Dangle can output the relevant distances, angles, and dihedrals required for 
   constructing suite conformations in suitefit.  It is also possible to specify
   some subset of these measurements as well, as seen below.  If your first 
   attempt at outputting such selected suitefit measures fails, try swapping 
   the order of the atoms (e.g. "O5'-C5'" instead of "C5'-O5'").
-
+  
     dangle suitefit FILE.pdb  
     dangle "O5'-C5'" FILE.pdb
     dangle "O5'--C5'" FILE.pdb
@@ -173,40 +176,57 @@ ADVANCED DANGLE TRICKS
   pseudorotation from Rao et al, Acta Cryst, 1981.
   
     dangle pucker FILE.pdb
-
-  Dangle can output a kinemage with visualizations of distance and angle 
-  geometry outliers.  Red outlier visualizations indicate the value in the 
-  model is greater than ideal; blue means the value in the model is less than 
-  ideal.  Like the rest of Dangle, geom dev viz kins work for protein and RNA 
-  but not DNA.  Ideal bond length corresponds to 6 turns in the distance 
-  deviation "springs" and each sigma deviation adds +/- 0.25 turns.  The 
-  following flags suppress csv output and send kinemage format output to the 
-  screen:
-
-    -kin/-geomkin/-geometrykin      distance + angle outliers
-    -distancedevskin/-distdevskin   just distance outliers
-    -angledevskin/-angdevskin       just angle outliers
-
-  Other flags for geom dev viz kins:
-
-    -kinheading                     @kinemage + @master(s) at top
-    -sub/-subgroup                  @subgroup instead of @group
-
+    
+  Dangle can output a kinemage with visualizations of geometry outliers: bond 
+  lengths and angles for protein, RNA, and (now) DNA.  Red bond length or angle 
+  outlier visualizations indicate the value in the model is greater than ideal; 
+  blue means the value in the model is less than ideal.  Ideal bond length 
+  corresponds to 6 turns in the distance deviation "springs" and each sigma 
+  deviation adds +/- 0.25 turns.  It is now possible to include Prekin-like 
+  balls for Cbeta deviations for protein as well.  NB: Dangle's built-in "cbdev"
+  measurement uses one generic set of values to construct the ideal Cbeta 
+  position for any amino acid, whereas Prekin uses amino-acid-specific values.  
+  Because of this disagreement, "cbdev" is not currently included in the default 
+  set of Dangle geometry kinemage measurements.
+  
+    -kin -prot -rna -dna      # protein/RNA/DNA length/angle outliers
+    -geometrykin              # synonym
+    -geomkin cbdev -subgroup  # only protein Cbeta deviation outliers, with  
+                              #   @subgroup instead of @group
+    
   By default Dangle ignores het atoms, but this can be overridden with the 
   -dohets or -hets flags, which tell Dangle to report geometry information for 
-  het groups, both in command line and geom dev viz kin forms.
-
-  Dangle can also calculate the the base-phosphate perpendicular distance, the 
+  het groups if possible, both in command line and geom dev viz kin forms.
+  
+  Dangle can also calculate the base-phosphate perpendicular distance, the 
   perpendicular distance from the 3' phosphate to the N1/N9 to C1' vector. This
   is useful in determining the pucker state of the ribose.
 
-  # Base-phosphate perpindicular
+    # Base-phosphate perpindicular
     dangle basepperp FILE.pdb
     dangle pperp FILE.pdb
+    
+  Dangle's output can be restricted to only certain residues in any mode.  
+  Indicate ranges of residue numbers with '-' and separate ranges with ','.
+    
+    # Restricted set of residues
+    dangle 'measurement' FILE.pdb -res=1
+    dangle 'measurement' FILE.pdb -resnums=1-99
+    dangle 'measurement' FILE.pdb -residues=1-2,10,50-50,99-100
 
-  You can restrict Dangle's output to only certain residues in any mode (please
-  use either a range separated by '-' or a set separated by ',').
-    dangle 'some measurement' FILE.pdb -res=1
-    dangle 'some measurement' FILE.pdb -res=1,3,10,43
-    dangle 'some measurement' FILE.pdb -res=1-99
-
+  Dangle can now measure geometry for disulfide bonds via built-in measurements:
+  Alternately, you can use "-SS-", "-ss-", or "--" within the "for" syntax to 
+  indicate the residue at the other end of the disulfide:
+  
+    # Disulfides (built-in)
+    dangle ss         FILE.pdb
+    dangle disulf     FILE.pdb
+    dangle disulfides FILE.pdb
+    
+    # Disulfides (user-defined)
+    dangle "for ss chi1; for ss chi2; for ss chi3; chi2'; chi1'"        FILE.pdb
+    dangle "for disulf phi; for disulf psi; phi'; psi'"                 FILE.pdb
+    dangle "for disulfide  dist CaCa i _CA_, i -SS- _CA_"               FILE.pdb
+    dangle "for disulfides dist CbCb i _CB_, i -ss- _CB_"               FILE.pdb
+    dangle "for ss dihedral Ca4 i-1 _CA_, _CA_, i -- _CA_, i+1 -- _CA_" FILE.pdb
+    

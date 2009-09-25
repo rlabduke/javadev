@@ -28,26 +28,19 @@ public class Dangle //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
-    
     boolean forcePDB = false, forceCIF = false;
     boolean doWrap = false; // if true wrap dihedrals to 0 to 360 instead of -180 to 180
     boolean showDeviation = false;
     boolean outliersOnly = false;
+    boolean doHets = false;
     boolean doParCoor = false;
-    boolean doGeomKin;  // if true make kinemage for each file showing visual 
-    			        // representations of angle & dist deviations
-    boolean doDistDevsKin = false;
-    boolean doAngleDevsKin = false;
-    boolean doKinHeadings = false;
-    boolean subgroupNotGroup = false;
+    boolean doGeomKin;  // if true make kinemage for each file showing 
+    			        // visual representations of geometry outliers
+    boolean subgroup = false;
     double sigmaCutoff = 4;
     Collection files = new ArrayList();
     Collection measurements = new ArrayList();
-    boolean ignoreDNA = false;
-    boolean ignoreRNA = false;
-    boolean doHets = false;
-    ArrayList<Integer> resnums = null;
-    int[] resrange = null;
+    TreeSet<Integer> resnums = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -64,6 +57,8 @@ public class Dangle //extends ... implements ...
     {
         final PrintStream out = System.out;
         final DecimalFormat df = new DecimalFormat("0.###");
+        
+        coords.deployDisulfidesToModels();
         
         Measurement[] meas = (Measurement[]) measurements.toArray(new Measurement[measurements.size()]);
         
@@ -91,10 +86,7 @@ public class Dangle //extends ... implements ...
             for(Iterator residues = model.getResidues().iterator(); residues.hasNext(); )
             {
                 Residue res = (Residue) residues.next();
-                int resnum = res.getSequenceInteger();
-                if((resnums  == null && resrange == null)
-                || (resnums  != null && resnums.contains(resnum))
-                || (resrange != null && resrange[0] <= resnum && resrange[1] >= resnum) )
+                if(resnums == null || resnums.contains(res.getSequenceInteger()))
                 {
                     boolean print = false;
                     for(int i = 0; i < meas.length; i++)
@@ -107,11 +99,6 @@ public class Dangle //extends ... implements ...
                             if(meas[i].getType() == Measurement.TYPE_DIHEDRAL)
                                 vals[i] = wrap360(vals[i]);
                         }
-                    }
-                    if(isNucAcid(res))
-                    {
-                        if     (isRNA(model, state, res) && ignoreRNA)  print = false;
-                        else if(isDNA(model, state, res) && ignoreDNA)  print = false;
                     }
                     if(print)
                     {
@@ -144,6 +131,8 @@ public class Dangle //extends ... implements ...
         final PrintStream out = System.out;
         final DecimalFormat df = new DecimalFormat("0.###");
         
+        coords.deployDisulfidesToModels();
+        
         Measurement[] meas = (Measurement[]) measurements.toArray(new Measurement[measurements.size()]);
         
         out.println("# label:model:chain:number:ins:type:measure:value:sigmas");
@@ -163,10 +152,7 @@ public class Dangle //extends ... implements ...
             for(Iterator residues = model.getResidues().iterator(); residues.hasNext(); )
             {
                 Residue res = (Residue) residues.next();
-                int resnum = res.getSequenceInteger();
-                if((resnums  == null && resrange == null)
-                || (resnums  != null && resnums.contains(resnum))
-                || (resrange != null && resrange[0] <= resnum && resrange[1] >= resnum) )
+                if(resnums == null || resnums.contains(res.getSequenceInteger()))
                 {
                     boolean print = false;
                     for(int i = 0; i < meas.length; i++)
@@ -179,11 +165,6 @@ public class Dangle //extends ... implements ...
                             if(meas[i].getType() == Measurement.TYPE_DIHEDRAL)
                                 vals[i] = wrap360(vals[i]);
                         }
-                    }
-                    if(isNucAcid(res))
-                    {
-                        if     (isRNA(model, state, res) && ignoreRNA)  print = false;
-                        else if(isDNA(model, state, res) && ignoreDNA)  print = false;
                     }
                     if(print)
                     {
@@ -210,6 +191,8 @@ public class Dangle //extends ... implements ...
     {
         final PrintStream out = System.out;
         final DecimalFormat df = new DecimalFormat("0.###");
+        
+        coords.deployDisulfidesToModels();
         
         Measurement[] meas = (Measurement[]) measurements.toArray(new Measurement[measurements.size()]);
         
@@ -245,10 +228,7 @@ public class Dangle //extends ... implements ...
             for(Iterator residues = model.getResidues().iterator(); residues.hasNext(); )
             {
                 Residue res = (Residue) residues.next();
-                int resnum = res.getSequenceInteger();
-                if((resnums  == null && resrange == null)
-                || (resnums  != null && resnums.contains(resnum))
-                || (resrange != null && resrange[0] <= resnum && resrange[1] >= resnum) )
+                if(resnums == null || resnums.contains(res.getSequenceInteger()))
                 {
                     boolean print = false;
                     for(int i = 0; i < meas.length; i++)
@@ -261,11 +241,6 @@ public class Dangle //extends ... implements ...
                             if(meas[i].getType() == Measurement.TYPE_DIHEDRAL)
                                 vals[i] = wrap360(vals[i]);
                         }
-                    }
-                    if(isNucAcid(res))
-                    {
-                        if     (isRNA(model, state, res) && ignoreRNA)  print = false;
-                        else if(isDNA(model, state, res) && ignoreDNA)  print = false;
                     }
                     if(print)
                     {
@@ -286,7 +261,25 @@ public class Dangle //extends ... implements ...
     }
 //}}}
 
-//{{{ isProtOrNucAcid, isNucAcid, isRNA, isDNA
+//{{{ geomKinOutput
+//##############################################################################
+    public void geomKinOutput(String label, CoordinateFile coords)
+    {
+        coords.deployDisulfidesToModels();
+        GeomKinSmith gks = new GeomKinSmith( 
+            label,
+            coords,
+            (ArrayList<Measurement>) measurements,
+            sigmaCutoff,
+            subgroup,
+            doHets,
+            resnums
+        );
+        gks.makeKin();
+    }
+//}}}
+
+//{{{ isProtOrNucAcid
 //##############################################################################
     //static String lowerCa = ":gly:ala:val:phe:pro:met:ile:leu:asp:glu:lys:arg:ser:thr:tyr:his:cys:asn:gln:trp:asx:glx:ace:for:nh2:nme:mse:aib:abu:pca:mly:cyo:m3l:dgn:csd:";
     static String aaNames = ":GLY:ALA:VAL:PHE:PRO:MET:ILE:LEU:ASP:GLU:LYS:ARG:SER:THR:TYR:HIS:CYS:ASN:GLN:TRP:ASX:GLX:ACE:FOR:NH2:NME:MSE:AIB:ABU:PCA:MLY:CYO:M3L:DGN:CSD:";
@@ -299,38 +292,46 @@ public class Dangle //extends ... implements ...
             return true; // it's a valid protein or nucleic acid residue name
         return false;
     }
+//}}}
 
-    /** Decides that residue <code>res</code> is nucleic acid simply based simply on residue name */
-    static boolean isNucAcid(Residue res)
-    {
-        String resname = res.getName();
-        if(naNames.indexOf(resname) != -1)
-            return true; // it's a valid nucleic acid residue name
-        return false;
-    }
-
+//{{{ chooseMeasures
+//##############################################################################
     /**
-    * Decides that residue <code>res</code> is RNA if the C2'-O2' distance is measurable.
-    * Should only be called on residues you've already decided are nucleic acid!
+    * Chooses the set of measurements to be used.  Useful because we sometimes 
+    * want to load up a different set depending on what flags were provided.
+    * If no measurements specified for geom kin output, use only relevant measurements.
+    * If no measurements specified for text output, load up all builtins.
     */
-    static boolean isRNA(Model model, ModelState state, Residue res)
+    public void chooseMeasures() throws IOException, ParseException
     {
-        Measurement c2o2 = Measurement.newBuiltin("c2o2");
-        double c2o2dist = c2o2.measure(model, state, res);
-        if(Double.isNaN(c2o2dist)) return false; // O2' undetectable - assuming not RNA
-        return true;                             // O2' detectable   - assuming RNA
-    }
-
-    /**
-    * Decides that residue <code>res</code> is DNA if the C2'-O2' distance is NOT measurable.
-    * Should only be called on residues you've already decided are nucleic acid!
-    */
-    static boolean isDNA(Model model, ModelState state, Residue res)
-    {
-        Measurement c2o2 = Measurement.newBuiltin("c2o2");
-        double c2o2dist = c2o2.measure(model, state, res);
-        if(Double.isNaN(c2o2dist)) return true; // O2' undetectable - assuming DNA
-        return false;                           // O2' detectable   - assuming not DNA
+        if(measurements.isEmpty()) 
+        {
+            if(doGeomKin)
+            {
+                System.err.println("No geom kin measurements specified -- loading defaults! (including cbdev)");
+                measurements = new ArrayList();
+                showDeviation = true;
+                try { loadMeasures("EnghHuber_IntlTblsF_1999.txt"); }
+                catch(Exception ex) { ex.printStackTrace(); }
+                try { loadMeasures("ParkinsonBerman_ActaCrystD_1996_RNA.txt"); }
+                catch(Exception ex) { ex.printStackTrace(); }
+                try { loadMeasures("GelbinBerman_JACS_1996_DNA.txt"); }
+                catch(Exception ex) { ex.printStackTrace(); }
+                try { measurements.add(Measurement.newBuiltin("cbdev")); }
+                catch(Exception ex) { ex.printStackTrace(); }
+            }
+            else
+            {
+                if(showDeviation) // all validatable measures
+                    throw new IllegalArgumentException("Must specify measures to validate (try -protein, -rna, -dna)");
+                else // all builtins
+                {
+                    Parser parser = new Parser();
+                    String defaults = parser.BUILTIN.pattern().pattern().replace('|', ' ');
+                    measurements.addAll(parser.parse(new CharWindow(defaults)));
+                }
+            }
+        }
     }
 //}}}
 
@@ -359,6 +360,35 @@ public class Dangle //extends ... implements ...
     }
 //}}}
 
+//{{{ parseResnums
+//##############################################################################
+    void parseResnums(String r) throws NumberFormatException
+    {
+        // Something like "1-99,4,58-71"
+        resnums = new TreeSet<Integer>();
+        String[] ranges = Strings.explode(r, ',', false, true);
+        for(String range : ranges)
+        {
+            if(range.indexOf("-") != -1)
+            {
+                // Range of residue numbers ("1-99")
+                String[] rangeBegEnd = Strings.explode(range, '-', false, true);
+                int beg = Integer.parseInt(rangeBegEnd[0]); // "1"
+                int end = Integer.parseInt(rangeBegEnd[1]); // "99"
+                if(end >= beg)
+                    for(int curr = beg; curr <= end; curr++) resnums.add(curr);
+                else //if(end < beg)
+                    for(int curr = end; curr <= beg; curr++) resnums.add(curr);
+            }
+            else
+            {
+                // Single residue number ("4")
+                resnums.add(Integer.parseInt(range));
+            }
+        }
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##############################################################################
 //}}}
@@ -372,17 +402,8 @@ public class Dangle //extends ... implements ...
     {
         PdbReader pr = new PdbReader();
         CifReader cr = new CifReader();
-        if(measurements.isEmpty())
-        {
-            if(showDeviation) // all validatable measures
-                throw new IllegalArgumentException("Must specify measures to validate (try -protein, -rna, -dna)");
-            else // all builtins
-            {
-                Parser parser = new Parser();
-                String defaults = parser.BUILTIN.pattern().pattern().replace('|', ' ');
-                measurements.addAll(parser.parse(new CharWindow(defaults)));
-            }
-        }
+        
+        chooseMeasures();
         
         if(files.isEmpty())
         {
@@ -405,15 +426,8 @@ public class Dangle //extends ... implements ...
                     coords = pr.read(f);
                 
                 if(doGeomKin)
-                {
-                    GeomKinSmith gks = new GeomKinSmith( 
-                        (ArrayList<Measurement>) measurements, f.getName(), 
-                        coords, doDistDevsKin, doAngleDevsKin, doKinHeadings, 
-                        sigmaCutoff, subgroupNotGroup, doHets, ignoreDNA, 
-                        ignoreRNA, resnums, resrange);
-                    gks.makeKin();
-                }
-                else if (doParCoor)
+                    geomKinOutput(f.getName(), coords);
+                else if(doParCoor)
                     parCoorOutput(f.getName(), coords);
                 else if(outliersOnly)
                     outliersOutput(f.getName(), coords);
@@ -425,7 +439,7 @@ public class Dangle //extends ... implements ...
 
     public static void main(String[] args)
     {
-	Dangle mainprog = new Dangle();
+        Dangle mainprog = new Dangle();
         try
         {
             mainprog.parseArguments(args);
@@ -460,18 +474,6 @@ public class Dangle //extends ... implements ...
             showHelp(true);
             System.exit(1);
         }
-        
-        boolean doDNA = false;
-        boolean doRNA = false;
-        for(String arg : args)
-        {
-            if(arg.equals("-rna") || arg.equals("rnabb"))  doRNA = true;
-            if(arg.equals("-dna") || arg.equals("dnabb"))  doDNA = true;
-        }
-        if     (!doDNA &&  doRNA) ignoreDNA = true;   // eval just RNA
-        else if( doDNA && !doRNA) ignoreRNA = true;   // eval just DNA
-        else if( doDNA &&  doRNA) System.err.println( // eval both DNA + RNA w/ diff ideal vals
-            "WARNING: Simultaneous use of -dna & -rna may cause strange behavior!");
         
         String  arg, flag, param;
         boolean interpFlags = true;
@@ -535,8 +537,7 @@ public class Dangle //extends ... implements ...
                 catch(IOException ex) { ex.printStackTrace(); }
             }
         }
-        String versionNumber = getVersion();
-        System.err.println("dangle.Dangle version " + versionNumber);
+        System.err.println("dangle.Dangle version "+getVersion()+" build "+getBuild());
         System.err.println("Copyright (C) 2007 by Ian W. Davis. All rights reserved.");
     }
 
@@ -554,8 +555,7 @@ public class Dangle //extends ... implements ...
                 catch(IOException ex) { ex.printStackTrace(); }
             }
         }
-        String versionNumber = getVersion();
-        System.err.println("dangle.Dangle version " + versionNumber);
+        System.err.println("dangle.Dangle version "+getVersion()+" build "+getBuild());
         System.err.println("Copyright (C) 2007 by Ian W. Davis. All rights reserved.");
     }
 
@@ -578,6 +578,27 @@ public class Dangle //extends ... implements ...
             catch(IOException ex) { ex.printStackTrace(); }
         }
         return "?.??";
+    }
+
+    // Get build number
+    String getBuild()
+    {
+        InputStream is = getClass().getResourceAsStream("buildnum.props");
+        if(is == null)
+            System.err.println("\n*** Unable to locate version number in 'buildnum.props' ***\n");
+        else
+        {
+            try
+            {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                String line = reader.readLine();
+                line = reader.readLine();
+                if(line != null && line.indexOf("buildnum=") != -1)
+                    return line.substring( line.indexOf("=")+1 );
+            }
+            catch(IOException ex) { ex.printStackTrace(); }
+        }
+        return "yyyymmdd.????";
     }
 
     // Copies src to dst until we hit EOF
@@ -630,9 +651,13 @@ public class Dangle //extends ... implements ...
             forcePDB = true;
         }
         else if(flag.equals("-360"))
+        {
             doWrap = true;
-        else if(flag.equals("-validate"))
+        }
+        else if(flag.equals("-validate") || flag.equals("-val"))
+        {
             showDeviation = true;
+        }
         else if(flag.equals("-sigma"))
         {
             try { this.sigmaCutoff = Double.parseDouble(param); }
@@ -652,7 +677,6 @@ public class Dangle //extends ... implements ...
         {
             try { loadMeasures("GelbinBerman_JACS_1996_DNA.txt"); }
             catch(Exception ex) { ex.printStackTrace(); }
-            //throw new IllegalArgumentException("No DNA parameters defined yet!");
         }
         else if(flag.equals("-outliers"))
         {
@@ -666,59 +690,21 @@ public class Dangle //extends ... implements ...
         else if(flag.equals("-geometrykin") || flag.equals("-geomkin") || flag.equals("-kin"))
         {
             doGeomKin = true;
-            doDistDevsKin = true;
-            doAngleDevsKin = true;
-        }
-        else if(flag.equals("-distancedevskin") || flag.equals("-distdevskin"))
-        {
-            doGeomKin = true;
-            doDistDevsKin = true;
-        }
-        else if(flag.equals("-angledevskin") || flag.equals("-angdevskin"))
-        {
-            doGeomKin = true;
-            doAngleDevsKin = true;
-        }
-        else if(flag.equals("-kinheading"))
-        {
-            doKinHeadings = true;
         }
         else if(flag.equals("-sub") || flag.equals("-subgroup"))
         {
-            subgroupNotGroup = true;
+            subgroup = true;
         }
         else if(flag.equals("-dohets") || flag.equals("-hets"))
         {
             doHets = true;
         }
-        else if(flag.equals("-res") || flag.equals("-resnum"))
+        else if(flag.equals("-res") || flag.equals("-resnum") || flag.equals("-resnums") || flag.equals("-residues"))
         {
-            if(param.indexOf("-") != -1)
-            {
-                // Range of residue numbers ("1-99")
-                try
-                {
-                    String[] resNumbers = Strings.explode(param, '-', false, true);
-                    resrange = new int[2];
-                    resnums = null;
-                    for(int i = 0; i < resNumbers.length; i ++)
-                        resrange[i] = Integer.parseInt(resNumbers[i]);
-                }
-                catch(NumberFormatException nfe) { resrange = null; }
-            }
-            else
-            {
-                // Set of residue numbers ("1,2,10,...")
-                try
-                {
-                    String[] resNumbers = Strings.explode(param, ',', false, true);
-                    resnums = new ArrayList<Integer>();
-                    resrange = null;
-                    for(String resNumber : resNumbers)
-                        resnums.add(Integer.parseInt(resNumber));
-                }
-                catch(NumberFormatException nfe) { resnums = null; }
-            }
+            try { parseResnums(param); }
+            catch(NumberFormatException ex)
+            { System.err.println("*** Error: Can't format '"+param+"' as list of resnum ranges!"); }
+            catch(Exception ex) { ex.printStackTrace(); }
         }
         else if(flag.equals("-dummy_option"))
         {
