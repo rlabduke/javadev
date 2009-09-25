@@ -69,19 +69,73 @@ public class Disulfide //extends ... implements ...
     { return endICode; }
 //}}}
 
-//{{{ contains
+//{{{ contains, matches(Init,End)
 //##############################################################################
-    public boolean contains(Residue r)
+    /**
+    * @return true if the provided Residue matches either CNIT 
+    * in this Disulfide, or false otherwise.
+    */
+    public boolean contains(Residue res)
     {
-        if(!r.getName().equals("CYS")) return false;
-        if(!initChainId.equals(r.getChain())
-        && ! endChainId.equals(r.getChain())) return false;
-        int seqNum = r.getSequenceInteger();
-        if(seqNum != initSeqNum && seqNum != endSeqNum) return false;
-        String iCode = r.getInsertionCode();
-        if(seqNum == initSeqNum && iCode.compareTo(initICode) < 0) return false;
-        if(seqNum == endSeqNum  && iCode.compareTo(endICode)  > 0) return false;
-        return true;
+        if(matchesInit(res) || matchesEnd(res)) return true;
+        return false;
+    }
+
+    /**
+    * Decides the provided Residue matches the first (from the PDB header, usually 
+    * first in sequence) residue in this Disulfide based purely on CNIT.
+    */
+    public boolean matchesInit(Residue res)
+    {
+        if(!res.getName().equals("CYS")) return false; // T
+        if(!initChainId.equals(res.getChain())) return false; // C
+        if(res.getSequenceInteger() != initSeqNum) return false; // N
+        if(res.getInsertionCode().compareTo(initICode) < 0) return false; // I
+        return true; // must be a match!        
+    }
+
+    /**
+    * Decides the provided Residue matches the second (from the PDB header, usually 
+    * second in sequence) residue in this Disulfide based purely on CNIT.
+    */
+    public boolean matchesEnd(Residue res)
+    {
+        if(!res.getName().equals("CYS")) return false; // T
+        if(!endChainId.equals(res.getChain())) return false; // C
+        if(res.getSequenceInteger() != endSeqNum) return false; // N
+        if(res.getInsertionCode().compareTo(endICode) > 0) return false; // I
+        return true; // must be a match!   
+    }
+//}}}
+
+//{{{ otherEnd
+//##############################################################################
+    /**
+    * @return the Residue at the other end of this Disulfide from the provided
+    * Residue, or null if the other end doesn't exist (?) or the provided 
+    * Residue isn't actually in this Disulfide.
+    */ 
+    public Residue otherEnd(Model model, Residue res)
+    {
+        if(!this.contains(res)) return null; // residue not even in this disulfide
+        
+        if(matchesInit(res)) // find end
+        {
+            for(Iterator rItr = model.getResidues().iterator(); rItr.hasNext(); )
+            {
+                Residue curr = (Residue) rItr.next();
+                if(matchesEnd(curr)) return curr;
+            }
+        }
+        else if(matchesEnd(res)) // find init
+        {
+            for(Iterator rItr = model.getResidues().iterator(); rItr.hasNext(); )
+            {
+                Residue curr = (Residue) rItr.next();
+                if(matchesInit(curr)) return curr;
+            }
+        }
+        return null; // should never happen (unless code changes elsewhere...)
     }
 //}}}
 

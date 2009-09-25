@@ -57,6 +57,9 @@ public class Model implements Cloneable
     
     /** Number of times this model has been modified */
     int                 modCount        = 0;
+    
+    /** Contains Disulfide objects defined at the file level.  Optional! */
+    Disulfides          disulfides;
 //}}}
 
 //{{{ Constructor(s)
@@ -411,6 +414,15 @@ public class Model implements Cloneable
         // results of getStates() is altered.
         this.modified();
     }
+//}}}
+
+//{{{ get/setDisulfides
+//##################################################################################################
+    public Disulfides getDisulfides()
+    { return this.disulfides; }
+
+    public void setDisulfides(Disulfides disulfides)
+    { this.disulfides = disulfides; }
 //}}}
 
 //{{{ fillInStates

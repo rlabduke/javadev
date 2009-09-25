@@ -47,17 +47,22 @@ UTIL: {{{
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 ### 0.89 ###
+vbc:
 - Changed CifReader to use author defined sequence and chain identifiers; using
   label identifiers means kins don't match residue numbers given on webpage, articles, etc.
 - Changed CoordinateFile to contain the common PDB file suffixes,
   including regex pattern for pdb#.gz, like PDB uses for biological units.
 - Changed SuffixFileFilter to take in regex expression strings also.
-  
-### 0.89 ### (dak)
+dak:  
 - Added Disulfides & PdbDisulfides in spirit of SecondaryStructure & 
   PdbSecondaryStructure for reading "SSBOND" cards with PdbReader and storing
   in CoordinateFile
 - Minor update to PdbDisulfides to handle shortened SSBOND records
+- Let CoordinateFile "deploy" its Disulfides object to all its Models.  Not 
+  ideal b/c SSBONDs defined at file level, not model level, but lets lots of 
+  outside stuff use the information, and remains optional!
+- Renamed some methods in Disulfides & its subclass PdbDisulfides
+- Added hopefully convenient Disulfide.otherEnd(Model,Residue) method
 
 ### 0.88 ###
 - added WrapMap.  Like UberMap, but wraps from start to end and vise versa
