@@ -49,17 +49,17 @@ abstract public class Disulfides //extends ... implements ...
     }
 //}}}
 
-//{{{ add/getDisulfide(s), classify
+//{{{ add, get(All), classify
 //##############################################################################
-    protected void addDisulfide(Disulfide d)
+    protected void add(Disulfide d)
     {
         disulfides.add(d);
         d.disulfideIndex = disulfides.size();
     }
     
-    /** Returns a Disulfide object denoting a type of disulfide bond (intra-chain or 
+    /** @return a Disulfide object denoting a type of disulfide bond (intra-chain or 
     * inter-chain) or null if the residue doesn't participate in a disulfide bond. */
-    public Disulfide getDisulfide(Residue res)
+    public Disulfide get(Residue res)
     {
         for(Iterator iter = disulfides.iterator(); iter.hasNext(); )
         {
@@ -69,17 +69,17 @@ abstract public class Disulfides //extends ... implements ...
         return null; // no entry for that residue
     }
     
-    /** Returns an unmodifiable view of the Disulfides in this structure. */
-    public Collection getDisulfides()
+    /** @return an unmodifiable view of the Disulfides in this structure. */
+    public Collection getAll()
     {
         return Collections.unmodifiableCollection(disulfides);
     }
     
-    /** Returns one of the disulfide category constants defined by this class, 
+    /** @return one of the disulfide category constants defined by this class, 
     * or null if the residue doesn't participate in a disulfide bond. */
     public Object classify(Residue res)
     {
-        Disulfide dslf = getDisulfide(res);
+        Disulfide dslf = get(res);
         if(dslf != null) return dslf.getType();
         else return null;
     }

@@ -166,6 +166,23 @@ public class CoordinateFile //extends ... implements ...
     
     public void setDisulfides(Disulfides d)
     { this.disulfides = d; }
+    
+    // Despite the (true) statement above about SSBOND records being associated 
+    // with CoordinateFiles, not Models, I found it nice to at least have the 
+    // *option* to "deploy" this information to Models so other classes dealing 
+    // with the usual Model/ModelState/Residue moldb2 framework can make use of 
+    // it.  I imagine this is terrible practice in some way, so if somebody reads
+    // this comment and has a better suggestion, I'm all ears! -- DAK 090922
+    
+    /** Lends the Disulfides object held here to all Models. */
+    public void deployDisulfidesToModels()
+    {
+        for(Iterator iter = models.iterator(); iter.hasNext(); )
+        {
+            Model model = (Model) iter.next();
+            model.setDisulfides(disulfides);
+        }
+    }
 //}}}
 
 //{{{ get/setPdbv23Count

@@ -39,7 +39,7 @@ class PdbDisulfides extends Disulfides
             String s = (String) iter.next();
             try
             {
-                if(s.startsWith("SSBOND ")) addDisulfide(forDisulfide(s));
+                if(s.startsWith("SSBOND ")) add(forDisulfide(s));
             }
             catch(NumberFormatException ex)
             { System.err.println("Non-numeric sequence numbers: "+s); }
