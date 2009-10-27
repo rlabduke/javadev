@@ -621,6 +621,13 @@ abstract public class Measurement //extends ... implements ...
             );
         else if("chi".equals(label))
             return new Group(
+                new Dihedral(label, // modified bases FHU and PSU, added 10/27/09 -- DK & SJ
+                    new AtomSpec( 0, "_O4*"),
+                    new AtomSpec( 0, "_C1*"),
+                    new AtomSpec( 0, "_C5_"),
+                    new AtomSpec( 0, "_C4_")
+                ).reqResName("/(FHU)|(PSU)|/")
+            ).add(
                 new Dihedral(label, // A, G
                     new AtomSpec( 0, "_O4*"),
                     new AtomSpec( 0, "_C1*"),
