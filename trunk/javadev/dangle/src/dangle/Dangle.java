@@ -58,9 +58,15 @@ public class Dangle //extends ... implements ...
         final PrintStream out = System.out;
         final DecimalFormat df = new DecimalFormat("0.###");
         
-        coords.deployDisulfidesToModels();
-        
         Measurement[] meas = (Measurement[]) measurements.toArray(new Measurement[measurements.size()]);
+        
+        // All Measurements have been defined at this point, so we know 
+        // if it's necessary to deploy disulfide info to models or not.
+        boolean anyDisulfMeasures = false;
+        for(int i = 0; i < meas.length; i++)
+            if(meas[i].resSpec.requireDisulf)
+                anyDisulfMeasures = true;
+        if(anyDisulfMeasures) coords.deployDisulfidesToModels();
         
         // Print headings
         out.print("# label:model:chain:number:ins:type");
