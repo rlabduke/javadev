@@ -64,7 +64,7 @@ public class Dangle //extends ... implements ...
         // if it's necessary to deploy disulfide info to models or not.
         boolean anyDisulfMeasures = false;
         for(int i = 0; i < meas.length; i++)
-            if(meas[i].resSpec.requireDisulf)
+            if(meas[i].resSpec != null && meas[i].resSpec.requireDisulf)
                 anyDisulfMeasures = true;
         if(anyDisulfMeasures) coords.deployDisulfidesToModels();
         
