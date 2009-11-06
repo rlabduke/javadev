@@ -103,6 +103,65 @@ public class Rotalyze //extends ... implements ...
     }
 //}}}
 
+//{{{ getRotNames, getRotEvals
+//##############################################################################
+    
+    // Useful methods for outside classes that want to use 
+    // rotamer names and evaluations for other purposes. -DK
+    
+    public HashMap<Residue,String> getRotNames(Model model) throws IOException
+    {
+        HashMap<Residue,String> rotnames = new HashMap<Residue,String>();
+        
+        Rotamer             rotamer     = Rotamer.getInstance();
+        SidechainAngles2    scAngles    = new SidechainAngles2();
+        
+        ModelState  state = model.getState();
+        for(Iterator ri = model.getResidues().iterator(); ri.hasNext(); )
+        {
+            try
+            {
+                Residue res = (Residue) ri.next();
+                double[] chis = scAngles.measureChiAngles(res, state);
+                double eval = rotamer.evaluate(res.getName(), chis);
+                String rotname = "OUTLIER";
+                if(eval >= 0.01) rotname = rotamer.identify(res.getName(), chis);
+                rotnames.put(res, rotname);
+            }
+            catch(Exception ex)
+            {}//{ System.err.println(ex.getClass()+": "+ex.getMessage()); }
+        }
+        
+        return rotnames;
+    }
+
+    public HashMap<Residue,Double> getRotEvals(Model model) throws IOException
+    {
+        HashMap<Residue,Double> evals = new HashMap<Residue,Double>();
+        
+        Rotamer             rotamer     = Rotamer.getInstance();
+        SidechainAngles2    scAngles    = new SidechainAngles2();
+        
+        ModelState  state = model.getState();
+        for(Iterator ri = model.getResidues().iterator(); ri.hasNext(); )
+        {
+            try
+            {
+                Residue res = (Residue) ri.next();
+                double[] chis = scAngles.measureChiAngles(res, state);
+                double eval = rotamer.evaluate(res.getName(), chis);
+                //String rotname = "OUTLIER";
+                //if(eval >= 0.01) rotname = rotamer.identify(res.getName(), chis);
+                evals.put(res, eval);
+            }
+            catch(Exception ex)
+            {}//{ System.err.println(ex.getClass()+": "+ex.getMessage()); }
+        }
+        
+        return evals;
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##############################################################################
 //}}}
