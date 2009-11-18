@@ -14,6 +14,10 @@ MODE defaults to '-pdf' but can be any one of the following:
             For NMR files, the first page will show all model superimposed,
             and subsequent pages show individual models.
 
+    -raw    Analysis is similar to -pdf, but instead of creating a PDF, the 
+            following is sent to standard output in colon-delimited format: 
+            phi and psi values, Ramachandran evaluation, and category.
+    
     [other MODEs will be available in the future]
     
 INFILE is a PDB-format file containing one or more models. If it is omitted,
