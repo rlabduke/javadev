@@ -49,6 +49,13 @@
   outside classes, e.g. in cmdline, can get rotamer names & evaluations 
   from a Model and use them for whatever purpose
 - Added RotamerCorrectness (corRot from CASP8) which uses ^
+...
+- Tweaks to RotamerCorrectness to handle single model files vs. directories,
+  multi-MODEL targets (e.g. NMR), and summary vs. per-residue output
+- Added RotamerCorrectness.help so future CASP9+ assessors can actually 
+  use the program correctly
+- Added -raw documentation for Ramalyze, which I realized we never added a 
+  while back
 
 ### 1.02 ### dak
 - Added PhiPsiTool (shows up as "Tweak phi/psi tool" in KiNG) to kingtools
