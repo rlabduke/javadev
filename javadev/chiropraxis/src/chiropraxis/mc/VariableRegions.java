@@ -49,7 +49,7 @@ public class VariableRegions //extends ... implements ...
     boolean       absVal        = false;
     boolean       allRes        = false;
     boolean       hinges        = true;
-    double        dCaMin        = 0.0;
+    double        dCaMin        = 0.1;
     double        dCaScale      = Double.NaN; // for text and kin
     double        dPhiPsiScale  = Double.NaN; // for kin only
     double[]      maxAbsMvmts      = null;
@@ -63,6 +63,27 @@ public class VariableRegions //extends ... implements ...
     }
 //}}}
 
+//{{{ CLASS: SimpleResAligner
+//##############################################################################
+    static class SimpleResAligner implements Alignment.Scorer
+    {
+        // High is good, low is bad.
+        public double score(Object a, Object b)
+        {
+            Residue r = (Residue) a;
+            Residue s = (Residue) b;
+            if(r == null || s == null)
+                return -1;  // gap
+            else if(r.getName().equals(s.getName()))
+                return 2;   // match
+            else
+                return 0;   // mismatch
+        }
+        
+        public double open_gap(Object a) { return extend_gap(a); }
+        public double extend_gap(Object a) { return score(a, null); }
+    }
+//}}}
 
 //{{{ searchOneModel
 //##############################################################################
@@ -72,11 +93,11 @@ public class VariableRegions //extends ... implements ...
     */
     void searchOneModel(Model model)
     {
-        if (verbose) System.err.println("Looking for variable regions in "+filename1);
+        if(verbose) System.err.println("Looking for variable regions in "+filename1);
         
         ModelState state1 = model.getState("A");
         ModelState state2 = model.getState("B");
-        if (state2 != null)
+        if(state2 != null)
         {
             // Get residues that move
             TreeMap<Residue, double[]> moved = new TreeMap<Residue, double[]>();
@@ -84,7 +105,7 @@ public class VariableRegions //extends ... implements ...
             for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
             {
                 Residue res = (Residue) iter.next();
-                if (res != null)
+                if(res != null)
                 {
                     Residue prev = res.getPrev(model);
                     Residue next = res.getNext(model);
@@ -95,7 +116,7 @@ public class VariableRegions //extends ... implements ...
                         AtomState ca2 = state2.get(ca);
                         double caTravel = Triple.distance(ca1, ca2);
                         double dPhi = Double.NaN, dPsi = Double.NaN;
-                        if (prev != null && next != null)
+                        if(prev != null && next != null)
                         {
                             double phi1 = calcPhi(prev, res, state1);
                             double phi2 = calcPhi(prev, res, state2);
@@ -104,7 +125,7 @@ public class VariableRegions //extends ... implements ...
                             dPhi = angleDiff(phi1, phi2);
                             dPsi = angleDiff(psi1, psi2);
                         }
-                        if (hinges || (!Double.isNaN(dPhi) && dPhi != 0) || (!Double.isNaN(dPsi) && dPsi != 0) || caTravel != 0)
+                        if(hinges || (!Double.isNaN(dPhi) && dPhi != 0) || (!Double.isNaN(dPsi) && dPsi != 0) || caTravel != 0)
                         {
                             // This residue moved, or we ultimately want just "hinge" residues and will 
                             // excise the ones in between in the next step
@@ -118,7 +139,7 @@ public class VariableRegions //extends ... implements ...
                 }
             } //for each residue
             
-            if (hinges)
+            if(hinges)
             {
                 // Changes the contents of the 'moved' Residue->movement mapping so that 
                 // only Ca-Ca arrows will be drawn for residues in the midst of "hinged: loops & 
@@ -144,45 +165,45 @@ public class VariableRegions //extends ... implements ...
         for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
         {
             Residue res = (Residue) iter.next();
-            if (res != null && moves(res, moved))
+            if(res != null && moves(res, moved))
             {
                 // Something moved
                 double[] mvmts = moved.get(res);
-                if (Math.abs(mvmts[0]) > maxAbsMvmts[0])  maxAbsMvmts[0] = Math.abs(mvmts[0]); // d(phi)
-                if (Math.abs(mvmts[1]) > maxAbsMvmts[1])  maxAbsMvmts[1] = Math.abs(mvmts[1]); // d(psi)
-                if (Math.abs(mvmts[2]) > maxAbsMvmts[2])  maxAbsMvmts[2] = Math.abs(mvmts[2]); // d(Ca)
+                if(Math.abs(mvmts[0]) > maxAbsMvmts[0])  maxAbsMvmts[0] = Math.abs(mvmts[0]); // d(phi)
+                if(Math.abs(mvmts[1]) > maxAbsMvmts[1])  maxAbsMvmts[1] = Math.abs(mvmts[1]); // d(psi)
+                if(Math.abs(mvmts[2]) > maxAbsMvmts[2])  maxAbsMvmts[2] = Math.abs(mvmts[2]); // d(Ca)
             }
         }
-        if (verbose)
+        if(verbose)
         {
             System.err.println("Max d(phi): "+df2.format(maxAbsMvmts[0]));
             System.err.println("Max d(phi): "+df2.format(maxAbsMvmts[1]));
             System.err.println("Max d(Ca) : "+df2.format(maxAbsMvmts[2]));
         }
         
-        if (doKin) out.println("@group {var-reg} dominant");
+        if(doKin) out.println("@group {var-reg} dominant");
         else       out.println("label:model:chain:res_type:res_num:dPhi:dPsi:dCa");
         
         // Output (kin or text) for residues that move
         for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
         {
             Residue res = (Residue) iter.next();
-            if (verbose) System.err.println("seeing if "+res+" moved...");
-            if (res != null && moves(res, moved))
+            if(verbose) System.err.println("seeing if "+res+" moved...");
+            if(res != null && moves(res, moved))
             {
                 // Something moved
                 double[] mvmts = moved.get(res);
                 double dPhi     = mvmts[0];
                 double dPsi     = mvmts[1];
                 double caTravel = mvmts[2];
-                if (doKin)
+                if(doKin)
                 {
-                    if (dPhi == Double.POSITIVE_INFINITY && dPsi == Double.POSITIVE_INFINITY)
+                    if(dPhi == Double.POSITIVE_INFINITY && dPsi == Double.POSITIVE_INFINITY)
                     {
                         // Draw arrows, not phi/psi fans 
                         doKinForRes(res, state1, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, new Triple(ca2s.get(res)));
                     }
-                    else if (caTravel == Double.POSITIVE_INFINITY) 
+                    else if(caTravel == Double.POSITIVE_INFINITY) 
                     {
                         // Draw phi/psi fans, not arrows
                         doKinForRes(res, state1, dPhi, dPsi, null);
@@ -193,7 +214,7 @@ public class VariableRegions //extends ... implements ...
                         doKinForRes(res, state1, dPhi, dPsi, new Triple(ca2s.get(res)));
                     }
                 }
-                else if ( allRes || (!Double.isNaN(dPhi) && !Double.isNaN(dPsi) 
+                else if( allRes || (!Double.isNaN(dPhi) && !Double.isNaN(dPsi) 
                 && (dPhi != 0 || dPsi != 0 || caTravel != 0)) )
                 {
                     // Either something changed and is therefore worth printing 
@@ -201,11 +222,11 @@ public class VariableRegions //extends ... implements ...
                     // whether anything changed.
                     out.print(label1+delim+model+delim+res.getChain()+delim+
                         res.getName()+delim+res.getSequenceInteger()+delim);
-                    if (!Double.isNaN(dPhi))     out.print(df.format(dPhi)+delim);
+                    if(!Double.isNaN(dPhi))     out.print(df.format(dPhi)+delim);
                     else                         out.print("__?__"+delim);
-                    if (!Double.isNaN(dPsi))     out.print(df.format(dPsi)+delim);
+                    if(!Double.isNaN(dPsi))     out.print(df.format(dPsi)+delim);
                     else                         out.print("__?__"+delim);
-                    if (!Double.isNaN(caTravel)) out.println(df.format(caTravel));
+                    if(!Double.isNaN(caTravel)) out.println(df.format(caTravel));
                     else                         out.print("__?__");
                 }
             }
@@ -221,15 +242,15 @@ public class VariableRegions //extends ... implements ...
     */
     void searchTwoModels(Model model1, Model model2)
     {
-        if (verbose) System.err.println("Looking for variable regions between "+filename1+" and "+filename2+"...");
+        if(verbose) System.err.println("Looking for variable regions between "+filename1+" and "+filename2+"...");
         
         // Align residues by sequence
         // For now we just take all residues as they appear in the file, without regard to chain IDs, etc.
         Alignment align = Alignment.needlemanWunsch(model1.getResidues().toArray(), model2.getResidues().toArray(), new SimpleResAligner());
-        if (verbose)
+        if(verbose)
         {
             System.err.println("Residue alignments:");
-            for (int i = 0; i < align.a.length; i++)
+            for(int i = 0; i < align.a.length; i++)
                 System.err.println("  "+align.a[i]+" <==> "+align.b[i]);
             System.err.println();
         }
@@ -241,11 +262,11 @@ public class VariableRegions //extends ... implements ...
         TreeMap<Residue, Triple>   ca2s  = new TreeMap<Residue, Triple>();
         for(int i = 0, len = align.a.length; i < len; i++)
         {
-            if (align.a[i] == null || align.b[i] == null) continue;
+            if(align.a[i] == null || align.b[i] == null) continue;
             Residue res1 = (Residue) align.a[i];
             Residue res2 = (Residue) align.b[i];
-            if (!res1.getName().equals(res2.getName())) continue; // sequence mismatch
-            if (verbose) System.err.println("Comparing "+res1+" to "+res2+"...");
+            if(!res1.getName().equals(res2.getName())) continue; // sequence mismatch
+            if(verbose) System.err.println("Comparing "+res1+" to "+res2+"...");
             
             Residue prev1 = res1.getPrev(model1);
             Residue next1 = res1.getNext(model1);
@@ -259,17 +280,17 @@ public class VariableRegions //extends ... implements ...
                 AtomState ca1 = state1.get(calpha1);
                 AtomState ca2 = state2.get(calpha2);
                 double caTravel = Triple.distance(ca1, ca2);
-                if (verbose)  System.err.println("Dist ("+ca1.getX()+","+ca1.getY()+","+ca1.getZ()
+                if(verbose)  System.err.println("Dist ("+ca1.getX()+","+ca1.getY()+","+ca1.getZ()
                     +") to ("+ca2.getX()+","+ca2.getY()+","+ca2.getZ()+") = "+caTravel+" (caTravel)");
                 
                 double phi1 = Double.NaN, psi1 = Double.NaN;
-                if (prev1 != null && next1 != null)
+                if(prev1 != null && next1 != null)
                 {
                     phi1 = calcPhi(prev1, res1, state1);
                     psi1 = calcPsi(res1, next1, state1);
                 }
                 double phi2 = Double.NaN, psi2 = Double.NaN;
-                if (prev2 != null && next2 != null)
+                if(prev2 != null && next2 != null)
                 {
                     phi2 = calcPhi(prev2, res2, state2);
                     psi2 = calcPsi(res2, next2, state2);
@@ -281,10 +302,10 @@ public class VariableRegions //extends ... implements ...
                     dPhi = angleDiff(phi1, phi2);
                     dPsi = angleDiff(psi1, psi2);
                 }
-                if (hinges || !Double.isNaN(dPhi) || !Double.isNaN(dPsi) || caTravel != 0)//> dCaMin)
+                if(hinges || !Double.isNaN(dPhi) || !Double.isNaN(dPsi) || caTravel != 0)
                 {
-                    // This residue moved, or we ultimately want just "hinge" residues and will 
-                    // excise the ones in between in the next step
+                    // This residue moved, or we ultimately want just "hinge" residues 
+                    // and will excise the ones in between in the next step.
                     double[] movements = new double[3];
                     movements[0] = dPhi; movements[1] = dPsi; movements[2] = caTravel;
                     moved.put(res1, movements);
@@ -294,7 +315,7 @@ public class VariableRegions //extends ... implements ...
             catch (AtomException ae) { }
         } //for each residue pair in alignment
         
-        if (hinges)
+        if(hinges)
         {
             // Changes the contents of the 'moved' Residue->movement mapping so that 
             // only Ca-Ca arrows will be drawn for residues in the midst of "hinged: loops & 
@@ -317,49 +338,49 @@ public class VariableRegions //extends ... implements ...
         maxAbsMvmts[2] = 0;
         for(int i = 0, len = align.a.length; i < len; i++)
         {
-            if (align.a[i] == null || align.b[i] == null) continue;
+            if(align.a[i] == null || align.b[i] == null) continue;
             Residue res1 = (Residue) align.a[i];
             Residue res2 = (Residue) align.b[i];
-            if (res1 != null && moves(res1, moved)) // DO want moves method here, not caMovesEnough (that was determined earlier)
+            if(res1 != null && moves(res1, moved)) // DO want moves method here, not caMovesEnough (that was determined earlier)
             {
                 // Something moved ENOUGH
                 double[] mvmts = moved.get(res1);
-                if (Math.abs(mvmts[0]) > maxAbsMvmts[0])  maxAbsMvmts[0] = Math.abs(mvmts[0]); // d(phi)
-                if (Math.abs(mvmts[1]) > maxAbsMvmts[1])  maxAbsMvmts[1] = Math.abs(mvmts[1]); // d(psi)
-                if (Math.abs(mvmts[2]) > maxAbsMvmts[2])  maxAbsMvmts[2] = Math.abs(mvmts[2]); // d(Ca)
+                if(Math.abs(mvmts[0]) > maxAbsMvmts[0])  maxAbsMvmts[0] = Math.abs(mvmts[0]); // d(phi)
+                if(Math.abs(mvmts[1]) > maxAbsMvmts[1])  maxAbsMvmts[1] = Math.abs(mvmts[1]); // d(psi)
+                if(Math.abs(mvmts[2]) > maxAbsMvmts[2])  maxAbsMvmts[2] = Math.abs(mvmts[2]); // d(Ca)
             }
         }
-        if (verbose)
+        if(verbose)
         {
             System.err.println("Max d(phi): "+df2.format(maxAbsMvmts[0]));
             System.err.println("Max d(phi): "+df2.format(maxAbsMvmts[1]));
             System.err.println("Max d(Ca) : "+df2.format(maxAbsMvmts[2]));
         }
         
-        if (doKin) out.println("@group {var-reg} dominant");
+        if(doKin) out.println("@group {var-reg} dominant");
         else       out.println("label1:label2:model1:model2:chain1:chain2:res_type1:res_type2:res_num1:res_num2:dPhi:dPsi:dCa");
         
         // Output (kin or text) for residues that move
         for(int i = 0, len = align.a.length; i < len; i++)
         {
-            if (align.a[i] == null || align.b[i] == null) continue;
+            if(align.a[i] == null || align.b[i] == null) continue;
             Residue res1 = (Residue) align.a[i];
             Residue res2 = (Residue) align.b[i];
-            if (res1 != null && moves(res1, moved)) // DO want moves method here, not caMovesEnough (that was determined earlier)
+            if(res1 != null && moves(res1, moved)) // DO want moves method here, not caMovesEnough (that was determined earlier)
             {
                 // Something moved ENOUGH
                 double[] mvmts = moved.get(res1);
                 double dPhi     = mvmts[0];
                 double dPsi     = mvmts[1];
                 double caTravel = mvmts[2];
-                if (doKin)
+                if(doKin)
                 {
-                    if (dPhi == Double.POSITIVE_INFINITY && dPsi == Double.POSITIVE_INFINITY)
+                    if(dPhi == Double.POSITIVE_INFINITY && dPsi == Double.POSITIVE_INFINITY)
                     {
                         // Draw arrows, not phi/psi fans 
                         doKinForRes(res1, state1, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, new Triple(ca2s.get(res1)));
                     }
-                    else if (caTravel == Double.POSITIVE_INFINITY) 
+                    else if(caTravel == Double.POSITIVE_INFINITY) 
                     {
                         // Draw phi/psi fans, not arrows
                         doKinForRes(res1, state1, dPhi, dPsi, null);
@@ -370,7 +391,7 @@ public class VariableRegions //extends ... implements ...
                         doKinForRes(res1, state1, dPhi, dPsi, new Triple(ca2s.get(res1)));
                     }
                 }
-                else if ( allRes || (!Double.isNaN(dPhi) && !Double.isNaN(dPsi) 
+                else if( allRes || (!Double.isNaN(dPhi) && !Double.isNaN(dPsi) 
                 && (dPhi != 0 || dPsi != 0 || caTravel != 0)) )
                 {
                     // Either something changed and is therefore worth printing 
@@ -380,18 +401,17 @@ public class VariableRegions //extends ... implements ...
                         +res1.getChain()+delim+res2.getChain()+delim
                         +res1.getName()+delim+res2.getName()+delim
                         +res1.getSequenceInteger()+delim+res2.getSequenceInteger()+delim);
-                    if (!Double.isNaN(dPhi))     out.print(df.format(dPhi)+delim);
+                    if(!Double.isNaN(dPhi))     out.print(df.format(dPhi)+delim);
                     else                         out.print("__?__"+delim);
-                    if (!Double.isNaN(dPsi))     out.print(df.format(dPsi)+delim);
+                    if(!Double.isNaN(dPsi))     out.print(df.format(dPsi)+delim);
                     else                         out.print("__?__"+delim);
-                    if (!Double.isNaN(caTravel)) out.println(df.format(caTravel));
+                    if(!Double.isNaN(caTravel)) out.println(df.format(caTravel));
                     else                         out.print("__?__");
                 }
             }
         } //for each residue pair in alignment
     }
 //}}}
-
 
 //{{{ doHinges
 //##############################################################################
@@ -405,10 +425,10 @@ public class VariableRegions //extends ... implements ...
         for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
         {
             Residue testRes = (Residue) iter.next();
-            if (firstRes == null)                                                  firstRes = testRes;
-            else if (testRes.getSequenceInteger() < firstRes.getSequenceInteger()) firstRes = testRes;
+            if(firstRes == null)                                                  firstRes = testRes;
+            else if(testRes.getSequenceInteger() < firstRes.getSequenceInteger()) firstRes = testRes;
         }
-        if (verbose) System.err.println("Found first residue: "+firstRes);
+        if(verbose) System.err.println("Found first residue: "+firstRes);
         
         // Get stretches of residues that move; keep only ends ("hinge" residues)
         Residue res = firstRes;
@@ -416,24 +436,24 @@ public class VariableRegions //extends ... implements ...
         boolean endOfChain = false;
         while (!endOfChain)
         {
-            if (res.getNext(model) != null)
+            if(res.getNext(model) != null)
             {
                 Residue temp = res.getNext(model);   res = temp;
                 
                 // Decide whether to treat as move or not
                 boolean treatAsMove = false;
-                //if (!Double.isNaN(dCaMin) && caMovesEnough(res, moved))   treatAsMove = true;
-                if (caMovesEnough(res, moved))   treatAsMove = true;
-                else if (moves(res, moved))      treatAsMove = true;
+                //if(!Double.isNaN(dCaMin) && caMovesEnough(res, moved))   treatAsMove = true;
+                if(caMovesEnough(res, moved))   treatAsMove = true;
+                else if(moves(res, moved))      treatAsMove = true;
                 
-                if (treatAsMove) stretch.add(res);
-                else if (stretch.size() > 0)
+                if(treatAsMove) stretch.add(res);
+                else if(stretch.size() > 0)
                 {
                     // End of stretch of residues that move (enough) => treat first and last as having 
                     // moved only phi/psi and residues in btw as having moved only Ca; reset stretch
-                    if (verbose) System.err.println(
+                    if(verbose) System.err.println(
                         "Variable region from '"+stretch.get(0)+"' to '"+stretch.get(stretch.size()-1)+"'");
-                    if (stretch.size() > 2)
+                    if(stretch.size() > 2)
                     {
                         double[] oldMvmts = moved.get(stretch.get(0));
                         double[] newMvmts = new double[3];
@@ -441,7 +461,7 @@ public class VariableRegions //extends ... implements ...
                         newMvmts[1] = oldMvmts[1];
                         newMvmts[2] = Double.POSITIVE_INFINITY;
                         moved.put(stretch.get(0), newMvmts);
-                        for (int i = 1; i < stretch.size()-1; i ++)
+                        for(int i = 1; i < stretch.size()-1; i ++)
                         {
                             oldMvmts = moved.get(stretch.get(i));
                             newMvmts = new double[3];
@@ -464,8 +484,8 @@ public class VariableRegions //extends ... implements ...
             else endOfChain = true;
         }
         // If have stretch leading up to end of chain, treat all but first as not having moved
-        if (stretch.size() > 0)
-            for (int i = 1; i < stretch.size(); i ++)
+        if(stretch.size() > 0)
+            for(int i = 1; i < stretch.size(); i ++)
             {
                 double[] newMvmts = new double[3];
                 newMvmts[0] = 0;   newMvmts[1] = 0;   newMvmts[2] = 0;
@@ -483,16 +503,16 @@ public class VariableRegions //extends ... implements ...
         try
         {
             double[] mvmts = moved.get(res);
-            if (!Double.isNaN(mvmts[0]) && !Double.isNaN(mvmts[1]))
-                if (mvmts[0] != 0 || mvmts[1] != 0 || mvmts[2] != 0)
+            if(!Double.isNaN(mvmts[0]) && !Double.isNaN(mvmts[1]))
+                if(mvmts[0] != 0 || mvmts[1] != 0 || mvmts[2] != 0)
                 {
-                    if (verbose) System.err.println("moves(): "+res+" mvmts = ("+
+                    if(verbose) System.err.println("moves(): "+res+" mvmts = ("+
                         df.format(mvmts[0])+","+df.format(mvmts[1])+","+df.format(mvmts[2])+") => MOVES");
                     return true;
                 }
             else
             {
-                if (verbose) System.err.println("moves(): "+res+" mvmts = ("+
+                if(verbose) System.err.println("moves(): "+res+" mvmts = ("+
                     df.format(mvmts[0])+","+df.format(mvmts[1])+","+df.format(mvmts[2])+") ...");
                 return false;
             }
@@ -507,15 +527,15 @@ public class VariableRegions //extends ... implements ...
         try
         {
             double[] mvmts = moved.get(res);
-            if (!Double.isNaN(mvmts[2]) && mvmts[2] > dCaMin)
+            if(!Double.isNaN(mvmts[2]) && mvmts[2] > dCaMin)
             {
-                if (verbose) System.err.println("caMovesEnough(): "+res+"\tCa-Ca = "+
+                if(verbose) System.err.println("caMovesEnough(): "+res+"\tCa-Ca = "+
                     df.format(mvmts[2])+" > "+df.format(dCaMin)+") => MOVES");
                 return true;
             }
             else
             {
-                if (verbose) System.err.println("caMovesEnough(): "+res+"\tCa-Ca = "+
+                if(verbose) System.err.println("caMovesEnough(): "+res+"\tCa-Ca = "+
                     df.format(mvmts[2])+" < "+df.format(dCaMin)+") ...");
                 return false;
             }
@@ -575,9 +595,9 @@ public class VariableRegions //extends ... implements ...
         double diffWrap3  = (fin-360) - (init-360); // e.g. -190 - -530 = 340
         
         double min = diffNoWrap;
-        if (Math.abs(diffWrap1) < Math.abs(min))  min = diffWrap1;
-        if (Math.abs(diffWrap2) < Math.abs(min))  min = diffWrap2;
-        if (Math.abs(diffWrap3) < Math.abs(min))  min = diffWrap3;
+        if(Math.abs(diffWrap1) < Math.abs(min))  min = diffWrap1;
+        if(Math.abs(diffWrap2) < Math.abs(min))  min = diffWrap2;
+        if(Math.abs(diffWrap3) < Math.abs(min))  min = diffWrap3;
         
         double diff = (absVal ? Math.abs(min) : min);
         return diff;
@@ -604,10 +624,10 @@ public class VariableRegions //extends ... implements ...
             AtomState ca1 = s1.get(r1.getAtom(" CA "));
             
             // d(phi)
-            if (!Double.isNaN(dPhi) && dPhi != 0 && dPhi != Double.POSITIVE_INFINITY)
+            if(!Double.isNaN(dPhi) && dPhi != 0 && dPhi != Double.POSITIVE_INFINITY)
             {
                 Triple axis  = new Triple().likeVector(n1, ca1);
-                for (int i = 0; i < 3; i ++)
+                for(int i = 0; i < 3; i ++)
                 {
                     Transform rotate = new Transform();
                     double rotAngle = (dPhi / maxAbsMvmts[0]) * dPhiPsiScale;
@@ -638,10 +658,10 @@ public class VariableRegions //extends ... implements ...
             }
             
             // d(psi)
-            if (!Double.isNaN(dPsi) && dPsi != 0 && dPsi != Double.POSITIVE_INFINITY)
+            if(!Double.isNaN(dPsi) && dPsi != 0 && dPsi != Double.POSITIVE_INFINITY)
             {
                 Triple axis  = new Triple().likeVector(ca1, c1);
-                for (int i = 0; i < 3; i ++)
+                for(int i = 0; i < 3; i ++)
                 {
                     Transform rotate = new Transform();
                     double rotAngle = (dPsi / maxAbsMvmts[1]) * dPhiPsiScale;
@@ -669,14 +689,14 @@ public class VariableRegions //extends ... implements ...
             }
             
             // d(Ca)
-            if (ca2 != null)
+            if(ca2 != null)
             {
                 double caTravel = Triple.distance(ca1, ca2);
                 double scaledMag = (caTravel / maxAbsMvmts[2]) * dCaScale;
                 Triple ca1ca2 = new Triple().likeVector(ca1, ca2).unit().mult(scaledMag);
                 // OLD: Triple ca1ca2 = new Triple().likeVector(ca1, ca2).mult(dCaScale);
                 
-                if ( !(ca1ca2.getX() == 0 && ca1ca2.getY() == 0 && ca1ca2.getZ() == 0) )
+                if( !(ca1ca2.getX() == 0 && ca1ca2.getY() == 0 && ca1ca2.getZ() == 0) )
                 {
                     Triple tip = new Triple().likeSum(ca1, ca1ca2);
                     
@@ -696,29 +716,6 @@ public class VariableRegions //extends ... implements ...
     }
 //}}}
 
-//{{{ CLASS: SimpleResAligner
-//##############################################################################
-    static class SimpleResAligner implements Alignment.Scorer
-    {
-        // High is good, low is bad.
-        public double score(Object a, Object b)
-        {
-            Residue r = (Residue) a;
-            Residue s = (Residue) b;
-            if(r == null || s == null)
-                return -1;  // gap
-            else if(r.getName().equals(s.getName()))
-                return 2;   // match
-            else
-                return 0;   // mismatch
-        }
-        
-        public double open_gap(Object a) { return extend_gap(a); }
-        public double extend_gap(Object a) { return score(a, null); }
-    }
-//}}}
-
-
 //{{{ Main, main
 //##############################################################################
     /**
@@ -726,25 +723,28 @@ public class VariableRegions //extends ... implements ...
     */
     public void Main()
     {
-        if (filename1 == null && filename2 == null)
+        if(filename1 == null && filename2 == null)
         {
             System.err.println("Need at least one filename!");
             System.exit(0);
         }
         
         // Parameters
-        if (doKin)
+        if(doKin)
         {
-            if (hinges)  dCaMin = 0.1;
-            if (filename1 != null && filename2 == null)
+            if(!hinges)  dCaMin = 0.0;
+            if(filename1 != null)
             {
-                if (Double.isNaN(dCaScale))      dCaScale     = 5;
-                if (Double.isNaN(dPhiPsiScale))  dPhiPsiScale = 1;
-            }
-            else if (filename1 != null && filename2 != null)
-            {
-                if (Double.isNaN(dCaScale))         dCaScale     = 10;
-                if (Double.isNaN(dPhiPsiScale))     dPhiPsiScale = 500;
+                if(filename2 == null)
+                {
+                    if(Double.isNaN(dCaScale))      dCaScale     = 5;
+                    if(Double.isNaN(dPhiPsiScale))  dPhiPsiScale = 1;
+                }
+                else //if(filename2 != null)
+                {
+                    if(Double.isNaN(dCaScale))      dCaScale     = 10;
+                    if(Double.isNaN(dPhiPsiScale))  dPhiPsiScale = 500;
+                }
             }
             
             System.err.println("Kin parameters:");
@@ -759,7 +759,7 @@ public class VariableRegions //extends ... implements ...
         try
         {
             // Looking for alt conf loops in one structure
-            if (filename1 != null && filename2 == null)
+            if(filename1 != null && filename2 == null)
             {
                 PdbReader reader = new PdbReader();
                 File f = new File(filename1);
@@ -774,7 +774,7 @@ public class VariableRegions //extends ... implements ...
                 }
             }
             // Looking for regions that vary between two structures
-            else if (filename1 != null && filename2 != null)
+            else if(filename1 != null && filename2 != null)
             {
                 PdbReader reader = new PdbReader();
                 File f1 = new File(filename1);
@@ -892,8 +892,8 @@ public class VariableRegions //extends ... implements ...
     void interpretArg(String arg)
     {
         // Handle files, etc. here
-        if (filename1 == null)         filename1 = arg;
-        else if (filename2 == null)    filename2 = arg;
+        if(filename1 == null)         filename1 = arg;
+        else if(filename2 == null)    filename2 = arg;
         else throw new IllegalArgumentException("Only need 1 or 2 files!");
     }
     

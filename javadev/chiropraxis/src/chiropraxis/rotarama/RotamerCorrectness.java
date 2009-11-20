@@ -640,8 +640,50 @@ public class RotamerCorrectness //extends ... implements ...
                 catch(IOException ex) { ex.printStackTrace(); }
             }
         }
-        System.err.println("chiropraxis.rotarama.RotamerCorrectness");
+        System.err.println("chiropraxis.rotarama.RotamerCorrectness version "+getVersion()+" build "+getBuild());
         System.err.println("Copyright (C) 2009 by Daniel Keedy. All rights reserved.");
+    }
+
+    // Get version number
+    String getVersion()
+    {
+        InputStream is = getClass().getClassLoader().getResourceAsStream("chiropraxis/version.props");
+        if(is == null)
+            System.err.println("\n*** Unable to locate version number in 'version.props' ***\n");
+        else
+        {
+            try
+            {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                String line = reader.readLine();
+                line = reader.readLine();
+                if(line != null && line.indexOf("version=") != -1)
+                    return line.substring( line.indexOf("=")+1 );
+            }
+            catch(IOException ex) { ex.printStackTrace(); }
+        }
+        return "?.??";
+    }
+
+    // Get build number
+    String getBuild()
+    {
+        InputStream is = getClass().getClassLoader().getResourceAsStream("chiropraxis/buildnum.props");
+        if(is == null)
+            System.err.println("\n*** Unable to locate build number in 'buildnum.props' ***\n");
+        else
+        {
+            try
+            {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                String line = reader.readLine();
+                line = reader.readLine();
+                if(line != null && line.indexOf("buildnum=") != -1)
+                    return line.substring( line.indexOf("=")+1 );
+            }
+            catch(IOException ex) { ex.printStackTrace(); }
+        }
+        return "yyyymmdd.????";
     }
 
     // Copies src to dst until we hit EOF
