@@ -65,7 +65,7 @@ public class RotamerCorrectness //extends ... implements ...
     public void rotalyzeTarget()
     {
         File targFile = new File(targFilename);
-        System.err.println("Rotalyzing "+targFile);
+        if(verbose) System.err.println("Rotalyzing "+targFile);
         try
         {
             CoordinateFile targCoords = new PdbReader().read(targFile);
@@ -78,6 +78,7 @@ public class RotamerCorrectness //extends ... implements ...
             else
             {
                 // Multiple target MODELs -- store rotnames across target MODELs for each residue
+                System.err.println("Found >1 PDB-style MODELs in target ("+targFilename+") -- calculating consensus rotamer at each position");
                 targsRotNames = new HashMap<Residue,String[]>();
                 for(Iterator mItr = targCoords.getModels().iterator(); mItr.hasNext(); )
                 {
@@ -152,6 +153,7 @@ public class RotamerCorrectness //extends ... implements ...
         if(mdlsFile.isDirectory())
         {
             // Directory of (potentially multi-MODEL) PDB files
+            System.err.println("Treating "+mdlsFilename+" as a directory of models");
             String[] mdlFilenames = mdlsFile.list();
             if(mdlFilenames == null)
             {
@@ -167,6 +169,7 @@ public class RotamerCorrectness //extends ... implements ...
         else
         {
             // Just one (potentially multi-MODEL) PDB file
+            System.err.println("Treating "+mdlsFilename+" as a single model");
             rotalyzeModel(mdlsFilename);
         }
     }
@@ -178,7 +181,7 @@ public class RotamerCorrectness //extends ... implements ...
     {
         File mdlFile = new File(mdlFilename);
         if(mdlFile.isDirectory()) return; // skip nested directories
-        System.err.println("Rotalyzing "+mdlFile);
+        if(verbose) System.err.println("Rotalyzing "+mdlFile);
         try
         {
             CoordinateFile mdlCoords = new PdbReader().read(mdlFile);
@@ -260,7 +263,7 @@ public class RotamerCorrectness //extends ... implements ...
     public void defineTargResList()
     {
         targResList = new ArrayList<Residue>(); // positions at which to look for model consensus
-        //                      multiple target MODELs vs. single target MODEL
+        //                       multiple target MODELs vs. single target MODEL
         Map map = (targsRotNames != null ? targsRotNames : targRotNames);
         for(Iterator rItr = map.keySet().iterator(); rItr.hasNext(); )
         {
@@ -415,6 +418,44 @@ public class RotamerCorrectness //extends ... implements ...
     }
 //}}}
 
+//{{{ calcModalInt
+//##############################################################################
+    public int calcModalInt(int[] integers)
+    {
+        HashMap<Integer,Integer> integer_to_freq = new HashMap<Integer,Integer>();
+        
+        int tally = 0;
+        for(int integer : integers)
+        {
+            if(integer_to_freq.get(integer) != null)
+            {
+                int freq = integer_to_freq.get(integer);
+                integer_to_freq.put(integer, freq+1);
+            }
+            else
+            {
+                integer_to_freq.put(integer, 1);
+            }
+            tally++;
+        }
+        
+        int maxFreq    = -1;
+        int maxInteger = Integer.MIN_VALUE;
+        for(Iterator iItr = integer_to_freq.keySet().iterator(); iItr.hasNext(); )
+        {
+            int integer = (Integer) iItr.next();
+            int freq    = integer_to_freq.get(integer);
+            if(freq > maxFreq)
+            {
+                maxFreq    = freq;
+                maxInteger = integer;
+            }
+        }
+        
+        return maxInteger;
+    }
+//}}}
+
 //{{{ calcModelsRotFrac
 //##############################################################################
     public double calcModelsRotFrac(Residue targRes)
@@ -436,8 +477,9 @@ public class RotamerCorrectness //extends ... implements ...
 //##############################################################################
     public void residueOutput()
     {
-        System.out.println("targ:chain:resnum:inscode:restype:targ_rotname:num_targs:targs_frac_modal:"
+        System.out.println("mdl(s):targ:chain:resnum:inscode:restype:targ_rotname:num_targs:targs_frac_modal:"
             +"cnsns_mdl_rotname:num_mdls:mdls_frac_modal:mdl_cnsns_match:rotcor");
+        // mdl                model(s) ID
         // targ               target ID
         // resnum             self-explanatory
         // chain              "
@@ -452,21 +494,26 @@ public class RotamerCorrectness //extends ... implements ...
         // mdl_cnsns_match    whether or not consensus model rotname matches target rotname (1 or 0)
         // frac_match         fraction of model rotnames that match target rotname
         
+        String[] mdlIdPieces = Strings.explode(mdlsFilename, '/');
+        String mdlId = mdlIdPieces[mdlIdPieces.length-1];    // models filename is a directory
+        int idxExt = mdlId.indexOf(".pdb");
+        if(idxExt != -1) mdlId = mdlId.substring(0, idxExt); // models filename is a PDB file
+        
         String[] targIdPieces = Strings.explode(targFilename, '/');
         String targId = targIdPieces[targIdPieces.length-1];
-        int idxExt = targId.indexOf(".pdb");
+        idxExt = targId.indexOf(".pdb");
         if(idxExt != -1) targId = targId.substring(0, idxExt);
         
         for(Residue targRes : targResList)
         {
-            String     targChain    =     targRes.getChain().trim();
-            int        targResNum   =     targRes.getSequenceInteger();
-            String     targInsCode  =     targRes.getInsertionCode().trim();
-            String     targResType  =     targRes.getName().trim();
+            String targChain    = targRes.getChain().trim();
+            int    targResNum   = targRes.getSequenceInteger();
+            String targInsCode  = targRes.getInsertionCode().trim();
+            String targResType  = targRes.getName().trim();
+            String targRotName  = targRotNames.get(targRes);
+            double targRotFrac  = (targsRotNames != null ? targRotFracs.get(targRes)  : 1.0);
+            int    targRotCount = (targsRotNames != null ? targRotCounts.get(targRes) : 1  );
             
-            String     targRotName  =     targRotNames.get(targRes);
-            double     targRotFrac  =     targRotFracs.get(targRes);
-            int        targRotCount =     targRotCounts.get(targRes);
             String cnsnsMdlRotName  = cnsnsMdlRotNames.get(targRes);
             int    cnsnsMdlCount    =     mdlsRotNames.get(targRes).length;
             double modalMdlRotFrac  = modalMdlRotFracs.get(targRes);
@@ -477,7 +524,7 @@ public class RotamerCorrectness //extends ... implements ...
             double mdlsRotFrac      = calcModelsRotFrac(targRes);
             
             System.out.println(
-                targId+":"+targChain+":"+targResNum+":"+targInsCode+":"+targResType+":"+
+                mdlId+":"+targId+":"+targChain+":"+targResNum+":"+targInsCode+":"+targResType+":"+
                 targRotName+":"+targRotCount+":"+df.format(targRotFrac)+":"+
                 cnsnsMdlRotName+":"+cnsnsMdlCount+":"+df.format(modalMdlRotFrac)+":"+cnsnsMatch+":"+
                 df.format(mdlsRotFrac));
@@ -489,7 +536,8 @@ public class RotamerCorrectness //extends ... implements ...
 //##############################################################################
     public void summaryOutput()
     {
-        System.out.println("targ:num_sc:num_targs:num_mdls:frac_cnsns_match:avg_rotcor");
+        System.out.println("mdl(s):targ:num_rotamers:num_allatom_targs:num_allatom_mdls:frac_cnsns_match:avg_rotcor");
+        // mdl               model(s) ID
         // targ              target ID
         // num_sc            # of residues with sidechains both in target & model(s), regardless of rotamer match
         // num_targs         # of target MODELs (often just 1)
@@ -497,9 +545,14 @@ public class RotamerCorrectness //extends ... implements ...
         // frac_cnsns_match  fraction of consensus model rotnames that match target rotname
         // avg_frac_match    fraction of model rotnames that match target rotname
         
+        String[] mdlIdPieces = Strings.explode(mdlsFilename, '/');
+        String mdlId = mdlIdPieces[mdlIdPieces.length-1];    // models filename is a directory
+        int idxExt = mdlId.indexOf(".pdb");
+        if(idxExt != -1) mdlId = mdlId.substring(0, idxExt); // models filename is a PDB file
+        
         String[] targIdPieces = Strings.explode(targFilename, '/');
         String targId = targIdPieces[targIdPieces.length-1];
-        int idxExt = targId.indexOf(".pdb");
+        idxExt = targId.indexOf(".pdb");
         if(idxExt != -1) targId = targId.substring(0, idxExt);
         
         if(targResList.isEmpty())
@@ -509,6 +562,33 @@ public class RotamerCorrectness //extends ... implements ...
             return;
         }
         
+        int[] trgCounts = new int[targResList.size()]; // each entry is # targets at that residue position
+        int[] mdlCounts = new int[targResList.size()]; // each entry is # models at that residue position
+        double avgCnsnsMatch  = 0;
+        double avgMdlsRotFrac = 0;
+        for(int i = 0; i < targResList.size(); i++)
+        {
+            Residue targRes = targResList.get(i);
+            
+            if(targsRotNames != null) trgCounts[i] = targsRotNames.get(targRes).length; // multi-MODEL target
+            else trgCounts[i] = 1;                                                      // single-MODEL target
+            
+            mdlCounts[i] = mdlsRotNames.get(targRes).length;
+            
+            String     targRotName =     targRotNames.get(targRes);
+            String cnsnsMdlRotName = cnsnsMdlRotNames.get(targRes);
+            avgCnsnsMatch += (cnsnsMdlRotName.equals(targRotName)
+                && !targRotName.equals("OUTLIER") 
+                && !targRotName.equals(NO_CONSENSUS_ROTNAME) ? 1 : 0);
+            
+            avgMdlsRotFrac += 1.0*calcModelsRotFrac(targRes);
+        }
+        int trgCount = calcModalInt(trgCounts);
+        int mdlCount = calcModalInt(mdlCounts);
+        avgCnsnsMatch  /= targResList.size();
+        avgMdlsRotFrac /= targResList.size();
+        
+        /*
         int trgCount = 0;
         int mdlCount = 0;
         double avgCnsnsMatch  = 0;
@@ -529,8 +609,8 @@ public class RotamerCorrectness //extends ... implements ...
             avgMdlsRotFrac += 1.0*mdlsRotFrac;
             avgCnsnsMatch  += cnsnsMatch;
         }
-        trgCount       /= targResList.size();
-        mdlCount       /= targResList.size();
+        trgCount = (int) Math.ceil((1.0*trgCount)/(1.0*targResList.size()));
+        mdlCount = (int) Math.ceil((1.0*mdlCount)/(1.0*targResList.size()));
         avgCnsnsMatch  /= targResList.size();
         avgMdlsRotFrac /= targResList.size();
         
@@ -542,9 +622,10 @@ public class RotamerCorrectness //extends ... implements ...
         // (e.g. at a tail or something).  (Though I reckon taking the mode 
         // instead of average would be even more robust...)
         // (Same applies to target count.)
+        */
         
         System.out.println(
-            targId+":"+targResList.size()+":"+trgCount+":"+
+            mdlId+":"+targId+":"+targResList.size()+":"+trgCount+":"+
             mdlCount+":"+df.format(avgCnsnsMatch)+":"+df.format(avgMdlsRotFrac));
     }
 //}}}
@@ -569,6 +650,7 @@ public class RotamerCorrectness //extends ... implements ...
         
         defineTargResList();
         if(targsRotNames != null) conductTargetConsensus();
+        // else targRotNames is already good to go
         conductModelConsensus();
         
         if     (mode == MODE_RESIDUE) residueOutput();
