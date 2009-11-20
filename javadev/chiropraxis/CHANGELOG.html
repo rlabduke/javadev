@@ -24,6 +24,25 @@
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 1.04 ### dak
+- Added public static getRotNames & getRotEvals methods to Rotalyze so 
+  outside classes, e.g. in cmdline, can get rotamer names & evaluations 
+  from a Model and use them for whatever purpose
+- Added RotamerCorrectness (corRot from CASP8) which uses ^
+...
+- Tweaks to RotamerCorrectness to handle single model files vs. directories,
+  multi-MODEL targets (e.g. NMR), and summary vs. per-residue output
+- Added RotamerCorrectness.help so future CASP9+ assessors can actually 
+  use the program correctly
+- Added -raw documentation for Ramalyze, which I realized we never added a 
+  while back
+...
+- Added version & build # output to RotamerCorrectness help
+- Fixed -dcamin flag bug in VariableRegions
+...
+- Incremented version to 1.04 for all RotamerCorrectness stuff
+- Fixed target ID and backbone-only bugs in RotamerCorrectness
+
 ### 1.03 ### dak
 - Added SupKitchenTool for "cooking up" superpositions of sets of PDB files
   and analyzing them based on PCA
@@ -45,20 +64,6 @@
   residue pairings that annoyingly often screw up alignments & thus super-
   positions.  Makes SubImpose less generalized but hopefully much more usable!
 - Totally minor: changed variable name in @param statement in mc.SupKitchen
-- Added public static getRotNames & getRotEvals methods to Rotalyze so 
-  outside classes, e.g. in cmdline, can get rotamer names & evaluations 
-  from a Model and use them for whatever purpose
-- Added RotamerCorrectness (corRot from CASP8) which uses ^
-...
-- Tweaks to RotamerCorrectness to handle single model files vs. directories,
-  multi-MODEL targets (e.g. NMR), and summary vs. per-residue output
-- Added RotamerCorrectness.help so future CASP9+ assessors can actually 
-  use the program correctly
-- Added -raw documentation for Ramalyze, which I realized we never added a 
-  while back
-...
-- Added version & build # output to RotamerCorrectness help
-- Fixed -dcamin flag bug in VariableRegions
 
 ### 1.02 ### dak
 - Added PhiPsiTool (shows up as "Tweak phi/psi tool" in KiNG) to kingtools

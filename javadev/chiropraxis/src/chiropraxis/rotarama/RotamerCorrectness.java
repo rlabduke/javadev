@@ -8,6 +8,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 import driftwood.moldb2.*;
 import driftwood.r3.*;
+import driftwood.util.*;
 import chiropraxis.mc.*;
 //}}}
 /**
@@ -214,7 +215,7 @@ public class RotamerCorrectness //extends ... implements ...
             // Model rotamer we wanna store
             Residue mdlRes    = (Residue) rItr.next();
             String mdlRotName = mdlRotNames.get(mdlRes);
-            
+                
             // Find its corresponding target residue
             Residue targRes = null;
             for(int i = 0; i < align.a.length; i++)
@@ -233,7 +234,10 @@ public class RotamerCorrectness //extends ... implements ...
                 mdlRotNamesNew = new String[mdlRotNamesOld.length+1];
                 for(int i = 0; i < mdlRotNamesOld.length; i++) mdlRotNamesNew[i] = mdlRotNamesOld[i];
             }
-            else mdlRotNamesNew = new String[1]; // "new" target residue
+            else
+            {
+                mdlRotNamesNew = new String[1]; // "new" target residue
+            }
             mdlRotNamesNew[mdlRotNamesNew.length-1] = mdlRotName; // add
             mdlsRotNames.put(targRes, mdlRotNamesNew); // re-store
         }
@@ -257,7 +261,7 @@ public class RotamerCorrectness //extends ... implements ...
     {
         targResList = new ArrayList<Residue>(); // positions at which to look for model consensus
         //                      multiple target MODELs vs. single target MODEL
-        Map map = (targsRotNames != null? targsRotNames : targRotNames);
+        Map map = (targsRotNames != null ? targsRotNames : targRotNames);
         for(Iterator rItr = map.keySet().iterator(); rItr.hasNext(); )
         {
             Residue targRes = (Residue) rItr.next();
@@ -434,7 +438,7 @@ public class RotamerCorrectness //extends ... implements ...
     {
         System.out.println("targ:chain:resnum:inscode:restype:targ_rotname:num_targs:targs_frac_modal:"
             +"cnsns_mdl_rotname:num_mdls:mdls_frac_modal:mdl_cnsns_match:rotcor");
-        // targ               target PDB ID
+        // targ               target ID
         // resnum             self-explanatory
         // chain              "
         // inscode            "
@@ -447,10 +451,14 @@ public class RotamerCorrectness //extends ... implements ...
         // mdls_frac_modal    fraction of model rotnames that match modal model rotname (may or may not reach consensus)
         // mdl_cnsns_match    whether or not consensus model rotname matches target rotname (1 or 0)
         // frac_match         fraction of model rotnames that match target rotname
+        
+        String[] targIdPieces = Strings.explode(targFilename, '/');
+        String targId = targIdPieces[targIdPieces.length-1];
+        int idxExt = targId.indexOf(".pdb");
+        if(idxExt != -1) targId = targId.substring(0, idxExt);
+        
         for(Residue targRes : targResList)
         {
-            String     targPdbId    =     targ.getState().getName().substring(0,4).toLowerCase();
-            
             String     targChain    =     targRes.getChain().trim();
             int        targResNum   =     targRes.getSequenceInteger();
             String     targInsCode  =     targRes.getInsertionCode().trim();
@@ -469,7 +477,7 @@ public class RotamerCorrectness //extends ... implements ...
             double mdlsRotFrac      = calcModelsRotFrac(targRes);
             
             System.out.println(
-                targPdbId+":"+targChain+":"+targResNum+":"+targInsCode+":"+targResType+":"+
+                targId+":"+targChain+":"+targResNum+":"+targInsCode+":"+targResType+":"+
                 targRotName+":"+targRotCount+":"+df.format(targRotFrac)+":"+
                 cnsnsMdlRotName+":"+cnsnsMdlCount+":"+df.format(modalMdlRotFrac)+":"+cnsnsMatch+":"+
                 df.format(mdlsRotFrac));
@@ -481,15 +489,25 @@ public class RotamerCorrectness //extends ... implements ...
 //##############################################################################
     public void summaryOutput()
     {
-        System.out.println("targ:num_res:num_mdls:frac_cnsns_match:avg_rotcor");
-        // targ              target PDB ID
-        // num_res           target # of residues
+        System.out.println("targ:num_sc:num_targs:num_mdls:frac_cnsns_match:avg_rotcor");
+        // targ              target ID
+        // num_sc            # of residues with sidechains both in target & model(s), regardless of rotamer match
         // num_targs         # of target MODELs (often just 1)
         // num_mdls          # of models
         // frac_cnsns_match  fraction of consensus model rotnames that match target rotname
         // avg_frac_match    fraction of model rotnames that match target rotname
         
-        String targPdbId = targ.getState().getName().substring(0,4).toLowerCase();
+        String[] targIdPieces = Strings.explode(targFilename, '/');
+        String targId = targIdPieces[targIdPieces.length-1];
+        int idxExt = targId.indexOf(".pdb");
+        if(idxExt != -1) targId = targId.substring(0, idxExt);
+        
+        if(targResList.isEmpty())
+        {
+            // The model is empty, or perhaps has backbone but lacks sidechains
+            System.out.println(targId+":0:?:?:?:?");
+            return;
+        }
         
         int trgCount = 0;
         int mdlCount = 0;
@@ -526,7 +544,7 @@ public class RotamerCorrectness //extends ... implements ...
         // (Same applies to target count.)
         
         System.out.println(
-            targPdbId+":"+targResList.size()+":"+trgCount+":"+
+            targId+":"+targResList.size()+":"+trgCount+":"+
             mdlCount+":"+df.format(avgCnsnsMatch)+":"+df.format(avgMdlsRotFrac));
     }
 //}}}
