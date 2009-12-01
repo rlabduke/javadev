@@ -79,6 +79,11 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
         am.put("accum1", new ReflectiveAction(null, null, this, "onAccumulate" ) );
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS , KeyEvent.SHIFT_MASK), "accum2" );
         am.put("accum2", new ReflectiveAction(null, null, this, "onAccumulate2" ) );
+        // DAK 090930
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS , 0), "decum1" );
+        am.put("decum1", new ReflectiveAction(null, null, this, "onDecumulate" ) );
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS , KeyEvent.SHIFT_MASK), "decum2" );
+        am.put("decum2", new ReflectiveAction(null, null, this, "onDecumulate2" ) );
     }
 //}}}
 
@@ -412,20 +417,38 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
     }
 //}}}
 
-//{{{ onAccumulate, onAccumulate2
+//{{{ onAccumulate(2), onDecumulate(2)
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onAccumulate(ActionEvent ev)
     {
         Kinemage k = kMain.getKinemage();
-        if(k != null) k.accumulate();
+        //if(k != null) k.accumulate();
+        if(k != null) k.accumulate(1); // now can accumulate or "decumulate" -- DAK 090930
     }
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onAccumulate2(ActionEvent ev)
     {
         Kinemage k = kMain.getKinemage();
-        if(k != null) k.accumulate2();
+        //if(k != null) k.accumulate2();
+        if(k != null) k.accumulate2(1); // now can accumulate or "decumulate" -- DAK 090930
+    }
+
+    // DAK 090930
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onDecumulate(ActionEvent ev)
+    {
+        Kinemage k = kMain.getKinemage();
+        if(k != null) k.accumulate(-1);
+    }
+
+    // DAK 090930
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onDecumulate2(ActionEvent ev)
+    {
+        Kinemage k = kMain.getKinemage();
+        if(k != null) k.accumulate2(-1);
     }
 //}}}
 

@@ -30,8 +30,9 @@ public class ViewEditor //extends ... implements ...
     KingMain    kMain;
     
     JDialog     dialog;
-    JButton     close; // DAK July 26 2009
     JList       list;
+    
+    JButton     close;  // DAK 090726
 //}}}
 
 //{{{ Constructor(s)
@@ -52,20 +53,44 @@ public class ViewEditor //extends ... implements ...
         list.setBorder( BorderFactory.createEtchedBorder() );
         JScrollPane listScroll = new JScrollPane(list);
         
-        /*JButton*/ close = new JButton(new ReflectiveAction("Close", null, this, "onClose"));
-        JButton up        = new JButton(new ReflectiveAction("Move up", kMain.prefs.moveUpIcon, this, "onMoveUp"));
-        JButton down      = new JButton(new ReflectiveAction("Move down", kMain.prefs.moveDownIcon, this, "onMoveDown"));
-        JButton go        = new JButton(new ReflectiveAction("Go to", null, this, "onGoTo"));
-        JButton gonext    = new JButton(new ReflectiveAction("Go Next", kMain.prefs.stepForwardIcon, this, "onGoNext"));
-        JButton goprev    = new JButton(new ReflectiveAction("Go Prev", kMain.prefs.stepBackIcon, this, "onGoPrev"));
-        JButton rename    = new JButton(new ReflectiveAction("Rename", null, this, "onRename"));
-        JButton delete    = new JButton(new ReflectiveAction("Delete", kMain.prefs.deleteIcon, this, "onDelete"));
-
+        JButton go         = new JButton(new ReflectiveAction("Go to", null, this, "onGoTo"));
+        JButton gonext     = new JButton(new ReflectiveAction("Go Next", kMain.prefs.stepForwardIcon, this, "onGoNext"));
+        JButton goprev     = new JButton(new ReflectiveAction("Go Prev", kMain.prefs.stepBackIcon, this, "onGoPrev"));
+        JButton rename     = new JButton(new ReflectiveAction("Rename", null, this, "onRename"));
+        JButton delete     = new JButton(new ReflectiveAction("Delete", kMain.prefs.deleteIcon, this, "onDelete"));
+        JButton up         = new JButton(new ReflectiveAction("Move up", kMain.prefs.moveUpIcon, this, "onMoveUp"));
+        JButton down       = new JButton(new ReflectiveAction("Move down", kMain.prefs.moveDownIcon, this, "onMoveDown"));
+        /*JButton*/ close  = new JButton(new ReflectiveAction("Close", null, this, "onClose"));
+        
+        // Mnemonics: require alt+key to execute
+        go.setMnemonic(KeyEvent.VK_G);
+        rename.setMnemonic(KeyEvent.VK_R);
+        delete.setMnemonic(KeyEvent.VK_BACK_SPACE);
         up.setMnemonic(KeyEvent.VK_U);
         down.setMnemonic(KeyEvent.VK_D);
-        rename.setMnemonic(KeyEvent.VK_R);
-        go.setMnemonic(KeyEvent.VK_G);
         close.setMnemonic(KeyEvent.VK_C);
+        
+        // Key bindings: just type the key to execute -- DAK 090929
+        InputMap im = dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_G,          0                       ), "goto"    );
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT,      KingMain.MENU_ACCEL_MASK), "gonext"  );
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT,       KingMain.MENU_ACCEL_MASK), "goprev"  );
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP,         KingMain.MENU_ACCEL_MASK), "moveup"  );
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,       KingMain.MENU_ACCEL_MASK), "movedown");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_R,          0                       ), "rename"  );
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0                       ), "delete"  );
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,          0                       ), "delete"  );
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,     0                       ), "close"   );
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,          KingMain.MENU_ACCEL_MASK), "close"   );
+        ActionMap am = dialog.getRootPane().getActionMap();
+        am.put("goto"    , new ReflectiveAction(null, null, this, "onGoTo"    ));
+        am.put("gonext"  , new ReflectiveAction(null, null, this, "onGoNext"  ));
+        am.put("goprev"  , new ReflectiveAction(null, null, this, "onGoPrev"  ));
+        am.put("rename"  , new ReflectiveAction(null, null, this, "onRename"  ));
+        am.put("delete"  , new ReflectiveAction(null, null, this, "onDelete"  ));
+        am.put("moveup"  , new ReflectiveAction(null, null, this, "onMoveUp"  ));
+        am.put("movedown", new ReflectiveAction(null, null, this, "onMoveDown"));
+        am.put("close"   , new ReflectiveAction(null, null, this, "onClose"   ));
         
         TablePane cp = new TablePane();
         cp.insets(2).hfill(true).weights(0,0);
@@ -83,6 +108,8 @@ public class ViewEditor //extends ... implements ...
         dialog.setContentPane(cp);
         
         dialog.getRootPane().setDefaultButton(close);
+        
+        list.requestFocus();
     }
 //}}}
 
@@ -244,11 +271,11 @@ public class ViewEditor //extends ... implements ...
         
         // Display dialog box
         dialog.pack();
-        dialog.getRootPane().setDefaultButton(close); // DAK July 26 2009
-        // How can we set focus on the close button EVERY time this window is opened, 
-        // not just the first time?  This doesn't work, BTW: close.requestFocusInWindow();
         dialog.setLocationRelativeTo(kMain.getTopWindow());
         dialog.setVisible(true);
+        dialog.getRootPane().setDefaultButton(close);
+        list.requestFocus();
+        
         // remember, execution of this thread stops here until dialog is closed
     }
 //}}}

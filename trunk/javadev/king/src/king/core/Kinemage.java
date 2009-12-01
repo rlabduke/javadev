@@ -512,38 +512,99 @@ public class Kinemage extends AGE<Kinemage,KGroup> // implements ...
     }
 //}}}
 
+//{{{ [accumulate, accumulate2, doAccumulate BEFORE 090930 FOR POSTERITY]
+//##################################################################################################
+//    /** Turns on the next 'animate' group. '2animate' groups are not affected. */
+//    public void accumulate()
+//    { doAccumulate(getAnimateGroups()); }
+//    
+//    /** Turns on the next '2animate' group. 'animate' groups are not affected. */
+//    public void accumulate2()
+//    { doAccumulate(get2AnimateGroups()); }
+//    
+//    /**
+//    * In order for this to work as expected, we want to turn on the first off group
+//    * that we encounter AFTER the first on group, in a circular way.
+//    */
+//    protected void doAccumulate(AGE[] ages)
+//    {
+//        int firstOn = -1;
+//        for(int i = 0; i < ages.length; i++)
+//        {
+//            if(ages[i].isOn())
+//            {
+//                firstOn = i;
+//                break;
+//            }
+//        }
+//        
+//        for(int i = firstOn+1; i < firstOn+ages.length; i++)
+//        {
+//            if( !ages[i % ages.length].isOn() )
+//            {
+//                ages[i % ages.length].setOn(true);
+//                break;
+//            }
+//        }
+//    }
+//}}}
+
 //{{{ accumulate, accumulate2, doAccumulate
 //##################################################################################################
-    /** Turns on the next 'animate' group. '2animate' groups are not affected. */
-    public void accumulate()
-    { doAccumulate(getAnimateGroups()); }
-    
-    /** Turns on the next '2animate' group. 'animate' groups are not affected. */
-    public void accumulate2()
-    { doAccumulate(get2AnimateGroups()); }
+    /**
+    * Turns on the next (+1) or turns off the most recent (-1) 'animate' group. 
+    * '2animate' groups are not affected.
+    */
+    public void accumulate(int incr)
+    { doAccumulate(getAnimateGroups(), incr); }
     
     /**
-    * In order for this to work as expected, we want to turn on the first off group
-    * that we encounter AFTER the first on group, in a circular way.
+    * Turns on the next (+1) or turns off the most recent (-1) '2animate' group. 
+    * 'animate' groups are not affected.
     */
-    protected void doAccumulate(AGE[] ages)
+    public void accumulate2(int incr)
+    { doAccumulate(get2AnimateGroups(), incr); }
+    
+    /**
+    * In order for this to work as expected, we want to turn on the first off 
+    * group that we encounter AFTER the first on group (+1), in a circular way, 
+    * or turn off the LAST on group (-1).
+    */
+    protected void doAccumulate(AGE[] ages, int incr)
     {
-        int firstOn = -1;
-        for(int i = 0; i < ages.length; i++)
+        if(incr == -1)
         {
-            if(ages[i].isOn())
+            // "Decumulate"
+            int lastOn = -1;
+            for(int i = 0; i < ages.length; i++)
             {
-                firstOn = i;
-                break;
+                if(ages[i].isOn())
+                {
+                    lastOn = i;
+                }
             }
+            if(lastOn == -1) return;
+            ages[lastOn].setOn(false);
         }
-        
-        for(int i = firstOn+1; i < firstOn+ages.length; i++)
+        else
         {
-            if( !ages[i % ages.length].isOn() )
+            // Accumulate
+            int firstOn = -1;
+            for(int i = 0; i < ages.length; i++)
             {
-                ages[i % ages.length].setOn(true);
-                break;
+                if(ages[i].isOn())
+                {
+                    firstOn = i;
+                    break;
+                }
+            }
+            for(int i = firstOn+1; i < firstOn+ages.length; i++)
+            {
+                if( !ages[i % ages.length].isOn() )
+                {
+                    ages[i % ages.length].setOn(true);
+                    break;
+                }
             }
         }
     }

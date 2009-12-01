@@ -116,6 +116,13 @@ public class GroupEditor implements ChangeListener
         kiCancel = new JButton(new ReflectiveAction("Cancel", null, this, "onKinemageCancel"));
         kiDialog.getRootPane().setDefaultButton(kiOK);
         
+        // Key bindings: just type the key to execute -- DAK 090929
+        InputMap im = kiDialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,     0                       ), "kicancel");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,          KingMain.MENU_ACCEL_MASK), "kicancel");
+        ActionMap am = kiDialog.getRootPane().getActionMap();
+        am.put("kicancel", new ReflectiveAction(null, null, this, "onKinemageCancel"));
+        
         kiPanel.setBorder(BorderFactory.createEmptyBorder(8,8,8,8));
         kiPanel.addCell(new JLabel("Kinemage title:")).newRow();
         kiPanel.addCell(kiName).newRow();
@@ -152,6 +159,13 @@ public class GroupEditor implements ChangeListener
         grCancel = new JButton(new ReflectiveAction("Cancel", null, this, "onGroupCancel"));
         grDialog.getRootPane().setDefaultButton(grOK);
         
+        // Key bindings: just type the key to execute -- DAK 090929
+        InputMap im = grDialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,     0                       ), "grcancel");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,          KingMain.MENU_ACCEL_MASK), "grcancel");
+        ActionMap am = grDialog.getRootPane().getActionMap();
+        am.put("grcancel", new ReflectiveAction(null, null, this, "onGroupCancel"));
+        
         grPanel.setBorder(BorderFactory.createEmptyBorder(8,8,8,8));
         grPanel.addCell(new JLabel("Group name/identifier:")).newRow();
         grPanel.addCell(grName).newRow();
@@ -184,6 +198,13 @@ public class GroupEditor implements ChangeListener
         suOK = new JButton(new ReflectiveAction("OK", null, this, "onSubgroupOK"));
         suCancel = new JButton(new ReflectiveAction("Cancel", null, this, "onSubgroupCancel"));
         suDialog.getRootPane().setDefaultButton(suOK);
+        
+        // Key bindings: just type the key to execute -- DAK 090929
+        InputMap im = suDialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,     0                       ), "sucancel");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,          KingMain.MENU_ACCEL_MASK), "sucancel");
+        ActionMap am = suDialog.getRootPane().getActionMap();
+        am.put("sucancel", new ReflectiveAction(null, null, this, "onSubgroupCancel"));
         
         suPanel.setBorder(BorderFactory.createEmptyBorder(8,8,8,8));
         suPanel.addCell(new JLabel("Subgroup name/identifier:")).newRow();
@@ -228,6 +249,13 @@ public class GroupEditor implements ChangeListener
         liOK = new JButton(new ReflectiveAction("OK", null, this, "onListOK"));
         liCancel = new JButton(new ReflectiveAction("Cancel", null, this, "onListCancel"));
         liDialog.getRootPane().setDefaultButton(liOK);
+        
+        // Key bindings: just type the key to execute -- DAK 090929
+        InputMap im = liDialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,     0                       ), "licancel");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,          KingMain.MENU_ACCEL_MASK), "licancel");
+        ActionMap am = liDialog.getRootPane().getActionMap();
+        am.put("licancel", new ReflectiveAction(null, null, this, "onListCancel"));
         
         liPanel.setBorder(BorderFactory.createEmptyBorder(8,8,8,8));
         liPanel.insets(2).hfill(true).vfill(false).top();

@@ -209,6 +209,15 @@ public class KinTree implements KMessage.Subscriber
         JButton btnTransform = new JButton(acTransform);
           btnTransform.setHorizontalAlignment(SwingConstants.LEFT);
         
+        // Key bindings: just type the key to execute -- DAK 090929
+        InputMap im = frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,     0                       ), "hide");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,          KingMain.MENU_ACCEL_MASK), "hide");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0                       ), "delete");
+        ActionMap am = frame.getRootPane().getActionMap();
+        am.put("hide", new ReflectiveAction(null, null, this, "onHide"));
+        am.put("delete", new ReflectiveAction(null, null, this, "onDelete"));
+        
         TablePane2 lBtns = new TablePane2();
         lBtns.weights(1,0).center().hfill(true).memorize();
         lBtns.addCell(btnVisible).newRow();
@@ -236,7 +245,7 @@ public class KinTree implements KMessage.Subscriber
     }
 //}}}
 
-//{{{ show, hide
+//{{{ show, hide, onHide
 //##################################################################################################
     public void show()
     {
@@ -254,6 +263,13 @@ public class KinTree implements KMessage.Subscriber
     }
     
     public void hide()
+    {
+        frame.dispose();
+    }
+
+    // DAK 090929
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onHide(ActionEvent ev)
     {
         frame.dispose();
     }
