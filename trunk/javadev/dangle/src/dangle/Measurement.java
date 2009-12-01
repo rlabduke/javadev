@@ -143,7 +143,8 @@ abstract public class Measurement //extends ... implements ...
     {
         //String lowerCa = ":gly:ala:val:phe:pro:met:ile:leu:asp:glu:lys:arg:ser:thr:tyr:his:cys:asn:gln:trp:asx:glx:ace:for:nh2:nme:mse:aib:abu:pca:mly:cyo:m3l:dgn:csd:";
         String aaNames = ":GLY:ALA:VAL:PHE:PRO:MET:ILE:LEU:ASP:GLU:LYS:ARG:SER:THR:TYR:HIS:CYS:ASN:GLN:TRP:ASX:GLX:ACE:FOR:NH2:NME:MSE:AIB:ABU:PCA:MLY:CYO:M3L:DGN:CSD:";
-        String naNames = ":  C:  G:  A:  T:  U:CYT:GUA:ADE:THY:URA:URI:CTP:CDP:CMP:GTP:GDP:GMP:ATP:ADP:AMP:TTP:TDP:TMP:UTP:UDP:UMP:GSP:H2U:PSU:4SU:1MG:2MG:M2G:5MC:5MU:T6A:1MA:RIA:OMC:OMG: YG:  I:7MG:YYG:YG :A2M:5FU:G7M:OMU:PR5:FHU:XUG:A23:UMS:FMU:UR3:CFL:UD5:CSL:UFT:5IC:5BU:BGM:CBR:U34:CCC:AVC:TM2:AET: IU:C  :G  :A  :T  :U  :I  : rC: rG: rA: rT: rU: dC: dG: dA: dT: dU: DC: DG: DA: DT: DU:";
+        String naNames = ":  C:  G:  A:  T:  U:CYT:GUA:ADE:THY:URA:URI:GSP:H2U:PSU:4SU:1MG:2MG:M2G:5MC:5MU:T6A:1MA:RIA:OMC:OMG: YG:  I:7MG:YYG:YG :A2M:5FU:G7M:OMU:PR5:FHU:XUG:A23:UMS:FMU:UR3:CFL:UD5:CSL:UFT:5IC:5BU:BGM:CBR:U34:CCC:AVC:TM2:AET: IU:C  :G  :A  :T  :U  :I  : rC: rG: rA: rT: rU: dC: dG: dA: dT: dU: DC: DG: DA: DT: DU:";
+        // Removed CTP:CDP:CMP:GTP:GDP:GMP:ATP:ADP:AMP:TTP:TDP:TMP:UTP:UDP:UMP - DAK 091201
         
         String resname = res.getName();
         if(aaNames.indexOf(resname) != -1 || naNames.indexOf(resname) != -1) 

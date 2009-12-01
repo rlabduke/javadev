@@ -17,6 +17,9 @@
 ### 1.04 ### keedy
 - Fixed bug where HETATMs listed as nucleic acids (e.g. ATP) would still get 
   evaluated even if doHets boolean was false (which is the default)
+- Actually removed [ACTGU][MDT]P, e.g. ATP, from the nucleic acids list, so 
+  now they won't get evaluated even if doHets boolean is true. Rationale: 
+  they're never in oligomers!
 
 ### 1.04 ### keedy
 - Allowed "for" to be followed by multiple specifiers, e.g. "for deoxy 2'",
