@@ -5,7 +5,6 @@
 <!-- Postponed TO DO items {{{ -->
     Extra clipping planes don't support line shortening
     Include demo/tutorial kinemage ?
-    Implement "screen" keyword for lists
     Add "don't ask me again" boxes to warning messages
     Auto-create unnamed @aspects
     Make Find ignore points that have the invisible aspect (Z) active
@@ -52,7 +51,8 @@
     Use E+H 2000 geometry for Pro?
     Do something about multiple copies of Driftwood classes -- in every JAR
 <!-- Postponed TO DO items }}} -->
-    Open PDB in model manager without opening kinemage first?
+    
+Open PDB in model manager without opening kinemage first?
     Open/save PDB from/to network
     Allow dragging waters/ions from chiropraxis?
     integrate multichart into KiNG?
@@ -85,13 +85,24 @@
        in MacOSX Leopard, but changes the look of King...need to find a real
        fix.
     King bug with stereo!?!?
+    algorithm to draw spider webs on beta sheets (a la classic painting)?...
 
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 ### 2.18 ###
+VBC
 - support for moview.
 - support for foo kins (points that don't start at beginning of line).
+DAK
+- Added "Turn off" group/subgroup/list option to DrawingTool
+- Added window-closing-oriented keyboard shortcuts (e.g. Esc to close) to 
+  ViewEditor, GroupEditor, KinTree
+- Changed default in UIMenus so (ctrl|cmd)+W now closes current kin and 
+  shift+(ctrl|cmd)+W closes all current kins
+- Changes to ContentPane, Kinemage so - and _ keys "decumulate"/"decumulate2" 
+  as a counter-move to accumulate/accumulate2 with = and + keys
+
 ### 2.17 ###
 - added paint by polyline to paint points
 - added new auger by color tool

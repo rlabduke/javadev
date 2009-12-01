@@ -115,7 +115,7 @@ public class DrawingTool extends BasicTool
     JRadioButton    rbLineSegment, rbDottedLine, rbArcSegment,
                     rbBalls, rbLabels, rbDots, rbTriangle;
     JRadioButton    rbPunch, rbPrune, rbAuger, rbSphereCrop,
-                    rbColorAuger, rbDeleteInvis;
+                    rbColorAuger, rbDeleteInvis, rbTurnOff;
     
     Builder         builder = new Builder();
     KPoint          lineseg1 = null, lineseg2 = null;
@@ -134,6 +134,7 @@ public class DrawingTool extends BasicTool
     JCheckBox       cbArcArrowhead;
     JTextField      tfTriangleSize;
     JTextField      tfCropRadius;
+    JCheckBox       cbTurnOffGroup, cbTurnOffSubgroup, cbTurnOffList;
     
     /** Use add/removeLast() to enque UndoSteps wrapped in SoftReferences */
     LinkedList      undoStack;
@@ -209,6 +210,9 @@ public class DrawingTool extends BasicTool
         
         rbDeleteInvis = new JRadioButton("Delete invisible");
         buttonGroup.add(rbDeleteInvis);
+        
+        rbTurnOff = new JRadioButton("Turn off");
+        buttonGroup.add(rbTurnOff);
         
         // Create the extra control panels
         cmPaintMode = new JComboBox(new String[] { PAINT_CYLINDER, PAINT_SPHERE, PAINT_POINT, PAINT_POLY } );
@@ -294,6 +298,19 @@ public class DrawingTool extends BasicTool
         fbDeleteInvis.setAutoPack(true);
         fbDeleteInvis.setIndent(10);
         
+        cbTurnOffGroup = new JCheckBox("Group", true);
+        cbTurnOffSubgroup = new JCheckBox("Subgroup", false);
+        cbTurnOffList = new JCheckBox("List", false);
+        TablePane tpTurnOff = new TablePane();
+        tpTurnOff.addCell(cbTurnOffGroup);
+        tpTurnOff.newRow();
+        tpTurnOff.addCell(cbTurnOffSubgroup);
+        tpTurnOff.newRow();
+        tpTurnOff.addCell(cbTurnOffList);
+        FoldingBox fbTurnOff = new FoldingBox(rbTurnOff, tpTurnOff);
+        fbTurnOff.setAutoPack(true);
+        fbTurnOff.setIndent(10);
+        
         // Choose default drawing tool
         rbEditList.setSelected(true);
         
@@ -338,6 +355,8 @@ public class DrawingTool extends BasicTool
             ui.addCell(fbSphereCrop).newRow();
         ui.addCell(rbDeleteInvis).newRow();
             ui.addCell(fbDeleteInvis).newRow();
+        ui.addCell(rbTurnOff).newRow();
+            ui.addCell(fbTurnOff).newRow();
         ui.addCell(btnNewSubgroup).newRow();
         ui.addCell(btnUndo).newRow();
     }
@@ -370,6 +389,7 @@ public class DrawingTool extends BasicTool
         else if(rbColorAuger.isSelected())      doColorAuger(x ,y, p, ev);
         else if(rbSphereCrop.isSelected())      doSphereCrop(x, y, p, ev);
         else if(rbDeleteInvis.isSelected())     doDeleteInvis(x, y, p, ev);
+        else if(rbTurnOff.isSelected())         doTurnOff(x, y, p, ev);
         
         Kinemage k = kMain.getKinemage();
         if(k != null) k.setModified(true);
@@ -1099,6 +1119,33 @@ public class DrawingTool extends BasicTool
                 toRemove.add(q);
         for(KPoint q : toRemove)
             excisePoint(q, null);
+    }
+//}}}
+
+//{{{ doTurnOff
+//##############################################################################
+    protected void doTurnOff(int x, int y, KPoint p, MouseEvent ev)
+    {
+        // added by DAK 090919
+        
+        if(p == null) return;
+        Kinemage kin = p.getKinemage();
+        if(kin == null) return;
+        
+        KList list = (KList)p.getParent();
+        if(list == null) return;
+        if(cbTurnOffList.isSelected())
+            list.setOn(false);
+        
+        KGroup subgroup = (KGroup)list.getParent();
+        if(subgroup == null) return;
+        if(cbTurnOffSubgroup.isSelected())
+            subgroup.setOn(false);
+        
+        KGroup group = (KGroup)subgroup.getParent();
+        if(group == null) return;
+        if(cbTurnOffGroup.isSelected())
+            group.setOn(false);
     }
 //}}}
 

@@ -286,10 +286,11 @@ public class UIMenus implements KMessage.Subscriber
         }
         item = new JMenuItem(new ReflectiveAction("Close", null, this, "onFileClose"));
         item.setMnemonic(KeyEvent.VK_C);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, kMain.MENU_ACCEL_MASK));
         menu.add(item);
         item = new JMenuItem(new ReflectiveAction("Close all", null, this, "onFileCloseAll"));
         item.setMnemonic(KeyEvent.VK_L);
-        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, kMain.MENU_ACCEL_MASK));
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, kMain.MENU_ACCEL_MASK | KeyEvent.SHIFT_MASK));
         menu.add(item);
         menu.addSeparator();
         if(trusted)
