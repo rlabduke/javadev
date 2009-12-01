@@ -62,11 +62,11 @@ abstract public class Measurement //extends ... implements ...
     * (usually because 1+ atoms/residues don't exist).
     * @return the measure, or NaN if undefined
     */
-    public double measure(Model model, ModelState state, Residue res, boolean doHetsInGeneral)
+    public double measure(Model model, ModelState state, Residue res, boolean doHets)
     {
         // Wouldn't want to give deviations for molecules not described by 
         // the ideal values this code is using, so check for hets
-        if(!doHetsInGeneral && !isProtOrNucAcid(res) && isHet(res))
+        if(!isProtOrNucAcid(res) || (isHet(res)) && !doHets)
         {
             this.deviation = Double.NaN;
             return Double.NaN;
@@ -139,7 +139,7 @@ abstract public class Measurement //extends ... implements ...
         }
     }
 
-    public boolean isProtOrNucAcid(Residue res)
+    public static boolean isProtOrNucAcid(Residue res)
     {
         //String lowerCa = ":gly:ala:val:phe:pro:met:ile:leu:asp:glu:lys:arg:ser:thr:tyr:his:cys:asn:gln:trp:asx:glx:ace:for:nh2:nme:mse:aib:abu:pca:mly:cyo:m3l:dgn:csd:";
         String aaNames = ":GLY:ALA:VAL:PHE:PRO:MET:ILE:LEU:ASP:GLU:LYS:ARG:SER:THR:TYR:HIS:CYS:ASN:GLN:TRP:ASX:GLX:ACE:FOR:NH2:NME:MSE:AIB:ABU:PCA:MLY:CYO:M3L:DGN:CSD:";
@@ -151,7 +151,7 @@ abstract public class Measurement //extends ... implements ...
         return false;
     }
 
-    public boolean isHet(Residue res)
+    public static boolean isHet(Residue res)
     {
         for(Iterator aItr = res.getAtoms().iterator(); aItr.hasNext(); )
         {

@@ -213,7 +213,8 @@ public class Dangle //extends ... implements ...
             Residue res = (Residue) residues.next();
             if(resnums == null || resnums.contains(res.getSequenceInteger()))
             {
-                if(isProtOrNucAcid(res))
+                if(Measurement.isProtOrNucAcid(res) 
+                && (doHets || (!doHets && !Measurement.isHet(res))))
                 {
                     for(int i = 0; i < meas.length; i++)
                         out.print(":"+res+" "+meas[i].getLabel());
@@ -282,21 +283,6 @@ public class Dangle //extends ... implements ...
             resnums
         );
         gks.makeKin();
-    }
-//}}}
-
-//{{{ isProtOrNucAcid
-//##############################################################################
-    //static String lowerCa = ":gly:ala:val:phe:pro:met:ile:leu:asp:glu:lys:arg:ser:thr:tyr:his:cys:asn:gln:trp:asx:glx:ace:for:nh2:nme:mse:aib:abu:pca:mly:cyo:m3l:dgn:csd:";
-    static String aaNames = ":GLY:ALA:VAL:PHE:PRO:MET:ILE:LEU:ASP:GLU:LYS:ARG:SER:THR:TYR:HIS:CYS:ASN:GLN:TRP:ASX:GLX:ACE:FOR:NH2:NME:MSE:AIB:ABU:PCA:MLY:CYO:M3L:DGN:CSD:";
-    static String naNames = ":  C:  G:  A:  T:  U:CYT:GUA:ADE:THY:URA:URI:CTP:CDP:CMP:GTP:GDP:GMP:ATP:ADP:AMP:TTP:TDP:TMP:UTP:UDP:UMP:GSP:H2U:PSU:4SU:1MG:2MG:M2G:5MC:5MU:T6A:1MA:RIA:OMC:OMG: YG:  I:7MG:C  :G  :A  :T  :U  :YG :I  : rC: rG: rA: rT: rU: dC: dG: dA: dT: dU: DC: DG: DA: DT: DU:";
-    
-    static boolean isProtOrNucAcid(Residue res)
-    {
-        String resname = res.getName();
-        if(aaNames.indexOf(resname) != -1 || naNames.indexOf(resname) != -1) 
-            return true; // it's a valid protein or nucleic acid residue name
-        return false;
     }
 //}}}
 

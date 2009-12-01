@@ -15,6 +15,10 @@
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 ### 1.04 ### keedy
+- Fixed bug where HETATMs listed as nucleic acids (e.g. ATP) would still get 
+  evaluated even if doHets boolean was false (which is the default)
+
+### 1.04 ### keedy
 - Allowed "for" to be followed by multiple specifiers, e.g. "for deoxy 2'",
   and to apply to any resname by default if none specified, as opposed to before
   where a residue name was strictly required.
