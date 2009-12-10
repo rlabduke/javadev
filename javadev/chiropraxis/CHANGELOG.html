@@ -40,6 +40,11 @@
 - Incremented version to 1.04 for all RotamerCorrectness stuff
 - Fixed target ID and backbone-only bugs in RotamerCorrectness
 - Fixed model count and target count for RotamerCorrectness -summ mode
+- Added default behavior to SubImpose: best 90% of sequence-aligned CAs
+- Fixed bug in SimpleNonWaterResAligner nested class in SubImpose. Previously 
+  only water-water pairs were unrewarded (0) in alignments; now water-water and 
+  water-amino-acid pairs are penalized (-1). Result: better, more intuitive, 
+  more protein-centric alignments!
 
 ### 1.03 ### dak
 - Added SupKitchenTool for "cooking up" superpositions of sets of PDB files
