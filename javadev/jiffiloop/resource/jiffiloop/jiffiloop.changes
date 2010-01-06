@@ -1,3 +1,5 @@
+1.10  Changed how jiffiloop accesses database; it should be much faster.
+
 1.09  Added jiffiloop.changes and help files.
       Added -fragment to limit number of fragments generated.
       Added -sequence to keep residue name info.

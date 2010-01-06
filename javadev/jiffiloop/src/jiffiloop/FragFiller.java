@@ -44,6 +44,7 @@ public class FragFiller implements Filler {
   
   //{{{ Constants
   static final DecimalFormat df = new DecimalFormat("0.000");
+  static final DecimalFormat df2 = new DecimalFormat("00");
   //}}}
   
   //{{{ Variables
@@ -113,20 +114,21 @@ public class FragFiller implements Filler {
   public void searchDB(int matchDiff) {
     DatabaseManager dm = new DatabaseManager();
     //dm.connectToDatabase("//spiral.research.duhs.duke.edu/qDBrDB");
-    dm.connectToDatabase("//quality.biochem.duke.edu/vbc3");
+    dm.connectToDatabase("//quality.biochem.duke.edu/jiffiloop");
     for (ProteinGap gap : filledMap.keySet()) {
       ArrayList<Double> gapFrame = gap.getParameters();
       int gapLength = gap.getSize();
-      String sqlSelect = "SELECT pdb_id, chain_id, frag_length, start_res_num FROM parameters5200 ";
+      String sqlSelect;
       if (matchDiff==0) {
-        sqlSelect = sqlSelect.concat("WHERE frag_length = "+Integer.toString(gapLength)+" \n");
+        //sqlSelect = sqlSelect.concat("WHERE frag_length = "+Integer.toString(gapLength)+" \n");
+        sqlSelect = "SELECT pdb_id, chain_id, frag_length, start_res_num FROM parameters5200_f"+df2.format(gapLength)+" \n";
       } else {
         //sqlSelect = sqlSelect.concat("WHERE (frag_length <= "+Integer.toString(gapLength+matchDiff));
         //sqlSelect = sqlSelect.concat(" AND frag_length >= "+Integer.toString(gapLength-matchDiff)+") \n");
-        sqlSelect = sqlSelect.concat("WHERE frag_length = "+Integer.toString(matchDiff)+" \n");
+        sqlSelect = "SELECT pdb_id, chain_id, frag_length, start_res_num FROM parameters5200_f"+df2.format(matchDiff)+" \n";
       }
       double dist = gapFrame.get(0);
-      sqlSelect = sqlSelect.concat("AND (distance <= "+df.format(gapFrame.get(0)+1)+" AND distance >= "+df.format(gapFrame.get(0)-1));
+      sqlSelect = sqlSelect.concat("WHERE (distance <= "+df.format(gapFrame.get(0)+1)+" AND distance >= "+df.format(gapFrame.get(0)-1));
       sqlSelect = sqlSelect.concat(") \n");
       double startAng = gapFrame.get(1);
       sqlSelect = sqlSelect.concat(createWhereQuery(startAng, "start_angle") + " \n");
