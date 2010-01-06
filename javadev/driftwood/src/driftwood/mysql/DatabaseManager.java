@@ -39,7 +39,7 @@ public class DatabaseManager {
   //{{{ connectToDatabase
   public void connectToDatabase(String url) {
     try {
-      conn = DriverManager.getConnection("jdbc:mysql:" + url, "vbc3", "mypig.v");
+      conn = DriverManager.getConnection("jdbc:mysql:" + url, "javauser", "J1kwt3T0");
     } catch (SQLException ex) {
       System.out.println("SQLException: " + ex.getMessage());
       System.out.println("SQLState: " + ex.getSQLState());
