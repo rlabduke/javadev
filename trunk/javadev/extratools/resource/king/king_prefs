@@ -41,3 +41,5 @@ king.tool.vr.VRKinTool.menuName = Specialty
 king.tool.nmr.CoCenterTool.menuName = Kin editing
 king.tool.export.RenderExport.menuName = <export>
 king.tool.nmr.ParenTool.menuName = Specialty
+king.tool.rnaxtal.SuitenameTool.menuName = Specialty
+king.tool.rnaxtal.RnaRotTool.menuName = Specialty
