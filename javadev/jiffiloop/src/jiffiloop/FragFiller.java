@@ -114,7 +114,7 @@ public class FragFiller implements Filler {
   public void searchDB(int matchDiff) {
     DatabaseManager dm = new DatabaseManager();
     //dm.connectToDatabase("//spiral.research.duhs.duke.edu/qDBrDB");
-    dm.connectToDatabase("//quality.biochem.duke.edu/jiffiloop");
+    dm.connectToDatabase("//quality.biochem.duke.edu:1352/jiffiloop");
     for (ProteinGap gap : filledMap.keySet()) {
       ArrayList<Double> gapFrame = gap.getParameters();
       int gapLength = gap.getSize();
