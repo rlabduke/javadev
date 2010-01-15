@@ -26,7 +26,6 @@ import driftwood.moldb2.*;
 public class MainGuiPane extends TablePane2 implements ListSelectionListener
 {
 //{{{ Constants
-    // pinktint is not used b/c that's used for connections to hets
     public static final String[] BACKBONE_COLORS = { "white", "yellowtint", "peachtint", "greentint", "bluetint", "lilactint", "pinktint" };
 //}}}
 

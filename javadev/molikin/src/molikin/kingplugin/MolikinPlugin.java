@@ -71,7 +71,8 @@ public class MolikinPlugin extends king.Plugin
     }
 //}}}
 
-  //{{{ buildFilter
+//{{{ buildFilter
+//##############################################################################
   public void buildFilter() {
     allFilter = CoordinateFile.getCoordFileFilter();
     pdbFilter = CoordinateFile.getPdbFileFilter();

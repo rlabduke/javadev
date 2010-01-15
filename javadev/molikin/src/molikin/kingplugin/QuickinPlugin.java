@@ -81,10 +81,10 @@ public class QuickinPlugin extends king.Plugin {
     }
     kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make lots kinemage", Quickin.getLotsLogic(true)));
     BallAndStickLogic logic = Quickin.getLotsLogic(true);
-    logic.doBackbone        = false;
+    logic.doMainchain       = false;
     logic.doSidechains      = false;
     logic.doHydrogens       = false;
-    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make pseudo-backbone kinemage", logic));
+    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make virtual backbone kinemage", logic));
     kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make ribbons kinemage", Quickin.getRibbonLogic()));
   }
   //}}}
@@ -132,12 +132,12 @@ public class QuickinPlugin extends king.Plugin {
     }
   }
   
-  public void onPseudo(ActionEvent ev) {
+  public void onVirtual(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
     if (coordFile != null) {
       BallAndStickLogic logic = Quickin.getLotsLogic();
-      logic.doPseudoBB        = true;
-      logic.doBackbone        = false;
+      logic.doVirtualBB       = true;
+      logic.doMainchain       = false;
       logic.doSidechains      = false;
       logic.doHydrogens       = false;
       buildKinemage(null, coordFile, logic);
@@ -347,13 +347,13 @@ public class QuickinPlugin extends king.Plugin {
   public JMenuItem getToolsMenuItem()
   {
     JMenu menu = new JMenu(this.toString());
-    JMenuItem item = new JMenuItem(new ReflectiveAction("Lots (MC-SC-H)", null, this, "onLots"));
+    JMenuItem item = new JMenuItem(new ReflectiveAction("Lots (mc,sc,H)", null, this, "onLots"));
     menu.add(item);
     item = new JMenuItem(new ReflectiveAction("Ribbons", null, this, "onRibbons"));
     menu.add(item);
-    item = new JMenuItem(new ReflectiveAction("Pseudo-backbone", null, this, "onPseudo"));
+    item = new JMenuItem(new ReflectiveAction("Virtual Backbone", null, this, "onVirtual"));
     menu.add(item);
-    item = new JMenuItem(new ReflectiveAction("Separate res", null, this, "onResidue"));
+    item = new JMenuItem(new ReflectiveAction("Separate Res", null, this, "onResidue"));
     menu.add(item);
     item = new JMenuItem(new ReflectiveAction("Lots+Ribbons", null, this, "onRibbonLots"));
     menu.add(item);

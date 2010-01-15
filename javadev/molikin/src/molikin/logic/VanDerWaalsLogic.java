@@ -38,8 +38,8 @@ public class VanDerWaalsLogic implements Logic
     PrintWriter     out = null;
     BallPrinter     bp  = null;
     
-    public boolean  doProtein, doNucleic, doHets, doIons, doWater;
-    public boolean  doBackbone, doSidechains, doHydrogens, doUseSpheres;
+    public boolean  doProtein, doNucleic, doHets, doMetals, doWater;
+    public boolean  doMainchain, doSidechains, doHydrogens, doUseSpheres;
     public Object   colorBy = COLOR_BY_ELEMENT;
 //}}}
 
@@ -73,7 +73,7 @@ public class VanDerWaalsLogic implements Logic
         if(doProtein)  printProtein(m, residues, bbColor);
         if(doNucleic)  printNucAcid(m, residues, bbColor);
         if(doHets)     printHets(m, residues);
-        if(doIons)     printIons(m, residues);
+        if(doMetals)   printMetals(m, residues);
         if(doWater)    printWaters(m, residues);
         
         this.out.flush();
@@ -96,11 +96,11 @@ public class VanDerWaalsLogic implements Logic
         AtomClassifier  atomC   = data.getAtomClassifier();
         Collection      bonds   = data.getCovalentGraph().getBonds();
         
-        if(doBackbone && atomC.bbHeavy.size() > 0)
+        if(doMainchain && atomC.mcHeavy.size() > 0)
         {
-            printAtomBalls(atomC.bbHeavy, proteinRes, "master= {protein} master= {backbone}");
-            if(doHydrogens && atomC.bbHydro.size() > 0)
-                printAtomBalls(atomC.bbHydro, proteinRes, "master= {protein} master= {backbone}");
+            printAtomBalls(atomC.mcHeavy, proteinRes, "master= {protein} master= {mainchain}");
+            if(doHydrogens && atomC.mcHydro.size() > 0)
+                printAtomBalls(atomC.mcHydro, proteinRes, "master= {protein} master= {mainchain}");
         }
         if(doSidechains && atomC.scHeavy.size() > 0)
         {
@@ -125,11 +125,11 @@ public class VanDerWaalsLogic implements Logic
         AtomClassifier  atomC   = data.getAtomClassifier();
         Collection      bonds   = data.getCovalentGraph().getBonds();
         
-        if(doBackbone && atomC.bbHeavy.size() > 0)
+        if(doMainchain && atomC.mcHeavy.size() > 0)
         {
-            printAtomBalls(atomC.bbHeavy, nucAcidRes, "master= {nucleic acid} master= {backbone}");
-            if(doHydrogens && atomC.bbHydro.size() > 0)
-                printAtomBalls(atomC.bbHydro, nucAcidRes, "master= {nucleic acid} master= {backbone}");
+            printAtomBalls(atomC.mcHeavy, nucAcidRes, "master= {nucleic acid} master= {mainchain}");
+            if(doHydrogens && atomC.mcHydro.size() > 0)
+                printAtomBalls(atomC.mcHydro, nucAcidRes, "master= {nucleic acid} master= {mainchain}");
         }
         if(doSidechains && atomC.scHeavy.size() > 0)
         {
@@ -166,21 +166,21 @@ public class VanDerWaalsLogic implements Logic
     }
 //}}}
 
-//{{{ printIons
+//{{{ printMetals
 //##############################################################################
-    void printIons(Model model, Set selectedRes)
+    void printMetals(Model model, Set selectedRes)
     {
         DataCache       data    = DataCache.getDataFor(model);
         ResClassifier   resC    = data.getResClassifier();
         
-        CheapSet ionRes = new CheapSet(selectedRes);
-        ionRes.retainAll(resC.ionRes);
-        if(ionRes.size() == 0) return;
+        CheapSet metalRes = new CheapSet(selectedRes);
+        metalRes.retainAll(resC.metalRes);
+        if(metalRes.size() == 0) return;
         
         AtomClassifier  atomC   = data.getAtomClassifier();
-        if(atomC.ion.size() == 0) return;
+        if(atomC.metal.size() == 0) return;
         
-        printAtomBalls(atomC.ion, ionRes, "master= {ions}");
+        printAtomBalls(atomC.metal, metalRes, "master= {metals}");
     }
 //}}}
 

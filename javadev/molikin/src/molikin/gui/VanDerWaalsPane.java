@@ -35,8 +35,8 @@ public class VanDerWaalsPane extends TablePane2 implements DrawingPane
     String          title;
     
     SelectorPane    selector;
-    JCheckBox       cbProtein, cbNucleic, cbHets, cbIons, cbWater;
-    JCheckBox       cbBackbone, cbSidechains, cbHydrogens, cbUseSpheres;
+    JCheckBox       cbProtein, cbNucleic, cbHets, cbMetals, cbWater;
+    JCheckBox       cbMainchain, cbSidechains, cbHydrogens, cbUseSpheres;
     JComboBox       cmColorBy;
 //}}}
 
@@ -61,11 +61,11 @@ public class VanDerWaalsPane extends TablePane2 implements DrawingPane
         cbProtein   = new JCheckBox("protein", true);
         cbNucleic   = new JCheckBox("nucleic acids", true);
         cbHets      = new JCheckBox("hets (non-water)", true);
-        cbIons      = new JCheckBox("metals/ions", true);
+        cbMetals    = new JCheckBox("metals/ions", true);
         cbWater     = new JCheckBox("water", false);
         
-        cbBackbone      = new JCheckBox("backbone", true);
-        cbSidechains    = new JCheckBox("sidechain", true);
+        cbMainchain     = new JCheckBox("mainchain", true);
+        cbSidechains    = new JCheckBox("sidechains", true);
         cbHydrogens     = new JCheckBox("hydrogens", true);
         
         cbUseSpheres    = new JCheckBox("use spheres?", false);
@@ -85,10 +85,10 @@ public class VanDerWaalsPane extends TablePane2 implements DrawingPane
             this.addCell(new JLabel("Color by")).addCell(cmColorBy);
         this.endSubtable();
         this.addCell(this.strut(0,6)).newRow();
-        this.addCell(cbProtein).addCell(cbBackbone).newRow();
+        this.addCell(cbProtein).addCell(cbMainchain).newRow();
         this.addCell(cbNucleic).addCell(cbSidechains).newRow();
         this.addCell(cbHets).addCell(cbHydrogens).newRow();
-        this.addCell(cbIons).skip().newRow();
+        this.addCell(cbMetals).skip().newRow();
         this.addCell(cbWater).addCell(cbUseSpheres).newRow();
         
         this.setBorder( BorderFactory.createTitledBorder(null, "van der Waals") );
@@ -130,9 +130,9 @@ public class VanDerWaalsPane extends TablePane2 implements DrawingPane
         logic.doProtein     = this.cbProtein.isSelected();
         logic.doNucleic     = this.cbNucleic.isSelected();
         logic.doHets        = this.cbHets.isSelected();
-        logic.doIons        = this.cbIons.isSelected();
+        logic.doMetals      = this.cbMetals.isSelected();
         logic.doWater       = this.cbWater.isSelected();
-        logic.doBackbone    = this.cbBackbone.isSelected();
+        logic.doMainchain   = this.cbMainchain.isSelected();
         logic.doSidechains  = this.cbSidechains.isSelected();
         logic.doHydrogens   = this.cbHydrogens.isSelected();
         logic.doUseSpheres  = this.cbUseSpheres.isSelected();

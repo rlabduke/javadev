@@ -14,13 +14,13 @@ import driftwood.data.*;
 import driftwood.moldb2.*;
 //}}}
 /**
-* <code>PseudoBackbone</code> is responsible for calculating Bond objects for
-* a protein C-alpha trace or a nucleic acid pseudo-backbone.
+* <code>VirtualBackbone</code> is responsible for calculating Bond objects for
+* a protein C-alpha trace or a nucleic acid virtual backbone.
 *
 * <p>Copyright (C) 2005 by Ian W. Davis. All rights reserved.
 * <br>Begun on Sat Oct 15 17:19:42 EDT 2005
 */
-public class PseudoBackbone //extends ... implements ...
+public class VirtualBackbone //extends ... implements ...
 {
 //{{{ Constants
 //}}}
@@ -39,7 +39,7 @@ public class PseudoBackbone //extends ... implements ...
 
 //{{{ Constructor(s)
 //##############################################################################
-    public PseudoBackbone(Model model, Collection modelStates, ResClassifier classifier)
+    public VirtualBackbone(Model model, Collection modelStates, ResClassifier classifier)
     {
         super();
         this.model          = model;
@@ -92,7 +92,7 @@ public class PseudoBackbone //extends ... implements ...
 //##############################################################################
     /**
     * Returns a Collection of Bond objects that can be used to draw
-    * nucleic acid pseudo-backbone traces.
+    * nucleic acid virtual backbone traces.
     */
     public Collection getNucAcidBonds()
     {
