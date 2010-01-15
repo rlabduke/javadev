@@ -39,6 +39,7 @@ public class DataCache //extends ... implements ...
     AtomClassifier  atomC       = null;
     AtomGraph       atomGraph   = null;
     PseudoBackbone  pseudoBB    = null;
+    Collection      modStates   = null; // collection of modelstates
 //}}}
 
 //{{{ Constructor(s), getDataFor
@@ -49,11 +50,20 @@ public class DataCache //extends ... implements ...
         this.model = m;
     }
     
+    protected DataCache(Model m, Collection states) {
+      super();
+      this.model = m;
+      this.modStates = states;
+    }
+    
     /** Call this to obtain a DataCache for a given model, using cached data if available. */
-    static public DataCache getDataFor(Model m)
+    // my assumption (vbc) is if someone calls this with a separate set of
+    // modelstates, then they DON'T want to use cached data
+    static public DataCache getDataFor(Model m, Collection states)
     {
+      DataCache data = null;
+      if (states == null) {
         SoftReference ref = (SoftReference) dataEntries.get(m);
-        DataCache data = null;
         if(ref != null) data = (DataCache) ref.get();
         
         if(data == null)
@@ -61,8 +71,14 @@ public class DataCache //extends ... implements ...
             data = new DataCache(m);
             dataEntries.put(m, new SoftReference(data));
         }
-        
-        return data;
+      } else {
+        data = new DataCache(m, states);
+      }
+      return data;
+    }
+    
+    static public DataCache getDataFor(Model m) {
+      return getDataFor(m, null);
     }
 //}}}
 
@@ -77,9 +93,14 @@ public class DataCache //extends ... implements ...
     
     public Collection getUniqueAtomStates()
     {
-        if(atomStates == null)
-            atomStates = Util.extractOrderedStatesByName(model);
-        return atomStates;
+      if(atomStates == null) {
+        if (modStates == null) {
+          atomStates = Util.extractOrderedStatesByName(model);
+        } else {
+          atomStates = Util.extractOrderedStatesByName(model, modStates);
+        }
+      }
+      return atomStates;
     }
     
     public AtomClassifier getAtomClassifier()

@@ -60,8 +60,12 @@ public class BallAndStickLogic implements Logic
     public void printKinemage(PrintWriter out, Model m, Set residues, String bbColor) {
       printKinemage(out, m, residues, "", bbColor);
     }
+    
+    public void printKinemage(PrintWriter out, Model m, Set residues, String pdbId, String bbColor) {
+      printKinemage(out, m, null, residues, pdbId, bbColor);
+    }
 
-    public void printKinemage(PrintWriter out, Model m, Set residues, String pdbId, String bbColor)
+    public void printKinemage(PrintWriter out, Model m, Collection states, Set residues, String pdbId, String bbColor)
     {
         this.out = out;
         this.sp = new StickPrinter(out);
@@ -97,8 +101,8 @@ public class BallAndStickLogic implements Logic
         }
         else throw new UnsupportedOperationException();
 
-        if(doProtein)  printProtein(m, residues, pdbId, bbColor);
-        if(doNucleic)  printNucAcid(m, residues, pdbId, bbColor);
+        if(doProtein)  printProtein(m, states, residues, pdbId, bbColor);
+        if(doNucleic)  printNucAcid(m, states, residues, pdbId, bbColor);
         if(doHets)     printHets(m, residues, pdbId);
         if(doIons)     printIons(m, residues, pdbId);
         if(doWater)    printWaters(m, residues, pdbId);
@@ -112,9 +116,9 @@ public class BallAndStickLogic implements Logic
 
 //{{{ printProtein
 //##############################################################################
-    void printProtein(Model model, Set selectedRes, String pdbId, String bbColor)
+    void printProtein(Model model, Collection states, Set selectedRes, String pdbId, String bbColor)
     {
-        DataCache       data    = DataCache.getDataFor(model);
+        DataCache       data    = DataCache.getDataFor(model, states);
         ResClassifier   resC    = data.getResClassifier();
         
         CheapSet proteinRes = new CheapSet(selectedRes);
@@ -124,8 +128,10 @@ public class BallAndStickLogic implements Logic
         AtomClassifier  atomC   = data.getAtomClassifier();
         Collection      bonds   = data.getCovalentGraph().getBonds();
         
-        String identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
-        
+        String identifier = "";
+        if (pdbId != null && !((pdbId.trim()).equals(""))) {
+          identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
+        }
         if(doPseudoBB||atomC.bbNotCa==0)
         {
             String off = ((doBackbone&&atomC.bbNotCa!=0) ? " off" : "");
@@ -200,9 +206,9 @@ public class BallAndStickLogic implements Logic
 
 //{{{ printNucAcid
 //##############################################################################
-    void printNucAcid(Model model, Set selectedRes, String pdbId, String bbColor)
+    void printNucAcid(Model model, Collection states, Set selectedRes, String pdbId, String bbColor)
     {
-        DataCache       data    = DataCache.getDataFor(model);
+        DataCache       data    = DataCache.getDataFor(model, states);
         ResClassifier   resC    = data.getResClassifier();
         
         CheapSet nucAcidRes = new CheapSet(selectedRes);
@@ -213,8 +219,10 @@ public class BallAndStickLogic implements Logic
         Collection      bonds   = data.getCovalentGraph().getBonds();
         
         // Needs an extra space for some reason.
-        String identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
-        
+        String identifier = "";
+        if (pdbId != null && !((pdbId.trim()).equals(""))) {
+          identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
+        }
         if(doPseudoBB)
         {
             String off = (doBackbone ? " off" : "");

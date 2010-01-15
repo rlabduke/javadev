@@ -314,7 +314,9 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
         URL url = (URL) urls.nextElement();
         //System.out.println(url);
         String jarFile = (new File(url.getFile())).getParentFile().getParentFile().getName();
-        jarNames.add(jarFile.substring(0, jarFile.lastIndexOf(".")));
+        if (jarFile.lastIndexOf(".") != -1) {
+          jarNames.add(jarFile.substring(0, jarFile.lastIndexOf(".")));
+        }
         jarNames.remove("king");
       }
       for (String jar : jarNames) {

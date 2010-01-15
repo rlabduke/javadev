@@ -10,10 +10,13 @@ import java.text.*;
 import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
-import chiropraxis.sc.SidechainAngles2;
+//import chiropraxis.sc.SidechainAngles2;
+import chiropraxis.kingtools.*;
 import driftwood.moldb2.*;
 import driftwood.r3.*;
 import driftwood.util.*;
+import king.tool.postkin.*;
+import king.core.*;
 //}}}
 /**
  * <code>Conformer</code> is a temp placeholder until I can figure out 
@@ -24,8 +27,10 @@ import driftwood.util.*;
 */
 public class Conformer //extends ... implements ...
 {
-//{{{ Constants
-//}}}
+  //{{{ Constants
+  public static final String REMOTENESS = "HC5C4C3O2C1NCO4O3P";
+  DecimalFormat df = new DecimalFormat("0.000");
+  //}}}
 
 //{{{ Variable definitions
 //##################################################################################################
@@ -36,6 +41,8 @@ public class Conformer //extends ... implements ...
     HashMap                 names;
     /** Defines geometry (how to measure chi angles, how many, etc */
     HashMap                 angleMap;
+    HashMap                 adjacencyMap = null;
+    HashMap                 mobileMap;
     //SidechainAngles2        scAngles2;
     // Used for working calculations
     Transform rot = new Transform();
@@ -104,29 +111,60 @@ public class Conformer //extends ... implements ...
 //}}}
 
   //{{{ getAngleNames
-  public static String[] getAngleNames() {
-    String[] names = {"alpha", "beta", "gamma", "delta", "epsilon", "zeta"};
+  public String[] getAngleNames() {
+    String[] names = {"delta-1", "epsilon-1", "zeta-1", "alpha", "beta", "gamma", "delta"};
     return names;
   }
   //}}}
   
   //{{{ measureAllAngles
-  public static double[] measureAllAngles(Residue first, Residue sec, ModelState state) {
-    double[] angles = {0, 0, 0, 0, 0, 0};
-    return angles;
+  public double[] measureAllAngles(Residue first, Residue sec, ModelState state) throws AtomException {
+    setAdjacency(first, sec, state);
+    HashMap atomStates = new HashMap();
+    mapAtomStates(first, state, atomStates);
+    mapAtomStates(sec, state, atomStates);
+    //HashSet mobile = ConnectivityFinder.mobilityFinder(a2, a3, adjacencyMap, atomStates);
+    mobileMap = new HashMap();
+
+    String[] angles = getAngleNames();
+    double[] values = new double[angles.length];
+    for (int i = 0; i < angles.length; i++) {
+      try {
+        values[i] = measureAngle(angles[i], first, sec, state);
+        AtomState[] as = getAngleAtomStates(angles[i], first, sec, state);
+        AtomState a2, a3;
+        a2 = as[1];
+        a3 = as[2];
+        HashSet mobile = ConnectivityFinder.mobilityFinder(a2, a3, adjacencyMap, atomStates);
+        //System.out.println(mobile);
+        mobileMap.put(angles[i], mobile);
+      }
+      catch (AtomException ae) {
+        values[i] = Double.NaN; 
+      }
+    }
+    
+    return values;
+  }
+  //}}}
+  
+  //{{{ measureAngle
+  public double measureAngle(String angleName, Residue first, Residue sec, ModelState state) throws AtomException {
+    AtomState[] as = getAngleAtomStates(angleName, first, sec, state);
+    return Triple.dihedral(as[0], as[1], as[2], as[3]);
   }
   //}}}
   
   //{{{ getAngleAtomStates
   public AtomState[] getAngleAtomStates(String angleName, Residue res1, Residue res2, ModelState state) throws AtomException {
+    //System.out.println(angleName);
     String[] atomNames = (String[]) angleMap.get(angleName);
     AtomState[] states = new AtomState[4];
     for (int i = 0; i < 4; i++) {
       String s = atomNames[i];
       if (s.equals(" P  ")||(s.equals(" O5'"))) {
         states[i] = state.get(res2.getAtom(s));
-      }
-      if (angleName.endsWith("-1")) {
+      } else if (angleName.endsWith("-1")) {
         states[i] = state.get(res1.getAtom(s));
       } else if (angleName.equals("alpha")) { //since alpha has atoms from both res
         if (s.equals(" O3'")) {
@@ -167,18 +205,26 @@ public class Conformer //extends ... implements ...
     rot.likeRotation(a2, a3, dTheta);
     
     ModelState ms = new ModelState(state);
+    HashSet mobile = (HashSet) mobileMap.get(angleName);
+    //System.out.println(mobile.size());
+    //HashMap atomStates = new HashMap();
+    //mapAtomStates(res1, state, atomStates);
+    //mapAtomStates(res2, state, atomStates);
+    //HashSet mobile = ConnectivityFinder.mobilityFinder(a2, a3, adjacencyMap, atomStates);
     
     ArrayList allAtoms = new ArrayList(res1.getAtoms());
     allAtoms.addAll(res2.getAtoms());
-    boolean atomFound = false;
+   // boolean atomFound = false;
     for(Iterator iter = allAtoms.iterator(); iter.hasNext(); )
     {
       Atom atom = (Atom)iter.next();
+      //System.out.println(atom.toString()+" being tested");
       a1 = state.get(atom);
       a2 = (AtomState)a1.clone();
       //if( areParentAndChild(a3.getAtom(), atom) )
-      if (a3.equals(a1)) atomFound = !atomFound; // this assumes that atoms come in the proper order along the backbone...
-      if (atomFound) {
+   //   if (a4.equals(a1)) atomFound = !atomFound; // this assumes that atoms come in the proper order along the backbone...
+      //System.out.println(a1);
+      if (mobile.contains(atom)) {
         rot.transform(a2);
         ms.add(a2);
       }
@@ -209,6 +255,61 @@ public class Conformer //extends ... implements ...
     }
     
     return state;
+  }
+  //}}}
+  
+  //{{{ areParentAndChild
+  //##################################################################################################
+  protected boolean areParentAndChild(Atom parent, Atom child)
+  {
+    String p = parent.getName();
+    String c = child.getName();
+    if(p == null || c == null || p.length() != 4 || c.length() != 4)
+      throw new IllegalArgumentException("Bad atom name(s)");
+    
+    // for converting the shifted hydrogens in pdbv3 back to pdbv2.3 (e.g. HG11 to 1HG1)
+    if (p.charAt(0) == 'H') p = p.substring(3) + p.substring(0,3);
+    if (c.charAt(0) == 'H') c = c.substring(3) + c.substring(0,3);
+    
+    if ((p.charAt(3) == '\'') || (p.charAt(3) == '*')) p = p.substring(1, 2);
+    int pi = REMOTENESS.indexOf(p.charAt(2));
+    int ci = REMOTENESS.indexOf(c.charAt(2));
+    
+    return
+    ((pi > ci && (p.charAt(3) == ' ' || p.charAt(3) == c.charAt(3)))    // parent closer AND on root or same branch
+      || (pi == ci && (p.charAt(3) == ' ' || p.charAt(3) == c.charAt(3))  // OR child is an H of parent
+        && p.charAt(1) != 'H' && c.charAt(1) == 'H'));
+  }
+  //}}}
+
+  //{{{ setAdjacency
+  public void setAdjacency(Residue res1, Residue res2, ModelState state) {
+    if (adjacencyMap != null) return;
+    Model tempModel = new Model("temp");
+    try {
+      tempModel.add(res1);
+      tempModel.add(res2);
+    } catch (ResidueException re) {/*shouldn't happen*/}
+    ArrayList list = new ArrayList();
+    list.add(res1);
+    list.add(res2);
+    Kinemage kin = ModelPlotter.buildKinObject(tempModel, list, state);
+    adjacencyMap = new HashMap();
+    ConnectivityFinder.buildAdjacencyMap(kin, true, adjacencyMap);
+  }
+  //}}}
+  
+  //{{{ mapAtomStates
+  public void mapAtomStates(Residue res, ModelState state, HashMap map) throws AtomException { 
+    ArrayList allAtoms = new ArrayList(res.getAtoms());
+    for(Iterator iter = allAtoms.iterator(); iter.hasNext(); )
+    {
+      Atom atom = (Atom)iter.next();
+      //System.out.println(atom.toString()+" being tested");
+      AtomState a1 = state.get(atom);
+      Triple a1Trip = new Triple(a1);
+      map.put(a1Trip.format(df), a1);
+    }
   }
   //}}}
 

@@ -4,6 +4,7 @@ package chiropraxis.kingtools;
 import king.*;
 import king.core.*;
 import king.points.*;
+import king.io.*;
 
 //import java.awt.*;
 //import java.awt.event.*;
@@ -15,6 +16,9 @@ import java.util.*;
 //import javax.swing.*;
 import driftwood.moldb2.*;
 import driftwood.util.*;
+import driftwood.data.*;
+import molikin.logic.*;
+import molikin.*;
 //}}}
 /**
 * <code>ModelPlotter</code> is capable of taking molecular
@@ -86,53 +90,137 @@ public class ModelPlotter
         
         clearLists();
         
-        // For each residue, draw mainchain, then draw sidechain.
-        for(Iterator iter = residues.iterator(); iter.hasNext(); )
-        {
-            Residue r       = (Residue)iter.next();
-            Residue next    = r.getNext(model); // next along the chain
-            
-            // Heavy atom backbone trace
-            plotString(r, state, scProps.getString("aminoacid.mc", ""), listMc);
-            // Hydrogen backbone trace
-            plotString(r, state, scProps.getString("aminoacid.hy", ""), listMcH);
-
-            // Heavy atom sidechain trace
-            String tlc = r.getName().toLowerCase();
-            plotString(r, state, scProps.getString(tlc+".sc", ""), listSc);
-            // Hydrogen sidechain trace
-            plotString(r, state, scProps.getString(tlc+".hy", ""), listScH);
-
-            // Connect the backbone between residues as necessary
-            if(next != null && residues.contains(next))
-            {
-                Atom C, N;
-                C = r.getAtom(" C  ");
-                N = next.getAtom(" N  ");
-                if(C != null && N != null)
-                {
-                    try {
-                        plotAtom(state.get(C),  false,  listMc);
-                        plotAtom(state.get(N),  true,   listMc);
-                    } catch(AtomException ex) { SoftLog.err.println(ex.getMessage()); }
-                }
-                
-                Atom Ca1, Ca2;
-                Ca1 = r.getAtom(" CA ");
-                Ca2 = next.getAtom(" CA ");
-                if(Ca1 != null && Ca2 != null)
-                {
-                    try {
-                        plotAtom(state.get(Ca1),  false,  listCa);
-                        plotAtom(state.get(Ca2),  true,   listCa);
-                    } catch(AtomException ex) { SoftLog.err.println(ex.getMessage()); }
-                }
-            }
-        }//for(each residue)
+        StreamTank kinData = new StreamTank();
+        PrintWriter out = new PrintWriter(new OutputStreamWriter(kinData));
         
-        prev = null; //avoid memory leaks
+        BallAndStickLogic bsl = new BallAndStickLogic();
+        bsl.doProtein = true;
+        bsl.doNucleic = true;
+        bsl.doBackbone = true;
+        bsl.doSidechains = true;
+        bsl.doHydrogens = true;
+        bsl.colorBy = BallAndStickLogic.COLOR_BY_MC_SC;
+        
+        out.println("@kinemage 1");
+        bsl.printKinemage(out, model, Collections.singletonList(state), new UberSet(residues), "", mainColor.toString());
+        
+        out.flush();
+        kinData.close();
+        KinfileParser parser = new KinfileParser();
+        LineNumberReader lnr = new LineNumberReader(new InputStreamReader(kinData.getInputStream()));
+        try {
+          parser.parse(lnr);
+          ArrayList<Kinemage> kins = new ArrayList<Kinemage>(parser.getKinemages());
+          for (Kinemage kin : kins) {
+            KIterator<KList> lists = KIterator.allLists(kin);
+            for (KList l : lists) {
+              KIterator<KPoint> points = KIterator.allPoints(l);
+              if (l.getName().endsWith("bb")) {
+                moveAllPoints(listMc, points);
+              } else if (l.getName().endsWith("bbH")) {
+                moveAllPoints(listMcH, points);
+              } else if (l.getName().endsWith("sc")) {
+                moveAllPoints(listSc, points);
+              } else if (l.getName().endsWith("scH")) {
+                moveAllPoints(listScH, points);
+              }
+            }
+          }
+          lnr.close();
+        } catch (IOException ie) {
+          //I don't think this should ever happen...
+          System.out.println("IOException in streamtank in ModelPlotter?");
+        }
+        parser = null;
+        kinData = null;
+        // For each residue, draw mainchain, then draw sidechain.
+      //  for(Iterator iter = residues.iterator(); iter.hasNext(); )
+      //  {
+      //      Residue r       = (Residue)iter.next();
+      //      Residue next    = r.getNext(model); // next along the chain
+      //      
+      //      // Heavy atom backbone trace
+      //      plotString(r, state, scProps.getString("aminoacid.mc", ""), listMc);
+      //      // Hydrogen backbone trace
+      //      plotString(r, state, scProps.getString("aminoacid.hy", ""), listMcH);
+      //
+      //      // Heavy atom sidechain trace
+      //      String tlc = r.getName().toLowerCase();
+      //      plotString(r, state, scProps.getString(tlc+".sc", ""), listSc);
+      //      // Hydrogen sidechain trace
+      //      plotString(r, state, scProps.getString(tlc+".hy", ""), listScH);
+      //
+      //      // Connect the backbone between residues as necessary
+      //      if(next != null && residues.contains(next))
+      //      {
+      //          Atom C, N;
+      //          C = r.getAtom(" C  ");
+      //          N = next.getAtom(" N  ");
+      //          if(C != null && N != null)
+      //          {
+      //              try {
+      //                  plotAtom(state.get(C),  false,  listMc);
+      //                  plotAtom(state.get(N),  true,   listMc);
+      //              } catch(AtomException ex) { SoftLog.err.println(ex.getMessage()); }
+      //          }
+      //          
+      //          Atom Ca1, Ca2;
+      //          Ca1 = r.getAtom(" CA ");
+      //          Ca2 = next.getAtom(" CA ");
+      //          if(Ca1 != null && Ca2 != null)
+      //          {
+      //              try {
+      //                  plotAtom(state.get(Ca1),  false,  listCa);
+      //                  plotAtom(state.get(Ca2),  true,   listCa);
+      //              } catch(AtomException ex) { SoftLog.err.println(ex.getMessage()); }
+      //          }
+      //      }
+      //  }//for(each residue)
+      //  
+      //  prev = null; //avoid memory leaks
     }
 //}}}
+
+  //{{{ buildKinObject
+  /** for building a Kinemage object from a model and collection of residues **/
+  public static Kinemage buildKinObject(Model model, Collection residues, ModelState state) {
+    StreamTank kinData = new StreamTank();
+    PrintWriter out = new PrintWriter(new OutputStreamWriter(kinData));
+    
+    BallAndStickLogic bsl = Quickin.getLotsLogic(false);
+    
+    out.println("@kinemage 1");
+    bsl.printKinemage(out, model, Collections.singletonList(state), new UberSet(residues), "", "grey");
+    
+    out.flush();
+    kinData.close();
+    KinfileParser parser = new KinfileParser();
+    LineNumberReader lnr = new LineNumberReader(new InputStreamReader(kinData.getInputStream()));
+    Kinemage outKin = null;
+    try {
+      parser.parse(lnr);
+      ArrayList<Kinemage> kins = new ArrayList<Kinemage>(parser.getKinemages());
+      outKin = kins.get(0);
+      lnr.close();
+    } catch (IOException ie) {
+      //I don't think this should ever happen...
+      System.out.println("IOException in streamtank in Quickin?");
+      ie.printStackTrace();
+    }
+
+    parser = null;
+    kinData = null;
+    return outKin;
+  }
+  //}}}
+
+  //{{{ moveAllPoints
+  public void moveAllPoints(KList listTo, KIterator<KPoint> points) {
+    for (KPoint p : points) {
+      listTo.add(p);
+    }
+  }
+  //}}}
 
 //{{{ plotString
 //##################################################################################################

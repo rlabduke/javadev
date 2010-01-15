@@ -583,7 +583,7 @@ public class ModelManager2 extends Plugin
                         //    srccoordfile.addHeader(CoordinateFile.SECTION_USER_MOD, iter.next().toString());
                         
                         // Sync up the atom-by-atom labels with the global scheme
-                        adjustAltConfLabels(m);
+                        //adjustAltConfLabels(m);
                         
                         // Replace the model we started from with the current model
                         srccoordfile.replace(srcmodel, m);
