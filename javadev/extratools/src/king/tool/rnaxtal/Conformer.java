@@ -118,11 +118,15 @@ public class Conformer //extends ... implements ...
   //}}}
   
   //{{{ measureAllAngles
-  public double[] measureAllAngles(Residue first, Residue sec, ModelState state) throws AtomException {
-    setAdjacency(first, sec, state);
+  public double[] measureAllAngles(Residue first, Residue sec, ModelState state) {
     HashMap atomStates = new HashMap();
-    mapAtomStates(first, state, atomStates);
-    mapAtomStates(sec, state, atomStates);
+    try {
+      setAdjacency(first, sec, state);
+      mapAtomStates(first, state, atomStates);
+      mapAtomStates(sec, state, atomStates);
+    } catch (AtomException ae) {
+      ae.printStackTrace();
+    }
     //HashSet mobile = ConnectivityFinder.mobilityFinder(a2, a3, adjacencyMap, atomStates);
     mobileMap = new HashMap();
 
