@@ -89,7 +89,7 @@ public class Util //extends ... implements ...
     }
 //}}}
 
-//{{{ isProtein, isNucleicAcid, isIon
+//{{{ isProtein, isNucleicAcid, isMetal
 //##############################################################################
     /** Based on Prekin's AAList */
     static String protPattern = "GLY|ALA|VAL|PHE|PRO|MET|ILE|LEU|ASP|GLU|LYS|ARG|SER|THR|TYR|HIS|CYS|ASN|GLN|TRP|ASX|GLX|ACE|FOR|NH2|NME|MSE|AIB|ABU|PCA|MLY|CYO|M31";
@@ -118,13 +118,13 @@ public class Util //extends ... implements ...
     }
 
     /** Based on name only -- if you want only 1 atom, you must check that yourself */
-    static String ionPattern = " *(?:HE|LI|BE|F|NE|NA|MG|P|S|CL|AR|K|CA|CR|MN|FE|CO|NI|CU|ZN|GA|AS|SE|BR|KR|RB|SR|MO|RU|RH|PD|AG|CD|SN|I|XE|CS|BA|W|RE|OS|IR|PT|AU|HG|TL|PB|BI|RN|FR|RA|U|PU) *";
-    static Matcher ionMatcher = null;
-    static public boolean isIon(Residue res)
+    static String metalPattern = " *(?:HE|LI|BE|F|NE|NA|MG|P|S|CL|AR|K|CA|CR|MN|FE|CO|NI|CU|ZN|GA|AS|SE|BR|KR|RB|SR|MO|RU|RH|PD|AG|CD|SN|I|XE|CS|BA|W|RE|OS|IR|PT|AU|HG|TL|PB|BI|RN|FR|RA|U|PU) *";
+    static Matcher metalMatcher = null;
+    static public boolean isMetal(Residue res)
     {
-        if(ionMatcher == null) ionMatcher = Pattern.compile(ionPattern).matcher("");
-        ionMatcher.reset(res.getName());
-        return ionMatcher.matches();
+        if(metalMatcher == null) metalMatcher = Pattern.compile(metalPattern).matcher("");
+        metalMatcher.reset(res.getName());
+        return metalMatcher.matches();
     }
 //}}}
 

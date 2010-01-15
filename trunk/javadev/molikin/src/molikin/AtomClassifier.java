@@ -16,8 +16,8 @@ import driftwood.moldb2.*;
 /**
 * <code>AtomClassifier</code> divides AtomStates into the groups needed in
 * kinemage drawing: heavy atoms vs. hydrogens and
-* (for proteins and nucleic acids) backbone vs. sidechain.
-* Waters and ions are grouped separately from ohets and unknowns,
+* (for proteins and nucleic acids) mainchain vs. sidechain.
+* Waters and metals are grouped separately from ohets and unknowns,
 * because the former shouldn't ever be forming bonds to anything...
 *
 * <p>Copyright (C) 2005 by Ian W. Davis. All rights reserved.
@@ -34,19 +34,19 @@ public class AtomClassifier //extends ... implements ...
     ResClassifier   resClassifier;
     
     // First, the disjoint sets:
-    public Set bbHeavy      = new CheapSet(new IdentityHashFunction());
-    public int bbNotCa      = 0;
-    public Set bbHydro      = new CheapSet(new IdentityHashFunction());
+    public Set mcHeavy      = new CheapSet(new IdentityHashFunction());
+    public int mcNotCa      = 0;
+    public Set mcHydro      = new CheapSet(new IdentityHashFunction());
     public Set scHeavy      = new CheapSet(new IdentityHashFunction());
     public Set scHydro      = new CheapSet(new IdentityHashFunction());
     public Set watHeavy     = new CheapSet(new IdentityHashFunction());
     public Set watHydro     = new CheapSet(new IdentityHashFunction());
-    public Set ion          = new CheapSet(new IdentityHashFunction());
+    public Set metal        = new CheapSet(new IdentityHashFunction());
     public Set hetHeavy     = new CheapSet(new IdentityHashFunction());
     public Set hetHydro     = new CheapSet(new IdentityHashFunction());
 
     // Now, the unions of the above:
-    public Set bioHeavy     = new CheapSet(new IdentityHashFunction()); // bbHeavy + scHeavy
+    public Set bioHeavy     = new CheapSet(new IdentityHashFunction()); // mcHeavy + scHeavy
 //}}}
 
 //{{{ Constructor(s)
@@ -67,10 +67,10 @@ public class AtomClassifier //extends ... implements ...
             {
                 if(Util.isMainchain(as))
                 {
-                  if(isH) { bbHydro.add(as); }
+                  if(isH) { mcHydro.add(as); }
                   else {   
-                    bbHeavy.add(as);
-                    if (!as.getName().equals(" CA ")) bbNotCa++;
+                    mcHeavy.add(as);
+                    if (!as.getName().equals(" CA ")) mcNotCa++;
                   }
                 }
                 else // sidechain
@@ -84,9 +84,9 @@ public class AtomClassifier //extends ... implements ...
                 if(isH)     watHydro.add(as);
                 else        watHeavy.add(as);
             }
-            else if(clas == ResClassifier.ION)
+            else if(clas == ResClassifier.METAL)
             {
-                            ion.add(as);
+                            metal.add(as);
             }
             else // OHET and UNKNOWN
             {
@@ -96,7 +96,7 @@ public class AtomClassifier //extends ... implements ...
         }// for each atom state
         
         // Now, create the unions of those sets for convenience:
-        bioHeavy.addAll(bbHeavy);
+        bioHeavy.addAll(mcHeavy);
         bioHeavy.addAll(scHeavy);
     }
 //}}}

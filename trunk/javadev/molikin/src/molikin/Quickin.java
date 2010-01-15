@@ -38,15 +38,15 @@ public class Quickin {
     return getLotsLogic(false);
   }
   
-  static public BallAndStickLogic getLotsLogic(boolean doPseudoBB) {
+  static public BallAndStickLogic getLotsLogic(boolean doVirtualBB) {
     BallAndStickLogic logic = new BallAndStickLogic();
     logic.doProtein         = true;
     logic.doNucleic         = true;
     logic.doHets            = true;
-    logic.doIons            = true;
+    logic.doMetals          = true;
     logic.doWater           = false;
-    logic.doPseudoBB        = doPseudoBB;
-    logic.doBackbone        = true;
+    logic.doVirtualBB       = doVirtualBB;
+    logic.doMainchain       = true;
     logic.doSidechains      = true;
     logic.doHydrogens       = true;
     logic.doDisulfides      = true;

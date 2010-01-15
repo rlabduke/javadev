@@ -33,13 +33,13 @@ public class DataCache //extends ... implements ...
     // values may go to null in response to memory demand
     static WeakHashMap dataEntries = new WeakHashMap();
     
-    Model           model;
-    ResClassifier   resC        = null;
-    Collection      atomStates  = null;
-    AtomClassifier  atomC       = null;
-    AtomGraph       atomGraph   = null;
-    PseudoBackbone  pseudoBB    = null;
-    Collection      modStates   = null; // collection of modelstates
+    Model            model;
+    ResClassifier    resC        = null;
+    Collection       atomStates  = null;
+    AtomClassifier   atomC       = null;
+    AtomGraph        atomGraph   = null;
+    VirtualBackbone  virtualBB   = null;
+    Collection       modStates   = null; // collection of modelstates
 //}}}
 
 //{{{ Constructor(s), getDataFor
@@ -50,10 +50,11 @@ public class DataCache //extends ... implements ...
         this.model = m;
     }
     
-    protected DataCache(Model m, Collection states) {
-      super();
-      this.model = m;
-      this.modStates = states;
+    protected DataCache(Model m, Collection states)
+    {
+        super();
+        this.model = m;
+        this.modStates = states;
     }
     
     /** Call this to obtain a DataCache for a given model, using cached data if available. */
@@ -61,24 +62,28 @@ public class DataCache //extends ... implements ...
     // modelstates, then they DON'T want to use cached data
     static public DataCache getDataFor(Model m, Collection states)
     {
-      DataCache data = null;
-      if (states == null) {
-        SoftReference ref = (SoftReference) dataEntries.get(m);
-        if(ref != null) data = (DataCache) ref.get();
-        
-        if(data == null)
+        DataCache data = null;
+        if (states == null)
         {
-            data = new DataCache(m);
-            dataEntries.put(m, new SoftReference(data));
+            SoftReference ref = (SoftReference) dataEntries.get(m);
+            if(ref != null) data = (DataCache) ref.get();
+            
+            if(data == null)
+            {
+                data = new DataCache(m);
+                dataEntries.put(m, new SoftReference(data));
+            }
         }
-      } else {
-        data = new DataCache(m, states);
-      }
-      return data;
+        else
+        {
+            data = new DataCache(m, states);
+        }
+        return data;
     }
     
-    static public DataCache getDataFor(Model m) {
-      return getDataFor(m, null);
+    static public DataCache getDataFor(Model m)
+    {
+        return getDataFor(m, null);
     }
 //}}}
 
@@ -118,22 +123,23 @@ public class DataCache //extends ... implements ...
     }
 //}}}
 
-//{{{ getPseudoBackbone
+//{{{ getVirtualBackbone
 //##############################################################################
-    public PseudoBackbone getPseudoBackbone()
+    public VirtualBackbone getVirtualBackbone()
     {
-        if(pseudoBB == null)
-            pseudoBB = new PseudoBackbone(model, model.getStates().values(), getResClassifier());
-        return pseudoBB;
+        if(virtualBB == null)
+            virtualBB = new VirtualBackbone(model, model.getStates().values(), getResClassifier());
+        return virtualBB;
     }
 //}}}
 
-  //{{{ getModelId
-  public String getModelId() {
-    return model.toString();
-  }
+//{{{ getModelId
+//##############################################################################
+    public String getModelId()
+    {
+        return model.toString();
+    }
   //}}}
-
 
 //{{{ empty_code_segment
 //##############################################################################

@@ -35,8 +35,8 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
     String          title;
     
     SelectorPane    selector;
-    JCheckBox       cbProtein, cbNucleic, cbHets, cbIons, cbWater;
-    JCheckBox       cbPseudoBB, cbBackbone, cbSidechains, cbHydrogens, cbDisulfides;
+    JCheckBox       cbProtein, cbNucleic, cbHets, cbMetals, cbWater;
+    JCheckBox       cbVirtualBB, cbMainchain, cbSidechains, cbHydrogens, cbDisulfides;
     JCheckBox       cbBallsOnCarbon, cbBallsOnAtoms;
     JComboBox       cmColorBy;
 //}}}
@@ -62,12 +62,12 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
         cbProtein   = new JCheckBox("protein", true);
         cbNucleic   = new JCheckBox("nucleic acids", true);
         cbHets      = new JCheckBox("hets (non-water)", true);
-        cbIons      = new JCheckBox("metals/ions", true);
+        cbMetals    = new JCheckBox("metals/ions", true);
         cbWater     = new JCheckBox("water", false);
         
-        cbPseudoBB      = new JCheckBox("C-alpha trace", true);
-        cbBackbone      = new JCheckBox("backbone", false);
-        cbSidechains    = new JCheckBox("sidechain", false);
+        cbVirtualBB     = new JCheckBox("C-alpha trace", true);
+        cbMainchain     = new JCheckBox("mainchain", false);
+        cbSidechains    = new JCheckBox("sidechains", false);
         cbHydrogens     = new JCheckBox("hydrogens", false);
         cbDisulfides    = new JCheckBox("disulfides", false);
         
@@ -90,10 +90,10 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
             this.addCell(new JLabel("Color by")).addCell(cmColorBy);
         this.endSubtable();
         this.addCell(this.strut(0,6)).newRow();
-        this.addCell(cbProtein).addCell(cbPseudoBB).newRow();
-        this.addCell(cbNucleic).addCell(cbBackbone).newRow();
+        this.addCell(cbProtein).addCell(cbVirtualBB).newRow();
+        this.addCell(cbNucleic).addCell(cbMainchain).newRow();
         this.addCell(cbHets).addCell(cbSidechains).newRow();
-        this.addCell(cbIons).addCell(cbDisulfides).newRow();
+        this.addCell(cbMetals).addCell(cbDisulfides).newRow();
         this.addCell(cbWater).addCell(cbHydrogens).newRow();
         this.addCell(this.strut(0,6)).newRow();
         this.addCell(cbBallsOnAtoms).addCell(cbBallsOnCarbon).newRow();
@@ -137,10 +137,10 @@ public class BallAndStickPane extends TablePane2 implements DrawingPane
         logic.doProtein         = this.cbProtein.isSelected();
         logic.doNucleic         = this.cbNucleic.isSelected();
         logic.doHets            = this.cbHets.isSelected();
-        logic.doIons            = this.cbIons.isSelected();
+        logic.doMetals          = this.cbMetals.isSelected();
         logic.doWater           = this.cbWater.isSelected();
-        logic.doPseudoBB        = this.cbPseudoBB.isSelected();
-        logic.doBackbone        = this.cbBackbone.isSelected();
+        logic.doVirtualBB       = this.cbVirtualBB.isSelected();
+        logic.doMainchain       = this.cbMainchain.isSelected();
         logic.doSidechains      = this.cbSidechains.isSelected();
         logic.doHydrogens       = this.cbHydrogens.isSelected();
         logic.doDisulfides      = this.cbDisulfides.isSelected();

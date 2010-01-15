@@ -90,6 +90,12 @@ public class MolikinWindow //extends ... implements ...
             frame.setLocation(p);
         }
         
+        // Key bindings: just type the key to execute -- DAK 100515
+        InputMap im = frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "done");
+        ActionMap am = frame.getRootPane().getActionMap();
+        am.put("done", new ReflectiveAction(null, null, this, "onDone"));
+        
         frame.setVisible(true);
     }
     

@@ -195,38 +195,38 @@ public class Test //extends ... implements ...
         out.println("@kinemage");
         out.println("@onewidth");
         out.println("@group {macromol}");
-        out.println("@subgroup {backbone}");
+        out.println("@subgroup {mainchain}");
         out.println("@vectorlist {heavy} color= white");
-        sp.printSticks(bonds, atomC.bbHeavy, atomC.bbHeavy);
-        out.println("@vectorlist {H} color= gray master= {Hs}");
-        sp.printSticks(bonds, atomC.bbHydro, atomC.bbHeavy);
-        out.println("@subgroup {sidechain}");
+        sp.printSticks(bonds, atomC.mcHeavy, atomC.mcHeavy);
+        out.println("@vectorlist {H} color= gray master= {H}");
+        sp.printSticks(bonds, atomC.mcHydro, atomC.mcHeavy);
+        out.println("@subgroup {sidechains}");
         out.println("@vectorlist {heavy} color= cyan"); // includes disulfides, for now
         sp.printSticks(bonds, atomC.scHeavy, atomC.bioHeavy, selectedResidues, allResidues, model.toString()); // to scHeavy if we want stubs to ribbon instead
-        out.println("@vectorlist {H} color= gray master= {Hs}");
-        sp.printSticks(bonds, atomC.scHydro, atomC.bioHeavy, selectedResidues, allResidues, model.toString()); // makes sure Gly 2HA connects to bb
+        out.println("@vectorlist {H} color= gray master= {H}");
+        sp.printSticks(bonds, atomC.scHydro, atomC.bioHeavy, selectedResidues, allResidues, model.toString()); // makes sure Gly 2HA connects to mc
         if(atomC.hetHeavy.size() > 0)
         {
             out.println("@subgroup {hets}");
             out.println("@vectorlist {heavy} color= pink");
             sp.printSticks(bonds, atomC.hetHeavy, atomC.hetHeavy);
-            out.println("@vectorlist {H} color= gray master= {Hs}");
+            out.println("@vectorlist {H} color= gray master= {H}");
             sp.printSticks(bonds, atomC.hetHydro, atomC.hetHeavy);
             out.println("@vectorlist {connect} color= pinktint");
             sp.printSticks(bonds, atomC.hetHeavy, atomC.bioHeavy);
         }
-        if(atomC.ion.size() > 0)
+        if(atomC.metal.size() > 0)
         {
-            out.println("@subgroup {ions}");
+            out.println("@subgroup {metals}");
             out.println("@spherelist {heavy} color= magenta radius= 0.5");
-            bp.printBalls(atomC.ion);
+            bp.printBalls(atomC.metal);
         }
         if(atomC.watHeavy.size() > 0)
         {
             out.println("@subgroup {water}");
             out.println("@balllist {heavy} color= bluetint radius= 0.15");
             bp.printBalls(atomC.watHeavy);
-            out.println("@vectorlist {H} color= gray master= {Hs}");
+            out.println("@vectorlist {H} color= gray master= {H}");
             sp.printSticks(bonds, atomC.watHydro, atomC.watHeavy);
         }
         

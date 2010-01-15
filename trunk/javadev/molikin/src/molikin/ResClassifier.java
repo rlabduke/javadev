@@ -15,8 +15,8 @@ import driftwood.moldb2.*;
 //}}}
 /**
 * <code>ResClassifier</code> is responsible for categorizing Residues as one of
-* PROTEIN, NUCACID, WATER, ION (single atom residues named as a known element),
-* OHET (organic/other het - not water or ion, but mostly HETATMs),
+* PROTEIN, NUCACID, WATER, METAL (single atom residues named as a known element),
+* OHET (organic/other het - not water or metal, but mostly HETATMs),
 * or UNKNOWN(like ohet, but mostly ATOMs).
 *
 * <p>Copyright (C) 2005 by Ian W. Davis. All rights reserved.
@@ -35,12 +35,12 @@ public class ResClassifier //extends ... implements ...
     static public final Object WATER = "water";
     
     /** Residue name matches a known element and has exactly one atom */
-    static public final Object ION = "ion";
+    static public final Object METAL = "metal";
     
-    /** Residue is not protein, nuc acid, water, or ion and is mostly HETATMs */
+    /** Residue is not protein, nuc acid, water, or metal and is mostly HETATMs */
     static public final Object OHET = "other_het";
     
-    /** Residue is not protein, nuc acid, water, or ion and is mostly ATOMs */
+    /** Residue is not protein, nuc acid, water, or metal and is mostly ATOMs */
     static public final Object UNKNOWN = "unknown";
 //}}}
 
@@ -52,7 +52,7 @@ public class ResClassifier //extends ... implements ...
     public Set proteinRes   = new CheapSet();
     public Set nucAcidRes   = new CheapSet();
     public Set waterRes     = new CheapSet();
-    public Set ionRes       = new CheapSet();
+    public Set metalRes     = new CheapSet();
     public Set ohetRes      = new CheapSet();
     public Set unknownRes   = new CheapSet();
 //}}}
@@ -75,10 +75,10 @@ public class ResClassifier //extends ... implements ...
         {
             Residue res = (Residue) iter.next();
             Object clas;
-            if(Util.isProtein(res))                                 clas = PROTEIN;
-            else if(Util.isNucleicAcid(res))                        clas = NUCACID;
-            else if(Util.isWater(res))                              clas = WATER;
-            else if(Util.isIon(res) && res.getAtoms().size() == 1)  clas = ION;
+            if(Util.isProtein(res))                                  clas = PROTEIN;
+            else if(Util.isNucleicAcid(res))                         clas = NUCACID;
+            else if(Util.isWater(res))                               clas = WATER;
+            else if(Util.isMetal(res) && res.getAtoms().size() == 1) clas = METAL;
             // if mostly HETATMs, call it OHET; else call it UNKNOWN
             else
             {
@@ -125,7 +125,7 @@ public class ResClassifier //extends ... implements ...
                     unknowns.clear();
                 }
             }
-            // If current is ion or water, any preceding unknowns
+            // If current is metal or water, any preceding unknowns
             // have to remain just that -- unknown.
             else unknowns.clear();
             //System.out.println(res +" "+ clas);
@@ -133,7 +133,7 @@ public class ResClassifier //extends ... implements ...
             if(clas == PROTEIN)         proteinRes.add(res);
             else if(clas == NUCACID)    nucAcidRes.add(res);
             else if(clas == WATER)      waterRes.add(res);
-            else if(clas == ION)        ionRes.add(res);
+            else if(clas == METAL)      metalRes.add(res);
             else if(clas == OHET)       ohetRes.add(res);
             else if(clas == UNKNOWN)    unknownRes.add(res);
             
