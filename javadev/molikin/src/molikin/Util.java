@@ -35,6 +35,11 @@ public class Util //extends ... implements ...
     static public Collection extractOrderedStatesByName(Model model)
     { return Model.extractOrderedStatesByName(model); }
     
+    // In case state is separate from model, e.g. molten model in modeling tools
+    static public Collection extractOrderedStatesByName(Model model, Collection states) {
+      return Model.extractOrderedStatesByName(model.getResidues(), states);
+    }
+    
     /**
     * Extracts all the uniquely named AtomStates for the given model, in the
     * order of Residues and Atoms given.

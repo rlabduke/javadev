@@ -692,6 +692,7 @@ public class KinFudgerTool extends BasicTool {
           }
         }
       }
+      kCanvas.repaint();
     }
   }
   //}}}

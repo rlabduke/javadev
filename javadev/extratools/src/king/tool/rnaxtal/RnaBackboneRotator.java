@@ -89,8 +89,8 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
     {
         // Dials
         TablePane dialPane = new TablePane();
-        String[] angleNames = Conformer.getAngleNames();
-        double[] angleVals = Conformer.measureAllAngles(targetRes1, targetRes2, modelman.getMoltenState());
+        String[] angleNames = conformer.getAngleNames();
+        double[] angleVals = conformer.measureAllAngles(targetRes1, targetRes2, modelman.getMoltenState());
         
         dials = new AngleDial[angleNames.length];
         for(int i = 0; i < angleNames.length; i++)
