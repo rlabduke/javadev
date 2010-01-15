@@ -91,6 +91,7 @@ public class Dock3On3Tool extends BasicTool
     PointKeeper     pkReference;
     PointKeeper     pkMobile;
     JButton         btnDock;
+    JCheckBox       cbKeepReference;
 //}}}
 
 //{{{ Constructor(s)
@@ -112,6 +113,8 @@ public class Dock3On3Tool extends BasicTool
             "Dock visible on invisible", null, this, "onDock"));
         btnDock.setEnabled(false);
         
+        cbKeepReference = new JCheckBox("Remember reference points", false);
+        
         toolpane = new TablePane();
         toolpane.center();
         toolpane.add(new JLabel("Reference"));
@@ -124,6 +127,8 @@ public class Dock3On3Tool extends BasicTool
         toolpane.newRow().save().hfill(true).vfill(true);
         toolpane.add(new JScrollPane(pkMobile.pointList),2,1);
         toolpane.newRow().restore();
+        toolpane.add(cbKeepReference,2,1);
+        toolpane.newRow();
         toolpane.add(btnDock,2,1);
     }
 //}}}
@@ -176,7 +181,7 @@ public class Dock3On3Tool extends BasicTool
             kin.setModified(true);
         }
         
-        pkReference.clear();
+        if(!cbKeepReference.isSelected()) pkReference.clear();
         pkMobile.clear();
         kCanvas.repaint();
     }

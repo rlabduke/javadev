@@ -103,6 +103,7 @@ public class DockLsqTool extends BasicTool
     PointKeeper     pkMobile;
     JRadioButton    btnReference, btnMobile;
     JButton         btnDock;
+    JCheckBox       cbKeepReference;
 //}}}
 
 //{{{ Constructor(s)
@@ -130,6 +131,8 @@ public class DockLsqTool extends BasicTool
         bg.add(btnReference);
         bg.add(btnMobile);
         
+        cbKeepReference = new JCheckBox("Remember reference points", false);
+        
         toolpane = new TablePane();
         toolpane.center();
         toolpane.add(btnReference);
@@ -144,6 +147,8 @@ public class DockLsqTool extends BasicTool
         toolpane.newRow().save().hfill(true).vfill(true);
         toolpane.add(new JScrollPane(pkMobile.pointList),3,1);
         toolpane.newRow().restore();
+        toolpane.add(cbKeepReference,3,1);
+        toolpane.newRow();
         toolpane.add(btnDock,3,1);
     }
 //}}}
@@ -197,11 +202,17 @@ public class DockLsqTool extends BasicTool
             kin.setModified(true);
         }
         
+        /*
         // Swap which button is selected
         if(btnReference.isSelected())   btnMobile.setSelected(true);
         else                            btnReference.setSelected(true);
+        */
+        // Make mobile button selected if maintaining reference; 
+        // otherwise make reference button selected
+        if(cbKeepReference.isSelected())  btnMobile.setSelected(true);
+        else                              btnReference.setSelected(true);
         
-        pkReference.clear();
+        if(!cbKeepReference.isSelected()) pkReference.clear();
         pkMobile.clear();
         kCanvas.repaint();
     }
