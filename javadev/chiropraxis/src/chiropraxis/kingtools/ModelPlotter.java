@@ -93,13 +93,7 @@ public class ModelPlotter
         StreamTank kinData = new StreamTank();
         PrintWriter out = new PrintWriter(new OutputStreamWriter(kinData));
         
-        BallAndStickLogic bsl = new BallAndStickLogic();
-        bsl.doProtein = true;
-        bsl.doNucleic = true;
-        bsl.doBackbone = true;
-        bsl.doSidechains = true;
-        bsl.doHydrogens = true;
-        bsl.colorBy = BallAndStickLogic.COLOR_BY_MC_SC;
+        BallAndStickLogic bsl = Quickin.getLotsLogic(false);
         
         out.println("@kinemage 1");
         bsl.printKinemage(out, model, Collections.singletonList(state), new UberSet(residues), "", mainColor.toString());
@@ -115,9 +109,9 @@ public class ModelPlotter
             KIterator<KList> lists = KIterator.allLists(kin);
             for (KList l : lists) {
               KIterator<KPoint> points = KIterator.allPoints(l);
-              if (l.getName().endsWith("bb")) {
+              if (l.getName().endsWith("mc")) {
                 moveAllPoints(listMc, points);
-              } else if (l.getName().endsWith("bbH")) {
+              } else if (l.getName().endsWith("mcH")) {
                 moveAllPoints(listMcH, points);
               } else if (l.getName().endsWith("sc")) {
                 moveAllPoints(listSc, points);
@@ -319,20 +313,20 @@ public class ModelPlotter
             listMcH = new KList(KList.VECTOR);
             listMcH.setName("mcH");
             listMcH.addMaster("refit mainchain"); // matches Prekin 6.25
-            listMcH.addMaster("refit H's");       // matches Prekin 6.25
+            listMcH.addMaster("refit H");       // matches Prekin 6.25
         }
         if(listSc == null)
         {
             listSc = new KList(KList.VECTOR);
             listSc.setName("sc");
-            listSc.addMaster("refit sidechain");  // matches Prekin 6.25
+            listSc.addMaster("refit sidechains");  // matches Prekin 6.25
         }
         if(listScH == null)
         {
             listScH = new KList(KList.VECTOR);
             listScH.setName("scH");
-            listScH.addMaster("refit sidechain"); // matches Prekin 6.25
-            listScH.addMaster("refit H's");       // matches Prekin 6.25
+            listScH.addMaster("refit sidechains"); // matches Prekin 6.25
+            listScH.addMaster("refit H");       // matches Prekin 6.25
         }
         
         listCa.setWidth(modelWidth);
