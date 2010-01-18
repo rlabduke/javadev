@@ -178,7 +178,17 @@ public class PhiPsiRotation //extends ... implements ...
                     atoms.add(a);
             }
         }
-        // else no atoms in first-in-array residue need to be rotated
+        else //if (!upstream && !phi)
+        {
+            // Add the first-in-sequence (first-in-array) mobile residue, O only
+            for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
+            {
+                Atom    a   = (Atom)ai.next();
+                String  an  = a.getName();
+                if(an.equals(" O  "))
+                    atoms.add(a);
+            }
+        }
         
         // Add all atoms for the rest of residues
         while(iter.hasNext())

@@ -24,7 +24,7 @@ import chiropraxis.sc.SidechainAngles2;
 * <ol>
 * <li>If -super is specified, those atoms from structure 1 are used to superimpose it onto the corresponding atoms from structure 2.</li>
 * <li>If -sieve is specified, those atoms are cut down to the specified fraction (0,1] by Lesk's sieve.</li>
-* <li>If -kin is specified, a kinemage is written showing the the atom correspondances.</li>
+* <li>If -kin is specified, a kinemage is written showing the the atom correspondences.</li>
 * <li>If -pdb is specified, the new coordinates for structure 1 are written to file.</li>
 * <li>If -rms is specified, those atoms from structure 1 and the corresponding ones from structure 2 are used to compute RMSD.</li>
 * </ol>
@@ -60,10 +60,9 @@ public class SubImpose //extends ... implements ...
 //{{{ CLASS: SimpleNonWaterResAligner
 //##############################################################################
     /**
-    * Extends SimpleResAligner by not rewarding HOH-HOH residue pairings, 
+    * Extends SimpleResAligner by not penalizing water-anything residue pairings, 
     * which in my experience often screwed up alignments and thereby prevented 
-    * superpositions that were anywhere close to reasonable.
-    * ~DAK, 24 Aug 2009
+    * superpositions that were anywhere close to reasonable. (DAK 090824)
     */
     public static class SimpleNonWaterResAligner extends SimpleResAligner
     {
@@ -73,7 +72,7 @@ public class SubImpose //extends ... implements ...
             Residue r = (Residue) a;
             Residue s = (Residue) b;
             if(r.getName().equals("HOH") || s.getName().equals("HOH"))
-                return -1; // water-amino-acid (mis)pairing
+                return -1; // penalize water-anything pairing
             if(r.getName().equals(s.getName()))
                 return 4;  // match
             else
@@ -92,9 +91,11 @@ public class SubImpose //extends ... implements ...
     boolean fix180flips = true;
     String structIn1 = null, structIn2 = null;
     String kinOut = null, pdbOut = null;
-    String superimpose = null; // describes atoms in structure 1 for superimposing onto structure 2
+    String superimpose1 = null; // describes atoms in structure 1 for superimposing onto structure 2
     String superimpose2 = null; // describes atoms in structure 2 which will match up with those
-                                // in structure 1 described in superimpose - DAK
+                                // in structure 1 described in superimpose1 - DAK
+    String chainIDs1 = null; // single-character chain IDs from structure 1 to be used in sequence alignment
+    String chainIDs2 = null; // single-character chain IDs from structure 2 to be used in sequence alignment
     Collection rmsd = new ArrayList(); // selection strings to do rmsd over
     double leskSieve = 0;
     double rmsdCutoff = Double.NaN; // above which PDB is not written out
@@ -170,7 +171,7 @@ public class SubImpose //extends ... implements ...
     }
 //}}}
 
-//{{{ getChains
+//{{{ getChains, getSomeChains
 //##############################################################################
     public static Collection getChains(Model m)
     {
@@ -178,6 +179,22 @@ public class SubImpose //extends ... implements ...
         for(Iterator iter = m.getChainIDs().iterator(); iter.hasNext(); )
         {
             String chainID = (String) iter.next();
+            chains.add( m.getChain(chainID) );
+        }
+        return chains;
+    }
+
+    // Extra method which allows the user to specify which chains will be used
+    // for sequence alignment, e.g. when multiple copies are present in a crystal
+    // lattice or something. Independent of and preceding actual choice of atoms 
+    // atoms for superposition.
+    public static Collection getSomeChains(Model m, String chainIDs)
+    {
+        Collection chains = new ArrayList();
+        for(Iterator iter = m.getChainIDs().iterator(); iter.hasNext(); )
+        {
+            String chainID = (String) iter.next();
+            if(chainIDs.indexOf(chainID) == -1) continue; // only use chains of interest
             chains.add( m.getChain(chainID) );
         }
         return chains;
@@ -399,12 +416,15 @@ public class SubImpose //extends ... implements ...
         if(structIn1 == null || structIn2 == null)
             throw new IllegalArgumentException("must provide two structures");
         
-        if(superimpose == null)
+        if(superimpose1 == null)
         {
             System.err.println("No -super flag!  Default: best 90% of aligned Calphas");
-            superimpose = "atom_CA_";
+            superimpose1 = "atom_CA_";
             leskSieve = 0.9;
         }
+        
+        if(chainIDs1 != null) System.err.println("Using subset of structure 1 chains: "+chainIDs1);
+        if(chainIDs2 != null) System.err.println("Using subset of structure 2 chains: "+chainIDs2);
         
         // Read in structures, get arrays of residues.
         PdbReader pdbReader = new PdbReader();
@@ -422,7 +442,10 @@ public class SubImpose //extends ... implements ...
         // With this approach, alignments can't cross chain boundaries.
         // As many chains as possible are aligned, without doubling up.
         /*Alignment align = Alignment.alignChains(getChains(m1), getChains(m2), new Alignment.NeedlemanWunsch(), new SimpleResAligner());*/
-        Alignment align = Alignment.alignChains(getChains(m1), getChains(m2), new Alignment.NeedlemanWunsch(), new SimpleNonWaterResAligner());
+        /*Alignment align = Alignment.alignChains(getChains(m1), getChains(m2), new Alignment.NeedlemanWunsch(), new SimpleNonWaterResAligner());*/
+        Collection chains1 = (chainIDs1 != null ? getSomeChains(m1, chainIDs1) : getChains(m1));
+        Collection chains2 = (chainIDs2 != null ? getSomeChains(m2, chainIDs2) : getChains(m2));
+        Alignment align = Alignment.alignChains(chains1, chains2, new Alignment.NeedlemanWunsch(), new SimpleNonWaterResAligner());
         if(align.a.length == 0)
         {
             // Just take all residues as they appear in the file, without regard to chain IDs, etc.
@@ -449,8 +472,8 @@ public class SubImpose //extends ... implements ...
         
         // If -super, do superimposition of s1 on s2.
         Transform R = new Transform(); // identity, defaults to no superposition
-        //if(superimpose != null) // this is never true anymore; default: all Calphas - DAK 091123
-        AtomState[][] atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, superimpose, align);
+        //if(superimpose1 != null) // this is never true anymore; default: all Calphas - DAK 091123
+        AtomState[][] atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, superimpose1, align);
         if(verbose)
         {
             System.err.println("Atom alignments:");
@@ -464,7 +487,7 @@ public class SubImpose //extends ... implements ...
         // struct2 is the reference point; struct1 should move.
         SuperPoser superpos = new SuperPoser(atoms[1], atoms[0]);
         R = superpos.superpos();
-        System.err.println(df.format(superpos.calcRMSD(R))+"\t"+atoms[0].length+"\t"+superimpose);
+        System.err.println(df.format(superpos.calcRMSD(R))+"\t"+atoms[0].length+"\t"+superimpose1);
         
         int lenAtomsUsed = atoms[0].length;
         if(leskSieve > 0)
@@ -691,8 +714,12 @@ public class SubImpose //extends ... implements ...
             showTransform = true;
         else if(flag.equals("-noscflip"))
             fix180flips = false;
-        else if(flag.equals("-super"))
-            superimpose = param;
+        else if(flag.equals("-chains1") || flag.equals("-chain1") || flag.equals("-chains") || flag.equals("-chain"))
+            chainIDs1 = param;
+        else if(flag.equals("-chains2") || flag.equals("-chain2"))
+            chainIDs2 = param;
+        else if(flag.equals("-super1") || flag.equals("-super"))
+            superimpose1 = param;
         else if(flag.equals("-super2"))
             superimpose2 = param; // added by DAK
         else if(flag.equals("-sieve"))

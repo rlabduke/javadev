@@ -1,0 +1,57 @@
+
+ABOUT
+    RotCor is an implementation of the 'corRot' score from the Richardson 
+    Lab's assessment of templated-based models (TBM) at CASP8.  We now prefer 
+    'rotcor' to 'corRot'.
+    
+    It compares a directory of one or more predicted models to a potentially 
+    multi-model target using rotamer names derived from quality-filtered, 
+    multidimensional distributions.  All sidechain types are considered except 
+    Gly and Ala.
+    
+    A "consensus" rotamer comprises 85% (1 chi), 70% (2 chis), 55% (3 chis), or 
+    40% (4 chis) of a multi-target or multi-model ensemble at a given residue. 
+    If one of these conditions is not met, the residue is labeled NO_CONSENSUS.
+    
+    OUTLIER indicates that the sidechain conformation falls outside the valid 
+    range of our rotamer distribution.
+
+USAGE:   rotcor [mode] modelsdir targetfile   (results sent to standard output)
+    
+ROTCOR is "java -cp chiropraxis.jar chiropraxis.rotarama.RotCor".
+
+MODE can be either of the following:
+
+    -Model    Default one-line analysis including number of residues and models
+              considered and primary 'rotcor' score.
+    
+    -Residue  Per-residue analysis including target rotamer, number of model 
+              rotamers, and fraction match.
+    
+TARGETFILE is a PDB file for the target structure.  If more than one MODEL card
+is included in this file (e.g. for NMR structures), the consensus target rotamer
+at each position is used. 
+
+MODELSDIR is a directory containing one or more predicted model PDB files.  
+These may include NMR-style files containing multiple predicted models separated
+by MODEL cards.
+
+OUTPUT DETAILS - MODEL
+    TargetCount      number of PDB-style models used to define target rotamer
+                       names (usually just 1)
+    TargetRotamers   number of valid rotamers in target: number of residues sans
+                       Gly, Ala, OUTLIER, or NO_CONSENSUS
+    ModelRotamers    number of valid rotamers in model: number of residues sans
+                       Gly, Ala, OUTLIER, NO_CONSENSUS, or not aligned to target
+    RotCor           main score: fraction of model rotamer names that match 
+                       target rotamer name
+      
+OUTPUT DETAILS - RESIDUE
+    TargetRotamer    reflects consensus if target file contained >1 models or 
+                       simple rotamer name otherwise; may be OUTLIER or 
+                       NO_CONSENSUS, but if so will be ignored for matching
+    ModelCount       number of valid rotamers across set of models that aligned 
+                       to this residue position
+    FracMatch        fraction of model rotamer names that match target rotamer
+                       name *at this residue position*
+
