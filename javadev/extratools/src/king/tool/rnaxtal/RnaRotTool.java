@@ -50,8 +50,8 @@ public class RnaRotTool extends ModelingTool
         super.start();
 
         // force loading of data tables that will be used later
-        try { Conformer.getInstance(); }
-        catch(IOException ex) {}
+       //try { Conformer.getInstance(); }
+       //catch(IOException ex) {}
         
         // Bring up model manager
         modelman.onShowDialog(null);
@@ -75,6 +75,7 @@ public class RnaRotTool extends ModelingTool
         targetRes2 = targetRes1.getNext(modelman.getModel());
         if (targetRes1 != null && targetRes2 != null) {
           try {
+            System.out.println("New Rotator made");
             new RnaBackboneRotator(kMain, targetRes1, targetRes2, modelman);
           } catch(IOException ex) { 
             ex.printStackTrace(SoftLog.err); 

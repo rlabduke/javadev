@@ -142,8 +142,10 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         //useDaa = new JCheckBox(new ReflectiveAction("Use D-amino acid", null, this, "onDaminoAcid"));
         //useDaa.setSelected(false);
         //optionPane.addCell(useDaa);
-        //twistPane.add(optionPane, BorderLayout.NORTH);
-        
+        JButton changePucker = new JButton(new ReflectiveAction("Change puckers", null, this, "onChangePucker"));
+        optionPane.addCell(changePucker);
+        twistPane.add(optionPane, BorderLayout.NORTH);
+
         JButton btnRelease = new JButton(new ReflectiveAction("Finished", null, this, "onReleaseResidue"));
         //JButton btnBackrub = new JButton(new ReflectiveAction("BACKRUB mainchain", null, this, "onBackrub"));
         TablePane2 btnPane = new TablePane2();
@@ -179,7 +181,7 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
     public void onReleaseResidue(ActionEvent ev)
     {
         int reply = JOptionPane.showConfirmDialog(dialog,
-            "Do you want to keep the changes\nyou've made to this residue?",
+            "Do you want to keep the changes\nyou've made to this suite?",
             "Keep changes?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
         if(reply == JOptionPane.CANCEL_OPTION) return;
         
@@ -216,6 +218,82 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
       stateChanged(null);
     }
 //}}}
+
+//{{{ makeOptionPane
+private String makeOptionPane() {
+  JOptionPane pane = new JOptionPane("Mutate this sidechain to what?", JOptionPane.QUESTION_MESSAGE,
+               JOptionPane.OK_CANCEL_OPTION, null);
+  pane.setSelectionValues(rnaIdealizer.getPuckerStates().toArray());
+  //pane.setInitialSelectionValue(orig.getName());
+  JDialog dialog = pane.createDialog(kMain.getTopWindow(), "Choose mutation");
+  pane.selectInitialValue();
+ // JCheckBox usePdbv2Box = new JCheckBox("Use PDB v2.3 (old) format");
+ // usePdbv2Box.setPreferredSize(new Dimension(300, 30)); // I arrived at these values through
+ // usePdbv2Box.setMaximumSize(new Dimension(300, 30));   //    a lot of trial and error just
+ // usePdbv2Box.setAlignmentX((float)0.5);                //    to get the check box right.
+ // usePdbv3 = true;
+ // usePdbv2Box.addItemListener(this);
+ // pane.add(usePdbv2Box);
+  //System.out.println(usePdbv2Box.getPreferredSize());
+  //System.out.println(usePdbv2Box.getMaximumSize());
+  //System.out.println(usePdbv2Box.getAlignmentX());
+  dialog.setVisible(true);
+  return (String)pane.getInputValue();
+}
+//}}}
+
+  //{{{ onChangePucker
+  public void onChangePucker(ActionEvent ae) {
+    try
+        {
+          modelman.requestStateChange(this);
+            String choice = makeOptionPane();
+            if((choice == null)||(choice.equals(JOptionPane.UNINITIALIZED_VALUE))) return; // user canceled operation
+            
+            // Create the mutated sidechain
+            ModelState newState = new ModelState(modelman.getMoltenState());
+            ArrayList orig = new ArrayList();
+            orig.add(targetRes1);
+            orig.add(targetRes2);
+            Collection newResidues = rnaIdealizer.makeIdealResidue(orig, choice, newState, false);
+            
+            // Align it on the old backbone
+            newState = rnaIdealizer.dockResidue(newResidues, newState, targetRes1, modelman.getMoltenState());
+            
+            modelman.requestStateRefresh();
+            // Create the mutated model
+            ArrayList newResList = new ArrayList(newResidues);
+            Model newModel = (Model) modelman.getModel().clone();
+            newModel.replace(targetRes1, (Residue)newResList.get(0));
+            newModel.replace(targetRes2, (Residue)newResList.get(1));
+            targetRes1 = (Residue)newResList.get(0);
+            targetRes2 = (Residue)newResList.get(1);
+            // Remove any unnecessary AtomStates from the model
+            newState = newState.createForModel(newModel);
+            
+            // Insert the mutated model into the model manager
+            modelman.replaceModelAndState(newModel, newState);
+            
+            modelman.registerTool(this, newResList);
+            // Make a note in the headers
+           // modelman.addUserMod("Mutated "+orig+" to "+newRes);
+            
+            // Set it up for rotation
+            //try {
+            //    new SidechainRotator(kMain, newRes, modelman);
+            //} catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
+            
+        }
+        catch(ResidueException ex)
+        {
+            ex.printStackTrace(SoftLog.err);
+        }
+        catch(AtomException ex)
+        {
+            ex.printStackTrace(SoftLog.err);
+        }
+  }
+  //}}}
 
 //{{{ isUpdating
 //##################################################################################################
