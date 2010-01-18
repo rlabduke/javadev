@@ -28,7 +28,7 @@ import king.core.*;
 public class Conformer //extends ... implements ...
 {
   //{{{ Constants
-  public static final String REMOTENESS = "HC5C4C3O2C1NCO4O3P";
+  //public static final String REMOTENESS = "HC5C4C3O2C1NCO4O3P";
   DecimalFormat df = new DecimalFormat("0.000");
   //}}}
 
@@ -92,6 +92,8 @@ public class Conformer //extends ... implements ...
         //loadTablesFromJar();
         //loadConformerNames();
         //this.scAngles2  = new SidechainAngles2();
+        String[] chi_pyr   = {" O4'", " C1'", " N1 ", " C2 "};
+        String[] chi_pur   = {" O4'", " C1'", " N9 ", " C4 "};
         String[] delta_1   = {" C5'", " C4'", " C3'", " O3'"};
         String[] epsilon_1 = {" C4'", " C3'", " O3'", " P  "};
         String[] zeta_1    = {" C3'", " O3'", " P  ", " O5'"};
@@ -99,7 +101,12 @@ public class Conformer //extends ... implements ...
         String[] beta      = {" P  ", " O5'", " C5'", " C4'"};
         String[] gamma     = {" O5'", " C5'", " C4'", " C3'"};
         String[] delta     = {" C5'", " C4'", " C3'", " O3'"};
+
         angleMap = new HashMap();
+        angleMap.put("chi-u", chi_pyr);
+        angleMap.put("chi-c", chi_pyr);
+        angleMap.put("chi-a", chi_pur);
+        angleMap.put("chi-g", chi_pur);
         angleMap.put("delta-1", delta_1);
         angleMap.put("epsilon-1", epsilon_1);
         angleMap.put("zeta-1", zeta_1);
@@ -107,12 +114,14 @@ public class Conformer //extends ... implements ...
         angleMap.put("beta", beta);
         angleMap.put("gamma", gamma);
         angleMap.put("delta", delta);
+        
+        adjacencyMap = null;
     }
 //}}}
 
   //{{{ getAngleNames
   public String[] getAngleNames() {
-    String[] names = {"delta-1", "epsilon-1", "zeta-1", "alpha", "beta", "gamma", "delta"};
+    String[] names = {"chi-1", "delta-1", "epsilon-1", "zeta-1", "alpha", "beta", "gamma", "delta", "chi"};
     return names;
   }
   //}}}
@@ -139,6 +148,9 @@ public class Conformer //extends ... implements ...
         AtomState a2, a3;
         a2 = as[1];
         a3 = as[2];
+        System.out.println(a2);
+        System.out.println(a3);
+        System.out.println(adjacencyMap == null);
         HashSet mobile = ConnectivityFinder.mobilityFinder(a2, a3, adjacencyMap, atomStates);
         //System.out.println(mobile);
         mobileMap.put(angles[i], mobile);
@@ -162,7 +174,20 @@ public class Conformer //extends ... implements ...
   //{{{ getAngleAtomStates
   public AtomState[] getAngleAtomStates(String angleName, Residue res1, Residue res2, ModelState state) throws AtomException {
     //System.out.println(angleName);
-    String[] atomNames = (String[]) angleMap.get(angleName);
+    String[] atomNames = null;
+    if (angleName.indexOf("chi")>-1) {
+      Residue testRes = res2;
+      if (angleName.endsWith("-1")) testRes = res1;
+      String resName = "chi-"+testRes.getName().trim().toLowerCase();
+      if (angleMap.containsKey(resName)) {
+        atomNames = (String[]) angleMap.get(resName);
+        //for (String testS : atomNames) {
+        //  System.out.println(testS);
+        //}
+      } else { throw new AtomException("Chi atom names were not found in the residues in this suite; does it have nonstandard residue names?"); }
+    } else {
+      atomNames = (String[]) angleMap.get(angleName);
+    }
     AtomState[] states = new AtomState[4];
     for (int i = 0; i < 4; i++) {
       String s = atomNames[i];
@@ -264,26 +289,26 @@ public class Conformer //extends ... implements ...
   
   //{{{ areParentAndChild
   //##################################################################################################
-  protected boolean areParentAndChild(Atom parent, Atom child)
-  {
-    String p = parent.getName();
-    String c = child.getName();
-    if(p == null || c == null || p.length() != 4 || c.length() != 4)
-      throw new IllegalArgumentException("Bad atom name(s)");
-    
-    // for converting the shifted hydrogens in pdbv3 back to pdbv2.3 (e.g. HG11 to 1HG1)
-    if (p.charAt(0) == 'H') p = p.substring(3) + p.substring(0,3);
-    if (c.charAt(0) == 'H') c = c.substring(3) + c.substring(0,3);
-    
-    if ((p.charAt(3) == '\'') || (p.charAt(3) == '*')) p = p.substring(1, 2);
-    int pi = REMOTENESS.indexOf(p.charAt(2));
-    int ci = REMOTENESS.indexOf(c.charAt(2));
-    
-    return
-    ((pi > ci && (p.charAt(3) == ' ' || p.charAt(3) == c.charAt(3)))    // parent closer AND on root or same branch
-      || (pi == ci && (p.charAt(3) == ' ' || p.charAt(3) == c.charAt(3))  // OR child is an H of parent
-        && p.charAt(1) != 'H' && c.charAt(1) == 'H'));
-  }
+  //protected boolean areParentAndChild(Atom parent, Atom child)
+  //{
+  //  String p = parent.getName();
+  //  String c = child.getName();
+  //  if(p == null || c == null || p.length() != 4 || c.length() != 4)
+  //    throw new IllegalArgumentException("Bad atom name(s)");
+  //  
+  //  // for converting the shifted hydrogens in pdbv3 back to pdbv2.3 (e.g. HG11 to 1HG1)
+  //  if (p.charAt(0) == 'H') p = p.substring(3) + p.substring(0,3);
+  //  if (c.charAt(0) == 'H') c = c.substring(3) + c.substring(0,3);
+  //  
+  //  if ((p.charAt(3) == '\'') || (p.charAt(3) == '*')) p = p.substring(1, 2);
+  //  int pi = REMOTENESS.indexOf(p.charAt(2));
+  //  int ci = REMOTENESS.indexOf(c.charAt(2));
+  //  
+  //  return
+  //  ((pi > ci && (p.charAt(3) == ' ' || p.charAt(3) == c.charAt(3)))    // parent closer AND on root or same branch
+  //    || (pi == ci && (p.charAt(3) == ' ' || p.charAt(3) == c.charAt(3))  // OR child is an H of parent
+  //      && p.charAt(1) != 'H' && c.charAt(1) == 'H'));
+  //}
   //}}}
 
   //{{{ setAdjacency

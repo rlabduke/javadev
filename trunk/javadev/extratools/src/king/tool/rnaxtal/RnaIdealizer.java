@@ -67,7 +67,7 @@ public class RnaIdealizer //extends ... implements ...
     Model           m       = cf.getFirstModel();
     //idealResState           = m.getState();
     
-    idealResMap.put(filename, m);
+    idealResMap.put(filename.substring(3, 5), m);
   }
   //}}}
 
@@ -148,11 +148,11 @@ public class RnaIdealizer //extends ... implements ...
     //    }
     //}
     //
-    ///** Returns a collection of all the amino acid codes supported by makeIdealResidue(). */
-    //public Collection getResidueTypes()
-    //{
-    //    return Collections.unmodifiableCollection( idealResMap.keySet() );
-    //}
+    /** Returns a collection of all the amino acid codes supported by makeIdealResidue(). */
+    public Collection getPuckerStates()
+    {
+        return Collections.unmodifiableCollection( idealResMap.keySet() );
+    }
 //}}}
 
 //{{{ idealizeSidechain
@@ -234,44 +234,59 @@ public class RnaIdealizer //extends ... implements ...
     * @param segment        the seg ID. Not null. Empty string ("") is a good default.
     * @param seqNum         the number in sequence. May have any value.
     * @param insCode        the insertion code. Not zero. Space (' ') is a good default.
-    * @param resName        one of the three letter codes returned by getResidueTypes().
+    * @param residues       Collection of 2 residues.
+    * @param puckers        string of the pucker types wanted (33, 32, 23, or 22).
     * @param outputState    a ModelState that will have the new AtomStates added to it.
     * @param doPdbv3        boolean for making a residue with Pdbv3 names (vs pdbv2.3 names)
-    * @return the new residue of the specified type.
+    * @return Collection of new residues of the specified pucker.
     * @throws IllegalArgumentException if aaType is not a recognized amino acid code.
     */
-    /*
-    public Residue makeIdealResidue(String chain, String segment, String seqNum, String insCode, String resName, ModelState outputState, boolean doPdbv3)
+    public Collection makeIdealResidue(Collection residues, String puckers, ModelState outputState, boolean doPdbv3)
     {
         // Get template
-        Map resMap;
-        ModelState resState;
-        if (doPdbv3) {
-          resMap = idealResMap;
-          resState = idealResState;
-        } else {
-          resMap = idealResMapv23;
-          resState = idealResStatev23;
-        }
+   //     Map resMap;
+   //     ModelState resState;
+   //     if (doPdbv3) {
+   //       resMap = idealResMap;
+   //       resState = idealResState;
+   //     } else {
+   //       resMap = idealResMapv23;
+   //       resState = idealResStatev23;
+   //     }
+   //       
+   //     if(!resMap.containsKey(resName))
+   //         throw new IllegalArgumentException("'"+resName+"' is not a known amino acid");
+   //     Residue templateRes = (Residue) resMap.get(resName);
+        // Get template...we want to use the template residue states, but source residue info
+        Model idealModel = (Model)idealResMap.get(puckers);
+        ModelState idealState = idealModel.getState();
+        ArrayList templates = new ArrayList(idealModel.getResidues());
+        ArrayList sourceResidues = new ArrayList(residues);
+        ArrayList newResidues = new ArrayList();
+        for (int i = 0; i < templates.size(); i++) {
+          Residue temp = (Residue)templates.get(i);
+          Residue source = (Residue)sourceResidues.get(i);
           
-        if(!resMap.containsKey(resName))
-            throw new IllegalArgumentException("'"+resName+"' is not a known amino acid");
-        Residue templateRes = (Residue) resMap.get(resName);
-        
-        // Copy it, with a new name
-        try
-        {
-            Residue newRes = new Residue(templateRes, chain, segment, seqNum, insCode, resName);
-            newRes.cloneStates(templateRes, resState, outputState);
-            return newRes;
-        }
-        catch(AtomException ex)
-        {
+          // for each residue, copy it, with a new name
+          try
+          {
+            Residue newRes = new Residue(temp, source.getChain(),
+              source.getSegment(),
+              source.getSequenceNumber(),
+              source.getInsertionCode(), 
+              source.getName());
+            newRes.cloneStates(temp, idealState, outputState);
+            newResidues.add(newRes);
+          }
+          catch(AtomException ex)
+          {
             ex.printStackTrace();
             return null;
+          }
         }
+        return newResidues;
     }
-    */
+    
     /** legacy version that defaults to using old (pdb v2.3) format **/
     /*
     public Residue makeIdealResidue(String chain, String segment, String seqNum, String insCode, String resName, ModelState outputState)
@@ -290,36 +305,41 @@ public class RnaIdealizer //extends ... implements ...
     * Neither of the original states is modified.
     * @throws   AtomException if the N, CA, or C atom is missing in from or to.
     */
-    public ModelState dockResidue(Residue mobRes, ModelState mob, Residue refRes, ModelState ref) throws AtomException
+    public ModelState dockResidue(Collection mobResidues, ModelState mob, Residue refRes, ModelState ref) throws AtomException
     {
-        // Reposition all atoms
-        Transform xform = builder.dock3on3(
-            ref.get(refRes.getAtom(" P  ")),
-            ref.get(refRes.getAtom(" C1'")),
-            ref.get(refRes.getAtom(" O3'")),
-            mob.get(mobRes.getAtom(" P  ")),
-            mob.get(mobRes.getAtom(" C1'")),
-            mob.get(mobRes.getAtom(" O3'"))
+      ArrayList mobResList = new ArrayList(mobResidues);
+      Residue firstRes = (Residue) mobResList.get(0);
+      // Reposition all atoms
+      Transform xform = builder.dock3on3(
+        ref.get(refRes.getAtom(" P  ")),
+        ref.get(refRes.getAtom(" C1'")),
+        ref.get(refRes.getAtom(" O3'")),
+        mob.get(firstRes.getAtom(" P  ")),
+        mob.get(firstRes.getAtom(" C1'")),
+        mob.get(firstRes.getAtom(" O3'"))
         );
-
-        ModelState out = new ModelState(mob);
+      
+      ModelState out = new ModelState(mob);
+      for (Iterator allRes = mobResList.iterator(); allRes.hasNext(); ) {
+        Residue mobRes = (Residue) allRes.next();
         for(Iterator iter = mobRes.getAtoms().iterator(); iter.hasNext(); )
         {
-            Atom        a   = (Atom) iter.next();
-            AtomState   s1  = mob.get(a);
-            AtomState   s2  = (AtomState) s1.clone();
-            out.add(s2);
-            xform.transform(s2);
+          Atom        a   = (Atom) iter.next();
+          AtomState   s1  = mob.get(a);
+          AtomState   s2  = (AtomState) s1.clone();
+          out.add(s2);
+          xform.transform(s2);
         }
-        
-        // Reposition backbone atoms
-        out.get(mobRes.getAtom(" P  ")).like(ref.get(refRes.getAtom(" P  ")));
-        out.get(mobRes.getAtom(" C1'")).like(ref.get(refRes.getAtom(" C1'")));
-        out.get(mobRes.getAtom(" O3'")).like(ref.get(refRes.getAtom(" O3'")));
-        //try { out.get(mobRes.getAtom(" O  ")).like(ref.get(refRes.getAtom(" O  "))); } catch(AtomException ex) {}
-        //try { out.get(mobRes.getAtom(" H  ")).like(ref.get(refRes.getAtom(" H  "))); } catch(AtomException ex) {}
-        
-        return out;
+      }
+      
+      // Reposition backbone atoms
+      //out.get(mobRes.getAtom(" P  ")).like(ref.get(refRes.getAtom(" P  ")));
+      //out.get(mobRes.getAtom(" C1'")).like(ref.get(refRes.getAtom(" C1'")));
+      //out.get(mobRes.getAtom(" O3'")).like(ref.get(refRes.getAtom(" O3'")));
+      //try { out.get(mobRes.getAtom(" O  ")).like(ref.get(refRes.getAtom(" O  "))); } catch(AtomException ex) {}
+      //try { out.get(mobRes.getAtom(" H  ")).like(ref.get(refRes.getAtom(" H  "))); } catch(AtomException ex) {}
+      
+      return out;
     }
 //}}}
 
