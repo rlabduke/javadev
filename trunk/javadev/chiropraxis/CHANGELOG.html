@@ -17,17 +17,30 @@
   ? How does molten state interact with replacing the Model frequently?
     Bugs:  Stuart has issues saving when using Backrub and sidechain rotator at 
     the same time.  When you open sidechain rotator from backrub, make changes,
-    doesn't save changes when you close it. (Snaps back to original backrub coords).
-    Multiple sequential backrubs open at once seems to have similar issues.
+    doesn't save changes when you close it. (Snaps back to original backrub 
+    coords).  Multiple sequential backrubs open at once seems to have similar 
+    issues.
     
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 1.04 ### dak
-- Added public static getRotNames & getRotEvals methods to Rotalyze so 
-  outside classes, e.g. in cmdline, can get rotamer names & evaluations 
-  from a Model and use them for whatever purpose
+### 1.05 ### dak
+- Added -chains1, -chains2 flags to SubImpose to restrict initial sequence
+  alignment so subsequent structure superposition can be better controlled
+- Fixed some Exception-handling bugs in SupKitchen
+- Fixed PhiPsiRotation bug where C=O oxygen didn't move for psi downstream
+- Fixed RotamerCorrectness bug with "mdl(s)" field when last char is "/"
+- Re-wrote RotamerCorrectness as RotCor to make more generalizable (with 
+  concurrent loss of some detail in output)
+- Wrote CaspRotCor2 (extends RotCor) to be more specific to CASP, e.g. handles 
+  segment combination internally
+
+### 1.04 ###
+dak
+- Added public static getRotNames & getRotEvals methods to Rotalyze so outside 
+  classes, e.g. in cmdline, can get rotamer names & evaluations from a Model and
+  use them for whatever purpose
 - Added RotamerCorrectness (corRot from CASP8) which uses ^
 - Tweaks to RotamerCorrectness to handle single model files vs. directories,
   multi-MODEL targets (e.g. NMR), and summary vs. per-residue output
@@ -47,8 +60,9 @@
   more protein-centric alignments!
 vbc3
 - changed modelplotter to use molikin code, mainly for RNA rotamer tool.
-- comment out adjustAltConfLabels(m); line in modelmanager (line 586); I don't remember
-  exactly why, but I think maybe due to an esoteric bug found by Stuart.
+- comment out adjustAltConfLabels(m); line in modelmanager (line 586); I don't 
+  remember exactly why, but I think maybe due to an esoteric bug found by 
+  Stuart.
 
 ### 1.03 ### dak
 - Added SupKitchenTool for "cooking up" superpositions of sets of PDB files

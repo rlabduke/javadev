@@ -28,7 +28,7 @@ import Jama.SingularValueDecomposition;
 *
 * REMAINING TO-DO:
 *  - regularize bb after distortion?
-*  - keep rsds w/in a certain radius of sup chain for -nosplit option?
+*  - keep rmsds w/in a certain radius of sup chain for -nosplit option?
 *
 * <p>Copyright (C) 2009 by Daniel A. Keedy. All rights reserved.
 * <br>Begun on Thu June 25 2009
@@ -58,9 +58,9 @@ public class SupKitchen //extends ... implements ...
     String   superimpose = SELECT_BB_HEAVY;
     boolean  distort = true;
     /** Max acceptable RMSD, effected by simple yes-or-no after sup.  On by default */
-    double   rmsdMax  = 5.0;
+    double   rmsdMax  = -1;
     /** Max acceptable RMSD, achieved by Lesk sieve process.  Overrides rmsdMax */
-    double   rmsdLesk = -1;
+    double   rmsdLesk = 5.0;
     
     // ENSEMBLE
     /** If true, we split up all models by chain.
@@ -90,7 +90,7 @@ public class SupKitchen //extends ... implements ...
     /** Number of models in ensemble, including ref.  Columns in U matrix. */
     int                mEnsem;
     /** Maximum number of models in ensemble, including ref.  Capped to avoid ridiculous runtimes. */
-    int                maxEnsemSize = 20;
+    int                maxEnsemSize = 50;
     
     // PRINCIPAL COMPONENT ANALYSIS
     /** Selected AtomStates from ref, listed in the same order as the coordinates
@@ -125,15 +125,22 @@ public class SupKitchen //extends ... implements ...
     public SupKitchen()
     {
         super();
-        
+        prepLogic();
+    }
+//}}}
+
+//{{{ Constructor(s)
+//##############################################################################
+    public void prepLogic()
+    {
         BallAndStickLogic logic = new BallAndStickLogic();
         logic.doProtein       = true;
         logic.doNucleic       = true;
         logic.doHets          = true;
-        logic.doIons          = true;
+        logic.doMetals        = true;
         logic.doWater         = true;
-        logic.doPseudoBB      = true;
-        logic.doBackbone      = true;
+        logic.doVirtualBB     = true;
+        logic.doMainchain     = true;
         logic.doSidechains    = true;
         logic.doHydrogens     = true;
         logic.doDisulfides    = true;
@@ -182,7 +189,7 @@ public class SupKitchen //extends ... implements ...
 //{{{ makeSup
 //##############################################################################
     /** Reads input files and superposes entire ensemble. */
-    public void makeSup()
+    public void makeSup() throws IOException
     {
         // Models
         if(mdlFilename == null) throw new IllegalArgumentException(
@@ -205,6 +212,7 @@ public class SupKitchen //extends ... implements ...
         
         // Title
         String refChID = (String) refCoordFile.getFirstModel().getChainIDs().iterator().next();
+        if(refChID.equals(" ")) refChID = "_";
         String r = refFile.getName().replaceAll(".pdb", "")+refChID;
         String m = (mdlFile != null ? mdlFile.getName() : mdlDir.getName()).replaceAll(".pdb", "");
         title = m+"."+r;
@@ -247,17 +255,25 @@ public class SupKitchen //extends ... implements ...
                     
                     if(refDupl(ensemModel, refModel))
                     {
-                        System.err.println("Mdl "+ensemModel.getState().getName()+" "+ensemModel+
-                            " is duplicate of ref "+refModel.getState().getName()+" "+refModel+" .. leaving out");
+                        System.err.println("Model "+ensemModel.getState().getName()+" "+ensemModel+
+                            " is duplicate of ref "+refModel.getState().getName()+" "+refModel+
+                            " .. leaving out");
                         continue;
                     }
                     
-                    AtomState[][] atoms = sup(ensemModel, refModel); // Lesk happens here (if at all)
-                    if(atoms == null) continue; // error or rmsd too high
-                    ensemModelCount++;
-                    ensemModel.setName(""+ensemModelCount);
-                    ensemCoordFile.add(ensemModel);
-                    ensemAtoms.put(ensemModel, atoms);
+                    try
+                    {
+                        AtomState[][] atoms = sup(ensemModel, refModel); // Lesk happens here (if at all)
+                        if(atoms == null) continue; // error or rmsd too high
+                        ensemModelCount++;
+                        ensemModel.setName(""+ensemModelCount);
+                        ensemCoordFile.add(ensemModel);
+                        ensemAtoms.put(ensemModel, atoms);
+                    }
+                    catch(IllegalArgumentException ex)
+                    {
+                        System.err.println(ex.getMessage());
+                    }
                 }//model
                 if(mItr.hasNext() && ensemModelCount == maxEnsemSize-1)
                 {
@@ -270,9 +286,11 @@ public class SupKitchen //extends ... implements ...
         
         if(ensemAtoms.keySet().size() == 0)
         {
-            System.err.println("*** No models left after superposition & trimming/pruning! ***");
-            System.exit(0);
+            System.err.println("No models left after superposition & trimming/pruning!");
+            //System.exit(0);
+            throw new IOException("No models left after superposition & trimming/pruning!");
         }
+        
         mEnsem = ensemAtoms.keySet().size() + 1; // to include the ref
         
         intersect();
@@ -441,7 +459,7 @@ public class SupKitchen //extends ... implements ...
     * Superposes 1 (mobile) onto 2 (ref).
     * Mostly stolen directly from Ian's chiropraxis.mc.SubImpose.
     */
-    public AtomState[][] sup(Model m1, Model m2)
+    public AtomState[][] sup(Model m1, Model m2) throws IllegalArgumentException
     {
         if(verbose) System.err.println("\nSuperposing model"+m1+" ("+SubImpose.getChains(m1).size()+
             " chains) onto model"+m2+" ("+SubImpose.getChains(m2).size()+" chains)");
@@ -519,7 +537,7 @@ public class SupKitchen //extends ... implements ...
                 if(rmsdMax >= 0 && superpos.calcRMSD(R) > rmsdMax) // RMSD too high
                 {
                     System.err.println(df.format(superpos.calcRMSD(R))+"\t"
-                        +atoms[0].length+"\t"+superimpose+"\t"+m1.getState().getName()+"\t"+"***  rmsd > "+rmsdMax+" max - skipping!");
+                        +atoms[0].length+"\t"+superimpose+"\t"+m1.getState().getName()+"\t"+" rmsd>"+rmsdMax+"A - skip");
                     return null;
                 }
                 else                                               // RMSD OK
@@ -1295,7 +1313,7 @@ public class SupKitchen //extends ... implements ...
         // Return
         if(retCh != null)
         {
-            System.err.print("Using chain "+retChId+" from ref file "+inputCoordFile.getFile().getName());
+            System.err.print("Using chain '"+retChId+"' from ref "+inputCoordFile.getFile().getName());
             if(chains.size() > 1) System.err.print(" - there was/were "+(chains.size()-1)+" other(s)");
             System.err.println();
             return retCh;
@@ -1307,21 +1325,22 @@ public class SupKitchen //extends ... implements ...
 //{{{ writeKin
 //##############################################################################
     /** 
-    * Writes kinemage of ensemble to desired output (usually System.out).
+    * Writes kinemage of ensemble to desired output (e.g. System.out).
     */
     public PrintWriter writeKin(PrintWriter out, CoordinateFile cf, String name)
     {
         if(!append) out.println("@kinemage {"+name+"}");
         out.println("@onewidth");
         
-        String mMstr = title;
+        //double[] rmsdBins  = getRmsdBins(cf);
+        //String[] rmsdMstrs = getRmsdMasters(rmsdBins);
+        //for(String rmsdMstr : rmsdMstrs) out.println("@master {"+rmsdMstr+"}");
+        
+        String mMstr = "sup mdls";
         out.println("@master {"+mMstr+"}");
         
-        double[] rmsdBins  = getRmsdBins(cf);
-        String[] rmsdMstrs = getRmsdMasters(rmsdBins);
-        for(String rmsdMstr : rmsdMstrs) out.println("@master {"+mMstr+" "+rmsdMstr+"}");
-        
-        String rMstr = "sup ref: "+refCoordFile.getFirstModel().getState().getName();
+        //String rMstr = "sup ref: "+refCoordFile.getFirstModel().getState().getName();
+        String rMstr = "sup ref";
         out.println("@master {"+rMstr+"}");
         
         Logic logic = logicList[0];
@@ -1336,18 +1355,21 @@ public class SupKitchen //extends ... implements ...
                 mName += " "+m.getState().getName()+((String)m.getChainIDs().iterator().next());
             
             if(m.getName().equals("0"))
+            {
                 out.println("@group {"+mName+"} dominant master= {"+rMstr+"}");
+            }
             else
             {
-                int rmsdMstrIdx = getRmsdMasterIdx(m, rmsdBins);
-                String rmsdMstr = (rmsdMstrIdx != -1 ? rmsdMstrs[rmsdMstrIdx] : "rmsd ???");
-                out.println("@group {"+mName+"} dominant master= {"+mMstr+"} master= {"+rmsdMstr+"} animate");
+                //int rmsdMstrIdx = getRmsdMasterIdx(m, rmsdBins);
+                //String rmsdMstr = (rmsdMstrIdx != -1 ? rmsdMstrs[rmsdMstrIdx] : "rmsd ???");
+                out.println("@group {"+mName+"} dominant animate master= {"+mMstr+"}");//master= {"+rmsdMstr+"}");
             }
             
             for(Iterator cItr = m.getChainIDs().iterator(); cItr.hasNext(); )
             {
                 String c = (String) cItr.next();
-                out.println("@subgroup {chain"+c+"} dominant master= {chain"+c+"}");
+                String c2 = (c.equals(" ") ? "_" : c);
+                out.println("@subgroup {chain"+c+"} dominant master= {chain"+c2+"}");
                 String col = null;
                 if(m.getName().equals("0")) col = "yellowtint";
                 else col = (color != null ? color : "white"); // model: user choice or white
@@ -1572,7 +1594,15 @@ public class SupKitchen //extends ... implements ...
         else
             System.err.println("No trimming/pruning regardless of rmsd");
         
-        makeSup();
+        try
+        {
+            makeSup();
+        }
+        catch(IOException ex)
+        {
+            System.err.println(ex.getMessage());
+            System.exit(1);
+        }
         if(pcChoice == null) // not doing PCA
         {
             if(kinOut)                   writeKin(new PrintWriter(System.out), ensemCoordFile, title);

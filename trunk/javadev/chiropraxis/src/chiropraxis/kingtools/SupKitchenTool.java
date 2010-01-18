@@ -406,10 +406,16 @@ public class SupKitchenTool extends BasicTool
             System.err.println("*** Simply using default: "+kitchen.getMaxEnsemSize()+"...");
         }
         
-        kitchen.makeSup();
-        
-        if(cbKinEnsem.isSelected())
-            visEnsem(kitchen.getEnsemCoordFile(), kitchen.getTitle());
+        try
+        {
+            kitchen.makeSup();
+            if(cbKinEnsem.isSelected())
+                visEnsem(kitchen.getEnsemCoordFile(), kitchen.getTitle());
+        }
+        catch(IOException ex)
+        {
+            JOptionPane.showMessageDialog(kMain.getCanvas(), ex.getMessage());
+        }
     }
 //}}}
 
@@ -585,7 +591,7 @@ public class SupKitchenTool extends BasicTool
     * Prints either superposed ensemble or PCA "ensemble" to graphics window.
     * We're basically emulating molikin.kingplugin.QuickinPlugin.buildKinemage().
     */
-    public void visEnsem(CoordinateFile coordFile, String name)//, boolean animate)
+    public void visEnsem(CoordinateFile coordFile, String name)
     {
         // Get kin data in form of one of Ian's "StreamTank"s
         StreamTank kinData = new StreamTank();
