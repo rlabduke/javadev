@@ -188,7 +188,17 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
         else return minorSplit.getLeftComponent();
     }
 //}}}
-    
+
+//{{{ resetSplits
+//##################################################################################################
+    /** Resizes both splits to their preferred sizes. */
+    public void resetSplits()
+    {
+        majorSplit.resetToPreferredSizes(); // graphics+buttons vs. zoom/clip
+        minorSplit.resetToPreferredSizes(); // graphics vs. buttons
+    }
+//}}}
+
 //{{{ buildButtons
 //##################################################################################################
     JComponent buildButtons()

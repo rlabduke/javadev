@@ -70,6 +70,14 @@ public class UIDisplayMenu implements KMessage.Subscriber
     }
 //}}}
 
+//{{{ INNER CLASS: ResizeCanvasDialog
+//##################################################################################################
+    class ResizeCanvasDialog extends JDialog
+    {
+        
+    }
+//}}}
+
 //{{{ Variable definitions
 //##################################################################################################
     KingMain    kMain;
@@ -188,10 +196,13 @@ public class UIDisplayMenu implements KMessage.Subscriber
         menu.add(submenu);
         menu.addSeparator();
         
-        JMenuItem item = new JMenuItem(new ReflectiveAction("Set contrast...", null, this, "onDispContrast"));
-        item.setMnemonic(KeyEvent.VK_O);
-        //item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, 0)); // 0 => no modifiers
-        menu.add(item);
+        JMenuItem itemCanvasSize = new JMenuItem(new ReflectiveAction("Resize canvas...", null, this, "onResizeCanvas"));
+        itemCanvasSize.setMnemonic(KeyEvent.VK_I);
+        menu.add(itemCanvasSize);
+        JMenuItem itemContrast = new JMenuItem(new ReflectiveAction("Set contrast...", null, this, "onDispContrast"));
+        itemContrast.setMnemonic(KeyEvent.VK_O);
+        //itemContrast.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, 0)); // 0 => no modifiers
+        menu.add(itemContrast);
         cbIntensity = new JCheckBoxMenuItem(new ReflectiveAction("Cue by intensity", null, this, "onDispIntensity"));
         cbIntensity.setMnemonic(KeyEvent.VK_I);
         cbIntensity.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, 0)); // 0 => no modifiers
@@ -619,6 +630,94 @@ public class UIDisplayMenu implements KMessage.Subscriber
             KPalette.setContrast(1.0 + contrast/50.0);
             kMain.publish(new KMessage(this, KMessage.DISPLAY_OPTIONS));                
         }
+    }
+//}}}
+
+//{{{ onResizeCanvas
+//##################################################################################################
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onResizeCanvas(ActionEvent ev)
+    {
+        JDialog dialog = new JDialog();
+        Object[] sizes = {"1024 x 768", "500 x 500", "other..."};
+        String s = (String) JOptionPane.showInputDialog(
+            dialog, "Resize canvas to:", "Resize canvas", JOptionPane.PLAIN_MESSAGE, null, 
+            sizes, "1024 x 768");
+        
+        if (s != null && s.length() > 0)
+        {
+            // Apparently packing the ContentPane twice is sometimes necessary.
+            // For example, when the monitor size prevents the first pack from 
+            // reaching the full preferred size for the KinCanvas graphics area, 
+            // the second pack for some reason extends the entire MainWindow 
+            // past the monitor's viewing area so the graphics area reaches its
+            // full preferred size. (DAK 100118)
+            if(s.equals("1024 x 768"))
+            {
+                kMain.getContentPane().resetSplits();
+                kMain.getCanvas().setPreferredSize(new Dimension(1024, 768));
+                kMain.getTopWindow().pack();
+                kMain.getTopWindow().pack();
+                kMain.publish(new KMessage(this, KMessage.DISPLAY_OPTIONS));
+            }
+            else if(s.equals("675 x 675"))
+            {
+                kMain.getContentPane().resetSplits();
+                kMain.getCanvas().setPreferredSize(new Dimension(675, 675));
+                kMain.getTopWindow().pack();
+                kMain.getTopWindow().pack();
+                kMain.publish(new KMessage(this, KMessage.DISPLAY_OPTIONS));
+            }
+            else if(s.equals("500 x 500"))
+            {
+                kMain.getContentPane().resetSplits();
+                kMain.getCanvas().setPreferredSize(new Dimension(500, 500));
+                kMain.getTopWindow().pack();
+                kMain.getTopWindow().pack();
+                kMain.publish(new KMessage(this, KMessage.DISPLAY_OPTIONS));
+            }
+            else if(s.equals("other..."))
+            {
+                JDialog dialogOther = new JDialog();
+                String t = (String)JOptionPane.showInputDialog(
+                    dialogOther, "Enter desired size (format: \"W x H\" or \"WxH\"):",
+                    "Resize canvas to custom size", JOptionPane.PLAIN_MESSAGE,
+                    null, null, null);
+                
+                if ((t != null) && (t.length() > 0))
+                {
+                    String u = t.replaceAll("\\s+", ""); // trim whitespace
+                    try
+                    {
+                        int i = u.indexOf("x");
+                        int w = Integer.parseInt(u.substring(0, i));
+                        int h = Integer.parseInt(u.substring(i+1));
+                        
+                        kMain.getContentPane().resetSplits();
+                        kMain.getCanvas().setPreferredSize(new Dimension(w, h));
+                        kMain.getTopWindow().pack();
+                        kMain.getTopWindow().pack();
+                        kMain.publish(new KMessage(this, KMessage.DISPLAY_OPTIONS));
+                    }
+                    catch(StringIndexOutOfBoundsException ex)
+                    { throwResizeCanvasFormatException(); }
+                    catch(NullPointerException ex)
+                    { throwResizeCanvasFormatException(); }
+                    catch(NumberFormatException ex)
+                    { throwResizeCanvasFormatException(); }
+                }
+            }
+            
+            //return;
+        }
+    }
+
+    void throwResizeCanvasFormatException()
+    {
+        JDialog dialog = new JDialog();
+        JOptionPane.showMessageDialog(dialog, 
+            "Required format: \"W x H\" or \"WxH\"!", 
+            "Wrong width-by-height format!", JOptionPane.ERROR_MESSAGE);
     }
 //}}}
 
