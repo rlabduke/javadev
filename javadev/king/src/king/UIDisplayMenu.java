@@ -683,7 +683,6 @@ public class UIDisplayMenu implements KMessage.Subscriber
     }
 //}}}
 
-
 //{{{ resizeCanvas
 //##################################################################################################
     public void resizeCanvas(int w, int h)
