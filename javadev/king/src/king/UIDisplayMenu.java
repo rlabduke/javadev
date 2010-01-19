@@ -639,7 +639,7 @@ public class UIDisplayMenu implements KMessage.Subscriber
     public void onResizeCanvas(ActionEvent ev)
     {
         JDialog dialog = new JDialog();
-        Object[] sizes = {"1024 x 768", "500 x 500", "other..."};
+        Object[] sizes = {"1024 x 768", "675 x 675", "500 x 500", "Other..."};
         String s = (String) JOptionPane.showInputDialog(
             dialog, "Resize canvas to:", "Resize canvas", JOptionPane.PLAIN_MESSAGE, null, 
             sizes, "1024 x 768");
@@ -652,38 +652,15 @@ public class UIDisplayMenu implements KMessage.Subscriber
             // the second pack for some reason extends the entire MainWindow 
             // past the monitor's viewing area so the graphics area reaches its
             // full preferred size. (DAK 100118)
-            if(s.equals("1024 x 768"))
+            if     (s.equals("1024 x 768"))  resizeCanvas(1024, 768);
+            else if(s.equals("675 x 675" ))  resizeCanvas(675 , 675);
+            else if(s.equals("500 x 500" ))  resizeCanvas(500 , 500);
+            else if(s.equals("Other..."  ))
             {
-                kMain.getContentPane().resetSplits();
-                kMain.getCanvas().setPreferredSize(new Dimension(1024, 768));
-                kMain.getTopWindow().pack();
-                kMain.getTopWindow().pack();
-                kMain.publish(new KMessage(this, KMessage.DISPLAY_OPTIONS));
-            }
-            else if(s.equals("675 x 675"))
-            {
-                kMain.getContentPane().resetSplits();
-                kMain.getCanvas().setPreferredSize(new Dimension(675, 675));
-                kMain.getTopWindow().pack();
-                kMain.getTopWindow().pack();
-                kMain.publish(new KMessage(this, KMessage.DISPLAY_OPTIONS));
-            }
-            else if(s.equals("500 x 500"))
-            {
-                kMain.getContentPane().resetSplits();
-                kMain.getCanvas().setPreferredSize(new Dimension(500, 500));
-                kMain.getTopWindow().pack();
-                kMain.getTopWindow().pack();
-                kMain.publish(new KMessage(this, KMessage.DISPLAY_OPTIONS));
-            }
-            else if(s.equals("other..."))
-            {
-                JDialog dialogOther = new JDialog();
-                String t = (String)JOptionPane.showInputDialog(
-                    dialogOther, "Enter desired size (format: \"W x H\" or \"WxH\"):",
+                String t = (String)JOptionPane.showInputDialog(new JDialog(), 
+                    "Enter desired size (format: \"W x H\" or \"WxH\"):",
                     "Resize canvas to custom size", JOptionPane.PLAIN_MESSAGE,
                     null, null, null);
-                
                 if ((t != null) && (t.length() > 0))
                 {
                     String u = t.replaceAll("\\s+", ""); // trim whitespace
@@ -692,12 +669,7 @@ public class UIDisplayMenu implements KMessage.Subscriber
                         int i = u.indexOf("x");
                         int w = Integer.parseInt(u.substring(0, i));
                         int h = Integer.parseInt(u.substring(i+1));
-                        
-                        kMain.getContentPane().resetSplits();
-                        kMain.getCanvas().setPreferredSize(new Dimension(w, h));
-                        kMain.getTopWindow().pack();
-                        kMain.getTopWindow().pack();
-                        kMain.publish(new KMessage(this, KMessage.DISPLAY_OPTIONS));
+                        resizeCanvas(w, h);
                     }
                     catch(StringIndexOutOfBoundsException ex)
                     { throwResizeCanvasFormatException(); }
@@ -707,16 +679,53 @@ public class UIDisplayMenu implements KMessage.Subscriber
                     { throwResizeCanvasFormatException(); }
                 }
             }
-            
-            //return;
+        }
+    }
+//}}}
+
+
+//{{{ resizeCanvas
+//##################################################################################################
+    public void resizeCanvas(int w, int h)
+    {
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment(); 
+        GraphicsDevice[] gs = ge.getScreenDevices();
+        for (int i = 0; i < gs.length; i++)
+        {
+            GraphicsDevice gd = gs[i];
+            GraphicsConfiguration gc = gd.getDefaultConfiguration();
+            Rectangle r = gc.getBounds();
+            if(r.contains(kMain.getTopWindow().getLocation()))
+            {
+                // KiNG window is on this screen (as opposed to e.g. 
+                // the other monitor in a dual display setup)
+                DisplayMode dm = gd.getDisplayMode();
+                int screenWidth = dm.getWidth();
+                int screenHeight = dm.getHeight();
+                if(w > screenWidth || h > screenHeight)
+                {
+                    JOptionPane.showMessageDialog(new JDialog(), 
+                        "Requested canvas size ("+w+" x "+h+") is too big for\nthe KiNG "+
+                        "window's current screen ("+screenWidth+" x "+screenHeight+")!",
+                        "That's not gonna fit...", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                else // proceed with resize
+                {
+                    kMain.getContentPane().resetSplits();
+                    kMain.getCanvas().setPreferredSize(new Dimension(w, h));
+                    kMain.getTopWindow().pack();
+                    kMain.getTopWindow().pack();
+                    kMain.publish(new KMessage(this, KMessage.DISPLAY_OPTIONS));
+                }
+            }
         }
     }
 
     void throwResizeCanvasFormatException()
     {
-        JDialog dialog = new JDialog();
-        JOptionPane.showMessageDialog(dialog, 
-            "Required format: \"W x H\" or \"WxH\"!", 
+        JOptionPane.showMessageDialog(
+            new JDialog(), "Required format: \"W x H\" or \"WxH\"!", 
             "Wrong width-by-height format!", JOptionPane.ERROR_MESSAGE);
     }
 //}}}
