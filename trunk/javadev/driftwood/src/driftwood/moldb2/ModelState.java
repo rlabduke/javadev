@@ -361,6 +361,27 @@ public String toString() {
 }
 //}}}
 
+//{{{ debugStates
+/** a quick class to spit out all contents of this ModelState in a nicely formatted string 
+    @param i   number of mappings to return in string (enter 0 for all mappings). */
+public String debugStates(int i) {
+  String s = "";
+  Iterator keys = stateMap.keySet().iterator();
+  int j = 0;
+  while (keys.hasNext()) {
+    Object key = keys.next();
+    Object value = stateMap.get(key);
+    s = s + key.toString() + " -> " + value.toString() + "\n";
+    j++;
+    if (j == i) {
+      s = s + "truncated.....";
+      return s; // to limit number of entries.
+    }
+  }
+  return s;
+}
+//}}}
+
 //{{{ empty_code_segment
 //##################################################################################################
 //}}}

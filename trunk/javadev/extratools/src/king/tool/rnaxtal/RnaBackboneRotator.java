@@ -38,16 +38,19 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
     Residue             targetRes1;
     Residue             targetRes2;
     ModelManager2       modelman;
-    //SidechainAngles2    scAngles;
+    ConformerAngles     confAngles;
     Conformer           conformer;
+    String              currentBin = "";   // current suite pucker states
     RnaIdealizer        rnaIdealizer     = null;
     
-    Window             dialog;
+    Window              dialog;
     JCheckBox           cbIdealize;
     JCheckBox           useDaa;
     JList               conformerList;
     AngleDial[]         dials;
     JLabel              rotaQuality;
+    ModelState          changePuckerState = null;
+    boolean             doChangePucker = false;
     
     /** Marker for logical multi-dial update */
     boolean     isUpdating      = false;
@@ -67,7 +70,7 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         this.targetRes1  = target;
         this.targetRes2  = targ2;
         this.modelman   = mm;
-        //this.scAngles   = new SidechainAngles2();
+        this.confAngles   = new ConformerAngles();
         this.conformer    = Conformer.getInstance();
         //this.scFlipper  = new SidechainsLtoD();
         try {
@@ -89,8 +92,8 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
     {
         // Dials
         TablePane dialPane = new TablePane();
-        String[] angleNames = conformer.getAngleNames();
-        double[] angleVals = conformer.measureAllAngles(targetRes1, targetRes2, modelman.getMoltenState());
+        String[] angleNames = confAngles.getAngleNames();
+        double[] angleVals = confAngles.measureAllAngles(targetRes1, targetRes2, modelman.getMoltenState());
         
         dials = new AngleDial[angleNames.length];
         for(int i = 0; i < angleNames.length; i++)
@@ -118,19 +121,20 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         //RotamerDef[] conformers2 = new RotamerDef[ conformers.length+1 ];
         //System.arraycopy(conformers, 0, conformers2, 1, conformers.length);
         //conformers2[0] = origRotamer;
-        //conformerList = new JList(conformers2);
-        //conformerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        //conformerList.setSelectionModel(new ReclickListSelectionModel(conformerList));
-        //conformerList.addListSelectionListener(this);
+        String[] conformers = conformer.getDefinedConformerNames();
+        conformerList = new JList(conformers);
+        conformerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        conformerList.setSelectionModel(new ReclickListSelectionModel(conformerList));
+        conformerList.addListSelectionListener(this);
         
         // Rotamer quality readout
         //rotaQuality = new JLabel();
         //rotaQuality.setToolTipText("Quality assessment for the current side-chain conformation");
         //setFeedback();
-        //TablePane conformerPane = new TablePane();
-        //conformerPane.hfill(true).vfill(true).weights(1,1).addCell(new JScrollPane(conformerList));
+        TablePane conformerPane = new TablePane();
+        conformerPane.hfill(true).vfill(true).weights(1,1).addCell(new JScrollPane(conformerList));
         //conformerPane.newRow().weights(1,0).add(rotaQuality);
-        //twistPane.add(conformerPane, BorderLayout.CENTER);
+        twistPane.add(conformerPane, BorderLayout.CENTER);
         
         // Other controls
         TablePane optionPane = new TablePane();
@@ -142,9 +146,9 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         //useDaa = new JCheckBox(new ReflectiveAction("Use D-amino acid", null, this, "onDaminoAcid"));
         //useDaa.setSelected(false);
         //optionPane.addCell(useDaa);
-        JButton changePucker = new JButton(new ReflectiveAction("Change puckers", null, this, "onChangePucker"));
-        optionPane.addCell(changePucker);
-        twistPane.add(optionPane, BorderLayout.NORTH);
+        //JButton changePucker = new JButton(new ReflectiveAction("Change puckers", null, this, "onChangePucker"));
+        //optionPane.addCell(changePucker);
+        //twistPane.add(optionPane, BorderLayout.NORTH);
 
         JButton btnRelease = new JButton(new ReflectiveAction("Finished", null, this, "onReleaseResidue"));
         //JButton btnBackrub = new JButton(new ReflectiveAction("BACKRUB mainchain", null, this, "onBackrub"));
@@ -243,38 +247,49 @@ private String makeOptionPane() {
 //}}}
 
   //{{{ onChangePucker
-  public void onChangePucker(ActionEvent ae) {
+  public ModelState changePuckers(String puckers, ModelState state) {
     try
         {
-          modelman.requestStateChange(this);
-            String choice = makeOptionPane();
-            if((choice == null)||(choice.equals(JOptionPane.UNINITIALIZED_VALUE))) return; // user canceled operation
+            //String choice = makeOptionPane();
+            //if((choice == null)||(choice.equals(JOptionPane.UNINITIALIZED_VALUE))) return; // user canceled operation
             
             // Create the mutated sidechain
-            ModelState newState = new ModelState(modelman.getMoltenState());
+            //ModelState newState = new ModelState(modelman.getMoltenState());
             ArrayList orig = new ArrayList();
             orig.add(targetRes1);
             orig.add(targetRes2);
-            Collection newResidues = rnaIdealizer.makeIdealResidue(orig, choice, newState, false);
+            changePuckerState = rnaIdealizer.makeIdealResidue(state, orig, puckers, false);
             
+            //modelman.requestStateRefresh();
+
+            double[] angleVals = confAngles.measureAllAngles(targetRes1, targetRes2, changePuckerState, true);
+            System.out.print("measured angles of changed pucker: ");
+            for (double d : angleVals) {
+              System.out.print(df1.format(d) + ":");
+            }
+            System.out.println();
+            setAllDials(angleVals);
+            return changePuckerState;
+            //modelman.requestStateRefresh();
+            //changePuckerState = null;
             // Align it on the old backbone
-            newState = rnaIdealizer.dockResidue(newResidues, newState, targetRes1, modelman.getMoltenState());
+            //newState = rnaIdealizer.dockResidue(newResidues, newState, orig, modelman.getMoltenState());
             
-            modelman.requestStateRefresh();
-            // Create the mutated model
-            ArrayList newResList = new ArrayList(newResidues);
-            Model newModel = (Model) modelman.getModel().clone();
-            newModel.replace(targetRes1, (Residue)newResList.get(0));
-            newModel.replace(targetRes2, (Residue)newResList.get(1));
-            targetRes1 = (Residue)newResList.get(0);
-            targetRes2 = (Residue)newResList.get(1);
-            // Remove any unnecessary AtomStates from the model
-            newState = newState.createForModel(newModel);
-            
-            // Insert the mutated model into the model manager
-            modelman.replaceModelAndState(newModel, newState);
-            
-            modelman.registerTool(this, newResList);
+       //     modelman.requestStateRefresh();
+       //     // Create the mutated model
+       //     ArrayList newResList = new ArrayList(newResidues);
+       //     Model newModel = (Model) modelman.getModel().clone();
+       //     newModel.replace(targetRes1, (Residue)newResList.get(0));
+       //     newModel.replace(targetRes2, (Residue)newResList.get(1));
+       //     targetRes1 = (Residue)newResList.get(0);
+       //     targetRes2 = (Residue)newResList.get(1);
+       //     // Remove any unnecessary AtomStates from the model
+       //     newState = newState.createForModel(newModel);
+       //     
+       //     // Insert the mutated model into the model manager
+       //     modelman.replaceModelAndState(newModel, newState);
+       //     
+       //     modelman.registerTool(this, newResList);
             // Make a note in the headers
            // modelman.addUserMod("Mutated "+orig+" to "+newRes);
             
@@ -284,14 +299,15 @@ private String makeOptionPane() {
             //} catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
             
         }
-        catch(ResidueException ex)
-        {
-            ex.printStackTrace(SoftLog.err);
-        }
+    //    catch(ResidueException ex)
+    //    {
+    //        ex.printStackTrace(SoftLog.err);
+    //    }
         catch(AtomException ex)
         {
             ex.printStackTrace(SoftLog.err);
         }
+        return null;
   }
   //}}}
 
@@ -324,8 +340,23 @@ private String makeOptionPane() {
     /* Gets called when a new conformer is picked from the list */
     public void valueChanged(ListSelectionEvent ev)
     {
-        RotamerDef def = (RotamerDef)conformerList.getSelectedValue();
-        if(def != null) initSomeAngles(def.chiAngles);
+        String confName = (String)conformerList.getSelectedValue();
+        if(confName != null) {
+          String bin = conformer.getConformerBin(confName);
+          if (!bin.equals(currentBin)) {
+            doChangePucker = true;
+            //changePuckers(bin);
+            currentBin = bin;
+            stateChanged(new ChangeEvent(this));
+            doChangePucker = false;
+          }
+          //System.out.print("conf mean values: ");
+          //double[] confValues = conformer.getMeanValues(confName);
+          //for (double d : confValues) {
+          //  System.out.print(df1.format(d) + ":");
+          //}
+          initSomeAngles(conformer.getMeanValues(confName));
+        }
         // else there is no current selection
     }
 
@@ -339,6 +370,20 @@ private String makeOptionPane() {
             if(dials[i].getValueIsAdjusting()) return true;
         }
         return false;
+    }
+//}}}
+
+//{{{ setAllDials
+    /** (measured in degrees) */
+    public void setAllDials(double[] angles)
+    {
+        if(angles.length < dials.length)
+            throw new IllegalArgumentException("Not enough angles provided!");
+        
+        isUpdating(true);
+        for(int i = 0; i < dials.length; i++)
+            dials[i].setDegrees(angles[i]);
+        isUpdating(false);
     }
 //}}}
 
@@ -401,7 +446,8 @@ private String makeOptionPane() {
         //rotaQuality.setText("-???-");
         try
         {
-            double score = conformer.evaluate(targetRes1, targetRes2, modelman.getMoltenState()) * 100.0;
+            //double score = conformer.evaluate(targetRes1, targetRes2, modelman.getMoltenState()) * 100.0;
+            double score = 100;
             String eval;
             if(score > 20)          eval = "Excellent";
             else if(score > 10)     eval = "Good";
@@ -433,7 +479,11 @@ private String makeOptionPane() {
     */
     public ModelState updateModelState(ModelState s)
     {
-        ModelState ret = s;
+      ModelState ret = s;
+      //if (changePuckerState != null) {
+      //  ret = changePuckerState;
+      //}
+      if (doChangePucker) ret = changePuckers(currentBin, s);
         //if(scIdealizer != null && cbIdealize.isSelected())
         //    ret = scIdealizer.idealizeSidechain(targetRes, s);
         //if (useDaa.isSelected()) {
@@ -444,8 +494,19 @@ private String makeOptionPane() {
         //    ret = s;
         //  }
         //}
-        
-        ret = conformer.setAllAngles(targetRes1, targetRes2, ret, this.getAllAngles());
+        //System.out.println("Setting angles: ");
+        //double[] angles = this.getAllAngles();
+        //for (double d : angles) {
+        //  System.out.print(df1.format(d) + ":");
+        //}
+        //System.out.println(" on the following state: ");
+        //System.out.println(ret.debugStates(20));
+        //ArrayList rezzes = new ArrayList();
+        //rezzes.add(targetRes1);
+        //rezzes.add(targetRes2);
+        //rnaIdealizer.debugModelState(rezzes, ret, "pre-setAngles.pdb");
+        ret = confAngles.setAllAngles(targetRes1, targetRes2, ret, this.getAllAngles());
+        //rnaIdealizer.debugModelState(rezzes, ret, "post-setAngles.pdb");
         return ret;            
     }
 //}}}
