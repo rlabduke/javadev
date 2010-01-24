@@ -12,7 +12,7 @@ import java.util.*;
 //import javax.swing.*;
 import driftwood.moldb2.*;
 import driftwood.r3.*;
-import driftwood.util.SoftLog;
+import driftwood.util.*;
 //}}}
 /**
 * <code>RnaIdealizer</code> is a class for working with
@@ -50,10 +50,10 @@ public class RnaIdealizer //extends ... implements ...
         //loadIdealResidues();
         //loadIdealResiduesv23();
         idealResMap = new TreeMap();
-        loadIdealBackbones("rna32.pdb");
-        loadIdealBackbones("rna33.pdb");
-        loadIdealBackbones("rna22.pdb");
-        loadIdealBackbones("rna23.pdb");
+        loadIdealBackbones("rna32H.pdb");
+        loadIdealBackbones("rna33H.pdb");
+        loadIdealBackbones("rna22H.pdb");
+        loadIdealBackbones("rna23H.pdb");
     }
 //}}}
 
@@ -241,62 +241,51 @@ public class RnaIdealizer //extends ... implements ...
     * @return Collection of new residues of the specified pucker.
     * @throws IllegalArgumentException if aaType is not a recognized amino acid code.
     */
-    public Collection makeIdealResidue(Collection residues, String puckers, ModelState outputState, boolean doPdbv3)
+    public ModelState makeIdealResidue(ModelState origState, Collection residues, String puckers,  boolean doPdbv3) throws AtomException
     {
         // Get template
-   //     Map resMap;
-   //     ModelState resState;
-   //     if (doPdbv3) {
-   //       resMap = idealResMap;
-   //       resState = idealResState;
-   //     } else {
-   //       resMap = idealResMapv23;
-   //       resState = idealResStatev23;
-   //     }
-   //       
-   //     if(!resMap.containsKey(resName))
-   //         throw new IllegalArgumentException("'"+resName+"' is not a known amino acid");
-   //     Residue templateRes = (Residue) resMap.get(resName);
-        // Get template...we want to use the template residue states, but source residue info
         Model idealModel = (Model)idealResMap.get(puckers);
         ModelState idealState = idealModel.getState();
-        ArrayList templates = new ArrayList(idealModel.getResidues());
-        ArrayList sourceResidues = new ArrayList(residues);
-        ArrayList newResidues = new ArrayList();
-        for (int i = 0; i < templates.size(); i++) {
-          Residue temp = (Residue)templates.get(i);
-          Residue source = (Residue)sourceResidues.get(i);
-          
-          // for each residue, copy it, with a new name
-          try
-          {
-            Residue newRes = new Residue(temp, source.getChain(),
-              source.getSegment(),
-              source.getSequenceNumber(),
-              source.getInsertionCode(), 
-              source.getName());
-            newRes.cloneStates(temp, idealState, outputState);
-            newResidues.add(newRes);
-          }
-          catch(AtomException ex)
-          {
-            ex.printStackTrace();
-            return null;
+        ArrayList origResidues = new ArrayList(residues);
+        Residue first = (Residue) origResidues.get(0);
+        // first dock ideal on residue
+        ModelState dockedIdealState = dockResidues(idealModel.getResidues(), idealState, first, origState);
+        //System.out.println("docked\n"+dockedIdealState.debugStates());
+        //debugModelState(residues, origState, "orig.pdb");
+        // change all atomstates in original to ideal
+        ArrayList idealResidues = new ArrayList(idealModel.getResidues());
+        
+        // tranform all base atoms based on glyc bond
+        ModelState dockedBases = dockBases(origResidues, origState, idealResidues, dockedIdealState);
+        //System.out.println("docked\n"+dockedBases.debugStates());
+        //debugModelState(residues, dockedBases, "dockedbase.pdb");
+        
+        //System.out.println("orig\n"+origState.debugStates());
+        ModelState idealOrigState = new ModelState(dockedBases);
+        for (int i = 0; i < idealResidues.size(); i++) {
+          Residue ideal = (Residue)idealResidues.get(i);
+          Residue orig = (Residue)origResidues.get(i);
+          Iterator origAtoms = orig.getAtoms().iterator();
+          while (origAtoms.hasNext()) {
+            Atom origAt = (Atom) origAtoms.next();
+            Atom idealAt = ideal.getAtom(origAt.getName());
+            if (idealAt != null) { // since ideal residues don't have base atoms
+              AtomState idealAtSt = dockedIdealState.get(idealAt);
+              AtomState origAtSt = idealOrigState.get(origAt);
+              origAtSt.setXYZ(idealAtSt.getX(), idealAtSt.getY(), idealAtSt.getZ());
+              idealOrigState.add(origAtSt);
+            }
           }
         }
-        return newResidues;
+        //debugModelState(residues, idealOrigState, "changed.pdb");
+        //System.out.println("idealorig\n"+idealOrigState.debugStates());
+        
+        
+        return idealOrigState;
     }
-    
-    /** legacy version that defaults to using old (pdb v2.3) format **/
-    /*
-    public Residue makeIdealResidue(String chain, String segment, String seqNum, String insCode, String resName, ModelState outputState)
-    {
-      return makeIdealResidue(chain, segment, seqNum, insCode, resName, outputState, false);
-    }
-    */
 //}}}
 
-//{{{ dockResidue
+//{{{ dockResidues
 //##################################################################################################
     /**
     * Docks the backbone of one residue onto that of another.
@@ -305,7 +294,7 @@ public class RnaIdealizer //extends ... implements ...
     * Neither of the original states is modified.
     * @throws   AtomException if the N, CA, or C atom is missing in from or to.
     */
-    public ModelState dockResidue(Collection mobResidues, ModelState mob, Residue refRes, ModelState ref) throws AtomException
+    public ModelState dockResidues(Collection mobResidues, ModelState mob, Residue refRes, ModelState ref) throws AtomException
     {
       ArrayList mobResList = new ArrayList(mobResidues);
       Residue firstRes = (Residue) mobResList.get(0);
@@ -342,6 +331,115 @@ public class RnaIdealizer //extends ... implements ...
       return out;
     }
 //}}}
+
+  //{{{ dockBases
+  public ModelState dockBases(Collection mobResidues, ModelState mob, Collection refResidues, ModelState ref) throws AtomException
+  {
+    if (mobResidues.size() != refResidues.size()) SoftLog.err.println("Must have the same number of residues in both inputs to dock bases!");
+    else {
+      ArrayList mobList = new ArrayList(mobResidues);
+      ArrayList refList = new ArrayList(refResidues);
+      ModelState out = new ModelState(mob);
+      for (int i = 0; i < mobList.size(); i++) {
+        Residue mobRes = (Residue) mobList.get(i);
+        Residue refRes = (Residue) refList.get(i);
+        //System.out.println(ref.get(refRes.getAtom(" C1'")));
+        //System.out.println(ref.get(getBaseBondAtom(refRes)));
+        //System.out.println(ref.get(refRes.getAtom(" O4'")));
+        //System.out.println(mob.get(mobRes.getAtom(" C1'")));
+        //System.out.println(mob.get(getBaseBondAtom(mobRes)));
+        //System.out.println(mob.get(mobRes.getAtom(" O4'")));
+        Transform xform = builder.dock3on3(
+          ref.get(refRes.getAtom(" C1'")),
+          ref.get(getBaseBondAtom(refRes)),
+          ref.get(refRes.getAtom(" O4'")),
+          mob.get(mobRes.getAtom(" C1'")),
+          mob.get(getBaseBondAtom(mobRes)),
+          mob.get(mobRes.getAtom(" O4'"))
+          );
+
+        for(Iterator iter = mobRes.getAtoms().iterator(); iter.hasNext(); )
+        {
+          Atom        a   = (Atom) iter.next();
+          AtomState   s1  = out.get(a);
+          //System.out.println(s1);
+          //AtomState   s2  = (AtomState) s1.clone();
+          //out.add(s2);
+          if (!isBackboneAtom(a)) {
+            //System.out.println("transforming");
+            Tuple3 transed = xform.transform(s1);
+            s1.setXYZ(transed.getX(), transed.getY(), transed.getZ());
+            //System.out.println(s1);
+            out.add(s1);
+          }
+          
+        }
+      }
+      return out;
+    }
+    return null;
+  }
+  //}}}
+  
+  //{{{ isBackboneAtom
+  public boolean isBackboneAtom(Atom a) {
+    return (
+      (a.getName().indexOf("'") > -1)||
+      (a.getName().indexOf("*") > -1)||
+      (a.getName().equals(" P  "))||
+      (a.getName().equals(" OP1"))||
+      (a.getName().equals(" OP2")));
+  }
+  //}}}
+  
+  //{{{ getBaseBondAtom
+  public Atom getBaseBondAtom(Residue res) throws AtomException {
+    Atom at = null;
+    at = res.getAtom(" N9 ");
+    if (at == null)
+      at = res.getAtom(" N1 ");
+    if (at == null) {
+      Iterator atoms = res.getAtoms().iterator();
+      while (atoms.hasNext()||(at != null)) {
+        Atom test = (Atom) atoms.next();
+        if (!isBackboneAtom(test)) at = test;
+      }
+    }
+    if (at == null) throw new AtomException(res.getName()+"does not seem to have base atoms");
+    return at;
+  }
+  //}}}
+  
+  //{{{ debugModelState
+  /** Writes a debug PDB into the current working directory.  If the PDB exists,
+  *   then this will add a number to the filename to make a new file.
+  * @param residues    a collection of Residues
+  * @param state       a ModelState with corresponding state info.
+  * @param filename    a filename, with extension (i.e. .pdb).
+  */
+  public void debugModelState(Collection residues, ModelState state, String fileName) {
+    try {
+      File outFile = new File(System.getProperty("user.dir")+"-"+fileName);
+      int counter = 0;
+      while (outFile.exists()) {
+        String[] split = Strings.explode(fileName, '.');
+        String newName = "";
+        for (int i = 0; i < split.length-1; i++) {
+          newName = newName + split[i];
+        }
+        newName = newName + "." + counter +"." + split[split.length-1];
+        outFile = new File(System.getProperty("user.dir")+"-"+newName);
+        counter++;
+      }
+      System.out.println("writing file to "+outFile.toString());
+      PdbWriter writer = new PdbWriter(outFile);
+      writer.writeResidues(residues, state);
+      writer.close();
+    } catch (IOException ie) {
+      ie.printStackTrace();
+    }
+  }
+  //}}}
 
 //{{{ empty_code_segment
 //##################################################################################################

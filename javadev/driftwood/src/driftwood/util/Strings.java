@@ -296,7 +296,8 @@ public class Strings //extends ... implements ...
 
 //{{{ explodeInts, explodeDoubles
 //##################################################################################################
-    /** Explodes a string, then calls Integer.parseInt() on each fragment. */
+    /** Explodes a string, then calls Integer.parseInt() on each fragment. Note that this function
+        doesn't keep empty strings.*/
     public static int[] explodeInts(String s, char separator) throws NumberFormatException
     {
         String[]    strings = explode(s, separator, false, true);
@@ -306,7 +307,8 @@ public class Strings //extends ... implements ...
         return ints;
     }
     
-    /** Explodes a string, then calls Integer.parseInt() on each fragment. */
+    /** Explodes a string, then calls Integer.parseInt() on each fragment. Note that this function
+        doesn't keep empty strings.*/
     public static double[] explodeDoubles(String s, char separator) throws NumberFormatException
     {
         String[]    strings = explode(s, separator, false, true);
@@ -454,6 +456,30 @@ public class Strings //extends ... implements ...
         s += df.format(values[values.length-1]) + ")";
         return s;
     }
+//}}}
+
+//{{{ arrayToFloat, Double
+/** Takes an array of Strings and converts them to an array of floats. Empty strings or nulls are converted to Float.NaN*/
+static public float[] arrayToFloat(String[] strgs) {
+  float[] out = new float[strgs.length];
+  for (int i = 0; i < strgs.length; i++) {
+    String s = strgs[i];
+    if ((s == null)||(s.equals(""))) out[i] = Float.NaN;
+    else out[i] = Float.parseFloat(s);
+  }
+  return out;
+}
+
+/** Takes an array of Strings and converts them to an array of doubles. Empty strings or nulls are converted to Double.NaN*/
+static public double[] arrayToDouble(String[] strgs) {
+  double[] out = new double[strgs.length];
+  for (int i = 0; i < strgs.length; i++) {
+    String s = strgs[i];
+    if ((s == null)||(s.equals(""))) out[i] = Double.NaN;
+    else out[i] = Double.parseDouble(s);
+  }
+  return out;
+}
 //}}}
 
 //{{{ kinPt
