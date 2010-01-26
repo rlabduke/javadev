@@ -35,6 +35,7 @@ public class RnaIdealizer //extends ... implements ...
     //ModelState          idealResState;
     //ModelState          idealResStatev23;
     Builder             builder;
+    int        dockRes;
 //}}}
 
 //{{{ Constructor(s)
@@ -54,6 +55,7 @@ public class RnaIdealizer //extends ... implements ...
         loadIdealBackbones("rna33H.pdb");
         loadIdealBackbones("rna22H.pdb");
         loadIdealBackbones("rna23H.pdb");
+        dockRes = 0;
     }
 //}}}
 
@@ -247,12 +249,11 @@ public class RnaIdealizer //extends ... implements ...
         Model idealModel = (Model)idealResMap.get(puckers);
         ModelState idealState = idealModel.getState();
         ArrayList origResidues = new ArrayList(residues);
-        Residue first = (Residue) origResidues.get(0);
+        Residue dRes = (Residue) origResidues.get(dockRes);
         // first dock ideal on residue
-        ModelState dockedIdealState = dockResidues(idealModel.getResidues(), idealState, first, origState);
+        ModelState dockedIdealState = dockResidues(idealModel.getResidues(), idealState, dRes, origState);
         //System.out.println("docked\n"+dockedIdealState.debugStates());
         //debugModelState(residues, origState, "orig.pdb");
-        // change all atomstates in original to ideal
         ArrayList idealResidues = new ArrayList(idealModel.getResidues());
         
         // tranform all base atoms based on glyc bond
@@ -261,6 +262,7 @@ public class RnaIdealizer //extends ... implements ...
         //debugModelState(residues, dockedBases, "dockedbase.pdb");
         
         //System.out.println("orig\n"+origState.debugStates());
+        // change all atomstates in original to ideal (since ideal don't have sidechains, this only does backbone)
         ModelState idealOrigState = new ModelState(dockedBases);
         for (int i = 0; i < idealResidues.size(); i++) {
           Residue ideal = (Residue)idealResidues.get(i);
@@ -297,15 +299,15 @@ public class RnaIdealizer //extends ... implements ...
     public ModelState dockResidues(Collection mobResidues, ModelState mob, Residue refRes, ModelState ref) throws AtomException
     {
       ArrayList mobResList = new ArrayList(mobResidues);
-      Residue firstRes = (Residue) mobResList.get(0);
+      Residue dRes = (Residue) mobResList.get(dockRes);
       // Reposition all atoms
       Transform xform = builder.dock3on3(
         ref.get(refRes.getAtom(" P  ")),
-        ref.get(refRes.getAtom(" C1'")),
+        ref.get(refRes.getAtom(" C4'")),
         ref.get(refRes.getAtom(" O3'")),
-        mob.get(firstRes.getAtom(" P  ")),
-        mob.get(firstRes.getAtom(" C1'")),
-        mob.get(firstRes.getAtom(" O3'"))
+        mob.get(dRes.getAtom(" P  ")),
+        mob.get(dRes.getAtom(" C4'")),
+        mob.get(dRes.getAtom(" O3'"))
         );
       
       ModelState out = new ModelState(mob);
@@ -410,6 +412,13 @@ public class RnaIdealizer //extends ... implements ...
   }
   //}}}
   
+  //{{{ setDockResidue
+  public void setDockResidue(int i) {
+    if (i >= 1) dockRes = 1;
+    else        dockRes = 0;
+  }
+  //}}}
+
   //{{{ debugModelState
   /** Writes a debug PDB into the current working directory.  If the PDB exists,
   *   then this will add a number to the filename to make a new file.
