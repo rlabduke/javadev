@@ -69,7 +69,7 @@ public class RnaRotTool extends ModelingTool
     {
       if(p != null)
       {
-        ModelState state = modelman.getMoltenState();
+        ModelState state = modelman.getFrozenState();
         targetRes1 = this.getResidueNearest(modelman.getModel(), state,
           p.getX(), p.getY(), p.getZ());
         targetRes2 = targetRes1.getNext(modelman.getModel());

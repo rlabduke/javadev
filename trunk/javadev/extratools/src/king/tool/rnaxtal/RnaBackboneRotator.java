@@ -44,8 +44,8 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
     RnaIdealizer        rnaIdealizer     = null;
     
     Window              dialog;
-    JCheckBox           cbIdealize;
-    JCheckBox           useDaa;
+    JCheckBox           dockOther;
+    //JCheckBox           useDaa;
     JList               conformerList;
     AngleDial[]         dials;
     JLabel              rotaQuality;
@@ -91,25 +91,40 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
     private void buildGUI(Frame frame)
     {
         // Dials
-        TablePane dialPane = new TablePane();
+        TablePane topDialPane = new TablePane();
         String[] angleNames = confAngles.getAngleNames();
         double[] angleVals = confAngles.measureAllAngles(targetRes1, targetRes2, modelman.getMoltenState());
         
+        TablePane2 leftDials = new TablePane2();
+        TablePane2 centDials = new TablePane2();
+        TablePane2 rightDials = new TablePane2();
         dials = new AngleDial[angleNames.length];
         for(int i = 0; i < angleNames.length; i++)
         {
-            dialPane.add(new JLabel(angleNames[i]));
-            dials[i] = new AngleDial();
-            dials[i].setOrigDegrees(angleVals[i]);
-            dials[i].setDegrees(angleVals[i]);
-            dials[i].addChangeListener(this);
-            dialPane.add(dials[i]);
-            dialPane.newRow();
+          TablePane2 dialPane = centDials;
+          if (angleNames[i].indexOf("chi") > -1) dialPane = leftDials;
+          else if (angleNames[i].indexOf("delta") > -1) dialPane = rightDials;
+          else {
+            leftDials.add(new JLabel(""), 2, 1);
+            leftDials.newRow();
+            rightDials.add(new JLabel(""), 2, 1);
+            rightDials.newRow();
+          }
+          dialPane.add(new JLabel(angleNames[i]));
+          dials[i] = new AngleDial();
+          dials[i].setOrigDegrees(angleVals[i]);
+          dials[i].setDegrees(angleVals[i]);
+          dials[i].addChangeListener(this);
+          dialPane.add(dials[i]);
+          dialPane.newRow();
         }
+        topDialPane.add(leftDials);
+        topDialPane.add(centDials);
+        topDialPane.add(rightDials);
         
         // Top-level pane
         JPanel twistPane = new JPanel(new BorderLayout());
-        twistPane.add(dialPane, BorderLayout.WEST);
+        twistPane.add(topDialPane, BorderLayout.WEST);
         
         // Rotamer list
         //RotamerDef[] conformers = scAngles.getAllRotamers(targetRes);
@@ -138,6 +153,8 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         
         // Other controls
         TablePane optionPane = new TablePane();
+        dockOther = new JCheckBox(new ReflectiveAction("Dock on second residue", null, this, "onDockOther"));
+        optionPane.addCell(dockOther);
         //cbIdealize = new JCheckBox(new ReflectiveAction("Idealize sidechain", null, this, "onIdealizeOnOff"));
         //if(scIdealizer != null) cbIdealize.setSelected(true);
         //else                    cbIdealize.setEnabled(false);
@@ -148,7 +165,7 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         //optionPane.addCell(useDaa);
         //JButton changePucker = new JButton(new ReflectiveAction("Change puckers", null, this, "onChangePucker"));
         //optionPane.addCell(changePucker);
-        //twistPane.add(optionPane, BorderLayout.NORTH);
+        twistPane.add(optionPane, BorderLayout.NORTH);
 
         JButton btnRelease = new JButton(new ReflectiveAction("Finished", null, this, "onReleaseResidue"));
         //JButton btnBackrub = new JButton(new ReflectiveAction("BACKRUB mainchain", null, this, "onBackrub"));
@@ -213,9 +230,11 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
     //}
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onIdealizeOnOff(ActionEvent ev)
+    public void onDockOther(ActionEvent ev)
     {
-        stateChanged(null);
+      doChangePucker = true;
+      stateChanged(null);
+      doChangePucker = false;
     }
     
     public void onDaminoAcid(ActionEvent ev) {
@@ -263,11 +282,11 @@ private String makeOptionPane() {
             //modelman.requestStateRefresh();
 
             double[] angleVals = confAngles.measureAllAngles(targetRes1, targetRes2, changePuckerState, true);
-            System.out.print("measured angles of changed pucker: ");
-            for (double d : angleVals) {
-              System.out.print(df1.format(d) + ":");
-            }
-            System.out.println();
+            //System.out.print("measured angles of changed pucker: ");
+            //for (double d : angleVals) {
+            //  System.out.print(df1.format(d) + ":");
+            //}
+            //System.out.println();
             setAllDials(angleVals);
             return changePuckerState;
             //modelman.requestStateRefresh();
@@ -483,7 +502,13 @@ private String makeOptionPane() {
       //if (changePuckerState != null) {
       //  ret = changePuckerState;
       //}
+      if (dockOther.isSelected()) {
+        rnaIdealizer.setDockResidue(1);
+      } else {
+        rnaIdealizer.setDockResidue(0);
+      }
       if (doChangePucker) ret = changePuckers(currentBin, s);
+        
         //if(scIdealizer != null && cbIdealize.isSelected())
         //    ret = scIdealizer.idealizeSidechain(targetRes, s);
         //if (useDaa.isSelected()) {
