@@ -299,10 +299,12 @@ public class AtomGraph //extends ... implements ...
                     || hit.isHet()
                     || !queryIsCNOP
                     || !(hitIsCNO || hElem.equals("P"));
+                boolean sidechainsSameRes = true;
+                if (!Util.isMainchain(query) & !Util.isMainchain(hit)) sidechainsSameRes = query.getResidue().equals(hit.getResidue());
                 double d2max;
                 if(hitIsCNO)    d2max = toCNO;
                 else            d2max = toOther;
-                if(query.sqDistance(hit) <= d2max && chainsCompat && Util.altsAreCompatible(query, hit))
+                if(query.sqDistance(hit) <= d2max && chainsCompat && Util.altsAreCompatible(query, hit) && sidechainsSameRes)
                     neighbors.add(hit);
             }
             
