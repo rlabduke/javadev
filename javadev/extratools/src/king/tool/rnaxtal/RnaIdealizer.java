@@ -249,9 +249,9 @@ public class RnaIdealizer //extends ... implements ...
         Model idealModel = (Model)idealResMap.get(puckers);
         ModelState idealState = idealModel.getState();
         ArrayList origResidues = new ArrayList(residues);
-        Residue dRes = (Residue) origResidues.get(dockRes);
+        //Residue dRes = (Residue) origResidues.get(dockRes);
         // first dock ideal on residue
-        ModelState dockedIdealState = dockResidues(idealModel.getResidues(), idealState, dRes, origState);
+        ModelState dockedIdealState = dockResidues(idealModel.getResidues(), idealState, origResidues, origState);
         //System.out.println("docked\n"+dockedIdealState.debugStates());
         //debugModelState(residues, origState, "orig.pdb");
         ArrayList idealResidues = new ArrayList(idealModel.getResidues());
@@ -296,18 +296,22 @@ public class RnaIdealizer //extends ... implements ...
     * Neither of the original states is modified.
     * @throws   AtomException if the N, CA, or C atom is missing in from or to.
     */
-    public ModelState dockResidues(Collection mobResidues, ModelState mob, Residue refRes, ModelState ref) throws AtomException
+    public ModelState dockResidues(Collection mobResidues, ModelState mob, Collection refResidues, ModelState ref) throws AtomException
     {
       ArrayList mobResList = new ArrayList(mobResidues);
-      Residue dRes = (Residue) mobResList.get(dockRes);
+      Residue mobRes0 = (Residue) mobResList.get(0);
+      Residue mobRes1 = (Residue) mobResList.get(1);
+      ArrayList refResList = new ArrayList(refResidues);
+      Residue refRes0 = (Residue) refResList.get(0);
+      Residue refRes1 = (Residue) refResList.get(1);
       // Reposition all atoms
       Transform xform = builder.dock3on3(
-        ref.get(refRes.getAtom(" P  ")),
-        ref.get(refRes.getAtom(" C4'")),
-        ref.get(refRes.getAtom(" O3'")),
-        mob.get(dRes.getAtom(" P  ")),
-        mob.get(dRes.getAtom(" C4'")),
-        mob.get(dRes.getAtom(" O3'"))
+        ref.get(refRes1.getAtom(" P  ")),
+        ref.get(refRes1.getAtom(" O5'")),
+        ref.get(refRes0.getAtom(" O3'")),
+        mob.get(mobRes1.getAtom(" P  ")),
+        mob.get(mobRes1.getAtom(" O5'")),
+        mob.get(mobRes0.getAtom(" O3'"))
         );
       
       ModelState out = new ModelState(mob);

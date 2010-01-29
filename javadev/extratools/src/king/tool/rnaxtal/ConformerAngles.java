@@ -94,9 +94,14 @@ public class ConformerAngles //extends ... implements ...
         //this.scAngles2  = new SidechainAngles2();
         String[] chi_pyr   = {" O4'", " C1'", " N1 ", " C2 "};
         String[] chi_pur   = {" O4'", " C1'", " N9 ", " C4 "};
-        String[] delta_1   = {" C5'", " C4'", " C3'", " O3'"};
-        String[] epsilon_1 = {" C4'", " C3'", " O3'", " P  "};
-        String[] zeta_1    = {" C3'", " O3'", " P  ", " O5'"};
+        //String[] delta_1   = {" C5'", " C4'", " C3'", " O3'"};
+        //String[] epsilon_1 = {" C4'", " C3'", " O3'", " P  "};
+        //String[] zeta_1    = {" C3'", " O3'", " P  ", " O5'"};
+        // these are backwards to reverse the rotation to go up the chain
+        String[] delta_1   = {" O3'", " C3'", " C4'", " C5'"};
+        String[] epsilon_1 = {" P  ", " O3'", " C3'", " C4'"};
+        String[] zeta_1    = {" O5'", " P  ", " O3'", " C3'"};
+        
         String[] alpha     = {" O3'", " P  ", " O5'", " C5'"};
         String[] beta      = {" P  ", " O5'", " C5'", " C4'"};
         String[] gamma     = {" O5'", " C5'", " C4'", " C3'"};
@@ -289,30 +294,6 @@ public class ConformerAngles //extends ... implements ...
   }
   //}}}
   
-  //{{{ areParentAndChild
-  //##################################################################################################
-  //protected boolean areParentAndChild(Atom parent, Atom child)
-  //{
-  //  String p = parent.getName();
-  //  String c = child.getName();
-  //  if(p == null || c == null || p.length() != 4 || c.length() != 4)
-  //    throw new IllegalArgumentException("Bad atom name(s)");
-  //  
-  //  // for converting the shifted hydrogens in pdbv3 back to pdbv2.3 (e.g. HG11 to 1HG1)
-  //  if (p.charAt(0) == 'H') p = p.substring(3) + p.substring(0,3);
-  //  if (c.charAt(0) == 'H') c = c.substring(3) + c.substring(0,3);
-  //  
-  //  if ((p.charAt(3) == '\'') || (p.charAt(3) == '*')) p = p.substring(1, 2);
-  //  int pi = REMOTENESS.indexOf(p.charAt(2));
-  //  int ci = REMOTENESS.indexOf(c.charAt(2));
-  //  
-  //  return
-  //  ((pi > ci && (p.charAt(3) == ' ' || p.charAt(3) == c.charAt(3)))    // parent closer AND on root or same branch
-  //    || (pi == ci && (p.charAt(3) == ' ' || p.charAt(3) == c.charAt(3))  // OR child is an H of parent
-  //      && p.charAt(1) != 'H' && c.charAt(1) == 'H'));
-  //}
-  //}}}
-
   //{{{ setAdjacency
   public void setAdjacency(Residue res1, Residue res2, ModelState state) {
     if (adjacencyMap != null) return;

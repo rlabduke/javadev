@@ -44,9 +44,11 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
     RnaIdealizer        rnaIdealizer     = null;
     
     Window              dialog;
-    JCheckBox           dockOther;
+    //JCheckBox           dockOther;
     //JCheckBox           useDaa;
     JList               conformerList;
+    JList               atomsList1;
+    JList               atomsList2;
     AngleDial[]         dials;
     JLabel              rotaQuality;
     ModelState          changePuckerState = null;
@@ -83,6 +85,10 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         residues.add(targetRes1);
         residues.add(targetRes2);
         modelman.registerTool(this, residues);
+        
+        // not sure if this is best place to set adjacency map....if 
+        // model is fit poorly first then this will fail.
+        confAngles.setAdjacency(targetRes1, targetRes2, modelman.getMoltenState());
     }
 //}}}
 
@@ -105,17 +111,20 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
           if (angleNames[i].indexOf("chi") > -1) dialPane = leftDials;
           else if (angleNames[i].indexOf("delta") > -1) dialPane = rightDials;
           else {
-            leftDials.add(new JLabel(""), 2, 1);
+            leftDials.add(new JLabel(""), 1, 2);
             leftDials.newRow();
-            rightDials.add(new JLabel(""), 2, 1);
+            leftDials.newRow();
+            rightDials.add(new JLabel(""), 1, 2);
+            rightDials.newRow();
             rightDials.newRow();
           }
-          dialPane.add(new JLabel(angleNames[i]));
           dials[i] = new AngleDial();
           dials[i].setOrigDegrees(angleVals[i]);
           dials[i].setDegrees(angleVals[i]);
           dials[i].addChangeListener(this);
           dialPane.add(dials[i]);
+          dialPane.newRow();
+          dialPane.add(new JLabel(angleNames[i]));
           dialPane.newRow();
         }
         topDialPane.add(leftDials);
@@ -146,15 +155,31 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         //rotaQuality = new JLabel();
         //rotaQuality.setToolTipText("Quality assessment for the current side-chain conformation");
         //setFeedback();
-        TablePane conformerPane = new TablePane();
-        conformerPane.hfill(true).vfill(true).weights(1,1).addCell(new JScrollPane(conformerList));
+        TablePane2 conformerPane = new TablePane2();
+        conformerPane.vfill(false).add(new JLabel("Conformers"));
+        conformerPane.add(new JLabel("Pick superpose atoms"));
+        conformerPane.newRow();
+        //conformerPane.hfill(true).vfill(true).addCell(new JScrollPane(conformerList), 1, 4);
+        conformerPane.vfill(true).hfill(true).addCell(new JScrollPane(conformerList), 1, 4);
         //conformerPane.newRow().weights(1,0).add(rotaQuality);
-        twistPane.add(conformerPane, BorderLayout.CENTER);
+        Object[] res1Atoms = targetRes1.getAtoms().toArray();
+        Object[] res2Atoms = targetRes2.getAtoms().toArray();
+        atomsList1 = new JList(res1Atoms);
+        atomsList2 = new JList(res2Atoms);
+        //conformerPane.newRow();
+        conformerPane.hfill(true).vfill(true).add(new JScrollPane(atomsList1));
+        conformerPane.newRow();
+        conformerPane.vfill(false).add(new JLabel("Residue 1"));
+        conformerPane.newRow();
+        conformerPane.hfill(true).vfill(true).add(new JScrollPane(atomsList2));
+        conformerPane.newRow();
+        conformerPane.vfill(false).add(new JLabel("Residue 2"));
+        twistPane.add(conformerPane, BorderLayout.EAST);
         
         // Other controls
         TablePane optionPane = new TablePane();
-        dockOther = new JCheckBox(new ReflectiveAction("Dock on second residue", null, this, "onDockOther"));
-        optionPane.addCell(dockOther);
+        //dockOther = new JCheckBox(new ReflectiveAction("Dock on second residue", null, this, "onDockOther"));
+        //optionPane.addCell(dockOther);
         //cbIdealize = new JCheckBox(new ReflectiveAction("Idealize sidechain", null, this, "onIdealizeOnOff"));
         //if(scIdealizer != null) cbIdealize.setSelected(true);
         //else                    cbIdealize.setEnabled(false);
@@ -165,7 +190,7 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         //optionPane.addCell(useDaa);
         //JButton changePucker = new JButton(new ReflectiveAction("Change puckers", null, this, "onChangePucker"));
         //optionPane.addCell(changePucker);
-        twistPane.add(optionPane, BorderLayout.NORTH);
+        //twistPane.add(optionPane, BorderLayout.NORTH);
 
         JButton btnRelease = new JButton(new ReflectiveAction("Finished", null, this, "onReleaseResidue"));
         //JButton btnBackrub = new JButton(new ReflectiveAction("BACKRUB mainchain", null, this, "onBackrub"));
@@ -173,6 +198,9 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         btnPane.addCell(btnRelease);
         //btnPane.addCell(btnBackrub);
         twistPane.add(btnPane, BorderLayout.SOUTH);
+        
+        
+        
         
         // Assemble the dialog
         if (kMain.getPrefs().getBoolean("minimizableTools")) {
@@ -230,16 +258,16 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
     //}
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onDockOther(ActionEvent ev)
-    {
-      doChangePucker = true;
-      stateChanged(null);
-      doChangePucker = false;
-    }
-    
-    public void onDaminoAcid(ActionEvent ev) {
-      stateChanged(null);
-    }
+   // public void onDockOther(ActionEvent ev)
+   // {
+   //   doChangePucker = true;
+   //   stateChanged(null);
+   //   doChangePucker = false;
+   // }
+   // 
+   // public void onDaminoAcid(ActionEvent ev) {
+   //   stateChanged(null);
+   // }
 //}}}
 
 //{{{ makeOptionPane
@@ -502,11 +530,11 @@ private String makeOptionPane() {
       //if (changePuckerState != null) {
       //  ret = changePuckerState;
       //}
-      if (dockOther.isSelected()) {
-        rnaIdealizer.setDockResidue(1);
-      } else {
-        rnaIdealizer.setDockResidue(0);
-      }
+      //if (dockOther.isSelected()) {
+      //  rnaIdealizer.setDockResidue(1);
+      //} else {
+      //  rnaIdealizer.setDockResidue(0);
+      //}
       if (doChangePucker) ret = changePuckers(currentBin, s);
         
         //if(scIdealizer != null && cbIdealize.isSelected())

@@ -140,7 +140,7 @@ public class Conformer //extends ... implements ...
     }
 //}}}
 */
-//{{{ loadConformerNames
+//{{{ loadConformerData
 //##################################################################################################
     private void loadConformerData() throws IOException
     {
