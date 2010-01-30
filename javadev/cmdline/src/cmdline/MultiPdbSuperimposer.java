@@ -685,7 +685,7 @@ public class MultiPdbSuperimposer
             
             BallAndStickLogic bsl = new BallAndStickLogic();
             bsl.doProtein = true;
-            bsl.doBackbone = true;
+            bsl.doMainchain = true;
             bsl.doSidechains = true;
             bsl.doHydrogens = true;
             bsl.colorBy = BallAndStickLogic.COLOR_BY_MC_SC;
@@ -734,7 +734,7 @@ public class MultiPdbSuperimposer
 	  
 	  BallAndStickLogic bsl = new BallAndStickLogic();
 	  bsl.doProtein = true;
-	  bsl.doBackbone = true;
+	  bsl.doMainchain = true;
 	  bsl.doSidechains = true;
 	  bsl.doHydrogens = true;
 	  bsl.colorBy = BallAndStickLogic.COLOR_BY_MC_SC;
