@@ -12,7 +12,9 @@ import driftwood.r3.*;
 /**
 * <code>Interdigitator</code> reads in a PDB file and outputs information about
 * the degree of sidechain "interdigitation."  Hopefully studying such numbers
-* will be useful in delineating the determinants of protein stability.
+* will be useful in determining whether such "interlockedness" is important for 
+* determing protein structure and/or stability -- i.e. whether <b>directionality</b>
+* and not just <b>amount</b> of vdW contact matters.
 * 
 * <p>Copyright (C) 2009 by Daniel Keedy. All rights reserved.
 */
@@ -67,7 +69,6 @@ public class Interdigitator //extends ... implements ...
         super();
     }
 //}}}
-
 
 //{{{ processModel
 //##############################################################################
@@ -230,7 +231,7 @@ public class Interdigitator //extends ... implements ...
     }
 
     /**
-    * For one given  residue, calculate vector from Calpha to sidechain- 
+    * For one given residue, calculate vector from Calpha to sidechain- 
     * end center of mass (actually just centroid of all sidechain atoms)
     */
     public Triple calcScAxis(Model model, ModelState state, Residue res) throws AtomException
@@ -327,20 +328,21 @@ public class Interdigitator //extends ... implements ...
     }
 //}}}
 
-
 //{{{ eliminateSurfaceResidues
 //##############################################################################
     /**
     * Eliminate "surface residues," i.e. those either:
-    *  -- with at least one atom whose nearest neighbor is a water, or 
-    *  -- whose Calpha is far enough from the protein centroid
+    *  - with at least one atom whose nearest neighbor is a water, or 
+    *  - whose Calpha is in 90th percentile of distance from protein centroid, or
+    *  - whose Calpha is in 80th percentile of distance from protein centroid
+    *    AND whose sidechain is pointed outward
     * by deleting them and all their constituent atoms from the global hashes.
     *
     * The water thing alone is a really dumb way to do it 'cause if the 
     * crystallographer left out waters or two sidechains are on the surface but 
     * are just closer to each other than they are to any waters, this method 
     * won't get rid of 'em.  But combined with the distal + pointed outward 
-    * criterion, it should be OK...
+    * and very distal criteria, it should be OK...
     */
     public void eliminateSurfaceResidues(Model model, ModelState state)
     {
@@ -460,7 +462,7 @@ public class Interdigitator //extends ... implements ...
 //##############################################################################
     /**
     * Returns list of residues considered "surface" because their Calpha is in 
-    * the top 80% of distances to protein centroid.  This criterion seems strict
+    * the top 90% of distances to protein centroid.  This criterion seems strict
     * enough that no additional side-by-side criterion should be needed (?).
     *
     * In practice, this doesn't remove many additional residues beyond what 
@@ -514,7 +516,6 @@ public class Interdigitator //extends ... implements ...
         return dists.get(cutoffIdx);
     }
 //}}}
-
 
 //{{{ printCasToProtCentroid
 //##############################################################################
@@ -699,7 +700,6 @@ public class Interdigitator //extends ... implements ...
         }//per residue
     }
 //}}}
-
 
 //{{{ Main, main
 //##############################################################################

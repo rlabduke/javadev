@@ -365,7 +365,7 @@ public class DisulfideParameterer //extends ... implements ...
             +"co0-ca0-ca1-caN,ca0-ca1-caN-caN1,ca1-caN-caN1-coN");
         
         Disulfides disulfides = structure.getDisulfides();
-        for(Iterator dItr = disulfides.getDisulfides().iterator(); dItr.hasNext(); )
+        for(Iterator dItr = disulfides.getAll().iterator(); dItr.hasNext(); )
         {
             Disulfide disulfide = (Disulfide) dItr.next();
             for(Iterator mItr = structure.getModels().iterator(); mItr.hasNext(); )
