@@ -35,7 +35,6 @@ public class RnaIdealizer //extends ... implements ...
     //ModelState          idealResState;
     //ModelState          idealResStatev23;
     Builder             builder;
-    int        dockRes;
 //}}}
 
 //{{{ Constructor(s)
@@ -55,7 +54,6 @@ public class RnaIdealizer //extends ... implements ...
         loadIdealBackbones("rna33H.pdb");
         loadIdealBackbones("rna22H.pdb");
         loadIdealBackbones("rna23H.pdb");
-        dockRes = 0;
     }
 //}}}
 
@@ -251,7 +249,7 @@ public class RnaIdealizer //extends ... implements ...
         ArrayList origResidues = new ArrayList(residues);
         //Residue dRes = (Residue) origResidues.get(dockRes);
         // first dock ideal on residue
-        ModelState dockedIdealState = dockResidues(idealModel.getResidues(), idealState, origResidues, origState);
+        ModelState dockedIdealState = dock3on3Residues(idealModel.getResidues(), idealState, origResidues, origState);
         //System.out.println("docked\n"+dockedIdealState.debugStates());
         //debugModelState(residues, origState, "orig.pdb");
         ArrayList idealResidues = new ArrayList(idealModel.getResidues());
@@ -287,16 +285,15 @@ public class RnaIdealizer //extends ... implements ...
     }
 //}}}
 
-//{{{ dockResidues
+//{{{ dock3on3Residues
 //##################################################################################################
     /**
-    * Docks the backbone of one residue onto that of another.
-    * All backbone atoms are adjusted to match the original exactly,
-    * then the CB position is idealized using idealizeCB().
+    * Docks the RNA suite on the P and oxygens using 3 point docking.  The P is moved 
+    * to match the reference P position exactly.
     * Neither of the original states is modified.
     * @throws   AtomException if the N, CA, or C atom is missing in from or to.
     */
-    public ModelState dockResidues(Collection mobResidues, ModelState mob, Collection refResidues, ModelState ref) throws AtomException
+    public ModelState dock3on3Residues(Collection mobResidues, ModelState mob, Collection refResidues, ModelState ref) throws AtomException
     {
       ArrayList mobResList = new ArrayList(mobResidues);
       Residue mobRes0 = (Residue) mobResList.get(0);
@@ -313,6 +310,71 @@ public class RnaIdealizer //extends ... implements ...
         mob.get(mobRes1.getAtom(" O5'")),
         mob.get(mobRes0.getAtom(" O3'"))
         );
+      
+      ModelState out = new ModelState(mob);
+      for (Iterator allRes = mobResList.iterator(); allRes.hasNext(); ) {
+        Residue mobRes = (Residue) allRes.next();
+        for(Iterator iter = mobRes.getAtoms().iterator(); iter.hasNext(); )
+        {
+          Atom        a   = (Atom) iter.next();
+          AtomState   s1  = mob.get(a);
+          AtomState   s2  = (AtomState) s1.clone();
+          out.add(s2);
+          xform.transform(s2);
+        }
+      }
+      
+      // Reposition backbone atoms
+      //out.get(mobRes.getAtom(" P  ")).like(ref.get(refRes.getAtom(" P  ")));
+      //out.get(mobRes.getAtom(" C1'")).like(ref.get(refRes.getAtom(" C1'")));
+      //out.get(mobRes.getAtom(" O3'")).like(ref.get(refRes.getAtom(" O3'")));
+      //try { out.get(mobRes.getAtom(" O  ")).like(ref.get(refRes.getAtom(" O  "))); } catch(AtomException ex) {}
+      //try { out.get(mobRes.getAtom(" H  ")).like(ref.get(refRes.getAtom(" H  "))); } catch(AtomException ex) {}
+      
+      return out;
+    }
+    //}}}
+    
+    //{{{ dockResidues
+    public ModelState dockResidues(Collection mobResidues, ModelState mob, Collection refResidues, ModelState ref, Collection atoms) throws AtomException
+    {
+      //debugModelState(mobResidues, mob, "mobile.pdb");
+      //debugModelState(refResidues, ref, "reference.pdb");
+      ArrayList mobResList = new ArrayList(mobResidues);
+      Residue mobRes0 = (Residue) mobResList.get(0);
+      Residue mobRes1 = (Residue) mobResList.get(1);
+      ArrayList refResList = new ArrayList(refResidues);
+      Residue refRes0 = (Residue) refResList.get(0);
+      Residue refRes1 = (Residue) refResList.get(1);
+      ArrayList atomsList = new ArrayList(atoms);
+      Collection atoms0 = (Collection) atomsList.get(0);
+      //System.out.println(atoms0);
+      Collection atoms1 = (Collection) atomsList.get(1);
+      //System.out.println(atoms1);
+      ArrayList<AtomState> mobAtSts = new ArrayList<AtomState>();
+      ArrayList<AtomState> refAtSts = new ArrayList<AtomState>();
+      for (Iterator iter0 = atoms0.iterator(); iter0.hasNext(); ) {
+        String atom = (String) iter0.next();
+        AtomState refAtSt = ref.get(refRes0.getAtom(atom));
+        AtomState mobAtSt = mob.get(mobRes0.getAtom(atom));
+        mobAtSts.add(mobAtSt);
+        refAtSts.add(refAtSt);
+      }
+      for (Iterator iter1 = atoms1.iterator(); iter1.hasNext(); ) {
+        String atom = (String) iter1.next();
+        AtomState refAtSt = ref.get(refRes1.getAtom(atom));
+        AtomState mobAtSt = mob.get(mobRes1.getAtom(atom));
+        mobAtSts.add(mobAtSt);
+        refAtSts.add(refAtSt);
+      }
+      //System.out.println("mobile: ");
+      //for (AtomState as : mobAtSts) System.out.println(as.format(new DecimalFormat("0.000")));
+      //System.out.println("ref: ");
+      //for (AtomState as : refAtSts) System.out.println(as.format(new DecimalFormat("0.000")));
+      // Reposition all atoms
+      SuperPoser poser = new SuperPoser(refAtSts.toArray(new AtomState[refAtSts.size()]), mobAtSts.toArray(new AtomState[mobAtSts.size()]));
+      Transform xform = poser.superpos();
+      //System.out.println(xform);
       
       ModelState out = new ModelState(mob);
       for (Iterator allRes = mobResList.iterator(); allRes.hasNext(); ) {
@@ -413,13 +475,6 @@ public class RnaIdealizer //extends ... implements ...
     }
     if (at == null) throw new AtomException(res.getName()+"does not seem to have base atoms");
     return at;
-  }
-  //}}}
-  
-  //{{{ setDockResidue
-  public void setDockResidue(int i) {
-    if (i >= 1) dockRes = 1;
-    else        dockRes = 0;
   }
   //}}}
 
