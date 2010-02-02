@@ -53,6 +53,8 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
     JLabel              rotaQuality;
     ModelState          changePuckerState = null;
     boolean             doChangePucker = false;
+    boolean             doSuperpose = false;
+    ArrayList           atomsToSuper;
     
     /** Marker for logical multi-dial update */
     boolean     isUpdating      = false;
@@ -165,7 +167,10 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         Object[] res1Atoms = targetRes1.getAtoms().toArray();
         Object[] res2Atoms = targetRes2.getAtoms().toArray();
         atomsList1 = new JList(res1Atoms);
+        atomsList1.addListSelectionListener(this);
         atomsList2 = new JList(res2Atoms);
+        atomsList2.addListSelectionListener(this);
+        
         //conformerPane.newRow();
         conformerPane.hfill(true).vfill(true).add(new JScrollPane(atomsList1));
         conformerPane.newRow();
@@ -293,7 +298,7 @@ private String makeOptionPane() {
 }
 //}}}
 
-  //{{{ onChangePucker
+  //{{{ changePucker
   public ModelState changePuckers(String puckers, ModelState state) {
     try
         {
@@ -387,6 +392,8 @@ private String makeOptionPane() {
     /* Gets called when a new conformer is picked from the list */
     public void valueChanged(ListSelectionEvent ev)
     {
+      JList hitList = (JList) ev.getSource();
+      if (hitList.equals(conformerList)) {
         String confName = (String)conformerList.getSelectedValue();
         if(confName != null) {
           String bin = conformer.getConformerBin(confName);
@@ -397,14 +404,32 @@ private String makeOptionPane() {
             stateChanged(new ChangeEvent(this));
             doChangePucker = false;
           }
-          //System.out.print("conf mean values: ");
-          //double[] confValues = conformer.getMeanValues(confName);
-          //for (double d : confValues) {
-          //  System.out.print(df1.format(d) + ":");
-          //}
           initSomeAngles(conformer.getMeanValues(confName));
         }
         // else there is no current selection
+      } else if (hitList.equals(atomsList1)||hitList.equals(atomsList2)) {
+        Object[] atoms1 = atomsList1.getSelectedValues();
+        Object[] atoms2 = atomsList2.getSelectedValues();
+        atomsToSuper = new ArrayList();
+        if (atoms1.length + atoms2.length > 2) {
+          // if more than 3 atoms picked, then do superposition
+          ArrayList atomNames = new ArrayList();
+          for (Object o : atoms1) {
+            Atom at = (Atom) o;
+            atomNames.add(at.getName());
+          }
+          atomsToSuper.add(atomNames);
+          atomNames = new ArrayList();
+          for (Object o : atoms2) {
+            Atom at = (Atom) o;
+            atomNames.add(at.getName());
+          }
+          atomsToSuper.add(atomNames);
+          doSuperpose = true;
+          stateChanged(new ChangeEvent(this));
+          doSuperpose = false;
+        }
+      }
     }
 
     /** Returns true if any of the dials is currently being updated */
@@ -536,7 +561,7 @@ private String makeOptionPane() {
       //  rnaIdealizer.setDockResidue(0);
       //}
       if (doChangePucker) ret = changePuckers(currentBin, s);
-        
+
         //if(scIdealizer != null && cbIdealize.isSelected())
         //    ret = scIdealizer.idealizeSidechain(targetRes, s);
         //if (useDaa.isSelected()) {
@@ -559,6 +584,24 @@ private String makeOptionPane() {
         //rezzes.add(targetRes2);
         //rnaIdealizer.debugModelState(rezzes, ret, "pre-setAngles.pdb");
         ret = confAngles.setAllAngles(targetRes1, targetRes2, ret, this.getAllAngles());
+        
+        try {
+          if (doSuperpose) {
+            ArrayList rezzes = new ArrayList();
+            rezzes.add(targetRes1);
+            rezzes.add(targetRes2);
+            //Model frozen = modelman.getModel();
+            //Residue frozRes1 = frozen.getResidue(targetRes1.getCNIT());
+            //Residue frozRes2 = frozen.getResidue(targetRes2.getCNIT());
+            //ArrayList frozRezzes = new ArrayList();
+            //frozRezzes.add(frozRes1);
+            //frozRezzes.add(frozRes2);
+            ret = rnaIdealizer.dockResidues(rezzes, ret, rezzes, modelman.getFrozenState(), atomsToSuper);
+            
+          }
+        } catch (AtomException ae) {
+          ae.printStackTrace(SoftLog.err);
+        }
         //rnaIdealizer.debugModelState(rezzes, ret, "post-setAngles.pdb");
         return ret;            
     }
