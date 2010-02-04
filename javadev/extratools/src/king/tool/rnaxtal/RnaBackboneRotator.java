@@ -37,6 +37,7 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
     KingMain            kMain;
     Residue             targetRes1;
     Residue             targetRes2;
+    ArrayList           targetResidues;
     ModelManager2       modelman;
     ConformerAngles     confAngles;
     Conformer           conformer;
@@ -53,7 +54,7 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
     JLabel              rotaQuality;
     ModelState          changePuckerState = null;
     boolean             doChangePucker = false;
-    boolean             doSuperpose = false;
+    //boolean             doSuperpose = false;
     ArrayList           atomsToSuper;
     
     /** Marker for logical multi-dial update */
@@ -82,15 +83,15 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         } catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
 
         buildGUI(kMain.getTopWindow());
-        
-        ArrayList residues = new ArrayList();
-        residues.add(targetRes1);
-        residues.add(targetRes2);
-        modelman.registerTool(this, residues);
+                
+        targetResidues = new ArrayList();
+        targetResidues.add(targetRes1);
+        targetResidues.add(targetRes2);
+        modelman.registerTool(this, targetResidues);
         
         // not sure if this is best place to set adjacency map....if 
         // model is fit poorly first then this will fail.
-        confAngles.setAdjacency(targetRes1, targetRes2, modelman.getMoltenState());
+        //confAngles.setAdjacency(targetRes1, targetRes2, modelman.getMoltenState());
     }
 //}}}
 
@@ -167,8 +168,12 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         Object[] res1Atoms = targetRes1.getAtoms().toArray();
         Object[] res2Atoms = targetRes2.getAtoms().toArray();
         atomsList1 = new JList(res1Atoms);
+        atomsList1.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        //atomsList1.setSelectionModel(new ReclickListSelectionModel(atomsList1));
         atomsList1.addListSelectionListener(this);
         atomsList2 = new JList(res2Atoms);
+        atomsList2.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        //atomsList2.setSelectionModel(new ReclickListSelectionModel(atomsList2));
         atomsList2.addListSelectionListener(this);
         
         //conformerPane.newRow();
@@ -203,9 +208,6 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         btnPane.addCell(btnRelease);
         //btnPane.addCell(btnBackrub);
         twistPane.add(btnPane, BorderLayout.SOUTH);
-        
-        
-        
         
         // Assemble the dialog
         if (kMain.getPrefs().getBoolean("minimizableTools")) {
@@ -307,10 +309,10 @@ private String makeOptionPane() {
             
             // Create the mutated sidechain
             //ModelState newState = new ModelState(modelman.getMoltenState());
-            ArrayList orig = new ArrayList();
-            orig.add(targetRes1);
-            orig.add(targetRes2);
-            changePuckerState = rnaIdealizer.makeIdealResidue(state, orig, puckers, false);
+            //ArrayList orig = new ArrayList();
+            //orig.add(targetRes1);
+            //orig.add(targetRes2);
+            changePuckerState = rnaIdealizer.makeIdealResidue(state, targetResidues, puckers, false);
             
             //modelman.requestStateRefresh();
 
@@ -322,34 +324,6 @@ private String makeOptionPane() {
             //System.out.println();
             setAllDials(angleVals);
             return changePuckerState;
-            //modelman.requestStateRefresh();
-            //changePuckerState = null;
-            // Align it on the old backbone
-            //newState = rnaIdealizer.dockResidue(newResidues, newState, orig, modelman.getMoltenState());
-            
-       //     modelman.requestStateRefresh();
-       //     // Create the mutated model
-       //     ArrayList newResList = new ArrayList(newResidues);
-       //     Model newModel = (Model) modelman.getModel().clone();
-       //     newModel.replace(targetRes1, (Residue)newResList.get(0));
-       //     newModel.replace(targetRes2, (Residue)newResList.get(1));
-       //     targetRes1 = (Residue)newResList.get(0);
-       //     targetRes2 = (Residue)newResList.get(1);
-       //     // Remove any unnecessary AtomStates from the model
-       //     newState = newState.createForModel(newModel);
-       //     
-       //     // Insert the mutated model into the model manager
-       //     modelman.replaceModelAndState(newModel, newState);
-       //     
-       //     modelman.registerTool(this, newResList);
-            // Make a note in the headers
-           // modelman.addUserMod("Mutated "+orig+" to "+newRes);
-            
-            // Set it up for rotation
-            //try {
-            //    new SidechainRotator(kMain, newRes, modelman);
-            //} catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
-            
         }
     //    catch(ResidueException ex)
     //    {
@@ -408,27 +382,10 @@ private String makeOptionPane() {
         }
         // else there is no current selection
       } else if (hitList.equals(atomsList1)||hitList.equals(atomsList2)) {
-        Object[] atoms1 = atomsList1.getSelectedValues();
-        Object[] atoms2 = atomsList2.getSelectedValues();
-        atomsToSuper = new ArrayList();
-        if (atoms1.length + atoms2.length > 2) {
-          // if more than 3 atoms picked, then do superposition
-          ArrayList atomNames = new ArrayList();
-          for (Object o : atoms1) {
-            Atom at = (Atom) o;
-            atomNames.add(at.getName());
-          }
-          atomsToSuper.add(atomNames);
-          atomNames = new ArrayList();
-          for (Object o : atoms2) {
-            Atom at = (Atom) o;
-            atomNames.add(at.getName());
-          }
-          atomsToSuper.add(atomNames);
-          doSuperpose = true;
-          stateChanged(new ChangeEvent(this));
-          doSuperpose = false;
-        }
+        getSuperposeAtoms();
+        //doSuperpose = true;
+        stateChanged(new ChangeEvent(this));
+        //doSuperpose = false;
       }
     }
 
@@ -443,6 +400,37 @@ private String makeOptionPane() {
         }
         return false;
     }
+//}}}
+
+//{{{ getSuperposeAtoms
+public void getSuperposeAtoms() {
+  Object[] atoms1 = atomsList1.getSelectedValues();
+  Object[] atoms2 = atomsList2.getSelectedValues();
+  atomsToSuper = new ArrayList();
+  if (atoms1.length + atoms2.length > 2) {
+    // if more than 3 atoms picked, then do superposition
+    ArrayList atomNames = new ArrayList();
+    for (Object o : atoms1) {
+      Atom at = (Atom) o;
+      atomNames.add(at.getName());
+    }
+    atomsToSuper.add(atomNames);
+    atomNames = new ArrayList();
+    for (Object o : atoms2) {
+      Atom at = (Atom) o;
+      atomNames.add(at.getName());
+    }
+    atomsToSuper.add(atomNames);
+  } else {
+    ArrayList atomNames = new ArrayList();
+    atomNames.add(" O3'");
+    atomsToSuper.add(atomNames);
+    atomNames = new ArrayList();
+    atomNames.add(" P  ");
+    atomNames.add(" O5'");
+    atomsToSuper.add(atomNames);
+  }
+}
 //}}}
 
 //{{{ setAllDials
@@ -551,6 +539,7 @@ private String makeOptionPane() {
     */
     public ModelState updateModelState(ModelState s)
     {
+      //System.out.println("updatingModelState");
       ModelState ret = s;
       //if (changePuckerState != null) {
       //  ret = changePuckerState;
@@ -579,30 +568,27 @@ private String makeOptionPane() {
         //}
         //System.out.println(" on the following state: ");
         //System.out.println(ret.debugStates(20));
-        //ArrayList rezzes = new ArrayList();
-        //rezzes.add(targetRes1);
-        //rezzes.add(targetRes2);
-        //rnaIdealizer.debugModelState(rezzes, ret, "pre-setAngles.pdb");
+        //rnaIdealizer.debugModelState(targetResidues, ret, "pre-setAngles.pdb");
         ret = confAngles.setAllAngles(targetRes1, targetRes2, ret, this.getAllAngles());
-        
+        //rnaIdealizer.debugModelState(targetResidues, ret, "post-setAngles.pdb");
+
         try {
-          if (doSuperpose) {
-            ArrayList rezzes = new ArrayList();
-            rezzes.add(targetRes1);
-            rezzes.add(targetRes2);
-            //Model frozen = modelman.getModel();
-            //Residue frozRes1 = frozen.getResidue(targetRes1.getCNIT());
-            //Residue frozRes2 = frozen.getResidue(targetRes2.getCNIT());
-            //ArrayList frozRezzes = new ArrayList();
-            //frozRezzes.add(frozRes1);
-            //frozRezzes.add(frozRes2);
-            ret = rnaIdealizer.dockResidues(rezzes, ret, rezzes, modelman.getFrozenState(), atomsToSuper);
-            
-          }
+          //if (doSuperpose) {
+            Model frozen = modelman.getModel();
+            Residue frozRes1 = frozen.getResidue(targetRes1.getCNIT());
+            Residue frozRes2 = frozen.getResidue(targetRes2.getCNIT());
+            ArrayList frozRezzes = new ArrayList();
+            frozRezzes.add(frozRes1);
+            frozRezzes.add(frozRes2);
+            getSuperposeAtoms();
+            rnaIdealizer.debugModelState(frozRezzes, modelman.getFrozenState(), "frozenres.pdb");
+           // rnaIdealizer.debugModelState(targetResidues, ret, "pre-dock.pdb");
+            ret = rnaIdealizer.dockResidues(targetResidues, ret, frozRezzes, modelman.getFrozenState(), atomsToSuper);
+           // rnaIdealizer.debugModelState(targetResidues, ret, "post-dock.pdb");
+          //}
         } catch (AtomException ae) {
           ae.printStackTrace(SoftLog.err);
         }
-        //rnaIdealizer.debugModelState(rezzes, ret, "post-setAngles.pdb");
         return ret;            
     }
 //}}}
