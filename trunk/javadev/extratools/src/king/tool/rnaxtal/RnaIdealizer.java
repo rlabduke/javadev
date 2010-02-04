@@ -248,6 +248,7 @@ public class RnaIdealizer //extends ... implements ...
         ModelState idealState = idealModel.getState();
         ArrayList origResidues = new ArrayList(residues);
         //Residue dRes = (Residue) origResidues.get(dockRes);
+        
         // first dock ideal on residue
         ModelState dockedIdealState = dock3on3Residues(idealModel.getResidues(), idealState, origResidues, origState);
         //System.out.println("docked\n"+dockedIdealState.debugStates());
@@ -261,18 +262,27 @@ public class RnaIdealizer //extends ... implements ...
         
         //System.out.println("orig\n"+origState.debugStates());
         // change all atomstates in original to ideal (since ideal don't have sidechains, this only does backbone)
-        ModelState idealOrigState = new ModelState(dockedBases);
+        ModelState idealOrigState = new ModelState(origState);
         for (int i = 0; i < idealResidues.size(); i++) {
           Residue ideal = (Residue)idealResidues.get(i);
           Residue orig = (Residue)origResidues.get(i);
           Iterator origAtoms = orig.getAtoms().iterator();
           while (origAtoms.hasNext()) {
             Atom origAt = (Atom) origAtoms.next();
+            if (isBackboneAtom(origAt)) {
             Atom idealAt = ideal.getAtom(origAt.getName());
-            if (idealAt != null) { // since ideal residues don't have base atoms
+            //if (idealAt != null) { // since ideal residues don't have base atoms
               AtomState idealAtSt = dockedIdealState.get(idealAt);
               AtomState origAtSt = idealOrigState.get(origAt);
+              //AtomState origClone = (AtomState) origAtSt.clone();
               origAtSt.setXYZ(idealAtSt.getX(), idealAtSt.getY(), idealAtSt.getZ());
+              idealOrigState.add(origAtSt);
+            //}
+            } else {
+              AtomState dockedAtSt = dockedBases.get(origAt);
+              AtomState origAtSt = idealOrigState.get(origAt);
+              AtomState origClone = (AtomState) origAtSt.clone();
+              origAtSt.setXYZ(dockedAtSt.getX(), dockedAtSt.getY(), dockedAtSt.getZ());
               idealOrigState.add(origAtSt);
             }
           }
@@ -367,10 +377,10 @@ public class RnaIdealizer //extends ... implements ...
         mobAtSts.add(mobAtSt);
         refAtSts.add(refAtSt);
       }
-      //System.out.println("mobile: ");
-      //for (AtomState as : mobAtSts) System.out.println(as.format(new DecimalFormat("0.000")));
-      //System.out.println("ref: ");
-      //for (AtomState as : refAtSts) System.out.println(as.format(new DecimalFormat("0.000")));
+      System.out.println("mobile: ");
+      for (AtomState as : mobAtSts) System.out.println(as.format(new DecimalFormat("0.000")));
+      System.out.println("ref: ");
+      for (AtomState as : refAtSts) System.out.println(as.format(new DecimalFormat("0.000")));
       // Reposition all atoms
       SuperPoser poser = new SuperPoser(refAtSts.toArray(new AtomState[refAtSts.size()]), mobAtSts.toArray(new AtomState[mobAtSts.size()]));
       Transform xform = poser.superpos();
@@ -384,8 +394,8 @@ public class RnaIdealizer //extends ... implements ...
           Atom        a   = (Atom) iter.next();
           AtomState   s1  = mob.get(a);
           AtomState   s2  = (AtomState) s1.clone();
-          out.add(s2);
           xform.transform(s2);
+          out.add(s2);
         }
       }
       
@@ -431,14 +441,14 @@ public class RnaIdealizer //extends ... implements ...
           Atom        a   = (Atom) iter.next();
           AtomState   s1  = out.get(a);
           //System.out.println(s1);
-          //AtomState   s2  = (AtomState) s1.clone();
+          AtomState   s2  = (AtomState) s1.clone();
           //out.add(s2);
           if (!isBackboneAtom(a)) {
             //System.out.println("transforming");
-            Tuple3 transed = xform.transform(s1);
-            s1.setXYZ(transed.getX(), transed.getY(), transed.getZ());
+            Tuple3 transed = xform.transform(s2);
+            s2.setXYZ(transed.getX(), transed.getY(), transed.getZ());
             //System.out.println(s1);
-            out.add(s1);
+            out.add(s2);
           }
           
         }
