@@ -304,25 +304,26 @@ private String makeOptionPane() {
   public ModelState changePuckers(String puckers, ModelState state) {
     try
         {
+          //System.out.println("Changing pucker");
             //String choice = makeOptionPane();
             //if((choice == null)||(choice.equals(JOptionPane.UNINITIALIZED_VALUE))) return; // user canceled operation
             
             // Create the mutated sidechain
             //ModelState newState = new ModelState(modelman.getMoltenState());
-            //ArrayList orig = new ArrayList();
-            //orig.add(targetRes1);
-            //orig.add(targetRes2);
+            //rnaIdealizer.debugModelState(targetResidues, modelman.getFrozenState(), "frozenres-pre.pdb");
             changePuckerState = rnaIdealizer.makeIdealResidue(state, targetResidues, puckers, false);
-            
+            //rnaIdealizer.debugModelState(targetResidues, modelman.getFrozenState(), "frozenres-post.pdb");
+
             //modelman.requestStateRefresh();
 
-            double[] angleVals = confAngles.measureAllAngles(targetRes1, targetRes2, changePuckerState, true);
+         //   double[] angleVals = confAngles.measureAllAngles(targetRes1, targetRes2, changePuckerState, true);
+            //rnaIdealizer.debugModelState(targetResidues, changePuckerState, "changepucker.pdb");
             //System.out.print("measured angles of changed pucker: ");
             //for (double d : angleVals) {
             //  System.out.print(df1.format(d) + ":");
             //}
             //System.out.println();
-            setAllDials(angleVals);
+         //   setAllDials(angleVals);
             return changePuckerState;
         }
     //    catch(ResidueException ex)
@@ -358,12 +359,30 @@ private String makeOptionPane() {
     {
         // This keeps us from running Probe N times when a conformer with
         // N angles is selected from the list! (Maybe?)
-        if(!isUpdating())
+        if(!isUpdating()) {
+          //System.out.println("state changed");
             modelman.requestStateRefresh();
+        }
         setFeedback(); // otherwise, we evaluate the old conformation
     }
     
     /* Gets called when a new conformer is picked from the list */
+    // At first I attempted to be more efficient about changing puckers.
+    // The code would only change puckers when the conf list was hit.
+    // However this only worked when RnaIdealizer modified the atomstates directly,
+    // instead of returning clones.  It turns out that this was changing the frozen
+    // state directly in the model manager.  I didn't realize that on requesting a
+    // state refresh, the model manager always goes back to the frozen model and 
+    // makes its changes from that model.  
+    // Changing the frozen model would be alright, except for the fact that cancelling
+    // the change wouldn't actually cancel, and then trying to superimpose on the
+    // frozen model didn't quite work out either.
+    // The fix was to change the puckers once, set the dials, and init the angles
+    // for the selected conformer here, and then always change the puckers to the 
+    // selected conformer's during requestStateRefresh, so the dial adjustments work
+    // of the changed pucker state.
+    // Lessons: Never mess with the modelstate in requestStateRefresh, and remember
+    // that the modelstate always works from the frozen model!! VBC 100205
     public void valueChanged(ListSelectionEvent ev)
     {
       JList hitList = (JList) ev.getSource();
@@ -371,14 +390,19 @@ private String makeOptionPane() {
         String confName = (String)conformerList.getSelectedValue();
         if(confName != null) {
           String bin = conformer.getConformerBin(confName);
-          if (!bin.equals(currentBin)) {
-            doChangePucker = true;
-            //changePuckers(bin);
-            currentBin = bin;
-            stateChanged(new ChangeEvent(this));
-            doChangePucker = false;
-          }
+          //if (!bin.equals(currentBin)) {
+          //  doChangePucker = true;
+          try {
+            changePuckerState = rnaIdealizer.makeIdealResidue(modelman.getFrozenState(), targetResidues, bin, false);
+            double[] angleVals = confAngles.measureAllAngles(targetRes1, targetRes2, changePuckerState, true);
+            setAllDials(angleVals);
+          //changePuckers(modelman.getFrozenState(), bin);
+          //  currentBin = bin;
+            //modelman.requestStateRefresh();
+            //doChangePucker = false;
+          //}
           initSomeAngles(conformer.getMeanValues(confName));
+          } catch (AtomException ae) {ae.printStackTrace(SoftLog.err);}
         }
         // else there is no current selection
       } else if (hitList.equals(atomsList1)||hitList.equals(atomsList2)) {
@@ -539,7 +563,6 @@ public void getSuperposeAtoms() {
     */
     public ModelState updateModelState(ModelState s)
     {
-      //System.out.println("updatingModelState");
       ModelState ret = s;
       //if (changePuckerState != null) {
       //  ret = changePuckerState;
@@ -549,7 +572,13 @@ public void getSuperposeAtoms() {
       //} else {
       //  rnaIdealizer.setDockResidue(0);
       //}
-      if (doChangePucker) ret = changePuckers(currentBin, s);
+      String confName = (String)conformerList.getSelectedValue();
+      if(confName != null) {
+      //if (doChangePucker) { 
+        String bin = conformer.getConformerBin(confName);
+        ret = changePuckers(bin, s);
+        //doChangePucker = false;
+      }
 
         //if(scIdealizer != null && cbIdealize.isSelected())
         //    ret = scIdealizer.idealizeSidechain(targetRes, s);
@@ -581,7 +610,7 @@ public void getSuperposeAtoms() {
             frozRezzes.add(frozRes1);
             frozRezzes.add(frozRes2);
             getSuperposeAtoms();
-            rnaIdealizer.debugModelState(frozRezzes, modelman.getFrozenState(), "frozenres.pdb");
+            //rnaIdealizer.debugModelState(frozRezzes, modelman.getFrozenState(), "frozenres.pdb");
            // rnaIdealizer.debugModelState(targetResidues, ret, "pre-dock.pdb");
             ret = rnaIdealizer.dockResidues(targetResidues, ret, frozRezzes, modelman.getFrozenState(), atomsToSuper);
            // rnaIdealizer.debugModelState(targetResidues, ret, "post-dock.pdb");

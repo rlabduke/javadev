@@ -258,11 +258,11 @@ public class RnaIdealizer //extends ... implements ...
         // tranform all base atoms based on glyc bond
         ModelState dockedBases = dockBases(origResidues, origState, idealResidues, dockedIdealState);
         //System.out.println("docked\n"+dockedBases.debugStates());
-        //debugModelState(residues, dockedBases, "dockedbase.pdb");
+        //debugModelState(residues, dockedBases, "dockbase.pdb");
         
-        //System.out.println("orig\n"+origState.debugStates());
+        //System.out.println("orig\n"+origState.debugStates(10));
         // change all atomstates in original to ideal (since ideal don't have sidechains, this only does backbone)
-        ModelState idealOrigState = new ModelState(origState);
+        ModelState idealOrigState = new ModelState();
         for (int i = 0; i < idealResidues.size(); i++) {
           Residue ideal = (Residue)idealResidues.get(i);
           Residue orig = (Residue)origResidues.get(i);
@@ -271,24 +271,29 @@ public class RnaIdealizer //extends ... implements ...
             Atom origAt = (Atom) origAtoms.next();
             if (isBackboneAtom(origAt)) {
             Atom idealAt = ideal.getAtom(origAt.getName());
+            System.out.println("orig  "+origAt);
+            System.out.println("ideal "+idealAt);
             //if (idealAt != null) { // since ideal residues don't have base atoms
               AtomState idealAtSt = dockedIdealState.get(idealAt);
-              AtomState origAtSt = idealOrigState.get(origAt);
-              //AtomState origClone = (AtomState) origAtSt.clone();
-              origAtSt.setXYZ(idealAtSt.getX(), idealAtSt.getY(), idealAtSt.getZ());
-              idealOrigState.add(origAtSt);
+              AtomState origAtSt = origState.get(origAt);
+              //System.out.println("ideal: "+idealAtSt);
+              AtomState origClone = (AtomState) origAtSt.cloneFor(origAt);
+              origClone.setXYZ(idealAtSt.getX(), idealAtSt.getY(), idealAtSt.getZ());
+              //System.out.println("orig : "+origAtSt);
+              //System.out.println("clone: "+origClone);
+              idealOrigState.add(origClone);
             //}
             } else {
               AtomState dockedAtSt = dockedBases.get(origAt);
-              AtomState origAtSt = idealOrigState.get(origAt);
-              AtomState origClone = (AtomState) origAtSt.clone();
-              origAtSt.setXYZ(dockedAtSt.getX(), dockedAtSt.getY(), dockedAtSt.getZ());
-              idealOrigState.add(origAtSt);
+              AtomState origAtSt = origState.get(origAt);
+              AtomState origClone = (AtomState) origAtSt.cloneFor(origAt);
+              origClone.setXYZ(dockedAtSt.getX(), dockedAtSt.getY(), dockedAtSt.getZ());
+              idealOrigState.add(origClone);
             }
           }
         }
-        //debugModelState(residues, idealOrigState, "changed.pdb");
-        //System.out.println("idealorig\n"+idealOrigState.debugStates());
+        //debugModelState(residues, idealOrigState, "idealed.pdb");
+        //System.out.println("idealorig\n"+idealOrigState.debugStates(10));
         
         
         return idealOrigState;
@@ -321,7 +326,7 @@ public class RnaIdealizer //extends ... implements ...
         mob.get(mobRes0.getAtom(" O3'"))
         );
       
-      ModelState out = new ModelState(mob);
+      ModelState out = new ModelState();
       for (Iterator allRes = mobResList.iterator(); allRes.hasNext(); ) {
         Residue mobRes = (Residue) allRes.next();
         for(Iterator iter = mobRes.getAtoms().iterator(); iter.hasNext(); )
@@ -377,10 +382,10 @@ public class RnaIdealizer //extends ... implements ...
         mobAtSts.add(mobAtSt);
         refAtSts.add(refAtSt);
       }
-      System.out.println("mobile: ");
-      for (AtomState as : mobAtSts) System.out.println(as.format(new DecimalFormat("0.000")));
-      System.out.println("ref: ");
-      for (AtomState as : refAtSts) System.out.println(as.format(new DecimalFormat("0.000")));
+     // System.out.println("mobile: ");
+     // for (AtomState as : mobAtSts) System.out.println(as.format(new DecimalFormat("0.000")));
+     // System.out.println("ref: ");
+     // for (AtomState as : refAtSts) System.out.println(as.format(new DecimalFormat("0.000")));
       // Reposition all atoms
       SuperPoser poser = new SuperPoser(refAtSts.toArray(new AtomState[refAtSts.size()]), mobAtSts.toArray(new AtomState[mobAtSts.size()]));
       Transform xform = poser.superpos();
@@ -417,7 +422,7 @@ public class RnaIdealizer //extends ... implements ...
     else {
       ArrayList mobList = new ArrayList(mobResidues);
       ArrayList refList = new ArrayList(refResidues);
-      ModelState out = new ModelState(mob);
+      ModelState out = new ModelState();
       for (int i = 0; i < mobList.size(); i++) {
         Residue mobRes = (Residue) mobList.get(i);
         Residue refRes = (Residue) refList.get(i);
@@ -439,7 +444,7 @@ public class RnaIdealizer //extends ... implements ...
         for(Iterator iter = mobRes.getAtoms().iterator(); iter.hasNext(); )
         {
           Atom        a   = (Atom) iter.next();
-          AtomState   s1  = out.get(a);
+          AtomState   s1  = mob.get(a);
           //System.out.println(s1);
           AtomState   s2  = (AtomState) s1.clone();
           //out.add(s2);
