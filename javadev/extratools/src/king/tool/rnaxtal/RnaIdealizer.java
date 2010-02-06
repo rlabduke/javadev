@@ -262,7 +262,7 @@ public class RnaIdealizer //extends ... implements ...
         
         //System.out.println("orig\n"+origState.debugStates(10));
         // change all atomstates in original to ideal (since ideal don't have sidechains, this only does backbone)
-        ModelState idealOrigState = new ModelState();
+        ModelState idealOrigState = new ModelState(origState);
         for (int i = 0; i < idealResidues.size(); i++) {
           Residue ideal = (Residue)idealResidues.get(i);
           Residue orig = (Residue)origResidues.get(i);
@@ -271,8 +271,8 @@ public class RnaIdealizer //extends ... implements ...
             Atom origAt = (Atom) origAtoms.next();
             if (isBackboneAtom(origAt)) {
             Atom idealAt = ideal.getAtom(origAt.getName());
-            System.out.println("orig  "+origAt);
-            System.out.println("ideal "+idealAt);
+            //System.out.println("orig  "+origAt);
+            //System.out.println("ideal "+idealAt);
             //if (idealAt != null) { // since ideal residues don't have base atoms
               AtomState idealAtSt = dockedIdealState.get(idealAt);
               AtomState origAtSt = origState.get(origAt);
