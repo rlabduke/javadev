@@ -12,14 +12,14 @@ import driftwood.util.*;
 import chiropraxis.mc.*;
 //}}}
 /**
-* <code>CaspRotCor2</code> specializes <code>RotCor</code> for CASP assessment:
+* <code>CaspRotCor</code> specializes <code>RotCor</code> for CASP assessment:
 * it requires standard CASP file nomenclature and automatically combines 
 * model "segments" into complete models.
 * 
 * <p>Begun on Fri Jan 15 2010
 * <p>Copyright (C) 2010 by Daniel Keedy. All rights reserved.
 */
-public class CaspRotCor2 extends RotCor
+public class CaspRotCor extends RotCor
 {
 //{{{ Constants
 //}}}
@@ -31,7 +31,7 @@ public class CaspRotCor2 extends RotCor
 
 //{{{ Constructor(s)
 //##############################################################################
-    public CaspRotCor2()
+    public CaspRotCor()
     {
         super();
     }
@@ -116,7 +116,7 @@ public class CaspRotCor2 extends RotCor
 //{{{ assessModels
 //##############################################################################
     /**
-    * Performs rotcor assessment for all models individually against the target.
+    * Performs <i>rotcor</i> assessment for all models individually against the target.
     * Overrides parent RotCor method!
     */
     public void assessModels()
@@ -132,7 +132,9 @@ public class CaspRotCor2 extends RotCor
         for(int i = 0; i < listing.length; i++) mdlFilenames.add(listing[i]);
         Collections.sort(mdlFilenames);
         
-        System.out.println("Target:TargetCount:TSorAL:Group:Model:SegmentsUsed:TargetRotamers:ModelRotamers:RotCor");
+        if(mode == RESIDUE) System.err.println("Ignoring -residue mode: supported by RotCor, not CaspRotCor");
+        
+        System.out.println("Target:TargetCount:TSorAL:Group:Model:SegmentsUsed:TargetRotamers:ModelRotamers:Matches:RotCor");
         
         // Keep track of segments we've combined into full models so we don't duplicate any.
         TreeSet<String> pastSegs = new TreeSet<String>();
@@ -177,14 +179,17 @@ public class CaspRotCor2 extends RotCor
 //{{{ assessSegsModel
 //##############################################################################
     /**
-    * Performs entire rotcor assessment for one set of CASP segments - 
+    * Performs entire <i>rotcor</i> assessment for one set of CASP segments - 
     * together comprising a full model - against the target.
     */
     public void assessSegsModel(TreeSet<String> segs)
     {
+        Rotalyze rotalyze = new Rotalyze();
         String repSeg = (String) segs.iterator().next(); // just to get target/model/groupID
         int mdlNumRotsSum = 0;
-        double rotcorSum = 0.0;
+        int trgNumRotsSum = 0;
+        int matchesSum    = 0;
+        double rotcorSum  = 0.0;
         for(Iterator sItr = segs.iterator(); sItr.hasNext(); )
         {
             String mdlFilename = (String) sItr.next();
@@ -194,20 +199,23 @@ public class CaspRotCor2 extends RotCor
                 if(mdl == null) continue;
                 
                 // Get rotamer names, then index by target residue
-                HashMap<Residue,String> tmpRotNames = rotalyze.getRotNames(mdl);
+                HashMap<Residue,String> tmpRotNames = rotalyze.getNames(mdl);
                 HashMap<Residue,String> mdlRotNames = alignModel(mdl, tmpRotNames);
                 
-                mdlNumRotsSum += mdlRotNames.keySet().size();
-                if(verbose) System.err.print("rotcor "+df.format(rotcorSum));
-                rotcorSum += calcRotCor(mdlRotNames);
-                if(verbose) System.err.println(" -> "+df.format(rotcorSum));
+                int[] tallies = tallyRotamers(mdlRotNames);
+                mdlNumRotsSum += tallies[1];
+                trgNumRotsSum += tallies[0];
+                matchesSum    += tallies[2];
+                rotcorSum     += (double) tallies[2] / (double) tallies[0];
+                if(verbose) System.err.println("new rotcor: "+df.format(rotcorSum));
             }
             catch(IOException ex)
             { System.err.println("Error reading file: "+mdlFilename); }
         }
         
         numSegs = segs.size();
-        outputModel(repSeg, mdlNumRotsSum, rotcorSum);
+        int[] tallySums = new int[] {trgNumRotsSum, mdlNumRotsSum, matchesSum};
+        outputModel(repSeg, tallySums, rotcorSum);
         numSegs = 0;
     }
 //}}}
@@ -215,12 +223,12 @@ public class CaspRotCor2 extends RotCor
 //{{{ outputModel
 //##############################################################################
     /**
-    * Outputs rotcor for a full model: already full or combined from segments.
-    * Overrides parent RotCor method!
+    * Outputs <i>rotcor</i> for a full model: already full or combined from segments.
+    * Overrides parent method in <code>RotCor</code>!
     */
-    public void outputModel(String mdlFilename, int mdlNumRots, double rotcor)
+    public void outputModel(String mdlFilename, int[] tallies, double rotcor)
     {
-        // Target TargetCount TSorAL Group Model SegmentsUsed TargetRotamers ModelRotamers RotCor
+        // Target TargetCount TSorAL Group Model SegmentsUsed TargetRotamers ModelRotamers Matches RotCor
         
         System.out.println(
             trgName+":"+
@@ -229,8 +237,9 @@ public class CaspRotCor2 extends RotCor
             getGroupID(mdlFilename)+":"+
             getModelID(mdlFilename)+":"+
             numSegs+":"+
-            trgRotNames.keySet().size()+":"+
-            mdlNumRots+":"+
+            tallies[0]+":"+
+            tallies[1]+":"+
+            tallies[2]+":"+
             df.format(rotcor)
         );
     }
@@ -240,7 +249,7 @@ public class CaspRotCor2 extends RotCor
 //##############################################################################
     public static void main(String[] args)
     {
-        CaspRotCor2 mainprog = new CaspRotCor2();
+        CaspRotCor mainprog = new CaspRotCor();
         try
         {
             mainprog.parseArguments(args);
@@ -312,16 +321,16 @@ public class CaspRotCor2 extends RotCor
     {
         if(showAll)
         {
-            InputStream is = getClass().getResourceAsStream("CaspRotCor2.help");
+            InputStream is = getClass().getResourceAsStream("CaspRotCor.help");
             if(is == null)
-                System.err.println("\n*** Unable to locate help information in 'CaspRotCor2.help' ***\n");
+                System.err.println("\n*** Unable to locate help information in 'CaspRotCor.help' ***\n");
             else
             {
                 try { streamcopy(is, System.err); }
                 catch(IOException ex) { ex.printStackTrace(); }
             }
         }
-        System.err.println("chiropraxis.rotarama.CaspRotCor2 version "+getVersion()+" build "+getBuild());
+        System.err.println("chiropraxis.rotarama.CaspRotCor version "+getVersion()+" build "+getBuild());
         System.err.println("Copyright (C) 2010 by Daniel Keedy. All rights reserved.");
     }
 

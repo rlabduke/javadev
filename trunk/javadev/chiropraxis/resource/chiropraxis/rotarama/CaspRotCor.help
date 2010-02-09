@@ -1,8 +1,8 @@
 
 ABOUT
-  RotCor is an implementation of the 'corRot' score from the Richardson Lab's 
-  assessment of templated-based models (TBM) at CASP8.  We now prefer 'rotcor' 
-  to 'corRot'.
+  CaspRotCor is an implementation of the 'corRot' score from the Richardson 
+  Lab's assessment of templated-based models (TBM) at CASP8.  We now prefer 
+  'rotcor' to 'corRot'.
   
   It compares a directory of one or more predicted models to a potentially 
   multi-model target using rotamer names derived from quality-filtered, 
@@ -15,30 +15,33 @@ ABOUT
   
   OUTLIER indicates that the sidechain conformation falls outside the valid 
   range of our rotamer distribution.
-
-USAGE:   rotcor [mode] modelsdir targetfile   (results sent to standard output)
-    
-ROTCOR is "java -cp chiropraxis.jar chiropraxis.rotarama.RotCor".
-
-MODE can be either of the following:
-
-  -Model    Default one-line analysis including number of residues and models
-            considered and primary 'rotcor' score.
   
-  -Residue  Per-residue analysis including target rotamer, number of model 
-            rotamers, and fraction match.
+  For CASP8 assessment we combined scores for predicted "segments" by simple
+  addition, like so: rotcor _1_1 + rotcor _1_2 = rotcor _1.  This program 
+  automatically performs such combinations if applicable files are found in the 
+  input directory.
+
+USAGE:    casprotcor modelsdir targetfile    (results sent to standard output)
+    
+CASPROTCOR is "java -cp chiropraxis.jar chiropraxis.rotarama.CaspRotCor"
     
 TARGETFILE is a PDB file for the target structure.  If more than one MODEL card
 is included in this file (e.g. for NMR structures), the consensus target rotamer
 at each position is used. 
 
 MODELSDIR is a directory containing one or more predicted model PDB files.  
-These may include NMR-style files containing multiple predicted models separated
-by MODEL cards.
+These may be NMR-style files containing multiple predicted models separated by 
+MODEL cards.
 
-OUTPUT DETAILS - MODEL
+OUTPUT DETAILS
+  Target          target ID
   TargetCount     number of PDB-style models used to define target rotamer names
                     (usually 1 for X-ray, more for NMR)
+  TSorAL          standard CASP TS/AL designation
+  Group           standard CASP predictor group ID
+  Model           first 2 characters of standard CASP model ID (no segment ID)
+  SegmentsUsed    number of "segments" (identical target, group, & model IDs
+                    but different segment IDs) combined for final score
   TargetRotamers  number of valid rotamers in target: number of residues sans 
                     Gly, Ala, OUTLIER, or NO_CONSENSUS
   ModelRotamers   number of valid rotamers in model: number of residues sans 
@@ -46,13 +49,4 @@ OUTPUT DETAILS - MODEL
   Matches         number of model rotamer names that match target rotamer name
                     (across TargetRotamers)
   RotCor          Matches / TargetRotamers: "does model match whole target?"
-
-OUTPUT DETAILS - RESIDUE
-  TargetRotamer  reflects consensus if target file contained >1 models or simple
-                   rotamer name otherwise; may be OUTLIER or NO_CONSENSUS, but 
-                   if so will be ignored for matching
-  ModelCount     number of valid rotamers across set of models that aligned to 
-                   this residue position
-  FracMatch      fraction of model rotamer names that match target rotamer name
-                   *at this residue position*
 

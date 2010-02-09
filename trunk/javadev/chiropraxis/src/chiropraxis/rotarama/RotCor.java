@@ -33,8 +33,6 @@ public class RotCor //extends ... implements ...
     
     Object   mode = MODEL;
     
-    Rotalyze rotalyze;
-    
     String   trgFilename; // PDB file
     String   mdlsDirname; // directory
     String   homsDirname; // directory
@@ -44,7 +42,6 @@ public class RotCor //extends ... implements ...
     int      trgCount;
     
     HashMap<Residue,String[]>  trgsRotNames; // only used if multiple target MODELs found
-    HashMap<Residue,Double>    trgRotFracs;  // fraction of target rotnames that match consensus target rotname (if applicable)
     HashMap<Residue,String>    trgRotNames;  // (reflects consensus if multiple target MODELs found)
     
     HashMap<Residue,String[]>  mdlsRotNames; // only used in RESIDUE mode
@@ -55,7 +52,6 @@ public class RotCor //extends ... implements ...
     public RotCor()
     {
         super();
-        rotalyze = new Rotalyze();
     }
 //}}}
 
@@ -84,7 +80,20 @@ public class RotCor //extends ... implements ...
             if(trgCount == 1)
             {
                 // Single target MODEL -- makes things simple
-                trgRotNames = rotalyze.getRotNames(trg);
+                trgRotNames = rotalyze.getNames(trg);
+                
+                // But still check that we're not using just one MODEL 
+                // of what should really be a multi-MODEL target
+                for(Iterator hItr = trgCoords.getHeaders().iterator(); hItr.hasNext(); )
+                {
+                    String header = (String) hItr.next();
+                    if(header.indexOf("REMARK") != -1 && header.indexOf(" - MODEL ") != -1)
+                    {
+                        // "REMARK   T0474 - MODEL 20"  (from CASP8)
+                        System.err.println("Warning! Header suggests target may"
+                            +" actually be multi-model: \""+header+"\"");
+                    }
+                }
             }
             else
             {
@@ -94,9 +103,9 @@ public class RotCor //extends ... implements ...
                 trgsRotNames = new HashMap<Residue,String[]>();
                 for(Iterator mItr = trgCoords.getModels().iterator(); mItr.hasNext(); )
                 {
-                    Model trg = (Model) mItr.next();
-                    trgRotNames = rotalyze.getRotNames(trg); // temporary storage
-                    alignTarget(trg, trgRotNames);
+                    Model currTrg = (Model) mItr.next();
+                    trgRotNames = rotalyze.getNames(currTrg); // temporary storage
+                    storeTarget(currTrg, trgRotNames);
                 }
                 conductTargetConsensus();
             }
@@ -106,43 +115,28 @@ public class RotCor //extends ... implements ...
     }
 //}}}
 
-//{{{ alignTarget
+//{{{ storeTarget
 //##############################################################################
     /**
     * Stores each target rotamer from one MODEL of a multi-MODEL target PDB.
     */
-    public void alignTarget(Model trg, HashMap<Residue,String> trgRotNames)
+    public void storeTarget(Model currTrg, HashMap<Residue,String> trgRotNames)
     {
-        // Align target MODEL onto target by sequence.
-        // We have to do this instead of iterating through the Residues of 'trg'
-        // because Residues from different Models are treated as different by 
-        // driftwood, even if they're from different instances/models of the same
-        // protein (as in this case).
-        Alignment align = Alignment.alignChains(
-            SubImpose.getChains(trg), SubImpose.getChains(trg), 
-            new Alignment.NeedlemanWunsch(), new SubImpose.SimpleResAligner());
-        if(verbose)
+        for(Iterator iter1 = trgRotNames.keySet().iterator(); iter1.hasNext(); )
         {
-            System.err.println("Target MODEL <==> target residue alignments:");
-            for(int i = 0; i < align.a.length; i++)
-                System.err.println("  "+align.a[i]+" <==> "+align.b[i]);
-            System.err.println();
-        }
-        for(Iterator rItr = trgRotNames.keySet().iterator(); rItr.hasNext(); )
-        {
-            // Target MODEL rotamer we wanna store
-            Residue res     = (Residue) rItr.next();
-            String  trgRotName = trgRotNames.get(res);
+            // Rotamer we wanna store from current target MODEL
+            Residue res = (Residue) iter1.next();
+            String  rot = trgRotNames.get(res);
             
-            // Find its corresponding target residue
+            // Find corresponding residue from target MODEL 1
             Residue trgRes = null;
-            for(int i = 0; i < align.a.length; i++)
+            for(Iterator iter2 = trg.getResidues().iterator(); iter2.hasNext(); )
             {
-                Residue mRes = (Residue) align.a[i];
-                Residue tRes = (Residue) align.b[i];
-                if(mRes != null && mRes.getCNIT().equals(res.getCNIT()))  trgRes = tRes;
+                Residue tRes = (Residue) iter2.next();
+                if(tRes != null && tRes.getCNIT().equals(res.getCNIT()))
+                    trgRes = tRes;
             }
-            if(trgRes == null) continue; // target MODEL has extra non-target tail or something
+            if(trgRes == null) continue; // current target MODEL has extra tail or something
             
             // Add it to the arrays for this target residue
             String[] trgRotNamesOld = trgsRotNames.get(trgRes);
@@ -153,7 +147,7 @@ public class RotCor //extends ... implements ...
                 for(int i = 0; i < trgRotNamesOld.length; i++) trgRotNamesNew[i] = trgRotNamesOld[i];
             }
             else trgRotNamesNew = new String[1]; // "new" target residue
-            trgRotNamesNew[trgRotNamesNew.length-1] = trgRotName; // add
+            trgRotNamesNew[trgRotNamesNew.length-1] = rot; // add
             trgsRotNames.put(trgRes, trgRotNamesNew); // re-store
         }
     }
@@ -168,7 +162,6 @@ public class RotCor //extends ... implements ...
     public void conductTargetConsensus()
     {
         trgRotNames = new HashMap<Residue,String>();
-        trgRotFracs = new HashMap<Residue,Double>();
         for(Iterator rItr = trgsRotNames.keySet().iterator(); rItr.hasNext(); )
         {
             Residue trgRes = (Residue) rItr.next();
@@ -181,7 +174,6 @@ public class RotCor //extends ... implements ...
                 trgRotNames.put(trgRes, modalRotName);
             else
                 trgRotNames.put(trgRes, this.NO_CONSENSUS_ROTNAME);
-            trgRotFracs.put(trgRes, modalRotFrac); // regardless of whether we reached consensus or not
         }
     }
 //}}}
@@ -190,7 +182,7 @@ public class RotCor //extends ... implements ...
 //##############################################################################
     public boolean isConsensus(String aaName, double frac)
     {
-        final String aa1chi  = "CYS SER THR VAL";
+        final String aa1chi  = "CYS SER THR VAL PRO";
         final String aa2chis = "ASN ASP HIS ILE LEU PHE TRP TYR";
         final String aa3chis = "GLN GLU MET";
         final String aa4chis = "ARG LYS";
@@ -316,13 +308,13 @@ public class RotCor //extends ... implements ...
         Alignment align = Alignment.alignChains(
             SubImpose.getChains(mdl), SubImpose.getChains(trg), 
             new Alignment.NeedlemanWunsch(), new SubImpose.SimpleResAligner());
-        if(verbose)
-        {
-            System.err.println("Model <==> Target:");
-            for(int i = 0; i < align.a.length; i++)
-                System.err.println("  "+align.a[i]+" <==> "+align.b[i]);
-            System.err.println();
-        }
+        //if(verbose)
+        //{
+        //    System.err.println("Model <==> Target:");
+        //    for(int i = 0; i < align.a.length; i++)
+        //        System.err.println("  "+align.a[i]+" <==> "+align.b[i]);
+        //    System.err.println();
+        //}
         
         // Assign each model rotamer to a target residue
         HashMap<Residue,String> trg_to_mdl = new HashMap<Residue,String>();
@@ -348,33 +340,38 @@ public class RotCor //extends ... implements ...
     }
 //}}}
 
-//{{{ calcRotCor
+//{{{ tallyRotamers
 //##############################################################################
-    /**
-    * Calculates main 'rotcor' score: fraction of rotamers in entire target 
-    * that are matched by the corresponding model rotamer.
-    */
-    public double calcRotCor(HashMap<Residue,String> mdlRotNames)
+    public int[] tallyRotamers(HashMap<Residue,String> mdlRotNames)
     {
-        int tally   = 0;
-        int matches = 0;
+        int trgResTally = 0;
+        int mdlResTally = 0;
+        int matchTally = 0;
         
+        ArrayList<Residue> trgResidues = new ArrayList<Residue>();
         for(Iterator rItr = trgRotNames.keySet().iterator(); rItr.hasNext(); )
         {
             Residue trgRes = (Residue) rItr.next();
+            trgResidues.add(trgRes);
+        }
+        Collections.sort(trgResidues);
+        for(int i = 0; i < trgResidues.size(); i++)
+        {
+            Residue trgRes = trgResidues.get(i);
             String trgRotName = trgRotNames.get(trgRes);
             String mdlRotName = mdlRotNames.get(trgRes);
-            if(trgRotName != null && !trgRotName.equals("OUTLIER"))
+            if(trgRotName != null && !trgRotName.equals("OUTLIER") && !trgRotName.equals(this.NO_CONSENSUS_ROTNAME))
             {
-                tally++;
-                if(mdlRotName != null && mdlRotName.equals(trgRotName))
-                {
-                    matches++;
-                }
+                trgResTally++;
+                if(mdlRotName != null) mdlResTally++;
+                boolean match = (mdlRotName != null && mdlRotName.equals(trgRotName));
+                if(match) matchTally++;
+                if(verbose) System.err.println(trgRes+": "
+                    +(match?"":"(")+trgRotName+" "+(match?"=":"!=")+" "+mdlRotName+(match?"":")"));
             }
         }
         
-        return (1.0*matches) / (1.0*tally);
+        return new int[] {trgResTally, mdlResTally, matchTally};
     }
 //}}}
 
@@ -396,9 +393,11 @@ public class RotCor //extends ... implements ...
         for(int i = 0; i < listing.length; i++) mdlFilenames.add(listing[i]);
         Collections.sort(mdlFilenames);
         
+        System.err.println("... "+mode);
+        
         if(mode == MODEL)
         {
-            System.out.println("Target:Model:TargetCount:TargetRotamers:ModelRotamers:RotCor");
+            System.out.println("Target:Model:TargetCount:TargetRotamers:ModelRotamers:Matches:RotCor");
             
             // Rotalyze models one at a time
             for(int i = 0; i < mdlFilenames.size(); i++)
@@ -450,11 +449,13 @@ public class RotCor //extends ... implements ...
             
             // Get rotamer names, then index by target residue
             Rotalyze rotalyze = new Rotalyze();
-            HashMap<Residue,String> tmpRotNames = rotalyze.getRotNames(mdl);
+            HashMap<Residue,String> tmpRotNames = rotalyze.getNames(mdl);
             HashMap<Residue,String> mdlRotNames = alignModel(mdl, tmpRotNames);
-            double rotcor = calcRotCor(mdlRotNames);
             
-            outputModel(mdlFilename, mdlRotNames.keySet().size(), rotcor);
+            int[] tallies = tallyRotamers(mdlRotNames);
+            double rotcor = (double) tallies[2] / (double) tallies[0];
+            
+            outputModel(mdlFilename, tallies, rotcor);
         }
         catch(IOException ex)
         { System.err.println("Error reading file: "+mdlFilename); }
@@ -464,18 +465,19 @@ public class RotCor //extends ... implements ...
 //{{{ outputModel
 //##############################################################################
     /**
-    * Outputs rotcor for a single model.
+    * Output for a single model.
     */
-    public void outputModel(String mdlFilename, int mdlNumRots, double rotcor)
+    public void outputModel(String mdlFilename, int[] tallies, double rotcor)
     {
-        // Target Model TargetCount TargetRotamers ModelRotamers RotCor
+        // Target Model TargetCount TargetRotamers ModelRotamers Matches RotCor
         
         System.out.println(
             trgName+":"+
             mdlFilename+":"+
             trgCount+":"+
-            trgRotNames.keySet().size()+":"+
-            mdlNumRots+":"+
+            tallies[0]+":"+
+            tallies[1]+":"+
+            tallies[2]+":"+
             df.format(rotcor)
         );
     }
@@ -492,13 +494,14 @@ public class RotCor //extends ... implements ...
         File mdlFile = new File(mdlsDirname+"/"+mdlFilename);
         if(mdlFile.isDirectory()) return; // skip nested directories
         if(verbose) System.err.println("Rotalyzing "+mdlFile);
+        Rotalyze rotalyze = new Rotalyze();
         try
         {
             CoordinateFile mdlCoords = new PdbReader().read(mdlFile);
             for(Iterator mItr = mdlCoords.getModels().iterator(); mItr.hasNext(); )
             {
                 Model mdl = (Model) mItr.next();
-                HashMap<Residue,String> mdlRotNames = rotalyze.getRotNames(mdl);
+                HashMap<Residue,String> mdlRotNames = rotalyze.getNames(mdl);
                 storeModelRotamers(mdl, mdlRotNames);
             }
         }
@@ -516,13 +519,13 @@ public class RotCor //extends ... implements ...
         Alignment align = Alignment.alignChains(
             SubImpose.getChains(mdl), SubImpose.getChains(trg), 
             new Alignment.NeedlemanWunsch(), new SubImpose.SimpleResAligner());
-        if(verbose)
-        {
-            System.err.println("Model <==> target residue alignments:");
-            for(int i = 0; i < align.a.length; i++)
-                System.err.println("  "+align.a[i]+" <==> "+align.b[i]);
-            System.err.println();
-        }
+        //if(verbose)
+        //{
+        //    System.err.println("Model <==> target residue alignments:");
+        //    for(int i = 0; i < align.a.length; i++)
+        //        System.err.println("  "+align.a[i]+" <==> "+align.b[i]);
+        //    System.err.println();
+        //}
         for(Iterator rItr = mdlRotNames.keySet().iterator(); rItr.hasNext(); )
         {
             // Model rotamer we wanna store
@@ -578,7 +581,8 @@ public class RotCor //extends ... implements ...
             for(String mdlRotName : mdlRotNames)
             {
                 if(mdlRotName.equals(trgRotName)
-                && !trgRotName.equals("OUTLIER"))  matches++;
+                && !trgRotName.equals("OUTLIER")
+                && !trgRotName.equals(this.NO_CONSENSUS_ROTNAME))  matches++;
                 tally++;
             }
             fracMatch = (1.0*matches)/(1.0*tally);
