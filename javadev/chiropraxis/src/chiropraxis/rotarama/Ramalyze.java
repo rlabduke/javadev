@@ -237,14 +237,14 @@ public class Ramalyze //extends ... implements ...
             try { out.flush(); }
             catch(IOException ex) {} // PdfWriter might have already closed it!
         }
-        else if(mode == MODE_RAW) // added by DAK 07/08/24
+        else if(mode == MODE_RAW) // added by DAK 070824
         {
             // Print RamaEval.numscores separated by colons
             int i = 0;
-            for (Iterator iter = analyses.keySet().iterator(); iter.hasNext(); i++) // each model
+            for(Iterator iter = analyses.keySet().iterator(); iter.hasNext(); i++) // each model
             {
                 Collection analysis = (Collection) iter.next();
-                for (Iterator iter2 = analysis.iterator(); iter2.hasNext(); ) // each residue
+                for(Iterator iter2 = analysis.iterator(); iter2.hasNext(); ) // each residue
                 {
                     RamaEval eval = (RamaEval) iter2.next();
                     System.out.println(eval.name+":"+df.format(100*eval.numscore)+":"+
@@ -258,7 +258,26 @@ public class Ramalyze //extends ... implements ...
     }
 //}}}
 
-///{{{ Main, main
+//{{{ getEvals
+//##############################################################################
+    
+    // Useful method for outside classes that want to use 
+    // Ramachandran scores for other purposes. -DK 100202
+    
+    public HashMap<Residue,Double> getEvals(Model model) throws IOException
+    {
+        Collection analysis = analyzeModel(model, model.getStates().values());
+        HashMap<Residue,Double> evals = new HashMap<Residue,Double>();
+        for(Iterator iter = analysis.iterator(); iter.hasNext(); )
+        {
+            RamaEval r = (RamaEval) iter.next();
+            evals.put(r.res, (double) r.numscore);
+        }
+        return evals;
+    }
+//}}}
+
+//{{{ Main, main
 //##############################################################################
     /**
     * Main() function for running as an application

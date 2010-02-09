@@ -103,13 +103,13 @@ public class Rotalyze //extends ... implements ...
     }
 //}}}
 
-//{{{ getRotNames, getRotEvals
+//{{{ getNames, getEvals
 //##############################################################################
     
     // Useful methods for outside classes that want to use 
     // rotamer names and evaluations for other purposes. -DK
     
-    public HashMap<Residue,String> getRotNames(Model model) throws IOException
+    public HashMap<Residue,String> getNames(Model model) throws IOException
     {
         HashMap<Residue,String> rotnames = new HashMap<Residue,String>();
         
@@ -135,7 +135,7 @@ public class Rotalyze //extends ... implements ...
         return rotnames;
     }
 
-    public HashMap<Residue,Double> getRotEvals(Model model) throws IOException
+    public HashMap<Residue,Double> getEvals(Model model) throws IOException
     {
         HashMap<Residue,Double> evals = new HashMap<Residue,Double>();
         
