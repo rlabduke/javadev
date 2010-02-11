@@ -10,8 +10,8 @@ import driftwood.moldb2.*;
 //}}}
 /**
 * <code>NeighborGreeter</code> is a simple class that uses driftwood.moldb2
-* to output each residue's neighbor in each direction for later use in MySQL
-* (e.g. for the Top5200).  Very simple, but potentially very useful!
+* to output each protein residue's neighbor in each direction for later use 
+* in MySQL (e.g. for the Top5200).  Very simple, but potentially very useful!
 * 
 * <p>Begun on Wed Feb 10 2010
 * <p>Copyright (C) 2010 by Daniel Keedy. All rights reserved.
@@ -60,13 +60,13 @@ public class NeighborGreeter //extends ... implements ...
             Residue resPrev = resCurr.getPrev(model);
             Residue resNext = resCurr.getNext(model);
             
-            String rc = (resCurr == null ? "NULL,NULL,NULL,NULL" : 
+            String rc = ((resCurr == null || !AminoAcid.isAminoAcid(resCurr.getName())) ? "NULL,NULL,NULL,NULL" : 
                 resCurr.getChain().trim()+","+resCurr.getSequenceNumber().trim()+","+
                 resCurr.getInsertionCode().trim()+","+resCurr.getName()); 
-            String rp = (resPrev == null ? "NULL,NULL,NULL,NULL" : 
+            String rp = ((resPrev == null || !AminoAcid.isAminoAcid(resPrev.getName())) ? "NULL,NULL,NULL,NULL" : 
                 resPrev.getChain().trim()+","+resPrev.getSequenceNumber().trim()+","+
                 resPrev.getInsertionCode().trim()+","+resPrev.getName());
-            String rn = (resNext == null ? "NULL,NULL,NULL,NULL" : 
+            String rn = ((resNext == null || !AminoAcid.isAminoAcid(resNext.getName())) ? "NULL,NULL,NULL,NULL" : 
                 resNext.getChain().trim()+","+resNext.getSequenceNumber().trim()+","+
                 resNext.getInsertionCode().trim()+","+resNext.getName());
             
