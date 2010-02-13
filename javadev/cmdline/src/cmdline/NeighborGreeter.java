@@ -9,9 +9,8 @@ import java.util.*;
 import driftwood.moldb2.*;
 //}}}
 /**
-* <code>NeighborGreeter</code> is a simple class that uses driftwood.moldb2
-* to output each protein residue's neighbor in each direction for later use 
-* in MySQL (e.g. for the Top5200).  Very simple, but potentially very useful!
+* <code>NeighborGreeter</code> finds each residue's neighbor in each direction.
+* It uses driftwood.moldb2 plus N(i)--C(i-1) and C(i)--N(i+1) distance checks.
 * 
 * <p>Begun on Wed Feb 10 2010
 * <p>Copyright (C) 2010 by Daniel Keedy. All rights reserved.
@@ -34,6 +33,33 @@ public class NeighborGreeter //extends ... implements ...
     }
 //}}}
 
+//{{{ peptideBond
+//##############################################################################
+    /**
+    * Assuming resN and resC exist (i.e. are not null), returns true if they 
+    * are connected by a normal covalent peptide bond (i.e. C-N < 1.4A).
+    */
+    public boolean peptideBond(Residue resN, Residue resC, Model model)
+    {
+        if(resN == null || resC == null) return false;
+        
+        try
+        {
+            ModelState state = model.getState();
+            
+            AtomState nwardC = state.get(resN.getAtom(" C  ")); // 1st in seq
+            AtomState cwardN = state.get(resC.getAtom(" N  ")); // 2nd in seq
+            double dist = nwardC.distance(cwardN);
+            
+            if(dist < 1.4) return true;
+        }
+        catch(AtomException ex)
+        { System.err.println("Can't complete distance check(s) for "+resN+" to "+resC+"!"); }
+        
+        return false; // if can't find the atoms, best to assume chain break or something
+    }
+//}}}
+
 //{{{ Main, main
 //##############################################################################
     /**
@@ -51,7 +77,8 @@ public class NeighborGreeter //extends ... implements ...
         ArrayList<Residue> residues = new ArrayList<Residue>();
         for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
         {
-            residues.add( (Residue) iter.next() );
+            Residue r = (Residue) iter.next();
+            if(r != null) residues.add(r);
         }
         Collections.sort(residues);
         for(int i = 0; i < residues.size(); i++)
@@ -60,13 +87,23 @@ public class NeighborGreeter //extends ... implements ...
             Residue resPrev = resCurr.getPrev(model);
             Residue resNext = resCurr.getNext(model);
             
-            String rc = ((resCurr == null || !AminoAcid.isAminoAcid(resCurr.getName())) ? "NULL,NULL,NULL,NULL" : 
+            if(!AminoAcid.isAminoAcid(resCurr.getName())) continue;
+            
+            // Mark residues as null if they aren't amino acids with normal covalent connections
+            if(resPrev != null)
+                if(!AminoAcid.isAminoAcid(resPrev.getName()) || !peptideBond(resPrev, resCurr, model))
+                    resPrev = null;
+            if(resNext != null)
+                if(!AminoAcid.isAminoAcid(resNext.getName()) || !peptideBond(resCurr, resNext, model))
+                    resNext = null;
+            
+            String rc = (resCurr == null ? "NULL,NULL,NULL,NULL" : 
                 resCurr.getChain().trim()+","+resCurr.getSequenceNumber().trim()+","+
                 resCurr.getInsertionCode().trim()+","+resCurr.getName()); 
-            String rp = ((resPrev == null || !AminoAcid.isAminoAcid(resPrev.getName())) ? "NULL,NULL,NULL,NULL" : 
+            String rp = (resPrev == null ? "NULL,NULL,NULL,NULL" : 
                 resPrev.getChain().trim()+","+resPrev.getSequenceNumber().trim()+","+
                 resPrev.getInsertionCode().trim()+","+resPrev.getName());
-            String rn = ((resNext == null || !AminoAcid.isAminoAcid(resNext.getName())) ? "NULL,NULL,NULL,NULL" : 
+            String rn = (resNext == null ? "NULL,NULL,NULL,NULL" : 
                 resNext.getChain().trim()+","+resNext.getSequenceNumber().trim()+","+
                 resNext.getInsertionCode().trim()+","+resNext.getName());
             
