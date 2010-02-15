@@ -41,7 +41,7 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
     SidechainIdealizer  scIdealizer     = null;
     SidechainsLtoD      scFlipper       = null;
     
-    Window             dialog;
+    Window              dialog;
     JCheckBox           cbIdealize;
     JCheckBox           useDaa;
     JList               rotamerList;
@@ -209,8 +209,22 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
         stateChanged(null);
     }
     
-    public void onDaminoAcid(ActionEvent ev) {
-      stateChanged(null);
+    public void onDaminoAcid(ActionEvent ev)
+    {
+        Object[] options = {"Absolutely", "No, that's unnatural"};
+        int reply = JOptionPane.showOptionDialog(dialog, 
+            "Are you sure you want to change the\nchirality (L vs. D) of this residue?",
+            "Change chirality?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+            null, options, options[1]);
+        
+        if(reply == JOptionPane.YES_OPTION)
+        {
+            stateChanged(null);
+        }
+        else //  == JOptionPane.NO_OPTION
+        {
+            useDaa.setSelected(!useDaa.isSelected()); // cancel checkbox selection
+        }
     }
 //}}}
 
