@@ -105,12 +105,14 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         double[] angleVals = confAngles.measureAllAngles(targetRes1, targetRes2, modelman.getMoltenState());
         
         TablePane2 leftDials = new TablePane2();
-        TablePane2 centDials = new TablePane2();
+        TablePane2 centDials0 = new TablePane2();
+        TablePane2 centDials1 = new TablePane2();
         TablePane2 rightDials = new TablePane2();
         dials = new AngleDial[angleNames.length];
         for(int i = 0; i < angleNames.length; i++)
         {
-          TablePane2 dialPane = centDials;
+          TablePane2 dialPane = centDials1;
+          if (angleNames[i].indexOf("-1") > -1) dialPane = centDials0;
           if (angleNames[i].indexOf("chi") > -1) dialPane = leftDials;
           else if (angleNames[i].indexOf("delta") > -1) dialPane = rightDials;
           else {
@@ -124,6 +126,12 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
           dials[i] = new AngleDial();
           dials[i].setOrigDegrees(angleVals[i]);
           dials[i].setDegrees(angleVals[i]);
+          double[] bounds;
+          if (angleNames[i].indexOf("-1") > -1) bounds = confAngles.getBounds(angleNames[i].substring(0, angleNames[i].indexOf("-1")));
+          else bounds = confAngles.getBounds(angleNames[i]);
+          for (int j = 0; j < bounds.length; j+=2) {
+            dials[i].setBoundsDegrees(bounds[j], bounds[j+1]);
+          }
           dials[i].addChangeListener(this);
           dialPane.add(dials[i]);
           dialPane.newRow();
@@ -131,7 +139,8 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
           dialPane.newRow();
         }
         topDialPane.add(leftDials);
-        topDialPane.add(centDials);
+        topDialPane.add(centDials0);
+        topDialPane.add(centDials1);
         topDialPane.add(rightDials);
         
         // Top-level pane
@@ -401,7 +410,17 @@ private String makeOptionPane() {
             //modelman.requestStateRefresh();
             //doChangePucker = false;
           //}
-          initSomeAngles(conformer.getMeanValues(confName));
+          double[] meanVals = conformer.getMeanValues(confName);
+          for (int i = 0; i < meanVals.length; i++) {
+            //System.out.println(Double.isNaN(meanVals[i]));
+            if (Double.isNaN(meanVals[i])) {
+              dials[i].setPaintOrigAngle(false);
+              meanVals[i] = angleVals[i];
+            } else {
+              dials[i].setPaintOrigAngle(true);
+            }
+          }
+          initSomeAngles(meanVals);
           } catch (AtomException ae) {ae.printStackTrace(SoftLog.err);}
         }
         // else there is no current selection

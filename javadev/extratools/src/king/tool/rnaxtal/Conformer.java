@@ -145,8 +145,8 @@ public class Conformer //extends ... implements ...
     private void loadConformerData() throws IOException
     {
 //conformer file should have the following columns:
-//        |--------------------averages-------------------------|-----------------sigmas-----------------------|
-//bin,name,chi-1,delta-1,epsilon,zeta,alpha,beta,gamma,delta,chi,chi-1,del-1,epsil,zeta,alpha,beta,gam,delta,chi
+//        |--------------------averages----------------------------------------|-----------------sigmas---------------------------------------|
+//bin,name,chi-1,delta-1,beta-1,gamma-1,epsilon,zeta,alpha,beta,gamma,delta,chi,chi-1,del-1,beta-1,gamma-1,epsil,zeta,alpha,beta,gam,delta,chi
 //Note that some of the confs (especially wannabes) don't have chi data
       InputStream is = this.getClass().getResourceAsStream("rnaclusters070506.csv");
       if(is == null) throw new IOException("File not found in JAR: rnaclusters070506.csv");
@@ -158,10 +158,12 @@ public class Conformer //extends ... implements ...
           String[] split = Strings.explode(line, ',', true, false);
           String bin = split[0];
           String confName = split[1];
-          String[] avgs = new String[9];
-          String[] sigma = new String[9];
-          System.arraycopy(split, 2, avgs, 0, 9);
-          System.arraycopy(split, 11, sigma, 0, 9);
+          String[] avgs = new String[11];
+          String[] sigma = new String[11];
+          System.arraycopy(split, 2, avgs, 0, 11);
+          System.arraycopy(split, 13, sigma, 0, 11);
+          //System.out.println(Arrays.toString(avgs));
+          //System.out.println(Arrays.toString(sigma));
           double[] avgDoubles = Strings.arrayToDouble(avgs);
           double[] sigDoubles = Strings.arrayToDouble(sigma);
           NamedConf conf = new NamedConf(bin, confName, avgDoubles, sigDoubles);
