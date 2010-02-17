@@ -27,7 +27,7 @@ import javax.swing.event.*;
 * <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
 * <br>Begun on Thu May  1 15:18:30 EDT 2003
 */
-public class AngleDial extends JComponent implements MouseListener, MouseMotionListener //XXX-JAVA13//, MouseWheelListener
+public class AngleDial extends JComponent implements MouseListener, MouseMotionListener /*//XXX-JAVA13//*/, MouseWheelListener
 {
 //{{{ Constants
     static final Dimension      DIAL_DIM    = new Dimension(92,92);
@@ -42,6 +42,7 @@ public class AngleDial extends JComponent implements MouseListener, MouseMotionL
     static final Color          activeCurr  = new Color(0xFF6600);
     static final Color          foreColor   = new Color(0x000000);
     static final Color          offFore     = new Color(0x999999);
+    static final Color          boundsColor = new Color(0xafdaf6);
 //}}}
 
 //{{{ INTERFACE: Formatter
@@ -73,6 +74,7 @@ public class AngleDial extends JComponent implements MouseListener, MouseMotionL
     Ellipse2D.Double    ellipse2d   = new Ellipse2D.Double();
     BasicStroke         pen1        = new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
     BasicStroke         pen2        = new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+    BasicStroke         pen5        = new BasicStroke(5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
     Rectangle           plusBtn     = new Rectangle();
     Rectangle           minusBtn    = new Rectangle();
     
@@ -87,6 +89,9 @@ public class AngleDial extends JComponent implements MouseListener, MouseMotionL
     * NO ONE should modify these except set(Orig)Radians()!
     */
     double currAngleValue, origAngleValue;
+    
+    /** for tracking bound indicators on the dial */
+    HashMap<Double, Double> boundsMap = null;
     
     /** Number of mouse movement pixels equal to one full rotation */
     int mouseSensitivity = 3600; // one pixel == 0.1 degree
@@ -134,7 +139,8 @@ public class AngleDial extends JComponent implements MouseListener, MouseMotionL
         
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
-        //XXX-JAVA13//this.addMouseWheelListener(this);
+        //XXX-JAVA13
+        this.addMouseWheelListener(this);
         
         this.font = new Font("SansSerif", Font.PLAIN, 18);
     }
@@ -168,6 +174,24 @@ public class AngleDial extends JComponent implements MouseListener, MouseMotionL
         else                g.setColor(backColor);
         ellipse2d.setFrame(left, top, size, size);
         g2.fill(ellipse2d);
+        
+        // Paint the bounds??
+        if (boundsMap != null) {
+          g2.setStroke(pen5);
+          for (Double low : boundsMap.keySet()) {
+            Double high = boundsMap.get(low);
+            g.setColor(boundsColor);
+            //line2d.setLine(cx, cy,
+            //  cx+(int)(0.5*size*Math.cos(high.doubleValue())),
+            //  cy-(int)(0.5*size*Math.sin(high.doubleValue())));
+            //g2.draw(line2d);
+            //line2d.setLine(cx, cy,
+            //  cx+(int)(0.5*size*Math.cos(low.doubleValue())),
+            //  cy-(int)(0.5*size*Math.sin(low.doubleValue())));
+            //g2.draw(line2d);
+            g2.fill(new Arc2D.Double(left+3.5, top+3.5, size-5, size-5, Math.toDegrees(low.doubleValue()), Math.toDegrees(high.doubleValue()-low.doubleValue()), Arc2D.PIE));
+          }
+        }
         
         // Paint the old-value marker
         g2.setStroke(pen2);
@@ -324,12 +348,12 @@ public class AngleDial extends JComponent implements MouseListener, MouseMotionL
     public void mouseMoved(MouseEvent ev)
     {}
 
-    /* XXX-JAVA13 * /
+    ///* XXX-JAVA13 * /
     public void mouseWheelMoved(MouseWheelEvent ev)
     {
         setRadians(getRadians() - stepSize*ev.getWheelRotation());
     }
-    /* XXX-JAVA13 */
+    ///* XXX-JAVA13 */
 //}}}
 
 //{{{ add/removeChangeListener, fireStateChanged
@@ -400,6 +424,23 @@ public class AngleDial extends JComponent implements MouseListener, MouseMotionL
     public void setOrigDegrees(double v)
     { this.setOrigRadians(Math.toRadians(v)); }
 //}}}
+
+  //{{{ setBounds
+  public void setBoundsDegrees(double lowV, double highV) {
+    setBoundsRadians(Math.toRadians(lowV), Math.toRadians(highV));
+  }
+  
+  public void setBoundsRadians(double lowV, double highV) {
+    lowV = lowV % TWO_PI;
+    if(lowV < 0) lowV += TWO_PI;
+    highV = highV % TWO_PI;
+    if(highV < 0) highV += TWO_PI;
+    
+    if (boundsMap == null) boundsMap = new HashMap<Double, Double>();
+    boundsMap.put(new Double(lowV), new Double(highV));
+    fireStateChanged();
+  }
+  //}}}
 
 //{{{ get/set{Sensitivity, StepSize, PaintOrigAngle}
 //##################################################################################################

@@ -43,6 +43,7 @@ public class ConformerAngles //extends ... implements ...
     HashMap                 angleMap;
     HashMap                 adjacencyMap = null;
     HashMap                 mobileMap;
+    HashMap                 boundsMap;
     //SidechainAngles2        scAngles2;
     // Used for working calculations
     Transform rot = new Transform();
@@ -98,9 +99,11 @@ public class ConformerAngles //extends ... implements ...
         //String[] epsilon_1 = {" C4'", " C3'", " O3'", " P  "};
         //String[] zeta_1    = {" C3'", " O3'", " P  ", " O5'"};
         // these are backwards to reverse the rotation to go up the chain
+        String[] beta_1    = {" C4'", " C5'", " O5'", " P  "};
+        String[] gamma_1   = {" C3'", " C4'", " C5'", " O5'"};
         String[] delta_1   = {" O3'", " C3'", " C4'", " C5'"};
-        String[] epsilon_1 = {" P  ", " O3'", " C3'", " C4'"};
-        String[] zeta_1    = {" O5'", " P  ", " O3'", " C3'"};
+        String[] epsilon   = {" P  ", " O3'", " C3'", " C4'"};
+        String[] zeta      = {" O5'", " P  ", " O3'", " C3'"};
         
         String[] alpha     = {" O3'", " P  ", " O5'", " C5'"};
         String[] beta      = {" P  ", " O5'", " C5'", " C4'"};
@@ -112,25 +115,53 @@ public class ConformerAngles //extends ... implements ...
         angleMap.put("chi-c", chi_pyr);
         angleMap.put("chi-a", chi_pur);
         angleMap.put("chi-g", chi_pur);
+        angleMap.put("beta-1", beta_1);
+        angleMap.put("gamma-1", gamma_1);
         angleMap.put("delta-1", delta_1);
-        angleMap.put("epsilon-1", epsilon_1);
-        angleMap.put("zeta-1", zeta_1);
+        angleMap.put("epsilon", epsilon);
+        angleMap.put("zeta", zeta);
         angleMap.put("alpha", alpha);
         angleMap.put("beta", beta);
         angleMap.put("gamma", gamma);
         angleMap.put("delta", delta);
         
         adjacencyMap = null;
+        
+        double[] delta_bounds   = {70, 93, 136, 155};
+        double[] epsilon_bounds = {188, 273};
+        double[] zeta_bounds    = {48, 106, 155, 187, 206, 217, 230, 245, 250, 318};
+        double[] alpha_bounds   = {45, 87, 134, 188, 245, 323};
+        double[] beta_bounds    = {132, 235};
+        double[] gamma_bounds   = {30, 80, 157, 197};
+        double[] chi_bounds     = {170, 260};
+        
+        boundsMap = new HashMap();
+        boundsMap.put("chi", chi_bounds);
+        boundsMap.put("epsilon", epsilon_bounds);
+        boundsMap.put("zeta", zeta_bounds);
+        boundsMap.put("alpha", alpha_bounds);
+        boundsMap.put("beta", beta_bounds);
+        boundsMap.put("gamma", gamma_bounds);
+        boundsMap.put("delta", delta_bounds);
     }
 //}}}
 
   //{{{ getAngleNames
   public String[] getAngleNames() {
-    String[] names = {"chi-1", "delta-1", "epsilon-1", "zeta-1", "alpha", "beta", "gamma", "delta", "chi"};
+    String[] names = {"chi-1", "beta-1", "gamma-1", "delta-1", "epsilon", "zeta", "alpha", "beta", "gamma", "delta", "chi"};
     return names;
   }
   //}}}
   
+  //{{{ getBounds
+  public double[] getBounds(String name) {
+    if (boundsMap.containsKey(name)) {
+      return (double[])boundsMap.get(name);
+    }
+    return null;
+  }
+  //}}}
+
   //{{{ measureAllAngles
   public double[] measureAllAngles(Residue first, Residue sec, ModelState state) {
     return measureAllAngles(first, sec, state, false);
@@ -198,12 +229,13 @@ public class ConformerAngles //extends ... implements ...
     AtomState[] states = new AtomState[4];
     for (int i = 0; i < 4; i++) {
       String s = atomNames[i];
-      if (s.equals(" P  ")||(s.equals(" O5'"))) {
-        states[i] = state.get(res2.getAtom(s));
-      } else if (angleName.endsWith("-1")) {
+      //if (s.equals(" P  ")||(s.equals(" O5'"))) {
+      //  states[i] = state.get(res2.getAtom(s));
+      //} else if (angleName.endsWith("-1")) {
+      if (angleName.endsWith("-1")) {
         states[i] = state.get(res1.getAtom(s));
-      } else if (angleName.equals("alpha")) { //since alpha has atoms from both res
-        if (s.equals(" O3'")) {
+      } else if (angleName.equals("alpha")||angleName.equals("epsilon")||angleName.equals("zeta")) { //since these have atoms from both res
+        if (s.equals(" O3'")||s.equals(" C3'")||s.equals(" C4'")) {
           states[i] = state.get(res1.getAtom(s)); //O3' from first residue
         } else {
           states[i] = state.get(res2.getAtom(s)); //C5' from second res
