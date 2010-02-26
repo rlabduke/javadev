@@ -185,7 +185,7 @@ public class StickPrinter //extends ... implements ...
     { this.ider = ai; }
 //}}}
 
-  //{{{ testBonds
+//{{{ testBonds
   public void testBonds(Collection bonds) {
     Iterator iter = bonds.iterator();
     while (iter.hasNext()) {
@@ -193,8 +193,7 @@ public class StickPrinter //extends ... implements ...
       System.out.print(b.higher.getName()+"->"+b.lower.getName()+"; ");
     }
   }
-  //}}}
-
+//}}}
 
 //{{{ empty_code_segment
 //##############################################################################
