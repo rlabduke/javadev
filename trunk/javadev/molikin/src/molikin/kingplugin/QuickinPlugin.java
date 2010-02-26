@@ -35,10 +35,12 @@ public class QuickinPlugin extends king.Plugin {
   {
     String menuText;
     Logic logic;
+    boolean append;
     
-    public CoordFileOpen(String text, Logic log) {
+    public CoordFileOpen(String text, Logic log, boolean app) {
       menuText = text;
       logic = log;
+      append = app;
     }
     
     public String toString()
@@ -59,7 +61,9 @@ public class QuickinPlugin extends king.Plugin {
         if (logic instanceof RibbonLogic) {
           ((RibbonLogic)logic).secondaryStructure = coordFile.getSecondaryStructure();
         }
-        buildKinemage(null, coordFile, logic);
+        Kinemage kin = null;
+        if(append) kin = kMain.getKinemage();
+        buildKinemage(kin, coordFile, logic);
       }
       catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
     }
@@ -79,13 +83,23 @@ public class QuickinPlugin extends king.Plugin {
     if (kMain.getApplet() == null) {
       buildFileChooser();
     }
-    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make lots kinemage", Quickin.getLotsLogic(true)));
+    //kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make lots kinemage", Quickin.getLotsLogic(true)));
+    //BallAndStickLogic logic = Quickin.getLotsLogic(true);
+    //logic.doMainchain       = false;
+    //logic.doSidechains      = false;
+    //logic.doHydrogens       = false;
+    //kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make virtual backbone kinemage", logic));
+    //kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make ribbons kinemage", Quickin.getRibbonLogic()));
+    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Lots - new kinemage", Quickin.getLotsLogic(true), false));
+    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Lots - append to current", Quickin.getLotsLogic(true), true));
     BallAndStickLogic logic = Quickin.getLotsLogic(true);
     logic.doMainchain       = false;
     logic.doSidechains      = false;
     logic.doHydrogens       = false;
-    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make virtual backbone kinemage", logic));
-    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Make ribbons kinemage", Quickin.getRibbonLogic()));
+    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Virtual backbone - new kinemage", logic, false));
+    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Virtual backbone - append to current", logic, true));
+    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Ribbons - new kinemage"   , Quickin.getRibbonLogic(), false));
+    kMain.getFileDropHandler().addFileDropListener(new CoordFileOpen("Ribbons - append to current", Quickin.getRibbonLogic(), true));
   }
   //}}}
   
@@ -114,16 +128,23 @@ public class QuickinPlugin extends king.Plugin {
   //}}}
   
   //{{{ on___
-  public void onLots(ActionEvent ev) {
+  public void onLotsNew(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
     if (coordFile != null) {
       buildKinemage(null, coordFile, Quickin.getLotsLogic());
       //logic.printKinemage(out, m, residues, pdbId, bbColor);
     }
   }
-
   
-  public void onRibbons(ActionEvent ev) {
+  public void onLotsAppend(ActionEvent ev) {
+    CoordinateFile coordFile = onOpenFile();
+    if (coordFile != null) {
+      buildKinemage(kMain.getKinemage(), coordFile, Quickin.getLotsLogic());
+      //logic.printKinemage(out, m, residues, pdbId, bbColor);
+    }
+  }
+  
+  public void onRibbonsNew(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
     if (coordFile != null) {
       RibbonLogic logic = Quickin.getRibbonLogic();
@@ -132,7 +153,16 @@ public class QuickinPlugin extends king.Plugin {
     }
   }
   
-  public void onVirtual(ActionEvent ev) {
+  public void onRibbonsAppend(ActionEvent ev) {
+    CoordinateFile coordFile = onOpenFile();
+    if (coordFile != null) {
+      RibbonLogic logic = Quickin.getRibbonLogic();
+      logic.secondaryStructure    = coordFile.getSecondaryStructure();
+      buildKinemage(kMain.getKinemage(), coordFile, logic);
+    }
+  }
+  
+  public void onVirtualNew(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
     if (coordFile != null) {
       BallAndStickLogic logic = Quickin.getLotsLogic();
@@ -144,7 +174,19 @@ public class QuickinPlugin extends king.Plugin {
     }
   }
   
-  public void onResidue(ActionEvent ev) {
+  public void onVirtualAppend(ActionEvent ev) {
+    CoordinateFile coordFile = onOpenFile();
+    if (coordFile != null) {
+      BallAndStickLogic logic = Quickin.getLotsLogic();
+      logic.doVirtualBB       = true;
+      logic.doMainchain       = false;
+      logic.doSidechains      = false;
+      logic.doHydrogens       = false;
+      buildKinemage(kMain.getKinemage(), coordFile, logic);
+    }
+  }
+  
+  public void onResidueNew(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
     if (coordFile != null) {
       BallAndStickLogic logic = Quickin.getLotsLogic();
@@ -154,7 +196,17 @@ public class QuickinPlugin extends king.Plugin {
     }
   }
   
-  public void onRibbonLots(ActionEvent ev) {
+  public void onResidueAppend(ActionEvent ev) {
+    CoordinateFile coordFile = onOpenFile();
+    if (coordFile != null) {
+      BallAndStickLogic logic = Quickin.getLotsLogic();
+      logic.doHydrogens       = false;
+      logic.colorBy           = BallAndStickLogic.COLOR_BY_RES_TYPE;
+      buildKinemage(kMain.getKinemage(), coordFile, logic);
+    }
+  }
+  
+  public void onRibbonLotsNew(ActionEvent ev) {
     CoordinateFile coordFile = onOpenFile();
     if (coordFile != null) {
       Logic[] logicList = new Logic[2];
@@ -162,6 +214,17 @@ public class QuickinPlugin extends king.Plugin {
       logicList[1] = Quickin.getRibbonLogic();
       ((RibbonLogic)logicList[1]).secondaryStructure    = coordFile.getSecondaryStructure();
       buildKinemage(null, coordFile, logicList);
+    }
+  }
+  
+  public void onRibbonLotsAppend(ActionEvent ev) {
+    CoordinateFile coordFile = onOpenFile();
+    if (coordFile != null) {
+      Logic[] logicList = new Logic[2];
+      logicList[0] = Quickin.getLotsLogic();
+      logicList[1] = Quickin.getRibbonLogic();
+      ((RibbonLogic)logicList[1]).secondaryStructure    = coordFile.getSecondaryStructure();
+      buildKinemage(kMain.getKinemage(), coordFile, logicList);
     }
   }
   //}}}
@@ -347,15 +410,25 @@ public class QuickinPlugin extends king.Plugin {
   public JMenuItem getToolsMenuItem()
   {
     JMenu menu = new JMenu(this.toString());
-    JMenuItem item = new JMenuItem(new ReflectiveAction("Lots (mc,sc,H)", null, this, "onLots"));
+    JMenuItem item = new JMenuItem(new ReflectiveAction("Lots (mc,sc,H) - new", null, this, "onLotsNew"));
     menu.add(item);
-    item = new JMenuItem(new ReflectiveAction("Ribbons", null, this, "onRibbons"));
+    item = new JMenuItem(new ReflectiveAction("Lots (mc,sc,H) - append", null, this, "onLotsAppend"));
     menu.add(item);
-    item = new JMenuItem(new ReflectiveAction("Virtual Backbone", null, this, "onVirtual"));
+    item = new JMenuItem(new ReflectiveAction("Ribbons - new", null, this, "onRibbonsNew"));
     menu.add(item);
-    item = new JMenuItem(new ReflectiveAction("Separate Res", null, this, "onResidue"));
+    item = new JMenuItem(new ReflectiveAction("Ribbons - append", null, this, "onRibbonsAppend"));
     menu.add(item);
-    item = new JMenuItem(new ReflectiveAction("Lots+Ribbons", null, this, "onRibbonLots"));
+    item = new JMenuItem(new ReflectiveAction("Virtual Backbone - new", null, this, "onVirtualNew"));
+    menu.add(item);
+    item = new JMenuItem(new ReflectiveAction("Virtual Backbone - append", null, this, "onVirtualAppend"));
+    menu.add(item);
+    item = new JMenuItem(new ReflectiveAction("Separate Res - new", null, this, "onResidueNew"));
+    menu.add(item);
+    item = new JMenuItem(new ReflectiveAction("Separate Res - append", null, this, "onResidueAppend"));
+    menu.add(item);
+    item = new JMenuItem(new ReflectiveAction("Lots+Ribbons - new", null, this, "onRibbonLotsNew"));
+    menu.add(item);
+    item = new JMenuItem(new ReflectiveAction("Lots+Ribbons - append", null, this, "onRibbonLotsAppend"));
     menu.add(item);
     return menu;
   }

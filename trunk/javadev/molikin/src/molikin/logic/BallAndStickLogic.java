@@ -31,6 +31,7 @@ public class BallAndStickLogic implements Logic
     public static final Object COLOR_BY_ELEMENT     = "element";
     public static final Object COLOR_BY_B_FACTOR    = "B factor";
     public static final Object COLOR_BY_OCCUPANCY   = "occupancy";
+    public static final Object COLOR_BY_ROTARAMA    = "rota/rama score";
     static final DecimalFormat df = new DecimalFormat("00");
 //}}}
 
@@ -44,6 +45,9 @@ public class BallAndStickLogic implements Logic
     public boolean  doVirtualBB, doMainchain, doSidechains, doHydrogens, doDisulfides;
     public boolean  doBallsOnCarbon, doBallsOnAtoms;
     public Object   colorBy = COLOR_BY_MC_SC;
+    
+    /** Not actually displayed in GUI!  Set by outside class, e.g. chiropraxis.rotarama.LocalRotarama. */
+    public Map      rota = null, rama = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -64,7 +68,7 @@ public class BallAndStickLogic implements Logic
     public void printKinemage(PrintWriter out, Model m, Set residues, String pdbId, String mcColor) {
       printKinemage(out, m, null, residues, pdbId, mcColor);
     }
-
+    
     public void printKinemage(PrintWriter out, Model m, Collection states, Set residues, String pdbId, String mcColor)
     {
         this.out = out;
@@ -99,6 +103,12 @@ public class BallAndStickLogic implements Logic
             sp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new OccupancyCrayon()));
             bp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new OccupancyCrayon()));
         }
+        else if(colorBy == COLOR_BY_ROTARAMA && this.rota != null && this.rama != null)
+        {
+            sp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new RotaramaCrayon(rota, rama)));
+            bp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new RotaramaCrayon(rota, rama)));
+            sp.setAtomIDer(new RotaramaIDer(rota, rama));
+        }
         else throw new UnsupportedOperationException();
 
         if(doProtein)  printProtein(m, states, residues, pdbId, mcColor);
@@ -129,8 +139,9 @@ public class BallAndStickLogic implements Logic
         Collection      bonds   = data.getCovalentGraph().getBonds();
         
         String identifier = "";
-        if (pdbId != null && !((pdbId.trim()).equals(""))) {
-          identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
+        if(pdbId != null && !((pdbId.trim()).equals("")))
+        {
+            identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
         }
         if(doVirtualBB||atomC.mcNotCa==0)
         {
