@@ -97,7 +97,7 @@ public class SubImpose //extends ... implements ...
     String chainIDs1 = null; // single-character chain IDs from structure 1 to be used in sequence alignment
     String chainIDs2 = null; // single-character chain IDs from structure 2 to be used in sequence alignment
     Collection rmsd = new ArrayList(); // selection strings to do rmsd over
-    double leskSieve = 0;
+    double leskSieve = Double.NaN;
     double rmsdCutoff = Double.NaN; // above which PDB is not written out
 //}}}
 
@@ -418,9 +418,9 @@ public class SubImpose //extends ... implements ...
         
         if(superimpose1 == null)
         {
-            System.err.println("No -super flag!  Default: best 90% of aligned Calphas");
             superimpose1 = "atom_CA_";
-            leskSieve = 0.9;
+            if(Double.isNaN(leskSieve)) leskSieve = 0.9;
+            System.err.println("No -super flag!  Using sequence-aligned CAs (best "+leskSieve*100+"%)");
         }
         
         if(chainIDs1 != null) System.err.println("Using subset of structure 1 chains: "+chainIDs1);
@@ -490,7 +490,7 @@ public class SubImpose //extends ... implements ...
         System.err.println(df.format(superpos.calcRMSD(R))+"\t"+atoms[0].length+"\t"+superimpose1);
         
         int lenAtomsUsed = atoms[0].length;
-        if(leskSieve > 0)
+        if(!Double.isNaN(leskSieve))//leskSieve > 0)
         {
             int len = (int) Math.round( leskSieve * atoms[0].length );
             if(len < 3)
