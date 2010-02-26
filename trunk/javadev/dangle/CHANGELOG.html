@@ -14,14 +14,18 @@
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
-### 1.04 ### keedy
+
+### 1.05 ### dak
 - Fixed bug where HETATMs listed as nucleic acids (e.g. ATP) would still get 
   evaluated even if doHets boolean was false (which is the default)
 - Actually removed [ACTGU][MDT]P, e.g. ATP, from the nucleic acids list, so 
   now they won't get evaluated even if doHets boolean is true. Rationale: 
   they're never in oligomers!
+- Changed definition for omega from i,i+1 to i-1,i to correspond with common
+  terminology for cis vs. trans peptides (e.g. Pro)
+- Added proper chi3 definition for Pro to Measurement: CB-CG-CD-N
 
-### 1.04 ### keedy
+### 1.04 ### dak
 - Allowed "for" to be followed by multiple specifiers, e.g. "for deoxy 2'",
   and to apply to any resname by default if none specified, as opposed to before
   where a residue name was strictly required.
@@ -51,7 +55,7 @@
 gjk
 - Added Gelbin....DNA.txt to resources (source file for DNA parameters)
 - Modified Dangle.java to incorporate DNA instead of skipping it
-keedy
+dak
 - Fixed bug where "-dna" also evaluated RNA.  Now, "-dna" ignores RNA and 
   "-rna" ignores DNA.  Both simultaneously evaulates both but (WARNING!) 
   still acts weird, especially with "-validate" or "-outliers"!
@@ -59,16 +63,16 @@ keedy
 - Made Dangle.java automatically pull version # out of version.props
 - Minor readability changes
 
-### 1.02 ### keedy
+### 1.02 ### dak
 - Added builtins like cbdev - hadev, nhdev, codev - for diagnosing RDC-based
   peptide distortions
 
-### 1.01 ### keedy
+### 1.01 ### dak
 - Added infrastructure for "for 2'" additions to the Parkinson RNA
   resource file (pucker-specific bond lengths and angles)
 - Also set up for future incorp'n of "for deoxy ..." DNA ideal values
 
-### 1.00 ### keedy
+### 1.00 ### dak
 - Made Dangle its own program & package separate from chiropraxis
 
 </pre></body></html>
