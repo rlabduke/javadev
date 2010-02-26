@@ -109,10 +109,10 @@ public class FileDropHandler extends TransferHandler
             return;
         }
         
-        SoftLog.err.println("Prev working dir: "+System.getProperty("user.dir"));
-        SoftLog.err.println("File being dropped: "+file);
+        //SoftLog.err.println("Prev working dir: "+System.getProperty("user.dir"));
+        //SoftLog.err.println("File being dropped: "+file);
         System.setProperty("user.dir", file.getAbsolutePath());
-        SoftLog.err.println("Curr working dir: "+System.getProperty("user.dir"));
+        //SoftLog.err.println("Curr working dir: "+System.getProperty("user.dir"));
         
         ArrayList<Listener> ok = new ArrayList<Listener>();
         for(Listener l : listeners)
