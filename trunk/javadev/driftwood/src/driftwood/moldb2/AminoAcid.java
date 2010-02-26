@@ -259,6 +259,36 @@ public class AminoAcid //extends ... implements ...
     }
 //}}}
 
+//{{{ isCisPeptide
+//##################################################################################################
+    /**
+    * Indicates whether this residue has a cis peptide bond 
+    * to the preceding residue.
+    * This is true iff there is a previous residue and omega, 
+    * Ca(i-1)-C(i-1)-N(i)-Ca(i), is within 30 degrees of 0.
+    * @throws AtomException if a required Atom or AtomState
+    *   cannot be found in the supplied data.
+    */
+    static public boolean isCisPeptide(Model model, Residue res, ModelState state)
+    {
+        Residue prev = res.getPrev(model);
+        if(prev == null) return false;
+        
+        try
+        {
+            AtomState prevCA, prevC, thisN, thisCA;
+            prevCA = state.get( prev.getAtom(" CA ") );
+            prevC  = state.get( prev.getAtom(" C  ") );
+            thisN  = state.get(  res.getAtom(" N  ") );
+            thisCA = state.get(  res.getAtom(" CA ") );
+            double omega = Triple.dihedral(prevCA, prevC, thisN, thisCA);
+            if(omega > -30 && omega < 30) return true;
+            else return false;
+        }
+        catch(AtomException ex) { return false; }
+    }
+//}}}
+
 //{{{ isBackbone, isAminoAcid
 //##################################################################################################
     /** Returns true if this atom, based on its name, is part of the polypeptide backbone. */

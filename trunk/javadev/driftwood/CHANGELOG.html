@@ -54,8 +54,8 @@ vbc:
   including regex pattern for pdb#.gz, like PDB uses for biological units.
 - Changed SuffixFileFilter to take in regex expression strings also.
 - Fixed mysql access in databasemanager
-- changed build system to use java 1.5.
-- added ability for dials to show boundaries.
+- Changed build system to use java 1.5.
+- Added ability for dials to show boundaries.
 dak:  
 - Added Disulfides & PdbDisulfides in spirit of SecondaryStructure & 
   PdbSecondaryStructure for reading "SSBOND" cards with PdbReader and storing
@@ -66,6 +66,7 @@ dak:
   outside stuff use the information, and remains optional!
 - Renamed some methods in Disulfides & its subclass PdbDisulfides
 - Added hopefully convenient Disulfide.otherEnd(Model,Residue) method
+- Added AminoAcid.isCisPeptide method
 
 ### 0.88 ###
 - added WrapMap.  Like UberMap, but wraps from start to end and vise versa
