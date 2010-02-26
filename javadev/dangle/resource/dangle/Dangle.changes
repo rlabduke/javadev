@@ -28,6 +28,12 @@ Changes to chiropraxis.dangle.Dangle
 
 080911 (dak [& vbc3])
 - Separated dangle from chiropraxis; now at version 1.00
+
 090813 (gjk)
-- updated to use DNA parameters; -dna now works properly
+- Updated to use DNA parameters; -dna now works properly
+
+100226 (dak)
+- Changed definition for omega from i,i+1 to i-1,i to correspond with common
+  terminology for cis vs. trans peptides (e.g. Pro)
+- Added proper chi3 definition for Pro: CB-CG-CD-N
 

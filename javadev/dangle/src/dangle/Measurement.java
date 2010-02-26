@@ -354,13 +354,14 @@ abstract public class Measurement //extends ... implements ...
                 new AtomSpec( 0, "_C__"),
                 new AtomSpec( 1, "_N__")
             );
-        // Same definition as Dang: named for the first residue in the peptide
+        // Used to be same definition as Dang (named for the first residue in the peptide)
+        // but now named for second residue in the peptide. -DK 100217
         else if("omega".equals(label))
             return new Dihedral(label,
-                new AtomSpec( 0, "_CA_"),
-                new AtomSpec( 0, "_C__"),
-                new AtomSpec( 1, "_N__"),
-                new AtomSpec( 1, "_CA_")
+                new AtomSpec(-1, "_CA_"),
+                new AtomSpec(-1, "_C__"),
+                new AtomSpec( 0, "_N__"),
+                new AtomSpec( 0, "_CA_")
             );
         else if("chi1".equals(label))
             return new Dihedral(label,
@@ -407,17 +408,17 @@ abstract public class Measurement //extends ... implements ...
                     new AtomSpec( 0, "_CB_").otherEndDisulf()
                 )
             ).add(
-                new Dihedral(label, 
+                new Dihedral(label, // Pro
                     new AtomSpec( 0, "_CB_"),
-                    new AtomSpec( 0, "/_[ACNOS]G[_1]/"),
-                    new AtomSpec( 0, "SE__"),
-                    new AtomSpec( 0, "/_[ACNOS]E[_1]/")
-            )).add(
+                    new AtomSpec( 0, "_CG_"),
+                    new AtomSpec( 0, "_CD_"), // don't wanna allow N here for other residue types b/c could
+                    new AtomSpec( 0, "_N__")  // cause weird sc-mc jumps if end of sc missing -- DAK 100226
+                ).reqResName("PRO")
+            ).add(
                 new Dihedral(label, // regular sidechains (default case)
                     new AtomSpec( 0, "_CB_"),
                     new AtomSpec( 0, "/_[ACNOS]G[_1]/"),
-                    //new AtomSpec( 0, "/_[ACNOS]D[_1]/"),
-                    new AtomSpec( 0, "/(_[ACNOS]D[_1])|(SE__)/"), // now handles selenoMet -- DAK 9/23/09
+                    new AtomSpec( 0, "/(_[ACNOS]D[_1])|(SE__)/"), // now handles selenoMet -- DAK 090923
                     new AtomSpec( 0, "/_[ACNOS]E[_1]/")
             ));
         else if("chi4".equals(label))
@@ -427,7 +428,7 @@ abstract public class Measurement //extends ... implements ...
                 new AtomSpec( 0, "/_[ACNOS]E[_1]/"),
                 new AtomSpec( 0, "/_[ACNOS]Z[_1]/")
             );
-        // Added the following disulfide-specific builtins 9/22/09 -- DAK
+        // Added the following disulfide-specific builtins -- DAK 9/22/09
         else if("phi'".equals(label) || "phip".equals(label))
             return new Dihedral(label,
                 new AtomSpec(-1, "_C__").otherEndDisulf(),
