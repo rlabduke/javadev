@@ -11,6 +11,7 @@ import driftwood.r3.*;
 import driftwood.moldb2.*;
 import driftwood.data.*;
 import molikin.logic.*;
+import molikin.*;
 //}}}
 
 public class Absigner {
@@ -340,12 +341,7 @@ public class Absigner {
   public void printKinemage(CoordinateFile inputPdb, PrintWriter out) {
     //File pdbout = new File(f, sub.getName() + ".pdb");
     out.println("@kinemage");
-    BallAndStickLogic bsl = new BallAndStickLogic();
-    bsl.doProtein = true;
-    bsl.doBackbone = true;
-    bsl.doSidechains = true;
-    bsl.doHydrogens = true;
-    bsl.colorBy = BallAndStickLogic.COLOR_BY_MC_SC;
+    BallAndStickLogic bsl = Quickin.getLotsLogic();
     Iterator iter = inputPdb.getModels().iterator();
     while (iter.hasNext()) {
       Model mod = (Model) iter.next();
