@@ -7,6 +7,7 @@ package jiffiloop;
 //import king.points.*;
 //import king.io.*;
 import molikin.logic.*;
+import molikin.*;
 import driftwood.gui.*;
 import driftwood.r3.*;
 import driftwood.util.*;
@@ -357,12 +358,7 @@ public class JLMain {
       Writer w = new FileWriter(kinout);
       PrintWriter out = new PrintWriter(new BufferedWriter(w));
       out.println("@kinemage");
-      BallAndStickLogic bsl = new BallAndStickLogic();
-      bsl.doProtein = true;
-      bsl.doBackbone = true;
-      bsl.doSidechains = true;
-      bsl.doHydrogens = true;
-      bsl.colorBy = BallAndStickLogic.COLOR_BY_MC_SC;
+      BallAndStickLogic bsl = Quickin.getLotsLogic();
       Iterator iter = inputPdb.getModels().iterator();
       while (iter.hasNext()) {
         Model mod = (Model) iter.next();
