@@ -9,6 +9,7 @@ king.tool.views.ClipPlanesPlugin
 king.tool.draw.LathePlugin
 king.tool.draw.PointColorPlugin
 king.tool.draw.SkylightPlugin
+king.tool.draw.MultiListEditorPlugin
 king.tool.movie.MoviePlugin
 king.tool.image.KinImagePlugin
 king.tool.postkin.ColorGrouperPlugin
