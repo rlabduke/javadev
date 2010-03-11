@@ -30,49 +30,58 @@ public class GroupEditor implements ChangeListener
 
 //{{{ Variable definitions
 //##################################################################################################
-    KingMain        kMain;
-    Frame           ownerWindow;
+    KingMain         kMain;
+    Frame            ownerWindow;
     
     // Kinemage
-    JDialog         kiDialog;
-    JTextField      kiName;
-    JCheckBox       kiWhiteback, kiOnewidth, kiThinline, kiPerspec, kiFlat, kiListcolor;
-    JButton         kiOK, kiCancel;
+    JDialog          kiDialog;
+    JTextField       kiName;
+    JCheckBox        kiWhiteback, kiOnewidth, kiThinline, kiPerspec, kiFlat, kiListcolor;
+    JButton          kiOK, kiCancel;
 
     // Groups
-    JDialog         grDialog;
-    JTextField      grName;
-    JCheckBox       grIsOff, grNoButton, grDominant, grRecessiveOn, grAnimate, gr2Animate, grSelect;
-    JButton         grOK, grCancel;
+    JDialog          grDialog;
+    JTextField       grName;
+    JCheckBox        grIsOff, grNoButton, grDominant, grRecessiveOn, grAnimate, gr2Animate, grSelect;
+    JList            grMasters;
+    DefaultListModel grMastersModel;
+    JButton          grAddMaster, grRemoveMasters;
+    JButton          grOK, grCancel;
     
     // Subgroups
-    JDialog         suDialog;
-    JTextField      suName;
-    JCheckBox       suIsOff, suNoButton, suDominant, suRecessiveOn;
-    JButton         suOK, suCancel;
+    JDialog          suDialog;
+    JTextField       suName;
+    JCheckBox        suIsOff, suNoButton, suDominant, suRecessiveOn;
+    JList            suMasters;
+    DefaultListModel suMastersModel;
+    JButton          suAddMaster, suRemoveMasters;
+    JButton          suOK, suCancel;
     
     // Lists
-    JDialog         liDialog;
-    boolean         liFirstShow     = true;
-    TablePane       liPanel;
-    JTextField      liName;
-    JCheckBox       liIsOff, liNoButton, liNoHilite;
-    JTextField      liWidth, liRadius, liAlpha;
-    ColorPicker     liPicker;
-    KPaint          originalColor   = null;
-    KList           theKList        = null;
-    JButton         liOK, liCancel;
+    JDialog          liDialog;
+    boolean          liFirstShow     = true;
+    TablePane        liPanel;
+    JTextField       liName;
+    JCheckBox        liIsOff, liNoButton, liNoHilite;
+    JTextField       liWidth, liRadius, liAlpha;
+    JList            liMasters;
+    DefaultListModel liMastersModel;
+    JButton          liAddMaster, liRemoveMasters;
+    ColorPicker      liPicker;
+    KPaint           originalColor   = null;
+    KList            theKList        = null;
+    JButton          liOK, liCancel;
     
     // Transform
-    JDialog         trDialog;
-    boolean         trFirstShow     = true;
-    TablePane2      trPanel;
-    JTextField      trTransX, trTransY, trTransZ; // translate, not transform
-    JTextField      trRotX,   trRotY,   trRotZ;
-    JTextField      trScale, trScaleX, trScaleY, trScaleZ;
-    JCheckBox       trAboutOrigin;
-    JButton         trBtnTrans, trBtnRot, trBtnAniso, trBtnScale, trClose;
-    AGE             trTarget        = null;
+    JDialog          trDialog;
+    boolean          trFirstShow     = true;
+    TablePane2       trPanel;
+    JTextField       trTransX, trTransY, trTransZ; // translate, not transform
+    JTextField       trRotX,   trRotY,   trRotZ;
+    JTextField       trScale, trScaleX, trScaleY, trScaleZ;
+    JCheckBox        trAboutOrigin;
+    JButton          trBtnTrans, trBtnRot, trBtnAniso, trBtnScale, trClose;
+    AGE              trTarget        = null;
     
     boolean acceptChanges = false;
 //}}}
@@ -149,11 +158,22 @@ public class GroupEditor implements ChangeListener
         grName          = new JTextField(20);
         grIsOff         = new JCheckBox("off (Hide this and all children)");
         grNoButton      = new JCheckBox("nobutton (Don't provide on/off button)");
-        grDominant      = new JCheckBox("dominant (Supress all children's buttons)");
+        grDominant      = new JCheckBox("dominant (Suppress all children's buttons)");
         grRecessiveOn   = new JCheckBox("collapsable (Dominant only when off)");
         grAnimate       = new JCheckBox("animate (Include in ANIMATE animation)");
         gr2Animate      = new JCheckBox("2animate (Include in 2ANIMATE animation)");
         grSelect        = new JCheckBox("select (Allow selection-by-color)");
+        
+        JLabel mastersLabel = new JLabel("Masters:");
+        mastersLabel.setLabelFor(grMasters);
+        grMastersModel = new DefaultListModel();
+        grMasters = new JList(grMastersModel);
+        grMasters.setVisibleRowCount(4);
+        grMasters.setFixedCellHeight(18); 
+        JScrollPane grMastersScroller = new JScrollPane(grMasters);
+        grMastersScroller.setPreferredSize(new Dimension(140, 100));
+        grAddMaster = new JButton(new ReflectiveAction("Add", null, this, "onGroupAddMaster"));
+        grRemoveMasters = new JButton(new ReflectiveAction("Remove", null, this, "onGroupRemoveMasters"));
         
         grOK = new JButton(new ReflectiveAction("OK", null, this, "onGroupOK"));
         grCancel = new JButton(new ReflectiveAction("Cancel", null, this, "onGroupCancel"));
@@ -167,15 +187,27 @@ public class GroupEditor implements ChangeListener
         am.put("grcancel", new ReflectiveAction(null, null, this, "onGroupCancel"));
         
         grPanel.setBorder(BorderFactory.createEmptyBorder(8,8,8,8));
-        grPanel.addCell(new JLabel("Group name/identifier:")).newRow();
-        grPanel.addCell(grName).newRow();
-        grPanel.addCell(grIsOff).newRow();
-        grPanel.addCell(grNoButton).newRow();
-        grPanel.addCell(grDominant).newRow();
-        grPanel.addCell(grRecessiveOn).newRow();
-        grPanel.addCell(grAnimate).newRow();
-        grPanel.addCell(gr2Animate).newRow();
-        grPanel.addCell(grSelect).newRow();
+        grPanel.startSubtable();
+            grPanel.addCell(new JLabel("Group name/identifier:")).newRow();
+            grPanel.addCell(grName).newRow();
+            grPanel.addCell(grIsOff).newRow();
+            grPanel.addCell(grNoButton).newRow();
+            grPanel.addCell(grDominant).newRow();
+            grPanel.addCell(grRecessiveOn).newRow();
+            grPanel.addCell(grAnimate).newRow();
+            grPanel.addCell(gr2Animate).newRow();
+            grPanel.addCell(grSelect).newRow();
+            grPanel.addCell(mastersLabel);
+        grPanel.endSubtable().newRow();
+        grPanel.startSubtable();
+            grPanel.startSubtable();
+                grPanel.addCell(grMastersScroller);
+            grPanel.endSubtable();
+            grPanel.startSubtable();
+                grPanel.left().addCell(grAddMaster).newRow();
+                grPanel.left().addCell(grRemoveMasters);
+            grPanel.endSubtable();
+        grPanel.endSubtable().newRow();
         grPanel.startSubtable();
             grPanel.center().memorize();
             grPanel.addCell(grOK).addCell(grCancel);
@@ -192,8 +224,19 @@ public class GroupEditor implements ChangeListener
         suName          = new JTextField(20);
         suIsOff         = new JCheckBox("off (Hide this and all children)");
         suNoButton      = new JCheckBox("nobutton (Don't provide on/off button)");
-        suDominant      = new JCheckBox("dominant (Supress all children's buttons)");
+        suDominant      = new JCheckBox("dominant (Suppress all children's buttons)");
         suRecessiveOn   = new JCheckBox("collapsable (Dominant only when off)");
+        
+        JLabel mastersLabel = new JLabel("Masters:");
+        mastersLabel.setLabelFor(suMasters);
+        suMastersModel = new DefaultListModel();
+        suMasters = new JList(suMastersModel);
+        suMasters.setVisibleRowCount(4);
+        suMasters.setFixedCellHeight(18); 
+        JScrollPane suMastersScroller = new JScrollPane(suMasters);
+        suMastersScroller.setPreferredSize(new Dimension(140, 100));
+        suAddMaster = new JButton(new ReflectiveAction("Add", null, this, "onSubgroupAddMaster"));
+        suRemoveMasters = new JButton(new ReflectiveAction("Remove", null, this, "onSubgroupRemoveMasters"));
         
         suOK = new JButton(new ReflectiveAction("OK", null, this, "onSubgroupOK"));
         suCancel = new JButton(new ReflectiveAction("Cancel", null, this, "onSubgroupCancel"));
@@ -207,12 +250,24 @@ public class GroupEditor implements ChangeListener
         am.put("sucancel", new ReflectiveAction(null, null, this, "onSubgroupCancel"));
         
         suPanel.setBorder(BorderFactory.createEmptyBorder(8,8,8,8));
-        suPanel.addCell(new JLabel("Subgroup name/identifier:")).newRow();
-        suPanel.addCell(suName).newRow();
-        suPanel.addCell(suIsOff).newRow();
-        suPanel.addCell(suNoButton).newRow();
-        suPanel.addCell(suDominant).newRow();
-        suPanel.addCell(suRecessiveOn).newRow();
+        suPanel.startSubtable();
+            suPanel.addCell(new JLabel("Subgroup name/identifier:")).newRow();
+            suPanel.addCell(suName).newRow();
+            suPanel.addCell(suIsOff).newRow();
+            suPanel.addCell(suNoButton).newRow();
+            suPanel.addCell(suDominant).newRow();
+            suPanel.addCell(suRecessiveOn).newRow();
+            suPanel.addCell(mastersLabel);
+        suPanel.endSubtable().newRow();
+        suPanel.startSubtable();
+            suPanel.startSubtable();
+                suPanel.addCell(suMastersScroller);
+            suPanel.endSubtable();
+            suPanel.startSubtable();
+                suPanel.left().addCell(suAddMaster).newRow();
+                suPanel.left().addCell(suRemoveMasters);
+            suPanel.endSubtable();
+        suPanel.endSubtable().newRow();
         suPanel.startSubtable();
             suPanel.center().memorize();
             suPanel.addCell(suOK).addCell(suCancel);
@@ -240,6 +295,17 @@ public class GroupEditor implements ChangeListener
         liAlpha     = new JTextField(6);
         JLabel alphaLabel = new JLabel("Alpha (0-255):");
         alphaLabel.setLabelFor(liAlpha);
+        
+        JLabel mastersLabel = new JLabel("Masters:");
+        mastersLabel.setLabelFor(liMasters);
+        liMastersModel = new DefaultListModel();
+        liMasters = new JList(liMastersModel);
+        liMasters.setVisibleRowCount(6);
+        liMasters.setFixedCellHeight(18); 
+        JScrollPane liMastersScroller = new JScrollPane(liMasters);
+        liMastersScroller.setPreferredSize(new Dimension(140, 100));
+        liAddMaster = new JButton(new ReflectiveAction("Add", null, this, "onListAddMaster"));
+        liRemoveMasters = new JButton(new ReflectiveAction("Remove", null, this, "onListRemoveMasters"));
         
         KingPrefs prefs = kMain.getPrefs();
         int patchSize = (prefs==null? 20 : prefs.getInt("colorSwatchSize"));
@@ -269,6 +335,15 @@ public class GroupEditor implements ChangeListener
             liPanel.addCell(widthLabel).addCell(liWidth).newRow();
             liPanel.addCell(radiusLabel).addCell(liRadius).newRow();
             liPanel.addCell(alphaLabel).addCell(liAlpha).newRow();
+            liPanel.startSubtable();
+                liPanel.addCell(mastersLabel).newRow();
+                liPanel.addCell(liPanel.strut(0,18)).newRow();
+                liPanel.addCell(liAddMaster).newRow();
+                liPanel.addCell(liRemoveMasters);
+            liPanel.endSubtable();
+            liPanel.startSubtable();
+                liPanel.addCell(liMastersScroller);
+            liPanel.endSubtable();
         liPanel.endSubtable();
         liPanel.startSubtable(1,2);
             // colors
@@ -395,7 +470,7 @@ public class GroupEditor implements ChangeListener
         
         // Display dialog box
         kiDialog.pack();
-        kiDialog.getRootPane().setDefaultButton(kiOK); // DAK July 26 2009
+        kiDialog.getRootPane().setDefaultButton(kiOK); // DAK 090726
         kiDialog.setLocationRelativeTo(ownerWindow);
         kiDialog.setVisible(true);
         // remember, execution of this thread stops here until dialog is closed
@@ -434,6 +509,9 @@ public class GroupEditor implements ChangeListener
         grAnimate.setSelected(      group.isAnimate());
         gr2Animate.setSelected(     group.is2Animate());
         grSelect.setSelected(       group.isSelect());
+        grMastersModel.clear();
+        for(Iterator iter = group.getMasters().iterator(); iter.hasNext(); )
+            grMastersModel.addElement((String) iter.next());
         
         // Display dialog box
         grDialog.pack();
@@ -453,6 +531,16 @@ public class GroupEditor implements ChangeListener
             group.setAnimate(       grAnimate.isSelected());
             group.set2Animate(      gr2Animate.isSelected());
             group.setSelect(        grSelect.isSelected());
+            Object[]          keeps = grMastersModel.toArray();
+            ArrayList<String> elims = new ArrayList<String>();
+            for(Object keep : keeps)
+                if(!group.getMasters().contains((String) keep))
+                    group.addMaster((String) keep); // newly added master
+            for(String master : group.getMasters())
+                if(!grMastersModel.contains(master))
+                    elims.add(master);
+            for(String elim : elims)
+                group.removeMaster(elim); // newly removed master
             markKinModified(group);
         }
         
@@ -473,6 +561,9 @@ public class GroupEditor implements ChangeListener
         suNoButton.setSelected(     !subgroup.hasButton());
         suDominant.setSelected(     subgroup.isDominant());
         suRecessiveOn.setSelected(  subgroup.isCollapsible());
+        suMastersModel.clear();
+        for(Iterator iter = subgroup.getMasters().iterator(); iter.hasNext(); )
+            suMastersModel.addElement((String) iter.next());
         
         // Display dialog box
         suDialog.pack();
@@ -489,6 +580,16 @@ public class GroupEditor implements ChangeListener
             subgroup.setHasButton(  !suNoButton.isSelected());
             subgroup.setDominant(   suDominant.isSelected());
             subgroup.setCollapsible(suRecessiveOn.isSelected());
+            Object[]          keeps = suMastersModel.toArray();
+            ArrayList<String> elims = new ArrayList<String>();
+            for(Object keep : keeps)
+                if(!subgroup.getMasters().contains((String) keep))
+                    subgroup.addMaster((String) keep); // newly added master
+            for(String master : subgroup.getMasters())
+                if(!suMastersModel.contains(master))
+                    elims.add(master);
+            for(String elim : elims)
+                subgroup.removeMaster(elim); // newly removed master
             markKinModified(subgroup);
         }
         
@@ -512,6 +613,9 @@ public class GroupEditor implements ChangeListener
         liWidth.setText(Integer.toString(list.getWidth()));
         liRadius.setText(Float.toString(list.getRadius()));
         liAlpha.setText(Integer.toString(list.getAlpha()));
+        liMastersModel.clear();
+        for(Iterator iter = list.getMasters().iterator(); iter.hasNext(); )
+            liMastersModel.addElement((String) iter.next());
         originalColor = list.getColor();
         liPicker.setBackgroundMode(kMain.getCanvas().getEngine().backgroundMode);
         liPicker.setExtras(kMain.getKinemage().getNewPaintMap().values());
@@ -541,6 +645,16 @@ public class GroupEditor implements ChangeListener
             catch(NumberFormatException ex) {}
             if(list.getAlpha() < 0)     list.setAlpha(0);
             if(list.getAlpha() > 255)   list.setAlpha(255);
+            Object[]          keeps = liMastersModel.toArray();
+            ArrayList<String> elims = new ArrayList<String>();
+            for(Object keep : keeps)
+                if(!list.getMasters().contains((String) keep))
+                    list.addMaster((String) keep); // newly added master
+            for(String master : list.getMasters())
+                if(!liMastersModel.contains(master))
+                    elims.add(master);
+            for(String elim : elims)
+                list.removeMaster(elim); // newly removed master
             // Color is handled as soon as the choice is registered,
             // so we don't need to deal with it here.
             markKinModified(list);
@@ -552,6 +666,61 @@ public class GroupEditor implements ChangeListener
         theKList = null; // to avoid memory leaks
         
         return acceptChanges;
+    }
+//}}}
+
+//{{{ on__AddMaster
+    /** Event handler for Add master button */
+    public void onGroupAddMaster(ActionEvent ev)
+    {
+        String newMaster = (String) JOptionPane.showInputDialog(
+            new JDialog(), "Name of new master:", "Add master to group",
+            JOptionPane.PLAIN_MESSAGE, null, null, null);
+        if(newMaster == null) return;
+        grMastersModel.add(grMastersModel.getSize(), newMaster);
+    }
+
+    /** Event handler for Add master button */
+    public void onSubgroupAddMaster(ActionEvent ev)
+    {
+        String newMaster = (String) JOptionPane.showInputDialog(
+            new JDialog(), "Name of new master:", "Add master to subgroup",
+            JOptionPane.PLAIN_MESSAGE, null, null, null);
+        if(newMaster == null) return;
+        suMastersModel.add(suMastersModel.getSize(), newMaster);
+    }
+
+    /** Event handler for Add master button */
+    public void onListAddMaster(ActionEvent ev)
+    {
+        String newMaster = (String) JOptionPane.showInputDialog(
+            new JDialog(), "Name of new master:", "Add master to list",
+            JOptionPane.PLAIN_MESSAGE, null, null, null);
+        if(newMaster == null) return;
+        liMastersModel.add(liMastersModel.getSize(), newMaster);
+    }
+//}}}
+
+//{{{ on__RemoveMasters
+    /** Event handler for Remove masters button */
+    public void onGroupRemoveMasters(ActionEvent ev)
+    {
+        int[] doomed = grMasters.getSelectedIndices();
+        for(int d : doomed) grMastersModel.remove(d);
+    }
+
+    /** Event handler for Remove masters button */
+    public void onSubgroupRemoveMasters(ActionEvent ev)
+    {
+        int[] doomed = suMasters.getSelectedIndices();
+        for(int d : doomed) suMastersModel.remove(d);
+    }
+
+    /** Event handler for Remove masters button */
+    public void onListRemoveMasters(ActionEvent ev)
+    {
+        int[] doomed = liMasters.getSelectedIndices();
+        for(int d : doomed) liMastersModel.remove(d);
     }
 //}}}
 
