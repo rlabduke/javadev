@@ -204,14 +204,16 @@ public class SubImpose //extends ... implements ...
 //{{{ getAtomsForSelection
 //##############################################################################
     /**
-    * Apply the given selection to res1/s1, then find the corresponding atoms in res2/s2.
+    * Apply the given selection to res1/s1, then find the corresponding atoms in res2/s2. 
+    * If a second selection is given, instead apply that to res2/s2 
+    * to find what the user thinks should be the corresponding atoms.
     * return as a 2xN array of matched AtomStates, no nulls.
     */
-    AtomState[][] getAtomsForSelection(Collection res1, ModelState s1, Collection res2, ModelState s2, String selection, Alignment align) throws ParseException
+    public static AtomState[][] getAtomsForSelection(Collection res1, ModelState s1, Collection res2, ModelState s2, String selection1, String selection2, Alignment align) throws ParseException
     {
         // Get selected atom states from model 1
         int numAs1s = 0; // added by DAK
-        Selection sel = Selection.fromString(selection);
+        Selection sel = Selection.fromString(selection1);
         Collection allStates1 = Model.extractOrderedStatesByName(res1, Collections.singleton(s1));
         sel.init(allStates1);
         Collection selStates1 = new ArrayList();
@@ -224,7 +226,8 @@ public class SubImpose //extends ... implements ...
         // added by DAK
         int matched = 0;
         Collection selStates2 = new ArrayList();
-        String selection2 = superimpose2; // comes from -super2=[text] flag
+        //String selection2 = superimpose2; // comes from -super2=[text] flag
+        // ^ now provided as an argument so this method can be called statically - DAK 100301
         if(selection2 != null)
         {
             // Residue correspondances (sic) given by flag
@@ -473,7 +476,7 @@ public class SubImpose //extends ... implements ...
         // If -super, do superimposition of s1 on s2.
         Transform R = new Transform(); // identity, defaults to no superposition
         //if(superimpose1 != null) // this is never true anymore; default: all Calphas - DAK 091123
-        AtomState[][] atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, superimpose1, align);
+        AtomState[][] atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, superimpose1, superimpose2, align);
         if(verbose)
         {
             System.err.println("Atom alignments:");
@@ -563,7 +566,7 @@ public class SubImpose //extends ... implements ...
         for(Iterator iter = rmsd.iterator(); iter.hasNext(); )
         {
             String rmsd_sel = (String) iter.next();
-            atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, rmsd_sel, align);
+            atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, rmsd_sel, null, align);
             if(verbose)
             {
                 System.err.println("Atom alignments:");
