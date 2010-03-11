@@ -46,6 +46,9 @@ public class BallAndStickLogic implements Logic
     public boolean  doBallsOnCarbon, doBallsOnAtoms;
     public Object   colorBy = COLOR_BY_MC_SC;
     
+    public int      width = -1; // for vectorlists; -1 means don't print width specifier
+    public String   scColor = "cyan";
+    
     /** Not actually displayed in GUI!  Set by outside class, e.g. chiropraxis.rotarama.LocalRotarama. */
     public Map      rota = null, rama = null;
 //}}}
@@ -138,6 +141,8 @@ public class BallAndStickLogic implements Logic
         AtomClassifier  atomC   = data.getAtomClassifier();
         Collection      bonds   = data.getCovalentGraph().getBonds();
         
+        String wid = (width != -1 ? " width= "+width : ""); // DAK 100303
+        
         String identifier = "";
         if(pdbId != null && !((pdbId.trim()).equals("")))
         {
@@ -146,7 +151,7 @@ public class BallAndStickLogic implements Logic
         if(doVirtualBB||atomC.mcNotCa==0)
         {
             String off = ((doMainchain&&atomC.mcNotCa!=0) ? " off" : "");
-            out.println("@vectorlist {protein ca} color= "+mcColor+" master= {protein} master= {Calphas}"+off);
+            out.println("@vectorlist {protein ca} color= "+mcColor+" master= {protein} master= {Calphas}"+off+wid);
             VirtualBackbone virtualBB = data.getVirtualBackbone();
             sp.printSticks(virtualBB.getProteinBonds(), null, null, proteinRes, proteinRes, identifier);
         }
@@ -154,11 +159,11 @@ public class BallAndStickLogic implements Logic
         {
             if(atomC.mcHeavy.size() > 0)
             {
-                out.println("@vectorlist {protein mc} color= "+mcColor+" master= {protein} master= {mainchain}");
+                out.println("@vectorlist {protein mc} color= "+mcColor+" master= {protein} master= {mainchain}"+wid);
                 sp.printSticks(bonds, atomC.mcHeavy, atomC.mcHeavy, proteinRes, proteinRes, identifier);
                 if(doHydrogens && atomC.mcHydro.size() > 0)
                 {
-                    out.println("@vectorlist {protein mcH} color= gray master= {protein} master= {mainchain} master= {H}");
+                    out.println("@vectorlist {protein mcH} color= gray master= {protein} master= {mainchain} master= {H}"+wid);
                     sp.printSticks(bonds, atomC.mcHydro, atomC.mcHeavy, proteinRes, proteinRes, identifier);
                 }
                 if(doBallsOnAtoms)
@@ -173,20 +178,20 @@ public class BallAndStickLogic implements Logic
         {
             if(atomC.scHeavy.size() > 0)
             {
-                out.println("@vectorlist {protein sc} color= cyan master= {protein} master= {sidechains}");
+                out.println("@vectorlist {protein sc} color= "+scColor+" master= {protein} master= {sidechains}"+wid);
                 // to scHeavy instead of bioHeavy if we want to end at CB and add stubs to ribbon instead
                 // to resC.proteinRes allows disulfides to cross over chains
                 sp.printSticks(bonds, atomC.scHeavy, atomC.bioHeavy, proteinRes, resC.proteinRes, identifier);
                 if(doHydrogens && atomC.scHydro.size() > 0)
                 {
-                    out.println("@vectorlist {protein scH} color= gray master= {protein} master= {sidechains} master= {H}");
+                    out.println("@vectorlist {protein scH} color= gray master= {protein} master= {sidechains} master= {H}"+wid);
                     // makes sure Gly 2HA connects to mc
                     sp.printSticks(bonds, atomC.scHydro, atomC.bioHeavy, proteinRes, proteinRes, identifier);
                 }
                 if(doBallsOnAtoms)
                 {
                     printAtomBalls(atomC.scHeavy, proteinRes,
-                        (doBallsOnCarbon ? "cyan" : null),
+                        (doBallsOnCarbon ? scColor : null),
                         "master= {protein} master= {sidechains}");
                 }
             }
@@ -197,17 +202,17 @@ public class BallAndStickLogic implements Logic
             ssRes.retainAll(proteinRes);
             if(atomC.scHeavy.size() > 0 && ssRes.size() > 0)
             {
-                out.println("@vectorlist {protein ss} color= yellow master= {protein} master= {-SS-}");
+                out.println("@vectorlist {protein ss} color= yellow master= {protein} master= {-SS-}"+wid);
                 sp.printSticks(bonds, atomC.scHeavy, atomC.bioHeavy, ssRes, null, identifier);
                 if(doHydrogens && atomC.scHydro.size() > 0)
                 {
-                    out.println("@vectorlist {protein ssH} color= gray master= {protein} master= {-SS-} master= {H}");
+                    out.println("@vectorlist {protein ssH} color= gray master= {protein} master= {-SS-} master= {H}"+wid);
                     sp.printSticks(bonds, atomC.scHydro, atomC.bioHeavy, ssRes, ssRes, identifier);
                 }
                 if(doBallsOnAtoms)
                 {
                     printAtomBalls(atomC.scHeavy, ssRes,
-                        (doBallsOnCarbon ? "cyan" : null),
+                        (doBallsOnCarbon ? scColor : null),
                         "master= {protein} master= {-SS-}");
                 }
             }
@@ -229,6 +234,8 @@ public class BallAndStickLogic implements Logic
         AtomClassifier  atomC   = data.getAtomClassifier();
         Collection      bonds   = data.getCovalentGraph().getBonds();
         
+        String wid = (width != -1 ? " width= "+width : ""); // DAK 100303
+        
         // Needs an extra space for some reason.
         String identifier = "";
         if(pdbId != null && !((pdbId.trim()).equals("")))
@@ -238,7 +245,7 @@ public class BallAndStickLogic implements Logic
         if(doVirtualBB)
         {
             String off = (doMainchain ? " off" : "");
-            out.println("@vectorlist {nuc. acid virtual bb} color= "+mcColor+" master= {nucleic acid} master= {virtual bb}"+off);
+            out.println("@vectorlist {nuc. acid virtual bb} color= "+mcColor+" master= {nucleic acid} master= {virtual bb}"+off+wid);
             VirtualBackbone virtualBB = data.getVirtualBackbone();
             sp.printSticks(virtualBB.getNucAcidBonds(), null, null, nucAcidRes, nucAcidRes, identifier);
         }
@@ -246,11 +253,11 @@ public class BallAndStickLogic implements Logic
         {
             if(atomC.mcHeavy.size() > 0)
             {
-                out.println("@vectorlist {nuc. acid mc} color= "+mcColor+" master= {nucleic acid} master= {mainchain}");
+                out.println("@vectorlist {nuc. acid mc} color= "+mcColor+" master= {nucleic acid} master= {mainchain}"+wid);
                 sp.printSticks(bonds, atomC.mcHeavy, atomC.mcHeavy, nucAcidRes, nucAcidRes, identifier);
                 if(doHydrogens && atomC.mcHydro.size() > 0)
                 {
-                    out.println("@vectorlist {nuc. acid mcH} color= gray master= {nucleic acid} master= {mainchain} master= {H}");
+                    out.println("@vectorlist {nuc. acid mcH} color= gray master= {nucleic acid} master= {mainchain} master= {H}"+wid);
                     sp.printSticks(bonds, atomC.mcHydro, atomC.mcHeavy, nucAcidRes, nucAcidRes, identifier);
                 }
                 if(doBallsOnAtoms)
@@ -265,18 +272,18 @@ public class BallAndStickLogic implements Logic
         {
             if(atomC.scHeavy.size() > 0)
             {
-                out.println("@vectorlist {nuc. acid sc} color= cyan master= {nucleic acid} master= {sidechains}");
+                out.println("@vectorlist {nuc. acid sc} color= "+scColor+" master= {nucleic acid} master= {sidechains}"+wid);
                 // to scHeavy if we want stubs to ribbon instead
                 sp.printSticks(bonds, atomC.scHeavy, atomC.bioHeavy, nucAcidRes, nucAcidRes, identifier);
                 if(doHydrogens && atomC.scHydro.size() > 0)
                 {
-                    out.println("@vectorlist {nuc. acid scH} color= gray master= {nucleic acid} master= {sidechains} master= {H}");
+                    out.println("@vectorlist {nuc. acid scH} color= gray master= {nucleic acid} master= {sidechains} master= {H}"+wid);
                     sp.printSticks(bonds, atomC.scHydro, atomC.scHeavy, nucAcidRes, nucAcidRes, identifier);
                 }
                 if(doBallsOnAtoms)
                 {
                     printAtomBalls(atomC.scHeavy, nucAcidRes,
-                        (doBallsOnCarbon ? "cyan" : null),
+                        (doBallsOnCarbon ? scColor : null),
                         "master= {nucleic acid} master= {sidechains}");
                 }
             }
@@ -299,6 +306,8 @@ public class BallAndStickLogic implements Logic
         AtomClassifier  atomC   = data.getAtomClassifier();
         Collection      bonds   = data.getCovalentGraph().getBonds();
         
+        String wid = (width != -1 ? " width= "+width : ""); // DAK 100303
+        
         String identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
         
         // First, the hets themselves.
@@ -315,7 +324,7 @@ public class BallAndStickLogic implements Logic
         
         if(doHydrogens && atomC.hetHydro.size() > 0)
         {
-            out.println("@vectorlist {hetH} color= gray master= {hets} master= {H}");
+            out.println("@vectorlist {hetH} color= gray master= {hets} master= {H}"+wid);
             sp.printSticks(bonds, atomC.hetHydro, atomC.hetHeavy, hetRes, hetRes, identifier);
         }
         // Now, the connections to protein.
@@ -326,12 +335,12 @@ public class BallAndStickLogic implements Logic
 
             if(proteinRes.size() > 0 && doMainchain && atomC.mcHeavy.size() > 0)
             {
-                out.println("@vectorlist {het - protein mc} color= pinktint master= {hets} master= {protein} master= {mainchain}");
+                out.println("@vectorlist {het - protein mc} color= pinktint master= {hets} master= {protein} master= {mainchain}"+wid);
                 sp.printSticks(bonds, atomC.hetHeavy, atomC.mcHeavy, hetRes, proteinRes, identifier);
             }
             if(proteinRes.size() > 0 && doSidechains && atomC.scHeavy.size() > 0)
             {
-                out.println("@vectorlist {het - protein sc} color= pinktint master= {hets} master= {protein} master= {sidechains}");
+                out.println("@vectorlist {het - protein sc} color= pinktint master= {hets} master= {protein} master= {sidechains}"+wid);
                 sp.printSticks(bonds, atomC.hetHeavy, atomC.scHeavy, hetRes, proteinRes, identifier);
             }
         }
@@ -343,12 +352,12 @@ public class BallAndStickLogic implements Logic
 
             if(nucAcidRes.size() > 0 && doMainchain && atomC.mcHeavy.size() > 0)
             {
-                out.println("@vectorlist {het - nuc. acid mc} color= pinktint master= {hets} master= {nucleic acid} master= {mainchain}");
+                out.println("@vectorlist {het - nuc. acid mc} color= pinktint master= {hets} master= {nucleic acid} master= {mainchain}"+wid);
                 sp.printSticks(bonds, atomC.hetHeavy, atomC.mcHeavy, hetRes, nucAcidRes, identifier);
             }
             if(nucAcidRes.size() > 0 && doSidechains && atomC.scHeavy.size() > 0)
             {
-                out.println("@vectorlist {het - nuc. acid sc} color= pinktint master= {hets} master= {nucleic acid} master= {sidechains}");
+                out.println("@vectorlist {het - nuc. acid sc} color= pinktint master= {hets} master= {nucleic acid} master= {sidechains}"+wid);
                 sp.printSticks(bonds, atomC.hetHeavy, atomC.scHeavy, hetRes, nucAcidRes, identifier);
             }
         }
@@ -391,6 +400,8 @@ public class BallAndStickLogic implements Logic
         AtomClassifier  atomC   = data.getAtomClassifier();
         if(atomC.watHeavy.size() == 0) return;
         
+        String wid = (width != -1 ? " width= "+width : ""); // DAK 100303
+        
         String identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
         
         out.println("@balllist {waters} color= peachtint radius= 0.15 master= {waters}");
@@ -399,7 +410,7 @@ public class BallAndStickLogic implements Logic
         if(doHydrogens && atomC.watHydro.size() > 0)
         {
             Collection      bonds   = data.getCovalentGraph().getBonds();
-            out.println("@vectorlist {waterH} color= gray master= {waters} master= {H}");
+            out.println("@vectorlist {waterH} color= gray master= {waters} master= {H}"+wid);
             sp.printSticks(bonds, atomC.watHydro, atomC.watHeavy, waterRes, waterRes, identifier);
         }
     }
