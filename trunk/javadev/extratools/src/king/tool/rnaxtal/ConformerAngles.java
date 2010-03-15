@@ -115,6 +115,8 @@ public class ConformerAngles //extends ... implements ...
         angleMap.put("chi-c", chi_pyr);
         angleMap.put("chi-a", chi_pur);
         angleMap.put("chi-g", chi_pur);
+        angleMap.put("chi-pur", chi_pur);
+        angleMap.put("chi-pyr", chi_pyr);
         angleMap.put("beta-1", beta_1);
         angleMap.put("gamma-1", gamma_1);
         angleMap.put("delta-1", delta_1);
@@ -219,9 +221,10 @@ public class ConformerAngles //extends ... implements ...
       String resName = "chi-"+testRes.getName().trim().toLowerCase();
       if (angleMap.containsKey(resName)) {
         atomNames = (String[]) angleMap.get(resName);
-        //for (String testS : atomNames) {
-        //  System.out.println(testS);
-        //}
+      } else if ((testRes.getAtom(" N9 ")!=null)&&(testRes.getAtom(" C4 ")!=null)) {
+        atomNames = (String[]) angleMap.get("chi-pur");
+      } else if ((testRes.getAtom(" N1 ")!=null)&&(testRes.getAtom(" C2 ")!=null)) {
+        atomNames = (String[]) angleMap.get("chi-pyr");
       } else { throw new AtomException("Chi atom names were not found in the residues in this suite; does it have nonstandard residue names?"); }
     } else {
       atomNames = (String[]) angleMap.get(angleName);
