@@ -568,6 +568,7 @@ public void getSuperposeAtoms() {
           String resInf = resInfo1+"__?__:"+d[1]+":"+d[2]+":"+d[3]+":"+d[4]+":"+d[5]+"\n";
           resInf = resInf+resInfo2+d[6]+":"+d[7]+":"+d[8]+":"+d[9]+":__?__:__?__";
           //System.out.println(resInf);
+          //System.out.println(findProgram("suitename"));
           Process proc = Runtime.getRuntime().exec(findProgram("suitename"));
           DataOutputStream stream = new DataOutputStream(proc.getOutputStream());
           stream.writeBytes(resInf);
@@ -616,7 +617,9 @@ public void getSuperposeAtoms() {
     * Attempts to find the given program name in the same directory as the king.jar file.
     * In this case, the entire path will be quoted to protect any whitespace inside.
     * If not found, it assumes the program is in the PATH.
-    * Automatically appends ".exe" if we appear to be running under Windows.
+    * Automatically appends ".exe" if we appear to be running under Windows..
+    * This was copied form BgKinRunner, but doesn't appear to work with single quotes on windows.
+    * Double quotes around basename seems to work better, at least on vista.
     */
     public String findProgram(String basename)
     {
@@ -630,7 +633,7 @@ public void getSuperposeAtoms() {
         if(progFile.exists())
         {
             // Full path might have spaces in it (Win, Mac)
-            try { basename = "'"+progFile.getCanonicalPath()+"'"; }
+            try { basename = "\""+progFile.getCanonicalPath()+"\""; }
             catch(Throwable t) { t.printStackTrace(SoftLog.err); }
         }
         
