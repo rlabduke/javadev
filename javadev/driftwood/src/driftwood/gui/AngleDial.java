@@ -400,6 +400,10 @@ public class AngleDial extends JComponent implements MouseListener, MouseMotionL
     /** Returns the currently selected angle in degrees, between 0 and 360 */
     public double getDegrees()
     { return Math.toDegrees(this.getRadians()); }
+    /** Returns the currently selected angle in degrees, between -180 and 180, as a nicely formatted string */
+    public String getDegreesWrapped() {
+      return defaultFormatAngle(this.getRadians());
+    }
     public void setDegrees(double v)
     { this.setRadians(Math.toRadians(v)); }
 

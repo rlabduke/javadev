@@ -18,6 +18,7 @@ import chiropraxis.rotarama.*;
 import driftwood.gui.*;
 import driftwood.moldb2.*;
 import driftwood.util.SoftLog;
+import driftwood.util.*;
 //}}}
 /**
 * <code>RnaBackboneRotator</code> is a GUI for repositioning a sidechain
@@ -38,6 +39,8 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
     Residue             targetRes1;
     Residue             targetRes2;
     ArrayList           targetResidues;
+    String              resInfo1;
+    String              resInfo2;
     ModelManager2       modelman;
     ConformerAngles     confAngles;
     Conformer           conformer;
@@ -51,7 +54,7 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
     JList               atomsList1;
     JList               atomsList2;
     AngleDial[]         dials;
-    JLabel              rotaQuality;
+    JLabel              confQuality;
     ModelState          changePuckerState = null;
     boolean             doChangePucker = false;
     //boolean             doSuperpose = false;
@@ -69,11 +72,13 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
     * @throws IOException if the needed resource(s) can't be loaded from the JAR file
     * @throws NoSuchElementException if the resource is missing a required entry
     */
-    public RnaBackboneRotator(KingMain kMain, Residue target, Residue targ2, ModelManager2 mm) throws IOException
+    public RnaBackboneRotator(KingMain kMain, Residue targ1, Residue targ2, ModelManager2 mm) throws IOException
     {
         this.kMain      = kMain;
-        this.targetRes1  = target;
+        this.targetRes1  = targ1;
         this.targetRes2  = targ2;
+        this.resInfo1 = "molt:"+mm.getModel().getName()+":"+targ1.getChain()+":"+targ1.getSequenceNumber()+":"+targ1.getInsertionCode()+":"+targ1.getName()+":";
+        this.resInfo2 = "molt:"+mm.getModel().getName()+":"+targ2.getChain()+":"+targ2.getSequenceNumber()+":"+targ2.getInsertionCode()+":"+targ2.getName()+":";
         this.modelman   = mm;
         this.confAngles   = new ConformerAngles();
         this.conformer    = Conformer.getInstance();
@@ -164,16 +169,17 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         conformerList.addListSelectionListener(this);
         
         // Rotamer quality readout
-        //rotaQuality = new JLabel();
-        //rotaQuality.setToolTipText("Quality assessment for the current side-chain conformation");
-        //setFeedback();
+        confQuality = new JLabel();
+        confQuality.setToolTipText("Quality assessment for the current suite conformation");
+        setFeedback();
+        
         TablePane2 conformerPane = new TablePane2();
         conformerPane.vfill(false).add(new JLabel("Conformers"));
         conformerPane.add(new JLabel("Pick superpose atoms"));
         conformerPane.newRow();
         //conformerPane.hfill(true).vfill(true).addCell(new JScrollPane(conformerList), 1, 4);
         conformerPane.vfill(true).hfill(true).addCell(new JScrollPane(conformerList), 1, 4);
-        //conformerPane.newRow().weights(1,0).add(rotaQuality);
+        
         Object[] res1Atoms = targetRes1.getAtoms().toArray();
         Object[] res2Atoms = targetRes2.getAtoms().toArray();
         atomsList1 = new JList(res1Atoms);
@@ -193,6 +199,7 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         conformerPane.hfill(true).vfill(true).add(new JScrollPane(atomsList2));
         conformerPane.newRow();
         conformerPane.vfill(false).add(new JLabel("Residue 2"));
+        conformerPane.newRow().weights(2,0).addCell(confQuality, 2, 1);
         twistPane.add(conformerPane, BorderLayout.EAST);
         
         // Other controls
@@ -549,20 +556,85 @@ public void getSuperposeAtoms() {
         //rotaQuality.setText("-???-");
         try
         {
+          String[] d = new String[dials.length];
+          for(int i = 0; i < dials.length; i++) {
+            String val = dials[i].getDegreesWrapped();
+            if (val.equals("NaN")) {
+              d[i] = "__?__";
+            } else {
+              d[i] = val;
+            }
+          }
+          String resInf = resInfo1+"__?__:"+d[1]+":"+d[2]+":"+d[3]+":"+d[4]+":"+d[5]+"\n";
+          resInf = resInf+resInfo2+d[6]+":"+d[7]+":"+d[8]+":"+d[9]+":__?__:__?__";
+          //System.out.println(resInf);
+          Process proc = Runtime.getRuntime().exec(findProgram("suitename"));
+          DataOutputStream stream = new DataOutputStream(proc.getOutputStream());
+          stream.writeBytes(resInf);
+          //System.out.println(resInf.length());
+          //System.out.println(stream.size());
+          stream.flush();
+          stream.close();
+          BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+          String line;
+          line = reader.readLine();
+          line = reader.readLine();
+          String[] split = Strings.explode(line, ':');
+          String eval = "Need suitename for score";
+          if (split.length == 6) {
+            eval = split[5];
+          }
+          //System.out.println(line);
+          //while ((line = reader.readLine()) != null) {
+          //  System.out.println(line);
+          //}
+          
             //double score = conformer.evaluate(targetRes1, targetRes2, modelman.getMoltenState()) * 100.0;
-            double score = 100;
-            String eval;
-            if(score > 20)          eval = "Excellent";
-            else if(score > 10)     eval = "Good";
-            else if(score >  2)     eval = "Fair";
-            else if(score >  1)     eval = "Poor";
-            else                    eval = "OUTLIER";
+            //double score = 100;
+            //String eval;
+            //if(score > 20)          eval = "Excellent";
+            //else if(score > 10)     eval = "Good";
+            //else if(score >  2)     eval = "Fair";
+            //else if(score >  1)     eval = "Poor";
+            //else                    eval = "OUTLIER";
             //confQuality.setText(eval+" ("+df1.format(score)+"%)");
+            confQuality.setText(eval);
         }
         catch(IllegalArgumentException ex)
         {
-            //confQuality.setText("-");
+            confQuality.setText("Download suitename for scoring");
         }
+        catch (IOException ie) {
+          ie.printStackTrace(SoftLog.err);
+        }
+    }
+//}}}
+
+//{{{ findProgram
+//##################################################################################################
+    /**
+    * Attempts to find the given program name in the same directory as the king.jar file.
+    * In this case, the entire path will be quoted to protect any whitespace inside.
+    * If not found, it assumes the program is in the PATH.
+    * Automatically appends ".exe" if we appear to be running under Windows.
+    */
+    public String findProgram(String basename)
+    {
+        String os = System.getProperty("os.name").toLowerCase();
+        if(os.indexOf("windows") != -1)
+            basename = basename+".exe";
+        
+        // We search the directory holding the king.jar file
+        // for 'probe' or 'probe.exe'; if not found, we just use 'probe'.
+        File progFile = new File(kMain.getPrefs().jarFileDirectory, basename);
+        if(progFile.exists())
+        {
+            // Full path might have spaces in it (Win, Mac)
+            try { basename = "'"+progFile.getCanonicalPath()+"'"; }
+            catch(Throwable t) { t.printStackTrace(SoftLog.err); }
+        }
+        
+        return basename;
     }
 //}}}
 
