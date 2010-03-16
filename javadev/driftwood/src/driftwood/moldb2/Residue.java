@@ -365,6 +365,21 @@ public class Residue implements Comparable
     { return modCount; }
 //}}}
 
+//{{{ nickname
+//##################################################################################################
+    /**
+    * Returns a cute, short name for the Residue, including residue 
+    * three-letter code, chain, number, and insertion code (if any).
+    */
+    public String nickname()
+    {
+        return this.getName().trim().toLowerCase()
+              +this.getChain().replace(" ", "_")
+              +this.getSequenceNumber().trim()
+              +this.getInsertionCode().trim();
+    }
+//}}}
+
 //{{{ compareTo, toString
 //##################################################################################################
     /**
