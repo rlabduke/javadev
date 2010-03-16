@@ -14,13 +14,12 @@ import molikin.logic.BallAndStickLogic;
 //}}}
 /**
 * <code>SidechainMainchainSwapper</code> finds places where two otherwise 
-* similar models may deviate, the sidechain of one performing a similar 
-* structural role as the mainchain of the other.
+* similar models deviate, the sidechain of one performing a similar structural 
+* role as the mainchain of the other.
 * 
-* TODO:   if "normal" scsc+mcmc rmsd < "swap" scmc+mcsc rmsd, don't even bother outputting (at least in kin)
-*         try all rotamers to get best possible scmc+mcsc rmsd
-*         use SpatialBin somehow - could make method more generic wrt aa type
-*         ...
+* TODO: try all rotamers to get best possible scmc+mcsc rmsd
+*       use SpatialBin somehow to make method more generic wrt aa type
+*       separate out a "SidechainMainchainSwap" class -- goulash!
 * 
 * <p>Begun on Mon Mar  1 2010
 * <p>Copyright (C) 2010 by Daniel Keedy. All rights reserved.
@@ -72,20 +71,17 @@ public class SidechainMainchainSwapper //extends ... implements ...
             if(r1 != null && r2 != null)
             {
                 if(r1.getName().equals("ARG")
+                || r1.getName().equals("LYS") || r1.getName().equals("MET")
                 || r1.getName().equals("GLN") || r1.getName().equals("GLU")
                 || r1.getName().equals("ASN") || r1.getName().equals("ASP"))
                 {
-                    String rn1 = r1.getName().trim().toLowerCase()
-                        +r1.getChain().replace(" ", "_")+r1.getSequenceNumber().trim();
-                    String rn2 = r2.getName().trim().toLowerCase()
-                        +r2.getChain().replace(" ", "_")+r2.getSequenceNumber().trim();
-                    double rmsd = compareResidues(r1, r2, m1, m2, rn1, rn2, align);
+                    double rmsd = compareResidues(r1, r2, m1, m2, align);
                     if(!Double.isNaN(rmsd))
                     {
                         // local kinemage using the global Calpha superposition that 
-                        // produced the lowest local sidechain-mainchain-swapped rmsd 
-                        // (assuming that is less than the lowest non-swapped rmsd)
-                        localKinemage(r1, m1min, "white", "cyan", rmsd, rn1);
+                        // produced the lowest local sidechain-mainchain-swapped rmsd, 
+                        // which must also be less than the lowest non-swapped rmsd
+                        localSwapKinemage(r1, m1min, "white", "cyan", rmsd);
                     }
                 }
             }
@@ -95,16 +91,16 @@ public class SidechainMainchainSwapper //extends ... implements ...
 
 //{{{ compareResidues
 //##############################################################################
-    public double compareResidues(Residue r1, Residue r2, Model m1, Model m2, String rn1, String rn2, Alignment align)
+    public double compareResidues(Residue r1, Residue r2, Model m1, Model m2, Alignment align)
     {
         double rmsdGlbMin = Double.POSITIVE_INFINITY;
         double rmsdLocNormMin = Double.POSITIVE_INFINITY; // regular mc-mc, mc-mc, sc-sc pairing
         double rmsdLocSwapMin = Double.POSITIVE_INFINITY; // 1 of 2 possible swapped pairings
         m1min = null;
         
-        for(double sieve : sieves)
+        try
         {
-            try
+            for(double sieve : sieves)
             {
                 Model m1new = (Model) m1.clone(); // retain original coordinates
                 
@@ -122,18 +118,18 @@ public class SidechainMainchainSwapper //extends ... implements ...
                     rmsdLocSwapMin = rmsdLocSwap;
                     m1min = m1new;
                 }
-            }
-            catch(ParseException ex)
-            { System.err.println("parsing error with global sup"); }
-            catch(AtomException ex)
-            { System.err.println("atom error with global sup, or local co-ctr or rmsd"); }
-        }//sieve
+            }//sieve
+        }
+        catch(ParseException ex) {}
+        //{ if(verbose) System.err.println("parsing error w/ global sup"); }
+        catch(AtomException ex) {}
+        //{ if(verbose) System.err.println("atom error w/ global sup OR local rmsd"); }
         
         boolean swapped = (rmsdLocSwapMin < rmsdLocNormMin);
         
         System.err.println(title1+"\t"+title2+"\t"+df.format(rmsdGlbMin)
-            +"\t"+rn1+"\t"+rn2+"\t"+df.format(rmsdLocNormMin)+"\t"
-            +df.format(rmsdLocSwapMin)+"\t"+(swapped ? "YES!" : "no"));
+            +"\t"+r1.nickname()+"\t"+r2.nickname()+"\t"+df.format(rmsdLocNormMin)
+            +"\t"+df.format(rmsdLocSwapMin)+"\t"+(swapped ? "YES!" : "no"));
         
         if(swapped) return rmsdLocSwapMin;
         return Double.NaN;
@@ -181,89 +177,6 @@ public class SidechainMainchainSwapper //extends ... implements ...
     }
 //}}}
 
-//{{{ localCoCenter
-//##############################################################################
-    /**
-    * There are 6 possible rmsd calculations at a Calpha junction due to its 3 
-    * outgoing units: mc(i-1), mc(i+1), sc.
-    * However, 3 of these pair mainchain units going in opposite directions,
-    * which implies bad enough global superposition that a sidechain-mainchain
-    * swap might not be meaningful, so here we return only the remaining 3:<ul>
-    * <li>mc(i-1)_mc(i-1)  mc(i+1)_mc(i+1)  sc_sc</li>
-    * <li>mc(i-1)_mc(i-1)  mc(i+1)_sc       sc_mc(i+1)</li>
-    * <li>mc(i-1)_sc       mc(i+1)_mc(i+1)  sc_mc(i-1)</li>
-    * where x_y means x atoms from the first (mobile) residue will be compared 
-    * to y atoms from the second (reference) residue.
-    */
-    public double[] localCoCenter(Residue r1, Residue r2, Model m1, Model m2) throws AtomException
-    {
-        // translate mobile CA (1) to reference CA (2) ("co-center")
-        ModelState s1 = m1.getState();
-        ModelState s2 = m2.getState(); 
-        AtomState ca1 = s1.get(r1.getAtom(" CA "));
-        AtomState ca2 = s2.get(r2.getAtom(" CA "));
-        Triple xlate = new Triple(ca2).sub(ca1);
-        for(Iterator iter = Model.extractOrderedStatesByName(m1).iterator(); iter.hasNext(); )
-        {
-            AtomState as = (AtomState) iter.next();
-            as.add(xlate);
-        }
-        
-        // local rmsds
-        double[] rmsds = new double[] { 0, 0, 0 };
-        
-        // normal
-        // mc(i-1)_mc(i-1)  mc(i+1)_mc(i+1)  sc_sc
-        rmsds[0] += calcLocalRmsd(r1, r2, m1, m2, MC_PREV, MC_PREV);
-        rmsds[0] += calcLocalRmsd(r1, r2, m1, m2, MC_NEXT, MC_NEXT);
-        //rmsds[0] += calcLocalRmsd(r1, r2, m1, m2, SC     , SC     );
-        //rmsds[0] /= 3.0;
-        rmsds[0] /= 2.0;
-        
-        // entering a sc-mc swap "bubble"
-        // mc(i-1)_mc(i-1)  mc(i+1)_sc       sc_mc(i+1)
-        rmsds[1] += calcLocalRmsd(r1, r2, m1, m2, MC_PREV, MC_PREV);
-        rmsds[1] += calcLocalRmsd(r1, r2, m1, m2, MC_NEXT, SC     );
-        rmsds[1] += calcLocalRmsd(r1, r2, m1, m2, SC     , MC_NEXT);
-        rmsds[1] /= 3.0;
-        
-        // exiting a sc-mc swap "bubble"
-        // mc(i-1)_sc       mc(i+1)_mc(i+1)  sc_mc(i-1)
-        rmsds[2] += calcLocalRmsd(r1, r2, m1, m2, MC_PREV, SC     );
-        rmsds[2] += calcLocalRmsd(r1, r2, m1, m2, MC_NEXT, MC_NEXT);
-        rmsds[2] += calcLocalRmsd(r1, r2, m1, m2, SC     , MC_PREV);
-        rmsds[2] /= 3.0;
-        
-        return rmsds;
-    }
-//}}}
-
-//{{{ calcLocalRmsd
-//##############################################################################
-    public double calcLocalRmsd(Residue r1, Residue r2, Model m1, Model m2, String sel1, String sel2) throws AtomException
-    {
-        // NB: "r1" and "r2" here are different from "r1" and "r2" in localCoCenter()
-        
-        // NB: I stopped caring about sc flips (e.g. NH1 vs. NH2 for Arg) - DAK 100307
-        
-        // get correct atoms
-        AtomState[] atoms1 = getLocalAtoms(r1, m1, sel1);
-        AtomState[] atoms2 = getLocalAtoms(r2, m2, sel2);
-        if(atoms1 == null || atoms2 == null)
-        {
-            System.err.println("not enough atoms for co-ctr then rmsd of "+r1+" sc onto "+r2+" mc");
-            return Double.NaN;
-        }
-        
-        // rmsd w/o any relative rotation
-        double rmsd = 0;
-        for(int i = 0; i < atoms2.length; i++)
-            rmsd += Triple.sqDistance(atoms2[i], atoms1[i]);
-        rmsd = Math.sqrt(rmsd);
-        return rmsd;
-    }
-//}}}
-
 //{{{ globalKinemage
 //##############################################################################
     public void globalKinemage(Model m, Alignment align, String mcColor, String scColor)
@@ -283,12 +196,12 @@ public class SidechainMainchainSwapper //extends ... implements ...
     }
 //}}}
 
-//{{{ localKinemage
+//{{{ localSwapKinemage
 //##############################################################################
-    public void localKinemage(Residue r, Model m, String mcColor, String scColor, double rmsd, String rn)
+    public void localSwapKinemage(Residue r, Model m, String mcColor, String scColor, double rmsd)
     {
-        System.out.println("@group {"+rn+"  "+df2.format(rmsd)
-            +"} dominant animate master= {"+title1+"} master= {"+rn+"}");
+        System.out.println("@group {"+r.nickname()+"  "+df2.format(rmsd)
+            +"} dominant animate master= {"+title1+"} master= {"+r.nickname()+"}");
         bsl.scColor = scColor;
         bsl.width = -1; // i.e. use default width
         ModelState s = m.getState();
@@ -364,194 +277,328 @@ public class SidechainMainchainSwapper //extends ... implements ...
     }
 //}}}
 
+//{{{ localCoCenter
+//##############################################################################
+    /**
+    * There are 6 possible rmsd calculations at a Calpha junction due to its 3 
+    * outgoing units: mc(i-1), mc(i+1), sc.
+    * However, 3 of these pair mainchain units going in opposite directions,
+    * which implies bad enough global superposition that a sidechain-mainchain
+    * swap might not be meaningful, so here we return only the remaining 3:<ul>
+    * <li>mc(i-1)_mc(i-1)  mc(i+1)_mc(i+1)  sc_sc</li>
+    * <li>mc(i-1)_mc(i-1)  mc(i+1)_sc       sc_mc(i+1)</li>
+    * <li>mc(i-1)_sc       mc(i+1)_mc(i+1)  sc_mc(i-1)</li>
+    * where x_y means atoms x from the first (mobile) residue will be compared 
+    * to atoms y from the second (reference) residue.
+    */
+    public double[] localCoCenter(Residue r1, Residue r2, Model m1, Model m2) throws AtomException
+    {
+        // translate mobile CA (1) to reference CA (2) ("co-center")
+        ModelState s1 = m1.getState();
+        ModelState s2 = m2.getState(); 
+        AtomState ca1 = s1.get(r1.getAtom(" CA "));
+        AtomState ca2 = s2.get(r2.getAtom(" CA "));
+        Triple xlate = new Triple(ca2).sub(ca1);
+        for(Iterator iter = Model.extractOrderedStatesByName(m1).iterator(); iter.hasNext(); )
+        {
+            AtomState as = (AtomState) iter.next();
+            as.add(xlate);
+        }
+        
+        // local rmsds
+        double[] rmsds = new double[] { 0, 0, 0 };
+        
+        // normal:  mc(i-1)_mc(i-1)  mc(i+1)_mc(i+1)  sc_sc
+        rmsds[0] += calcLocalRmsd(r1, r2, m1, m2, MC_PREV, MC_PREV);
+        rmsds[0] += calcLocalRmsd(r1, r2, m1, m2, MC_NEXT, MC_NEXT);
+        //rmsds[0] += calcLocalRmsd(r1, r2, m1, m2, SC     , SC     );
+        //rmsds[0] /= 3.0;
+        rmsds[0] /= 2.0;
+        
+        // entering a sc-mc swap "bubble": mc(i-1)_mc(i-1)  mc(i+1)_sc  sc_mc(i+1)
+        rmsds[1] += calcLocalRmsd(r1, r2, m1, m2, MC_PREV, MC_PREV);
+        rmsds[1] += calcLocalRmsd(r1, r2, m1, m2, MC_NEXT, SC     );
+        rmsds[1] += calcLocalRmsd(r1, r2, m1, m2, SC     , MC_NEXT);
+        rmsds[1] /= 3.0;
+        
+        // exiting a sc-mc swap "bubble": mc(i-1)_sc mc(i+1)_mc(i+1)  sc_mc(i-1)
+        rmsds[2] += calcLocalRmsd(r1, r2, m1, m2, MC_PREV, SC     );
+        rmsds[2] += calcLocalRmsd(r1, r2, m1, m2, MC_NEXT, MC_NEXT);
+        rmsds[2] += calcLocalRmsd(r1, r2, m1, m2, SC     , MC_PREV);
+        rmsds[2] /= 3.0;
+        
+        return rmsds;
+    }
+//}}}
+
+//{{{ calcLocalRmsd
+//##############################################################################
+    public double calcLocalRmsd(Residue r1, Residue r2, Model m1, Model m2, String sel1, String sel2) throws AtomException
+    {
+        // get correct atoms
+        Triple[] atoms1 = null, atoms2 = null, atoms1flip = null, atoms2flip = null;
+        atoms1 = getLocalAtoms(r1, m1, sel1, false);
+        atoms2 = getLocalAtoms(r2, m2, sel2, false);
+        if(sel1.equals(SC) && isFlippable(r1)) atoms1flip = getLocalAtoms(r1, m1, sel1, true);
+        if(sel2.equals(SC) && isFlippable(r2)) atoms2flip = getLocalAtoms(r2, m2, sel2, true);
+        if(atoms1 == null || atoms2 == null)
+        {
+            System.err.println("not enough atoms for co-center then rmsd of "+r1+" onto "+r2);
+            return Double.NaN;
+        }
+        
+        // rmsds w/o any relative rotation; flip (F) or no flip (n)
+        double rmsd_nn = Double.POSITIVE_INFINITY;
+        double rmsd_Fn = Double.POSITIVE_INFINITY;
+        double rmsd_nF = Double.POSITIVE_INFINITY;
+        double rmsd_FF = Double.POSITIVE_INFINITY;
+        rmsd_nn = rmsd(atoms1, atoms2);
+        if(atoms1flip != null) rmsd_Fn = rmsd(atoms1flip, atoms2);
+        if(atoms2flip != null) rmsd_nF = rmsd(atoms1, atoms2flip);
+        if(atoms1flip != null
+        && atoms2flip != null) rmsd_FF = rmsd(atoms1flip, atoms2flip);
+        return Math.min(rmsd_nn, 
+               Math.min(rmsd_Fn, 
+               Math.min(rmsd_nF, rmsd_FF))); // exhale...
+    }
+
+    private boolean isFlippable(Residue r)
+    {
+        if(r.getName().equals("ARG")
+        || r.getName().equals("GLN")
+        || r.getName().equals("GLU")
+        || r.getName().equals("ASN")
+        || r.getName().equals("ASP"))
+            return true;
+        return false;
+    }
+
+    private double rmsd(Triple[] atoms1, Triple[] atoms2)
+    {
+        if(atoms1.length != atoms2.length) return Double.NaN;
+        double rmsd = 0;
+        for(int i = 0; i < atoms2.length; i++)
+            rmsd += Triple.sqDistance(atoms2[i], atoms1[i]);
+        rmsd = Math.sqrt(rmsd);
+        return rmsd;
+    }
+//}}}
+
 //{{{ getLocalAtoms
 //##############################################################################
-    public AtomState[] getLocalAtoms(Residue r, Model m, String sel) throws AtomException
+    public Triple[] getLocalAtoms(Residue r0, Model m, String sel, boolean flip) throws AtomException
     {
         ModelState s = m.getState();
-        AtomState[] atoms = null;
+        Triple[] atoms = null;
+        
+        //{{{ sc
         if(sel.equals(SC))
         {
-            if(r.getName().equals("ARG")) atoms = new AtomState[] {
-                s.get(r.getAtom(" CA ")),
-                s.get(r.getAtom(" CB ")),
-                s.get(r.getAtom(" CG ")),
-                s.get(r.getAtom(" CD ")),
-                s.get(r.getAtom(" NE ")),
-                s.get(r.getAtom(" CZ ")) };
-            else if(r.getName().equals("GLN")) atoms = new AtomState[] {
-                s.get(r.getAtom(" CA ")),
-                s.get(r.getAtom(" CB ")),
-                s.get(r.getAtom(" CG ")),
-                s.get(r.getAtom(" CD ")) };
-            else if(r.getName().equals("GLU")) atoms = new AtomState[] {
-                s.get(r.getAtom(" CA ")),
-                s.get(r.getAtom(" CB ")),
-                s.get(r.getAtom(" CG ")),
-                s.get(r.getAtom(" CD ")) };
-            else if(r.getName().equals("ASN")) atoms = new AtomState[] {
-                s.get(r.getAtom(" CA ")),
-                s.get(r.getAtom(" CB ")),
-                s.get(r.getAtom(" CG ")) };
-            else if(r.getName().equals("ASP")) atoms = new AtomState[] {
-                s.get(r.getAtom(" CA ")),
-                s.get(r.getAtom(" CB ")),
-                s.get(r.getAtom(" CG ")) };
+            if(r0.getName().equals("ARG")) atoms = new Triple[] {
+                new Triple(s.get(r0.getAtom(" CA "))),
+                new Triple(s.get(r0.getAtom(" CB "))),
+                new Triple(s.get(r0.getAtom(" CG "))),
+                new Triple(s.get(r0.getAtom(" CD "))),
+                new Triple(s.get(r0.getAtom(" NE "))),
+                new Triple(s.get(r0.getAtom(" CZ "))),
+                new Triple(s.get(r0.getAtom(" NH1"))),
+                new Triple(s.get(r0.getAtom(" NH2"))) };
+            else if(r0.getName().equals("LYS")) atoms = new Triple[] {
+                new Triple(s.get(r0.getAtom(" CA "))),
+                new Triple(s.get(r0.getAtom(" CB "))),
+                new Triple(s.get(r0.getAtom(" CG "))),
+                new Triple(s.get(r0.getAtom(" CD "))),
+                new Triple(s.get(r0.getAtom(" CE "))),
+                new Triple(s.get(r0.getAtom(" NZ "))) };
+            else if(r0.getName().equals("MET")) atoms = new Triple[] {
+                new Triple(s.get(r0.getAtom(" CA "))),
+                new Triple(s.get(r0.getAtom(" CB "))),
+                new Triple(s.get(r0.getAtom(" CG "))),
+                new Triple(s.get(r0.getAtom(" SD "))),
+                new Triple(s.get(r0.getAtom(" CE "))) };
+            else if(r0.getName().equals("GLN")) atoms = new Triple[] {
+                new Triple(s.get(r0.getAtom(" CA "))),
+                new Triple(s.get(r0.getAtom(" CB "))),
+                new Triple(s.get(r0.getAtom(" CG "))),
+                new Triple(s.get(r0.getAtom(" CD "))),
+                new Triple(s.get(r0.getAtom(" OE1"))),
+                new Triple(s.get(r0.getAtom(" NE2"))) };
+            else if(r0.getName().equals("GLU")) atoms = new Triple[] {
+                new Triple(s.get(r0.getAtom(" CA "))),
+                new Triple(s.get(r0.getAtom(" CB "))),
+                new Triple(s.get(r0.getAtom(" CG "))),
+                new Triple(s.get(r0.getAtom(" CD "))),
+                new Triple(s.get(r0.getAtom(" OE1"))),
+                new Triple(s.get(r0.getAtom(" OE2"))) };
+            else if(r0.getName().equals("ASN")) atoms = new Triple[] {
+                new Triple(s.get(r0.getAtom(" CA "))),
+                new Triple(s.get(r0.getAtom(" CB "))),
+                new Triple(s.get(r0.getAtom(" CG "))),
+                new Triple(s.get(r0.getAtom(" OD1"))),
+                new Triple(s.get(r0.getAtom(" ND2"))) };
+            else if(r0.getName().equals("ASP")) atoms = new Triple[] {
+                new Triple(s.get(r0.getAtom(" CA "))),
+                new Triple(s.get(r0.getAtom(" CB "))),
+                new Triple(s.get(r0.getAtom(" CG "))),
+                new Triple(s.get(r0.getAtom(" OD1"))),
+                new Triple(s.get(r0.getAtom(" OD2"))) };
+            
+            if(flip)
+            {
+                Triple[] atomsFlip = new Triple[atoms.length];
+                for(int i = 0; i < atoms.length-2; i++) atomsFlip[i] = atoms[i];
+                atomsFlip[atoms.length-2] = atoms[atoms.length-1]; // "flip" end
+                atomsFlip[atoms.length-1] = atoms[atoms.length-2]; // of sidechain
+                atoms = atomsFlip;
+            }
         }
+        //}}}
+        //{{{ mc-
         else if(sel.equals(MC_PREV))
         {
-            Residue minus0 = r, minus1 = null, minus2 = null;
-            minus1 = minus0.getPrev(m);
-            if(minus1 == null) return null;
-            if(minus0.getName().equals("ARG"))
+            Residue r1 = null, r2 = null;
+            r1 = r0.getPrev(m);
+            if(r1 == null) return null;
+            if(r0.getName().equals("ARG") || r0.getName().equals("LYS"))
             {
-                minus2 = minus1.getPrev(m);
-                if(minus2 == null) return null;
+                r2 = r1.getPrev(m);
+                if(r2 == null) return null;
             }
-            if(minus0.getName().equals("ARG")) atoms = new AtomState[] {
-                s.get(minus0.getAtom(" CA ")),
-                s.get(minus0.getAtom(" N  ")),
-                s.get(minus1.getAtom(" C  ")),
-                s.get(minus1.getAtom(" CA ")),
-                s.get(minus1.getAtom(" N  ")),
-                s.get(minus2.getAtom(" C  ")) };
-            else if(minus0.getName().equals("GLN") || minus0.getName().equals("GLU")) atoms = new AtomState[] {
-                s.get(minus0.getAtom(" CA ")),
-                s.get(minus0.getAtom(" N  ")),
-                s.get(minus1.getAtom(" C  ")),
-                s.get(minus1.getAtom(" CA ")) };
-            else if(minus0.getName().equals("ASN") || minus0.getName().equals("ASP")) atoms = new AtomState[] {
-                s.get(minus0.getAtom(" CA ")),
-                s.get(minus0.getAtom(" N  ")),
-                s.get(minus1.getAtom(" C  ")) };
+            if(r0.getName().equals("ARG"))
+            {
+                atoms = new Triple[] {
+                    new Triple(s.get(r0.getAtom(" CA "))),
+                    new Triple(s.get(r0.getAtom(" N  "))),
+                    new Triple(s.get(r1.getAtom(" C  "))),
+                    new Triple(s.get(r1.getAtom(" CA "))),
+                    new Triple(s.get(r1.getAtom(" N  "))),
+                    new Triple(s.get(r2.getAtom(" C  "))),
+                    new Triple(s.get(r2.getAtom(" O  "))),
+                    new Triple(s.get(r2.getAtom(" CA "))) };
+            }
+            else if(r0.getName().equals("LYS"))
+            {
+                atoms = new Triple[] {
+                    new Triple(s.get(r0.getAtom(" CA "))),
+                    new Triple(s.get(r0.getAtom(" N  "))),
+                    new Triple(s.get(r1.getAtom(" C  "))),
+                    new Triple(s.get(r1.getAtom(" CA "))),
+                    new Triple(s.get(r1.getAtom(" N  "))),
+                    new Triple(s.get(r2.getAtom(" C  "))) };
+            }
+            else if(r0.getName().equals("MET"))
+            {
+                atoms = new Triple[] {
+                    new Triple(s.get(r0.getAtom(" CA "))),
+                    new Triple(s.get(r0.getAtom(" N  "))),
+                    new Triple(s.get(r1.getAtom(" C  "))),
+                    new Triple(s.get(r1.getAtom(" CA "))),
+                    new Triple(s.get(r1.getAtom(" N  "))) };
+            }
+            else if(r0.getName().equals("GLN") || r0.getName().equals("GLU"))
+            {
+                // branch point is Calpha, so compromise on a superposition point
+                Triple midCbetaHalpha = new Triple().likeMidpoint(
+                    new Triple(s.get(r1.getAtom(r1.getName().equals("GLY") ? " HA3" : " CB "))),
+                    new Triple(s.get(r1.getAtom(r1.getName().equals("GLY") ? " HA2" : " HA "))));
+                atoms = new Triple[] {
+                    new Triple(s.get(r0.getAtom(" CA "))),
+                    new Triple(s.get(r0.getAtom(" N  "))),
+                    new Triple(s.get(r1.getAtom(" C  "))),
+                    new Triple(s.get(r1.getAtom(" CA "))),
+                    new Triple(s.get(r1.getAtom(" N  "))),
+                    midCbetaHalpha };
+            }
+            else if(r0.getName().equals("ASN") || r0.getName().equals("ASP"))
+            {
+                atoms = new Triple[] {
+                    new Triple(s.get(r0.getAtom(" CA "))),
+                    new Triple(s.get(r0.getAtom(" N  "))),
+                    new Triple(s.get(r1.getAtom(" C  "))),
+                    new Triple(s.get(r1.getAtom(" O  "))),
+                    new Triple(s.get(r1.getAtom(" CA "))) };
+            }
         }
+        //}}}
+        //{{{ mc+
         else if(sel.equals(MC_NEXT))
         {
-            Residue plus0 = r, plus1 = null, plus2 = null;
-            plus1 = plus0.getNext(m);
-            if(plus1 == null) return null;
-            if(plus0.getName().equals("ARG"))
+            Residue r1 = null, r2 = null;
+            r1 = r0.getNext(m);
+            if(r1 == null) return null;
+            if(r0.getName().equals("ARG") || r0.getName().equals("LYS"))
             {
-                plus2 = plus1.getNext(m);
-                if(plus2 == null) return null;
+                r2 = r1.getNext(m);
+                if(r2 == null) return null;
             }
-            if(plus0.getName().equals("ARG")) atoms = new AtomState[] {
-                s.get(plus0.getAtom(" CA ")),
-                s.get(plus0.getAtom(" C  ")),
-                s.get(plus1.getAtom(" N  ")),
-                s.get(plus1.getAtom(" CA ")),
-                s.get(plus1.getAtom(" C  ")),
-                s.get(plus2.getAtom(" N  ")) };
-            else if(plus0.getName().equals("GLN") || plus0.getName().equals("GLU")) atoms = new AtomState[] {
-                s.get(plus0.getAtom(" CA ")),
-                s.get(plus0.getAtom(" C  ")),
-                s.get(plus1.getAtom(" N  ")),
-                s.get(plus1.getAtom(" CA ")) };
-            else if(plus0.getName().equals("ASN") || plus0.getName().equals("ASP")) atoms = new AtomState[] {
-                s.get(plus0.getAtom(" CA ")),
-                s.get(plus0.getAtom(" C  ")),
-                s.get(plus1.getAtom(" N  ")) };
+            if(r0.getName().equals("ARG"))
+            {
+                atoms = new Triple[] {
+                    new Triple(s.get(r0.getAtom(" CA "))),
+                    new Triple(s.get(r0.getAtom(" C  "))),
+                    new Triple(s.get(r1.getAtom(" N  "))),
+                    new Triple(s.get(r1.getAtom(" CA "))),
+                    new Triple(s.get(r1.getAtom(" C  "))),
+                    new Triple(s.get(r2.getAtom(" N  "))),
+                    new Triple(s.get(r2.getAtom(r1.getName().equals("PRO") ? " CD " : " H  "))),
+                    new Triple(s.get(r2.getAtom(" CA "))) };
+            }
+            else if(r0.getName().equals("LYS"))
+            {
+                atoms = new Triple[] {
+                    new Triple(s.get(r0.getAtom(" CA "))),
+                    new Triple(s.get(r0.getAtom(" C  "))),
+                    new Triple(s.get(r1.getAtom(" N  "))),
+                    new Triple(s.get(r1.getAtom(" CA "))),
+                    new Triple(s.get(r1.getAtom(" C  "))),
+                    new Triple(s.get(r2.getAtom(" N  "))) };
+            }
+            else if(r0.getName().equals("MET"))
+            {
+                atoms = new Triple[] {
+                    new Triple(s.get(r0.getAtom(" CA "))),
+                    new Triple(s.get(r0.getAtom(" C  "))),
+                    new Triple(s.get(r1.getAtom(" N  "))),
+                    new Triple(s.get(r1.getAtom(" CA "))),
+                    new Triple(s.get(r1.getAtom(" C  "))) };
+            }
+            else if(r0.getName().equals("GLN") || r0.getName().equals("GLU"))
+            {
+                // branch point is Calpha, so compromise on a superposition point
+                Triple midCbetaHalpha = new Triple().likeMidpoint(
+                    new Triple(s.get(r1.getAtom(r1.getName().equals("GLY") ? " HA3" : " CB "))),
+                    new Triple(s.get(r1.getAtom(r1.getName().equals("GLY") ? " HA2" : " HA "))));
+                atoms = new Triple[] {
+                    new Triple(s.get(r0.getAtom(" CA "))),
+                    new Triple(s.get(r0.getAtom(" C  "))),
+                    new Triple(s.get(r1.getAtom(" N  "))),
+                    new Triple(s.get(r1.getAtom(" CA "))),
+                    new Triple(s.get(r1.getAtom(" C  "))),
+                    midCbetaHalpha };
+            }
+            else if(r0.getName().equals("ASN") || r0.getName().equals("ASP"))
+            {
+                atoms = new Triple[] {
+                    new Triple(s.get(r0.getAtom(" CA "))),
+                    new Triple(s.get(r0.getAtom(" C  "))),
+                    new Triple(s.get(r1.getAtom(" N  "))),
+                    new Triple(s.get(r1.getAtom(r1.getName().equals("PRO") ? " CD " : " H  "))),
+                    new Triple(s.get(r1.getAtom(" CA "))) };
+            }
         }
+        //}}}
+        //{{{ else
         else
         {
             System.err.println("unrecognized atom selection: "+sel);
             return null;
         }
-        return atoms;
-    }
-//}}}
-/*
-//{{{ getSidechainAtoms [OLD]
-//##############################################################################
-    public AtomState[] getSidechainAtoms(Residue r, ModelState s, boolean flipSc) throws AtomException
-    {
-        AtomState[] atoms = null;
-        if(r.getName().equals("ARG")) atoms = new AtomState[] {
-            s.get(r.getAtom(" CA ")),
-            s.get(r.getAtom(" CB ")),
-            s.get(r.getAtom(" CG ")),
-            s.get(r.getAtom(" CD ")),
-            s.get(r.getAtom(" NE ")),
-            s.get(r.getAtom(" CZ ")),
-            s.get(r.getAtom(" NH1")),
-            s.get(r.getAtom(" NH2")) };
-        else if(r.getName().equals("GLN")) atoms = new AtomState[] {
-            s.get(r.getAtom(" CA ")),
-            s.get(r.getAtom(" CB ")),
-            s.get(r.getAtom(" CG ")),
-            s.get(r.getAtom(" CD ")),
-            s.get(r.getAtom(flipSc ? " OE1" : " NE2")) };
-        else if(r.getName().equals("GLU")) atoms = new AtomState[] {
-            s.get(r.getAtom(" CA ")),
-            s.get(r.getAtom(" CB ")),
-            s.get(r.getAtom(" CG ")),
-            s.get(r.getAtom(" CD ")),
-            s.get(r.getAtom(flipSc ? " OE1" : " OE2")) };
-        else if(r.getName().equals("ASN")) atoms = new AtomState[] {
-            s.get(r.getAtom(" CA ")),
-            s.get(r.getAtom(" CB ")),
-            s.get(r.getAtom(" CG ")),
-            s.get(r.getAtom(" OD1")),
-            s.get(r.getAtom(" ND2")) };
-        else if(r.getName().equals("ASP")) atoms = new AtomState[] {
-            s.get(r.getAtom(" CA ")),
-            s.get(r.getAtom(" CB ")),
-            s.get(r.getAtom(" CG ")),
-            s.get(r.getAtom(" OD1")),
-            s.get(r.getAtom(" OD2")) };
-        
-        if(flipSc && !r.getName().equals("GLN") && !r.getName().equals("GLU"))
-        {
-            // only one of the flippable atoms will be used for Gln/Glu
-            AtomState temp = atoms[atoms.length-1];        // remember last atom
-            atoms[atoms.length-1] = atoms[atoms.length-2]; // move second-to-last atom
-            atoms[atoms.length-2] = temp;                  // reinstate last atom
-        }
+        //}}}
         
         return atoms;
     }
 //}}}
 
-//{{{ getMainchainAtoms [OLD]
-//##############################################################################
-    public AtomState[] getMainchainAtoms(Residue minus0, Model m, ModelState s) throws AtomException
-    {
-        Residue minus1 = null, minus2 = null;
-        minus1 = minus0.getPrev(m);
-        if(minus1 == null) return null;
-        if(minus0.getName().equals("ARG"))
-        {
-            minus2 = minus1.getPrev(m);
-            if(minus2 == null) return null;
-        }
-        
-        AtomState[] atoms = null;
-        if(minus0.getName().equals("ARG")) atoms = new AtomState[] {
-            s.get(minus0.getAtom(" CA ")),
-            s.get(minus0.getAtom(" N  ")),
-            s.get(minus1.getAtom(" C  ")),
-            s.get(minus1.getAtom(" CA ")),
-            s.get(minus1.getAtom(" N  ")),
-            s.get(minus2.getAtom(" C  ")),
-            s.get(minus2.getAtom(" O  ")),
-            s.get(minus2.getAtom(" CA ")) };
-        else if(minus0.getName().equals("GLN") || minus0.getName().equals("GLU")) atoms = new AtomState[] {
-            s.get(minus0.getAtom(" CA ")),
-            s.get(minus0.getAtom(" N  ")),
-            s.get(minus1.getAtom(" C  ")),
-            s.get(minus1.getAtom(" CA ")),
-            s.get(minus1.getAtom(" N  ")) };
-        else if(minus0.getName().equals("ASN") || minus0.getName().equals("ASP")) atoms = new AtomState[] {
-            s.get(minus0.getAtom(" CA ")),
-            s.get(minus0.getAtom(" N  ")),
-            s.get(minus1.getAtom(" C  ")),
-            s.get(minus1.getAtom(" O  ")),
-            s.get(minus1.getAtom(" CA ")) };
-        
-        return atoms;
-    }
-//}}}
-*/
 //{{{ Main, main
 //##############################################################################
     /**
