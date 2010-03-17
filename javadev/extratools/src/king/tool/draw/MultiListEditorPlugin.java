@@ -34,7 +34,8 @@ public class MultiListEditorPlugin extends Plugin
 //{{{ Variable definitions
 //##############################################################################
     JDialog dialog;
-    JCheckBox cbVec, cbBall, cbDot, cbProbe, cbVis;
+    JCheckBox cbVec, cbBall, cbDot, cbRib, cbProbe, cbOther, cbVis;
+    JComboBox colors;
 //}}}
 
 //{{{ Constructor(s)
@@ -50,27 +51,36 @@ public class MultiListEditorPlugin extends Plugin
 //##############################################################################
     private void buildGUI()
     {
+        JLabel what = new JLabel("Change all:");
+        
         cbVec   = new JCheckBox("vectorlists", true);
         cbBall  = new JCheckBox("balllists", false);
         cbDot   = new JCheckBox("dotlists", false);
-        cbProbe = new JCheckBox("Probe dots", false);
+        cbRib   = new JCheckBox("ribbonlists", false);
         
-        JButton bigger  = new JButton(new ReflectiveAction("BIGGER", null, this, "onBigger"));
-        JButton smaller = new JButton(new ReflectiveAction("smaller", null, this, "onSmaller"));
-        JButton opaquer = new JButton(new ReflectiveAction("Opaquer", null, this, "onOpaquer"));
-        JButton clearer = new JButton(new ReflectiveAction("Clearer", null, this, "onClearer"));
-        JButton master  = new JButton(new ReflectiveAction("Add master", null, this, "onAddMaster"));
+        cbProbe = new JCheckBox("Probe contacts", false);
+        cbOther = new JCheckBox(new ReflectiveAction("human history", null, this, "onChangeHistory"));
+        
+        JButton bigger        = new JButton(new ReflectiveAction("BIGGER", null, this, "onBigger"));
+        JButton smaller       = new JButton(new ReflectiveAction("smaller", null, this, "onSmaller"));
+        JButton opaquer       = new JButton(new ReflectiveAction("opaquer", null, this, "onOpaquer"));
+        JButton transparenter = new JButton(new ReflectiveAction("transparenter", null, this, "onTransparenter"));
+        JButton master        = new JButton(new ReflectiveAction("add master", null, this, "onAddMaster"));
+        JButton color         = new JButton(new ReflectiveAction("set color", null, this, "onSetColor"));
+        colors = new JComboBox(KPalette.getStandardMap().values().toArray());
         
         cbVis   = new JCheckBox("only visible", true);
         
         TablePane2 cp = new TablePane2();
         cp.setBorder(BorderFactory.createEmptyBorder(8,8,8,8));
-        cp.addCell(cbVec).newRow();
-        cp.addCell(cbBall).newRow();
+        cp.addCell(what).newRow();
+        cp.addCell(cbVec).addCell(cbProbe).newRow();
+        cp.addCell(cbBall).addCell(cbOther).newRow();
         cp.addCell(cbDot).newRow();
-        cp.addCell(cbProbe).newRow();
-        cp.addCell(bigger).addCell(opaquer).newRow();
-        cp.addCell(smaller).addCell(clearer).newRow();
+        cp.addCell(cbRib).newRow();
+        cp.addCell(bigger).addCell(smaller).newRow();
+        cp.addCell(opaquer).addCell(transparenter).newRow();
+        cp.addCell(color).addCell(colors).newRow();
         cp.addCell(master).newRow();
         cp.addCell(cbVis);
         
@@ -118,10 +128,21 @@ public class MultiListEditorPlugin extends Plugin
     }
 //}}}
 
-//{{{ onClearer, onOpaquer
+//{{{ onOpaquer, onTransparenter
 //##############################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onClearer(ActionEvent ev)
+    public void onOpaquer(ActionEvent ev)
+    {
+        for(KList l : getLists())
+        {
+            int a = l.getAlpha() + 15;
+            l.setAlpha(Math.min(a, ALPHA_MAX));
+            l.fireKinChanged(KList.CHANGE_LIST_PROPERTIES);
+        }
+    }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onTransparenter(ActionEvent ev)
     {
         for(KList l : getLists())
         {
@@ -130,14 +151,19 @@ public class MultiListEditorPlugin extends Plugin
             l.fireKinChanged(KList.CHANGE_LIST_PROPERTIES);
         }
     }
+//}}}
 
+//{{{ onSetColor
+//##############################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onOpaquer(ActionEvent ev)
+    public void onSetColor(ActionEvent ev)
     {
+        KPaint newColor = (KPaint) colors.getSelectedItem();
         for(KList l : getLists())
         {
-            int a = l.getAlpha() + 15;
-            l.setAlpha(Math.min(a, ALPHA_MAX));
+            l.setColor(newColor);
+            for(KPoint p : l.getChildren())  // bleach constituent points so 
+                p.setColor(null);            // new color actually shows up
             l.fireKinChanged(KList.CHANGE_LIST_PROPERTIES);
         }
     }
@@ -167,6 +193,17 @@ public class MultiListEditorPlugin extends Plugin
     }
 //}}}
 
+//{{{ onChangeHistory
+//##############################################################################
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onChangeHistory(ActionEvent ev)
+    {
+        JOptionPane.showMessageDialog(dialog, "Cannot compute!", 
+            "Change human history", JOptionPane.ERROR_MESSAGE);
+        cbOther.setSelected(false);
+    }
+//}}}
+
 //{{{ getLists
 //##############################################################################
     public ArrayList<KList> getLists()
@@ -180,17 +217,17 @@ public class MultiListEditorPlugin extends Plugin
             if(cbVec.isSelected() && t.equals(KList.VECTOR))  lists.add(l);
             if(cbBall.isSelected() && t.equals(KList.BALL))   lists.add(l);
             if(cbDot.isSelected() && t.equals(KList.DOT))     lists.add(l);
-            if(cbProbe.isSelected() && isProbeDotList(l))     lists.add(l);
+            if(cbProbe.isSelected() && isProbeList(l))        lists.add(l);
         }
         return lists;
     }
 //}}}
 
-//{{{ isProbeDotList
+//{{{ isProbeList
 //##############################################################################
-    public boolean isProbeDotList(KList l)
+    public boolean isProbeList(KList l)
     {
-        if(l.getName().equals("x")) return true;
+        //if(l.getName().equals("x")) return true; -- effective, but probably too kludgy
         for(Iterator iter = l.getMasters().iterator(); iter.hasNext(); )
         {
             String master = (String) iter.next();
