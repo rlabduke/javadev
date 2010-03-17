@@ -162,7 +162,10 @@ public class RnaBackboneRotator implements Remodeler, ChangeListener, ListSelect
         //RotamerDef[] conformers2 = new RotamerDef[ conformers.length+1 ];
         //System.arraycopy(conformers, 0, conformers2, 1, conformers.length);
         //conformers2[0] = origRotamer;
-        String[] conformers = conformer.getDefinedConformerNames();
+        String[] conftemp = conformer.getDefinedConformerNames();
+        String[] conformers = new String[conftemp.length+1];
+        System.arraycopy(conftemp, 0, conformers, 1, conftemp.length);
+        conformers[0] = "original";
         conformerList = new JList(conformers);
         conformerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         conformerList.setSelectionModel(new ReclickListSelectionModel(conformerList));
@@ -405,32 +408,31 @@ private String makeOptionPane() {
       if (hitList.equals(conformerList)) {
         String confName = (String)conformerList.getSelectedValue();
         if(confName != null) {
-          String bin = conformer.getConformerBin(confName);
-          //if (!bin.equals(currentBin)) {
-          //  doChangePucker = true;
-          try {
-            changePuckerState = rnaIdealizer.makeIdealResidue(modelman.getFrozenState(), targetResidues, bin, false);
+          if (confName.equals("original")) {
+            changePuckerState = modelman.getFrozenState();
             double[] angleVals = confAngles.measureAllAngles(targetRes1, targetRes2, changePuckerState, true);
-            setAllDials(angleVals);
-          //changePuckers(modelman.getFrozenState(), bin);
-          //  currentBin = bin;
-            //modelman.requestStateRefresh();
-            //doChangePucker = false;
-          //}
-          double[] meanVals = conformer.getMeanValues(confName);
-          for (int i = 0; i < meanVals.length; i++) {
-            //System.out.println(Double.isNaN(meanVals[i]));
-            if (Double.isNaN(meanVals[i])) {
-              dials[i].setPaintOrigAngle(false);
-              meanVals[i] = angleVals[i];
-            } else {
-              dials[i].setPaintOrigAngle(true);
-            }
-          }
-          initSomeAngles(meanVals);
+            initSomeAngles(angleVals);
+          } else {
+            String bin = conformer.getConformerBin(confName);
+            try {
+              changePuckerState = rnaIdealizer.makeIdealResidue(modelman.getFrozenState(), targetResidues, bin, false);
+              double[] angleVals = confAngles.measureAllAngles(targetRes1, targetRes2, changePuckerState, true);
+              setAllDials(angleVals);
+              double[] meanVals = conformer.getMeanValues(confName);
+              for (int i = 0; i < meanVals.length; i++) {
+                //System.out.println(Double.isNaN(meanVals[i]));
+                if (Double.isNaN(meanVals[i])) {
+                  dials[i].setPaintOrigAngle(false);
+                  meanVals[i] = angleVals[i];
+                } else {
+                  dials[i].setPaintOrigAngle(true);
+                }
+              }
+              initSomeAngles(meanVals);
           } catch (AtomException ae) {ae.printStackTrace(SoftLog.err);}
+          // else there is no current selection
+          }
         }
-        // else there is no current selection
       } else if (hitList.equals(atomsList1)||hitList.equals(atomsList2)) {
         getSuperposeAtoms();
         //doSuperpose = true;
@@ -668,10 +670,12 @@ public void getSuperposeAtoms() {
       //}
       String confName = (String)conformerList.getSelectedValue();
       if(confName != null) {
-      //if (doChangePucker) { 
-        String bin = conformer.getConformerBin(confName);
-        ret = changePuckers(bin, s);
-        //doChangePucker = false;
+        //if (doChangePucker) { 
+        if (!confName.equals("original")) { // if original is picked, just use frozen model
+          String bin = conformer.getConformerBin(confName);
+          ret = changePuckers(bin, s);
+          //doChangePucker = false;
+        }
       }
 
         //if(scIdealizer != null && cbIdealize.isSelected())
