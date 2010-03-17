@@ -217,6 +217,7 @@ public class MultiListEditorPlugin extends Plugin
             if(cbVec.isSelected() && t.equals(KList.VECTOR))  lists.add(l);
             if(cbBall.isSelected() && t.equals(KList.BALL))   lists.add(l);
             if(cbDot.isSelected() && t.equals(KList.DOT))     lists.add(l);
+            if(cbRib.isSelected() && t.equals(KList.RIBBON))  lists.add(l);
             if(cbProbe.isSelected() && isProbeList(l))        lists.add(l);
         }
         return lists;
