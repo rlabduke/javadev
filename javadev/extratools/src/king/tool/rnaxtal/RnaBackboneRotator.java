@@ -626,7 +626,7 @@ public void getSuperposeAtoms() {
     public String findProgram(String basename)
     {
         String os = System.getProperty("os.name").toLowerCase();
-        String quotes = "'";
+        String quotes = "";
         if(os.indexOf("windows") != -1) {
           basename = basename+".exe";
           quotes = "\"";
