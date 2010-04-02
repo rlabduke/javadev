@@ -626,8 +626,11 @@ public void getSuperposeAtoms() {
     public String findProgram(String basename)
     {
         String os = System.getProperty("os.name").toLowerCase();
-        if(os.indexOf("windows") != -1)
-            basename = basename+".exe";
+        String quotes = "'";
+        if(os.indexOf("windows") != -1) {
+          basename = basename+".exe";
+          quotes = "\"";
+        }
         
         // We search the directory holding the king.jar file
         // for 'probe' or 'probe.exe'; if not found, we just use 'probe'.
@@ -635,7 +638,7 @@ public void getSuperposeAtoms() {
         if(progFile.exists())
         {
             // Full path might have spaces in it (Win, Mac)
-            try { basename = "\""+progFile.getCanonicalPath()+"\""; }
+            try { basename = quotes+progFile.getCanonicalPath()+quotes; }
             catch(Throwable t) { t.printStackTrace(SoftLog.err); }
         }
         
