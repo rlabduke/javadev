@@ -11,6 +11,7 @@ import java.util.*;
 import javax.swing.*;
 import driftwood.r3.*;
 import driftwood.gui.*;
+import driftwood.data.*;
 import driftwood.util.*;
 import driftwood.moldb2.*;
 //}}}
@@ -62,6 +63,8 @@ public class SuitenameTool extends BasicTool {
     // Create file chooser on demand
     if(filechooser == null) makeFileChooser();
     
+    filechooser.setDialogTitle("Choose suitename file...");
+    filechooser.resetChoosableFileFilters();
     if(JFileChooser.APPROVE_OPTION == filechooser.showOpenDialog(kMain.getTopWindow()))
     {
 	    try {
@@ -85,6 +88,8 @@ public class SuitenameTool extends BasicTool {
     // Create file chooser on demand
     if(filechooser == null) makeFileChooser();
     
+    filechooser.setDialogTitle("Choose PDB file...");
+    filechooser.addChoosableFileFilter(CoordinateFile.getCoordFileFilter());
     if(JFileChooser.APPROVE_OPTION == filechooser.showOpenDialog(kMain.getTopWindow()))
     {
 	    try {
@@ -115,25 +120,29 @@ public class SuitenameTool extends BasicTool {
       Model mod = (Model) models.next();
       ModelState state = mod.getState();
       Iterator residues = mod.getResidues().iterator();
+      UberSet resSet = new UberSet(mod.getResidues());
       while (residues.hasNext()) {
-        Residue res = (Residue) residues.next();
-        //System.out.println(res.getCNIT());
-        String name = snr.getConformerName(res.getCNIT());
-        if ((name != null) && name.equals("!!")) {
-          //System.out.println("bang!="+res.getCNIT());
-          Atom oxy = res.getAtom(" O3'");
-          if (oxy == null) oxy = res.getAtom(" O3*");
-          Atom car = res.getAtom(" C5'");
-          if (car == null) car = res.getAtom(" C5*");
-          Atom phos = res.getAtom(" P  ");
-          if ((oxy != null) && (car != null) && (phos != null)) {
-            try {
-              AtomState oxyState = state.get(oxy);
-              AtomState carState = state.get(car);
-              AtomState phosState = state.get(phos);
-              drawOutlier(phosState, carState, oxyState);
-            } catch (AtomException ae) {
-              ae.printStackTrace(SoftLog.err);
+        Residue res2 = (Residue) residues.next();
+        if (!res2.equals((Residue)resSet.firstItem())) {
+          Residue res = (Residue) resSet.itemBefore(res2);
+          //System.out.println(res.getCNIT());
+          String name = snr.getConformerName(res2.getCNIT());
+          if ((name != null) && name.equals("!!")) {
+            //System.out.println("bang!="+res.getCNIT());
+            Atom resC1 = res.getAtom(" C1'");
+            if (resC1 == null) resC1 = res.getAtom(" C1*");
+            Atom phos = res2.getAtom(" P  ");
+            Atom res2C1 = res2.getAtom(" C1'");
+            if (res2C1 == null) res2C1 = res2.getAtom(" C1*");
+            if ((resC1 != null) && (phos != null) && (res2C1 != null)) {
+              try {
+                AtomState resC1State = state.get(resC1);
+                AtomState phosState = state.get(phos);
+                AtomState res2C1State = state.get(res2C1);
+                drawOutlier(resC1State, phosState, res2C1State);
+              } catch (AtomException ae) {
+                ae.printStackTrace(SoftLog.err);
+              }
             }
           }
         }
