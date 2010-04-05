@@ -6,6 +6,7 @@ import king.*;
 import king.core.*;
 
 import java.util.*;
+import java.util.regex.*;
 
 import driftwood.moldb2.AminoAcid;
 import driftwood.util.Strings;
@@ -13,6 +14,8 @@ import driftwood.util.Strings;
 
 public class KinUtil {
 
+  static Pattern chainResPattern = Pattern.compile("[A-Z][0-9]{4}");
+  static Pattern intPattern = Pattern.compile("[0-9]+");
 
   //{{{ Constructor
   public KinUtil() {
@@ -88,6 +91,7 @@ public class KinUtil {
   /**
   * Helper function to get the residue number of parentList.  It gets the first KPoint in the KList, 
   * and extracts the residue number from the name.  EXTREMELY dependent on the format of the name of the KPoint.
+  * 
   **/
   
   public static int getResNumber(String name) {
@@ -95,7 +99,7 @@ public class KinUtil {
     String[] uncleanParsed = name.trim().split(" ");
     //String[] parsed = new String[uncleanParsed.length];
     String[] parsed = Strings.explode(name, " ".charAt(0), false, true);
-    int i2 = 0;
+    int parsedInt;
     // To clean out the empty strings from the split name.
     
     //for (int i = 0; i < uncleanParsed.length; i++) {
@@ -120,8 +124,9 @@ public class KinUtil {
 	    String parseValue = parsed[i];
 	    //System.out.println(parseValue + ", " + i);
 	    if (isInteger(parseValue)) {
-        if (Integer.parseInt(parseValue)>0) {
-          return Integer.parseInt(parseValue);
+        parsedInt = Integer.parseInt(parseValue);
+        if (parsedInt>0) {
+          return parsedInt;
         }
 	    }
     }
@@ -133,11 +138,20 @@ public class KinUtil {
         String parseValue = parsed[i].substring(0, parsed[i].length()-1);
         //System.out.println(parseValue + ", " + i);
         if (isInteger(parseValue)) {
-          if (Integer.parseInt(parseValue)>0) {
-            return Integer.parseInt(parseValue);
+          parsedInt = Integer.parseInt(parseValue);
+          if (parsedInt>0) {
+            return parsedInt;
           }
         }
 	    }
+    }
+    // for chain-resnumber runons (only happens in large files (e.g. ribosome)
+    for (int i = 0; i < parsed.length; i++) {
+      Matcher matcher = chainResPattern.matcher(parsed[i]);
+      if ((parsed[i] != null)&&(matcher.matches())) {
+        String parseValue = parsed[i].substring(1, parsed[i].length());
+        return Integer.parseInt(parseValue);
+      }
     }
     //if (isNumeric(parsed[3].substring(0, parsed[3].length()-1))) {
       //    return Integer.parseInt(parsed[3].substring(0, parsed[3].length()-1));
@@ -164,14 +178,16 @@ public class KinUtil {
   }
   
   public static boolean isInteger(String s) {
-    try {
-	    Integer.parseInt(s);
-	    return true;
-    } catch (NumberFormatException e) {
-	    return false;
-    } catch (NullPointerException e) {
-	    return false;
-    }
+    //try {
+	  //  Integer.parseInt(s);
+	  //  return true;
+    //} catch (NumberFormatException e) {
+	  //  return false;
+    //} catch (NullPointerException e) {
+	  //  return false;
+    //}
+    Matcher matcher = intPattern.matcher(s);
+    return matcher.matches();
   }
   
   public static boolean isNumeric(String s) {

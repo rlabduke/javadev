@@ -202,6 +202,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 //##################################################################################################
   /** Override this function for (left-button) clicks */
   public void click(int x, int y, KPoint p, MouseEvent ev) {
+    //long startTime = System.currentTimeMillis();
     super.click(x, y, p, ev);
     if ((p != null)&&(clickMode.getState())) {
 	    AGE coloratorKey = (AGE) p.getParent();
@@ -225,6 +226,8 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    //}
       color(p, colorator);
     }
+    //long endTime = System.currentTimeMillis();
+    //System.out.println("Total Time to color: " + ((endTime-startTime)) + " milliseconds");
   }
   
   public void color(KPoint p, Recolorator colorator) {
