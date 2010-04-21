@@ -888,14 +888,6 @@ abstract public class Measurement //extends ... implements ...
             Tuple3 bb = b.get(model, state, res);
             if(aa == null || bb == null)
                 return Double.NaN;
-            else if (a instanceof AtomSpec && b instanceof AtomSpec)
-            {
-                // aa, bb must be AtomStates from AtomSpec.get(...)
-                TreeSet<String> alts = new TreeSet<String>();
-                alts.add(((AtomState) aa).getAltConf());
-                alts.add(((AtomState) bb).getAltConf());
-                if(alts.size() > 1) return Double.NaN;
-            }
             return new Triple(aa).distance(bb);
         }
         
@@ -932,16 +924,6 @@ abstract public class Measurement //extends ... implements ...
             Tuple3 cc = c.get(model, state, res);
             if(aa == null || bb == null || cc == null)
                 return Double.NaN;
-            else if (a instanceof AtomSpec && b instanceof AtomSpec && 
-                     c instanceof AtomSpec)
-            {
-                // aa, bb, cc must be AtomStates from AtomSpec.get(...)
-                TreeSet<String> alts = new TreeSet<String>();
-                alts.add(((AtomState) aa).getAltConf());
-                alts.add(((AtomState) bb).getAltConf());
-                alts.add(((AtomState) cc).getAltConf());
-                if(alts.size() > 1) return Double.NaN;
-            }
             return Triple.angle(aa, bb, cc);
         }
         
@@ -982,17 +964,6 @@ abstract public class Measurement //extends ... implements ...
             Tuple3 dd = d.get(model, state, res);
             if(aa == null || bb == null || cc == null || dd == null)
                 return Double.NaN;
-            else if (a instanceof AtomSpec && b instanceof AtomSpec && 
-                     c instanceof AtomSpec && d instanceof AtomSpec)
-            {
-                // aa, bb, cc, dd must be AtomStates from AtomSpec.get(...)
-                TreeSet<String> alts = new TreeSet<String>();
-                alts.add(((AtomState) aa).getAltConf());
-                alts.add(((AtomState) bb).getAltConf());
-                alts.add(((AtomState) cc).getAltConf());
-                alts.add(((AtomState) dd).getAltConf());
-                if (alts.size() > 1) return Double.NaN;
-            }
             return Triple.dihedral(aa, bb, cc, dd);
         }
 
