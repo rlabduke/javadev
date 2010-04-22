@@ -94,6 +94,8 @@ public class AtomSpec extends XyzSpec
     */
     public AtomState get(Model model, ModelState state, Residue curr)
     {
+        if(state == null) return null;
+        
         Residue res = getRes(model, state, curr);
         if(res == null) return null;
         
@@ -172,8 +174,6 @@ public class AtomSpec extends XyzSpec
         for(int i = 0, end_i = Math.abs(resOffset); i < end_i; i++)
         {
             Residue old = res;
-            //if(resOffset > 0) res = curr.getNext(model); // forward search
-            //else res = curr.getPrev(model); // backward search
             if(resOffset > 0) res = res.getNext(model); // forward search
             else res = res.getPrev(model); // backward search
             if(res == null) return null;

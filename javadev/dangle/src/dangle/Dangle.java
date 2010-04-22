@@ -40,7 +40,8 @@ public class Dangle //extends ... implements ...
     double sigmaCutoff = 4;
     Collection files = new ArrayList();
     Collection measurements = new ArrayList();
-    TreeSet<Integer> resnums = null;
+    TreeSet<Integer> resnums;
+    String altConf;
 //}}}
 
 //{{{ Constructor(s)
@@ -86,7 +87,9 @@ public class Dangle //extends ... implements ...
         for(Iterator models = coords.getModels().iterator(); models.hasNext(); )
         {
             Model model = (Model) models.next();
-            ModelState state = model.getState();
+            ModelState state = (altConf == null ? model.getState() : model.getState(altConf));
+            if(state == null) System.err.println("Input structure "+coords.getIdCode()+
+                " [model "+model+"] does not contain a state named '"+altConf+"'!");
             String prefix = label+":"+model.getName()+":";
             
             for(Iterator residues = model.getResidues().iterator(); residues.hasNext(); )
@@ -152,7 +155,9 @@ public class Dangle //extends ... implements ...
         for(Iterator models = coords.getModels().iterator(); models.hasNext(); )
         {
             Model model = (Model) models.next();
-            ModelState state = model.getState();
+            ModelState state = (altConf == null ? model.getState() : model.getState(altConf));
+            if(state == null) System.err.println("Input structure "+coords.getIdCode()+
+                " [model "+model+"] does not contain a state named '"+altConf+"'!");
             String prefix = label+":"+model.getName()+":";
             
             for(Iterator residues = model.getResidues().iterator(); residues.hasNext(); )
@@ -229,7 +234,9 @@ public class Dangle //extends ... implements ...
         for(Iterator models = coords.getModels().iterator(); models.hasNext(); )
         {
             Model model = (Model) models.next();
-            ModelState state = model.getState();
+            ModelState state = (altConf == null ? model.getState() : model.getState(altConf));
+            if(state == null) System.err.println("Input structure "+coords.getIdCode()+
+                " [model "+model+"] does not contain a state named '"+altConf+"'!");
             out.print(model.getName());
             
             for(Iterator residues = model.getResidues().iterator(); residues.hasNext(); )
@@ -280,9 +287,11 @@ public class Dangle //extends ... implements ...
             sigmaCutoff,
             subgroup,
             doHets,
-            resnums
+            resnums,
+            altConf
         );
-        gks.makeKin();
+        try { gks.makeKin(); }
+        catch(IllegalArgumentException ex) { ex.printStackTrace(); }
     }
 //}}}
 
@@ -697,6 +706,11 @@ public class Dangle //extends ... implements ...
             catch(NumberFormatException ex)
             { System.err.println("*** Error: Can't format '"+param+"' as list of resnum ranges!"); }
             catch(Exception ex) { ex.printStackTrace(); }
+        }
+        else if(flag.equals("-alt"))
+        {
+            if(param.length() == 1) altConf = param;
+            else System.err.println("*** Error: Preferred alternate (-alt="+param+") must be one character!");
         }
         else if(flag.equals("-dummy_option"))
         {

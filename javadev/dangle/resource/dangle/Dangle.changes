@@ -37,3 +37,10 @@ Changes to chiropraxis.dangle.Dangle
   terminology for cis vs. trans peptides (e.g. Pro)
 - Added proper chi3 definition for Pro: CB-CG-CD-N
 
+100422 (dak)
+- Fixed bug that I had apparently added in at some point which required all 
+  atoms in a length, angle, or dihedral have the same alt conf.  That's
+  unnecessary b/c Model.getState() already gets the default state of ' ' (or 'A' 
+  if there is an alt conf).
+- Added -alt=X flag for measuring geometry of other alts like 'B'
+

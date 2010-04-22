@@ -209,12 +209,10 @@ ADVANCED DANGLE TRICKS
   Dangle's output can be restricted to only certain residues in any mode.  
   Indicate ranges of residue numbers with '-' and separate ranges with ','.
     
-    # Restricted set of residues
-    dangle 'measurement' FILE.pdb -res=1
     dangle 'measurement' FILE.pdb -resnums=1-99
     dangle 'measurement' FILE.pdb -residues=1-2,10,50-50,99-100
 
-  Dangle can now measure geometry for disulfide bonds via built-in measurements:
+  Dangle can now measure geometry for disulfide bonds via built-in measurements.
   Alternately, you can use "-SS-", "-ss-", or "--" within the "for" syntax to 
   indicate the residue at the other end of the disulfide:
   
@@ -230,3 +228,9 @@ ADVANCED DANGLE TRICKS
     dangle "for disulfides dist CbCb i _CB_, i -ss- _CB_"               FILE.pdb
     dangle "for ss dihedral Ca4 i-1 _CA_, _CA_, i -- _CA_, i+1 -- _CA_" FILE.pdb
     
+  You can target measurements to specific alternate conformations:
+    
+    dangle 'measurement' FILE.pdb -alt=A     # ' '; 'A' if possible (default)
+    dangle 'measurement' FILE.pdb -alt=B     # ' '; 'B' if possible
+    dangle 'measurement' FILE.pdb -alt=' '   # ' ' only: ignore alts
+
