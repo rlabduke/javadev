@@ -33,11 +33,12 @@ public class GeomKinSmith //extends ... implements ...
     boolean doHets;
     double sigmaCutoff;
     TreeSet resnums;
+    String altConf;
 //}}}
 
 //{{{ Constructor
 //##############################################################################
-    public GeomKinSmith(String l, CoordinateFile c, ArrayList<Measurement> m, double sc, boolean sg, boolean dh, TreeSet<Integer> rn)
+    public GeomKinSmith(String l, CoordinateFile c, ArrayList<Measurement> m, double sc, boolean sg, boolean dh, TreeSet<Integer> rn, String ac)
     {
         label = l;
         coords = c;
@@ -46,6 +47,7 @@ public class GeomKinSmith //extends ... implements ...
         subgroup = sg;
         doHets = dh;
         resnums = rn;
+        altConf = ac;
     }
 //}}}
 
@@ -56,12 +58,15 @@ public class GeomKinSmith //extends ... implements ...
     * bond length length or angle outlier, add a visualization in the form of 
     * kinemage points to the proper global ArrayList.
     */
-    public void makeKin()
+    public void makeKin() throws IllegalArgumentException
     {
         for(Iterator models = coords.getModels().iterator(); models.hasNext(); )
         {
             Model model = (Model) models.next();
-            ModelState state = model.getState();
+            ModelState state = (altConf == null ? model.getState() : model.getState(altConf));
+            if(state == null) throw new IllegalArgumentException(
+                "Input structure "+coords.getIdCode()+" [model "+model+
+                "] does not contain a state named '"+altConf+"'!");
             
             lengths = new ArrayList<String>();
             angles  = new ArrayList<String>();
