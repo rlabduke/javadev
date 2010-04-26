@@ -87,6 +87,7 @@ public class SubImpose //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     boolean verbose = false;
+    boolean showDists = false;
     boolean showTransform = false;
     boolean fix180flips = true;
     String structIn1 = null, structIn2 = null;
@@ -99,6 +100,7 @@ public class SubImpose //extends ... implements ...
     Collection rmsd = new ArrayList(); // selection strings to do rmsd over
     double leskSieve = Double.NaN;
     double rmsdCutoff = Double.NaN; // above which PDB is not written out
+    double rmsdGoal = Double.NaN; // iterative Lesk sieve until this rmsd is reached
 //}}}
 
 //{{{ Constructor(s)
@@ -422,8 +424,18 @@ public class SubImpose //extends ... implements ...
         if(superimpose1 == null)
         {
             superimpose1 = "atom_CA_";
-            if(Double.isNaN(leskSieve)) leskSieve = 0.9;
-            System.err.println("No -super flag!  Using sequence-aligned CAs (best "+leskSieve*100+"%)");
+            System.err.print("No -super flag; using sequence-aligned CAs");
+            if(!Double.isNaN(rmsdGoal)) // iterative sieve until rmsd goal is reached
+            {
+                System.err.println(" (sieve to "+rmsdGoal+"A rmsd)");
+                if(!Double.isNaN(leskSieve)) System.err.println(
+                    "Using -rmsdgoal="+rmsdGoal+" instead of -sieve="+leskSieve);
+            }
+            else // single sieve; default if not user-defined
+            {
+                if(Double.isNaN(leskSieve)) leskSieve = 0.9;
+                System.err.println(" (best "+leskSieve*100+"%)");
+            }
         }
         
         if(chainIDs1 != null) System.err.println("Using subset of structure 1 chains: "+chainIDs1);
@@ -493,7 +505,26 @@ public class SubImpose //extends ... implements ...
         System.err.println(df.format(superpos.calcRMSD(R))+"\t"+atoms[0].length+"\t"+superimpose1);
         
         int lenAtomsUsed = atoms[0].length;
-        if(!Double.isNaN(leskSieve))//leskSieve > 0)
+        if(!Double.isNaN(rmsdGoal))
+        {
+            // Eliminate selected atoms one-by-one until rmsd <= goal
+            int sieveCount = 0;
+            while(superpos.calcRMSD(R) > rmsdGoal)
+            {
+                sieveCount++;
+                sortByLeskSieve(atoms[0], atoms[1]);
+                int len = atoms[0].length - 1; // new length after we drop worst-fitting atom pair
+                AtomState[][] newAtoms = new AtomState[2][len];
+                for(int i = 0; i < 2; i++) for(int j = 0; j < len; j++) newAtoms[i][j] = atoms[i][j];
+                atoms = newAtoms;
+                if(atoms[0].length < 3) throw new IllegalArgumentException(
+                    "Can't achieve rmsd goal of "+rmsdGoal+"A .. would have to trim to < 3 atoms!");
+                superpos.reset(atoms[1], atoms[0]);
+                R = superpos.superpos();
+            }
+            System.err.println(df.format(superpos.calcRMSD(R))+"\t"+atoms[0].length+"\t[Lesk's sieve #"+sieveCount+"]");
+        }
+        else if(!Double.isNaN(leskSieve))
         {
             int len = (int) Math.round( leskSieve * atoms[0].length );
             if(len < 3)
@@ -515,74 +546,17 @@ public class SubImpose //extends ... implements ...
             R.transform(as);
         }
         
-        // Write kinemage showing atoms for superposition:
-        if(kinOut != null) writeKin(atoms, lenAtomsUsed);
-        
-        // Write superimposed PDB file:
-        // (... but only do so if we don't care about the RMSD to the target
-        // or if that RMSD does not exceed our designated threshold):
-        if(pdbOut != null)
+        // Make sure RMSD does not exceed our threshold (if applicable)
+        if(!Double.isNaN(rmsdCutoff))
         {
-            if(Double.isNaN(rmsdCutoff) || superpos.calcRMSD(R) < rmsdCutoff)
+            if(superpos.calcRMSD(R) > rmsdCutoff)
             {
-                PdbWriter pdbWriter = new PdbWriter(new File(pdbOut));
-                pdbWriter.writeCoordinateFile(coord1);
-                pdbWriter.close();
-                if(verbose) System.err.println("Writing to "+pdbOut+" b/c RMSD="+
-                    df.format(superpos.calcRMSD(R))+" < cutoff="+rmsdCutoff);
+                System.err.println("No further output b/c RMSD="+
+                    df.format(superpos.calcRMSD(R))+" > cutoff="+rmsdCutoff);
+                return;
             }
-            else System.err.println("Not writing to "+pdbOut+" b/c RMSD="+
-                df.format(superpos.calcRMSD(R))+" > cutoff="+rmsdCutoff);
-        }
-        
-        // Print superimposed PDB to standard out (if no other output specified):
-        if(kinOut == null && pdbOut == null && rmsd.isEmpty() && !showTransform)
-        {
-            if(Double.isNaN(rmsdCutoff) || superpos.calcRMSD(R) < rmsdCutoff)
-            {
-                PdbWriter pdbWriter = new PdbWriter(System.out);
-                pdbWriter.writeCoordinateFile(coord1);
-                pdbWriter.close();
-                if(verbose) System.err.println("Printing superimposed PDB b/c RMSD="+
-                    df.format(superpos.calcRMSD(R))+" < cutoff="+rmsdCutoff);
-            }
-            else System.err.println("Not printing superimposed PDB b/c RMSD="+
-                df.format(superpos.calcRMSD(R))+" > cutoff="+rmsdCutoff);
-        }
-        
-        // I commented out the checks below when I changed the default behavior 
-        // when -super is not supplied from throwing an exception to simply 
-        // using all Calphas from the sequence alignment. - DAK 091123
-        //}
-        //else
-        //{
-        //    if(kinOut != null)
-        //        System.err.println("WARNING: can't use -kin without -super");
-        //    if(pdbOut != null)
-        //        System.err.println("WARNING: can't use -pdb without -super");
-        //}
-        
-        // If -rms, do RMSD calculation
-        for(Iterator iter = rmsd.iterator(); iter.hasNext(); )
-        {
-            String rmsd_sel = (String) iter.next();
-            atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, rmsd_sel, null, align);
-            if(verbose)
-            {
-                System.err.println("Atom alignments:");
-                for(int i = 0; i < atoms[0].length; i++)
-                    System.err.println("  "+atoms[0][i]+" <==> "+atoms[1][i]);
-                System.err.println();
-            }
-            //!  Ack!  Can't use superpos.calcRMSD() b/c it translates everything to the origen!
-            //!  // struct2 is the reference point, struct1 should move.
-            //!  // (nothing's really moving here so it doesn't matter).
-            //!  SuperPoser superpos = new SuperPoser(atoms[1], atoms[0]);
-            //!  // Don't recalculate, use our old transform!
-            //!  //R = superpos.superpos();
-            //!  // Oops, no, use an identity transform -- coords already moved!
-            //!  System.out.println(df.format(superpos.calcRMSD(new Transform()))+"\t"+atoms[0].length+"\t"+rmsd_sel);
-            System.out.println(df.format(rms(atoms[1], atoms[0]))+"\t"+atoms[0].length+"\t"+rmsd_sel);
+            else System.err.println("Proceeding with output b/c RMSD="+
+                df.format(superpos.calcRMSD(R))+" <= cutoff="+rmsdCutoff);
         }
         
         // Print the transform:
@@ -590,6 +564,71 @@ public class SubImpose //extends ... implements ...
         {
             System.out.println("Transformation matrix (premult, Rx -> x'):");
             System.out.println(R);
+        }
+        
+        // Print distances between atoms from selection:
+        else if(showDists)
+        {
+            /*
+            // This li'l routine tries to re-sort the atoms
+            // in case they were shuffled by sieving, but 
+            // sorting isn't compatible with Atoms or AtomStates...
+            ArrayList<Atom> atoms0 = new ArrayList<Atom>();
+            ArrayList<Atom> atoms1 = new ArrayList<Atom>();
+            for(int i = 0; i < atoms[0].length; i++)
+            {
+                atoms0.add(atoms[0][i].getAtom());
+                atoms1.add(atoms[1][i].getAtom());
+            }
+            ___PROBLEM____
+            Collections.sort(atoms0);
+            Collections.sort(atoms1);
+            */
+            DecimalFormat df2 = new DecimalFormat("#0.0##");
+            for(int i = 0; i < atoms[0].length; i++)
+            {
+                double d = Triple.distance(atoms[0][i], atoms[1][i]);
+                System.out.println(atoms[0][i].getAtom()+"\t"+atoms[1][i].getAtom()+"\t"+df2.format(d));
+            }
+        }
+        
+        // If -rms, do RMSD calculation
+        else if(!rmsd.isEmpty())
+        {
+            for(Iterator iter = rmsd.iterator(); iter.hasNext(); )
+            {
+                String rmsd_sel = (String) iter.next();
+                atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, rmsd_sel, null, align);
+                if(verbose)
+                {
+                    System.err.println("Atom alignments:");
+                    for(int i = 0; i < atoms[0].length; i++)
+                        System.err.println("  "+atoms[0][i]+" <==> "+atoms[1][i]);
+                    System.err.println();
+                }
+                //!  Ack!  Can't use superpos.calcRMSD() b/c it translates everything to the origen!
+                //!  // struct2 is the reference point, struct1 should move.
+                //!  // (nothing's really moving here so it doesn't matter).
+                //!  SuperPoser superpos = new SuperPoser(atoms[1], atoms[0]);
+                //!  // Don't recalculate, use our old transform!
+                //!  //R = superpos.superpos();
+                //!  // Oops, no, use an identity transform -- coords already moved!
+                //!  System.out.println(df.format(superpos.calcRMSD(new Transform()))+"\t"+atoms[0].length+"\t"+rmsd_sel);
+                System.out.println(df.format(rms(atoms[1], atoms[0]))+"\t"+atoms[0].length+"\t"+rmsd_sel);
+            }
+        }
+        
+        // Write kinemage showing atoms for superposition:
+        else if(kinOut != null) writeKin(atoms, lenAtomsUsed);
+        
+        // Write superimposed PDB file:
+        else //if(pdbOut != null)
+        {
+            PdbWriter pdbWriter;
+            if(pdbOut != null) pdbWriter = new PdbWriter(new File(pdbOut));
+            else pdbWriter = new PdbWriter(System.out);
+            pdbWriter.writeCoordinateFile(coord1);
+            pdbWriter.close();
         }
     }
 
@@ -715,6 +754,8 @@ public class SubImpose //extends ... implements ...
             verbose = true;
         else if(flag.equals("-t"))
             showTransform = true;
+        else if(flag.equals("-d"))
+            showDists = true;
         else if(flag.equals("-noscflip"))
             fix180flips = false;
         else if(flag.equals("-chains1") || flag.equals("-chain1") || flag.equals("-chains") || flag.equals("-chain"))
@@ -738,12 +779,19 @@ public class SubImpose //extends ... implements ...
             pdbOut = param;
         else if(flag.equals("-rms"))
             rmsd.add(param);
-        else if(flag.equals("-rmsdcutoff") || flag.equals("-maxrmsd"))
+        else if(flag.equals("-rmsdcutoff") || flag.equals("-rmsdmax"))
         {
             try { rmsdCutoff = Double.parseDouble(param); }
             catch(NumberFormatException ex) { throw new IllegalArgumentException(param+" isn't a number!"); }
             if(Double.isNaN(rmsdCutoff) || rmsdCutoff < 0)
                 System.err.println("Problem with "+param+" as param for -rmsdcutoff");
+        }
+        else if(flag.equals("-rmsdgoal") || flag.equals("-rmsdtarget"))
+        {
+            try { rmsdGoal = Double.parseDouble(param); }
+            catch(NumberFormatException ex) { throw new IllegalArgumentException(param+" isn't a number!"); }
+            if(Double.isNaN(rmsdGoal) || rmsdGoal < 0)
+                System.err.println("Problem with "+param+" as param for -rmsdgoal");
         }
         else if(flag.equals("-dummy_option"))
         {
