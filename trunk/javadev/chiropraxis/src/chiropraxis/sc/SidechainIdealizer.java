@@ -521,7 +521,19 @@ perpendicular to the N Ca C plane and NOT along the Ca---Cb vector.
         out.get(mobRes.getAtom(" CA ")).like(ref.get(refRes.getAtom(" CA ")));
         out.get(mobRes.getAtom(" C  ")).like(ref.get(refRes.getAtom(" C  ")));
         try { out.get(mobRes.getAtom(" O  ")).like(ref.get(refRes.getAtom(" O  "))); } catch(AtomException ex) {}
-        try { out.get(mobRes.getAtom(" H  ")).like(ref.get(refRes.getAtom(" H  "))); } catch(AtomException ex) {}
+        try
+        {
+            if(!mobRes.getName().equals("PRO") && refRes.getName().equals("PRO"))
+            {
+                // Pro N-CD vector scaled to N-H length (1.0 Angstroms)
+                Triple  refN  = ref.get(refRes.getAtom(" N  "));
+                Triple  refH  = ref.get(refRes.getAtom(" CD "));
+                Triple  refNH  = new Triple(refN).add(new Triple().likeVector(refN, refH).unit());
+                out.get(mobRes.getAtom(" H  ")).like(refNH);
+            }
+            else out.get(mobRes.getAtom(" H  ")).like(ref.get(refRes.getAtom(" H  ")));
+        }
+        catch(AtomException ex) {}
         
         return idealizeCB(mobRes, out);
     }

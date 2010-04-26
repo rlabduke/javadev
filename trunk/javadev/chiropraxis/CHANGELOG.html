@@ -25,6 +25,13 @@
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
+### 1.06 ### dak
+- LocalRotarama now uses driftwood's Neighborhood and has new output options
+- Added -rmsdgoal to SubImpose: iterative Lesk sieving until rmsd goal reached
+- Added -d (show distances) output option to SubImpose
+- Fixed bug in SidechainIdealizer where docking non-Pro onto Pro (e.g. after 
+  Pro->Xaa mutation) left non-planar amide H
+
 ### 1.05 ### dak
 - Added -chains1, -chains2 flags to SubImpose to restrict initial sequence
   alignment so subsequent structure superposition can be better controlled

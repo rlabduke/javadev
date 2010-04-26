@@ -13,8 +13,8 @@ import chiropraxis.mc.*;
 import molikin.logic.BallAndStickLogic;
 //}}}
 /**
-* <code>LocalRotarama</code> makes a kinemage colored by localized 
-* rotamer/Ramachandran score.
+* <code>LocalRotarama</code> expresses <b>local</b> rotamer and Ramachandran 
+* scores, with either text or kinemage output.
 * 
 * <p>Begun on Tue Feb  2 2010
 * <p>Copyright (C) 2010 by Daniel Keedy. All rights reserved.
@@ -22,18 +22,21 @@ import molikin.logic.BallAndStickLogic;
 public class LocalRotarama //extends ... implements ...
 {
 //{{{ Constants
-    String KINEMAGE = "kinemage output";
-    String AVERAGES = "average local rotarama score output";
-    DecimalFormat df = new DecimalFormat("#.###");
+    private final static String ROTA = "rotamer";
+    private final static String RAMA = "Ramachandran";
+    private final String AVERAGES = "Average local rotarama";
+    private final String KINEMAGE = "Local rotarama kinemage";
+    private final DecimalFormat df = new DecimalFormat("#.###");
+    private final String aaNames = "ALA ARG ASN ASP CYS GLU GLN GLY HIS ILE"
+                                  +"LEU LYS MET PHE PRO SER THR TRP TYR VAL";
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    String   mode = KINEMAGE;
-    boolean  verbose = false;
-    String   filename;
-    Model    model;
-    HashMap<Residue,Double>  rota, rama;
+    private boolean  verbose = false;
+    private String   mode = AVERAGES;
+    private String   filename;
+    private Model    model;
 //}}}
 
 //{{{ Constructor(s)
@@ -44,61 +47,28 @@ public class LocalRotarama //extends ... implements ...
     }
 //}}}
 
-//{{{ rotaramalyze
+//{{{ printKinColoredByScore
 //##############################################################################
-    /**
-    * Stores rotamer names and rotamer and Ramachandran evaluations.
-    */
-    public void rotaramalyze() throws IOException
+    private void printKinColoredByScore() throws IOException
     {
-        File file = new File(filename);
-        if(file.isDirectory()) return; // skip nested directories
-        if(verbose) System.err.println("Rotalyzing "+file);
+        HashMap<Residue,Double> rota = new Rotalyze().getEvals(model);
+        HashMap<Residue,Double> rama = new Ramalyze().getEvals(model);
         
-        CoordinateFile coords = new PdbReader().read(file);
-        model = coords.getFirstModel();
-        Rotalyze rotalyze = new Rotalyze();
-        Ramalyze ramalyze = new Ramalyze();
-        rota = rotalyze.getEvals(model);
-        rama = ramalyze.getEvals(model);
-        
-        if(verbose)
-        {
-            ArrayList<Residue> rotaRes = new ArrayList<Residue>();
-            ArrayList<Residue> ramaRes = new ArrayList<Residue>();
-            for(Iterator iter = rota.keySet().iterator(); iter.hasNext(); )
-                rotaRes.add( (Residue) iter.next() );
-            for(Iterator iter = rama.keySet().iterator(); iter.hasNext(); )
-                ramaRes.add( (Residue) iter.next() );
-            Collections.sort(ramaRes);
-            Collections.sort(rotaRes);
-            System.err.println("Rota:");
-            for(Residue r : rotaRes) System.err.println("  "+r+": "+rota.get(r));
-            System.err.println("Rama:");
-            for(Residue r : ramaRes) System.err.println("  "+r+": "+rama.get(r));
-        }
-    }
-//}}}
-
-//{{{ colorKinByScore
-//##############################################################################
-    public void colorKinByScore()
-    {
         BallAndStickLogic bsl = new BallAndStickLogic();
         bsl.doProtein    = true;
         bsl.doMainchain  = true;
         bsl.doSidechains = true;
         bsl.colorBy = BallAndStickLogic.COLOR_BY_ROTARAMA;
-        bsl.rota = this.rota;
-        bsl.rama = this.rama;
+        bsl.rota = rota;
+        bsl.rama = rama;
         
         String title = "";
         ModelState state = model.getState();
         if(state != null && state.getName().length() >= 4)
             title += state.getName().substring(0,4).toLowerCase()+" ";
-        title += "rota/Rama";
+        title += "rotarama";
         System.out.println("@kinemage {"+title+"}");
-        System.out.println("@group {"+title+"}");
+        System.out.println("@group {"+title+"} dominant");
         
         Collection chains = model.getChainIDs();
         for(Iterator ci = chains.iterator(); ci.hasNext(); )
@@ -106,100 +76,100 @@ public class LocalRotarama //extends ... implements ...
             String chainID = (String) ci.next();
             if(model.getChain(chainID) != null)
             {
-                System.out.println("@subgroup {chain "+chainID+"} dominant"); // master= {col rota/Rama}");
-                String mcColor = "blue"; // shouldn't matter anyway (?)
+                System.out.println("@subgroup {chain "+chainID+"} dominant");
+                String mcColor = "blue"; // shouldn't matter...
                 Set<Residue> residues = model.getChain(chainID);
                 PrintWriter out = new PrintWriter(System.out);
                 bsl.printKinemage(out, model, residues, mcColor);
             }
+        }//chain
+    }
+//}}}
+
+//{{{ printAverageLocalScores
+//##############################################################################
+    private void printAverageLocalScores() throws IOException
+    {
+        System.out.println("res\tnearby\tscored\trota\trama\tavg");
+        for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
+        {
+            Residue res = (Residue) iter.next();
+            if(aaNames.indexOf(res.getName()) == -1) continue;
+            try
+            {
+                // Re-rota/ramalyzes each time, but the cost in time is only 
+                // ~20%, and it's nice and simple to have only one calcLocalScore() 
+                // method which conveniently is accessible to the outside world.
+                int    nn = new Neighborhood(res, model, 2, 2).getMembers().size();
+                int    nr = calcLocalNumScored(res, model);
+                double ro = calcLocalScore(res, model, this.ROTA);
+                double ra = calcLocalScore(res, model, this.RAMA);
+                double av = 0.5 * (ro + ra);
+                
+                //System.out.println(res.nickname()+"\t"+nn+"\t"+nr+"\t"
+                //    +df.format(ro)+"\t"+df.format(ra)+"\t"+df.format(av));
+                System.out.println(res+","+nn+","+nr+","
+                    +df.format(ro)+","+df.format(ra)+","+df.format(av));
+            }
+            catch(IllegalArgumentException ex)
+            { System.err.println("bad local score type for "+res); }
         }
     }
 //}}}
 
-//{{{ averageLocalScores
+//{{{ calcLocalNumScored
 //##############################################################################
-    public void averageLocalScores()
+    public static int calcLocalNumScored(Residue res, Model model) throws IOException
     {
-        TreeSet<Residue> goober = new TreeSet<Residue>();
-        for(Iterator iter = rama.keySet().iterator(); iter.hasNext(); )
-            goober.add( (Residue) iter.next() );
-        for(Iterator iter = rota.keySet().iterator(); iter.hasNext(); )
-            goober.add( (Residue) iter.next() );
-        ArrayList<Residue> scored = new ArrayList<Residue>();
-        for(Iterator iter = goober.iterator(); iter.hasNext(); )
-            scored.add( (Residue) iter.next() );
-        Collections.sort(scored);
-        System.out.println("res\t\tnrota\tavrota\tnrama\tavrama\tavboth");
-        for(Residue res : scored)
-        {
-            double rotaAvg = 0, ramaAvg = 0;
-            int    rotaCnt = 0, ramaCnt = 0;
-            for(Iterator iter = rota.keySet().iterator(); iter.hasNext(); )
-            {
-                Residue oth = (Residue) iter.next();
-                try
-                {
-                    if(residuesAreClose(res, oth))
-                    {
-                        rotaAvg += rota.get(oth);
-                        rotaCnt++;
-                    }
-                }
-                catch(AtomException ex)
-                { System.err.println("error adding '"+oth+"' to rota avg for '"+res+"'"); }
-            }
-            for(Iterator iter = rama.keySet().iterator(); iter.hasNext(); )
-            {
-                Residue oth = (Residue) iter.next();
-                try
-                {
-                    if(residuesAreClose(res, oth))
-                    {
-                        ramaAvg += rama.get(oth);
-                        ramaCnt++;
-                    }
-                }
-                catch(AtomException ex)
-                { System.err.println("error adding '"+oth+"' to rama avg for '"+res+"'"); }
-            }
-            if(rotaCnt >= 5 && ramaCnt >= 6)
-            {
-                System.out.println(res+"\t"
-                    +rotaCnt+"\t"+df.format(rotaAvg)+"\t"
-                    +ramaCnt+"\t"+df.format(ramaAvg)+"\t"
-                    +df.format((0.5*(rotaAvg+ramaAvg))));
-            }
-        }//res
+        HashMap<Residue,Double> rota = new Rotalyze().getEvals(model);
+        HashMap<Residue,Double> rama = new Ramalyze().getEvals(model);
+        
+        int n = 0;
+        for(Residue oth : new Neighborhood(res, model, 2, 2).getMembers())
+            if(rota.keySet().contains(oth) || rama.keySet().contains(oth))
+                n++;
+        return n;
     }
 //}}}
 
-//{{{ residuesAreClose
+//{{{ calcLocalScore
 //##############################################################################
     /**
-    * Returns true if any atom in the first residue is sufficiently close 
-    * to any atom in the second residue, including sidechain atoms, or if
-    * their sequence separation is 
+    * Calculates the average rotamer or Ramachandran percentile score for a
+    * local region around the provided residue in the provided model.
+    * May be called statically to retrieve rotamer or Ramachandran information
+    * on a single residue-centered region of interest.
+    * @param type one of the ROTA or RAMA constants defined in this class
+    * @throws IOException if Rotalyze or Ramalyze fails to evaulate the model
+    * @throws IllegalArgumentException if type is not one of the ROTA or RAMA
+    * constants defined in this class
     */
-    public boolean residuesAreClose(Residue r1, Residue r2) throws AtomException
+    public static double calcLocalScore(Residue res, Model model, String type) throws IOException, IllegalArgumentException
     {
-        // sequence
-        int seqDiff = Math.abs(r1.getSequenceInteger() - r2.getSequenceInteger());
-        if(seqDiff <= 2) return true;
+        HashMap<Residue,Double> scores = null;
+        if     (type.equals(ROTA)) scores = new Rotalyze().getEvals(model);
+        else if(type.equals(RAMA)) scores = new Ramalyze().getEvals(model);
+        else throw new IllegalArgumentException("argument 'type' must be one "
+            +"of the ROTA or RAMA String constants defined in LocalRotarama");
         
-        // distance
-        double distance = 3;
-        ModelState s = model.getState();
-        for(Iterator iter1 = r1.getAtoms().iterator(); iter1.hasNext(); )
+        if(scores == null) // can this ever happen?
         {
-            AtomState a1 = s.get( (Atom) iter1.next() );
-            for(Iterator iter2 = r2.getAtoms().iterator(); iter2.hasNext(); )
-            {
-                AtomState a2 = s.get( (Atom) iter2.next() );
-                if(a1.distance(a2) < distance) return true;
-            }
+            System.err.println("failed to produce "+type+" scores for "+model);
+            return Double.NaN;
         }
         
-        return false;
+        double score = 0;
+        int n = 0;
+        for(Residue member : new Neighborhood(res, model, 2, 2).getMembers())
+        {
+            if(scores.keySet().contains(member))
+            {
+                score += scores.get(member);
+                n++;
+            }
+        }
+        if(n == 0) return Double.NaN; // can't divide by 0
+        return score / (double) n;
     }
 //}}}
 
@@ -217,10 +187,21 @@ public class LocalRotarama //extends ... implements ...
         }
         try
         {
-            rotaramalyze();
-            System.err.println("mode: "+mode);
-            if(mode.equals(KINEMAGE))       colorKinByScore();
-            else if(mode.equals(AVERAGES))  averageLocalScores();
+            File file = new File(filename);
+            if(file.isDirectory()) return; // skip nested directories
+            CoordinateFile coords = new PdbReader().read(file);
+            this.model = coords.getFirstModel();
+            
+            String[] parts = Strings.explode(file.getName(), '/');
+            String filename = parts[parts.length-1];
+            System.err.println(mode+" for "+filename);
+            try
+            {
+                if     (mode.equals(KINEMAGE)) printKinColoredByScore();
+                else if(mode.equals(AVERAGES)) printAverageLocalScores();
+            }
+            catch(IOException ex)
+            { System.err.println("failed to rota/Ramalyze "+model); }
         }
         catch(IOException ex)
         { System.err.println("Error rotalyzing/Ramalyzing model: "+filename); }
