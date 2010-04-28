@@ -284,14 +284,16 @@ public class AngleDial extends JComponent implements MouseListener, MouseMotionL
 //##################################################################################################
     public void mouseClicked(MouseEvent ev)
     {
+      int mult = 1;
+      if (ev.isShiftDown()) mult = 10;
         // Plus button
         if(plusBtn.contains(ev.getPoint()))
         {
-            setDegrees(getDegrees() + 360.0 / mouseSensitivity);
+            setDegrees(getDegrees() + 360.0 / mouseSensitivity * mult);
         }
         else if(minusBtn.contains(ev.getPoint()))
         {
-            setDegrees(getDegrees() - 360.0 / mouseSensitivity);
+            setDegrees(getDegrees() - 360.0 / mouseSensitivity * mult);
         }
         // Reset to original value on double click
         else if(this.isEnabled() && ev.getClickCount() == 2)
