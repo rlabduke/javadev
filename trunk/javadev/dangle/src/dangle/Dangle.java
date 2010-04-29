@@ -71,7 +71,6 @@ public class Dangle //extends ... implements ...
         
         // Print headings
         out.print("# label:model:chain:number:ins:type");
-        int c2o2idx = Integer.MIN_VALUE;
         for(int i = 0; i < meas.length; i++)
         {
             out.print(":"+meas[i].getLabel());

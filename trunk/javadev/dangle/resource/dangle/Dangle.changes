@@ -44,3 +44,9 @@ Changes to chiropraxis.dangle.Dangle
   if there is an alt conf).
 - Added -alt=X flag for measuring geometry of other alts like 'B'
 
+100428 (dak)
+- Added recognition of bases with another atom substituted for O2' as RNA
+- Reverted to evaluating HETATMs listed as nucleic acids even if doHets boolean 
+  is false (which is the default), but the most common non-oligomeric residues 
+  ([ACTGU][MDT]P, e.g. ATP) are now excluded (see above), so we should be OK
+
