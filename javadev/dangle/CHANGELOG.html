@@ -10,10 +10,17 @@
     determine SSs geometrically if no SSBOND headers avail (or even if so)?
     output residue info for both ends of SSs?
     base-P perp devs in geom kin
+    req(resname) for rnabb special cases w/ substituted heavy atoms
     
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+
+### 1.06 ### dak
+- Added recognition of bases with another heavy atom substituted for O2' as RNA
+- Reverted to evaluating HETATMs listed as nucleic acids even if doHets boolean 
+  is false (which is the default), but the most common non-oligomeric residues 
+  ([ACTGU][MDT]P, e.g. ATP) are now excluded (see above), so we should be OK
 
 ### 1.05 ### dak
 - Fixed bug where HETATMs listed as nucleic acids (e.g. ATP) would still get 

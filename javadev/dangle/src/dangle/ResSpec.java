@@ -180,32 +180,81 @@ public class ResSpec //extends ... implements ...
             catch(AtomException ex) { return false; }
         }
         
+        /*{{{ old DNA/RNA code
         if(requireDeoxy) // DNA
         {
+            // Some modified RNA bases have other atoms in place of the O2':
+            String[] o2options = new String[] {" O2'", "SE2'", ____};
             try
-            { AtomState c2p = state.get(curr.getAtom(" C2'")); }
+            { AtomState c2 = state.get(curr.getAtom(" C2'")); }
             catch(AtomException ex)
             { return false; } // may just be disordered DNA, but can't be *sure* it's actually DNA
             
-            try
+            for(String o2option : o2options)
             {
-                AtomState o2p = state.get(curr.getAtom(" O2'"));
-                return false; // only happens if O2' present, meaning *not* DNA
+                try
+                {
+                    AtomState o2 = state.get(curr.getAtom(o2option));
+                    return false; // only happens if O2' (or derivative) present, meaning *not* DNA
+                }
+                catch(AtomException ex) {} // O2' (or derivative) absent, meaning *likely* DNA - carry on!
             }
-            catch(AtomException ex) {} // carry on if O2' absent, meaning *likely* DNA
         }
         
         if(requireOxy) // RNA
         {
-            try
+            boolean c2o2bonded = false;
+            // Some modified RNA bases have other atoms in place of the O2':
+            String[] o2options = new String[] {" O2'", "SE2'", ____};
+            for(String o2option : o2options)
             {
-                AtomState c2p = state.get(curr.getAtom(" C2'"));
-                AtomState o2p = state.get(curr.getAtom(" O2'"));
-                double c2p_o2p_dist = Triple.distance(c2p, o2p);
-                if(Double.isNaN(c2p_o2p_dist) || c2p_o2p_dist > 2.0)
-                    return false; // C2'-O2' bond does *not* exist, so *not* RNA
+                try
+                {
+                    AtomState c2 = state.get(curr.getAtom(" C2'"));
+                    AtomState o2 = state.get(curr.getAtom(o2option));
+                    double c2o2dist = Triple.distance(c2, o2);
+                    if(!Double.isNaN(c2o2dist) && c2o2dist < 2.0)
+                    {
+                        c2o2bonded = true; // C2'-O2' bond *does* exist, so *is* RNA
+                        break;
+                    }
+                }
+                catch(AtomException ex) {}
             }
-            catch(AtomException ex) { return false; }
+            if(!c2o2bonded) return false; // C2'-O2' bond does *not* exist, so *not* RNA
+        }
+        }}}*/
+        
+        if(requireOxy || requireDeoxy) // RNA or DNA
+        {
+            AtomSpec c2spec = new AtomSpec(0, "_C2*");
+            AtomState c2 = c2spec.get(model, state, curr);
+            if(c2 == null)    // may just be disordered, but can't be *sure* it's 
+                return false; // actually DNA or RNA rather than something else 
+            
+            // Some modified RNA bases have other atoms in place of the O2':
+            AtomSpec[] o2specs = new AtomSpec[] {
+                new AtomSpec(0, " O2*"),
+                new AtomSpec(0, "SE2*"), // e.g. 1YLS
+                new AtomSpec(0, "_F__"), // e.g. 3DD2
+            };
+            
+            boolean c2o2bonded = false;
+            for(AtomSpec o2spec : o2specs)
+            {
+                AtomState o2 = o2spec.get(model, state, curr);
+                if(o2 == null) // can't find this O2' or substitute, so
+                    continue;  // can't confirm existence of C2-O2' bond
+                double c2o2dist = Triple.distance(c2, o2);
+                if(!Double.isNaN(c2o2dist) && c2o2dist < 2.0)
+                {
+                    c2o2bonded = true;
+                    break;
+                }
+            }
+            
+            if(requireOxy   && !c2o2bonded) return false; // want RNA but this isn't
+            if(requireDeoxy &&  c2o2bonded) return false; // want DNA but this isn't
         }
         
         if(require2p) // ribose pucker
