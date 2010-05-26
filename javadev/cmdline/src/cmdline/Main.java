@@ -39,9 +39,17 @@ public class Main {
         Test.main(cmdargs);
       } else {
         System.err.println("Unknown cmdline function!");
+        System.err.println("Try one of the following:");
+        System.err.println("libraryfilterer | pdbsuperimposer | calcrmsd | pdbsuperimposer_RNA |");
+        System.err.println("multipdbsuperimposer | multimadsuperimposer | sql | fragmentrotator |");
+        System.err.println("sequenceanalyzer | fraglibcreator | test");
       }
     } else {
       System.err.println("No cmdline function specified!");
+      System.err.println("Try one of the following:");
+      System.err.println("libraryfilterer | pdbsuperimposer | calcrmsd | pdbsuperimposer_RNA |");
+      System.err.println("multipdbsuperimposer | multimadsuperimposer | sql | fragmentrotator |");
+      System.err.println("sequenceanalyzer | fraglibcreator | test");
     }
   }
   //}}}
