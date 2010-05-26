@@ -98,6 +98,7 @@ public class FragmentLibraryCreator {
       FragmentLibraryCreator filterer = new FragmentLibraryCreator(files);
       Iterator iter = filterer.iterator();
       while (iter.hasNext()) {
+        filterer.connectToDatabase();
         File f = (File) iter.next();
         System.out.println(f.toString());
         filterer.setPdb(f);
@@ -110,13 +111,13 @@ public class FragmentLibraryCreator {
           }
           //filterer.write(saveFile, lib);
         }
+        filterer.closeDatabase();
       }
       for (LibraryWriter writer : writers) {
         if (writer != null) {
           writer.close();
         }
       }
-      filterer.closeDatabase();
     }
     
     long endTime = System.currentTimeMillis();
@@ -126,10 +127,6 @@ public class FragmentLibraryCreator {
   
   //{{{ Constructor
   public FragmentLibraryCreator(File[] files) {
-    dm = new DatabaseManager();
-    //dm.connectToDatabase("//spiral.research.duhs.duke.edu/qDBrDB");
-    dm.connectToDatabase("//quality.biochem.duke.edu:1352/jiffiloop");
-    
     pdbs = new ArrayList<File>();
     for (File f : files) {
       String name = f.getName();
@@ -139,6 +136,14 @@ public class FragmentLibraryCreator {
       }
     }
     Collections.sort(pdbs);
+  }
+  //}}}
+  
+  //{{{ connectToDatabase
+  public void connectToDatabase() {
+    dm = new DatabaseManager();
+    //dm.connectToDatabase("//spiral.research.duhs.duke.edu/qDBrDB");
+    dm.connectToDatabase("//quality.biochem.duke.edu:1352/jiffiloop");
   }
   //}}}
 
@@ -185,6 +190,7 @@ public class FragmentLibraryCreator {
   
   //{{{ setPdb
   public void setPdb(File f) {
+    currentPdb = null;
     currentPdb = readFile(f);
   }
   //}}}
