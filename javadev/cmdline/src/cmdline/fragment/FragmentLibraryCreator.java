@@ -27,6 +27,7 @@ public class FragmentLibraryCreator {
   static int lowSize;
   static int highSize;
   static boolean qualityFilter = true;
+  static boolean excludeClash = true;
   DatabaseManager dm;
   //}}}
 
@@ -44,6 +45,8 @@ public class FragmentLibraryCreator {
           System.exit(0);
         } else if (arg.equals("-n") || arg.equals("-noqualityfilter")) {
           qualityFilter = false;
+        } else if (arg.equals("-c") || arg.equals("-excludeclashes")) {
+          excludeClash = false;
         } else {
           System.err.println("*** Unrecognized option: "+arg);
         }
@@ -74,7 +77,7 @@ public class FragmentLibraryCreator {
     ArrayList<String> argList = parseArgs(args);
     long startTime = System.currentTimeMillis();
     if (argList.size() < 3) {
-	    System.out.println("Not enough arguments, you need a size range, a directory, and an outfile prefix, in that order!  Use -n for no quality filtering.");
+	    System.out.println("Not enough arguments, you need a size range, a directory, and an outfile prefix, in that order!  Use -n for no quality filtering, and -c to exclude fragments with clashes.");
     } else {
       //int size = Integer.parseInt(args[0]);
       File pdbsDirectory = new File(argList.get(1));
@@ -289,7 +292,9 @@ public class FragmentLibraryCreator {
     while (dm.next()) {
       //System.out.println(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4));
       //if (!dm.getString(1).equals("0.000")||(!dm.getString(2).equals("0.000"))||(dm.getString(3).equals("OUTLIER"))||(!dm.getString(4).equals("0"))||(!dm.getString(5).equals("0"))) System.out.println(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4)+" "+dm.getString(5));
-      if (!dm.getString(1).equals("0.000")) return true; // clash not zero (always zero unless greater than 0.4
+      if (excludeClash) {
+        if (!dm.getString(1).equals("0.000")) return true; // clash not zero (always zero unless greater than 0.4
+      }
       if (!dm.getString(2).equals("0.000")) return true; // cbetadev not zero (always zero unless greater than 0.25
       if (dm.getString(3).equals("OUTLIER")) return true; // rama outlier
       if (!dm.getString(4).equals("0")) return true;      // bond outliers greater than zero?
