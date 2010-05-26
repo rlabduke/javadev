@@ -3,6 +3,7 @@ package cmdline.fragment;
 
 import driftwood.moldb2.*;
 import driftwood.r3.*;
+import driftwood.mysql.*;
 
 import java.util.*;
 import java.io.*;
@@ -25,6 +26,8 @@ public class FragmentLibraryCreator {
   CoordinateFile currentPdb;
   static int lowSize;
   static int highSize;
+  static boolean qualityFilter = true;
+  DatabaseManager dm;
   //}}}
 
   //{{{ parseArgs
@@ -39,6 +42,8 @@ public class FragmentLibraryCreator {
         if(arg.equals("-h") || arg.equals("-help")) {
           System.err.println("Help not available. Sorry!");
           System.exit(0);
+        } else if (arg.equals("-n") || arg.equals("-noqualityfilter")) {
+          qualityFilter = false;
         } else {
           System.err.println("*** Unrecognized option: "+arg);
         }
@@ -69,9 +74,7 @@ public class FragmentLibraryCreator {
     ArrayList<String> argList = parseArgs(args);
     long startTime = System.currentTimeMillis();
     if (argList.size() < 3) {
-	    System.out.println("Not enough arguments, you need a size range, a directory, and an outfile prefix, in that order!");
-    } else if (argList.size() > 3) {
-      System.out.println("Too many arguments, you need a size range, a directory, and an outfile prefix, in that order!");
+	    System.out.println("Not enough arguments, you need a size range, a directory, and an outfile prefix, in that order!  Use -n for no quality filtering.");
     } else {
       //int size = Integer.parseInt(args[0]);
       File pdbsDirectory = new File(argList.get(1));
@@ -110,6 +113,7 @@ public class FragmentLibraryCreator {
           writer.close();
         }
       }
+      filterer.closeDatabase();
     }
     
     long endTime = System.currentTimeMillis();
@@ -119,6 +123,10 @@ public class FragmentLibraryCreator {
   
   //{{{ Constructor
   public FragmentLibraryCreator(File[] files) {
+    dm = new DatabaseManager();
+    //dm.connectToDatabase("//spiral.research.duhs.duke.edu/qDBrDB");
+    dm.connectToDatabase("//quality.biochem.duke.edu:1352/jiffiloop");
+    
     pdbs = new ArrayList<File>();
     for (File f : files) {
       String name = f.getName();
@@ -235,7 +243,7 @@ public class FragmentLibraryCreator {
       //if (!res.getName().equals("HOH")) System.out.println(res.getCNIT() + " " + currFrag.size());
       //if (!res.getName().equals("PHE")) testForAlts(res, mod);
       if (currFrag.size() != size + 3) {
-        if (isBackboneComplete(res, mod)&&(res.getInsertionCode().equals(" "))) {
+        if (isBackboneComplete(res, mod)&&(res.getInsertionCode().equals(" "))&&(!isOutlier(pdbId, res))) {
           if (currFrag.size() > 0) {
             if (!isBonded(currFrag.get(currFrag.size()-1), res, mod)) {
               currFrag.clear();
@@ -257,6 +265,37 @@ public class FragmentLibraryCreator {
       }
     }
     return params;
+  }
+  //}}}
+  
+  //{{{ isOutlier
+  /** 
+  *   Checks if there are any quality outliers for a residue, using our mysql database 
+  *   (currently quality) which has a table containing the molprobity residue analysis
+  *   data for the top 5200
+  **/
+  public boolean isOutlier(String pdbId, Residue res) {
+    if (!qualityFilter) { return false; }
+
+    String sqlSelect = "SELECT worst_clash, CB_dev, rama_eval, num_length_out, num_angle_out FROM top5200_mp_residue \n";
+    sqlSelect = sqlSelect.concat("WHERE pdbid = '"+pdbId.toLowerCase()+"' ");
+    sqlSelect = sqlSelect.concat("AND chain = '"+res.getChain()+"' ");
+    sqlSelect = sqlSelect.concat("AND resnum = '"+res.getSequenceNumber()+"' ");
+    sqlSelect = sqlSelect.concat("AND inscode = '"+res.getInsertionCode()+"' ");
+    sqlSelect = sqlSelect.concat("AND restype = '"+res.getName()+"'");
+    sqlSelect = sqlSelect.concat("\n");
+    //System.out.println(sqlSelect);
+    dm.select(sqlSelect);
+    while (dm.next()) {
+      //System.out.println(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4));
+      //if (!dm.getString(1).equals("0.000")||(!dm.getString(2).equals("0.000"))||(dm.getString(3).equals("OUTLIER"))||(!dm.getString(4).equals("0"))||(!dm.getString(5).equals("0"))) System.out.println(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4)+" "+dm.getString(5));
+      if (!dm.getString(1).equals("0.000")) return true; // clash not zero (always zero unless greater than 0.4
+      if (!dm.getString(2).equals("0.000")) return true; // cbetadev not zero (always zero unless greater than 0.25
+      if (dm.getString(3).equals("OUTLIER")) return true; // rama outlier
+      if (!dm.getString(4).equals("0")) return true;      // bond outliers greater than zero?
+      if (!dm.getString(5).equals("0")) return true;      // angle outliers greater than zero?
+    }
+    return false;
   }
   //}}}
   
@@ -435,6 +474,12 @@ public class FragmentLibraryCreator {
   //    ie.printStackTrace();
   //  }
   //}
+  //}}}
+  
+  //{{{ closeDatabase
+  public void closeDatabase() {
+    dm.close();
+  }
   //}}}
   
 }
