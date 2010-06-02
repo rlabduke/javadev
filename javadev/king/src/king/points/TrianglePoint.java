@@ -5,6 +5,7 @@ import king.core.*;
 
 import java.awt.*;
 import java.awt.geom.*;
+import java.lang.Math; // (ARK Spring2010)
 //import java.io.*;
 //import java.text.*;
 //import java.util.*;
@@ -111,17 +112,27 @@ public class TrianglePoint extends AbstractPoint // implements ...
 //##################################################################################################
     public void paint2D(Engine2D engine)
     {
+    	boolean onBackside = false; // (ARK Spring2010)
+    	boolean doBackside = false;
+    	if(parent.secondaryStructure!=null)
+    		if(parent.secondaryStructure.equals("alpha") && engine.ribbonSidesAlpha
+		   || parent.secondaryStructure.equals("beta") && engine.ribbonSidesBeta)
+		{ doBackside = true; }
+    	
         KPaint maincolor = getDrawingColor(engine);
         if(from == null || from.from == null || maincolor.isInvisible()) return;
         
-        TrianglePoint A, B, C = from.from.from;
+        TrianglePoint A, B, C = from.from.from;  
+        TrianglePoint A2, B2, C2 = from.from; // for the other triangle in the pair, (ARK Spring2010)  
         int colorCue = engine.colorCue;
         // If this is a ribbon list, color the triangles in pairs (code for dependent triangles)
-        if((multi & SEQ_EVEN_BIT) != 0 && parent != null && parent.getType() == KList.RIBBON && C != null)
-        {
-            A = from;
+        if((multi & SEQ_EVEN_BIT) != 0 && parent != null && parent.getType() == KList.RIBBON && C != null){ // added doBackside (ARK Spring2010)
+	    A = from;
             B = from.from;
-            //C = from.from.from; -- already set
+            // C = from.from.from; -- already set
+            A2 = this;	// (ARK Spring2010)
+            B2 = from;	// (ARK Spring2010)
+            
             // We must match depth cueing AND lighting angle if we want ribbons to look uniform
             // This is a huge pain in the butt -- code derived from doTransform().
             double triangleZ;
@@ -150,8 +161,10 @@ public class TrianglePoint extends AbstractPoint // implements ...
             B = from;
             C = from.from;
             //colorCue = engine.colorCue; -- already set
+            A2 = null; // (ARK Spring2010)
+            B2 = null; // (ARK Spring2010)
         }
-
+        
         // Do dot product of surface normal with lighting vector
         // to determine diffuse lighting.
         //engine.work1.likeVector(B, A);
@@ -159,15 +172,36 @@ public class TrianglePoint extends AbstractPoint // implements ...
         //engine.work2.likeVector(B, C);
         engine.work2.setXYZ( C.getDrawX()-B.getDrawX(), C.getDrawY()-B.getDrawY(), C.getDrawZ()-B.getDrawZ() );
         engine.work1.cross(engine.work2).unit();
+        
         double dotprod = engine.work1.dot(engine.lightingVector);
+        
         int alpha = (parent == null ? 255 : parent.getAlpha());
-        Paint paint = maincolor.getPaint(engine.backgroundMode, dotprod, colorCue, alpha);
+        Paint paint = maincolor.getPaint(engine.backgroundMode, dotprod, colorCue, alpha); 
+ 
+        // Ribbon backside considerations, (ARK Spring2010)
+        // Look at pair of triangles separately
+        if(doBackside && (multi & SEQ_EVEN_BIT) != 0 && parent != null && parent.getType() == KList.RIBBON && C2 != null){
+        	engine.work1.setXYZ( A2.getDrawX()-B2.getDrawX(), A2.getDrawY()-B2.getDrawY(), A2.getDrawZ()-B2.getDrawZ() );
+        	engine.work2.setXYZ( C2.getDrawX()-B2.getDrawX(), C2.getDrawY()-B2.getDrawY(), C2.getDrawZ()-B2.getDrawZ() );
+        	engine.work1.cross(engine.work2).unit();  // surface normal of other triangle in pair
+        	if(engine.work1.getZ()<=0.001) onBackside = true;
+        }
+        else if( doBackside ) 
+		if(engine.work1.getZ()>=0.001) onBackside = true;  
+        if(doBackside && onBackside) {
+        	if(parent.getSecStruc().equals("alpha"))
+        		paint = maincolor.getOffsetPaint(engine.curBackHSValpha, engine.backgroundMode, dotprod, colorCue, alpha); 
+        	else if(parent.getSecStruc().equals("beta"))
+        		paint = maincolor.getOffsetPaint(engine.curBackHSVbeta, engine.backgroundMode, dotprod, colorCue, alpha); 
+        	else {} // revert to leaving the paint unchanged
+        } // end backside
         
         engine.painter.paintTriangle(paint,
-            x, y, z,
+            x, y, z, 
             from.x, from.y, from.z,
             from.from.x, from.from.y, from.from.z
         );
+
     }
 //}}}
 

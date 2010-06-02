@@ -118,7 +118,7 @@ public class JoglEngine3D extends Engine
     */
     public void render(AGE xformable, KView view, Rectangle bounds, GL gl, Tuple3 eyePosition)
     {
-        // init GL
+    	// init GL
         this.gl     = gl;
         this.glu    = new GLU();
         this.glut   = new GLUT();
@@ -752,7 +752,7 @@ in the plane of the screen.
         boolean flipNormal = false; // to get consistent normals -- not really needed
         for(KPoint p : list.getChildren())
         {
-            if(p.isBreak())
+            if(p.isBreak())                                
             {
                 gl.glEnd();
                 from = fromfrom = null;

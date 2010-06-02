@@ -61,11 +61,18 @@ abstract public class SecondaryStructure //extends ... implements ...
     /** Describes a start-end range for a helix, sheet, or turn */
     public static class Range
     {
-        int     rangeIndex = 0;
-        Object  type = COIL;
+        int     rangeIndex = 0; 
+        Object  type = COIL; 
         String  chainId;
-        int     initSeqNum, endSeqNum;
+        public int     initSeqNum, endSeqNum; // added public (ARK Spring2010)
         String  initICode = " ", endICode = " ";
+        public int	sense = 0; // 0 if first strand, 1 if parallel, -1 if anti-parallel (ARK Spring2010), is this used? 
+        public int 	strand = 1; // starts at 1 for each strand within a sheet and increases by one  (ARK Spring2010) 
+        public String	sheetID = " "; 		// (ARK Spring2010)
+        public boolean 	flipped = false;  	// (ARK Spring2010)
+        public Range	previous = null;  	// (ARK Spring2010)
+        public Range	next = null; 	   	// (ARK Spring2010)
+        public Range    duplicateOf = null; 	// (ARK Spring2010)
         
         public boolean contains(Residue r)
         {
@@ -78,6 +85,7 @@ abstract public class SecondaryStructure //extends ... implements ...
             return true;
         }
         
+        /// could change vars from public and add more accessor methods (ARK Spring2010)
         public Object getType()
         { return type; }
         
@@ -88,7 +96,7 @@ abstract public class SecondaryStructure //extends ... implements ...
 
 //{{{ Variable definitions
 //##############################################################################
-    private Collection ranges = new ArrayList();
+    public Collection ranges = new ArrayList(); // changed private to public, (ARK Spring2010)
 //}}}
 
 //{{{ Constructor(s)
@@ -103,7 +111,7 @@ abstract public class SecondaryStructure //extends ... implements ...
 //##############################################################################
     protected void addRange(Range r)
     {
-        ranges.add(r);
+    	ranges.add(r);
         r.rangeIndex = ranges.size();
     }
     
@@ -113,7 +121,8 @@ abstract public class SecondaryStructure //extends ... implements ...
         for(Iterator iter = ranges.iterator(); iter.hasNext(); )
         {
             Range rng = (Range) iter.next();
-            if(rng.contains(res)) return rng;
+            if(rng.duplicateOf!=null) continue; // (ARK Spring2010)
+	    if(rng.contains(res)) return rng;
         }
         return null; // no entry for that residue
     }
@@ -141,6 +150,50 @@ abstract public class SecondaryStructure //extends ... implements ...
 
     public boolean isCoil(Residue r)
     { return COIL.equals(classify(r)); }
+//}}}
+
+//{{{ consolidateSheets  
+    public void consolidateSheets() // (ARK Spring2010)
+    {
+    	Hashtable uniqueStrands = new Hashtable();
+        
+    	// For each ribbon, record it's predecessor in sheet, and check for duplicates
+        ///this is repeated later in ribbon printer, with strands vector!! fix?!?!?
+    	for(Iterator iter = ranges.iterator(); iter.hasNext(); ) 
+        {
+            Range rng = (Range) iter.next();  
+            if(!rng.type.equals(STRAND)) continue; // not a sheet
+            
+            // get unique representation for strand, test if it's been found before
+            Integer key = new Integer(rng.initSeqNum*1000 + (int)rng.chainId.charAt(0)); ////sufficient to make it unique?!?!?
+            if(!uniqueStrands.containsKey(key)) uniqueStrands.put(key, rng);
+	    else rng.duplicateOf = (Range)uniqueStrands.get(key);
+            
+            // now find this strand's previous and next strand
+            for(Iterator iter2 = ranges.iterator(); iter2.hasNext(); ){
+	    	Range rng2 = (Range) iter2.next();  
+	    	if(!rng2.type.equals(STRAND)) continue;
+	    	if(rng2.sheetID.equals(rng.sheetID) && rng2.strand == rng.strand-1){
+            		    rng.previous = rng2;
+            		    rng2.next = rng;
+            		    ///break;
+            	}  
+            }
+        }
+        
+        // now go through and reassign previous/next fields
+        for(Iterator iter = ranges.iterator(); iter.hasNext(); ) 
+        {
+                Range rng = (Range) iter.next();  
+   	        if(!rng.type.equals(STRAND)) continue; // not a sheet
+		if(rng.duplicateOf==null && rng.next!=null && rng.next.duplicateOf!=null)
+			rng.next.duplicateOf.previous = rng;	
+		if(rng.duplicateOf==null && rng.previous!= null && rng.previous.duplicateOf!=null)
+			rng.previous = rng.previous.duplicateOf;	
+        }
+        
+    }
+
 //}}}
 
 //{{{ empty_code_segment

@@ -13,6 +13,7 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import driftwood.gui.*;
+import driftwood.r3.*; // (ARK Spring2010)
 
 import java.util.List;
 import javax.swing.Timer;
@@ -24,7 +25,7 @@ import javax.swing.Timer;
 * <p>Copyright (C) 2003-2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Mon May 26 12:30:25 EDT 2003
 */
-public class UIDisplayMenu implements KMessage.Subscriber
+public class UIDisplayMenu implements KMessage.Subscriber, ChangeListener // added ChangeListener (ARK Spring2010)
 {
 //{{{ Constants
 //}}}
@@ -97,6 +98,11 @@ public class UIDisplayMenu implements KMessage.Subscriber
     boolean rockRight       = true;
     
     Timer   autoAnimTimer   = null;
+    
+    // For Ribbon Sides menu (ARK Spring2010)
+    JSlider hASlider, sASlider, vASlider, hBSlider, sBSlider, vBSlider; 
+    JCheckBox isOnAlpha, isOnBeta;
+    JButton restoreDefaults;
 //}}}
 
 //{{{ Constructor(s)
@@ -218,6 +224,9 @@ public class UIDisplayMenu implements KMessage.Subscriber
         cbColorByList.setMnemonic(KeyEvent.VK_L);
         cbColorByList.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, 0)); // 0 => no modifiers
         menu.add(cbColorByList);
+        JMenuItem itemRibbonSides = new JMenuItem(new ReflectiveAction("Ribbon sides...", null, this, "onDispRibbonSides"));
+        itemRibbonSides.setMnemonic(KeyEvent.VK_S);
+        menu.add(itemRibbonSides);		// (ARK Spring2010)
         menu.addSeparator();
         
         autoRockMenuItem = new JCheckBoxMenuItem(new ReflectiveAction("Auto-rock", null, this, "onDispAutoRockStartStop"));
@@ -481,7 +490,7 @@ public class UIDisplayMenu implements KMessage.Subscriber
     }
 //}}}
 
-//{{{ onDisp{Intensity, Background, Monochrome, ColorByList}
+//{{{ onDisp{Intensity, Background, Monochrome, ColorByList} 
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onDispIntensity(ActionEvent ev)
@@ -633,6 +642,65 @@ public class UIDisplayMenu implements KMessage.Subscriber
     }
 //}}}
 
+//{{{ onDispRibbonSides
+//##################################################################################################
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onDispRibbonSides(ActionEvent ev) // (ARK Spring2010)
+    {
+    	Engine engine = kMain.getCanvas().getEngine();
+        Kinemage kin = kMain.getKinemage(); /////???
+	if(kin!=null && engine!=null){
+        	// Get initial values in case user cancels, there's gotta be an easier way to do this...
+        	boolean ribbonSidesAlpha0 = kin.atSidedcoloringAlpha;
+        	boolean ribbonSidesBeta0 = kin.atSidedcoloringBeta;
+        	// use triple class for its constructors and .like() method, could probably instead use Integer[]...
+        	Triple backHSValpha0 = new Triple().like(engine.curBackHSValpha);
+        	Triple backHSVbeta0 = new Triple().like(engine.curBackHSVbeta);
+        	
+        	isOnAlpha = new JCheckBox("Color by side (alpha)");
+        	isOnAlpha.setSelected(kin.atSidedcoloringAlpha); 
+        	isOnAlpha.addChangeListener(this);
+        	isOnBeta = new JCheckBox("Color by side (beta)");
+        	isOnBeta.setSelected(kin.atSidedcoloringBeta); 
+        	isOnBeta.addChangeListener(this);
+		hASlider = new JSlider(0, 360, (int)engine.curBackHSValpha.getX());
+		hASlider.addChangeListener(this);
+		sASlider = new JSlider(0, 100, (int)engine.curBackHSValpha.getY());
+		sASlider.addChangeListener(this);
+		vASlider = new JSlider(0, 100, (int)engine.curBackHSValpha.getZ());
+		vASlider.addChangeListener(this);
+		hBSlider = new JSlider(0, 360, (int)engine.curBackHSVbeta.getX());
+		hBSlider.addChangeListener(this);
+		sBSlider = new JSlider(0, 100, (int)engine.curBackHSVbeta.getY());
+		sBSlider.addChangeListener(this);
+		vBSlider = new JSlider(0, 100, (int)engine.curBackHSVbeta.getZ());
+		vBSlider.addChangeListener(this);
+		restoreDefaults = new JButton("Restore defaults");
+		restoreDefaults.addChangeListener(this);
+		
+		Object[] msg = {isOnAlpha,"Alpha hue offset: ", hASlider,"Alpha saturation offset: ", sASlider, "Alpha brightness offset: ", vASlider,
+				new JSeparator(), 
+				isOnBeta, "Beta hue offset: ",hBSlider, "Beta saturation offset: ", sBSlider, "Beta brightness offset: ", vBSlider,
+				restoreDefaults};
+			
+        	JOptionPane op = new JOptionPane(msg, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
+		JDialog dialog = op.createDialog(kMain.getTopWindow(), "Set ribbon backside color offsets");
+		dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		dialog.setVisible(true);
+        	
+		if(op.getValue()!=null && ((Integer)op.getValue()).intValue()==JOptionPane.CANCEL_OPTION ){
+        	    // restore initial values
+		    kin.atSidedcoloringAlpha = ribbonSidesAlpha0;
+        	    kin.atSidedcoloringBeta = ribbonSidesBeta0;
+        	    engine.curBackHSValpha.setXYZ(backHSValpha0.getX(),backHSValpha0.getY(),backHSValpha0.getZ());
+        	    engine.curBackHSVbeta.setXYZ(backHSVbeta0.getX(),backHSVbeta0.getY(),backHSVbeta0.getZ());
+        	}
+		else  
+		    kMain.publish(new KMessage(this, KMessage.DISPLAY_OPTIONS));   
+	}
+    }
+//}}}
+
 //{{{ onResizeCanvas
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
@@ -726,6 +794,38 @@ public class UIDisplayMenu implements KMessage.Subscriber
         JOptionPane.showMessageDialog(
             new JDialog(), "Required format: \"W x H\" or \"WxH\"!", 
             "Wrong width-by-height format!", JOptionPane.ERROR_MESSAGE);
+    }
+//}}}
+
+//{{{ stateChanged
+//##################################################################################################
+    public void stateChanged(ChangeEvent ev) // (ARK Spring2010)
+    {
+        Object src = ev.getSource();
+        Engine engine = kMain.getCanvas().getEngine();
+	Kinemage kin = kMain.getKinemage(); /////???
+
+        if(src == isOnAlpha) kin.atSidedcoloringAlpha = isOnAlpha.isSelected();
+        else if(src == isOnBeta) kin.atSidedcoloringBeta = isOnBeta.isSelected();
+        else if(src == hASlider) engine.curBackHSValpha.setX(hASlider.getValue());
+        else if(src == sASlider) engine.curBackHSValpha.setY(sASlider.getValue());
+        else if(src == vASlider) engine.curBackHSValpha.setZ(vASlider.getValue());
+        else if(src == hBSlider) engine.curBackHSVbeta.setX(hBSlider.getValue());
+        else if(src == sBSlider) engine.curBackHSVbeta.setY(sBSlider.getValue());
+        else if(src == vBSlider) engine.curBackHSVbeta.setZ(vBSlider.getValue());
+        else if(src == restoreDefaults){
+        	engine.curBackHSValpha.setXYZ(engine.defBackHSValpha.getX(),engine.defBackHSValpha.getY(),engine.defBackHSValpha.getZ());
+        	engine.curBackHSVbeta.setXYZ(engine.defBackHSVbeta.getX(),engine.defBackHSVbeta.getY(),engine.defBackHSVbeta.getZ());
+        	hASlider.setValue((int)engine.curBackHSValpha.getX());
+        	sASlider.setValue((int)engine.curBackHSValpha.getY());
+        	vASlider.setValue((int)engine.curBackHSValpha.getZ());
+        	hBSlider.setValue((int)engine.curBackHSVbeta.getX());
+        	sBSlider.setValue((int)engine.curBackHSVbeta.getY());
+        	vBSlider.setValue((int)engine.curBackHSVbeta.getZ());
+        }
+        else System.err.println("Unknown event source: "+src);
+        
+        kMain.getCanvas().repaint();
     }
 //}}}
 

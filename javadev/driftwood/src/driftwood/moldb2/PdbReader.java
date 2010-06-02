@@ -180,7 +180,7 @@ public class PdbReader //extends ... implements ...
     */
     public CoordinateFile read(LineNumberReader r) throws IOException
     {
-        initData();
+    	initData();
         
         Runtime runtime = Runtime.getRuntime();
         

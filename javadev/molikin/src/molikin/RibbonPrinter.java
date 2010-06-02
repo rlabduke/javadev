@@ -2,11 +2,13 @@
 //{{{ Package, imports
 package molikin;
 import molikin.crayons.*;
+import driftwood.moldb2.SecondaryStructure; // (ARK Spring2010)
 
 //import java.awt.*;
 //import java.awt.event.*;
 import java.io.*;
 import java.net.URL;
+import java.lang.Math; // (ARK Spring2010)
 import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
@@ -29,6 +31,7 @@ public class RibbonPrinter //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     PrintWriter out;
+    PrintWriter outGuides; ///(ARK Spring2010)
     RibbonCrayon crayon = molikin.crayons.ConstCrayon.NONE;
     
     Triple tmp = new Triple();
@@ -40,6 +43,7 @@ public class RibbonPrinter //extends ... implements ...
     double widthDefault = 2.0;
     
     boolean rnaPointIDs = false;
+    final int   nIntervals = 4;  // (ARK Spring2010) moved this from top of printFancyRibbon()
 //}}}
 
 //{{{ Constructor(s)
@@ -48,6 +52,13 @@ public class RibbonPrinter //extends ... implements ...
     {
         super();
         this.out = out;
+        //try { // print kinemage header, (ARK Spring2010), get PDB id ???
+        //	outGuides = new PrintWriter("0ssinterrupt_wht_helixonly/0guides.kin"); 
+	//        outGuides.println("@kinemage 1\n@title {Guides}\n@group{axes} dominant off");  
+	//        outGuides.println("@vectorlist {axes}\n{x}P -10 0 0 {\"}10 0 0\n{y}P 0 -10 0 {\"}0 10 0\n{z}P 0 0 -10 {\"}0 0 10");
+	//        outGuides.println("@labellist {labels}\n{-x} -10 0.5 0\n{-y} 0.5 -10 0\n{-z} 0 0.5 -10");
+        //} 
+        //catch (Exception e) { System.err.println("Error creating outGuides.kin"); }        	
     }
 //}}}
 
@@ -83,6 +94,51 @@ public class RibbonPrinter //extends ... implements ...
     }
 //}}}
 
+//{{{ printGuideptGp
+//##############################################################################
+//##############################################################################
+    /**
+    * Creates a separate kinemage with the guidepoints for the current ribbon element 
+    * grouped together, (ARK Spring2010)
+    */
+    public void printGuideptGp(GuidePoint[] guides, String groupID, String type, int stGuide, int endGuide, Tuple3[][] splinepts)
+    {
+	Triple origin = new Triple();
+	outGuides.println("@group {"+groupID+"} off animate dominant");
+	outGuides.println("@balllist {guide points} color= red radius= 0.20 master= {guidepts} master= {"+type+"}");
+	outGuides.println("{guide point} "+origin.format(df));
+	outGuides.println("@vectorlist {c vectors} color= green master= {guidepts} master= {"+type+"} master= {c vecs} master= {lines}");
+	for(int i = stGuide; i<=endGuide; i++)
+		outGuides.println("{c}P "+origin.format(df)+" {\"}L "+guides[i].cvec.mult(5).format(df));
+	outGuides.println("@balllist {c ends} color= green master= {guidepts} master= {"+type+"} master= {c vecs} master = {ends}");
+	for(int i = stGuide; i<=endGuide; i++)
+		outGuides.println("{"+getPointID(splinepts[1][i],guides[i],guides[i+1],i,nIntervals)+"} "+guides[i].cvec.format(df));
+	outGuides.println("@vectorlist {d vectors} color= blue master= {guidepts} master= {"+type+"} master= {d vecs} master= {lines}");
+	for(int i = stGuide; i<=endGuide; i++)
+		outGuides.println("{d}P "+origin.format(df)+" {\"}L "+guides[i].dvec.mult(5).format(df));
+	outGuides.println("@balllist {d ends} color= blue master= {guidepts} master= {"+type+"} master= {d vecs} master = {ends}");
+	for(int i = stGuide; i<=endGuide; i++)
+		outGuides.println("{"+getPointID(splinepts[1][i],guides[i],guides[i+1],i,nIntervals)+"} "+guides[i].dvec.format(df));
+	outGuides.println("@vectorlist {conSeq} color= white alpha= 0.5 master= {guidepts} master= {"+type+"} master= {conSeq}");
+	outGuides.println("{Seq connect} P "+guides[stGuide].dvec.format(df));
+	for(int i = stGuide+1; i<=endGuide; i++)
+		outGuides.println("{Seq connect} "+guides[i].dvec.format(df));
+	outGuides.println("@vectorlist {arrowheads} color= white alpha= 0.5 master= {guidepts} master= {"+type+"} master= {conSeq} master= {arrowheads}");
+	for(int i = stGuide+1; i<=endGuide; i++){
+		if(i==guides.length-2) break;
+		Triple arrow = new Triple().likeDiff(guides[i-1].dvec,guides[i].dvec).unit().mult(0.3);
+		Triple orth = new Triple().likeOrthogonal(arrow).mult(0.4);
+		Triple tailSt = new Triple().likeDiff(guides[i-1].dvec,guides[i].dvec).unit().mult(0.6).add(guides[i].dvec);
+		arrow.add(guides[i].dvec);
+		outGuides.println("{arrow} P "+arrow.format(df)+" {\"}L "+new Triple().likeSum(tailSt, orth).format(df));
+		outGuides.println("{arrow} P "+arrow.format(df)+" {\"}L "+new Triple().likeDiff(tailSt, orth).format(df));
+	}
+	outGuides.println("@vectorlist {conPt} color= yellowtint alpha= 0.5 master= {guidepts} master= {"+type+"} master= {conPt}");
+	for(int i = stGuide; i<=endGuide; i++)
+		outGuides.println("{Pt connect}P "+guides[i].dvec.format(df)+" {\"}L "+guides[i].cvec.format(df));    
+    }
+//}}}
+
 //{{{ printOne/Two/Three/FiveLine
 //##############################################################################
     public void printOneLine(GuidePoint[] guides, int nIntervals, boolean variableWidth)
@@ -106,7 +162,7 @@ public class RibbonPrinter //extends ... implements ...
     */
     public void printNLineImpl(GuidePoint[] guides, int nIntervals, boolean variableWidth, double strandStart, double strandStride)
     {
-        int         len     = guides.length;
+    	int         len     = guides.length;
         NRUBS       nrubs   = new NRUBS();
         Triple[]    pts     = new Triple[len];
         for(int i = 0; i < len; i++) pts[i] = new Triple();
@@ -189,13 +245,13 @@ public class RibbonPrinter //extends ... implements ...
 
 //{{{ CLASS: RibbonElement
 //##############################################################################
-    static class RibbonElement
+    static class RibbonElement implements java.lang.Comparable <RibbonElement>  
     {
         int start = 0, end = 0;
         Object type = SecondaryStructure.COIL;
         SecondaryStructure.Range range = null;
         
-        public RibbonElement() {}
+        public RibbonElement() {}			
         
         public RibbonElement(RibbonElement that)
         { this.like(that); }
@@ -218,6 +274,15 @@ public class RibbonPrinter //extends ... implements ...
             this.type   = that.type;
             this.range  = that.range;
         }
+        
+        public int compareTo(RibbonElement that) { // (ARK Spring2010)
+		int a, b;
+		if(this.range==null) a=0;
+		else a=this.range.strand;
+		if(that.range==null) b=0;
+		else b=that.range.strand;
+		return a-b;
+	}
     }
 //}}}
 
@@ -228,25 +293,25 @@ public class RibbonPrinter //extends ... implements ...
     * Several lists are generated, but with additional parameters specified below.
     */
     public void printFancyRibbon(GuidePoint[] guides, SecondaryStructure secStruct,
-      double widthAlpha, double widthBeta, String listAlpha, String listBeta, String listCoil) 
+      double widthAlpha, double widthBeta, String listAlpha, String listBeta, String listCoil, ModelState state) // (ARK Spring2010) added ModelState 
     {
-      printFancyRibbon(guides, secStruct, widthAlpha, widthBeta, listAlpha, listBeta, listCoil, null);
+      printFancyRibbon(guides, secStruct, widthAlpha, widthBeta, listAlpha, listBeta, listCoil, null, state); // (ARK Spring2010) added state
     }
     
     public void printFancyRibbon(GuidePoint[] guides, SecondaryStructure secStruct,
-        double widthAlpha, double widthBeta, String listAlpha, String listBeta, String listCoil, String listCoilOutline)
+        double widthAlpha, double widthBeta, String listAlpha, String listBeta, String listCoil, String listCoilOutline, ModelState state)
     {
-        // Data allocation, splining {{{
-        final int   nIntervals = 4;
+    	// Data allocation, splining {{{
         int         len     = guides.length;
         NRUBS       nrubs   = new NRUBS();
-        
+ 
         // Seven stands of guidepoints: coil, alpha, beta, (beta arrowheads, see below)
         double[] halfWidths = {0, -widthAlpha/2, widthAlpha/2, -widthBeta/2, widthBeta/2, -widthBeta, widthBeta};
         Triple[][] guidepts = new Triple[halfWidths.length][guides.length];
         for(int i = 0; i < guidepts.length; i++)
             for(int j = 0; j < guidepts[i].length; j++)
-                guidepts[i][j] = new Triple(guides[j].xyz).addMult(halfWidths[i], guides[j].dvec);
+                guidepts[i][j] = new Triple(guides[j].xyz).addMult(halfWidths[i], guides[j].dvec); // original
+                //guidepts[i][j] = new Triple(guides[j].xyz).addMult(halfWidths[i]*guides[j].widthFactor, guides[j].dvec); // added guides[j].widthFactor, (ARK Spring2010)
         // Seven strands of interpolated points
         Tuple3[][] splinepts = new Tuple3[halfWidths.length][];
         for(int i = 0; i < halfWidths.length; i++)
@@ -262,16 +327,17 @@ public class RibbonPrinter //extends ... implements ...
         //    splinepts[halfWidths.length+1][i] = new Triple().likeVector(splinepts[3][i], splinepts[4][i]).div(2).add(splinepts[4][i]);
         //}
         // Data allocation, splining }}}
-        
+
         // Discovery of ribbon elements: ribbons, ropes, and arrows {{{
         ArrayList ribbonElements = new ArrayList();
         RibbonElement ribElement = new RibbonElement();
+        RibbonElement prevRibElt = new RibbonElement(); // (ARK Spring2010)
         ribbonElements.add(ribElement);
         ribElement.type = null;
-        
         for(int i = 0; i < guides.length-3; i++)
         {
             GuidePoint g1 = guides[i+1], g2 = guides[i+2];
+            
             // These two won't really be ribbon elements; we're just reusing the class for convenience.
             RibbonElement currSS = new RibbonElement(secStruct.getRange(g1.nextRes));
             RibbonElement nextSS = new RibbonElement(secStruct.getRange(g2.nextRes));
@@ -306,24 +372,53 @@ public class RibbonPrinter //extends ... implements ...
         }
         ribElement.end = splinepts[0].length-1;
         // Discovery of ribbon elements: ribbons, ropes, and arrows }}}
-        
+       
         // We juggle crayons around to make sure that black edges stay black.
         RibbonCrayon normalCrayon = this.getCrayon();
         // The ConstCrayon will return "" as the point color, thereby overriding normalCrayon.
         RibbonCrayon edgeCrayon = new CompositeCrayon().add(new ConstCrayon("")).add(normalCrayon);
         
-        for(Iterator iter = ribbonElements.iterator(); iter.hasNext(); )
+        Collections.sort(ribbonElements); // sort by strand number --(ARK Spring2010)
+        // Create list of just strands for searching through 
+        Vector strands = new Vector(); 
+        for(Iterator iter0 = ribbonElements.iterator(); iter0.hasNext(); ){
+        	RibbonElement ribElement0 = (RibbonElement) iter0.next();
+        	if(ribElement0.type == SecondaryStructure.STRAND)
+        		strands.add(ribElement0);
+        } // end (ARK Spring2010)
+        
+        for(Iterator iter = ribbonElements.iterator(); iter.hasNext(); ) 
         {
             ribElement = (RibbonElement) iter.next();
+	    int stGuide = (ribElement.start / nIntervals) + 2; 	// (ARK Spring2010) 
+            int endGuide = (ribElement.end / nIntervals) - 1;   // (ARK Spring2010)
+            
             //System.err.println(ribElement.type+"    ["+ribElement.start+", "+ribElement.end+"]");
             if(ribElement.type == SecondaryStructure.HELIX) //{{{
             {
-                this.setCrayon(normalCrayon);
-                out.println("@ribbonlist {fancy helix} "+listAlpha);
+                // Determine sidedness using middle of helix, (ARK Spring2010)  
+                int k = (int) Math.floor( (ribElement.start + ribElement.end) / 2 ); 
+		Triple pt = new Triple(splinepts[2][k]); 
+                Triple v1 = new Triple().likeVector(pt,splinepts[1][k]);
+                Triple v2 = new Triple().likeVector(pt,splinepts[1][k+1]);
+                Triple cross = v1.cross(v2);
+                double dot = cross.unit().dot(guides[(int)Math.floor(k/nIntervals)+1].cvec.unit()); 
+                // end (ARK Spring2010)
+                
+            	this.setCrayon(normalCrayon);
+                out.println("@ribbonlist {fancy helix} "+listAlpha); 
+
                 for(int i = ribElement.start; i < ribElement.end; i++)
                 {
-                    printFancy(guides, splinepts[1], i);
-                    printFancy(guides, splinepts[2], i);
+                    if(dot>0){ // current normal direction points into helix
+                    	// flip the normals (for sidedness) by switching the order of these two lines, (ARK Spring2010)
+                    	printFancy(guides, splinepts[2], i);
+                    	printFancy(guides, splinepts[1], i);
+                    }
+                    else{
+                    	printFancy(guides, splinepts[1], i);    
+                    	printFancy(guides, splinepts[2], i);
+                    }
                 }
                 printFancy(guides, splinepts[0], ribElement.end); // angled tip at end of helix
                 this.setCrayon(edgeCrayon);
@@ -338,21 +433,94 @@ public class RibbonPrinter //extends ... implements ...
                 for(int i = ribElement.start; i < ribElement.end; i++)
                     printFancy(guides, splinepts[2], i);
                 printFancy(guides, splinepts[0], ribElement.end);
-            } //}}}
+                
+		// Print clustered guideposts, (ARK Spring2010) 
+		//String groupID = "helix "+ribElement.range.initSeqNum+" to "+ribElement.range.endSeqNum;
+		//printGuideptGp(guides, groupID, "helix", stGuide, endGuide+2, splinepts);
+                
+            } //}}}  ////end if(helix)
             else if(ribElement.type == SecondaryStructure.STRAND) //{{{
             {
-                this.setCrayon(normalCrayon);
+            	// Determine sidedness, (ARK Spring2010) {{{
+                double dot = 0;
+		
+                if(ribElement.range.strand != 1){ // o.w. it's first in the sheet
+			// look for previous strand (strand-1)
+			int i;
+			for(i=0; i<strands.size(); i++){ 
+				RibbonElement curElt = (RibbonElement)strands.get(i);
+				if(curElt.range.equals(ribElement.range.previous)){ 
+					prevRibElt = curElt;
+					break;
+				}
+			}
+			SecondaryStructure.Range prevRange = prevRibElt.range; 
+			if(prevRange==null) prevRibElt = ribElement;  ////handle this differently?
+			
+			// determine sidedness using splinepts and normals
+			int prevStGuide = (prevRibElt.start / nIntervals) + 2;
+			int prevEndGuide = (prevRibElt.end / nIntervals) + 1;
+			int curClosest = stGuide;	// Find the pair of guidepoints closest to each other
+			int prevClosest = prevStGuide;	// (one on each strand) to perform the test
+			double closestDist = 99999;  
+			for(i = stGuide; i<=endGuide+2; i++){ 
+				for(int j = prevStGuide; j<=prevEndGuide; j++){
+					try{	// look for closest pair of H-bonding partners
+						AtomState O = state.get(guides[i].prevRes.getAtom(" O  "));
+						AtomState N = state.get(guides[j].nextRes.getAtom(" N  "));
+						double dist = O.distance(N);
+						if(dist<closestDist){
+							curClosest = i;
+							prevClosest = j;
+							closestDist = dist;
+						}
+					}
+					catch(AtomException ex) {}
+				}
+			}
+			int kCur = Math.min(nIntervals*(curClosest-1), splinepts[4].length); ////min no longer needed????              
+			int kPrev = Math.min(nIntervals*(prevClosest-1), splinepts[4].length);               
+			Triple ptCur = new Triple(splinepts[4][kCur]); 
+			Triple v1Cur = new Triple().likeVector(ptCur,splinepts[3][kCur]);
+			Triple v2Cur = new Triple().likeVector(ptCur,splinepts[3][kCur+1]);
+			Triple crossCur = v1Cur.cross(v2Cur);
+			Triple ptPrev = new Triple(splinepts[4][kPrev]); 
+			Triple v1Prev = new Triple().likeVector(ptPrev,splinepts[3][kPrev]);
+			Triple v2Prev = new Triple().likeVector(ptPrev,splinepts[3][kPrev+1]);
+			Triple crossPrev = v1Prev.cross(v2Prev);
+			
+			dot = crossCur.dot(crossPrev);
+		}   // end sidedeness, (ARK Spring2010) }}}
+
+            	this.setCrayon(normalCrayon);
                 out.println("@ribbonlist {fancy sheet} "+listBeta);
                 for(int i = ribElement.start; i < ribElement.end-1; i++)
                 {
-                    printFancy(guides, splinepts[3], i);
-                    printFancy(guides, splinepts[4], i);
+		    // If strands are not "facing" the same way,
+                    // flip the normals (for sidedness) by switching the order of these two lines, (ARK Spring2010)
+                    if( (dot<0 && !prevRibElt.range.flipped) || (dot>0 && prevRibElt.range.flipped) ){  
+                   	    printFancy(guides, splinepts[4], i);
+                    	    printFancy(guides, splinepts[3], i);
+                    	    ribElement.range.flipped = true;
+                    }
+                    else {
+                    	    printFancy(guides, splinepts[3], i);
+                    	    printFancy(guides, splinepts[4], i);
+                    }
                 }
                 // Ending *exactly* like this is critical to avoiding a break
                 // between the arrow body and arrow head!
-                printFancy(guides, splinepts[5], ribElement.end-2);
-                printFancy(guides, splinepts[6], ribElement.end-2);
-                printFancy(guides, splinepts[0], ribElement.end);
+	        if( (dot<0 && !prevRibElt.range.flipped) || (dot>0 && prevRibElt.range.flipped) ){
+                	// flip the normals for arrow head, (ARK Spring2010)
+                	printFancy(guides, splinepts[6], ribElement.end-2);
+                	printFancy(guides, splinepts[5], ribElement.end-2);
+	        	printFancy(guides, splinepts[0], ribElement.end);
+                }
+	        else {
+                	printFancy(guides, splinepts[5], ribElement.end-2);
+                	printFancy(guides, splinepts[6], ribElement.end-2);
+                	printFancy(guides, splinepts[0], ribElement.end);
+                }
                 this.setCrayon(edgeCrayon);
                 out.println("@vectorlist {fancy sheet edges} width= 1 "+listBeta+" color= deadblack");
                 // black edge, left side
@@ -367,7 +535,12 @@ public class RibbonPrinter //extends ... implements ...
                     printFancy(guides, splinepts[4], i);
                 printFancy(guides, splinepts[6], ribElement.end-2);
                 printFancy(guides, splinepts[0], ribElement.end);
-            } //}}}
+                
+                ///Print clustered strand guideposts, (ARK Spring2010) 
+		//String groupID = "strand "+ribElement.range.initSeqNum+" to "+ribElement.range.endSeqNum;
+		//printGuideptGp(guides, groupID, "strand", stGuide, endGuide+2, splinepts);
+		
+            } // end if strand }}}
             else // COIL {{{
             {
                 // for black outlines on coils
@@ -381,15 +554,20 @@ public class RibbonPrinter //extends ... implements ...
                 out.println("@vectorlist {fancy coil} "+listCoil);
                 for(int i = ribElement.start; i <= ribElement.end; i++)
                     printFancy(guides, splinepts[0], i);
+            	
+            	///Print clustered guideposts, (ARK Spring2010) 
+		//String groupID = "coil "+stGuide;
+		//printGuideptGp(guides, groupID, "coil", stGuide, endGuide+2, splinepts);
             } //}}}
         }
 
         this.setCrayon(normalCrayon);
         out.flush();
+        //outGuides.flush(); //(ARK Spring2010)
     }
     
     private void printFancy(GuidePoint[] guides, Tuple3[] splines, int i)
-    { printFancy(guides, splines, i, false); }
+    { printFancy(guides, splines, i, false); } 
     
     private void printFancy(GuidePoint[] guides, Tuple3[] splines, int i, boolean lineBreak)
     {

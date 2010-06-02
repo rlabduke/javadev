@@ -10,7 +10,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
-//import driftwood.*;
+import driftwood.r3.*; // (ARK Spring2010)
 //}}}
 /**
 * <code>KPaint</code> encapsulates all the data about a single
@@ -277,6 +277,51 @@ abstract public class KPaint //extends ... implements ...
             return basePaint;
         }
     }
+    
+    /**
+    * Returns the correct offset Color object to use for rendering.
+    * HSV offset is based on the first parameter (a Triple).
+    *
+    * @param HSV offset X = hue offset, Y = saturation offset, Z = value (brightness) offset.
+    * @param backgroundMode one of BLACK_COLOR, WHITE_COLOR, BLACK_MONO, or WHITE_MONO.
+    * @param dotprod the (normalized) dot product of the surface normal with the lighting vector.
+    * @param depth the depth cue number, from 0 (far away) to COLOR_LEVELS-1 (near by).
+    * @param alpha the transparency, from 0 (transparent) to 255 (opaque).
+    */
+    public Color getOffsetPaint(Triple HSVoffset, int backgroundMode, double dotprod, int depth, int alpha) // (ARK Spring2010)
+    {
+	Color paintColor = (Color) this.getPaint(backgroundMode, dotprod, depth, alpha);
+	float hueDif = (float)HSVoffset.getX(); 
+	float satDif = (float)HSVoffset.getY(); 
+	float valDif = (float)HSVoffset.getZ(); 
+	float[] hsbvals = paintColor.RGBtoHSB(paintColor.getRed(),paintColor.getGreen(),paintColor.getBlue(),null);
+	
+	// To calculate the new color, must do some some scaling:
+	//
+	// RGBtoHSB() returns: 
+	// hsbvals[0] = hue (0-1)
+	// hsbvals[1] = saturation (0-1)
+	// hsbvals[2] = brightness (0-1)
+	//
+	// createHSV() takes: 
+	// hue (0-360)
+	// blackSat, whiteSat (0-100)
+	// blackVal, whiteVal (0-100; usually 75-100)
+
+	hsbvals[0]*=360;
+	hsbvals[0]=hsbvals[0]<(360-hueDif) ? hsbvals[0]+hueDif : hsbvals[0]-(360-hueDif);
+	hsbvals[1]*=100;
+	hsbvals[1]*=((double)satDif/100);
+	//hsbvals[1]=hsbvals[1]<(100-satDif) ? hsbvals[1]+satDif : hsbvals[1]-(100-satDif);
+	// **As such, this doesn't allow user to explore the full range of sat or val,
+	// **since their spectrum is linear rather than circular like hue's,
+	// **so we can only decrease the value but have continuous movement in doing so 
+	hsbvals[2]=hsbvals[2]*25+75;
+	hsbvals[2]*=((double)valDif/100);
+	
+	return this.createHSV("backColor",hsbvals[0],hsbvals[1],hsbvals[1],hsbvals[2],hsbvals[2]).getPaint(backgroundMode, dotprod, depth, alpha);
+    }
+    
     
     /**
     * Returns the correct Color object to use for rendering,
