@@ -33,15 +33,23 @@ public class Interdigitator //extends ... implements ...
     String    filename      =  null;
     boolean   verbose       =  false;
     String    outputMode    =  "atom"; // alternative: "res"
-    boolean   outKin        =  false;  // if true, prints @arrowlist kin, not csv
+    boolean   outKin        =  false;  // print @arrowlist kin, not csv
     boolean   elimSurfRsds  =  true;   // based on multiple criteria
+    boolean   bbOkOthAtom   =  false;  // OK if neighbor atom is bb (but primary atom must still be sc)
     
     /** Atoms in residues separated by this much or more can be considered for 
     * nearest neighbor */
     int  okSeqDiff  =  1;
     
-    /** For each non-backbone atom, closest-in-space atom (& vector to it) that 
-    * is "distant-in-sequence" (i.e. separated by at least [okSeqDiff] residues) */
+    // 4.0 seems reasonable: Probe wouldn't pick up dots for any pair types (I think...),
+    // but then again we don't necessarily need true contact to get interesting information
+    /** Atoms separated by this many Angstroms or more can be considered for 
+    * nearest neighbor */
+    double  maxDist  =  4.0;
+    
+    /** For each non-backbone atom, closest-in-space atom (& vector to it) that is 
+    * "distant in sequence" (i.e. separated by at least <code>okSeqDiff</code> residues) 
+    * and "close in space" (i.e. no more than <code>maxDist</code> A away) */
     HashMap<Atom,Atom>    nearestNeighborAtms  =  null;
     HashMap<Atom,Triple>  nearestNeighborLocs  =  null;
     
@@ -74,7 +82,7 @@ public class Interdigitator //extends ... implements ...
 //##############################################################################
     public void processModel(String modelName, Model model, ModelState state)
     {
-        if (outputMode.equals("res"))
+        if(outputMode.equals("res"))
         {
             System.err.println("\n** Code doesn't yet correct for aa type in -res mode ... quitting! **\n");
             System.exit(0);
@@ -84,26 +92,26 @@ public class Interdigitator //extends ... implements ...
         // that is "distant-in-sequence"
         findNearestNeighbors(model, state);
         
-        // Prep for packing moments by calculating sidechain "axes" (Calpha to 
-        // sidechain-end center of mass vectors)
+        // Prep for packing moments by calculating sidechain "axes" 
+        // (Calpha to sidechain-end center of mass vectors)
         calcScAxes(model, state);
         
         // For surface residue ID'ing and/or for kin
         calcProteinCentroid(model, state);
         
-        if (elimSurfRsds)
+        if(elimSurfRsds)
         {
             // Eliminate "surface residues"
             eliminateSurfaceResidues(model, state);
         }
         
-        if (outKin)
+        if(outKin)
         {
             // Print kin of (mostly) arrows
-            System.out.println("@group {Interdigitator!} ");
-            printCasToProtCentroid(state);
+            System.out.println("@group {interdigitator!} collapsable");
             printScAxes(model, state);
             printNearestNeighbors(model, state);
+            printCasToProtCentroid(state);
         }
         else
         {
@@ -115,11 +123,12 @@ public class Interdigitator //extends ... implements ...
     }
 //}}}
 
+
 //{{{ findNearestNeighbor(s)
 //##############################################################################
     /**
     * For each non-backbone atom, finds vector to closest-in-space atom that is
-    * "distant-in-sequence"
+    * "distant in sequence" and "close in space"
     */
     public void findNearestNeighbors(Model model, ModelState state)
     {
@@ -129,18 +138,18 @@ public class Interdigitator //extends ... implements ...
         for(Iterator r = model.getResidues().iterator(); r.hasNext(); )
         {
             Residue res = (Residue) r.next();
-            if (protResnamesNoGly.indexOf(res.getName()) != -1) // no Gly; sc axis would be weird
+            if(protResnamesNoGly.indexOf(res.getName()) != -1) // no Gly; sc axis would be weird
             {
                 for(Iterator a = res.getAtoms().iterator(); a.hasNext(); )
                 {
                     Atom atom = (Atom) a.next();
-                    if (bbAtoms.indexOf(atom.getName()) == -1)
+                    if(bbAtoms.indexOf(atom.getName()) == -1)
                     {
                         try
                         {
                             findNearestNeighbor(model, state, res, atom);
                         }
-                        catch (AtomException ae)
+                        catch(AtomException ae)
                         {
                             System.err.println("Can't process "+atom+" to find nearest neighbor");
                         }
@@ -151,8 +160,9 @@ public class Interdigitator //extends ... implements ...
     }
 
     /**
-    * For one given non-backbone atom, finds vector to closest-in-space atom that 
-    * is "distant-in-sequence" (i.e. separated by at least [okSeqDiff] residues)
+    * For one given non-backbone atom, finds vector to closest-in-space atom that is 
+    * "distant in sequence" (i.e. separated by at least <code>okSeqDiff</code> residues) 
+    * and "close in space" (i.e. no more than <code>maxDist</code> A away)
     */
     public void findNearestNeighbor(Model model, ModelState state, Residue res, Atom atom) throws AtomException
     {
@@ -164,36 +174,48 @@ public class Interdigitator //extends ... implements ...
         for(Iterator r = model.getResidues().iterator(); r.hasNext(); )
         {
             Residue othRes = (Residue) r.next();
-            if (protResnames.indexOf(res.getName()) != -1) // Gly OK here b/c in surroundings
+            if( bbOkOthAtom && protResnames.indexOf(res.getName()) == -1)      continue;
+            if(!bbOkOthAtom && protResnamesNoGly.indexOf(res.getName()) == -1) continue; 
+            
+            if(res.getSequenceInteger() >= othRes.getSequenceInteger() + okSeqDiff
+            || res.getSequenceInteger() <= othRes.getSequenceInteger() - okSeqDiff)
             {
-                if(res.getSequenceInteger() >= othRes.getSequenceInteger() + okSeqDiff
-                || res.getSequenceInteger() <= othRes.getSequenceInteger() - okSeqDiff)
+                for(Iterator a = othRes.getAtoms().iterator(); a.hasNext(); )
                 {
-                    for(Iterator a = othRes.getAtoms().iterator(); a.hasNext(); )
+                    Atom othAtom = (Atom) a.next();
+                    if(!bbOkOthAtom && bbAtoms.indexOf(othAtom.getName()) != -1) continue;
+                    // ^ other atom is bb: not OK (opt'l)
+                    // else either bb or sc OK here b/c in surroundings
+                    
+                    try
                     {
-                        Atom othAtom = (Atom) a.next(); // either bb or sc OK here b/c in surroundings
-                        try
+                        AtomState othAtomPos = state.get(othRes.getAtom(othAtom.getName()));
+                        if(Triple.distance(atomPos, othAtomPos) < minDist)
                         {
-                            AtomState othAtomPos = state.get(othRes.getAtom(othAtom.getName()));
-                            if (Triple.distance(atomPos, othAtomPos) < minDist)
-                            {
-                                minDist = Triple.distance(atomPos, othAtomPos);
-                                minDistAtomPos = othAtomPos;
-                                minDistAtom = othAtom;
-                            }
+                            minDist = Triple.distance(atomPos, othAtomPos);
+                            minDistAtomPos = othAtomPos;
+                            minDistAtom = othAtom;
                         }
-                        catch (AtomException ae)
-                        {
-                            System.err.println("Can't process "+othAtom+" to consider as nearest neighbor to "+atom);
-                        }
-                    }//per other atom
-                }
+                    }
+                    catch(AtomException ae)
+                    {
+                        System.err.println("Can't process "+othAtom+" to consider as nearest neighbor to "+atom);
+                    }
+                }//per other atom
             }
         }//per other residue
         
-        if(verbose) System.err.println(atom+" nearest neighbor is "+df.format(minDist)+" away");
-        nearestNeighborLocs.put(atom, new Triple().likeVector(atomPos, minDistAtomPos));
-        nearestNeighborAtms.put(atom, minDistAtom);
+        if(minDist > maxDist)
+        {
+            if(verbose) System.err.println(atom+" nearest neighbor is "+df.format(minDist)+" away"
+                +" - too far (>"+df.format(maxDist)+")!");
+        }
+        else
+        {
+            if(verbose) System.err.println(atom+" nearest neighbor is "+df.format(minDist)+" away");
+            nearestNeighborLocs.put(atom, new Triple().likeVector(atomPos, minDistAtomPos));
+            nearestNeighborAtms.put(atom, minDistAtom);
+        }
     }
 //}}}
 
@@ -210,19 +232,19 @@ public class Interdigitator //extends ... implements ...
         for(Iterator r = model.getResidues().iterator(); r.hasNext(); )
         {
             Residue res = (Residue) r.next();
-            if (protResnamesNoGly.indexOf(res.getName()) != -1) // no Gly; sc axis would be weird
+            if(protResnamesNoGly.indexOf(res.getName()) != -1) // no Gly; sc axis would be weird
             {
                 try
                 {
                     Triple scAxis = calcScAxis(model, state, res);
                     if(verbose)
                     {
-                        if (scAxis != null) System.err.println("Found sc axis for "+res);
-                        else                System.err.println(res+" sc axis null");
+                        if(scAxis != null) System.err.println("found sc axis for "+res);
+                        else               System.err.println(res+" sc axis null");
                     }
                     scAxes.put(res, scAxis);
                 }
-                catch (AtomException ae)
+                catch(AtomException ae)
                 {
                     System.err.println("Can't process "+res+" to calculate sc axis");
                 }
@@ -237,13 +259,13 @@ public class Interdigitator //extends ... implements ...
     public Triple calcScAxis(Model model, ModelState state, Residue res) throws AtomException
     {
         Atom   ca    = res.getAtom(" CA ");
-        Triple caLoc = new Triple( state.get(ca) );
+        Triple caLoc = new Triple(state.get(ca) );
         
         ArrayList<Triple> scAtLocs = new ArrayList<Triple>();
         for(Iterator a = res.getAtoms().iterator(); a.hasNext(); )
         {
             Atom atom = (Atom) a.next();
-            if (bbAtoms.indexOf(atom.getName()) == -1)
+            if(bbAtoms.indexOf(atom.getName()) == -1)
             {
                 Triple scAtLoc = new Triple( state.get(atom) );
                 scAtLocs.add(scAtLoc);
@@ -328,15 +350,17 @@ public class Interdigitator //extends ... implements ...
     }
 //}}}
 
+
 //{{{ eliminateSurfaceResidues
 //##############################################################################
     /**
-    * Eliminate "surface residues," i.e. those either:
-    *  - with at least one atom whose nearest neighbor is a water, or 
-    *  - whose Calpha is in 90th percentile of distance from protein centroid, or
-    *  - whose Calpha is in 80th percentile of distance from protein centroid
-    *    AND whose sidechain is pointed outward
-    * by deleting them and all their constituent atoms from the global hashes.
+    * Eliminate "surface residues," i.e. those either:<ul>
+    *  <li>with no near neighbors (completely exposed), or</li>
+    *  <li>with at least one atom whose nearest neighbor is a water, or</li>
+    *  <li>whose Calpha is in 90th percentile of distance from protein centroid, or</li>
+    *  <li>whose Calpha is in 80th percentile of distance from protein centroid AND 
+    *      whose sidechain is pointed outward</li>
+    * </ul> by deleting them and all their constituent atoms from the global hashes.
     *
     * The water thing alone is a really dumb way to do it 'cause if the 
     * crystallographer left out waters or two sidechains are on the surface but 
@@ -346,30 +370,69 @@ public class Interdigitator //extends ... implements ...
     */
     public void eliminateSurfaceResidues(Model model, ModelState state)
     {
-        // (1) Figure out which residues to eliminate
-        TreeSet<Residue> rsdsToRemove     = new TreeSet<Residue>();
+        // Figure out which other residues to eliminate
+        TreeSet<Residue> noNeighbors      = getResiduesWithNoNeighbors(model, state);
         TreeSet<Residue> nearWater        = getResiduesNearWater(state);
         TreeSet<Residue> distalAndOutward = getDistalResiduesPointedOutward(model, state);
         TreeSet<Residue> veryDistal       = getVeryDistalResidues(model, state);
-        for (Residue res : nearWater)         rsdsToRemove.add(res);
-        for (Residue res : distalAndOutward)  rsdsToRemove.add(res);
-        for (Residue res : veryDistal)  rsdsToRemove.add(res);
         
-        // (2) Remove those residues & their constituent atoms from hashes
-        for (Iterator r = rsdsToRemove.iterator(); r.hasNext(); )
+        TreeSet<Residue> rsdsToRemove = new TreeSet<Residue>();
+        for(Residue res : noNeighbors)      rsdsToRemove.add(res);
+        for(Residue res : nearWater)        rsdsToRemove.add(res);
+        for(Residue res : distalAndOutward) rsdsToRemove.add(res);
+        for(Residue res : veryDistal)       rsdsToRemove.add(res);
+        
+        // Remove those residues & their constituent atoms from hashes
+        for(Iterator r = rsdsToRemove.iterator(); r.hasNext(); )
         {
             Residue res = (Residue) r.next();
             scAxes.remove(res);
             for(Iterator a = res.getAtoms().iterator(); a.hasNext(); )
             {
                 Atom atom = (Atom) a.next();
-                if (bbAtoms.indexOf(atom.getName()) == -1)
+                if(bbAtoms.indexOf(atom.getName()) == -1)
                 {
                     nearestNeighborAtms.remove(atom);
                     nearestNeighborLocs.remove(atom);
                 }
             }//per atom
         }//per residue
+    }
+//}}}
+
+//{{{ getResiduesWithNoNeighbors
+//##############################################################################
+    /**
+    * Returns list of residues with no atoms with a "near neighbor"
+    * (i.e. another "distant in sequence" atom < <code>maxDist</code> A away)
+    */
+    public TreeSet<Residue> getResiduesWithNoNeighbors(Model model, ModelState state)
+    {
+        TreeSet<Residue> rsds = new TreeSet<Residue>();
+        
+        for(Iterator r = scAxes.keySet().iterator(); r.hasNext(); )
+        {
+            Residue res = (Residue) r.next();
+            int neighborCount = 0;
+            for(Iterator a = res.getAtoms().iterator(); a.hasNext(); )
+            {
+                Atom atom = (Atom) a.next();
+                if(bbAtoms.indexOf(atom.getName()) == -1)
+                {
+                    Atom othAtom = nearestNeighborAtms.get(atom);
+                    if(othAtom != null) neighborCount++;
+                }
+                
+            }//per atom
+            //if(verbose) System.err.println("("+res+" has "+neighborCount+" near neighbors)");
+            if(neighborCount == 0)
+            {
+                if(verbose) System.err.println("removing "+res+" b/c no near neighbors");
+                rsds.add(res);
+            }
+        }//per residue
+        
+        return rsds;
     }
 //}}}
 
@@ -383,19 +446,20 @@ public class Interdigitator //extends ... implements ...
     {
         TreeSet<Residue> rsds = new TreeSet<Residue>();
         
-        for (Iterator r = scAxes.keySet().iterator(); r.hasNext(); )
+        for(Iterator r = scAxes.keySet().iterator(); r.hasNext(); )
         {
             Residue res = (Residue) r.next();
             for(Iterator a = res.getAtoms().iterator(); a.hasNext(); )
             {
                 Atom atom = (Atom) a.next();
-                if (bbAtoms.indexOf(atom.getName()) == -1)
+                if(bbAtoms.indexOf(atom.getName()) == -1)
                 {
                     Atom othAtom = nearestNeighborAtms.get(atom);
+                    if(othAtom == null) continue; // this atom has no near neighbor
                     String othResName = othAtom.getResidue().getName();
-                    if (othResName.equals("HOH") || othResName.equals("H2O") || othResName.equals(" WAT"))
+                    if(othResName.equals("HOH") || othResName.equals("H2O") || othResName.equals(" WAT"))
                     {
-                        if (verbose) System.err.println("removing "+res+" b/c a sc atom touches water");
+                        if(verbose) System.err.println("removing "+res+" b/c a sc atom touches water");
                         rsds.add(res);
                     }
                 }
@@ -428,17 +492,17 @@ public class Interdigitator //extends ... implements ...
         {
             Atom atom = (Atom) tc.next();
             Triple atomToCentroid = toProtCentroid.get(atom);
-            if (atomToCentroid.mag() > maxDistToCentroid)  distal.add(atom.getResidue());
+            if(atomToCentroid.mag() > maxDistToCentroid)  distal.add(atom.getResidue());
         }
         
         // Also get residues pointed outward (sc axes >90deg from Calpha -> centroid)
         TreeSet<Residue> outward = new TreeSet<Residue>();
-        for(Iterator sca = scAxes.keySet().iterator(); sca.hasNext(); )
+        for(Iterator r = scAxes.keySet().iterator(); r.hasNext(); )
         {
-            Residue res = (Residue) sca.next();
+            Residue res = (Residue) r.next();
             Triple scAxis = scAxes.get(res);
             Triple caToProtCentroid = toProtCentroid.get( res.getAtom(" CA ") );
-            if (scAxis.angle(caToProtCentroid) > 90)  outward.add(res);
+            if(scAxis.angle(caToProtCentroid) > 90)  outward.add(res);
         }
         
         // Return intersection of residues
@@ -446,14 +510,13 @@ public class Interdigitator //extends ... implements ...
         for(Iterator d = distal.iterator();  d.hasNext(); )
         {
             Residue res = (Residue) d.next();
-            if (outward.contains(res))  intersect.add(res);
+            if(outward.contains(res))  intersect.add(res);
         }
-        if (verbose)
-            for(Iterator i = intersect.iterator(); i.hasNext(); )
-            {
-                Residue res = (Residue) i.next();
-                System.err.println("removing "+res+" b/c a sc atom is pt'd away & Ca is too far from centroid");
-            }
+        if(verbose) for(Iterator i = intersect.iterator(); i.hasNext(); )
+        {
+            Residue res = (Residue) i.next();
+            System.err.println("removing "+res+" b/c a sc atom is ptd away & Ca is pretty far from centroid");
+        }
         return intersect;
     }
 //}}}
@@ -473,18 +536,16 @@ public class Interdigitator //extends ... implements ...
         // (Already have protein centroid & all vectors to protein centroid 
         //  for all protein atoms: proteinCentroid & toProtCentroid)
         
-        // Get residues sufficiently distal from centroid to be suspected as 
-        // surface (i.e. their Ca in top 80%)
         double maxDistToCentroid = calcMaxDistToCentroid(0.9);  // stricter!
         TreeSet<Residue> veryDistal = new TreeSet<Residue>();
         for(Iterator tc = toProtCentroid.keySet().iterator(); tc.hasNext(); )
         {
             Atom atom = (Atom) tc.next();
             Triple atomToCentroid = toProtCentroid.get(atom);
-            if (atomToCentroid.mag() > maxDistToCentroid)
+            if(atomToCentroid.mag() > maxDistToCentroid)
             {
                 Residue res = atom.getResidue();
-                if (verbose) System.err.println("removing "+res+" b/c Ca is *very* far from centroid");
+                if(verbose) System.err.println("removing "+res+" b/c Ca is *very* far from centroid");
                 veryDistal.add(res);
             }
         }
@@ -498,17 +559,15 @@ public class Interdigitator //extends ... implements ...
     /**
     * Calculates cutoff on distance to protein centroid beyond which residues 
     * are likely to be "surface."
+    * @param cutoffFrac e.g. 0.8 means 80% of atoms are close enough to not be "surface"
     */
     public double calcMaxDistToCentroid(double cutoffFrac)
     {
-        // cutoffFrac of 0.8 means 80% of atoms are close enough to not be "surface"
-        
         ArrayList<Double> dists = new ArrayList<Double>();
         for(Iterator i = toProtCentroid.keySet().iterator(); i.hasNext(); )
         {
             Atom atom = (Atom) i.next();
             dists.add( toProtCentroid.get(atom).mag() );
-            //System.out.println(atom+","+toCentroid.get(atom).mag());
         }
         
         Collections.sort(dists);
@@ -517,49 +576,7 @@ public class Interdigitator //extends ... implements ...
     }
 //}}}
 
-//{{{ printCasToProtCentroid
-//##############################################################################
-    /**
-    * Print @arrowlist for Ca -> protein centroid for each NON-SURFACE residue,
-    * as well as @ball for protein centroid.
-    */
-    public void printCasToProtCentroid(ModelState state)
-    {
-        System.out.println("@balllist {prot centroid} radius= 0.5 color= lilac");
-        System.out.println("{prot centroid} " +df.format(protCentroid.getX())+" "+
-            df.format(protCentroid.getY())+" "+df.format(protCentroid.getZ()));
-        System.out.println("@arrowlist {Ca -> prot centroid} width= 3 color= lilactint alpha= 0.5");
-        
-        for(Iterator a = toProtCentroid.keySet().iterator(); a.hasNext(); )
-        {
-            Atom atom = (Atom) a.next();
-            if (atom.getName().equals(" CA "))
-            {
-                Residue res = atom.getResidue();
-                if (scAxes.keySet().contains(res)) // scAxes has already had surface residues removed
-                {
-                    try
-                    {
-                        Triple atLoc = new Triple(state.get(atom));
-                        System.out.println("{"+atom+" -> prot centroid}P "+
-                            df.format(atLoc.getX())+" "+
-                            df.format(atLoc.getY())+" "+
-                            df.format(atLoc.getZ()));
-                        System.out.println("{"+atom+" -> prot centroid} "+
-                            df.format(protCentroid.getX())+" "+
-                            df.format(protCentroid.getY())+" "+
-                            df.format(protCentroid.getZ()));
-                    }
-                    catch (AtomException ae)
-                    {
-                        System.err.println("Can't process "+atom+" to draw CA -> prot centroid");
-                    }
-                }
-            }//per non-surface Calpha
-        }
-    }
-//}}}
-        
+
 //{{{ printScAxes
 //##############################################################################
     /**
@@ -567,28 +584,31 @@ public class Interdigitator //extends ... implements ...
     */
     public void printScAxes(Model model, ModelState state)
     {
-        System.out.println("@arrowlist {Ca -> sc centroid axes} color= hotpink");
+        System.out.println("@subgroup {sc axis} dominant");
+        System.out.println("@arrowlist {sc axis} color= hotpink");
         
         for(Iterator r = scAxes.keySet().iterator(); r.hasNext(); )
         {
             Residue res = (Residue) r.next();
-            if (protResnamesNoGly.indexOf(res.getName()) != -1) // no Gly; sc axis would be weird
+            if(protResnamesNoGly.indexOf(res.getName()) != -1) // no Gly (sc axis would be weird)
             {
                 try
                 {
-                    Triple caLoc = new Triple( state.get(res.getAtom(" CA ")) );
-                    Triple end = new Triple(caLoc).add(scAxes.get(res));
+                    Triple axis = new Triple(scAxes.get(res));
+                    Triple ext  = new Triple(axis).unit().mult(0.1);
+                    Triple base = new Triple(state.get(res.getAtom(" CA "))).add(ext);
+                    Triple tip  = new Triple(state.get(res.getAtom(" CA "))).add(axis).sub(ext);
                     
                     System.out.println( "{"+res+" sc axis base}P "+
-                        df.format(caLoc.getX())+" "+
-                        df.format(caLoc.getY())+" "+
-                        df.format(caLoc.getZ()) );
+                        df.format(base.getX())+" "+
+                        df.format(base.getY())+" "+
+                        df.format(base.getZ()) );
                     System.out.println( "{"+res+" sc axis tip} "+
-                        df.format(end.getX())+" "+
-                        df.format(end.getY())+" "+
-                        df.format(end.getZ()) );
+                        df.format(tip.getX())+" "+
+                        df.format(tip.getY())+" "+
+                        df.format(tip.getZ()) );
                 }
-                catch (AtomException ae)
+                catch(AtomException ae)
                 {
                     System.err.println("Can't process "+res+" to draw sc axis");
                 }
@@ -604,35 +624,38 @@ public class Interdigitator //extends ... implements ...
     */
     public void printNearestNeighbors(Model model, ModelState state)
     {
-        System.out.println("@arrowlist {sc atom -> nearest inter-residue atom} color= green alpha= 0.5");
+        System.out.println("@subgroup {sc -> neighbor} dominant");
+        System.out.println("@arrowlist {sc -> neighbor} color= green alpha= 0.3");
         
         for(Iterator r = scAxes.keySet().iterator(); r.hasNext(); )
         {
             Residue res = (Residue) r.next();
-            if (protResnamesNoGly.indexOf(res.getName()) != -1) // no Gly; not sc
+            if(protResnamesNoGly.indexOf(res.getName()) != -1) // no Gly; not sc
             {
                 for(Iterator a = res.getAtoms().iterator(); a.hasNext(); )
                 {
-                    Atom atom    = (Atom) a.next();
-                    if (bbAtoms.indexOf(atom.getName()) == -1)
+                    Atom atom = (Atom) a.next();
+                    if(bbAtoms.indexOf(atom.getName()) == -1)
                     {
                         Atom othAtom = nearestNeighborAtms.get(atom);
+                        if(othAtom == null) continue; // this atom has no near neighbor
                         try
                         {
-                            Triple scAtLoc    = new Triple( state.get(atom) );
-                            Triple toOthAtLoc = nearestNeighborLocs.get(atom);
-                            Triple othAtLoc   = new Triple(scAtLoc).add(toOthAtLoc.mult(0.8));
+                            Triple axis = nearestNeighborLocs.get(atom);
+                            Triple ext  = new Triple(axis).unit().mult(0.2);
+                            Triple base = new Triple(state.get(atom)).add(ext);
+                            Triple tip  = new Triple(state.get(atom)).add(axis).sub(ext);
                             
                             System.out.println( "{"+atom+" -> "+othAtom+"}P "+
-                                df.format(scAtLoc.getX())+" "+
-                                df.format(scAtLoc.getY())+" "+
-                                df.format(scAtLoc.getZ()) );
+                                df.format(base.getX())+" "+
+                                df.format(base.getY())+" "+
+                                df.format(base.getZ()) );
                             System.out.println( "{"+atom+" -> "+othAtom+"} "+
-                                df.format(othAtLoc.getX())+" "+
-                                df.format(othAtLoc.getY())+" "+
-                                df.format(othAtLoc.getZ()) );
+                                df.format(tip.getX())+" "+
+                                df.format(tip.getY())+" "+
+                                df.format(tip.getZ()) );
                         }
-                        catch (AtomException ae)
+                        catch(AtomException ae)
                         {
                             System.err.println("Can't process "+atom+" to draw arrow to neighbor");
                         }
@@ -640,6 +663,54 @@ public class Interdigitator //extends ... implements ...
                 }//per atom
             }
         }//per residue
+    }
+//}}}
+
+//{{{ printCasToProtCentroid
+//##############################################################################
+    /**
+    * Print @arrowlist for Ca -> protein centroid for each NON-SURFACE residue,
+    * as well as @ball for protein centroid.
+    */
+    public void printCasToProtCentroid(ModelState state)
+    {
+        System.out.println("@subgroup {prot centroid} dominant off");
+        System.out.println("@balllist {prot centroid} radius= 0.5 color= lilac");
+        System.out.println("{prot centroid} " +df.format(protCentroid.getX())+" "+
+            df.format(protCentroid.getY())+" "+df.format(protCentroid.getZ()));
+        System.out.println("@arrowlist {Ca -> prot centroid} width= 3 color= lilactint alpha= 0.5");
+        
+        for(Iterator a = toProtCentroid.keySet().iterator(); a.hasNext(); )
+        {
+            Atom atom = (Atom) a.next();
+            if(atom.getName().equals(" CA "))
+            {
+                Residue res = atom.getResidue();
+                if(scAxes.keySet().contains(res)) // scAxes has already had surface residues removed
+                {
+                    try
+                    {
+                        Triple axis = new Triple(protCentroid).sub(new Triple(state.get(atom)));
+                        Triple ext  = new Triple(axis).unit().mult(0.1);
+                        Triple base = new Triple(state.get(atom)).add(ext);
+                        Triple tip  = protCentroid;
+                        
+                        System.out.println("{"+atom+" -> prot centroid}P "+
+                            df.format(base.getX())+" "+
+                            df.format(base.getY())+" "+
+                            df.format(base.getZ()));
+                        System.out.println("{"+atom+" -> prot centroid} "+
+                            df.format(tip.getX())+" "+
+                            df.format(tip.getY())+" "+
+                            df.format(tip.getZ()));
+                    }
+                    catch(AtomException ae)
+                    {
+                        System.err.println("Can't process "+atom+" to draw CA -> prot centroid");
+                    }
+                }
+            }//per non-surface Calpha
+        }
     }
 //}}}
 
@@ -653,53 +724,60 @@ public class Interdigitator //extends ... implements ...
     */
     public void printPackingMoments(Model model)
     {
-        if (outputMode.equals("res")) System.out.println("rsd,#cntribAtms,avAng_scAx_atm2nghbr");
-        else                          System.out.println("atm,ang_scAx_atm2nghbr");
+        if(outputMode.equals("res")) System.out.println("rsd,#cntribAtms,avAng_scAx_atm2nghbr");
+        else                         System.out.println("atm,ang_scAx_atm2nghbr");
         
         for(Iterator r = model.getResidues().iterator(); r.hasNext(); )
         {
             Residue res = (Residue) r.next();
-            if (protResnamesNoGly.indexOf(res.getName()) != -1) // no Gly; sc axis would be weird
+            Triple scAxis = scAxes.get(res);
+            if(scAxis == null)
             {
-                // Angles between (atom -> nearest neigbhor) and (sc axis)
+                if(verbose) System.err.println(res+" sc axis null");
+                continue; // next residue
+            }
+            if(protResnamesNoGly.indexOf(res.getName()) != -1) // no Gly; sc axis would be weird
+            {
+                // angles between (atom -> nearest neigbhor) and (sc axis)
                 ArrayList<Double> angles = new ArrayList<Double>();
-                
                 for(Iterator a = res.getAtoms().iterator(); a.hasNext(); )
                 {
                     Atom atom = (Atom) a.next();
-                    if (bbAtoms.indexOf(atom.getName()) == -1)
+                    if(bbAtoms.indexOf(atom.getName()) == -1)
                     {
-                        Triple scAxis          = scAxes.get(res);
                         Triple nearestNeighbor = nearestNeighborLocs.get(atom);
-                        
-                        if (verbose && scAxis == null)          System.err.println(res+" sc axis null");
-                        if (verbose && nearestNeighbor == null) System.err.println(res+" nearest neighbor null");
-                        if (scAxis != null && nearestNeighbor != null)
+                        if(nearestNeighbor == null)
+                        {
+                            if(verbose) System.err.println(res+" nearest neighbor null");
+                            continue; // next atom
+                        }
+                        else
                         {
                             double angle = scAxis.angle(nearestNeighbor);
                             angles.add(angle);
-                            if (outputMode.equals("atom")) System.out.println(atom+","+df.format(angle));
+                            if(outputMode.equals("atom")) System.out.println(atom+","+df.format(angle));
                         }
                     }
                 }//per atom
                 
-                if (angles.size() > 0)
+                if(angles.size() > 0)
                 {
                     double sum = 0; int count = 0;
-                    for (double angle : angles)
+                    for(double angle : angles)
                     {
                         sum += angle;
                         count++;
                     }
                     double avg = sum / (1.0*count);
-                    if (outputMode.equals("res")) System.out.println(res+","+count+","+df.format(avg));
+                    if(outputMode.equals("res")) System.out.println(res+","+count+","+df.format(avg));
                 }
-                else if (verbose)
+                else if(verbose)
                     System.err.println("No atoms available to calculate packing moment for "+res);
             }
         }//per residue
     }
 //}}}
+
 
 //{{{ Main, main
 //##############################################################################
@@ -851,6 +929,24 @@ public class Interdigitator //extends ... implements ...
         else if(flag.equals("-keepsurf"))
         {
             elimSurfRsds = false;
+        }
+        else if(flag.equals("-bbok"))
+        {
+            bbOkOthAtom = true;
+        }
+        else if(flag.equals("-okseqdiff"))
+        {
+            try
+            { okSeqDiff = Integer.parseInt(param); }
+            catch(NumberFormatException ex)
+            { System.err.println("Can't format "+param+" as integer!  Using default okSeqDiff = "+okSeqDiff); }
+        }
+        else if(flag.equals("-maxdist"))
+        {
+            try
+            { maxDist = Double.parseDouble(param); }
+            catch(NumberFormatException ex)
+            { System.err.println("Can't format "+param+" as double!  Using default maxDist = "+maxDist); }
         }
         else if(flag.equals("-dummy_option"))
         {
