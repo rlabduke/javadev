@@ -84,6 +84,10 @@ class PdbSecondaryStructure extends SecondaryStructure
         r.initICode = s.substring(26,27);
         if(s.length() >= 38) // if space, may be truncated in non-std file
             r.endICode = s.substring(37,38);
+    	r.sense = Integer.parseInt(s.substring(38,40).trim()); // (ARK Spring2010)
+    	r.strand = Integer.parseInt(s.substring(7,10).trim()); // (ARK Spring2010)
+        r.sheetID = s.substring(11,14); // (ARK Spring2010)
+    	
         return r;
     }
 

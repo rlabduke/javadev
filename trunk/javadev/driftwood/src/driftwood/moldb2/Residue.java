@@ -54,16 +54,17 @@ public class Residue implements Comparable
     String          seqNum;
     
     /** The integer version of seqNum, or NAN_SEQ if seqNum is alphanumeric. Used for sorting. */
-    int             seqInt;
+    int             seqInt; 
     
     /** The insertion code for this residue */
     String          insCode;
     
     /** The name for this residue (recommended: 3 letters, uppercase) */
-    String          resName;
+    String          resName; 
     
     /** The cached, full name of this residue */
-    String          qnameCache      = null;
+    String          qnameCache      = null; 
+    
     
     /** Number of times this residue has been modified */
     int             modCount        = 0;

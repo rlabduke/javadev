@@ -127,16 +127,17 @@ public class RibbonLogic implements Logic
             }
         }
         
+        secondaryStructure.consolidateSheets(); // (ARK Spring2010)
         int i = 0;
         for(Iterator iter = contigs.iterator(); iter.hasNext(); i++)
         {
             Collection contig = (Collection) iter.next();
             if(contig.size() < 2) continue; // too small to use!
-            GuidePoint[] guides = ribbons.makeProteinGuidepoints(contig, state);
+            GuidePoint[] guides = ribbons.makeProteinGuidepoints(contig, state); 
             //System.out.println("prot: "+contig.size()+" "+guides.length);
             if(doUntwistRibbons) ribbons.untwistRibbon(guides);
             
-            //rp.printGuidepoints(guides);
+	    //rp.printGuidepoints(guides);  
             
             if(secondaryStructure != null)
             {
@@ -144,13 +145,13 @@ public class RibbonLogic implements Logic
                 rp.printFancyRibbon(guides, secondaryStructure, 2, 2.2,
                     "color= {alph"+chainID+"} master= {protein} master= {ribbon} master= {alpha}",
                     "color= {beta"+chainID+"} master= {protein} master= {ribbon} master= {beta}",
-                    "width= 4 color= {coil"+chainID+"} master= {protein} master= {ribbon} master= {coil}");
+                    "width= 4 color= {coil"+chainID+"} master= {protein} master= {ribbon} master= {coil}", state);
               } else {
                 rp.printFancyRibbon(guides, secondaryStructure, 2, 2.2,
                     "color= {alph"+chainID+"} master= {protein} master= {ribbon} master= {alpha}",
                     "color= {beta"+chainID+"} master= {protein} master= {ribbon} master= {beta}",
                     "width= 4 fore color= {coil"+chainID+"} master= {protein} master= {ribbon} master= {coil}",
-                    "width= 6 rear color= deadblack master= {protein} master= {ribbon} master= {coil}");
+                    "width= 6 rear color= deadblack master= {protein} master= {ribbon} master= {coil}", state);
               }
             }
             else
@@ -210,7 +211,7 @@ public class RibbonLogic implements Logic
                 rp.printFancyRibbon(guides, secondaryStructure, 3.0, 3.0,
                     "color= {nucl"+chainID+"} master= {nucleic acid} master= {ribbon} master= {RNA helix?}",
                     "color= {nucl"+chainID+"} master= {nucleic acid} master= {ribbon} master= {A-form}",
-                    "width= 4 color= {ncoi"+chainID+"} master= {nucleic acid} master= {ribbon} master= {coil}");
+                    "width= 4 color= {ncoi"+chainID+"} master= {nucleic acid} master= {ribbon} master= {coil}", state);
             }
             else
             {

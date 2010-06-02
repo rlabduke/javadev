@@ -172,8 +172,8 @@ public class Engine2D extends Engine
                         // rarely and thus shouldn't slow KiNG down too much.
                         int oldColorCue = colorCue;
                         int oldWidthCue = widthCue;
-                        colorCue = KPaint.COLOR_LEVELS/2;//-1;
-                        widthCue = KPaint.COLOR_LEVELS/2;//-1;
+                        colorCue = KPaint.COLOR_LEVELS/2;//-1; 
+                        widthCue = KPaint.COLOR_LEVELS/2;//-1; 
                         pt.paint2D(this);
                         colorCue = oldColorCue;
                         widthCue = oldWidthCue;

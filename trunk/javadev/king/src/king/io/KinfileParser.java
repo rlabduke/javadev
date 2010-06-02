@@ -61,6 +61,7 @@ public class KinfileParser //extends ... implements ...
     // Used for high-dimensional kinemages
     int groupDimension      = 3;
     int subgroupDimension   = 3;
+    
 //}}}
 
 //{{{ Constructor(s), parse
@@ -509,6 +510,10 @@ public class KinfileParser //extends ... implements ...
                     {
                         kinemage.ensureMasterExists(token.getString());
                         list.addMaster(token.getString());
+                        if(token.getString().equals("alpha") || token.getString().equals("beta")) // (ARK Spring2010)
+                        {
+                        	list.setSecStruc(token.getString()); // (ARK Spring2010)	
+                        }
                     }
                     else error("master= was not followed by an identifier");
                 }

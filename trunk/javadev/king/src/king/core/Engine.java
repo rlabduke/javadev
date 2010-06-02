@@ -28,6 +28,9 @@ import driftwood.util.*;;
 abstract public class Engine //extends ... implements ...
 {
 //{{{ Constants
+    // Parameters for coloing the backsides of alpha and beta ribbons
+    public static final Triple	defBackHSValpha	= new Triple(360,90,35);	// (ARK Spring2010)
+    public static final Triple	defBackHSVbeta	= new Triple(330,100,100);	// (ARK Spring2010)
 //}}}
 
 //{{{ Variables
@@ -67,6 +70,8 @@ abstract public class Engine //extends ... implements ...
     public boolean      thinLines       = false;
     public boolean      whiteBackground = false;
     public boolean      colorByList     = false;
+    public boolean      ribbonSidesAlpha     = true;    // (ARK Spring2010)
+    public boolean      ribbonSidesBeta      = false;    // (ARK Spring2010)
     
     // READ/WRITE: Shared "scratch" objects that points can use
     public Triple       work1           = new Triple();
@@ -90,6 +95,9 @@ abstract public class Engine //extends ... implements ...
     
     float               pickingRadius   = 5f;
     boolean             warnedPickingRegion = false; // have we warned user about out-of-bounds picks?
+    public Triple	curBackHSValpha	= new Triple().like(defBackHSValpha);	// (ARK Spring2010)
+    public Triple	curBackHSVbeta	= new Triple().like(defBackHSVbeta);	// (ARK Spring2010)
+
 //}}}
     
 //{{{ Constructor

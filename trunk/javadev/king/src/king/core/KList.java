@@ -2,6 +2,7 @@
 //{{{ Package, imports
 package king.core;
 
+import king.points.*; // (ARK Spring2010)
 import java.io.*;
 //import java.net.*;
 //import java.text.*;
@@ -49,9 +50,11 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
 
 //{{{ Variable definitions
 //##################################################################################################
-    protected String    type;                   // type of object represented by this list
+    protected String	type;                   // type of object represented by this list
     protected KList     instance    = null;     // the list that this one is an instance= {xxx} of (usually null)
-    
+    public    String 	secondaryStructure = null;  // (ARK Spring2010)
+    public    boolean   flipped     = false;	// (ARK Spring2010), for ribbon sides
+       
     protected KPaint    color       = KPalette.defaultColor;
     protected int       alpha       = 255;      // 255 = opaque, 0 = fully transparent
     protected float     radius      = 0.2f;     // seems to be default in Mage; also used for arrow tine length (radius=)
@@ -161,11 +164,21 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
     }
 //}}}
 
-//{{{ get/set{Type, Color, Width, Radius, Alpha, Screen}
+//{{{ get/set{Type, SecStruc, Color, Width, Radius, Alpha, Screen}
 //##################################################################################################
     /** Determines the type of points held by this list */
     public String getType()
     { return type; }
+
+    /** Determines the SS of points held by this list */  // (ARK Spring2010)
+    public String getSecStruc() 
+    { return secondaryStructure; } 
+    
+    public void setSecStruc(String secStruc) // (ARK Spring2010)
+    {
+        secondaryStructure = secStruc; 
+        fireKinChanged(CHANGE_LIST_PROPERTIES); 
+    }
     
     /** Determines the default color of points held by this list */
     public KPaint getColor()
@@ -347,6 +360,24 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
         */
         
         if(this.clipMode != null) engine.chooseClipMode(null); // reset to default
+    }
+//}}}
+
+//{{{ flipOrder
+//##################################################################################################
+    /** Changes the order of points to effectively flip a ribbon. ((ARK Spring2010))*/
+    public void flipOrder()
+    {
+    	  Triple tempXYZ = new Triple();
+    	  // swap every other point with it's successor
+    	  // last point (arrow tip) stays unchanged
+    	  for(int i=0; i<children.size()-1; i+=2){
+		tempXYZ.setXYZ(children.get(i+1).getX(),children.get(i+1).getY(),children.get(i+1).getZ());
+    	  	children.get(i+1).setXYZ(children.get(i).getX(),children.get(i).getY(),children.get(i).getZ());
+    	  	children.get(i).setXYZ(tempXYZ.getX(),tempXYZ.getY(),tempXYZ.getZ());
+    	  }
+    	  flipped = !flipped; // reverse the boolean
+          fireKinChanged(CHANGE_LIST_PROPERTIES);
     }
 //}}}
 

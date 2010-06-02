@@ -59,14 +59,14 @@ public class GroupEditor implements ChangeListener
     
     // Lists
     JDialog          liDialog;
-    boolean          liFirstShow     = true;
+    boolean          originallyFlipped, liFirstShow     = true; // added originallyFlipped (ARK Spring2010)
     TablePane        liPanel;
     JTextField       liName;
     JCheckBox        liIsOff, liNoButton, liNoHilite;
     JTextField       liWidth, liRadius, liAlpha;
     JList            liMasters;
     DefaultListModel liMastersModel;
-    JButton          liAddMaster, liRemoveMasters;
+    JButton          liAddMaster, liRemoveMasters, liRibbonFlip;
     ColorPicker      liPicker;
     KPaint           originalColor   = null;
     KList            theKList        = null;
@@ -285,7 +285,8 @@ public class GroupEditor implements ChangeListener
         liIsOff     = new JCheckBox("off (Hide this list from view)");
         liNoButton  = new JCheckBox("nobutton (Don't provide on/off button)");
         liNoHilite  = new JCheckBox("nohighlight (No highlight on balls)");
-        
+        liRibbonFlip = new JButton(new ReflectiveAction("Flip Ribbon", null, this, "onRibbonFlip"));	// (ARK Spring2010) 
+     
         liWidth     = new JTextField(6);
         JLabel widthLabel = new JLabel("Line width:");
         widthLabel.setLabelFor(liWidth);
@@ -332,6 +333,7 @@ public class GroupEditor implements ChangeListener
             liPanel.addCell(liIsOff, 2, 1).newRow();
             liPanel.addCell(liNoButton, 2, 1).newRow();
             liPanel.addCell(liNoHilite, 2, 1).newRow();
+	    liPanel.addCell(liRibbonFlip).newRow();  // (ARK Spring2010)
             liPanel.addCell(widthLabel).addCell(liWidth).newRow();
             liPanel.addCell(radiusLabel).addCell(liRadius).newRow();
             liPanel.addCell(alphaLabel).addCell(liAlpha).newRow();
@@ -617,6 +619,7 @@ public class GroupEditor implements ChangeListener
         for(Iterator iter = list.getMasters().iterator(); iter.hasNext(); )
             liMastersModel.addElement((String) iter.next());
         originalColor = list.getColor();
+        originallyFlipped = list.flipped;
         liPicker.setBackgroundMode(kMain.getCanvas().getEngine().backgroundMode);
         liPicker.setExtras(kMain.getKinemage().getNewPaintMap().values());
         liPicker.setSelection(originalColor);
@@ -662,10 +665,19 @@ public class GroupEditor implements ChangeListener
         else
         {
             list.setColor(originalColor);
+            if(list.getType().equals("ribbon") && list.flipped!=originallyFlipped) list.flipOrder(); // flip back (ARK Spring2010)
         }
         theKList = null; // to avoid memory leaks
         
         return acceptChanges;
+    }
+//}}}
+
+//{{{ onRibbonFlip 
+    /** Event handler for Flip Ribbon button  (ARK Spring2010)*/
+    public void onRibbonFlip(ActionEvent ev)
+    {
+    	    if(theKList.getType().equals("ribbon")) theKList.flipOrder();
     }
 //}}}
 
@@ -1019,7 +1031,7 @@ public class GroupEditor implements ChangeListener
 //##################################################################################################
     public void stateChanged(ChangeEvent ev)
     {
-        theKList.setColor( liPicker.getSelection() );
+    	 theKList.setColor( liPicker.getSelection() );
     }
     
     void markKinModified(AGE age)

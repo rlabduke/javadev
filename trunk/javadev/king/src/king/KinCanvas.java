@@ -158,6 +158,8 @@ public class KinCanvas extends JComponent implements KMessage.Subscriber, Transf
         engine.thinLines        = kin.atThinline;
         engine.whiteBackground  = kin.atWhitebackground;
         engine.colorByList      = kin.atListcolordominant;
+        engine.ribbonSidesAlpha      = kin.atSidedcoloringAlpha; // (ARK Spring2010)
+        engine.ribbonSidesBeta       = kin.atSidedcoloringBeta; // (ARK Spring2010)
         
         Aspect a = this.getCurrentAspect();
         if(a == null) engine.activeAspect = 0;
