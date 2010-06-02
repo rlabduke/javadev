@@ -54,12 +54,12 @@ public class PhiPsiWindow implements Remodeler, ChangeListener, WindowListener
     
     double              origPhiVal = Double.NaN, origPsiVal = Double.NaN;
     
-    //GUI
+    // GUI
     TablePane2          toolpane;
     AngleDial           phiDial, psiDial;
     JLabel              phiLabel, psiLabel, ramaLabel;
-    JCheckBox           cbIdealizeSC;
-    JCheckBox           rotUpstreamMC;
+    JCheckBox           rotRes, rotUpstream, idealizeSC;
+    JTextField          rotResNum;
 //}}}
 
 //{{{ Constructor(s)
@@ -86,7 +86,7 @@ public class PhiPsiWindow implements Remodeler, ChangeListener, WindowListener
         catch(IOException ex) {}
         
         // May also throw IAEx:
-        Collection residues = PhiPsiRotation.makeMobileGroup(modelman.getModel(), ctrRes, rotUpstreamMC.isSelected());
+        Collection residues = PhiPsiRotation.makeMobileGroup(modelman.getModel(), ctrRes, rotUpstream.isSelected(), parseNumRes());
         
         modelman.registerTool(this, residues);
         stateChanged(null);
@@ -102,20 +102,29 @@ public class PhiPsiWindow implements Remodeler, ChangeListener, WindowListener
         psiDial = new AngleDial();
         psiDial.addChangeListener(this);
         
-        JButton btnRelease = new JButton(new ReflectiveAction("Finished", null, this, "onReleaseResidues"));
-        JButton btnRotamer = new JButton(new ReflectiveAction("Rotate sidechain", null, this, "onRotateSidechain"));
-        
-        //headerLabels = new JLabel[] { new JLabel("phi/psi"), new JLabel("Ramachdrn") };
         phiLabel  = new JLabel("phi");
         psiLabel  = new JLabel("psi");
         ramaLabel = new JLabel();
         
-        cbIdealizeSC = new JCheckBox(new ReflectiveAction("Idealize sidechain", null, this, "onToggleIdealSC"));
-        cbIdealizeSC.setSelected(true);
-        //cbIdealizeSC.setSelected(false); // 25 Oct 06: changed by mandate from JSR
+        rotUpstream = new JCheckBox(new ReflectiveAction("Rotate upstream", null, this, "onToggleUpstream"));
         
-        rotUpstreamMC = new JCheckBox(new ReflectiveAction("Rotate mainchain upstream", null, this, "onToggleUpstreamMC"));
-        rotUpstreamMC.setSelected(false);
+        rotRes = new JCheckBox(new ReflectiveAction("Number of residues:", null, this, "onToggleRotRes"));
+        rotRes.setSelected(true);
+        rotResNum = new JTextField("3");
+        rotResNum.setColumns(3);
+        rotResNum.addActionListener(
+            new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    updateProtein(); // THIS CODE IS EXECUTED WHEN RETURN IS TYPED
+                }
+            }
+        );
+        
+        idealizeSC = new JCheckBox(new ReflectiveAction("Idealize sidechain", null, this, "onToggleIdealSC"));
+        idealizeSC.setSelected(true); // true by default: mandate from JSR
+        
+        JButton btnRelease = new JButton(new ReflectiveAction("Finished", null, this, "onReleaseResidues"));
+        JButton btnRotamer = new JButton(new ReflectiveAction("Rotate sidechain", null, this, "onRotateSidechain"));
         
         toolpane = new TablePane2();
         toolpane.center();
@@ -129,20 +138,26 @@ public class PhiPsiWindow implements Remodeler, ChangeListener, WindowListener
         
         toolpane.addCell(TablePane2.strut(0,10));
         toolpane.newRow();
+        
         toolpane.add(ramaLabel);
         toolpane.newRow();
         
-        toolpane.newRow();
         toolpane.addCell(TablePane2.strut(0,10));
         toolpane.newRow();
+        
         toolpane.startSubtable(4,1);
-            toolpane.addCell(rotUpstreamMC);
+            toolpane.addCell(rotUpstream);
+            toolpane.newRow();
+            toolpane.addCell(rotRes);
+            toolpane.addCell(rotResNum);
         toolpane.endSubtable();
         toolpane.newRow();
+        
         toolpane.startSubtable(4,1);
-            toolpane.addCell(cbIdealizeSC);
+            toolpane.addCell(idealizeSC);
         toolpane.endSubtable();
         toolpane.newRow();
+        
         toolpane.startSubtable(4,1);
             toolpane.addCell(btnRelease);
             toolpane.addCell(btnRotamer);
@@ -193,22 +208,22 @@ public class PhiPsiWindow implements Remodeler, ChangeListener, WindowListener
     {
         try
         {
-            boolean upstream = rotUpstreamMC.isSelected();
-            boolean idealize = cbIdealizeSC.isSelected();
+            boolean idealize = idealizeSC.isSelected();
+            boolean upstream = rotUpstream.isSelected();
+            int     numRes = Integer.MAX_VALUE;
+            if(rotRes.isSelected()) numRes = Integer.parseInt(rotResNum.getText());
+            if(numRes == 0) return before; // don't bother trying to rotate 0 residues
+            
             Collection residues = PhiPsiRotation.makeMobileGroup(
-                modelman.getModel(), ctrRes, upstream);
+                modelman.getModel(), ctrRes, upstream, numRes);
             /*for(Iterator i = residues.iterator(); i.hasNext(); )  System.err.println(
-                (upstream ? "upstream" : "downstream")+" from "+ctrRes+" includes "+(Residue)i.next());*/
+                rotResNum.getText()+" res "+(upstream ? "upstream" : "downstream")
+                +" from "+ctrRes+" includes "+(Residue)i.next());*/
             
-            // Rotate phi
             ModelState after = PhiPsiRotation.makeConformation(
-                residues, before, origPhiVal - phiDial.getDegrees(), true,  upstream, idealize);
-                //residues, before, phiDial.getDegrees() - origPhiVal, true,  upstream, idealize);
-            
-            // Rotate psi
-            after = PhiPsiRotation.makeConformation(
-                //residues, after, psiDial.getDegrees() - origPsiVal, false, upstream, idealize);
-                residues, after, origPsiVal - psiDial.getDegrees(), false, upstream, idealize);
+                residues, before, origPhiVal - phiDial.getDegrees(), true,  upstream, numRes, idealize);
+            after            = PhiPsiRotation.makeConformation(
+                residues, after,  origPsiVal - psiDial.getDegrees(), false, upstream, numRes, idealize);
             
             return after;
         }
@@ -220,14 +235,47 @@ public class PhiPsiWindow implements Remodeler, ChangeListener, WindowListener
     }
 //}}}
 
-//{{{ onToggleIdealSC, onToggleUpstreamMC
+//{{{ parseNumRes
 //##################################################################################################
+    public int parseNumRes()
+    {
+        try
+        {
+            int numRes = Integer.MAX_VALUE;
+            if(rotRes.isSelected()) numRes = Integer.parseInt(rotResNum.getText());
+            return numRes;
+        }
+        catch(NumberFormatException ex)
+        {
+            String error = "*** Can't parse "+rotResNum.getText()+" as an integer number of residues!";
+            JOptionPane.showMessageDialog(null, error, error, JOptionPane.ERROR_MESSAGE);
+            return Integer.MAX_VALUE;
+        }
+    }
+//}}}
+
+//{{{ onToggle___
+//##################################################################################################
+    // target of reflection
+    public void onToggleRotRes(ActionEvent ev)
+    { updateProtein(); }
+
+    // target of reflection
+    public void onToggleRotResNum(ActionEvent ev)
+    { updateProtein(); }
+
+    // target of reflection
+    public void onToggleUpstream(ActionEvent ev)
+    { updateProtein(); }
+
     // target of reflection
     public void onToggleIdealSC(ActionEvent ev)
     { stateChanged(null); }
+//}}}
 
-    // target of reflection
-    public void onToggleUpstreamMC(ActionEvent ev)
+//{{{ updateProtein, updateLabels
+//##################################################################################################
+    public void updateProtein()
     {
         try { initDials(); }
         catch (ResidueException re) { re.printStackTrace(); }
@@ -235,16 +283,14 @@ public class PhiPsiWindow implements Remodeler, ChangeListener, WindowListener
         
         // new molten state
         modelman.unregisterTool(this);
-        Collection residues = PhiPsiRotation.makeMobileGroup(modelman.getModel(), ctrRes, rotUpstreamMC.isSelected());
+        Collection residues = PhiPsiRotation.makeMobileGroup(
+            modelman.getModel(), ctrRes, rotUpstream.isSelected(), parseNumRes());
         modelman.registerTool(this, residues);
         
         stateChanged(null);
     }
-//}}}
 
-//{{{ updateLabels
-//##################################################################################################
-    void updateLabels()
+    public void updateLabels()
     {
         // Make color normal again
         ramaLabel.setForeground(normalColor);
