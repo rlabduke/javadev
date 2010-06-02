@@ -56,33 +56,34 @@ public class PhiPsiRotation //extends ... implements ...
 //{{{ makeMobileGroup
 //##################################################################################################
     /**
-    * Returns a Collection of the residues from r to the beginning or end of the
-    * mainchain, inclusive.
+    * Returns a Collection of the residues from <code>r</code> 
+    * either to the beginning or end of the mainchain, inclusive
+    * or plus or minus a certain number of residues, inclusive.
     */
-    public static Collection makeMobileGroup(Model model, Residue r, boolean upstream)
+    public static Collection makeMobileGroup(Model model, Residue r, boolean upstream, int numRes)
     {
         Collection residues = new ArrayList();
         residues.add(r);
-        
-        if (upstream)
+        if(upstream)
         {
             Residue prev;
-            for(prev = r.getPrev(model); prev != null; prev = prev.getPrev(model))
-            {
-                residues.add(prev);
-            }
-            /*for(Iterator i = residues.iterator(); i.hasNext(); )
-                System.err.println("upstream from "+r+" includes "+(Residue)i.next());*/
+            if(numRes == Integer.MAX_VALUE)
+                for(prev = r.getPrev(model); prev != null; prev = prev.getPrev(model))
+                    residues.add(prev);
+            else // specific # residues
+                for(prev = r.getPrev(model); prev != null && residues.size() < numRes; prev = prev.getPrev(model))
+                    residues.add(prev);
         }
         else // downstream (default)
         {
             Residue next;
-            for(next = r.getNext(model); next != null; next = next.getNext(model))
-            {
-                residues.add(next);
-            }
+            if(numRes == Integer.MAX_VALUE)
+                for(next = r.getNext(model); next != null; next = next.getNext(model))
+                    residues.add(next);
+            else // specific # residues
+                for(next = r.getNext(model); next != null && residues.size() < numRes; next = next.getNext(model))
+                    residues.add(next);
         }
-        
         return residues;
     }
 //}}}
@@ -91,12 +92,13 @@ public class PhiPsiRotation //extends ... implements ...
 //##################################################################################################
     /**
     * Rotates a collection of residues (as from
-    * {@link #makeMobileGroup(Model, Residue, boolean)})
+    * {@link #makeMobileGroup(Model, Residue, boolean)} or
+    * {@link #makeMobileGroup(Model, Residue, boolean, int)})
     * by theta degrees around either phi or psi.
     * @throws AtomException if the state is missing a state definition
     *   for any of the mobile atoms.
     */
-    public static ModelState makeConformation(Collection residues, ModelState state, double theta, boolean phi, boolean upstream, boolean idealizeSC) throws AtomException
+    public static ModelState makeConformation(Collection residues, ModelState state, double theta, boolean phi, boolean upstream, int numRes, boolean idealizeSC) throws AtomException
     {
         // Find first and last residue in the collection
         Residue first, last;
@@ -125,12 +127,12 @@ public class PhiPsiRotation //extends ... implements ...
             throw new AtomException("CA or C missing from "+first);
         
         // Do the rotation
-        Atom[]      atoms   = getMobileAtoms(residues, phi, upstream);
+        Atom[]      atoms   = getMobileAtoms(residues, phi, upstream, numRes);
         Transform   rot     = new Transform().likeRotation(state.get(atom1), state.get(atom2), theta);
         ModelState  rv      = transformAtoms(rot, atoms, state);
         
         // Idealize central sidechain (opt'l)
-        if (idealizeSC)   rv = sidechainIdealizer.idealizeSidechain(first, rv);
+        if(idealizeSC)   rv = sidechainIdealizer.idealizeSidechain(first, rv);
         
         return rv.createCollapsed(state);
     }
@@ -138,14 +140,14 @@ public class PhiPsiRotation //extends ... implements ...
 
 //{{{ getMobileAtoms
 //##################################################################################################
-    static Atom[] getMobileAtoms(Collection residues, boolean phi, boolean upstream)
+    static Atom[] getMobileAtoms(Collection residues, boolean phi, boolean upstream, int numRes)
     {
         ArrayList   atoms   = new ArrayList();
         Iterator    iter    = residues.iterator();
         
         Residue     r       = (Residue)iter.next();
         
-        if (!upstream && phi)
+        if(!upstream && phi)
         {
             // Add the first-in-sequence (first-in-array) mobile residue, C and O only
             for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
@@ -156,7 +158,7 @@ public class PhiPsiRotation //extends ... implements ...
                     atoms.add(a);
             }
         }
-        else if (upstream && phi)
+        else if(upstream && phi)
         {
             // Add the last-in-sequence (first-in-array) mobile residue, H only
             for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
@@ -167,7 +169,7 @@ public class PhiPsiRotation //extends ... implements ...
                     atoms.add(a);
             }
         }
-        else if (upstream && !phi)
+        else if(upstream && !phi)
         {
             // Add the last-in-sequence (first-in-array) mobile residue, N and H only
             for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
@@ -178,7 +180,7 @@ public class PhiPsiRotation //extends ... implements ...
                     atoms.add(a);
             }
         }
-        else //if (!upstream && !phi)
+        else //if(!upstream && !phi)
         {
             // Add the first-in-sequence (first-in-array) mobile residue, O only
             for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
@@ -191,18 +193,18 @@ public class PhiPsiRotation //extends ... implements ...
         }
         
         // Add all atoms for the rest of residues
+        int resCount = 1;
         while(iter.hasNext())
         {
+            if(resCount >= numRes) break;
             r = (Residue)iter.next();
             for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
             {
                 Atom    a   = (Atom)ai.next();
                 atoms.add(a);
             }
+            resCount++;
         }
-        
-        /*for(Iterator i = atoms.iterator(); i.hasNext(); )  System.err.println(
-            (upstream ? "upstream" : "downstream")+" atoms include "+(Atom)i.next());*/
         
         return (Atom[])atoms.toArray(new Atom[atoms.size()]);
     }

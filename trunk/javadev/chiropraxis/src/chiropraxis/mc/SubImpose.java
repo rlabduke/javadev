@@ -22,7 +22,8 @@ import chiropraxis.sc.SidechainAngles2;
 * It's also a play on words for "superimpose" and "subset".
 *
 * <ol>
-* <li>If -super is specified, those atoms from structure 1 are used to superimpose it onto the corresponding atoms from structure 2.</li>
+* <li>If -super or -super1 is specified, those atoms from structure 1 are used to superimpose it onto the corresponding atoms from structure 2.</li>
+* <li>If -super2 is specified, those atoms from structure 2 will correspond to the atoms from structure 1 specified by -super1.</li>
 * <li>If -sieve is specified, those atoms are cut down to the specified fraction (0,1] by Lesk's sieve.</li>
 * <li>If -kin is specified, a kinemage is written showing the the atom correspondences.</li>
 * <li>If -pdb is specified, the new coordinates for structure 1 are written to file.</li>
@@ -35,6 +36,9 @@ import chiropraxis.sc.SidechainAngles2;
 public class SubImpose //extends ... implements ...
 {
 //{{{ Constants
+    DecimalFormat df  = new DecimalFormat("0.0###");
+    DecimalFormat df2 = new DecimalFormat("#0.0##");
+    DecimalFormat df3 = new DecimalFormat("0.0###");
 //}}}
 
 //{{{ CLASS: SimpleResAligner
@@ -92,6 +96,7 @@ public class SubImpose //extends ... implements ...
     boolean fix180flips = true;
     String structIn1 = null, structIn2 = null;
     String kinOut = null, pdbOut = null;
+    boolean kinStdOut = false, pdbStdOut = false;
     String superimpose1 = null; // describes atoms in structure 1 for superimposing onto structure 2
     String superimpose2 = null; // describes atoms in structure 2 which will match up with those
                                 // in structure 1 described in superimpose1 - DAK
@@ -101,6 +106,14 @@ public class SubImpose //extends ... implements ...
     double leskSieve = Double.NaN;
     double rmsdCutoff = Double.NaN; // above which PDB is not written out
     double rmsdGoal = Double.NaN; // iterative Lesk sieve until this rmsd is reached
+    
+    CoordinateFile coord1 = null, coord2 = null;
+    Model m1 = null, m2 = null;
+    ModelState s1 = null, s2 = null;
+    Alignment align = null;
+    AtomState[][] atoms = null;
+    Transform R = null;
+    int lenAtomsUsed = 0;
 //}}}
 
 //{{{ Constructor(s)
@@ -372,22 +385,34 @@ public class SubImpose //extends ... implements ...
     }
 //}}}
 
-//{{{ writeKin
+//{{{ writeKin, writePdb
 //##############################################################################
-    void writeKin(AtomState[][] atoms, int maxlen) throws IOException
+    void writeKin() throws IOException
     {
-        DecimalFormat df = new DecimalFormat("0.0###");
-        PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(new File(this.kinOut))));
+        PrintStream out = null;
+        if(this.kinOut != null) out = new PrintStream(new BufferedOutputStream(new FileOutputStream(this.kinOut)));
+        else                    out = new PrintStream(System.out);
+        if(out == null)  throw new IOException("*** Error writing kinemage!");
         out.println("@kinemage");
         out.println("@group {correspondances} dominant");
         out.println("@vectorlist {pairs} color= green");
-        for(int i = 0; i < maxlen; i++)
+        for(int i = 0; i < lenAtomsUsed; i++)
         {
             AtomState a1 = atoms[0][i], a2 = atoms[1][i];
-            out.println("{"+a1+"}P "+df.format(a1.getX())+" "+df.format(a1.getY())+" "+df.format(a1.getZ()));
-            out.println("{"+a2+"}L "+df.format(a2.getX())+" "+df.format(a2.getY())+" "+df.format(a2.getZ()));
+            out.println("{"+a1+"}P "+df3.format(a1.getX())+" "+df3.format(a1.getY())+" "+df3.format(a1.getZ()));
+            out.println("{"+a2+"}L "+df3.format(a2.getX())+" "+df3.format(a2.getY())+" "+df3.format(a2.getZ()));
         }
         out.close();
+    }
+
+    public void writePdb() throws IOException
+    {
+        PdbWriter pdbWriter = null;
+        if(pdbOut != null) pdbWriter = new PdbWriter(new File(pdbOut));
+        else               pdbWriter = new PdbWriter(System.out);
+        if(pdbWriter == null) throw new IOException("*** Error writing PDB!");
+        pdbWriter.writeCoordinateFile(coord1);
+        pdbWriter.close();
     }
 //}}}
 
@@ -407,50 +432,31 @@ public class SubImpose //extends ... implements ...
     }
 //}}}
 
-//{{{ empty_code_segment
+//{{{ doSuperposition
 //##############################################################################
-//}}}
-
-//{{{ Main, main
-//##############################################################################
-    /**
-    * Main() function for running as an application
-    */
-    public void Main() throws IOException, ParseException
+    public void doSuperposition() throws IOException, ParseException
     {
-        if(structIn1 == null || structIn2 == null)
-            throw new IllegalArgumentException("must provide two structures");
-        
+        // Decide which atom selection to use
         if(superimpose1 == null)
         {
             superimpose1 = "atom_CA_";
-            System.err.print("No -super flag; using sequence-aligned CAs");
+            if(verbose) System.err.print("No -super flag; using sequence-aligned CAs");
             if(!Double.isNaN(rmsdGoal)) // iterative sieve until rmsd goal is reached
             {
-                System.err.println(" (sieve to "+rmsdGoal+"A rmsd)");
+                if(verbose) System.err.println(" (sieve to "+rmsdGoal+"A rmsd)");
                 if(!Double.isNaN(leskSieve)) System.err.println(
                     "Using -rmsdgoal="+rmsdGoal+" instead of -sieve="+leskSieve);
             }
             else // single sieve; default if not user-defined
             {
-                if(Double.isNaN(leskSieve)) leskSieve = 0.9;
-                System.err.println(" (best "+leskSieve*100+"%)");
+                if(Double.isNaN(leskSieve)) if(verbose) System.err.println(" (all)");
+                else if(verbose) System.err.println(" (best "+leskSieve*100+"%)");
             }
         }
         
         if(chainIDs1 != null) System.err.println("Using subset of structure 1 chains: "+chainIDs1);
         if(chainIDs2 != null) System.err.println("Using subset of structure 2 chains: "+chainIDs2);
         
-        // Read in structures, get arrays of residues.
-        PdbReader pdbReader = new PdbReader();
-        CoordinateFile coord1 = pdbReader.read(new File(structIn1));
-        CoordinateFile coord2 = pdbReader.read(new File(structIn2));
-        Model m1 = coord1.getFirstModel();
-        Model m2 = coord2.getFirstModel();
-        ModelState s1 = m1.getState();
-        ModelState s2 = m2.getState();
-        
-        DecimalFormat df = new DecimalFormat("0.0###");
         System.err.println("rmsd\tn_atoms\tselection");
         
         // Align residues by sequence
@@ -460,7 +466,7 @@ public class SubImpose //extends ... implements ...
         /*Alignment align = Alignment.alignChains(getChains(m1), getChains(m2), new Alignment.NeedlemanWunsch(), new SimpleNonWaterResAligner());*/
         Collection chains1 = (chainIDs1 != null ? getSomeChains(m1, chainIDs1) : getChains(m1));
         Collection chains2 = (chainIDs2 != null ? getSomeChains(m2, chainIDs2) : getChains(m2));
-        Alignment align = Alignment.alignChains(chains1, chains2, new Alignment.NeedlemanWunsch(), new SimpleNonWaterResAligner());
+        align = Alignment.alignChains(chains1, chains2, new Alignment.NeedlemanWunsch(), new SimpleNonWaterResAligner());
         if(align.a.length == 0)
         {
             // Just take all residues as they appear in the file, without regard to chain IDs, etc.
@@ -486,9 +492,9 @@ public class SubImpose //extends ... implements ...
         if(fix180flips) s1 = fix180rotations(s1, s2, align);
         
         // If -super, do superimposition of s1 on s2.
-        Transform R = new Transform(); // identity, defaults to no superposition
+        R = new Transform(); // identity, defaults to no superposition
         //if(superimpose1 != null) // this is never true anymore; default: all Calphas - DAK 091123
-        AtomState[][] atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, superimpose1, superimpose2, align);
+        atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, superimpose1, superimpose2, align);
         if(verbose)
         {
             System.err.println("Atom alignments:");
@@ -504,7 +510,7 @@ public class SubImpose //extends ... implements ...
         R = superpos.superpos();
         System.err.println(df.format(superpos.calcRMSD(R))+"\t"+atoms[0].length+"\t"+superimpose1);
         
-        int lenAtomsUsed = atoms[0].length;
+        lenAtomsUsed = atoms[0].length;
         if(!Double.isNaN(rmsdGoal))
         {
             // Eliminate selected atoms one-by-one until rmsd <= goal
@@ -558,78 +564,80 @@ public class SubImpose //extends ... implements ...
             else System.err.println("Proceeding with output b/c RMSD="+
                 df.format(superpos.calcRMSD(R))+" <= cutoff="+rmsdCutoff);
         }
+    }
+//}}}
+
+//{{{ doRmsd
+//##############################################################################
+    public void doRmsd() throws ParseException
+    {
+        for(Iterator iter = rmsd.iterator(); iter.hasNext(); )
+        {
+            String rmsd_sel = (String) iter.next();
+            atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, rmsd_sel, null, align);
+            if(verbose)
+            {
+                System.err.println("Atom alignments:");
+                for(int i = 0; i < atoms[0].length; i++)
+                    System.err.println("  "+atoms[0][i]+" <==> "+atoms[1][i]);
+                System.err.println();
+            }
+            //!  Ack!  Can't use superpos.calcRMSD() b/c it translates everything to the origin!
+            //!  // struct2 is the reference point, struct1 should move.
+            //!  // (nothing's really moving here so it doesn't matter).
+            //!  SuperPoser superpos = new SuperPoser(atoms[1], atoms[0]);
+            //!  // Don't recalculate, use our old transform!
+            //!  //R = superpos.superpos();
+            //!  // Oops, no, use an identity transform -- coords already moved!
+            //!  System.out.println(df.format(superpos.calcRMSD(new Transform()))+"\t"+atoms[0].length+"\t"+rmsd_sel);
+            System.out.println(df.format(rms(atoms[1], atoms[0]))+"\t"+atoms[0].length+"\t"+rmsd_sel);
+        }
+    }
+//}}}
+
+//{{{ Main, main
+//##############################################################################
+    /**
+    * Main() function for running as an application
+    */
+    public void Main() throws IOException, ParseException
+    {
+        // Read in structures, get arrays of residues.
+        if(structIn1 == null || structIn2 == null)
+            throw new IllegalArgumentException("must provide two structures");
+        PdbReader pdbReader = new PdbReader();
+        coord1 = pdbReader.read(new File(structIn1));
+        coord2 = pdbReader.read(new File(structIn2));
+        m1 = coord1.getFirstModel();
+        m2 = coord2.getFirstModel();
+        s1 = m1.getState();
+        s2 = m2.getState();
         
-        // Print the transform:
+        // Superpose structure 2 onto structure 1 regardless of other options
+        doSuperposition();
+        if(atoms == null) return;
+        
+        // If -t, print the transform
         if(showTransform)
-        {
-            System.out.println("Transformation matrix (premult, Rx -> x'):");
-            System.out.println(R);
-        }
+            System.out.println("Transformation matrix (premult, Rx -> x'):\n"+R);
         
-        // Print distances between atoms from selection:
+        // If -d, print distances between atoms from selection
         else if(showDists)
-        {
-            /*
-            // This li'l routine tries to re-sort the atoms
-            // in case they were shuffled by sieving, but 
-            // sorting isn't compatible with Atoms or AtomStates...
-            ArrayList<Atom> atoms0 = new ArrayList<Atom>();
-            ArrayList<Atom> atoms1 = new ArrayList<Atom>();
             for(int i = 0; i < atoms[0].length; i++)
-            {
-                atoms0.add(atoms[0][i].getAtom());
-                atoms1.add(atoms[1][i].getAtom());
-            }
-            ___PROBLEM____
-            Collections.sort(atoms0);
-            Collections.sort(atoms1);
-            */
-            DecimalFormat df2 = new DecimalFormat("#0.0##");
-            for(int i = 0; i < atoms[0].length; i++)
-            {
-                double d = Triple.distance(atoms[0][i], atoms[1][i]);
-                System.out.println(atoms[0][i].getAtom()+"\t"+atoms[1][i].getAtom()+"\t"+df2.format(d));
-            }
-        }
+                System.out.println(atoms[0][i].getAtom()+","+atoms[1][i].getAtom()+","
+                    +df2.format(Triple.distance(atoms[0][i], atoms[1][i])));
         
-        // If -rms, do RMSD calculation
+        // If -rms, do RMSD calculations over different sets of atoms
         else if(!rmsd.isEmpty())
-        {
-            for(Iterator iter = rmsd.iterator(); iter.hasNext(); )
-            {
-                String rmsd_sel = (String) iter.next();
-                atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, rmsd_sel, null, align);
-                if(verbose)
-                {
-                    System.err.println("Atom alignments:");
-                    for(int i = 0; i < atoms[0].length; i++)
-                        System.err.println("  "+atoms[0][i]+" <==> "+atoms[1][i]);
-                    System.err.println();
-                }
-                //!  Ack!  Can't use superpos.calcRMSD() b/c it translates everything to the origen!
-                //!  // struct2 is the reference point, struct1 should move.
-                //!  // (nothing's really moving here so it doesn't matter).
-                //!  SuperPoser superpos = new SuperPoser(atoms[1], atoms[0]);
-                //!  // Don't recalculate, use our old transform!
-                //!  //R = superpos.superpos();
-                //!  // Oops, no, use an identity transform -- coords already moved!
-                //!  System.out.println(df.format(superpos.calcRMSD(new Transform()))+"\t"+atoms[0].length+"\t"+rmsd_sel);
-                System.out.println(df.format(rms(atoms[1], atoms[0]))+"\t"+atoms[0].length+"\t"+rmsd_sel);
-            }
-        }
+            doRmsd();
         
-        // Write kinemage showing atoms for superposition:
-        else if(kinOut != null) writeKin(atoms, lenAtomsUsed);
+        // If -kin, write kinemage showing atoms for superposition
+        else if(kinOut != null || kinStdOut)
+            writeKin();
         
-        // Write superimposed PDB file:
-        else //if(pdbOut != null)
-        {
-            PdbWriter pdbWriter;
-            if(pdbOut != null) pdbWriter = new PdbWriter(new File(pdbOut));
-            else pdbWriter = new PdbWriter(System.out);
-            pdbWriter.writeCoordinateFile(coord1);
-            pdbWriter.close();
-        }
+        // If no other output specified, write superimposed PDB file
+        else
+            writePdb();
     }
 
     public static void main(String[] args)
@@ -766,6 +774,21 @@ public class SubImpose //extends ... implements ...
             superimpose1 = param;
         else if(flag.equals("-super2"))
             superimpose2 = param; // added by DAK
+        else if(flag.equals("-pdb"))
+        {
+            if(param == null) pdbStdOut = true;
+            else pdbOut = param;
+        }
+        else if(flag.equals("-kin"))
+        {
+            if(param == null) kinStdOut = true;
+            else kinOut = param;
+        }
+        else if(flag.equals("-rms"))
+        {
+            if(param == null) throw new IllegalArgumentException("-rms must be followed by a number!");
+            rmsd.add(param);
+        }
         else if(flag.equals("-sieve"))
         {
             try { leskSieve = Double.parseDouble(param); }
@@ -773,25 +796,19 @@ public class SubImpose //extends ... implements ...
             if(leskSieve <= 0 || leskSieve > 1)
                 throw new IllegalArgumentException("value for -sieve out of range (0,1]");
         }
-        else if(flag.equals("-kin"))
-            kinOut = param;
-        else if(flag.equals("-pdb"))
-            pdbOut = param;
-        else if(flag.equals("-rms"))
-            rmsd.add(param);
-        else if(flag.equals("-rmsdcutoff") || flag.equals("-rmsdmax"))
-        {
-            try { rmsdCutoff = Double.parseDouble(param); }
-            catch(NumberFormatException ex) { throw new IllegalArgumentException(param+" isn't a number!"); }
-            if(Double.isNaN(rmsdCutoff) || rmsdCutoff < 0)
-                System.err.println("Problem with "+param+" as param for -rmsdcutoff");
-        }
         else if(flag.equals("-rmsdgoal") || flag.equals("-rmsdtarget"))
         {
             try { rmsdGoal = Double.parseDouble(param); }
             catch(NumberFormatException ex) { throw new IllegalArgumentException(param+" isn't a number!"); }
             if(Double.isNaN(rmsdGoal) || rmsdGoal < 0)
                 System.err.println("Problem with "+param+" as param for -rmsdgoal");
+        }
+        else if(flag.equals("-rmsdcutoff") || flag.equals("-rmsdmax"))
+        {
+            try { rmsdCutoff = Double.parseDouble(param); }
+            catch(NumberFormatException ex) { throw new IllegalArgumentException(param+" isn't a number!"); }
+            if(Double.isNaN(rmsdCutoff) || rmsdCutoff < 0)
+                System.err.println("Problem with "+param+" as param for -rmsdcutoff");
         }
         else if(flag.equals("-dummy_option"))
         {
