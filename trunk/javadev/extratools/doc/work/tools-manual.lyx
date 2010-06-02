@@ -221,7 +221,7 @@ name "rnamap-tool"
 \begin_layout Standard
 
 \emph on
-Authored by Vincent Chen (vbc3@duke.edu)
+Authored by Vincent Chen (vbc3 AT duke.edu)
 \end_layout
 
 \begin_layout Standard
@@ -815,6 +815,72 @@ Structural biology tools
 \end_layout
 
 \begin_layout Section
+RNA rotator tool
+\begin_inset CommandInset label
+LatexCommand label
+name "rnarotator-tool"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The RNA rotator tool is for adjusting the various dihedral angles of an
+ RNA suite.
+ It uses the ModelManager system used for by the Backrub and sidechain rotator/m
+utator tools, which means that RNA rotator uses and changes PDB files.
+ It also can show real-time updatable probe contact dots.
+ 
+\end_layout
+
+\begin_layout Standard
+To use RNA rotator, select the tool from the Structural biology menu.
+ Select the PDB file corresponding to the kinemage you are working on.
+ This will load the PDB file into the Model Manager, which allows you to
+ save changes to the PDB file, as well as activate the probe dots analysis.
+ Middle-click or shift-click on a particular RNA residue to select it and
+ the following residue as the active 
+\begin_inset Quotes eld
+\end_inset
+
+molten
+\begin_inset Quotes erd
+\end_inset
+
+ suite.
+ This will bring up the dihedral angle dialog box, as well as the molten
+ model, which reflects proposed changes being made in the model.
+ Dials are included for all the backbone dihedrals, as well as the base
+ chi angles.
+ Blue highlights are indicated on the dials to indicate the most probable
+ dihedral angles.
+ If installed, suitename will be run to give a real-time 
+\begin_inset Quotes eld
+\end_inset
+
+suiteness
+\begin_inset Quotes erd
+\end_inset
+
+ score of the current suite.
+ There is also a box to select from the known RNA suite conformers.
+ Selecting a conformer will set the backbone dihedrals, as well as the sugar
+ pucker, to the central dihedral values of the particular conformer.
+ Finally, there is a pair of boxes for selecting which atoms to superimpose
+ the 
+\begin_inset Quotes eld
+\end_inset
+
+molten
+\begin_inset Quotes erd
+\end_inset
+
+ model on the original.
+ 
+\end_layout
+
+\begin_layout Section
 Analyze Geometry Plugin
 \begin_inset CommandInset label
 LatexCommand label
@@ -896,7 +962,6 @@ Data tools
 
 \begin_layout Section
 Data plotter tool 
-
 \begin_inset CommandInset label
 LatexCommand label
 name "plotting-tool"
@@ -1010,9 +1075,10 @@ Copyright
 
 \begin_layout Standard
 The Extratools code and all its associated original resources and documentation
- are copyright (C) 2002-2009 by Ian W.
- Davis and Vincent B.
- Chen.
+ are copyright (C) 2002-2010 by Ian W.
+ Davis, Vincent B.
+ Chen, and Daniel A.
+ Keedy.
 \end_layout
 
 \begin_layout Section
@@ -1020,8 +1086,7 @@ Revision status
 \end_layout
 
 \begin_layout Standard
-This manual was last updated 29 August 2009 by VBC for Extratools version
- 2.19 (tools shifted to more public menus in KiNG).
+This manual was last updated 18 May 2010 by VBC for Extratools version 2.22.
 \end_layout
 
 \end_body

@@ -102,7 +102,7 @@ public class RnaRotTool extends ModelingTool
     * @return for example, "#navigate-tool" (or null)
     */
     public String getHelpAnchor()
-    { return "#scrot-tool"; }
+    { return "#rnarotator-tool"; }
     
     public String toString() { return "RNA rotator"; }
 //}}}
