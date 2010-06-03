@@ -478,6 +478,9 @@ public class KinImagePlugin extends Plugin
     public JMenuItem getHelpMenuItem()
     { return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onHelp")); }
     
+    public String getHelpAnchor()
+    { return "#kinimage-plugin"; }
+    
     public String toString()
     { return "Kin <- Image"; }
     

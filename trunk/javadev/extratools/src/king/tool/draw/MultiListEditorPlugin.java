@@ -325,23 +325,10 @@ public class MultiListEditorPlugin extends Plugin
 //{{{ getToolsMenuItem, getHelpAnchor, toString, onShowDialog
 //##################################################################################################
     public JMenuItem getToolsMenuItem()
-    {
-        return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onShowDialog"));
-    }
+    { return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onShowDialog")); }
     
-    /** Returns the URL of a web page explaining use of this tool */
-    public URL getHelpURL()
-    {
-        /*URL     url     = getClass().getResource("/extratools/tools-manual.html");
-        String  anchor  = getHelpAnchor();
-        if(url != null && anchor != null)
-        {
-            try { url = new URL(url, anchor); }
-            catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
-            return url;
-        }
-        else*/ return null;
-    }
+    public JMenuItem getHelpMenuItem()
+    { return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onHelp")); }
     
     public String getHelpAnchor()
     { return "#multi-list-edit-plugin"; }
