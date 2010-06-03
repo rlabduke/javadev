@@ -19,8 +19,6 @@ import chiropraxis.mc.SupKitchen;
 /**
 * <code>SupKitchenTool</code> is a graphical front-end for mc.SupKitchen.
 *
-* NEEDS GRAPHICAL VERSION OF RMSD STRAIGHT CUTOFF VS. LESK SIEVE!!!
-*
 * <p>Copyright (C) 2009 by Daniel A. Keedy. All rights reserved.
 * <br>Begun on Thu May 14 2009
 */
@@ -151,8 +149,8 @@ public class SupKitchenTool extends BasicTool
         tfPcScale = new JTextField("1.0");
         tfPcScale.setEditable(true);
         
-        rbDistort    = new JRadioButton("Allow PCs to distort bb geom"    , true );
-        rbRigidXform = new JRadioButton("Rigid xform onto PC-distorted bb", false);
+        rbRigidXform = new JRadioButton("Rigid xform onto PC-distorted bb", true );
+        rbDistort    = new JRadioButton("Allow PCs to distort bb geom"    , false);
         ButtonGroup btnGrpDistortOrRigidXform = new ButtonGroup();
         btnGrpDistortOrRigidXform.add(rbDistort);
         btnGrpDistortOrRigidXform.add(rbRigidXform);
@@ -248,9 +246,9 @@ public class SupKitchenTool extends BasicTool
         pane.endSubtable();
         pane.newRow();
         pane.startSubtable(1, 1).hfill(true).memorize(); // distort vs. rigid
-            pane.add(rbDistort);
-            pane.newRow();
             pane.add(rbRigidXform);
+            pane.newRow();
+            pane.add(rbDistort);
         pane.endSubtable();
         pane.newRow();
         pane.startSubtable(1, 1).hfill(true).memorize(); // PCA output
@@ -288,6 +286,7 @@ public class SupKitchenTool extends BasicTool
                 rbMdlFile.setSelected(false);
                 System.err.println("Set models dir: " + mdlDir.getName());
                 kitchen.setMdlFilename(mdlDir.getPath());
+                System.setProperty("user.dir", mdlDir.getParentFile().getAbsolutePath());
             }
             catch(IllegalArgumentException ex)
             {
@@ -325,6 +324,7 @@ public class SupKitchenTool extends BasicTool
                 rbMdlDir.setSelected(false);
                 System.err.println("Set models file: " + mdlFile.getName());
                 kitchen.setMdlFilename(mdlFile.getPath());
+                System.setProperty("user.dir", mdlFile.getAbsolutePath());
             }
             catch(IllegalArgumentException ex)
             {
@@ -357,6 +357,7 @@ public class SupKitchenTool extends BasicTool
                 tfRefFile.setText(refFile.getName());
                 System.err.println("Set ref file: " + refFile.getName());
                 kitchen.setRefFilename(refFile.getPath());
+                System.setProperty("user.dir", refFile.getAbsolutePath());
             }
             catch(IllegalArgumentException ex)
             {
@@ -374,6 +375,11 @@ public class SupKitchenTool extends BasicTool
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onSup(ActionEvent ev)
     {
+        JOptionPane.showMessageDialog(pane,
+            "Just a warning before your (slow) calculation gets started...",
+            "Sup Kitchen Tool is currently in the \"alpha test\" stage!",
+            JOptionPane.WARNING_MESSAGE);
+        
         if(tfMdlDir.getText().equals("none selected") && tfMdlFile.getText().equals("none selected"))
         {
             String error = "No models directory/file specified yet -- can't superpose!";
@@ -424,6 +430,11 @@ public class SupKitchenTool extends BasicTool
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onPca(ActionEvent ev)
     {
+        JOptionPane.showMessageDialog(pane,
+            "Just a warning before your (slow) calculation gets started...",
+            "Sup Kitchen Tool is currently in the \"alpha test\" stage!",
+            JOptionPane.WARNING_MESSAGE);
+        
         if(kitchen.getEnsemCoordFile() == null)
         {
             JOptionPane.showMessageDialog(null, "No ensemble constructed yet -- can't do PCA!", 
