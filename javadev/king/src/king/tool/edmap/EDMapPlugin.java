@@ -250,14 +250,19 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
   public void loadFileFromCmdline(ArrayList<File> files, ArrayList<String> args) {
       for (File f : files) {
         try {
-          if(mapFilter.accept(f))
+          if (mapFilter.accept(f)) { // needed to filter files that could get passed to this which aren't maps
             if (kMain.getKinemage() != null) {
-              openMapFile(f);
+              if(ccp4Filter.accept(f)) {
+                openMapFile(f, MAPTYPE_CCP4); //auto opens ccp4 maps, for more seemless integration with phenix
+              } else {
+                openMapFile(f);
+              }
             } else {
               JOptionPane.showMessageDialog(kMain.getTopWindow(),
 					      "In order to run KiNG with a map from cmdline,\n you must also give a kin or PDB file!",
 					      "Sorry!", JOptionPane.ERROR_MESSAGE);
             }
+          }
         } catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
       }
       
@@ -372,11 +377,18 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
         }
     }
 
-    void openMapFile(File f) throws IOException
+    void openMapFile(File f) throws IOException {
+      if(f != null && f.exists()) {
+        openMapFile(f, askMapFormat(f.getName()));
+      }
+    }
+    
+    void openMapFile(File f, String choice) throws IOException
     {
         if(f != null && f.exists())
         {
-            String choice = askMapFormat(f.getName());
+            //String choice = askMapFormat(f.getName());  moved this to separate function to allow for auto opening of maps
+            //                                            from cmdline; for more seemless phenix integration
             CrystalVertexSource map;
 
             if(MAPTYPE_O.equals(choice))
