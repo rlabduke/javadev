@@ -43,7 +43,6 @@ public class MultiListEditorPlugin extends Plugin
     public MultiListEditorPlugin(ToolBox tb)
     {
         super(tb);
-        buildGUI();
     }
 //}}}
 
@@ -204,6 +203,27 @@ public class MultiListEditorPlugin extends Plugin
     }
 //}}}
 
+//{{{ onShowDialog
+//##############################################################################
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onShowDialog(ActionEvent ev)
+    {
+        buildGUI();
+        dialog.pack();
+        Container w = kMain.getContentContainer();
+        if(w != null)
+        {
+            Point p = w.getLocation();
+            Dimension dimDlg = dialog.getSize();
+            Dimension dimWin = w.getSize();
+            p.x += dimWin.width - (dimDlg.width / 2) ;
+            p.y += (dimWin.height - dimDlg.height) / 2;
+            dialog.setLocation(p);
+        }
+        dialog.setVisible(true);
+    }
+//}}}
+
 //{{{ getLists
 //##############################################################################
     public ArrayList<KList> getLists()
@@ -322,7 +342,7 @@ public class MultiListEditorPlugin extends Plugin
     }
 //}}}
 
-//{{{ getToolsMenuItem, getHelpAnchor, toString, onShowDialog
+//{{{ getToolsMenuItem, getHelpAnchor, toString
 //##################################################################################################
     public JMenuItem getToolsMenuItem()
     { return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onShowDialog")); }
@@ -335,13 +355,6 @@ public class MultiListEditorPlugin extends Plugin
 
     public String toString()
     { return "Multi-list editor"; }
-    
-    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onShowDialog(ActionEvent ev)
-    {
-        dialog.pack();
-        dialog.setVisible(true);
-    }
 //}}}
 
 //{{{ empty_code_segment
