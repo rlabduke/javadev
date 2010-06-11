@@ -80,7 +80,16 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         buildGUI();
         
         dialog.pack();
-        dialog.setLocationRelativeTo(kMain.getTopWindow());
+        Container w = kMain.getContentContainer();
+        if(w != null)
+        {
+          Point p = w.getLocation();
+          Dimension dimDlg = dialog.getSize();
+          Dimension dimWin = w.getSize();
+          p.x += dimWin.width - (dimDlg.width / 2) ;
+          p.y += (dimWin.height - dimDlg.height) / 2;
+          dialog.setLocation(p);
+        }
         dialog.setVisible(true);
     }
 //}}}
@@ -164,6 +173,8 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         JMenuItem item;
         
         menu = new JMenu("Presets");
+        menu.setIcon(kMain.getPrefs().basicDownIcon);
+        menu.setHorizontalTextPosition(AbstractButton.LEADING);
         menu.setMnemonic(KeyEvent.VK_P);
         menubar.add(menu);
         item = new JMenuItem(new ReflectiveAction("2Fo - Fc", null, this, "on2FoFc"));
@@ -173,6 +184,14 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         item = new JMenuItem(new ReflectiveAction("Fo - Fc", null, this, "onFoFc"));
         item.setMnemonic(KeyEvent.VK_1);
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, KingMain.MENU_ACCEL_MASK));
+        menu.add(item);
+        item = new JMenuItem(new ReflectiveAction("Coot 2Fo - Fc", null, this, "onCoot2FoFc"));
+        item.setMnemonic(KeyEvent.VK_4);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_4, KingMain.MENU_ACCEL_MASK));
+        menu.add(item);
+        item = new JMenuItem(new ReflectiveAction("Coot Fo - Fc", null, this, "onCootFoFc"));
+        item.setMnemonic(KeyEvent.VK_3);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, KingMain.MENU_ACCEL_MASK));
         menu.add(item);
         
         if (kMain.getPrefs().getBoolean("minimizableTools")) {
@@ -188,7 +207,6 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
           dial.setJMenuBar(menubar);
           dialog = dial;
         }
-
     }
 //}}}
 
@@ -361,6 +379,30 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         slider2.setValue( 35); // +3.5
         color1.setSelectedItem(KPalette.orange);
         color2.setSelectedItem(KPalette.sky);
+        label1.setSelected(true);
+        label2.setSelected(true);
+        
+        updateMesh();
+        kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
+    }
+    
+    public void onCoot2FoFc(ActionEvent ev)
+    {
+        slider1.setValue(12); // +1.2
+        slider2.setValue(30); // +3.0
+        color1.setSelectedItem(KPalette.sky);
+        color2.setSelectedItem(KPalette.purple);
+        
+        updateMesh();
+        kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
+    }
+    
+    public void onCootFoFc(ActionEvent ev)
+    {
+        slider1.setValue(-35); // -3.5
+        slider2.setValue( 35); // +3.5
+        color1.setSelectedItem(KPalette.red);
+        color2.setSelectedItem(KPalette.green);
         label1.setSelected(true);
         label2.setSelected(true);
         

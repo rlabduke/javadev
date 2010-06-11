@@ -54,6 +54,8 @@ public class KingPrefs extends Props // implements ...
     public Icon moveUpIcon;
     /** The icon for move-down type actions */
     public Icon moveDownIcon;
+    /** An basic icon for down. Made by VBC for edensity menu */
+    public Icon basicDownIcon;
     /** The icon for add/new actions (paper+) */
     public Icon addIcon;
     /** The icon for cut actions (scissors) */
@@ -110,6 +112,7 @@ public class KingPrefs extends Props // implements ...
         stepForwardIcon     = new ImageIcon(getClass().getResource("images/StepForward16.gif"));
         moveUpIcon          = new ImageIcon(getClass().getResource("images/Up16.gif"));
         moveDownIcon        = new ImageIcon(getClass().getResource("images/Down16.gif"));
+        basicDownIcon       = new ImageIcon(getClass().getResource("images/DownBasic.gif"));
         addIcon             = new ImageIcon(getClass().getResource("images/Add16.gif"));
         cutIcon             = new ImageIcon(getClass().getResource("images/Cut16.gif"));
         copyIcon            = new ImageIcon(getClass().getResource("images/Copy16.gif"));
