@@ -131,6 +131,7 @@ public class DrawingTool extends BasicTool
     JCheckBox       cbLabelIsID;
     JTextField      tfNumDots;
     JTextField      tfArcDegrees, tfArcShorten;
+    JTextField      cmPointText;
     JCheckBox       cbArcArrowhead;
     JTextField      tfTriangleSize;
     JTextField      tfCropRadius;
@@ -219,12 +220,17 @@ public class DrawingTool extends BasicTool
         cmPaintMode.setSelectedItem(PAINT_CYLINDER);
         cmPointPaint = new JComboBox(KPalette.getStandardMap().values().toArray());
         cmPointPaint.setSelectedItem(KPalette.green);
+        cmPointText = new JTextField();
         TablePane2 tpPaintPts = new TablePane2();
         tpPaintPts.addCell(new JLabel("Use color:"));
         tpPaintPts.hfill(true).addCell(cmPointPaint);
         tpPaintPts.newRow();
         tpPaintPts.addCell(new JLabel("Selection:"));
         tpPaintPts.hfill(true).addCell(cmPaintMode);
+        tpPaintPts.newRow();
+        tpPaintPts.addCell(new JLabel("Contains text:"));
+        tpPaintPts.hfill(true).addCell(cmPointText);
+        
         FoldingBox fbPaintPts = new FoldingBox(rbPaintPoints, tpPaintPts);
         fbPaintPts.setAutoPack(true);
         fbPaintPts.setIndent(10);
@@ -589,7 +595,12 @@ public class DrawingTool extends BasicTool
         for(Iterator iter = points.iterator(); iter.hasNext(); )
         {
             p = (KPoint) iter.next();
-            p.setColor(paintColor);
+            if ((cmPointText.getText() == null)||(cmPointText.getText().equals(""))) {
+              p.setColor(paintColor);
+            } else {
+              if (p.getName().indexOf(cmPointText.getText())>-1) 
+                p.setColor(paintColor);
+            }
         }
     }
 //}}}
