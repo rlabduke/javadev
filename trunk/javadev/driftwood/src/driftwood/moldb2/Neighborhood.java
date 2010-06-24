@@ -36,7 +36,7 @@ public class Neighborhood //extends ... implements ...
     /**
     * Creates a structural neighborhood containing the specified central residue
     * plus all residues within a specified number of residues along the sequence.
-    * @param res the central residue of the structural neighborhood
+    * @param cen the central residue of the structural neighborhood
     * @param model a model containing the central residue
     * @param nPrev number of residues to include backwards (N-ward)
     * @param nNext number of residues to include forwards (C-ward)
@@ -54,7 +54,7 @@ public class Neighborhood //extends ... implements ...
     /**
     * Creates a structural neighborhood containing the specified central residue
     * plus all residues within a specified distance (including sidechain atoms).
-    * @param res the central residue of the structural neighborhood
+    * @param cen the central residue of the structural neighborhood
     * @param model a model containing the central residue
     * @param dist maximum allowed distance from the central residue
     */
@@ -104,100 +104,6 @@ public class Neighborhood //extends ... implements ...
     }
 //}}}
 
-// OLD...
-////{{{ getStretch
-////##################################################################################################
-//    /**
-//    * Returns all residues within a specified number of residues along the chain
-//    * in each direction from the central residue, <b>including</b> the central 
-//    * residue.
-//    * @param res the central residue of the structural neighborhood
-//    * @param model a model containing the central residue
-//    * @param dist maximum allowed distance from the central residue
-//    */
-//    public static ArrayList<Residue> getStretch(Residue res, Model model, double dist)
-//    {
-//        //if(res == null) throw new NullPointerException("Must provide a non-null residue");
-//        //if(model == null) throw new NullPointerException("Must provide a non-null model");
-//        
-//        ArrayList<Residue> stretch = new ArrayList<Residue>();
-//        for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
-//        {
-//            ???
-//        }
-//        return stretch;
-//    }
-////}}}
-//
-////{{{ getAllWithin
-////##################################################################################################
-//    /**
-//    * Returns all residues within a specified distance of the central residue 
-//    * in sequence order, <b>including</b> the central residue.
-//    * @param res the central residue of the structural neighborhood
-//    * @param model a model containing the central residue
-//    * @param dist maximum allowed distance from the central residue
-//    */
-//    public static ArrayList<Residue> getAllWithin(Residue res, Model model, double dist)
-//    {
-//        //if(res == null) throw new NullPointerException("Must provide a non-null residue");
-//        //if(model == null) throw new NullPointerException("Must provide a non-null model");
-//        
-//        ArrayList<Residue> neighbors = new ArrayList<Residue>();
-//        for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
-//        {
-//            Residue oth = (Residue) iter.next();
-//            try
-//            {
-//                if(areWithin(res, oth, dist) && !res.equals(oth))
-//                    neighbors.add(oth);
-//            }
-//            catch(AtomException ex)
-//            {
-//                System.err.println("error determining if "+res+" and "
-//                    +oth+" are within "+dist+"A of each other");
-//            }
-//        }
-//        Collections.sort(neighbors);
-//        return neighbors;
-//    }
-////}}}
-//
-////{{{ getOthersWithin
-////##################################################################################################
-//    /**
-//    * Returns all residues within a specified distance of the central residue 
-//    * in sequence order, <b>excluding</b> the central residue.
-//    * @param res the central residue of the structural neighborhood
-//    * @param model a model containing the central residue
-//    * @param dist maximum allowed distance from the central residue
-//    */
-//    public static ArrayList<Residue> getOthersWithin(Residue res, Model model, double dist)
-//    {
-//        //if(res == null) throw new NullPointerException("Must provide a non-null residue");
-//        //if(model == null) throw new NullPointerException("Must provide a non-null model");
-//        
-//        ArrayList<Residue> neighbors = new ArrayList<Residue>();
-//        for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
-//        {
-//            Residue oth = (Residue) iter.next();
-//            try
-//            {
-//                if(areWithin(res, oth, dist))
-//                    neighbors.add(oth);
-//            }
-//            catch(AtomException ex)
-//            {
-//                System.err.println("error determining if "+res+" and "
-//                    +oth+" are within "+dist+"A of each other");
-//            }
-//        }
-//        Collections.sort(neighbors);
-//        return neighbors;
-//    }
-////}}}
-// ...OLD
-
 ////{{{ areWithin
 //##############################################################################
     /**
@@ -219,21 +125,5 @@ public class Neighborhood //extends ... implements ...
         }
         return false;
     }
-//}}}
-
-//{{{ assignWeights
-//##############################################################################
-//    /**
-//    * Assigns weights to the residues in local structural neighborhood 
-//    * based on __?__ (inversely proportional to distance?), 
-//    * which could be used for various averaging procedures.
-//    */
-//    public HashMap<Residue,Double> assignWeights()
-//    {
-//        HashMap<Residue,Double> weights = new HashMap<Residue,Double>();
-//        
-//        __?__
-//        
-//    }
 //}}}
 }//class
