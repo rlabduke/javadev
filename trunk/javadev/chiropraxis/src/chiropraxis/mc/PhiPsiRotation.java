@@ -91,10 +91,8 @@ public class PhiPsiRotation //extends ... implements ...
 //{{{ makeConformation
 //##################################################################################################
     /**
-    * Rotates a collection of residues (as from
-    * {@link #makeMobileGroup(Model, Residue, boolean)} or
-    * {@link #makeMobileGroup(Model, Residue, boolean, int)})
-    * by theta degrees around either phi or psi.
+    * Rotates a collection of residues by theta degrees 
+    * around either phi or psi.
     * @throws AtomException if the state is missing a state definition
     *   for any of the mobile atoms.
     */

@@ -31,12 +31,33 @@ public class LocalRotarama //extends ... implements ...
                                   +"LEU LYS MET PHE PRO SER THR TRP TYR VAL";
 //}}}
 
+//{{{ CLASS: SimpleResAligner
+//##############################################################################
+    public static class SimpleResAligner implements Alignment.Scorer
+    {
+        // High is good, low is bad.
+        public double score(Object a, Object b)
+        {
+            Residue r = (Residue) a;
+            Residue s = (Residue) b;
+            if(r.getName().equals(s.getName()))
+                return 4;   // match
+            else
+                return -1;   // mismatch
+        }
+        
+        public double open_gap(Object a) { return -8; }
+        public double extend_gap(Object a) { return -2; }
+    }
+//}}}
+
 //{{{ Variable definitions
 //##############################################################################
     private boolean  verbose = false;
     private String   mode = AVERAGES;
-    private String   filename;
-    private Model    model;
+    private String   filename, filenameRef;
+    private Model    model, modelRef;
+    private int      nPrev = 2, nNext = 2;
 //}}}
 
 //{{{ Constructor(s)
@@ -51,21 +72,24 @@ public class LocalRotarama //extends ... implements ...
 //##############################################################################
     private void printKinColoredByScore() throws IOException
     {
-        HashMap<Residue,Double> rota = new Rotalyze().getEvals(model);
-        HashMap<Residue,Double> rama = new Ramalyze().getEvals(model);
-        
         BallAndStickLogic bsl = new BallAndStickLogic();
         bsl.doProtein    = true;
         bsl.doMainchain  = true;
         bsl.doSidechains = true;
         bsl.colorBy = BallAndStickLogic.COLOR_BY_ROTARAMA;
-        bsl.rota = rota;
-        bsl.rama = rama;
+        bsl.rota = getRotaScores();
+        bsl.rama = getRamaScores();
         
         String title = "";
         ModelState state = model.getState();
         if(state != null && state.getName().length() >= 4)
             title += state.getName().substring(0,4).toLowerCase()+" ";
+        if(modelRef != null)
+        {
+            ModelState stateRef = modelRef.getState();
+            if(stateRef != null && stateRef.getName().length() >= 4)
+                title += " vs. "+stateRef.getName().substring(0,4).toLowerCase()+" ";
+        }
         title += "rotarama";
         System.out.println("@kinemage {"+title+"}");
         System.out.println("@group {"+title+"} dominant");
@@ -90,6 +114,9 @@ public class LocalRotarama //extends ... implements ...
 //##############################################################################
     private void printAverageLocalScores() throws IOException
     {
+        // XXX-TODO: normalization vs. ref!
+        if(modelRef != null) System.exit(1);
+        
         System.out.println("res\tnearby\tscored\trota\trama\tavg");
         for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
         {
@@ -100,20 +127,87 @@ public class LocalRotarama //extends ... implements ...
                 // Re-rota/ramalyzes each time, but the cost in time is only 
                 // ~20%, and it's nice and simple to have only one calcLocalScore() 
                 // method which conveniently is accessible to the outside world.
-                int    nn = new Neighborhood(res, model, 2, 2).getMembers().size();
+                int    nn = new Neighborhood(res, model, nPrev, nNext).getMembers().size();
                 int    nr = calcLocalNumScored(res, model);
                 double ro = calcLocalScore(res, model, this.ROTA);
                 double ra = calcLocalScore(res, model, this.RAMA);
                 double av = 0.5 * (ro + ra);
                 
-                //System.out.println(res.nickname()+"\t"+nn+"\t"+nr+"\t"
-                //    +df.format(ro)+"\t"+df.format(ra)+"\t"+df.format(av));
                 System.out.println(res+","+nn+","+nr+","
                     +df.format(ro)+","+df.format(ra)+","+df.format(av));
             }
             catch(IllegalArgumentException ex)
             { System.err.println("bad local score type for "+res); }
         }
+    }
+//}}}
+
+//{{{ get(Rota/Rama)Scores
+//##############################################################################
+    private HashMap<Residue,Double> getRotaScores() throws IOException
+    {
+        HashMap<Residue,Double> rota = new Rotalyze().getEvals(model);
+        if(modelRef == null) return rota;
+        HashMap<Residue,Double> rotaRef = new Rotalyze().getEvals(modelRef);
+        return normalizeScores(model, rota, modelRef, rotaRef);
+    }
+
+    private HashMap<Residue,Double> getRamaScores() throws IOException
+    {
+        HashMap<Residue,Double> rama = new Ramalyze().getEvals(model);
+        if(modelRef == null) return rama;
+        HashMap<Residue,Double> ramaRef = new Ramalyze().getEvals(modelRef);
+        return normalizeScores(model, rama, modelRef, ramaRef);
+    }
+
+    /**
+    * Subtracts reference scores from primary model scores so scores reflect 
+    * difference relative to reference.
+    * Shows which areas are more or less rotameric for different models 
+    * of the same protein.
+    */
+    private HashMap<Residue,Double> normalizeScores(Model m1, HashMap<Residue,Double> r1, Model m2, HashMap<Residue,Double> r2)
+    {
+        Alignment align = Alignment.needlemanWunsch(
+            m1.getResidues().toArray(), m2.getResidues().toArray(), new SimpleResAligner());
+        if(verbose)
+        {
+            System.err.println("Residue alignments:");
+            for(int i = 0; i < align.a.length; i++)
+                System.err.println("  "+align.a[i]+" <==> "+align.b[i]);
+            System.err.println();
+        }
+        
+        for(int i = 0; i < align.a.length; i++)
+        {
+            Residue ali1 = (Residue) align.a[i], ali2 = (Residue) align.b[i];
+            if(ali1 == null || aaNames.indexOf(ali1.getName()) == -1 
+            || ali1.getName().equals("GLY") || ali1.getName().equals("ALA"))  continue;
+            
+            Residue res1 = null, res2 = null;
+            for(Iterator iter = r1.keySet().iterator(); iter.hasNext(); )
+            {
+                Residue res = (Residue) iter.next();
+                if(res.getCNIT().equals(ali1.getCNIT()))  res1 = res;
+            }
+            for(Iterator iter = r2.keySet().iterator(); iter.hasNext(); )
+            {
+                Residue res = (Residue) iter.next();
+                if(res.getCNIT().equals(ali2.getCNIT()))  res2 = res;
+            }
+            
+            if(res1 == null || res2 == null) // can't normalize - remove residue
+            {
+                r1.remove(res1);
+            }
+            else // can actually normalize
+            {
+                double scoreDiff = r1.get(res1) - r2.get(res2);
+                r1.put(res1, scoreDiff);
+            }
+        }
+        
+        return r1;
     }
 //}}}
 
@@ -187,14 +281,36 @@ public class LocalRotarama //extends ... implements ...
         }
         try
         {
+            // Model of primary interest
             File file = new File(filename);
-            if(file.isDirectory()) return; // skip nested directories
+            if(file.isDirectory())
+            {
+                System.err.println(file+" is a directory, silly goose!");
+                return;
+            }
             CoordinateFile coords = new PdbReader().read(file);
             this.model = coords.getFirstModel();
-            
             String[] parts = Strings.explode(file.getName(), '/');
             String filename = parts[parts.length-1];
-            System.err.println(mode+" for "+filename);
+            
+            // Reference model for "normalizing" scores of primary model (opt'l)
+            if(filenameRef != null)
+            {
+                File fileRef = new File(filenameRef);
+                if(fileRef.isDirectory())
+                {
+                    System.err.println(fileRef+" is a directory, silly goose!");
+                    return;
+                }
+                CoordinateFile coordsRef = new PdbReader().read(fileRef);
+                this.modelRef = coordsRef.getFirstModel();
+                String[] partsRef = Strings.explode(fileRef.getName(), '/');
+                String filenameRef = partsRef[partsRef.length-1];
+            }
+            
+            if(filenameRef == null) System.err.println(mode+" for "+filename);
+            else System.err.println(mode+" for "+filename+" relative to "+filenameRef);
+            
             try
             {
                 if     (mode.equals(KINEMAGE)) printKinColoredByScore();
@@ -351,6 +467,7 @@ public class LocalRotarama //extends ... implements ...
     {
         // Handle files, etc. here
         if(filename == null) filename = arg;
+        else if(filenameRef == null) filenameRef = arg;
         else
         {
             showHelp(true);
@@ -376,6 +493,20 @@ public class LocalRotarama //extends ... implements ...
         else if(flag.equals("-avg") || flag.equals("-a"))
         {
             mode = AVERAGES;
+        }
+        else if(flag.equals("-n"))
+        {
+            try
+            {
+                String[] parts = Strings.explode(param, ',');
+                nPrev = Integer.parseInt(parts[0]);
+                nNext = Integer.parseInt(parts[1]);
+            }
+            catch(NumberFormatException ex)
+            {
+                System.err.println("Proper use of flag: -n=#,# "+
+                    "(#s of residues N-ward and C-ward to include for averaging)");
+            }
         }
         else if(flag.equals("-dummy_option"))
         {

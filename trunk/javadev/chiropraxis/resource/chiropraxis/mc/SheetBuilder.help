@@ -2,25 +2,25 @@
 Usage:
     java chiropraxis.mc.SheetBuilder [-flags] file.pdb [> output.kin]
 
-SHEETBUILDER is an aid for finding beta sheets in PDB files and reporting
-certain information about parts of them (e.g. aromatics hanging over Gly vs.
-other residue types in antiparallel sheet) that may comprise evidence for 
-backrubs.
+SHEETBUILDER is an aid for finding beta sheets in PDB files.  It can also report
+certain information about parts of them.  For example, it can find aromatics 
+hanging over Gly vs. other residue types in antiparallel sheet, which may 
+undergo backrubs.
 
 Options:
     -kin
-	Outputs a kinemage format visualization of helices and (opt'l) N caps.
-	Off by default.
+        Outputs a kinemage format visualization of sheets and (opt'l) specific
+        aromatic residues.  On by default.
+    -csv
+        Outputs sheet stats by default, or beta arom stats if -betaarom is used,
+        in csv format.
     -betaarom
-	Looks for Phe/His/Tyr/Thr in antiparallel sheet that meets certain reqs.
+        Looks for Phe/His/Tyr/Thr in antiparallel sheet that meets certain reqs.
     -oppres=AAA[,BBB,...]
         Considers only aromatics hanging over the indicated residue type(s).
-	To be used alongside -betaarom.
-    -notoppres=AAA[,BBB,...]
-        Considers only aromatics NOT hanging over the indicated residue type(s).
-	To be used alongside -betaarom.
-    -verbose || -v
-	Prints extra information you probably don't even wanna know...
-    -help || -h
+        To be used alongside -betaarom.
+    -v[erbose]
+        Prints extra information you probably don't even wanna know...
+    -h[elp]
         Shows what you're reading now.
 
