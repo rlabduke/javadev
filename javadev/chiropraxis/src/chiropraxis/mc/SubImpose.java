@@ -64,9 +64,9 @@ public class SubImpose //extends ... implements ...
 //{{{ CLASS: SimpleNonWaterResAligner
 //##############################################################################
     /**
-    * Extends SimpleResAligner by not penalizing water-anything residue pairings, 
+    * Extends SimpleResAligner by penalizing water-anything residue pairings, 
     * which in my experience often screwed up alignments and thereby prevented 
-    * superpositions that were anywhere close to reasonable. (DAK 090824)
+    * superpositions that were anywhere close to reasonable. - DAK 090824
     */
     public static class SimpleNonWaterResAligner extends SimpleResAligner
     {
@@ -559,6 +559,7 @@ public class SubImpose //extends ... implements ...
             {
                 System.err.println("No further output b/c RMSD="+
                     df.format(superpos.calcRMSD(R))+" > cutoff="+rmsdCutoff);
+                atoms = null; // signal to Main()
                 return;
             }
             else System.err.println("Proceeding with output b/c RMSD="+
