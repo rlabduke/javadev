@@ -177,7 +177,7 @@ public class RenderExport extends Plugin {
       int alpha = list.getAlpha();
       if ((alpha < 255)&&(alpha > 0)) {
         out.write("8 \n");
-        out.write("25.0 0.25   -1 -1 -1 "+df.format((double)alpha/255.0)+" 0 0 0 0 \n");
+        out.write("25.0 0.25   -1 -1 -1 "+df.format(1-(double)alpha/255.0)+" 0 0 0 0 \n");
       }
       String type = list.getType();
       if (type.equals(KList.VECTOR))        out.write(renderVector(list));
@@ -224,7 +224,7 @@ public class RenderExport extends Plugin {
           KPoint end = drawnPoints.get(prev);
           render = render + "3 \n";
           render = render + df.format(prev.getDrawX())+" "+df.format(prev.getDrawY())+" "+df.format(prev.getDrawZ())+" ";
-          render = render /*+ df.format(list.getWidth())*/+"1.500 ";
+          render = render + df.format(list.getWidth())+" "/*+"1.500 "*/;
           render = render + df.format(pt.getDrawX())+" "+df.format(pt.getDrawY())+" "+df.format(pt.getDrawZ())+" ";
           render = render + "1.000 ";
           render = render + convertColor(pt.getDrawingColor(eng))+"\n";
@@ -326,7 +326,9 @@ public class RenderExport extends Plugin {
   
   //{{{ convertColor
   public String convertColor(KPaint color) {
-    Color hsv = color.getBlackExemplar();
+    Color hsv;
+    if (kMain.getKinemage().atWhitebackground == false) hsv = color.getBlackExemplar();
+    else hsv = color.getWhiteExemplar();
     String rgbString = df.format((float)hsv.getRed()/255)+" "+df.format((float)hsv.getGreen()/255)+" "+df.format((float)hsv.getBlue()/255);
     return rgbString;
   }

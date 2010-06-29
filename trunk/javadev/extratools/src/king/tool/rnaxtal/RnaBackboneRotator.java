@@ -662,6 +662,8 @@ public void getSuperposeAtoms() {
     */
     public ModelState updateModelState(ModelState s)
     {
+      long startTime = System.currentTimeMillis();
+
       ModelState ret = s;
       //if (changePuckerState != null) {
       //  ret = changePuckerState;
@@ -719,7 +721,10 @@ public void getSuperposeAtoms() {
         } catch (AtomException ae) {
           ae.printStackTrace(SoftLog.err);
         }
-        return ret;            
+        long endTime = System.currentTimeMillis();
+        System.out.println("Total Time to update modelstate: " + ((endTime-startTime)) + " milliseconds");
+        
+        return ret;
     }
 //}}}
 
