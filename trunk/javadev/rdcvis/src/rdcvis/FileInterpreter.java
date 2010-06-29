@@ -126,7 +126,9 @@ public class FileInterpreter {
     atomsToRdcs.put(atomVects, rdcValues);
     return atomsToRdcs;
   }
+  //}}}
   
+  //{{{ makeSolver
   public RdcSolver makeSolver(ArrayList atomVects, ArrayList rdcValues) {
     // make matrices
     if (atomVects.size() != rdcValues.size()) {
