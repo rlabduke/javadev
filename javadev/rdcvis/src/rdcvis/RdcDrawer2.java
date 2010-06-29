@@ -34,6 +34,8 @@ public class RdcDrawer2 {
   //{{{ Constructor
   public RdcDrawer2(Matrix saupeDiag, Matrix eigV) {
     Matrix newV = sortEig(saupeDiag, eigV);
+    //saupeDiag.print(3, 3);
+    //eigV.print(3, 3);
     matV = rightHandCoord(newV);
     calcVariables();
   }
@@ -41,6 +43,10 @@ public class RdcDrawer2 {
   
   //{{{ drawCurve
   public void drawCurve(double rdcVal, Tuple3 center, Triple modelVect, double r, int numPoints, double backcalcRdc, KList list, String text, double error) {
+    drawCurve(rdcVal, center, modelVect, r, numPoints, backcalcRdc, list, text, error, null);
+  }
+  
+  public void drawCurve(double rdcVal, Tuple3 center, Triple modelVect, double r, int numPoints, double backcalcRdc, KList list, String text, double error, KPaint color) {
     VectorPoint old = null;
     VectorPoint negOld = null;
     ArrayList<KPoint> posPoints = new ArrayList<KPoint>();
@@ -62,7 +68,7 @@ public class RdcDrawer2 {
         y = b * Math.sin(tau);
         z = Math.sqrt(r - Math.pow(x, 2) - Math.pow(y, 2));
       } else {
-        System.out.println("RDC value not in range!");
+        System.out.println("RDC value ("+rdcVal+") not in range ("+sxx+"-"+szz+")!");
         //a = Double.NaN;
         //return;
       }
@@ -74,30 +80,38 @@ public class RdcDrawer2 {
         Matrix adjFrame = matV.times(changeBase);
         adjFrame.timesEquals(r);
         VectorPoint point = new VectorPoint("Pos " + text, old);
-        point.setXYZ(adjFrame.get(0, 0)+center.getX(), adjFrame.get(1, 0)+center.getY(), adjFrame.get(2, 0)+center.getZ());      
-        if (modelVect != null) {
-          double dist = modelVect.distance(new Triple(adjFrame.get(0, 0), adjFrame.get(1, 0), adjFrame.get(2, 0)));
-          if (dist < 0.1) list.setColor(KPalette.green);
-          else if ((dist < 0.5)&&(!list.getColor().equals(KPalette.green))) list.setColor(KPalette.orange);
-        }// else {
+        point.setXYZ(adjFrame.get(0, 0)+center.getX(), adjFrame.get(1, 0)+center.getY(), adjFrame.get(2, 0)+center.getZ());
+        if (color == null) {
+          if (modelVect != null) {
+            double dist = modelVect.distance(new Triple(adjFrame.get(0, 0), adjFrame.get(1, 0), adjFrame.get(2, 0)));
+            if (dist < 0.1) list.setColor(KPalette.green);
+            else if ((dist < 0.5)&&(!list.getColor().equals(KPalette.green))) list.setColor(KPalette.orange);
+          }// else {
           if (Math.abs(rdcVal - backcalcRdc) < error) point.setColor(KPalette.greentint);
           else if (Math.abs(rdcVal - backcalcRdc) < 2*error) point.setColor(KPalette.orange);
           else point.setColor(KPalette.hotpink);
-        //}
+          //}
+        } else {
+          point.setColor(color);
+        }
         posPoints.add(point);
         old = point;
         VectorPoint negPoint = new VectorPoint("Neg " + text, negOld);
         negPoint.setXYZ(-adjFrame.get(0, 0)+center.getX(), -adjFrame.get(1, 0)+center.getY(), -adjFrame.get(2, 0)+center.getZ());      
-        if (modelVect != null) {
-          double dist = modelVect.distance(new Triple(-adjFrame.get(0, 0), -adjFrame.get(1, 0), -adjFrame.get(2, 0)));
-          if (dist < 0.1) list.setColor(KPalette.green);
-          else if ((dist < 0.5)&&(!list.getColor().equals(KPalette.green))) list.setColor(KPalette.orange);
-          //else negPoint.setColor(KPalette.hotpink);
-        }// else {
+        if (color == null) {
+          if (modelVect != null) {
+            double dist = modelVect.distance(new Triple(-adjFrame.get(0, 0), -adjFrame.get(1, 0), -adjFrame.get(2, 0)));
+            if (dist < 0.1) list.setColor(KPalette.green);
+            else if ((dist < 0.5)&&(!list.getColor().equals(KPalette.green))) list.setColor(KPalette.orange);
+            //else negPoint.setColor(KPalette.hotpink);
+          }// else {
           if (Math.abs(rdcVal - backcalcRdc) < error) negPoint.setColor(KPalette.greentint);
           else if (Math.abs(rdcVal - backcalcRdc) < 2*error) negPoint.setColor(KPalette.orange);
           else negPoint.setColor(KPalette.hotpink);
-        //}
+          //}
+        } else {
+          negPoint.setColor(color);
+        }
         negPoints.add(negPoint);
         negOld = negPoint;
       }
@@ -284,7 +298,7 @@ public class RdcDrawer2 {
     sxx = saupeD.get(0, 0);
     syy = saupeD.get(1, 0);
     szz = saupeD.get(2, 0);
-    System.out.println("Sxx: "+sxx+" Syy: "+syy+" Szz: "+ szz);
+    //System.out.println("Sxx: "+sxx+" Syy: "+syy+" Szz: "+ szz);
     double scale = Math.max(Math.max(Math.abs(sxx), Math.abs(syy)), Math.abs(szz));
     Triple xAxis = new Triple(matV.get(0, 0), matV.get(1, 0), matV.get(2, 0));
     Triple yAxis = new Triple(matV.get(0, 1), matV.get(1, 1), matV.get(2, 1));
