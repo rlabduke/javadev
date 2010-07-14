@@ -165,27 +165,29 @@ public class PdbFileAnalyzer {
     ArrayList<ProteinGap> gaps = new ArrayList<ProteinGap>();
     for (Residue res : chainofRes) {
       int seqNum = res.getSequenceInteger();
-      if (seqNum > prevSeq + 1) {
-        ArrayList<Residue> paramRes = new ArrayList<Residue>();
-        Residue oneRes = (Residue) uberChainSet.itemBefore(res);
-        Residue zeroRes = (Residue) uberChainSet.itemBefore(oneRes);
-        while (!containsCaO(zeroRes)&&!containsCa(oneRes)) {
-          oneRes = (Residue) uberChainSet.itemBefore(oneRes);
-          zeroRes = (Residue) uberChainSet.itemBefore(oneRes);
+      if (hasProteinBB(res)) { // hopefully get around bug when waters in chain
+        if (seqNum > prevSeq + 1) {
+          ArrayList<Residue> paramRes = new ArrayList<Residue>();
+          Residue oneRes = (Residue) uberChainSet.itemBefore(res);
+          Residue zeroRes = (Residue) uberChainSet.itemBefore(oneRes);
+          while (!containsCaO(zeroRes)&&!containsCa(oneRes)) {
+            oneRes = (Residue) uberChainSet.itemBefore(oneRes);
+            zeroRes = (Residue) uberChainSet.itemBefore(oneRes);
+          }
+          Residue nRes = res;
+          Residue n1Res = (Residue) uberChainSet.itemAfter(nRes);
+          while (!containsCaO(nRes)&&!containsCa(n1Res)) {
+            nRes = (Residue) uberChainSet.itemAfter(nRes);
+            n1Res = (Residue) uberChainSet.itemAfter(nRes);
+          }
+          ProteinGap gap = new ProteinGap(mod, chainId, zeroRes, oneRes, nRes, n1Res);
+          //paramRes.add(zeroRes);
+          //paramRes.add(oneRes);
+          //paramRes.add(nRes);
+          //paramRes.add(n1Res);
+          //gapMap.put(new Integer(prevSeq), paramRes);
+          gaps.add(gap);
         }
-        Residue nRes = res;
-        Residue n1Res = (Residue) uberChainSet.itemAfter(nRes);
-        while (!containsCaO(nRes)&&!containsCa(n1Res)) {
-          nRes = (Residue) uberChainSet.itemAfter(nRes);
-          n1Res = (Residue) uberChainSet.itemAfter(nRes);
-        }
-        ProteinGap gap = new ProteinGap(mod, chainId, zeroRes, oneRes, nRes, n1Res);
-        //paramRes.add(zeroRes);
-        //paramRes.add(oneRes);
-        //paramRes.add(nRes);
-        //paramRes.add(n1Res);
-        //gapMap.put(new Integer(prevSeq), paramRes);
-        gaps.add(gap);
       }
       prevSeq = seqNum;
     }
@@ -314,6 +316,13 @@ public class PdbFileAnalyzer {
   public boolean containsCa(Residue res) {
     if (res == null) return false;
     return (res.getAtom(" CA ")!=null);
+  }
+  //}}}
+  
+  //{{{ hasProteinBB
+  public boolean hasProteinBB(Residue res) {
+    if (res == null) return false;
+    return (res.getAtom(" CA ")!=null)&&(res.getAtom(" O  ")!=null)&&(res.getAtom(" N  ")!=null)&&(res.getAtom(" C  ")!=null);
   }
   //}}}
   
