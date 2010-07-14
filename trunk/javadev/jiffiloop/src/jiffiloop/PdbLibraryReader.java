@@ -99,6 +99,7 @@ public class PdbLibraryReader {
     stateMap.put(" ", fragState);
     fragModel.setStates(stateMap);
     if (currentPdb != null) {
+      //System.out.println(currentPdb.getIdCode()+":"+chain+":"+startRes+":"+length+":"+startNum);
       Model firstMod = currentPdb.getFirstModel();
       ModelState firstState = firstMod.getState();
       Collection modResidues = firstMod.getChain(chain);
@@ -107,8 +108,9 @@ public class PdbLibraryReader {
         Iterator iter = modResidues.iterator();
         while ((fragModel.getResidues().size() <= length + 2)&&(iter.hasNext())) {
           Residue res = (Residue) iter.next();
+          //System.out.println(res.getCNIT());
           int resNum = res.getSequenceInteger();
-          if ((resNum >= startRes)&&(resNum <= startRes + length + 2)&&(res.getInsertionCode().equals(" "))) {
+          if ((resNum >= startRes)/*&&(resNum <= startRes + length + 2)*/&&(res.getInsertionCode().equals(" "))) {
             try {
               if (isResidueComplete(res)) {
                 fragModel.add(res);
@@ -258,7 +260,10 @@ public class PdbLibraryReader {
     //UberSet fragRes = (UberSet) residues;
     UberSet fragRes = new UberSet(fragment.getResidues());
     Tuple3[] endAtomStates = new Tuple3[4];
+    //System.out.println("frag size: "+fragment.getResidues().size());
     if (currentPdb != null) {
+      //System.out.println(currentPdb.getIdCode());
+      //System.out.println(fragment.toString());
       //Model firstMod = currentPdb.getFirstModel();
       ModelState modState = fragment.getState();
       Residue zeroRes = (Residue) fragRes.firstItem();
