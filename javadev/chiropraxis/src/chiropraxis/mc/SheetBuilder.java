@@ -735,7 +735,7 @@ public class SheetBuilder //extends ... implements ...
             // Aromatic
             Peptide pepM = (Peptide) iter.next();
             if(pepM == null) continue;
-            if(!pepM.isBeta || !pepM.prev.isBeta) continue; // prev pep has arom NH
+            if(!pepM.isBeta || pepM.prev == null || !pepM.prev.isBeta) continue; // prev pep has arom NH
             if(pepM.cRes == null) continue;
             Residue aromRes = pepM.cRes;
             if(aromNames.indexOf(aromRes.getName()) == -1) continue;
@@ -746,12 +746,12 @@ public class SheetBuilder //extends ... implements ...
             Residue oppRes = null;
             if(!pepM.isParallelO) // anti-parallel
             {
-                if(!pepN.isBeta || !pepN.next.isBeta) continue;
+                if(!pepN.isBeta || pepN.next == null || !pepN.next.isBeta) continue;
                 oppRes = pepN.nRes;
             }
             else // parallel
             {
-                if(!pepN.isBeta || !pepN.prev.isBeta) continue;
+                if(!pepN.isBeta || pepN.prev == null || !pepN.prev.isBeta) continue;
                 oppRes = pepN.cRes;
             }
             if(oppRes == null) continue;
@@ -765,6 +765,8 @@ public class SheetBuilder //extends ... implements ...
                 if(verbose) System.err.println(".. Added "+ba);
             }
             catch(AtomException ex) // really a beta arom, but necessary atom(s) missing
+            { System.err.println("Error creating "+ba); }
+            catch(NullPointerException ex) // really a beta arom, but necessary atom(s) missing
             { System.err.println("Error creating "+ba); }
         }
         if(verbose) System.err.println("Beta aromatics found: "+betaAroms.size());

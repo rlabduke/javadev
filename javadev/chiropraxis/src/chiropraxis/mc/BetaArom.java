@@ -209,7 +209,8 @@ public class BetaArom //extends ... implements ...
             if(res.equals(pep.nRes))  nPep = pep;
             if(res.equals(pep.cRes))  cPep = pep;
         }
-        if(nPep.isBeta && cPep.isBeta)  return true;
+        if(nPep == null || cPep == null) return false;
+        if(nPep.isBeta && cPep.isBeta) return true;
         return false;
     }
 //}}}
@@ -239,7 +240,7 @@ public class BetaArom //extends ... implements ...
 
 //{{{ calcGeometry
 //##############################################################################
-    public void calcGeometry() throws AtomException
+    public void calcGeometry() throws AtomException, NullPointerException
     {
         ModelState state = model.getState();
         
