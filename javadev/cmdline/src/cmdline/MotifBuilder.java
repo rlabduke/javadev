@@ -282,7 +282,7 @@ public class MotifBuilder //extends ... implements ...
         else                                     substruc = readRemotePdb(d);
         if(substruc == null)
         {
-            System.err.println("Can't find substructure: "+name);
+            System.err.println("Can't find input file to make substructure: "+name);
             return null;
         }
         
@@ -554,7 +554,8 @@ public class MotifBuilder //extends ... implements ...
         String motSel = "";
         if(supBetaArom != null) // special case
         {
-            if(d.numRes() < 3) return;
+            if(d.numRes() < 2) throw new IllegalArgumentException(
+                "Need at least 2 residues for -betaarom=[ca/heavy]!");
             d.resetRes(); int aroNum = Integer.parseInt(d.getResnum());
             d.nextRes();  int oppNum = Integer.parseInt(d.getResnum());
             if(supBetaArom.equals("heavy")) // N/CA/C/O, arom +/- 2, opp +/- 0
