@@ -53,8 +53,8 @@ public class CaspRotCor extends RotCor
         String name = namePieces[namePieces.length-1];
         if(name.length() < 15 || name.indexOf(".pdb") == -1)
         {
-            if(verbose) System.err.println(filename+" is not a valid CASP model name");
-            return null;
+            throw new IllegalArgumentException(
+                "Filename doesn't match CASP format! "+filename);
         }
         name = name.substring(0,14);
         if(name.substring(12,13).equals(".")) // T0999TS123_1.p
@@ -73,11 +73,8 @@ public class CaspRotCor extends RotCor
                 return name.substring(0,12);
             }
         }
-        else
-        {
-            System.err.println("Filename doesn't match CASP format: "+filename+"!");
-            return null;
-        }
+        else throw new IllegalArgumentException(
+            "Filename doesn't match CASP format! "+filename);
     }
 //}}}
 

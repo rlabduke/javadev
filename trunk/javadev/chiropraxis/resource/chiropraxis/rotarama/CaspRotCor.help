@@ -25,13 +25,16 @@ USAGE:    casprotcor modelsdir targetfile    (results sent to standard output)
     
 CASPROTCOR is "java -cp chiropraxis.jar chiropraxis.rotarama.CaspRotCor"
     
+MODELSDIR is a directory containing one or more predicted model PDB files.  
+These may be NMR-style files containing multiple predicted models separated by 
+MODEL cards.  The file names must be in official CASP format: Ttttt[TS/AL]ggg_m
+or Ttttt[TS/AL]ggg_m_s, where tttt is a 4-character target number, [TS/AL] is 
+either TS or AL, ggg is a 3-character predictor group number, m is a 1-character
+model number (1-5), and s is an optional 1-character segment number (1-5).
+
 TARGETFILE is a PDB file for the target structure.  If more than one MODEL card
 is included in this file (e.g. for NMR structures), the consensus target rotamer
 at each position is used. 
-
-MODELSDIR is a directory containing one or more predicted model PDB files.  
-These may be NMR-style files containing multiple predicted models separated by 
-MODEL cards.
 
 OUTPUT DETAILS
   Target          target ID
