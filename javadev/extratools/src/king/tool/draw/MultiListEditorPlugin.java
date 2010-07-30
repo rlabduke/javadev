@@ -13,6 +13,7 @@ import java.util.*;
 //import java.util.regex.*;
 import javax.swing.*;
 import driftwood.gui.*;
+import driftwood.r3.*;
 //}}}
 /**
 * <code>MultiListEditorPlugin</code> allows one to edit multiple lists at once.
@@ -34,7 +35,8 @@ public class MultiListEditorPlugin extends Plugin
 //{{{ Variable definitions
 //##############################################################################
     JDialog dialog;
-    JCheckBox cbVec, cbBall, cbDot, cbRib, cbProbe, cbOther, cbVis;
+    JCheckBox cbVec, cbBall, cbDot, cbRib, cbProbe, cbOther, cbVis; /*, cbIn, cbOut;
+    JTextField tfIn, tfOut;*/
     JComboBox colors;
 //}}}
 
@@ -67,8 +69,16 @@ public class MultiListEditorPlugin extends Plugin
         JButton master        = new JButton(new ReflectiveAction("add master", null, this, "onAddMaster"));
         JButton color         = new JButton(new ReflectiveAction("set color", null, this, "onSetColor"));
         colors = new JComboBox(KPalette.getStandardMap().values().toArray());
+        JButton turnOff       = new JButton(new ReflectiveAction("turn off", null, this, "onTurnOff"));
+        JButton turnOn        = new JButton(new ReflectiveAction("turn on", null, this, "onTurnOn"));
         
-        cbVis   = new JCheckBox("only visible", true);
+        cbVis = new JCheckBox("only visible", true);
+        /*cbIn  = new JCheckBox("within radius", false);
+        tfIn  = new JTextField(3);
+        tfIn.setText("8");
+        cbOut = new JCheckBox("beyond radius", false);
+        tfOut = new JTextField(3);
+        tfOut.setText("8");*/
         
         TablePane2 cp = new TablePane2();
         cp.setBorder(BorderFactory.createEmptyBorder(8,8,8,8));
@@ -81,7 +91,10 @@ public class MultiListEditorPlugin extends Plugin
         cp.addCell(opaquer).addCell(transparenter).newRow();
         cp.addCell(color).addCell(colors).newRow();
         cp.addCell(master).newRow();
-        cp.addCell(cbVis);
+        cp.addCell(turnOff).addCell(turnOn).newRow();
+        cp.addCell(cbVis); /*.newRow();
+        cp.addCell(cbIn).addCell(tfIn).newRow();
+        cp.addCell(cbOut).addCell(tfOut);*/
         
         dialog = new JDialog(kMain.getTopWindow(), this.toString(), false);
         dialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
@@ -109,6 +122,7 @@ public class MultiListEditorPlugin extends Plugin
             else // VECTOR, DOT, RING, ARROW
                 changeWidth(l, true);
             // TRIANGLE seems to be unaffected by radius and width
+            l.fireKinChanged(KList.CHANGE_LIST_PROPERTIES);
         }
     }
 
@@ -123,6 +137,7 @@ public class MultiListEditorPlugin extends Plugin
             else // VECTOR, DOT, RING, ARROW
                 changeWidth(l, false);
             // TRIANGLE seems to be unaffected by radius and width
+            l.fireKinChanged(KList.CHANGE_LIST_PROPERTIES);
         }
     }
 //}}}
@@ -179,7 +194,33 @@ public class MultiListEditorPlugin extends Plugin
         if(newMaster == null) return;
         for(KList l : getLists())
             if(!l.getMasters().contains(newMaster))
+            {
                 l.addMaster(newMaster);
+                l.fireKinChanged(KList.CHANGE_MASTERS_LIST);
+            }
+    }
+//}}}
+
+//{{{ onTurnOff, onTurnOn
+//##############################################################################
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onTurnOff(ActionEvent ev)
+    {
+        for(KList l : getLists())
+        {
+            l.setOn(false);
+            l.fireKinChanged(KList.CHANGE_EVERYTHING);
+        }
+    }
+
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onTurnOn(ActionEvent ev)
+    {
+        for(KList l : getLists())
+        {
+            l.setOn(true);
+            l.fireKinChanged(KList.CHANGE_EVERYTHING);
+        }
     }
 //}}}
 
@@ -222,6 +263,82 @@ public class MultiListEditorPlugin extends Plugin
         }
         dialog.setVisible(true);
     }
+//}}}
+
+//{{{ [getLists w/ split]
+//##############################################################################
+/*    public ArrayList<KList> getLists()
+    {
+        ArrayList<KList> lists = getWholeLists();
+        if(cbIn.isSelected() && cbOut.isSelected())
+            JOptionPane.showMessageDialog(dialog, "Can't use both within radius and beyond radius!", 
+                "Illogical radius choices", JOptionPane.ERROR_MESSAGE);
+        else if(cbIn.isSelected())
+        {
+            // Split selected lists, and return a new set of lists containing only
+            // the points *within* a desired radius of the center of the screen
+            try
+            {
+                float[] ctr = kMain.getView().getCenter();
+                Triple center = new Triple(ctr[0], ctr[1], ctr[2]);
+                double radius = Double.parseDouble(tfIn.getText());
+                for(KList l : lists)
+                {
+                    KGroup subgroup = l.getParent();
+                    //KList far = new KList(l.getType()); // still in kinemage, just won't get changed now
+                    for(KPoint p : l.getChildren()) 
+                    {
+                        Triple coords = new Triple(p.getX(), p.getY(), p.getZ());
+                        if(coords.distance(center) > radius)
+                        {
+                            //far.add(p);
+                            //l.remove(p);
+                            //l.fireKinChanged(KList.CHANGE_POINT_CONTENTS);
+                            System.err.println(p+" too far from center");
+                        }
+                    }
+                    //if(far.getChildren().size() > 0)  subgroup.add(far);
+                    //subgroup.fireKinChanged(KGroup.CHANGE_EVERYTHING);
+                }
+            }
+            catch(NumberFormatException ex)
+            { JOptionPane.showMessageDialog(dialog, tfIn.getText()+" is not a number!", 
+                "Bad radius entry", JOptionPane.ERROR_MESSAGE); }
+        }
+        else if(cbOut.isSelected())
+        {
+            // Split selected lists, and return a new set of lists containing only
+            // the points *outside* a desired radius of the center of the screen
+            try
+            {
+                float[] ctr = kMain.getView().getCenter();
+                Triple center = new Triple(ctr[0], ctr[1], ctr[2]);
+                double radius = Double.parseDouble(tfOut.getText());
+                for(KList l : lists)
+                {
+                    KGroup subgroup = l.getParent();
+                    //KList near = new KList(l.getType()); // still in kinemage, just won't get changed now
+                    for(KPoint p : l.getChildren()) 
+                    {
+                        Triple coords = new Triple(p.getX(), p.getY(), p.getZ());
+                        if(coords.distance(center) <= radius)
+                        {
+                            //near.add(p);
+                            //l.remove(p);
+                            //l.fireKinChanged(KList.CHANGE_POINT_CONTENTS);
+                            System.err.println(p+" too close to center");
+                        }
+                    }
+                    //if(near.getChildren().size() > 0)  subgroup.add(near);
+                    //subgroup.fireKinChanged(KGroup.CHANGE_EVERYTHING);
+                }
+            }
+            catch(NumberFormatException ex)
+            { JOptionPane.showMessageDialog(dialog, tfOut.getText()+" is not a number!", 
+                "Bad radius entry", JOptionPane.ERROR_MESSAGE); }
+        }
+        return lists;
+    }*/
 //}}}
 
 //{{{ getLists
