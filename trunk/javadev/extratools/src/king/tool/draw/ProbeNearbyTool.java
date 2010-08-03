@@ -109,8 +109,19 @@ public class ProbeNearbyTool extends Plugin
         cp.addCell(bnRunProbe);
         
         dialog = new JDialog(kMain.getTopWindow(), this.toString(), false); // not modal
-        dialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
+        //dialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
+        dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         dialog.setContentPane(cp);
+        dialog.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent ev) {
+                if(probePlotter != null)
+                {
+                    probePlotter.terminate();
+                    probePlotter = null;
+                }
+                dialog.setVisible(false);
+            }
+        });
         
         refreshGUI();
     }
@@ -242,70 +253,6 @@ public class ProbeNearbyTool extends Plugin
     }
 //}}}
 
-//{{{ [setNearbyRes]
-//##################################################################################################
-//    void setNearbyRes()//Residue ctrRes)
-//    {
-//        KView view = kMain.getView();
-//        if(view == null) throw new NullPointerException("Can't detect current view!");
-//        float[] v = view.getCenter();
-//        Triple ctr = new Triple(v[0], v[1], v[2]);
-//        
-//        try
-//        {
-//            double probeRad = Double.parseDouble(tfProbeRad.getText().trim());
-//            nearbyRes = new TreeSet<Residue>();
-//            for(Iterator rIter = model.getResidues().iterator(); rIter.hasNext(); )
-//            {
-//                Residue res = (Residue) rIter.next();
-//                boolean closeEnough = false;
-//                for(Iterator aIter = res.getAtoms().iterator(); aIter.hasNext(); )
-//                {
-//                    Atom a = (Atom) aIter.next();
-//                    AtomState as = state.get(a);
-//                    if(as.distance(ctr) <= probeRad) closeEnough = true;
-//                }
-//                if(closeEnough) nearbyRes.add(res);
-//            }
-//        }
-//        catch(AtomException ex)
-//        { SoftLog.err.println("Error finding residues near "+ctr+"!"); }
-//        
-//        System.err.println("Close enough:");
-//        for(Iterator iter = nearbyRes.iterator(); iter.hasNext(); )
-//            System.err.println((Residue)iter.next());
-//        
-//        /*try
-//        {
-//            double probeRad = Double.parseDouble(tfProbeRad.getText().trim());
-//            nearbyRes = new TreeSet<Residue>();
-//            for(Iterator rIter = model.getResidues().iterator(); rIter.hasNext(); )
-//            {
-//                Residue res = (Residue) rIter.next();
-//                boolean closeEnough = false;
-//                for(Iterator aIter = res.getAtoms().iterator(); aIter.hasNext(); )
-//                {
-//                    Atom a = (Atom) aIter.next();
-//                    AtomState as = state.get(a);
-//                    for(Iterator rIter2 = model.getResidues().iterator(); rIter2.hasNext(); )
-//                    {
-//                        Residue res2 = (Residue) rIter2.next();
-//                        for(Iterator aIter2 = res2.getAtoms().iterator(); aIter2.hasNext(); )
-//                        {
-//                            Atom a2 = (Atom) aIter2.next();
-//                            AtomState as2 = state.get(a2);
-//                            if(as2.distance(as) <= probeRad) closeEnough = true;
-//                        }
-//                    }
-//                }
-//                if(closeEnough) nearbyRes.add(res);
-//            }
-//        }
-//        catch(AtomException ex)
-//        { SoftLog.err.println("Error finding residues near "+ctrRes+"!"); }*/
-//    }
-//}}}
-
 //{{{ prepProbePlotter, onRunProbe
 //##################################################################################################
     void prepProbePlotter() throws NumberFormatException
@@ -317,12 +264,8 @@ public class ProbeNearbyTool extends Plugin
             if(probePlotter == null || !probePlotter.getKinemage().equals(kin))
                 probePlotter = new BgKinRunner(kMain, kin, "");
             
-            // -drop is very important, or else the unselected atoms from file1
-            // (waters, the residues we're excluding because they're in file2)
-            // will interfere with (obstruct) the dots between file1 and file2 atoms.
             // Incomplete, will be completed in a moment
             double probeRad = Double.parseDouble(tfProbeRad.getText().trim());
-            //String probeCmd = " -quiet -kin -drop -mc -both -stdbonds"
             String probeCmd = " -quiet -kin -mc -both -stdbonds"
                 +" 'within "+probeRad+" of {viewcenter} not water'"
                 +" 'within "+probeRad+" of {viewcenter} not water' '{pdbfile}' -";
