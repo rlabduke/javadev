@@ -267,8 +267,8 @@ public class ProbeNearbyTool extends Plugin
             // Incomplete, will be completed in a moment
             double probeRad = Double.parseDouble(tfProbeRad.getText().trim());
             String probeCmd = " -quiet -kin -mc -both -stdbonds"
-                +" 'within "+probeRad+" of {viewcenter} not water'"
-                +" 'within "+probeRad+" of {viewcenter} not water' '{pdbfile}' -";
+                +" 'within "+probeRad+" of {viewcenter}'"
+                +" 'within "+probeRad+" of {viewcenter}' '{pdbfile}' -";
             String probeExe = probePlotter.findProgram("probe");
             probePlotter.setCommand(probeExe+probeCmd); // now complete cmd line
         }
