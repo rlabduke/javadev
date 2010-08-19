@@ -3,7 +3,7 @@
 package rdcvis;
 
 import java.util.*;
-
+import driftwood.gui.*;
 //}}}
 
 /**
@@ -92,4 +92,12 @@ public class MagneticResonanceFile {
   }
   //}}}
   
+  //{{{ getFileFilters
+  public static SuffixFileFilter getMRFileFilter() {
+    SuffixFileFilter allFilter = new SuffixFileFilter("NMR data file");
+    allFilter.addSuffix(".mr");
+    return allFilter;
+  }
+  //}}}
+
 }

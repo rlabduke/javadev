@@ -28,8 +28,8 @@ public class RdcPlayPlugin extends Plugin implements ChangeListener {
   double daxial, dn, drhombic, xisquared, etasquared, lambdasquared, zetasquared, deltacrit;
   double dzz, dyy, dxx;
   RdcDrawer2 drawer;
-  JSlider rhombSlider, rdcSlider;
-  JLabel rhombLabel, rdcLabel;
+  JSlider rhombSlider, rdcSlider, szzSlider;
+  JLabel rhombLabel, rdcLabel, eigLabel;
   JCheckBox surfaceBox, singleRdcBox;
   //}}}
   
@@ -43,7 +43,8 @@ public class RdcPlayPlugin extends Plugin implements ChangeListener {
   public void onStart(ActionEvent ev) {
     buildGUI();
     double rhombicity = ((double)rhombSlider.getValue()) / 1000.0;
-    calcVariables(rhombicity);
+    int szz = szzSlider.getValue();
+    calcVariables(rhombicity, szz);
     Matrix saupeDiag = new Matrix(3, 3);
     saupeDiag.set(0, 0, dxx);
     saupeDiag.set(1, 1, dyy);
@@ -66,6 +67,10 @@ public class RdcPlayPlugin extends Plugin implements ChangeListener {
     rhombSlider.addChangeListener(this);
     rhombLabel = new JLabel("0.001");
     
+    szzSlider = new JSlider(4, 40, 40);
+    szzSlider.addChangeListener(this);
+    eigLabel = new JLabel("");
+    
     singleRdcBox = new JCheckBox(new ReflectiveAction("Only do one RDC", null, this, "onSingle"));
     rdcSlider = new JSlider(-20029, 39999, -20029);
     rdcSlider.addChangeListener(this);
@@ -78,6 +83,10 @@ public class RdcPlayPlugin extends Plugin implements ChangeListener {
     pane.add(rhombSlider);
     pane.newRow();
     pane.add(rhombLabel);
+    pane.newRow();
+    pane.add(szzSlider);
+    pane.newRow();
+    pane.add(eigLabel);
     pane.newRow();
     pane.add(singleRdcBox);
     pane.newRow();
@@ -112,9 +121,11 @@ public class RdcPlayPlugin extends Plugin implements ChangeListener {
       rdcSlider.setMinimum((int)((dyy+0.001)*1000));
       rdcLabel.setText(Double.toString(((double)rdcSlider.getValue()) / 1000.0));
     }
+    int szz = szzSlider.getValue();
+
     double rhombicity = ((double)rhombSlider.getValue()) / 1000.0;
     //System.out.println(rhombicity);
-    calcVariables(rhombicity);
+    calcVariables(rhombicity, szz);
     
     Matrix saupeDiag = new Matrix(3, 3);
     saupeDiag.set(0, 0, dxx);
@@ -148,14 +159,24 @@ public class RdcPlayPlugin extends Plugin implements ChangeListener {
   //}}}
   
   //{{{ calcVariables
-  public void calcVariables(double rhombicity) {
-    dzz = 40;
-    dyy = -20 - 30 * rhombicity;
-    dxx = -20 + 30 * rhombicity;
+  public void calcVariables(double rhombicity, int szz) {
+    //dzz = 40;
+    //dyy = -20 - 30 * rhombicity;
+    //dxx = -20 + 30 * rhombicity;
+    dzz = szz;
+    dyy = -dzz/2 - dzz*3/4*rhombicity;
+    dxx = -dzz/2 + dzz*3/4*rhombicity;
+    setEigLabels(dzz, dxx, dyy);
     daxial = dzz / 2;
     drhombic = (dxx - dyy) / 3.0;
     deltacrit = dxx / daxial;
     //System.out.println(daxial + " " + drhombic + " " + deltacrit);
+  }
+  //}}}
+  
+  //{{{ setEigLabels
+  public void setEigLabels(double szz, double sxx, double syy) {
+    eigLabel.setText("Szz: "+df.format(szz)+" Sxx: "+df.format(sxx)+" Syy: "+df.format(syy));
   }
   //}}}
   
