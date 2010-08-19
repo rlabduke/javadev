@@ -980,6 +980,18 @@ abstract public class Measurement //extends ... implements ...
         
         public Object getType()
         { return TYPE_DIHEDRAL; }
+        
+        public AtomSpec getA() 
+        { return (AtomSpec) a; }
+        
+        public AtomSpec getB() 
+        { return (AtomSpec) b; }
+        
+        public AtomSpec getC() 
+        { return (AtomSpec) c; }
+        
+        public AtomSpec getD() 
+        { return (AtomSpec) d; }
     }
 //}}}
 
