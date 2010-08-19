@@ -319,6 +319,8 @@ public class Dangle //extends ... implements ...
                 catch(Exception ex) { ex.printStackTrace(); }
                 try { measurements.add(Measurement.newBuiltin("cbdev")); }
                 catch(Exception ex) { ex.printStackTrace(); }
+                try { measurements.add(Measurement.newBuiltin("omega")); }
+                catch(Exception ex) {ex.printStackTrace(); }
             }
             else
             {

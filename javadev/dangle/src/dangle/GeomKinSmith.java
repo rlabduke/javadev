@@ -25,7 +25,7 @@ public class GeomKinSmith //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     /** Kinemage @balllist, @vectorlist, or point Strings for the current model */
-    ArrayList<String> lengths, angles, cbdevs; //, pperps;
+    ArrayList<String> lengths, angles, cbdevs, peptides; //, pperps;
     Measurement[] meas;
     String label;
     CoordinateFile coords;
@@ -71,6 +71,7 @@ public class GeomKinSmith //extends ... implements ...
             lengths = new ArrayList<String>();
             angles  = new ArrayList<String>();
             cbdevs  = new ArrayList<String>();
+            peptides = new ArrayList<String>();
             
             for(Iterator residues = model.getResidues().iterator(); residues.hasNext(); )
             {
@@ -145,6 +146,8 @@ public class GeomKinSmith //extends ... implements ...
                 cbDevImpl(m, model, state, res, val);
             else if(m.getType().equals(Measurement.TYPE_BASEPPERP))
                 pPerpImpl(m, model, state, res, val);
+            else if(m.getType().equals(Measurement.TYPE_DIHEDRAL))
+              peptideImpl(m, model, state, res, val);
         }
         else if(!Double.isNaN(dev) && Math.abs(dev) >= sigmaCutoff) // std devs defined
         {
@@ -152,6 +155,8 @@ public class GeomKinSmith //extends ... implements ...
                 lengthImpl(m, model, state, res, val, ideal, dev);
             else if(m.getType().equals(Measurement.TYPE_ANGLE))
                 angleImpl(m, model, state, res, val, ideal, dev);
+            else if(m.getType().equals(Measurement.TYPE_DIHEDRAL))
+              peptideImpl(m, model, state, res, val);
         }
     }
 //}}}
@@ -657,12 +662,51 @@ public class GeomKinSmith //extends ... implements ...
     }
 //}}}
 
+  //{{{ peptideImpl
+  //##############################################################################
+  protected void peptideImpl(Measurement meas, Model model, ModelState state, Residue res, double val) {
+    Measurement.Dihedral d = (Measurement.Dihedral) meas;
+    double dihed = d.measureImpl(model, state, res);
+    if ((dihed < 170)&&(dihed > -170)) {
+      AtomSpec atA = d.getA();
+      AtomSpec atB = d.getB();
+      AtomSpec atC = d.getC();
+      AtomSpec atD = d.getD();
+      AtomState asA = atA.get(model, state, res);
+	    AtomState asB = atB.get(model, state, res);
+	    AtomState asC = atC.get(model, state, res);
+	    AtomState asD = atD.get(model, state, res);
+      
+	    String pointId = label.substring(0,4)+" "+res.getName()+" "+
+      res.getSequenceInteger()+" peptide dihedral:"+df2.format(dihed);
+      
+      String line1 = "{"+pointId+"}P U "+df2.format(asA.getX())+" "+
+                                        df2.format(asA.getY())+" "+
+                                        df2.format(asA.getZ());
+      String line2 = "{"+pointId+"}U "+df2.format(asC.getX())+" "+
+                                        df2.format(asC.getY())+" "+
+                                        df2.format(asC.getZ());
+      String line3 = "{"+pointId+"}P U "+df2.format(asB.getX())+" "+
+                                        df2.format(asB.getY())+" "+
+                                        df2.format(asB.getZ());
+      String line4 = "{"+pointId+"}U "+df2.format(asD.getX())+" "+
+                                        df2.format(asD.getY())+" "+
+                                        df2.format(asD.getZ());
+      peptides.add(line1);
+      peptides.add(line2);
+      peptides.add(line3);
+      peptides.add(line4);
+    }
+  }
+  //}}}
+
 //{{{ printModel
 //##############################################################################
     public void printModel(Model mod)
     {
         System.out.println("@master {length dev} on");
         System.out.println("@master {angle dev} on");
+        System.out.println("@master {peptide dev} on");
         System.out.println("@master {Cbeta dev} on");
         
         boolean multimodel = coords.getModels().size() > 1;
@@ -676,6 +720,7 @@ public class GeomKinSmith //extends ... implements ...
         boolean triedAngle = false;
         boolean triedCbDev = false;
         //boolean triedPperp = false;
+        boolean triedPepDev = false;
         for(int i = 0; i < meas.length; i++)
         {
             if(meas[i].getType().equals(Measurement.TYPE_DISTANCE)
@@ -683,6 +728,7 @@ public class GeomKinSmith //extends ... implements ...
             else if(meas[i].getType().equals(Measurement.TYPE_DISTANCE)) triedLngth = true;
             else if(meas[i].getType().equals(Measurement.TYPE_ANGLE))    triedAngle = true;
             //else if(m.getType().equals(Measurement.TYPE_BASEPPERP))    triedPperp = true;
+            else if(meas[i].getType().equals(Measurement.TYPE_DIHEDRAL)) triedPepDev = true;
         }
         
         if(!triedLngth)            System.err.println("(Didn't look for bond length outliers)");
@@ -700,6 +746,13 @@ public class GeomKinSmith //extends ... implements ...
         //if(!triedPperp)           System.err.println("(Didn't look for base-P perp outliers)");
         //else if(pperps.isEmpty()) System.err.println("No base-P perp outliers");
         //else for(String pperpLine : pperps) System.out.println(pperpLine);
+        
+        if(!triedPepDev)           System.err.println("(Didn't look for peptide outliers)");
+        else if(peptides.isEmpty()) System.err.println("No peptide outliers (in selected residues)");
+        else {
+          System.out.println("@vectorlist {peptide outliers} color= green width= "+4+" master= {peptide dev}");
+          for(String pepLine : peptides) System.out.println(pepLine);
+        }
     }
 //}}}
 }//class
