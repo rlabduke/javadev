@@ -54,8 +54,12 @@ public class RdcAnalyzer {
       String[] atoms = fi.parseAtomNames(rdcName);
       Iterator models = (pdb.getModels()).iterator();
       while (models.hasNext()) {
+
         //System.out.print(".");
         Model mod = (Model) models.next();
+        System.out.println("Model "+mod.getName());
+        System.out.println("ResID:expRDC:backcalcRDC:minDist");
+        
         ModelState state = mod.getState();
         if (!ensembleTensor) {
           fi.solveRdcsSingleModel(rdcName, mod.toString());

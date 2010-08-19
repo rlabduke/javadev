@@ -155,7 +155,7 @@ public class RdcVisWindow implements /*ActionListener, */WindowListener {
   
   //{{{ onPdb
   public void onPdb(ActionEvent ev) {
-    File f = askFile();
+    File f = askFile(CoordinateFile.getCoordFileFilter());
     if (f != null) {
       try {
         pdbLocation.setText(f.getCanonicalPath());
@@ -171,7 +171,7 @@ public class RdcVisWindow implements /*ActionListener, */WindowListener {
   
   //{{{ onMr
   public void onMr(ActionEvent ev) {
-    File f = askFile();
+    File f = askFile(MagneticResonanceFile.getMRFileFilter());
     if (f != null) {
       try {
         mrLocation.setText(f.getCanonicalPath());
@@ -217,6 +217,7 @@ public class RdcVisWindow implements /*ActionListener, */WindowListener {
         rdcviser.addRdc(reply);
         rdcviser.setDrawErrors(drawErrorsIsSelected());
         rdcviser.setDrawSurfaces(surfaceBox.isSelected());
+        rdcviser.setEnsembleTensor(false);
         Kinemage rdcKin = rdcviser.createKin(fi);
         //ArrayList<Kinemage> kins = new ArrayList<Kinemage>();
         Kinemage current = kMain.getKinemage();
@@ -242,9 +243,12 @@ public class RdcVisWindow implements /*ActionListener, */WindowListener {
   //}}}
   
   //{{{ askFile
-  public File askFile() {
+  public File askFile(SuffixFileFilter filter) {
     String currdir = System.getProperty("user.dir");
     JFileChooser chooser = new JFileChooser();
+    chooser.addChoosableFileFilter(filter);
+    chooser.setFileFilter(filter);
+    
     if(currdir != null) chooser.setCurrentDirectory(new File(currdir));
     if(JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(kMain.getTopWindow()))
     {

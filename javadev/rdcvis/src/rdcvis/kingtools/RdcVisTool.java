@@ -292,7 +292,7 @@ public class RdcVisTool extends BasicTool {
   public String getHelpAnchor()
   { return "#rdcvis-tool"; }
   
-  public String toString() { return "RDC Vis Tool"; }    
+  public String toString() { return "RDCvis Tool"; }    
   //}}}
   
 }

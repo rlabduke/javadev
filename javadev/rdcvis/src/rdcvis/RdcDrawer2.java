@@ -52,6 +52,7 @@ public class RdcDrawer2 {
     ArrayList<KPoint> posPoints = new ArrayList<KPoint>();
     ArrayList<KPoint> negPoints = new ArrayList<KPoint>();
     list.setColor(KPalette.hotpink);
+    boolean rdcIsOut = false;
     //need to catch special cases where rdcVal == sxx or szz
     for (double tau = 0; tau <= 2 * Math.PI; tau += 2 * Math.PI / numPoints) {
       double a=Double.NaN, b=Double.NaN, y=Double.NaN, z=Double.NaN, x=Double.NaN;
@@ -68,7 +69,8 @@ public class RdcDrawer2 {
         y = b * Math.sin(tau);
         z = Math.sqrt(r - Math.pow(x, 2) - Math.pow(y, 2));
       } else {
-        System.out.println("RDC value ("+rdcVal+") not in range ("+sxx+"-"+szz+")!");
+        rdcIsOut = true;
+        //System.out.println("RDC value ("+rdcVal+") not in range ("+sxx+"-"+szz+")!");
         //a = Double.NaN;
         //return;
       }
@@ -116,6 +118,11 @@ public class RdcDrawer2 {
         negOld = negPoint;
       }
     }
+    if (rdcIsOut) {
+      System.out.println(text+" not drawn");
+      System.out.println("RDC value ("+rdcVal+") not in range ("+sxx+" -> "+szz+")!");
+      rdcIsOut = false;
+    }
     for (KPoint posPt : posPoints) {
       // need to be smarter about dealing with possible nans
       //if (!pointHasNans(posPt)) {
@@ -141,6 +148,7 @@ public class RdcDrawer2 {
     VectorPoint negOld = null;
     ArrayList<KPoint> posPoints = new ArrayList<KPoint>();
     ArrayList<KPoint> negPoints = new ArrayList<KPoint>();
+    boolean rdcIsOut = false;
     //need to catch special cases where rdcVal == sxx or szz
     double minDist = Double.MAX_VALUE;
     for (double tau = 0; tau <= 2 * Math.PI; tau += 2 * Math.PI / numPoints) {
@@ -158,7 +166,8 @@ public class RdcDrawer2 {
         y = b * Math.sin(tau);
         z = Math.sqrt(r - Math.pow(x, 2) - Math.pow(y, 2));
       } else {
-        System.out.println("RDC value not in range!");
+        rdcIsOut = true;
+        //System.out.println("RDC value not in range!");
       }
       if (!Double.isNaN(a)) {
         Matrix changeBase = new Matrix(3, 1);
@@ -182,7 +191,15 @@ public class RdcDrawer2 {
         }
       }
     }
-    return minDist;
+    if (rdcIsOut) {
+      System.out.println("RDC value ("+rdcVal+") not in range ("+sxx+" -> "+szz+")!");
+      rdcIsOut = false;
+      return -1.0;
+    }
+    if (minDist != Double.MAX_VALUE) {
+      return minDist;
+    }
+    return -1.0;
   }
   //}}}
   

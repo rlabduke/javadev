@@ -39,7 +39,7 @@ public class RdcVisMain {
   //}}}
   
   //{{{ Variables
-  static String versionNumber = "1.03.090612";
+  static String versionNumber = "1.04.100708";
   
   //FileInterpreter fi;
   //CoordinateFile pdb;
@@ -398,6 +398,10 @@ public class RdcVisMain {
   
   public void setDrawSurfaces(boolean value) {
     drawSurface = value;
+  }
+  
+  public void setEnsembleTensor(boolean value) {
+    ensembleTensor = value;
   }
   //}}}
   

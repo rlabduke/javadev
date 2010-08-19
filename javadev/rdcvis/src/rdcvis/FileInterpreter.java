@@ -212,6 +212,7 @@ public class FileInterpreter {
     DipolarRestraint dr = (DipolarRestraint) currentRdcs.get(seqNum);
     if (dr != null) {
       double error = dr.getValues()[1];
+      if (error == 0.0) return 1;
       return error;
     }
     return Double.NaN;
