@@ -16,12 +16,15 @@
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 
-### 1.06 ### dak
+### 1.06 ###
+DAK:
 - Added recognition of bases with another heavy atom substituted for O2' as RNA
 - Reverted to evaluating HETATMs listed as nucleic acids even if doHets boolean 
   is false (which is the default), but the most common non-oligomeric residues 
   ([ACTGU][MDT]P, e.g. ATP) are now excluded (see above), so we should be OK
-- (VBC)Added prototype for visualization for bad omega(peptide plane) dihedrals. 
+- Changed help file to note past changes to cbdev (now matches Prekin)
+VBC:
+- Added prototype for visualization for bad omega(peptide plane) dihedrals.
 
 ### 1.05 ### dak
 - Fixed bug where HETATMs listed as nucleic acids (e.g. ATP) would still get 

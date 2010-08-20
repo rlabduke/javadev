@@ -182,12 +182,10 @@ ADVANCED DANGLE TRICKS
   outlier visualizations indicate the value in the model is greater than ideal; 
   blue means the value in the model is less than ideal.  Ideal bond length 
   corresponds to 6 turns in the distance deviation "springs" and each sigma 
-  deviation adds +/- 0.25 turns.  It is now possible to include Prekin-like 
-  balls for Cbeta deviations for protein as well.  NB: Dangle's built-in "cbdev"
-  measurement uses one generic set of values to construct the ideal Cbeta 
-  position for any amino acid, whereas Prekin uses amino-acid-specific values.  
-  Because of this disagreement, "cbdev" is not currently included in the default 
-  set of Dangle geometry kinemage measurements.
+  deviation adds +/- 0.25 turns.  It is also possible to include Prekin-like 
+  balls for Cbeta deviations for protein.  The built-in "cbdev" measurement now 
+  uses amino-acid-specific values (like Prekin) to construct the ideal Cbeta 
+  position for any amino acid, as opposed to one generic set of values.
   
     -kin -prot -rna -dna      # protein/RNA/DNA length/angle outliers
     -geometrykin              # synonym
