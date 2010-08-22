@@ -23,10 +23,10 @@ public class Main {
         ParameterCalcRmsd.main(cmdargs);
       } else if (args[0].equals("pdbsuperimposer_RNA")) {
         PdbSuperimposer_RNA.main(cmdargs);
-      } else if (args[0].equals("multipdbsuperimposer")) {
+      /*} else if (args[0].equals("multipdbsuperimposer")) {
         MultiPdbSuperimposer.main(cmdargs);
       } else if (args[0].equals("multimadsuperimposer")) {
-        MultiMADSuperimposer.main(cmdargs);
+        MultiMADSuperimposer.main(cmdargs);*/
       } else if (args[0].equals("sql")) {
         MySqlLiaison.main(cmdargs);
       } else if (args[0].equals("fragmentrotator")||(args[0].equals("fragrot"))) {

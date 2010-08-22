@@ -121,6 +121,7 @@ public class MySqlLiaison
           argsToPass[i] = args[i];
       argsToPass[args.length] = outPrefix+".csv";
       
+      /*
       // Superimposed kin written here
       if (!justQueryNoSuperimpose)
       {
@@ -129,6 +130,7 @@ public class MySqlLiaison
           else
               MultiPdbSuperimposer.main(argsToPass);
       }
+      */
   }
 //}}}
 
