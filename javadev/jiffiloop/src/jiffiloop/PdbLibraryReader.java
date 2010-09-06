@@ -115,7 +115,7 @@ public class PdbLibraryReader {
               if (isResidueComplete(res)) {
                 fragModel.add(res);
                 res.cloneStates(res, firstState, fragState);
-                String past80 = "  " + currentPdb.getIdCode() + Integer.toString(startRes) + chain;
+                String past80 = "  " + currentPdb.getIdCode()+"_"+chain+"_"+res.getName().trim()+res.getSequenceInteger();
                 addPast80Info(res, past80, fragState);
               } else {
                 System.err.println("fragment from "+currentPdb.getIdCode()+" "+String.valueOf(resNum)+" discarded due to incomplete residues");

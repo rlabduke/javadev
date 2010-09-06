@@ -23,6 +23,7 @@ ARGUMENTS
   -sequence                          Keep fragment residue identities. Default
                                      is to rename all non-gly, non-pro to ala
                                      and remove sidechains.
+  -tighter                           Use tighter parameter ranges.
   #-#                                Enter integers for the two # signs to
                                      "simulate" a gap to search.
   

@@ -57,7 +57,8 @@ public class FragFiller implements Filler {
   //ArrayList
   //PdbLibraryReader libReader;
   //static int matchDiff;
-  static boolean ntermsup = false;
+  //static boolean ntermsup = false;
+  //static boolean tighterParams = false;
   //JFileChooser        filechooser     = null;
   //ProgressDialog progDiag;
   //KGroup group;
@@ -112,6 +113,10 @@ public class FragFiller implements Filler {
   
   //{{{ searchDB
   public void searchDB(int matchDiff) {
+    searchDB(matchDiff, 1, 25, 25);
+  }
+  
+  public void searchDB(int matchDiff, double distRange, double angle, double dihedral) {
     DatabaseManager dm = new DatabaseManager();
     //dm.connectToDatabase("//spiral.research.duhs.duke.edu/qDBrDB");
     dm.connectToDatabase("//quality.biochem.duke.edu:1352/jiffiloop");
@@ -119,34 +124,39 @@ public class FragFiller implements Filler {
       ArrayList<Double> gapFrame = gap.getParameters();
       int gapLength = gap.getSize();
       String sqlSelect;
-      if (matchDiff==0) {
-        //sqlSelect = sqlSelect.concat("WHERE frag_length = "+Integer.toString(gapLength)+" \n");
-        sqlSelect = "SELECT pdb_id, chain_id, frag_length, start_res_num FROM parameters5200_f"+df2.format(gapLength)+" \n";
+      if (gapLength > 15) {
+        System.err.println("Gap of length "+gapLength+" detected, skipping...");
+        filledMap.remove(gap);
       } else {
-        //sqlSelect = sqlSelect.concat("WHERE (frag_length <= "+Integer.toString(gapLength+matchDiff));
-        //sqlSelect = sqlSelect.concat(" AND frag_length >= "+Integer.toString(gapLength-matchDiff)+") \n");
-        sqlSelect = "SELECT pdb_id, chain_id, frag_length, start_res_num FROM parameters5200_f"+df2.format(matchDiff)+" \n";
-      }
-      double dist = gapFrame.get(0);
-      sqlSelect = sqlSelect.concat("WHERE (distance <= "+df.format(gapFrame.get(0)+1)+" AND distance >= "+df.format(gapFrame.get(0)-1));
-      sqlSelect = sqlSelect.concat(") \n");
-      double startAng = gapFrame.get(1);
-      sqlSelect = sqlSelect.concat(createWhereQuery(startAng, "start_angle") + " \n");
-      double endAng = gapFrame.get(2);
-      sqlSelect = sqlSelect.concat(createWhereQuery(endAng, "end_angle") + " \n");
-      double startDih = gapFrame.get(3);
-      sqlSelect = sqlSelect.concat(createWhereQuery(startDih, "start_dihedral") + " \n");
-      double middleDih = gapFrame.get(4);
-      sqlSelect = sqlSelect.concat(createWhereQuery(middleDih, "middle_dihedral") + " \n");
-      double endDih = gapFrame.get(5);
-      sqlSelect = sqlSelect.concat(createWhereQuery(endDih, "end_dihedral") + " \n");
-      sqlSelect = sqlSelect.concat("AND max_B_factor <= 35;");
-      System.out.println(sqlSelect);
-      ArrayList<String> listofMatches = filledMap.get(gap);
-      dm.select(sqlSelect);
-      while (dm.next()) {
-        //System.out.println(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4));
-        listofMatches.add(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4));
+        if (matchDiff==0) {
+          //sqlSelect = sqlSelect.concat("WHERE frag_length = "+Integer.toString(gapLength)+" \n");
+          sqlSelect = "SELECT pdb_id, chain_id, frag_length, start_res_num FROM parameters5200_f"+df2.format(gapLength)+" \n";
+        } else {
+          //sqlSelect = sqlSelect.concat("WHERE (frag_length <= "+Integer.toString(gapLength+matchDiff));
+          //sqlSelect = sqlSelect.concat(" AND frag_length >= "+Integer.toString(gapLength-matchDiff)+") \n");
+          sqlSelect = "SELECT pdb_id, chain_id, frag_length, start_res_num FROM parameters5200_f"+df2.format(matchDiff)+" \n";
+        }
+        double dist = gapFrame.get(0);
+        sqlSelect = sqlSelect.concat("WHERE (distance <= "+df.format(gapFrame.get(0)+distRange)+" AND distance >= "+df.format(gapFrame.get(0)-distRange));
+        sqlSelect = sqlSelect.concat(") \n");
+        double startAng = gapFrame.get(1);
+        sqlSelect = sqlSelect.concat(createWhereAngle(startAng, "start_angle", angle) + " \n");
+        double endAng = gapFrame.get(2);
+        sqlSelect = sqlSelect.concat(createWhereAngle(endAng, "end_angle", angle) + " \n");
+        double startDih = gapFrame.get(3);
+        sqlSelect = sqlSelect.concat(createWhereDihedral(startDih, "start_dihedral", dihedral) + " \n");
+        double middleDih = gapFrame.get(4);
+        sqlSelect = sqlSelect.concat(createWhereDihedral(middleDih, "middle_dihedral", dihedral) + " \n");
+        double endDih = gapFrame.get(5);
+        sqlSelect = sqlSelect.concat(createWhereDihedral(endDih, "end_dihedral", dihedral) + " \n");
+        sqlSelect = sqlSelect.concat("AND max_B_factor <= 35;");
+        System.out.println(sqlSelect);
+        ArrayList<String> listofMatches = filledMap.get(gap);
+        dm.select(sqlSelect);
+        while (dm.next()) {
+          //System.out.println(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4));
+          listofMatches.add(dm.getString(1)+" "+dm.getString(2)+" "+dm.getString(3)+" "+dm.getString(4));
+        }
       }
     }
   }
@@ -157,21 +167,34 @@ public class FragFiller implements Filler {
     String info = "";
     for (ProteinGap gap : filledMap.keySet()) {
       ArrayList matchedInfo = filledMap.get(gap);
-      info = info.concat(gap.getSourceString() + " had " + matchedInfo.size() + " matches\n");
+      info = info.concat(gap.getSourceString()+" "+gap.getResidueRange() + " had " + matchedInfo.size() + " matches\n");
     }
     return info;
   }
   //}}}
   
-  //{{{ createWhereQuery
-  public String createWhereQuery(double frameVal, String colName) {
-    if (frameVal > 180 - 25) {
-      return "AND ("+colName+" >= "+Double.toString(frameVal-25)+" OR "+colName+" <= "+Double.toString(-360+25+frameVal)+")";
-    } else if (frameVal < -180 + 25) {
-      return "AND ("+colName+" <= "+Double.toString(frameVal+25)+" OR "+colName+" >= "+Double.toString(frameVal+360-25)+")";
+  //{{{ createWhereDihedral
+  public String createWhereDihedral(double frameVal, String colName, double dihedral) {
+    if (frameVal > 180 - dihedral) {
+      return "AND ("+colName+" >= "+Double.toString(frameVal-dihedral)+" OR "+colName+" <= "+Double.toString(-360+dihedral+frameVal)+")";
+    } else if (frameVal < -180 + dihedral) {
+      return "AND ("+colName+" <= "+Double.toString(frameVal+dihedral)+" OR "+colName+" >= "+Double.toString(frameVal+360-dihedral)+")";
     } else {
-      return "AND ("+colName+" <= "+Double.toString(frameVal+25)+" AND "+colName+" >= "+Double.toString(frameVal-25)+")";
+      return "AND ("+colName+" <= "+Double.toString(frameVal+dihedral)+" AND "+colName+" >= "+Double.toString(frameVal-dihedral)+")";
     }
+  }
+  //}}}
+  
+  //{{{ createWhereAngle
+  public String createWhereAngle(double frameVal, String colName, double angle) {
+    /** since the 0-180 angles don't wrap, it should be ok to just use +- 25, even close to 0 or 180 */
+    //if (frameVal > 180 - 25) {
+    //  return "AND ("+colName+" >= "+Double.toString(frameVal-25)+" OR "+colName+" <= "+Double.toString(-180+25+frameVal)+")";
+    //} else if (frameVal < 0 + 25) {
+    //  return "AND ("+colName+" <= "+Double.toString(frameVal+25)+" OR "+colName+" >= "+Double.toString(frameVal+180-25)+")";
+    //} else {
+      return "AND ("+colName+" <= "+Double.toString(frameVal+angle)+" AND "+colName+" >= "+Double.toString(frameVal-angle)+")";
+    //}
   }
   //}}}
   

@@ -1,3 +1,7 @@
+1.11  Usability enhancements: better file names, fragments in kins have PDB source
+      identity info.
+      Added -tighter to give option for tighter parameters.
+
 1.10  Changed how jiffiloop accesses database; it should be much faster.
 
 1.09  Added jiffiloop.changes and help files.
