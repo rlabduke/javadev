@@ -1,3 +1,6 @@
+100906 Fixed bug with how distance was calculated. Added extra sorting output
+       to text output. Added option to KiNG tool window for ensemble calculation.
+
 090612 -text flag output, and list coloring by distance of vector from curve
 
 090211 Surfaces added to gui, and with separate masters.
