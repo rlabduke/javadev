@@ -52,13 +52,28 @@ public class RdcAnalyzer {
         fi.solveRdcsEnsemble(rdcName);
       }
       String[] atoms = fi.parseAtomNames(rdcName);
+      
+      String modelNames = "";
+      TreeMap deltaRdcByRes = new TreeMap();
+      TreeMap minDistByRes = new TreeMap();
+      
+      /** This code assumes that all models will have same RDCs and bond vectors as the first model. */
+      Model firstMod = pdb.getFirstModel();
+      Iterator rezes = firstMod.getResidues().iterator();
+      while (rezes.hasNext()) {
+        Residue orig = (Residue) rezes.next();
+        deltaRdcByRes.put(orig.getCNIT(), "");
+        minDistByRes.put(orig.getCNIT(), "");
+      }
+      
       Iterator models = (pdb.getModels()).iterator();
       while (models.hasNext()) {
 
         //System.out.print(".");
         Model mod = (Model) models.next();
-        System.out.println("Model "+mod.getName());
-        System.out.println("ResID:expRDC:backcalcRDC:minDist");
+        modelNames = modelNames + mod.getName()+":";
+        //System.out.println("Model "+mod.getName());
+        System.out.println("model:ResID:expRDC:backcalcRDC:absdeltaRDC:minDist");
         
         ModelState state = mod.getState();
         if (!ensembleTensor) {
@@ -69,12 +84,30 @@ public class RdcAnalyzer {
           Residue orig = (Residue) iter.next();
           Triple rdcVect = getResidueRdcVect(state, orig, atoms);
           AtomState origin = getOriginAtom(state, orig, atoms);
+          
           if ((rdcVect != null)&&(origin != null)) {
-            analyzeResidue(origin, rdcVect, orig, fi);
+            String seq = orig.getSequenceNumber().trim();
+            double rdcVal = fi.getRdcValue(seq);
+            double backcalcRdc = fi.getBackcalcRdc(rdcVect);
+            if ((!Double.isNaN(rdcVal))&&(!Double.isNaN(backcalcRdc))) {
+              double dist = analyzeResidue(origin, rdcVect, orig, fi);
+              System.out.println(mod.getName()+":"+orig +":"+ df.format(rdcVal)+":"+df.format(backcalcRdc)+":"+df.format(Math.abs(rdcVal-backcalcRdc))+":"+df.format(dist));
+              String deltaOut = (String) deltaRdcByRes.get(orig.getCNIT());
+              //System.err.println(orig+" "+deltaOut);
+              String distOut = (String) minDistByRes.get(orig.getCNIT());
+              deltaRdcByRes.put(orig.getCNIT(), deltaOut+":"+df.format(Math.abs(rdcVal-backcalcRdc)));
+              minDistByRes.put(orig.getCNIT(), distOut+":"+df.format(dist));
+            }
           } else {
           }
         }
       }
+      System.out.println("Absolute(delta RDCs)");
+      System.out.println("res"+":"+modelNames);
+      printMap(deltaRdcByRes, firstMod);
+      System.out.println("Min distance");
+      System.out.println("res"+":"+modelNames);
+      printMap(minDistByRes, firstMod);
     }
   }
   //}}}
@@ -88,6 +121,9 @@ public class RdcAnalyzer {
       AtomState fromState = state.get(from);
       AtomState toState = state.get(to);
       Triple rdcVect = new Triple().likeVector(fromState, toState).unit();
+      //System.out.println(rdcVect);
+      rdcVect = rdcVect.mult(Triple.distance(fromState, toState));
+      //System.out.println(rdcVect);
       return rdcVect;
     } catch (AtomException ae) {
     }
@@ -113,26 +149,37 @@ public class RdcAnalyzer {
   //}}}
   
   //{{{ analyzeResidue
-  public void analyzeResidue(Tuple3 p, Triple rdcVect, Residue orig, FileInterpreter fi) {
+  public double analyzeResidue(Tuple3 p, Triple rdcVect, Residue orig, FileInterpreter fi) {
     String seq = orig.getSequenceNumber().trim();
     double rdcVal = fi.getRdcValue(seq);
-    //System.out.println(rdcVal);
-    //System.out.println((rdcVal != Double.NaN));
     double backcalcRdc = fi.getBackcalcRdc(rdcVect);
-    double rdcError = fi.getRdcError(seq);
-    if (Double.isNaN(rdcError)) rdcError = 1;
+    //double rdcError = fi.getRdcError(seq);
+    //if (Double.isNaN(rdcError)) rdcError = 1;
     if ((!Double.isNaN(rdcVal))&&(!Double.isNaN(backcalcRdc))) {
       double radius = rdcVect.distance(new Triple(0, 0, 0));
-      String text = "res= "+seq+" rdc= "+df.format(rdcVal)+"+/-"+df.format(rdcError)+" backcalc= "+df.format(backcalcRdc);
+      //String text = "res= "+seq+" rdc= "+df.format(rdcVal)+"+/-"+df.format(rdcError)+" backcalc= "+df.format(backcalcRdc);
       double dist = fi.getDrawer().analyzeVector(rdcVal, p, rdcVect, radius, 60);
-      System.out.println(orig +":"+ df.format(rdcVal)+":"+df.format(backcalcRdc)+":"+df.format(dist));
+      return dist;
     } else {
       //System.out.println("this residue does not appear to have an rdc");
     }
+    return -1;
   }
   //}}}
   
-  
+  //{{{ printMap
+  public void printMap(TreeMap resMap, Model firstMod) {
+    Iterator rezes = firstMod.getResidues().iterator();
+    while (rezes.hasNext()) {
+      Residue orig = (Residue) rezes.next();
+      String value = (String) resMap.get(orig.getCNIT());
+      if (value != "") {
+        System.out.println(orig+value);
+      }
+    }
+  }
+  //}}}
+
   
   
 }

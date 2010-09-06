@@ -412,6 +412,7 @@ public class RdcVisMain {
     //System.out.println(rdcVal);
     //System.out.println((rdcVal != Double.NaN));
     double backcalcRdc = fi.getBackcalcRdc(rdcVect);
+    //System.out.println(orig+" backcalc "+backcalcRdc);
     double rdcError = fi.getRdcError(seq);
     if (Double.isNaN(rdcError)) rdcError = 1;
     if ((!Double.isNaN(rdcVal))&&(!Double.isNaN(backcalcRdc))) {

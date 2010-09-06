@@ -24,6 +24,7 @@ public class RdcDrawer2 {
   
   //{{{ Constants
   DecimalFormat df = new DecimalFormat("0.00");
+  DecimalFormat df2 = new DecimalFormat("0.000");
   //}}}
   
   //{{{ Variables
@@ -42,6 +43,12 @@ public class RdcDrawer2 {
   //}}}
   
   //{{{ drawCurve
+  /** 
+   *  Handles the actual calculation and drawing of the RDC curves.  Note that for some reason, this
+   *  calculation code assumes the radius of the sphere is 1, and then shrinks the curves down 
+   *  to the proper radius.  When I tried using the radius in the xyz coordinate calculation,
+   *  some curves wouldnt' be properly divided up into neg and pos lists.
+   **/
   public void drawCurve(double rdcVal, Tuple3 center, Triple modelVect, double r, int numPoints, double backcalcRdc, KList list, String text, double error) {
     drawCurve(rdcVal, center, modelVect, r, numPoints, backcalcRdc, list, text, error, null);
   }
@@ -52,6 +59,9 @@ public class RdcDrawer2 {
     ArrayList<KPoint> posPoints = new ArrayList<KPoint>();
     ArrayList<KPoint> negPoints = new ArrayList<KPoint>();
     list.setColor(KPalette.hotpink);
+    //BallPoint testPoint = new BallPoint("testpoint");
+    //testPoint.setXYZ(modelVect.getX()+center.getX(), modelVect.getY()+center.getY(), modelVect.getZ()+center.getZ());
+    //list.add(testPoint);
     boolean rdcIsOut = false;
     //need to catch special cases where rdcVal == sxx or szz
     for (double tau = 0; tau <= 2 * Math.PI; tau += 2 * Math.PI / numPoints) {
@@ -61,20 +71,20 @@ public class RdcDrawer2 {
         b = Math.sqrt((rdcVal-sxx)/(szz-sxx));
         y = a * Math.cos(tau);
         z = b * Math.sin(tau);
-        x = Math.sqrt(r - Math.pow(y, 2) - Math.pow(z, 2));
+        x = Math.sqrt(1 - Math.pow(y, 2) - Math.pow(z, 2));
       } else if ((syy<=rdcVal) && (rdcVal < szz)) {
         a = Math.sqrt((szz-rdcVal)/(szz-sxx));
         b = Math.sqrt((szz-rdcVal)/(szz-syy));
         x = a * Math.cos(tau);
         y = b * Math.sin(tau);
-        z = Math.sqrt(r - Math.pow(x, 2) - Math.pow(y, 2));
+        z = Math.sqrt(1 - Math.pow(x, 2) - Math.pow(y, 2));
       } else {
         rdcIsOut = true;
         //System.out.println("RDC value ("+rdcVal+") not in range ("+sxx+"-"+szz+")!");
         //a = Double.NaN;
         //return;
       }
-      if (!Double.isNaN(a)) {
+      if (!Double.isNaN(a)&&!Double.isNaN(x)&&!Double.isNaN(z)) {
         Matrix changeBase = new Matrix(3, 1);
         changeBase.set(0, 0, x);
         changeBase.set(1, 0, y);
@@ -158,18 +168,18 @@ public class RdcDrawer2 {
         b = Math.sqrt((rdcVal-sxx)/(szz-sxx));
         y = a * Math.cos(tau);
         z = b * Math.sin(tau);
-        x = Math.sqrt(r - Math.pow(y, 2) - Math.pow(z, 2));
+        x = Math.sqrt(1 - Math.pow(y, 2) - Math.pow(z, 2));
       } else if ((syy<=rdcVal) && (rdcVal < szz)) {
         a = Math.sqrt((szz-rdcVal)/(szz-sxx));
         b = Math.sqrt((szz-rdcVal)/(szz-syy));
         x = a * Math.cos(tau);
         y = b * Math.sin(tau);
-        z = Math.sqrt(r - Math.pow(x, 2) - Math.pow(y, 2));
+        z = Math.sqrt(1 - Math.pow(x, 2) - Math.pow(y, 2));
       } else {
         rdcIsOut = true;
         //System.out.println("RDC value not in range!");
       }
-      if (!Double.isNaN(a)) {
+      if (!Double.isNaN(a)&&!Double.isNaN(x)&&!Double.isNaN(z)) {
         Matrix changeBase = new Matrix(3, 1);
         changeBase.set(0, 0, x);
         changeBase.set(1, 0, y);
@@ -180,6 +190,8 @@ public class RdcDrawer2 {
         point.setXYZ(adjFrame.get(0, 0)+center.getX(), adjFrame.get(1, 0)+center.getY(), adjFrame.get(2, 0)+center.getZ());      
         if (modelVect != null) {
           double dist = modelVect.distance(new Triple(adjFrame.get(0, 0), adjFrame.get(1, 0), adjFrame.get(2, 0)));
+          //System.out.print(df2.format(modelVect.getX()+center.getX())+","+df2.format(modelVect.getY()+center.getY())+","+df2.format(modelVect.getZ()+center.getZ())+":");
+          //System.out.println(df2.format(adjFrame.get(0, 0)+center.getX())+","+ df2.format(adjFrame.get(1, 0)+center.getY())+","+ df2.format(adjFrame.get(2, 0)+center.getZ())+" pos "+dist + "->" + minDist);
           if (dist < minDist) minDist = dist;
         }
         
@@ -187,6 +199,10 @@ public class RdcDrawer2 {
         negPoint.setXYZ(-adjFrame.get(0, 0)+center.getX(), -adjFrame.get(1, 0)+center.getY(), -adjFrame.get(2, 0)+center.getZ());      
         if (modelVect != null) {
           double dist = modelVect.distance(new Triple(-adjFrame.get(0, 0), -adjFrame.get(1, 0), -adjFrame.get(2, 0)));
+          //System.out.print(df2.format(modelVect.getX()+center.getX())+","+df2.format(modelVect.getY()+center.getY())+","+df2.format(modelVect.getZ()+center.getZ())+":");
+          //System.out.println(df2.format(-adjFrame.get(0, 0)+center.getX())+","+ df2.format(-adjFrame.get(1, 0)+center.getY())+","+ df2.format(-adjFrame.get(2, 0)+center.getZ())+" neg "+dist + "->" + minDist);
+          //System.out.print((modelVect.getX()+center.getX())+","+(modelVect.getY()+center.getY())+","+(modelVect.getZ()+center.getZ())+":");
+          //System.out.println((-adjFrame.get(0, 0)+center.getX())+","+ (-adjFrame.get(1, 0)+center.getY())+","+ (-adjFrame.get(2, 0)+center.getZ())+" neg "+dist + "->" + minDist);
           if (dist < minDist) minDist = dist;
         }
       }

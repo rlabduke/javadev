@@ -96,6 +96,7 @@ public class MagneticResonanceFile {
   public static SuffixFileFilter getMRFileFilter() {
     SuffixFileFilter allFilter = new SuffixFileFilter("NMR data file");
     allFilter.addSuffix(".mr");
+    allFilter.addSuffix(".tbl");
     return allFilter;
   }
   //}}}
