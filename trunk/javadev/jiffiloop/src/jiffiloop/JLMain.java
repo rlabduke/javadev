@@ -59,6 +59,7 @@ public class JLMain {
   static File pdbLibrary = null;
   static int matchDiff;
   static boolean ntermsup = false;
+  static boolean tighterParams = false;
   static boolean useStems = false;
   static boolean renumber = true;
   boolean keepSequence = false;
@@ -76,11 +77,13 @@ public class JLMain {
     try {
       ArrayList<String> argList = main.parseArgs(args);
       File pdbFile = new File(argList.get(0));
-      File outKinFile = new File(argList.get(1)+".kin");
+      //File outKinFile = new File(argList.get(1)+".kin");
       File outPrefix = new File(argList.get(1));
 	    //}
       //System.out.println(pdbFile);
-	    main.runAnalysis(new File(pdbFile.getAbsolutePath()), new File(outKinFile.getAbsolutePath()), outPrefix.getAbsolutePath());
+	    //main.runAnalysis(new File(pdbFile.getAbsolutePath()), new File(outKinFile.getAbsolutePath()), outPrefix.getAbsolutePath());
+      main.runAnalysis(new File(pdbFile.getAbsolutePath()), outPrefix.getAbsolutePath());
+    
     } catch (IllegalArgumentException ex) {
       ex.printStackTrace();
       System.err.println();
@@ -113,7 +116,7 @@ public class JLMain {
       }
     }
     System.err.println("jiffiloop.JLMain " + getVersion("version")+" "+getVersion("buildnum"));
-    System.err.println("Copyright (C) 2007-2009 by Vincent B. Chen. All rights reserved.");
+    System.err.println("Copyright (C) 2007-2010 by Vincent B. Chen. All rights reserved.");
   }
   
   // Display changes information
@@ -223,6 +226,8 @@ public class JLMain {
           renumber = false;
         } else if (arg.equals("-sequence")) {
           keepSequence = true;
+        } else if (arg.equals("-tighter")) {
+          tighterParams = true;
         } else {
           throw new IllegalArgumentException("*** Unrecognized option: "+arg);
         }
@@ -272,7 +277,8 @@ public class JLMain {
   //}}}
   
   //{{{ runAnalysis
-  public void runAnalysis(File pdbFile, File outKinFile, String outPrefix) {
+  //public void runAnalysis(File pdbFile, File outKinFile, String outPrefix) {
+  public void runAnalysis(File pdbFile, String outPrefix) {
     setDefaults();
     //filledMap = new HashMap<ProteinGap, ArrayList<String>>();
     //gapFrameAtomsMap = new HashMap<ArrayList<Double>, ArrayList<Triple>>();
@@ -286,10 +292,26 @@ public class JLMain {
     libReader = new PdbLibraryReader(pdbLibrary, renumber, !keepSequence);
     CoordinateFile[] pdbOut;
     Map<String, ArrayList<ProteinGap>> gaps = analyzer.getGaps(); // stems need gaps!
+    String kinPrefix = outPrefix;
     if (!useStems) {
+      for (ArrayList<ProteinGap> v : gaps.values()) {
+        for (ProteinGap g : v) {
+          System.out.println(g);
+          if (g.getSize() > 15) {
+            v.remove(g);
+          }
+        }
+      }
       FragFiller fragFill = new FragFiller(gaps);
-      ArrayList<ProteinGap> allGaps = new ArrayList<ProteinGap>();
-      fragFill.searchDB(matchDiff);
+      //ArrayList<ProteinGap> allGaps = new ArrayList<ProteinGap>();
+      for (ArrayList<ProteinGap> v : gaps.values()) 
+        for (ProteinGap g : v) kinPrefix = kinPrefix+"."+g.getResidueRange();
+      
+      if (tighterParams) {
+        fragFill.searchDB(matchDiff, 0.5, 15, 10);
+      } else {
+        fragFill.searchDB(matchDiff);
+      }
       /* for searching loop data not using a database.  probably doesn't work with neo5200 params.
       scanLoopData(frameDataFiles, allGaps);
       for (ArrayList matchedInfo : filledMap.values()) {
@@ -307,6 +329,8 @@ public class JLMain {
       pdbOut = stemFill.getFragments(libReader, ntermsup, fragmentLimit);
     }
     writePdbs(pdbOut, outPrefix);
+    File outKinFile = new File(kinPrefix + ".kin");
+    System.out.println("Writing kin to "+outKinFile.toString());
     writeKin(analyzer.getCoordFile(), pdbOut, outKinFile);
   }
   //}}}
@@ -338,9 +362,11 @@ public class JLMain {
   
   //{{{ writePdbs
   public void writePdbs(CoordinateFile[] pdbs, String prefix) {
+    //System.out.println(pdbs.length);
     for (CoordinateFile pdb : pdbs) {
       try {
         File outFile = new File(prefix + pdb.getIdCode() + ".pdb");
+        System.out.println("Writing pdb to "+outFile.toString());
         PdbWriter writer = new PdbWriter(outFile);
         writer.writeCoordinateFile(pdb);
         writer.close();
@@ -370,7 +396,11 @@ public class JLMain {
         while (models.hasNext()) {
           Model mod = (Model) models.next();
           out.println("@group {"+pdb.getIdCode()+" "+mod.getName()+"} dominant animate master= {all models}");
-          bsl.printKinemage(out, mod, new UberSet(mod.getResidues()), inputPdb.getIdCode(), "white");
+          Residue[] reses = (Residue[]) mod.getResidues().toArray(new Residue[0]);
+          String startInfo = getPast80Info(reses[0], mod);
+          String endInfo = getPast80Info(reses[reses.length-1], mod);
+          endInfo = endInfo.substring(endInfo.lastIndexOf("_")+1);
+          bsl.printKinemage(out, mod, new UberSet(mod.getResidues()), startInfo+"-"+endInfo, "white");
         }
       }
       out.flush();
@@ -380,6 +410,26 @@ public class JLMain {
     }
   }
   //}}}
+  
+  //{{{ getPast80Info
+  public String getPast80Info(Residue res, Model mod) {
+    ModelState modState = mod.getState();
+    try {
+      Atom at = res.getAtom(" CA ");
+      if (at != null) {
+        AtomState atState = modState.get(at);
+        return atState.getPast80().trim();
+      } else {
+        System.err.println("CA not found in fragment, this shouldn't happen!");
+      } 
+    } catch (AtomException ae) {
+      System.err.println("CA not found in fragment, this shouldn't happen!\n");
+      ae.printStackTrace();
+    }
+    return "";
+  } 
+  //}}}
+
   
   //{{{ isInteger
   public static boolean isInteger(String s) {

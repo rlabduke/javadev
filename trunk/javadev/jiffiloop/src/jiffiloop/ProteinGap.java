@@ -87,6 +87,10 @@ public class ProteinGap {
     return (sourceModName + sourceChain).trim();
   }
   
+  public String getResidueRange() {
+    return oneRes.getSequenceNumber().trim()+"-"+nRes.getSequenceNumber().trim();
+  }
+  
   public Tuple3[] getTupleArray() {
     Tuple3[] tuples = new Tuple3[4];
     //tuples[0] = coMap.get(new Integer(oneNum - 1));
@@ -124,6 +128,18 @@ public class ProteinGap {
   
   public int hashCode() {
     return (frame.hashCode() ^ states.hashCode());
+  }
+  //}}}
+  
+  //{{{ toString
+  public String toString() {
+    String out = "";
+    out = out + sourceModName + " " + sourceChain + " ";
+    out = out + oneRes.getSequenceNumber().trim()+"-"+nRes.getSequenceNumber().trim();
+    for (double d : frame) {
+      out = out + " "+df.format(d);
+    }
+    return out;
   }
   //}}}
   
