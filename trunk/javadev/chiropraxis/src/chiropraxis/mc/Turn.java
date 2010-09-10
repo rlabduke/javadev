@@ -30,7 +30,7 @@ public abstract class Turn //extends ... implements ...
     public ModelState state;
     public Residue r1, r2, r3;
     public String type; // I, I', II, II'
-    public double hbEnergy1to3, hbEnergy1to4; // from Kabsch & Sander equation
+    public double hbEnergy0to3, hbEnergy0to4; // from Kabsch & Sander equation
     public double dihedral; // Ca(x4) or Ca(x3)+N
     public double phi1, psi1, phi2, psi2, phi3, psi3;
     public double highB;
