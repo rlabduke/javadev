@@ -211,15 +211,18 @@ public class MotifBuilder //extends ... implements ...
     */
     public void buildMotif()
     {
-        if(inDir != null && inDir.isDirectory()) System.out.println("#!/bin/bash");
-        else System.err.println("Must use local files to get out SubImpose commands!");
+        if(inDir != null && inDir.isDirectory() && (supN != 0 || supC != 0))
+            System.out.println("#!/bin/bash");
+        else if(verbose)
+            System.err.println("Must use local files & specify "
+                +"-supn=# & -supc=# to get SubImpose commands!");
         
         Descriptor[] descriptors = readDescriptors();
         for(int i = 0; i < descriptors.length; i++)
         {
             Descriptor d = descriptors[i];
-            String name = d.getPdbid()+d.getChain()+"_"+d.getResnum()
-                +d.getInscode()+AminoAcid.translate(d.getRestype().toLowerCase())+".pdb";
+            String name = d.getPdbid()+d.getChain()+"_"+
+                AminoAcid.translate(d.getRestype().toLowerCase())+d.getResnum()+".pdb";
             System.err.println("Building "+name);
             
             try
@@ -233,8 +236,11 @@ public class MotifBuilder //extends ... implements ...
                 
                 File motFile = writeSubstrucPdb(substruc, name);
                 
-                if(inDir != null && inDir.isDirectory()) printSupCommand(d, motFile);
-                else System.err.println("Must use local files to get SubImpose commands!");
+                if(inDir != null && inDir.isDirectory() && (supN != 0 || supC != 0))
+                    printSupCommand(d, motFile);
+                else if(verbose)
+                    System.err.println("Must use local files & specify "
+                        +"-supn=# & -supc=# to get SubImpose commands!");
                 
                 substruc = null; // necessary to prevent memory leak!
             }
@@ -427,12 +433,12 @@ public class MotifBuilder //extends ... implements ...
         Residue curr = res;
         for(int i = 0; i < getN; i++)
         {
-            Residue next = (Residue) curr.getNext(model);
-            if(next == null) break;
+            Residue prev = (Residue) curr.getPrev(model);
+            if(prev == null) break;
             else
             {
-                resToKeep.add(next);
-                curr = next;
+                resToKeep.add(prev);
+                curr = prev;
             }
         }
         
@@ -440,12 +446,12 @@ public class MotifBuilder //extends ... implements ...
         curr = res;
         for(int i = 0; i < getC; i++)
         {
-            Residue prev = (Residue) curr.getPrev(model);
-            if(prev == null) break;
+            Residue next = (Residue) curr.getNext(model);
+            if(next == null) break;
             else
             {
-                resToKeep.add(prev);
-                curr = prev;
+                resToKeep.add(next);
+                curr = next;
             }
         }
         
