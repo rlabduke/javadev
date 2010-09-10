@@ -73,8 +73,8 @@ public class TightTurn extends Turn
         if(r4 == null) throw new ResidueException(
             "Need residue after "+r3+"to complete turn!");
         
-        this.hbEnergy1to3 = calcHbondEnergy(r1, r3);
-        this.hbEnergy1to4 = calcHbondEnergy(r1, r4);
+        this.hbEnergy0to3 = calcHbondEnergy(r0, r3);
+        this.hbEnergy0to4 = calcHbondEnergy(r0, r4);
     }
 //}}}
 
@@ -93,8 +93,8 @@ public class TightTurn extends Turn
     */
     protected double calcHbondEnergy(Residue r, Residue s) throws AtomException
     {
-        Atom c = r.getAtom(" CG ");
-        Atom o = r.getAtom(" OD1");
+        Atom c = r.getAtom(" C  ");
+        Atom o = r.getAtom(" O  ");
         Atom n = s.getAtom(" N  ");
         Atom h = s.getAtom(" H  ");
         AtomState cs = state.get(c);

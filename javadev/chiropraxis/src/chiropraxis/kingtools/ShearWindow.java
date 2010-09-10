@@ -74,8 +74,6 @@ public class ShearWindow implements Remodeler, ChangeListener, WindowListener
         this.anchorList = new KList(KList.BALL);
         anchorList.setColor( KPalette.peach );
         
-        buildGUI(kMain.getTopWindow());
-        
         // force loading of data tables that will be used later
         try { rama = Ramachandran.getInstance(); }
         catch(IOException ex) {}
@@ -92,6 +90,8 @@ public class ShearWindow implements Remodeler, ChangeListener, WindowListener
             if(anchor2 != null)
             {
                 //System.err.println("from "+anchor1+" to "+anchor2);
+                
+                buildGUI(kMain.getTopWindow());
                 
                 markAnchor(anchor1, state);
                 markAnchor(anchor2, state);
@@ -144,13 +144,41 @@ public class ShearWindow implements Remodeler, ChangeListener, WindowListener
         cbIdealizeSC = new JCheckBox(new ReflectiveAction("Idealize sidechains", null, this, "onToggleIdealSC"));
         cbIdealizeSC.setSelected(false); // 25 Oct 06: changed by mandate from JSR
         
+        // XX-TODO: add bond length/angle distortion indicators
+        
         toolpane = new TablePane2();
+        
+        toolpane.skip();
         toolpane.skip();
         toolpane.addCell(shearDial);
+        toolpane.skip();
+        toolpane.skip();
+        toolpane.newRow();
+        
+        toolpane.skip();
+        toolpane.skip();
+        toolpane.addCell(new JLabel("primary shear"));
+        toolpane.skip();
+        toolpane.skip();
+        toolpane.newRow();
+        
+        toolpane.skip();
         toolpane.addCell(pept1Dial);
         toolpane.addCell(pept2Dial);
         toolpane.addCell(pept3Dial);
+        toolpane.skip();
         toolpane.newRow();
+        
+        toolpane.skip();
+        toolpane.addCell(new JLabel("1st peptide"));
+        toolpane.addCell(new JLabel("2nd peptide"));
+        toolpane.addCell(new JLabel("3rd peptide"));
+        toolpane.skip();
+        toolpane.newRow();
+        
+        toolpane.addCell(TablePane2.strut(0,10));
+        toolpane.newRow();
+        
         for(int i = 0; i < headerLabels.length; i++)
         {
             if(i == 2) continue; // skip Karplus' phi/psi-dependent tau deviation
@@ -162,8 +190,10 @@ public class ShearWindow implements Remodeler, ChangeListener, WindowListener
             toolpane.newRow();
         }
         toolpane.newRow();
+        
         toolpane.addCell(TablePane2.strut(0,10));
         toolpane.newRow();
+        
         toolpane.startSubtable(4,1);
             toolpane.addCell(btnRelease);
             toolpane.addCell(cbIdealizeSC);
@@ -173,14 +203,14 @@ public class ShearWindow implements Remodeler, ChangeListener, WindowListener
         // Assemble the dialog
         if(kMain.getPrefs().getBoolean("minimizableTools"))
         {
-            JFrame fm = new JFrame("Shear: "+ctrRes1.toString()+" & "+ctrRes2.toString());
+            JFrame fm = new JFrame("Shear: "+anchor1.toString()+" to "+anchor2.toString());
             fm.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
             fm.setContentPane(toolpane);
             dialog = fm;
         }
         else
         {
-            JDialog dial = new JDialog(frame, "Shear: "+ctrRes1.toString(), false);
+            JDialog dial = new JDialog(frame, "Shear: "+anchor1.toString()+" to "+anchor2.toString(), false);
             dial.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
             dial.setContentPane(toolpane);
             dialog = dial;

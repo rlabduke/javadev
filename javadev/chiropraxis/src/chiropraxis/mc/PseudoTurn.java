@@ -72,8 +72,10 @@ public class PseudoTurn extends Turn
         if(r4 == null) throw new ResidueException(
             "Need residue after "+r3+"to complete turn!");
         
-        this.hbEnergy1to3 = calcHbondEnergy(r1, r3);
-        this.hbEnergy1to4 = calcHbondEnergy(r1, r4);
+        // Will use sidechain CO of residue 1, which is like 
+        // mainchain CO of residue 0 for tight turns
+        this.hbEnergy0to3 = calcHbondEnergy(r1, r3);
+        this.hbEnergy0to4 = calcHbondEnergy(r1, r4);
     }
 //}}}
 

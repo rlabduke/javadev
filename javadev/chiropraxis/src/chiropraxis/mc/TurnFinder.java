@@ -60,7 +60,7 @@ public class TurnFinder //extends ... implements ...
             try
             {
                 Turn turn = new TightTurn(model, state, r0, r1, r2, r3);
-                if(turn.hbEnergy1to3 < -0.5 && turn.hbEnergy1to4 >= -0.5 && Math.abs(turn.dihedral) < 60)
+                if(turn.hbEnergy0to3 < -0.5 && turn.hbEnergy0to4 >= -0.5 && Math.abs(turn.dihedral) < 60)
                 {
                     // NB: If an H-bond from 1 to 4 exists, that's 
                     // basically a helix N-cap, not a beta turn!
@@ -97,7 +97,7 @@ public class TurnFinder //extends ... implements ...
             try
             {
                 Turn turn = new PseudoTurn(model, state, r1, r2, r3);
-                if(turn.hbEnergy1to3 < -0.5 && turn.hbEnergy1to4 >= -0.5 && Math.abs(turn.dihedral) < 60)
+                if(turn.hbEnergy0to3 < -0.5 && turn.hbEnergy0to4 >= -0.5 && Math.abs(turn.dihedral) < 60)
                 {
                     // NB: If an H-bond from 1 to 4 exists, that's 
                     // basically a helix N-cap, not a beta turn!
@@ -133,8 +133,8 @@ public class TurnFinder //extends ... implements ...
                 AminoAcid.isCisPeptide(model, t.r2, state)+":"+
                 AminoAcid.isCisPeptide(model, t.r3, state)+":"+
                 t.type+":"+
-                df.format(t.hbEnergy1to3)+":"+
-                df.format(t.hbEnergy1to4)+":"+
+                df.format(t.hbEnergy0to3)+":"+
+                df.format(t.hbEnergy0to4)+":"+
                 df.format(t.dihedral)+":"+
                 df.format(t.phi0)+":"+
                 df.format(t.psi0)+":"+
@@ -167,8 +167,8 @@ public class TurnFinder //extends ... implements ...
                 AminoAcid.isCisPeptide(model, t.r2, state)+":"+
                 AminoAcid.isCisPeptide(model, t.r3, state)+":"+
                 t.type+":"+
-                df.format(t.hbEnergy1to3)+":"+
-                df.format(t.hbEnergy1to4)+":"+
+                df.format(t.hbEnergy0to3)+":"+
+                df.format(t.hbEnergy0to4)+":"+
                 df.format(t.dihedral)+":"+
                 df.format(t.phi1)+":"+
                 df.format(t.psi1)+":"+

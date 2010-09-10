@@ -106,6 +106,7 @@ public class SubImpose //extends ... implements ...
     double leskSieve = Double.NaN;
     double rmsdCutoff = Double.NaN; // above which PDB is not written out
     double rmsdGoal = Double.NaN; // iterative Lesk sieve until this rmsd is reached
+    boolean shuffle = false;
     
     CoordinateFile coord1 = null, coord2 = null;
     Model m1 = null, m2 = null;
@@ -320,6 +321,182 @@ public class SubImpose //extends ... implements ...
     }
 //}}}
 
+//{{{ permuteAtoms, next_permutation, reverse
+//##############################################################################
+    /**
+    * Try all possible permutations of selected atoms from structure 1 
+    * vs. the original order of selected atoms from structure 2.
+    * If this method is not used, it is assumed that the atoms were read 
+    * in the proper order in both structures and are thus paired correctly.  
+    * This often works fine if the same number of atoms is selected per residue, 
+    * but may fail if more or fewer atoms are selected from specific residues.
+    **/
+    AtomState[][] permuteAtoms()
+    {
+        //{{{ [only mobile]
+        //// Try all possible permutations of selected atoms from mobile structure 
+        //// vs. original order of selected atoms from static structure.
+        //double best_rmsd = Double.POSITIVE_INFINITY;
+        //int max = atoms[0].length; // should == atoms[1].length
+        //int[] x = new int[max], best_x = null;
+        //for(int i = 0; i < max; i++) x[i] = i; // mercurial indices to atoms
+        //int tried = 0;
+        //while(true)
+        //{
+        //    // New permutation of atoms in mobile structure
+        //    AtomState[] atoms0 = new AtomState[atoms[0].length];
+        //    for(int i = 0; i < max; i++)
+        //    {
+        //        atoms0[i] = atoms[ 0 ][ x[i] ]; // index w/in mobile struct changes
+        //    }
+        //    boolean badPermut = false;
+        //    for(int j = 0; j < atoms0.length-1; j++)
+        //    {
+        //        int resnumCurr = atoms0[j  ].getAtom().getResidue().getSequenceInteger();
+        //        int resnumNext = atoms0[j+1].getAtom().getResidue().getSequenceInteger();
+        //        if(resnumNext < resnumCurr) badPermut = true; // out of sequence!
+        //    }
+        //    if(!badPermut)
+        //    {
+        //        tried++;
+        //        SuperPoser superpos = new SuperPoser(atoms[1], atoms0); // NOT atoms[0]!
+        //        R = superpos.superpos();
+        //        double rmsd = superpos.calcRMSD(R);
+        //        if(best_x == null || rmsd < best_rmsd)
+        //        {
+        //            best_rmsd = rmsd;
+        //            best_x = (int[]) x.clone();
+        //        }
+        //    }
+        //    if(!next_permutation(x)) break;
+        //}
+        //if(verbose) System.err.println("tried "+tried+" permutation(s); "+
+        //    "best rmsd: "+df.format(best_rmsd));
+        //
+        //// Construct the final array
+        //AtomState[][] bestAtoms = new AtomState[ 2 ][ max ];
+        //for(int i = 0; i < max; i++)
+        //{
+        //    bestAtoms[0][i] = atoms[ 0 ] [ best_x[i] ]; // mobile (permuted)
+        //    bestAtoms[1][i] = atoms[ 1 ] [        i  ]; // static (original)
+        //}
+        //return bestAtoms;
+        //}}}
+        
+        // Try all possible permutations of selected atoms from mobile structure 
+        // vs. all possible permutations of selected atoms from static structure.
+        // Preserve N->C sequence order to avoid unmeaningful superpositions, 
+        // so in effect only permute atoms within the same residue.
+        double best_rmsd = Double.POSITIVE_INFINITY;
+        int max = atoms[0].length; // == atoms[1].length
+        int[] x = new int[max], best_x = null;
+        int[] y = new int[max], best_y = null;
+        for(int i = 0; i < max; i++)
+        {
+            x[i] = i; // mercurial indices to atoms from mobile structure
+            y[i] = i; // mercurial indices to atoms from static structure
+        }
+        int tried = 0;
+        while(true) // that x has more permutations for mobile atoms
+        {
+            AtomState[] atoms0 = new AtomState[max];
+            for(int i = 0; i < max; i++) atoms0[i] = atoms[0][x[i]];
+            if(!badPermutation(atoms0))
+            {
+                while(true) // that y has more permutations for static atoms
+                {
+                    AtomState[] atoms1 = new AtomState[max];
+                    for(int i = 0; i < max; i++) atoms1[i] = atoms[1][y[i]];
+                    if(!badPermutation(atoms1))
+                    {
+                        tried++;
+                        SuperPoser superpos = new SuperPoser(atoms1, atoms0);
+                        R = superpos.superpos();
+                        double rmsd = superpos.calcRMSD(R);
+                        if(rmsd < best_rmsd)
+                        {
+                            best_rmsd = rmsd;
+                            best_x = (int[]) x.clone();
+                            best_y = (int[]) y.clone();
+                        }
+                    }
+                    if(!next_permutation(y)) break; // from inner
+                }
+            }//inner: static
+            if(!next_permutation(x)) break; // from outer
+        }//outer: mobile
+        if(verbose) System.err.println("tried "+tried+" permutation(s); "+
+            "best rmsd: "+df.format(best_rmsd));
+        
+        // Construct the final array
+        AtomState[][] bestAtoms = new AtomState[ 2 ][ max ];
+        for(int i = 0; i < max; i++)
+        {
+            bestAtoms[0][i] = atoms[ 0 ] [ best_x[i] ]; // mobile (permuted)
+            bestAtoms[1][i] = atoms[ 1 ] [ best_y[i] ]; // static (permuted)
+        }
+        return bestAtoms;
+    }
+    
+    /**
+    * Report that the supplied array of atoms is "bad" 
+    * if any two atoms are out of sequence order.
+    */
+    private boolean badPermutation(AtomState[] a)
+    {
+        for(int j = 0; j < a.length-1; j++)
+        {
+            int resnumCurr = a[j  ].getAtom().getResidue().getSequenceInteger();
+            int resnumNext = a[j+1].getAtom().getResidue().getSequenceInteger();
+            if(resnumNext < resnumCurr) return true; // out of sequence!
+        }
+        return false; // apparently in sequence order
+    }
+    
+    /**
+    * Borrowed from the C++ STL via a nice blog entry:
+    *   http://marknelson.us/2002/03/01/next-permutation
+    * Called repeatedly with a sequence of integers initially in ascending order,
+    * will generate all permutations in lexicographical order, returning false
+    * when no more remain.
+    */
+    private static boolean next_permutation(int[] x)
+    {
+        if(x.length <= 1) return false;
+        int i = x.length - 1;
+        while(true)
+        {
+            int ii = i--;
+            if(x[i] < x[ii])
+            {
+                int j = x.length;
+                while(!(x[i] < x[--j]));
+                int swap = x[i]; x[i] = x[j]; x[j] = swap;
+                reverse(x, ii, x.length);
+                return true;
+            }
+            if(i == 0)
+            {
+                reverse(x, 0, x.length);
+                return false;
+            }
+        }
+    }
+    
+    private static void reverse(int[] x, int start_inc, int end_exc)
+    {
+        int i = start_inc, j = end_exc-1;
+        while(i < j)
+        {
+            int swap = x[i];
+            x[i] = x[j];
+            x[j] = swap;
+            i++;
+            j--;
+        }
+    }
+//}}}
+
 //{{{ sortByLeskSieve
 //##############################################################################
     /**
@@ -495,6 +672,7 @@ public class SubImpose //extends ... implements ...
         R = new Transform(); // identity, defaults to no superposition
         //if(superimpose1 != null) // this is never true anymore; default: all Calphas - DAK 091123
         atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, superimpose1, superimpose2, align);
+        if(shuffle) atoms = permuteAtoms();
         if(verbose)
         {
             System.err.println("Atom alignments:");
@@ -810,6 +988,10 @@ public class SubImpose //extends ... implements ...
             catch(NumberFormatException ex) { throw new IllegalArgumentException(param+" isn't a number!"); }
             if(Double.isNaN(rmsdCutoff) || rmsdCutoff < 0)
                 System.err.println("Problem with "+param+" as param for -rmsdcutoff");
+        }
+        else if(flag.equals("-shuffle"))
+        {
+            shuffle = true;
         }
         else if(flag.equals("-dummy_option"))
         {

@@ -12,6 +12,7 @@ import java.util.*;
 //import javax.swing.*;
 import driftwood.moldb2.*;
 import driftwood.r3.*;
+import driftwood.util.Strings;
 import driftwood.util.SoftLog;
 import chiropraxis.sc.*;
 //}}}
@@ -53,95 +54,123 @@ public class CaShear extends CaRotation
     *   is missing a C-alpha, or if the state is missing a state definition
     *   for any of the mobile atoms.
     */
-    public static ModelState makeConformation(Collection residues, ModelState state, double theta12, boolean idealizeSC) throws AtomException
+    public static ModelState makeConformation(Collection residues, ModelState state, double theta1, boolean idealizeSC) throws AtomException
     {
         if(residues.size() != 4)
             throw new AtomException("Need 4 residues for makeConformation(..)!");
         
         // Find first, second, third, and fourth residue in the collection
-        Residue first = null, second = null, third = null, fourth = null;
+        Residue res1 = null, res2 = null, res3 = null, res4 = null;
         Iterator iter = residues.iterator();
         while(iter.hasNext())
         {
             Residue curr = (Residue)iter.next();
-            if(first == null)        first  = curr;
-            else if(second == null)  second = curr;
-            else if(third == null)   third  = curr;
-            else if(fourth == null)  fourth = curr;
+            if     (res1 == null)  res1 = curr;
+            else if(res2 == null)  res2 = curr;
+            else if(res3 == null)  res3 = curr;
+            else if(res4 == null)  res4 = curr;
         }
-        if(first == null || second == null || third == null || fourth == null)
+        if(res1 == null || res2 == null || res3 == null || res4 == null)
             throw new AtomException("First, second, third, or fourth residue is missing!");
         
         // Find atoms to rotate around
-        Atom firstCA, secondCA, thirdCA, fourthCA;
-        firstCA   = first.getAtom(" CA ");
-        secondCA  = second.getAtom(" CA ");
-        thirdCA   = third.getAtom(" CA ");
-        fourthCA  = fourth.getAtom(" CA ");
-        if(firstCA == null || secondCA == null || thirdCA == null || fourthCA == null)
-            throw new AtomException("C-alpha is missing from "+first+", "+second+", "+third+", or "+fourth);
+        Atom ca1, ca2, ca3, ca4;
+        ca1 = res1.getAtom(" CA ");
+        ca2 = res2.getAtom(" CA ");
+        ca3 = res3.getAtom(" CA ");
+        ca4 = res4.getAtom(" CA ");
+        if(ca1 == null || ca2 == null || ca3 == null || ca4 == null)
+            throw new AtomException("C-alpha is missing from "+res1+", "+res2+", "+res3+", or "+res4);
         
-        // Define rotation axes:
-        // first CA  -> normal to plane of first,  second, and third  CAs
-        // fourth CA -> normal to plane of second, third,  and fourth CAs
-        Triple normal123 = new Triple().likeNormal(state.get(firstCA), state.get(secondCA), state.get(thirdCA));
-        normal123.add(state.get(firstCA));
-        Triple normal234 = new Triple().likeNormal(state.get(secondCA), state.get(thirdCA), state.get(fourthCA));
-        normal234.add(state.get(fourthCA));
-        
-        // Split up atoms
+        // Split up atoms into three groups, one per peptide
         Atom[] atoms = getMobileAtoms(residues);
-        ArrayList a12 = new ArrayList();
-        ArrayList a34 = new ArrayList();
+        ArrayList p1 = new ArrayList();
+        ArrayList p2 = new ArrayList();
+        ArrayList p3 = new ArrayList();
         for(int i = 0; i < atoms.length; i++)
         {
             Atom a = atoms[i];
             Residue r = a.getResidue();
-            if(r.equals(first) || r.equals(second)) a12.add(a);
-            else a34.add(a);
+            if(r.equals(res1)) p1.add(a);
+            else if(r.equals(res2))
+            {
+                if(a.getName().equals(" C  ") || a.getName().equals(" O  ")) p2.add(a);
+                else p1.add(a);
+            }
+            else if(r.equals(res3))
+            {
+                if(a.getName().equals(" N  ") || a.getName().equals(" H  ")) p2.add(a);
+                else p3.add(a);
+            }
+            else p3.add(a);
         }
-        Atom[] atoms12 = (Atom[]) a12.toArray(new Atom[a12.size()]);
-        Atom[] atoms34 = (Atom[]) a34.toArray(new Atom[a34.size()]);
+        Atom[] pep1 = (Atom[]) p1.toArray(new Atom[p1.size()]);
+        Atom[] pep2 = (Atom[]) p2.toArray(new Atom[p2.size()]);
+        Atom[] pep3 = (Atom[]) p3.toArray(new Atom[p3.size()]);
+        
+        // Define first rotation axis, before anything has moved:
+        // first CA  ->  normal to plane of first, second, and third CAs
+        Triple normal123 = new Triple().likeNormal(state.get(ca1), state.get(ca2), state.get(ca3));
+        normal123.add(state.get(ca1));
         
         // Do first rotation
-        Transform   rot12  = new Transform().likeRotation(state.get(firstCA), normal123, theta12);
-        ModelState  rv12   = transformAtoms(rot12, atoms12, state);
+        Transform   rot1  = new Transform().likeRotation(state.get(ca1), normal123, theta1);
+        ModelState  rv1   = transformAtoms(rot1, pep1, state);
         
-        // Find second rotation that best preserves original distance between second and third CAs 
-        double distOrig = Triple.distance(state.get(secondCA), state.get(thirdCA));
-        double distDiffMin = Double.POSITIVE_INFINITY;
-        double theta34 = 0;
-        double max = Math.min(Math.abs(theta12), Math.abs(Math.abs(theta12)-360));
-        for(double t = -2*max; t < 2*max; t += 0.1)
+        // Define second rotation axis, now that (first and) second CAs have moved:
+        // fourth CA  ->  normal to plane of second, third, and fourth CAs
+        Triple normal234 = new Triple().likeNormal(rv1.get(ca2), rv1.get(ca3), rv1.get(ca4));
+        normal234.add(rv1.get(ca4));
+        
+        // Find second rotation that best preserves original distance between second and third CAs
+        // Try up to double the first rotation in 0.1 degree increments
+        double distOrig     = Triple.distance(state.get(ca2), state.get(ca3));
+        double distBest     = Double.POSITIVE_INFINITY;
+        double distDiffBest = Double.POSITIVE_INFINITY;
+        double theta2 = 0;
+        double max = Math.min(Math.abs(theta1), Math.abs(Math.abs(theta1)-360));
+        //for(double t = -2*max; t < 2*max; t += 0.1)
+        for(double t = -1.5*max; t < 1.5*max; t += 0.1)
         {
             // Try a second rotation
-            Transform   rot34  = new Transform().likeRotation(state.get(fourthCA), normal234, t);
-            ModelState  rv34   = transformAtoms(rot34, atoms34, rv12);
+            Transform   rot2  = new Transform().likeRotation(rv1.get(ca4), normal234, t);
+            ModelState  rv2   = transformAtoms(rot2, pep3, rv1);
             
             // See how close second and third CAs are
-            double dist = Triple.distance(rv34.get(secondCA), rv34.get(thirdCA));
-            double distDiff = Math.abs(dist - distOrig);
-            if(distDiff < distDiffMin)
+            double distCurr = Triple.distance(rv2.get(ca2), rv2.get(ca3));
+            double distDiff = Math.abs(distCurr - distOrig);
+            if(distDiff < distDiffBest)
             {
-                distDiffMin = distDiff;
-                theta34 = t;
+                distBest     = distCurr;
+                distDiffBest = distDiff;
+                theta2 = t;
             }
         }
-        //System.err.println("orig theta12: "+theta12);
-        //System.err.println("best theta34: "+theta34+"\n");
         
         // Do best second rotation
-        Transform   rot34  = new Transform().likeRotation(state.get(firstCA), normal234, theta34);
-        ModelState  rv34   = transformAtoms(rot34, atoms34, rv12);
+        Transform   rot2  = new Transform().likeRotation(rv1.get(ca4), normal234, theta2);
+        ModelState  rv2   = transformAtoms(rot2, pep3, rv1);
+        
+        // "Plug in" interstitial peptide
+        AtomState[] ca23orig = new AtomState[] {state.get(ca2), state.get(ca3)};
+        AtomState[] ca23movd = new AtomState[] {rv2.get(ca2),   rv2.get(ca3)};
+        SuperPoser  poser  = new SuperPoser(ca23movd, ca23orig);
+        Transform   sup    = poser.superpos();
+        ModelState  rv3    = transformAtoms(sup, pep2, rv2);
+        
+        // XX-TODO: Adjust interstitial peptide, factoring in the following:
+        // pep planarity, Ca2 & Ca3 tau, C=O dirn, bond geom distortions, ...
         
         // Fix the sidechains
         if(idealizeSC && sidechainIdealizer != null)
         {
-            rv34 = sidechainIdealizer.idealizeSidechain(first, rv34);
-            rv34 = sidechainIdealizer.idealizeSidechain(fourth, rv34);
+            rv3 = sidechainIdealizer.idealizeSidechain(res1, rv3);
+            rv3 = sidechainIdealizer.idealizeSidechain(res2, rv3);
+            rv3 = sidechainIdealizer.idealizeSidechain(res3, rv3);
+            rv3 = sidechainIdealizer.idealizeSidechain(res4, rv3);
         }
         
-        return rv34.createCollapsed(state);
+        return rv3.createCollapsed(state);
     }
 //}}}
 
