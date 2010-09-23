@@ -35,6 +35,8 @@ public class Main {
         SequenceAnalyzer.main(cmdargs);
       } else if (args[0].equals("fraglibcreator")) {
         FragmentLibraryCreator.main(cmdargs);
+      } else if (args[0].equals("fragparamwriter")) {
+        FragmentParameterWriter.main(cmdargs);
       } else if (args[0].equals("test")) {
         Test.main(cmdargs);
       } else {
@@ -42,14 +44,14 @@ public class Main {
         System.err.println("Try one of the following:");
         System.err.println("libraryfilterer | pdbsuperimposer | calcrmsd | pdbsuperimposer_RNA |");
         System.err.println("multipdbsuperimposer | multimadsuperimposer | sql | fragmentrotator |");
-        System.err.println("sequenceanalyzer | fraglibcreator | test");
+        System.err.println("sequenceanalyzer | fraglibcreator | fragparamwriter| test");
       }
     } else {
       System.err.println("No cmdline function specified!");
       System.err.println("Try one of the following:");
       System.err.println("libraryfilterer | pdbsuperimposer | calcrmsd | pdbsuperimposer_RNA |");
       System.err.println("multipdbsuperimposer | multimadsuperimposer | sql | fragmentrotator |");
-      System.err.println("sequenceanalyzer | fraglibcreator | test");
+      System.err.println("sequenceanalyzer | fraglibcreator | fragparamwriter | test");
     }
   }
   //}}}

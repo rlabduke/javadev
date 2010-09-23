@@ -23,6 +23,7 @@ public class FragmentLibraryCreator {
   
   //{{{ Variables
   ArrayList<File> pdbs;
+  HashMap nameMap;  // used by FragmentParameterWriter (pdb file name -> pdb File). pdb file name must be NAME.pdb.gz or NAME.pdb
   CoordinateFile currentPdb;
   static int lowSize;
   static int highSize;
@@ -63,7 +64,7 @@ public class FragmentLibraryCreator {
           }
           argList.add(arg);
         } else {
-          System.out.println(arg);
+          System.err.println(arg);
           argList.add(arg);
         }
       }
@@ -77,7 +78,7 @@ public class FragmentLibraryCreator {
     ArrayList<String> argList = parseArgs(args);
     long startTime = System.currentTimeMillis();
     if (argList.size() < 3) {
-	    System.out.println("Not enough arguments, you need a size range, a directory, and an outfile prefix, in that order!  Use -n for no quality filtering, and -c to exclude fragments with clashes.");
+	    System.err.println("Not enough arguments, you need a size range, a directory, and an outfile prefix, in that order!  Use -n for no quality filtering, and -c to exclude fragments with clashes.");
     } else {
       //int size = Integer.parseInt(args[0]);
       File pdbsDirectory = new File(argList.get(1));
@@ -92,7 +93,7 @@ public class FragmentLibraryCreator {
         File saveFile = new File(argList.get(2)+size+".txt");
         saveFile = saveFile.getAbsoluteFile();
         LibraryWriter writer = new LibraryWriter(saveFile);
-        System.out.println(saveFile.getAbsolutePath());
+        System.err.println(saveFile.getAbsolutePath());
         writers[size] = writer;
       }
       FragmentLibraryCreator filterer = new FragmentLibraryCreator(files);
@@ -100,7 +101,7 @@ public class FragmentLibraryCreator {
       while (iter.hasNext()) {
         filterer.connectToDatabase();
         File f = (File) iter.next();
-        System.out.println(f.toString());
+        System.err.println(f.toString());
         filterer.setPdb(f);
         for (int size = lowSize; size <= highSize; size++) {
           LibraryWriter writer = writers[size];
@@ -121,18 +122,20 @@ public class FragmentLibraryCreator {
     }
     
     long endTime = System.currentTimeMillis();
-    System.out.println((endTime - startTime)/1000 + " seconds to generate library");
+    System.err.println((endTime - startTime)/1000 + " seconds to generate library");
   }
   //}}}
   
   //{{{ Constructor
   public FragmentLibraryCreator(File[] files) {
     pdbs = new ArrayList<File>();
+    nameMap = new HashMap();
     for (File f : files) {
       String name = f.getName();
-      System.out.println(name);
+      System.err.println(name);
       if (name.endsWith(".pdb")||name.endsWith(".pdb.gz")) {
         pdbs.add(f);
+        nameMap.put(name.substring(0, 4).toUpperCase(), f);
       }
     }
     Collections.sort(pdbs);
@@ -177,7 +180,7 @@ public class FragmentLibraryCreator {
 	    reader.setUseSegID(false);
       //File pdb = new File(f);
 	    CoordinateFile coordFile = reader.read(lnr);
-	    System.out.println(coordFile.getIdCode()+" has been read");
+	    System.err.println(coordFile.getIdCode()+" has been read");
       lnr.close();
       return coordFile;
     }
@@ -192,6 +195,18 @@ public class FragmentLibraryCreator {
   public void setPdb(File f) {
     currentPdb = null;
     currentPdb = readFile(f);
+  }
+  //}}}
+
+  //{{{ getPdbByName
+  public CoordinateFile getPdbByName(String name) {
+    if (nameMap.containsKey(name.toUpperCase())) {
+      currentPdb = null;
+      return readFile((File)nameMap.get(name.toUpperCase()));
+    } else {
+      System.err.println("PDB "+name+" not found!");
+    }
+    return null;
   }
   //}}}
     
@@ -230,7 +245,7 @@ public class FragmentLibraryCreator {
       Model first = currentPdb.getFirstModel();
       Set<String> chains = first.getChainIDs();
       for (String cid : chains) {
-        System.out.println("Chain -" + cid + "-");
+        System.err.println("Chain -" + cid + "-");
         Set<Residue> residues = first.getChain(cid);
         if (libParams.equals(""))  libParams = fragalyze(currentPdb.getIdCode(), first, residues, fraglength);
         else                       libParams = libParams+"\n"+fragalyze(currentPdb.getIdCode(), first, residues, fraglength);
