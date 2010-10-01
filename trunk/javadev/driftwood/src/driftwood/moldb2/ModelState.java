@@ -362,24 +362,55 @@ public String toString() {
 //}}}
 
 //{{{ debugStates
-/** a quick class to spit out all contents of this ModelState in a nicely formatted string 
-    @param i   number of mappings to return in string (enter 0 for all mappings). */
-public String debugStates(int i) {
-  String s = "";
-  Iterator keys = stateMap.keySet().iterator();
-  int j = 0;
-  while (keys.hasNext()) {
-    Object key = keys.next();
-    Object value = stateMap.get(key);
-    s = s + key.toString() + " -> " + value.toString() + "\n";
-    j++;
-    if (j == i) {
-      s = s + "truncated.....";
-      return s; // to limit number of entries.
+///** a quick class to spit out all contents of this ModelState in a nicely formatted string 
+//    @param i   number of mappings to return in string (enter 0 for all mappings). */
+//public String debugStates(int i) {
+//  String s = "";
+//  Iterator keys = stateMap.keySet().iterator();
+//  int j = 0;
+//  ArrayList lines = new ArrayList();
+//  while (keys.hasNext()) {
+//    Object key = keys.next();
+//    Object value = stateMap.get(key);
+//    s = s + key.toString() + " -> " + value.toString() + "\n";
+//    j++;
+//    if (j == i) {
+//      s = s + "truncated.....";
+//      return s; // to limit number of entries.
+//    }
+//  }
+//  return s;
+//}
+    /** Simple method to spit out all contents of this ModelState 
+    * in a nicely formatted string.
+    * @param i number of mappings to return in string (enter 0 for all mappings)
+    */
+    public String debugStates(int i)
+    {
+        Iterator keys = stateMap.keySet().iterator();
+        int j = 0;
+        ArrayList lines = new ArrayList();
+        while(keys.hasNext())
+        {
+            Object key = keys.next();
+            Object value = stateMap.get(key);
+            lines.add(key.toString() + " -> " + value.toString());
+            j++;
+            if(j == i)
+            {
+                lines.add("truncated...");
+                break;
+            }
+        }
+        Collections.sort(lines);
+        String s = "";
+        for(int k = 0; k < lines.size(); k++)
+        {
+            String line = (String) lines.get(k);
+            s += line + "\n";
+        }
+        return s;
     }
-  }
-  return s;
-}
 //}}}
 
 //{{{ empty_code_segment
