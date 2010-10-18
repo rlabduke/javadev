@@ -35,6 +35,12 @@
 - Added -shuffle option to SubImpose: permutes selected atoms to find best
   superposition, but retains sequence order (so permutes w/in residues)
 - Improved ShearTool geometry (each peptide now separate) & GUI
+- Added AltConfShearFinder & ShearFit (like AltConfBackrubFinder & HingeFit)
+- Added ModelManager2.repairAltConfs to address a "bug" / logic error where 
+  remodeling (backrub/shear) at junction between single alt & multiple alts did 
+  not extend the remodeled conformation and its alternative(s) as it "should"
+- Made CB idealization aa-specific with parameters straight from Prekin/Dangle
+  [but those programs still report deviations on KiNG's "ideal" CBs - WHY?!]
 
 ### 1.06 ### dak
 - LocalRotarama now uses driftwood's Neighborhood and has new output options
