@@ -259,8 +259,6 @@ public class ShearWindow implements Remodeler, ChangeListener, WindowListener
         try
         {
             Collection residues = CaShear.makeMobileGroup(modelman.getModel(), anchor1, anchor2);
-            //System.err.println(residues.size()+" residues before update state:");
-            //for(Iterator iter = residues.iterator(); iter.hasNext(); ) System.err.println((Residue)iter.next());
             boolean idealize = cbIdealizeSC.isSelected();
             
             // Major rotation
@@ -372,7 +370,7 @@ public class ShearWindow implements Remodeler, ChangeListener, WindowListener
         if(reply == JOptionPane.YES_OPTION)
         {
             modelman.requestStateChange(this); // will call this.updateModelState()
-            modelman.addUserMod("Refit backbone of "+ctrRes1+" & "+ctrRes2);
+            modelman.addUserMod("Refit backbone of "+anchor1.toString()+" to "+anchor2.toString());
         }
         else //  == JOptionPane.NO_OPTION
             modelman.unregisterTool(this);

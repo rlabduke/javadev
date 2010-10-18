@@ -145,8 +145,8 @@ public class SidechainIdealizer //extends ... implements ...
     * The existing sidechain will be rotated about the C-alpha
     * to bring it into the correct position.
     *
-    * <p>The reconstruction is fully generic and is not
-    * adjusted for the type of residue under consideration.
+    * <p>The reconstruction is specific to amino acid type
+    * in the same manner as PKINANGL.c from Prekin.
     * Only bond angles (not lengths) are altered.
     *
     * <p>You typically want {@link #idealizeSidechain(Residue, ModelState)}
@@ -176,6 +176,33 @@ public class SidechainIdealizer //extends ... implements ...
             // Construct ideal C-beta
             t1 = build.construct4(aaN, aaC, aaCA, 1.536, 110.4, 123.1);
             t2 = build.construct4(aaC, aaN, aaCA, 1.536, 110.6, -123.0);
+            // (See below for deprecated method with generic values)
+            if(res.getName().equals("ALA"))
+            {
+                t1 = build.construct4(aaN, aaC, aaCA, 1.536, 110.1, 122.9);
+                t2 = build.construct4(aaC, aaN, aaCA, 1.536, 110.6, -122.6);
+            }
+            else if(res.getName().equals("PRO"))
+            {
+                t1 = build.construct4(aaN, aaC, aaCA, 1.530, 112.2, 115.1);
+                t2 = build.construct4(aaC, aaN, aaCA, 1.530, 103.0, -120.7);
+            }
+            else if(res.getName().equals("VAL") || res.getName().equals("THR") || res.getName().equals("ILE"))
+            {
+                t1 = build.construct4(aaN, aaC, aaCA, 1.540, 111.5, 123.4);
+                t2 = build.construct4(aaC, aaN, aaCA, 1.540, 109.1, -122.0);
+            }
+            else if(res.getName().equals("GLY"))
+            {
+                // I guess the "CB" is the HA1 in the case of Gly
+                t1 = build.construct4(aaN, aaC, aaCA, 1.100, 109.3, 121.6);
+                t2 = build.construct4(aaC, aaN, aaCA, 1.100, 109.3, -121.6);
+            }
+            else // anything else
+            {
+                t1 = build.construct4(aaN, aaC, aaCA, 1.530, 110.1, 122.8);
+                t2 = build.construct4(aaC, aaN, aaCA, 1.530, 110.5, -122.6);
+            }
             ideal.likeMidpoint(t1, t2);
             
             // Construct rotation to align actual and ideal
@@ -247,6 +274,119 @@ public class SidechainIdealizer //extends ... implements ...
         
         return modState;
     }
+//}}}
+
+//{{{ idealizeCB [DEPRECATED]
+//##################################################################################################
+//    /**
+//    * Given a heavy-atom backbone (N, CA, C)
+//    * this will reconstruct the C-beta and H-alpha(s)
+//    * if they already exist.
+//    * The existing sidechain will be rotated about the C-alpha
+//    * to bring it into the correct position.
+//    *
+//    * <p>The reconstruction is fully generic and is not
+//    * adjusted for the type of residue under consideration.
+//    * Only bond angles (not lengths) are altered.
+//    *
+//    * <p>You typically want {@link #idealizeSidechain(Residue, ModelState)}
+//    * instead of this function, because it idealizes all sidechain geometry.
+//    *
+//    * @return a new state, descended from orig, which contains
+//    *   new states for all non-mainchain atoms.
+//    * @throws AtomException if any of the required backbone atoms
+//    *   (N, CA, C) are missing.
+//    */
+//    public static ModelState idealizeCB(Residue res, ModelState orig) throws AtomException
+//    {
+//        Triple t1, t2, ideal = new Triple();
+//        Builder build = new Builder();
+//        ModelState modState = new ModelState(orig);
+//        
+//        // These will trigger AtomExceptions if res is missing an Atom
+//        // because it will try to retrieve the state of null.
+//        AtomState aaN   = orig.get( res.getAtom(" N  ") );
+//        AtomState aaCA  = orig.get( res.getAtom(" CA ") );
+//        AtomState aaC   = orig.get( res.getAtom(" C  ") );
+//        
+//        // Build an ideal C-beta and swing the side chain into place
+//        Atom cBeta = res.getAtom(" CB ");
+//        if(cBeta != null)
+//        {
+//            // Construct ideal C-beta
+//            t1 = build.construct4(aaN, aaC, aaCA, 1.536, 110.4, 123.1);
+//            t2 = build.construct4(aaC, aaN, aaCA, 1.536, 110.6, -123.0);
+//            ideal.likeMidpoint(t1, t2);
+//            
+//            // Construct rotation to align actual and ideal
+//            AtomState aaCB = orig.get(cBeta);
+//            double theta = Triple.angle(ideal, aaCA, aaCB);
+//            //SoftLog.err.println("Angle of correction: "+theta);
+//            t1.likeNormal(ideal, aaCA, aaCB).add(aaCA);
+//            Transform xform = new Transform().likeRotation(aaCA, t1, theta);
+//            
+//            // Apply the transformation
+//            for(Iterator iter = res.getAtoms().iterator(); iter.hasNext(); )
+//            {
+//                Atom        atom    = (Atom)iter.next();
+//                String      name    = atom.getName();
+//                
+//                // Transform everything that's not mainchain
+//                if( !( name.equals(" N  ") || name.equals(" H  ")
+//                    || name.equals(" CA ") || name.equals(" HA ")
+//                    || name.equals("1HA ") || name.equals("2HA ")
+//                    || name.equals(" HA2") || name.equals(" HA3")
+//                    || name.equals(" C  ") || name.equals(" O  ")) )
+//                {
+//                    // Clone the original state, move it, and insert it into our model
+//                    AtomState   s1      = orig.get(atom);
+//                    AtomState   s2      = (AtomState)s1.clone();
+//                    xform.transform(s1, s2);
+//                    modState.add(s2);
+//                }//if atom is not mainchain
+//            }//for each atom in the residue
+//        }//rebuilt C-beta
+//        
+//        
+//        // Reconstruct alpha hydrogens
+//        // These are easier -- just compute the position and make it so!
+//        Atom hAlpha = res.getAtom(" HA ");
+//        if(hAlpha != null)
+//        {
+//            AtomState s1 = orig.get(hAlpha);
+//            AtomState s2 = (AtomState)s1.clone();
+//            t1 = build.construct4(aaN, aaC, aaCA, 1.100, 107.9, -118.3);
+//            t2 = build.construct4(aaC, aaN, aaCA, 1.100, 108.1, 118.2);
+//            s2.likeMidpoint(t1, t2).sub(aaCA).unit().mult(1.100).add(aaCA);
+//            modState.add(s2);
+//        }
+//        
+//        // Now for glycine, and then we're done
+//        hAlpha = res.getAtom("1HA ");
+//        if (hAlpha == null) res.getAtom(" HA2");
+//        if(hAlpha != null)
+//        {
+//            AtomState s1 = orig.get(hAlpha);
+//            AtomState s2 = (AtomState)s1.clone();
+//            t1 = build.construct4(aaN, aaC, aaCA, 1.100, 109.3, -121.6);
+//            t2 = build.construct4(aaC, aaN, aaCA, 1.100, 109.3, 121.6);
+//            s2.likeMidpoint(t1, t2).sub(aaCA).unit().mult(1.100).add(aaCA);
+//            modState.add(s2);
+//        }
+//        hAlpha = res.getAtom("2HA ");
+//        if (hAlpha == null) res.getAtom(" HA3");
+//        if(hAlpha != null)
+//        {
+//            AtomState s1 = orig.get(hAlpha);
+//            AtomState s2 = (AtomState)s1.clone();
+//            t1 = build.construct4(aaN, aaC, aaCA, 1.100, 109.3, 121.6);
+//            t2 = build.construct4(aaC, aaN, aaCA, 1.100, 109.3, -121.6);
+//            s2.likeMidpoint(t1, t2).sub(aaCA).unit().mult(1.100).add(aaCA);
+//            modState.add(s2);
+//        }
+//        
+//        return modState;
+//    }
 //}}}
 
 //{{{ *** Dave's notes on CB idealization ***

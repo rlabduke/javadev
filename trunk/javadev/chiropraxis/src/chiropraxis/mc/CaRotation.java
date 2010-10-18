@@ -107,12 +107,12 @@ public class CaRotation //extends ... implements ...
         if(firstCA == null || lastCA == null)
             throw new AtomException("C-alpha is missing from "+first+" or "+last);
         
-        // do the rotation
+        // Do the rotation
         Atom[]      atoms   = getMobileAtoms(residues);
         Transform   rot     = new Transform().likeRotation(state.get(firstCA), state.get(lastCA), theta);
         ModelState  rv      = transformAtoms(rot, atoms, state);
         
-        // fix the sidechains
+        // Fix the sidechains
         if(idealizeSC && sidechainIdealizer != null)
         {
             rv = sidechainIdealizer.idealizeSidechain(first, rv);
@@ -156,14 +156,14 @@ public class CaRotation //extends ... implements ...
                 if(firstCA == null || lastCA == null)
                     throw new AtomException("C-alpha is missing from "+residues[i]+" or "+residues[i+1]);
                 
-                // do the rotation
+                // Do the rotation
                 Atom[] atoms    = (Atom[])atomList.toArray(new Atom[atomList.size()]);
                 rot.likeRotation(rv.get(firstCA), rv.get(lastCA), thetas[i]);
                 rv = transformAtoms(rot, atoms, rv); // keep stacking them up
             }
         }
         
-        // fix the sidechains
+        // Fix the sidechains
         for(int i = 0; i < residues.length; i++)
         {
             if(idealizeSC[i] && sidechainIdealizer != null)
@@ -241,10 +241,6 @@ public class CaRotation //extends ... implements ...
         
         return rv;
     }
-//}}}
-
-//{{{ empty_code_segment
-//##################################################################################################
 //}}}
 
 //{{{ empty_code_segment
