@@ -117,8 +117,12 @@ The BACKRUB panel provides feedback on the geometric quality of the current
 \begin_layout Standard
 
 \emph on
-BACKRUB has not been published as of 1 April 2005.
- When it is, a citation will appear here.
+BACKRUB is described in the following publication: I.W.
+ Davis, W.B.
+ Arendall III, D.C.
+ Richardson, and J.S.
+ Richardson (2006) "The backrub motion: How protein backbone shrugs when
+ a sidechain dances" Structure 14, 265-274.
 \end_layout
 
 \begin_layout Subsection
@@ -557,6 +561,95 @@ i.e.
 \end_layout
 
 \begin_layout Section
+Shear Tool: Helical winding plus unwinding 
+\begin_inset CommandInset label
+LatexCommand label
+name "shear-tool"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The shear tool can be used to modify backbone, most commonly helix, in a
+ manner almost completely orthogonal to the backrub.
+ A shear shifts three peptides instead of two like a backrub, and moves
+ the central peptide nearly parallel to the chain direction rather than
+ perpendicular to it.
+ Use Ctrl+Click (a.k.a.
+ middle-click) to select a residue; it, its preceding residue, and its two
+ following residues will become the active 
+\begin_inset Quotes eld
+\end_inset
+
+molten
+\begin_inset Quotes erd
+\end_inset
+
+ state.
+ Next, drag the primary shear dial for the main motion, then optionally
+ drag the three peptide rotation dials to alleviate some strain.
+ Functionality is generally similar to the backrub tool.
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+Authored by Daniel Keedy
+\emph default
+ 
+\emph on
+(daniel.keedy AT duke.edu)
+\end_layout
+
+\begin_layout Section
+Tweak Phi/Psi: Visualizing possible backbone changes 
+\begin_inset CommandInset label
+LatexCommand label
+name "phisi-tool"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The tweak phi/psi tool is useful for slightly altering the backbone dihedrals
+ phi and psi.
+ Use Ctrl+Click (a.k.a.
+ middle-click) to select a residue and its adjacent region as the active
+ 
+\begin_inset Quotes eld
+\end_inset
+
+molten
+\begin_inset Quotes erd
+\end_inset
+
+ state.
+ The length of the active region can be customized by entering a number
+ of residues in the box and pressing enter.
+ Next, drag the phi/psi dials to rotate the molten region around either
+ the phi or psi axis.
+ Note that this tool makes no attempt to close the resulting chain break
+ or to alleviate the steric clashes it usually introduces, and thus should
+ not be employed as a fitting tool.
+ However, it can be useful for visualizing the local effects of small changes
+ in phi/psi and simply building intuition.
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+Authored by Daniel Keedy
+\emph default
+ 
+\emph on
+(daniel.keedy AT duke.edu)
+\end_layout
+
+\begin_layout Section
 Sidechain Rotator: Refitting protein models
 \begin_inset CommandInset label
 LatexCommand label
@@ -568,7 +661,7 @@ name "scrot-tool"
 \end_layout
 
 \begin_layout Standard
-The Sidchain Rotation tool is useful for doing interactive refitting of
+The Sidechain Rotation tool is useful for doing interactive refitting of
  protein models in conjunction with the Hinges tool and the model manager.
  Use Ctrl+Click (a.k.a.
  middle-click) to select a sidechain to rotate, then pick from a list of
@@ -631,52 +724,6 @@ molten
 \end_layout
 
 \begin_layout Section
-Tweak Phi/Psi: Visualizing possible backbone changes 
-\begin_inset CommandInset label
-LatexCommand label
-name "phisi-tool"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-
-\emph on
-Authored by Daniel Keedy
-\emph default
- 
-\emph on
-(daniel.keedy AT duke.edu)
-\end_layout
-
-\begin_layout Standard
-The tweak phi/psi tool is useful for slightly altering the backbone dihedrals
- phi and psi.
- Use Ctrl+Click (a.k.a.
- middle-click) to select a residue and its adjacent region as the active
- 
-\begin_inset Quotes eld
-\end_inset
-
-molten
-\begin_inset Quotes erd
-\end_inset
-
- state.
- The length of the active region can be customized by entering a number
- of residues in the box and pressing enter.
- Next, drag the phi/psi dials to rotate the molten region around either
- the phi or psi axis.
- Note that this tool makes no attempt to close the resulting chain break
- or to alleviate the steric clashes it usually introduces, and thus should
- not be employed as a fitting tool.
- However, it can be useful for visualizing the local effects of small changes
- in phi/psi and simply building intuition.
-\end_layout
-
-\begin_layout Section
 Model Manager: Editing a macromolecular model
 \begin_inset CommandInset label
 LatexCommand label
@@ -695,7 +742,19 @@ This facility is for doing molecular modeling based on some starting model,
 \end_layout
 
 \begin_layout Itemize
+Backrub
+\end_layout
+
+\begin_layout Itemize
 C-alpha hinges
+\end_layout
+
+\begin_layout Itemize
+Shear
+\end_layout
+
+\begin_layout Itemize
+Tweak phi/psi
 \end_layout
 
 \begin_layout Itemize

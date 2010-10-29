@@ -635,6 +635,7 @@ public class ModelManager2 extends Plugin
         repairAltConfs2(m, atoms);  //debugAltConfs("AFTER 2");
         repairAltConfs3(m, atoms);  //debugAltConfs("AFTER 3");
         repairAltConfs4(m, atoms);  //debugAltConfs("AFTER 4");
+        //setOccupancies(m, atoms); ???????????????????????????
     }
 //}}}
 
@@ -773,7 +774,6 @@ public class ModelManager2 extends Plugin
                             // defined at this point, so a child/copy of 'A' actually gets moved,
                             // which should then become a genuine 'C' conformation)
                             asRemod.setAltConf(getAltConf());
-                            // ARE PROBLEMS HERE BECAUSE OF MY CONFUSION ON OBJECT REFERENCES?
                         }
                     }
                 }
@@ -1079,7 +1079,7 @@ public class ModelManager2 extends Plugin
     */
     public void requestStateChange(Remodeler tool)
     {
-        debugAltConfs("ORIGINAL");
+        //debugAltConfs("ORIGINAL");
         
         ModelState s = tool.updateModelState( getFrozenState() );
         s = s.createCollapsed(); // reduce lookup time in the future
