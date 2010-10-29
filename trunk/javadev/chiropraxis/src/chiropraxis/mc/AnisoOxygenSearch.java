@@ -29,6 +29,8 @@ public class AnisoOxygenSearch //extends ... implements ...
 //##############################################################################
     File pdbFile = null;
     File mapFile = null;
+    boolean textOutput = true;
+    boolean shearTest  = false;
 //}}}
 
 //{{{ Constructor(s)
@@ -43,15 +45,18 @@ public class AnisoOxygenSearch //extends ... implements ...
 //##############################################################################
     void searchModel(PrintStream out, String fileLabel, Model model, ModelState state, CrystalVertexSource map)
     {
-        boolean txtOutput = true;
-        
         final double minDensity = 2.0 * map.sigma; // at current O position
         final double envDensity = 1.2 * map.sigma; // ED for "envelope" we're examining
         final int numSamples = 64; // number of samples taken around the envelope
         
         Builder builder = new Builder();
         DecimalFormat df = new DecimalFormat("0.0000");
-        if(txtOutput) out.println("#file:model:residue:angle:ellipse_ratio");
+        DecimalFormat df2 = new DecimalFormat("0.00");
+        if(textOutput)
+        {
+            if(shearTest) out.println("#file:model:chain1:resnum1:inscode1:restype1:chain4:resnum4:inscode4:restype4:ox2_bfactor:angle:ellipse_ratio");
+            else          out.println("#file:model:residue:ox_bfactor:angle:ellipse_ratio");
+        }
         else
         {
             out.println("@kinemage 1");
@@ -72,13 +77,13 @@ public class AnisoOxygenSearch //extends ... implements ...
                 // project Ca-Ca vector onto search plane (project onto normal and subtract)
                 Triple caca = new Triple().likeVector(ca1, ca2);        // Ca---Ca
                 Triple vert = new Triple().likeVector(c, ox).unit();    // C----O
-                vert.mult(caca.dot(vert));                             // length of CaCa in C-O direction
+                vert.mult(caca.dot(vert));                              // length of CaCa in C-O direction
                 caca.sub(vert);                                         // remove C-O component
                 // check center density
                 double oxDensity = map.evaluateAtPoint(ox.getX(), ox.getY(), ox.getZ());
                 if(Double.isNaN(oxDensity) || oxDensity < minDensity)
                 {
-                    if(txtOutput) out.println(fileLabel+":"+model+":"+r.getCNIT()+":bad_density:bad_density");
+                    if(textOutput) out.println(fileLabel+":"+model+":"+r.getCNIT()+":bad_density:bad_density");
                     continue; // skip this oxygen
                 }
                 // find envelope points
@@ -98,7 +103,21 @@ public class AnisoOxygenSearch //extends ... implements ...
                 double orientation = caca.angle(axes[0]);
                 if(orientation > 90) orientation = 180 - orientation; // correct for arbitrary sign
                 double ellipseRatio = lengths[0] / lengths[1];
-                if(txtOutput) out.println(fileLabel+":"+model+":"+r.getCNIT()+":"+df.format(orientation)+":"+df.format(ellipseRatio));
+                if(textOutput)
+                {
+                    if(shearTest)
+                    {
+                        Residue r1 = r.getPrev(model);
+                        Residue r4 = r.getNext(model).getNext(model);
+                        if(r1 == null || r4 == null) continue;
+                        out.println(fileLabel.toLowerCase()+":"+model+":"
+                            //+r.getChain()+":"+r.getSequenceInteger()+":"+r.getInsertionCode()+":"+r.getName()+":"
+                            +r1.getChain()+":"+r1.getSequenceInteger()+":"+r1.getInsertionCode()+":"+r1.getName()+":"
+                            +r4.getChain()+":"+r4.getSequenceInteger()+":"+r4.getInsertionCode()+":"+r4.getName()+":"
+                            +df2.format(ox.getTempFactor())+":"+df.format(orientation)+":"+df.format(ellipseRatio));
+                    }
+                    else out.println(fileLabel.toLowerCase()+":"+model+":"+r.getCNIT()+":"+df2.format(ox.getTempFactor())+":"+df.format(orientation)+":"+df.format(ellipseRatio));
+                }
                 else
                 {
                     // print kinemage info
@@ -287,6 +306,10 @@ public class AnisoOxygenSearch //extends ... implements ...
         {
             showHelp(true);
             System.exit(0);
+        }
+        if(flag.equals("-shear") || flag.equals("-s"))
+        {
+            shearTest = true;
         }
         else if(flag.equals("-dummy_option"))
         {
