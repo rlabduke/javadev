@@ -44,7 +44,7 @@ public class Quickin {
     logic.doNucleic         = true;
     logic.doHets            = true;
     logic.doMetals          = true;
-    logic.doWater           = true;// false; -- changed by DAK 101006
+    logic.doWater           = false;
     logic.doVirtualBB       = doVirtualBB;
     logic.doMainchain       = true;
     logic.doSidechains      = true;
