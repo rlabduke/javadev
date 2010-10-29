@@ -35,8 +35,8 @@ public class Main {
         SequenceAnalyzer.main(cmdargs);
       } else if (args[0].equals("fraglibcreator")) {
         FragmentLibraryCreator.main(cmdargs);
-      } else if (args[0].equals("fragparamwriter")) {
-        FragmentParameterWriter.main(cmdargs);
+      //} else if (args[0].equals("fragparamwriter")) {
+      //  FragmentParameterWriter.main(cmdargs);
       } else if (args[0].equals("test")) {
         Test.main(cmdargs);
       } else {
