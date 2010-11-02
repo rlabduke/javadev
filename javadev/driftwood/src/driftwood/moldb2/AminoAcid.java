@@ -67,6 +67,26 @@ public class AminoAcid //extends ... implements ...
         map.put("his", "H");
         map.put("asp", "D");
         map.put("glu", "E");
+        map.put("GLY", "G");
+        map.put("ALA", "A");
+        map.put("VAL", "V");
+        map.put("LEU", "L");
+        map.put("ILE", "I");
+        map.put("MET", "M");
+        map.put("PRO", "P");
+        map.put("PHE", "F");
+        map.put("TRP", "W");
+        map.put("SER", "S");
+        map.put("THR", "T");
+        map.put("ASN", "N");
+        map.put("GLN", "Q");
+        map.put("TYR", "Y");
+        map.put("CYS", "C");
+        map.put("LYS", "K");
+        map.put("ARG", "R");
+        map.put("HIS", "H");
+        map.put("ASP", "D");
+        map.put("GLU", "E");
         threeToOneLetter = Collections.unmodifiableMap(map);
 
         map = new HashMap();
