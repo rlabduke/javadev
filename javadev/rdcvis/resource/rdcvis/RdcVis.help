@@ -16,3 +16,4 @@ ARGUMENTS
   -modeltensor        Calculates an aligment tensor for each model separately.
   -surface            Draw hyperboloid surfaces that correspond to the curves.
   -text               Give text output of backcalculated RDCs and distance from curves.
+  -curvesphere        Draw a range of RDC curves to see overall behavior of the Saupe tensor.

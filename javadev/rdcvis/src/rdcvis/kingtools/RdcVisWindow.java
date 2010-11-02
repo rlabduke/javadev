@@ -46,7 +46,7 @@ public class RdcVisWindow implements /*ActionListener, */WindowListener {
   TablePane2          pane;
   JComboBox           rdcBox;
   JButton             modelButton;
-  JCheckBox           errorBarBox, surfaceBox, ensembleBox;
+  JCheckBox           errorBarBox, surfaceBox, ensembleBox, allCurvesBox;
   JTextField          pdbLocation;
   JTextField          mrLocation;
   //}}}
@@ -107,6 +107,7 @@ public class RdcVisWindow implements /*ActionListener, */WindowListener {
     errorBarBox = new JCheckBox("Draw error curves");
     surfaceBox = new JCheckBox("Draw surfaces");
     ensembleBox = new JCheckBox("Use ensemble tensor");
+    allCurvesBox = new JCheckBox("Draw curve spheres");
     pdbLocation = new JTextField(10);
     mrLocation = new JTextField(10);
     
@@ -130,6 +131,7 @@ public class RdcVisWindow implements /*ActionListener, */WindowListener {
     pane.add(new JButton(new ReflectiveAction("Draw RDCs", null, this, "onDraw")));
     pane.newRow();
     pane.add(ensembleBox);
+    pane.add(allCurvesBox);
     dialog = new JDialog(kMain.getTopWindow(), "RDC Viewer", false);
     //dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
     dialog.addWindowListener(this);
@@ -221,6 +223,7 @@ public class RdcVisWindow implements /*ActionListener, */WindowListener {
         rdcviser.setDrawErrors(drawErrorsIsSelected());
         rdcviser.setDrawSurfaces(surfaceBox.isSelected());
         rdcviser.setEnsembleTensor(ensembleBox.isSelected());
+        rdcviser.setDrawCurveSphere(allCurvesBox.isSelected());
         Kinemage rdcKin = rdcviser.createKin(fi);
         //ArrayList<Kinemage> kins = new ArrayList<Kinemage>();
         Kinemage current = kMain.getKinemage();
