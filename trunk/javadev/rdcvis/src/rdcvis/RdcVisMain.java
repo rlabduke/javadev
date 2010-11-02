@@ -52,6 +52,7 @@ public class RdcVisMain {
   boolean ensembleTensor = true;
   boolean drawSurface = false;
   boolean textOutput = false;
+  boolean drawCurveSphere = false;
   static ArrayList<String> rdcTypes = null;
   //}}}
   
@@ -194,6 +195,8 @@ public class RdcVisMain {
           drawSurface = true;
         } else if (arg.equals("-text")) {
           textOutput = true;
+        } else if (arg.equals("-curvesphere")) {
+          drawCurveSphere = true;
         } else {
           System.err.println("*** Unrecognized option: "+arg);
         }
@@ -403,6 +406,10 @@ public class RdcVisMain {
   public void setEnsembleTensor(boolean value) {
     ensembleTensor = value;
   }
+  
+  public void setDrawCurveSphere(boolean value) {
+    drawCurveSphere = value;
+  }
   //}}}
   
   //{{{ drawCurve
@@ -427,24 +434,28 @@ public class RdcVisMain {
       String text = "res= "+seq+" rdc= "+df.format(rdcVal)+"+/-"+df.format(rdcError)+" backcalc= "+df.format(backcalcRdc);
       //System.out.println(text);
       //fi.getDrawer().drawCurve(rdcVal, p, backcalcRdc, list);
-      fi.getDrawer().drawCurve(rdcVal, p, rdcVect, radius, 60, backcalcRdc, list, text, rdcError);
-      //fi.getDrawer().drawCurve(rdcVal-0.5, p, 1, 60, backcalcRdc, list);
-      //fi.getDrawer().drawCurve(rdcVal+0.5, p, 1, 60, backcalcRdc, list);
-      //fi.getDrawer().drawCurve(backcalcRdc, p, 1, 60, backcalcRdc, list);
-      //fi.getDrawer().drawAll(p, 1, 60, backcalcRdc, list);
-      if (drawErrors) {
-        KList errorBars = new KList(KList.VECTOR, "Error Bars");
-        list.addMaster("RDC error bars");
-        for (String master : list.getMasters()) {
-          errorBars.addMaster(master);
+      if (drawCurveSphere) {
+        fi.getDrawer().drawAll(p, radius, 60, backcalcRdc, list);
+      } else {
+        fi.getDrawer().drawCurve(rdcVal, p, rdcVect, radius, 60, backcalcRdc, list, text, rdcError);
+        //fi.getDrawer().drawCurve(rdcVal-0.5, p, 1, 60, backcalcRdc, list);
+        //fi.getDrawer().drawCurve(rdcVal+0.5, p, 1, 60, backcalcRdc, list);
+        //fi.getDrawer().drawCurve(backcalcRdc, p, 1, 60, backcalcRdc, list);
+        //fi.getDrawer().drawAll(p, 1, 60, backcalcRdc, list);
+        if (drawErrors) {
+          KList errorBars = new KList(KList.VECTOR, "Error Bars");
+          list.addMaster("RDC error bars");
+          for (String master : list.getMasters()) {
+            errorBars.addMaster(master);
+          }
+          errorBars.setWidth(2);
+          subError.add(errorBars);
+          fi.getDrawer().drawCurve(rdcVal - rdcError*2, p, rdcVect, radius, 60, backcalcRdc, errorBars, "-2x error bar", rdcError);
+          fi.getDrawer().drawCurve(rdcVal + rdcError*2, p, rdcVect, radius, 60, backcalcRdc, errorBars, "+2x error bar", rdcError);
         }
-        errorBars.setWidth(2);
-        subError.add(errorBars);
-        fi.getDrawer().drawCurve(rdcVal - rdcError*2, p, rdcVect, radius, 60, backcalcRdc, errorBars, "-2x error bar", rdcError);
-        fi.getDrawer().drawCurve(rdcVal + rdcError*2, p, rdcVect, radius, 60, backcalcRdc, errorBars, "+2x error bar", rdcError);
       }
     } else {
-      System.out.println("this residue does not appear to have an rdc");
+      //System.out.println("this residue does not appear to have an rdc");
     }
   }
   //}}}
