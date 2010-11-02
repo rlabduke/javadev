@@ -8,6 +8,10 @@ import java.io.*;
 
 //}}}
 
+/**
+  This class analyzes multimodel PDB files output from Jiffiloop, spitting out 
+  statistics on residue type populations of the positions in the models.
+*/
 public class SequenceAnalyzer {
     
   //{{{ main
@@ -25,12 +29,13 @@ public class SequenceAnalyzer {
   //{{{ Constructor
   public SequenceAnalyzer(String inPdb) {
     try {
-	    System.out.println("reading in file");
+	    System.err.println("reading in file");
 	    PdbReader reader = new PdbReader();
 	    reader.setUseSegID(false);
       File pdb = new File(inPdb);
 	    CoordinateFile coordFile = reader.read(pdb);
-	    System.out.println("file has been read");
+	    System.err.println("file has been read");
+      modelsToFasta(coordFile);
       analyzeModels(coordFile);
       analyzeCombinations(coordFile, 2);
       analyzeCombinations(coordFile, 3);
@@ -39,6 +44,25 @@ public class SequenceAnalyzer {
     }
     catch (IOException e) {
 	    System.err.println("IO Exception thrown " + e.getMessage());
+    }
+  }
+  //}}}
+  
+  //{{{ modelsToFasta
+  public void modelsToFasta(CoordinateFile coordFile) {
+    Iterator models = coordFile.getModels().iterator();
+    while (models.hasNext()) {
+      Model mod = (Model) models.next();
+      String modFasta = "";
+      ArrayList residues = new ArrayList(mod.getResidues());
+      for (int i = 0; i < residues.size(); i++) {
+        Residue res = (Residue) residues.get(i);
+        String resName = res.getName();
+        //System.err.println(resName);
+        //System.err.println(AminoAcid.translate(resName));
+        modFasta = modFasta+AminoAcid.translate(resName.trim());
+      }
+      System.out.println(modFasta);
     }
   }
   //}}}
@@ -54,7 +78,7 @@ public class SequenceAnalyzer {
         Residue res = (Residue) residues.get(i);
         String resName = res.getName();
         if (resCounts[i] == null) {
-          System.out.println("making new hashmap for size " + i);
+          System.err.println("making new hashmap for size " + i);
           resCounts[i] = new HashMap<String, Integer>();
         }
         HashMap map = resCounts[i];
@@ -80,7 +104,7 @@ public class SequenceAnalyzer {
       for (int i = 0; i + numCombos <= residues.size(); i++) {
         String resName = getMultResNames(residues, i, numCombos);
         if (resCounts[i] == null) {
-          System.out.println("making new hashmap for size " + i);
+          System.err.println("making new hashmap for size " + i);
           resCounts[i] = new HashMap<String, Integer>();
         }
         HashMap map = resCounts[i];
