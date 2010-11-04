@@ -20,7 +20,6 @@ import driftwood.util.*;
 *
 * <p>PdbReader and PdbWriter fail to deal with the following kinds of records:
 * <ul>  <li>SIGATM</li>
-*       <li>ANISOU</li>
 *       <li>SIGUIJ</li>
 *       <li>CONECT</li> </ul>
 * <p>Actually, PdbReader puts all of them in with the headers, and
@@ -206,6 +205,10 @@ public class PdbReader //extends ... implements ...
                   if (isVersion23(s)) pdbv2atoms++;
                   readAtom(s);
                 }
+                else if(s.startsWith("ANISOU"))
+                {
+                    readAnisoU(s);
+                }
                 else if(s.startsWith("MODEL ") && s.length() >= 14)
                 {
                     if(model != null) model.setStates(states);
@@ -369,6 +372,31 @@ public boolean isVersion23(String atomLine) {
         if(s.length() > 80)
         {
             state.setPast80(intern(s.substring(80)));
+        }
+    }
+//}}}
+
+//{{{ readAnisoU
+//##################################################################################################
+    void readAnisoU(String s) throws NumberFormatException
+    {
+        checkModel();
+        Residue r = makeResidue(s);
+        Atom    a = makeAtom(r, s);
+        //Atom    a = r.getAtom(s.substring(12, 16));
+        //if(a == null) throw new AtomException("Logical error: ANISOU should always follow ATOM or HEATATM!");
+        
+        String altConf = intern(s.substring(16, 17));
+        ModelState mState = makeState(altConf);
+        try
+        {
+            AtomState state = mState.get(a);
+            state.setAnisoU(s);
+        }
+        catch(AtomException ex)
+        {
+            SoftLog.err.println("Logical error: ANISOU should always follow ATOM or HEATATM!");
+            ex.printStackTrace(SoftLog.err);
         }
     }
 //}}}

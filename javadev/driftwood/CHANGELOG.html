@@ -46,6 +46,11 @@ UTIL: {{{
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+### 0.90 ###
+dak:
+- Added proper ANISOU card support for PdbReader & PdbWriter
+- Added chemical element output to PdbWriter
+
 ### 0.89 ###
 vbc:
 - Changed CifReader to use author defined sequence and chain identifiers; using
@@ -70,7 +75,7 @@ dak:
 - Added AminoAcid.isCisPeptide method
 - Added Residue.nickname method
 - Added moldb2.Neighborhood to encode notion of local structural region
-- Prettified ModelState.debuStates
+- Prettified ModelState.debugStates
 ark:
 - To allow for calculating ribbon sidedness, added several fields to 
   SecondaryStructure.range and added method SecondaryStructure.consolidateSheets()

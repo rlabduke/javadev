@@ -42,6 +42,7 @@ public class AtomState extends Triple implements Cloneable
     float       bfactor         = 0;
     float       occupancy       = 0;
     String      past80          = "";
+    String      anisoU          = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -77,7 +78,7 @@ public class AtomState extends Triple implements Cloneable
     }
 //}}}
 
-//{{{ get{Atom, Serial, AltConf, Charge, TempFactor, Occupancy, Past80}
+//{{{ get{Atom, Serial, AltConf, Charge, TempFactor, Occupancy, Past80, AnisoU}
 //##################################################################################################
     public Atom getAtom()
     { return atom; }
@@ -100,6 +101,13 @@ public class AtomState extends Triple implements Cloneable
     /** Extra, unstructure information stored past column 80 in the original PDB file.  Not null. */
     public String getPast80()
     { return past80; }
+    
+    /**
+    * ANISOU line for this atom.  Comes <i>somewhere</i> after ATOM or HETATM line for this atom 
+    * in the original PDB file, but will be output immediately after it.  May be null.
+    */
+    public String getAnisoU()
+    { return anisoU; }
 //}}}
 
 //{{{ getName, getElement, getResidue, isHet
@@ -121,7 +129,7 @@ public class AtomState extends Triple implements Cloneable
     { return atom.isHet(); }
 //}}}
 
-//{{{ set{AltConf, Charge, TempFactor, Occupancy, Past80}
+//{{{ set{AltConf, Charge, TempFactor, Occupancy, Past80, AnisoU}
 //##################################################################################################
     public void setAltConf(String alt)
     { altconf = alt; }
@@ -138,6 +146,13 @@ public class AtomState extends Triple implements Cloneable
     /** Extra, unstructure information stored past column 80 in the original PDB file.  Not null. */
     public void setPast80(String s)
     { past80 = s; }
+    
+    /**
+    * ANISOU line for this atom.  Comes <i>somewhere</i> after ATOM or HETATM line for this atom 
+    * in the original PDB file, but will be output immediately after it.  May be null.
+    */
+    public void setAnisoU(String s)
+    { anisoU = s; }
 //}}}
 
 //{{{ clone, cloneFor
