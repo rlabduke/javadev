@@ -17,7 +17,6 @@ import driftwood.util.Strings;
 *
 * <p>PdbReader and PdbWriter fail to deal with the following kinds of records:
 * <ul>  <li>SIGATM</li>
-*       <li>ANISOU</li>
 *       <li>SIGUIJ</li>
 *       <li>CONECT</li> </ul>
 * <p>Actually, PdbReader puts all of them in with the headers, and
@@ -90,7 +89,7 @@ public class PdbWriter //extends ... implements ...
 //{{{ writeAtom
 //##################################################################################################
     /**
-    * Writes out a single of ATOM or HETATM line.
+    * Writes out a single ATOM or HETATM line.
     */
     public void writeAtom(AtomState as)
     {
@@ -128,11 +127,52 @@ public class PdbWriter //extends ... implements ...
             String seg = res.getSegment();
             if(seg == null) seg = "    "; // should never happen
             sb.append(Strings.forceLeft(seg, 4));
-            sb.append("  "); // element
+            if(as.getElement().length() == 1)      sb.append(" "+as.getElement());
+            else if(as.getElement().length() == 2) sb.append(as.getElement());
+            else                                   sb.append("  "); // should never happen (?)
             if(as.getCharge() == 0.0)   sb.append("  ");
             else if(as.getCharge() > 0) sb.append(((int)as.getCharge())+"+");
             else                        sb.append(((int)as.getCharge())+"-");
             sb.append(as.getPast80()); // "stuff" past column 80
+            
+            out.println(sb);
+            out.flush();
+        }
+        catch(NullPointerException ex) {}
+    }
+//}}}
+
+//{{{ writeAnisoU
+//##################################################################################################
+    /**
+    * Writes out a single ANISOU line.
+    */
+    public void writeAnisoU(AtomState as)
+    {
+        try
+        {
+            Residue         res = as.getResidue();
+            StringBuffer    sb  = new StringBuffer(80);
+            
+            sb.append("ANISOU");
+            
+            String serial = as.getSerial();
+            if(renumberAtoms) serial = Integer.toString(atomSerial); // don't increment like with atoms
+            sb.append(Strings.forceRight(serial, 5));
+            sb.append(" "); // unused
+            
+            sb.append(Strings.forceLeft(as.getName(), 4));
+            sb.append(Strings.forceLeft(as.getAltConf(), 1));
+            sb.append(Strings.forceLeft(res.getName(), 3));
+            sb.append(" "); // unused
+            // We could be smarter here and try to make them unique:
+            sb.append(Strings.forceLeft(res.getChain(), 1));
+            
+            sb.append(Strings.forceRight(res.getSequenceNumber(), 4));
+            sb.append(Strings.forceLeft(res.getInsertionCode(), 1));
+            sb.append("   "); // unused
+            
+            sb.append(as.getAnisoU().substring(28));
             
             out.println(sb);
             out.flush();
@@ -161,6 +201,7 @@ public class PdbWriter //extends ... implements ...
                     Atom        a   = (Atom)iter.next();
                     AtomState   as  = state.get(a);
                     writeAtom(as);
+                    writeAnisoU(as);
                 }
                 catch(AtomException ex) {} // missing state
             }//for each atom
