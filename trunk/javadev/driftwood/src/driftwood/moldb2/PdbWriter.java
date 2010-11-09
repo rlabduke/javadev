@@ -172,7 +172,7 @@ public class PdbWriter //extends ... implements ...
             sb.append(Strings.forceLeft(res.getInsertionCode(), 1));
             sb.append("   "); // unused
             
-            sb.append(as.getAnisoU().substring(28));
+            sb.append(as.getAnisoU().substring(30));
             
             out.println(sb);
             out.flush();
@@ -318,6 +318,7 @@ public class PdbWriter //extends ... implements ...
                             {
                                 usedCardNames.add(aName);
                                 writeAtom(as);
+                                writeAnisoU(as);
                             }
                         }
                     }
