@@ -92,8 +92,12 @@ public class ProbeNearbyTool extends Plugin
     private void buildDialog()
     {
         lblFileName = new JLabel();
-        JButton bnNewFile = new JButton("new file");
+        
+        JButton bnNewFile = new JButton("Open new file");
         bnNewFile.addActionListener(new ReflectiveAction("open-new-file", null, this, "onOpenPDB"));
+        
+        JButton bnChooseAlt = new JButton("Choose alt conf");
+        bnChooseAlt.addActionListener(new ReflectiveAction("choose-alt-conf", null, this, "onChooseAltConf"));
         
         JLabel lblProbeRad = new JLabel("Radius from screen center:");
         tfProbeRad = new AttentiveTextField("5", 3);
@@ -103,7 +107,9 @@ public class ProbeNearbyTool extends Plugin
         
         TablePane cp = new TablePane();
         cp.insets(2).weights(1,0.1);
-        cp.addCell(lblFileName).addCell(bnNewFile);
+        cp.addCell(lblFileName);
+        cp.newRow().addCell(bnNewFile);
+        cp.newRow().addCell(bnChooseAlt);
         cp.newRow().addCell(cp.strut(0,2)).newRow(); //spacer
         cp.addCell(lblProbeRad).addCell(tfProbeRad).newRow();
         cp.addCell(bnRunProbe);
@@ -212,8 +218,17 @@ public class ProbeNearbyTool extends Plugin
         }
         
         // Let user select alt conf (iff there's more than one)
-        altLabel = askAltConf(model, "This file has alternate conformations. Please choose one:");
+        setAltConf();
         
+        refreshGUI();
+    }
+//}}}
+
+//{{{ setAltConf
+//##################################################################################################
+    protected void setAltConf()
+    {
+        altLabel = askAltConf(model, "This file has alternate conformations. Please choose one:");
         if(altLabel != null)  state = model.getState(altLabel);
         if(state == null)     state = model.getState();
         
@@ -234,7 +249,7 @@ public class ProbeNearbyTool extends Plugin
             Object[] choices = states.toArray();
             String c = (String)JOptionPane.showInputDialog(kMain.getTopWindow(),
                 question,
-                "Choose alt. conf.", JOptionPane.PLAIN_MESSAGE,
+                "Choose alt conf", JOptionPane.PLAIN_MESSAGE,
                 null, choices, choices[0]);
             if(c == null)   return (String) states.get(0);
             else            return c;
@@ -248,8 +263,17 @@ public class ProbeNearbyTool extends Plugin
     public void onChooseAltConf(ActionEvent ev)
     {
         if(model == null) return;
+        
         // Let user select alt conf (iff there's more than one)
-        String altLabel = askAltConf(model, "This file has alternate conformations. Please choose one:");
+        if(model.getStates().keySet().size() == 1)
+        {
+            JOptionPane.showMessageDialog(dialog, "This file has only one alternate conformation.", 
+                "Oops...", JOptionPane.ERROR_MESSAGE);
+        }
+        else
+        {
+            setAltConf();
+        }
     }
 //}}}
 
@@ -266,9 +290,11 @@ public class ProbeNearbyTool extends Plugin
             
             // Incomplete, will be completed in a moment
             double probeRad = Double.parseDouble(tfProbeRad.getText().trim());
+            String alt = "";
+            if(!altLabel.equals(" ")) alt = "alt"+altLabel+" ";
             String probeCmd = " -quiet -kin -mc -both -stdbonds"
-                +" 'within "+probeRad+" of {viewcenter}'"
-                +" 'within "+probeRad+" of {viewcenter}' '{pdbfile}' -";
+                +" '"+alt+"within "+probeRad+" of {viewcenter}'"
+                +" '"+alt+"within "+probeRad+" of {viewcenter}' '{pdbfile}' -";
             String probeExe = probePlotter.findProgram("probe");
             probePlotter.setCommand(probeExe+probeCmd); // now complete cmd line
         }
