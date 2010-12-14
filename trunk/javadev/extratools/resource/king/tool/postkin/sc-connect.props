@@ -3,7 +3,7 @@
 # The format uses commas to separate 4-character, PDB-style atom names
 # and semi-colons to separate different polylines (like P in kinemage format)
 #
-aa.mc = " N  , CA , C  , O  "
+aa.mc = " N  , CA , C  , O  , OXT"
 aa.hy = " N  , H  ; CA , HA "
 
 gly.sc = ""
