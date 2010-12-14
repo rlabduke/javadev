@@ -36,7 +36,7 @@ public class PrefsEditor //extends ... implements ...
     JTabbedPane tabPane;
     JTextField fontMagnification, fontSizeSmall, fontSizeBig;
     JTextField stereoAngle;
-    JCheckBox joglByDefault, textOpenOnStart, textAllowEdits;
+    JCheckBox joglByDefault, textOpenOnStart, textAllowEdits, textEmptyKinsClosed;
     JCheckBox treeConfirmDelete, treeConfirmMerge;
     JCheckBox checkNewVersion;
     JCheckBox minimizableTools;
@@ -98,6 +98,7 @@ public class PrefsEditor //extends ... implements ...
         joglByDefault       = new JCheckBox("Start in OpenGL mode");
         textOpenOnStart     = new JCheckBox("Open text window on startup");
         textAllowEdits      = new JCheckBox("Text window starts off editable");
+        textEmptyKinsClosed = new JCheckBox("Empty text window if all kins closed");
         treeConfirmDelete   = new JCheckBox("Ask before deleting groups");
         treeConfirmMerge    = new JCheckBox("Ask before merging groups");
         checkNewVersion     = new JCheckBox("Check for new version online");
@@ -111,6 +112,7 @@ public class PrefsEditor //extends ... implements ...
         innerPane.addCell(joglByDefault, 2, 1).newRow();
         innerPane.addCell(textOpenOnStart, 2, 1).newRow();
         innerPane.addCell(textAllowEdits, 2, 1).newRow();
+        innerPane.addCell(textEmptyKinsClosed, 2, 1).newRow();
         innerPane.addCell(treeConfirmDelete, 2, 1).newRow();
         innerPane.addCell(treeConfirmMerge, 2, 1).newRow();
         innerPane.addCell(checkNewVersion, 2, 1).newRow();
@@ -198,6 +200,7 @@ public class PrefsEditor //extends ... implements ...
         joglByDefault.setSelected(p.getBoolean("joglByDefault"));
         textOpenOnStart.setSelected(p.getBoolean("textOpenOnStart"));
         textAllowEdits.setSelected(p.getBoolean("textDefaultAllowEdits"));
+        textEmptyKinsClosed.setSelected(p.getBoolean("textEmptyIfAllKinsClosed"));
         treeConfirmDelete.setSelected(p.getBoolean("treeConfirmDelete"));
         treeConfirmMerge.setSelected(p.getBoolean("treeConfirmMerge"));
         checkNewVersion.setSelected(p.getBoolean("checkNewVersion"));
@@ -232,6 +235,7 @@ public class PrefsEditor //extends ... implements ...
         p.setProperty("joglByDefault", new Boolean(joglByDefault.isSelected()).toString());
         p.setProperty("textOpenOnStart", new Boolean(textOpenOnStart.isSelected()).toString());
         p.setProperty("textDefaultAllowEdits", new Boolean(textAllowEdits.isSelected()).toString());
+        p.setProperty("textEmptyIfAllKinsClosed", new Boolean(textEmptyKinsClosed.isSelected()).toString());
         p.setProperty("treeConfirmDelete", new Boolean(treeConfirmDelete.isSelected()).toString());
         p.setProperty("treeConfirmMerge",  new Boolean(treeConfirmMerge.isSelected()).toString());
         p.setProperty("checkNewVersion",  new Boolean(checkNewVersion.isSelected()).toString());

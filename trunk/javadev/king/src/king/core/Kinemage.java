@@ -25,15 +25,15 @@ public class Kinemage extends AGE<Kinemage,KGroup> // implements ...
     
     // Variables that control the appearance of this kinemage
     // These are updated by the user picking from the Display menu
-    public boolean atWhitebackground   = false;
-    public boolean atOnewidth          = false;
-    public boolean atThinline          = false;
-    public boolean atPerspective       = false;
-    public boolean atFlat              = false;
-    public boolean atListcolordominant = false;
-    public boolean atSidedcoloringAlpha     = true;  // (ARK Spring2010)
-    public boolean atSidedcoloringBeta      = false;  // (ARK Spring2010)
-    public double  atLens              = 0.0;
+    public boolean atWhitebackground    = false;
+    public boolean atOnewidth           = false;
+    public boolean atThinline           = false;
+    public boolean atPerspective        = false;
+    public boolean atFlat               = false;
+    public boolean atListcolordominant  = false;
+    public boolean atSidedcoloringAlpha = true;  // (ARK Spring2010)
+    public boolean atSidedcoloringBeta  = false; // (ARK Spring2010)
+    public double  atLens               = 0.0;
 
     // Other information fields often contained in a kinemage
     public String  atPdbfile           = null;
