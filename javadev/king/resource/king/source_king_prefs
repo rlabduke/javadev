@@ -46,6 +46,8 @@ fontSizeBig   = 24
 textOpenOnStart = true
 # Start with the text window editable?
 textDefaultAllowEdits = false
+# Empty text window when last kinemage is closed, even if changes were made?
+textEmptyIfAllKinsClosed = false
 # Size of the graphics window at startup; 0 means auto-determine
 graphicsWidth  = 0
 graphicsHeight = 0

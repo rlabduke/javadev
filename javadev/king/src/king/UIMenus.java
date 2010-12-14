@@ -538,8 +538,12 @@ public class UIMenus implements KMessage.Subscriber
             if(confirm == JOptionPane.CANCEL_OPTION) return;
             else if(confirm == JOptionPane.YES_OPTION) onFileSaveAs(ev);
         }
+        // (Check for changes to text window as well?...  See UIText.TextChangeListener)
         
         kMain.getStable().closeCurrent();
+        if(kMain.getStable().getKins().size() == 0)
+            if(kMain.getPrefs().getBoolean("textEmptyIfAllKinsClosed"))
+                kMain.getTextWindow().setText(""); // all kins are closed, so empty text window
     }
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
@@ -548,7 +552,7 @@ public class UIMenus implements KMessage.Subscriber
         boolean modified = false;
         for(Kinemage k : kMain.getStable().getKins())
             if(k.isModified()) modified = true;
-
+        
         if(modified)
         {
             int confirm = JOptionPane.showConfirmDialog(kMain.getTopWindow(),
@@ -557,8 +561,10 @@ public class UIMenus implements KMessage.Subscriber
             if(confirm == JOptionPane.CANCEL_OPTION) return;
             else if(confirm == JOptionPane.YES_OPTION) onFileSaveAs(ev);
         }
-
+        // (Check for changes to text window as well?...  See UIText.TextChangeListener)
+        
         kMain.getStable().closeAll();
+        kMain.getTextWindow().setText(""); // all kins are closed, so empty text window
     }
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME

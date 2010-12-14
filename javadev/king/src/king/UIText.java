@@ -48,6 +48,47 @@ public class UIText implements MouseListener, KMessage.Subscriber
     }//class
 //}}}
 
+//{{{ CLASS: TextChangeListener
+//##############################################################################
+    /**
+    * <code>TextChangeListener</code> gets events when the user modifies the text
+    * in the text window, then records that the kinemage has been modified 
+    * (so the user can be asked about saving when it's closed).
+    */
+    public class TextChangeListener implements DocumentListener
+    {
+        UIText uiText;
+        
+        public TextChangeListener(UIText uitext)
+        { this.uiText = uitext; }
+        
+        public void insertUpdate(DocumentEvent e)
+        {
+            // If user actually changed the text, record that here.
+            // PROBLEM: It's hard to tell when a user meaningfully edited 
+            // the text him/herself vs. when a 2nd (or 3rd or ...) kinemage
+            // was appended, which technically *changes* the contents of 
+            // the text window.
+            /*if(ACTUAL_CHANGE)
+                kMain.getKinemage().setModified(true);*/
+        }
+        public void removeUpdate(DocumentEvent e)
+        {
+            // If user actually changed the text, record that here.
+            // PROBLEM: It's hard to tell when a user meaningfully edited 
+            // the text him/herself vs. when a 2nd (or 3rd or ...) kinemage
+            // was appended, which technically *changes* the contents of 
+            // the text window.
+            /*if(ACTUAL_CHANGE)
+                kMain.getKinemage().setModified(true);*/
+        }
+        public void changedUpdate(DocumentEvent e)
+        {
+            // Plain text components do not fire these events
+        }
+    }
+//}}}
+
 //{{{ Variable definitions
 //##################################################################################################
     KingMain kMain;
@@ -59,6 +100,8 @@ public class UIText implements MouseListener, KMessage.Subscriber
     JFileChooser fileSaveChooser;
     
     Collection mageHypertextListeners = new ArrayList();
+    
+    boolean modified = false; // by analogy to Kinemage.modified, but for >= 1 Kinemage
 //}}}
 
 //{{{ Constructors
@@ -89,6 +132,13 @@ public class UIText implements MouseListener, KMessage.Subscriber
         textScroll.setPreferredSize(new Dimension(500,400));
         new TextCutCopyPasteMenu(textarea);
         this.addHypertextListener(new MageHypertext(kMain));
+        textarea.getDocument().addDocumentListener(new TextChangeListener(this));
+        
+        // Key bindings: just type the key to execute -- DAK 101115
+        InputMap im = frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
+        ActionMap am = frame.getRootPane().getActionMap();
+        am.put("close", new ReflectiveAction(null, null, this, "onClose"   ));
         
         initSaveFileChooser();
         JButton exportText = new JButton(new ReflectiveAction("Export text to file", null, this, "onExportText"));
@@ -102,7 +152,8 @@ public class UIText implements MouseListener, KMessage.Subscriber
     }
 //}}}
 
-  //{{{ initSaveFileChooser
+//{{{ initSaveFileChooser
+//##################################################################################################
   private void initSaveFileChooser() {
     try {
       SuffixFileFilter fileFilter = new SuffixFileFilter("text files (*.txt)");
@@ -128,7 +179,7 @@ public class UIText implements MouseListener, KMessage.Subscriber
     // Subsequent attempts to create JFileChooser cause NoClassDefFound
     catch(java.lang.NoClassDefFoundError ex) {}
   }
-  //}}}
+//}}}
 
 //{{{ get/set/appendText()
 //##################################################################################################
@@ -209,7 +260,8 @@ public class UIText implements MouseListener, KMessage.Subscriber
     public JButton getButton() { return popupButton; }
 //}}}
 
-  //{{{ onExportText
+//{{{ onExportText, saveFile, onClose
+//##################################################################################################
   public void onExportText(ActionEvent ev) {
     String currdir = System.getProperty("user.dir");
     if(currdir != null) fileSaveChooser.setCurrentDirectory(new File(currdir));
@@ -241,7 +293,13 @@ public class UIText implements MouseListener, KMessage.Subscriber
         "Sorry!", JOptionPane.ERROR_MESSAGE);
     }
   }
-  //}}}
+  
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onClose(ActionEvent ev)
+    {
+        frame.dispose();
+    }
+//}}}
 
 //{{{ Mouse listeners (for hypertext)
 //##################################################################################################
