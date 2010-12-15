@@ -15,6 +15,7 @@ import java.net.*;
 import java.awt.*;
 import javax.swing.*;
 import java.io.*;
+import java.net.*;
 import java.text.*;
 import java.util.*;
 import java.awt.event.*;
@@ -942,6 +943,6 @@ public class KinFudgerTool extends BasicTool {
     public String getHelpAnchor()
     { return "#kinfudger-tool"; }
 
-    public String toString() { return "Fudge Kins"; }
+    public String toString() { return "Fudge kins"; }
 //}}}
 }//class	    

@@ -12,6 +12,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.text.*;
+import java.net.*;
+
 import driftwood.gui.*;
 import driftwood.util.*;
 import driftwood.r3.*;
@@ -412,8 +414,22 @@ public class RenderExport extends Plugin {
     return menu;
   }
   
-  public JMenuItem getHelpMenuItem()
-  { return null; }
+  /** Returns the URL of a web page explaining use of this tool */
+  public URL getHelpURL()
+  {
+    URL     url     = getClass().getResource("/extratools/tools-manual.html");
+    String  anchor  = getHelpAnchor();
+    if(url != null && anchor != null)
+    {
+      try { url = new URL(url, anchor); }
+      catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+      return url;
+    }
+    else return null;
+  }
+  
+  public String getHelpAnchor()
+  { return "#render-export"; }
   
   public String toString()
   { return "Render Image"; }

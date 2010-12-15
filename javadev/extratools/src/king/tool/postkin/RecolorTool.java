@@ -504,6 +504,6 @@ public class RecolorTool extends BasicTool implements ActionListener {
     public String getHelpAnchor()
     { return "#recolor-tool"; }
 
-    public String toString() { return "Recolor Kins"; }
+    public String toString() { return "Recolor macromolecules"; }
 //}}}
 }//}}}class

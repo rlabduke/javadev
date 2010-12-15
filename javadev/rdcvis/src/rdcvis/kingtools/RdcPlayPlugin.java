@@ -8,7 +8,9 @@ import king.io.*;
 import driftwood.gui.*;
 import driftwood.r3.*;
 import rdcvis.*;
+import driftwood.util.SoftLog;
 
+import java.net.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.event.*;
@@ -339,8 +341,25 @@ public class RdcPlayPlugin extends Plugin implements ChangeListener {
     return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onStart"));
   }
   
+  /** Returns the URL of a web page explaining use of this tool */
+  public URL getHelpURL()
+  {
+    URL     url     = getClass().getResource("/extratools/tools-manual.html");
+    String  anchor  = getHelpAnchor();
+    if(url != null && anchor != null)
+    {
+      try { url = new URL(url, anchor); }
+      catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+      return url;
+    }
+    else return null;
+  }
+    
+  public String getHelpAnchor()
+  { return "#rdc-play"; }
+  
   public String toString() {
-    return "RDC Play";
+    return "RDC play";
   }
   //}}}
   

@@ -13,6 +13,9 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 import javax.swing.*;
+import java.net.*;
+
+import driftwood.util.SoftLog;
 import driftwood.r3.*;
 import driftwood.gui.*;
 //}}}
@@ -50,6 +53,23 @@ public class SkylightPlugin extends Plugin
     {
         return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onSkylight"));
     }
+    
+    /** Returns the URL of a web page explaining use of this tool */
+    public URL getHelpURL()
+    {
+        URL     url     = getClass().getResource("/extratools/tools-manual.html");
+        String  anchor  = getHelpAnchor();
+        if(url != null && anchor != null)
+        {
+            try { url = new URL(url, anchor); }
+            catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+            return url;
+        }
+        else return null;
+    }
+    
+    public String getHelpAnchor()
+    { return "#artificial-skylighting"; }
     
     public String toString()
     { return "Artificial skylighting"; }
