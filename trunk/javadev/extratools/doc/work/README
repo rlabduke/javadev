@@ -1,0 +1,7 @@
+Editing the manual requires Lyx, a front-end program for Latex.  It generates really nice PDFs for distribution with programs, and formerly generated the HTML versions that is used by KiNG for the online help. 
+
+To edit the manual: 1) use Lyx to make changes 2) export to PDF 3) export to Latex 4) use tth to convert the .tex file to html 5) drop the html version in resource/[package_name]/ 6) use ant build to recompile the program. 
+
+The reason for the dance to generate HTML is because the newer versions of Lyx don't seem to be able to generate proper HTML pages for the manual anymore. Each plugin that has an entry in the manual has a 'getHelpAnchor()' function which returns a specific tag which references a location in the manual. We used the latex 'labels' to add those tags to the section header entries in the manual. Formerly, lyx would export the proper a name= HTTP reference with those tags in the HTML file, but it doesn't seem to do so anymore.  The workaround it to use Lyx to export to Latex format, and then use tth to create the HTML file. This file has the proper tags.
+
+-Vincent Chen, Dec 15 2010
