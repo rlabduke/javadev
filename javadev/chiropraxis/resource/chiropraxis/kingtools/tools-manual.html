@@ -1,60 +1,43 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-
-<!--Converted with LaTeX2HTML 2002 (1.62)
-original version by:  Nikos Drakos, CBLU, University of Leeds
-* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
-* with significant contributions from:
-  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
-<HTML>
-<HEAD>
-<TITLE>The Chiropraxis tools manual</TITLE>
-<META NAME="description" CONTENT="The Chiropraxis tools manual">
-<META NAME="keywords" CONTENT="tools-manual">
-<META NAME="resource-type" CONTENT="document">
-<META NAME="distribution" CONTENT="global">
-
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
-<META NAME="Generator" CONTENT="LaTeX2HTML v2002">
-<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
-
-<LINK REL="STYLESHEET" HREF="tools-manual.css">
-
-</HEAD>
-
-<BODY >
-
-<P>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+           "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<meta name="GENERATOR" content="TtHgold 4.00">
+ <style type="text/css"> div.p { margin-top: 7pt;}</style>
+ <style type="text/css"><!--
+ td div.comp { margin-top: -0.6ex; margin-bottom: -1ex;}
+ td div.comb { margin-top: -0.6ex; margin-bottom: -.6ex;}
+ td div.hrcomp { line-height: 0.9; margin-top: -0.8ex; margin-bottom: -1ex;}
+ td div.norm {line-height:normal;}
+ span.roman {font-family: serif; font-style: normal; font-weight: normal;} 
+ span.overacc2 {position: relative;  left: .8em; top: -1.2ex;}
+ span.overacc1 {position: relative;  left: .6em; top: -1.2ex;} --></style>
 
 
+<title> The Chiropraxis tools manual</title>
+ 
+<h1 align="center">The Chiropraxis tools manual </h1>
 
+<div class="p"><!----></div>
 
-<P>
+<h3 align="center">Ian W. Davis </h3>
 
-<P>
-<H1 ALIGN="CENTER">The Chiropraxis tools manual</H1>
-<P ALIGN="CENTER"><STRONG>Ian W. Davis</STRONG></P>
+<div class="p"><!----></div>
+ <h1><a name="tth_chAp1">
+Chapter 1 </a><br />The Tools</h1>
 
-<P>
+<div class="p"><!----></div>
+ <h2><a name="tth_sEc1.1">
+1.1</a>&nbsp;&nbsp;BACKRUB Tool: Protein chiropraxis<a name="backrub-tool">
+</a></h2>
 
-<H1><A NAME="SECTION00100000000000000000">
-1. The Tools</A>
-</H1>
-
-<P>
-
-<H1><A NAME="SECTION00110000000000000000"></A><A NAME="backrub-tool"></A>
-<BR>
-1.1 BACKRUB Tool: Protein chiropraxis
-</H1>
-
-<P>
+<div class="p"><!----></div>
 The BACKRUB tool is used to adjust short segments of protein backbone
 without disturbing the surrounding structure. It allows you select
 one residue, and rotate it around the axis between its neighboring
-C-alphas. Using BACKRUB requires that <TT>chiropraxis.jar</TT> be
-present in the <TT>plugins/</TT> folder.
+C-alphas. Using BACKRUB requires that <tt>chiropraxis.jar</tt> be
+present in the <tt>plugins/</tt> folder.
 
-<P>
+<div class="p"><!----></div>
 Create a backrub by control-clicking the alpha carbon of the central
 residue. To use the dial control, click and drag the pointer to the
 desired value. For finer control you can shift-drag along an imaginary
@@ -63,55 +46,78 @@ reset the dial to its starting value, double click the dial face.
 The dial can also be adjusted from the graphics window using the mouse
 wheel or arrow keys; see below.
 
-<P>
+<div class="p"><!----></div>
 The BACKRUB panel provides feedback on the geometric quality of the
 current model, displaying residues names, deviation of the tau angle
 (N-CA-C) from ideality, and the position of the residue on the Ramachandran
 plot (phi, psi, and favored/allowed/outlier). Deviant geometry is
 highlighted in red.
 
-<P>
-<I>BACKRUB has not been published as of 1 April 2005. When it is,
-a citation will appear here.</I>
+<div class="p"><!----></div>
+<em>BACKRUB is described in the following publication: I.W. Davis,
+W.B. Arendall III, D.C. Richardson, and J.S. Richardson (2006) The
+backrub motion: How protein backbone shrugs when a sidechain dances
+Structure 14, 265-274.</em>
 
-<P>
+<div class="p"><!----></div>
+     <h3><a name="tth_sEc1.1.1">
+1.1.1</a>&nbsp;&nbsp;Command reference</h3>
 
-<H2><A NAME="SECTION00111000000000000000">
-1.1.1 Command reference</A>
-</H2>
+<div class="p"><!----></div>
+ 
+<center>
+<table border="1">
+<tr><td colspan="2" align="center">Mouse clicks</td></tr>
+<tr><td></td></tr>
+<tr><td align="center">Normal </td><td align="center">Mark and identify point; make measurement (pick)</td></tr>
 
-<P>
-<DIV ALIGN="CENTER">
-<TABLE CELLPADDING=3 BORDER="1">
-<TR><TD ALIGN="CENTER" COLSPAN=2>Mouse clicks</TD>
-</TR>
-</TABLE>
-</DIV>
+<tr><td align="center">With Shift </td><td align="center">Center on selected point (pickcenter)</td></tr>
 
-<P>
-<DIV ALIGN="CENTER">
-<TABLE CELLPADDING=3 BORDER="1">
-<TR><TD ALIGN="CENTER" COLSPAN=2>Mouse drags</TD>
-</TR>
-</TABLE>
-</DIV>
+<tr><td align="center">With Ctrl </td><td align="center">Select residue for BACKRUB (on a C-alpha); clear current selection
+(elsewhere)</td></tr>
 
-<P>
-<DIV ALIGN="CENTER">
-<TABLE CELLPADDING=3 BORDER="1">
-<TR><TD ALIGN="CENTER" COLSPAN=2>Mouse wheel / Up &amp; Down arrow keys</TD>
-</TR>
-</TABLE>
-</DIV>
+<tr><td align="center">With Shift+Ctrl </td><td align="center">-</td></tr>
+</table>
 
-<P>
 
-<H1><A NAME="SECTION00120000000000000000"></A><A NAME="hinges-tool"></A>
-<BR>
-1.2 C-alpha Hinges
-</H1>
+<div class="p"><!----></div>
+</center> 
+<center>
+<table border="1">
+<tr><td colspan="2" align="center">Mouse drags</td></tr>
+<tr><td></td></tr>
+<tr><td align="center">Normal </td><td align="center">Rotate around X and Y axes; Z-rotate (pinwheel) near top of screen</td></tr>
 
-<P>
+<tr><td align="center">With Shift </td><td align="center">Adjust zoom (up/down); Adjust clipping (left/right) </td></tr>
+
+<tr><td align="center">With Ctrl </td><td align="center">Translate in X-Y plane (flatland); Z-translate near top of screen</td></tr>
+
+<tr><td align="center">With Shift+Ctrl </td><td align="center">Rotate around Y axis only</td></tr>
+</table>
+
+
+<div class="p"><!----></div>
+</center> 
+<center>
+<table border="1">
+<tr><td colspan="2" align="center">Mouse wheel / Up &amp; Down arrow keys</td></tr>
+<tr><td></td></tr>
+<tr><td align="center">Normal </td><td align="center">Adjust dial (angle of rotation)</td></tr>
+
+<tr><td align="center">With Shift </td><td align="center">Adjust clipping</td></tr>
+
+<tr><td align="center">With Ctrl </td><td align="center">Adjust zoom</td></tr>
+
+<tr><td align="center">With Shift+Ctrl </td><td align="center">-</td></tr>
+</table>
+
+
+<div class="p"><!----></div>
+</center> <h2><a name="tth_sEc1.2">
+1.2</a>&nbsp;&nbsp;C-alpha Hinges<a name="hinges-tool">
+</a></h2>
+
+<div class="p"><!----></div>
 Hinges is the generalized version of BACKRUB. It allows you to select
 any continuous region of backbone that joins two alpha carbons, and
 then rotate that segment of backbone around an axis drawn between
@@ -119,20 +125,59 @@ those C-alphas. Individual peptides can also be rotated. Create a
 hinge by control-clicking the two alpha carbons that act as its endpoints
 or anchors.
 
-<P>
-Regions longer than two peptides (<I>i.e.</I>, what BACKRUB handles)
+<div class="p"><!----></div>
+Regions longer than two peptides (<em>i.e.</em>, what BACKRUB handles)
 are seldom useful in fitting structures. Thus, this tool has been
 largely superceded by BACKRUB.
 
-<P>
+<div class="p"><!----></div>
+ <h2><a name="tth_sEc1.3">
+1.3</a>&nbsp;&nbsp;Shear Tool: Helical winding plus unwinding <a name="shear-tool">
+</a></h2>
 
-<H1><A NAME="SECTION00130000000000000000"></A><A NAME="scrot-tool"></A>
-<BR>
-1.3 Sidechain Rotator: Refitting protein models
-</H1>
+<div class="p"><!----></div>
+The shear tool can be used to modify backbone, most commonly helix,
+in a manner almost completely orthogonal to the backrub. A shear shifts
+three peptides instead of two like a backrub, and moves the central
+peptide nearly parallel to the chain direction rather than perpendicular
+to it. Use Ctrl+Click (a.k.a. middle-click) to select a residue; it,
+its preceding residue, and its two following residues will become
+the active "molten" state. Next, drag the primary shear dial
+for the main motion, then optionally drag the three peptide rotation
+dials to alleviate some strain. Functionality is generally similar
+to the backrub tool.
 
-<P>
-The Sidchain Rotation tool is useful for doing interactive refitting
+<div class="p"><!----></div>
+<em>Authored by Daniel Keedy</em> <em>(daniel.keedy AT duke.edu)</em>
+
+<div class="p"><!----></div>
+ <h2><a name="tth_sEc1.4">
+1.4</a>&nbsp;&nbsp;Tweak Phi/Psi: Visualizing possible backbone changes <a name="phisi-tool">
+</a></h2>
+
+<div class="p"><!----></div>
+The tweak phi/psi tool is useful for slightly altering the backbone
+dihedrals phi and psi. Use Ctrl+Click (a.k.a. middle-click) to select
+a residue and its adjacent region as the active "molten" state.
+The length of the active region can be customized by entering a number
+of residues in the box and pressing enter. Next, drag the phi/psi
+dials to rotate the molten region around either the phi or psi axis.
+Note that this tool makes no attempt to close the resulting chain
+break or to alleviate the steric clashes it usually introduces, and
+thus should not be employed as a fitting tool. However, it can be
+useful for visualizing the local effects of small changes in phi/psi
+and simply building intuition.
+
+<div class="p"><!----></div>
+<em>Authored by Daniel Keedy</em> <em>(daniel.keedy AT duke.edu)</em>
+
+<div class="p"><!----></div>
+ <h2><a name="tth_sEc1.5">
+1.5</a>&nbsp;&nbsp;Sidechain Rotator: Refitting protein models<a name="scrot-tool">
+</a></h2>
+
+<div class="p"><!----></div>
+The Sidechain Rotation tool is useful for doing interactive refitting
 of protein models in conjunction with the Hinges tool and the model
 manager. Use Ctrl+Click (a.k.a. middle-click) to select a sidechain
 to rotate, then pick from a list of predefined rotamers or set the
@@ -140,123 +185,125 @@ angles by hand using the dials. The rotamericity of the current sidechain
 is monitored in the bottom right corner; it indicates how frequently
 (if ever!) the current conformation is found in well-determined structures.
 
-<P>
+<div class="p"><!----></div>
 To use the dial control, click and drag the pointer to the desired
 value. For finer control you can shift-drag along an imaginary slider
 (this behavior is somewhat like the virtual dials in O). To reset
 the dial to its starting value, double click the dial face.
 
-<P>
+<div class="p"><!----></div>
 Sidechain Rotator and the Hinges tool play well together: you can
 use both on the same residue(s) at the same time. It's often easiest
 to establish which sidechains will be rotatable before beginning to
 move the backbone, but it's possible to establish the moving parts
 in any order.
 
-<P>
+<div class="p"><!----></div>
+ <h2><a name="tth_sEc1.6">
+1.6</a>&nbsp;&nbsp;Sidechain Mutator: Redesigning protein models<a name="scmut-tool">
+</a></h2>
 
-<H1><A NAME="SECTION00140000000000000000"></A><A NAME="scmut-tool"></A>
-<BR>
-1.4 Sidechain Mutator: Redesigning protein models
-</H1>
-
-<P>
-The Sidchain Mutation tool is useful for doing interactive refitting
+<div class="p"><!----></div>
+The Sidechain Mutation tool is useful for doing interactive refitting
 of protein models in conjunction with the Hinges and Rotator tools
 and the model manager. Use Ctrl+Click (a.k.a. middle-click) to select
 a sidechain to mutate, then pick from a list of known amino acid types.
 If you select histidine, you will also be prompted to choose a protonation
 state.
 
-<P>
+<div class="p"><!----></div>
 Sidechain Mutator plays well with the other tools, but you cannot
-mutate the model while any part of it is mobile (``molten'').
+mutate the model while any part of it is mobile ("molten").
 Thus, it's often easiest to make mutations first, and then refit the
 new sequence.
 
-<P>
+<div class="p"><!----></div>
+ <h2><a name="tth_sEc1.7">
+1.7</a>&nbsp;&nbsp;Model Manager: Editing a macromolecular model<a name="modelman-plugin">
+</a></h2>
 
-<H1><A NAME="SECTION00150000000000000000"></A><A NAME="modelman-plugin"></A>
-<BR>
-1.5 Model Manager: Editing a macromolecular model
-</H1>
-
-<P>
+<div class="p"><!----></div>
 This facility is for doing molecular modeling based on some starting
 model, usually a PDB file. The Model Manager handles opening and saving
 these files, and is required for the operation of the following tools:
 
-<P>
+<ul>
+<li> Backrub
+<div class="p"><!----></div>
+</li>
 
-<UL>
-<LI>C-alpha hinges
-</LI>
-<LI>Sidechain rotator
-</LI>
-<LI>Sidechain mutator
-</LI>
-</UL>
+<li> C-alpha hinges
+<div class="p"><!----></div>
+</li>
+
+<li> Shear
+<div class="p"><!----></div>
+</li>
+
+<li> Tweak phi/psi
+<div class="p"><!----></div>
+</li>
+
+<li> Sidechain rotator
+<div class="p"><!----></div>
+</li>
+
+<li> Sidechain mutator
+<div class="p"><!----></div>
+</li>
+</ul>
 The model manager also tracks the changes made to the model and allows
 near-unlimited undo. In addition, it provides access to dynamic visualizations,
 like Probe dots and NOE constraints. Using this feature requires that
-your OS can find Probe - <I>i.e.</I>, that either Probe resides in
-the same directory as <TT>king.jar</TT> and is named either <TT>probe</TT>
-or <TT>probe.exe</TT>; or that Probe is somewhere on your PATH and
-is named <TT>probe</TT> or <TT>probe.exe</TT>. The same is true of
-<TT>noe-display</TT>.
+your OS can find Probe - <em>i.e.</em>, that either Probe resides in
+the same directory as <tt>king.jar</tt> and is named either <tt>probe</tt>
+or <tt>probe.exe</tt>; or that Probe is somewhere on your PATH and
+is named <tt>probe</tt> or <tt>probe.exe</tt>. The same is true of
+<tt>noe-display</tt>.
 
-<P>
+<div class="p"><!----></div>
 There are several special symbols that can be inserted into the Probe
 and NOE command lines. Their meanings are as follows:
 
-<P>
-<DL>
-<DT><STRONG>{pdbfile}</STRONG></DT>
-<DD>The fully-qualified name of the ``base'' PDB file;
-<I>i.e.</I> the one with all changes except the currently molten ones.
-(Those are piped in via standard input.)
-</DD>
-<DT><STRONG>{molten}</STRONG></DT>
-<DD>The list of molten residues, separated by commas: 1,
-2, 3, ...
-</DD>
-<DT><STRONG>{center}</STRONG></DT>
-<DD>The coordinates of the current center of view, in real
-space: x, y, z. This can be used for the <TT>within</TT> <I>distance</I>
-<TT>of</TT> <I>x, y, z</I> selection statement. Note that visualizations
-aren't automatically updated when the center of view changes.
-</DD>
-</DL>
+<dl compact="compact">
+ <dt><b>{pdbfile}</b></dt>
+	<dd> The fully-qualified name of the "base" PDB
+file; <em>i.e.</em> the one with all changes except the currently molten
+ones. (Those are piped in via standard input.)</dd>
+ <dt><b>{molten}</b></dt>
+	<dd> The list of molten residues, separated by commas:
+1, 2, 3, ...</dd>
+ <dt><b>{center}</b></dt>
+	<dd> The coordinates of the current center of view, in
+real space: x, y, z. This can be used for the <tt>within</tt> <em>distance</em>
+<tt>of</tt> <em>x, y, z</em> selection statement. Note that visualizations
+aren't automatically updated when the center of view changes.</dd>
+</dl>
 
-<P>
+<div class="p"><!----></div>
+ <h1><a name="tth_chAp2">
+Chapter 2 </a><br />Copyright &amp; acknowledgments</h1>
 
-<H1><A NAME="SECTION00200000000000000000">
-2. Copyright &amp; acknowledgments</A>
-</H1>
+<div class="p"><!----></div>
+ <h2><a name="tth_sEc2.1">
+2.1</a>&nbsp;&nbsp;Copyright</h2>
 
-<P>
-
-<H1><A NAME="SECTION00210000000000000000">
-2.1 Copyright</A>
-</H1>
-
-<P>
+<div class="p"><!----></div>
 The Chiropraxis code and all its associated original resources and
-documentation are copyright (C) 2002-2005 by Ian W. Davis.
+documentation are copyright (C) 2002-2010 by Ian W. Davis, Daniel
+A. Keedy, and Vincent B. Chen.
 
-<P>
+<div class="p"><!----></div>
+ <h2><a name="tth_sEc2.2">
+2.2</a>&nbsp;&nbsp;Revision status</h2>
 
-<H1><A NAME="SECTION00220000000000000000">
-2.2 Revision status</A>
-</H1>
+<div class="p"><!----></div>
+This manual was last updated 1 September 2010 by DAK for Chiropraxis
+version 1.07.
 
-<P>
-This manual was last updated 1 April 2005 by IWD for Chiropraxis version
-0.45.
-<BR><HR>
-<ADDRESS>
-Ian W. Davis
-2005-04-01
-</ADDRESS>
-</BODY>
-</HTML>
+<br /><br /><hr /><small>File translated from
+T<sub><font size="-1">E</font></sub>X
+by <a href="http://hutchinson.belmont.ma.us/tth/">
+T<sub><font size="-1">T</font></sub>Hgold</a>,
+version 4.00.<br />On 15 Dec 2010, 17:22.</small>
+</html>

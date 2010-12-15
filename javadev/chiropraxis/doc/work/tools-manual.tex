@@ -1,0 +1,254 @@
+%% LyX 1.6.1 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english]{report}
+\usepackage{mathptmx}
+\usepackage{helvet}
+\usepackage{courier}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Because html converters don't know tabularnewline
+\providecommand{\tabularnewline}{\\}
+
+\usepackage{babel}
+
+\begin{document}
+\vfill{}
+
+
+
+\title{The Chiropraxis tools manual}
+
+\maketitle
+\vfill{}
+
+
+
+\author{Ian W. Davis}
+
+
+\chapter{The Tools}
+
+
+\section{BACKRUB Tool: Protein chiropraxis\label{backrub-tool}}
+
+The BACKRUB tool is used to adjust short segments of protein backbone
+without disturbing the surrounding structure. It allows you select
+one residue, and rotate it around the axis between its neighboring
+C-alphas. Using BACKRUB requires that \texttt{chiropraxis.jar} be
+present in the \texttt{plugins/} folder.
+
+Create a backrub by control-clicking the alpha carbon of the central
+residue. To use the dial control, click and drag the pointer to the
+desired value. For finer control you can shift-drag along an imaginary
+slider (this behavior is somewhat like the virtual dials in O). To
+reset the dial to its starting value, double click the dial face.
+The dial can also be adjusted from the graphics window using the mouse
+wheel or arrow keys; see below.
+
+The BACKRUB panel provides feedback on the geometric quality of the
+current model, displaying residues names, deviation of the tau angle
+(N-CA-C) from ideality, and the position of the residue on the Ramachandran
+plot (phi, psi, and favored/allowed/outlier). Deviant geometry is
+highlighted in red.
+
+\emph{BACKRUB is described in the following publication: I.W. Davis,
+W.B. Arendall III, D.C. Richardson, and J.S. Richardson (2006) \textquotedbl{}The
+backrub motion: How protein backbone shrugs when a sidechain dances\textquotedbl{}
+Structure 14, 265-274.}
+
+
+\subsection{Command reference}
+
+\noindent \begin{center}
+\begin{tabular}{|c|c|}
+\hline 
+\multicolumn{2}{|c|}{Mouse clicks}\tabularnewline
+\hline
+\hline 
+Normal & Mark and identify point; make measurement (pick)\tabularnewline
+\hline 
+With Shift & Center on selected point (pickcenter)\tabularnewline
+\hline 
+With Ctrl & Select residue for BACKRUB (on a C-alpha); clear current selection
+(elsewhere)\tabularnewline
+\hline 
+With Shift+Ctrl & -\tabularnewline
+\hline
+\end{tabular}
+\par\end{center}
+
+\noindent \begin{center}
+\begin{tabular}{|c|c|}
+\hline 
+\multicolumn{2}{|c|}{Mouse drags}\tabularnewline
+\hline
+\hline 
+Normal & Rotate around X and Y axes; Z-rotate (pinwheel) near top of screen\tabularnewline
+\hline 
+With Shift & Adjust zoom (up/down); Adjust clipping (left/right) \tabularnewline
+\hline 
+With Ctrl & Translate in X-Y plane (flatland); Z-translate near top of screen\tabularnewline
+\hline 
+With Shift+Ctrl & Rotate around Y axis only\tabularnewline
+\hline
+\end{tabular}
+\par\end{center}
+
+\noindent \begin{center}
+\begin{tabular}{|c|c|}
+\hline 
+\multicolumn{2}{|c|}{Mouse wheel / Up \& Down arrow keys}\tabularnewline
+\hline
+\hline 
+Normal & Adjust dial (angle of rotation)\tabularnewline
+\hline 
+With Shift & Adjust clipping\tabularnewline
+\hline 
+With Ctrl & Adjust zoom\tabularnewline
+\hline 
+With Shift+Ctrl & -\tabularnewline
+\hline
+\end{tabular}
+\par\end{center}
+
+
+\section{C-alpha Hinges\label{hinges-tool}}
+
+Hinges is the generalized version of BACKRUB. It allows you to select
+any continuous region of backbone that joins two alpha carbons, and
+then rotate that segment of backbone around an axis drawn between
+those C-alphas. Individual peptides can also be rotated. Create a
+hinge by control-clicking the two alpha carbons that act as its endpoints
+or anchors.
+
+Regions longer than two peptides (\emph{i.e.}, what BACKRUB handles)
+are seldom useful in fitting structures. Thus, this tool has been
+largely superceded by BACKRUB.
+
+
+\section{Shear Tool: Helical winding plus unwinding \label{shear-tool}}
+
+The shear tool can be used to modify backbone, most commonly helix,
+in a manner almost completely orthogonal to the backrub. A shear shifts
+three peptides instead of two like a backrub, and moves the central
+peptide nearly parallel to the chain direction rather than perpendicular
+to it. Use Ctrl+Click (a.k.a. middle-click) to select a residue; it,
+its preceding residue, and its two following residues will become
+the active {}``molten'' state. Next, drag the primary shear dial
+for the main motion, then optionally drag the three peptide rotation
+dials to alleviate some strain. Functionality is generally similar
+to the backrub tool.
+
+\emph{Authored by Daniel Keedy} \emph{(daniel.keedy AT duke.edu)}
+
+
+\section{Tweak Phi/Psi: Visualizing possible backbone changes \label{phisi-tool}}
+
+The tweak phi/psi tool is useful for slightly altering the backbone
+dihedrals phi and psi. Use Ctrl+Click (a.k.a. middle-click) to select
+a residue and its adjacent region as the active {}``molten'' state.
+The length of the active region can be customized by entering a number
+of residues in the box and pressing enter. Next, drag the phi/psi
+dials to rotate the molten region around either the phi or psi axis.
+Note that this tool makes no attempt to close the resulting chain
+break or to alleviate the steric clashes it usually introduces, and
+thus should not be employed as a fitting tool. However, it can be
+useful for visualizing the local effects of small changes in phi/psi
+and simply building intuition.
+
+\emph{Authored by Daniel Keedy} \emph{(daniel.keedy AT duke.edu)}
+
+
+\section{Sidechain Rotator: Refitting protein models\label{scrot-tool}}
+
+The Sidechain Rotation tool is useful for doing interactive refitting
+of protein models in conjunction with the Hinges tool and the model
+manager. Use Ctrl+Click (a.k.a. middle-click) to select a sidechain
+to rotate, then pick from a list of predefined rotamers or set the
+angles by hand using the dials. The rotamericity of the current sidechain
+is monitored in the bottom right corner; it indicates how frequently
+(if ever!) the current conformation is found in well-determined structures.
+
+To use the dial control, click and drag the pointer to the desired
+value. For finer control you can shift-drag along an imaginary slider
+(this behavior is somewhat like the virtual dials in O). To reset
+the dial to its starting value, double click the dial face.
+
+Sidechain Rotator and the Hinges tool play well together: you can
+use both on the same residue(s) at the same time. It's often easiest
+to establish which sidechains will be rotatable before beginning to
+move the backbone, but it's possible to establish the moving parts
+in any order.
+
+
+\section{Sidechain Mutator: Redesigning protein models\label{scmut-tool}}
+
+The Sidechain Mutation tool is useful for doing interactive refitting
+of protein models in conjunction with the Hinges and Rotator tools
+and the model manager. Use Ctrl+Click (a.k.a. middle-click) to select
+a sidechain to mutate, then pick from a list of known amino acid types.
+If you select histidine, you will also be prompted to choose a protonation
+state.
+
+Sidechain Mutator plays well with the other tools, but you cannot
+mutate the model while any part of it is mobile ({}``molten'').
+Thus, it's often easiest to make mutations first, and then refit the
+new sequence.
+
+
+\section{Model Manager: Editing a macromolecular model\label{modelman-plugin}}
+
+This facility is for doing molecular modeling based on some starting
+model, usually a PDB file. The Model Manager handles opening and saving
+these files, and is required for the operation of the following tools:
+\begin{itemize}
+\item Backrub
+\item C-alpha hinges
+\item Shear
+\item Tweak phi/psi
+\item Sidechain rotator
+\item Sidechain mutator
+\end{itemize}
+The model manager also tracks the changes made to the model and allows
+near-unlimited undo. In addition, it provides access to dynamic visualizations,
+like Probe dots and NOE constraints. Using this feature requires that
+your OS can find Probe -- \emph{i.e.}, that either Probe resides in
+the same directory as \texttt{king.jar} and is named either \texttt{probe}
+or \texttt{probe.exe}; or that Probe is somewhere on your PATH and
+is named \texttt{probe} or \texttt{probe.exe}. The same is true of
+\texttt{noe-display}.
+
+There are several special symbols that can be inserted into the Probe
+and NOE command lines. Their meanings are as follows:
+\begin{description}
+\item [{\{pdbfile\}}] The fully-qualified name of the {}``base'' PDB
+file; \emph{i.e.} the one with all changes except the currently molten
+ones. (Those are piped in via standard input.)
+\item [{\{molten\}}] The list of molten residues, separated by commas:
+1, 2, 3, ...
+\item [{\{center\}}] The coordinates of the current center of view, in
+real space: x, y, z. This can be used for the \texttt{within} \emph{distance}
+\texttt{of} \emph{x, y, z} selection statement. Note that visualizations
+aren't automatically updated when the center of view changes.
+\end{description}
+
+\chapter{Copyright \& acknowledgments}
+
+
+\section{Copyright}
+
+The Chiropraxis code and all its associated original resources and
+documentation are copyright (C) 2002-2010 by Ian W. Davis, Daniel
+A. Keedy, and Vincent B. Chen.
+
+
+\section{Revision status}
+
+This manual was last updated 1 September 2010 by DAK for Chiropraxis
+version 1.07.
+\end{document}
