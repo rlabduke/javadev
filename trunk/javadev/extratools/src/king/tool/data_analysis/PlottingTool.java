@@ -827,7 +827,7 @@ public class PlottingTool extends BasicTool {
     { return pane; }
     
     public String toString()
-    { return "Data Plotter"; }
+    { return "Data plotter"; }
 //}}}
 
 }

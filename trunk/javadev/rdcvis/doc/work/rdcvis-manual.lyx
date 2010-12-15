@@ -280,18 +280,7 @@ Bug reporting and contact info
 
 \begin_layout Standard
 RDCvis was created and is being maintained by Vincent Chen, who may be reached
- via email at 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-mailto:vbc3@duke.edu
-\end_layout
-
-\end_inset
-
-.
+ via email at vbc3 AT duke.edu.
  
 \emph on
 Please
@@ -310,7 +299,7 @@ Copyright
 
 \begin_layout Standard
 The RDCvis program and all its associated original resources and documentation
- are copyright (C) 2008-2009 by Vincent B.
+ are copyright (C) 2008-2010 by Vincent B.
  Chen.
  
 \end_layout

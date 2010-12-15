@@ -9,12 +9,15 @@ import java.util.*;
 import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.net.*;
 import driftwood.util.*;
 import driftwood.gui.*;
 import driftwood.r3.*;
+import driftwood.util.SoftLog;
+
 //}}}
 /**
-* <code>ParenGroup</code> 
+* <code>ParenTool</code> 
 * 
 * <p>Copyright (C) 2009 by Vincent B. Chen. All rights reserved.
 * <br>Begun Fri May 08 15:08:17 EDT 2009
@@ -187,24 +190,24 @@ public class ParenTool extends BasicTool implements ListSelectionListener {
   protected Container getToolPanel()
   { return pane; }
   
-  ///** Returns the URL of a web page explaining use of this tool */
-  //public URL getHelpURL()
-  //{
-  //  URL     url     = getClass().getResource("/extratools/tools-manual.html");
-  //  String  anchor  = getHelpAnchor();
-  //  if(url != null && anchor != null)
-  //  {
-  //    try { url = new URL(url, anchor); }
-  //    catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
-  //    return url;
-  //  }
-  //  else return null;
-  //}
-  //
-  //public String getHelpAnchor()
-  //{ return "#co-center-tool"; }
+  /** Returns the URL of a web page explaining use of this tool */
+  public URL getHelpURL()
+  {
+    URL     url     = getClass().getResource("/extratools/tools-manual.html");
+    String  anchor  = getHelpAnchor();
+    if(url != null && anchor != null)
+    {
+      try { url = new URL(url, anchor); }
+      catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+      return url;
+    }
+    else return null;
+  }
   
-  public String toString() { return "Paren Tool"; }    
+  public String getHelpAnchor()
+  { return "#paren-tool"; }
+  
+  public String toString() { return "Paren tool"; }    
   //}}}
   
 }

@@ -4,6 +4,7 @@ package king.tool.rnaxtal;
 import king.*;
 import king.core.*;
 
+import java.net.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -93,6 +94,20 @@ public class RnaRotTool extends ModelingTool
     /** Returns a component with controls and options for this tool */
     protected Container getToolPanel()
     { return null; }
+    
+    /** Returns the URL of a web page explaining use of this tool */
+    public URL getHelpURL()
+    {
+        URL     url     = getClass().getResource("/extratools/tools-manual.html");
+        String  anchor  = getHelpAnchor();
+        if(url != null && anchor != null)
+        {
+            try { url = new URL(url, anchor); }
+            catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+            return url;
+        }
+        else return null;
+    }
     
     /**
     * Returns an anchor marking a place within <code>king-manual.html</code>

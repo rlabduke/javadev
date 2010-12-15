@@ -20,6 +20,7 @@ import driftwood.moldb2.*;
 import driftwood.util.*;
 //import chiropraxis.kingtools.*;
 import king.tool.util.*;
+import driftwood.util.SoftLog;
 
 //}}}
 
@@ -288,11 +289,11 @@ public class RdcVisTool extends BasicTool {
     }
     else return null;
   }
-  
+    
   public String getHelpAnchor()
   { return "#rdcvis-tool"; }
   
-  public String toString() { return "RDCvis Tool"; }    
+  public String toString() { return "RDCvis tool"; }    
   //}}}
   
 }

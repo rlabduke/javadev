@@ -1,4 +1,4 @@
-#LyX 1.6.6.1 created this file. For more info see http://www.lyx.org/
+#LyX 1.6.1 created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -78,6 +78,295 @@ LatexCommand tableofcontents
 
 \begin_layout Chapter
 The Tools
+\end_layout
+
+\begin_layout Standard
+This manual describes the KiNG tools available in the 'extratools' and 'rdcvis'
+ packages.
+ It is roughly laid out in order of the tools menu in KiNG, with tools in
+ the main menu in this chapter, and a separate chapter for the 'Data analysis',
+ 'Kin editing', 'Structural biology', 'Export' (File menu), and 'Specialty'
+ tools.
+ Also see the KiNG manual for descriptions of other tools.
+\end_layout
+
+\begin_layout Section
+90 Degree Rotations: Seeing precisely
+\begin_inset CommandInset label
+LatexCommand label
+name "rot90-plugin"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The 90 Degree Rotations plugin provides a simple way to turn your model
+ by 90 degrees around any of the three Cartesian axes.
+ It also provides a shortcut back to the standard kinemage orientation:
+ looking straight down the Z axis from the positive end toward the negative
+ one, with positive X to the right and positive Y at the top of the screen.
+\end_layout
+
+\begin_layout Standard
+This plugin is particularly useful in combination with a trick for setting
+ up simultaneous orthogonal views of a kinemage.
+ Read about it in the section on stereo graphics in the KiNG manual.
+\end_layout
+
+\begin_layout Chapter
+Data analysis
+\end_layout
+
+\begin_layout Section
+Data Plotter Tool 
+\begin_inset CommandInset label
+LatexCommand label
+name "plotting-tool"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The Data plotter tool is for importing high-dimensional (3) data into KiNG,
+ for use with parallel coordinates.
+ 
+\end_layout
+
+\begin_layout Subsection
+Input files
+\end_layout
+
+\begin_layout Standard
+This tool takes as input delimited, numerical files.
+ The tool will use the first line of the file to determine the number of
+ dimensions to use in the kinemage, as well as the names for each dimension.
+ Also, it will use the first column as the point ID of each point.
+ This allows users to enter identifying information about each row in the
+ first column which will then be used in the kinemage for each point.
+\end_layout
+
+\begin_layout Subsection
+Basic usage
+\end_layout
+
+\begin_layout Standard
+When this tool is started, it asks for an input file.
+ Once a file is selected, it asks for the type of delimiter that is used
+ in the file.
+ It will then use the selected delimiter to parse the file.
+ It then pops up a GUI with a number of different options.
+ The different 
+\begin_inset Quotes eld
+\end_inset
+
+..
+ axis
+\begin_inset Quotes erd
+\end_inset
+
+ selection lists allow users to pick the initial three dimensions to plot.
+ The bins selection list and the 
+\begin_inset Quotes eld
+\end_inset
+
+# of Bins
+\begin_inset Quotes erd
+\end_inset
+
+ entry field allows users to divide up the data into different bins (using
+ the selected dimension), which will show up as separate groups in the kinemage.
+ Once the desired axes and/or bins have been chosen, the Plot! button will
+ plot the data into a kinemage.
+ Once plotted, users can use the built-in 
+\begin_inset Quotes eld
+\end_inset
+
+Choose viewing axes
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+Parallel coordinates
+\begin_inset Quotes erd
+\end_inset
+
+ (under the Views menu) to manipulate the data.
+ 
+\end_layout
+
+\begin_layout Section
+High-dimensional Sliders 
+\begin_inset CommandInset label
+LatexCommand label
+name "high-d-sliders"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The High-dimensional sliders plugin is for manipulating high-dimensional
+ kinemages.
+ When started, it determines the number of dimensions in the kinemage, and
+ creates a GUI containing a pair of low-high sliders for each dimension.
+ Each slider is named with the corresponding dimension name, if present
+ in the kinemage.
+ Sliding the different sliders will turn off any points with that particular
+ coordinate outside of the range encompased by the two sliders.
+ 
+\end_layout
+
+\begin_layout Chapter
+Kin editing
+\end_layout
+
+\begin_layout Standard
+Several new tools have been created that allow kinemages to be more easily
+ edited without having to go back to the original PDB and creating a new
+ kinemage.
+\end_layout
+
+\begin_layout Section
+Co-centering Tool
+\begin_inset CommandInset label
+LatexCommand label
+name "co-centering-tool"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The Co-centeringTool is primarily for use with NMR-derived ensembles of
+ models; it will translate all groups in kinemage onto a single selected
+ point.
+ 
+\end_layout
+
+\begin_layout Subsection
+Basic Usage
+\end_layout
+
+\begin_layout Standard
+Just middle-click or ctrl-click on an atom in a kinemage to cocenter all
+ the groups of that kinemage onto that point.
+ Click on the 
+\begin_inset Quotes eld
+\end_inset
+
+Reset Coordinates
+\begin_inset Quotes erd
+\end_inset
+
+ button to reset all atoms to their original coordinates.
+\end_layout
+
+\begin_layout Subsection
+Scanning through a structure
+\end_layout
+
+\begin_layout Standard
+This tool includes the ability to scan through a structure one residue at
+ a time, cocentering as it goes.
+ Choose an atom to use as the centering point from the pull-down box, and
+ then hit the left or right arrow buttons on the GUI to cocenter and recenter
+ on the previous or next residue.
+ Select the 
+\begin_inset Quotes eld
+\end_inset
+
+Slide to next point
+\begin_inset Quotes erd
+\end_inset
+
+ box to smoothly slide to the next or previous point.
+ This can also be activated using the keyboard shortcut shift-j or j (for
+ jump).
+ As with many tools, this functionality is sensitive to the point IDs of
+ the kinemage.
+\end_layout
+
+\begin_layout Subsection
+Cocentering on parens
+\end_layout
+
+\begin_layout Standard
+The basic usage of cocenter only works on structures with identical sequences.
+ For cocentering non-identical structures, we have created a cocenter on
+ parens mode, which uses a new feature of pointIDs.
+ To use this, enter a 
+\family typewriter
+
+\begin_inset Quotes eld
+\end_inset
+
+(#)
+\begin_inset Quotes erd
+\end_inset
+
+
+\family default
+ [where the # is an integer] at the beginning of the point ID of the atoms
+ you want to cocenter.
+ With this option selected, the arrow buttons or j shortcut keys will jump
+ through the (#) points by order of the integer.
+ This also allows users to set up various cocentered views, and quickly
+ jump through them, without having to manually find them, or stepping through
+ the whole sequence.
+\end_layout
+
+\begin_layout Subsection
+Warnings
+\end_layout
+
+\begin_layout Standard
+This functionality is based on the point ID of the points in the different
+ groups.
+ The tool uses the first 14 characters of the point ID clicked on to search
+ the other groups.
+ If a group does not have a point with the same first 14 characters in the
+ point ID, the group will not get moved.
+ When using the parens points, only groups with a point with the appropriate
+ paren integer will be moved.
+ It's important to note also that this tool only does translation; it does
+ not do any rotations at all.
+ Superpositions of the different models may be necessary before using this
+ tool.
+\end_layout
+
+\begin_layout Section
+Paren Tool
+\begin_inset CommandInset label
+LatexCommand label
+name "paren-tool"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The Paren tool provides a convenient way of adding parens (for use with
+ co-centering) to point IDs.
+\end_layout
+
+\begin_layout Standard
+When started, it automatically detects all paren points already defined
+ in the kinemage.
+ Each group of paren points is listed in the list box.
+ Selecting the group from the list will label all the points in that group.
+ To add or remove points to the group, select the group from the list and
+ pick points without numbers to add them, or with number to remove them.
+ You can also add new groups, or delete whole groups.
 \end_layout
 
 \begin_layout Section
@@ -205,14 +494,10 @@ N.B.
 \end_layout
 
 \begin_layout Section
-RNA Maps: Finding the phosphates 
-\shape italic
-(not active by default)
-\shape default
-
+Extract Loop Tool
 \begin_inset CommandInset label
 LatexCommand label
-name "rnamap-tool"
+name "loop-tool"
 
 \end_inset
 
@@ -220,51 +505,91 @@ name "rnamap-tool"
 \end_layout
 
 \begin_layout Standard
-
-\emph on
-Authored by Vincent Chen (vbc3 AT duke.edu)
-\end_layout
-
-\begin_layout Standard
-This tool (still under development) was designed to aid users in locating
- potential phosphate positions in the electron density maps of nucleic acids.
- Similar to the existing electron density viewing plug-in, this tool asks
- the user to open a map file, and opens a control window containing many
- of the same controls as the electron density plug-in.
- In addition to these controls, it has a toggle button to activate/deactivate
- the "poly picking" feature and a color selection list.
- When active, if the user left-clicks on a point in the kinemage, the polyhedron
- containing that point will be highlighted in the color selected.
- Next, the tool searches through the map to find the highest electron density
- value within that selected polyhedron, and places a marker point on that
- spot, showing an approximate position for the phosphorous.
+This tool is for removing unwanted residues from macromolecular structures.
+ 
 \end_layout
 
 \begin_layout Subsection
-Current Issues
+Basic Usage
 \end_layout
 
 \begin_layout Standard
-This tool does not differentiate between a point in the electron density
- and a point on the actual structure.
- Clicking on the structure with the poly picking tool active can result
- in the program searching through the whole structure, which can take a
- very long time.
- Be sure to click carefully, and to limit the polyhedra to be selected to
- a reasonable size (i.e.
- have the sigma level set high enough that the polyhedra are about the size
- of a phosphate).
- Also, once the first polyhedron has been selected, moving the electron
- density around and selecting a polyhedron may result in an error.
- If this happens, the program will have to be restarted in order to selected
- a polyhedron not in the initial set.
+Enter the residue number range into the two text boxes and hit the Keep!
+ button.
+ Every residue number in between the range, including the two numbers, will
+ be kept.
+ Multiple ranges can be entered; the ranges that have been entered are shown
+ in the list box.
+ The Remove last button can be used to remove the last range entered.
+ Once the proper ranges have been entered, the Delete rest! button can be
+ used to delete every point without a desired residue number.
+ 
+\end_layout
+
+\begin_layout Subsection
+Advanced Usage
+\end_layout
+
+\begin_layout Standard
+The LoopTool can read in a comma delimited file and use information in the
+ file to delete residues from a structure.
+ This allows a user to save ranges in a file, and not have to manually input
+ the ranges.
+ The format for the files is as follows: pdbname, lowresnum, highresnum,
+ looplength, looplength, B-Factor (e.g.
+ 1ubq,1,5,4,4,1.0).
+ The two looplength fields are included for legacy reasons, but it is not
+ important to have the correct value in those fields, just a number.
+ B-Factor is used for the order of editing more than one structure (more
+ on this later) but similarly to looplength, the number in this field is
+ not critical.
+ To use this feature, use the Open CSV file button to read in the CSV file.
+ Then, just hit Delete from file to remove residues that aren't in your
+ included ranges.
+ 
+\end_layout
+
+\begin_layout Standard
+The LoopTool can also delete residues from multiple structures.
+ In order to use this feature, you need to have a CSV formatted in the same
+ way as described for a single structure, but each line contains a different
+ range.
+ You also need to have a directory containing kinemages of all the different
+ structures, and also a folder called 
+\begin_inset Quotes eld
+\end_inset
+
+loops
+\begin_inset Quotes erd
+\end_inset
+
+ in that directory.
+ Then, open your CSV file as before, and use the Do ALL from file button
+ to specify the directory of kinemages.
+ The program will open every kinemage as needed, delete unwanted residues,
+ and save the new kin in the loops directory.
+ 
+\end_layout
+
+\begin_layout Subsection
+Warnings
+\end_layout
+
+\begin_layout Standard
+The LoopTool makes heavy use of the information in the point IDs of the
+ kinemages.
+ If there are mistakes or unexpected information in the point IDs, then
+ this tool will probably function incorrectly.
+ Use kinemages generated from Prekin, Molprobity, or Molikin to ensure the
+ highest rate of success.
+ 
 \end_layout
 
 \begin_layout Section
-90 Degree Rotations: Seeing precisely
+Kinemage Fudging
 \begin_inset CommandInset label
 LatexCommand label
-name "rot90-plugin"
+name "kinfudger-tool"
 
 \end_inset
 
@@ -272,106 +597,94 @@ name "rot90-plugin"
 \end_layout
 
 \begin_layout Standard
-The 90 Degree Rotations plugin provides a simple way to turn your model
- by 90 degrees around any of the three Cartesian axes.
- It also provides a shortcut back to the standard kinemage orientation:
- looking straight down the Z axis from the positive end toward the negative
- one, with positive X to the right and positive Y at the top of the screen.
+The KinFudger tool now allows distance and angles between points to be easily
+ adjusted.
+ This is especially useful in modifying bond distances, angles, and dihedrals
+ in macromolecular structures.
+ 
 \end_layout
 
 \begin_layout Standard
-This plugin is particularly useful in combination with a trick for setting
- up simultaneous orthogonal views of a kinemage.
- Read about it in the section on stereo graphics in the KiNG manual.
+The control panel is simple, consisting of options for the parameter you
+ wish to adjust, whether you want to move only one point (and all attached
+ single points--I use this to move an atom and its attached hydrogens),
+ and a button to export your kin to PDB.
 \end_layout
 
-\begin_layout Section
+\begin_layout Subsection
+Adjusting bond distances, angles, and dihedrals
+\end_layout
+
+\begin_layout Standard
+In order to adjust a parameter, select the parameter you wish to adjust
+ and click on the kinemage points you want to adjust, in order as if you
+ were doing measures.
+ By default, the tool will move the last point you clicked on, plus all
+ the points connected to that point excluding the points 
 \begin_inset Quotes eld
 \end_inset
 
-Lathe
+behind
 \begin_inset Quotes erd
 \end_inset
 
- tool: Just for fun
-\begin_inset CommandInset label
-LatexCommand label
-name "lathe-plugin"
-
-\end_inset
-
-
+ the points you clicked.
+ So for example, if you had a A-B-C-D connection, and you were adjusting
+ the distance between B and C, and you clicked on B first, then C, then
+ the program would move C and D.
+ Likewise, if you clicked on C first, and then B, the program would move
+ A and B.
+ Naturally, the connectivity finding algorithm I use gets confused if you
+ are adjusting with a cyclic structure, so be careful in that situation.
 \end_layout
 
 \begin_layout Standard
-This is a fun helper that shows what a wide variety of shapes and forms
- can be constructed from a clever combination of kinemage primitives.
+An interesting use I discovered about this tool is that you can use the
+ distance adjusting to do a one-point docking of structures to close gaps.
+ 
+\end_layout
+
+\begin_layout Subsection
+Moving objects
 \end_layout
 
 \begin_layout Standard
-The lathe tool takes a single polyline and sweeps it out around an axis
- to create a polygonal object.
- One strip of 64 triangles is created for every line segment.
- This tool is ideal for creating anything with an axis of symmetry: bottles,
- vases, lamps, simple cylinders, and so on.
- The standard axis of rotation is the Y-axis, with rotation centered at
- the origin, so keep this in mind when drawing a half-profile to use with
- this tool.
-\end_layout
-
-\begin_layout Section
+Under the 
 \begin_inset Quotes eld
 \end_inset
 
-KinImage
+Advanced options
 \begin_inset Quotes erd
 \end_inset
 
- tool: Just silly 
-\begin_inset CommandInset label
-LatexCommand label
-name "kinimage-plugin"
+, users can turn on a mode that lets users use the mouse to move objects
+ within a kinemage.
+ Right-click and drag translates the clicked on point, as well as anything
+ connected to it.
+ Left-click and drag rotates everything connected to the selected point
+ around that point.
+\end_layout
 
-\end_inset
-
-
+\begin_layout Subsection
+Exporting to PDB
 \end_layout
 
 \begin_layout Standard
-This cute little utility converts an image file into a kinemage background.
- The source image can be a local file or a sample from the Richardson Lab
- website: 
+The KinFudger also includes an export to PDB functionality.
+ As long as your kinemage PointIDs are formatted in a standard fashion (i.e.
+ from Molikin, MolProbity, or Prekin), the tool will export all active points
+ to a PDB file.
+ So turn off anything you don't want in your PDB.
+ Also, if it encounters an non-standard atom name, it will output 
 \begin_inset Quotes eld
 \end_inset
 
-Dave the Mage.
+UNK
 \begin_inset Quotes erd
 \end_inset
 
- A new kinemage group is created containing a dotlist with some percentage
- of the image's pixels.
- The list uses the 
-\begin_inset Quotes eld
-\end_inset
-
-screen
-\begin_inset Quotes erd
-\end_inset
-
- keyword to indicate it is screen-oriented, i.e.
- impervious to rotations, translations, or zooms.
- Custom colors are used, and subsequently stored as hsvcolor items at the
- top of the file if the kinemage is saved.
-\end_layout
-
-\begin_layout Chapter
-Editing kinemages
-\end_layout
-
-\begin_layout Standard
-Several new tools have been created that allow kinemages to be more easily
- edited without having to go back to the original PDB and creating a new
- kinemage.
+ in the atom field of the PDB.
+ Currently, it only exports protein atoms.
 \end_layout
 
 \begin_layout Section
@@ -422,6 +735,107 @@ Pick Objects
 
  option in the Tools menu, and click directly on a bond in the sidechain.
  
+\end_layout
+
+\begin_layout Section
+Artificial skylighting
+\begin_inset CommandInset label
+LatexCommand label
+name "artificial-skylighting"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This plugin gives additional visual depth cues to CPK space-filling models
+ by doing some fancy lighting calculations for kinemage spheres.
+ It works for balls, too, but looks weird because of the highlights.
+ To use it, just make a CPK kinemage with spheres, and run the tool.
+ Essentially, it darkens the colors of balls closer to the 'inside' of the
+ molecules.
+ It will take a while on large files.
+ 
+\end_layout
+
+\begin_layout Standard
+Note that it does obliterate existing point colors, and until we have a
+ mechanism for writing out per-point unique (non-palette) colors, the effect
+ can't be saved.
+ It can, however, be recalculated once some atoms (eg H) are turned off.
+ This plugin 
+\end_layout
+
+\begin_layout Section
+\begin_inset Quotes eld
+\end_inset
+
+Lathe
+\begin_inset Quotes erd
+\end_inset
+
+ tool: Just for fun
+\begin_inset CommandInset label
+LatexCommand label
+name "lathe-plugin"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This is a fun helper that shows what a wide variety of shapes and forms
+ can be constructed from a clever combination of kinemage primitives.
+\end_layout
+
+\begin_layout Standard
+The lathe tool takes a single polyline and sweeps it out around an axis
+ to create a polygonal object.
+ One strip of 64 triangles is created for every line segment.
+ This tool is ideal for creating anything with an axis of symmetry: bottles,
+ vases, lamps, simple cylinders, and so on.
+ The standard axis of rotation is the Y-axis, with rotation centered at
+ the origin, so keep this in mind when drawing a half-profile to use with
+ this tool.
+\end_layout
+
+\begin_layout Section
+Making Movies
+\begin_inset CommandInset label
+LatexCommand label
+name "movie-maker"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This is a simple plugin to help users make movies.
+ It allows users to configure various scenes and motions (rock, spin, fly),
+ and exports a series of image files which can be combined (such as by Quicktime
+ Pro) to make a movie.
+ Buttons are included to conveniently resize the KiNG window.
+\end_layout
+
+\begin_layout Standard
+This tool keeps track of objects which are turned on, so different things
+ can be turned on or off during the movie.
+ To do this, make sure the kinemage is set to the desired options and view
+ before hitting the button corresponding to the action you want to do.
+ So, for instance, to fly to a new scene, go to the new view and hit + Fly
+ to have the movie show that action.
+ To insert additional actions, click in the list of current actions before
+ where you want the new action to go.
+ 
+\end_layout
+
+\begin_layout Standard
+In practice, I (Vincent) find that it is best to add a short shapshot in
+ between any movement actions in movies.
+ Play with different settings to discover what you prefer.
 \end_layout
 
 \begin_layout Section
@@ -515,10 +929,10 @@ transparenter
 \end_layout
 
 \begin_layout Section
-Kinemage Fudging
+Select by color
 \begin_inset CommandInset label
 LatexCommand label
-name "kinfudger-tool"
+name "point-color-plugin"
 
 \end_inset
 
@@ -526,293 +940,25 @@ name "kinfudger-tool"
 \end_layout
 
 \begin_layout Standard
-The KinFudger tool now allows distance and angles between points to be easily
- adjusted.
- This is especially useful in modifying bond distances, angles, and dihedrals
- in macromolecular structures.
+This plugin works with the 'select' kinemage group keyword to manipulate
+ groups of data points.
  
 \end_layout
 
 \begin_layout Standard
-The control panel is simple, consisting of options for the parameter you
- wish to adjust, whether you want to move only one point (and all attached
- single points--I use this to move an atom and its attached hydrogens),
- and a button to export your kin to PDB.
-\end_layout
-
-\begin_layout Subsection
-Adjusting bond distances, angles, and dihedrals
-\end_layout
-
-\begin_layout Standard
-In order to adjust a parameter, select the parameter you wish to adjust
- and click on the kinemage points you want to adjust, in order as if you
- were doing measures.
- By default, the tool will move the last point you clicked on, plus all
- the points connected to that point excluding the points 
-\begin_inset Quotes eld
-\end_inset
-
-behind
-\begin_inset Quotes erd
-\end_inset
-
- the points you clicked.
- So for example, if you had a A-B-C-D connection, and you were adjusting
- the distance between B and C, and you clicked on B first, then C, then
- the program would move C and D.
- Likewise, if you clicked on C first, and then B, the program would move
- A and B.
- Naturally, the connectivity finding algorithm I use gets confused if you
- are adjusting with a cyclic structure, so be careful in that situation.
+To use it, make sure the kinemage group to be manipulated has the 'select'
+ keyword set (either via the text, or the hierachy window).
+ Then, select different combinations of 'if' and 'if not' and a color, to
+ work with either one color or all other colors, respectively.
+ Buttons allow points matching the selection to be turned off or on, or
+ extracted into its own list.
 \end_layout
 
 \begin_layout Standard
-An interesting use I discovered about this tool is that you can use the
- distance adjusting to do a one-point docking of structures to close gaps.
- 
-\end_layout
-
-\begin_layout Subsection
-Moving objects
-\end_layout
-
-\begin_layout Standard
-Under the 
-\begin_inset Quotes eld
-\end_inset
-
-Advanced options
-\begin_inset Quotes erd
-\end_inset
-
-, users can turn on a mode that lets users use the mouse to move objects
- within a kinemage.
- Right-click and drag translates the clicked on point, as well as anything
- connected to it.
- Left-click and drag rotates everything connected to the selected point
- around that point.
-\end_layout
-
-\begin_layout Subsection
-Exporting to PDB
-\end_layout
-
-\begin_layout Standard
-The KinFudger also includes an export to PDB functionality.
- As long as your kinemage PointIDs are formatted in a standard fashion,
- the tool will export all active points to a PDB file.
- So turn off anything you don't want in your PDB.
- Also, if it encounters an non-standard atom name, it will output 
-\begin_inset Quotes eld
-\end_inset
-
-UNK
-\begin_inset Quotes erd
-\end_inset
-
- in the atom field of the PDB.
-\end_layout
-
-\begin_layout Section
-Loop Tool
-\begin_inset CommandInset label
-LatexCommand label
-name "loop-tool"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The LoopTool is for removing unwanted residues from macromolecular structures.
- 
-\end_layout
-
-\begin_layout Subsection
-Basic Usage
-\end_layout
-
-\begin_layout Standard
-Enter the residue number range into the two text boxes and hit the Keep!
- button.
- Every residue number in between the range, including the two numbers, will
- be kept.
- Multiple ranges can be entered; the ranges that have been entered are shown
- in the list box.
- The Remove last button can be used to remove the last range entered.
- Once the proper ranges have been entered, the Delete rest! button can be
- used to delete every point without a desired residue number.
- 
-\end_layout
-
-\begin_layout Subsection
-Advanced Usage
-\end_layout
-
-\begin_layout Standard
-The LoopTool can read in a comma delimited file and use information in the
- file to delete residues from a structure.
- This allows a user to save ranges in a file, and not have to manually input
- the ranges.
- The format for the files is as follows: pdbname, lowresnum, highresnum,
- looplength, looplength, B-Factor (e.g.
- 1ubq,1,5,4,4,1.0).
- The two looplength fields are included for legacy reasons, but it is not
- important to have the correct value in those fields, just a number.
- B-Factor is used for the order of editing more than one structure (more
- on this later) but similarly to looplength, the number in this field is
- not critical.
- To use this feature, use the Open CSV file button to read in the CSV file.
- Then, just hit Delete from file to remove residues that aren't in your
- included ranges.
- 
-\end_layout
-
-\begin_layout Standard
-The LoopTool can also delete residues from multiple structures.
- In order to use this feature, you need to have a CSV formatted in the same
- way as described for a single structure, but each line contains a different
- range.
- You also need to have a directory containing kinemages of all the different
- structures, and also a folder called 
-\begin_inset Quotes eld
-\end_inset
-
-loops
-\begin_inset Quotes erd
-\end_inset
-
- in that directory.
- Then, open your CSV file as before, and use the Do ALL from file button
- to specify the directory of kinemages.
- The program will open every kinemage as needed, delete unwanted residues,
- and save the new kin in the loops directory.
- 
-\end_layout
-
-\begin_layout Subsection
-Warnings
-\end_layout
-
-\begin_layout Standard
-The LoopTool makes heavy use of the information in the point IDs of the
- kinemages.
- If there are mistakes or unexpected information in the point IDs, then
- this tool will probably function incorrectly.
- Use kinemages generated from Prekin, Molprobity, or Molikin to ensure the
- highest rate of success.
- 
-\end_layout
-
-\begin_layout Section
-Co-centering Tool
-\begin_inset CommandInset label
-LatexCommand label
-name "co-centering-tool"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The Co-centeringTool is primarily for use with NMR-derived ensembles of
- models; it will translate all groups in kinemage onto a single selected
- point.
- 
-\end_layout
-
-\begin_layout Subsection
-Basic Usage
-\end_layout
-
-\begin_layout Standard
-Just middle-click or ctrl-click on an atom in a kinemage to cocenter all
- the groups of that kinemage onto that point.
- Click on the 
-\begin_inset Quotes eld
-\end_inset
-
-Reset Coordinates
-\begin_inset Quotes erd
-\end_inset
-
- button to reset all atoms to their original coordinates.
-\end_layout
-
-\begin_layout Subsection
-Scanning through a structure
-\end_layout
-
-\begin_layout Standard
-This tool includes the ability to scan through a structure one residue at
- a time, cocentering as it goes.
- Choose an atom to use as the centering point from the pull-down box, and
- then hit the left or right arrow buttons on the GUI to cocenter and recenter
- on the previous or next residue.
- Select the 
-\begin_inset Quotes eld
-\end_inset
-
-Slide to next point
-\begin_inset Quotes erd
-\end_inset
-
- box to smoothly slide to the next or previous point.
- This can also be activated using the keyboard shortcut shift-j or j (for
- jump).
- As with many tools, this functionality is sensitive to the point IDs of
- the kinemage.
-\end_layout
-
-\begin_layout Subsection
-Cocentering on parens
-\end_layout
-
-\begin_layout Standard
-The basic usage of cocenter only works on structures with identical sequences.
- For cocentering non-identical structures, we have created a cocenter on
- parens mode, which uses a new feature of pointIDs.
- To use this, enter a 
-\family typewriter
-
-\begin_inset Quotes eld
-\end_inset
-
-(#)
-\begin_inset Quotes erd
-\end_inset
-
-
-\family default
- [where the # is an integer] at the beginning of the point ID of the atoms
- you want to cocenter.
- With this option selected, the arrow buttons or j shortcut keys will jump
- through the (#) points by order of the integer.
- This also allows users to set up various cocentered views, and quickly
- jump through them, without having to manually find them, or stepping through
- the whole sequence.
-\end_layout
-
-\begin_layout Subsection
-Warnings
-\end_layout
-
-\begin_layout Standard
-This functionality is based on the point ID of the points in the different
- groups.
- The tool uses the first 14 characters of the point ID clicked on to search
- the other groups.
- If a group does not have a point with the same first 14 characters in the
- point ID, the group will not get moved.
- When using the parens points, only groups with a point with the appropriate
- paren integer will be moved.
- It's important to note also that this tool only does translation; it does
- not do any rotations at all.
- Superpositions of the different models may be necessary before using this
- tool.
+This was originally created to work with large datasets, such as the 7 dimension
+al RNA backbone dihedral angle data, which is displayed using ball points.
+ However, the tool does work with other kinds of points, as long as the
+ 'select' keyword is set for the group.
 \end_layout
 
 \begin_layout Chapter
@@ -857,7 +1003,7 @@ etc.
 \emph default
  It is also very useful for producing digital movies that may be more convenient
  to use during talks and presentations.
- (I recommend the inexpensive QuickTime Pro from Apple for stitching together
+ (We recommend the inexpensive QuickTime Pro from Apple for stitching together
  all the output images into a movie.) The POV file is largely complete as
  written and includes terse hints for rendering, but if you use this feature
  much you'll probably want to learn something about POV-Ray and tweak the
@@ -865,6 +1011,41 @@ etc.
  Most of the things you'll want to change are either at the very top (colors,
  textures, and sizes of things) or at the very bottom (camera viewpoint,
  depth cueing, lighting).
+\end_layout
+
+\begin_layout Section
+Exporting for Raster3D
+\begin_inset CommandInset label
+LatexCommand label
+name "render-export"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+KiNG can now export scenes, for fancy image-rendering, with the 'render'
+ program of Raster3D.
+ 
+\end_layout
+
+\begin_layout Standard
+This option exports most of the major kinemage point types, include balls,
+ vectors, and triangles (ribbons) to .r3d format files for use with render.
+ It also exports information about the points, such as transparency, line
+ width, and color.
+ It also will automatically set the background of the file to match the
+ background of KiNG at the time of export.
+ 
+\end_layout
+
+\begin_layout Standard
+There are a few oddities with this function.
+ First, it can't export text labels.
+ Second, the coordinate system doesn't match exactly, so the exported view
+ ends up in the upper left 3/4 corner of the rendered image.
+ 
 \end_layout
 
 \begin_layout Section
@@ -951,7 +1132,7 @@ Structural biology tools
 \end_layout
 
 \begin_layout Section
-RNA rotator tool
+RNA Rotator Tool
 \begin_inset CommandInset label
 LatexCommand label
 name "rnarotator-tool"
@@ -1017,7 +1198,186 @@ molten
 \end_layout
 
 \begin_layout Section
-Analyze Geometry Plugin
+RDC Play Plugin
+\begin_inset CommandInset label
+LatexCommand label
+name "rdc-play"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The RDC play plugin allows quick visualization of a set of RDC curves, in
+ fully interactive and rotatable 3D.
+ This plugin allows users to interact with the RDC curves and gain a general
+ understanding of their behavior of RDC data.
+\end_layout
+
+\begin_layout Standard
+Starting the plugin automatically generates a new kinemage with RDC curves
+ drawn.
+ Slider bars are provided to adjust the rhombicity of the curves drawn,
+ the range of the Saupe matrix generating the curves, and for selecting
+ a specific value of RDC to draw, which is only active if the check box
+ to only draw one value is selected.
+ An option for drawing the underlying hyperboloid surfaces the curves come
+ from is provided.
+\end_layout
+
+\begin_layout Section
+RDCvis
+\begin_inset CommandInset label
+LatexCommand label
+name "rdcvis-tool"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The RDCvis tool provides a convenient way of adding RDC curves to existing
+ NMR model kinemages.
+ 
+\end_layout
+
+\begin_layout Standard
+To use the tool, open a kinemage which needs RDC curves in KiNG.
+ Starting the tool opens a dialog box with several options, as well as boxes
+ for specifying a PDB file containing the NMR model(s), and a NMR data file
+ in XPLOR format (see rdcvis manual or the kinemage website for more details).
+ The 'Draw RDCs' button will then prompt for the type of RDCs to draw, and
+ then draw the selected RDC curves for each residue directly in the kinemage.
+ RDCvis will properly deal with multi-model kinemages, adding RDC curves
+ for each model to the group containing that model.
+\end_layout
+
+\begin_layout Standard
+Several other options are provided on the RDCvis tool GUI.
+ 'Draw error curves' draws an extra set of curves at 2 sigma away for each
+ RDC.
+ 'Draw surfaces' draws representations of the underlying hyperboloid surfaces.
+ 'Use ensemble tensor' calculates the Saupe matrix using the entire ensemble,
+ rather than calculating a separate Saupe matrix for each model.
+ 'Draw curve spheres' draws an RDC curve sphere representative of the Saupe
+ matrix on each residue.
+\end_layout
+
+\begin_layout Chapter
+Specialty/Beta test tools
+\end_layout
+
+\begin_layout Standard
+This chapter covers some of the tools in the Specialty menu.
+ This menu contains tools which are in beta testing or for highly specialized
+ purposes, and thus not recommened for general use.
+\end_layout
+
+\begin_layout Section
+\begin_inset Quotes eld
+\end_inset
+
+KinImage
+\begin_inset Quotes erd
+\end_inset
+
+ tool: Just silly 
+\begin_inset CommandInset label
+LatexCommand label
+name "kinimage-plugin"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This cute little utility converts an image file into a kinemage background.
+ The source image can be a local file or a sample from the Richardson Lab
+ website: 
+\begin_inset Quotes eld
+\end_inset
+
+Dave the Mage.
+\begin_inset Quotes erd
+\end_inset
+
+ A new kinemage group is created containing a dotlist with some percentage
+ of the image's pixels.
+ The list uses the 
+\begin_inset Quotes eld
+\end_inset
+
+screen
+\begin_inset Quotes erd
+\end_inset
+
+ keyword to indicate it is screen-oriented, i.e.
+ impervious to rotations, translations, or zooms.
+ Custom colors are used, and subsequently stored as hsvcolor items at the
+ top of the file if the kinemage is saved.
+\end_layout
+
+\begin_layout Section
+RNA Maps: Finding the phosphates 
+\shape italic
+(not active by default)
+\shape default
+
+\begin_inset CommandInset label
+LatexCommand label
+name "rnamap-tool"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+Authored by Vincent Chen (vbc3 AT duke.edu)
+\end_layout
+
+\begin_layout Standard
+This tool (still under development) was designed to aid users in locating
+ potential phosphate positions in the electron density maps of nucleic acids.
+ Similar to the existing electron density viewing plug-in, this tool asks
+ the user to open a map file, and opens a control window containing many
+ of the same controls as the electron density plug-in.
+ In addition to these controls, it has a toggle button to activate/deactivate
+ the "poly picking" feature and a color selection list.
+ When active, if the user left-clicks on a point in the kinemage, the polyhedron
+ containing that point will be highlighted in the color selected.
+ Next, the tool searches through the map to find the highest electron density
+ value within that selected polyhedron, and places a marker point on that
+ spot, showing an approximate position for the phosphorous.
+\end_layout
+
+\begin_layout Subsection
+Current Issues
+\end_layout
+
+\begin_layout Standard
+This tool does not differentiate between a point in the electron density
+ and a point on the actual structure.
+ Clicking on the structure with the poly picking tool active can result
+ in the program searching through the whole structure, which can take a
+ very long time.
+ Be sure to click carefully, and to limit the polyhedra to be selected to
+ a reasonable size (i.e.
+ have the sigma level set high enough that the polyhedra are about the size
+ of a phosphate).
+ Also, once the first polyhedron has been selected, moving the electron
+ density around and selecting a polyhedron may result in an error.
+ If this happens, the program will have to be restarted in order to selected
+ a polyhedron not in the initial set.
+\end_layout
+
+\begin_layout Section
+Analyze Geometry Plugin (replaced by Dangle, not active)
 \begin_inset CommandInset label
 LatexCommand label
 name "geometry-plugin"
@@ -1069,7 +1429,7 @@ As with many of the tools dealing with protein residues, this tool is sensitive
 \end_layout
 
 \begin_layout Section
-Fill-Gap Plugin
+Fill-Gap Plugin (replaced by JiffiLoop, not active)
 \begin_inset CommandInset label
 LatexCommand label
 name "fillgap-plugin"
@@ -1089,115 +1449,6 @@ This plugin makes it easy to automatically fill in gaps in protein models.
  kinemages, both of which are quite large, and as of Feb 2007 are not publicly
  available.
  Eventually I plan to make them available on kinemage.biochem.duke.edu.
-\end_layout
-
-\begin_layout Chapter
-Data tools
-\end_layout
-
-\begin_layout Section
-Data plotter tool 
-\begin_inset CommandInset label
-LatexCommand label
-name "plotting-tool"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The Data plotter tool is for importing high-dimensional data into KiNG,
- for use with parallel coordinates.
- 
-\end_layout
-
-\begin_layout Subsection
-Input files
-\end_layout
-
-\begin_layout Standard
-This tool takes as input delimited, numerical files.
- The tool will use the first line of the file to determine the number of
- dimensions to use in the kinemage, as well as the names for each dimension.
- Also, it will use the first column as the point ID of each point.
- This allows users to enter identifying information about each row in the
- first column which will then be used in the kinemage for each point.
-\end_layout
-
-\begin_layout Subsection
-Basic usage
-\end_layout
-
-\begin_layout Standard
-When this tool is started, it asks for an input file.
- Once a file is selected, it asks for the type of delimiter that is used
- in the file.
- It will then use the selected delimiter to parse the file.
- It then pops up a GUI with a number of different options.
- The different 
-\begin_inset Quotes eld
-\end_inset
-
-..
- axis
-\begin_inset Quotes erd
-\end_inset
-
- selection lists allow users to pick the initial three dimensions to plot.
- The bins selection list and the 
-\begin_inset Quotes eld
-\end_inset
-
-# of Bins
-\begin_inset Quotes erd
-\end_inset
-
- entry field allows users to divide up the data into different bins (using
- the selected dimension), which will show up as separate groups in the kinemage.
- Once the desired axes and/or bins have been chosen, the Plot! button will
- plot the data into a kinemage.
- Once plotted, users can use the built-in 
-\begin_inset Quotes eld
-\end_inset
-
-Choose viewing axes
-\begin_inset Quotes erd
-\end_inset
-
- and 
-\begin_inset Quotes eld
-\end_inset
-
-Parallel coordinates
-\begin_inset Quotes erd
-\end_inset
-
- (under the Views menu) to manipulate the data.
- 
-\end_layout
-
-\begin_layout Section
-High-dimensional sliders 
-\begin_inset CommandInset label
-LatexCommand label
-name "high-d-sliders"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The High-dimensional sliders plugin is for manipulating high-dimensional
- kinemages.
- When started, it determines the number of dimensions in the kinemage, and
- creates a GUI containing a pair of low-high sliders for each dimension.
- Each slider is named with the corresponding dimension name, if present
- in the kinemage.
- Sliding the different sliders will turn off any points with that particular
- coordinate outside of the range encompased by the two sliders.
- 
 \end_layout
 
 \begin_layout Chapter
@@ -1221,7 +1472,7 @@ Revision status
 \end_layout
 
 \begin_layout Standard
-This manual was last updated 19 May 2010 by VBC for Extratools version 2.22.
+This manual was last updated 14 Dec 2010 by VBC for Extratools version 2.22.
 \end_layout
 
 \end_body

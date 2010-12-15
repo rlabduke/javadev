@@ -422,7 +422,7 @@ public class LoopTool extends BasicTool {
     public String getHelpAnchor()
     { return "#loop-tool"; }
 
-    public String toString() { return "Extract Loop Tool"; }    
+    public String toString() { return "Extract loop tool"; }    
     //}}}
 
 }

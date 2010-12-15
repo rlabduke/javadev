@@ -12,7 +12,11 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 import javax.swing.*;
+import java.net.*;
+
 import driftwood.gui.*;
+import driftwood.util.SoftLog;
+
 //}}}
 /**
 * <code>MoviePlugin</code> has not yet been documented.
@@ -44,6 +48,23 @@ public class MoviePlugin extends Plugin
         JMenuItem item = new JMenuItem(new ReflectiveAction("Make movie...", null, this, "onMakeMovie"));
         return item;
     }
+    
+    /** Returns the URL of a web page explaining use of this tool */
+    public URL getHelpURL()
+    {
+        URL     url     = getClass().getResource("/extratools/tools-manual.html");
+        String  anchor  = getHelpAnchor();
+        if(url != null && anchor != null)
+        {
+            try { url = new URL(url, anchor); }
+            catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+            return url;
+        }
+        else return null;
+    }
+    
+    public String getHelpAnchor()
+    { return "#movie-maker"; }
     
     static public boolean isAppletSafe()
     {

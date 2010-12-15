@@ -12,7 +12,11 @@ import java.text.DecimalFormat;
 import java.util.*;
 //import java.util.regex.*;
 import javax.swing.*;
+import java.net.*;
+
 import driftwood.gui.*;
+import driftwood.util.SoftLog;
+
 //}}}
 /**
 * <code>PointColorPlugin</code> allows one to turn on/off points and group
@@ -290,7 +294,7 @@ public class PointColorPlugin extends Plugin
     /** Returns the URL of a web page explaining use of this tool */
     public URL getHelpURL()
     {
-        /*URL     url     = getClass().getResource("/extratools/tools-manual.html");
+        URL     url     = getClass().getResource("/extratools/tools-manual.html");
         String  anchor  = getHelpAnchor();
         if(url != null && anchor != null)
         {
@@ -298,7 +302,7 @@ public class PointColorPlugin extends Plugin
             catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
             return url;
         }
-        else*/ return null;
+        else return null;
     }
     
     public String getHelpAnchor()

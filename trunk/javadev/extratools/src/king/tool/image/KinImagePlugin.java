@@ -9,7 +9,9 @@ import king.io.*;
 
 import driftwood.gui.*;
 import driftwood.r3.*;
+import driftwood.util.SoftLog;
 
+import java.net.*;
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -17,7 +19,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import javax.swing.*;
 import javax.imageio.*;
-import java.net.*;
 import java.util.*;
 import java.text.DecimalFormat;
 //}}}
@@ -496,8 +497,19 @@ public class KinImagePlugin extends Plugin
     public JMenuItem getToolsMenuItem()
     { return new JMenuItem(new ReflectiveAction("Kin <- Image", null, this, "onShowDialog")); }
     
-    public JMenuItem getHelpMenuItem()
-    { return new JMenuItem(new ReflectiveAction(this.toString(), null, this, "onHelp")); }
+    /** Returns the URL of a web page explaining use of this tool */
+    public URL getHelpURL()
+    {
+        URL     url     = getClass().getResource("/extratools/tools-manual.html");
+        String  anchor  = getHelpAnchor();
+        if(url != null && anchor != null)
+        {
+            try { url = new URL(url, anchor); }
+            catch(MalformedURLException ex) { ex.printStackTrace(SoftLog.err); }
+            return url;
+        }
+        else return null;
+    }
     
     public String getHelpAnchor()
     { return "#kinimage-plugin"; }

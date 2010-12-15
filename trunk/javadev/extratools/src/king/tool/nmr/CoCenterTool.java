@@ -623,7 +623,7 @@ public class CoCenterTool extends BasicTool {
   public String getHelpAnchor()
   { return "#co-center-tool"; }
   
-  public String toString() { return "Co-center Tool"; }    
+  public String toString() { return "Co-center tool"; }    
   //}}}
   
 }
