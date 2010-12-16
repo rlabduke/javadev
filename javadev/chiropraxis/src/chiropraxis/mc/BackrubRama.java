@@ -660,9 +660,9 @@ public class BackrubRama //extends ... implements ...
             else
             {
                 if (alphaOrBeta.equals("alpha"))
-                    cf = reader.read(this.getClass().getResourceAsStream("ideal-alpha.pdb"));
+                    cf = reader.read(this.getClass().getResourceAsStream("idealpolyala12-alpha.pdb"));
                 else if (alphaOrBeta.equals("beta"))
-                    cf = reader.read(this.getClass().getResourceAsStream("ideal-beta.pdb"));
+                    cf = reader.read(this.getClass().getResourceAsStream("idealpolyala12-beta.pdb"));
             }
             
             Iterator models = cf.getModels().iterator(); models.hasNext();
