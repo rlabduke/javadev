@@ -135,16 +135,14 @@ public class ShearWindow implements Remodeler, ChangeListener, WindowListener
         JButton btnRelease = new JButton(new ReflectiveAction("Finished", null, this, "onReleaseResidues"));
         JButton btnRotamer = new JButton(new ReflectiveAction("Rotate sidechain", null, this, "onRotateSidechain"));
         
-        headerLabels = new JLabel[] { new JLabel("Residue"), new JLabel("Tau dev"), new JLabel("Karplus"), new JLabel("Ramachdrn"), new JLabel("phi,psi") };
-        res1Labels = new JLabel[] { new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel() };
-        res2Labels = new JLabel[] { new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel() };
-        res3Labels = new JLabel[] { new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel() };
-        res4Labels = new JLabel[] { new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel() };
+        headerLabels = new JLabel[] { new JLabel("Residue"), new JLabel("Tau dev"), new JLabel("Karplus"), new JLabel("Ramachdrn"), new JLabel("phi,psi"), new JLabel("CA-C sig"), new JLabel("N-CA sig") };
+        res1Labels = new JLabel[] { new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel() };
+        res2Labels = new JLabel[] { new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel() };
+        res3Labels = new JLabel[] { new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel() };
+        res4Labels = new JLabel[] { new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel() };
         
         cbIdealizeSC = new JCheckBox(new ReflectiveAction("Idealize sidechains", null, this, "onToggleIdealSC"));
         cbIdealizeSC.setSelected(false); // 25 Oct 06: changed by mandate from JSR
-        
-        // XX-TODO: add bond length/angle distortion indicators
         
         toolpane = new TablePane2();
         
@@ -181,7 +179,7 @@ public class ShearWindow implements Remodeler, ChangeListener, WindowListener
         
         for(int i = 0; i < headerLabels.length; i++)
         {
-            if(i == 2) continue; // skip Karplus' phi/psi-dependent tau deviation
+            /*if(i == 2) continue; // skip Karplus' phi/psi-dependent tau deviation*/
             toolpane.add(headerLabels[i]);
             toolpane.add(res1Labels[i]);
             toolpane.add(res2Labels[i]);
@@ -310,6 +308,7 @@ public class ShearWindow implements Remodeler, ChangeListener, WindowListener
             Model model = modelman.getModel();
             ModelState modelState = modelman.getMoltenState();
             
+            // Tau dev (non-phi,psi-dependent)
             try
             {
                 double taudev = AminoAcid.getTauDeviation(r, modelState);
@@ -318,7 +317,9 @@ public class ShearWindow implements Remodeler, ChangeListener, WindowListener
             }
             catch(AtomException ex) { l[1].setText("-?-"); }
             
-            try {
+            // Phi,psi, Ramachandran, & phi,psi-dependent tau dev
+            try
+            {
                 double phi = AminoAcid.getPhi(model, r, modelState);
                 double psi = AminoAcid.getPsi(model, r, modelState);
                 l[4].setText(df0.format(phi)+" , "+df0.format(psi));
@@ -344,11 +345,70 @@ public class ShearWindow implements Remodeler, ChangeListener, WindowListener
                     if(Math.abs(taudev) >= 3.0) l[2].setForeground(alertColor);
                 }
             }
-            catch(AtomException ex)     { l[2].setText("-?-"); l[3].setText("[no phi,psi]"); l[4].setText("? , ?"); }
-            catch(ResidueException ex)  { l[2].setText("-?-"); l[3].setText("[no phi,psi]"); l[4].setText("? , ?"); }
+            catch(AtomException ex)    { l[2].setText("-?-"); l[3].setText("[no phi,psi]"); l[4].setText("? , ?"); }
+            catch(ResidueException ex) { l[2].setText("-?-"); l[3].setText("[no phi,psi]"); l[4].setText("? , ?"); }
+            
+            // Bond length devs
+            try
+            {
+                double sigmas = this.getLengthDeviation(model, r, modelState, "N--CA");
+                l[6].setText(df1.format(sigmas));
+                if(Math.abs(sigmas) >= 4.0) l[6].setForeground(alertColor);
+            }
+            catch(AtomException ex) { l[6].setText("-?-"); }
+            try
+            {
+                double sigmas = this.getLengthDeviation(model, r, modelState, "CA--C");
+                l[5].setText(df1.format(sigmas));
+                if(Math.abs(sigmas) >= 4.0) l[5].setForeground(alertColor);
+            }
+            catch(AtomException ex) { l[5].setText("-?-"); }
         }
         
         dialog.pack();
+    }
+//}}}
+
+//{{{ getLengthDeviation
+//##################################################################################################
+    /**
+    * A dead-simple implementation of Dangle's Engh & Huber bond length values.
+    * Separates out Gly vs. Pro vs. other properly, & returns deviation in sigmas.
+    * Doesn't seem worth importing all of Dangle just to do this!
+    */
+    double getLengthDeviation(Model model, Residue r, ModelState modelState, String whichLength) throws AtomException
+    {
+        // From Dangle:
+        //
+        // for GLY     distance    N--CA       _N__, _CA_      ideal 1.456 0.015
+        // for PRO     distance    N--CA       _N__, _CA_      ideal 1.468 0.017
+        //             distance    N--CA       _N__, _CA_      ideal 1.459 0.020
+        //                                                     
+        // for GLY     distance    CA--C       _CA_, _C__      ideal 1.514 0.016
+        // for PRO     distance    CA--C       _CA_, _C__      ideal 1.524 0.020
+        //             distance    CA--C       _CA_, _C__      ideal 1.525 0.026
+        
+        double expected, sigma, actual;
+        if(whichLength.equals("N--CA"))
+        {
+            if     (r.getName().equals("GLY")) { expected = 1.456; sigma = 0.015; }
+            else if(r.getName().equals("PRO")) { expected = 1.468; sigma = 0.017; }
+            else                               { expected = 1.459; sigma = 0.020; }
+            AtomState n  = modelState.get(r.getAtom(" N  "));
+            AtomState ca = modelState.get(r.getAtom(" CA "));
+            actual = Triple.distance(n, ca);
+        }
+        else if(whichLength.equals("CA--C"))
+        {
+            if     (r.getName().equals("GLY")) { expected = 1.514; sigma = 0.016; }
+            else if(r.getName().equals("PRO")) { expected = 1.524; sigma = 0.020; }
+            else                               { expected = 1.525; sigma = 0.026; }
+            AtomState ca = modelState.get(r.getAtom(" CA "));
+            AtomState c  = modelState.get(r.getAtom(" C  "));
+            actual = Triple.distance(ca, c);
+        }
+        else throw new IllegalArgumentException("Invalid bond length specifier: "+whichLength);
+        return (actual - expected) / sigma;
     }
 //}}}
 
