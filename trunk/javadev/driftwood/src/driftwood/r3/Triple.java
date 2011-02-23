@@ -564,6 +564,70 @@ public class Triple implements MutableTuple3, Serializable
     }
 //}}}
 
+//{{{ likeProjection
+//##################################################################################################
+    /**
+    * Assigns this as the projection of the first point
+    * onto the vector from the second point to the third point.
+    * Safe to execute on <code>this</code>.
+    */
+    public Triple likeProjection(Tuple3 ptDrop, Tuple3 ptFrom, Tuple3 ptTo)
+    {
+        // Draw appropriate vectors
+        Triple start_stop = new Triple().likeVector(ptFrom, ptTo);
+        Triple start_drop = new Triple().likeVector(ptFrom, ptDrop);
+        
+        // Get distance from the start point to the intersection point 
+        // of the start->stop line and the perpendicular line
+        double dist_start_corner = start_stop.dot(start_drop) / start_stop.mag();
+        
+        // Move along the start->stop line by that amount to the "corner"
+        Triple start_corner = new Triple(start_stop).unit().mult(dist_start_corner);
+        Triple corner = new Triple().likeSum(ptFrom, start_corner);
+        
+        // Return modified version of this object
+        this.setXYZ(corner.getX(), corner.getY(), corner.getZ());
+        return this;
+        
+        //{{{ Alternate, parametric method via Chris "'Topher" Williams:
+        /*
+        Wanna know b2, projection of b1 onto vector from a1 to a2.
+        
+        a1 = ptFrom
+        a2 = ptTo
+        A  = [a2x-a1x     , a2y-a1y     , a2z-a1z]
+        
+        b1 = ptDrop
+        b2 = [a1x+Ax*t    , a1y+Ay*t    , a1z+Az*t]
+        B  = [a1x+Ax*t-b1x, a1y+Ay*t-b1y, a1z+Az*t-b1z]
+        
+        Set A dot B = 0, then solve for t, the parametric variable.
+        
+        Then, b2 = a1+A*t
+        
+        Directly copied 'n' pasted code:
+        
+        def PerpToLine(a1, a2, b1):
+          #Find the slope of line A in each direction, A is in vector notation
+          A = [a1[0]-a2[0], a1[1]-a2[1], a1[2]-a2[2]]
+         
+          #Solve the parametric equations . . .
+          t = (A[0]*(b1[0]-a1[0]) + A[1]*(b1[1]-a1[1]) + A[2]*(b1[2]-a1[2])) / ((A[0]**2)+(A[1]**2)+(A[2]**2))
+         
+          # . . . and use the result to find the new point on the line
+          b2 = [a1[0]+A[0]*t, a1[1]+A[1]*t, a1[2]+A[2]*t]
+         
+          #Find the distance to that point
+          #distance = math.sqrt((b1[0]-b2[0])**2+(b1[1]-b2[1])**2+(b1[2]-b2[2])**2)
+          
+          return b2
+        
+        FYI!
+        */
+        //}}}
+    }
+//}}}
+
 //{{{ likeOrthogonal + test
 //##################################################################################################
     /**
