@@ -36,6 +36,7 @@ import driftwood.parser.*;
 * <li>label &rarr; [A-Za-z0-9*'_.-]+</li>
 * <li>xyzspec &rarr; avg | idealtet | vector | normal | atomspec</li>
 * <li>avg &rarr; "avg" "(" xyzspec+ ")"</li>
+* <li>project &rarr; ("projection" | "project" | "drop") xyzspec xyzspec xyzspec</li> 
 * <li>idealtet &rarr; "idealtet" "(" xyzspec{3} realnum{5} ")"</li>
 * <li>vector &rarr; "vector" "(" xyzspec xyzspec ")"</li>
 * <li>normal &rarr; "normal" "(" xyzspec+ ")"</li>
@@ -96,6 +97,7 @@ public class Parser //extends ... implements ...
     final Matcher BASEPPERP = Pattern.compile("basepperp|pperp").matcher("");
     final Matcher LABEL     = Pattern.compile("[A-Za-z0-9*'_.+-]+").matcher("");
     final Matcher AVG       = Pattern.compile("avg").matcher("");
+    final Matcher PROJECT   = Pattern.compile("projection|project|drop").matcher("");
     final Matcher IDEALTET  = Pattern.compile("idealtet").matcher("");
     final Matcher VECTOR    = Pattern.compile("vector").matcher("");
     final Matcher NORMAL    = Pattern.compile("normal").matcher("");
@@ -374,6 +376,17 @@ public class Parser //extends ... implements ...
             while(!t.accept(")"))
                 avg.add(xyzspec());
             return avg;
+        }
+        else if(t.accept(PROJECT))
+        {
+            t.require("(");
+            XyzSpec.Projection proj = new XyzSpec.Projection(
+                xyzspec(),
+                xyzspec(),
+                xyzspec()
+            );
+            t.require(")");
+            return proj;
         }
         else if(t.accept(IDEALTET))
         {

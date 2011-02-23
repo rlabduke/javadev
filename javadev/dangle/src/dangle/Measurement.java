@@ -1433,23 +1433,24 @@ abstract public class Measurement //extends ... implements ...
             try
             {
                 Residue next = res.getNext(model); // want 3' P (later in seq!)
-                if (next != null)
+                if(next != null)
                 {
                     // Get relevant atom coords
                     Atom phos = next.getAtom(" P  ");
                     Atom carb =  res.getAtom(" C1'");
                     Atom nitr =  res.getAtom(" N9 ");
-                    if (carb == null)   carb = res.getAtom(" C1*");
-                    if (nitr == null)   nitr = res.getAtom(" N1 ");
+                    if(carb == null) carb = res.getAtom(" C1*");
+                    if(nitr == null) nitr = res.getAtom(" N1 ");
                     AtomState p   = state.get(phos);
                     AtomState c1  = state.get(carb);
                     AtomState n19 = state.get(nitr);
                     // Draw appropriate vectors
                     Triple n19_p  = new Triple().likeVector(n19, p);
                     Triple n19_c1 = new Triple().likeVector(n19, c1);
-                    // Get distance from N19 to the intersection point of the N19->C1
-                    // line and the perpendicular line
-                    double dist_n19_corner = n19_p.dot(n19_c1);
+                    // Get distance from N19 to the intersection point 
+                    // of the N19->C1 line and the perpendicular line
+                    // Note: Added denominator to fix this math! -DAK 110223
+                    double dist_n19_corner = n19_p.dot(n19_c1) / n19_c1.mag();
                     // Move along the N19->C1 vector by that amount to the "corner"
                     Triple n19_corner = new Triple(n19_c1).unit().mult(dist_n19_corner);
                     Triple corner = new Triple().likeSum(n19, n19_corner);
@@ -1457,7 +1458,7 @@ abstract public class Measurement //extends ... implements ...
                     pperpDist = Triple.distance(corner, p);
                 }
             }
-            catch (AtomException ae) {}
+            catch(AtomException ae) {}
             return pperpDist;
         }
         
