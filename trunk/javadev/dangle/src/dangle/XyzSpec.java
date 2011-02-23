@@ -227,6 +227,38 @@ abstract public class XyzSpec //extends ... implements ...
     }
 //}}}
 
+//{{{ class: Projection
+//##############################################################################
+    /** Projects an atom onto the vector between two other atoms. */
+    static public class Projection extends XyzSpec
+    {
+        XyzSpec drop, from, to;
+        
+        public Projection(XyzSpec drop, XyzSpec from, XyzSpec to)
+        {
+            super();
+            this.drop = drop;
+            this.from = from;
+            this.to = to;
+        }
+        
+        public Tuple3 get(Model model, ModelState state, Residue curr)
+        {
+            Tuple3 d = drop.get(model, state, curr);
+            Tuple3 f = from.get(model, state, curr);
+            Tuple3 t = to.get(model, state, curr);
+            if(d == null || f == null || t == null)
+                return null;
+            return new Triple().likeProjection(d, f, t);
+        }
+        
+        public String toString()
+        {
+            return "project("+drop+", "+from+", "+to+")";
+        }
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##############################################################################
 //}}}

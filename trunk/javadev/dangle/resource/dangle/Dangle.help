@@ -140,6 +140,12 @@ ADVANCED DANGLE TRICKS
     # Distance from actual CB to ideal CB:
     distance CbDev _CB_ idealtet(_N__ _C__ _CA_ 1.536 110.4 110.6 123.1 -123.0)
     
+  The projection() function projects the first atom onto the vector from the 
+  second atom to the third atom.  Calls to project() or drop() also work:
+    
+    # Distance from O to CA-CA axis:
+    distance OxyDist i _O__, projection(i _O__, i _CA__, i+1 _CA_)
+  
   Dangle can calculate the angle between two arbitrary vectors, and those can
   be generated with vector(FROM, TO) or normal().  The normal is obtained by
   fitting a plane to the collection of (three or more) points by least squares.
