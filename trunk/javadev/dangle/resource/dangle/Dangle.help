@@ -34,7 +34,7 @@ MEASUREMENT SPECIFIERS
     
   Dangle also has several "built in" measurement specifiers that you can use:
     phi, psi, omega, chi1, chi2, chi3, chi4, tau, cbdev, hadev,     # proteins
-    nhdev, codev, phi',psi',chi1',chi2'
+    nhdev, codev, phi',psi',chi1',chi2, isprepro'
     alpha, beta, gamma, delta, epsilon, zeta, eta, theta, chi       # RNA / DNA
     alpha-1, beta-1, gamma-1, delta-1, epsilon-1, zeta-1, chi-1     # RNA / DNA
     
@@ -140,8 +140,8 @@ ADVANCED DANGLE TRICKS
     # Distance from actual CB to ideal CB:
     distance CbDev _CB_ idealtet(_N__ _C__ _CA_ 1.536 110.4 110.6 123.1 -123.0)
     
-  The projection() function projects the first atom onto the vector from the 
-  second atom to the third atom.  Calls to project() or drop() also work:
+  The projection() function projects the first atom onto the vector between the 
+  second and third atoms.  Calls to project() or drop() also work:
     
     # Distance from O to CA-CA axis:
     distance OxyDist i _O__, projection(i _O__, i _CA__, i+1 _CA_)
@@ -198,9 +198,10 @@ ADVANCED DANGLE TRICKS
     -geomkin cbdev -subgroup  # only protein Cbeta deviation outliers, with  
                               #   @subgroup instead of @group
     
-  By default Dangle ignores het atoms, but this can be overridden with the 
-  -dohets or -hets flags, which tell Dangle to report geometry information for 
-  het groups if possible, both in command line and geom dev viz kin forms.
+  By default Dangle ignores het atoms in residues not recognized as protein-like
+  or nucleic-acid-like, but this can be overridden with the -dohets or -hets 
+  flags, which tell Dangle to report geometry information for all het groups if 
+  possible, both in command line and geometry deviation kinemage forms.
   
   Dangle can also calculate the base-phosphate perpendicular distance, the 
   perpendicular distance from the 3' phosphate to the N1/N9 to C1' vector. This
