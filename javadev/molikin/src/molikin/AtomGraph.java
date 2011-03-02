@@ -301,10 +301,12 @@ public class AtomGraph //extends ... implements ...
                     || !(hitIsCNO || hElem.equals("P"));
                 boolean sidechainsSameRes = true;
                 if (!Util.isMainchain(query) & !Util.isMainchain(hit)) sidechainsSameRes = query.getResidue().equals(hit.getResidue());
+                boolean possibleDisulfide = (query.getElement().equals("S") && hit.getElement().equals("S") && !sidechainsSameRes);
+                //System.out.print(possibleDisulfide);
                 double d2max;
                 if(hitIsCNO)    d2max = toCNO;
                 else            d2max = toOther;
-                if(query.sqDistance(hit) <= d2max && chainsCompat && Util.altsAreCompatible(query, hit) && sidechainsSameRes)
+                if(query.sqDistance(hit) <= d2max && chainsCompat && Util.altsAreCompatible(query, hit) && (sidechainsSameRes || possibleDisulfide))
                     neighbors.add(hit);
             }
             
