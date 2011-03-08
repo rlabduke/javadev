@@ -23,6 +23,7 @@ public class ConnectivityFinder {
   HashMap adjacencyMap;
   HashSet mobilePoints;
   KingMain kMain;
+  boolean keepAll;
   //}}}	
 	
   //{{{ Constructor
@@ -31,6 +32,7 @@ public class ConnectivityFinder {
   */
   public ConnectivityFinder(KingMain kMain) {
     this.kMain = kMain;
+    keepAll = false;
   }
   //}}}
   
@@ -139,6 +141,16 @@ public class ConnectivityFinder {
   }
   //}}}
 	
+  //{{{ setKeepAll
+  public void setKeepAll(boolean val) {
+    keepAll = val;
+  }
+  
+  public boolean getKeepAll() {
+    return keepAll;
+  }
+  //}}}
+  
   //{{{ mobilityFinder (tuples)
   public static HashSet mobilityFinder(Tuple3 first, Tuple3 second, HashMap adjMap, HashMap atomStates) {
     Set keys = adjMap.keySet();
@@ -321,7 +333,7 @@ public class ConnectivityFinder {
 	    Iterator adjIter = adjSet.iterator();
 	    while (adjIter.hasNext()) {
         AbstractPoint adjPoint = (AbstractPoint) adjIter.next();
-        if (((HashSet) adjacencyMap.get(adjPoint)).size() == 1) {
+        if ((((HashSet) adjacencyMap.get(adjPoint)).size() == 1)&&(!keepAll)) {
           // to eliminate all 1 atom branches (O's, H's, etc)
           colors.put(adjPoint, KPalette.deadblack); 
         }
