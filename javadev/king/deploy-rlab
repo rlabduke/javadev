@@ -9,7 +9,7 @@ pushd .
 cd dist/king-?.?? || { popd; echo "Can't find dist/"; exit; }
 
 # Update cluster executable:
-scp -r *.jar plugins/ srcer@richardsons.biochem.duke.edu:jars/
+# scp -r *.jar plugins/ srcer@richardsons.biochem.duke.edu:jars/
 scp -r *.jar plugins/ srcer@quiddity.biochem.duke.edu:king_jars/
 
 # Restore current working directory

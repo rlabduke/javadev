@@ -5,22 +5,25 @@ set verbose
 ##############################################################################
 
 # First, update Rlab's copy:
-./deploy-rlab
+# ./deploy-rlab
 
 # Copy src, jars to download site for distribution:
-scp dist/king.?.??.??????*.zip www@kinemage.biochem.duke.edu:/var/www/html/downloads/software/king/
+scp dist/king.?.??.??????*.zip kinemage.biochem.duke.edu:/websites/kinemage/downloads/software/king/.
 
 # Provide ZIP for auto-update:
-scp dist/king.?.??.??????.zip www@kinemage.biochem.duke.edu:/var/www/html/downloads/software/king/current2
+scp dist/king.?.??.??????.zip kinemage.biochem.duke.edu:/websites/kinemage/downloads/software/king/current2
 
 # Update marker for auto-update:
-scp resource/king/version.props www@kinemage.biochem.duke.edu:/var/www/html/downloads/software/king/king2.version.props
+scp resource/king/version.props kinemage.biochem.duke.edu:/websites/kinemage/downloads/software/king/king2.version.props
 
 # Update docs on website:
-scp -r dist/king-?.??/doc/. www@kinemage.biochem.duke.edu:/var/www/html/downloads/software/king/docs
+scp -r dist/king-?.??/doc/. kinemage.biochem.duke.edu:/websites/kinemage/downloads/software/king/docs
 
 # Update manual on website:
-scp resource/king/html/king-manual.html www@kinemage.biochem.duke.edu:/var/www/html/kinemage/king-manual.html
+scp resource/king/html/king-manual.html kinemage.biochem.duke.edu:/websites/kinemage/kinemage/king-manual.html
+
+# Update manual pdf on website:
+scp doc/king-manual.pdf kinemage.biochem.duke.edu:/websites/kinemage/downloads/PDFs/king-manual.pdf 
 
 #
 # MolProbity will be updated separately, with a new king.jar in Subversion.
