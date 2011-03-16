@@ -10,6 +10,7 @@ import java.io.*;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.regex.*;
 //import java.util.regex.*;
 import javax.swing.*;
 import javax.swing.event.*;
@@ -29,6 +30,9 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
 {
 //{{{ Constants
     DecimalFormat df1 = new DecimalFormat("0.0");
+    static final String MAP_2FOFC = "2Fo-Fc";
+    static final String MAP_FOFC = "Fo-Fc";
+    static final String MAP_ANOMALOUS = "anomalous";
 //}}}
 
 //{{{ Variable definitions
@@ -43,11 +47,15 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
     String                  title;
     
     protected Window     dialog;
+    JLabel      typeLabel;
+    String      mapType;
     JSlider     extent, slider1, slider2;
     JCheckBox   label1, label2;
     JComboBox   color1, color2;
     JCheckBox   useTriangles, useLowRes;
     JButton     discard, export;
+    
+    boolean     phenixColors = false;
     
     float       ctrX, ctrY, ctrZ;
 //}}}
@@ -57,11 +65,12 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
     /**
     * Constructor
     */
-    public EDMapWindow(ToolBox parent, CrystalVertexSource map, String title)
+    public EDMapWindow(ToolBox parent, CrystalVertexSource map, String title, boolean phenixColors)
     {
         this.parent     = parent;
         kMain           = parent.kMain;
         kCanvas         = parent.kCanvas;
+        this.phenixColors = phenixColors;
         
         parent.transformables.add(this);
         
@@ -77,11 +86,37 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         //mc1 = new MarchingCubes(map, map, plotter1, mode);
         //mc2 = new MarchingCubes(map, map, plotter2, mode);
         
+        mapType = parseType(title);
+        
+        Window lastEdMapWindow = null;
+        for(Window win : kMain.getTopWindow().getOwnedWindows()) {
+          if (win instanceof Dialog) {
+            Dialog dia = (Dialog) win;
+            //System.out.println(fra.getTitle());
+            if ((dia.getTitle()!=null)&&(dia.getTitle().endsWith("EDMap"))) {
+              lastEdMapWindow = dia;
+            }
+          }
+          if (win instanceof Frame) {
+            Frame fra = (Frame) win;
+            //System.out.println(fra.getTitle());
+            if ((fra.getTitle()!=null)&&(fra.getTitle().endsWith("EDMap"))) {
+              lastEdMapWindow = fra;
+            }
+          }
+        }
+        
         buildGUI();
+        
+        setType(mapType);
+
+        //if (lastEdMapWindow != null) {
+        //  System.out.println(((Dialog)lastEdMapWindow).getTitle());
+        //}
         
         dialog.pack();
         Container w = kMain.getContentContainer();
-        if(w != null)
+        if((w != null)&&(lastEdMapWindow == null))
         {
           Point p = w.getLocation();
           Dimension dimDlg = dialog.getSize();
@@ -89,16 +124,47 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
           p.x += dimWin.width - (dimDlg.width / 2) ;
           p.y += (dimWin.height - dimDlg.height) / 2;
           dialog.setLocation(p);
+        } else {
+          //System.out.println("Setting "+title+" relative to "+((Dialog)lastEdMapWindow).getTitle());
+          Point p = lastEdMapWindow.getLocation();
+          p.x += 50;
+          p.y += 50;
+          dialog.setLocation(p);
         }
         dialog.setVisible(true);
     }
+    
+//}}}
+
+//{{{ parseTitle
+/***
+* Attempt to parse out the type of map from the file name to set appropriate presets.
+*/
+public String parseType(String title) {
+  Pattern twoFoFcRegex = Pattern.compile("2[pm]?[Ff]o(\\-)?[qD]?[Ff]c[^.]*(fill)?");
+  Pattern oneFoFcRegex = Pattern.compile("[pm]?[Ff]o(\\-)?[qD]?[Ff]c[^.]*(fill)?");
+  Matcher twoMatcher = twoFoFcRegex.matcher(title);
+  Matcher oneMatcher = oneFoFcRegex.matcher(title);
+  if (twoMatcher.find()) {
+    this.title = twoMatcher.group();
+    return MAP_2FOFC;
+  } else if (oneMatcher.find()) {
+    this.title = oneMatcher.group();
+    return MAP_FOFC;
+  } else if (title.matches(".*ANOM\\..*")) {
+    this.title = "Anomalous";
+    return MAP_ANOMALOUS;
+  }
+  return "";
+}
 //}}}
 
 //{{{ buildGUI
 //##################################################################################################
     void buildGUI()
     {
-        
+      typeLabel = new JLabel("Set to: "+mapType);
+      
         label1 = new JCheckBox("1.2 sigma", true);
         label2 = new JCheckBox("3.0 sigma", false);
         
@@ -107,7 +173,7 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         color2 = new JComboBox(kMain.getKinemage().getAllPaintMap().values().toArray());
         color2.setSelectedItem(KPalette.purple);
         
-        extent = new JSlider(0, 30, 10);
+        extent = new JSlider(0, 30, 15);
         extent.setMajorTickSpacing(10);
         extent.setMinorTickSpacing(2);
         extent.setPaintTicks(true);
@@ -141,6 +207,12 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         slider2.addChangeListener(this);
         
         TablePane pane = new TablePane();
+        if (!mapType.equals("")) {
+          pane.add(typeLabel);
+          pane.newRow();
+          pane.save().hfill(true).addCell(new JSeparator(),2,1).restore();
+        }
+        pane.newRow();
         pane.save().hfill(true).addCell(extent, 2, 1).restore();
         pane.newRow();
         pane.add(pane.strut(0,8));
@@ -193,15 +265,19 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         item.setMnemonic(KeyEvent.VK_3);
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, KingMain.MENU_ACCEL_MASK));
         menu.add(item);
+        item = new JMenuItem(new ReflectiveAction("Anomalous", null, this, "onAnomalous"));
+        item.setMnemonic(KeyEvent.VK_5);
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_5, KingMain.MENU_ACCEL_MASK));
+        menu.add(item);
         
         if (kMain.getPrefs().getBoolean("minimizableTools")) {
-          JFrame fm = new JFrame(title+" - EDMap");
+          JFrame fm = new JFrame(title+"-EDMap");
           fm.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
           fm.setContentPane(pane);
           fm.setJMenuBar(menubar);
           dialog = fm;
         } else {
-          JDialog dial = new JDialog(kMain.getTopWindow(), title+" - EDMap", false);
+          JDialog dial = new JDialog(kMain.getTopWindow(), title+"-EDMap", false);
           dial.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
           dial.setContentPane(pane);
           dial.setJMenuBar(menubar);
@@ -356,6 +432,20 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
     }
 //}}}
 
+//{{{ setType
+public void setType(String type) {
+  if (type.equals(MAP_2FOFC)) {
+    if (phenixColors) onCoot2FoFc(null);
+    else              on2FoFc(null);
+  } else if (type.equals(MAP_FOFC)) {
+    if (phenixColors) onCootFoFc(null);
+    else              onFoFc(null); //new ActionEvent(this, AWTEvent.WINDOW_EVENT_MASK, "")
+  } else if (type.equals(MAP_ANOMALOUS)) {
+    onAnomalous(null);
+  }
+}
+//}}}
+
 //{{{ on2FoFc, onFoFc
 //##################################################################################################
     // Preset values for 2Fo-Fc maps
@@ -399,8 +489,8 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
     
     public void onCootFoFc(ActionEvent ev)
     {
-        slider1.setValue(-35); // -3.5
-        slider2.setValue( 35); // +3.5
+        slider1.setValue(-30); // -3.5
+        slider2.setValue( 30); // +3.5
         color1.setSelectedItem(KPalette.red);
         color2.setSelectedItem(KPalette.green);
         label1.setSelected(true);
@@ -408,6 +498,15 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         
         updateMesh();
         kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
+    }
+    
+    public void onAnomalous(ActionEvent ev){
+      slider1.setValue(30);
+      color1.setSelectedItem(KPalette.yellow);
+      label1.setSelected(true);
+      
+      updateMesh();
+      kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
     }
 //}}}
     

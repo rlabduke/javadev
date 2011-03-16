@@ -112,7 +112,7 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
                 else
                 { map = new XplorVertexSource(mapURL.openStream()); }
                 
-                new EDMapWindow(toolbox, map, mapURL.getFile());
+                new EDMapWindow(toolbox, map, mapURL.getFile(), false);
             }
             catch(MalformedURLException ex)
             { SoftLog.err.println("<PARAM> xmap/omap specified an unresolvable URL."); }
@@ -253,7 +253,7 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
           if (mapFilter.accept(f)) { // needed to filter files that could get passed to this which aren't maps
             if (kMain.getKinemage() != null) {
               if(ccp4Filter.accept(f)) {
-                openMapFile(f, MAPTYPE_CCP4); //auto opens ccp4 maps, for more seemless integration with phenix
+                openMapFile(f, MAPTYPE_CCP4, args.contains("-phenix")); //auto opens ccp4 maps, for more seemless integration with phenix
               } else {
                 openMapFile(f);
               }
@@ -379,11 +379,11 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
 
     void openMapFile(File f) throws IOException {
       if(f != null && f.exists()) {
-        openMapFile(f, askMapFormat(f.getName()));
+        openMapFile(f, askMapFormat(f.getName()), false);
       }
     }
     
-    void openMapFile(File f, String choice) throws IOException
+    void openMapFile(File f, String choice, boolean phenixColors) throws IOException
     {
         if(f != null && f.exists())
         {
@@ -399,7 +399,7 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
                 map = new Ccp4VertexSource(new FileInputStream(f));
             else throw new IllegalArgumentException("Map type not specified");
             
-            EDMapWindow win = new EDMapWindow(parent, map, f.getName());
+            EDMapWindow win = new EDMapWindow(parent, map, f.getName(), phenixColors);
             kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
         }
     }
@@ -428,7 +428,7 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
             else if(MAPTYPE_CCP4.equals(choice))    map = new Ccp4VertexSource(is);
             else throw new IllegalArgumentException("Map type not specified");
             
-            EDMapWindow win = new EDMapWindow(parent, map, mapURL.getFile());
+            EDMapWindow win = new EDMapWindow(parent, map, mapURL.getFile(), false);
             kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
         }
     }

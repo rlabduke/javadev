@@ -1,0 +1,15 @@
+
+USAGE
+  king [arguments] [input file(s)]
+
+INPUT FILES
+  KiNG accepts kinemage, PDB, mmCIF, or electron density files as input.
+  
+ARGUMENTS
+ 
+  -version          Print version information.
+  -m[erge]          Merge all input files into one kinemage.
+  -s[ingle]         Keep all input kin or structure files into separate
+                    kinemages.
+  -phenix           Use Phenix colors for electron density files entered on 
+                    command line.
