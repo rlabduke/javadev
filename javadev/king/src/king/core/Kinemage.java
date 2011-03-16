@@ -6,6 +6,7 @@ import java.io.*;
 //import java.text.*;
 import java.util.*;
 import driftwood.data.*;
+import driftwood.gui.*;
 //}}}
 /**
 * <code>Kinemage</code> is the top-level container that holds one whole kinemage worth of data.
@@ -723,6 +724,17 @@ public class Kinemage extends AGE<Kinemage,KGroup> // implements ...
 
     public Collection<BondRot> getBondRots()
     { return bondRots; }
+//}}}
+
+//{{{ getFileFilters
+public static SuffixFileFilter getKinFileFilter() {
+  SuffixFileFilter kinFilter = new SuffixFileFilter("Kinemage files");
+  kinFilter.addSuffix(".kin");
+  kinFilter.addSuffix(".kip");
+  kinFilter.addSuffix(".kin.gz");
+  kinFilter.addSuffix(".kip.gz");
+  return kinFilter;
+}
 //}}}
 
 //{{{ removeUnusedMasters

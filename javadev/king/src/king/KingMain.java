@@ -59,6 +59,7 @@ public class KingMain implements WindowListener
     boolean             isAppletFlat    = true;
     
     ArrayList<File>     filesToOpen     = null;
+    ArrayList<File>     kinFilesToOpen  = null;
     ArrayList<File>     pdbFilesToOpen  = null;
     boolean             doMerge         = true;
     ArrayList<String>   pluginArgs      = null;
@@ -241,20 +242,15 @@ public class KingMain implements WindowListener
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void loadFiles()
     {
-      SuffixFileFilter kinFilter = new SuffixFileFilter("Kinemage files");
-      kinFilter.addSuffix(".kin");
-      kinFilter.addSuffix(".kip");
-      kinFilter.addSuffix(".kin.gz");
-      kinFilter.addSuffix(".kip.gz");
-      if((filesToOpen != null && filesToOpen.size() > 0)||(pdbFilesToOpen != null && pdbFilesToOpen.size() > 0))
+
+      if((filesToOpen != null && filesToOpen.size() > 0)||(pdbFilesToOpen != null && pdbFilesToOpen.size() > 0)||(kinFilesToOpen != null && kinFilesToOpen.size() > 0))
         {
           Kinemage kin = null;
-          if(doMerge && (filesToOpen.size()-pdbFilesToOpen.size()) > 1)
+          if(doMerge && kinFilesToOpen.size() > 1)
             kin = new Kinemage(KinfileParser.DEFAULT_KINEMAGE_NAME+"1");
-          for(File f : filesToOpen) {
-            if (kinFilter.accept(f))
-              kinIO.loadFile(f, kin);
-          }
+          for(File f : kinFilesToOpen) 
+            kinIO.loadFile(f, kin);
+          
           if(kin != null) this.getStable().append(Arrays.asList(new Kinemage[] {kin}));
           
           Collection plugins = kinCanvas.toolbox.getPluginList();
@@ -452,8 +448,10 @@ public class KingMain implements WindowListener
     void parseArguments(String[] args)
     {
         SuffixFileFilter pdbFilter = CoordinateFile.getCoordFileFilter();
+        SuffixFileFilter kinFilter = Kinemage.getKinFileFilter();
         
         filesToOpen = new ArrayList<File>();
+        kinFilesToOpen = new ArrayList<File>();
         pdbFilesToOpen = new ArrayList<File>();
         
         String arg;
@@ -464,16 +462,19 @@ public class KingMain implements WindowListener
             if(arg.startsWith("-"))
             {
                 if(arg.equals("-h") || arg.equals("-help")) {
-                    SoftLog.err.println("Help not available. Sorry!");
+                  //SoftLog.err.println("Possible arguments for KiNG:");
+                  showHelp();
                     System.exit(0);
                 } else if(arg.equals("-version")) {
-                    SoftLog.err.println("KingMain, version "+getPrefs().getString("version")+"\nCopyright (C) 2002-2007 by Ian W. Davis");
+                    SoftLog.err.println("KingMain, version "+getPrefs().getString("version")+"\nCopyright (C) 2002-2011 by Ian W. Davis");
                     System.exit(0);
                 } else if(arg.equals("-m") || arg.equals("-merge")) {
                     doMerge = true;
                     pluginArgs.add(arg);
                 } else if(arg.equals("-s") || arg.equals("-single")) {
                     doMerge = false;
+                } else if(arg.equals("-phenix")) {
+                  pluginArgs.add(arg);
                 } else {
                     SoftLog.err.println("*** Unrecognized option: "+arg);
                 }
@@ -483,12 +484,44 @@ public class KingMain implements WindowListener
             {
                 if (pdbFilter.accept(arg)) 
                   pdbFilesToOpen.add(new File(arg));
+                else if (kinFilter.accept(arg))
+                  kinFilesToOpen.add(new File(arg));
                 else 
                   filesToOpen.add(new File(arg));
             }
         }
     }
 //}}}
+
+  //{{{ showHelp
+  /**
+  * Parse the command-line options for this program.
+  * @param args the command-line options, as received by main()
+  * @throws IllegalArgumentException if any argument is unrecognized, ambiguous, missing
+  *   a required parameter, has a malformed parameter, or is otherwise unacceptable.
+  */
+  // Display help information
+  void showHelp()
+  {
+    InputStream is = getClass().getResourceAsStream("king.help");
+    if(is == null)
+      System.err.println("\n*** Unable to locate help information in 'king.help' ***\n");
+    else
+    {
+      try { streamcopy(is, System.out); }
+      catch(IOException ex) { ex.printStackTrace(); }
+    }
+    System.err.println("Copyright (C) 2002-2011 by IWD, VBC, DAK. All rights reserved.");
+  }
+  
+  // Copies src to dst until we hit EOF
+  void streamcopy(InputStream src, OutputStream dst) throws IOException
+  {
+    byte[] buffer = new byte[2048];
+    int len;
+    while((len = src.read(buffer)) != -1) dst.write(buffer, 0, len);
+  }
+  //}}}
 
 //{{{ Window events
 //##################################################################################################
