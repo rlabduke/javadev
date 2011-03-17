@@ -23,6 +23,9 @@ import driftwood.util.SoftLog;
 * <code>EDMapWindow</code> has controls for one
 * electron density map, contoured at two levels.
 *
+* <code>EDMapWindow</code> attempts to decipher what kind of map is being opened
+* from the file name and set the preset (sigma/colors) appropriately.  
+*
 * <p>Copyright (C) 2003-2007 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Mar  5 09:00:11 EST 2003
 */
@@ -86,10 +89,12 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         //mc1 = new MarchingCubes(map, map, plotter1, mode);
         //mc2 = new MarchingCubes(map, map, plotter2, mode);
         
-        mapType = parseType(title);
+        mapType = parseType(title); //try to figure out what kind of map is being opened
         
         Window lastEdMapWindow = null;
         for(Window win : kMain.getTopWindow().getOwnedWindows()) {
+          // for tiering multiple edens windows: determine which is the most recently opened
+          // EDMap window and store it
           if (win instanceof Dialog) {
             Dialog dia = (Dialog) win;
             //System.out.println(fra.getTitle());
@@ -108,7 +113,7 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         
         buildGUI();
         
-        setType(mapType);
+        setType(mapType); //set preset color
 
         //if (lastEdMapWindow != null) {
         //  System.out.println(((Dialog)lastEdMapWindow).getTitle());
@@ -125,6 +130,7 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
           p.y += (dimWin.height - dimDlg.height) / 2;
           dialog.setLocation(p);
         } else {
+          //for tiering windows for multiple electron density maps
           //System.out.println("Setting "+title+" relative to "+((Dialog)lastEdMapWindow).getTitle());
           Point p = lastEdMapWindow.getLocation();
           p.x += 50;
