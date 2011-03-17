@@ -77,7 +77,7 @@ public class RNAMapWindow extends EDMapWindow //implements ChangeListener, Actio
     */
     public RNAMapWindow(ToolBox parent, CrystalVertexSource map, String title)
     {
-	super(parent, map, title);
+	super(parent, map, title, false);
 
         //this.parent     = parent;
         //kMain           = parent.kMain;
