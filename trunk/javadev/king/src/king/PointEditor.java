@@ -87,6 +87,13 @@ public class PointEditor implements ChangeListener
         /*JButton*/ ok = new JButton(new ReflectiveAction("OK", null, this, "onPointOK"));
         JButton cancel = new JButton(new ReflectiveAction("Cancel", null, this, "onPointCancel"));
         
+        // Key bindings: just type the key to execute -- DAK 110311
+        InputMap im = ptDialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,     0                       ), "ptcancel");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,          KingMain.MENU_ACCEL_MASK), "ptcancel");
+        ActionMap am = ptDialog.getRootPane().getActionMap();
+        am.put("ptcancel", new ReflectiveAction(null, null, this, "onPointCancel"));
+        
         JButton editGroup       = new JButton(new ReflectiveAction("Edit group", null, this, "onEditGroup"));
         JButton editSubgroup    = new JButton(new ReflectiveAction("Edit subgroup", null, this, "onEditSubgroup"));
         JButton editList        = new JButton(new ReflectiveAction("Edit list", null, this, "onEditList"));
