@@ -18,17 +18,16 @@ import Jama.Matrix;
 import Jama.SingularValueDecomposition;
 //}}}
 /**
-* <code>SupKitchen</code> "cooks up" SUPerpositions (*groan*) of related protein 
+* <code>SupKitchen</code> "cooks up" superpositions (*groan*) of related protein 
 * structures and analyzes the resulting ensembles via principal components.
 *
 * It tries to construct ensembles intelligently when the sequences are different, 
 * there are insertion loops in the reference and/or some of the other models, etc.
 *
-* A LOT of this code comes from Ian's chiropraxis.mc.SubImpose.
+* A lot of this code comes from Ian's chiropraxis.mc.SubImpose.
 *
-* REMAINING TO-DO:
-*  - regularize bb after distortion?
-*  - keep rmsds w/in a certain radius of sup chain for -nosplit option?
+* TODO: regularize bb after distortion
+*       keep rmsds w/in a certain radius of sup chain for -nosplit option (???)
 *
 * <p>Copyright (C) 2009 by Daniel A. Keedy. All rights reserved.
 * <br>Begun on Thu June 25 2009
@@ -39,15 +38,18 @@ public class SupKitchen //extends ... implements ...
     DecimalFormat df  = new DecimalFormat("###0.00");
     DecimalFormat df2 = new DecimalFormat("###0.0");
     DecimalFormat df3 = new DecimalFormat("#0.00");
-    public final String SELECT_CA          = "(atom_CA_)";
-    public final String SELECT_BB_HEAVY    = "(atom_CA_|atom_N__|atom_C__|atom_O__)";
-    public final String SELECT_BB_HEAVY_CB = "(atom_CA_|atom_N__|atom_C__|atom_O__|atom_CB_)";
+    public final String SELECT_CA            = "(atom_CA_)";
+    public final String SELECT_BB_HEAVY      = "(atom_CA_|atom_N__|atom_C__|atom_O__)";
+    public final String SELECT_BB_HEAVY_H    = "(atom_CA_|atom_N__|atom_C__|atom_O__|atom_H__)";
+    public final String SELECT_BB_HEAVY_CB   = "(atom_CA_|atom_N__|atom_C__|atom_O__|atom_CB_)";
+    public final String SELECT_BB_HEAVY_CB_H = "(atom_CA_|atom_N__|atom_C__|atom_O__|atom_CB_|atom_H__)";
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
     
-    // INPUT
+    /* Input */
+    
     boolean  verbose = false;
     String   mdlFilename; // could be for mdls dir or mdls file
     File     mdlDir;
@@ -55,59 +57,77 @@ public class SupKitchen //extends ... implements ...
     String   refFilename;
     File     refFile;
     String   title;
-    String   superimpose = SELECT_BB_HEAVY;
+    String   superimpose = SELECT_BB_HEAVY_H;
     boolean  distort = true;
-    /** Max acceptable RMSD, effected by simple yes-or-no after sup.  On by default */
+    /** Max acceptable RMSD, effected by simple yes-or-no after sup. */
     double   rmsdMax  = -1;
-    /** Max acceptable RMSD, achieved by Lesk sieve process.  Overrides rmsdMax */
+    /** Max acceptable RMSD, achieved by Lesk sieve process.  Overrides rmsdMax. */
     double   rmsdLesk = 5.0;
     
-    // ENSEMBLE
+    /* Ensemble Creation */
+    
     /** If true, we split up all models by chain.
     * Required for PCA b/c allows formation of a square matrix of superpositions 
-    *   (some models may have lots of structure surrounding them whereas some may not).
+    * (some models may have lots of structure surrounding them whereas some may not).
     * Applies only to models; just one chain is taken from the ref regardless of this 
-    *   option so models will all superpose onto the same ref chain. */
+    * option so models will all superpose onto the same ref chain. */
     boolean            splitChains = true;
+    
     /** Holds models with however-many chains are present from the ref structure. */
     CoordinateFile     refCoordFile;
+    
     /** Holds models with >=1 chains (depending on user's options) from other structures. 
     * Could contain just one CoordinateFile with multiple Models if NMR-like structure. */
     CoordinateFile[]   mdlCoordFiles;
+    
     /** Holds models from the ref structure and the other structures. */
     CoordinateFile     ensemCoordFile;
-    /** Map of Model -> "2XN" (colsXrows?) AtomState array, which comes from a 
+    
+    /** Map of Model -> "2XN" (rows X cols) AtomState array, which comes from a 
     * sequence alignment of model to ref.  Coords in array[0]s should already be 
     * superposed onto ref; array[1]s *are* static ref. */
     Map                ensemAtoms;
+    
     /** RMSD of each model to ref (after Lesk if applicable). */
     Map                rmsds;
+    
     /** Intersection of ref atoms from all model-to-ref atom alignments. 
     * If any atoms were Lesk-sieved, they're ALREADY GONE from this set. */
     HashSet<AtomState> intersection;
+    
     /** Number of entries in intersection.  Rows in U matrix. */
     int                nAtoms;
+    
     /** Number of models in ensemble, including ref.  Columns in U matrix. */
     int                mEnsem;
+    
     /** Maximum number of models in ensemble, including ref.  Capped to avoid ridiculous runtimes. */
     int                maxEnsemSize = 50;
     
-    // PRINCIPAL COMPONENT ANALYSIS
+    /* Principal Component Analysis */
+    
     /** Selected AtomStates from ref, listed in the same order as the coordinates
     * of the first column in U matrix.  This guy is 1/3 the length of the first
     * column of U because it's by atom, not by x,y,z.  Purpose: a way to get back
     * to the atom world from the PCA world in order to write out (a) PC-transformed
     * structure(s). */
     ArrayList       pcaAtoms;
+    
     /** Holds models based on the ref structure, but transformed according to 
     * principal components of selected atoms of the ensemble. */
     CoordinateFile  pcaCoordFile;
+    
     /** Scaling factor for motion along PCs. */
     double          scale = 1.0;
+    
     /** Choice of PCs to vector-sum.  1 to n. */
     int[]           pcChoice;
     
-    // OUTPUT
+    /** ... */
+    int             roundsOfMinimization = 0;
+    
+    /* Output */
+    
     boolean  kinOut = true;
     boolean  append = false;
     /** Backbone color for non-ref models. */
@@ -129,7 +149,7 @@ public class SupKitchen //extends ... implements ...
     }
 //}}}
 
-//{{{ Constructor(s)
+//{{{ prepLogic
 //##############################################################################
     public void prepLogic()
     {
@@ -185,6 +205,7 @@ public class SupKitchen //extends ... implements ...
     { verbose = v; }
 //}}}
 
+/* Ensemble Creation */
 
 //{{{ makeSup
 //##############################################################################
@@ -263,7 +284,7 @@ public class SupKitchen //extends ... implements ...
                     
                     try
                     {
-                        AtomState[][] atoms = sup(ensemModel, refModel); // Lesk happens here (if at all)
+                        AtomState[][] atoms = sup(ensemModel, refModel, mdlCoordFile); // Lesk happens here (if at all)
                         if(atoms == null) continue; // error or rmsd too high
                         ensemModelCount++;
                         ensemModel.setName(""+ensemModelCount);
@@ -287,7 +308,7 @@ public class SupKitchen //extends ... implements ...
         if(ensemAtoms.keySet().size() == 0)
         {
             System.err.println("No models left after superposition & trimming/pruning!");
-            //System.exit(0);
+            //System.exit(1);
             throw new IOException("No models left after superposition & trimming/pruning!");
         }
         
@@ -299,6 +320,12 @@ public class SupKitchen //extends ... implements ...
         
         System.err.println("M = "+mEnsem+"\tmodels"); // cols
         System.err.println("N = "+nAtoms+"\tatoms");  // rows/3
+        
+        if(nAtoms == 0)
+        {
+            System.err.println("Everything was trimmed!  Try a more similar set of structures.");
+            System.exit(1);
+        }
     }
 //}}}
 
@@ -459,7 +486,7 @@ public class SupKitchen //extends ... implements ...
     * Superposes 1 (mobile) onto 2 (ref).
     * Mostly stolen directly from Ian's chiropraxis.mc.SubImpose.
     */
-    public AtomState[][] sup(Model m1, Model m2) throws IllegalArgumentException
+    public AtomState[][] sup(Model m1, Model m2, CoordinateFile cf1) throws IllegalArgumentException
     {
         if(verbose) System.err.println("\nSuperposing model"+m1+" ("+SubImpose.getChains(m1).size()+
             " chains) onto model"+m2+" ("+SubImpose.getChains(m2).size()+" chains)");
@@ -488,7 +515,7 @@ public class SupKitchen //extends ... implements ...
         try
         {
             AtomState[][] atoms = this.getAtomsForSelection(
-                m1.getResidues(), s1, m2.getResidues(), s2, superimpose, align);
+                m1.getResidues(), s1, m2.getResidues(), s2, superimpose, align, cf1);
             if(verbose)
             {
                 System.err.println("Atom alignments:");
@@ -557,7 +584,7 @@ public class SupKitchen //extends ... implements ...
             
             // Return remaining selected atoms in original order
             AtomState[][] origAtoms = this.getAtomsForSelection(
-                m1.getResidues(), s1, m2.getResidues(), s2, superimpose, align); // for PCA later
+                m1.getResidues(), s1, m2.getResidues(), s2, superimpose, align, cf1); // for PCA later
             if(sieved == null || sieved.size() == 0)
                 return origAtoms;
             int newLen = origAtoms[0].length - sieved.size();
@@ -584,12 +611,12 @@ public class SupKitchen //extends ... implements ...
     * Return as a 2xN array of matched AtomStates, no nulls.
     * Stolen directly from Ian's chiropraxis.mc.SubImpose.
     */
-    AtomState[][] getAtomsForSelection(Collection res1, ModelState s1, Collection res2, ModelState s2, String selection, Alignment align) throws ParseException
+    AtomState[][] getAtomsForSelection(Collection res1, ModelState s1, Collection res2, ModelState s2, String selection, Alignment align, CoordinateFile cf1) throws ParseException
     {
         // Get selected atom states from model 1
         Selection sel = Selection.fromString(selection);
         Collection allStates1 = Model.extractOrderedStatesByName(res1, Collections.singleton(s1));
-        sel.init(allStates1);
+        sel.init(allStates1, cf1);
         Collection selStates1 = new ArrayList();
         for(Iterator iter = allStates1.iterator(); iter.hasNext(); )
         {
@@ -853,6 +880,7 @@ public class SupKitchen //extends ... implements ...
     }
 //}}}
 
+/* Principal Component Analysis */
 
 //{{{ doPca
 //##############################################################################
@@ -899,10 +927,10 @@ public class SupKitchen //extends ... implements ...
         double maxFrac = 1.0;
         int    step    = 1  ;
         int    steps   = 10 ;
-        System.err.println("Distorting ensemble via wt'd-avg PC ...");
+        System.err.println("Distorting ensemble via weighted-average PC...");
         for(double frac = -1*maxFrac; frac <= maxFrac; frac += (2*maxFrac)/steps)
         {
-            if(verbose) System.err.print("  moving along wt'd-avg PC x "+df2.format(frac));
+            if(verbose) System.err.print("  moving along weighted-average PC x "+df2.format(frac));
             try
             {
                 Model model = applyPcToRefModel(avgPc, frac, step);
@@ -931,7 +959,7 @@ public class SupKitchen //extends ... implements ...
         if(mItr1.hasNext())
         {
             Model ref = (Model) mItr1.next(); // doesn't matter which we pick here - will use ref half of alnmt
-            if(verbose) System.err.println("Adding to X matrix: ref   model"+ref);
+            if(verbose) System.err.println("Adding to X : ref   model"+ref);
             AtomState[][] atoms = (AtomState[][]) ensemAtoms.get(ref);
             pcaAtoms = new ArrayList<AtomState>(); // so later, we'll know which coord in X belongs to which atom
             ArrayList<Double> coords = new ArrayList<Double>(); // one 1x3N "sample" (ensemble member)
@@ -1080,7 +1108,7 @@ public class SupKitchen //extends ... implements ...
         try
         {
             AtomState[][] atoms = this.getAtomsForSelection(
-                m1.getResidues(), s1, m2.getResidues(), s2, superimpose, align);
+                m1.getResidues(), s1, m2.getResidues(), s2, superimpose, align, cf1);
             SuperPoser superpos = new SuperPoser(atoms[0], atoms[1]); // swapped [1],[0] -> [0],[1]
             Transform R = new Transform(); // identity, defaults to no superposition
             R = superpos.superpos();
@@ -1148,6 +1176,63 @@ public class SupKitchen //extends ... implements ...
     }
 //}}}
 
+//{{{ minimizeBackbone
+//##############################################################################
+    void minimizeBackbone()
+    {
+        
+        System.err.println("\n*** Backbone minimization not yet implemented! ***\n");
+        System.exit(1);
+        
+        /*
+        for(Iterator mIter = pcaCoordFile.getModels().iterator(); mIter.hasNext(); )
+        {
+            Model m = (Model) mIter.next();
+            
+            ArrayList points = 
+            
+            int len = points.size() - 3;
+            
+            // Create E terms and store in same order as points
+            
+            bondTerms = new ArrayList();
+            angleTerms = new ArrayList();
+            
+            for(Iterator rIter = model.getResidues().iterator(); rIter.hasNext(); )
+            {
+                Residue r = (Residue) rIter.next();
+                for(ATOM)
+                {
+                    
+                    
+                    
+                }
+            }
+            
+            
+            StateManager stateMan = new StateManager(
+                (MutableTuple3[])points.toArray(new MutableTuple3[points.size()]), len);
+            stateMan.setBondTerms(bondTerms, 1);
+            stateMan.setAngleTerms(angleTerms, 1);
+            
+            GradientMinimizer minimizer = new GradientMinimizer(stateMan);
+            
+            int steps = 0;
+            boolean done = false;
+            while(!done)
+            {
+                done = !minimizer.step();
+                steps++;
+                System.err.println("after step "+steps+":");
+                System.err.println("  delta energy: "+minimizer.getEnergy+" ("+minimizer.getFracDeltaEnergy*100+"%)");
+                System.err.println("  > new energy: "+minimizer.getDeltaEnergy);
+            }
+        }
+        */
+    }
+//}}}
+
+/* I/O, Odds 'n' Ends */
 
 //{{{ readMdlDir/File, readPdb
 //##############################################################################
@@ -1336,11 +1421,11 @@ public class SupKitchen //extends ... implements ...
         //String[] rmsdMstrs = getRmsdMasters(rmsdBins);
         //for(String rmsdMstr : rmsdMstrs) out.println("@master {"+rmsdMstr+"}");
         
-        String mMstr = "sup mdls";
+        String mMstr = "models";
         out.println("@master {"+mMstr+"}");
         
         //String rMstr = "sup ref: "+refCoordFile.getFirstModel().getState().getName();
-        String rMstr = "sup ref";
+        String rMstr = "ref model";
         out.println("@master {"+rMstr+"}");
         
         Logic logic = logicList[0];
@@ -1565,7 +1650,7 @@ public class SupKitchen //extends ... implements ...
     */
     public void Main() throws IOException, ParseException
     {
-        System.err.println("The SupKitchen is busy preparing your order ...");
+        System.err.println("The SupKitchen is busy preparing your order...");
         if(append && !kinOut && pdbsDirname == null)
         {
             System.err.println("Assuming that -append implies -kin");
@@ -1576,9 +1661,10 @@ public class SupKitchen //extends ... implements ...
             System.err.println("Not splitting models into chains precludes PCA!");
             pcChoice = null;
         }
-        else //if(splitChains)
+        else
+        {
             System.err.println("Splitting models into chains, so also trimming ensemble to consensus alignment");
-        System.err.println("Desired output: "+(kinOut ? "kin" : (pdbsDirname == null ? "PDB" : "PDBs")));
+        }
         // RMSD trimming
         if(rmsdLesk >= 0)
         {
@@ -1593,6 +1679,8 @@ public class SupKitchen //extends ... implements ...
             System.err.println("Using straight "+rmsdMax+" rmsd cutoff");
         else
             System.err.println("No trimming/pruning regardless of rmsd");
+        System.err.println("Output: "+(kinOut ? "kin" : (pdbsDirname == null ? "PDB" : "PDBs")));
+        System.err.println("PCA: "+(pcChoice == null ? "off (just superposition)" : "on!"));
         
         try
         {
@@ -1613,6 +1701,7 @@ public class SupKitchen //extends ... implements ...
         else
         {
             doPca();
+            if(roundsOfMinimization > 0) minimizeBackbone();
             if(kinOut)                   writeKin(new PrintWriter(System.out), pcaCoordFile, title);
             else if(pdbsDirname != null) writePdbs(ensemCoordFile);
             else                         writePdb(System.out, pcaCoordFile);
@@ -1703,7 +1792,7 @@ public class SupKitchen //extends ... implements ...
             if(is == null)
             {
                 System.err.println("*** Unable to locate help information in 'SupKitchen.help' ***");
-                System.err.println("\n*** Usage: SupKitchen modelsDirectoryOrNMRlikeFile [refFile] ***\n");
+                System.err.println("\n*** Usage:  SupKitchen models_dir|multimodel_pdb [ref_pdb] ***\n");
             }
             else
             {
@@ -1781,6 +1870,13 @@ public class SupKitchen //extends ... implements ...
             catch(NumberFormatException ex)
             { System.err.println("*** Error formatting "+param+" as double for scale!"); }
         }
+        else if(flag.equals("-min"))
+        {
+            try
+            { roundsOfMinimization = Integer.parseInt(param); }
+            catch(NumberFormatException ex)
+            { throw new IllegalArgumentException(param+" isn't a number!"); }
+        }
         else if(flag.equals("-maxensemsize") || flag.equals("-maxm"))
         {
             try
@@ -1818,9 +1914,17 @@ public class SupKitchen //extends ... implements ...
         {
             superimpose = SELECT_BB_HEAVY;
         }
+        else if(flag.equals("-bbheavyh"))
+        {
+            superimpose = SELECT_BB_HEAVY_H;
+        }
         else if(flag.equals("-bbheavycb"))
         {
             superimpose = SELECT_BB_HEAVY_CB;
+        }
+        else if(flag.equals("-bbheavycbh"))
+        {
+            superimpose = SELECT_BB_HEAVY_CB_H;
         }
         else if(flag.equals("-dummy_option"))
         {

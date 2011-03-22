@@ -72,9 +72,10 @@ public class ShearPioneer //extends ... implements ...
     * flanking oxygens. */
     double   epsilon       = 0.7;
     
-    /** If true, iterate through epsilon values from 0 to 1, ignoring the usual 
-    * "standard" epsilon value.  Alternative to non-NaN initRange. */
-    boolean  multiEpsilon  = false;
+    /** If both are NaN, iterate through epsilon values from min to max, ignoring 
+    * the default epsilon value.  Alternative to non-NaN initial phi,psi range. */
+    double   minEpsilon    = Double.NaN;
+    double   maxEpsilon    = Double.NaN;
 //}}}
 
 //{{{ Constructor(s)
@@ -124,10 +125,10 @@ public class ShearPioneer //extends ... implements ...
                 }
             }
         }
-        else if(multiEpsilon)
+        else if(!Double.isNaN(minEpsilon) && !Double.isNaN(maxEpsilon))
         {
             // Try a range of epsilon values on a single input model
-            for(double e = 0; e <= 1.0; e += 0.1)
+            for(double e = minEpsilon; e <= maxEpsilon; e += 0.1)
             {
                 epsilon = e; // global
                 doMoveSeries(model, state, res);
@@ -139,7 +140,7 @@ public class ShearPioneer //extends ... implements ...
             System.out.println("@group {"+resnum+"-"+(resnum+3)
                 +" ep="+df2.format(epsilon)+"} animate dominant");
             doMoveSeries(model, state, res);
-        }  
+        }
     }
 //}}}
 
@@ -633,9 +634,9 @@ public class ShearPioneer //extends ... implements ...
             System.err.println("Grid of initial phi,psi requires using ideal helix (-alpha)!");
             System.exit(0);
         }
-        if(multiEpsilon && !Double.isNaN(phipsiRange))
+        if(!Double.isNaN(minEpsilon) && !Double.isNaN(maxEpsilon) && !Double.isNaN(phipsiRange))
         {
-            System.err.println("Can't use -multiepsilon AND -phipsirange=#, silly goose!");
+            System.err.println("Can't use -epsilon=#,# AND -phipsirange=#, silly goose!");
             System.exit(0);
         }
         if(resnum == Integer.MAX_VALUE)
@@ -811,14 +812,23 @@ public class ShearPioneer //extends ... implements ...
         {
             try
             {
-                epsilon = Double.parseDouble(param);
+                String[] parts = Strings.explode(param, ',');
+                if(parts.length > 2)
+                {
+                    System.err.println("Sorry, should be -epsilon=# or -epsilon=#,#");
+                }
+                else if(parts.length == 2)
+                {
+                    minEpsilon = Double.parseDouble(parts[0]);
+                    maxEpsilon = Double.parseDouble(parts[1]);
+                }
+                else
+                {
+                    epsilon = Double.parseDouble(param);
+                }
             }
             catch(NumberFormatException nfe)
-            { System.err.println("Can't format "+param+" as a double for epsilon!"); }
-        }
-        else if(flag.equals("-multiepsilon"))
-        {
-            multiEpsilon = true;
+            { System.err.println("Can't format "+param+" as (a) double(s) for epsilon!"); }
         }
         else if(flag.equals("-maxtaudev"))
         {
