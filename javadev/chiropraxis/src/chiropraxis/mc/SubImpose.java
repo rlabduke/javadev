@@ -225,13 +225,13 @@ public class SubImpose //extends ... implements ...
     * to find what the user thinks should be the corresponding atoms.
     * return as a 2xN array of matched AtomStates, no nulls.
     */
-    public static AtomState[][] getAtomsForSelection(Collection res1, ModelState s1, Collection res2, ModelState s2, String selection1, String selection2, Alignment align) throws ParseException
+    public /*static*/ AtomState[][] getAtomsForSelection(Collection res1, ModelState s1, Collection res2, ModelState s2, String selection1, String selection2, Alignment align) throws ParseException
     {
         // Get selected atom states from model 1
         int numAs1s = 0; // added by DAK
         Selection sel = Selection.fromString(selection1);
         Collection allStates1 = Model.extractOrderedStatesByName(res1, Collections.singleton(s1));
-        sel.init(allStates1);
+        sel.init(allStates1, coord1);
         Collection selStates1 = new ArrayList();
         for(Iterator iter = allStates1.iterator(); iter.hasNext(); )
         {
@@ -250,7 +250,7 @@ public class SubImpose //extends ... implements ...
             // Get selected atom states from model 2
             Selection sel2 = Selection.fromString(selection2);
             Collection allStates2 = Model.extractOrderedStatesByName(res2, Collections.singleton(s2));
-            sel2.init(allStates2);
+            sel2.init(allStates2, coord2);
             for(Iterator iter2 = allStates2.iterator(); iter2.hasNext(); )
             {
                 AtomState as2 = (AtomState) iter2.next();
@@ -634,10 +634,8 @@ public class SubImpose //extends ... implements ...
         if(chainIDs1 != null) System.err.println("Using subset of structure 1 chains: "+chainIDs1);
         if(chainIDs2 != null) System.err.println("Using subset of structure 2 chains: "+chainIDs2);
         
-        System.err.println("rmsd\tn_atoms\tselection");
-        
         // Align residues by sequence
-        // With this approach, alignments can't cross chain boundaries.
+        // With this first approach, alignments can't cross chain boundaries.
         // As many chains as possible are aligned, without doubling up.
         /*Alignment align = Alignment.alignChains(getChains(m1), getChains(m2), new Alignment.NeedlemanWunsch(), new SimpleResAligner());*/
         /*Alignment align = Alignment.alignChains(getChains(m1), getChains(m2), new Alignment.NeedlemanWunsch(), new SimpleNonWaterResAligner());*/
@@ -646,16 +644,16 @@ public class SubImpose //extends ... implements ...
         align = Alignment.alignChains(chains1, chains2, new Alignment.NeedlemanWunsch(), new SimpleNonWaterResAligner());
         if(align.a.length == 0)
         {
-            // Just take all residues as they appear in the file, without regard to chain IDs, etc.
-            // NB: This is what was originally the default in the code before Ian added the 
-            // non-chain-crossing alternative ^ above.   Unfortunately it rejects residue alignments 
-            // with lots of gaps, e.g. when the ref is shorter, resulting in lots of nulls. 
-            // The program then throws exceptions like Vince Young does interceptions.
-            // Here's the original alignment method as an alternative that accepts such imperfect 
-            // residue alignments. - DAK, 24 Aug 2009
-            if(verbose) System.err.println("Using alternative, chain-break-crossing residue alignment method");
-            /*align = Alignment.needlemanWunsch(m1.getResidues().toArray(), m2.getResidues().toArray(), new SubImpose.SimpleResAligner());*/
-            align = Alignment.needlemanWunsch(m1.getResidues().toArray(), m2.getResidues().toArray(), new SubImpose.SimpleNonWaterResAligner());
+            System.err.println("Chain-to-chain alignment failed!  Using chain-break-crossing method instead...");
+            // The multiple chain alignment method above may have rejected ALL alignments 
+            // because none of them is great.
+            // This can even happen for one chain vs. one chain when they don't match well.
+            // So, just align all residues without regard to chain IDs.
+            // This was originally the default in the code before Ian added the multiple 
+            // chain alignment method above; we'll use it now because it will actually 
+            // return *something* despite its imperfections. -DAK 110129
+            /*align = Alignment.needlemanWunsch(m1.getResidues().toArray(), m2.getResidues().toArray(), new SimpleResAligner());*/
+            align = Alignment.needlemanWunsch(m1.getResidues().toArray(), m2.getResidues().toArray(), new SimpleNonWaterResAligner());
         }
         if(verbose)
         {
@@ -670,7 +668,6 @@ public class SubImpose //extends ... implements ...
         
         // If -super, do superimposition of s1 on s2.
         R = new Transform(); // identity, defaults to no superposition
-        //if(superimpose1 != null) // this is never true anymore; default: all Calphas - DAK 091123
         atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, superimpose1, superimpose2, align);
         if(shuffle) atoms = permuteAtoms();
         if(verbose)
@@ -686,6 +683,7 @@ public class SubImpose //extends ... implements ...
         // struct2 is the reference point; struct1 should move.
         SuperPoser superpos = new SuperPoser(atoms[1], atoms[0]);
         R = superpos.superpos();
+        System.err.println("rmsd\tn_atoms\tselection");
         System.err.println(df.format(superpos.calcRMSD(R))+"\t"+atoms[0].length+"\t"+superimpose1);
         
         lenAtomsUsed = atoms[0].length;
@@ -706,7 +704,7 @@ public class SubImpose //extends ... implements ...
                 superpos.reset(atoms[1], atoms[0]);
                 R = superpos.superpos();
             }
-            System.err.println(df.format(superpos.calcRMSD(R))+"\t"+atoms[0].length+"\t[Lesk's sieve #"+sieveCount+"]");
+            System.err.println(df.format(superpos.calcRMSD(R))+"\t"+atoms[0].length+"\t"+superimpose1+"  [sieve #"+sieveCount+"]");
         }
         else if(!Double.isNaN(leskSieve))
         {
@@ -719,7 +717,7 @@ public class SubImpose //extends ... implements ...
                 sortByLeskSieve(atoms[0], atoms[1]);
                 superpos.reset(atoms[1], 0, atoms[0], 0, len); // only use the len best
                 R = superpos.superpos();
-                System.err.println(df.format(superpos.calcRMSD(R))+"\t"+len+"\t[Lesk's sieve = "+df.format(leskSieve)+"]");
+                System.err.println(df.format(superpos.calcRMSD(R))+"\t"+len+"\t"+superimpose1+"  [sieve = "+df.format(leskSieve)+"]");
             }
         }
         

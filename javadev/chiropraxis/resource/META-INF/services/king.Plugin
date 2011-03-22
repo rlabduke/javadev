@@ -5,6 +5,7 @@ chiropraxis.kingtools.ScRotTool
 chiropraxis.kingtools.ScMutTool
 chiropraxis.kingtools.SswingTool
 chiropraxis.forcefield.RubberBandTool
+chiropraxis.forcefield.SculptTool
 chiropraxis.kingtools.PhiPsiTool
 chiropraxis.kingtools.SupKitchenTool
 chiropraxis.kingtools.ShearTool
