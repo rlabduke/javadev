@@ -191,12 +191,13 @@ ADVANCED DANGLE TRICKS
   deviation adds +/- 0.25 turns.  It is also possible to include Prekin-like 
   balls for Cbeta deviations for protein.  The built-in "cbdev" measurement now 
   uses amino-acid-specific values (like Prekin) to construct the ideal Cbeta 
-  position for any amino acid, as opposed to one generic set of values.
+  position for any amino acid, as opposed to one generic set of values.  Also,
+  non-planar peptides with unusual omega dihedrals can be flagged.
   
     -kin -prot -rna -dna      # protein/RNA/DNA length/angle outliers
-    -geometrykin              # synonym
-    -geomkin cbdev -subgroup  # only protein Cbeta deviation outliers, with  
+    -geomkin cbdev -subgroup  # protein Cbeta deviation outliers, with  
                               #   @subgroup instead of @group
+    -geometrykin omega        # omega dihedral outliers: peptide non-planarities
     
   By default Dangle ignores het atoms in residues not recognized as protein-like
   or nucleic-acid-like, but this can be overridden with the -dohets or -hets 

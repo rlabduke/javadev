@@ -16,13 +16,15 @@
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 ### 1.07 ###
-DAK 110223:
+DAK
 - Fixed major bug with base-P perp calculation: I had miscalculated projection
   onto a vector by not scaling dot products by magnitude of that vector!
 - Added generic projection() function for projecting point onto vector (which
   should actually work now that perp bug is fixed...)
 - Minor change to help file on how hets are processed: accepted if recognized
   as protein or nucleic acid; ignored otherwise unless -hets supplied
+- Made VBC's bad-omega kin output account for cis peptides and only work for 
+  omega, not other dihedrals
 
 ### 1.06 ###
 DAK:

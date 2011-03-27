@@ -662,22 +662,38 @@ public class GeomKinSmith //extends ... implements ...
     }
 //}}}
 
-  //{{{ peptideImpl
-  //##############################################################################
+//{{{ peptideImpl
+//##############################################################################
   protected void peptideImpl(Measurement meas, Model model, ModelState state, Residue res, double val) {
     Measurement.Dihedral d = (Measurement.Dihedral) meas;
+    
+    // Make sure it's omega, not phi or psi or ...
+    String name = d.toString();
+    boolean probablyOmega = false;
+    if(name.indexOf("i-1 _CA_, i-1 _C__, i _N__, i _CA_") != -1
+    || name.indexOf("i _CA_, i _C__, i+1 _N__, i+1 _CA_") != -1
+    || name.indexOf("omega") != -1)  probablyOmega = true;
+    if(!probablyOmega)
+    {
+        System.err.println("Skipping non-omega dihedral for kin: "+d);
+        return;
+    }
+    
     double dihed = d.measureImpl(model, state, res);
-    if ((dihed < 170)&&(dihed > -170)) {
+    // valid ranges:   180 +/- 10 and 0 +/- 10
+    // invalid ranges: 
+    //if (((dihed < 170)&&(dihed > -170)) {
+    if( (dihed > -170 && dihed < -10) || (dihed > 10 && dihed < 170) ) {
       AtomSpec atA = d.getA();
       AtomSpec atB = d.getB();
       AtomSpec atC = d.getC();
       AtomSpec atD = d.getD();
       AtomState asA = atA.get(model, state, res);
-	    AtomState asB = atB.get(model, state, res);
-	    AtomState asC = atC.get(model, state, res);
-	    AtomState asD = atD.get(model, state, res);
+	  AtomState asB = atB.get(model, state, res);
+	  AtomState asC = atC.get(model, state, res);
+	  AtomState asD = atD.get(model, state, res);
       
-	    String pointId = label.substring(0,4)+" "+res.getName()+" "+
+	  String pointId = label.substring(0,4)+" "+res.getName()+" "+
       res.getSequenceInteger()+" peptide dihedral:"+df2.format(dihed);
       
       String line1 = "{"+pointId+"}P U "+df2.format(asA.getX())+" "+
@@ -698,7 +714,7 @@ public class GeomKinSmith //extends ... implements ...
       peptides.add(line4);
     }
   }
-  //}}}
+//}}}
 
 //{{{ printModel
 //##############################################################################
@@ -732,15 +748,15 @@ public class GeomKinSmith //extends ... implements ...
         }
         
         if(!triedLngth)            System.err.println("(Didn't look for bond length outliers)");
-        else if(lengths.isEmpty()) System.err.println("No bond length outliers (in selected residues)");
+        else if(lengths.isEmpty()) System.err.println("No bond length outliers in selected residues");
         else for(String lngthLine : lengths) System.out.println(lngthLine);
         
         if(!triedAngle)           System.err.println("(Didn't look for bond angle outliers)");
-        else if(angles.isEmpty()) System.err.println("No bond angle outliers (in selected residues)");
+        else if(angles.isEmpty()) System.err.println("No bond angle outliers in selected residues");
         else for(String angleLine : angles) System.out.println(angleLine);
         
         if(!triedCbDev)           System.err.println("(Didn't look for Cbeta dev outliers)");
-        else if(cbdevs.isEmpty()) System.err.println("No Cbeta dev outliers (in selected residues)");
+        else if(cbdevs.isEmpty()) System.err.println("No Cbeta dev outliers in selected residues");
         else for(String cbdevLine : cbdevs) System.out.println(cbdevLine);
         
         //if(!triedPperp)           System.err.println("(Didn't look for base-P perp outliers)");
@@ -748,7 +764,7 @@ public class GeomKinSmith //extends ... implements ...
         //else for(String pperpLine : pperps) System.out.println(pperpLine);
         
         if(!triedPepDev)           System.err.println("(Didn't look for peptide outliers)");
-        else if(peptides.isEmpty()) System.err.println("No peptide outliers (in selected residues)");
+        else if(peptides.isEmpty()) System.err.println("No peptide outliers in selected residues");
         else {
           System.out.println("@vectorlist {peptide outliers} color= green width= "+4+" master= {peptide dev}");
           for(String pepLine : peptides) System.out.println(pepLine);
