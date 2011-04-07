@@ -280,9 +280,9 @@ public class BackrubPioneer extends ShearPioneer
             System.err.println("Grid of initial phi,psi requires using ideal helix (-alpha)!");
             System.exit(0);
         }
-        if(multiEpsilon && !Double.isNaN(phipsiRange))
+        if(!Double.isNaN(minEpsilon) && !Double.isNaN(maxEpsilon) && !Double.isNaN(phipsiRange))
         {
-            System.err.println("Can't use -multiepsilon AND -phipsirange=#, silly goose!");
+            System.err.println("Can't use -epsilon=#,# AND -phipsirange=#, silly goose!");
             System.exit(0);
         }
         if(resnum == Integer.MAX_VALUE)

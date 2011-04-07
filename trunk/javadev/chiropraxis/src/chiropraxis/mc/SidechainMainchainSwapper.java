@@ -41,6 +41,7 @@ public class SidechainMainchainSwapper //extends ... implements ...
 //##############################################################################
     String structIn1 = null, structIn2 = null; // straight from cmdline
     String title1 = null, title2 = null; // prettied up
+    CoordinateFile coord1 = null, coord2 = null;
     BallAndStickLogic bsl = null;
     Model m1min = null; // globally accessible; min of swapped, not regular
 //}}}
@@ -143,9 +144,8 @@ public class SidechainMainchainSwapper //extends ... implements ...
         ModelState s1 = m1.getState();
         ModelState s2 = m2.getState(); 
         
-        
         AtomState[][] atoms = SubImpose.getAtomsForSelection(
-            m1.getResidues(), s1, m2.getResidues(), s2, "atom_CA_", null, align);
+            m1.getResidues(), s1, m2.getResidues(), s2, "atom_CA_", null, align, coord1, coord2);
         if(atoms[0].length < 3) throw new IllegalArgumentException(
             "Can't superimpose on less than 3 atoms!");
         
@@ -615,8 +615,8 @@ public class SidechainMainchainSwapper //extends ... implements ...
         title2 = file2.getName().replace(".pdb", "");
         title1 = title1.substring(0, Math.min(title1.length(), 10));
         title2 = title2.substring(0, Math.min(title2.length(), 10));
-        CoordinateFile coord1 = pdbReader.read(file1);
-        CoordinateFile coord2 = pdbReader.read(file2);
+        this.coord1 = pdbReader.read(file1);
+        this.coord2 = pdbReader.read(file2);
         Model m1 = coord1.getFirstModel();
         Model m2 = coord2.getFirstModel();
         m1.getState().setName(title1);
