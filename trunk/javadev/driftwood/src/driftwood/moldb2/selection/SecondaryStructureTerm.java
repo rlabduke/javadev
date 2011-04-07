@@ -11,48 +11,47 @@ import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
 import driftwood.moldb2.*;
-import driftwood.r3.*;
 //}}}
 /**
-* <code>WithinSelectionTerm</code> handles "within DIST of (SELECTION)" statements.
+* <code>SecondaryStructureTerm</code> handles "alpha" or "beta" secondary 
+* structure selections.
 *
-* <p>Copyright (C) 2007 by Ian W. Davis. All rights reserved.
-* <br>Begun on Wed Aug 29 13:33:28 PDT 2007
+* <p>Copyright (C) 2011 by Daniel A. Keedy. All rights reserved.
+* <br>Begun on Tue Mar 15 2011
 */
-public class WithinSelectionTerm extends Selection
+public class SecondaryStructureTerm extends Selection
 {
 //{{{ Constants
-    static final private DecimalFormat df = new DecimalFormat("0.####");
 //}}}
 
 //{{{ Variable definitions
 //##############################################################################
-    double      distance;
-    Selection   childTerm;
-    SpatialBin  spatialBin;
-    Collection  foundPts;
+    String secStrucType;
+    CoordinateFile coordFile;
 //}}}
 
 //{{{ Constructor(s)
 //##############################################################################
-    public WithinSelectionTerm(double distance, Selection target)
+    public SecondaryStructureTerm(String secStrucType)
     {
         super();
-        this.distance = distance;
-        this.childTerm = target;
-        this.foundPts = new ArrayList();
+        this.secStrucType = secStrucType;
     }
 //}}}
 
 //{{{ init, selectImpl, toString
 //##############################################################################
+    //public void init(Collection atomStates)
+    //{
+    //    //super.init(atomStates); <-- don't do this!
+    //    // For this type of Selection, wait for init(CoordinateFile)
+    //    // so SecondaryStructure is accessible
+    //}
+    
     public void init(Collection atomStates, CoordinateFile coordFile)
     {
         super.init(atomStates, coordFile);
-        this.childTerm.init(atomStates, coordFile);
-        // childTerm now fully initialized, doing selections should be safe
-        this.spatialBin = new SpatialBin(3.0); // taken from Molikin; a good size for atoms
-        spatialBin.addAll( childTerm.selectAtomStates(atomStates) );
+        this.coordFile = coordFile;
     }
     
     /**
@@ -60,13 +59,16 @@ public class WithinSelectionTerm extends Selection
     */
     protected boolean selectImpl(AtomState as)
     {
-        this.foundPts.clear();
-        this.spatialBin.findSphere(as, this.distance, this.foundPts);
-        return !foundPts.isEmpty();
+        SecondaryStructure secStruc = coordFile.getSecondaryStructure();
+        if(secStrucType.equals("alpha") && secStruc.isHelix(as.getResidue()))
+            return true;
+        if(secStrucType.equals("beta") && secStruc.isStrand(as.getResidue()))
+            return true;
+        return false;
     }
     
     public String toString()
-    { return "within "+df.format(distance)+" of ("+childTerm+")"; }
+    { return secStrucType; }
 //}}}
 
 //{{{ empty_code_segment
