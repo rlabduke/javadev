@@ -40,13 +40,13 @@ abstract public class ComboTerm extends Selection
 
 //{{{ init, add, toString
 //##############################################################################
-    public void init(Collection atomStates)
+    public void init(Collection atomStates, CoordinateFile coordFile)
     {
-        super.init(atomStates);
+        super.init(atomStates, coordFile);
         for(Iterator iter = childTerms.iterator(); iter.hasNext(); )
         {
             Selection s = (Selection) iter.next();
-            s.init(atomStates);
+            s.init(atomStates, coordFile);
         }
     }
 

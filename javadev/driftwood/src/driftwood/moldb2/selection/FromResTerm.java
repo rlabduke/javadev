@@ -43,10 +43,10 @@ public class FromResTerm extends Selection
 
 //{{{ init, selectImpl, toString
 //##############################################################################
-    public void init(Collection atomStates)
+    public void init(Collection atomStates, CoordinateFile coordFile)
     {
-        super.init(atomStates);
-        this.childTerm.init(atomStates);
+        super.init(atomStates, coordFile);
+        this.childTerm.init(atomStates, coordFile);
         // childTerm now fully initialized, doing selections should be safe
         this.includedRes = childTerm.selectResidues(atomStates);
     }

@@ -48,9 +48,9 @@ public class ResRangeTerm extends Selection
 
 //{{{ init, selectImpl, toString
 //##############################################################################
-    public void init(Collection atomStates)
+    public void init(Collection atomStates, CoordinateFile coordFile)
     {
-        super.init(atomStates);
+        super.init(atomStates, coordFile);
     }
     
     /**

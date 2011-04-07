@@ -47,17 +47,18 @@ UTIL: {{{
 ===  CHANGE LOG  =============================================================
 ==============================================================================
 ### 0.91 ###
-DAK 110223:
+DAK:
 - Added Triple.likeProjection(); reflects base-P perp bug fix in Dangle
+- Added "alpha" & "beta" keywords to Selection for e.g. SubImpose
 
 ### 0.90 ###
-dak:
+DAK:
 - Added proper ANISOU card support for PdbReader & PdbWriter
 - Added chemical element output to PdbWriter
 - Fixed bug related to ANISOU output in PdbWriter
 
 ### 0.89 ###
-vbc:
+VBC:
 - Changed CifReader to use author defined sequence and chain identifiers; using
   label identifiers means kins don't match residue numbers given on webpage, articles, etc.
 - Changed CoordinateFile to contain the common PDB file suffixes,
@@ -67,7 +68,7 @@ vbc:
 - Changed build system to use java 1.5.
 - Added ability for dials to show boundaries.
 - All caps added to aminoacid
-dak:  
+DAK:  
 - Added Disulfides & PdbDisulfides in spirit of SecondaryStructure & 
   PdbSecondaryStructure for reading "SSBOND" cards with PdbReader and storing
   in CoordinateFile
@@ -81,13 +82,13 @@ dak:
 - Added Residue.nickname method
 - Added moldb2.Neighborhood to encode notion of local structural region
 - Prettified ModelState.debugStates
-ark:
+ARK:
 - To allow for calculating ribbon sidedness, added several fields to 
   SecondaryStructure.range and added method SecondaryStructure.consolidateSheets()
 
 ### 0.88 ###
 - added WrapMap.  Like UberMap, but wraps from start to end and vise versa
-- Added int[]->String and double[]->String methods to util.Strings (dak)
+- Added int[]->String and double[]->String methods to util.Strings (DAK)
 - Added kinPoint() method to Strings
 
 ### 0.87 ###
@@ -101,7 +102,7 @@ ark:
 - Uses new Hybrid-36 system for dealing with big files (specifically, the seqence
   numbers).  
 
-### 0.85 ### (dak)
+### 0.85 ### (DAK)
 - Added moldb2.selection.ResRangeTerm as Ian intended to implement at some pt
 - Modified moldb2.selection.SelectionParser to accommodate the above
 

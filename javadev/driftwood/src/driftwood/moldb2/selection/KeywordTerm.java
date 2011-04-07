@@ -89,6 +89,8 @@ public class KeywordTerm //extends ... implements ...
             map.put("sulfur", new NamedTerm("sulfur") { protected boolean selectImpl(AtomState as) {
                     return "S".equals(as.getElement());
             }});
+            map.put("alpha", new SecondaryStructureTerm("alpha"));
+            map.put("beta", new SecondaryStructureTerm("beta"));
         }
         return (Selection) map.get(keyword); // null if not found
     }

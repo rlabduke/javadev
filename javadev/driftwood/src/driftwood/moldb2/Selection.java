@@ -87,14 +87,43 @@ abstract public class Selection //extends ... implements ...
 
 //{{{ init
 //##############################################################################
+    ///**
+    //* This must be called before using select().
+    //* It establishes the "universe" of atoms that will be
+    //* considered for "within ..." statements.
+    //* If you *know* you don't have any "within" statements,
+    //* you may pass an empty collection.
+    //*/
+    //public void init(Collection atomStates)
+    //{
+    //    this.initialized = true;
+    //}
+    
+    ///**
+    //* "Legacy" and/or convenience method that passes through 
+    //* to the more complete init() method.
+    //*/
+    //public void init(Collection atomStates)
+    //{ this.init(atomStates, null); }
+    //
+    ///**
+    //* Convenience (but not "legacy") method that passes through
+    //* to the more complete init() method.
+    //*/
+    //public void init(CoordinateFile coordFile)
+    //{ this.init(null, coordFile); }
+    
     /**
     * This must be called before using select().
-    * It establishes the "universe" of atoms that will be
-    * considered for "within ..." statements.
-    * If you *know* you don't have any "within" statements,
-    * you may pass an empty collection.
+    * @param atomStates  establishes the "universe" of atoms that will be
+    *                    considered for "within ..." statements.  If you *know* 
+    *                    you don't have any "within" statements, you may pass 
+    *                    an empty collection.
+    * @param coordFile   provides a mechanism for accessing secondary structure
+    *                    designations.  If you *know* you don't have any "alpha" 
+    *                    or "beta" statements, you may pass a null object.
     */
-    public void init(Collection atomStates)
+    public void init(Collection atomStates, CoordinateFile coordFile)
     {
         this.initialized = true;
     }
