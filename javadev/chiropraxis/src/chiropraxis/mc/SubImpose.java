@@ -225,13 +225,13 @@ public class SubImpose //extends ... implements ...
     * to find what the user thinks should be the corresponding atoms.
     * return as a 2xN array of matched AtomStates, no nulls.
     */
-    public /*static*/ AtomState[][] getAtomsForSelection(Collection res1, ModelState s1, Collection res2, ModelState s2, String selection1, String selection2, Alignment align) throws ParseException
+    public static AtomState[][] getAtomsForSelection(Collection res1, ModelState s1, Collection res2, ModelState s2, String selection1, String selection2, Alignment align, CoordinateFile cf1, CoordinateFile cf2) throws ParseException
     {
         // Get selected atom states from model 1
         int numAs1s = 0; // added by DAK
         Selection sel = Selection.fromString(selection1);
         Collection allStates1 = Model.extractOrderedStatesByName(res1, Collections.singleton(s1));
-        sel.init(allStates1, coord1);
+        sel.init(allStates1, cf1);
         Collection selStates1 = new ArrayList();
         for(Iterator iter = allStates1.iterator(); iter.hasNext(); )
         {
@@ -250,7 +250,7 @@ public class SubImpose //extends ... implements ...
             // Get selected atom states from model 2
             Selection sel2 = Selection.fromString(selection2);
             Collection allStates2 = Model.extractOrderedStatesByName(res2, Collections.singleton(s2));
-            sel2.init(allStates2, coord2);
+            sel2.init(allStates2, cf2);
             for(Iterator iter2 = allStates2.iterator(); iter2.hasNext(); )
             {
                 AtomState as2 = (AtomState) iter2.next();
@@ -668,7 +668,7 @@ public class SubImpose //extends ... implements ...
         
         // If -super, do superimposition of s1 on s2.
         R = new Transform(); // identity, defaults to no superposition
-        atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, superimpose1, superimpose2, align);
+        atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, superimpose1, superimpose2, align, coord1, coord2);
         if(shuffle) atoms = permuteAtoms();
         if(verbose)
         {
@@ -751,7 +751,7 @@ public class SubImpose //extends ... implements ...
         for(Iterator iter = rmsd.iterator(); iter.hasNext(); )
         {
             String rmsd_sel = (String) iter.next();
-            atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, rmsd_sel, null, align);
+            atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, rmsd_sel, null, align, coord1, coord2);
             if(verbose)
             {
                 System.err.println("Atom alignments:");
