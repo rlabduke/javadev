@@ -146,7 +146,11 @@ public class BallAndStickLogic implements Logic
         String identifier = "";
         if(pdbId != null && !((pdbId.trim()).equals("")))
         {
+          if (Util.isNumeric(data.getModelId())) {
             identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
+          } else {
+            identifier = " m"+data.getModelId()+"_"+pdbId.toLowerCase();
+          }
         }
         if(doVirtualBB||atomC.mcNotCa==0)
         {
@@ -240,7 +244,11 @@ public class BallAndStickLogic implements Logic
         String identifier = "";
         if(pdbId != null && !((pdbId.trim()).equals("")))
         {
+          if (Util.isNumeric(data.getModelId())) {
             identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
+          } else {
+            identifier = " m"+data.getModelId()+"_"+pdbId.toLowerCase();
+          }
         }
         if(doVirtualBB)
         {
@@ -308,7 +316,13 @@ public class BallAndStickLogic implements Logic
         
         String wid = (width != -1 ? " width= "+width : ""); // DAK 100303
         
-        String identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
+        String identifier;
+        if (Util.isNumeric(data.getModelId())) {
+          identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
+        } else {
+          identifier = " m"+data.getModelId()+"_"+pdbId.toLowerCase();
+        }
+        //String identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
         
         // First, the hets themselves.
         if(atomC.hetHeavy.size() == 0) return;
@@ -378,7 +392,13 @@ public class BallAndStickLogic implements Logic
         AtomClassifier  atomC   = data.getAtomClassifier();
         if(atomC.metal.size() == 0) return;
         
-        String identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
+        String identifier;
+        if (Util.isNumeric(data.getModelId())) {
+          identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
+        } else {
+          identifier = " m"+data.getModelId()+"_"+pdbId.toLowerCase();
+        }
+        //String identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
         
         // 0.5 is the Prekin default metal radius
         out.println("@spherelist {metals} color= gray radius= 0.5 master= {metals}");
@@ -402,7 +422,13 @@ public class BallAndStickLogic implements Logic
         
         String wid = (width != -1 ? " width= "+width : ""); // DAK 100303
         
-        String identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
+        String identifier;
+        if (Util.isNumeric(data.getModelId())) {
+          identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
+        } else {
+          identifier = " m"+data.getModelId()+"_"+pdbId.toLowerCase();
+        }
+        //String identifier = " m"+df.format(Integer.parseInt(data.getModelId()))+"_"+pdbId.toLowerCase();
         
         out.println("@balllist {waters} color= peachtint radius= 0.15 master= {waters}");
         bp.printBalls(atomC.watHeavy, waterRes, identifier);

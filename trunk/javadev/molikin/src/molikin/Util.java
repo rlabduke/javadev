@@ -128,6 +128,19 @@ public class Util //extends ... implements ...
     }
 //}}}
 
+//{{{ isNumeric
+  public static boolean isNumeric(String s) {
+    try {
+	    Double.parseDouble(s);
+	    return true;
+    } catch (NumberFormatException e) {
+	    return false;
+    } catch (NullPointerException e) {
+      return false;
+    }
+  }
+//}}}
+
 //{{{ getElementColor
 //##############################################################################
     static Map elementColors = null;
