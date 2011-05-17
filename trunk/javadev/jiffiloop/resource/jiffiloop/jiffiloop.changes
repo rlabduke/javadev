@@ -1,3 +1,6 @@
+1.12  Added -*range flags to control what ranges to search on parameters.
+      Changed kin output to show PDB names of fragments.
+
 1.11  Usability enhancements: better file names, fragments in kins have PDB source
       identity info.
       Added -tighter to give option for tighter parameters.

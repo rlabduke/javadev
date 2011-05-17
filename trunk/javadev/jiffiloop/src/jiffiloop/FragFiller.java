@@ -112,11 +112,11 @@ public class FragFiller implements Filler {
   //}}}
   
   //{{{ searchDB
-  public void searchDB(int matchDiff) {
-    searchDB(matchDiff, 1, 25, 25);
-  }
+  //public void searchDB(int matchDiff) {
+  //  searchDB(matchDiff, 1, 25, 25, 25, 25, 25);
+  //}
   
-  public void searchDB(int matchDiff, double distRange, double angle, double dihedral) {
+  public void searchDB(int matchDiff, double distRange, double nAngle, double cAngle, double nDihed, double dDihed, double cDihed) {
     DatabaseManager dm = new DatabaseManager();
     //dm.connectToDatabase("//spiral.research.duhs.duke.edu/qDBrDB");
     dm.connectToDatabase("//quality.biochem.duke.edu:1352/jiffiloop");
@@ -140,15 +140,15 @@ public class FragFiller implements Filler {
         sqlSelect = sqlSelect.concat("WHERE (distance <= "+df.format(gapFrame.get(0)+distRange)+" AND distance >= "+df.format(gapFrame.get(0)-distRange));
         sqlSelect = sqlSelect.concat(") \n");
         double startAng = gapFrame.get(1);
-        sqlSelect = sqlSelect.concat(createWhereAngle(startAng, "start_angle", angle) + " \n");
+        sqlSelect = sqlSelect.concat(createWhereAngle(startAng, "start_angle", nAngle) + " \n");
         double endAng = gapFrame.get(2);
-        sqlSelect = sqlSelect.concat(createWhereAngle(endAng, "end_angle", angle) + " \n");
+        sqlSelect = sqlSelect.concat(createWhereAngle(endAng, "end_angle", cAngle) + " \n");
         double startDih = gapFrame.get(3);
-        sqlSelect = sqlSelect.concat(createWhereDihedral(startDih, "start_dihedral", dihedral) + " \n");
+        sqlSelect = sqlSelect.concat(createWhereDihedral(startDih, "start_dihedral", nDihed) + " \n");
         double middleDih = gapFrame.get(4);
-        sqlSelect = sqlSelect.concat(createWhereDihedral(middleDih, "middle_dihedral", dihedral) + " \n");
+        sqlSelect = sqlSelect.concat(createWhereDihedral(middleDih, "middle_dihedral", dDihed) + " \n");
         double endDih = gapFrame.get(5);
-        sqlSelect = sqlSelect.concat(createWhereDihedral(endDih, "end_dihedral", dihedral) + " \n");
+        sqlSelect = sqlSelect.concat(createWhereDihedral(endDih, "end_dihedral", cDihed) + " \n");
         sqlSelect = sqlSelect.concat("AND max_B_factor <= 35;");
         System.out.println(sqlSelect);
         ArrayList<String> listofMatches = filledMap.get(gap);
@@ -306,6 +306,8 @@ public class FragFiller implements Filler {
         String chain = splitInfo[1];
         int length = Integer.parseInt(splitInfo[2]);
         int startRes = Integer.parseInt(splitInfo[3]);
+        //System.out.println(pdbName);
+        //fragPdbOut[i].setIdCode(pdbName+chain+splitInfo[3]+"-"+Integer.toString(startRes+length));
         libReader.setCurrentPdb(pdbName, chain);
         Model frag = libReader.getFragment(Integer.toString(ind), chain, startRes, length, gap.getOneNum()-1); //set of residues
         if (frag != null) {

@@ -93,7 +93,7 @@ public class PdbLibraryReader {
   public Model getFragment(String modNum, String chain, int startRes, int length, int startNum) {
     //CoordinateFile pdbFile = readPdb(pdbName);
     //UberSet fragRes = new UberSet();
-    Model fragModel = new Model(modNum);
+    Model fragModel = new Model(currentPdb.getIdCode()+" "+chain+" "+Integer.toString(startRes)+"-"+Integer.toString(startRes+length)+modNum);
     ModelState fragState = new ModelState();
     TreeMap stateMap = new TreeMap();
     stateMap.put(" ", fragState);

@@ -59,11 +59,17 @@ public class JLMain {
   static File pdbLibrary = null;
   static int matchDiff;
   static boolean ntermsup = false;
-  static boolean tighterParams = false;
+  //static boolean tighterParams = false;
   static boolean useStems = false;
   static boolean renumber = true;
   boolean keepSequence = false;
   int fragmentLimit = 100;
+  double distanceRange = Double.NaN;
+  double nAngleRange = Double.NaN;
+  double cAngleRange = Double.NaN;
+  double nDihedRange = Double.NaN;
+  double dDihedRange = Double.NaN;
+  double cDihedRange = Double.NaN;
   //JFileChooser        filechooser     = null;
   //ProgressDialog progDiag;
   //KGroup group;
@@ -205,6 +211,8 @@ public class JLMain {
             if (isInteger(args[i+1])) {
               matchDiff = Integer.parseInt(args[i+1]);
               i++;
+            } else {
+              throw new IllegalArgumentException("No integer given for -nomatchsize");
             }
           } else {
             throw new IllegalArgumentException("No integer given for -nomatchsize");
@@ -214,6 +222,8 @@ public class JLMain {
             if (isInteger(args[i+1])) {
               fragmentLimit = Integer.parseInt(args[i+1]);
               i++;
+            } else {
+              throw new IllegalArgumentException("No integer given for -fragments");
             }
           } else {
             throw new IllegalArgumentException("No integer given for -fragments");
@@ -227,7 +237,49 @@ public class JLMain {
         } else if (arg.equals("-sequence")) {
           keepSequence = true;
         } else if (arg.equals("-tighter")) {
-          tighterParams = true;
+          //tighterParams = true;
+          if (Double.isNaN(distanceRange)) distanceRange = 0.5;
+          if (Double.isNaN(nAngleRange))   nAngleRange   = 15;
+          if (Double.isNaN(cAngleRange))   cAngleRange   = 15;
+          if (Double.isNaN(nDihedRange))   nDihedRange   = 10;
+          if (Double.isNaN(dDihedRange))   dDihedRange   = 10;
+          if (Double.isNaN(cDihedRange))   cDihedRange   = 10;
+        } else if (arg.equals("-distancerange")) {
+          if (i+1 < args.length) {
+            if (isNumber(args[i+1])) {
+              distanceRange = Double.parseDouble(args[i+1]);
+              i++;
+            } else {
+              throw new IllegalArgumentException("No number given for -distancerange");
+            }
+          } else {
+            throw new IllegalArgumentException("No number given for -distancerange");
+          }
+        } else if (arg.equals("-angleranges")) {
+          if (i+2 < args.length) {
+            if (isNumber(args[i+1])&&isNumber(args[i+2])) {
+              nAngleRange = Double.parseDouble(args[i+1]);
+              cAngleRange = Double.parseDouble(args[i+2]);
+              i = i+2;
+            } else {
+              throw new IllegalArgumentException("Two numbers needed for -angleranges");
+            }
+          } else {
+            throw new IllegalArgumentException("Two numbers needed for -angleranges");
+          }
+        } else if (arg.equals("-dihedralranges")) {
+          if (i+3 < args.length) {
+            if (isNumber(args[i+1])&&isNumber(args[i+2])&&isNumber(args[i+3])) {
+              nDihedRange = Double.parseDouble(args[i+1]);
+              dDihedRange = Double.parseDouble(args[i+2]);
+              cDihedRange = Double.parseDouble(args[i+3]);
+              i = i+3;
+            } else {
+              throw new IllegalArgumentException("Three numbers needed for -dihedralranges");
+            }
+          } else {
+            throw new IllegalArgumentException("Three numbers needed for -dihedralranges");
+          }
         } else {
           throw new IllegalArgumentException("*** Unrecognized option: "+arg);
         }
@@ -268,6 +320,12 @@ public class JLMain {
     if (matchDiff < 0) {
       matchDiff = 0;
     }
+    if (Double.isNaN(distanceRange)) distanceRange = 1;
+    if (Double.isNaN(nAngleRange))   nAngleRange   = 25;
+    if (Double.isNaN(cAngleRange))   cAngleRange   = 25;
+    if (Double.isNaN(nDihedRange))   nDihedRange   = 25;
+    if (Double.isNaN(dDihedRange))   dDihedRange   = 25;
+    if (Double.isNaN(cDihedRange))   cDihedRange   = 25;
   }
   //}}}
 
@@ -307,11 +365,8 @@ public class JLMain {
       for (ArrayList<ProteinGap> v : gaps.values()) 
         for (ProteinGap g : v) kinPrefix = kinPrefix+"."+g.getResidueRange();
       
-      if (tighterParams) {
-        fragFill.searchDB(matchDiff, 0.5, 15, 10);
-      } else {
-        fragFill.searchDB(matchDiff);
-      }
+
+      fragFill.searchDB(matchDiff, distanceRange, nAngleRange, cAngleRange, nDihedRange, dDihedRange, cDihedRange);
       /* for searching loop data not using a database.  probably doesn't work with neo5200 params.
       scanLoopData(frameDataFiles, allGaps);
       for (ArrayList matchedInfo : filledMap.values()) {
@@ -395,7 +450,7 @@ public class JLMain {
         Iterator models = pdb.getModels().iterator();
         while (models.hasNext()) {
           Model mod = (Model) models.next();
-          out.println("@group {"+pdb.getIdCode()+" "+mod.getName()+"} dominant animate master= {all models}");
+          out.println("@group {"+mod.getName()+" "+pdb.getIdCode()+"} dominant animate master= {all models}");
           Residue[] reses = (Residue[]) mod.getResidues().toArray(new Residue[0]);
           String startInfo = getPast80Info(reses[0], mod);
           String endInfo = getPast80Info(reses[reses.length-1], mod);
@@ -435,6 +490,19 @@ public class JLMain {
   public static boolean isInteger(String s) {
     try {
 	    Integer.parseInt(s);
+	    return true;
+    } catch (NumberFormatException e) {
+	    return false;
+    } catch (NullPointerException e) {
+	    return false;
+    }
+  }
+  //}}}
+  
+  //{{{ isNumber
+  public static boolean isNumber(String s) {
+    try {
+	    Double.parseDouble(s);
 	    return true;
     } catch (NumberFormatException e) {
 	    return false;
