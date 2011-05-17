@@ -23,7 +23,12 @@ ARGUMENTS
   -sequence                          Keep fragment residue identities. Default
                                      is to rename all non-gly, non-pro to ala
                                      and remove sidechains.
-  -tighter                           Use tighter parameter ranges.
+  -tighter                           Use tighter parameter ranges (+/- 1 for 
+                                     distance, +/- 15 for angles, +/- 10 for 
+                                     dihedrals).
   #-#                                Enter integers for the two # signs to
                                      "simulate" a gap to search.
+  -distancerange #                   Enter range for distance parameter.
+  -angleranges # #                   Enter ranges for two angle parameters.
+  -dihedralranges # # #              Enter ranges for three dihedral parameters.
   
