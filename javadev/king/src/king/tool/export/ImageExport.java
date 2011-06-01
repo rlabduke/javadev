@@ -240,8 +240,8 @@ public class ImageExport extends Plugin implements PropertyChangeListener, Runna
     {
         String fmt = getFormat();
         // Autogenerate an output name.
-        String currdir = System.getProperty("user.dir");
-        if(currdir != null) chooser.setCurrentDirectory(new File(currdir));
+        //String currdir = System.getProperty("user.dir");
+        //if(currdir != null) chooser.setCurrentDirectory(new File(currdir));
         for(int i = 1; i < 1000; i++)
         {
             File f = new File(chooser.getCurrentDirectory(), "kingsnap"+i+"."+fmt);
