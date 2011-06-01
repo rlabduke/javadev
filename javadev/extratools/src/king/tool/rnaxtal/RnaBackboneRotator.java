@@ -722,7 +722,7 @@ public void getSuperposeAtoms() {
           ae.printStackTrace(SoftLog.err);
         }
         long endTime = System.currentTimeMillis();
-        System.out.println("Total Time to update modelstate: " + ((endTime-startTime)) + " milliseconds");
+        //System.out.println("Total Time to update modelstate: " + ((endTime-startTime)) + " milliseconds");
         
         return ret;
     }

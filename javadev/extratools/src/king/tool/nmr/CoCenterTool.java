@@ -251,7 +251,7 @@ public class CoCenterTool extends BasicTool {
         }
       }
     }
-    System.out.println("Cocenter took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
+    //System.out.println("Cocenter took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
   }
   //}}}
   
@@ -290,7 +290,7 @@ public class CoCenterTool extends BasicTool {
         }
       }
     }
-    System.out.println("Cocenter took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
+    //System.out.println("Cocenter took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
   }
   //}}}
   
@@ -357,14 +357,14 @@ public class CoCenterTool extends BasicTool {
   public void onForward(ActionEvent ev) {
     long startTime = System.currentTimeMillis();
     KPoint next = findNextPoint(doParensButton.isSelected());
-    System.out.println("Finding match point took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
+    //System.out.println("Finding match point took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
     coReCenter(next, doParensButton.isSelected());
   }
   
   public void onBackward(ActionEvent ev) {
     long startTime = System.currentTimeMillis();
     KPoint prev = findPrevPoint(doParensButton.isSelected());
-    System.out.println("Finding match point took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
+    //System.out.println("Finding match point took "+(System.currentTimeMillis()-startTime)/1000.0+" seconds");
     coReCenter(prev, doParensButton.isSelected());
     //Kinemage kin = kMain.getKinemage();
     //KIterator<KPoint> points = KIterator.visiblePoints(kin);
@@ -400,6 +400,9 @@ public class CoCenterTool extends BasicTool {
   
   //{{{ onCurrent
   public void onCurrent(ActionEvent ev) {
+    if (Integer.parseInt(currNumField.getText()) != current) {
+      current = Integer.parseInt(currNumField.getText());
+    }
     KPoint curr = findCurrentPoint(doParensButton.isSelected());
     coReCenter(curr, doParensButton.isSelected());
   }

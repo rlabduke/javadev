@@ -34,7 +34,7 @@ public class PlottingTool extends BasicTool {
     JTextField xMultField, yMultField, zMultField;
     //JTextField xFiltField, yFiltField, zFiltField;
     //JTextField xFiltRange, yFiltRange, zFiltRange;
-    JCheckBox /*clickColorBox, */wrapBox;
+    JCheckBox /*clickColorBox, */wrapBox, pointIdBox;
     //JComboBox[] comboBoxes;
     //JRadioButton[] xButtons, yButtons, zButtons;
     //ButtonGroup xGroup, yGroup, zGroup;
@@ -52,170 +52,170 @@ public class PlottingTool extends BasicTool {
     }
 //}}}
 
-//{{{ buildGUI
-//##############################################################################
-    private void buildGUI() {
+  //{{{ buildGUI
+  //##############################################################################
+  private void buildGUI() {
 	
-	dialog = new JDialog(kMain.getTopWindow(), "Data Plotter", false);
-	if (allPoints == null) return;
-	Iterator iter = allPoints.iterator();
-	String[] values = (String[]) iter.next();
-	int numColumns = values.length;
-
-	pane = new TablePane();
-	pane.newRow();
-
-	JLabel infoLabel = new JLabel("Data Plotter has detected " + numColumns + " columns of data;  Row 1 shown below.");
-	pane.add(infoLabel, numColumns, 1);
-	pane.newRow();
-
-	String[] axLabels = new String[numColumns];
-	//axLabels[0] = "Axis 0";
-	for(int i = 0; i < numColumns; i++) {
+    dialog = new JDialog(kMain.getTopWindow(), "Data Plotter", false);
+    if (allPoints == null) return;
+    Iterator iter = allPoints.iterator();
+    String[] values = (String[]) iter.next();
+    int numColumns = values.length;
+    
+    pane = new TablePane();
+    pane.newRow();
+    
+    JLabel infoLabel = new JLabel("Data Plotter has detected " + numColumns + " columns of data;  Row 1 shown below.");
+    pane.add(infoLabel, numColumns, 1);
+    pane.newRow();
+    
+    String[] axLabels = new String[numColumns];
+    //axLabels[0] = "Axis 0";
+    for(int i = 0; i < numColumns; i++) {
 	    //pane.newRow();
 	    axLabels[i] = "Axis " + i;
 	    //pane.add(new JLabel(values[i]));
-	}
-	//pane.add(new JLabel(values[0]));
-	if (numColumns > 20) {
+	  }
+	  //pane.add(new JLabel(values[0]));
+	  if (numColumns > 20) {
 	    numColumns = 20;
-	}
-  
-  //ArrayList labelList = new ArrayList();
-  //for (String lab : values) {
-  //  JLabel newLab = new JLabel(lab);
-  //  labelList.add(newLab);
-  //}
-  
-	labelList = new FatJList(0, 10);
-	labelList.setListData(values);
-	labelList.setVisibleRowCount(numColumns + 3);
-  // I didn't know you could redefine functions when you make a new instance of something,
-  // but apparently the following lines works to make the list unselectable!
-  labelList.setSelectionModel(new DefaultListSelectionModel() {
-    public void addSelectionInterval(int index0, int index1) {}
-    public void setSelectionInterval(int index0, int index1) {}
-  });
-
-	xList = new FatJList(0, 10);
-	xList.setListData(axLabels);
-	xList.setVisibleRowCount(numColumns + 3);
-
-	yList = new FatJList(0, 10);
-	yList.setListData(axLabels);
-	yList.setVisibleRowCount(numColumns + 3);
-
-	zList = new FatJList(0, 10);
-	zList.setListData(axLabels);
-	zList.setVisibleRowCount(numColumns + 3);
-
-	colorList = new FatJList(0, 10);
-	colorList.setListData(axLabels);
-	colorList.setVisibleRowCount(numColumns + 3);
-
-	plotButton = new JButton(new ReflectiveAction("Plot!", null, this, "onPlot"));
-
-	//color1 = new JComboBox(KPalette.getStandardMap().values().toArray());
-	//color1.setSelectedItem(KPalette.blue);
-	//pane.add(color1, 2, 1);
-
-	//clickColorBox = new JCheckBox("Color on click");
-	//clickColorBox.setSelected(false);
-
-	//exportButton = new JButton(new ReflectiveAction("Export!", null, this, "onExport"));
-	parallelButton = new JButton(new ReflectiveAction("Parallel!", null, this, "onPlotParallel"));
-	numBinsField = new JTextField("10", 4);
-  wrapBox = new JCheckBox("Wrap to 0-360");
-  
-	pane.newRow();
-	pane.add(new JLabel(" Row 1"));
-	pane.add(new JLabel(" X axis"));
-	pane.add(new JLabel(" Y axis"));
-	pane.add(new JLabel(" Z axis"));
-	pane.add(new JLabel(" bins"));
-	pane.newRow();
-	pane.vfill(true).hfill(true).add(new JScrollPane(labelList), 1, 7);
-	pane.add(new JScrollPane(xList), 1, 7);
-	pane.add(new JScrollPane(yList), 1, 7);
-	pane.add(new JScrollPane(zList), 1, 7);
-	pane.add(new JScrollPane(colorList), 1, 7);
-
-	pane.vfill(false).hfill(true).addCell(plotButton);
-	pane.newRow();
-	pane.addCell(parallelButton);
-	pane.newRow();
-	//pane.addCell(exportButton);
-  pane.add(new JLabel(" "));
-	pane.newRow();
-	pane.add(new JLabel("# of Bins:"));
-	pane.newRow();
-	pane.add(numBinsField);
-	pane.newRow();
-  pane.add(new JLabel(" "));
-  pane.newRow();
-  pane.add(wrapBox);
-	//pane.add(color1, 2, 1);
-	pane.newRow();
-	//pane.add(clickColorBox, 2, 1);
-	pane.newRow();
-	pane.newRow();
-	JLabel multLabel = new JLabel("multiplier:");
-	xMultField = new JTextField("1", 4);
-	//JLabel yLabel = new JLabel("y mult=");
-	yMultField = new JTextField("1", 4);
-	//JLabel zLabel = new JLabel("z mult=");
-	zMultField = new JTextField("1", 4);
-
-
-	//JLabel xLab2 = new JLabel("keep x=");
-	//xFiltField = new JTextField("0", 4);
-	//xFiltRange = new JTextField("-1", 4);
-	//JLabel yLab2 = new JLabel("keep y=");
-	//yFiltField = new JTextField("0", 4);
-	//yFiltRange = new JTextField("-1", 4);
-	//JLabel zLab2 = new JLabel("keep z=");
-	//zFiltField = new JTextField("0", 4);
-	//zFiltRange = new JTextField("-1", 4);
-
-
-	//filterButton = new JButton(new ReflectiveAction("Filter!", null, this, "onFilter"));
-	//resetButton = new JButton(new ReflectiveAction("ResetFilt", null, this, "onReset"));
+	  }
+	  
+	  //ArrayList labelList = new ArrayList();
+	  //for (String lab : values) {
+	  //  JLabel newLab = new JLabel(lab);
+	  //  labelList.add(newLab);
+	  //}
+	  
+	  labelList = new FatJList(0, 10);
+	  labelList.setListData(values);
+	  labelList.setVisibleRowCount(numColumns + 3);
+	  // I didn't know you could redefine functions when you make a new instance of something,
+	  // but apparently the following lines works to make the list unselectable!
+	  labelList.setSelectionModel(new DefaultListSelectionModel() {
+	      public void addSelectionInterval(int index0, int index1) {}
+	      public void setSelectionInterval(int index0, int index1) {}
+	  });
+	  
+	  xList = new FatJList(0, 10);
+	  xList.setListData(axLabels);
+	  xList.setVisibleRowCount(numColumns + 3);
+	  
+	  yList = new FatJList(0, 10);
+	  yList.setListData(axLabels);
+	  yList.setVisibleRowCount(numColumns + 3);
+	  
+	  zList = new FatJList(0, 10);
+	  zList.setListData(axLabels);
+	  zList.setVisibleRowCount(numColumns + 3);
+	  
+	  colorList = new FatJList(0, 10);
+	  colorList.setListData(axLabels);
+	  colorList.setVisibleRowCount(numColumns + 3);
+	  
+	  plotButton = new JButton(new ReflectiveAction("Plot!", null, this, "onPlot"));
+	  
+	  //color1 = new JComboBox(KPalette.getStandardMap().values().toArray());
+	  //color1.setSelectedItem(KPalette.blue);
+	  //pane.add(color1, 2, 1);
+	  
+	  //clickColorBox = new JCheckBox("Color on click");
+	  //clickColorBox.setSelected(false);
+	  
+	  //exportButton = new JButton(new ReflectiveAction("Export!", null, this, "onExport"));
+	  parallelButton = new JButton(new ReflectiveAction("Parallel!", null, this, "onPlotParallel"));
+	  numBinsField = new JTextField("10", 4);
+	  wrapBox = new JCheckBox("Wrap to 0-360");
+	  pointIdBox = new JCheckBox("Add second row to pID");
+	  
+	  pane.newRow();
+	  pane.add(new JLabel(" Row 1"));
+	  pane.add(new JLabel(" X axis"));
+	  pane.add(new JLabel(" Y axis"));
+	  pane.add(new JLabel(" Z axis"));
+	  pane.add(new JLabel(" bins"));
+	  pane.newRow();
+	  pane.vfill(true).hfill(true).add(new JScrollPane(labelList), 1, 8);
+	  pane.add(new JScrollPane(xList), 1, 8);
+	  pane.add(new JScrollPane(yList), 1, 8);
+	  pane.add(new JScrollPane(zList), 1, 8);
+	  pane.add(new JScrollPane(colorList), 1, 8);
+	  
+	  pane.vfill(false).hfill(true).addCell(plotButton);
+	  pane.newRow();
+	  pane.addCell(parallelButton);
+	  pane.newRow();
+	  //pane.addCell(exportButton);
+	  pane.add(new JLabel(" "));
+	  pane.newRow();
+	  pane.add(new JLabel("# of Bins:"));
+	  pane.newRow();
+	  pane.add(numBinsField);
+	  pane.newRow();
+	  pane.add(new JLabel(" "));
+	  pane.newRow();
+	  pane.add(wrapBox);
+	  //pane.add(color1, 2, 1);
+	  pane.newRow();
+	  pane.add(pointIdBox);
+	  //pane.add(clickColorBox, 2, 1);
+	  pane.newRow();
+	  pane.newRow();
+	  JLabel multLabel = new JLabel("multiplier:");
+	  xMultField = new JTextField("1", 4);
+	  //JLabel yLabel = new JLabel("y mult=");
+	  yMultField = new JTextField("1", 4);
+	  //JLabel zLabel = new JLabel("z mult=");
+	  zMultField = new JTextField("1", 4);
+	  
+	  
+	  //JLabel xLab2 = new JLabel("keep x=");
+	  //xFiltField = new JTextField("0", 4);
+	  //xFiltRange = new JTextField("-1", 4);
+	  //JLabel yLab2 = new JLabel("keep y=");
+	  //yFiltField = new JTextField("0", 4);
+	  //yFiltRange = new JTextField("-1", 4);
+	  //JLabel zLab2 = new JLabel("keep z=");
+	  //zFiltField = new JTextField("0", 4);
+	  //zFiltRange = new JTextField("-1", 4);
+	  
+	  
+	  //filterButton = new JButton(new ReflectiveAction("Filter!", null, this, "onFilter"));
+	  //resetButton = new JButton(new ReflectiveAction("ResetFilt", null, this, "onReset"));
 		
-	pane.add(multLabel);
-	pane.add(xMultField);
-
-	pane.add(yMultField);
-	pane.add(zMultField);
-	//pane.add(xFiltRange);
-  //pane.skip();
-
-	
-	//pane.newRow();
-	//pane.add(yLabel);
-	//pane.add(yMultField);
-  //
-	//pane.add(yLab2);
-	//pane.add(yFiltField);
-	//pane.add(yFiltRange);
-
-	//pane.add(filterButton);
-	//pane.newRow();
-	//pane.add(zLabel);
-	//pane.add(zMultField);
-  //
-	//pane.add(zLab2);
-	//pane.add(zFiltField);
-	//pane.add(zFiltRange);
-  //
-	//pane.add(resetButton);
-	//pane.hfill(true);
-	
-  dialog.addWindowListener(this);
-	dialog.setContentPane(pane);
-
-	
-    }
-//}}}
+	  pane.add(multLabel);
+	  pane.add(xMultField);
+	  
+	  pane.add(yMultField);
+	  pane.add(zMultField);
+	  //pane.add(xFiltRange);
+	  //pane.skip();
+	  
+	  
+	  //pane.newRow();
+	  //pane.add(yLabel);
+	  //pane.add(yMultField);
+	  //
+	  //pane.add(yLab2);
+	  //pane.add(yFiltField);
+	  //pane.add(yFiltRange);
+	  
+	  //pane.add(filterButton);
+	  //pane.newRow();
+	  //pane.add(zLabel);
+	  //pane.add(zMultField);
+	  //
+	  //pane.add(zLab2);
+	  //pane.add(zFiltField);
+	  //pane.add(zFiltRange);
+	  //
+	  //pane.add(resetButton);
+	  //pane.hfill(true);
+	  
+	  dialog.addWindowListener(this);
+	  dialog.setContentPane(pane);
+	}
+	//}}}
 
 //{{{ start
 //##################################################################################################
@@ -437,7 +437,13 @@ public class PlottingTool extends BasicTool {
           }
         }
 		    
-        point = new BallPoint(value[0] + " " + value[1]);
+        String pName;
+        if (pointIdBox.isSelected()) {
+          pName = value[0] + " " + value[1];
+        } else {
+          pName = value[0];
+        }
+        point = new BallPoint(pName);
         plottedPoints.put(value, point);
         point.setRadius((float)0.1);
         point.setAllCoords(floats);
