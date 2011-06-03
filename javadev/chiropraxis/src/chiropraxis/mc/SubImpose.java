@@ -792,7 +792,17 @@ public class SubImpose //extends ... implements ...
         
         // Superpose structure 2 onto structure 1 regardless of other options
         doSuperposition();
-        if(atoms == null) return;
+        
+        if(atoms == null)
+        {
+            // If user wants PDB output but isn't using -pdb=outfile, 
+            // warn them about what might happen
+            if(!showTransform && !showDists && rmsd.isEmpty() && kinOut == null
+            && !kinStdOut && pdbOut == null) System.err.println(
+                "WARNING: You'll still get empty files if you use 'subimpose > outfile'!"
+                +"\nUse 'subimpose -pdb=outfile' to be safe!");
+            return;
+        }
         
         // If -t, print the transform
         if(showTransform)
@@ -813,8 +823,11 @@ public class SubImpose //extends ... implements ...
             writeKin();
         
         // If no other output specified, write superimposed PDB file
+        //else if(atoms != null) // we already had an if(atoms == null) clause above
         else
             writePdb();
+        // WARNING: You'll still get empty files if you use "subimpose > outfile"!
+        // Use "subimpose -pdb=outfile" to be safe!
     }
 
     public static void main(String[] args)
