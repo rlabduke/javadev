@@ -427,9 +427,9 @@ public class AvgStrucGenerator //extends ... implements ...
                 for (int j = 0; j < coords.size(); j++)  coordsArray[j] = coords.get(j);
                 localCoords.add(coordsArray);
             }
-            else System.err.println("... bad alnmt => not using these coords for avg struc");
+            else if(verbose) System.err.println("... bad alnmt => not using these coords for avg struc");
             
-            System.err.println();
+            if(verbose) System.err.println();
         }
         catch (AtomException ae)
         {
@@ -529,9 +529,9 @@ public class AvgStrucGenerator //extends ... implements ...
                 refCoords = new double[coords.size()];
                 for (int i = 0; i < coords.size(); i++)  refCoords[i] = coords.get(i);
             }
-            else System.err.println("... bad alnmt during setRefCoords");
+            else if(verbose) System.err.println("... bad alnmt during setRefCoords");
             
-            System.err.println();
+            if(verbose) System.err.println();
         }
         catch (AtomException ae)
         {
@@ -551,6 +551,11 @@ public class AvgStrucGenerator //extends ... implements ...
     */
     public void averageCoords()
     {
+        System.err.println("localCoords.size()  "+localCoords.size());
+        System.err.println("pdbFilenames.size() "+pdbFilenames.size());
+        System.err.println("equal? "+(localCoords.size() == pdbFilenames.size()));
+        //System.exit(1);
+        
         // Get sums and counts for calc'ing averages
         int numXYZs = 3 * (Strings.explode(bbAtoms,',')).length * (finalIdx-initIdx+1);
         if (resnum2idx != Integer.MAX_VALUE)  numXYZs *= 2;

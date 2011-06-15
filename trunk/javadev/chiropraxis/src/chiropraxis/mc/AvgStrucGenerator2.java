@@ -19,7 +19,7 @@ import driftwood.util.Strings;
 * <code>AvgStrucGenerator2</code> builds on <code>AvgStrucGenerator</code>.
 * Here the input PDBs are <b>local</b> and <b>pre-superposed</b> rather than 
 * full structures in their original coordinate frame.
-* Conveniently, they can be in fragments that may even by N->C in one example
+* Conveniently, they can be in fragments that may even be N->C in one example
 * and C->N in another.  The key is a separate structure-based alignment for 
 * each fragment.
 *
@@ -83,11 +83,11 @@ public class AvgStrucGenerator2 //extends ... implements ...
                 if(refFile == null)
                 {
                     refFile = file;
-                    getRefCoords(model, ranges, e);
+                    getRefCoords(file, model, ranges, e);
                 }
                 else
                 {
-                    getOtherCoords(model, ranges, e);
+                    getOtherCoords(file, model, ranges, e);
                 }
             }
             catch(IOException ex)
@@ -113,7 +113,7 @@ public class AvgStrucGenerator2 //extends ... implements ...
 
 //{{{ getRefCoords
 //##############################################################################
-    public void getRefCoords(Model model, Range[] ranges, int e) throws AtomException
+    public void getRefCoords(File file, Model model, Range[] ranges, int e) throws AtomException
     {
         // Define reference
         refModel = model;
@@ -137,13 +137,16 @@ public class AvgStrucGenerator2 //extends ... implements ...
                 original[x+a][e] = new Triple(atoms[a]);
             }
             x += range.getAtoms().length;
+            
+            // For the user's records:
+            System.err.println("Chose "+file+" as 'reference structure'");
         }
     }
 //}}}
 
 //{{{ getOtherCoords
 //##############################################################################
-    public void getOtherCoords(Model model, Range[] ranges, int e) throws AtomException
+    public void getOtherCoords(File file, Model model, Range[] ranges, int e) throws AtomException
     {
         for(Range range : ranges)
         {
@@ -169,7 +172,8 @@ public class AvgStrucGenerator2 //extends ... implements ...
                 }
             }
             if(bestScore == 0) throw new IllegalArgumentException(
-                "*** Best structure-based alignment score is 0!  Structures not pre-superposed? ***");
+                "*** Can't use "+file+" because best structure-based alignment score is 0!  "+
+                "Structure not pre-superposed? ***");
             if(verbose) System.err.println(range+" goes with... "+"\n"+bestRefRange+"\n");
             
             // Store coordinates
@@ -179,7 +183,10 @@ public class AvgStrucGenerator2 //extends ... implements ...
             {
                 original[x+a][e] = new Triple(atoms[a]);
             }
-        }//per range
+            
+            // For the user's records:
+            System.err.println("Used "+file+" for average structure");
+        }
     }
 //}}}
 

@@ -583,7 +583,11 @@ public class ModelManager2 extends Plugin
                         //    srccoordfile.addHeader(CoordinateFile.SECTION_USER_MOD, iter.next().toString());
                         
                         // Sync up the atom-by-atom labels with the global scheme
-                        //adjustAltConfLabels(m);
+                        adjustAltConfLabels(m);
+                        
+                        // Make relative occupancies sensible for all atoms,
+                        // including the ones we've remodeled
+                        adjustOccupancies(m);
                         
                         // Replace the model we started from with the current model
                         srccoordfile.replace(srcmodel, m);
@@ -610,301 +614,7 @@ public class ModelManager2 extends Plugin
     }
 //}}}
 
-//{{{ repairAltConfs
-//##################################################################################################
-    /**
-    * Given a Model, we traverse its ModelStates, looking for AtomStates 
-    * that need to be relabeled or removed due to a conformational split 
-    * in one of the ModelStates. -DAK
-    */
-    void repairAltConfs(Model m)
-    {
-        // Prep atoms
-        ArrayList<Atom> atoms = new ArrayList<Atom>();
-        for(Iterator ri = m.getResidues().iterator(); ri.hasNext(); )
-        {
-            Residue r = (Residue) ri.next();
-            for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
-            {
-                Atom a = (Atom) ai.next();
-                atoms.add(a);
-            }
-        }
-        
-        repairAltConfs1(m, atoms);  //debugAltConfs("AFTER 1");
-        repairAltConfs2(m, atoms);  //debugAltConfs("AFTER 2");
-        repairAltConfs3(m, atoms);  //debugAltConfs("AFTER 3");
-        repairAltConfs4(m, atoms);  //debugAltConfs("AFTER 4");
-        //setOccupancies(m, atoms); ???????????????????????????
-    }
-//}}}
-
-//{{{ repairAltConfs1
-//##################################################################################################
-    /**
-    * Relabels new ' ' alts to non-' ' (1st half of new split)
-    * and old ' ' alts to *different* non-' ' (2nd half of new split).
-    */
-    void repairAltConfs1(Model m, ArrayList<Atom> atoms)
-    {
-        CheapSet allAS = new CheapSet(new IdentityHashFunction());
-        for(Iterator msi = m.getStates().keySet().iterator(); msi.hasNext(); )
-        {
-            String altLabel = (String) msi.next();
-            ModelState state = (ModelState) m.getStates().get(altLabel);
-            for(Atom a : atoms)
-            {
-                try
-                {
-                    AtomState as = state.get(a);
-                    if(allAS.add(as))
-                    {
-                        // If this is alt ' ' but we haven't seen it before, it's been
-                        // split off from ' ' and needs a more appropriate alt ID
-                        // (Wait until here to check whether altLabel is ' '
-                        // so we make sure to add ' ' AtomStates to the set)
-                        if(!altLabel.equals(" ") && as.getAltConf().equals(" "))
-                        {
-                            as.setAltConf(altLabel);
-                            
-                            // Also relabel the other alt conf states for this atom
-                            for(Iterator msi2 = m.getStates().keySet().iterator(); msi2.hasNext(); )
-                            {
-                                String altLabel2 = (String) msi2.next();
-                                if(altLabel2.equals(altLabel) || altLabel2.equals(" ")) continue;
-                                ModelState state2 = (ModelState) m.getStates().get(altLabel2);
-                                AtomState as2 = state2.get(a);
-                                if(as2.getAltConf().equals(" ")) as2.setAltConf(altLabel2);
-                            }
-                        }
-                    }
-                }
-                catch(AtomException ex) {}
-            }
-        }
-    }
-//}}}
-
-//{{{ repairAltConfs2
-//##################################################################################################
-    /**
-    * Removes old ' ' non-alts in places where new alts exist due to a split.
-    */
-    void repairAltConfs2(Model m, ArrayList<Atom> atoms)
-    {
-        ArrayList atomsToDrop = new ArrayList();
-        for(Iterator msi = m.getStates().keySet().iterator(); msi.hasNext(); )
-        {
-            String altLabel = (String) msi.next();
-            if(altLabel.equals(" ")) continue; // looking for alt confs in this loop
-            ModelState state = (ModelState) m.getStates().get(altLabel);
-            for(Atom a : atoms)
-            {
-                try
-                {
-                    AtomState as = state.get(a);
-                    // If this atom has alt confs (at least after the updates 
-                    // we just did), it shouldn't be in state ' ' anymore
-                    if(!as.getAltConf().equals(" ")) atomsToDrop.add(a);
-                }
-                catch(AtomException ex) {}
-            }
-        }
-        
-        // Make new state ' '
-        ModelState state_    = (ModelState) m.getStates().get(" ");
-        ModelState state_new = new ModelState();
-        for(Atom a : atoms)
-        {
-            if(!atomsToDrop.contains(a))
-            {
-                try
-                {
-                    AtomState as = state_.get(a);
-                    state_new.add(as);
-                }
-                catch(AtomException ex) {}
-            }
-        }
-        makeChangedModel(" ", state_new);
-    }
-//}}}
-
-//{{{ repairAltConfs3
-//##################################################################################################
-    /**
-    * Replaces old, stranded versions of non-' ' alts with new, moved versions
-    * and relabels new, divergent alts.
-    */
-    void repairAltConfs3(Model m, ArrayList<Atom> atoms)
-    {
-        ModelState stateRemod = (ModelState) m.getStates().get(getAltConf());
-        ModelState stateNew = new ModelState(); // alt conf state to be recreated
-        String  altLabelNew = null;
-        for(Iterator msi = m.getStates().keySet().iterator(); msi.hasNext(); )
-        {
-            String altLabel = (String) msi.next();
-            if(altLabel.equals(" ") || altLabel.equals(getAltConf())) continue;
-            ModelState stateOther = (ModelState) m.getStates().get(altLabel);
-            for(Atom a : atoms)
-            {
-                try
-                {
-                    AtomState asRemod = stateRemod.get(a);
-                    AtomState asOther = stateOther.get(a);
-                    // Do these have the same alt ID but different coordinates?
-                    // If so, something has to change!
-                    if(asOther.getAltConf().equals(asRemod.getAltConf()) && asOther != asRemod)
-                    {
-                        if(asRemod.getAltConf().equals(getAltConf()))
-                        {
-                            // Remod state has proper alt ID;
-                            // other state should be "replaced" with it
-                            // (This is the case when e.g. 'A' is moved and 'C' has no 
-                            // state defined at this point so it refers to the old 'A'
-                            // even after 'A' has diverged to a new conformation)
-                            altLabelNew = altLabel; // state that'll get updated
-                            stateNew.add(asRemod);
-                        }
-                        else
-                        {
-                            // Remod state has improper alt ID because it has branched off;
-                            // needs to get relabeled with proper alt ID
-                            // (This is the case when e.g. 'C' is moved and has no state 
-                            // defined at this point, so a child/copy of 'A' actually gets moved,
-                            // which should then become a genuine 'C' conformation)
-                            asRemod.setAltConf(getAltConf());
-                        }
-                    }
-                }
-                catch(AtomException ex) {}
-            }
-        }
-        
-        if(altLabelNew != null)
-        {
-            // Fill in the rest of the new non-' ' state,
-            // but don't overwrite the corrections we've just made
-            ModelState state = (ModelState) m.getStates().get(altLabelNew);
-            for(Atom a : atoms)
-            {
-                try
-                {
-                    AtomState as = state.get(a);
-                    stateNew.add(as);
-                }
-                catch(AtomException ex) {} // maybe an atom state we reassigned above!
-            }
-            makeChangedModel(altLabelNew, stateNew);
-        }
-    }
-//}}}
-
-//{{{ repairAltConfs4
-//##################################################################################################
-    /**
-    * Copies atom states and fixes alt labels for non-' ' alts 
-    * at 2-way splits with a 3rd, more extended, just-remodeled alt.
-    */
-    void repairAltConfs4(Model m, ArrayList<Atom> atoms)
-    {
-        // See if this method is even appropriate for this model
-        // (need >= 3 non-' ' alts for it to be helpful)
-        Set altLabels = new TreeSet();
-        for(Iterator msi = m.getStates().keySet().iterator(); msi.hasNext(); )
-        {
-            String altLabel = (String) msi.next();
-            if(!altLabel.equals(" ")) altLabels.add(altLabel);
-        }
-        if(altLabels.size() < 3) return;
-        
-        HashSet<Atom> atomsToClone = new HashSet<Atom>();
-        for(Atom a : atoms)
-        {
-            // Does this atom have >= 3 alts, 
-            // >= 2 of which have the same AtomState and 
-            // >= 1 of which has a different AtomState from those >= 2?
-            // Could happen if e.g. C was remodeled where C originally did not exist 
-            // but where A and B originally recoalesced.  A and C may be properly 
-            // extended, but B could get "left behind" and still refer to A, 
-            // in which case B needs to get relabeled so it's represented as a 
-            // unique atom state (even though it has the same coordinates as A
-            // for this location).
-            CheapSet allAS = new CheapSet(new IdentityHashFunction());
-            for(Iterator msi = m.getStates().keySet().iterator(); msi.hasNext(); )
-            {
-                String altLabel = (String) msi.next();
-                if(altLabel.equals(" ")) continue;
-                ModelState state = (ModelState) m.getStates().get(altLabel);
-                try
-                {
-                    AtomState as = state.get(a);
-                    allAS.add(as);
-                }
-                catch(AtomException ex) {}
-            }
-            if(allAS.size() >= 2) atomsToClone.add(a);
-        }
-        
-        // Clone atoms we just decided should now be alts, and label them appropriately
-        for(Iterator msi = m.getStates().keySet().iterator(); msi.hasNext(); )
-        {
-            String altLabel = (String) msi.next();
-            if(altLabel.equals(" ") || altLabel.equals(getAltConf())) continue;
-            ModelState state = (ModelState) m.getStates().get(altLabel);
-            ModelState stateNew = new ModelState();
-            for(Atom a : atoms)
-            {
-                try
-                {
-                    AtomState as = state.get(a);
-                    if(atomsToClone.contains(a))
-                    {
-                        AtomState asNew = (AtomState) as.clone();
-                        asNew.setAltConf(altLabel);
-                        stateNew.add(asNew);
-                    }
-                    else stateNew.add(as);
-                }
-                catch(AtomException ex) {}
-            }
-            makeChangedModel(altLabel, stateNew);
-        }
-    }
-//}}}
-
-//{{{ debugAltConfs
-//##################################################################################################
-    void debugAltConfs(String stage)
-    {
-        System.err.println(stage+":");
-        Atom ca = null;
-        for(Iterator rIter = getModel().getResidues().iterator(); rIter.hasNext(); )
-        {
-            Residue r = (Residue) rIter.next();
-            // Specific to 1ejg, for debugging:
-            //if(r.getSequenceInteger() == 6) ca = r.getAtom(" CA ");
-            //if(r.getSequenceInteger() == 6) ca = r.getAtom(" C  ");
-            //if(r.getSequenceInteger() == 7) ca = r.getAtom(" CA ");
-            //if(r.getSequenceInteger() == 8) ca = r.getAtom(" CA ");
-            if(r.getSequenceInteger() == 8) ca = r.getAtom(" C  ");
-        }
-        if(ca != null)
-        {
-            try { System.err.println("_ -> "+getModel().getState(" ").get(ca)); }
-            catch(AtomException ex) { System.err.println("_ -> ??????"); }
-            try { System.err.println("A -> "+getModel().getState("A").get(ca)); }
-            catch(AtomException ex) { System.err.println("A -> ??????"); }
-            try { System.err.println("B -> "+getModel().getState("B").get(ca)); }
-            catch(AtomException ex) { System.err.println("B -> ??????"); }
-            try { System.err.println("C -> "+getModel().getState("C").get(ca)); }
-            catch(AtomException ex) { System.err.println("C -> ??????"); }
-        }
-        System.err.println();
-    }
-//}}}
-
-//{{{ adjustAltConfLabels [DEPRECATED]
+//{{{ adjustAltConfLabels
 //##################################################################################################
     /**
     * Given a Model, we traverse its ModelStates, looking for AtomStates whose alts don't match.
@@ -929,6 +639,67 @@ public class ModelManager2 extends Plugin
                         AtomState as = state.get(a);
                         // If we haven't seen this before, set its alt ID
                         if(allAS.add(as)) as.setAltConf(altLabel);
+                    }
+                    catch(AtomException ex) {}
+                }
+            }
+        }
+    }
+//}}}
+
+//{{{ adjustOccupancies
+//##################################################################################################
+    /**
+    * Given a Model, we traverse its Atoms, looking for Atoms with multiple 
+    * alt conf AtomStates with full occupancy.
+    * Then we divvy up full occupancy evenly across those AtomStates
+    * and make sure the AtomState for ModelState ' ' is null.
+    */
+    void adjustOccupancies(Model m)
+    {
+        for(Iterator ri = m.getResidues().iterator(); ri.hasNext(); )
+        {
+            Residue r = (Residue) ri.next();
+            for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
+            {
+                Atom a = (Atom) ai.next();
+                CheapSet fullOccAS = new CheapSet(new IdentityHashFunction());
+                for(Iterator msi = m.getStates().keySet().iterator(); msi.hasNext(); )
+                {
+                    String altLabel = (String) msi.next();
+                    ModelState state = (ModelState) m.getStates().get(altLabel);
+                    try
+                    {
+                        AtomState as = state.get(a);
+                        if(!as.getAltConf().equals(" ") && as.getOccupancy() == 1.0)
+                            fullOccAS.add(as);
+                    }
+                    catch(AtomException ex) {}
+                }
+                if(fullOccAS.size() > 0)
+                {
+                    // Multiple states for this atom with full occupancy!
+                    // Need to split it up; evenly is simplest:
+                    // 0.5-0.5, 0.34-0.33-0.33, 0.25-0.25-0.25-0.25 (that's enough)
+                    for(Iterator iter = fullOccAS.iterator(); iter.hasNext(); )
+                    {
+                        AtomState as = (AtomState) iter.next();
+                        double newOcc = 1.0 / fullOccAS.size();
+                        double precision = 100;
+                        if(as.getAltConf().equals("A"))
+                            newOcc = Math.ceil(newOcc * precision) / precision;
+                        else
+                            newOcc = Math.floor(newOcc * precision) / precision;
+                        as.setOccupancy(newOcc);
+                    }
+                    
+                    // Make sure ModelState ' ' is empty for this Atom
+                    ModelState state = (ModelState) m.getStates().get(" ");
+                    try
+                    {
+                        AtomState as = state.get(a);
+                        //state.addOverwrite(null);
+                        as = null; // does this work?!
                     }
                     catch(AtomException ex) {}
                 }
@@ -1040,7 +811,7 @@ public class ModelManager2 extends Plugin
     }
 //}}}
 
-//{{{ requestStateRefresh
+//{{{ requestStateRefresh, requestStateChange
 //##################################################################################################
     /**
     * Causes all currently registered tools to be polled,
@@ -1067,10 +838,7 @@ public class ModelManager2 extends Plugin
         if(cbShowExpNOEs.isSelected())  visualizeExpectedNOEs();
         kCanvas.repaint();
     }
-//}}}
-
-//{{{ requestStateChange
-//##################################################################################################
+    
     /**
     * Causes the state changes from the named tool to be
     * incorporated into the static ("frozen") state
@@ -1079,43 +847,24 @@ public class ModelManager2 extends Plugin
     */
     public void requestStateChange(Remodeler tool)
     {
-        //debugAltConfs("ORIGINAL");
-        
         ModelState s = tool.updateModelState( getFrozenState() );
         s = s.createCollapsed(); // reduce lookup time in the future
         
         // Every permanent change generates a new Model, so that it can
         // hold the new set of ModelStates (only one of them has changed).
         // It costs more memory, but not a LOT more, and seems cleaner than other approaches.
-        makeChangedModel(this.getAltConf(), s);
-        
-        //debugAltConfs("AFTER MOVE");
-        //adjustAltConfLabels(this.getModel());
-        repairAltConfs(this.getModel());
+        Model newModel = (Model) this.getModel().clone();
+        HashMap newStates = new HashMap(newModel.getStates());
+        newStates.put(this.getAltConf(), s);
+        newModel.setStates(newStates);
+        ModelStatePair msp = new ModelStatePair(newModel, this.getAltConf());
+        stateList.addLast(msp);
+        changedSinceSave = true;
         
         visualizeFrozenModel(); // not done for every refresh
         unregisterTool(tool);
         // -> requestStateRefresh();
         // -> refreshGUI(); // make sure Undo item is up-to-date
-    }
-//}}}
-
-//{{{ makeChangedModel
-//##################################################################################################
-    /**
-    * Makes a new model, incorporating changes to a single state, and stores it.
-    * Somewhat wasteful memory-wise, but I can't figure out a way to update a 
-    * model's states without making a totally new model! -DAK
-    */
-    void makeChangedModel(String altLabel, ModelState s)
-    {
-        Model newModel = (Model) this.getModel().clone();
-        HashMap newStates = new HashMap(newModel.getStates());
-        newStates.put(altLabel, s);
-        newModel.setStates(newStates);
-        ModelStatePair msp = new ModelStatePair(newModel, this.getAltConf());
-        stateList.addLast(msp);
-        changedSinceSave = true;
     }
 //}}}
 
