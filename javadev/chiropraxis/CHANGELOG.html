@@ -20,6 +20,7 @@
     doesn't save changes when you close it. (Snaps back to original backrub 
     coords).  Multiple sequential backrubs open at once seems to have similar 
     issues.
+    Bug: ModelManager2 frozen model kin: alt 'b' master affects alt 'a' model
     
 ==============================================================================
 ===  CHANGE LOG  =============================================================
@@ -31,6 +32,11 @@
 - Added BackboneMoveFinder (a la BackrubFinder2) to find shears and/or backrubs
   within ensembles
 - Synced method signatures so SubImpose & ScMcSwapper play nice together
+- Added method to ModelManager2 to make relative occupancies of remodeled atoms
+  sensible
+- Tried & aborted several ways of splitting ' ' into alts during backrub or 
+  shear in ModelManager2; realized that IWD's "Choose alt conf" & "Create alt 
+  conf" options are enough!
 
 ### 1.07 ### dak
 - Added ShearTool, etc.: prototype for (helix) shear backbone changes
