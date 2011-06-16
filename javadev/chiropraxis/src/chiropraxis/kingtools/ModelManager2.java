@@ -620,6 +620,8 @@ public class ModelManager2 extends Plugin
     * Given a Model, we traverse its ModelStates, looking for AtomStates whose alts don't match.
     * E.g., an AtomState with alt conf 'A' hiding in ModelState 'B'.
     * This is done in a smart way, so that if that AtomState were also in ModelState 'A', it is unaffected.
+    * We also make sure an Atom isn't left with just one alt conf, e.g. 
+    * only alt 'A' but no alt 'B' or 'C' -- that just wouldn't make sense.
     */
     void adjustAltConfLabels(Model m)
     {
@@ -639,11 +641,50 @@ public class ModelManager2 extends Plugin
                         AtomState as = state.get(a);
                         // If we haven't seen this before, set its alt ID
                         if(allAS.add(as)) as.setAltConf(altLabel);
+                        
                     }
                     catch(AtomException ex) {}
                 }
             }
         }
+        
+        // Problem with IWD's method above: If the user remodeled alt 'A' in a residue 
+        // with no alts, the shifted AtomState (initally with alt ' ' in ModelState 'A')
+        // will get relabeled to alt 'A' even though the residue has no other alts, 
+        // so the output PDB will have alt 'A' but no alt 'B' or 'C'.
+        // Solution: Revert to alt ' ' for AtomStates whose Atoms have non-' ' alt 
+        // for only *one* ModelState.  -DAK 110616
+        for(Iterator ri = m.getResidues().iterator(); ri.hasNext(); )
+        {
+            Residue r = (Residue) ri.next();
+            for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
+            {
+                Atom a = (Atom) ai.next();
+                int numAltConfs = 0;
+                CheapSet altConfAS = new CheapSet(new IdentityHashFunction());
+                for(Iterator msi = m.getStates().keySet().iterator(); msi.hasNext(); )
+                {
+                    String altLabel = (String) msi.next();
+                    ModelState state = (ModelState) m.getStates().get(altLabel);
+                    try
+                    {
+                        AtomState as = state.get(a);
+                        if(!as.getAltConf().equals(" ")) altConfAS.add(as);
+                    }
+                    catch(AtomException ex) {}
+                }
+                //if(altConfAS.size() == 0) -- no alt conf labels to reconfigure
+                if(altConfAS.size() == 1)
+                {
+                    AtomState as = (AtomState) altConfAS.iterator().next();
+                    as.setAltConf(" ");
+                }
+                //if(altConfAS.size() > 1) -- already split into alt confs
+                
+            }
+        }
+        
+        
     }
 //}}}
 
