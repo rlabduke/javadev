@@ -374,10 +374,14 @@ public class Residue implements Comparable
     */
     public String nickname()
     {
-        return this.getName().trim().toLowerCase()
-              +this.getChain().replace(" ", "_")//.toLowerCase()
+        return this.getName().trim().substring(0,1).toUpperCase()
+              +this.getName().trim().substring(1).toLowerCase()
               +this.getSequenceNumber().trim()
               +this.getInsertionCode().trim();
+        /*return this.getName().trim().toLowerCase()
+              +this.getChain().replace(" ", "_")//.toLowerCase()
+              +this.getSequenceNumber().trim()
+              +this.getInsertionCode().trim();*/
     }
 //}}}
 
