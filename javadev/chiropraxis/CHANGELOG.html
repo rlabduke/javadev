@@ -37,8 +37,12 @@
 - Tried & aborted several ways of splitting ' ' into alts during backrub or 
   shear in ModelManager2; realized that IWD's "Choose alt conf" & "Create alt 
   conf" options are enough!
-- Added routine to ModelManager2.adjustAltConfLabels(..) to avoid atoms with alt
-  A but no other alts (i.e. no alt B or C)
+- Added routine to ModelManager2.adjustAltConfLabels(..) to avoid non-het atoms 
+  with only one alt (e.g. A but no B or C); non-het only b/c I think waters can
+  have only one alt if they correspond only to one alt (not the other) of a sc
+- More tweaks to ^
+- Added MethylRotator tool for aa types with methyl groups (Met, Val, Thr, etc.)
+- Added AvgStrucGenerator3, which should supercede both previous versions
 
 ### 1.07 ### dak
 - Added ShearTool, etc.: prototype for (helix) shear backbone changes
