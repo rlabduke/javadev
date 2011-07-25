@@ -19,16 +19,21 @@ import driftwood.moldb2.*;
 import driftwood.util.SoftLog;
 //}}}
 /**
-* <code>SidechainRotator</code> is a GUI for repositioning a sidechain
-* based on its dihedral angles (chi1, chi2, etc).
+* <code>MethylRotator</code> is a GUI for repositioning a sidechain
+* based on rotations of its methyl groups.
 *
-* <p>Copyright (C) 2003 by Ian W. Davis. All rights reserved.
-* <br>Begun on Thu May  8 15:36:11 EDT 2003
+* <p>Copyright (C) 2011 by Daniel A. Keedy. All rights reserved.
+* <br>Begun on Fri Jul  1 2011
 */
-public class SidechainRotator implements Remodeler, ChangeListener, ListSelectionListener, WindowListener
+public class MethylRotator implements Remodeler, ChangeListener, ListSelectionListener, WindowListener
 {
 //{{{ Constants
-    static final DecimalFormat df1 = new DecimalFormat("0.0");
+    static final DecimalFormat df1 = new DecimalFormat("+0.0;-0.0");
+    static final DecimalFormat df0 = new DecimalFormat("0");
+    
+    static final Color normalColor  = new Color(0f, 0f, 0f);
+    static final Color mediumColor  = new Color(0.3f, 0f, 0f);
+    static final Color alertColor   = new Color(0.6f, 0f, 0f);
 //}}}
 
 //{{{ Variable definitions
@@ -46,7 +51,7 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
     JCheckBox           useDaa;
     JList               rotamerList;
     AngleDial[]         dials;
-    JLabel              rotaQuality;
+    JLabel[]            labels;
     
     /** Marker for logical multi-dial update */
     boolean     isUpdating      = false;
@@ -56,19 +61,18 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
 //##################################################################################################
     /**
     * Constructor
-    * @throws IllegalArgumentException if the residue code isn't recognized
     * @throws IOException if the needed resource(s) can't be loaded from the JAR file
-    * @throws NoSuchElementException if the resource is missing a required entry
+    * @throws IllegalArgumentException if the residue code isn't recognized
     */
-    public SidechainRotator(KingMain kMain, Residue target, ModelManager2 mm) throws IOException
+    public MethylRotator(KingMain kMain, Residue target, ModelManager2 mm) throws IOException
     {
-        this.kMain      = kMain;
-        this.targetRes  = target;
-        this.modelman   = mm;
-        this.scAngles   = new SidechainAngles2();
-        this.rotamer    = Rotamer.getInstance();
-        this.scFlipper  = new SidechainsLtoD();
-        try { scIdealizer = new SidechainIdealizer(); }
+        this.kMain       = kMain;
+        this.targetRes   = target;
+        this.modelman    = mm;
+        this.scAngles    = new SidechainAngles2();
+        //this.rotamer    = Rotamer.getInstance();
+        //this.scFlipper  = new SidechainsLtoD();
+        try { this.scIdealizer = new SidechainIdealizer(); }
         catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
 
         buildGUI(kMain.getTopWindow());
@@ -83,10 +87,12 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
     {
         // Dials
         TablePane dialPane = new TablePane();
-        String[] angleNames = scAngles.nameAllAngles(targetRes);
+        String[] angleNames = scAngles.nameMethylAngles(targetRes);
         if(angleNames == null)
             throw new IllegalArgumentException("Bad residue code '"+targetRes.getName()+"' isn't recognized");
-        double[] angleVals = scAngles.measureAllAngles(targetRes, modelman.getMoltenState());
+        if(angleNames.length == 0)
+            throw new IllegalArgumentException("Residue type '"+targetRes.getName()+"' doesn't have any methyls");
+        double[] angleVals = scAngles.measureMethylAngles(targetRes, modelman.getMoltenState());
         
         dials = new AngleDial[angleNames.length];
         for(int i = 0; i < angleNames.length; i++)
@@ -100,33 +106,23 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
             dialPane.newRow();
         }
         
+        // Warnings for large methyl rotations (analogous to rotamer quality readout)
+        TablePane labelPane = new TablePane();
+        
+        labels = new JLabel[angleNames.length];
+        for(int i = 0; i < angleNames.length; i++)
+        {
+            labels[i] = new JLabel();
+            labels[i].setToolTipText("Quality assessment for the current methyl rotation");
+            labelPane.add(labels[i]);
+            labelPane.newRow();
+        }
+        setFeedback();
+        
         // Top-level pane
         JPanel twistPane = new JPanel(new BorderLayout());
         twistPane.add(dialPane, BorderLayout.WEST);
-        
-        // Rotamer list
-        RotamerDef[] rotamers = scAngles.getAllRotamers(targetRes);
-        if(rotamers == null)
-            throw new IllegalArgumentException("Bad residue code '"+targetRes.getName()+"' isn't recognized");
-        RotamerDef origRotamer = new RotamerDef();
-        origRotamer.rotamerName = "original";
-        origRotamer.chiAngles = scAngles.measureChiAngles(targetRes, modelman.getMoltenState());
-        RotamerDef[] rotamers2 = new RotamerDef[ rotamers.length+1 ];
-        System.arraycopy(rotamers, 0, rotamers2, 1, rotamers.length);
-        rotamers2[0] = origRotamer;
-        rotamerList = new JList(rotamers2);
-        rotamerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        rotamerList.setSelectionModel(new ReclickListSelectionModel(rotamerList));
-        rotamerList.addListSelectionListener(this);
-        
-        // Rotamer quality readout
-        rotaQuality = new JLabel();
-        rotaQuality.setToolTipText("Quality assessment for the current side-chain conformation");
-        setFeedback();
-        TablePane rotamerPane = new TablePane();
-        rotamerPane.hfill(true).vfill(true).weights(1,1).addCell(new JScrollPane(rotamerList));
-        rotamerPane.newRow().weights(1,0).add(rotaQuality);
-        twistPane.add(rotamerPane, BorderLayout.CENTER);
+        twistPane.add(labelPane, BorderLayout.CENTER);
         
         // Other controls
         TablePane optionPane = new TablePane();
@@ -134,32 +130,29 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
         if(scIdealizer != null) cbIdealize.setSelected(true);
         else                    cbIdealize.setEnabled(false);
         optionPane.addCell(cbIdealize);
-        
-        useDaa = new JCheckBox(new ReflectiveAction("Use D-amino acid", null, this, "onDaminoAcid"));
-        useDaa.setSelected(false);
-        optionPane.addCell(useDaa);
         twistPane.add(optionPane, BorderLayout.NORTH);
         
-        JButton btnRelease = new JButton(new ReflectiveAction("Finished", null, this, "onReleaseResidue"));
-        JButton btnBackrub = new JButton(new ReflectiveAction("BACKRUB", null, this, "onBackrub"));
-        JButton btnMethyls = new JButton(new ReflectiveAction("Methyls", null, this, "onMethyls"));
+        JButton btnRelease  = new JButton(new ReflectiveAction("Finished", null, this, "onReleaseResidue"));
+        JButton btnRotateSc = new JButton(new ReflectiveAction("Rotate sidechain", null, this, "onRotateSidechain"));
         TablePane2 btnPane = new TablePane2();
         btnPane.addCell(btnRelease);
-        btnPane.addCell(btnBackrub);
-        btnPane.addCell(btnMethyls);
+        btnPane.addCell(btnRotateSc);
         twistPane.add(btnPane, BorderLayout.SOUTH);
         
         // Assemble the dialog
-        if (kMain.getPrefs().getBoolean("minimizableTools")) {
-          JFrame fm = new JFrame(targetRes.toString()+" rotator");
-          fm.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-          fm.setContentPane(twistPane);
-          dialog = fm;
-        } else {
-          JDialog dial = new JDialog(frame, targetRes.toString()+" rotator", false);
-          dial.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-          dial.setContentPane(twistPane);
-          dialog = dial;
+        if(kMain.getPrefs().getBoolean("minimizableTools"))
+        {
+            JFrame fm = new JFrame(targetRes.toString()+" methyl rotator");
+            fm.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            fm.setContentPane(twistPane);
+            dialog = fm;
+        }
+        else
+        {
+            JDialog dial = new JDialog(frame, targetRes.toString()+" methyl rotator", false);
+            dial.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+            dial.setContentPane(twistPane);
+            dialog = dial;
         }
         dialog.addWindowListener(this);
         dialog.pack();
@@ -167,7 +160,7 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
     }
 //}}}
 
-//{{{ onReleaseResidue, onBackrub, onMethyls, onIdealizeOnOff, onDaminoAcid
+//{{{ onReleaseResidue, onRotateSidechain, onIdealizeOnOff
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     /**
@@ -184,68 +177,32 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
         if(reply == JOptionPane.YES_OPTION)
         {
             modelman.requestStateChange(this); // will call this.updateModelState()
-            modelman.addUserMod("Refit sidechain of "+targetRes);
+            modelman.addUserMod("Refit sidechain methyl(s) of "+targetRes);
         }
         else //  == JOptionPane.NO_OPTION
             modelman.unregisterTool(this);
         
         dialog.dispose();
     }
-
+    
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onBackrub(ActionEvent ev)
+    /**
+    * Launches a SidechainRotator window for this residue.
+    * @param ev is ignored, may be null.
+    */
+    public void onRotateSidechain(ActionEvent ev)
     {
-        try { new BackrubWindow(kMain, targetRes, modelman); }
-        catch(IllegalArgumentException ex)
+        try
         {
-            JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                targetRes+" doesn't have neighbors in the same chain.\n",
-                "Sorry!", JOptionPane.ERROR_MESSAGE);
+            new SidechainRotator(kMain, targetRes, modelman);
         }
-    }
-
-    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
-    public void onMethyls(ActionEvent ev)
-    {
-        try { new MethylRotator(kMain, targetRes, modelman); }
-        catch(IllegalArgumentException ex)
-        {
-            JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                targetRes+" doesn't have methyl groups in its sidechain.\n",
-                "Sorry!", JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace(SoftLog.err);
-        }
-        catch(IOException ex)
-        {
-            JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                "Can't load needed resource(s) from the JAR file for "+targetRes+"\n",
-                "Sorry!", JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace(SoftLog.err);
-        }
+        catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
     }
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onIdealizeOnOff(ActionEvent ev)
     {
         stateChanged(null);
-    }
-    
-    public void onDaminoAcid(ActionEvent ev)
-    {
-        Object[] options = {"Absolutely", "No, that's unnatural"};
-        int reply = JOptionPane.showOptionDialog(dialog, 
-            "Are you sure you want to change the\nchirality (L vs. D) of this residue?",
-            "Change chirality?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
-            null, options, options[1]);
-        
-        if(reply == JOptionPane.YES_OPTION)
-        {
-            stateChanged(null);
-        }
-        else //  == JOptionPane.NO_OPTION
-        {
-            useDaa.setSelected(!useDaa.isSelected()); // cancel checkbox selection
-        }
     }
 //}}}
 
@@ -352,21 +309,38 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
     */
     public void setFeedback()
     {
-        //rotaQuality.setText("-???-");
-        try
+        for(int i = 0; i < dials.length; i++)
         {
-            double score = rotamer.evaluate(targetRes, modelman.getMoltenState()) * 100.0;
-            String eval;
-            if(score > 20)          eval = "Excellent";
-            else if(score > 10)     eval = "Good";
-            else if(score >  2)     eval = "Fair";
-            else if(score >  1)     eval = "Poor";
-            else                    eval = "OUTLIER";
-            rotaQuality.setText(eval+" ("+df1.format(score)+"%)");
-        }
-        catch(IllegalArgumentException ex)
-        {
-            rotaQuality.setText("-");
+            double rotAngle = Math.abs(dials[i].getDegrees() - dials[i].getOrigDegrees());
+            if(Double.isNaN(rotAngle))
+            {
+                labels[i].setText("-?-");
+            }
+            else if(rotAngle > 15)
+            {
+                labels[i].setText("LARGE CHANGE");
+                labels[i].setForeground(alertColor);
+            }
+            else if(rotAngle > 10)
+            {
+                labels[i].setText("medium change");
+                labels[i].setForeground(alertColor);
+            }
+            else if(rotAngle > 5)
+            {
+                labels[i].setText("medium change");
+                labels[i].setForeground(mediumColor);
+            }
+            else if(rotAngle > 0)
+            {
+                labels[i].setText("small change");
+                labels[i].setForeground(normalColor);
+            }
+            else // rotAngle == 0
+            {
+                labels[i].setText("no change");
+                labels[i].setForeground(normalColor);
+            }
         }
     }
 //}}}
@@ -390,17 +364,10 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
         ModelState ret = s;
         if(scIdealizer != null && cbIdealize.isSelected())
             ret = scIdealizer.idealizeSidechain(targetRes, s);
-        if (useDaa.isSelected()) {
-          try {
-            ret = scFlipper.changeSidechainLtoD(targetRes, s);
-          } catch (AtomException ae) {
-            ae.printStackTrace(SoftLog.err);
-            ret = s;
-          }
-        }
-        
-        ret = scAngles.setAllAngles(targetRes, ret, this.getAllAngles());
-        return ret;
+        // Set methyl angles using "all" angles from this class (i.e. all *methyl* angles)
+        //ret = scAngles.setAllAngles(targetRes, ret, this.getAllAngles());
+        ret = scAngles.setMethylAngles(targetRes, ret, this.getAllAngles());
+        return ret;            
     }
 //}}}
 

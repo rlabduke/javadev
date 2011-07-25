@@ -369,7 +369,7 @@ public class SupKitchen //extends ... implements ...
     public boolean chainIsProt(CoordinateFile chain)
     {
         final String aaNames = 
-            "GLY:ALA:VAL:PHE:PRO:MET:ILE:LEU:ASP:GLU:LYS:ARG:SER:THR:TYR:HIS:CYS:ASN:GLN:TRP";
+            "GLY:ALA:VAL:PHE:PRO:MET:MSE:ILE:LEU:ASP:GLU:LYS:ARG:SER:THR:TYR:HIS:CYS:ASN:GLN:TRP";
         int countProt = 0;
         int countOth  = 0;
         for(Iterator rItr = chain.getFirstModel().getResidues().iterator(); rItr.hasNext(); )
@@ -378,7 +378,8 @@ public class SupKitchen //extends ... implements ...
             if(aaNames.indexOf(r.getName()) != -1)  countProt++;
             else                                    countOth++;
         }
-        if(countProt > countOth && countProt >= 30) return true; // try to avoid short, bound peptides
+        //if(countProt > countOth && countProt >= 30) return true; // try to avoid short, bound peptides
+        if(countProt > countOth) return true;
         return false;
     }
 //}}}

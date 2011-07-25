@@ -38,6 +38,7 @@ public class SidechainAngles2 //extends ... implements ...
     Set     knownAA;            // 3 letter codes for all known amino acids
     Map     chisPerAA;          // <code,Integer>
     Map     anglesForAA;        // <code,String[] of angle names>
+    Map     methylsForAA;       // <code,String[] of methyl angle names>
     Map     atomsForAngle;      // <code.angle_name,String[] of atom names>
     Map     rotamersForAA;      // < code, Collection<RotamerDef> >
     
@@ -73,6 +74,7 @@ public class SidechainAngles2 //extends ... implements ...
         // Create data structures
         chisPerAA           = new UberMap();
         anglesForAA         = new UberMap();
+        methylsForAA        = new UberMap();
         atomsForAngle       = new UberMap();
         rotamersForAA       = new UberMap();
         
@@ -95,14 +97,28 @@ public class SidechainAngles2 //extends ... implements ...
         Integer numChiAngles = new Integer(props.getInt(aaname+".chis"));
         chisPerAA.put(aaname, numChiAngles);
 
-        // Find list of all mobile angles
+        // Find list of all mobile angles (except methyls)
         String[] anglelist = Strings.explode(props.getString(aaname+".angles"), ',', false, true);
         anglesForAA.put(aaname, anglelist);
         
-        // Load 4-atom definition for each mobile dihedral
+        // Find list of all mobile methyl angles
+        String[] methyllist = Strings.explode(props.getString(aaname+".methylangles"), ',', false, true);
+        methylsForAA.put(aaname, methyllist);
+        
+        // Load 4-atom definition for each mobile dihedral (except methyls)
         for(int i = 0; i < anglelist.length; i++)
         {
             String key = aaname+"."+anglelist[i];
+            //System.out.print(key + ":");
+            //System.out.println(props.getString(key));
+            String[] atomlist = Strings.explode(props.getString(key), ',');
+            atomsForAngle.put(key, atomlist);
+        }
+        // ... and for each mobile methyl dihedral
+        // (should be OK to store these in the same place)
+        for(int i = 0; i < methyllist.length; i++)
+        {
+            String key = aaname+"."+methyllist[i];
             //System.out.print(key + ":");
             //System.out.println(props.getString(key));
             String[] atomlist = Strings.explode(props.getString(key), ',');
@@ -144,7 +160,7 @@ public class SidechainAngles2 //extends ... implements ...
     }
 //}}}
 
-//{{{ count{Chi, All}Angles, nameAllAngles
+//{{{ count{Chi, All, Methyl}Angles, name{All, Methyl}Angles
 //##################################################################################################
     /**
     * Returns the number of chi angles for the given 3-letter residue code,
@@ -160,7 +176,7 @@ public class SidechainAngles2 //extends ... implements ...
     
     /**
     * Returns the number of mobile angles for the given 3-letter residue code,
-    * including mobile H (Ser OH, Met CH3, etc),
+    * including mobile hydroxyl (Ser OH) but not methyl (Met CH3),
     * or -1 if that residue is unknown to the system
     */
     public int countAllAngles(Residue res)
@@ -172,7 +188,21 @@ public class SidechainAngles2 //extends ... implements ...
     }
     
     /**
+    * Returns the number of methyl angles for the given 3-letter residue code 
+    * (Ala, Val[2], Leu[2], Ile[2], Met, Mse, Thr),
+    * or -1 if that residue is unknown to the system
+    */
+    public int countMethylAngles(Residue res)
+    {
+        String rescode = res.getName().toLowerCase();
+        String[] methyls = (String[])methylsForAA.get(rescode);
+        if(methyls == null) return -1;
+        else return methyls.length;
+    }
+    
+    /**
     * Returns a String[] of all the named angles known for a given residue code,
+    * including mobile hydroxyl (Ser OH) but not methyl (Met CH3),
     * or null if that residue is unknown.
     */
     public String[] nameAllAngles(Residue res)
@@ -183,6 +213,18 @@ public class SidechainAngles2 //extends ... implements ...
         else return (String[])angles.clone();
     }
 
+    /**
+    * Returns a String[] of all the named methyl angles known for a given residue code,
+    * (Ala, Val[2], Leu[2], Ile[2], Met, Mse, Thr),
+    * or null if that residue is unknown.
+    */
+    public String[] nameMethylAngles(Residue res)
+    {
+        String rescode = res.getName().toLowerCase();
+        String[] methyls = (String[])methylsForAA.get(rescode);
+        if(methyls == null) return null;
+        else return (String[])methyls.clone();
+    }
 //}}}
 
 //{{{ measureAngle
@@ -211,10 +253,11 @@ public class SidechainAngles2 //extends ... implements ...
     }
 //}}}
 
-  //{{{ getAngleAtomStates
+//{{{ getAngleAtomStates
+//##################################################################################################
   /**
   * For dealing with possible multiple names for atoms of the dihedrals (due to PDB format change).
-  * I have put semi-colon deliminted alternates for atom names in the dihedral definitions
+  * I have put semicolon-delimited alternates for atom names in the dihedral definitions
   * in angles.props.
   * @return AtomState[] that should contain 4 AtomStates corresponding to the proper atoms.
   **/
@@ -400,6 +443,49 @@ public class SidechainAngles2 //extends ... implements ...
             try { state = setAngle("chi"+(i+1), res, state, values[i]); }
             catch(IllegalArgumentException ex)  { ex.printStackTrace(SoftLog.err); }
             catch(AtomException ex)             { ex.printStackTrace(SoftLog.err); }
+        }
+        
+        return state;
+    }
+//}}}
+
+//{{{ measureMethylAngles, setMethylAngles
+//##################################################################################################
+    /** Angles that throw an AtomException (missing Atom/AtomState) are evaluated as Double.NaN */
+    public double[] measureMethylAngles(Residue res, ModelState state)
+    {
+        String rescode = res.getName().toLowerCase();
+        String[] methyls = nameMethylAngles(res);
+        if(methyls == null) throw new IllegalArgumentException("Unknown residue type");
+        
+        double[] values = new double[ methyls.length ];
+        for(int i = 0; i < methyls.length; i++)
+        {
+            try { values[i] = measureAngle(methyls[i], res, state); }
+            catch(AtomException ex) { values[i] = Double.NaN; }
+        }
+        
+        return values;
+    }
+    
+    /** Angles that are set to NaN are ignored. */
+    public ModelState setMethylAngles(Residue res, ModelState state, double[] values)
+    {
+        String rescode = res.getName().toLowerCase();
+        String[] methyls = nameMethylAngles(res);
+        if(methyls == null)
+            throw new IllegalArgumentException("Unknown residue type");
+        if(values.length < methyls.length)
+            throw new IllegalArgumentException("Not enough methyl angles specified");
+        
+        for(int i = 0; i < methyls.length; i++)
+        {
+            if(!Double.isNaN(values[i]))
+            {
+                try { state = setAngle(methyls[i], res, state, values[i]); }
+                catch(IllegalArgumentException ex)  { ex.printStackTrace(SoftLog.err); }
+                catch(AtomException ex)             { ex.printStackTrace(SoftLog.err); }
+            }
         }
         
         return state;
