@@ -132,7 +132,9 @@ public class KinfileIO implements KinfileLoader.Listener, ListSelectionListener
             if(kins != null)
             {
                 String[] kinlist = Strings.explode(kins, ' ');
+                //for (String kinname : kinlist) SoftLog.err.println(kinname);
                 urlList.setListData(kinlist);
+        //urlList = new FatJList(150, 12);
             }
         }
         urlList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -320,6 +322,7 @@ public class KinfileIO implements KinfileLoader.Listener, ListSelectionListener
                 try
                 {
                     URL kinURL = new URL(applet.getDocumentBase(), applet.getParameter("kinfileBase")+"/"+name);
+                    //SoftLog.err.println(applet.getParameter("kinfileBase")+"/"+name);
                     urlField.setText(kinURL.toString());
                 }
                 catch(MalformedURLException ex)
@@ -354,6 +357,49 @@ public class KinfileIO implements KinfileLoader.Listener, ListSelectionListener
         catch(IOException ex)
         { loadingException(ex); }
     }
+    
+    /** For loading multiple URLs upon startup of a king applet (use with kinfileBase and kinfileList) **/
+    public void loadURLs(URL[] kinList) {
+      //for(int i = 0; i < urlList.getModel().getSize(); i++) {
+      //  Object o = urlList.getModel().getElementAt(i));
+      //  if(o == null) {}
+      //  else
+      //  {
+      //    String name = o.toString();
+          
+          JApplet applet = kMain.getApplet();
+          if(applet != null)
+          {
+            try
+            {
+              //URL kinURL = new URL(applet.getDocumentBase(), applet.getParameter("kinfileBase")+"/"+name);
+              //SoftLog.err.println(applet.getParameter("kinfileBase")+"/"+name);
+              for (URL kinURL : kinList) {
+              
+              fName = kinURL.getFile();
+              
+              URLConnection uconn = kinURL.openConnection();
+              uconn.setAllowUserInteraction(false);
+              uconn.connect();
+              
+              loadStream(uconn.getInputStream(), uconn.getContentLength(), null);
+              // Execution halts here until ioException()
+              // or loadingComplete() closes the dialog.
+              }
+            }
+            catch(IOException ex)
+            { loadingException(ex); }
+            //catch(MalformedURLException ex)
+            //{
+            //  SoftLog.err.println(applet.getDocumentBase());
+            //  SoftLog.err.println(applet.getParameter("kinfileBase"));
+            //  //SoftLog.err.println(name);
+            //  ex.printStackTrace(SoftLog.err);
+            //}
+          }
+        }
+      //}
+    //}
 
     /** Like loadFile, but it takes an InputStream. */
     public void loadStream(InputStream in, int dataLen, Kinemage kin)

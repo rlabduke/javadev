@@ -285,6 +285,8 @@ public class KingMain implements WindowListener
         {
             URL kinURL = getAppletKinURL();
             if(kinURL != null) this.getKinIO().loadURL(kinURL, null);
+            URL[] kinList = getAppletKinURLList();
+            if(kinList != null) this.getKinIO().loadURLs(kinList);
         }
         catch(MalformedURLException ex)
         { SoftLog.err.println("<PARAM> kinSource specified an unresolvable URL."); }
@@ -321,6 +323,21 @@ public class KingMain implements WindowListener
         
         if(kinsrc != null) return new URL(theApplet.getDocumentBase(), kinsrc);
         else return null;
+    }
+    
+    public URL[] getAppletKinURLList() throws MalformedURLException {
+      String kinBase = theApplet.getParameter("kinfileBase");
+      String kins = theApplet.getParameter("kinfileList");
+      if(kins != null && kinBase != null)
+      {
+        String[] kinlist = Strings.explode(kins, ' ');
+        URL[] urllist = new URL[kinlist.length];
+        for (int i = 0; i < kinlist.length; i++) {
+          urllist[i] = new URL(theApplet.getDocumentBase(), kinBase+"/"+kinlist[i]);
+        }
+        return urllist;
+      }
+      return null;
     }
     
     public URL getAppletPdbURL() throws MalformedURLException {
