@@ -162,33 +162,48 @@ public class Engine2D extends Engine
                 KList   l   = (KList) pnt.get(j);
                 if(l == null)
                 {
-                    KList parent = pt.getParent();
-                    if(!parent.getScreen()) pt.paint2D(this);
-                    else
-                    {
-                        // Screen-oriented hack (DAK 090506)
-                        // Seems like Ian took pains to speed up operations in this 
-                        // method, but my hack addition here should be accessed only
-                        // rarely and thus shouldn't slow KiNG down too much.
-                        int oldColorCue = colorCue;
-                        int oldWidthCue = widthCue;
-                        colorCue = KPaint.COLOR_LEVELS/2;//-1; 
-                        widthCue = KPaint.COLOR_LEVELS/2;//-1; 
-                        pt.paint2D(this);
-                        colorCue = oldColorCue;
-                        widthCue = oldWidthCue;
-                    }
+                    renderPoint(pt);
                 }
                 else // see setActingParent() for an explanation
                 {
                     KList oldPnt = pt.getParent();
                     pt.setParent(l);
-                    pt.paint2D(this);
+                    renderPoint(pt);
                     pt.setParent(oldPnt);
                 }
             }
         }
     }    
+//}}}
+
+//{{{ renderPoint
+//##################################################################################################
+    /**
+    * Renders a single point provided by renderLoop().
+    * This method was added so multiple for-loops in renderLoop()
+    * go through the exact same point-rendering procedure.
+    */
+    void renderPoint(KPoint pt)
+    {
+        // The stored parent at this point is the proper one,
+        // even if we're doing the weird acting parent hijinx.
+        KList parent = pt.getParent();
+        if(!parent.getScreen()) pt.paint2D(this);
+        else
+        {
+            // Screen-oriented hack (DAK 090506)
+            // Seems like Ian took pains to speed up operations in this 
+            // method, but my hack addition here should be accessed only
+            // rarely and thus shouldn't slow KiNG down too much.
+            int oldColorCue = colorCue;
+            int oldWidthCue = widthCue;
+            colorCue = KPaint.COLOR_LEVELS/2;//-1; 
+            widthCue = KPaint.COLOR_LEVELS/2;//-1; 
+            pt.paint2D(this);
+            colorCue = oldColorCue;
+            widthCue = oldWidthCue;
+        }
+    }
 //}}}
 
 //{{{ getCanvasSize, setTransparentBackground
