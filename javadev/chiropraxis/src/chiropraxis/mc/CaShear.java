@@ -81,6 +81,11 @@ public class CaShear extends CaRotation
         ca4 = res4.getAtom(" CA ");
         if(ca1 == null || ca2 == null || ca3 == null || ca4 == null)
             throw new AtomException("C-alpha is missing from "+res1+", "+res2+", "+res3+", or "+res4);
+        Atom c2, o2;
+        c2 = res2.getAtom(" C  ");
+        o2 = res2.getAtom(" O  ");
+        if(c2 == null || o2 == null)
+            throw new AtomException("Carbonyl is missing from "+res2);
         
         // Split up atoms into three groups, one per peptide
         Atom[] atoms = getMobileAtoms(residues);
@@ -123,7 +128,7 @@ public class CaShear extends CaRotation
         normal234.add(rv1.get(ca4));
         
         // Find second rotation that best preserves original distance between second and third CAs
-        // Try up to double the first rotation in 0.1 degree increments
+        // Try up to 1.5x the first rotation in 0.1 degree increments
         double distOrig     = Triple.distance(state.get(ca2), state.get(ca3));
         double distBest     = Double.POSITIVE_INFINITY;
         double distDiffBest = Double.POSITIVE_INFINITY;
@@ -151,26 +156,55 @@ public class CaShear extends CaRotation
         Transform   rot2  = new Transform().likeRotation(rv1.get(ca4), normal234, theta2);
         ModelState  rv2   = transformAtoms(rot2, pep3, rv1);
         
-        // "Plug in" interstitial peptide
+        // "Plug in" middle peptide
         AtomState[] ca23orig = new AtomState[] {state.get(ca2), state.get(ca3)};
         AtomState[] ca23movd = new AtomState[] {rv2.get(ca2),   rv2.get(ca3)};
         SuperPoser  poser  = new SuperPoser(ca23movd, ca23orig);
         Transform   sup    = poser.superpos();
         ModelState  rv3    = transformAtoms(sup, pep2, rv2);
         
-        // XX-TODO: Adjust interstitial peptide, factoring in the following:
-        // pep planarity, Ca2 & Ca3 tau, C=O dirn, bond geom distortions, ...
+        ModelState rv4 = rv3;
+        /*{{{ Aborted manual middle peptide rotation
+        // I thought about manually rotating the middle peptide 
+        // to make sure its C=O is as near as possible to its original direction,
+        // but in practice SuperPoser.superpos() seems to do just fine with 2 points.
+        // Middle peptide rotations will probably be tried anyway, 
+        // either manually in KiNG or systematically in some automated refit program.
+        Triple origCO = state.get(o2).sub(state.get(c2));
+        double angleBest = Double.POSITIVE_INFINITY;
+        double theta3 = 0;
+        for(double t = -15.0; t < 15.0; t += 0.1)
+        {
+            // Try a middle peptide rotation
+            Transform   rot3  = new Transform().likeRotation(rv3.get(ca2), rv3.get(ca3), t);
+            ModelState  rv4   = transformAtoms(rot3, pep2, rv3);
+            
+            // See how close middle C=O direction is to its original direction
+            Triple movdCO = rv4.get(o2).sub(rv4.get(c2));
+            double angleCurr = origCO.angle(movdCO);
+            if(angleCurr < angleBest)
+            {
+                angleBest = angleCurr;
+                theta3 = t;
+            }
+        }
+        
+        // Do best middle peptide rotation
+        theta3 = Math.round(theta3 * 10) / 10; // so we stay at 0.0 for no shear
+        Transform   rot3  = new Transform().likeRotation(rv3.get(ca2), rv3.get(ca3), theta3);
+        ModelState  rv4   = transformAtoms(rot3, pep2, rv3);
+        }}}*/
         
         // Fix the sidechains
         if(idealizeSC && sidechainIdealizer != null)
         {
-            rv3 = sidechainIdealizer.idealizeSidechain(res1, rv3);
-            rv3 = sidechainIdealizer.idealizeSidechain(res2, rv3);
-            rv3 = sidechainIdealizer.idealizeSidechain(res3, rv3);
-            rv3 = sidechainIdealizer.idealizeSidechain(res4, rv3);
+            rv4 = sidechainIdealizer.idealizeSidechain(res1, rv4);
+            rv4 = sidechainIdealizer.idealizeSidechain(res2, rv4);
+            rv4 = sidechainIdealizer.idealizeSidechain(res3, rv4);
+            rv4 = sidechainIdealizer.idealizeSidechain(res4, rv4);
         }
         
-        return rv3.createCollapsed(state);
+        return rv4.createCollapsed(state);
     }
 //}}}
 

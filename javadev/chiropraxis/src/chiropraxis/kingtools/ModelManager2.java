@@ -620,21 +620,15 @@ public class ModelManager2 extends Plugin
     * Given a Model, we traverse its ModelStates, looking for AtomStates whose alts don't match.
     * E.g., an AtomState with alt conf 'A' hiding in ModelState 'B'.
     * This is done in a smart way, so that if that AtomState were also in ModelState 'A', it is unaffected.
-    * We also make sure an Atom isn't left with just one alt conf, e.g. 
-    * only alt 'A' but no alt 'B' or 'C' -- that just wouldn't make sense.
+    * We also make sure a (non-het) Atom isn't left with just one alt conf, 
+    * e.g. only alt 'A' but no alt 'B' or 'C' -- that just wouldn't make sense.
     */
     void adjustAltConfLabels(Model m)
     {
-        /*CheapSet allAS = new CheapSet(new IdentityHashFunction());*/
-        CheapSet all3DecAS = new CheapSet(new IdentityHashFunction());
-        double precision = 1000; // 3 0s, 3 decimal places
+        CheapSet allAS = new CheapSet(new IdentityHashFunction());
         for(Iterator msi = m.getStates().keySet().iterator(); msi.hasNext(); )
         {
             String altLabel = (String) msi.next();
-            // It's just too complicated to think about 'C' and beyond...
-            // E.g. when remodeling 'A' for a residue with 'A' and 'B' alts,
-            // it's way too easy to mislabel old (pre-move) 'A' as new 'C'.
-            if(" ,A,B".indexOf(altLabel) == -1) continue;
             ModelState state = (ModelState) m.getStates().get(altLabel);
             for(Iterator ri = m.getResidues().iterator(); ri.hasNext(); )
             {
@@ -642,41 +636,29 @@ public class ModelManager2 extends Plugin
                 for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
                 {
                     Atom a = (Atom) ai.next();
-                    // Seems OK to allow only 'B' for e.g. a water that's only  
-                    // compatible with 'B' of an adjacent sidechain.
-                    // It's no good to label it ' ' and just lower its occupancy: 
-                    // Probe thinks other alts can still clash with it.
+                    // Skip hets, because it seems OK to allow e.g. only 'B' 
+                    // for a water that's only compatible with 'B' of an adjacent sidechain.
+                    // It's no good to just label it ' ' and lower its occupancy
+                    // because then Probe thinks other alts can still clash with it.
                     if(a.isHet()) continue;
                     try
                     {
                         AtomState as = state.get(a);
-                        /*// If we haven't seen this before, set its alt ID
-                        if(allAS.add(as)) as.setAltConf(altLabel);*/
-                        // Warning: AtomStates are compared based on x,y,z only; 
-                        // thus the following coordinates are considered different:
-                        //   19.752            , 0.5, -26.194
-                        //   19.751999999999992, 0.5, -26.193999999999996
-                        // But those are the same to the precision of PDB coordinates (*.###),
-                        // so they should probably be treated as equivalent.
-                        // Here's a kludge to make that happen:
-                        AtomState as3Dec = (AtomState) as.clone();
-                        as3Dec.setX( Math.round(as.getX() * precision) / precision );
-                        as3Dec.setY( Math.round(as.getY() * precision) / precision );
-                        as3Dec.setZ( Math.round(as.getZ() * precision) / precision );
                         // If we haven't seen this before, set its alt ID
-                        if(all3DecAS.add(as3Dec)) as.setAltConf(altLabel);
+                        if(allAS.add(as)) as.setAltConf(altLabel);
                     }
                     catch(AtomException ex) {}
                 }
             }
         }
         
-        // Problem with the method above: If the user remodeled alt 'A' in a residue 
-        // with no alts, the shifted AtomState (initally with alt ' ' in ModelState 'A')
-        // will get relabeled to alt 'A' even though the residue has no other alts, 
-        // so the output PDB will have alt 'A' but no alt 'B' or 'C'.
-        // Solution: Revert to alt ' ' for AtomStates whose Atoms have non-' ' alt 
-        // for only *one* ModelState.  -DAK 110616
+        // Remaining "problem": if the user moved a non-alt region in e.g. 'A',
+        // the moved atoms will now have alt label 'A' but lack a corresponding alt 'B'.
+        // We'll assume the user wanted to keep this region non-alt, not split it into alts,
+        // and thus we'll relabel it ' '
+        // This puts the responsibility in the user's hands: 
+        // if he/she really does want to make a split in a non-alt region, 
+        // he/she can manually do it by simply moving in 'A', moving in 'B', and saving.*/
         for(Iterator ri = m.getResidues().iterator(); ri.hasNext(); )
         {
             Residue r = (Residue) ri.next();
@@ -696,41 +678,11 @@ public class ModelManager2 extends Plugin
                     }
                     catch(AtomException ex) {}
                 }
-                //if(altConfAS.size() == 0) -- no alt conf labels to reconfigure
                 if(altConfAS.size() == 1)
                 {
                     AtomState as = (AtomState) altConfAS.iterator().next();
-                    /*as.setAltConf(" "); -- too simple-minded*/
-                    // Because this class forces the user to choose an alt to 
-                    // remodel if the structure has any alts at all, 
-                    // i.e. remodeling state ' ' isn't an option, 
-                    // here we must make an assumption about the user's intent.
-                    // If only alt 'A' was modified, assume the user was just 
-                    // remodeling the primary state did NOT want a split,
-                    // so simply relabel to alt ' '.
-                    if(as.getAltConf().equals("A"))
-                    {
-                        as.setAltConf(" ");
-                        ModelState singleState = (ModelState) m.getStates().get(" ");
-                        singleState.addOverwrite(as);
-                    }
-                    // However, if only alt 'B' (or 'C' or ...) was modified, 
-                    // assume the user DID want a split, so keep this alt as-is, 
-                    // BUT modify alt 'A' for this atom.
-                    // The other states will defer to the unmoved 'A' atom;
-                    // only one state will point to the moved non-'A', non-' ' atom. 
-                    else if("BCD".indexOf(as.getAltConf()) != -1)
-                    {
-                        ModelState state2 = (ModelState) m.getStates().get("A");
-                        try
-                        {
-                            AtomState as2 = state2.get(a);
-                            as2.setAltConf("A");
-                        }
-                        catch(AtomException ex) {}
-                    }
+                    as.setAltConf(" ");
                 }
-                //if(altConfAS.size() > 1) -- already split into alt confs
             }
         }
     }
