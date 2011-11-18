@@ -89,7 +89,7 @@ public class ShearFit //extends ... implements ...
         res.add(r3);
         res.add(r4);
         
-        // Make arrays of atoms for RMSD calculations (default: C-alphas + 2 central C=O oxygens)
+        // Make arrays of atoms for RMSD calculations (default: C-alphas + 3 central C=O oxygens)
         whichAtoms = wa;
         atoms1 = loadAtomStates(state1, new Residue[] {r1, r2, r3, r4}); // will be overwritten
         atoms2 = loadAtomStates(state2, new Residue[] {r1, r2, r3, r4});

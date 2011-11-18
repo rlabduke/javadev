@@ -13,6 +13,7 @@ import java.util.*;
 //import javax.swing.*;
 import driftwood.moldb2.*;
 import driftwood.r3.*;
+import driftwood.util.Strings;
 import chiropraxis.sc.SidechainAngles2;
 //}}}
 /**
@@ -88,6 +89,58 @@ public class SubImpose //extends ... implements ...
     }
 //}}}
 
+//{{{ CLASS: StructureBasedAligner
+//##############################################################################
+    static class StructureBasedAligner implements Alignment.Scorer
+    {
+        public boolean atomsAreEquivalant(AtomState s, AtomState t)
+        {
+            if(s.getName().equals(t.getName()))
+                return true;
+            if(s.getName().equals(" H  ") && t.getName().equals(" CD ")  // Xaa, Pro
+            || s.getName().equals(" HA ") && t.getName().equals(" HA2")  // Xaa, Gly
+            || s.getName().equals(" HA ") && t.getName().equals("1HA ")  // Xaa, Gly
+            || s.getName().equals(" CB ") && t.getName().equals(" HA3")  // Xaa, Gly
+            || s.getName().equals(" CB ") && t.getName().equals("2HA ")) // Xaa, Gly
+                return true;
+            if(s.getName().equals(" CD ") && t.getName().equals(" H  ")  // Pro, Xaa
+            || s.getName().equals(" HA2") && t.getName().equals(" HA ")  // Gly, Xaa
+            || s.getName().equals("1HA ") && t.getName().equals(" HA ")  // Gly, Xaa
+            || s.getName().equals(" HA3") && t.getName().equals(" CB ")  // Gly, Xaa
+            || s.getName().equals("2HA ") && t.getName().equals(" CB ")) // Gly, Xaa
+                return true;
+            return false;
+        }
+        
+        // High is good, low is bad.
+        public double score(Object a, Object b)
+        {
+            AtomState s = (AtomState) a;
+            AtomState t = (AtomState) b;
+            if(s == null || t == null)
+                return -1;  // gap
+            if(!atomsAreEquivalant(s, t))
+                return 0;   // mismatch, even accounting for quasi-structurally-equivalent atom names
+            else if(s.distance(t) > 2)
+                return 0;   // far away
+            else if(s.distance(t) <= 2 && s.distance(t) > 1)
+                return 1;   // in the neighborhood
+            else if(s.distance(t) <= 1 && s.distance(t) > 0.5)
+                return 2;   // close
+            else if(s.distance(t) <= 0.5)
+                return 3;   // very close
+            else
+            {
+                System.err.println("Not sure how to score "+s+" vs. "+t+"!");
+                return 0;
+            }
+        }
+        
+        public double open_gap(Object a) { return extend_gap(a); }
+        public double extend_gap(Object a) { return score(a, null); }
+    }
+//}}}
+
 //{{{ Variable definitions
 //##############################################################################
     boolean verbose = false;
@@ -102,6 +155,7 @@ public class SubImpose //extends ... implements ...
                                 // in structure 1 described in superimpose1 - DAK
     String chainIDs1 = null; // single-character chain IDs from structure 1 to be used in sequence alignment
     String chainIDs2 = null; // single-character chain IDs from structure 2 to be used in sequence alignment
+    String alignFilename = null; // manual sequence alignment input: chain1,resnum1,chain2,resnum2 per line
     Collection rmsd = new ArrayList(); // selection strings to do rmsd over
     double leskSieve = Double.NaN;
     double rmsdCutoff = Double.NaN; // above which PDB is not written out
@@ -187,30 +241,133 @@ public class SubImpose //extends ... implements ...
     }
 //}}}
 
-//{{{ getChains, getSomeChains
+//{{{ readAlignmentFile
 //##############################################################################
-    public static Collection getChains(Model m)
+    private void readAlignmentFile() throws IOException
     {
-        Collection chains = new ArrayList();
-        for(Iterator iter = m.getChainIDs().iterator(); iter.hasNext(); )
+        ArrayList<Residue> aList = new ArrayList<Residue>();
+        ArrayList<Residue> bList = new ArrayList<Residue>();
+        FileInputStream fstream = new FileInputStream(alignFilename);
+        // Get the object of DataInputStream
+        DataInputStream in = new DataInputStream(fstream);
+        BufferedReader br = new BufferedReader(new InputStreamReader(in));
+        // Read file line by line
+        String line = null;
+        while((line = br.readLine()) != null)
         {
-            String chainID = (String) iter.next();
-            chains.add( m.getChain(chainID) );
+            String chain1 = null, chain2 = null;
+            int resnum1 = Integer.MIN_VALUE, resnum2 = Integer.MIN_VALUE;
+            try
+            {
+                // Read line
+                if(line.equals("")) continue; // ignore blank lines
+                String[] parts = Strings.explode(line, ',');
+                if(parts.length != 4 && parts.length != 2)
+                    throw new IllegalArgumentException(
+                        "Format for user-provided alignment file: "+
+                        "chain1,resnum1,chain2,resnum2 per line");
+                resnum1 = Integer.parseInt(parts[1]);
+                resnum2 = Integer.parseInt(parts[3]);
+                if(parts.length == 4)
+                {
+                     chain1 = parts[0];
+                     chain2 = parts[2];
+                }
+                if(chain1 == null || chain1.length() > 2 || chain2 == null || chain2.length() > 2)
+                    throw new IllegalArgumentException(
+                        "Format for user-provided alignment file: "+
+                        "chain1,resnum1,chain2,resnum2 per line");
+                
+                // Find matching residues
+                Residue r1 = null, r2 = null;
+                for(Iterator iter = m1.getResidues().iterator(); iter.hasNext(); )
+                {
+                    Residue r = (Residue) iter.next();
+                    if(parts.length == 4)
+                    {
+                        // Respect chain IDs
+                        if(chain1 != null && r.getChain().equals(chain1)
+                        && resnum1 != Integer.MIN_VALUE && r.getSequenceInteger() == resnum1)
+                        {
+                            r1 = r;
+                            break;
+                        }
+                    }
+                    else //if(parts.length == 2)
+                    {
+                        // Ignore chain IDs
+                        if(resnum1 != Integer.MIN_VALUE && r.getSequenceInteger() == resnum1)
+                        {
+                            r1 = r;
+                            break;
+                        }
+                    }
+                }
+                for(Iterator iter = m2.getResidues().iterator(); iter.hasNext(); )
+                {
+                    Residue r = (Residue) iter.next();
+                    if(parts.length == 4)
+                    {
+                        // Respect chain IDs
+                        if(chain2 != null && r.getChain().equals(chain2)
+                        && resnum2 != Integer.MIN_VALUE && r.getSequenceInteger() == resnum2)
+                        {
+                            r2 = r;
+                            break;
+                        }
+                    }
+                    else //if(parts.length == 2)
+                    {
+                        // Ignore chain IDs
+                        if(resnum2 != Integer.MIN_VALUE && r.getSequenceInteger() == resnum2)
+                        {
+                            r2 = r;
+                            break;
+                        }
+                    }
+                }
+                
+                // Add to alignment
+                if(r1 != null && r2 != null)
+                {
+                    aList.add(r1);
+                    bList.add(r2);
+                    //System.err.println("Added "+r1+" <==> "+r2+" to manual alignment");
+                }
+                else throw new IllegalArgumentException(
+                    "Can't find residues corresponding to "+line+"!");
+            }
+            catch(NumberFormatException ex)
+            { System.err.println("Can't parse number in "+line+"!"); }
         }
-        return chains;
+        
+        Object[] a = new Residue[aList.size()];
+        Object[] b = new Residue[bList.size()];
+        for(int i = 0; i < aList.size(); i++) a[i] = aList.get(i);
+        for(int i = 0; i < bList.size(); i++) b[i] = bList.get(i);
+        if(a.length != b.length) throw new IllegalArgumentException(
+            "Different lengths for 2 sides of manual alignment!");
+        align.a = a;
+        align.b = b;
     }
+//}}}
 
-    // Extra method which allows the user to specify which chains will be used
-    // for sequence alignment, e.g. when multiple copies are present in a crystal
-    // lattice or something. Independent of and preceding actual choice of atoms 
-    // atoms for superposition.
-    public static Collection getSomeChains(Model m, String chainIDs)
+//{{{ getChains
+//##############################################################################
+    /**
+    * If chainIDs is not null, the user has specified which chains will be used
+    * for sequence alignment, e.g. when multiple copies are present in a crystal
+    * lattice or something. Independent of and preceding actual choice of atoms 
+    * atoms for superposition.
+    */
+    public static Collection getChains(Model m, String chainIDs)
     {
         Collection chains = new ArrayList();
         for(Iterator iter = m.getChainIDs().iterator(); iter.hasNext(); )
         {
             String chainID = (String) iter.next();
-            if(chainIDs.indexOf(chainID) == -1) continue; // only use chains of interest
+            if(chainIDs != null && chainIDs.indexOf(chainID) == -1)
+                continue; // only use chains of interest
             chains.add( m.getChain(chainID) );
         }
         return chains;
@@ -225,10 +382,9 @@ public class SubImpose //extends ... implements ...
     * to find what the user thinks should be the corresponding atoms.
     * return as a 2xN array of matched AtomStates, no nulls.
     */
-    public static AtomState[][] getAtomsForSelection(Collection res1, ModelState s1, Collection res2, ModelState s2, String selection1, String selection2, Alignment align, CoordinateFile cf1, CoordinateFile cf2) throws ParseException
+    public static AtomState[][] getAtomsForSelection(Collection res1, ModelState s1, Collection res2, ModelState s2, String selection1, String selection2, Alignment alignment, CoordinateFile cf1, CoordinateFile cf2) throws ParseException
     {
         // Get selected atom states from model 1
-        int numAs1s = 0; // added by DAK
         Selection sel = Selection.fromString(selection1);
         Collection allStates1 = Model.extractOrderedStatesByName(res1, Collections.singleton(s1));
         sel.init(allStates1, cf1);
@@ -239,14 +395,11 @@ public class SubImpose //extends ... implements ...
             if(sel.select(as))  selStates1.add(as);
         }
         
-        // added by DAK
         int matched = 0;
         Collection selStates2 = new ArrayList();
-        //String selection2 = superimpose2; // comes from -super2=[text] flag
-        // ^ now provided as an argument so this method can be called statically - DAK 100301
         if(selection2 != null)
         {
-            // Residue correspondances (sic) given by flag
+            // Residue correspondences given by flag
             // Get selected atom states from model 2
             Selection sel2 = Selection.fromString(selection2);
             Collection allStates2 = Model.extractOrderedStatesByName(res2, Collections.singleton(s2));
@@ -257,23 +410,21 @@ public class SubImpose //extends ... implements ...
                 if(sel2.select(as2))
                 {
                     selStates2.add(as2);
-                    matched++; // placeholder so code below (arranging into nice arrays) doesn't break
+                    matched++;
                 }
             }
         }
         else
         {
-            // Residue correspondances (sic) set up algorithmically as Ian originally intended
+            // Residue correspondences set up algorithmically, as Ian originally intended
             Map map1to2 = new HashMap();
-            for(int i = 0; i < align.a.length; i++)
+            for(int i = 0; i < alignment.a.length; i++)
             {
-                if(align.a[i] != null)
-                    map1to2.put(align.a[i], align.b[i]); // b[i] may be null
+                if(alignment.a[i] != null)
+                    map1to2.put(alignment.a[i], alignment.b[i]); // b[i] may be null
             }
             
             // Get corresponding states from model 2
-            //Collection selStates2 = new ArrayList(); // moved outside of for statement by DAK
-            //int matched = 0; // moved outside of for statement by DAK
             for(Iterator iter = selStates1.iterator(); iter.hasNext(); )
             {
                 AtomState as1 = (AtomState) iter.next();
@@ -321,11 +472,13 @@ public class SubImpose //extends ... implements ...
     }
 //}}}
 
-//{{{ permuteAtoms, next_permutation, reverse
+//{{{ permuteAtoms
 //##############################################################################
     /**
     * Try all possible permutations of selected atoms from structure 1 
-    * vs. the original order of selected atoms from structure 2.
+    * vs. all possible permutations of selected atoms from structure 2.
+    * Preserve N->C sequence order to avoid unmeaningful superpositions, 
+    * so in effect only permute atoms within the same residue.
     * If this method is not used, it is assumed that the atoms were read 
     * in the proper order in both structures and are thus paired correctly.  
     * This often works fine if the same number of atoms is selected per residue, 
@@ -333,60 +486,6 @@ public class SubImpose //extends ... implements ...
     **/
     AtomState[][] permuteAtoms()
     {
-        //{{{ [only mobile]
-        //// Try all possible permutations of selected atoms from mobile structure 
-        //// vs. original order of selected atoms from static structure.
-        //double best_rmsd = Double.POSITIVE_INFINITY;
-        //int max = atoms[0].length; // should == atoms[1].length
-        //int[] x = new int[max], best_x = null;
-        //for(int i = 0; i < max; i++) x[i] = i; // mercurial indices to atoms
-        //int tried = 0;
-        //while(true)
-        //{
-        //    // New permutation of atoms in mobile structure
-        //    AtomState[] atoms0 = new AtomState[atoms[0].length];
-        //    for(int i = 0; i < max; i++)
-        //    {
-        //        atoms0[i] = atoms[ 0 ][ x[i] ]; // index w/in mobile struct changes
-        //    }
-        //    boolean badPermut = false;
-        //    for(int j = 0; j < atoms0.length-1; j++)
-        //    {
-        //        int resnumCurr = atoms0[j  ].getAtom().getResidue().getSequenceInteger();
-        //        int resnumNext = atoms0[j+1].getAtom().getResidue().getSequenceInteger();
-        //        if(resnumNext < resnumCurr) badPermut = true; // out of sequence!
-        //    }
-        //    if(!badPermut)
-        //    {
-        //        tried++;
-        //        SuperPoser superpos = new SuperPoser(atoms[1], atoms0); // NOT atoms[0]!
-        //        R = superpos.superpos();
-        //        double rmsd = superpos.calcRMSD(R);
-        //        if(best_x == null || rmsd < best_rmsd)
-        //        {
-        //            best_rmsd = rmsd;
-        //            best_x = (int[]) x.clone();
-        //        }
-        //    }
-        //    if(!next_permutation(x)) break;
-        //}
-        //if(verbose) System.err.println("tried "+tried+" permutation(s); "+
-        //    "best rmsd: "+df.format(best_rmsd));
-        //
-        //// Construct the final array
-        //AtomState[][] bestAtoms = new AtomState[ 2 ][ max ];
-        //for(int i = 0; i < max; i++)
-        //{
-        //    bestAtoms[0][i] = atoms[ 0 ] [ best_x[i] ]; // mobile (permuted)
-        //    bestAtoms[1][i] = atoms[ 1 ] [        i  ]; // static (original)
-        //}
-        //return bestAtoms;
-        //}}}
-        
-        // Try all possible permutations of selected atoms from mobile structure 
-        // vs. all possible permutations of selected atoms from static structure.
-        // Preserve N->C sequence order to avoid unmeaningful superpositions, 
-        // so in effect only permute atoms within the same residue.
         double best_rmsd = Double.POSITIVE_INFINITY;
         int max = atoms[0].length; // == atoms[1].length
         int[] x = new int[max], best_x = null;
@@ -401,13 +500,13 @@ public class SubImpose //extends ... implements ...
         {
             AtomState[] atoms0 = new AtomState[max];
             for(int i = 0; i < max; i++) atoms0[i] = atoms[0][x[i]];
-            if(!badPermutation(atoms0))
+            if(validPermutation(atoms0))
             {
                 while(true) // that y has more permutations for static atoms
                 {
                     AtomState[] atoms1 = new AtomState[max];
                     for(int i = 0; i < max; i++) atoms1[i] = atoms[1][y[i]];
-                    if(!badPermutation(atoms1))
+                    if(validPermutation(atoms1))
                     {
                         tried++;
                         SuperPoser superpos = new SuperPoser(atoms1, atoms0);
@@ -425,7 +524,7 @@ public class SubImpose //extends ... implements ...
             }//inner: static
             if(!next_permutation(x)) break; // from outer
         }//outer: mobile
-        if(verbose) System.err.println("tried "+tried+" permutation(s); "+
+        if(verbose) System.err.println("Tried "+tried+" permutation(s); "+
             "best rmsd: "+df.format(best_rmsd));
         
         // Construct the final array
@@ -439,20 +538,23 @@ public class SubImpose //extends ... implements ...
     }
     
     /**
-    * Report that the supplied array of atoms is "bad" 
-    * if any two atoms are out of sequence order.
+    * Makes sure that the supplied array of atoms is "valid" 
+    * by checking that all pairs of consecutive atoms are in sequence order.
     */
-    private boolean badPermutation(AtomState[] a)
+    private boolean validPermutation(AtomState[] a)
     {
         for(int j = 0; j < a.length-1; j++)
         {
-            int resnumCurr = a[j  ].getAtom().getResidue().getSequenceInteger();
-            int resnumNext = a[j+1].getAtom().getResidue().getSequenceInteger();
-            if(resnumNext < resnumCurr) return true; // out of sequence!
+            Residue r1 = a[j  ].getAtom().getResidue();
+            Residue r2 = a[j+1].getAtom().getResidue();
+            if(r1.getSequenceInteger() > r2.getSequenceInteger()) return false;
         }
-        return false; // apparently in sequence order
+        return true; // apparently in sequence order
     }
-    
+//}}}
+
+//{{{ next_permutation, reverse
+//##############################################################################    
     /**
     * Borrowed from the C++ STL via a nice blog entry:
     *   http://marknelson.us/2002/03/01/next-permutation
@@ -626,25 +728,26 @@ public class SubImpose //extends ... implements ...
             }
             else // single sieve; default if not user-defined
             {
-                if(Double.isNaN(leskSieve)) if(verbose) System.err.println(" (all)");
+                if(Double.isNaN(leskSieve)) if(verbose) System.err.println(" (no sieve)");
                 else if(verbose) System.err.println(" (best "+leskSieve*100+"%)");
             }
         }
-        
-        if(chainIDs1 != null) System.err.println("Using subset of structure 1 chains: "+chainIDs1);
-        if(chainIDs2 != null) System.err.println("Using subset of structure 2 chains: "+chainIDs2);
+        if(alignFilename != null && superimpose2 != null)
+        {
+            System.err.print("Ignoring -super2 flag because alignment file provided");
+            superimpose2 = null;
+        }
         
         // Align residues by sequence
-        // With this first approach, alignments can't cross chain boundaries.
+        // With first approach, alignments can't cross chain boundaries.
         // As many chains as possible are aligned, without doubling up.
-        /*Alignment align = Alignment.alignChains(getChains(m1), getChains(m2), new Alignment.NeedlemanWunsch(), new SimpleResAligner());*/
-        /*Alignment align = Alignment.alignChains(getChains(m1), getChains(m2), new Alignment.NeedlemanWunsch(), new SimpleNonWaterResAligner());*/
-        Collection chains1 = (chainIDs1 != null ? getSomeChains(m1, chainIDs1) : getChains(m1));
-        Collection chains2 = (chainIDs2 != null ? getSomeChains(m2, chainIDs2) : getChains(m2));
-        align = Alignment.alignChains(chains1, chains2, new Alignment.NeedlemanWunsch(), new SimpleNonWaterResAligner());
+        if(chainIDs1 != null) System.err.println("Using subset of structure 1 chains: "+chainIDs1);
+        if(chainIDs2 != null) System.err.println("Using subset of structure 2 chains: "+chainIDs2);
+        align = Alignment.alignChains(getChains(m1, chainIDs1), getChains(m2, chainIDs2),
+            new Alignment.NeedlemanWunsch(), new SimpleNonWaterResAligner());
         if(align.a.length == 0)
         {
-            System.err.println("Chain-to-chain alignment failed!  Using chain-break-crossing method instead...");
+            System.err.println("No good chain-to-chain alignment; using chain-break-crossing method");
             // The multiple chain alignment method above may have rejected ALL alignments 
             // because none of them is great.
             // This can even happen for one chain vs. one chain when they don't match well.
@@ -652,8 +755,21 @@ public class SubImpose //extends ... implements ...
             // This was originally the default in the code before Ian added the multiple 
             // chain alignment method above; we'll use it now because it will actually 
             // return *something* despite its imperfections. -DAK 110129
-            /*align = Alignment.needlemanWunsch(m1.getResidues().toArray(), m2.getResidues().toArray(), new SimpleResAligner());*/
-            align = Alignment.needlemanWunsch(m1.getResidues().toArray(), m2.getResidues().toArray(), new SimpleNonWaterResAligner());
+            align = Alignment.needlemanWunsch(m1.getResidues().toArray(), 
+                m2.getResidues().toArray(), new SimpleNonWaterResAligner());
+        }
+        if(alignFilename != null)
+        {
+            // Hijack Alignment object & replace with user-supplied alignment
+            try
+            {
+                readAlignmentFile();
+            }
+            catch(IOException ex)
+            {
+                System.err.println("Error reading alignment file: "+alignFilename+"!"
+                    +"  Using default automatic sequence alignment");
+            }
         }
         if(verbose)
         {
@@ -668,8 +784,13 @@ public class SubImpose //extends ... implements ...
         
         // If -super, do superimposition of s1 on s2.
         R = new Transform(); // identity, defaults to no superposition
-        atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), s2, superimpose1, superimpose2, align, coord1, coord2);
-        if(shuffle) atoms = permuteAtoms();
+        atoms = getAtomsForSelection(m1.getResidues(), s1, m2.getResidues(), 
+            s2, superimpose1, superimpose2, align, coord1, coord2);
+        if(shuffle)
+        {
+            System.err.println("Shuffling intra-residue atoms");
+            permuteAtoms();
+        }
         if(verbose)
         {
             System.err.println("Atom alignments:");
@@ -704,7 +825,8 @@ public class SubImpose //extends ... implements ...
                 superpos.reset(atoms[1], atoms[0]);
                 R = superpos.superpos();
             }
-            System.err.println(df.format(superpos.calcRMSD(R))+"\t"+atoms[0].length+"\t"+superimpose1+"  [sieve #"+sieveCount+"]");
+            System.err.println(df.format(superpos.calcRMSD(R))+"\t"+atoms[0].length
+                +"\t"+superimpose1+"  [sieve #"+sieveCount+"]");
         }
         else if(!Double.isNaN(leskSieve))
         {
@@ -717,7 +839,8 @@ public class SubImpose //extends ... implements ...
                 sortByLeskSieve(atoms[0], atoms[1]);
                 superpos.reset(atoms[1], 0, atoms[0], 0, len); // only use the len best
                 R = superpos.superpos();
-                System.err.println(df.format(superpos.calcRMSD(R))+"\t"+len+"\t"+superimpose1+"  [sieve = "+df.format(leskSieve)+"]");
+                System.err.println(df.format(superpos.calcRMSD(R))+"\t"+len
+                    +"\t"+superimpose1+"  [sieve = "+df.format(leskSieve)+"]");
             }
         }
         
@@ -963,7 +1086,7 @@ public class SubImpose //extends ... implements ...
         else if(flag.equals("-super1") || flag.equals("-super"))
             superimpose1 = param;
         else if(flag.equals("-super2"))
-            superimpose2 = param; // added by DAK
+            superimpose2 = param;
         else if(flag.equals("-pdb"))
         {
             if(param == null) pdbStdOut = true;
@@ -999,6 +1122,10 @@ public class SubImpose //extends ... implements ...
             catch(NumberFormatException ex) { throw new IllegalArgumentException(param+" isn't a number!"); }
             if(Double.isNaN(rmsdCutoff) || rmsdCutoff < 0)
                 System.err.println("Problem with "+param+" as param for -rmsdcutoff");
+        }
+        else if(flag.equals("-align"))
+        {
+            alignFilename = param;
         }
         else if(flag.equals("-shuffle"))
         {
