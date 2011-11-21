@@ -40,13 +40,12 @@
 - Added routine to ModelManager2.adjustAltConfLabels(..) to avoid non-het atoms 
   with only one alt (e.g. A but no B or C); non-het only b/c I think waters can
   have only one alt if they correspond only to one alt (not the other) of a sc
-- More tweaks to ^
 - Added MethylRotator tool for aa types with methyl groups (Met, Val, Thr, etc.)
 - Added AvgStrucGenerator3, which should supercede both previous versions
 - Added option to provide manual alignment file in SubImpose
 - Aborted attempt to force middle peptide near original orientation in CaShear;
   code still there & commented out
-- Even more tweaks to ModelManager2.adjustAltConfLabels()
+- Consolidated changes to ModelManager2.adjustAltConfLabels()
 
 ### 1.07 ### dak
 - Added ShearTool, etc.: prototype for (helix) shear backbone changes
