@@ -620,12 +620,17 @@ public class ModelManager2 extends Plugin
     * Given a Model, we traverse its ModelStates, looking for AtomStates whose alts don't match.
     * E.g., an AtomState with alt conf 'A' hiding in ModelState 'B'.
     * This is done in a smart way, so that if that AtomState were also in ModelState 'A', it is unaffected.
-    * We also make sure a (non-het) Atom isn't left with just one alt conf, 
-    * e.g. only alt 'A' but no alt 'B' or 'C' -- that just wouldn't make sense.
+    * However, if one AtomState has the exact same coordinates as another AtomState with an alt conf, 
+    * it is treated as an alternative and gets an alt label.
+    * We also look for AtomStates with alt conf ' ' that look like they were "stranded",
+    * in ModelStates with alt conf other than ' ', e.g. by a backrub at a residue with only sidechain alts. 
     */
     void adjustAltConfLabels(Model m)
     {
         CheapSet allAS = new CheapSet(new IdentityHashFunction());
+        // Necessary due to Java roundoff error; otherwise seemingly identical atom 
+        // positions will be off by e.g. 0.0009 (i.e. beyond PDB format precision)
+        double precision = 1000;
         for(Iterator msi = m.getStates().keySet().iterator(); msi.hasNext(); )
         {
             String altLabel = (String) msi.next();
@@ -644,44 +649,80 @@ public class ModelManager2 extends Plugin
                     try
                     {
                         AtomState as = state.get(a);
+                        AtomState asp = (AtomState) as.clone();
+                        asp.setXYZ(
+                            Math.round(as.getX()*precision)/precision, 
+                            Math.round(as.getY()*precision)/precision, 
+                            Math.round(as.getZ()*precision)/precision);
                         // If we haven't seen this before, set its alt ID
-                        if(allAS.add(as)) as.setAltConf(altLabel);
+                        if(allAS.add(asp))
+                        {
+                            as.setAltConf(altLabel);
+                        }
+                        else
+                        {
+                            // If we have seen this before, we might still wanna set its alt ID 
+                            // if the appearance of it we've seen is an alt conf.
+                            // This avoids having e.g. a shared CB atom for a split sidechain
+                            // where the first appearance in 'A' gets labeled 'A'
+                            // but the second appearance in 'B' doesn't get labeled 'B'
+                            // (because the coordinates are identical, 
+                            // although the "full" AtomState objects may not be)
+                            // and thus the corresponding 'B' ('B' + ' ') conformer lacks a CB.
+                            AtomState as2 = (AtomState) allAS.get(asp);
+                            if(!as2.getAltConf().equals(" ")) as.setAltConf(altLabel);
+                        }
                     }
                     catch(AtomException ex) {}
                 }
             }
         }
         
-        // Remaining "problem": if the user moved a non-alt region in e.g. 'A',
-        // the moved atoms will now have alt label 'A' but lack a corresponding alt 'B'.
-        // We'll assume the user wanted to keep this region non-alt, not split it into alts,
-        // and thus we'll relabel it ' '
-        // This puts the responsibility in the user's hands: 
-        // if he/she really does want to make a split in a non-alt region, 
-        // he/she can manually do it by simply moving in 'A', moving in 'B', and saving.*/
         for(Iterator ri = m.getResidues().iterator(); ri.hasNext(); )
         {
             Residue r = (Residue) ri.next();
             for(Iterator ai = r.getAtoms().iterator(); ai.hasNext(); )
             {
                 Atom a = (Atom) ai.next();
-                if(a.isHet()) continue; // see reasoning above
-                CheapSet altConfAS = new CheapSet(new IdentityHashFunction());
-                for(Iterator msi = m.getStates().keySet().iterator(); msi.hasNext(); )
+                //if(a.isHet()) continue; -- doesn't apply here (?)
+                for(Iterator msi1 = m.getStates().keySet().iterator(); msi1.hasNext(); )
                 {
-                    String altLabel = (String) msi.next();
-                    ModelState state = (ModelState) m.getStates().get(altLabel);
-                    try
+                    String altLabel1 = (String) msi1.next();
+                    if(altLabel1.equals(" ")) continue;
+                    for(Iterator msi2 = m.getStates().keySet().iterator(); msi2.hasNext(); )
                     {
-                        AtomState as = state.get(a);
-                        if(!as.getAltConf().equals(" ")) altConfAS.add(as);
+                        String altLabel2 = (String) msi2.next();
+                        if(altLabel2.equals(" ")) continue;
+                        ModelState state1 = (ModelState) m.getStates().get(altLabel1);
+                        ModelState state2 = (ModelState) m.getStates().get(altLabel2);
+                        try
+                        {
+                            AtomState as1 = state1.get(a);
+                            AtomState as2 = state2.get(a);
+                            AtomState as1p = (AtomState) as1.clone();
+                            AtomState as2p = (AtomState) as2.clone();
+                            as1p.setXYZ(
+                                Math.round(as1.getX()*precision)/precision,
+                                Math.round(as1.getY()*precision)/precision,
+                                Math.round(as1.getZ()*precision)/precision);
+                            as2p.setXYZ(
+                                Math.round(as2.getX()*precision)/precision,
+                                Math.round(as2.getY()*precision)/precision,
+                                Math.round(as2.getZ()*precision)/precision);
+                            if(!as1p.equals(as2p))
+                            {
+                                if(as1.getAltConf().equals(" ") && !as2.getAltConf().equals(" "))
+                                {
+                                    as1.setAltConf(altLabel1);
+                                }
+                                else if(!as1.getAltConf().equals(" ") && as2.getAltConf().equals(" "))
+                                {
+                                    as2.setAltConf(altLabel2);
+                                }
+                            }
+                        }
+                        catch(AtomException ex) {}
                     }
-                    catch(AtomException ex) {}
-                }
-                if(altConfAS.size() == 1)
-                {
-                    AtomState as = (AtomState) altConfAS.iterator().next();
-                    as.setAltConf(" ");
                 }
             }
         }
