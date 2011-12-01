@@ -45,3 +45,4 @@ king.tool.nmr.ParenTool.menuName = Kin editing
 king.tool.rnaxtal.SuitenameTool.menuName = Specialty
 king.tool.rnaxtal.RnaRotTool.menuName = Structural biology
 king.tool.draw.ProbeNearbyTool.menuName = Structural biology
+king.tool.data_analysis.CountingTool.menuName = Specialty
