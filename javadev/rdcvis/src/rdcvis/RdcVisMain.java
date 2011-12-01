@@ -288,10 +288,10 @@ public class RdcVisMain {
       if (ensembleTensor) {
         fi.solveRdcsEnsemble(rdcName);
       }
-      String[] atoms = fi.parseAtomNames(rdcName);
+      //String[] atoms = fi.parseAtomNames(rdcName);
       Iterator models = (pdb.getModels()).iterator();
       while (models.hasNext()) {
-        //System.out.print(".");
+        //System.out.print(".mod.");
         Model mod = (Model) models.next();
         ModelState state = mod.getState();
         if (!ensembleTensor) {
@@ -318,16 +318,28 @@ public class RdcVisMain {
         }
         Iterator iter = mod.getResidues().iterator();
         while (iter.hasNext()) {
-          Residue orig = (Residue) iter.next();
-          Triple rdcVect = RdcAnalyzer.getResidueRdcVect(state, orig, atoms);
-          AtomState origin = RdcAnalyzer.getOriginAtom(state, orig, atoms);
-          if ((rdcVect != null)&&(origin != null)) {
-            //System.out.println(orig);
-            drawCurve(kin, origin, rdcVect, orig, fi);
-            if (drawSurface) {
-              drawSurface(kin, origin, orig, fi);
+          Residue[] tofrom = fi.getFromToResidue(mod, (Residue) iter.next());
+          if (tofrom != null && tofrom[0] != null && tofrom[1] != null) {          
+            //System.out.println("tofrom: "+tofrom[0]);
+            DipolarRestraint dr = fi.getRdc(tofrom[0]);
+            if (dr != null) {
+              //System.out.println("dr = "+dr.toString());
+              String[] atoms = fi.parseAtomNames(rdcName, dr);
+              //System.out.println(atoms[0]+atoms[1]);
+              Triple rdcVect = RdcAnalyzer.getResidueRdcVect(state, tofrom[0], tofrom[1], atoms);
+              AtomState origin = RdcAnalyzer.getOriginAtom(state, tofrom[0], atoms);
+              //System.out.println(origin);
+              if ((rdcVect != null)&&(origin != null)) {
+                //System.out.println(orig);
+                drawCurve(kin, origin, rdcVect, tofrom[0], fi);
+                if (drawSurface) {
+                  drawSurface(kin, origin, tofrom[0], fi);
+                }
+              } else {
+              }
+            } else {
+              System.err.println("Residue: "+tofrom[0]+" doesn't have an RDC");
             }
-          } else {
             //JOptionPane.showMessageDialog(kMain.getTopWindow(),
             //"Sorry, the atoms needed for this RDC do not seem to be in this residue.",
             //"Selected RDC atoms not found",

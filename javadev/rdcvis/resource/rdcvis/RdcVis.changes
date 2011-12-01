@@ -1,3 +1,5 @@
+111201 Fixed major bug where C-N RDCs were not being drawn correctly.
+
 100908 Added draw curve sphere (to see overall tensor behavior) to KiNG tool and cmdline.
 
 100906 Fixed bug with how distance was calculated. Added extra sorting output

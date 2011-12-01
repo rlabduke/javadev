@@ -137,26 +137,6 @@ public class RdcVisTool extends BasicTool {
   {
     if(p != null)
     {
-      /*
-      Model       model   = modelman.getModel();
-      ModelState  state   = modelman.getFrozenState();
-      //Residue     orig    = this.getResidueNearest(model, state,
-      //                           p.getX(), p.getY(), p.getZ());
-      Iterator iter = model.getResidues().iterator();
-      while (iter.hasNext()) {
-        Residue orig = (Residue) iter.next();
-        Triple rdcVect = getResidueRdcVect(state, orig);
-        AtomState origin = getOriginAtom(state, orig);
-        if ((rdcVect != null)&&(origin != null)) {
-          drawCurve(origin, rdcVect, orig);
-        } else {
-          //JOptionPane.showMessageDialog(kMain.getTopWindow(),
-          //"Sorry, the atoms needed for this RDC do not seem to be in this residue.",
-          //"Selected RDC atoms not found",
-          //JOptionPane.ERROR_MESSAGE);
-        }
-      }
-    */
     }
   }
   //}}}
