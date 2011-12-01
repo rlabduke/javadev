@@ -46,3 +46,4 @@ king.tool.nmr.CoCenterTool
 king.tool.nmr.ParenTool
 king.tool.rnaxtal.SuitenameTool
 king.tool.rnaxtal.RnaRotTool
+king.tool.data_analysis.CountingTool
