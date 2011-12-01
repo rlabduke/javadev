@@ -57,6 +57,13 @@ public class DipolarRestraint implements NmrRestraint {
   }
   //}}}
   
+  //{{{ isInOneResidue
+  public boolean isInOneResidue() {
+    return fromNum.equals(toNum);
+  }
+  //}}}
+
+  
   //{{{ toString
   public String toString() {
     String outString = "RDC restraint " + fromNum + " " + fromName + ":" + toNum +" " + toName;

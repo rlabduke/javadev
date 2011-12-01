@@ -51,7 +51,7 @@ public class RdcAnalyzer {
       if (ensembleTensor) {
         fi.solveRdcsEnsemble(rdcName);
       }
-      String[] atoms = fi.parseAtomNames(rdcName);
+      //String[] atoms = fi.parseAtomNames(rdcName);
       
       String modelNames = "";
       TreeMap deltaRdcByRes = new TreeMap();
@@ -81,24 +81,31 @@ public class RdcAnalyzer {
         }
         Iterator iter = mod.getResidues().iterator();
         while (iter.hasNext()) {
-          Residue orig = (Residue) iter.next();
-          Triple rdcVect = getResidueRdcVect(state, orig, atoms);
-          AtomState origin = getOriginAtom(state, orig, atoms);
-          
-          if ((rdcVect != null)&&(origin != null)) {
-            String seq = orig.getSequenceNumber().trim();
-            double rdcVal = fi.getRdcValue(seq);
-            double backcalcRdc = fi.getBackcalcRdc(rdcVect);
-            if ((!Double.isNaN(rdcVal))&&(!Double.isNaN(backcalcRdc))) {
-              double dist = analyzeResidue(origin, rdcVect, orig, fi);
-              System.out.println(mod.getName()+":"+orig +":"+ df.format(rdcVal)+":"+df.format(backcalcRdc)+":"+df.format(Math.abs(rdcVal-backcalcRdc))+":"+df.format(dist));
-              String deltaOut = (String) deltaRdcByRes.get(orig.getCNIT());
-              //System.err.println(orig+" "+deltaOut);
-              String distOut = (String) minDistByRes.get(orig.getCNIT());
-              deltaRdcByRes.put(orig.getCNIT(), deltaOut+":"+df.format(Math.abs(rdcVal-backcalcRdc)));
-              minDistByRes.put(orig.getCNIT(), distOut+":"+df.format(dist));
+          Residue[] tofrom = fi.getFromToResidue(mod, (Residue) iter.next());
+          if (tofrom != null) {
+            DipolarRestraint dr = fi.getRdc(tofrom[0]);
+            String[] atoms = fi.parseAtomNames(rdcName, dr);
+            Triple rdcVect = RdcAnalyzer.getResidueRdcVect(state, tofrom[0], tofrom[1], atoms);
+            AtomState origin = RdcAnalyzer.getOriginAtom(state, tofrom[0], atoms);
+            //Residue orig = (Residue) iter.next();
+            //Triple rdcVect = getResidueRdcVect(state, orig, orig, atoms); // NOT CORRECT YET, needs more fix
+            //AtomState origin = getOriginAtom(state, orig, atoms);
+            
+            if ((rdcVect != null)&&(origin != null)) {
+              String seq = tofrom[0].getSequenceNumber().trim();
+              double rdcVal = fi.getRdcValue(seq);
+              double backcalcRdc = fi.getBackcalcRdc(rdcVect);
+              if ((!Double.isNaN(rdcVal))&&(!Double.isNaN(backcalcRdc))) {
+                double dist = analyzeResidue(origin, rdcVect, tofrom[0], fi);
+                System.out.println(mod.getName()+":"+tofrom[0] +":"+ df.format(rdcVal)+":"+df.format(backcalcRdc)+":"+df.format(Math.abs(rdcVal-backcalcRdc))+":"+df.format(dist));
+                String deltaOut = (String) deltaRdcByRes.get(tofrom[0].getCNIT());
+                //System.err.println(orig+" "+deltaOut);
+                String distOut = (String) minDistByRes.get(tofrom[0].getCNIT());
+                deltaRdcByRes.put(tofrom[0].getCNIT(), deltaOut+":"+df.format(Math.abs(rdcVal-backcalcRdc)));
+                minDistByRes.put(tofrom[0].getCNIT(), distOut+":"+df.format(dist));
+              }
+            } else {
             }
-          } else {
           }
         }
       }
@@ -114,9 +121,11 @@ public class RdcAnalyzer {
   
   //{{{ getResidueRdcVect
   /** returns RdcVect for orig residue based on what is selected in fi **/
-  public static Triple getResidueRdcVect(ModelState state, Residue orig, String[] atoms) {
-    Atom from = orig.getAtom(atoms[0]);
-    Atom to = orig.getAtom(atoms[1]);
+  public static Triple getResidueRdcVect(ModelState state, Residue first, Residue second, String[] atoms) {
+    //System.out.println(atoms[0] + " from " + first);
+    //System.out.println(atoms[1] + " from " + second);
+    Atom from = first.getAtom(atoms[0]);
+    Atom to = second.getAtom(atoms[1]);
     try {
       AtomState fromState = state.get(from);
       AtomState toState = state.get(to);

@@ -98,27 +98,52 @@ public class FileInterpreter {
     Iterator residues = mod.getResidues().iterator();
     ArrayList atomVects = new ArrayList();
     ArrayList rdcValues = new ArrayList();
+
     while (residues.hasNext()) {
       Residue res = (Residue) residues.next();
       String seq = res.getSequenceNumber().trim();
-      //System.out.println(seq);
-      if (rdcs.containsKey(seq)) {
-        String[] atoms = parseAtomNames(rdcType);
-        //System.out.println(atoms[0]);
-        //System.out.println(atoms[1]);
-        Atom from = res.getAtom(atoms[0]);
-        Atom to = res.getAtom(atoms[1]);
+      if (rdcs.containsKey(seq)) {      
+        DipolarRestraint dr = (DipolarRestraint) rdcs.get(seq);
+        String[] atoms = parseAtomNames(rdcType, dr);
+        Atom from = null;
+        Atom to = null;
+        if (dr.isInOneResidue()) {
+          //System.out.println(atoms[0]);
+          //System.out.println(atoms[1]);
+          from = res.getAtom(atoms[0]);
+          to = res.getAtom(atoms[1]);
+        } else {
+          
+          from = res.getAtom(pdbifyAtomName(dr.getFromName())); // the current res should correspond to the 'from' res in the DipolarRestraint (see MagResFile
+          Residue toRes = res.getNext(mod);
+          if (!toRes.getSequenceNumber().trim().equals(dr.getToNum())) {
+            toRes = res.getPrev(mod);
+          }
+          //String toCNIT = res.getCNIT().replaceFirst(res.getSequenceNumber(), Strings.justifyRight(dr.getToNum(), 4));
+          //System.out.println("|"+res.getCNIT()+"|");
+          //System.out.println("|"+toCNIT+"|");
+          //Residue origResTest = mod.getResidue(res.getCNIT());
+          //System.out.println(origResTest+" from "+res.getCNIT());
+          //Residue toRes = mod.getResidue(toCNIT);
+          //System.out.println(toRes+" from "+toCNIT);
+          if (toRes != null && toRes.getSequenceNumber().trim().equals(dr.getToNum())) {
+            to = toRes.getAtom(pdbifyAtomName(dr.getToName()));
+          } else {
+            System.err.println("Residue "+ dr.getToNum() +" not found!");
+          }
+        }
+        //System.out.println(from+" "+to);
         try {
           AtomState fromState = state.get(from);
           AtomState toState = state.get(to);
-          DipolarRestraint dr = (DipolarRestraint) rdcs.get(seq);
+          //DipolarRestraint dr = (DipolarRestraint) rdcs.get(seq);
           Triple vect = new Triple().likeVector(fromState, toState).unit();
           //System.out.println(vect);
           atomVects.add(vect);
           rdcValues.add(rdcs.get(seq));
           //System.out.println(seq + " " + dr.getValues()[0]);
         } catch (AtomException ae) {
-          System.out.println(ae + " thrown, atom is missing");
+          System.out.println(ae + " thrown, either "+atoms[0]+" or "+atoms[1]+" is missing from residues "+dr.getFromNum()+" or "+dr.getToNum());
         }
       }
     }
@@ -158,21 +183,28 @@ public class FileInterpreter {
   * If one of the atoms has an H, it will switch the order so
   * that atom is returned second, so vector points toward H.
   **/
-  public String[] parseAtomNames(String rdcType) {
-    String[] atoms = Strings.explode(rdcType, '-');
-    if (atoms[0].indexOf("H") > -1) {
-      String temp = atoms[0];
-      atoms[0] = atoms[1];
-      atoms[1] = temp;
-    }
-    for (int i = 0; i < atoms.length; i++) {
-      String atom = atoms[i];
-      if (transAtomMap.containsKey(atom)) {
-        atom = (String) transAtomMap.get(atom);
+  public String[] parseAtomNames(String rdcType, DipolarRestraint dr) {
+    if (dr.isInOneResidue()) {
+      String[] atoms = Strings.explode(rdcType, '-');
+      if (atoms[0].indexOf("H") > -1) {
+        String temp = atoms[0];
+        atoms[0] = atoms[1];
+        atoms[1] = temp;
       }
-      atoms[i] = pdbifyAtomName(atom);
+      for (int i = 0; i < atoms.length; i++) {
+        String atom = atoms[i];
+        if (transAtomMap.containsKey(atom)) {
+          atom = (String) transAtomMap.get(atom);
+        }
+        atoms[i] = pdbifyAtomName(atom);
+      }
+      return atoms;
+    } else {
+      String[] atoms = new String[2];
+      atoms[0] = pdbifyAtomName(dr.getFromName());
+      atoms[1] = pdbifyAtomName(dr.getToName());
+      return atoms;
     }
-    return atoms;
   }
   //}}}
   
@@ -197,6 +229,11 @@ public class FileInterpreter {
     return drawer;
   }
   
+  public DipolarRestraint getRdc(Residue res) {
+    DipolarRestraint dr = (DipolarRestraint) currentRdcs.get(res.getSequenceNumber().trim());
+    return dr;
+  }
+  
   public double getRdcValue(String seqNum) {
     //System.out.println(seqNum);
     DipolarRestraint dr = (DipolarRestraint) currentRdcs.get(seqNum);
@@ -218,12 +255,51 @@ public class FileInterpreter {
     return Double.NaN;
   }
   
+  // hmm, this function should return the same value as input...this seems odd
+  public String getRdcFromNum(String seqNum) {
+    DipolarRestraint dr = (DipolarRestraint) currentRdcs.get(seqNum);
+    if (dr != null) {
+      return dr.getFromNum();
+    }
+    return null;
+  }
+  
+  public String getRdcToNum(String seqNum) {
+    DipolarRestraint dr = (DipolarRestraint) currentRdcs.get(seqNum);
+    if (dr != null) {
+      return dr.getToNum();
+    }
+    return null;
+  }
+  
   public double getBackcalcRdc(Triple vector) {
     return solver.backCalculateRdc(vector);
   }
   
   public CoordinateFile getPdb() {
     return pdb;
+  }
+  
+  /** expects that one of the solve functions have been run already */
+  public Residue[] getFromToResidue(Model mod, Residue res) {
+    String seq = res.getSequenceNumber().trim();
+    Residue[] rezzes = new Residue[2];
+    rezzes[0] = res;
+    if (currentRdcs.containsKey(seq)) {      
+      DipolarRestraint dr = (DipolarRestraint) currentRdcs.get(seq);
+      if (dr.isInOneResidue()) {
+        rezzes[1] = res;
+      } else {
+        rezzes[1] = res.getNext(mod);
+        if (!rezzes[1].getSequenceNumber().trim().equals(dr.getToNum())) {
+          rezzes[1] = res.getPrev(mod);
+        }
+        if (!rezzes[1].getSequenceNumber().trim().equals(dr.getToNum())) return null;
+      }
+    } else {
+      return null;
+    }
+    return rezzes;
   }
   //}}}
   
