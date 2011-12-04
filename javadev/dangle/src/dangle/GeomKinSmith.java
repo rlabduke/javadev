@@ -55,8 +55,8 @@ public class GeomKinSmith //extends ... implements ...
 //##############################################################################
     /**
     * Look through models in <code>coords</code>.  For each residue that is a
-    * bond length length or angle outlier, add a visualization in the form of 
-    * kinemage points to the proper global ArrayList.
+    * bond length outlier, bond angle outlier, C-beta deviation, or non-planar peptide,
+    * add a visualization in the form of kinemage points to the proper global ArrayList.
     */
     public void makeKin() throws IllegalArgumentException
     {
@@ -493,9 +493,9 @@ public class GeomKinSmith //extends ... implements ...
     {
 	    Measurement.Angle a = (Measurement.Angle) meas;
         
-        AtomSpec atomSpec1 = a.getA();
-        AtomSpec atomSpec2 = a.getB();
-        AtomSpec atomSpec3 = a.getC();
+	    AtomSpec atomSpec1 = (AtomSpec) a.getA();
+        AtomSpec atomSpec2 = (AtomSpec) a.getB();
+        AtomSpec atomSpec3 = (AtomSpec) a.getC();
         
         // Get AtomStates with resOffset and atomName
 	    AtomState as1 = atomSpec1.get(model, state, res);
@@ -684,10 +684,10 @@ public class GeomKinSmith //extends ... implements ...
     // invalid ranges: 
     //if (((dihed < 170)&&(dihed > -170)) {
     if( (dihed > -170 && dihed < -10) || (dihed > 10 && dihed < 170) ) {
-      AtomSpec atA = d.getA();
-      AtomSpec atB = d.getB();
-      AtomSpec atC = d.getC();
-      AtomSpec atD = d.getD();
+      AtomSpec atA = (AtomSpec) d.getA();
+      AtomSpec atB = (AtomSpec) d.getB();
+      AtomSpec atC = (AtomSpec) d.getC();
+      AtomSpec atD = (AtomSpec) d.getD();
       AtomState asA = atA.get(model, state, res);
 	  AtomState asB = atB.get(model, state, res);
 	  AtomState asC = atC.get(model, state, res);
@@ -722,8 +722,8 @@ public class GeomKinSmith //extends ... implements ...
     {
         System.out.println("@master {length dev} on");
         System.out.println("@master {angle dev} on");
-        System.out.println("@master {peptide dev} on");
         System.out.println("@master {Cbeta dev} on");
+        System.out.println("@master {peptide dev} off");
         
         boolean multimodel = coords.getModels().size() > 1;
         System.out.println((subgroup ? "@subgroup" : "@group")+" {"
@@ -766,7 +766,7 @@ public class GeomKinSmith //extends ... implements ...
         if(!triedPepDev)           System.err.println("(Didn't look for peptide outliers)");
         else if(peptides.isEmpty()) System.err.println("No peptide outliers in selected residues");
         else {
-          System.out.println("@vectorlist {peptide outliers} color= green width= "+4+" master= {peptide dev}");
+          System.out.println("@vectorlist {peptide outliers} color= green width= "+4+" master= {peptide dev} off");
           for(String pepLine : peptides) System.out.println(pepLine);
         }
     }

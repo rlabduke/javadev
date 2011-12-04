@@ -24,6 +24,8 @@ import driftwood.util.Strings;
 public class Dangle //extends ... implements ...
 {
 //{{{ Constants
+    final PrintStream out = System.out;
+    final DecimalFormat df = new DecimalFormat("0.###");
 //}}}
 
 //{{{ Variable definitions
@@ -34,8 +36,7 @@ public class Dangle //extends ... implements ...
     boolean outliersOnly = false;
     boolean doHets = false;
     boolean doParCoor = false;
-    boolean doGeomKin;  // if true make kinemage for each file showing 
-    			        // visual representations of geometry outliers
+    boolean doGeomKin; // if true make kin with visual representations of geometry outliers
     boolean subgroup = false;
     double sigmaCutoff = 4;
     Collection files = new ArrayList();
@@ -56,18 +57,11 @@ public class Dangle //extends ... implements ...
 //##############################################################################
     void fullOutput(String label, CoordinateFile coords)
     {
-        final PrintStream out = System.out;
-        final DecimalFormat df = new DecimalFormat("0.###");
-        
+        // Prep measures
         Measurement[] meas = (Measurement[]) measurements.toArray(new Measurement[measurements.size()]);
-        
-        // All Measurements have been defined at this point, so we know 
-        // if it's necessary to deploy disulfide info to models or not.
-        boolean anyDisulfMeasures = false;
         for(int i = 0; i < meas.length; i++)
             if(meas[i].resSpec != null && meas[i].resSpec.requireDisulf)
-                anyDisulfMeasures = true;
-        if(anyDisulfMeasures) coords.deployDisulfidesToModels();
+                { coords.deployDisulfidesToModels(); break; }
         
         // Print headings
         out.print("# label:model:chain:number:ins:type");
@@ -96,19 +90,19 @@ public class Dangle //extends ... implements ...
                 Residue res = (Residue) residues.next();
                 if(resnums == null || resnums.contains(res.getSequenceInteger()))
                 {
-                    boolean print = false;
+                    boolean someValsNotNaN = false;
                     for(int i = 0; i < meas.length; i++)
                     {
                         vals[i] = meas[i].measure(model, state, res, doHets);
                         devs[i] = meas[i].getDeviation();
                         if(!Double.isNaN(vals[i]))
                         {
-                            print = true;
+                            someValsNotNaN = true;
                             if(meas[i].getType() == Measurement.TYPE_DIHEDRAL)
                                 vals[i] = wrap360(vals[i]);
                         }
                     }
-                    if(print)
+                    if(someValsNotNaN)
                     {
                         out.print(prefix);
                         out.print(res.getChain()+":"+res.getSequenceNumber()+":"+res.getInsertionCode()+":"+res.getName());
@@ -124,7 +118,7 @@ public class Dangle //extends ... implements ...
                                 else                        out.print("__?__");
                             }
                         }
-                    out.println();
+                        out.println();
                     }
                 }
             }
@@ -136,13 +130,13 @@ public class Dangle //extends ... implements ...
 //##############################################################################
     void outliersOutput(String label, CoordinateFile coords)
     {
-        final PrintStream out = System.out;
-        final DecimalFormat df = new DecimalFormat("0.###");
-        
-        coords.deployDisulfidesToModels();
-        
+        // Prep measures
         Measurement[] meas = (Measurement[]) measurements.toArray(new Measurement[measurements.size()]);
+        for(int i = 0; i < meas.length; i++)
+            if(meas[i].resSpec != null && meas[i].resSpec.requireDisulf)
+                { coords.deployDisulfidesToModels(); break; }
         
+        // Print headings
         out.println("# label:model:chain:number:ins:type:measure:value:sigmas");
         // This is a LOT of output and hard to interpret...
         //for(int i = 0; i < meas.length; i++)
@@ -164,19 +158,19 @@ public class Dangle //extends ... implements ...
                 Residue res = (Residue) residues.next();
                 if(resnums == null || resnums.contains(res.getSequenceInteger()))
                 {
-                    boolean print = false;
+                    boolean someValsNotNaN = false;
                     for(int i = 0; i < meas.length; i++)
                     {
                         vals[i] = meas[i].measure(model, state, res, doHets);
                         devs[i] = meas[i].getDeviation();
                         if(!Double.isNaN(vals[i]))
                         {
-                            print = true;
+                            someValsNotNaN = true;
                             if(meas[i].getType() == Measurement.TYPE_DIHEDRAL)
                                 vals[i] = wrap360(vals[i]);
                         }
                     }
-                    if(print)
+                    if(someValsNotNaN)
                     {
                         for(int i = 0; i < vals.length; i++)
                         {
@@ -199,12 +193,11 @@ public class Dangle //extends ... implements ...
 //##############################################################################
     void parCoorOutput(String label, CoordinateFile coords)
     {
-        final PrintStream out = System.out;
-        final DecimalFormat df = new DecimalFormat("0.###");
-        
-        coords.deployDisulfidesToModels();
-        
+        // Prep measures
         Measurement[] meas = (Measurement[]) measurements.toArray(new Measurement[measurements.size()]);
+        for(int i = 0; i < meas.length; i++)
+            if(meas[i].resSpec != null && meas[i].resSpec.requireDisulf)
+                { coords.deployDisulfidesToModels(); break; }
         
         // Residue names/numbers should be same in all models, so use model #1 as template
         Iterator m = coords.getModels().iterator();
@@ -243,19 +236,19 @@ public class Dangle //extends ... implements ...
                 Residue res = (Residue) residues.next();
                 if(resnums == null || resnums.contains(res.getSequenceInteger()))
                 {
-                    boolean print = false;
+                    boolean someValsNotNaN = false;
                     for(int i = 0; i < meas.length; i++)
                     {
                         vals[i] = meas[i].measure(model, state, res, doHets);
                         devs[i] = meas[i].getDeviation();
                         if(!Double.isNaN(vals[i]))
                         {
-                            print = true;
+                            someValsNotNaN = true;
                             if(meas[i].getType() == Measurement.TYPE_DIHEDRAL)
                                 vals[i] = wrap360(vals[i]);
                         }
                     }
-                    if(print)
+                    if(someValsNotNaN)
                     {
                         // Output all measurements for this residue.
                         // The same thing for the next residue in this model  
@@ -278,19 +271,17 @@ public class Dangle //extends ... implements ...
 //##############################################################################
     public void geomKinOutput(String label, CoordinateFile coords)
     {
-        coords.deployDisulfidesToModels();
-        GeomKinSmith gks = new GeomKinSmith( 
-            label,
-            coords,
-            (ArrayList<Measurement>) measurements,
-            sigmaCutoff,
-            subgroup,
-            doHets,
-            resnums,
-            altConf
-        );
-        try { gks.makeKin(); }
-        catch(IllegalArgumentException ex) { ex.printStackTrace(); }
+        GeomKinSmith gks = new GeomKinSmith(
+            label, coords, (ArrayList<Measurement>) measurements, 
+            sigmaCutoff, subgroup, doHets, resnums, altConf);
+        try
+        {
+            gks.makeKin();
+        }
+        catch(IllegalArgumentException ex)
+        {
+            ex.printStackTrace();
+        }
     }
 //}}}
 

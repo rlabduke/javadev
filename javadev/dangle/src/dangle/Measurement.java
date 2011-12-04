@@ -941,14 +941,18 @@ abstract public class Measurement //extends ... implements ...
         public Object getType()
         { return TYPE_ANGLE; }
         
-        public AtomSpec getA()
-        { return (AtomSpec) a; }
+        // Made the below getX() methods return XyzSpec instead of AtomSpec;
+        // now GeomKinSmith casts the return value as AtomSpec instead.
+        // Should be more generally applicable now (?).
         
-        public AtomSpec getB()
-        { return (AtomSpec) b; }
+        public XyzSpec getA()
+        { return a; }
         
-        public AtomSpec getC()
-        { return (AtomSpec) c; }
+        public XyzSpec getB()
+        { return b; }
+        
+        public XyzSpec getC()
+        { return c; }
     }
 //}}}
 
@@ -974,24 +978,28 @@ abstract public class Measurement //extends ... implements ...
                 return Double.NaN;
             return Triple.dihedral(aa, bb, cc, dd);
         }
-
+        
         protected String toStringImpl()
         { return "dihedral "+getLabel()+" "+a+", "+b+", "+c+", "+d; }
         
         public Object getType()
         { return TYPE_DIHEDRAL; }
         
-        public AtomSpec getA() 
-        { return (AtomSpec) a; }
+        // Made the below getX() methods return XyzSpec instead of AtomSpec;
+        // now GeomKinSmith casts the return value as AtomSpec instead.
+        // Should be more generally applicable now (?).
         
-        public AtomSpec getB() 
-        { return (AtomSpec) b; }
+        public XyzSpec getA()
+        { return a; }
         
-        public AtomSpec getC() 
-        { return (AtomSpec) c; }
+        public XyzSpec getB()
+        { return b; }
         
-        public AtomSpec getD() 
-        { return (AtomSpec) d; }
+        public XyzSpec getC()
+        { return c; }
+        
+        public XyzSpec getD()
+        { return d; }
     }
 //}}}
 
@@ -1409,9 +1417,7 @@ abstract public class Measurement //extends ... implements ...
         protected String toStringImpl() // altered a bit from Planarity -- DK
         {
             StringBuffer buf = new StringBuffer("pucker " + getLabel());
-            
             // deleted for(XyzSpec spec : specs) ..... stuff -- DK
-            
             return buf.toString();
         }
         
@@ -1536,19 +1542,16 @@ abstract public class Measurement //extends ... implements ...
         
         protected double measureImpl(Model model, ModelState state, Residue res)
         {
-            double isPrePro = 0;
             Residue next = res.getNext(model);
-            if (next != null)
-                if (next.getName().equals("PRO"))
-                    isPrePro = 1;
-            return isPrePro;
+            if(next != null && next.getName().equals("PRO")) return (double) 1.0;
+            return (double) 0;
         }
         
         protected String toStringImpl()
         { return getLabel(); }
         
         public Object getType()
-        { return TYPE_ISPREPRO; }  // ???
+        { return TYPE_ISPREPRO; }
     }
 //}}}
         
