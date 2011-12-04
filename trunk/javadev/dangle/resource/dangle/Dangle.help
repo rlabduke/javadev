@@ -234,9 +234,9 @@ ADVANCED DANGLE TRICKS
     dangle "for disulfides dist CbCb i _CB_, i -ss- _CB_"               FILE.pdb
     dangle "for ss dihedral Ca4 i-1 _CA_, _CA_, i -- _CA_, i+1 -- _CA_" FILE.pdb
     
-  You can target measurements to specific alternate conformations:
+  You can target Dangle's measurements to specific alternate conformations:
     
-    dangle 'measurement' FILE.pdb -alt=A     # ' '; 'A' if possible (default)
-    dangle 'measurement' FILE.pdb -alt=B     # ' '; 'B' if possible
-    dangle 'measurement' FILE.pdb -alt=' '   # ' ' only: ignore alts
+    dangle 'measurement' FILE.pdb -alt=A    # 'A' if there, else ' ' (default)
+    dangle 'measurement' FILE.pdb -alt=B    # 'B' if there, else ' '
+    dangle 'measurement' FILE.pdb -alt=' '  # ' ' only; ignore alts
 
