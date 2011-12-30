@@ -629,6 +629,12 @@ public class Kinemage extends AGE<Kinemage,KGroup> // implements ...
         return false;
     }
     
+    public int getNumAnimateGroups()
+    { return getAnimateGroups().length; }
+    
+    public int getNum2AnimateGroups()
+    { return get2AnimateGroups().length; }
+    
     protected KGroup[] getAnimateGroups()
     {
         ArrayList<KGroup> animateGroups = new ArrayList<KGroup>();
