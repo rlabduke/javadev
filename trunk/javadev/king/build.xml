@@ -112,11 +112,18 @@
 <!-- Makes .zip files from the ${dist} directory -->
 <target name="dist" description="Generate the distributions" depends="init,clean,build,dist-src,dist-exe">
     <zip destfile="${dist}/${ant.project.name}.${version}.${DSTAMP_SIX}.src.zip">
-        <zipfileset dir="${dist}" includes="${ant.project.name}-${version}-src/"/>
+        <zipfileset dir="${dist}" includes="${ant.project.name}/"/>
         <zipfileset dir="${dist}" includes="javadocs/"/>
+        <!-- old version, incorporates version names which breaks ant when users try to compile them VBC 111230
         <zipfileset dir="../driftwood/dist/" includes="driftwood-*-src/"/>
         <zipfileset dir="../chiropraxis/dist/" includes="chiropraxis-*-src/"/>
         <zipfileset dir="../extratools/dist/" includes="extratools-*-src/"/>
+        <zipfileset dir="../molikin/dist/" includes="molikin-*-src/"/> 
+        -->
+        <zipfileset dir="../driftwood/dist/" includes="driftwood/"/>
+        <zipfileset dir="../chiropraxis/dist/" includes="chiropraxis/"/>
+        <zipfileset dir="../extratools/dist/" includes="extratools/"/>
+        <zipfileset dir="../molikin/dist/" includes="molikin/"/> 
         <zipfileset dir="../lib/" prefix="lib/">
             <include name="iText/*.jar"/>
             <include name="jogl/*.jar"/>
@@ -138,8 +145,15 @@
     <ant antfile="../extratools/build.xml" inheritAll="false" target="dist-src">
         <!-- inherited properties go here -->
     </ant>
+    <ant antfile="../molikin/build.xml" inheritAll="false" target="dist-src">
+        <!-- inherited properties go here -->
+    </ant>
+    <!--
     <mkdir dir="${dist}/${ant.project.name}-${version}-src"/>
     <copy todir="${dist}/${ant.project.name}-${version}-src" preservelastmodified="true">
+    -->
+    <mkdir dir="${dist}/${ant.project.name}"/>
+    <copy todir="${dist}/${ant.project.name}" preservelastmodified="true">
         <fileset dir="${basedir}">
             <exclude name="build/"/>
             <exclude name="dist/"/>
