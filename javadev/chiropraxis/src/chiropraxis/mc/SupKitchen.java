@@ -489,14 +489,14 @@ public class SupKitchen //extends ... implements ...
     */
     public AtomState[][] sup(Model m1, Model m2, CoordinateFile cf1) throws IllegalArgumentException
     {
-        if(verbose) System.err.println("\nSuperposing model"+m1+" ("+SubImpose.getChains(m1).size()+
-            " chains) onto model"+m2+" ("+SubImpose.getChains(m2).size()+" chains)");
+        if(verbose) System.err.println("\nSuperposing model"+m1+" ("+SubImpose.getChains(m1, null).size()+
+            " chains) onto model"+m2+" ("+SubImpose.getChains(m2, null).size()+" chains)");
         
         ModelState s1 = m1.getState();
         ModelState s2 = m2.getState();
         
         // Sequence-based residue alignment
-        Alignment align = Alignment.alignChains(SubImpose.getChains(m1), SubImpose.getChains(m2), 
+        Alignment align = Alignment.alignChains(SubImpose.getChains(m1, null), SubImpose.getChains(m2, null), 
             new Alignment.NeedlemanWunsch(), new SubImpose.SimpleResAligner());
         // This ^ method rejects residue alignments with lots of gaps, e.g. when the  
         // ref is shorter, resulting in lots of nulls.  That leads to problems.
@@ -1104,7 +1104,7 @@ public class SupKitchen //extends ... implements ...
         // the subset of selected atoms.  Code modified from sup() method.
         ModelState s1 = m1.getState();
         ModelState s2 = m2.getState();
-        Alignment align = Alignment.alignChains(SubImpose.getChains(m1), SubImpose.getChains(m2), 
+        Alignment align = Alignment.alignChains(SubImpose.getChains(m1, null), SubImpose.getChains(m2, null), 
             new Alignment.NeedlemanWunsch(), new SubImpose.SimpleResAligner());
         try
         {
