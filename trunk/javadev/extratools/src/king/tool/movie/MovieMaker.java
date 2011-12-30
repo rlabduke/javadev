@@ -143,6 +143,8 @@ public class MovieMaker implements ListSelectionListener
             spinBtn.setHorizontalAlignment(JButton.LEFT);
         JButton flyBtn = new JButton(new ReflectiveAction("+ Fly", null, this, "onAddFlyingScene"));
             flyBtn.setHorizontalAlignment(JButton.LEFT);
+        JButton animateBtn = new JButton(new ReflectiveAction("+ Animate", null, this, "onAddAnimateScene"));
+            animateBtn.setHorizontalAlignment(JButton.LEFT);
         JButton deleteBtn = new JButton(new ReflectiveAction("- Delete", null, this, "onDeleteScene"));
             deleteBtn.setHorizontalAlignment(JButton.LEFT);
         JButton configBtn = new JButton(new ReflectiveAction("Configure ...", null, this, "onConfigureScene"));
@@ -155,6 +157,7 @@ public class MovieMaker implements ListSelectionListener
             cp.addCell(rockBtn).newRow();
             cp.addCell(spinBtn).newRow();
             cp.addCell(flyBtn).newRow();
+            cp.addCell(animateBtn).newRow();
             cp.addCell(deleteBtn).newRow();
             cp.addCell(configBtn).newRow();
         cp.endSubtable();
@@ -263,6 +266,10 @@ public class MovieMaker implements ListSelectionListener
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onAddFlyingScene(ActionEvent ev)
     { addScene(new FlyingCameraScene(kMain, 60)); }
+    
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onAddAnimateScene(ActionEvent ev)
+    { addScene(new AnimateScene(kMain, 1)); }
     
     private void addScene(Scene s)
     {
