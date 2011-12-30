@@ -32,6 +32,7 @@ public abstract class Scene //extends ... implements ...
 
     // Current kinemage state
     protected KView     view = null;
+    protected Aspect    aspect = null;
     protected BitSet    on_offState = null;
     protected BitSet    mastersState = null;
 //}}}
@@ -54,6 +55,7 @@ public abstract class Scene //extends ... implements ...
         if(kin == null) return;
         
         this.view = kMain.getView().clone();
+        this.aspect = kMain.getCanvas().getCurrentAspect();
         
         int i = 0;
         this.on_offState = new BitSet();
@@ -73,6 +75,7 @@ public abstract class Scene //extends ... implements ...
         
         if(this.view != null)
             kMain.setView(view);
+          kMain.getCanvas().setCurrentAspect(this.aspect); // null is OK
         if(this.on_offState != null)
         {
             int i = 0;
