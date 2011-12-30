@@ -53,7 +53,7 @@
 <!-- Makes .zip files from the ${dist} directory -->
 <target name="dist" description="Generate the distributions" depends="init,clean,build,dist-src,dist-exe">
     <zip destfile="${dist}/${ant.project.name}-${version}-src.zip">
-         <zipfileset dir="${dist}" includes="${ant.project.name}-${version}-src/"/>
+         <zipfileset dir="${dist}" includes="${ant.project.name}/"/>
     </zip>
     <zip basedir="${dist}"
          destfile="${dist}/${ant.project.name}-${version}.zip"
@@ -64,6 +64,15 @@
 <target name="dist-src" depends="init">
     <mkdir dir="${dist}/${ant.project.name}-${version}-src"/>
     <copy todir="${dist}/${ant.project.name}-${version}-src" preservelastmodified="true">
+        <fileset dir="${basedir}">
+            <exclude name="build/"/>
+            <exclude name="dist/"/>
+            <exclude name="**/old/"/>
+            <exclude name="doc/nodist/"/>
+        </fileset>
+    </copy>
+    <mkdir dir="${dist}/${ant.project.name}"/>
+    <copy todir="${dist}/${ant.project.name}" preservelastmodified="true">
         <fileset dir="${basedir}">
             <exclude name="build/"/>
             <exclude name="dist/"/>

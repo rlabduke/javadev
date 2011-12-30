@@ -72,8 +72,8 @@
 <!-- Makes .zip and .tgz files from the ${dist} directory -->
 <target name="dist" description="Generate the distributions" depends="init,clean,build,dist-src,dist-exe">
     <zip destfile="${dist}/${ant.project.name}-${version}-src.zip">
-         <zipfileset dir="${dist}" includes="${ant.project.name}-${version}-src/"/>
-         <zipfileset dir="../driftwood/dist/" includes="driftwood-*-src/"/>
+         <zipfileset dir="${dist}" includes="${ant.project.name}/"/>
+         <zipfileset dir="../driftwood/dist/" includes="driftwood/"/>
     </zip>
     <zip basedir="${dist}"
          destfile="${dist}/${ant.project.name}-${version}.zip"
@@ -85,8 +85,10 @@
     <ant antfile="../driftwood/build.xml" inheritAll="false" target="dist-src">
         <!-- inherited properties go here -->
     </ant>
-    <mkdir dir="${dist}/${ant.project.name}-${version}-src"/>
-    <copy todir="${dist}/${ant.project.name}-${version}-src" preservelastmodified="true">
+    <!--<mkdir dir="${dist}/${ant.project.name}-${version}-src"/>
+    <copy todir="${dist}/${ant.project.name}-${version}-src" preservelastmodified="true">-->
+    <mkdir dir="${dist}/${ant.project.name}"/>
+    <copy todir="${dist}/${ant.project.name}" preservelastmodified="true">
         <fileset dir="${basedir}">
             <exclude name="build/"/>
             <exclude name="dist/"/>
