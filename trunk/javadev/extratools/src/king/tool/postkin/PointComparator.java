@@ -37,10 +37,8 @@ public class PointComparator implements Comparator {
   //{{{ Variable definitions
   //##############################################################################    
   //String[] atomNames = {" N  ", " CA ", " C  ", " O  ", " CB ", " CG ", " CD ", " CE ", " NZ "};
-  Props     scProps;
-  ArrayList heteroAtoms;
-  ArrayList hydrogens;
   static ArrayList allAtoms;
+  static ArrayList allAtomsv23;
   //}}}
   
   //{{{ Constructor(s)
@@ -49,13 +47,9 @@ public class PointComparator implements Comparator {
   * Constructor
   */
   public PointComparator() {
-    
-    heteroAtoms = new ArrayList();
-    hydrogens = new ArrayList();
     extractAAs();
-    heteroAtoms.addAll(hydrogens);
-    allAtoms = heteroAtoms;
     //System.out.println(allAtoms);
+    //System.out.println(allAtomsv23);
   }
   //}}}
   
@@ -108,32 +102,44 @@ public class PointComparator implements Comparator {
   *
   */
   public void extractAAs() {
-    // Load side chain connectivity database
-    scProps = new Props();
-    try
-    {
-      InputStream is = getClass().getResourceAsStream("sc-connect.props");
-      if(is != null)
-      {
-        scProps.load(is);
-        is.close();
-      }
-      else SoftLog.err.println("Couldn't find sc-connect.props");
-    }
-    catch(IOException ex)
-    { ex.printStackTrace(SoftLog.err); }
-    //scProps.list(System.out);
     
-    Set scs = scProps.keySet();
-    Iterator iter = (new TreeSet(scs)).iterator();
-    while (iter.hasNext()) {
-	    String key = (String) iter.next();
-	    if (key.indexOf(".hy") > 0) {
-        buildAALists(hydrogens, scProps.getString(key, ""), "hy");
-	    } else {
-        buildAALists(heteroAtoms, scProps.getString(key, ""), "hetero");
-	    }
-	    //System.out.println(key);
+    String[] resources = new String[] {"sc-connect.props", "sc-connect-v23.props"};
+    for(String resource : resources) {
+      // Load side chain connectivity database
+      Props scProps = new Props();
+      try
+      {
+        InputStream is = getClass().getResourceAsStream("sc-connect.props");
+        if(is != null)
+        {
+          scProps.load(is);
+          is.close();
+        }
+        else SoftLog.err.println("Couldn't find sc-connect.props");
+      }
+      catch(IOException ex)
+      { ex.printStackTrace(SoftLog.err); }
+      
+      // Read heavy atoms and hydrogens separately
+      ArrayList heteroAtoms = new ArrayList();
+      ArrayList hydrogens = new ArrayList();
+      Set scs = scProps.keySet();
+      Iterator iter = (new TreeSet(scs)).iterator();
+      while (iter.hasNext()) {
+	      String key = (String) iter.next();
+	      if (key.indexOf(".hy") > 0) {
+          buildAALists(hydrogens, scProps.getString(key, ""), "hy");
+	      } else {
+          buildAALists(heteroAtoms, scProps.getString(key, ""), "hetero");
+	      }
+      }
+      
+      // Combine heavy atoms and hydrogens
+      heteroAtoms.addAll(hydrogens);
+      if(resource.equals("sc-connect.props"))
+        allAtoms = heteroAtoms;
+      else
+        allAtomsv23 = heteroAtoms;
     }
     
   }
@@ -212,6 +218,10 @@ public class PointComparator implements Comparator {
       String atom = (String) allAtoms.get(i);
       if (name.substring(0,10).indexOf(atom) > -1) return i;
     }
+    for (int i = allAtomsv23.size() - 1; i >= 0; i--) {
+      String atom = (String) allAtomsv23.get(i);
+      if (name.substring(0,10).indexOf(atom) > -1) return i;
+    }
     return -1;
   }
   //}}}
@@ -246,6 +256,12 @@ public class PointComparator implements Comparator {
     */
     for (int i = allAtoms.size() - 1; i >= 0; i--) {
       String atom = (String) allAtoms.get(i);
+      // substring is to prevent silly bug where the wrong atom would be found in 
+      // the pdbID that is sometimes in the pointIDs.
+      if (name.substring(0,10).indexOf(atom) > -1) return atom; 
+    }
+    for (int i = allAtomsv23.size() - 1; i >= 0; i--) {
+      String atom = (String) allAtomsv23.get(i);
       // substring is to prevent silly bug where the wrong atom would be found in 
       // the pdbID that is sometimes in the pointIDs.
       if (name.substring(0,10).indexOf(atom) > -1) return atom; 

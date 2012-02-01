@@ -34,6 +34,7 @@ king.tool.postkin.RMSDTool.menuName = Specialty
 king.tool.postkin.ColorGrouperPlugin.menuName = <not shown>
 king.tool.loops.PatchGapPlugin.menuName = Specialty
 king.tool.postkin.KinimolPlugin.menuName = Specialty
+king.tool.postkin.NikilomPlugin.menuName = Specialty
 king.tool.loops.LoopRmsdTool.menuName = Specialty
 king.tool.data_analysis.HighDimSliderPlugin.menuName = Data analysis
 # king.tool.data_analysis.RdcPlayPlugin.menuName = Specialty

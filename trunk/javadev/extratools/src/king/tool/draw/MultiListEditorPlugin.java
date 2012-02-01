@@ -36,7 +36,7 @@ public class MultiListEditorPlugin extends Plugin
 //{{{ Variable definitions
 //##############################################################################
     JDialog dialog;
-    JCheckBox cbVec, cbBall, cbDot, cbRib, cbProbe, cbOther, cbVis; /*, cbIn, cbOut;
+    JCheckBox cbVec, cbBall, cbDot, cbRib, cbTri, cbProbe, cbOther, cbVis; /*, cbIn, cbOut;
     JTextField tfIn, tfOut;*/
     JComboBox colors;
 //}}}
@@ -59,6 +59,7 @@ public class MultiListEditorPlugin extends Plugin
         cbBall  = new JCheckBox("balllists", false);
         cbDot   = new JCheckBox("dotlists", false);
         cbRib   = new JCheckBox("ribbonlists", false);
+        cbTri   = new JCheckBox("trianglelists", false);
         
         cbProbe = new JCheckBox("Probe contacts", false);
         cbOther = new JCheckBox(new ReflectiveAction("human history", null, this, "onChangeHistory"));
@@ -88,6 +89,7 @@ public class MultiListEditorPlugin extends Plugin
         cp.addCell(cbBall).addCell(cbOther).newRow();
         cp.addCell(cbDot).newRow();
         cp.addCell(cbRib).newRow();
+        cp.addCell(cbTri).newRow();
         cp.addCell(bigger).addCell(smaller).newRow();
         cp.addCell(opaquer).addCell(transparenter).newRow();
         cp.addCell(color).addCell(colors).newRow();
@@ -352,11 +354,12 @@ public class MultiListEditorPlugin extends Plugin
         for(KList l : cbVis.isSelected() ? KIterator.visibleLists(kin) : KIterator.allLists(kin))
         {
             String t = l.getType();
-            if(cbVec.isSelected() && t.equals(KList.VECTOR))  lists.add(l);
-            if(cbBall.isSelected() && t.equals(KList.BALL))   lists.add(l);
-            if(cbDot.isSelected() && t.equals(KList.DOT))     lists.add(l);
-            if(cbRib.isSelected() && t.equals(KList.RIBBON))  lists.add(l);
-            if(cbProbe.isSelected() && isProbeList(l))        lists.add(l);
+            if(cbVec.isSelected()   && t.equals(KList.VECTOR))   lists.add(l);
+            if(cbBall.isSelected()  && t.equals(KList.BALL))     lists.add(l);
+            if(cbDot.isSelected()   && t.equals(KList.DOT))      lists.add(l);
+            if(cbRib.isSelected()   && t.equals(KList.RIBBON))   lists.add(l);
+            if(cbTri.isSelected()   && t.equals(KList.TRIANGLE)) lists.add(l);
+            if(cbProbe.isSelected() && isProbeList(l))           lists.add(l);
         }
         return lists;
     }

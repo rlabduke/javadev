@@ -250,7 +250,9 @@ public class KinUtil {
   
   //more robust way of getting residue name, but limited to real AAs.
   public static String getResAA(String name) {
-    return AminoAcid.getAAName(name);
+    // substring is to prevent silly bug where the wrong amino acid type  
+    // the pdbID that is sometimes in the pointIDs.
+    return AminoAcid.getAAName(name.substring(0,10));
   }
   
   public static double getBvalue(KPoint point) {
