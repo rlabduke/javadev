@@ -43,11 +43,12 @@ public class Ramalyze //extends ... implements ...
         public static final String NOSCORE = "Not evaluated";
         
         public static final String GENERAL  = "General case";
-        public static final String GLYCINE  = "Glycine";
-        public static final String PROLINE  = "Proline";
-        //public static final String CISPRO   = "Cis Proline";
-        //public static final String TRANSPRO = "Trans Proline";
+        public static final String ILEVAL   = "Isoleucine or valine";
         public static final String PREPRO   = "Pre-proline";
+        public static final String GLYCINE  = "Glycine";
+        public static final String CISPRO   = "Cis proline";
+        public static final String TRANSPRO = "Trans proline";
+        /*public static final String PROLINE  = "Proline";*/
         public static final String NOTYPE   = "Unknown type";
         
         Residue res;
@@ -169,23 +170,50 @@ public class Ramalyze //extends ... implements ...
                     eval.psi = (float) AminoAcid.getPsi(model, res, ms);
                     eval.numscore = (float) rama.rawScore(model, res, ms);
                     
-                    if(res.getName().equals("GLY"))             eval.type = RamaEval.GLYCINE;
-                    else if(res.getName().equals("PRO"))        eval.type = RamaEval.PROLINE;
-                    //{
-                    //    if (AminoAcid.isCis(model, res, ms))    eval.type = RamaEval.CISPRO;
-                    //    else                                    eval.type = RamaEval.TRANSPRO;
-                    //}
-                    else if(AminoAcid.isPrepro(model, res, ms)) eval.type = RamaEval.PREPRO;
-                    else                                        eval.type = RamaEval.GENERAL;
+                    if(res.getName().equals("GLY"))
+                        eval.type = RamaEval.GLYCINE;
+                    else if(res.getName().equals("PRO"))
+                    {
+                        if(AminoAcid.isCisPeptide(model, res, ms))
+                            eval.type = RamaEval.CISPRO;
+                        else
+                            eval.type = RamaEval.TRANSPRO;
+                    }
+                        /*eval.type = RamaEval.PROLINE;*/
+                    else if(AminoAcid.isPrepro(model, res, ms))
+                        eval.type = RamaEval.PREPRO;
+                    else if(res.getName().equals("ILE") || res.getName().equals("VAL"))
+                        eval.type = RamaEval.ILEVAL;
+                    else
+                        eval.type = RamaEval.GENERAL;
                     
+                    // Favored
                     if(eval.numscore >= Ramachandran.ALL_FAVORED)
+                        eval.score = RamaEval.FAVORED;
+                    // General
+                    else if(eval.type == RamaEval.GENERAL 
+                    && eval.numscore >= Ramachandran.GENERAL_ALLOWED)
+                        eval.score = RamaEval.ALLOWED;
+                    // Cis Pro
+                    else if(eval.type == RamaEval.CISPRO 
+                    && eval.numscore >= Ramachandran.CISPRO_ALLOWED)
+                        eval.score = RamaEval.ALLOWED;
+                    // Other
+                    else if(eval.type != RamaEval.GENERAL && eval.type != RamaEval.CISPRO 
+                    && eval.numscore >= Ramachandran.OTHER_ALLOWED)
+                        eval.score = RamaEval.ALLOWED;
+                    // Outlier
+                    else
+                        eval.score = RamaEval.OUTLIER;
+                    
+                    /*if(eval.numscore >= Ramachandran.ALL_FAVORED)
                         eval.score = RamaEval.FAVORED;
                     else if(eval.type == RamaEval.GENERAL && eval.numscore >= Ramachandran.GENERAL_ALLOWED)
                         eval.score = RamaEval.ALLOWED;
                     else if(eval.type != RamaEval.GENERAL && eval.numscore >= Ramachandran.OTHER_ALLOWED)
                         eval.score = RamaEval.ALLOWED;
                     else
-                        eval.score = RamaEval.OUTLIER;
+                        eval.score = RamaEval.OUTLIER;*/
                     
                     analysis.add(eval);
                 }

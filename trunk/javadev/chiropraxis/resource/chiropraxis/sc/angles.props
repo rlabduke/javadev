@@ -64,6 +64,7 @@ pro.chis = 3
 pro.chi1 = " N  , CA , CB , CG "
 pro.pchi2 = " CA , CB , CG , CD "
 pro.pchi3 = " CB , CG , CD ,1HD ; HD2"
+# Should chi3 perhaps be CB-CG-CD-N?...  DAK 120224
 pro.rotamers = "endo,exo"
 pro.frequencies = "44%,43%"
 pro.endo = 28 -36 149
