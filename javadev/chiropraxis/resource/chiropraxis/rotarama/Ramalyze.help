@@ -4,7 +4,7 @@ USAGE
     
 MODE defaults to '-pdf' but can be any one of the following:
 
-    -pdf    Creates a PDF document that shows all four Ramachandran plots on one
+    -pdf    Creates a PDF document that shows all six Ramachandran plots on one
             page, with outliers labeled and with summary statistics.
 
             For x-ray files with alternate conformations, any residue with

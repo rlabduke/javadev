@@ -21,7 +21,7 @@ import com.lowagie.text.pdf.*;
 * <code>RamaPdfWriter</code> uses the iText PDF libraries to produce a PDF
 * plot of the four Richardson Ramachandran plots.
 *
-* WILL REQUIRE EXTENSIVE FORMATTING CHANGES TO ACCOMMODATE CIS/TRANS PROLINES!
+* WILL REQUIRE EXTENSIVE FORMATTING CHANGES TO ACCOMMODATE 6 INSTEAD OF 4 CATEGORIES!
 *
 * <p>When run as an application, it just copies its template file to standard out.
 *
@@ -34,7 +34,8 @@ public class RamaPdfWriter //extends ... implements ...
     /** Width of the extra border around the plot Graphics */
     static final float PLOT_EXTRA   = 60f;
     /** Scale factor to make plots fit on the page */
-    static final float PLOT_SCALE   = 215.5f / 360;
+    static final float PLOT_SCALE   = 165.3f / 360; // smaller plots now
+    /*static final float PLOT_SCALE = 215.5f / 360;*/
     /** Offset for positioning plots */
     static final float PLOT_OFFSET  = PLOT_SCALE * PLOT_EXTRA;
 //}}}
@@ -65,8 +66,15 @@ public class RamaPdfWriter //extends ... implements ...
     // Document coordinate system has bottom left corner as (0, 0)
     // However, template coordinate systems have TOP left as (0, 0)
     // Rama plot lower left corners:
+    // (108.3, 558.7)   (351.2, 558.7)
+    // (108.3, 357.9)   (351.2, 357.9)
+    // (108.3, 156.0)   (351.2, 156.0)
+    // These were determined by hand by DAK in Illustrator; not sure how  
+    // IWD got the old versions below (presumably by a similar strategy).
+    /*
     // (62.5, 480.5)   (345.0, 480.5)
     // (62.5, 221.5)   (345.0, 221.5)
+    */
     /**
     * Takes a bunch of analyzed models and plots Rama plots for all of them.
     * @param analyses a Map&lt; Collection&lt;Ramalyze.RamaEval&gt;, String &gt;
@@ -79,23 +87,24 @@ public class RamaPdfWriter //extends ... implements ...
     {
         try
         {
-        URL templateFile = this.getClass().getResource("rama/rama4-template.pdf");
-        PdfReader pdfReader = new PdfReader(templateFile);
-
-        Document    doc = new Document(PageSize.LETTER);
-        PdfWriter   pdf = PdfWriter.getInstance(doc, out);
-        doc.addCreator(this.getClass().getName()+" by Ian W. Davis");
-        // add header and footer now, before opening document
-        doc.open();
-        
-        PdfContentByte  content     = pdf.getDirectContent();
-        PdfTemplate     template    = pdf.getImportedPage(pdfReader, 1);
-        
-        doModelByModel(analyses, structName, doc, content, template);
-        // TODO: doResidueByResidue()
-        
-        // Closing the document writes everything to file
-        doc.close();
+            URL templateFile = this.getClass().getResource("rama8000/rama6-template.pdf");
+            /*URL templateFile = this.getClass().getResource("rama5200/rama4-template.pdf");*/
+            PdfReader pdfReader = new PdfReader(templateFile);
+            
+            Document    doc = new Document(PageSize.LETTER);
+            PdfWriter   pdf = PdfWriter.getInstance(doc, out);
+            doc.addCreator(this.getClass().getName()+" by Ian W. Davis");
+            // add header and footer now, before opening document
+            doc.open();
+            
+            PdfContentByte  content     = pdf.getDirectContent();
+            PdfTemplate     template    = pdf.getImportedPage(pdfReader, 1);
+            
+            doModelByModel(analyses, structName, doc, content, template);
+            // TODO: doResidueByResidue()
+            
+            // Closing the document writes everything to file
+            doc.close();
         }
         catch(DocumentException ex)
         { throw new IOException("Got DocumentException when trying to generate PDF."); }
@@ -119,20 +128,22 @@ public class RamaPdfWriter //extends ... implements ...
     {
         int i = 0;
         PdfTemplate[] generalTemplates  = new PdfTemplate[analyses.size()];
-        PdfTemplate[] glycineTemplates  = new PdfTemplate[analyses.size()];
-        PdfTemplate[] prolineTemplates  = new PdfTemplate[analyses.size()];
-        //PdfTemplate[] cisproTemplates   = new PdfTemplate[analyses.size()];
-        //PdfTemplate[] transproTemplates = new PdfTemplate[analyses.size()];
+        PdfTemplate[] ilevalTemplates   = new PdfTemplate[analyses.size()];
         PdfTemplate[] preproTemplates   = new PdfTemplate[analyses.size()];
+        PdfTemplate[] glycineTemplates  = new PdfTemplate[analyses.size()];
+        PdfTemplate[] transproTemplates = new PdfTemplate[analyses.size()];
+        PdfTemplate[] cisproTemplates   = new PdfTemplate[analyses.size()];
+        /*PdfTemplate[] prolineTemplates  = new PdfTemplate[analyses.size()];*/
         for(Iterator iter = analyses.keySet().iterator(); iter.hasNext(); i++)
         {
             Collection analysis  = (Collection) iter.next();
             generalTemplates[i]  = makeAnalysisTemplate(content, Ramalyze.RamaEval.GENERAL, analysis);
-            glycineTemplates[i]  = makeAnalysisTemplate(content, Ramalyze.RamaEval.GLYCINE, analysis);
-            prolineTemplates[i] = makeAnalysisTemplate(content, Ramalyze.RamaEval.PROLINE, analysis);
-            //cisproTemplates[i]   = makeAnalysisTemplate(content, Ramalyze.RamaEval.PREPRO, analysis);
-            //transproTemplates[i] = makeAnalysisTemplate(content, Ramalyze.RamaEval.PREPRO, analysis);
+            ilevalTemplates[i]   = makeAnalysisTemplate(content, Ramalyze.RamaEval.ILEVAL, analysis);
             preproTemplates[i]   = makeAnalysisTemplate(content, Ramalyze.RamaEval.PREPRO, analysis);
+            glycineTemplates[i]  = makeAnalysisTemplate(content, Ramalyze.RamaEval.GLYCINE, analysis);
+            transproTemplates[i] = makeAnalysisTemplate(content, Ramalyze.RamaEval.TRANSPRO, analysis);
+            cisproTemplates[i]   = makeAnalysisTemplate(content, Ramalyze.RamaEval.CISPRO, analysis);
+            /*prolineTemplates[i] = makeAnalysisTemplate(content, Ramalyze.RamaEval.PROLINE, analysis);*/
         }
         
         // Do all plots superimposed
@@ -143,13 +154,25 @@ public class RamaPdfWriter //extends ... implements ...
             for(i = 0; i < analyses.size(); i++)
             {
                 content.addTemplate(generalTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
+                    108.3f-PLOT_OFFSET, 558.7f-PLOT_OFFSET);
+                content.addTemplate(preproTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
+                    108.3f-PLOT_OFFSET, 357.9f-PLOT_OFFSET);
+                content.addTemplate(transproTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
+                    108.3f-PLOT_OFFSET, 156.0f-PLOT_OFFSET);
+                content.addTemplate(ilevalTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
+                    351.2f-PLOT_OFFSET, 558.7f-PLOT_OFFSET);
+                content.addTemplate(glycineTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
+                    351.2f-PLOT_OFFSET, 357.9f-PLOT_OFFSET);
+                content.addTemplate(cisproTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
+                    351.2f-PLOT_OFFSET, 156.0f-PLOT_OFFSET);
+                /*content.addTemplate(generalTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
                     62.5f-PLOT_OFFSET, 480.5f-PLOT_OFFSET);
                 content.addTemplate(glycineTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
                     345.0f-PLOT_OFFSET, 480.5f-PLOT_OFFSET);
                 content.addTemplate(prolineTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
                     62.5f-PLOT_OFFSET, 221.5f-PLOT_OFFSET);
                 content.addTemplate(preproTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
-                    345.0f-PLOT_OFFSET, 221.5f-PLOT_OFFSET);
+                    345.0f-PLOT_OFFSET, 221.5f-PLOT_OFFSET);*/
             }
             
             // Aggregate statistics for all residues analyzed
@@ -157,9 +180,11 @@ public class RamaPdfWriter //extends ... implements ...
             for(Iterator iter = analyses.keySet().iterator(); iter.hasNext(); )
                 allRes.addAll((Collection) iter.next());
             //PdfTemplate stats = plotStatistics(content, 540, 144, allRes);
-            PdfTemplate stats = plotStatistics(content, 540, 130, allRes);
+            /*PdfTemplate stats = plotStatistics(content, 540, 130, allRes);*/
+            PdfTemplate stats = plotStatistics(content, 540, 80, allRes);
             //float scale = Math.min(540/stats.getWidth(), 144/stats.getHeight());
-            float scale = Math.min(540/stats.getWidth(), 130/stats.getHeight());
+            /*float scale = Math.min(540/stats.getWidth(), 130/stats.getHeight());*/
+            float scale = Math.min(540/stats.getWidth(), 80/stats.getHeight());
             if(scale > 1) scale = 1;
             //content.addTemplate(stats, scale, 0, 0, scale, 36, 36);
             content.addTemplate(stats, scale, 0, 0, scale, 50, 50);
@@ -177,17 +202,31 @@ public class RamaPdfWriter //extends ... implements ...
             doc.newPage();
             content.addTemplate(template, 0, 0);
             content.addTemplate(generalTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
+                108.3f-PLOT_OFFSET, 558.7f-PLOT_OFFSET);
+            content.addTemplate(preproTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
+                108.3f-PLOT_OFFSET, 357.9f-PLOT_OFFSET);
+            content.addTemplate(transproTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
+                108.3f-PLOT_OFFSET, 156.0f-PLOT_OFFSET);
+            content.addTemplate(ilevalTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
+                351.2f-PLOT_OFFSET, 558.7f-PLOT_OFFSET);
+            content.addTemplate(glycineTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
+                351.2f-PLOT_OFFSET, 357.9f-PLOT_OFFSET);
+            content.addTemplate(cisproTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
+                351.2f-PLOT_OFFSET, 156.0f-PLOT_OFFSET);
+            /*content.addTemplate(generalTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
                 62.5f-PLOT_OFFSET, 480.5f-PLOT_OFFSET);
             content.addTemplate(glycineTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
                 345.0f-PLOT_OFFSET, 480.5f-PLOT_OFFSET);
             content.addTemplate(prolineTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
                 62.5f-PLOT_OFFSET, 221.5f-PLOT_OFFSET);
             content.addTemplate(preproTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
-                345.0f-PLOT_OFFSET, 221.5f-PLOT_OFFSET);
+                345.0f-PLOT_OFFSET, 221.5f-PLOT_OFFSET);*/
             //PdfTemplate stats = plotStatistics(content, 540, 144, analysis);
-            PdfTemplate stats = plotStatistics(content, 540, 130, analysis);
+            /*PdfTemplate stats = plotStatistics(content, 540, 130, analysis);*/
+            PdfTemplate stats = plotStatistics(content, 80, 100, analysis);
             //float scale = Math.min(540/stats.getWidth(), 144/stats.getHeight());
-            float scale = Math.min(540/stats.getWidth(), 130/stats.getHeight());
+            /*float scale = Math.min(540/stats.getWidth(), 130/stats.getHeight());*/
+            float scale = Math.min(540/stats.getWidth(), 80/stats.getHeight());
             if(scale > 1) scale = 1;
             //content.addTemplate(stats, scale, 0, 0, scale, 36, 36);
             content.addTemplate(stats, scale, 0, 0, scale, 50, 50);
@@ -207,10 +246,13 @@ public class RamaPdfWriter //extends ... implements ...
         g2.translate(180+PLOT_EXTRA, 180+PLOT_EXTRA); // now we can use angles from -180 to +180 naturally
         
         Color c;
-        if(Ramalyze.RamaEval.GENERAL.equals(evalType))  c = new Color(0xcc00cc);
-        else if(Ramalyze.RamaEval.GLYCINE.equals(evalType))  c = new Color(0x00cc66);
-        else if(Ramalyze.RamaEval.PROLINE.equals(evalType))  c = new Color(0xcc6600);
-        else if(Ramalyze.RamaEval.PREPRO.equals(evalType))  c = new Color(0x3366cc);
+        if(Ramalyze.RamaEval.GENERAL.equals(evalType))  c = new Color(0xcc00cc); // purple
+        else if(Ramalyze.RamaEval.ILEVAL.equals(evalType))  c = new Color(0xff0000); // red
+        else if(Ramalyze.RamaEval.PREPRO.equals(evalType))  c = new Color(0x3366cc); // blue
+        else if(Ramalyze.RamaEval.GLYCINE.equals(evalType))  c = new Color(0x00cc66); // green
+        else if(Ramalyze.RamaEval.TRANSPRO.equals(evalType))  c = new Color(0xcc6600); // orange
+        else if(Ramalyze.RamaEval.CISPRO.equals(evalType))  c = new Color(0x999900); // gold/yellow
+        /*else if(Ramalyze.RamaEval.PROLINE.equals(evalType))  c = new Color(0xcc6600);*/
         else c = new Color(0x000000); // shouldn't ever happen
         
         this.plotAnalysis(g2, c, evalType, analysis);
@@ -230,8 +272,9 @@ public class RamaPdfWriter //extends ... implements ...
     * will be plotted at (-60, +40) on the Graphics.
     * @param g the Graphics to draw on
     * @param outColor the color to draw outliers in
-    * @param evalType one of the Ramalyze.RamaEval type constants specifying which
-    *   type of residues should appear on this plot. One of GENERAL, GLYCINE, PROLINE, or PREPRO.
+    * @param evalType one of the Ramalyze.RamaEval type constants specifying 
+    *   which type of residues should appear on this plot. One of 
+    *   GENERAL, ILEVAL, PREPRO, GLYCINE, TRANSPRO, or CISPRO.
     * @param analysis a Collection of Ramalyze.RamaEval objects to be plotted.
     */
     void plotAnalysis(Graphics g, Color outColor, String evalType, Collection analysis)
@@ -396,7 +439,8 @@ public class RamaPdfWriter //extends ... implements ...
         int width = metrics.stringWidth(title);
         int height = metrics.getMaxAscent() + metrics.getMaxDescent();
         int x = ((int)canvas.getWidth() - width) / 2;
-        int y = 72 + height/2;
+        /*int y = 72 + height/2;*/
+        int y = 46 + height/2;
         g2.drawString(title, x, y);
         
         g2.dispose();
@@ -419,7 +463,8 @@ public class RamaPdfWriter //extends ... implements ...
             System.setProperty("java.awt.headless", "true");
             
             // Write out our template file to standard out
-            URL templateFile = this.getClass().getResource("rama/rama4-template.pdf");
+            URL templateFile = this.getClass().getResource("rama/rama6-template.pdf");
+            /*URL templateFile = this.getClass().getResource("rama/rama4-template.pdf");*/
             PdfReader pdfReader = new PdfReader(templateFile);
     
             Document    doc = new Document(PageSize.LETTER);

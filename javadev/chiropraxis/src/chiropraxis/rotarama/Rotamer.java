@@ -108,30 +108,30 @@ public class Rotamer //extends ... implements ...
     {
         tables = new HashMap(30);
         NDFloatTable ndft;
-        tables.put("ser", loadTable("rota/ser.ndft"));
-        tables.put("thr", loadTable("rota/thr.ndft"));
-        tables.put("cys", loadTable("rota/cys.ndft"));
-        tables.put("val", loadTable("rota/val.ndft"));
-        tables.put("pro", loadTable("rota/pro.ndft"));
+        tables.put("ser", loadTable("rota500/ser.ndft"));
+        tables.put("thr", loadTable("rota500/thr.ndft"));
+        tables.put("cys", loadTable("rota500/cys.ndft"));
+        tables.put("val", loadTable("rota500/val.ndft"));
+        tables.put("pro", loadTable("rota500/pro.ndft"));
         
-        tables.put("leu", loadTable("rota/leu.ndft"));
-        tables.put("ile", loadTable("rota/ile.ndft"));
-        tables.put("trp", loadTable("rota/trp.ndft"));
-        tables.put("asp", loadTable("rota/asp.ndft"));
-        tables.put("asn", loadTable("rota/asn.ndft"));
-        tables.put("his", loadTable("rota/his.ndft"));
-        ndft = loadTable("rota/phetyr.ndft");
+        tables.put("leu", loadTable("rota500/leu.ndft"));
+        tables.put("ile", loadTable("rota500/ile.ndft"));
+        tables.put("trp", loadTable("rota500/trp.ndft"));
+        tables.put("asp", loadTable("rota500/asp.ndft"));
+        tables.put("asn", loadTable("rota500/asn.ndft"));
+        tables.put("his", loadTable("rota500/his.ndft"));
+        ndft = loadTable("rota500/phetyr.ndft");
         tables.put("phe", ndft);
         tables.put("tyr", ndft);
         
-        ndft = loadTable("rota/met.ndft");
+        ndft = loadTable("rota500/met.ndft");
         tables.put("met", ndft);
         tables.put("mse", ndft); // seleno-Met
-        tables.put("glu", loadTable("rota/glu.ndft"));
-        tables.put("gln", loadTable("rota/gln.ndft"));
+        tables.put("glu", loadTable("rota500/glu.ndft"));
+        tables.put("gln", loadTable("rota500/gln.ndft"));
         
-        tables.put("lys", loadTable("rota/lys.ndft"));
-        tables.put("arg", loadTable("rota/arg.ndft"));
+        tables.put("lys", loadTable("rota500/lys.ndft"));
+        tables.put("arg", loadTable("rota500/arg.ndft"));
     }
     
     private NDFloatTable loadTable(String path) throws IOException
@@ -526,6 +526,14 @@ public class Rotamer //extends ... implements ...
             throw new IllegalArgumentException("Unknown residue type");
         if(chiAngles == null)
             throw new IllegalArgumentException("No chi angles supplied");
+        if("pro".equals(rescode))
+        {
+            // Pro "technically" has 3 chis around the ring that get measured, 
+            // but they're highly correlated, so we use only chi1 for its 
+            // rotamer distribution, at least for now.  DAK 120224
+            double[] newChiAngles = new double[] { chiAngles[0] };
+            chiAngles = newChiAngles;
+        }
         //if(chiAngles.length < ndft.getDimensions())
         //    throw new IllegalArgumentException("Too few chi angles supplied");
         for(int i = 0; i < chiAngles.length; i++) if(Double.isNaN(chiAngles[i]))
@@ -564,11 +572,19 @@ public class Rotamer //extends ... implements ...
             throw new IllegalArgumentException("Unknown residue type");
         if(chiAngles == null)
             throw new IllegalArgumentException("No chi angles supplied");
+        if("pro".equals(rescode))
+        {
+            // Pro "technically" has 3 chis around the ring that get measured, 
+            // but they're highly correlated, so we use only chi1 for its 
+            // rotamer distribution, at least for now.  DAK 120224
+            double[] newChiAngles = new double[] { chiAngles[0] };
+            chiAngles = newChiAngles;
+        }
         if(chiAngles.length < ndft.getDimensions())
             throw new IllegalArgumentException("Too few chi angles supplied");
         for(int i = 0; i < chiAngles.length; i++) if(Double.isNaN(chiAngles[i]))
             throw new IllegalArgumentException("Some chi angles could not be measured");
-        
+            
         float[] chis = new float[ chiAngles.length ];
         for(int i = 0; i < chis.length; i++) chis[i] = (float)chiAngles[i];
         return ndft.valueAt(chis);
