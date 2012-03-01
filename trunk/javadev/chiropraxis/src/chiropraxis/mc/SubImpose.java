@@ -354,6 +354,10 @@ public class SubImpose //extends ... implements ...
 
 //{{{ getChains
 //##############################################################################
+    /** Convenience function. */
+    public static Collection getChains(Model m)
+    { return getChains(m, null); }
+    
     /**
     * If chainIDs is not null, the user has specified which chains will be used
     * for sequence alignment, e.g. when multiple copies are present in a crystal
