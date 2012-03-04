@@ -86,7 +86,7 @@ public class DisulfideParameterer //extends ... implements ...
         double[] params   = calcParams(model, initRes, endRes);
         
         DecimalFormat df = new DecimalFormat("0.000");
-        System.out.print(altconf+","
+        System.out.print(file.getName()+","+altconf+","
             +initRes.getChain()+","+initRes.getSequenceInteger()+","+initRes.getInsertionCode()+",CYS,"
             +endRes.getChain() +","+ endRes.getSequenceInteger()+","+ endRes.getInsertionCode()+",CYS,"
             +(seqDif == Integer.MAX_VALUE ? "__?__" : seqDif));
@@ -360,7 +360,7 @@ public class DisulfideParameterer //extends ... implements ...
         PdbReader reader = new PdbReader();
         CoordinateFile structure = reader.read(file);
         
-        System.out.println("alt,chain1,resnum1,inscode1,restype1,chain2,resnum2,inscode2,restype2,"
+        System.out.println("file,alt,chain1,resnum1,inscode1,restype1,chain2,resnum2,inscode2,restype2,"
             +"seqdif,seqfrac1,seqfrac2,chi2,chi3,chi2p,cb1--cbN,ca1--caN,ca0-ca1-caN,ca1-caN-caN1,"
             +"co0-ca0-ca1-caN,ca0-ca1-caN-caN1,ca1-caN-caN1-coN");
         
