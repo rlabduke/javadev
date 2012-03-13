@@ -19,9 +19,7 @@ import com.lowagie.text.pdf.*;
 //}}}
 /**
 * <code>RamaPdfWriter</code> uses the iText PDF libraries to produce a PDF
-* plot of the four Richardson Ramachandran plots.
-*
-* WILL REQUIRE EXTENSIVE FORMATTING CHANGES TO ACCOMMODATE 6 INSTEAD OF 4 CATEGORIES!
+* plot of the six Richardson Ramachandran plots.
 *
 * <p>When run as an application, it just copies its template file to standard out.
 *
@@ -121,7 +119,7 @@ public class RamaPdfWriter //extends ... implements ...
     * @param structName a label identifying this structure, or null for none.
     * @param doc        the document being generated
     * @param content    the content of the document being generated
-    * @param template   the four-square Rama page template object
+    * @param template   the six-square Rama page template object
     */
     void doModelByModel(Map analyses, String structName, Document doc,
         PdfContentByte content, PdfTemplate template) throws DocumentException
