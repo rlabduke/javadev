@@ -216,12 +216,13 @@ public class RamaKinWriter //extends ... implements ...
     */
     void writeAllData(Map analyses, Map colormap, PrintWriter out)
     {
-        int model = 0;
-        
-        out.println("@balllist {Good data} color= white radius= 1.5 master= {Data pts} nohilite");
+        int model = 1;
         for(Iterator iter = analyses.keySet().iterator(); iter.hasNext(); model++)
         {
             Collection analysis = (Collection) iter.next();
+            out.println("@balllist {Good data} color= white radius= 1.5 master= {Data pts} nohilite"
+                +(analyses.size() > 1 ? " master= {Model "+model+"}" : "")
+                +(analyses.size() > 1 && model != 1 ? " off" : ""));
             for(Iterator iter2 = analysis.iterator(); iter2.hasNext(); )
             {
                 Ramalyze.RamaEval eval = (Ramalyze.RamaEval) iter2.next();
@@ -230,27 +231,28 @@ public class RamaKinWriter //extends ... implements ...
             }
         }
         
-        StringBuffer outlierLabels = new StringBuffer("@labellist {Outlier labels} color= white master= {Outlier Lbls}\n");
-        String color;
-        
-        out.println("@balllist {Bad data} color= white radius= 3.0 master= {Data pts} nohilite");
+        model = 1;
         for(Iterator iter = analyses.keySet().iterator(); iter.hasNext(); model++)
         {
             Collection analysis = (Collection) iter.next();
+            out.println("@balllist {Bad data} color= white radius= 3.0 master= {Data pts} nohilite"
+                +(analyses.size() > 1 ? " master= {Model "+model+"}" : "")
+                +(analyses.size() > 1 && model != 1 ? " off" : ""));
+            StringBuffer outlierLabels = new StringBuffer("@labellist {Outlier labels} color= white master= {Outlier Lbls}"
+                +(analyses.size() > 1 ? " master= {Model "+model+"}" : "")
+                +(analyses.size() > 1 && model != 1 ? " off" : ""));
             for(Iterator iter2 = analysis.iterator(); iter2.hasNext(); )
             {
                 Ramalyze.RamaEval eval = (Ramalyze.RamaEval) iter2.next();
                 if(eval.score == Ramalyze.RamaEval.OUTLIER)
                 {
-                    color = colormap.get(eval.type).toString();
+                    String color = colormap.get(eval.type).toString();
                     out.println("{"+eval.name+"} "+color+" "+df.format(eval.phi)+" "+df.format(eval.psi)+" 0.0");
                     outlierLabels.append("{"+eval.name+"} "+df.format(eval.phi+3.0)+" "+df.format(eval.psi)+" 0.0\n");
                 }
             }
+            out.println(outlierLabels.toString());
         }
-        
-        // Write labels for outliers
-        out.println(outlierLabels.toString());
     }
 //}}}
 
@@ -268,12 +270,13 @@ public class RamaKinWriter //extends ... implements ...
     */
     void writeClass(Map analyses, String evaltype, String color, PrintWriter out)
     {
-        int model = 0;
-        
-        out.println("@balllist {Good data} color= white radius= 1.5 master= {Data pts} nohilite");
+        int model = 1;
         for(Iterator iter = analyses.keySet().iterator(); iter.hasNext(); model++)
         {
             Collection analysis = (Collection) iter.next();
+            out.println("@balllist {Good data} color= white radius= 1.5 master= {Data pts} nohilite"
+                +(analyses.size() > 1 ? " master= {Model "+model+"}" : "")
+                +(analyses.size() > 1 && model != 1 ? " off" : ""));
             for(Iterator iter2 = analysis.iterator(); iter2.hasNext(); )
             {
                 Ramalyze.RamaEval eval = (Ramalyze.RamaEval) iter2.next();
@@ -283,12 +286,16 @@ public class RamaKinWriter //extends ... implements ...
             }
         }
         
-        StringBuffer outlierLabels = new StringBuffer("@labellist {Outlier labels} color= white master= {Outlier Lbls}\n");
-        
-        out.println("@balllist {Bad data} color= white radius= 3.0 master= {Data pts} nohilite");
+        model = 1;
         for(Iterator iter = analyses.keySet().iterator(); iter.hasNext(); model++)
         {
             Collection analysis = (Collection) iter.next();
+            out.println("@balllist {Bad data} color= white radius= 3.0 master= {Data pts} nohilite"
+                +(analyses.size() > 1 ? " master= {Model "+model+"}" : "")
+                +(analyses.size() > 1 && model != 1 ? " off" : ""));
+            StringBuffer outlierLabels = new StringBuffer("@labellist {Outlier labels} color= white master= {Outlier Lbls}"
+                +(analyses.size() > 1 ? " master= {Model "+model+"}" : "")
+                +(analyses.size() > 1 && model != 1 ? " off" : ""));
             for(Iterator iter2 = analysis.iterator(); iter2.hasNext(); )
             {
                 Ramalyze.RamaEval eval = (Ramalyze.RamaEval) iter2.next();
@@ -298,15 +305,9 @@ public class RamaKinWriter //extends ... implements ...
                     outlierLabels.append("{"+eval.name+"} "+df.format(eval.phi+3.0)+" "+df.format(eval.psi)+" 0.0\n");
                 }
             }
+            out.println(outlierLabels.toString());
         }
-        
-        // Write labels for outliers
-        out.println(outlierLabels.toString());
     }
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
 //}}}
 
 //{{{ empty_code_segment

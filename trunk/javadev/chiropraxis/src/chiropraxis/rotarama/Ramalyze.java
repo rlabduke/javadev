@@ -281,6 +281,7 @@ public class Ramalyze //extends ... implements ...
             System.err.println("Printing raw scores & evals...");
             PrintWriter out2 = new PrintWriter(out);
             int i = 0;
+            out2.println("#residue:score%:phi:psi:rama_eval:rama_type");
             for(Iterator iter = analyses.keySet().iterator(); iter.hasNext(); i++) // each model
             {
                 Collection analysis = (Collection) iter.next();
