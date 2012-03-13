@@ -27,7 +27,7 @@ public class Ramalyze //extends ... implements ...
 {
 //{{{ Constants
     public static final Object MODE_PDF = "PDF document";
-    //public static final Object MODE_KIN = "Kinemage";
+    public static final Object MODE_KIN = "Kinemage";
     public static final Object MODE_RAW = "Raw csv output"; // added by DAK 07/08/24
     public static final DecimalFormat df = new DecimalFormat("#.##"); // added by DAK 07/08/24
 //}}}
@@ -86,7 +86,7 @@ public class Ramalyze //extends ... implements ...
 //{{{ Variable definitions
 //##############################################################################
     File infile = null, outfile = null;
-    Object mode = MODE_PDF;
+    Object mode = MODE_RAW;
 //}}}
 
 //{{{ Constructor(s)
@@ -246,7 +246,7 @@ public class Ramalyze //extends ... implements ...
         {
             Model model = (Model) iter.next();
             Collection analysis = analyzeModel(model, model.getStates().values());
-            if(mode == MODE_PDF)
+            if(mode == MODE_PDF || mode == MODE_KIN)
             {
                 boolean useModelNames = (coordFile.getModels().size() > 1);
                 improveResidueNames(analysis, useModelNames);
@@ -268,9 +268,18 @@ public class Ramalyze //extends ... implements ...
             try { out.flush(); }
             catch(IOException ex) {} // PdfWriter might have already closed it!
         }
+        else if(mode == MODE_KIN) // added by DAK 120313
+        {
+            System.err.println("Creating kinemage...");
+            RamaKinWriter writer = new RamaKinWriter();
+            writer.createRamaKin(analyses, label, new PrintWriter(out));
+            try { out.flush(); }
+            catch(IOException ex) {} // KinWriter might have already closed it!
+        }
         else if(mode == MODE_RAW) // added by DAK 070824
         {
-            // Print RamaEval.numscores separated by colons
+            System.err.println("Printing raw scores & evals...");
+            PrintWriter out2 = new PrintWriter(out);
             int i = 0;
             for(Iterator iter = analyses.keySet().iterator(); iter.hasNext(); i++) // each model
             {
@@ -278,13 +287,12 @@ public class Ramalyze //extends ... implements ...
                 for(Iterator iter2 = analysis.iterator(); iter2.hasNext(); ) // each residue
                 {
                     RamaEval eval = (RamaEval) iter2.next();
-                    System.out.println(eval.name+":"+df.format(100*eval.numscore)+":"+
+                    out2.println(eval.name+":"+df.format(100*eval.numscore)+":"+
                         df.format(eval.phi)+":"+df.format(eval.psi)+":"+eval.score+":"+eval.type);
                 }
             }
+            out2.flush();
         }
-        
-        // TODO: else if(mode == MODE_KIN) ...
         else throw new IllegalArgumentException("Unknown output mode: "+mode);
     }
 //}}}
@@ -457,7 +465,11 @@ public class Ramalyze //extends ... implements ...
         {
             mode = MODE_PDF;
         }
-        else if(flag.equals("-raw")) // added by DAK 07/08/24
+        else if(flag.equals("-kin")) // added by DAK 120313
+        {
+            mode = MODE_KIN;
+        }
+        else if(flag.equals("-raw")) // added by DAK 070824
         {
             mode = MODE_RAW;
         }
