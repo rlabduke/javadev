@@ -11,6 +11,7 @@ import java.util.*;
 //import java.util.regex.*;
 //import javax.swing.*;
 import driftwood.moldb2.*;
+import driftwood.r3.*;
 
 import java.util.List;
 
@@ -18,8 +19,10 @@ import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
 //}}}
 /**
-* <code>RamaKinWriter</code> produces a kinemage of the six Top8000-derived 
-* Richardson Ramachandran plots.
+* <code>RamaKinWriter</code> produces kinemages using the six Top8000-derived 
+* Richardson Ramachandran categories.
+* 
+* <p>It can produce either 
 *
 * <p>This class is essentially a modified version of code in Ian's old 
 * hless.Ramachandran (on his thesis DVD).
@@ -47,7 +50,7 @@ public class RamaKinWriter //extends ... implements ...
     }
 //}}}
 
-//{{{ createRamaKin
+//{{{ createRamaPlotKin
 //##############################################################################
     /**
     * Takes a bunch of analyzed models and plots Rama plots for all of them.
@@ -58,9 +61,9 @@ public class RamaKinWriter //extends ... implements ...
     *   that maps each collection of analyzed residues to a label.
     *   All of them together are rendered as "All models"
     * @param structName a label identifying this structure, or null for none.
-    * @param out a destination for the PDF file.
+    * @param out a destination for the kinemage.
     */
-    public void createRamaKin(Map analyses, String structName, PrintWriter out) throws IOException
+    public void createRamaPlotKin(Map analyses, String structName, PrintWriter out) throws IOException
     {
         out.println("@text");
         out.println("Use the animate buttons or the 'a' key to cycle through the various Ramachandran plots.");
@@ -307,6 +310,63 @@ public class RamaKinWriter //extends ... implements ...
             }
             out.println(outlierLabels.toString());
         }
+    }
+//}}}
+
+//{{{ drawRamaOutlierCaTraces
+//##################################################################################################
+    /**
+    * Takes ONE analyzed model and draws Rama outlier markups for it.
+    * If there was more than one model, this method typically gets passed just the first one.
+    * @param analyses a Collection&lt;Ramalyze.RamaEval&gt; of analyzed residues.
+    * @param structName a label identifying this structure, or null for none.
+    * @param out a destination for the kinemage.
+    */
+    public void drawRamaOutlierCaTraces(Collection analysis, Model model, ModelState state, PrintWriter out)
+    {
+        DecimalFormat df3 = new DecimalFormat("0.###");
+        
+        out.println("@vectorlist {bad Rama Ca} width= 4 color= green");
+        
+        for(Iterator iter2 = analysis.iterator(); iter2.hasNext(); )
+        {
+            Ramalyze.RamaEval eval = (Ramalyze.RamaEval) iter2.next();
+            if(eval.score == Ramalyze.RamaEval.OUTLIER)
+            {
+                Residue res = eval.res;
+                
+                // Try really hard to avoid nulls
+                Atom prevAtom = res.getPrev(model).getAtom(" CA ");
+                Atom currAtom = res.getAtom(" CA ");
+                Atom nextAtom = res.getNext(model).getAtom(" CA ");
+                if(prevAtom == null) prevAtom = res.getAtom(" N  ");
+                if(nextAtom == null) nextAtom = res.getAtom(" C  ");
+                if(prevAtom == null || currAtom == null || nextAtom == null)
+                { System.err.println("Unable to draw Ca-Ca for "+res); continue; }
+                
+                try
+                {
+                    AtomState prev = state.get(prevAtom);
+                    AtomState curr = state.get(currAtom);
+                    AtomState next = state.get(nextAtom);
+                    
+                    Triple t = new Triple();
+                    t.likeMidpoint(prev, curr);
+                    out.println("{"+res.getPrev(model)+" CA}P "
+                        +df3.format(t.getX())+" "+df3.format(t.getY())+" "+df3.format(t.getZ()));
+                    t = curr;
+                    out.println("{"+res+" CA} "
+                        +df3.format(t.getX())+" "+df3.format(t.getY())+" "+df3.format(t.getZ()));
+                    t.likeMidpoint(next, curr);
+                    out.println("{"+res.getNext(model)+" CA} "
+                        +df3.format(t.getX())+" "+df3.format(t.getY())+" "+df3.format(t.getZ()));
+                }
+                catch(AtomException ex)
+                { System.err.println("Unable to draw Ca-Ca for "+res); }
+            }
+        }
+        
+        out.flush(); // don't use close() in case it would close System.out?
     }
 //}}}
 

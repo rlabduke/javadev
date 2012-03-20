@@ -26,10 +26,11 @@ import driftwood.moldb2.*;
 public class Ramalyze //extends ... implements ...
 {
 //{{{ Constants
-    public static final Object MODE_PDF = "PDF document";
-    public static final Object MODE_KIN = "Kinemage";
-    public static final Object MODE_RAW = "Raw csv output"; // added by DAK 07/08/24
-    public static final DecimalFormat df = new DecimalFormat("#.##"); // added by DAK 07/08/24
+    public static final Object MODE_PDF       = "PDF document";
+    public static final Object MODE_KINPLOT   = "Kinemage plot";
+    public static final Object MODE_KINMARKUP = "Kinemage outlier markups";
+    public static final Object MODE_RAW       = "Raw csv output";
+    public static final DecimalFormat df = new DecimalFormat("#.##");
 //}}}
 
 //{{{ CLASS: RamaEval
@@ -48,7 +49,6 @@ public class Ramalyze //extends ... implements ...
         public static final String GLYCINE  = "Glycine";
         public static final String CISPRO   = "Cis proline";
         public static final String TRANSPRO = "Trans proline";
-        /*public static final String PROLINE  = "Proline";*/
         public static final String NOTYPE   = "Unknown type";
         
         Residue res;
@@ -95,10 +95,6 @@ public class Ramalyze //extends ... implements ...
     {
         super();
     }
-//}}}
-
-//{{{ empty_code_segment
-//##############################################################################
 //}}}
 
 //{{{ improveResidueNames
@@ -179,7 +175,6 @@ public class Ramalyze //extends ... implements ...
                         else
                             eval.type = RamaEval.TRANSPRO;
                     }
-                        /*eval.type = RamaEval.PROLINE;*/
                     else if(AminoAcid.isPrepro(model, res, ms))
                         eval.type = RamaEval.PREPRO;
                     else if(res.getName().equals("ILE") || res.getName().equals("VAL"))
@@ -205,15 +200,6 @@ public class Ramalyze //extends ... implements ...
                     // Outlier
                     else
                         eval.score = RamaEval.OUTLIER;
-                    
-                    /*if(eval.numscore >= Ramachandran.ALL_FAVORED)
-                        eval.score = RamaEval.FAVORED;
-                    else if(eval.type == RamaEval.GENERAL && eval.numscore >= Ramachandran.GENERAL_ALLOWED)
-                        eval.score = RamaEval.ALLOWED;
-                    else if(eval.type != RamaEval.GENERAL && eval.numscore >= Ramachandran.OTHER_ALLOWED)
-                        eval.score = RamaEval.ALLOWED;
-                    else
-                        eval.score = RamaEval.OUTLIER;*/
                     
                     analysis.add(eval);
                 }
@@ -246,7 +232,7 @@ public class Ramalyze //extends ... implements ...
         {
             Model model = (Model) iter.next();
             Collection analysis = analyzeModel(model, model.getStates().values());
-            if(mode == MODE_PDF || mode == MODE_KIN)
+            if(mode == MODE_PDF || mode == MODE_KINPLOT || mode == MODE_KINMARKUP)
             {
                 boolean useModelNames = (coordFile.getModels().size() > 1);
                 improveResidueNames(analysis, useModelNames);
@@ -268,15 +254,35 @@ public class Ramalyze //extends ... implements ...
             try { out.flush(); }
             catch(IOException ex) {} // PdfWriter might have already closed it!
         }
-        else if(mode == MODE_KIN) // added by DAK 120313
+        else if(mode == MODE_KINPLOT)
         {
-            System.err.println("Creating kinemage...");
+            System.err.println("Creating kinemage plot...");
             RamaKinWriter writer = new RamaKinWriter();
-            writer.createRamaKin(analyses, label, new PrintWriter(out));
+            writer.createRamaPlotKin(analyses, label, new PrintWriter(out));
             try { out.flush(); }
             catch(IOException ex) {} // KinWriter might have already closed it!
         }
-        else if(mode == MODE_RAW) // added by DAK 070824
+        else if(mode == MODE_KINMARKUP)
+        {
+            System.err.println("Creating kinemage outlier markups...");
+            Model firstModel = coordFile.getFirstModel();
+            ModelState firstState = firstModel.getState();
+            Collection analysis = null;
+            for(Iterator iter = analyses.keySet().iterator(); iter.hasNext(); )
+            {
+                Collection anal = (Collection) iter.next();
+                String modelName = (String) analyses.get(anal);
+                if(modelName.equals(firstModel.getName()))
+                { analysis = anal; break; }
+            }
+            if(analysis == null) System.err.println("Can't find first model in "
+                +label+" so can't draw Ca-Ca traces!");
+            RamaKinWriter writer = new RamaKinWriter();
+            writer.drawRamaOutlierCaTraces(analysis, firstModel, firstState, new PrintWriter(out));
+            try { out.flush(); }
+            catch(IOException ex) {} // KinWriter might have already closed it!
+        }
+        else if(mode == MODE_RAW)
         {
             System.err.println("Printing raw scores & evals...");
             PrintWriter out2 = new PrintWriter(out);
@@ -466,11 +472,19 @@ public class Ramalyze //extends ... implements ...
         {
             mode = MODE_PDF;
         }
-        else if(flag.equals("-kin")) // added by DAK 120313
+        else if(flag.equals("-kinplot"))
         {
-            mode = MODE_KIN;
+            mode = MODE_KINPLOT;
         }
-        else if(flag.equals("-raw")) // added by DAK 070824
+        else if(flag.equals("-kinmarkup"))
+        {
+            mode = MODE_KINMARKUP;
+        }
+        else if(flag.equals("-kin"))
+        {
+            throw new IllegalArgumentException("-kin is no longer a valid flag; use -kinplot or -kinmarkup");
+        }
+        else if(flag.equals("-raw"))
         {
             mode = MODE_RAW;
         }
