@@ -65,16 +65,28 @@ public class Util //extends ... implements ...
 //{{{ isMainchain, isWater
 //##############################################################################
     /** Based on Prekin PKINCSBS.c decidemainside() */
-    static String mcPattern = ".N[ T].|.C[A ].|.O .|.OXT|[^2][HDQ][A ] |.[HDQ].['*]|.P  |.O[123]P|.[CO][1-5]['*]| CM2|.OP[123]|H.''";
+    static String mcPattern = ".N[ T].|.C[A ].|.O .|.OXT|[^2][HDQ][A ] |.[HDQ].['*]|.P  |.O[123]P|.[CO][1-5]['*]|.OP[123]|H.''";
     //                                                   ^^^^
     //                              makes one Gly H sidechain, the other mainchain
     // added _CM2 and _O3P for tr0001 on 051114
+    
+    // _CM2 causes a bug: _CM2 is also a sidechain atom!  See pdb 3CJZ, residue m2g  VBC 120320
+    // list of all residues I could find in the reduce het dict which have CM2 connected to main chain atoms VBC 120321
+    static String mcRnaResPattern = "4OC|AYD|DBA|HE3|IQP|M6T|N1T|N3T|OMC|OMG|OMU|PYD|TDK|TDL|TDM|THD|TPP|YF3|YF4";
+
     static Matcher mcMatcher = null;
+    static Matcher mcRnaResMatcher = null;
     static public boolean isMainchain(AtomState as)
     {
         if(mcMatcher == null) mcMatcher = Pattern.compile(mcPattern).matcher("");
-        mcMatcher.reset(as.getName());
-        return mcMatcher.matches();
+        if (!as.getName().equals(" CM2")) {
+          mcMatcher.reset(as.getName());
+          return mcMatcher.matches();
+        } else {
+          if (mcRnaResMatcher == null) mcRnaResMatcher = Pattern.compile(mcRnaResPattern).matcher("");
+          mcRnaResMatcher.reset(as.getResidue().getName());
+          return mcRnaResMatcher.matches();
+        }
     }
     
     static String waterPattern = "HOH|DOD|H20|D20|WAT|SOL|TIP|TP3|MTO|HOD|DOH";
@@ -362,6 +374,8 @@ public class Util //extends ... implements ...
             
             boolean atomsAllowed    = ((srcA == null || srcA.contains(curr.lower)) && (dstA == null || dstA.contains(curr.higher)))
                                     ||((dstA == null || dstA.contains(curr.lower)) && (srcA == null || srcA.contains(curr.higher)));
+                                    
+            //System.out.println(curr.higher.getName()+" "+srcA.contains(curr.higher)+" "+curr.lower.getName()+" "+dstA.contains(curr.lower));
             if(!atomsAllowed) continue;
             
             out.add(curr);
