@@ -190,7 +190,7 @@ public class StickPrinter //extends ... implements ...
     Iterator iter = bonds.iterator();
     while (iter.hasNext()) {
       Bond b = (Bond) iter.next();
-      System.out.print(b.higher.getName()+"->"+b.lower.getName()+"; ");
+      System.out.println(b.higher.getName()+"->"+b.lower.getName()+"; ");
     }
   }
 //}}}
