@@ -73,13 +73,17 @@ public class Util //extends ... implements ...
     // _CM2 causes a bug: _CM2 is also a sidechain atom!  See pdb 3CJZ, residue m2g  VBC 120320
     // list of all residues I could find in the reduce het dict which have CM2 connected to main chain atoms VBC 120321
     static String mcRnaResPattern = "4OC|AYD|DBA|HE3|IQP|M6T|N1T|N3T|OMC|OMG|OMU|PYD|TDK|TDL|TDM|THD|TPP|YF3|YF4";
-
+    static String mcscPattern = " CM2|HM2[123]"; //atom names which are both sidechain and mainchain in mod bases in RNA
+    
     static Matcher mcMatcher = null;
     static Matcher mcRnaResMatcher = null;
+    static Matcher mcscMatcher = null;
     static public boolean isMainchain(AtomState as)
     {
         if(mcMatcher == null) mcMatcher = Pattern.compile(mcPattern).matcher("");
-        if (!as.getName().equals(" CM2")) {
+        if(mcscMatcher == null) mcscMatcher = Pattern.compile(mcscPattern).matcher("");
+        mcscMatcher.reset(as.getName());
+        if (!mcscMatcher.matches()) {
           mcMatcher.reset(as.getName());
           return mcMatcher.matches();
         } else {
