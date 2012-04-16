@@ -4,21 +4,29 @@ USAGE
     
 MODE defaults to '-pdf' but can be any one of the following:
 
-    -pdf    Creates a PDF document that shows all six Ramachandran plots on one
-            page, with outliers labeled and with summary statistics.
+    -pdf        Creates a PDF document that shows all six Ramachandran plots on 
+                one page, with outliers labeled and with summary statistics.
+                
+                For x-ray files with alternate conformations, any residue with
+                alternate backbone conformers is analyzed multiple times and 
+                counts multiple times in the statistics. All others are analyzed
+                once.
+                
+                For NMR files, the first page will show all model superimposed,
+                and subsequent pages show individual models.
 
-            For x-ray files with alternate conformations, any residue with
-            alternate backbone conformers is analyzed multiple times and counts
-            multiple times in the statistics. All others are analyzed once.
+    -raw        Analysis is similar to -pdf, but instead of creating a PDF, the 
+                following is sent to standard output in colon-delimited format: 
+                phi and psi values, Ramachandran evaluation, and category.
 
-            For NMR files, the first page will show all model superimposed,
-            and subsequent pages show individual models.
+    -kinplot    Analysis is similar to -pdf, but the output is a 2D kinemage 
+                instead of a PDF.
 
-    -raw    Analysis is similar to -pdf, but instead of creating a PDF, the 
-            following is sent to standard output in colon-delimited format: 
-            phi and psi values, Ramachandran evaluation, and category.
+    -kinmarkup  Outputs 3D kinemage markups centered at the C-alphas of 
+                Ramachandran outliers.  If multiple models are present, 
+                e.g. in an NMR structure, only the first one is used.
     
-    [other MODEs will be available in the future]
+    [other MODEs may be available in the future]
     
 INFILE is a PDB-format file containing one or more models. If it is omitted,
 a PDB file will be read from standard input.
