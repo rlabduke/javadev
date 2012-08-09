@@ -34,6 +34,7 @@ public class Dangle //extends ... implements ...
     boolean doWrap = false; // if true wrap dihedrals to 0 to 360 instead of -180 to 180
     boolean showDeviation = false;
     boolean outliersOnly = false;
+    boolean showMeanAndSigma = false;
     boolean doHets = false;
     boolean doParCoor = false;
     boolean doGeomKin; // if true make kin with visual representations of geometry outliers
@@ -70,6 +71,8 @@ public class Dangle //extends ... implements ...
             out.print(":"+meas[i].getLabel());
             if(showDeviation)
                 out.print(":sigma "+meas[i].getLabel());
+            if(showMeanAndSigma)
+                out.print(":mean:sigma");
         }
         out.println();
         for(int i = 0; i < meas.length; i++)  out.println("# "+meas[i]);
@@ -117,6 +120,10 @@ public class Dangle //extends ... implements ...
                                 if(!Double.isNaN(devs[i]))  out.print(df.format(devs[i]));
                                 else                        out.print("__?__");
                             }
+                            if(showMeanAndSigma)
+                            {
+                                out.print(":"+meas[i].mean+":"+meas[i].sigma);
+                            }
                         }
                         out.println();
                     }
@@ -137,7 +144,10 @@ public class Dangle //extends ... implements ...
                 { coords.deployDisulfidesToModels(); break; }
         
         // Print headings
-        out.println("# label:model:chain:number:ins:type:measure:value:sigmas");
+        out.print("# label:model:chain:number:ins:type:measure:value:sigmas");
+        if(showMeanAndSigma)
+            out.print(":mean:sigma");
+        out.println();
         // This is a LOT of output and hard to interpret...
         //for(int i = 0; i < meas.length; i++)
         //    out.println("# "+meas[i]);
@@ -179,6 +189,10 @@ public class Dangle //extends ... implements ...
                                 out.print(prefix);
                                 out.print(res.getChain()+":"+res.getSequenceNumber()+":"+res.getInsertionCode()+":"+res.getName());
                                 out.print(":"+meas[i].getLabel()+":"+df.format(vals[i])+":"+df.format(devs[i]));
+                                if(showMeanAndSigma)
+                                {
+                                    out.print(":"+meas[i].mean+":"+meas[i].sigma);
+                                }
                                 out.println();
                             }
                         }
@@ -703,6 +717,10 @@ public class Dangle //extends ... implements ...
         {
             if(param.length() == 1) altConf = param;
             else System.err.println("*** Error: Preferred alternate (-alt="+param+") must be one character!");
+        }
+        else if(flag.equals("-ideals"))
+        {
+            showMeanAndSigma = true;
         }
         else if(flag.equals("-dummy_option"))
         {
