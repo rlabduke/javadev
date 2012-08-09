@@ -100,6 +100,11 @@ VALIDATION MODE
     If given this flag, Dangle reports one line for every individual residue/
     measurement combination where deviation exceeds 4 sigma.  Thus, one residue
     may produce 0, 1, or several lines.
+  
+  -ideals
+    If given this flag while in validation mode (i.e. in addition to either 
+    -validate or -outliers), Dangle also reports the ideal mean and standard 
+    deviation for each measurement.
     
   -sigma=#.#
     Sets the threshold for number of sigmas to be considered an outlier. The
