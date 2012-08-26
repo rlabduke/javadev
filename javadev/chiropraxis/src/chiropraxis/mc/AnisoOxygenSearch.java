@@ -29,6 +29,7 @@ public class AnisoOxygenSearch //extends ... implements ...
 //##############################################################################
     File pdbFile = null;
     File mapFile = null;
+    boolean verbose    = false;
     boolean textOutput = true;
     boolean shearTest  = false;
 //}}}
@@ -83,7 +84,20 @@ public class AnisoOxygenSearch //extends ... implements ...
                 double oxDensity = map.evaluateAtPoint(ox.getX(), ox.getY(), ox.getZ());
                 if(Double.isNaN(oxDensity) || oxDensity < minDensity)
                 {
-                    if(textOutput) out.println(fileLabel+":"+model+":"+r.getCNIT()+":bad_density:bad_density");
+                    if(textOutput) 
+                    {
+                        if(shearTest)
+                        {
+                            Residue r1 = r.getPrev(model);
+                            Residue r4 = r.getNext(model).getNext(model);
+                            if(r1 == null || r4 == null) continue;
+                            out.println(fileLabel.toLowerCase()+":"+model+":"
+                                +r1.getChain()+":"+r1.getSequenceInteger()+":"+r1.getInsertionCode()+":"+r1.getName()+":"
+                                +r4.getChain()+":"+r4.getSequenceInteger()+":"+r4.getInsertionCode()+":"+r4.getName()+":"
+                                +df2.format(ox.getTempFactor())+":bad_density:bad_density");
+                        }
+                        else out.println(fileLabel+":"+model+":"+r.getCNIT()+":bad_density:bad_density");
+                    }
                     continue; // skip this oxygen
                 }
                 // find envelope points
@@ -103,6 +117,10 @@ public class AnisoOxygenSearch //extends ... implements ...
                 double orientation = caca.angle(axes[0]);
                 if(orientation > 90) orientation = 180 - orientation; // correct for arbitrary sign
                 double ellipseRatio = lengths[0] / lengths[1];
+                if(verbose)
+                {
+                    System.err.println(r+": "+lengths[0]+" / "+lengths[1]);
+                }
                 if(textOutput)
                 {
                     if(shearTest)
@@ -111,7 +129,6 @@ public class AnisoOxygenSearch //extends ... implements ...
                         Residue r4 = r.getNext(model).getNext(model);
                         if(r1 == null || r4 == null) continue;
                         out.println(fileLabel.toLowerCase()+":"+model+":"
-                            //+r.getChain()+":"+r.getSequenceInteger()+":"+r.getInsertionCode()+":"+r.getName()+":"
                             +r1.getChain()+":"+r1.getSequenceInteger()+":"+r1.getInsertionCode()+":"+r1.getName()+":"
                             +r4.getChain()+":"+r4.getSequenceInteger()+":"+r4.getInsertionCode()+":"+r4.getName()+":"
                             +df2.format(ox.getTempFactor())+":"+df.format(orientation)+":"+df.format(ellipseRatio));
@@ -127,6 +144,161 @@ public class AnisoOxygenSearch //extends ... implements ...
                         Triple t = (Triple) iter.next();
                         out.println("{} "+t.format(df));
                     }
+                    
+                    // start at O for now -- I don't know where on the envelope these two axes go to & from!
+                    Triple axis0 = new Triple(ox).add( ((Triple) axes[0]).mult(lengths[0]) );
+                    Triple axis1 = new Triple(ox).add( ((Triple) axes[1]).mult(lengths[1]) );
+                    out.println("@vectorlist {"+fileLabel+":"+model+":"+r.getCNIT()+"} color= lilactint");
+                    out.println("{}P "+ox.format(df));
+                    out.println("{} "+axis0.format(df));
+                    out.println("@vectorlist {"+fileLabel+":"+model+":"+r.getCNIT()+"} color= greentint");
+                    out.println("{}P "+ox.format(df));
+                    out.println("{} "+axis1.format(df));
+                }
+            }
+            catch(Exception ex) // Atom, NullPtr
+            {
+                //out.println(fileLabel+":"+model+":"+r.getCNIT()+":missing_atom:missing_atom");
+                //ex.printStackTrace();
+            }
+        }
+    }
+//}}}
+
+//{{{ searchModel2
+//##############################################################################
+    void searchModel2(PrintStream out, String fileLabel, Model model, ModelState state, CrystalVertexSource map)
+    {
+        final double minDensity = 3.0 * map.sigma; // at current O position
+        final double envSigmaMin = 1.2; //* map.sigma; // min "envelope" ED we're examining
+        final double envSigmaMax = 2.4; //* map.sigma; // max "envelope" ED we're examining
+        final int numSamples = 64; // number of samples taken around the envelope
+        
+        Builder builder = new Builder();
+        DecimalFormat df = new DecimalFormat("0.0000");
+        DecimalFormat df2 = new DecimalFormat("0.00");
+        DecimalFormat df3 = new DecimalFormat("0.0");
+        if(textOutput)
+        {
+            if(shearTest) out.println("#file:model:chain1:resnum1:inscode1:restype1:chain4:resnum4:inscode4:restype4:ox2_bfactor:angle:max_ellipse_ratio");
+            else          out.println("#file:model:residue:ox_bfactor:angle:max_ellipse_ratio");
+        }
+        else
+        {
+            out.println("@kinemage 1");
+            out.println("@group {O-rings} dominant");
+        }
+        
+        for(Iterator ri = model.getResidues().iterator(); ri.hasNext(); )
+        {
+            Residue r = (Residue) ri.next();
+            try
+            {
+                // find oxygen atom
+                AtomState ox = state.get(r.getAtom(" O  "));
+                // create search plane
+                AtomState c = state.get(r.getAtom(" C  "));
+                AtomState ca1 = state.get(r.getAtom(" CA "));
+                AtomState ca2 = state.get(r.getNext(model).getAtom(" CA "));
+                // project Ca-Ca vector onto search plane (project onto normal and subtract)
+                Triple caca = new Triple().likeVector(ca1, ca2);        // Ca---Ca
+                Triple vert = new Triple().likeVector(c, ox).unit();    // C----O
+                vert.mult(caca.dot(vert));                              // length of CaCa in C-O direction
+                caca.sub(vert);                                         // remove C-O component
+                // check center density
+                double oxDensity = map.evaluateAtPoint(ox.getX(), ox.getY(), ox.getZ());
+                if(Double.isNaN(oxDensity) || oxDensity < minDensity)
+                {
+                    if(textOutput) 
+                    {
+                        if(shearTest)
+                        {
+                            Residue r1 = r.getPrev(model);
+                            Residue r4 = r.getNext(model).getNext(model);
+                            if(r1 == null || r4 == null) continue;
+                            out.println(fileLabel.toLowerCase()+":"+model+":"
+                                +r1.getChain()+":"+r1.getSequenceInteger()+":"+r1.getInsertionCode()+":"+r1.getName()+":"
+                                +r4.getChain()+":"+r4.getSequenceInteger()+":"+r4.getInsertionCode()+":"+r4.getName()+":"
+                                +df2.format(ox.getTempFactor())+":bad_density:bad_density");
+                        }
+                        else out.println(fileLabel.toLowerCase()+":"+model+":"+r.getCNIT()+":bad_density:bad_density");
+                    }
+                    continue; // skip this oxygen
+                }
+                
+                // iterate through several density contour levels
+                double maxEllipseRatio = Double.NEGATIVE_INFINITY;
+                double orientationAtMaxEllipseRatio = Double.NaN;
+                ArrayList envelopeAtMaxEllipseRatio = null;
+                double[] lengthsAtMaxEllipseRatio = null;
+                Tuple3[] axesAtMaxEllipseRatio = null;
+                double envSigma = envSigmaMin;
+                while(envSigma <= envSigmaMax)
+                {
+                    double envDensity = envSigma * map.sigma;
+                    // find envelope points
+                    ArrayList envelope = new ArrayList();
+                    for(double i = 0; i < numSamples; i++)
+                    {
+                        // unit vector perpendicular to C--O
+                        Triple inplane = builder.construct4(ca1, c, ox, 1, 90, 360*i/numSamples);
+                        inplane.sub(ox); // to get to vector form
+                        envelope.add( findBelow(envDensity, map, ox, inplane) );
+                    }
+                    // calculate principle axes
+                    PrincipleAxes pca = new PrincipleAxes(envelope);
+                    Tuple3[] axes = pca.getAxes();
+                    double[] lengths = pca.getLengths();
+                    // print axis ratio and orientation
+                    double orientation = caca.angle(axes[0]);
+                    if(orientation > 90) orientation = 180 - orientation; // correct for arbitrary sign
+                    double ellipseRatio = lengths[0] / lengths[1];
+                    if(ellipseRatio > maxEllipseRatio)
+                    {
+                        maxEllipseRatio = ellipseRatio;
+                        orientationAtMaxEllipseRatio = orientation;
+                        envelopeAtMaxEllipseRatio = envelope;
+                        lengthsAtMaxEllipseRatio = lengths;
+                        axesAtMaxEllipseRatio = axes;
+                    }
+                    if(verbose) System.err.println(r+" "+df3.format(envSigma)+"sigma: "+orientation+", "+ellipseRatio);
+                    envSigma += 0.1;
+                }
+                
+                if(textOutput)
+                {
+                    if(shearTest)
+                    {
+                        Residue r1 = r.getPrev(model);
+                        Residue r4 = r.getNext(model).getNext(model);
+                        if(r1 == null || r4 == null) continue;
+                        out.println(fileLabel.toLowerCase()+":"+model+":"
+                            +r1.getChain()+":"+r1.getSequenceInteger()+":"+r1.getInsertionCode()+":"+r1.getName()+":"
+                            +r4.getChain()+":"+r4.getSequenceInteger()+":"+r4.getInsertionCode()+":"+r4.getName()+":"
+                            +df2.format(ox.getTempFactor())+":"+df.format(orientationAtMaxEllipseRatio)+":"+df.format(maxEllipseRatio));
+                    }
+                    else out.println(fileLabel.toLowerCase()+":"+model+":"+r.getCNIT()+":"+df2.format(ox.getTempFactor())+":"
+                        +df.format(orientationAtMaxEllipseRatio)+":"+df.format(maxEllipseRatio));
+                }
+                else
+                {
+                    // print kinemage info
+                    out.println("@vectorlist {"+fileLabel+":"+model+":"+r.getCNIT()+"} color= orange");
+                    for(Iterator iter = envelopeAtMaxEllipseRatio.iterator(); iter.hasNext(); )
+                    {
+                        Triple t = (Triple) iter.next();
+                        out.println("{} "+t.format(df));
+                    }
+                    
+                    // start at O for now -- I don't know where on the envelope these two axes go to & from!
+                    Triple axis0 = new Triple(ox).add( ((Triple) axesAtMaxEllipseRatio[0]).mult(lengthsAtMaxEllipseRatio[0]) );
+                    Triple axis1 = new Triple(ox).add( ((Triple) axesAtMaxEllipseRatio[1]).mult(lengthsAtMaxEllipseRatio[1]) );
+                    out.println("@arrowlist {"+fileLabel+":"+model+":"+r.getCNIT()+" 1st PC} radius= 0.05 color= purple");
+                    out.println("{}P "+ox.format(df));
+                    out.println("{} "+axis0.format(df));
+                    out.println("@arrowlist {"+fileLabel+":"+model+":"+r.getCNIT()+" 2nd PC} radius= 0.05 color= lilactint");
+                    out.println("{}P "+ox.format(df));
+                    out.println("{} "+axis1.format(df));
                 }
             }
             catch(Exception ex) // Atom, NullPtr
@@ -144,14 +316,23 @@ public class AnisoOxygenSearch //extends ... implements ...
     {
         final double stepSize = 0.025; // should be good enough for gov't work
         Triple searchPath = new Triple();
+        /*double density = map.evaluateAtPoint(startPt.getX(), startPt.getY(), startPt.getZ());
+        double densityPrev, searchDist = 0;*/
         double density, searchDist = 0;
         do {
             searchDist += stepSize;
             searchPath.like(dirVect).unit().mult(searchDist);
             searchPath.add(startPt);
+            /*densityPrev = density;*/
             density = map.evaluateAtPoint(searchPath.getX(), searchPath.getY(), searchPath.getZ());
         } while(density > target);
+        /*} while(density > target && (searchDist < 0.4 || density < densityPrev));*/
         return searchPath;
+        /* Would be nice to check that we haven't bridged connected density 
+        /* to an adjacent atom, as was possible with the simple approach above,
+        /* but requiring a downhill trajectory doesn't work b/c of bumps, 
+        /* and the only other thing I can think of is a distance cutoff for the search path,
+        /* which would be really arbitrary... */
     }
 //}}}
 
@@ -185,7 +366,8 @@ public class AnisoOxygenSearch //extends ... implements ...
         CrystalVertexSource map = new OMapVertexSource(is);
         is.close();
         
-        searchModel(System.out, label, m, state, map);
+        //searchModel(System.out, label, m, state, map);
+        searchModel2(System.out, label, m, state, map);
     }
 
     public static void main(String[] args)
@@ -307,9 +489,21 @@ public class AnisoOxygenSearch //extends ... implements ...
             showHelp(true);
             System.exit(0);
         }
-        if(flag.equals("-shear") || flag.equals("-s"))
+        else if(flag.equals("-verbose") || flag.equals("-v"))
+        {
+            verbose = true;
+        }
+        else if(flag.equals("-shear") || flag.equals("-s"))
         {
             shearTest = true;
+        }
+        else if(flag.equals("-text"))
+        {
+            textOutput = true;
+        }
+        else if(flag.equals("-kin"))
+        {
+            textOutput = false;
         }
         else if(flag.equals("-dummy_option"))
         {

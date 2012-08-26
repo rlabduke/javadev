@@ -32,6 +32,8 @@ public class AltConfShearFinder //extends ... implements ...
 //##############################################################################
     boolean     verbose = false;
     Collection  inputFiles;
+    double      maxTheta;
+    double      maxRmsdChange;
 //}}}
 
 //{{{ Constructor(s)
@@ -190,13 +192,20 @@ public class AltConfShearFinder //extends ... implements ...
                 
                 // Try to interrelate C-alphas (& C=Os) using shears and backrubs
                 ShearFit shearFit = new ShearFit();
-                shearFit.initData(model, res1, res2, res3, res4, alt1, alt2, "ca+o", verbose, delim);
+                /*shearFit.initData(model, res1, res2, res3, res4, alt1, alt2, "ca+o", verbose, delim);
                 ModelState fitState = shearFit.interrelateAltConfs(10, 1.0);
-                if(!verbose) out.println();
                 // Other things I've tried for ^ that are faster but maybe 
                 // more prone to local minima due to large initial changes:
                 // 5, 10.0
-                // 5, 15.0
+                // 5, 15.0*/
+                shearFit.initData(model, res1, res2, res3, res4, alt1, alt2, "ca+o", verbose, delim, maxTheta, maxRmsdChange);
+                ModelState fitState = shearFit.interrelateAltConfs();
+                // Now goes to convergence, i.e. until RMSD changes level out,
+                // instead of for a set number of trials as above.
+                // That doesn't necessarily mean the *best* solution will have been found,
+                // since my little "algorithm" here is not provably accurate
+                // (although it is deterministic), but it does mean we're done.
+                if(!verbose) out.println();
                 
                 System.err.println();
             }
@@ -231,6 +240,17 @@ public class AltConfShearFinder //extends ... implements ...
     */
     public void Main()
     {
+        if(Double.isNaN(maxTheta))
+        {
+            maxTheta = 1.0; // bigger changes may lead to early false minima
+            System.err.println("-maxtheta=#.# not provided -- using default of "+maxTheta);
+        }
+        if(Double.isNaN(maxRmsdChange))
+        {
+            maxRmsdChange = 0.001; // pretty small change -- should mean we've ~converged
+            System.err.println("-maxrmsdchange=#.# not provided -- using default of "+maxRmsdChange);
+        }
+        
         PdbReader reader = new PdbReader();
         for(Iterator files = inputFiles.iterator(); files.hasNext(); )
         {
@@ -367,6 +387,20 @@ public class AltConfShearFinder //extends ... implements ...
         if(flag.equals("-verbose") || flag.equals("-v"))
         {
             verbose = true;
+        }
+        else if(flag.equals("-maxtheta"))
+        {
+            try
+            { maxTheta = Double.parseDouble(param); }
+            catch(NumberFormatException ex)
+            { System.err.println("Error parsing "+param+" as a double!"); }
+        }
+        else if(flag.equals("-maxrmsdchange"))
+        {
+            try
+            { maxRmsdChange = Double.parseDouble(param); }
+            catch(NumberFormatException ex)
+            { System.err.println("Error parsing "+param+" as a double!"); }
         }
         else if(flag.equals("-dummy_option"))
         {

@@ -221,9 +221,11 @@ public class PhiPsiWindow implements Remodeler, ChangeListener, WindowListener
                 +" from "+ctrRes+" includes "+(Residue)i.next());*/
             
             ModelState after = PhiPsiRotation.makeConformation(
-                residues, before, origPhiVal - phiDial.getDegrees(), true,  upstream, numRes, idealize);
+                residues, before, phiDial.getDegrees() - origPhiVal, true,  upstream, numRes, idealize);
+                //residues, before, origPhiVal - phiDial.getDegrees(), true,  upstream, numRes, idealize);
             after            = PhiPsiRotation.makeConformation(
-                residues, after,  origPsiVal - psiDial.getDegrees(), false, upstream, numRes, idealize);
+                residues, after,  psiDial.getDegrees() - origPsiVal, false, upstream, numRes, idealize);
+                //residues, after,  origPsiVal - psiDial.getDegrees(), false, upstream, numRes, idealize);
             
             return after;
         }

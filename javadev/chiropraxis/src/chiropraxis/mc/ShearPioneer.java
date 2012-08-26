@@ -14,6 +14,7 @@ import java.util.*;
 import driftwood.moldb2.*;
 import driftwood.r3.*;
 import driftwood.util.Strings;
+import chiropraxis.rotarama.*;
 //}}}
 /**
 * <code>ShearPioneer</code> explores the effects of different shear motions 
@@ -32,6 +33,8 @@ public class ShearPioneer //extends ... implements ...
     DecimalFormat df5 = new DecimalFormat("0.0");
     String STREAKS = "phi/psi streaks kin";
     String STRUCTS = "local structures kin";
+    String GOOD_COLOR = "greentint";
+    String BAD_COLOR = "hotpink";
 //}}}
 
 //{{{ Variable definitions
@@ -59,6 +62,9 @@ public class ShearPioneer //extends ... implements ...
     * helix resource PDB file. */
     double   phipsiSpacing = 1.0;
     
+    /** For detecting Rama outliers for mobile residues. */
+    Ramachandran  rama = null;
+    
     /** Maximum tau deviation for all mobile residues (5.5 in BRDEE paper). */
     double   maxTauDev     = 5.5;
     
@@ -83,6 +89,9 @@ public class ShearPioneer //extends ... implements ...
     public ShearPioneer()
     {
         super();
+        
+        try { rama = Ramachandran.getInstance(); }
+        catch(IOException ex) {}
     }
 //}}}
 
@@ -94,36 +103,43 @@ public class ShearPioneer //extends ... implements ...
     */
     void processModel(Model model)
     {
-        System.out.println("@kinemage {"+resnum+"-"+(resnum+3)+" shear "
+        System.out.println("@kinemage {"+resnum+"-"+(resnum+3)+" "
             +(outputMode == STREAKS ? "streaks" : "structs")+"}");
         
         Residue res = findResidue(model);
         ModelState state = model.getState();
         if(!Double.isNaN(phipsiRange))
         {
-            // Try a grid of near-alpha helices in ideal geomtry
-            double origPhi = -60; // hard-coded
-            double origPsi = -40; //  for now...
-            double minPhi = origPhi - phipsiRange;
-            double maxPhi = origPhi + phipsiRange;
-            double minPsi = origPsi - phipsiRange;
-            double maxPsi = origPsi + phipsiRange;
-            boolean reverse = true;
-            for(double initPhi = minPhi; initPhi <= maxPhi; initPhi += phipsiSpacing) 
+            try
             {
-                reverse = !reverse;
-                for(double initPsi = minPsi; initPsi <= maxPsi; initPsi += phipsiSpacing)
+                // Try a grid of near-alpha helices in ideal geomtry
+                double origPhi = AminoAcid.getPhi(model, res, state); // was hard-coded as -60
+                double origPsi = AminoAcid.getPsi(model, res, state); // was hard-coded as -40
+                double minPhi = origPhi - phipsiRange;
+                double maxPhi = origPhi + phipsiRange;
+                double minPsi = origPsi - phipsiRange;
+                double maxPsi = origPsi + phipsiRange;
+                boolean reverse = true;
+                for(double initPhi = minPhi; initPhi <= maxPhi; initPhi += phipsiSpacing) 
                 {
-                    // Reorder grid traversal to produce a pleasant snake-like pattern
-                    double trueInitPsi = initPsi;
-                    if(reverse) trueInitPsi = maxPsi - (initPsi - minPsi);
-                    
-                    // Alter state then do shears
-                    ModelState initState = initalizePhiPsi(model, state, initPhi, trueInitPsi);
-                    String label = " ("+df.format(initPhi)+","+df.format(trueInitPsi)+")";
-                    doMoveSeries(model, initState, res, label);
+                    reverse = !reverse;
+                    for(double initPsi = minPsi; initPsi <= maxPsi; initPsi += phipsiSpacing)
+                    {
+                        // Reorder grid traversal to produce a pleasant snake-like pattern
+                        double trueInitPsi = initPsi;
+                        if(reverse) trueInitPsi = maxPsi - (initPsi - minPsi);
+                        
+                        // Alter state then do shears (or backrubs when inherited)
+                        ModelState initState = initalizePhiPsi(model, state, initPhi, trueInitPsi);
+                        String label = " ("+df.format(initPhi)+","+df.format(trueInitPsi)+")";
+                        doMoveSeries(model, initState, res, label);
+                    }
                 }
             }
+            catch(AtomException ex)
+            { System.err.println("D'oh!  Can't compute phi/psi for "+res); }
+            catch(ResidueException ex)
+            { System.err.println("D'oh!  Can't compute phi/psi for "+res); }
         }
         else if(!Double.isNaN(minEpsilon) && !Double.isNaN(maxEpsilon))
         {
@@ -158,6 +174,9 @@ public class ShearPioneer //extends ... implements ...
             Residue r = (Residue) iter.next();
             if(r.getSequenceInteger() == resnum) { res = r; break; }
         }
+        
+        // Need at least 1 preceding residue and 4 subsequent residues
+        // to measure phi,psi for all 4 shear residues
         if(res == null)
         {
             System.err.println("D'oh!  Can't find residue # "+resnum);
@@ -168,10 +187,15 @@ public class ShearPioneer //extends ... implements ...
             System.err.println("D'oh!  Need a residue preceding "+res);
             System.exit(0);
         }
-        if(res.getNext(model) == null)
+        Residue r = res;
+        for(int i = 0; i < 4; i++)
         {
-            System.err.println("D'oh!  Need a residue following "+res);
-            System.exit(0);
+            r = r.getNext(model);
+            if(r == null)
+            {
+                System.err.println("D'oh!  Need 4 residues following "+res);
+                System.exit(0);
+            }
         }
         return res;
     }
@@ -347,7 +371,12 @@ public class ShearPioneer //extends ... implements ...
                     AminoAcid.getTauDeviation(res2, newState) > maxTauDev ||
                     AminoAcid.getTauDeviation(res3, newState) > maxTauDev ||
                     AminoAcid.getTauDeviation(res4, newState) > maxTauDev;
-                ShearedRegion s = new ShearedRegion(resArray, newState, rots, phipsi, badTau);
+                boolean ramaOut = 
+                    rama.isOutlier(model, res1, state) ||
+                    rama.isOutlier(model, res2, state) ||
+                    rama.isOutlier(model, res3, state) ||
+                    rama.isOutlier(model, res4, state);
+                ShearedRegion s = new ShearedRegion(resArray, newState, rots, phipsi, badTau, ramaOut);
                 movedRegions.add(s);
             }
             catch(AtomException ex)
@@ -453,7 +482,7 @@ public class ShearPioneer //extends ... implements ...
                 +s.res1.getName().toLowerCase().trim()+s.res1.getSequenceInteger()
                 +" "+df.format(s.theta)+","+df.format(s.pepRot1)+","+df.format(s.pepRot3)
                 +" ep="+df2.format(epsilon)+" ("+df.format(s.phi1)+","+df.format(s.psi1)+")}"
-                +(s.badTau ? "hotpink " : "peachtint ")
+                +(s.badTau || s.ramaOut ? BAD_COLOR : GOOD_COLOR)+" "
                 +df4.format(s.phi1)+" "+df4.format(s.psi1)); // actual coordinates
         }
         
@@ -465,7 +494,7 @@ public class ShearPioneer //extends ... implements ...
                 +s.res4.getName().toLowerCase().trim()+s.res4.getSequenceInteger()
                 +" "+df.format(s.theta)+","+df.format(s.pepRot1)+","+df.format(s.pepRot3)
                 +" ep="+df2.format(epsilon)+" ("+df.format(s.phi4)+","+df.format(s.psi4)+")}"
-                +(s.badTau ? "hotpink " : "peachtint ")
+                +(s.badTau || s.ramaOut ? BAD_COLOR : GOOD_COLOR)+" "
                 +df4.format(s.phi4)+" "+df4.format(s.psi4)); // actual coordinates
         }
     }
@@ -522,7 +551,7 @@ public class ShearPioneer //extends ... implements ...
                     
                     System.out.println("@vectorlist {"+s.toString()
                         +" "+df.format(s.theta)+","+df.format(s.pepRot1)+","+df.format(s.pepRot3)
-                        +"} width= 2 color= "+(s.badTau ? "hotpink" : "peachtint"));
+                        +"} width= 2 color= "+(s.badTau || s.ramaOut ? BAD_COLOR : GOOD_COLOR));
                     printAtomCoords(ca1s, s.res1+" 'CA'", true);
                     printAtomCoords(c1s,  s.res1+" 'C'" , false);
                     printAtomCoords(o1s,  s.res1+" 'O'" , false);
@@ -578,9 +607,9 @@ public class ShearPioneer //extends ... implements ...
         protected double theta, pepRot1, pepRot3;
         protected double phi1, psi1, phi4, psi4;
         protected boolean badTau;
-        // XX-TODO: || Rama outlier!
+        protected boolean ramaOut;
         
-        public ShearedRegion(Residue[] r, ModelState s, double[] rots, double[] pp, boolean bt)
+        public ShearedRegion(Residue[] r, ModelState s, double[] rots, double[] pp, boolean bt, boolean ro)
         {
             super();
             
@@ -600,6 +629,7 @@ public class ShearPioneer //extends ... implements ...
             psi4 = pp[3];
             
             badTau = bt;
+            ramaOut = ro;
         }
         
         public String toString()
@@ -629,11 +659,11 @@ public class ShearPioneer //extends ... implements ...
                 useIdealHelix = true;
             }
         }
-        if(filename != null && !Double.isNaN(phipsiRange))
+        /*if(filename != null && !Double.isNaN(phipsiRange))
         {
             System.err.println("Grid of initial phi,psi requires using ideal helix (-alpha)!");
             System.exit(0);
-        }
+        }*/
         if(!Double.isNaN(minEpsilon) && !Double.isNaN(maxEpsilon) && !Double.isNaN(phipsiRange))
         {
             System.err.println("Can't use -epsilon=#,# AND -phipsirange=#, silly goose!");
@@ -789,6 +819,10 @@ public class ShearPioneer //extends ... implements ...
         else if(flag.equals("-structs") || flag.equals("-struct"))
         {
             outputMode = STRUCTS;
+        }
+        else if(flag.equals("-streaks") || flag.equals("-streak"))
+        {
+            outputMode = STREAKS;
         }
         else if(flag.equals("-res"))
         {

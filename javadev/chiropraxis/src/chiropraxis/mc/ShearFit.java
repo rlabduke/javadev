@@ -44,6 +44,8 @@ public class ShearFit //extends ... implements ...
     Ramachandran    rama       = null;
     TauByPhiPsi     tauscorer  = null;
     
+    double   origRmsd  = Double.NaN;
+    
     double   bestShear     = 0;
     double   bestBackrub1  = 0;
     double   bestBackrub2  = 0;
@@ -54,6 +56,9 @@ public class ShearFit //extends ... implements ...
     boolean         idealizeSC  = false;
     boolean         verbose     = false;
     String          delim       = ",";
+    
+    double   maxTheta      = Double.NaN;
+    double   maxRmsdChange = Double.NaN;
 //}}}
 
 //{{{ Constructor(s)
@@ -71,9 +76,36 @@ public class ShearFit //extends ... implements ...
     }
 //}}}
 
+//{{{ [OLD] initData
+//##############################################################################
+//    void initData(Model m, Residue r1, Residue r2, Residue r3, Residue r4, String alt1, String alt2, String wa, boolean v, String d)
+//    {
+//        verbose = v;
+//        delim   = d;
+//        
+//        // Prep alt conf states
+//        model = m;
+//        state1 = (ModelState) model.getStates().get(alt1);
+//        state2 = (ModelState) model.getStates().get(alt2);
+//        
+//        res = new ArrayList<Residue>();
+//        res.add(r1);
+//        res.add(r2);
+//        res.add(r3);
+//        res.add(r4);
+//        
+//        // Make arrays of atoms for RMSD calculations (default: C-alphas + 3 central C=O oxygens)
+//        whichAtoms = wa;
+//        atoms1 = loadAtomStates(state1, new Residue[] {r1, r2, r3, r4}); // will be overwritten
+//        atoms2 = loadAtomStates(state2, new Residue[] {r1, r2, r3, r4});
+//        if(atoms1.length != atoms2.length)
+//            throw new IllegalArgumentException("Selections must have same number of atoms");
+//    }
+//}}}
+
 //{{{ initData
 //##############################################################################
-    void initData(Model m, Residue r1, Residue r2, Residue r3, Residue r4, String alt1, String alt2, String wa, boolean v, String d)
+    void initData(Model m, Residue r1, Residue r2, Residue r3, Residue r4, String alt1, String alt2, String wa, boolean v, String d, double mt, double mrc)
     {
         verbose = v;
         delim   = d;
@@ -95,6 +127,9 @@ public class ShearFit //extends ... implements ...
         atoms2 = loadAtomStates(state2, new Residue[] {r1, r2, r3, r4});
         if(atoms1.length != atoms2.length)
             throw new IllegalArgumentException("Selections must have same number of atoms");
+        
+        maxTheta      = mt;
+        maxRmsdChange = mrc;
     }
 //}}}
 
@@ -112,7 +147,13 @@ public class ShearFit //extends ... implements ...
         for(int i = 0; i < residues.length; i++)
         {
             Residue r = residues[i];
+            
+            // True, only the middle 2 CAs will change from these in silico 
+            // shears and backrubs, but I think the original RMSD should indeed
+            // reflect the imperfect anchor CA superposition, so I guess 
+            // the other RMSDs should, too.
             atoms.add(r.getAtom(" CA "));
+            
             /*if(whichAtoms.equals("ca+o") && (i == 1 || i == 2))
                 atoms.add(r.getAtom(" O  ")); // add central 2 C=O oxygens*/
             if(whichAtoms.equals("ca+o") && (i == 0 || i == 1 || i == 2))
@@ -137,41 +178,52 @@ public class ShearFit //extends ... implements ...
     }
 //}}}
 
-//{{{ interrelateAltConfs
+//{{{ [OLD] interrelateAltConfs
 //##############################################################################
-    /**
-    * Tries a shear then backrubs then peptide rotations
-    * one or more times successively in order to 
-    * relate the two ModelStates stored in this class
-    * at the four residues stored in this class.
-    */
-    ModelState interrelateAltConfs(int numTrials, double maxTheta)
-    {
-        ModelState bestState = null;
-        
-        if(verbose) System.err.print("Original         ");
-        double origRmsd = calcRmsd(atoms1, atoms2);
-        if(verbose) System.err.println(df.format(origRmsd)+"  0  0,0  0,0,0");
-        else System.out.print(delim+df.format(origRmsd));
-        
-        if(verbose) System.err.print("Brub+Peps        ");
-        bestState = runTrials(numTrials, maxTheta, false, true, true);
-        
-        if(verbose) System.err.print("Shear+Peps       ");
-        bestState = runTrials(numTrials, maxTheta, true, false, true);
-        
-        if(verbose) System.err.print("Shear+Brub       ");
-        bestState = runTrials(numTrials, maxTheta, true, true, false);
-        
-        if(verbose) System.err.print("Shear+Brub+Peps  ");
-        bestState = runTrials(numTrials, maxTheta, true, true, true);
-        
-        if(verbose) System.err.println();
-        return bestState;
-    }
+//    /**
+//    * Tries some combination of shears then backrubs then peptide rotations
+//    * successively for the desired number of trials
+//    * in order to relate the two ModelStates stored in this class
+//    * at the four residues stored in this class.
+//    */
+//    ModelState interrelateAltConfs(int numTrials, double maxTheta)
+//    {
+//        ModelState bestState = null;
+//        
+//        // Original situation
+//        if(verbose) System.err.print("Orig             ");
+//        double origRmsd = calcRmsd(atoms1, atoms2);
+//        if(verbose) System.err.println(df.format(origRmsd)+"  0  0,0  0,0,0");
+//        else System.out.print(delim+df.format(origRmsd));
+//        
+//        // Peptide rotations alone
+//        if(verbose) System.err.print("Peps             ");
+//        bestState = runTrials(numTrials, maxTheta, false, false, true);
+//        
+//        // Backrubs with & without peptide rotations
+//        if(verbose) System.err.print("Brub             ");
+//        bestState = runTrials(numTrials, maxTheta, false, true, false);
+//        if(verbose) System.err.print("Brub+Peps        ");
+//        bestState = runTrials(numTrials, maxTheta, false, true, true);
+//        
+//        // Shears with & without peptide rotations
+//        if(verbose) System.err.print("Shear            ");
+//        bestState = runTrials(numTrials, maxTheta, true, false, false);
+//        if(verbose) System.err.print("Shear+Peps       ");
+//        bestState = runTrials(numTrials, maxTheta, true, false, true);
+//        
+//        // Backrubs + shears with & without peptide rotations
+//        if(verbose) System.err.print("Shear+Brub       ");
+//        bestState = runTrials(numTrials, maxTheta, true, true, false);
+//        if(verbose) System.err.print("Shear+Brub+Peps  ");
+//        bestState = runTrials(numTrials, maxTheta, true, true, true);
+//        
+//        if(verbose) System.err.println();
+//        return bestState;
+//    }
 //}}}
 
-//{{{ runTrials
+//{{{ [OLD] runTrials
 //##############################################################################
     ModelState runTrials(int numTrials, double maxTheta, boolean doShear, boolean doBackrubs, boolean doPepRots)
     {
@@ -230,6 +282,141 @@ public class ShearFit //extends ... implements ...
     }
 //}}}
 
+//{{{ interrelateAltConfs
+//##############################################################################
+    /**
+    * Tries some combination of shears then backrubs then peptide rotations
+    * successively until convergence
+    * in order to relate the two ModelStates stored in this class
+    * at the four residues stored in this class.
+    */
+    ModelState interrelateAltConfs()
+    {
+        ModelState bestState = null;
+        
+        // Original situation
+        if(verbose) System.err.print("Orig             ");
+        origRmsd = calcRmsd(atoms1, atoms2); // global variable!
+        if(verbose) System.err.println(df.format(origRmsd)+"  0  0,0  0,0,0");
+        else System.out.print(delim+df.format(origRmsd));
+        
+        // Peptide rotations alone
+        if(verbose) System.err.print("Peps             ");
+        bestState = runTrials(false, false, true);
+        
+        // Backrubs with & without peptide rotations
+        if(verbose) System.err.print("Brub             ");
+        bestState = runTrials(false, true, false);
+        if(verbose) System.err.print("Brub+Peps        ");
+        bestState = runTrials(false, true, true);
+        
+        // Shears with & without peptide rotations
+        if(verbose) System.err.print("Shear            ");
+        bestState = runTrials(true, false, false);
+        if(verbose) System.err.print("Shear+Peps       ");
+        bestState = runTrials(true, false, true);
+        
+        // Backrubs + shears with & without peptide rotations
+        if(verbose) System.err.print("Shear+Brub       ");
+        bestState = runTrials(true, true, false);
+        if(verbose) System.err.print("Shear+Brub+Peps  ");
+        bestState = runTrials(true, true, true);
+        
+        if(verbose) System.err.println();
+        return bestState;
+    }
+//}}}
+
+//{{{ runTrials
+//##############################################################################
+    ModelState runTrials(boolean doShear, boolean doBackrubs, boolean doPepRots)
+    {
+        // Reset global stats
+        ModelState bestState = null;
+        bestShear    = 0;
+        bestBackrub1 = 0;
+        bestBackrub2 = 0;
+        bestPepRot1  = 0;
+        bestPepRot2  = 0;
+        bestPepRot3  = 0;
+        
+        // Initialize local ones
+        double bestRmsd = Double.POSITIVE_INFINITY;
+        double rmsdChange = Double.POSITIVE_INFINITY;
+        int numTrialsSoFar = 0;
+        
+        // Start trials
+        ModelState trialState = state1.createCollapsed(); // only 1st trial -- changed after that
+        while(Math.abs(rmsdChange) > maxRmsdChange)
+        {
+            //System.err.println("starting trial "+numTrialsSoFar+" w/ rmsdChange = "+rmsdChange);
+            
+            if(doShear)
+            {
+                trialState = findBestShear(trialState, maxTheta);
+            }
+            if(doBackrubs)
+            {
+                trialState = findBestBackrub(trialState, maxTheta, "first");
+                trialState = findBestBackrub(trialState, maxTheta, "second");
+            }
+            if(doPepRots)
+            {
+                trialState = findBestPeptideRotation(trialState, maxTheta, "first");
+                trialState = findBestPeptideRotation(trialState, maxTheta, "second");
+                trialState = findBestPeptideRotation(trialState, maxTheta, "third");
+            }
+            
+            atoms1 = loadAtomStates(trialState, (Residue[]) res.toArray(new Residue[res.size()]));
+            
+            //{{{ old guess 'n' check approach
+            //double rmsd = calcRmsd(atoms1, atoms2);
+            //System.err.println("new = "+rmsd+" vs. bestRmsd = "+bestRmsd);
+            //if(bestState == null || rmsd <= bestRmsd)
+            //{
+            //    if(bestRmsd == Double.POSITIVE_INFINITY)
+            //        rmsdChange = rmsd - origRmsd; // since it must be our first move
+            //    else
+            //        rmsdChange = rmsd - bestRmsd;
+            //    System.err.println("dRMSD = "+rmsdChange);
+            //    bestState = trialState;
+            //    bestRmsd = rmsd;
+            //}
+            //}}}
+            // I think it's fine to just accept the new "trial" state at this point
+            // without making sure it's better than what we had before.
+            // After all, we've chosen our rotations above to be the best we can find.
+            // Also, we get into some weird numerical issues  
+            // for like the millionth decimal place otherwise.
+            double newRmsd = calcRmsd(atoms1, atoms2);
+            if(bestRmsd == Double.POSITIVE_INFINITY)
+                rmsdChange = newRmsd - origRmsd; // since it must be our first move
+            else
+                rmsdChange = newRmsd - bestRmsd;
+            //System.err.println("new = "+newRmsd+" vs. bestRmsd = "+bestRmsd);
+            //System.err.println("dRMSD = "+rmsdChange);
+            bestState = trialState;
+            bestRmsd = newRmsd;
+            
+            numTrialsSoFar++;
+        }
+        
+        // Report results 
+        if(verbose) System.err.println(
+            df.format(bestRmsd)+"  "+
+            df2.format(bestShear)+"  "+
+            df2.format(bestBackrub1)+delim+df2.format(bestBackrub2)+"  "+
+            df2.format(bestPepRot1)+delim+df2.format(bestPepRot2)+delim+df2.format(bestPepRot3));
+        //else System.out.print(delim+
+        //    df.format(bestRmsd)+delim+
+        //    df.format(bestShear)+delim+
+        //    df.format(bestBackrub1)+delim+df.format(bestBackrub2)+delim+
+        //    df.format(bestPepRot1)+delim+df.format(bestPepRot2)+delim+df.format(bestPepRot3));
+        else System.out.print(delim+df.format(bestRmsd));
+        return bestState;
+    }
+//}}}
+
 //{{{ findBestShear
 //##############################################################################
     /**
@@ -242,7 +429,7 @@ public class ShearFit //extends ... implements ...
         ModelState newState = null;
         double bestRmsd = Double.POSITIVE_INFINITY;
         double bestTheta = 0; // addition to global best theta
-        for(double theta = -1 * maxTheta; theta < maxTheta; theta += 0.1)
+        for(double theta = -1 * maxTheta; theta < maxTheta; theta += 0.01)
         {
             try
             {
@@ -284,7 +471,7 @@ public class ShearFit //extends ... implements ...
         ModelState newState = null;
         double bestRmsd = Double.POSITIVE_INFINITY;
         double bestTheta = 0; // addition to global best theta
-        for(double theta = -1 * maxTheta; theta < maxTheta; theta += 0.1)
+        for(double theta = -1 * maxTheta; theta < maxTheta; theta += 0.01)
         {
             try
             {
@@ -348,7 +535,7 @@ public class ShearFit //extends ... implements ...
         ModelState newState = null;
         double bestRmsd /*bestDist*/ = Double.POSITIVE_INFINITY;
         double bestTheta = 0; // addition to global best theta
-        for(double theta = -1 * maxTheta; theta < maxTheta; theta += 0.1)
+        for(double theta = -1 * maxTheta; theta < maxTheta; theta += 0.01)
         {
             try
             {
