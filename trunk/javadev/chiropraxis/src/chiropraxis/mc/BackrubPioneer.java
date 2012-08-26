@@ -14,6 +14,7 @@ import java.util.*;
 import driftwood.moldb2.*;
 import driftwood.r3.*;
 import driftwood.util.Strings;
+import chiropraxis.rotarama.Ramachandran;
 //}}}
 /**
 * <code>BackrubPioneer</code> is the backrub companion to <code>ShearPioneer</code>.
@@ -35,6 +36,50 @@ public class BackrubPioneer extends ShearPioneer
     public BackrubPioneer()
     {
         super();
+        
+        try { rama = Ramachandran.getInstance(); }
+        catch(IOException ex) {}
+    }
+//}}}
+
+//{{{ findResidue 
+//##############################################################################
+    /**
+    * Finds the user's requested residue (based on residue number)
+    * and does some simple checks before proceeding.
+    */
+    Residue findResidue(Model model)
+    {
+        Residue res = null;
+        for(Iterator iter = model.getResidues().iterator(); iter.hasNext(); )
+        {
+            Residue r = (Residue) iter.next();
+            if(r.getSequenceInteger() == resnum) { res = r; break; }
+        }
+        
+        // Need at least 1 preceding residue and 3 subsequent residues
+        // to measure phi,psi for all 3 backrub residues
+        if(res == null)
+        {
+            System.err.println("D'oh!  Can't find residue # "+resnum);
+            System.exit(0);
+        }
+        if(res.getPrev(model) == null)
+        {
+            System.err.println("D'oh!  Need a residue preceding "+res);
+            System.exit(0);
+        }
+        Residue r = res;
+        for(int i = 0; i < 3; i++)
+        {
+            r = r.getNext(model);
+            if(r == null)
+            {
+                System.err.println("D'oh!  Need 4 residues following "+res);
+                System.exit(0);
+            }
+        }
+        return res;
     }
 //}}}
 
@@ -92,7 +137,11 @@ public class BackrubPioneer extends ShearPioneer
                     AminoAcid.getTauDeviation(res1, newState) > maxTauDev ||
                     AminoAcid.getTauDeviation(res2, newState) > maxTauDev ||
                     AminoAcid.getTauDeviation(res3, newState) > maxTauDev;
-                BackrubbedRegion s = new BackrubbedRegion(resArray, newState, rots, phipsi, badTau);
+                boolean ramaOut = 
+                    rama.isOutlier(model, res1, state) ||
+                    rama.isOutlier(model, res2, state) ||
+                    rama.isOutlier(model, res3, state);
+                BackrubbedRegion s = new BackrubbedRegion(resArray, newState, rots, phipsi, badTau, ramaOut);
                 movedRegions.add(s);
             }
             catch(AtomException ex)
@@ -130,7 +179,7 @@ public class BackrubPioneer extends ShearPioneer
                 +s.res1.getName().toLowerCase().trim()+s.res1.getSequenceInteger()
                 +" "+df.format(s.theta)+","+df.format(s.pepRot1)+","+df.format(s.pepRot2)
                 +" ep="+df2.format(epsilon)+" ("+df.format(s.phi1)+","+df.format(s.psi1)+")}"
-                +(s.badTau ? "hotpink " : "peachtint ")
+                +(s.badTau || s.ramaOut ? BAD_COLOR : GOOD_COLOR)+" "
                 +df4.format(s.phi1)+" "+df4.format(s.psi1)); // actual coordinates
         }
         
@@ -142,7 +191,7 @@ public class BackrubPioneer extends ShearPioneer
                 +s.res3.getName().toLowerCase().trim()+s.res3.getSequenceInteger()
                 +" "+df.format(s.theta)+","+df.format(s.pepRot1)+","+df.format(s.pepRot2)
                 +" ep="+df2.format(epsilon)+" ("+df.format(s.phi3)+","+df.format(s.psi3)+")}"
-                +(s.badTau ? "hotpink " : "peachtint ")
+                +(s.badTau || s.ramaOut ? BAD_COLOR : GOOD_COLOR)+" "
                 +df4.format(s.phi3)+" "+df4.format(s.psi3)); // actual coordinates
         }
     }
@@ -191,7 +240,7 @@ public class BackrubPioneer extends ShearPioneer
                     
                     System.out.println("@vectorlist {"+s.toString()
                         +" "+df.format(s.theta)+","+df.format(s.pepRot1)+","+df.format(s.pepRot2)
-                        +"} width= 2 color= "+(s.badTau ? "hotpink" : "peachtint"));
+                        +"} width= 2 color= "+(s.badTau || s.ramaOut ? BAD_COLOR : GOOD_COLOR));
                     printAtomCoords(ca1s, s.res1+" 'CA'", true);
                     printAtomCoords(c1s,  s.res1+" 'C'" , false);
                     printAtomCoords(o1s,  s.res1+" 'O'" , false);
@@ -225,9 +274,9 @@ public class BackrubPioneer extends ShearPioneer
         protected double theta, pepRot1, pepRot2;
         protected double phi1, psi1, phi3, psi3;
         protected boolean badTau;
-        // XX-TODO: || Rama outlier!
+        protected boolean ramaOut;
         
-        public BackrubbedRegion(Residue[] r, ModelState s, double[] rots, double[] pp, boolean bt)
+        public BackrubbedRegion(Residue[] r, ModelState s, double[] rots, double[] pp, boolean bt, boolean ro)
         {
             super();
             
@@ -246,6 +295,7 @@ public class BackrubPioneer extends ShearPioneer
             psi3 = pp[3];
             
             badTau = bt;
+            ramaOut = ro;
         }
         
         public String toString()
@@ -275,11 +325,11 @@ public class BackrubPioneer extends ShearPioneer
                 useIdealHelix = true;
             }
         }
-        if(filename != null && !Double.isNaN(phipsiRange))
+        /*if(filename != null && !Double.isNaN(phipsiRange))
         {
             System.err.println("Grid of initial phi,psi requires using ideal helix (-alpha)!");
             System.exit(0);
-        }
+        }*/
         if(!Double.isNaN(minEpsilon) && !Double.isNaN(maxEpsilon) && !Double.isNaN(phipsiRange))
         {
             System.err.println("Can't use -epsilon=#,# AND -phipsirange=#, silly goose!");
