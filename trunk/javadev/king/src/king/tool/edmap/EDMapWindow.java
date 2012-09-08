@@ -8,7 +8,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.net.URL;
-import java.text.DecimalFormat;
+import java.text.*;
 import java.util.*;
 import java.util.regex.*;
 //import java.util.regex.*;
@@ -33,6 +33,7 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
 {
 //{{{ Constants
     DecimalFormat df1 = new DecimalFormat("0.0");
+    DecimalFormat df3 = new DecimalFormat("0.000");
     static final String MAP_2FOFC = "2Fo-Fc";
     static final String MAP_FOFC = "Fo-Fc";
     static final String MAP_ANOMALOUS = "anomalous";
@@ -57,6 +58,18 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
     JComboBox   color1, color2;
     JCheckBox   useTriangles, useLowRes;
     JButton     discard, export;
+    
+    JLabel      labelmapscale; //100402dcr
+    JCheckBox   useAbsDensity; //100402dcr
+    JTextField  changestepsize; //100402dcr
+    JMenuItem   absDensItem, sigmaDensItem;
+    ButtonGroup displayButtons;
+    JFormattedTextField  setalphavalue; //100408dcr
+    boolean     useAbsDen; //100402dcr
+    //boolean     SigmaOnly; //true mimics original code 100404dcr
+    boolean     SigmaShowDen, AbsDensity; //100404dcr
+    float       thestepsize; //100403dcr
+    float       alphavalue; //100408dcr
     
     boolean     phenixColors = false;
     
@@ -171,8 +184,8 @@ public String parseType(String title) {
     {
       typeLabel = new JLabel("Set to: "+mapType);
       
-        label1 = new JCheckBox("1.2 sigma", true);
-        label2 = new JCheckBox("3.0 sigma", false);
+        label1 = new JCheckBox("1.2 sig; ("+df3.format(1.2*map.sigma)+" dens)", true);
+        label2 = new JCheckBox("3.0 sig; ("+df3.format(3.0*map.sigma)+" dens)", false);
         
         color1 = new JComboBox(kMain.getKinemage().getAllPaintMap().values().toArray());
         color1.setSelectedItem(KPalette.gray);
@@ -185,6 +198,32 @@ public String parseType(String title) {
         extent.setPaintTicks(true);
         //extent.setSnapToTicks(true); -- this seems to be buggy/weird
         extent.setPaintLabels(true);
+        
+        // start dcr code
+        //SigmaOnly  = true;  //100404dcr
+        SigmaShowDen = true; //100404dcr
+        AbsDensity = false; //100404dcr
+        
+        labelmapscale = new JLabel("mean: "+df3.format(map.mean)+", sigma: "+df3.format(map.sigma)); //100402dcr
+        
+        thestepsize = (float)(0.1*map.sigma); //correlate abs & sigma scales 100403dcr 
+        alphavalue = (float)0.25; //transparency of surface triangles 100408dcr
+        
+        TablePane2 stepSizePane = new TablePane2();
+        changestepsize = new JTextField(df3.format(thestepsize)); //catch it when something else changes 100403dcr
+        stepSizePane.addCell(new JLabel("step size: "));
+        stepSizePane.hfill(true).addCell(changestepsize, 1, 1); //100402dcr JTextField 100404dcr
+        
+        sigmaDensItem = new JRadioButtonMenuItem(new ReflectiveAction("Sigma (Abs Density)", null, this, "onSigmaShowDen"));      
+        absDensItem = new JRadioButtonMenuItem(new ReflectiveAction("Abs Density (Sigma)", null, this, "onAbsDensity"));
+        //JCheckBox testBox = new JCheckBox(new ReflectiveAction("Abs Density (Sigma)", null, this, "onAbsDensity"));
+        FoldingBox fbStepPts = new FoldingBox(absDensItem, stepSizePane);
+        fbStepPts.setAutoPack(true);
+        
+        setalphavalue = new JFormattedTextField(NumberFormat.getInstance()); //catch it when something else changes 100408dcr 
+        setalphavalue.setAction(new ReflectiveAction("Translucent surface", null, this, "onTriangles"));
+        setalphavalue.setText(df3.format(alphavalue));
+        // end dcr code
         
         slider1 = new JSlider(-80, 80, 12);
         slider1.setMajorTickSpacing(10);
@@ -200,6 +239,15 @@ public String parseType(String title) {
         
         useTriangles = new JCheckBox(new ReflectiveAction("Translucent surface", null, this, "onTriangles"));
         useTriangles.setToolTipText("Enables a translucent triangle-mesh surface; use with Best rendering quality.");
+                
+        TablePane2 transSurfPane = new TablePane2();
+        transSurfPane.addCell(new JLabel("Use alpha:"));
+        transSurfPane.hfill(true).addCell(setalphavalue, 1, 1);
+        
+        FoldingBox fbPaintPts = new FoldingBox(useTriangles, transSurfPane);
+        fbPaintPts.setAutoPack(true);
+        fbPaintPts.setIndent(10);       
+        
         useLowRes = new JCheckBox(new ReflectiveAction("Coarser mesh", null, this, "onCoarseMesh"));
         discard = new JButton(new ReflectiveAction("Discard this map", null, this, "onMapDiscard"));
         export  = new JButton(new ReflectiveAction("Export to kinemage", null, this, "onMapExport"));
@@ -221,7 +269,13 @@ public String parseType(String title) {
         pane.newRow();
         pane.save().hfill(true).addCell(extent, 2, 1).restore();
         pane.newRow();
-        pane.add(pane.strut(0,8));
+        pane.add(labelmapscale, 2, 1); //100402dcr
+        pane.newRow();
+        //pane.add(testBox);
+        pane.add(fbStepPts);
+        //pane.add(new JLabel("step size: "));
+        //pane.save().hfill(true).addCell(changestepsize, 1, 1).restore(); //100402dcr JTextField 100404dcr
+        //pane.add(pane.strut(0,8));
         pane.newRow();
         pane.add(label1);
         pane.add(color1);
@@ -237,7 +291,11 @@ public String parseType(String title) {
         pane.newRow();
         pane.add(pane.strut(0,4));
         pane.newRow();
-        pane.add(useTriangles, 2, 1);
+        pane.add(useTriangles);
+        pane.newRow();
+          pane.add(fbPaintPts);
+        //pane.add(new JLabel("alpha = "));
+        //pane.add(setalphavalue); //100408dcr
         pane.newRow();
         pane.add(useLowRes, 2, 1);
         pane.newRow();
@@ -276,6 +334,24 @@ public String parseType(String title) {
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_5, KingMain.MENU_ACCEL_MASK));
         menu.add(item);
         
+        menu = new JMenu("Display");
+        menu.setIcon(kMain.getPrefs().basicDownIcon);
+        menu.setHorizontalTextPosition(AbstractButton.LEADING);
+        menu.setMnemonic(KeyEvent.VK_D);
+        menubar.add(menu);
+      
+        //item = new JMenuItem(new ReflectiveAction("Sigma Only", null, this, "onSigmaOnly"));
+        //menu.add(item);
+        
+        displayButtons = new ButtonGroup();
+        sigmaDensItem.setSelected(true);
+        menu.add(sigmaDensItem);
+        displayButtons.add(sigmaDensItem);
+
+        //item = new JMenuItem(new ReflectiveAction("Abs Density (Sigma)", null, this, "onAbsDensity"));
+        menu.add(absDensItem);
+        displayButtons.add(absDensItem);
+        
         if (kMain.getPrefs().getBoolean("minimizableTools")) {
           JFrame fm = new JFrame(title+"-EDMap");
           fm.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -296,11 +372,30 @@ public String parseType(String title) {
 //##################################################################################################
     public void stateChanged(ChangeEvent ev)
     {
-        double val;
-        val = calcSliderValue(slider1);
-        label1.setText(df1.format(val)+" sigma");
-        val = calcSliderValue(slider2);
-        label2.setText(df1.format(val)+" sigma");
+        adjustLabel(slider1, label1);
+        adjustLabel(slider2, label2);
+        
+        float f = thestepsize; //100403dcr
+        
+        String s = changestepsize.getText();  //100402dcr
+        try 
+        {
+           f = Float.valueOf(s.trim()).floatValue();
+           //System.out.println("float f = " + f); //test 100403dcr
+        }
+        catch (NumberFormatException nfe)   //100402dcr
+        {
+           //System.err.println("NumberFormatException: " + nfe.getMessage());
+           //failed to get a valid number for stepsize, revert:
+           f = thestepsize; 
+        }
+        finally  //100402dcr 
+        {
+           if(!AbsDensity) f = thestepsize; //retain original value  100404dcr
+           thestepsize = f; //real or fake of what we wanted to do 100403dcr
+           //for all situations reset value on spec.  //100404dcr
+           changestepsize.setText(df3.format(thestepsize)); //100404dcr
+        }
         
         if(!extent.getValueIsAdjusting()
         && !slider1.getValueIsAdjusting()
@@ -311,6 +406,23 @@ public String parseType(String title) {
         }
     }
     
+    public void adjustLabel(JSlider slider, JCheckBox label) {
+      double val;
+      val = calcSliderValue(slider);
+      if(AbsDensity) //100402dcr
+      {
+        label.setText(df3.format(val)+" dens; ("+df3.format(val/map.sigma)+" sig)"); //100403xdcr
+      }
+      else if(SigmaShowDen)
+      {
+        label.setText(df1.format(val)+" sig; ("+df3.format(val*map.sigma)+" dens)"); //100403xdcr
+      }
+      //else if(SigmaOnly)
+      //{
+      //  label.setText(df1.format(val)+" sigma"); //100404dcr
+      //}
+    }
+    
     public void actionPerformed(ActionEvent ev)
     {
         kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
@@ -319,6 +431,26 @@ public String parseType(String title) {
     // target of reflection
     public void onTriangles(ActionEvent ev)
     {
+      	float f = (float)0.25; //default 100408dcr
+        String alf = setalphavalue.getText();  //100408dcr
+        try 
+        {
+          f = Float.valueOf(alf.trim()).floatValue();
+          if (f > 1) f = 1;
+          if (f < 0) f = 0;
+        }
+        catch (NumberFormatException nfe)   //100408dcr
+        {
+          //due to use of JFormattedTextField, should only need to catch cases where
+          // input is numerical but nonsensical (e.g. 1..00)
+           //f = alphavalue; 
+        }
+        //finally  //100402dcr 
+        //{
+           alphavalue = Float.valueOf(f); //real or fake of what we wanted to do 100408dcr
+           setalphavalue.setText(df3.format(alphavalue)); //100408dcr
+        //}       
+
         updateMesh();
         kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
     }
@@ -333,6 +465,19 @@ public String parseType(String title) {
     double calcSliderValue(JSlider slider)
     {
         int i = slider.getValue();
+        if(AbsDensity) //100402dcr
+        {      
+          if(-80 <= i && i <= 80) //100403dcr
+          {
+            return i*thestepsize; //100403dcr
+          }
+          else
+          {
+            throw new Error("assertion failure");
+          }
+        }
+        else
+        {
         if(-60 <= i && i <= 60)
             return i/10.0;
         else if(i > 60)
@@ -341,6 +486,7 @@ public String parseType(String title) {
             return -(6.0 + (-i-60)*2.0);
         else
             throw new Error("assertion failure");
+        }
     }
 //}}}
 
@@ -378,6 +524,9 @@ public String parseType(String title) {
         plotter1 = new EDMapPlotter(false, mode);
         plotter2 = new EDMapPlotter(false, mode);
         
+        plotter1.setAlphaValue(alphavalue); //100408dcr
+        plotter2.setAlphaValue(alphavalue); //100408dcr
+        
         double val, size = extent.getValue() / 2.0;
         int[] corner1 = new int[3], corner2 = new int[3];
         
@@ -404,11 +553,25 @@ public String parseType(String title) {
         SoftLog.err.println("findVertex("+(ctrX+size)+" "+(ctrY+size)+" " +(ctrZ+size)+") -> "+xyz[0]+" "+xyz[1]+" "+xyz[2]);*/
         
         val = calcSliderValue(slider1);
-        mc1.march(corner1[0], corner1[1], corner1[2], corner2[0], corner2[1], corner2[2], val*map.sigma);
-        
+        if(AbsDensity) //100402dcr
+        {      
+           mc1.march(corner1[0], corner1[1], corner1[2], corner2[0], corner2[1], corner2[2], val); //100316dcr
+        }
+        else
+        {
+           mc1.march(corner1[0], corner1[1], corner1[2], corner2[0], corner2[1], corner2[2], val*map.sigma);
+        }
         val = calcSliderValue(slider2);
-        mc2.march(corner1[0], corner1[1], corner1[2], corner2[0], corner2[1], corner2[2], val*map.sigma);
-        
+        if(AbsDensity) //100402dcr
+        {
+           mc2.march(corner1[0], corner1[1], corner1[2], corner2[0], corner2[1], corner2[2], val); //100316dcr
+        }
+        else
+        {
+           mc2.march(corner1[0], corner1[1], corner1[2], corner2[0], corner2[1], corner2[2], val*map.sigma);
+           //report to terminal...  commented out 100403dcr
+           //SoftLog.err.println("Updated mesh: "+corner1[0]+" "+corner1[1]+" "+corner1[2]+" / "+corner2[0]+" "+corner2[1]+" "+corner2[2]);
+        }
         //SoftLog.err.println("Updated mesh: "+corner1[0]+" "+corner1[1]+" "+corner1[2]+" / "+corner2[0]+" "+corner2[1]+" "+corner2[2]);
     }
 //}}}
@@ -516,6 +679,45 @@ public void setType(String type) {
     }
 //}}}
     
+//{{{ onSigmaOnly, onSigmaShowDen, onAbsDensity
+  // Logical choice to show controls only for Sigma valued map contours
+  // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+  //public void onSigmaOnly(ActionEvent ev) //100404dcr
+  //{
+  //  SigmaOnly = true;
+  //  SigmaShowDen = false;
+  //  AbsDensity = false;
+  //  thestepsize = (float)(0.1*map.sigma); //reset abs & sigma scales 100403dcr 
+  //  stateChanged(null);  //calls updateMesh()... 100404dcr
+  //  //updateMesh();
+  //  kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
+  //}
+  
+  // Logical choice to show controls for Sigma valued and Absolute map contours
+  // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+  public void onSigmaShowDen(ActionEvent ev) //100404dcr
+  {
+    //SigmaOnly = false;
+    SigmaShowDen = true;
+    AbsDensity = false;
+    thestepsize = (float)(0.1*map.sigma); //reset abs & sigma scales 100403dcr 
+    stateChanged(null);  //calls updateMesh()... 100404dcr
+    //updateMesh();
+    kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
+  }    
+  
+  public void onAbsDensity(ActionEvent ev) //100404dcr
+  {
+    //SigmaOnly = false;
+    SigmaShowDen = false;
+    AbsDensity = true;
+    //System.out.println(absDensItem.isSelected());
+    stateChanged(null);  //calls updateMesh()... 100404dcr
+    //updateMesh();
+    kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
+  }    
+//}}}
+
 //{{{ onMapDiscard, onMapExport
 //##################################################################################################
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME

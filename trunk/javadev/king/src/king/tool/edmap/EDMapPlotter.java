@@ -36,6 +36,7 @@ public class EDMapPlotter implements EdgePlotter
     String          level;
     Object          mode;
     boolean         unpickable;
+    float           alphavalue;
 //}}}
 
 //{{{ Constructor(s)
@@ -51,6 +52,7 @@ public class EDMapPlotter implements EdgePlotter
         prevT   = null;
         level   = null;
         unpickable = !pickable;
+        alphavalue = (float)0.25;
         
         if(mode != MarchingCubes.MODE_MESH && mode != MarchingCubes.MODE_TRIANGLE)
             throw new IllegalArgumentException("Illegal MarchingCubes MODE constant: "+mode);
@@ -73,7 +75,7 @@ public class EDMapPlotter implements EdgePlotter
         list.setName("ED map @ "+level);
         list.setWidth(1);
         if(mode == MarchingCubes.MODE_TRIANGLE)
-            list.setAlpha((int)(0.25 * 255));
+            list.setAlpha((int)(alphavalue * 255));
     }
 //}}}
 
@@ -161,6 +163,16 @@ public class EDMapPlotter implements EdgePlotter
     /** Retrieves the last surface generated (could be null)*/
     public KList getList()
     { return list; }
+//}}}
+
+//{{{ get, setAlphaValue
+public float getAlphaValue() {
+  return alphavalue;
+}
+
+public void setAlphaValue(float val) {
+  alphavalue = val;
+}
 //}}}
 
 //{{{ empty_code_segment
