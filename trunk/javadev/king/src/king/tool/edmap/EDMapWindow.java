@@ -62,6 +62,7 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
     JLabel      labelmapscale; //100402dcr
     JCheckBox   useAbsDensity; //100402dcr
     JTextField  changestepsize; //100402dcr
+    JFormattedTextField  absValueBox;
     JMenuItem   absDensItem, sigmaDensItem;
     ButtonGroup displayButtons;
     JFormattedTextField  setalphavalue; //100408dcr
@@ -209,15 +210,21 @@ public String parseType(String title) {
         thestepsize = (float)(0.1*map.sigma); //correlate abs & sigma scales 100403dcr 
         alphavalue = (float)0.25; //transparency of surface triangles 100408dcr
         
-        TablePane2 stepSizePane = new TablePane2();
+        TablePane2 absValuePane = new TablePane2();
         changestepsize = new JTextField(df3.format(thestepsize)); //catch it when something else changes 100403dcr
-        stepSizePane.addCell(new JLabel("step size: "));
-        stepSizePane.hfill(true).addCell(changestepsize, 1, 1); //100402dcr JTextField 100404dcr
+        absValuePane.addCell(new JLabel("Step size: "));
+        absValuePane.hfill(true).addCell(changestepsize, 1, 1); //100402dcr JTextField 100404dcr
+        
+        absValueBox = new JFormattedTextField(NumberFormat.getInstance());
+        absValueBox.setAction(new ReflectiveAction("Set absolute value", null, this, "onSetAbsoluteValue"));
+        absValueBox.setText(df3.format(0.00));
+        absValuePane.addCell(new JLabel("Goto value: "));
+        absValuePane.skip().hfill(true).addCell(absValueBox, 1, 1);
         
         sigmaDensItem = new JRadioButtonMenuItem(new ReflectiveAction("Sigma (Abs Density)", null, this, "onSigmaShowDen"));      
         absDensItem = new JRadioButtonMenuItem(new ReflectiveAction("Abs Density (Sigma)", null, this, "onAbsDensity"));
         //JCheckBox testBox = new JCheckBox(new ReflectiveAction("Abs Density (Sigma)", null, this, "onAbsDensity"));
-        FoldingBox fbStepPts = new FoldingBox(absDensItem, stepSizePane);
+        FoldingBox fbStepPts = new FoldingBox(absDensItem, absValuePane);
         fbStepPts.setAutoPack(true);
         
         setalphavalue = new JFormattedTextField(NumberFormat.getInstance()); //catch it when something else changes 100408dcr 
@@ -272,7 +279,7 @@ public String parseType(String title) {
         pane.add(labelmapscale, 2, 1); //100402dcr
         pane.newRow();
         //pane.add(testBox);
-        pane.add(fbStepPts);
+        pane.save().hfill(true).addCell(fbStepPts, 3, 1).restore();
         //pane.add(new JLabel("step size: "));
         //pane.save().hfill(true).addCell(changestepsize, 1, 1).restore(); //100402dcr JTextField 100404dcr
         //pane.add(pane.strut(0,8));
@@ -372,8 +379,8 @@ public String parseType(String title) {
 //##################################################################################################
     public void stateChanged(ChangeEvent ev)
     {
-        adjustLabel(slider1, label1);
         adjustLabel(slider2, label2);
+        adjustLabel(slider1, label1); // absValueBox gets set in adjustLabel, so for it to match the first slider this has to be second
         
         float f = thestepsize; //100403dcr
         
@@ -396,7 +403,7 @@ public String parseType(String title) {
            //for all situations reset value on spec.  //100404dcr
            changestepsize.setText(df3.format(thestepsize)); //100404dcr
         }
-        
+                
         if(!extent.getValueIsAdjusting()
         && !slider1.getValueIsAdjusting()
         && !slider2.getValueIsAdjusting())
@@ -412,6 +419,7 @@ public String parseType(String title) {
       if(AbsDensity) //100402dcr
       {
         label.setText(df3.format(val)+" dens; ("+df3.format(val/map.sigma)+" sig)"); //100403xdcr
+        absValueBox.setText(df3.format(val));
       }
       else if(SigmaShowDen)
       {
@@ -453,6 +461,19 @@ public String parseType(String title) {
 
         updateMesh();
         kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
+    }
+    
+    // target of reflection
+    public void onSetAbsoluteValue(ActionEvent ev) {
+      try {
+        float absFloat = Float.valueOf(absValueBox.getText().trim()).floatValue();
+        int sliderVal = (int) Math.round(absFloat/thestepsize);
+        if(-80 <= sliderVal && sliderVal <= 80) //100403dcr
+        {      
+          slider1.setValue(sliderVal); 
+        }
+      } catch (NumberFormatException nfe) {
+      }
     }
     
     // target of reflection
