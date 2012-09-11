@@ -84,8 +84,9 @@ public class Interdigitator //extends ... implements ...
     {
         if(outputMode.equals("res"))
         {
-            System.err.println("\n** Code doesn't yet correct for aa type in -res mode ... quitting! **\n");
-            System.exit(0);
+            System.err.println("\n** Warning: Code doesn't yet correct for aa type in -res mode! **\n");
+            //System.err.println("\n** Code doesn't yet correct for aa type in -res mode ... quitting! **\n");
+            //System.exit(0);
         }
         
         // For each non-backbone atom, find vector to closest-in-space atom 
