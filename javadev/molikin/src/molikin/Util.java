@@ -354,6 +354,10 @@ public class Util //extends ... implements ...
     * Selects matching bonds, retaining their input order.
     * Only bonds that go from AtomStates in srcA which belong to Residues in srcR,
     * to AtomStates in dstR that belong to Residues in dstR (or vice versa), are drawn.
+    * If ligate is true, uses the "last" atom (" C  " for proteins, " O3'" for nucleic acids)
+    * from the "first" residue for drawing an inter-residue bond to the second residue,
+    * and uses the "first" atom (" N  " for proteins, " P  " for nucleic acids)
+    * from the "last" residue for drawing an inter-residue bond to the second-to-last residue.
     * @param bonds  the Bonds to select from
     * @param srcA   a Set of AtomStates (may be null for "any")
     * @param dstA   a Set of AtomStates (may be null for "any")
@@ -362,8 +366,29 @@ public class Util //extends ... implements ...
     * @param out    a Collection to append selected bonds to. Will be created if null.
     * @return the Collection holding the selected bonds
     */
-    static public Collection selectBondsBetween(Collection bonds, Set srcA, Set dstA, Set srcR, Set dstR, Collection out)
+    static public Collection selectBondsBetween(Collection bonds, Set srcA, Set dstA, Set srcR, Set dstR, Collection out, boolean ligate)
     {
+        // I hate having to initialize these empty variables even if the (rarely used) ligate option is false,
+        // but I don't see a way around it, and it shouldn't consume any appreciable memory...  -DAK 121023
+        HashSet lastAtomNames = new HashSet(), firstAtomNames = new HashSet();
+        Residue firstR = null, lastR = null;
+        if(ligate) // see below
+        {
+            lastAtomNames.add(" C  ");
+            lastAtomNames.add(" O3'");
+            lastAtomNames.add(" O3*");
+            firstAtomNames.add(" N  ");
+            firstAtomNames.add(" P  ");
+            
+            ArrayList sortedR = new ArrayList();
+            for(Iterator iter = srcR.iterator(); iter.hasNext(); )
+                sortedR.add( (Residue)iter.next() );
+            for(Iterator iter = dstR.iterator(); iter.hasNext(); )
+                sortedR.add( (Residue)iter.next() );
+            Collections.sort(sortedR);
+            firstR = (Residue) sortedR.get(0);
+            lastR  = (Residue) sortedR.get(sortedR.size()-1);
+        }
         if(out == null) out = new ArrayList();
         for(Iterator iter = bonds.iterator(); iter.hasNext(); )
         {
@@ -382,10 +407,68 @@ public class Util //extends ... implements ...
             //System.out.println(curr.higher.getName()+" "+srcA.contains(curr.higher)+" "+curr.lower.getName()+" "+dstA.contains(curr.lower));
             if(!atomsAllowed) continue;
             
+            if(ligate)
+            {
+                // Use terminal residues for inter-residue bonds only
+                if(curr.lower.getResidue().equals(firstR) || curr.higher.getResidue().equals(firstR)
+                || curr.lower.getResidue().equals(lastR)  || curr.higher.getResidue().equals(lastR))
+                {
+                    // One or both of the two residues in this bond is/are "terminal" residues,
+                    // so skip it if it isn't a "ligating" bond between a terminal and a non-terminal residue
+                    if(!(curr.lower.getResidue().equals(firstR)  && lastAtomNames.contains(curr.lower.getName()))
+                    && !(curr.higher.getResidue().equals(firstR) && lastAtomNames.contains(curr.higher.getName()))
+                    && !(curr.lower.getResidue().equals(lastR)  && firstAtomNames.contains(curr.lower.getName()))
+                    && !(curr.higher.getResidue().equals(lastR) && firstAtomNames.contains(curr.higher.getName())))
+                    {
+                        continue;
+                    }
+                }
+            }
+            
             out.add(curr);
         }
         return out;
     }
+//}}}
+
+//{{{ selectBondsBetween [BACKUP]
+//##############################################################################
+//    /**
+//    * Selects matching bonds, retaining their input order.
+//    * Only bonds that go from AtomStates in srcA which belong to Residues in srcR,
+//    * to AtomStates in dstR that belong to Residues in dstR (or vice versa), are drawn.
+//    * @param bonds  the Bonds to select from
+//    * @param srcA   a Set of AtomStates (may be null for "any")
+//    * @param dstA   a Set of AtomStates (may be null for "any")
+//    * @param srcR   a Set of Residues (may be null for "any")
+//    * @param dstR   a Set of Residues (may be null for "any")
+//    * @param out    a Collection to append selected bonds to. Will be created if null.
+//    * @return the Collection holding the selected bonds
+//    */
+//    static public Collection selectBondsBetween(Collection bonds, Set srcA, Set dstA, Set srcR, Set dstR, Collection out)
+//    {
+//        if(out == null) out = new ArrayList();
+//        for(Iterator iter = bonds.iterator(); iter.hasNext(); )
+//        {
+//            Bond curr = (Bond) iter.next();
+//            
+//            // Testing for null vs. maintaining separate implementations that don't test at all
+//            // produces no measurable performance impact, even for the ribosome.
+//            
+//            boolean residuesAllowed = ((srcR == null || srcR.contains(curr.lower.getResidue())) && (dstR == null || dstR.contains(curr.higher.getResidue())))
+//                                    ||((dstR == null || dstR.contains(curr.lower.getResidue())) && (srcR == null || srcR.contains(curr.higher.getResidue())));
+//            if(!residuesAllowed) continue;
+//            
+//            boolean atomsAllowed    = ((srcA == null || srcA.contains(curr.lower)) && (dstA == null || dstA.contains(curr.higher)))
+//                                    ||((dstA == null || dstA.contains(curr.lower)) && (srcA == null || srcA.contains(curr.higher)));
+//                                    
+//            //System.out.println(curr.higher.getName()+" "+srcA.contains(curr.higher)+" "+curr.lower.getName()+" "+dstA.contains(curr.lower));
+//            if(!atomsAllowed) continue;
+//            
+//            out.add(curr);
+//        }
+//        return out;
+//    }
 //}}}
 
 //{{{ selectDisulfideResidues

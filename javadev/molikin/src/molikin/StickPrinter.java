@@ -48,17 +48,24 @@ public class StickPrinter //extends ... implements ...
 
 //{{{ printSticks
 //##############################################################################
+    public void printSticks(Collection bonds, Set srcA, Set dstA, Set srcR, Set dstR, String modelId)
+    { printSticks(bonds, srcA, dstA, srcR, dstR, modelId, false); }
+    
     /**
     * Draws the supplied Bond objects in order.
     * Only bonds that go from AtomStates in srcA which belong to Residues in srcR,
     * to AtomStates in dstR that belong to Residues in dstR (or vice versa), are drawn.
     * Only points are generated; the client is responsible for writing "@vectorlist ...".
+    * If ligate is true, uses the "last" atom (" C  " for proteins, " O3'" for nucleic acids)
+    * from the "first" residue for drawing an inter-residue bond to the second residue,
+    * and uses the "first" atom (" N  " for proteins, " P  " for nucleic acids)
+    * from the "last" residue for drawing an inter-residue bond to the second-to-last residue.
     * @param srcA   a Set of AtomStates (may be null for "any")
     * @param dstA   a Set of AtomStates (may be null for "any")
     * @param srcR   a Set of Residues (may be null for "any")
     * @param dstR   a Set of Residues (may be null for "any")
     */
-    public void printSticks(Collection bonds, Set srcA, Set dstA, Set srcR, Set dstR, String modelId)
+    public void printSticks(Collection bonds, Set srcA, Set dstA, Set srcR, Set dstR, String modelId, boolean ligate)
     {
         //long time = System.currentTimeMillis();
 
@@ -68,7 +75,7 @@ public class StickPrinter //extends ... implements ...
         //System.out.println("Pre-selection bonds");
         //testBonds(bonds);
         //System.out.println("\n\n\nPost-selection bonds");
-        Util.selectBondsBetween(bonds, srcA, dstA, srcR, dstR, selectedBonds);
+        Util.selectBondsBetween(bonds, srcA, dstA, srcR, dstR, selectedBonds, ligate);
         //testBonds(selectedBonds);
         //System.out.println(srcA);
         // The optimization reduces total bond drawing time by ~20%
@@ -93,6 +100,55 @@ public class StickPrinter //extends ... implements ...
     
     public void printSticks(Collection bonds)
     { printSticks(bonds, null, null, null, null, null); }
+//}}}
+
+//{{{ printSticks [BACKUP]
+//##############################################################################
+//    /**
+//    * Draws the supplied Bond objects in order.
+//    * Only bonds that go from AtomStates in srcA which belong to Residues in srcR,
+//    * to AtomStates in dstR that belong to Residues in dstR (or vice versa), are drawn.
+//    * Only points are generated; the client is responsible for writing "@vectorlist ...".
+//    * @param srcA   a Set of AtomStates (may be null for "any")
+//    * @param dstA   a Set of AtomStates (may be null for "any")
+//    * @param srcR   a Set of Residues (may be null for "any")
+//    * @param dstR   a Set of Residues (may be null for "any")
+//    */
+//    public void printSticks(Collection bonds, Set srcA, Set dstA, Set srcR, Set dstR, String modelId)
+//    {
+//        //long time = System.currentTimeMillis();
+//
+//        // Doing the selection inline saves a bit of time on allocating selectedBonds,
+//        // but much greater savings are achieved through bond order optimization.
+//        selectedBonds.clear();
+//        //System.out.println("Pre-selection bonds");
+//        //testBonds(bonds);
+//        //System.out.println("\n\n\nPost-selection bonds");
+//        Util.selectBondsBetween(bonds, srcA, dstA, srcR, dstR, selectedBonds);
+//        //testBonds(selectedBonds);
+//        //System.out.println(srcA);
+//        // The optimization reduces total bond drawing time by ~20%
+//        // because it reduces kinemage size by ~15%. Less output, faster code!
+//        Bond[] b = (Bond[]) selectedBonds.toArray(new Bond[selectedBonds.size()]);
+//        Bond.optimizeBondSequence(b);
+//        
+//        if(halfbonds)   halfBondsImpl(b, modelId);
+//        else            wholeBondsImpl(b, modelId);
+//        
+//        out.flush();
+//        
+//        //time = System.currentTimeMillis() - time;
+//        //System.err.println("Drawing bonds:          "+time+" ms");
+//    }
+//    
+//    //public void printSticks(Collection bonds, Set srcA, Set dstA, Set srcR, Set dstR)
+//    //{ printSticks(bonds, srcA, dstA, srcR, dstR, null); }
+//    
+//    public void printSticks(Collection bonds, Set srcA, Set dstA)
+//    { printSticks(bonds, srcA, dstA, null, null, null); }
+//    
+//    public void printSticks(Collection bonds)
+//    { printSticks(bonds, null, null, null, null, null); }
 //}}}
 
 //{{{ wholeBondsImpl
