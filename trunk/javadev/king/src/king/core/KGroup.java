@@ -9,6 +9,7 @@ import java.io.*;
 //import java.text.*;
 import java.util.*;
 //import java.util.regex.*;
+import driftwood.r3.*;
 //}}}
 /**
 * <code>KGroup</code> is the KiNG implementation of a kinemage group, subgroup, etc.
@@ -21,7 +22,8 @@ public class KGroup extends AGE<AGE,AGE> implements Cloneable
 {
 //{{{ Variable definitions
 //##################################################################################################
-protected int moview = 0;
+    protected int moview = 0;
+    protected KGroup instance = null; // the (sub)group that this one is an instance= {xxx} of (usually null)
 //}}}
 
 //{{{ Constructor(s)
@@ -67,6 +69,56 @@ protected int moview = 0;
         }
         catch(CloneNotSupportedException ex)
         { throw new Error("Clone failed in cloneable object"); }
+    }
+//}}}
+
+//{{{ get/set(Ultimate)Instance
+//##################################################################################################
+    /** Sets which (sub)group this one is an instance of, or null for none. */
+    public void setInstance(KGroup inst)
+    {
+        this.instance = inst;
+        fireKinChanged(CHANGE_POINT_CONTENTS);
+        // Is this the right argument ^ here?...  -DAK 121023
+    }
+    
+    /** Gets which (sub)group this one is an instance of, or null for none. */
+    public KGroup getInstance()
+    { return this.instance; }
+    
+    /** In case of a chain of instance-of relationships, finds the (sub)group at the end of the chain. */
+    public KGroup getUltimateInstance()
+    {
+        KGroup inst = this.getInstance();
+        if(inst == null) return null;
+        else
+        {
+            while(inst.getInstance() != null) inst = inst.getInstance();
+            return inst;
+        }
+    }
+//}}}
+
+//{{{ doTransform
+//##################################################################################################
+    // Added this method and the above ...Instance() methods 
+    // so instance= works for groups and subgroups, not just lists.
+    // DAK 121024
+    public void doTransform(Engine engine, Transform xform)
+    {
+        // If the button is off, this will never be rendered
+        if(!isOn()) return;
+        
+        // If we're an instance of someone else, transform those lists/(sub)groups too
+        KGroup inst = getUltimateInstance();
+        if(inst != null)
+        {
+            for(AGE child : inst.getChildren()) child.doTransform(engine, xform);
+        }
+        
+        // Not using iterators speeds this up by a few tens of ms
+        // Java 1.5 can do this automatically for Lists that implement RandomAccess
+        for(AGE child : children) child.doTransform(engine, xform);
     }
 //}}}
 

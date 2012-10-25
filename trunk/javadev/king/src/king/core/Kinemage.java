@@ -797,7 +797,18 @@ public static SuffixFileFilter getKinFileFilter() {
                     fireKinChanged(CHANGE_TREE_CONTENTS);
                 }
             }
-            else if(ahe instanceof AGE) // but not a list
+            else if(ahe instanceof KGroup) // group or subgroup
+            {
+                KGroup group = (KGroup) ahe;
+                if(group.getChildren().isEmpty() && group.getInstance() == null)
+                {
+                    iter.remove();
+                    if(group.getParent() == parent)
+                        group.setParent(null);
+                    fireKinChanged(CHANGE_TREE_CONTENTS);
+                }
+            }
+            else if(ahe instanceof AGE) // but not a list or (sub)group
             {
                 AGE age = (AGE) ahe;
                 removeEmptyAGEs(age);
