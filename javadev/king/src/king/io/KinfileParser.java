@@ -309,15 +309,24 @@ public class KinfileParser //extends ... implements ...
                     else error("master= was not followed by an identifier");
                 }
                 // Clone is a full or "deep" copy of the original
-                // Instance is a lightweight copy that uses the same underlying point data
-                else if(s.equals("clone=") || s.equals("instance="))
+                else if(s.equals("clone="))
                 {
                     if(token.isIdentifier())
                     {
                         KGroup template = groupsByName.get(token.getString());
-                        if(template != null) group.getChildren().addAll( ((KGroup)template.clone(s.equals("clone="))).getChildren() );
+                        if(template != null) group.getChildren().addAll( ((KGroup)template.clone(true)).getChildren() );
                     }
                     else error(s+" was not followed by an identifier");
+                }
+                // Instance is a lightweight copy that uses the same underlying point data
+                else if(s.equals("instance="))
+                {
+                    if(token.isIdentifier())
+                    {
+                        KGroup template = groupsByName.get(token.getString());
+                        if(template != null) group.setInstance(template);
+                    }
+                    else error("instance= was not followed by an identifier");
                 }
                 else if(s.equals("dimension="))
                 {
@@ -394,15 +403,24 @@ public class KinfileParser //extends ... implements ...
                     else error("master= was not followed by an identifier");
                 }
                 // Clone is a full or "deep" copy of the original
-                // Instance is a lightweight copy that uses the same underlying point data
-                else if(s.equals("clone=") || s.equals("instance="))
+                else if(s.equals("clone="))
                 {
                     if(token.isIdentifier())
                     {
                         KGroup template = subgroupsByName.get(token.getString());
-                        if(template != null) subgroup.getChildren().addAll( ((KGroup)template.clone(s.equals("clone="))).getChildren() );
+                        if(template != null) subgroup.getChildren().addAll( ((KGroup)template.clone(true)).getChildren() );
                     }
                     else error(s+" was not followed by an identifier");
+                }
+                // Instance is a lightweight copy that uses the same underlying point data
+                else if(s.equals("instance="))
+                {
+                    if(token.isIdentifier())
+                    {
+                        KGroup template = subgroupsByName.get(token.getString());
+                        if(template != null) subgroup.setInstance(template);
+                    }
+                    else error("instance= was not followed by an identifier");
                 }
                 else if(s.equals("dimension="))
                 {

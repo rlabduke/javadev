@@ -327,7 +327,7 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
         
         for(KPoint child : this.getChildren()) child.doTransform(engine, myXform, engine.zoom3D);
         
-        // Messing with 'screen' keyword on lists for keeping children fixed on screen
+        //{{{ Messing with 'screen' keyword on lists for keeping children fixed on screen
         /*
         if(this.screen)
         {
@@ -357,7 +357,7 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
         }
         else
             for(KPoint child : this.getChildren()) child.doTransform(engine, myXform, engine.zoom3D);
-        */
+        *///}}}
         
         if(this.clipMode != null) engine.chooseClipMode(null); // reset to default
     }

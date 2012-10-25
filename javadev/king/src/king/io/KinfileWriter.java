@@ -165,6 +165,9 @@ public class KinfileWriter //extends ... implements ...
             if(  group.isCollapsible()) out.print(" collapsible");
             if(  group.isLens())        out.print(" lens");
             
+            if(group.getInstance() != null)
+                out.print(" instance= {"+group.getInstance().getName()+"}");
+            
             for(String master : group.getMasters())
                 out.print(" master= {"+master+"}");
             out.println();
