@@ -17,8 +17,8 @@ import driftwood.r3.*;
 /**
 * <code>RotaramaCrayon</code> colors things by rotamer/Ramachandran score.
 *
-* <p>Copyright (C) 2006 by Ian W. Davis. All rights reserved.
-* <br>Begun on Thu Oct 19 13:12:08 EDT 2006
+* <p>Copyright (C) 20?? by Daniel A. Keedy. All rights reserved.
+* <br>Begun on ??? ?? 20??
 */
 public class RotaramaCrayon extends AbstractCrayon implements AtomCrayon, BondCrayon, RibbonCrayon
 {

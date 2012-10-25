@@ -32,6 +32,7 @@ public class BallAndStickLogic implements Logic
     public static final Object COLOR_BY_B_FACTOR    = "B factor";
     public static final Object COLOR_BY_OCCUPANCY   = "occupancy";
     public static final Object COLOR_BY_ROTARAMA    = "rota/rama score";
+    public static final Object COLOR_BY_ALT_NETWORK = "alt conf network";
     static final DecimalFormat df = new DecimalFormat("00");
 //}}}
 
@@ -44,13 +45,17 @@ public class BallAndStickLogic implements Logic
     public boolean  doProtein, doNucleic, doHets, doMetals, doWater;
     public boolean  doVirtualBB, doMainchain, doSidechains, doHydrogens, doDisulfides;
     public boolean  doBallsOnCarbon, doBallsOnAtoms;
+    public boolean  doLigate; // use terminal residues only for inter-residue bonds
     public Object   colorBy = COLOR_BY_MC_SC;
     
     public int      width = -1; // for vectorlists; -1 means don't print width specifier
     public String   scColor = "cyan";
     
-    /** Not actually displayed in GUI!  Set by outside class, e.g. chiropraxis.rotarama.LocalRotarama. */
+    /** Not shown in GUI -- set by outside class like chiropraxis.rotarama.LocalRotarama */
     public Map      rota = null, rama = null;
+    
+    /** Not shown in GUI -- set by outside class like cmdline.AltConfEnsembler */
+    public Map      altConfNetworks = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -106,19 +111,28 @@ public class BallAndStickLogic implements Logic
             sp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new OccupancyCrayon()));
             bp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new OccupancyCrayon()));
         }
-        else if(colorBy == COLOR_BY_ROTARAMA && this.rota != null && this.rama != null)
+        else if(colorBy == COLOR_BY_ROTARAMA && rota != null && rama != null)
         {
             sp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new RotaramaCrayon(rota, rama)));
             bp.setCrayon(new CompositeCrayon().add(new AltConfCrayon()).add(new RotaramaCrayon(rota, rama)));
             sp.setAtomIDer(new RotaramaIDer(rota, rama));
         }
+        else if(colorBy == COLOR_BY_ALT_NETWORK && altConfNetworks != null)
+        {
+            sp.setCrayon(new CompositeCrayon().add(new AltConfNetworkCrayon(altConfNetworks)).add(new AltConfCrayon()).add(new DisulfideCrayon()));
+            bp.setCrayon(new CompositeCrayon().add(new AltConfNetworkCrayon(altConfNetworks)).add(new AltConfCrayon()));
+            //sp.setAtomIDer(new AltConfNetworkIDer(altConfNetworks));
+        }
         else throw new UnsupportedOperationException();
 
         if(doProtein)  printProtein(m, states, residues, pdbId, mcColor);
         if(doNucleic)  printNucAcid(m, states, residues, pdbId, mcColor);
-        if(doHets)     printHets(m, residues, pdbId);
-        if(doMetals)   printMetals(m, residues, pdbId);
-        if(doWater)    printWaters(m, residues, pdbId);
+        //if(doHets)     printHets(m, residues, pdbId);
+        //if(doMetals)   printMetals(m, residues, pdbId);
+        //if(doWater)    printWaters(m, residues, pdbId);
+        if(doHets)     printHets(m, states, residues, pdbId);
+        if(doMetals)   printMetals(m, states, residues, pdbId);
+        if(doWater)    printWaters(m, states, residues, pdbId);
         
         this.out.flush();
         this.out = null;
@@ -157,7 +171,8 @@ public class BallAndStickLogic implements Logic
             String off = ((doMainchain&&atomC.mcNotCa!=0) ? " off" : "");
             out.println("@vectorlist {protein ca} color= "+mcColor+" master= {protein} master= {Calphas}"+off+wid);
             VirtualBackbone virtualBB = data.getVirtualBackbone();
-            sp.printSticks(virtualBB.getProteinBonds(), null, null, proteinRes, proteinRes, identifier);
+            //sp.printSticks(virtualBB.getProteinBonds(), null, null, proteinRes, proteinRes, identifier);
+            sp.printSticks(virtualBB.getProteinBonds(), null, null, proteinRes, proteinRes, identifier, doLigate);
         }
         if(doMainchain)
         {
@@ -302,8 +317,13 @@ public class BallAndStickLogic implements Logic
 //{{{ printHets
 //##############################################################################
     void printHets(Model model, Set selectedRes, String pdbId)
+    { printHets(model, null, selectedRes, pdbId); }
+    
+    //void printHets(Model model, Set selectedRes, String pdbId)
+    void printHets(Model model, Collection states, Set selectedRes, String pdbId)
     {
-        DataCache       data    = DataCache.getDataFor(model);
+        //DataCache     data    = DataCache.getDataFor(model);
+        DataCache       data    = DataCache.getDataFor(model, states);
         ResClassifier   resC    = data.getResClassifier();
         
         CheapSet hetRes = new CheapSet(resC.ohetRes);
@@ -381,8 +401,13 @@ public class BallAndStickLogic implements Logic
 //{{{ printMetals
 //##############################################################################
     void printMetals(Model model, Set selectedRes, String pdbId)
+    { printMetals(model, null, selectedRes, pdbId); }
+    
+    //void printMetals(Model model, Set selectedRes, String pdbId)
+    void printMetals(Model model, Collection states, Set selectedRes, String pdbId)
     {
-        DataCache       data    = DataCache.getDataFor(model);
+        //DataCache     data    = DataCache.getDataFor(model);
+        DataCache       data    = DataCache.getDataFor(model, states);
         ResClassifier   resC    = data.getResClassifier();
         
         CheapSet metalRes = new CheapSet(selectedRes);
@@ -409,8 +434,13 @@ public class BallAndStickLogic implements Logic
 //{{{ printWaters
 //##############################################################################
     void printWaters(Model model, Set selectedRes, String pdbId)
+    { printWaters(model, null, selectedRes, pdbId); }
+    
+    //void printWaters(Model model, Set selectedRes, String pdbId)
+    void printWaters(Model model, Collection states, Set selectedRes, String pdbId)
     {
-        DataCache       data    = DataCache.getDataFor(model);
+        //DataCache     data    = DataCache.getDataFor(model);
+        DataCache       data    = DataCache.getDataFor(model, states);
         ResClassifier   resC    = data.getResClassifier();
         
         CheapSet waterRes = new CheapSet(selectedRes);
