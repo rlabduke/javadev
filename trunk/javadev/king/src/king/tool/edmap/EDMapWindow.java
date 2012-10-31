@@ -171,7 +171,7 @@ public String parseType(String title) {
   } else if (oneMatcher.find()) {
     this.title = oneMatcher.group();
     return MAP_FOFC;
-  } else if (title.matches(".*ANOM\\..*")) {
+  } else if (title.matches("(.*)anomalous(.*)")) {
     this.title = "Anomalous";
     return MAP_ANOMALOUS;
   }
