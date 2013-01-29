@@ -39,6 +39,7 @@ public class Dangle //extends ... implements ...
     boolean doParCoor = false;
     boolean doGeomKin; // if true make kin with visual representations of geometry outliers
     boolean subgroup = false;
+    boolean doHydrogens = false;
     double sigmaCutoff = 4;
     Collection files = new ArrayList();
     Collection measurements = new ArrayList();
@@ -721,6 +722,11 @@ public class Dangle //extends ... implements ...
         else if(flag.equals("-ideals"))
         {
             showMeanAndSigma = true;
+        }
+        else if(flag.equals("-hydrogens"))
+        {
+            try { loadMeasures("StandardResH.txt"); }
+            catch(Exception ex) { ex.printStackTrace(); }
         }
         else if(flag.equals("-dummy_option"))
         {

@@ -50,3 +50,7 @@ Changes to chiropraxis.dangle.Dangle
   is false (which is the default), but the most common non-oligomeric residues 
   ([ACTGU][MDT]P, e.g. ATP) are now excluded (see above), so we should be OK
 
+130129 (vbc)
+- Added a StandardResH file (based on StdResH in reduce) with a few of the
+  newly developed electron cloud position hydrogens.  
+- Added a -hydrogen flag to validate hydrogen lengths.
