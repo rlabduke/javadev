@@ -1,0 +1,20 @@
+# Based off Reduce's StdRdsH.  Note this just checks some (not all!) Hs.  
+
+           distance     N--H            _N__, _H__                        ideal 0.86 0.01
+           distance     CA--HA          _CA_, /_HA[23_]/                  ideal 0.97 0.01
+           distance     CB--HB          _CB_, _HB_                        ideal 0.97 0.01
+    
+    
+    
+for rna    distance      O5'--HO5'      _O5', HO5'                        ideal 0.85 0.01
+for rna    distance      O3'--HO3'      _O3', HO3'                        ideal 0.85 0.01
+for rna    distance      O2'--HO2'      _O2', HO2'                        ideal 0.85 0.01
+for rna    distance      C2'--H2'       _C2', _H2'                        ideal 0.97 0.01
+for rna    distance      C2'--H2''      _C2', H2''                        ideal 0.97 0.01
+for rna    distance      C2'--H2'       _C2', _H2'                        ideal 0.97 0.01
+for rna    distance      C3'--H3'       _C3', _H3'                        ideal 0.97 0.01
+for rna    distance      C4'--H4'       _C4', _H4'                        ideal 0.97 0.01
+for rna    distance      C5'--H5''      _C5', H5''                        ideal 0.97 0.01
+for rna    distance      C5'--H5'       _C5', _H5'                        ideal 0.97 0.01
+for rna    distance      O5'--H5T       _O5', _H5T                        ideal 0.85 0.01
+for rna    distance      O3'--H3T       _O3', _H3T                        ideal 0.85 0.01

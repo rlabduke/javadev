@@ -113,6 +113,8 @@ VALIDATION MODE
   -protein      loads protein validation presets (Engh & Huber, 1999)
   -rna          loads RNA validation presets (Parkinson ... Berman, 1996)
   -dna          loads DNA validation presets (Gelbin ... Berman, 1996)
+  -hydrogen     loads a few common standard hydrogen lengths for validating 
+                electron cloud position hydrogens.
   
   Because there are many potential measurements of interest and their
   definitions can be complicated, these flags are almost always used in place
