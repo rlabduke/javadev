@@ -591,7 +591,7 @@ public class ToolServices implements Transformable
     * (e.g., point IDs) to the graphics area.
     * @param painter    the Painter that can paint on the current canvas
     */
-    public void overpaintCanvas(Painter painter)
+    public void overpaintCanvas(king.core.Painter painter)
     {
         Engine engine = kCanvas.getEngine();
         if(engine == null) return;
