@@ -235,7 +235,7 @@ public class KinCanvas extends JComponent implements KMessage.Subscriber, Transf
             joglAction.actionPerformed(null);
         else
         {
-            Painter painter = null;
+            king.core.Painter painter = null;
             if(quality == QUALITY_BETTER)
             {
                 betterPainter.setGraphics(g2);

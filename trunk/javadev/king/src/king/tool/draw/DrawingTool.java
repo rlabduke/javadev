@@ -1335,7 +1335,7 @@ public class DrawingTool extends BasicTool
     * redrawn, so we may need to paint the area of effect for Auger.
     * @param painter    the Painter that can paint on the current canvas
     */
-    public void overpaintCanvas(Painter painter)
+    public void overpaintCanvas(king.core.Painter painter)
     {
         if(lastAugerX < 0 || lastAugerY < 0) return;
         

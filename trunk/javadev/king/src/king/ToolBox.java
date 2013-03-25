@@ -744,7 +744,7 @@ public class ToolBox implements MouseListener, MouseMotionListener, MouseWheelLi
     * (e.g., point IDs) to the graphics area.
     * @param painter    the Painter that can paint on the current canvas
     */
-    public void overpaintCanvas(Painter painter)
+    public void overpaintCanvas(king.core.Painter painter)
     {
         services.overpaintCanvas(painter);
         activeTool.overpaintCanvas(painter);
