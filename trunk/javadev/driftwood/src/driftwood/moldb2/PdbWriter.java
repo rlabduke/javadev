@@ -37,10 +37,10 @@ public class PdbWriter //extends ... implements ...
 //##################################################################################################
     /** The output sink for PDB-format data. Remember to flush() when you're done! */
     PrintWriter         out;
-    
+
     /** Whether we should use existing AtomState serial numbers or calculate our own */
     boolean             renumberAtoms   = false;
-    
+
     /** The current number for renumbering atoms on output */
     int atomSerial = 1;
 //}}}
@@ -73,16 +73,16 @@ public class PdbWriter //extends ... implements ...
     {
         out.close();
     }
-    
+
     /** If true, atoms will be renumbered from 1 when writen out. */
     public boolean getRenumberAtoms()
     { return renumberAtoms; }
-    
+
     /** Turns on or off atom renumbering, and resets the counter to 1. */
     public void setRenumberAtoms(boolean b)
     {
         renumberAtoms   = b;
-        atomSerial      = 1; 
+        atomSerial      = 1;
     }
 //}}}
 
@@ -97,33 +97,33 @@ public class PdbWriter //extends ... implements ...
         {
             Residue         res = as.getResidue();
             StringBuffer    sb  = new StringBuffer(80);
-            
+
             if(as.isHet())  sb.append("HETATM");
             else            sb.append("ATOM  ");
-            
+
             String serial = as.getSerial();
             if(renumberAtoms) serial = Integer.toString(atomSerial++);
             sb.append(Strings.forceRight(serial, 5));
             sb.append(" "); // unused
-            
+
             sb.append(Strings.forceLeft(as.getName(), 4));
             sb.append(Strings.forceLeft(as.getAltConf(), 1));
             sb.append(Strings.forceLeft(res.getName(), 3));
-            sb.append(" "); // unused
+            //sb.append(" "); // unused //used for 2 character chainIDs, jjh 130426
             // We could be smarter here and try to make them unique:
-            sb.append(Strings.forceLeft(res.getChain(), 1));
-            
+            sb.append(Strings.forceLeft(res.getChain(), 2));
+
             sb.append(Strings.forceRight(res.getSequenceNumber(), 4));
             sb.append(Strings.forceLeft(res.getInsertionCode(), 1));
             sb.append("   "); // unused
-            
+
             sb.append(Strings.forceRight(df3.format(as.getX()), 8));
             sb.append(Strings.forceRight(df3.format(as.getY()), 8));
             sb.append(Strings.forceRight(df3.format(as.getZ()), 8));
             sb.append(Strings.forceRight(df2.format(as.getOccupancy()), 6));
             sb.append(Strings.forceRight(df2.format(as.getTempFactor()), 6));
             sb.append("      "); // unused
-            
+
             String seg = res.getSegment();
             if(seg == null) seg = "    "; // should never happen
             sb.append(Strings.forceLeft(seg, 4));
@@ -134,7 +134,7 @@ public class PdbWriter //extends ... implements ...
             else if(as.getCharge() > 0) sb.append(((int)as.getCharge())+"+");
             else                        sb.append(((int)as.getCharge())+"-");
             sb.append(as.getPast80()); // "stuff" past column 80
-            
+
             out.println(sb);
             out.flush();
         }
@@ -153,27 +153,27 @@ public class PdbWriter //extends ... implements ...
         {
             Residue         res = as.getResidue();
             StringBuffer    sb  = new StringBuffer(80);
-            
+
             sb.append("ANISOU");
-            
+
             String serial = as.getSerial();
             if(renumberAtoms) serial = Integer.toString(atomSerial); // don't increment like with atoms
             sb.append(Strings.forceRight(serial, 5));
             sb.append(" "); // unused
-            
+
             sb.append(Strings.forceLeft(as.getName(), 4));
             sb.append(Strings.forceLeft(as.getAltConf(), 1));
             sb.append(Strings.forceLeft(res.getName(), 3));
-            sb.append(" "); // unused
+            //sb.append(" "); // unused //2 character chainIDs jjh 130426
             // We could be smarter here and try to make them unique:
-            sb.append(Strings.forceLeft(res.getChain(), 1));
-            
+            sb.append(Strings.forceLeft(res.getChain(), 2));
+
             sb.append(Strings.forceRight(res.getSequenceNumber(), 4));
             sb.append(Strings.forceLeft(res.getInsertionCode(), 1));
             sb.append("   "); // unused
-            
+
             sb.append(as.getAnisoU().substring(30));
-            
+
             out.println(sb);
             out.flush();
         }
@@ -191,7 +191,7 @@ public class PdbWriter //extends ... implements ...
     {
         Residue[] res = (Residue[])residues.toArray(new Residue[residues.size()]);
         Arrays.sort(res);
-        
+
         for(int i = 0; i < res.length; i++)
         {
             for(Iterator iter = res[i].getAtoms().iterator(); iter.hasNext(); )
@@ -213,7 +213,7 @@ public class PdbWriter //extends ... implements ...
 //##################################################################################################
     public void writeCoordinateFile(CoordinateFile coordFile)
     { writeCoordinateFile(coordFile, null); }
-    
+
     /**
     * Writes out a whole group of models, complete with
     * all header information. This function should generate
@@ -228,31 +228,31 @@ public class PdbWriter //extends ... implements ...
     public void writeCoordinateFile(CoordinateFile coordFile, Map modelStates)
     {
         if(modelStates == null) modelStates = Collections.EMPTY_MAP;
-        
+
         for(Iterator iter = coordFile.getHeaders().iterator(); iter.hasNext(); )
         {
             String header = iter.next().toString(); // they should already be Strings
             if(!header.startsWith("CONECT")) out.println(header);
         }
-        
+
         for(Iterator iter = coordFile.getModels().iterator(); iter.hasNext(); )
         {
             Model model = (Model)iter.next();
             if(coordFile.getModels().size() > 1) // only use MODEL when >1
                 out.println("MODEL     "+Strings.forceRight(model.getName(), 4));
-            
-            
+
+
             Collection stateSet = (Collection)modelStates.get(model);
             if(stateSet == null) stateSet = model.getStates().values();
             ModelState[] states = (ModelState[])stateSet.toArray(new ModelState[stateSet.size()]);
-            
+
             writeModel(model, states);
-            
-            
+
+
             if(coordFile.getModels().size() > 1)
                 out.println("ENDMDL");
         }//for each model
-        
+
         // This only makes sense if we haven't renumbered the atoms!
         if(!renumberAtoms)
         {
@@ -262,7 +262,7 @@ public class PdbWriter //extends ... implements ...
                 if(header.startsWith("CONECT")) out.println(header);
             }
         }
-        
+
         // we don't output a MASTER checksum record,
         // though it wouldn't be hard if someone wants to implement it.
         out.println("END   ");
@@ -275,7 +275,7 @@ public class PdbWriter //extends ... implements ...
     private void writeModel(Model model, ModelState[] states)
     {
         Set usedCardNames = new HashSet(); // to avoid duplicate names (inc. alt conf code)
-        
+
         Residue oldRes = null;
         for(Iterator ri = model.getResidues().iterator(); ri.hasNext(); )
         {
@@ -326,10 +326,10 @@ public class PdbWriter //extends ... implements ...
                 }
             }//for each atom
         }// for each residue
-        
+
         // insert TER record for end of final chain
         writeTerCard(oldRes);
-        
+
         out.flush();
     }
 //}}}
@@ -344,8 +344,8 @@ public class PdbWriter //extends ... implements ...
         sb.append(Strings.forceRight(Integer.toString(atomSerial++), 5));
         sb.append("      "); // unused
         sb.append(Strings.forceLeft(res.getName(), 3));
-        sb.append(" "); // unused
-        sb.append(Strings.forceLeft(res.getChain(), 1));
+        //sb.append(" "); // unused // 2-char chainIDs JJH 130426
+        sb.append(Strings.forceLeft(res.getChain(), 2));
         sb.append(Strings.forceRight(res.getSequenceNumber(), 4));
         sb.append(Strings.forceLeft(res.getInsertionCode(), 1));
         out.println(sb);
