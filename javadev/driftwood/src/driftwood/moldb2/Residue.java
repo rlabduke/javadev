@@ -43,32 +43,32 @@ public class Residue implements Comparable
 //{{{ Variable definitions
 //##################################################################################################
     /** The chain and segment that this Residue belongs to (may not be zero/null) */
-    String          chain           = " ";
+    String          chain           = "  ";
     String          segment         = "";
-    
+
     /** The set of atoms belonging to this Residue: Map&lt:String, Atom&gt; */
     Map             atoms;
     Collection      unmodAtoms      = null;
-    
+
     /** The index of this residue in its chain; may be zero or negative */
     String          seqNum;
-    
+
     /** The integer version of seqNum, or NAN_SEQ if seqNum is alphanumeric. Used for sorting. */
-    int             seqInt; 
-    
+    int             seqInt;
+
     /** The insertion code for this residue */
     String          insCode;
-    
+
     /** The name for this residue (recommended: 3 letters, uppercase) */
-    String          resName; 
-    
+    String          resName;
+
     /** The cached, full name of this residue */
-    String          qnameCache      = null; 
-    
-    
+    String          qnameCache      = null;
+
+
     /** Number of times this residue has been modified */
     int             modCount        = 0;
-    
+
     /**
     * A numeric counter for classifying Residues into arbitrary "sections".
     * Use it any way you like in your own code,
@@ -82,7 +82,7 @@ public class Residue implements Comparable
 //##################################################################################################
     /**
     * Creates a new residue without any atoms in it.
-    * @param chain      the chain ID. Not null. Space (" ") is a good default.
+    * @param chain      the chain ID. Not null. Space ("  ") is a good default.
     * @param segment    the seg ID. Not null. Empty string ("") is a good default.
     * @param seqNum     the number in sequence. May have any value.
     * @param insCode    the insertion code. Not null. Space (" ") is a good default.
@@ -100,17 +100,17 @@ public class Residue implements Comparable
             throw new IllegalArgumentException("Must provide a non-null insertion code");
         if(resName == null)
             throw new IllegalArgumentException("Must provide a non-null residue name");
-        
+
         this.chain      = chain;
         this.segment    = segment;
         this.seqNum     = seqNum;
         this.insCode    = insCode;
         this.resName    = resName;
-        
+
         try { this.seqInt = Integer.parseInt(this.seqNum.trim());
           //System.out.println(seqNum + " decodes to " + seqInt);
         }
-        catch(NumberFormatException ex) { 
+        catch(NumberFormatException ex) {
           try { this.seqInt = Hy36.decode(4, seqNum); }
           catch (Error e) { this.seqInt = NAN_SEQ; }
         }
@@ -127,7 +127,7 @@ public class Residue implements Comparable
     public Residue(Residue template, String chain, String segment, String seqNum, String insCode, String resName)
     {
         this(chain, segment, seqNum, insCode, resName);
-        
+
         try
         {
             for(Iterator iter = template.getAtoms().iterator(); iter.hasNext(); )
@@ -180,11 +180,11 @@ public class Residue implements Comparable
     /** Never null, defaults to space (" "). */
     public String getChain()
     { return chain; }
-    
+
     /** Never null, defaults to empty (""), any number of characters. */
     public String getSegment()
     { return segment; }
-    
+
     /**
     * Returns an unmodifiable view of the Atoms in this residue
     */
@@ -194,7 +194,7 @@ public class Residue implements Comparable
             unmodAtoms = Collections.unmodifiableCollection(atoms.values());
         return unmodAtoms;
     }
-    
+
     /**
     * Returns the atom of the specified name,
     * or null if no such atom is known.
@@ -216,15 +216,15 @@ public class Residue implements Comparable
     */
     public String getSequenceNumber()
     { return seqNum; }
-    
+
     /** Returns the sequence number as an integer, or NAN_SEQ if it's some non-integer string. */
     public int getSequenceInteger()
     { return seqInt; }
-    
+
     /** The default insertion code if none was specified is space (" "). */
     public String getInsertionCode()
     { return insCode; }
-    
+
     /**
     * Returns the abreviated name that identifies what kind of residue this is.
     * These are usually three letters and all caps, but that is NOT
@@ -232,17 +232,17 @@ public class Residue implements Comparable
     */
     public String getName()
     { return resName; }
-    
+
     /**
     * Returns the 9-character "Chain, Number, Insertion code, Type" name of this
-    * residue, formatted as "CNNNNITTT". Blank chain IDs and insertion codes
+    * residue, formatted as "CCNNNNITTT". Blank chain IDs and insertion codes
     * are left as spaces; short numbers and types ({@link #getName()}) are
     * padded with spaces and justified to the right and left, respectively.
     */
     public String getCNIT()
     {
-        StringBuffer sb = new StringBuffer(9);
-        sb.append(getChain().length() > 0 ? getChain().substring(0, 1) : " ");
+        StringBuffer sb = new StringBuffer(10);
+        sb.append(getChain().length() > 0 ? getChain().substring(0, 2) : "  ");
         sb.append(Strings.justifyRight(getSequenceNumber(), 4));
         sb.append(getInsertionCode().length() > 0 ? getInsertionCode().substring(0, 1) : " ");
         sb.append(Strings.justifyLeft(getName(), 3));
@@ -265,20 +265,20 @@ public class Residue implements Comparable
     {
         if(parent == null)
             return null;
-        
+
         try
         {
             Residue next = (Residue)parent.residues.itemAfter(this);
-            
+
             if(!next.getChain().equals(this.getChain()))
                 return null;
-            
+
             return next;
         }
         catch(NoSuchElementException ex)
         { return null; }
     }
-    
+
     /**
     * Returns the residue before this one in the chain, or
     * null if there is no such residue.
@@ -292,14 +292,14 @@ public class Residue implements Comparable
     {
         if(parent == null)
             return null;
-        
+
         try
         {
             Residue prev = (Residue)parent.residues.itemBefore(this);
-            
+
             if(!prev.getChain().equals(this.getChain()))
                 return null;
-            
+
             return prev;
         }
         catch(NoSuchElementException ex)
@@ -321,16 +321,16 @@ public class Residue implements Comparable
         String name = a.getName();
         if(atoms.containsKey(name))
             throw new AtomException("An atom named "+name+" is already part of "+this);
-        
+
         if(a.parent != null)
             a.parent.remove(a);
-        
+
         atoms.put(name, a);
         a.parent = this;
-        
+
         this.modified();
     }
-    
+
     /**
     * Removes the given Atom from this Residue.
     * @throws AtomException if the Atom
@@ -342,10 +342,10 @@ public class Residue implements Comparable
         Atom old = (Atom)atoms.get(name);
         if(!a.equals(old))
             throw new AtomException(a+" is not part of "+this);
-            
+
         atoms.remove(name);
         a.parent = null;
-        
+
         this.modified();
     }
 //}}}
@@ -355,7 +355,7 @@ public class Residue implements Comparable
     /** Call this after changing anything about this Residue */
     protected void modified()
     { modCount++; }
-    
+
     /**
     * Gets a 'count' of the modifications to this residue.
     * The integer returned is guaranteed to change from
@@ -369,7 +369,7 @@ public class Residue implements Comparable
 //{{{ nickname
 //##################################################################################################
     /**
-    * Returns a cute, short name for the Residue, including residue 
+    * Returns a cute, short name for the Residue, including residue
     * three-letter code, chain, number, and insertion code (if any).
     */
     public String nickname()
@@ -398,12 +398,12 @@ public class Residue implements Comparable
         if(o == null) return 1; // null sorts to front
         Residue r1 = this;
         Residue r2 = (Residue)o;
-        
+
         int comp = r1.chain.compareTo(r2.chain);
         if(comp != 0) return comp;
         comp = r1.segment.compareTo(r2.segment);
         if(comp != 0) return comp;
-        
+
         comp = r1.seqInt - r2.seqInt;
         if(comp != 0) return comp;
         // seqNums could still differ by whitespace...
@@ -413,10 +413,10 @@ public class Residue implements Comparable
         if(comp != 0) return comp;
         comp = r1.resName.compareTo(r2.resName);
         if(comp != 0) return comp;
-        
+
         return System.identityHashCode(r1) - System.identityHashCode(r2);
     }
-    
+
     /**
     * Returns the full name of the Residue, including chain and segment (if any),
     * number, insertion code, and residue three-letter code
@@ -430,7 +430,7 @@ public class Residue implements Comparable
             String segtrim = segment.trim();
             if(chtrim.length() > 0)     s.append(chtrim).append(' ');
             if(segtrim.length() > 0)    s.append(segtrim).append(' ');
-            
+
             s.append(seqNum);
             String instrim = insCode.trim();
             if(instrim.length() > 0)  s.append(instrim);
@@ -438,7 +438,7 @@ public class Residue implements Comparable
             s.append(resName);
             qnameCache = s.toString();
         }
-        
+
         return qnameCache;
     }
 //}}}

@@ -43,28 +43,28 @@ public class PdbReader //extends ... implements ...
 //{{{ Variable definitions
 //##################################################################################################
     // Shared data structures
-    
+
     /** The set of all Models */
     CoordinateFile coordFile;
-    
+
     /** The current Model */
     Model       model;
-    
+
     /** A Map&lt;String, ModelState&gt; for this Model */
     Map         states;
-    
+
     /** A Map&lt;String, Residue&gt; based on PDB naming */
     Map         residues;
-    
+
     /** A surrogate atom serial number if necessary */
     int         autoSerial;
-    
+
     /** Number of TER cards encountered so far */
     int         countTER;
-    
+
     /** A map for intern'ing Strings */
     CheapSet    stringCache = new CheapSet();
-    
+
     /** If true, drop leading and trailing whitespace from seg IDs */
     boolean     trimSegID       = false;
     /** If true, segment IDs will define chains and thus must be consistent within one residue. */
@@ -94,12 +94,12 @@ public class PdbReader //extends ... implements ...
         autoSerial  = -9999;
         countTER    = 0;
         v2tov3Map   = new HashMap();
-        
+
         InputStream is = this.getClass().getResourceAsStream("PDBv2toPDBv3.hashmap.txt");
         if(is == null) throw new IOException("File not found in JAR: singleres.pdb");
         readV2toV3map(is);
     }
-    
+
     private void readV2toV3map(InputStream is) throws IOException {
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
       String line;
@@ -112,7 +112,7 @@ public class PdbReader //extends ... implements ...
       }
       reader.close();
     }
-    
+
     void clearData()
     {
         coordFile   = null;
@@ -124,7 +124,7 @@ public class PdbReader //extends ... implements ...
         stringCache.clear();
         v2tov3Map   = null;
     }
-    
+
     /** Like String.intern(), but the cache is discarded after reading the file. */
     String intern(String s)
     {
@@ -180,17 +180,17 @@ public class PdbReader //extends ... implements ...
     public CoordinateFile read(LineNumberReader r) throws IOException
     {
     	initData();
-        
+
         Runtime runtime = Runtime.getRuntime();
-        
+
         long maxMemory = runtime.maxMemory();
         long allocatedMemory = runtime.totalMemory();
         long freeMemory = runtime.freeMemory();
         long totalFree = (freeMemory + (maxMemory - allocatedMemory));
-        
+
         //SoftLog.err.println("max memory: " + maxMemory /1024);
-        //SoftLog.err.println("total free memory: " + (freeMemory + (maxMemory - allocatedMemory)) / 1024); 
-        
+        //SoftLog.err.println("total free memory: " + (freeMemory + (maxMemory - allocatedMemory)) / 1024);
+
         int pdbv2atoms = 0;
         String s;
         while(((s = r.readLine()) != null)&&((double)totalFree/(double)maxMemory > 0.05))
@@ -212,7 +212,7 @@ public class PdbReader //extends ... implements ...
                 else if(s.startsWith("MODEL ") && s.length() >= 14)
                 {
                     if(model != null) model.setStates(states);
-                    
+
                     model = new Model(s.substring(10,14).trim());
                     coordFile.add(model);
                     states.clear();
@@ -221,7 +221,7 @@ public class PdbReader //extends ... implements ...
                 else if(s.startsWith("ENDMDL"))
                 {
                     if(model != null) model.setStates(states);
-                    
+
                     model = null;
                 }
                 else if(s.startsWith("TER"))
@@ -235,7 +235,7 @@ public class PdbReader //extends ... implements ...
                     // doing a symmetry expansion in crystallography.
                     // So even though it's not very nice, we *should* allow it:
                     residues.clear();
-                    
+
                     // Label our residues with how many TERs precede them.
                     // Thus, the identical "chain B Ile 47" 's above are distinct.
                     countTER++;
@@ -263,10 +263,10 @@ public class PdbReader //extends ... implements ...
         if (!((double)totalFree/(double)maxMemory > 0.05)) {
           SoftLog.err.println("PDB file too large, aborting read, removing partial model "+model);
           coordFile.remove(model);
-          model = null; 
+          model = null;
         }
         if(model != null) model.setStates(states);
-        
+
         CoordinateFile rv = coordFile;
         clearData();
 
@@ -284,12 +284,12 @@ public class PdbReader //extends ... implements ...
         }
         // This sets up secondary structure assignments
         rv.setSecondaryStructure(new PdbSecondaryStructure(rv.getHeaders()));
-        
+
         // This sets up disulfide bond residue-residue pairings
         rv.setDisulfides(new PdbDisulfides(rv.getHeaders()));
-        
+
         rv.setPdbv2Count(pdbv2atoms);
-        
+
         return rv;
     }
 //}}}
@@ -309,12 +309,12 @@ public boolean isVersion23(String atomLine) {
         checkModel();
         Residue r = makeResidue(s);
         Atom    a = makeAtom(r, s);
-        
+
         String serial = s.substring(6, 11);
         AtomState state = new AtomState(a, serial);
         String altConf = intern(s.substring(16, 17));
         state.setAltConf(altConf);
-        
+
         // We're now ready to add this to a ModelState
         // It's possible this state will have no coords, etc
         ModelState mState = makeState(altConf);
@@ -329,11 +329,11 @@ public boolean isVersion23(String atomLine) {
             // So we append a number after the 4-char name (" C  1", " C  2"),
             // which will be used internally but will be cut off again when
             // the file is saved back to PDB.  Should be pretty seamless.
-            
+
             // We retain this warning message, because duplicate atom defs
             // still IS an error in many cases and shouldn't be silenced.
             SoftLog.err.println(ex.getMessage());
-            
+
             a = makeUniqueAtom(r, s);
             state = new AtomState(a, serial);
             state.setAltConf(altConf);
@@ -345,13 +345,13 @@ public boolean isVersion23(String atomLine) {
                 System.err.println("Logical error in PDB construction!");
             }
         }
-        
+
         double x, y, z;
         x = Double.parseDouble(s.substring(30, 38).trim());
         y = Double.parseDouble(s.substring(38, 46).trim());
         z = Double.parseDouble(s.substring(46, 54).trim());
         state.setXYZ(x, y, z);
-        
+
         if(s.length() >= 60)
         {
             String q = s.substring(54, 60).trim();
@@ -385,7 +385,7 @@ public boolean isVersion23(String atomLine) {
         Atom    a = makeAtom(r, s);
         //Atom    a = r.getAtom(s.substring(12, 16));
         //if(a == null) throw new AtomException("Logical error: ANISOU should always follow ATOM or HEATATM!");
-        
+
         String altConf = intern(s.substring(16, 17));
         ModelState mState = makeState(altConf);
         try
@@ -414,12 +414,12 @@ public boolean isVersion23(String atomLine) {
             residues.clear();
         }
     }
-    
+
     /** Retrieves a residue, creating it if necessary */
     Residue makeResidue(String s) throws NumberFormatException
     {
         checkModel();
-        
+
         // Always pretend there is a fully space-padded field
         // present, because lines may be different lengths.
         String segID = "    ";
@@ -428,16 +428,16 @@ public boolean isVersion23(String atomLine) {
             if(s.length() >= 76)    segID = s.substring(72,76);
             else                    segID = Strings.justifyLeft(s.substring(72), 4);
         }
-        
+
         String key = s.substring(17,27);
         if(useSegID) key += segID;
         Residue r = (Residue)residues.get(key);
-        
+
         if(r == null)
         {
             if(trimSegID) segID = segID.trim();
                     segID   = intern(segID);
-            String  chainID = intern(s.substring(21,22));
+            String  chainID = intern(s.substring(20,22));
             String  seqNum  = intern(s.substring(22,26));
             String  insCode = intern(s.substring(26,27));
             String  resName = intern(s.substring(17,20));
@@ -454,7 +454,7 @@ public boolean isVersion23(String atomLine) {
                 ex.printStackTrace(SoftLog.err);
             }
         }
-        
+
         return r;
     }
 //}}}
@@ -476,7 +476,7 @@ public boolean isVersion23(String atomLine) {
         if(state == null)
         {
             state = new ModelState();
-            if (model != null) 
+            if (model != null)
               state.setName(coordFile.getIdCode()+" "+model.toString());
             states.put(stateID, state);
             if(! " ".equals(stateID))
@@ -497,7 +497,7 @@ public boolean isVersion23(String atomLine) {
         // The usual case -- create a new atom only if needed
         return makeAtomImpl(r, s, s.substring(12, 16));
     }
-    
+
     /** Forces creation of a brand new atom with a unique name */
     Atom makeUniqueAtom(Residue r, String s)
     {
@@ -509,7 +509,7 @@ public boolean isVersion23(String atomLine) {
             if(a == null) return makeAtomImpl(r, s, extID);
         }
     }
-    
+
     Atom makeAtomImpl(Residue r, String s, String id)
     {
         Atom a = r.getAtom(id);
@@ -525,7 +525,7 @@ public boolean isVersion23(String atomLine) {
             if(elem == null) elem = getElement(id.substring(2,3), resName);
             if(elem == null) elem = "XX";
             //System.out.print("atom:"+id+"="+elem+" ");
-            
+
             a = new Atom(intern(id), elem, s.startsWith("HETATM"));
             try { r.add(a); }
             catch(AtomException ex)
@@ -592,7 +592,7 @@ public boolean isVersion23(String atomLine) {
         if (name.equals("HE")||name.equals("HF")||name.equals("HG")||name.equals("HO")||name.equals("HS")) {
           if (ambigAtomResidues == null) {
             ambigAtomResidues = new ArrayList();
-            for (int i = 0; i < ambiguous_resnames.length; i++) 
+            for (int i = 0; i < ambiguous_resnames.length; i++)
               ambigAtomResidues.add(ambiguous_resnames[i]);
           }
           if (ambigAtomResidues.contains(resName)) {
@@ -643,14 +643,14 @@ public boolean isVersion23(String atomLine) {
                 String first = h.substring(21, 27) + h.substring(17, 20);
                 String last  = h.substring(32, 38) + h.substring(28, 31);
                 String sheetID = h.substring(11,14);
-                
+
                 Set sheet = (Set) sheets.get(sheetID);
                 if(sheet == null)
                 {
                     sheet = new UberSet();
                     sheets.put(sheetID, sheet);
                 }
-                
+
                 Residue res1 = model.getResidue(first);
                 Residue res2 = model.getResidue(last);
                 if(res1 == null || res2 == null) continue;
