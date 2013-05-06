@@ -42,7 +42,7 @@ public class Ramalyze //extends ... implements ...
         public static final String ALLOWED = "Allowed";
         public static final String OUTLIER = "OUTLIER";
         public static final String NOSCORE = "Not evaluated";
-        
+
         public static final String GENERAL  = "General case";
         public static final String ILEVAL   = "Isoleucine or valine";
         public static final String PREPRO   = "Pre-proline";
@@ -50,7 +50,7 @@ public class Ramalyze //extends ... implements ...
         public static final String CISPRO   = "Cis proline";
         public static final String TRANSPRO = "Trans proline";
         public static final String NOTYPE   = "Unknown type";
-        
+
         Residue res;
         String name; // starts as res.toString(), may be improved later
         String modelName;
@@ -58,14 +58,14 @@ public class Ramalyze //extends ... implements ...
         public float numscore = 0;
         public String score = NOSCORE;
         public String type  = NOTYPE;
-        
+
         public RamaEval(Residue res, String modelName)
         {
             this.res = res;
             this.name = res.toString();
             this.modelName = modelName;
         }
-        
+
         /** Equal iff Residues have the same name and same phi, psi. */
         public boolean equals(Object o)
         {
@@ -77,7 +77,7 @@ public class Ramalyze //extends ... implements ...
             return (this.res.toString().equals(that.res.toString()))
                 && (this.phi == that.phi) && (this.psi == that.psi);
         }
-        
+
         public int hashCode()
         { return this.res.toString().hashCode(); }
     }
@@ -113,7 +113,7 @@ public class Ramalyze //extends ... implements ...
             segIDs.add( eval.res.getSegment() );
             chainIDs.add(eval.res.getChain());
         }
-        
+
         boolean useSegs = (segIDs.size() > 1);
         boolean useChains = (chainIDs.size() > 1);
         for(Iterator iter = analysis.iterator(); iter.hasNext(); )
@@ -150,12 +150,12 @@ public class Ramalyze //extends ... implements ...
         String protein = "GLY,ALA,VAL,LEU,ILE,PRO,PHE,TYR,TRP,SER,THR,CYS,MET,MSE,LYS,HIS,ARG,ASP,ASN,GLN,GLU";
         UberSet analysis = new UberSet();
         Ramachandran rama = Ramachandran.getInstance();
-        
+
         for(Iterator ri = model.getResidues().iterator(); ri.hasNext(); )
         {
             Residue res = (Residue) ri.next();
             if(protein.indexOf(res.getName()) == -1) continue;
-            
+
             for(Iterator msi = modelStates.iterator(); msi.hasNext(); )
             {
                 try
@@ -165,7 +165,7 @@ public class Ramalyze //extends ... implements ...
                     eval.phi = (float) AminoAcid.getPhi(model, res, ms);
                     eval.psi = (float) AminoAcid.getPsi(model, res, ms);
                     eval.numscore = (float) rama.rawScore(model, res, ms);
-                    
+
                     if(res.getName().equals("GLY"))
                         eval.type = RamaEval.GLYCINE;
                     else if(res.getName().equals("PRO"))
@@ -181,33 +181,33 @@ public class Ramalyze //extends ... implements ...
                         eval.type = RamaEval.ILEVAL;
                     else
                         eval.type = RamaEval.GENERAL;
-                    
+
                     // Favored
                     if(eval.numscore >= Ramachandran.ALL_FAVORED)
                         eval.score = RamaEval.FAVORED;
                     // General
-                    else if(eval.type == RamaEval.GENERAL 
+                    else if(eval.type == RamaEval.GENERAL
                     && eval.numscore >= Ramachandran.GENERAL_ALLOWED)
                         eval.score = RamaEval.ALLOWED;
                     // Cis Pro
-                    else if(eval.type == RamaEval.CISPRO 
+                    else if(eval.type == RamaEval.CISPRO
                     && eval.numscore >= Ramachandran.CISPRO_ALLOWED)
                         eval.score = RamaEval.ALLOWED;
                     // Other
-                    else if(eval.type != RamaEval.GENERAL && eval.type != RamaEval.CISPRO 
+                    else if(eval.type != RamaEval.GENERAL && eval.type != RamaEval.CISPRO
                     && eval.numscore >= Ramachandran.OTHER_ALLOWED)
                         eval.score = RamaEval.ALLOWED;
                     // Outlier
                     else
                         eval.score = RamaEval.OUTLIER;
-                    
+
                     analysis.add(eval);
                 }
                 catch(AtomException ex) {}
                 catch(ResidueException ex) {}
             }
         }
-        
+
         return analysis;
     }
 //}}}
@@ -224,7 +224,7 @@ public class Ramalyze //extends ... implements ...
     */
     static public void runAnalysis(InputStream inputPdbFile, OutputStream out, Object mode) throws IOException
     { runAnalysis( (new PdbReader()).read(inputPdbFile), out, mode ); }
-    
+
     static public void runAnalysis(CoordinateFile coordFile, OutputStream out, Object mode) throws IOException
     {
         Map analyses = new UberMap();
@@ -239,13 +239,13 @@ public class Ramalyze //extends ... implements ...
             }
             analyses.put(analysis, model.getName());
         }
-        
+
         String label = null;
         if(coordFile.getFile() != null)
             label = coordFile.getFile().getName();
         else if(coordFile.getIdCode() != null)
             label = coordFile.getIdCode();
-        
+
         if(mode == MODE_PDF)
         {
             System.err.println("Creating PDF document...");
@@ -306,10 +306,10 @@ public class Ramalyze //extends ... implements ...
 
 //{{{ getEvals
 //##############################################################################
-    
-    // Useful method for outside classes that want to use 
+
+    // Useful method for outside classes that want to use
     // Ramachandran scores for other purposes. -DK 100202
-    
+
     public HashMap<Residue,Double> getEvals(Model model) throws IOException
     {
         Collection analysis = analyzeModel(model, model.getStates().values());
@@ -334,11 +334,11 @@ public class Ramalyze //extends ... implements ...
         CoordinateFile  coordFile;
         if(infile == null)  coordFile = pdbReader.read(System.in);
         else                coordFile = pdbReader.read(infile);
-        
+
         OutputStream out;
         if(outfile == null) out = System.out;
         else out = new BufferedOutputStream(new FileOutputStream(outfile));
-        
+
         runAnalysis(coordFile, out, this.mode);
 
         try { out.flush(); out.close(); }
@@ -350,7 +350,7 @@ public class Ramalyze //extends ... implements ...
         // If we fail to do this, Java will crash if this program
         // is run from a non-graphical (e.g. script) environment.
         System.setProperty("java.awt.headless", "true");
-        
+
         Ramalyze mainprog = new Ramalyze();
         try
         {
@@ -386,7 +386,7 @@ public class Ramalyze //extends ... implements ...
     {
         String  arg, flag, param;
         boolean interpFlags = true;
-        
+
         for(int i = 0; i < args.length; i++)
         {
             arg = args[i];
@@ -414,7 +414,7 @@ public class Ramalyze //extends ... implements ...
                     flag    = arg;
                     param   = null;
                 }
-                
+
                 try { interpretFlag(flag, param); }
                 catch(NullPointerException ex)
                 { throw new IllegalArgumentException("'"+arg
@@ -422,7 +422,7 @@ public class Ramalyze //extends ... implements ...
             }
         }//for(each arg in args)
     }
-    
+
     // Display help information
     void showHelp(boolean showAll)
     {
@@ -460,7 +460,7 @@ public class Ramalyze //extends ... implements ...
             outfile = new File(arg);
         else throw new IllegalArgumentException("Too many file names on cmd line: '"+arg+"'");
     }
-    
+
     void interpretFlag(String flag, String param)
     {
         if(flag.equals("-help") || flag.equals("-h"))

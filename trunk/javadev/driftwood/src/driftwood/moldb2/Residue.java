@@ -426,16 +426,17 @@ public class Residue implements Comparable
         if(qnameCache == null)
         {
             StringBuffer s = new StringBuffer();
-            String chtrim = chain.trim();
+            //String chtrim = chain.trim();
             String segtrim = segment.trim();
-            if(chtrim.length() > 0)     s.append(chtrim).append(' ');
-            if(segtrim.length() > 0)    s.append(segtrim).append(' ');
+            //if(chtrim.length() > 0)     s.append(chtrim).append(' ');
+            s.append(chain);
 
             s.append(seqNum);
             String instrim = insCode.trim();
             if(instrim.length() > 0)  s.append(instrim);
-            s.append(' ');
+            else s.append(' ');
             s.append(resName);
+            if(segtrim.length() > 0)    s.append(' ').append(segtrim);
             qnameCache = s.toString();
         }
 
