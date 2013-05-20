@@ -101,8 +101,19 @@ public class Residue implements Comparable
         if(resName == null)
             throw new IllegalArgumentException("Must provide a non-null residue name");
 
-        this.chain      = chain;
-        this.segment    = segment;
+        //handle SEGID as chainID
+        //System.err.println("'"+chain+"' '"+segment+"'");
+        if( (chain.equals("  ")) && (!segment.equals("")) )
+        {
+          //System.err.println("using SEGID as chain");
+          this.chain = segment;
+          this.segment = "";
+        }
+        else
+        {
+          this.chain      = chain;
+          this.segment    = segment;
+        }
         this.seqNum     = seqNum;
         this.insCode    = insCode;
         this.resName    = resName;
@@ -242,7 +253,8 @@ public class Residue implements Comparable
     public String getCNIT()
     {
         StringBuffer sb = new StringBuffer(10);
-        sb.append(getChain().length() > 0 ? getChain().substring(0, 2) : "  ");
+        //handle SEGID instead of chainID
+        sb.append(getChain().length() > 0 ? getChain() : "  ");
         sb.append(Strings.justifyRight(getSequenceNumber(), 4));
         sb.append(getInsertionCode().length() > 0 ? getInsertionCode().substring(0, 1) : " ");
         sb.append(Strings.justifyLeft(getName(), 3));
@@ -427,7 +439,7 @@ public class Residue implements Comparable
         {
             StringBuffer s = new StringBuffer();
             //String chtrim = chain.trim();
-            String segtrim = segment.trim();
+            //String segtrim = segment.trim();
             //if(chtrim.length() > 0)     s.append(chtrim).append(' ');
             s.append(chain);
 
@@ -436,7 +448,7 @@ public class Residue implements Comparable
             if(instrim.length() > 0)  s.append(instrim);
             else s.append(' ');
             s.append(resName);
-            if(segtrim.length() > 0)    s.append(' ').append(segtrim);
+            //if(segtrim.length() > 0)    s.append(' ').append(segtrim);
             qnameCache = s.toString();
         }
 
