@@ -89,7 +89,8 @@ public class Rotalyze //extends ... implements ...
                     for(int i = 0; i < 4; i++)
                     {
                         out.print(":");
-                        if(i < chis.length) out.print(df1.format(chis[i]));
+                        // removing Double.NaN, nan in the output was crashing my scripts vbc3 130521
+                        if((i < chis.length)&&(!Double.isNaN(chis[i]))) out.print(df1.format(chis[i]));
                     }
                     out.print(":");
                     out.print(rotname);
