@@ -430,7 +430,11 @@ public boolean isVersion23(String atomLine) {
         }
 
         String key = s.substring(17,27);
-        if(useSegID) key += segID;
+        //if(useSegID) key += segID;
+        if (segID != "    ")
+        {
+            key += segID;
+        }
         Residue r = (Residue)residues.get(key);
 
         if(r == null)

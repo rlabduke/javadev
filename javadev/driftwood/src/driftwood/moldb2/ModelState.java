@@ -33,7 +33,7 @@ public class ModelState //extends ... implements ...
 //##################################################################################################
     /** The parent state. We defer to our parent if we're missing a particular mapping. */
     ModelState      parent      = null;
-    
+
     /** The Map&lt;Atom, AtomState&gt; that defines this state. */
     Map             stateMap;
     Map             unmodMap    = null;
@@ -50,16 +50,16 @@ public class ModelState //extends ... implements ...
           this.pdbName = parent.getName();
         stateMap = new HashMap(sizeHint);
     }
-    
+
     /** Creates a state that defers to parent for missing mappings. */
     public ModelState(ModelState parent)
     {
         this.parent = parent;
-        if (parent != null) 
+        if (parent != null)
           this.pdbName = parent.getName();
         stateMap = new HashMap();
     }
-    
+
     /** Creates a state without a reference (parent) state to defer to. */
     public ModelState()
     { this(null); }
@@ -77,7 +77,7 @@ public class ModelState //extends ... implements ...
     {
         return (AtomState)stateMap.get(key);
     }
-    
+
     /** Does a recursive query for state; returns null on failure. */
     protected AtomState getImpl(Atom key)
     {
@@ -85,7 +85,7 @@ public class ModelState //extends ... implements ...
         if(s == null && parent != null) return parent.getImpl(key);
         else                            return s;
     }
-    
+
     /**
     * Retrieves a mapping for the specified atom.
     * This is the ordinary query, where every atom should
@@ -100,10 +100,10 @@ public class ModelState //extends ... implements ...
         AtomState s = getImpl(key);
         if(s == null)
             throw new AtomException(key+" has no state specified");
-        
+
         return s;
     }
-    
+
     /**
     * Returns the unmodifiable Map&lt;Atom, AtomState&gt; that represents
     * this state, but not its ancestors.
@@ -140,7 +140,7 @@ public class ModelState //extends ... implements ...
         Atom key = state.getAtom();
         if(stateMap.containsKey(key))
             throw new AtomException(this.toString()+" already contains a state for "+key);
-        
+
         stateMap.put(key, state);
     }
 
@@ -162,7 +162,7 @@ public class ModelState //extends ... implements ...
     */
     public ModelState getParent()
     { return parent; }
-    
+
     /**
     * Sets the reference state for this state to fall back on.
     * @throws IllegalArgumentException if a model is made its
@@ -175,10 +175,10 @@ public class ModelState //extends ... implements ...
         {
             if(ancestor == this)
                 throw new IllegalArgumentException("Circular inheritance detected");
-            
+
             ancestor = ancestor.getParent();
         }
-        
+
         this.parent = parent;
     }
 //}}}
@@ -217,7 +217,7 @@ public void setName(String nm) {
             excluded.add(exclude);
             exclude = exclude.getParent();
         }
-        
+
         // Guess how big we need to make our hash table.
         // This should save us some rehashings.
         int maxsize = 16;
@@ -228,7 +228,7 @@ public void setName(String nm) {
             src = src.getParent();
         }
         maxsize = (3*maxsize) / 2;
-        
+
         // Walk up through the ancestors, adding all states
         // that aren't already represented.
         ModelState collapsed = new ModelState(firstExclude, maxsize);
@@ -251,10 +251,10 @@ public void setName(String nm) {
             }
             src = src.getParent();
         }
-        
+
         return collapsed;
     }
-    
+
     /**
     * Convenience for createCollapsed(null).
     * Note that the new state will have no parent.
@@ -300,7 +300,7 @@ public void setName(String nm) {
     /** Fills in without duplicating any AtomStates; alt conf labels are left as-is. */
     public ModelState fillInForModel(Model model, Collection otherModelStates) throws AtomException
     { return fillInForModel(model, null, otherModelStates); }
-    
+
     /**
     * For any Atom for which this ModelState does not have an AtomState,
     * the otherModelStates are queried (in order) until a matching AtomState
@@ -362,7 +362,7 @@ public String toString() {
 //}}}
 
 //{{{ debugStates
-///** a quick class to spit out all contents of this ModelState in a nicely formatted string 
+///** a quick class to spit out all contents of this ModelState in a nicely formatted string
 //    @param i   number of mappings to return in string (enter 0 for all mappings). */
 //public String debugStates(int i) {
 //  String s = "";
@@ -381,7 +381,7 @@ public String toString() {
 //  }
 //  return s;
 //}
-    /** Simple method to spit out all contents of this ModelState 
+    /** Simple method to spit out all contents of this ModelState
     * in a nicely formatted string.
     * @param i number of mappings to return in string (enter 0 for all mappings)
     */
