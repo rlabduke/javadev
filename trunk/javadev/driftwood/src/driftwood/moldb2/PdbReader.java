@@ -431,7 +431,7 @@ public boolean isVersion23(String atomLine) {
 
         String key = s.substring(17,27);
         //if(useSegID) key += segID;
-        if (segID != "    ")
+        if (segID.trim() != "")
         {
             key += segID;
         }

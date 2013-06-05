@@ -103,7 +103,7 @@ public class Residue implements Comparable
 
         //handle SEGID as chainID
         //System.err.println("'"+chain+"' '"+segment+"'");
-        if( (chain.equals("  ")) && (!segment.equals("")) )
+        if( (chain.equals("  ")) && (!segment.trim().equals("")) )
         {
           //System.err.println("using SEGID as chain");
           this.chain = segment;
@@ -303,19 +303,26 @@ public class Residue implements Comparable
     public Residue getPrev(Model parent)
     {
         if(parent == null)
+        {
             return null;
+        }
 
         try
         {
             Residue prev = (Residue)parent.residues.itemBefore(this);
 
             if(!prev.getChain().equals(this.getChain()))
+            {
                 return null;
+            }
 
+            System.err.println(prev);
             return prev;
         }
         catch(NoSuchElementException ex)
-        { return null; }
+        {
+            return null;
+        }
     }
 //}}}
 
