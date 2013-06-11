@@ -316,7 +316,7 @@ public class Residue implements Comparable
                 return null;
             }
 
-            System.err.println(prev);
+            //System.err.println(prev);
             return prev;
         }
         catch(NoSuchElementException ex)
