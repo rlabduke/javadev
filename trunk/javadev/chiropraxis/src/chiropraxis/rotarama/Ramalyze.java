@@ -62,6 +62,7 @@ public class Ramalyze //extends ... implements ...
         public RamaEval(Residue res, String modelName)
         {
             this.res = res;
+            //this.name = res.getCNIT();
             this.name = res.toString();
             this.modelName = modelName;
         }
@@ -87,6 +88,7 @@ public class Ramalyze //extends ... implements ...
 //##############################################################################
     File infile = null, outfile = null;
     Object mode = MODE_RAW;
+    static boolean quietMode = false;
 //}}}
 
 //{{{ Constructor(s)
@@ -248,7 +250,7 @@ public class Ramalyze //extends ... implements ...
 
         if(mode == MODE_PDF)
         {
-            System.err.println("Creating PDF document...");
+          if (!quietMode) System.err.println("Creating PDF document...");
             RamaPdfWriter writer = new RamaPdfWriter();
             writer.createRamaPDF(analyses, label, out);
             try { out.flush(); }
@@ -256,7 +258,7 @@ public class Ramalyze //extends ... implements ...
         }
         else if(mode == MODE_KINPLOT)
         {
-            System.err.println("Creating kinemage plot...");
+          if (!quietMode) System.err.println("Creating kinemage plot...");
             RamaKinWriter writer = new RamaKinWriter();
             writer.createRamaPlotKin(analyses, label, new PrintWriter(out));
             try { out.flush(); }
@@ -264,7 +266,7 @@ public class Ramalyze //extends ... implements ...
         }
         else if(mode == MODE_KINMARKUP)
         {
-            System.err.println("Creating kinemage outlier markups...");
+          if (!quietMode) System.err.println("Creating kinemage outlier markups...");
             Model firstModel = coordFile.getFirstModel();
             ModelState firstState = firstModel.getState();
             Collection analysis = null;
@@ -284,7 +286,7 @@ public class Ramalyze //extends ... implements ...
         }
         else if(mode == MODE_RAW)
         {
-            System.err.println("Printing raw scores & evals...");
+          if (!quietMode) System.err.println("Printing raw scores & evals...");
             PrintWriter out2 = new PrintWriter(out);
             int i = 0;
             out2.println("#residue:score%:phi:psi:rama_eval:rama_type");
@@ -488,9 +490,9 @@ public class Ramalyze //extends ... implements ...
         {
             mode = MODE_RAW;
         }
-        else if(flag.equals("-dummy_option"))
+        else if(flag.equals("-quiet") || flag.equals("-q"))
         {
-            // handle option here
+            quietMode = true;
         }
         else throw new IllegalArgumentException("'"+flag+"' is not recognized as a valid flag");
     }
