@@ -25,6 +25,8 @@ MODE defaults to '-pdf' but can be any one of the following:
     -kinmarkup  Outputs 3D kinemage markups centered at the C-alphas of 
                 Ramachandran outliers.  If multiple models are present, 
                 e.g. in an NMR structure, only the first one is used.
+                
+    -quiet      Suppresses some command line info output.
     
     [other MODEs may be available in the future]
     
