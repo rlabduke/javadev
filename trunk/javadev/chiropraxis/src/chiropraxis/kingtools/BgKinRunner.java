@@ -62,34 +62,34 @@ public class BgKinRunner implements Runnable
 
     /** The target kinemage that we want to put the dots into. */
     Kinemage                kin;
-    
+
     /** The group that holds the dots from the most recent time we ran the command. */
     volatile Kinemage       newKin              = null;
-    
+
     /** The group that holds the dots from the previous time we ran the command. */
     KGroup                  oldGroup            = null;
-    
+
     /** The drop-box for residues to be plotted. */
     volatile Collection     dropboxResidues     = null;
-    
+
     /** The drop-box for the state to be plotted. */
     volatile ModelState     dropboxState        = null;
-    
+
     /** The reference PDB file that we want to contrast with. */
     volatile File           dropboxPdbFile      = null;
-    
+
     /** The command string with placeholders ({pdbfile}, {molten}, etc.) intact. */
     volatile String         cmdTemplate         = null;
-    
+
     /** True iff the drop-box has been filled and not emptied. */
     volatile boolean        dropboxFull         = false;
-    
+
     /** If true, the background thread will terminate and this object will become useless. */
     volatile boolean        backgroundTerminate = false;
-    
+
     /** Controls how much error logging goes on. Set at create time from KingPrefs. */
     final boolean           dumpCmdLine, dumpStdErr, dumpStdOut;
-    
+
     /** Controls how long background jobs can live, in msec. */
     final int               helperTimeout;
 //}}}
@@ -103,16 +103,16 @@ public class BgKinRunner implements Runnable
     {
         if(kmain == null || kin == null || cmd == null)
             throw new NullPointerException("Null parameters are not allowed.");
-        
+
         this.kMain          = kmain;
         this.kin            = kin;
         this.cmdTemplate    = cmd;
-        
+
         dumpCmdLine         = kMain.getPrefs().getBoolean("showHelperCommand");
         dumpStdErr          = kMain.getPrefs().getBoolean("showHelperErrors");
         dumpStdOut          = kMain.getPrefs().getBoolean("showHelperOutput");
         helperTimeout       = kMain.getPrefs().getInt("helperTimeout") * 1000;
-        
+
         Thread thread = new Thread(this);
         thread.setDaemon(true);
         thread.start();
@@ -142,21 +142,21 @@ public class BgKinRunner implements Runnable
                     dropboxFull = false;
                     // it may get refilled while the command is running
                 }
-                
+
                 // runCommand() shouldn't hold a lock b/c users
                 // may want to submit an update request.
                 try { runCommand(residues, state, pdbfile, cmdtemp); }
                 catch(IOException ex) { ex.printStackTrace(SoftLog.err); }
                 //System.err.println("This cycle:     "+(System.currentTimeMillis() - insideLoop)+" ms");
             }//while dropboxFull
-            
+
             // update the kinemage from the GUI thread
             // this takes 1 - 200 ms on the Mac (yes, really -- but why?)
             //long endOfLoop = System.currentTimeMillis();
             SwingUtilities.invokeLater(new ReflectiveRunnable(this, "updateKinemage"));
             //long afterInvoke = System.currentTimeMillis();
             //System.err.println("invokeLater():  "+(afterInvoke-endOfLoop)+" ms");
-            
+
             // we have to own the lock in order to wait()
             synchronized(this)
             {
@@ -179,7 +179,7 @@ public class BgKinRunner implements Runnable
         throws IOException
     {
         long time;
-        
+
         // Make the command line in its final form.
         // This is very fast (1-2 ms).
         // Build replacement strings for placeholders
@@ -221,7 +221,7 @@ public class BgKinRunner implements Runnable
         String[] cmdTokens = Strings.tokenizeCommandLine(cmdLine);
         //for(int i = 0; i < cmdTokens.length; i++) SoftLog.err.println("  #"+cmdTokens[i]+"#");
     //System.err.println("time "+cmdLine+" < dummy.pdb > dummy.out");
-        
+
         // Create the PDB file fragment to be feed in on stdin.
         // This also very fast (~10 ms).
         // Build up the PDB fragment in a memory buffer
@@ -231,8 +231,8 @@ public class BgKinRunner implements Runnable
         writer.writeResidues(residues, state);
         // Don't run the cmd if we're not goint to use the results:
         if(dropboxFull) return;
-        
-        
+
+
     //time = System.currentTimeMillis();
         // Launch command and feed it the PDB file fragment
         // This is usually the lion's share of run time (>50%)
@@ -257,7 +257,7 @@ public class BgKinRunner implements Runnable
         // Don't bother with parsing if we're not goint to use the results:
         if(dropboxFull) return;
 
-        
+
     //time = System.currentTimeMillis();
         // Try to interpret what it sends back
         // This is also fairly slow (~100-200 ms)
@@ -284,7 +284,7 @@ public class BgKinRunner implements Runnable
         }
     //System.err.println("Parsing kin:        "+(System.currentTimeMillis()-time)+" ms");
     }
-    
+
     // Copies src to dst until we hit EOF
     private static final void streamcopy(InputStream src, OutputStream dst) throws IOException
     {
@@ -333,7 +333,7 @@ public class BgKinRunner implements Runnable
                 KGroup newGroup = (KGroup)iter.next();
                 //newGroup.setDominant(true);  // we don't need to see 1-->2, 2-->1
                 newGroup.setParent(kin);      // have to make sure we know who our parent is
-                
+
                 // append kinemage creates all the masters we need
                 if(oldGroup == null)    kin.appendKinemage(newKin);
                 else                    kin.replace(oldGroup, newGroup);
@@ -361,21 +361,21 @@ public class BgKinRunner implements Runnable
     {
         if(backgroundTerminate)
             throw new IllegalThreadStateException("terminate() was called; worker thread is dead");
-        
+
         this.dropboxResidues    = residues;
         this.dropboxState       = state;
         this.dropboxPdbFile     = pdbfile;
         this.dropboxFull        = true;
         this.notifyAll();
     }
-    
+
     /** Kills off the background thread. Call after you're done with this object. */
     public synchronized void terminate()
     {
         backgroundTerminate = true;
         this.notifyAll();
     }
-    
+
     /** Returns the kinemage this plotter was created with (not null) */
     public Kinemage getKinemage()
     { return kin; }
@@ -394,7 +394,7 @@ public class BgKinRunner implements Runnable
         String os = System.getProperty("os.name").toLowerCase();
         if(os.indexOf("windows") != -1)
             basename = basename+".exe";
-        
+
         // We search the directory holding the king.jar file
         // for 'probe' or 'probe.exe'; if not found, we just use 'probe'.
         File progFile = new File(kMain.getPrefs().jarFileDirectory, basename);
@@ -404,7 +404,31 @@ public class BgKinRunner implements Runnable
             try { basename = "'"+progFile.getCanonicalPath()+"'"; }
             catch(Throwable t) { t.printStackTrace(SoftLog.err); }
         }
-        
+
+        // check if running under a Phenix environment for Probe
+        if(basename == "probe")
+        {
+          String curPath = System.getenv("PATH");
+          String[] temp = curPath.split(":");
+          String phenixPath = "";
+          for(int i=0; i<temp.length; i++)
+          {
+            boolean contains = temp[i].contains("phenix");
+            if(contains)
+            {
+              phenixPath = temp[i];
+            }
+          }
+          if(phenixPath.length() > 0)
+          {
+            String file = phenixPath+"/phenix.probe";
+            File phenixFile = new File(file);
+            if(phenixFile.exists())
+            {
+              basename = "phenix.probe";
+            }
+          }
+        }
         return basename;
     }
 //}}}
@@ -414,7 +438,7 @@ public class BgKinRunner implements Runnable
     /** Returns the command line that was supplied at create time or since modified. */
     public String getCommand()
     { return cmdTemplate; }
-    
+
     /**
     * Gives a new value for the command to be launched.
     * Does not automatically re-run the background program.
@@ -423,7 +447,7 @@ public class BgKinRunner implements Runnable
     {
         cmdTemplate = cmd;
     }
-    
+
     /**
     * Allows the user to edit the command via a Swing dialog box.
     * @return true if the user changed the command line
@@ -438,11 +462,11 @@ public class BgKinRunner implements Runnable
             "{bbcenter} is the center of the bounding box for molten atoms: x, y, z",
             "{bbradius} is the 'radius' of the bounding box for molten atoms: x, y, z",
         };
-        
+
         Object input = JOptionPane.showInputDialog(dlgParent,
             msg, "Edit command line", JOptionPane.PLAIN_MESSAGE,
             null, null, cmd);
-        
+
         if(input != null && !cmd.equals(input.toString()))
         {
             this.setCommand(input.toString());
