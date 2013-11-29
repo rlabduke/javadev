@@ -5,18 +5,18 @@
 # It uses the new PDB v3.X nomenclature.
 #
 aa.mc = " N  , CA , C  , O  , OXT"
-aa.hy = " N  , H  ; CA , HA "
+aa.hy = " N  , H  ; CA , HA ; N  , H1 ; N  , H2 ; N  , H3 ;"
 
 gly.sc = ""
 gly.hy = " CA , HA2; CA , HA3"
 ala.sc = " CA , CB "
 ala.hy = " CB , HB1; CB , HB2; CB , HB3"
 val.sc = " CA , CB , CG1; CB , CG2"
-val.hy = " CB , HB ; CG1,HG11; CG1,HG12; CG1,HG1v; CG2,HG21; CG2,HG22; CG2,HG23"
+val.hy = " CB , HB ; CG1,HG11; CG1,HG12; CG1,HG13; CG2,HG21; CG2,HG22; CG2,HG23"
 leu.sc = " CA , CB , CG , CD1; CG , CD2"
 leu.hy = " CB , HB2; CB , HB3; CG , HG ; CD1,HD11; CD1,HD12; CD1,HD13; CD2,HD21; CD2,HD22; CD2,HD23"
 ile.sc = " CA , CB , CG1, CD1; CB , CG2"
-ile.hy = " CB , HB ; CG1,HG11; CG1,HG12; CG2,HG21; CG2,HG22; CG2,HG23; CD1,HD11; CD1,HD12; CD1,HD13"
+ile.hy = " CB , HB ; CG1,HG11; CG1,HG12; CG1,HG13; CG2,HG21; CG2,HG22; CG2,HG23; CD1,HD11; CD1,HD12; CD1,HD13"
 pro.sc = " CA , CB , CG , CD , N  "
 pro.hy = " CB , HB2; CB , HB3; CG , HG2; CG , HG3; CD , HD2; CD , HD3;"
 

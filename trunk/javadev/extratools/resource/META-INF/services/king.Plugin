@@ -4,6 +4,7 @@ king.tool.export.KingLiteBinaryExport
 king.tool.export.DiveExport
 king.tool.export.Vrml97Writer
 king.tool.export.XknWriter
+king.tool.export.PdbExport
 king.tool.views.ViewpointPlugin
 king.tool.views.ClipPlanesPlugin
 king.tool.draw.LathePlugin

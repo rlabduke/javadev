@@ -66,32 +66,46 @@ public class PointComparator implements Comparator {
 	    AbstractPoint point2 = (AbstractPoint) o2;
 	    String p1name = point1.getName().toUpperCase();
 	    String p2name = point2.getName().toUpperCase();
+	    value = KinUtil.getResNumber(p1name) - KinUtil.getResNumber(p2name);
+	    if (value < 0)  return -1;
+	    else if (value > 0) return 1;
+	    value = KinUtil.getResAA(p1name).compareTo(KinUtil.getResAA(p2name));
+	    if (value < 0)  return -1;
+	    else if (value > 0) return 1;
+	    value = KinUtil.getAltConf(p1name).compareTo(KinUtil.getAltConf(p2name));
+	    if (value < 0)  return -1;
+	    else if (value > 0) return 1;
+	    value = getAtomNamePosition(p1name) - getAtomNamePosition(p2name);
+	    if (value < 0)  return -1;
+	    else if (value > 0) return 1;
+	  }
+	  return 0;
 	    //value = Integer.parseInt(p1name.substring(8)) - Integer.parseInt(p2name.substring(8));
-	    String atom1 = p1name.substring(0, 4);
-	    String atom2 = p2name.substring(0, 4);
+	  //  String atom1 = p1name.substring(0, 4);
+	  //  String atom2 = p2name.substring(0, 4);
 	    //System.out.println(atom1 + ", " + atom2);
 	    //int atomPosition = allAtoms.indexOf(atom1) - allAtoms.indexOf(atom2);
-	    int atomPosition = getAtomNamePosition(p1name) - getAtomNamePosition(p2name);
-	    value = atomPosition * 10;
-      
-	    
-	    value = value + KinUtil.getResAA(p1name).compareTo(KinUtil.getResAA(p2name)) * 1000;
-      
-	    
-	    value = value + (KinUtil.getResNumber(p1name) - KinUtil.getResNumber(p2name)) * 1000000;
-	    //return value;
-	    if (value == 0) {
-        //System.out.println(p1name + ", " + p2name + ": " + value);
-	    }
-    }
-    //return value;
-    if (value < 0) {
-	    return -1;
-    } else if (value == 0) {
-	    return 0;
-    } else {
-	    return 1;
-    }
+	  //  int atomPosition = getAtomNamePosition(p1name) - getAtomNamePosition(p2name);
+	  //  value = atomPosition * 10;
+    //  
+	  //  
+	  //  value = value + KinUtil.getResAA(p1name).compareTo(KinUtil.getResAA(p2name)) * 10000;
+    //  
+	  //  
+	  //  value = value + (KinUtil.getResNumber(p1name) - KinUtil.getResNumber(p2name)) * 1000000000;
+	  //  //return value;
+	  //  //if (value == 0) {
+    //    System.out.println(p1name+","+ KinUtil.getResNumber(p1name)+","+ KinUtil.getResAA(p1name)+ ", " + p2name +","+ KinUtil.getResNumber(p2name) +","+ KinUtil.getResAA(p2name) + ": " + value);
+	  //  //}
+    //}
+    ////return value;
+    //if (value < 0) {
+	  //  return -1;
+    //} else if (value == 0) {
+	  //  return 0;
+    //} else {
+	  //  return 1;
+    //}
   }
   //}}}
     
@@ -216,11 +230,15 @@ public class PointComparator implements Comparator {
     */
     for (int i = allAtoms.size() - 1; i >= 0; i--) {
       String atom = (String) allAtoms.get(i);
-      if (name.substring(0,10).indexOf(atom) > -1) return i;
+      if (name.length() >= 10) { 
+        if (name.substring(0,10).indexOf(atom) > -1) return i;
+      }
     }
     for (int i = allAtomsv23.size() - 1; i >= 0; i--) {
       String atom = (String) allAtomsv23.get(i);
-      if (name.substring(0,10).indexOf(atom) > -1) return i;
+      if (name.length() >= 10) {
+        if (name.substring(0,10).indexOf(atom) > -1) return i;
+      }
     }
     return -1;
   }
@@ -258,13 +276,18 @@ public class PointComparator implements Comparator {
       String atom = (String) allAtoms.get(i);
       // substring is to prevent silly bug where the wrong atom would be found in 
       // the pdbID that is sometimes in the pointIDs.
-      if (name.substring(0,10).indexOf(atom) > -1) return atom; 
+      if (name.length() >= 10) { 
+        if (name.substring(0,10).indexOf(atom) > -1) return atom; 
+      }
     }
     for (int i = allAtomsv23.size() - 1; i >= 0; i--) {
       String atom = (String) allAtomsv23.get(i);
       // substring is to prevent silly bug where the wrong atom would be found in 
       // the pdbID that is sometimes in the pointIDs.
-      if (name.substring(0,10).indexOf(atom) > -1) return atom; 
+      if (name.length() >= 10) { 
+              
+        if (name.substring(0,10).indexOf(atom) > -1) return atom; 
+      }
     }
     return "UNK ";
   }
