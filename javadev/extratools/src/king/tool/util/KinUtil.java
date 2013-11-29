@@ -252,7 +252,34 @@ public class KinUtil {
   public static String getResAA(String name) {
     // substring is to prevent silly bug where the wrong amino acid type  
     // the pdbID that is sometimes in the pointIDs.
-    return AminoAcid.getAAName(name.substring(0,10));
+    String aaname = AminoAcid.getAAName(name.substring(0,10));
+    if (aaname.trim().length() == 4) {
+      return aaname.substring(1);
+    }
+    return aaname.trim();
+  }
+  
+  public static String getAltConf(String name) {
+    String aaname = AminoAcid.getAAName(name.substring(0, 10));
+    if (aaname.trim().length() == 4) {
+      return aaname.substring(0, 1);
+    }
+    else return " ";
+  }
+  
+  public static double getOccupancy(KPoint point) {
+    String name = point.getName().trim();
+    String[] parsed = Strings.explode(name, " ".charAt(0), false, true);
+    for (String s : parsed) {
+      if (s.matches("[0-9]+[.][0-9]+")) {
+        return Double.parseDouble(s);
+      }
+      if (s.matches("[0-9]+[.][0-9]+B[0-9]+[.][0-9]+")) {
+        String[] bsplit = Strings.explode(s, "B".charAt(0), false, true);
+        return Double.parseDouble(bsplit[0]);
+      }
+    }
+    return 1;
   }
   
   public static double getBvalue(KPoint point) {
@@ -266,10 +293,14 @@ public class KinUtil {
     String[] parsed = Strings.explode(name, " ".charAt(0), false, true);
     for (int i = 0; i < parsed.length; i++) {
 	    String parseValue = parsed[i];
-	    if (parseValue.charAt(0) == 'B') {
+	    if (parseValue.matches("B[0-9]+[.][0-9]+")) {
         String bVal = parseValue.substring(1);
         return Double.parseDouble(bVal);
 	    }
+	    if (parseValue.matches("[0-9]+[.][0-9]+B[0-9]+[.][0-9]+")) {
+        String[] bsplit = Strings.explode(parseValue, "B".charAt(0), false, true);
+        return Double.parseDouble(bsplit[1]);
+      }
     }
     return 0;
   }

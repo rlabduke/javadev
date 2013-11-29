@@ -5,6 +5,7 @@ king.tool.export.Vrml97Writer.menuName = <not shown>
 king.tool.export.XknWriter.menuName = <not shown>
 # KingLite (aka Hai-King) is no longer used (was for Palm Pilot / Java ME)
 king.tool.export.KingLiteBinaryExport.menuName = <not shown>
+king.tool.export.PdbExport.menuName = <export>
 king.tool.draw.LathePlugin.menuName = Kin editing
 king.tool.draw.PointColorPlugin.menuName = Kin editing
 king.tool.draw.SkylightPlugin.menuName = Kin editing

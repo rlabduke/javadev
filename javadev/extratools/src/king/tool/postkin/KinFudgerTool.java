@@ -32,6 +32,7 @@ public class KinFudgerTool extends BasicTool {
   
   //{{{ Constants
   static final DecimalFormat df = new DecimalFormat("0.000");
+  static final DecimalFormat df2 = new DecimalFormat("0.00");
   //}}}
   
   //{{{ CLASS: PointKeeper
@@ -872,21 +873,28 @@ public class KinFudgerTool extends BasicTool {
 	    Iterator iter = keyTree.iterator();
 	    while (iter.hasNext()) {
         AbstractPoint point = (AbstractPoint) iter.next();
-        out.print("ATOM  ");
-        out.print(formatStrings(String.valueOf(i), 5) + " ");
-        //out.print(point.getName().toUpperCase().substring(0, 8) + "  " + point.getName().toUpperCase().substring(8) + "     ");
-        String atomName = PointComparator.getAtomName(point.getName().toUpperCase());
-        if (atomName.equals("UNK ")) {
-          
+        System.out.println(point + " POINT ON:" + pointActuallyOn(point));
+        if (pointActuallyOn(point)) {
+          //System.out.println(point);
+          //System.out.println(KinUtil.getResNumber(point.getName().toUpperCase()));
+          out.print("ATOM  ");
+          out.print(formatStrings(String.valueOf(i), 5) + " ");
+          //out.print(point.getName().toUpperCase().substring(0, 8) + "  " + point.getName().toUpperCase().substring(8) + "     ");
+          String atomName = PointComparator.getAtomName(point.getName().toUpperCase());
+          if (atomName.equals("UNK ")) {
+            
+          }
+          out.print(PointComparator.getAtomName(point.getName().toUpperCase()));
+          out.print(KinUtil.getAltConf(point.getName().toUpperCase()));
+          out.print(KinUtil.getResAA(point.getName().toUpperCase()) + "  ");
+          out.print(formatStrings(String.valueOf(KinUtil.getResNumber(point.getName().toUpperCase())), 4) + "    ");
+          out.print(formatStrings(df.format(point.getX()), 8));
+          out.print(formatStrings(df.format(point.getY()), 8));
+          out.print(formatStrings(df.format(point.getZ()), 8));
+          out.print(formatStrings(df2.format(KinUtil.getOccupancy(point)), 6));
+          out.println(formatStrings(df2.format(KinUtil.getBvalue(point.getName().toUpperCase())), 6));
+          i++;
         }
-        out.print(PointComparator.getAtomName(point.getName().toUpperCase()));
-        out.print(KinUtil.getResAA(point.getName().toUpperCase()) + "  ");
-        out.print(formatStrings(String.valueOf(KinUtil.getResNumber(point.getName().toUpperCase())), 4) + "    ");
-        out.print(formatStrings(df.format(point.getX()), 8));
-        out.print(formatStrings(df.format(point.getY()), 8));
-        out.print(formatStrings(df.format(point.getZ()), 8));
-        out.println("  1.00  0.00");
-        i++;
 	    }
 	    out.flush();
 	    w.close();
@@ -897,6 +905,15 @@ public class KinFudgerTool extends BasicTool {
     }
   }
   //}}}
+  
+  public boolean pointActuallyOn(AbstractPoint point) {
+    AHE element = point;
+    while (element.getDepth() > 0) {
+      if (!element.isOn()) return false;
+      element = element.getParent();
+    }
+    return true;
+  }
    
   //{{{ formatString
   public String formatStrings(String value, int numSpaces) {
