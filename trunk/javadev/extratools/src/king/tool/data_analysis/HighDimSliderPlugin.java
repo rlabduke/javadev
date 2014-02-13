@@ -4,6 +4,7 @@ package king.tool.data_analysis;
 import king.*;
 import king.core.*;
 import king.tool.loops.*;
+import king.tool.util.*;
 import driftwood.gui.*;
 
 import javax.swing.*;
@@ -22,6 +23,7 @@ public class HighDimSliderPlugin extends Plugin implements ChangeListener {
   
   //{{{ Variables
   HighLowSliders[] sliders;
+  JTextField sepField;
   //}}}
   
   //{{{ Constructors
@@ -61,6 +63,12 @@ public class HighDimSliderPlugin extends Plugin implements ChangeListener {
       pane.add(sliders[i].getHighLabel());
       pane.newRow();
     }
+    pane.add(new JLabel("Separation: "));
+    sepField = new JTextField("0", 6);
+    pane.add(sepField);
+    JButton setSepButton = new JButton(new ReflectiveAction("Set Separation", null, this, "onSetSep"));
+    pane.add(setSepButton);
+    pane.newRow();
     JDialog dialog = new JDialog(kMain.getTopWindow(), "High Dim Sliders", false);
     //dialog.addWindowListener(this);
     dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -86,6 +94,17 @@ public class HighDimSliderPlugin extends Plugin implements ChangeListener {
       //params.redrawParallel();
     } else {
       setPoints();
+    }
+  }
+  //}}}
+  
+  //{{{ onSetSep
+  public void onSetSep(ActionEvent ev) {
+    for (HighLowSliders slider : sliders) {
+      String sepText = sepField.getText();
+      if (KinUtil.isNumeric(sepText)) {
+        slider.setSeparator(Integer.parseInt(sepText));
+      }
     }
   }
   //}}}

@@ -19,10 +19,12 @@ public class HighLowSliders {
   JSlider highSlider;
   JLabel highLabel;
   int multiplier;
+  int separator;
   //}}}
   
   //{{{ Constructor
   public HighLowSliders(int lowVal, int highVal, int mult) {
+    separator = 0;
     multiplier = mult;
     lowSlider = new JSlider(lowVal * mult, highVal * mult, lowVal * mult);
     lowLabel = new JLabel(df.format((double)lowVal));
@@ -49,15 +51,15 @@ public class HighLowSliders {
     JSlider source = (JSlider) ev.getSource();
     if (source.equals(lowSlider)) {
       int val = lowSlider.getValue();
-      if (val > highSlider.getValue()) {
-        highSlider.setValue(val);
+      if (val > highSlider.getValue()-separator) {
+        highSlider.setValue(val+separator);
       }
       updateLabels();
     }
     if (source.equals(highSlider)) {
       int val = highSlider.getValue();
-      if (val < lowSlider.getValue()) {
-        lowSlider.setValue(val);
+      if (val < lowSlider.getValue()+separator) {
+        lowSlider.setValue(val-separator);
       }
       updateLabels();
     }
@@ -80,6 +82,10 @@ public class HighLowSliders {
   public void setPaintTicks(boolean b) {
     lowSlider.setPaintTicks(b);
     highSlider.setPaintTicks(b);
+  }
+  
+  public void setSeparator(int n) {
+    separator = n*multiplier;
   }
   //}}}
   
