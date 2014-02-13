@@ -363,14 +363,17 @@ public class PlottingTool extends BasicTool {
     String[] firstVal = (String[]) allPoints.get(0);
     String[] secVal = (String[]) allPoints.get(1);
     ArrayList dimNames = new ArrayList();
-    for (int i = 1; i < firstVal.length; i++) {
-	    dimNames.add(firstVal[i]);
-    }
+    //for (int i = 1; i < firstVal.length; i++) { //this is bugged, if the first value is numerical the dimension names don't have the right number of dimensions.
+	  //  dimNames.add(firstVal[i]);
+    //}
     
     // count number of numeric dimensions
     int numInd = 0;
     for (int i = 0; i < secVal.length; i++) {
-	    if (KinUtil.isNumeric(secVal[i])) numInd++;
+	    if (KinUtil.isNumeric(secVal[i])) {
+	      dimNames.add(firstVal[i]);
+	      numInd++;
+	    }
     }
     
     // initialize dimension min-max array
