@@ -69,6 +69,12 @@ public class Disulfide //extends ... implements ...
     { return endICode; }
 //}}}
 
+//{{{ toString
+public String toString() {
+  return (String)type+" between "+ initChainId+initICode+initSeqNum+" and "+endChainId+endICode+endSeqNum;
+}
+//}}}
+
 //{{{ contains, matches(Init,End)
 //##############################################################################
     /**
@@ -87,6 +93,10 @@ public class Disulfide //extends ... implements ...
     */
     public boolean matchesInit(Residue res)
     {
+      //if (res.getName().equals("CYS")) {
+      //  System.out.println("chains: |"+initChainId+"|"+res.getChain()+"|");
+      //  System.out.println((res.getSequenceInteger() != initSeqNum)+ " " + (res.getInsertionCode().compareTo(initICode) < 0));
+      //}
         if(!res.getName().equals("CYS")) return false; // T
         if(!initChainId.equals(res.getChain())) return false; // C
         if(res.getSequenceInteger() != initSeqNum) return false; // N

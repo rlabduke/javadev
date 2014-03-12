@@ -419,10 +419,15 @@ public class Model implements Cloneable
 //{{{ get/setDisulfides
 //##################################################################################################
     public Disulfides getDisulfides()
-    { return this.disulfides; }
+    { 
+      return this.disulfides; 
+    }
 
     public void setDisulfides(Disulfides disulfides)
-    { this.disulfides = disulfides; }
+    { 
+      //System.out.println("Disulfides set to: "+disulfides);
+      this.disulfides = disulfides; 
+    }
 //}}}
 
 //{{{ fillInStates

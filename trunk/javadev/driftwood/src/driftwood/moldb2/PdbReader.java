@@ -179,6 +179,7 @@ public class PdbReader //extends ... implements ...
     */
     public CoordinateFile read(LineNumberReader r) throws IOException
     {
+      //System.out.println("Reading pdb file");
     	initData();
 
         Runtime runtime = Runtime.getRuntime();
@@ -286,7 +287,14 @@ public class PdbReader //extends ... implements ...
         rv.setSecondaryStructure(new PdbSecondaryStructure(rv.getHeaders()));
 
         // This sets up disulfide bond residue-residue pairings
-        rv.setDisulfides(new PdbDisulfides(rv.getHeaders()));
+        PdbDisulfides disulf = new PdbDisulfides(rv.getHeaders());
+        rv.setDisulfides(disulf);
+        for(Iterator iter = rv.getModels().iterator(); iter.hasNext(); )
+        {
+            Model m = (Model) iter.next();
+            m.setDisulfides(disulf);
+        }
+        //System.out.println(rv.getDisulfides());
 
         rv.setPdbv2Count(pdbv2atoms);
 
