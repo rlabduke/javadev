@@ -97,6 +97,12 @@ abstract public class Disulfides //extends ... implements ...
     { return Disulfide.INTER_CHAIN.equals(classify(r)); }
 //}}}
 
+//{{{ toString
+public String toString() {
+  return "Disulfides: "+disulfides;
+}
+//}}}
+
 //{{{ empty_code_segment
 //##############################################################################
 //}}}

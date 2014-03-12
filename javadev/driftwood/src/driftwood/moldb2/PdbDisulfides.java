@@ -39,7 +39,9 @@ class PdbDisulfides extends Disulfides
             String s = (String) iter.next();
             try
             {
-                if(s.startsWith("SSBOND ")) add(forDisulfide(s));
+              if(s.startsWith("SSBOND ")) {
+                add(forDisulfide(s));
+              }
             }
             catch(NumberFormatException ex)
             { System.err.println("Non-numeric sequence numbers: "+s); }
@@ -60,8 +62,8 @@ class PdbDisulfides extends Disulfides
         // "SSBOND   1 CYS A   31    CYS A   73                                             "
         // "SSBOND *** CYS A  190    CYS C  190"
         Disulfide d = new Disulfide();
-        d.initChainId = s.substring(15,16);
-        d.endChainId  = s.substring(29,30);
+        d.initChainId = s.substring(14,16);
+        d.endChainId  = s.substring(28,30);
         if(!d.initChainId.equals(d.endChainId))
             d.type = Disulfide.INTER_CHAIN;
         else //if(d.initChainId.equals(d.endChainId))
@@ -73,6 +75,7 @@ class PdbDisulfides extends Disulfides
             d.endICode  = s.substring(35,36);
         else
             d.endICode = " "; // (default anyway)
+        //System.out.println(d);
         return d;
     }
 //}}}
