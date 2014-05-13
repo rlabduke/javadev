@@ -329,7 +329,9 @@ abstract public class Measurement //extends ... implements ...
                 newBuiltin("chi1" ).reqDisulf(),
                 newBuiltin("chi2" ).reqDisulf(),
                 newBuiltin("chi3" ).reqDisulf(),
+                newBuiltin("CB-S-S").reqDisulf(),
                 newBuiltin("S--S").reqDisulf(),
+                newBuiltin("S-S-CB'"),
                 newBuiltin("chi2'"), //  explicitly
                 newBuiltin("chi1'"), //   require
                 newBuiltin("phi'" ), //   disulf
@@ -470,11 +472,23 @@ abstract public class Measurement //extends ... implements ...
                 new AtomSpec( 0, "_CA_"),
                 new AtomSpec( 0, "_C__")
             );
+        else if("S-S-CB'".equals(label))
+            return new Angle(label,
+                new AtomSpec( 0, "_CB_").otherEndDisulf(),
+                new AtomSpec( 0, "_SG_").otherEndDisulf(),
+                new AtomSpec( 0, "_SG_")
+            ).reqDisulf();
+        else if("CB-S-S".equals(label))
+            return new Angle(label,
+                new AtomSpec( 0, "_SG_").otherEndDisulf(),
+                new AtomSpec( 0, "_SG_"),
+                new AtomSpec( 0, "_CB_")
+            ).reqDisulf();
         else if("S--S".equals(label))
             return new Distance(label,
                 new AtomSpec( 0, "_SG_").otherEndDisulf(),
                 new AtomSpec( 0, "_SG_")
-            );
+            ).reqDisulf();
         /* OLD VERSION OF CBDEV FOR BACKUP
         else if("cbdev".equals(label))
             return new Distance(label,
