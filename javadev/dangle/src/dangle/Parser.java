@@ -81,11 +81,13 @@ public class Parser //extends ... implements ...
     // If you add super-builtins here, you should also modify
     // Measurement.newSuperBuiltin(), the javadoc above, and the man page.
     // Added "suitefit" SUPERBLTN 6/20/07. -- DK
-    final Matcher SUPERBLTN = Pattern.compile("rnabb|dnabb|suitefit|disulfides|disulf|ss").matcher(""); 
+	// S.J 12/09/14 added "virtualsuite" as SUPERBLTN
+    final Matcher SUPERBLTN = Pattern.compile("rnabb|dnabb|suitefit|virtualsuite|disulfides|disulf|ss").matcher(""); 
     // If you add built-ins here, you should also modify
     // Measurement.newBuiltin(), the javadoc above, and the man page.
     // Added BUILTINs for "suitefit" SUPERBLTN 6/28/07. -- DK
-    final Matcher BUILTIN   = Pattern.compile("phi|psi|omega|chi1|chi2|chi3|chi4|tau|cbdev|hadev|nhdev|codev|alpha|beta|gamma|delta|epsilon|zeta|c2o2|eta|theta|chi|alpha-1|beta-1|gamma-1|delta-1|epsilon-1|zeta-1|chi-1|O5'-C5'|O5'--C5'|C5'-C4'|C5'--C4'|C4'-C3'|C4'--C3'|C3'-C2'|C3'--C2'|C2'-C1'|C2'--C1'|O4'-C1'|O4'--C1'|O4'-C4'|O4'--C4'|O3'--C3'|O3'-C3'|C2'-O2'|C2'--O2'|C4'-O4'-C1'|O4'-C1'-C2'|C1'-C2'-C3'|C4'-C3'-C2'|C3'-C2'-C1'|C2'-C1'-O4'|C1'-O4'-C4'|O3'-C3'-C4'|C3'-C4'-C5'|C3'-C4'-O4'-C1'|C4'-O4'-C1'-C2'|O4'-C1'-C2'-C3'|C4'-C3'-C2'-C1'|C3'-C2'-C1'-O4'|C2'-C1'-O4'-C4'|O3'-C4'-C3'-C2'|C5'-C3'-C4'-O4'|isprepro|phi'|phip|psi'|psip|chi1'|chi1p|chi2'|chi2p|S--S|CB-S-S|S-S-CB'").matcher("");
+	// S.J. 12/09/14 added BUILTNs for "virtualsuite" SUPERBLTN
+    final Matcher BUILTIN   = Pattern.compile("phi|psi|omega|chi1|chi2|chi3|chi4|tau|cbdev|hadev|nhdev|codev|alpha|beta|gamma|delta|epsilon|zeta|c2o2|eta|theta|chi|alpha-1|beta-1|gamma-1|delta-1|epsilon-1|zeta-1|chi-1|O5'-C5'|O5'--C5'|C5'-C4'|C5'--C4'|C4'-C3'|C4'--C3'|C3'-C2'|C3'--C2'|C2'-C1'|C2'--C1'|O4'-C1'|O4'--C1'|O4'-C4'|O4'--C4'|O3'--C3'|O3'-C3'|C2'-O2'|C2'--O2'|C4'-O4'-C1'|O4'-C1'-C2'|C1'-C2'-C3'|C4'-C3'-C2'|C3'-C2'-C1'|C2'-C1'-O4'|C1'-O4'-C4'|O3'-C3'-C4'|C3'-C4'-C5'|C3'-C4'-O4'-C1'|C4'-O4'-C1'-C2'|O4'-C1'-C2'-C3'|C4'-C3'-C2'-C1'|C3'-C2'-C1'-O4'|C2'-C1'-O4'-C4'|O3'-C4'-C3'-C2'|C5'-C3'-C4'-O4'|N1/9-N1/9|N1/9-C1'-C1'-N1/9|N1/9-C1'-C1'|C1'-C1'-N1/9|N1/9-C1'-C1'-P|C1'-C1'|P-P|isprepro|phi'|phip|psi'|psip|chi1'|chi1p|chi2'|chi2p|S--S|CB-S-S|S-S-CB'").matcher("");
     final Matcher DISTANCE  = Pattern.compile("dist(ance)?").matcher("");
     final Matcher ANGLE     = Pattern.compile("angle").matcher("");
     final Matcher DIHEDRAL  = Pattern.compile("dihedral|torsion").matcher("");
@@ -348,7 +350,7 @@ public class Parser //extends ... implements ...
         else if(t.accept(BASEPPERP))
         {
             String bppLabel = "base-P perp";
-            Measurement.BasePhosPerp bpp = new Measurement.BasePhosPerp(bppLabel);
+            Measurement.BasePhosPerp bpp = new Measurement.BasePhosPerp(bppLabel,0); // S.J. - 12/09/14 - last argument added (see the class for details)
             return new Measurement[] {bpp};
         }
         else throw t.syntaxError("Expected measurement type ('distance', 'angle', 'dihedral', etc) ["+t.token()+"]");

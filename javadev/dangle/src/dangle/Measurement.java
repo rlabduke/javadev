@@ -321,7 +321,28 @@ abstract public class Measurement //extends ... implements ...
                 newBuiltin("O3'-C4'-C3'-C2'"),
                 newBuiltin("C5'-C3'-C4'-O4'")
     	    };
-        else if("disulfides".equals(label) || "disulf".equals(label) || "ss".equals(label)) // added 9/21/09 -- DK
+		else if("virtualsuite".equals(label)) // S.J. added 12/09/14
+		{//this SUPERBLTN will contain some BUILTINs, and also some individual measurements
+			
+			String bppLabel = "base-P perp";
+            Measurement.BasePhosPerp bpp = new Measurement.BasePhosPerp(bppLabel,0);
+			bppLabel = "base-P perp -1";
+            Measurement.BasePhosPerp bpp_prev = new Measurement.BasePhosPerp(bppLabel,-1);
+
+			return new Measurement[]
+			{
+				newBuiltin("N1/9-N1/9"),
+				newBuiltin("N1/9-C1'-C1'-N1/9"),
+				newBuiltin("N1/9-C1'-C1'"),
+				newBuiltin("C1'-C1'-N1/9"),
+				newBuiltin("N1/9-C1'-C1'-P"),
+				newBuiltin("C1'-C1'"),
+				newBuiltin("P-P"),
+				bpp,
+				bpp_prev
+			};
+		}
+		else if("disulfides".equals(label) || "disulf".equals(label) || "ss".equals(label)) // added 9/21/09 -- DK
 	        return new Measurement[]
             {
                 newBuiltin("phi"  ).reqDisulf(),
@@ -894,6 +915,100 @@ abstract public class Measurement //extends ... implements ...
                     new AtomSpec(-1, "_C2_")
             ));
         //}}} nucleic acids, i-1
+		//{{{ BUILTINs for "virtualsuite" SUPERBLTN - S.J. 12/09/14
+		else if("N1/9-N1/9".equals(label))
+			return new Group(
+				new Distance(label,
+			 	    new AtomSpec(-1, "_N9_"),
+				    new AtomSpec( 0, "_N9_")
+		    )).add(
+				new Distance(label,
+				    new AtomSpec(-1, "_N9_"),
+				    new AtomSpec( 0, "_N1_")
+			)).add(
+				new Distance(label,
+				    new AtomSpec(-1, "_N1_"),
+				    new AtomSpec( 0, "_N9_")
+			)).add(
+			    new Distance(label,
+					new AtomSpec(-1, "_N1_"),
+					new AtomSpec( 0, "_N1_")
+			));
+		else if("N1/9-C1'-C1'-N1/9".equals(label))
+			return new Group(
+				new Dihedral(label,
+				    new AtomSpec(-1, "_N9_"),
+					new AtomSpec(-1, "_C1*"),
+					new AtomSpec( 0, "_C1*"),		 
+				    new AtomSpec( 0, "_N9_")
+			)).add(
+			    new Dihedral(label,
+					new AtomSpec(-1, "_N9_"),
+					new AtomSpec(-1, "_C1*"),
+					new AtomSpec( 0, "_C1*"),	
+					new AtomSpec( 0, "_N1_")
+			)).add(
+				new Dihedral(label,
+					new AtomSpec(-1, "_N1_"),
+					new AtomSpec(-1, "_C1*"),
+					new AtomSpec( 0, "_C1*"),	
+					new AtomSpec( 0, "_N9_")
+		    )).add(
+				new Dihedral(label,
+					new AtomSpec(-1, "_N1_"),
+					new AtomSpec(-1, "_C1*"),
+					new AtomSpec( 0, "_C1*"),	
+					new AtomSpec( 0, "_N1_")
+		    ));
+		else if("N1/9-C1'-C1'".equals(label))
+			return new Group(
+				new Angle(label,
+					new AtomSpec(-1, "_N9_"),
+					new AtomSpec(-1, "_C1*"),
+					new AtomSpec( 0, "_C1*")
+			)).add(
+				new Angle(label,
+				    new AtomSpec(-1, "_N1_"),
+					new AtomSpec(-1, "_C1*"),
+					new AtomSpec( 0, "_C1*") 
+		    ));			  
+		else if("C1'-C1'-N1/9".equals(label))
+			return new Group(
+				new Angle(label,
+				    new AtomSpec(-1, "_C1*"),
+				    new AtomSpec( 0, "_C1*"),
+					new AtomSpec( 0, "_N9_")
+			)).add(
+				new Angle(label,
+					new AtomSpec(-1, "_C1*"),
+					new AtomSpec( 0, "_C1*"),
+					new AtomSpec( 0, "_N1_") 
+			));	
+		else if("N1/9-C1'-C1'-P".equals(label))
+			return new Group(
+				new Dihedral(label,
+					new AtomSpec(-1, "_N9_"),
+					new AtomSpec(-1, "_C1*"),
+					new AtomSpec( 0, "_C1*"),		 
+					new AtomSpec( 0, "_P__")
+			)).add(
+				new Dihedral(label,
+					new AtomSpec(-1, "_N1_"),
+					new AtomSpec(-1, "_C1*"),
+					new AtomSpec( 0, "_C1*"),	
+					new AtomSpec( 0, "_P__")
+		    ));
+		else if("C1'-C1'".equals(label))
+			return new Distance(label,
+				new AtomSpec(-1, "_C1*"),
+				new AtomSpec( 0, "_C1*")
+		    );
+		else if("P-P".equals(label))
+			return new Distance(label,
+				new AtomSpec( 0, "_P__"),
+				new AtomSpec( 1, "_P__")
+			);
+		//}}} BUILTINs for "virtualsuite" SUPERBLTN
         else return null;
     }
 //}}}
@@ -1448,25 +1563,45 @@ abstract public class Measurement //extends ... implements ...
 
 //{{{ CLASS: BasePhosPerp
 //##############################################################################
+// S.J. 12/09/14 - changed to calculate pperp for current or prev residue, based on value of flag passed, 0 for current, -1 for prev	
     public static class BasePhosPerp extends Measurement
     {
-        public BasePhosPerp(String label)
-        { super(label); }
+		int prev_or_current=0; // to keep track if we are calculating pperp for prev residue or current residue
+							   
+        public BasePhosPerp(String label,int flag)
+        { 
+			super(label);
+			prev_or_current=flag;// 0 for current residue, -1 for prev residue
+		}
         
-        protected double measureImpl(Model model, ModelState state, Residue res)
+        protected double measureImpl(Model model, ModelState state, Residue res) 
         {
             double pperpDist = Double.NaN;
             try
             {
                 Residue next = res.getNext(model); // want 3' P (later in seq!)
-                if(next != null)
+				Residue prev = res.getPrev(model); // to get C1'- and N1/9 for prev residue
+				
+				Atom phos= null,carb = null,nitr = null;
+				if(next != null)
                 {
                     // Get relevant atom coords
-                    Atom phos = next.getAtom(" P  ");
-                    Atom carb =  res.getAtom(" C1'");
-                    Atom nitr =  res.getAtom(" N9 ");
-                    if(carb == null) carb = res.getAtom(" C1*");
-                    if(nitr == null) nitr = res.getAtom(" N1 ");
+					if(prev_or_current == 0) //calculate the pperp for current residue
+					{	
+						phos = next.getAtom(" P  ");
+						carb =  res.getAtom(" C1'");
+						nitr =  res.getAtom(" N9 ");
+						if(carb == null) carb = res.getAtom(" C1*");
+						if(nitr == null) nitr = res.getAtom(" N1 ");
+					}
+					else if(prev_or_current == -1 && prev != null)//calculate the pperp for the prev residue
+					{
+						phos = res.getAtom(" P  ");
+						carb =  prev.getAtom(" C1'");
+						nitr =  prev.getAtom(" N9 ");
+						if(carb == null) carb = prev.getAtom(" C1*");
+						if(nitr == null) nitr = prev.getAtom(" N1 ");
+					}
                     AtomState p   = state.get(phos);
                     AtomState c1  = state.get(carb);
                     AtomState n19 = state.get(nitr);
