@@ -97,6 +97,7 @@ public class Parser //extends ... implements ...
     final Matcher PLANARITY = Pattern.compile("planarity").matcher("");
     final Matcher PUCKER    = Pattern.compile("pucker").matcher("");
     final Matcher BASEPPERP = Pattern.compile("basepperp|pperp").matcher("");
+	final Matcher PCCPROJEC = Pattern.compile("pprojection").matcher(""); // S.J. 12/10/14 for all P Projection on C1'-C1' line related measurements. Accessible only as part of "virtualsuite" SUPERBLTN
     final Matcher LABEL     = Pattern.compile("[A-Za-z0-9*'_.+-]+").matcher("");
     final Matcher AVG       = Pattern.compile("avg").matcher("");
     final Matcher PROJECT   = Pattern.compile("projection|project|drop").matcher("");

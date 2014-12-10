@@ -34,6 +34,7 @@ abstract public class Measurement //extends ... implements ...
     public static final Object TYPE_PUCKER   	= "pucker";
     public static final Object TYPE_BASEPPERP  	= "basePperp";
     public static final Object TYPE_ISPREPRO  	= "isprepro";
+	public static final Object TYPE_PCCPROJEC   = "PCCProjection"; // S.J. 12/10/14 or all P Projection on C1'-C1' line related measurements. Accessible only as part of "virtualsuite" SUPERBLTN
 //}}}
 
 //{{{ Variable definitions
@@ -324,6 +325,7 @@ abstract public class Measurement //extends ... implements ...
 		else if("virtualsuite".equals(label)) // S.J. added 12/09/14
 		{//this SUPERBLTN will contain some BUILTINs, and also some individual measurements
 			
+			// base pperp related parameters
 			String bppLabel = "base-P perp";
             Measurement.BasePhosPerp bpp = new Measurement.BasePhosPerp(bppLabel);
 			bppLabel = "base-P perp -1";
@@ -333,6 +335,16 @@ abstract public class Measurement //extends ... implements ...
 			bppLabel = "Dist C1'-Pperp Point -1";
 			Measurement.BasePhosPerp ext_dist_prev = new Measurement.BasePhosPerp(bppLabel,-1,false);
 			
+			// p projection related parameters
+			String pprojLabel = "Dist P-Pproj";
+			Measurement.PhosC1C1Proj pproj_dist = new Measurement.PhosC1C1Proj(pprojLabel,1);
+			pprojLabel = "Dist C1'-Pproj";
+			Measurement.PhosC1C1Proj c1proj_dist = new Measurement.PhosC1C1Proj(pprojLabel,2);
+			pprojLabel = "P ratio";
+			Measurement.PhosC1C1Proj pproj_ratio = new Measurement.PhosC1C1Proj(pprojLabel,3);
+			pprojLabel = "C1-Pproj/C1-C1 ratio";
+			Measurement.PhosC1C1Proj c1proj_ratio = new Measurement.PhosC1C1Proj(pprojLabel,4);
+			
 			return new Measurement[]
 			{
 				newBuiltin("N1/9-N1/9"),
@@ -340,12 +352,16 @@ abstract public class Measurement //extends ... implements ...
 				newBuiltin("N1/9-C1'-C1'"),
 				newBuiltin("C1'-C1'-N1/9"),
 				newBuiltin("N1/9-C1'-C1'-P"),
+				pproj_dist,
+				c1proj_dist,
 				newBuiltin("C1'-C1'"),
 				bpp_prev,
 				ext_dist_prev,
 				bpp,
 				ext_dist,
 				newBuiltin("P-P"),
+				pproj_ratio,
+				c1proj_ratio
 			};
 		}
 		else if("disulfides".equals(label) || "disulf".equals(label) || "ss".equals(label)) // added 9/21/09 -- DK
@@ -1606,7 +1622,7 @@ abstract public class Measurement //extends ... implements ...
             try
             {
                 Residue next = res.getNext(model); // want 3' P (later in seq!)
-				Residue prev = res.getPrev(model); // to get C1'- and N1/9 for prev residue
+				Residue prev = res.getPrev(model); // to get C1' and N1/9 for prev residue
 				
 				Atom phos= null,carb = null,nitr = null;
 				if(next != null)
@@ -1660,6 +1676,73 @@ abstract public class Measurement //extends ... implements ...
     }
 //}}}
 
+//{{{ CLASS: PhosC1C1Proj
+//##############################################################################
+// S.J. 12/10/14 - added to calcuate measures related to the projection of P on the C1'-C1' line. As part of parameters for SUPERBLTN "virtualsuite"
+// Will calculate different things based on the value of the variable what_to_calc:
+// 1: P-Pproj distance
+// 2: Pproj-C1'(i-1) distance
+// 3: Ratio: Pproj-C1'(i-1) distance/P-Pproj distance
+// 4: Ratio: Pproj-C1'(i-1) distance/C1'-C1' distance
+	public static class PhosC1C1Proj extends Measurement
+    {
+		int what_to_calc = 0;
+		
+		public PhosC1C1Proj(String label, int flag) // make sures that you have to pass a number to it
+        { 
+			super(label);
+			what_to_calc=flag;
+		}
+		
+		protected double measureImpl(Model model, ModelState state, Residue res) 
+        {
+            double final_measure = Double.NaN;
+            try
+            {
+				Residue prev = res.getPrev(model); // to get the C1' from the prev residue
+				if(prev != null)
+				{
+					Atom phos = res.getAtom(" P  ");
+					Atom carb_prev = prev.getAtom(" C1'");
+					if(carb_prev == null) carb_prev = prev.getAtom(" C1*");
+					Atom carb = res.getAtom(" C1'");
+					if(carb == null) carb = res.getAtom(" C1*");
+					
+					AtomState p   = state.get(phos); // Code copied from BasePhosPperp class, changed the variable names
+                    AtomState c1  = state.get(carb);
+                    AtomState c1prev = state.get(carb_prev);
+                    // Draw appropriate vectors
+                    Triple c1prev_p  = new Triple().likeVector(c1prev, p);
+                    Triple c1prev_c1 = new Triple().likeVector(c1prev, c1);
+                    // Get distance from C1 prev to the intersection point 
+                    // of the C1->C1 line and the perpendicular line from P
+                    double dist_c1prev_proj = c1prev_p.dot(c1prev_c1) / c1prev_c1.mag();
+                    // Move along the C1->C1 vector by that amount to the "projection"
+                    Triple c1prev_proj = new Triple(c1prev_c1).unit().mult(dist_c1prev_proj);
+                    Triple proj = new Triple().likeSum(c1prev, c1prev_proj);
+					
+					if(what_to_calc == 1)
+						final_measure = Triple.distance(proj,p);
+					else if (what_to_calc == 2)
+						final_measure = Triple.distance(proj,c1prev);
+					else if(what_to_calc == 3)
+						final_measure = Triple.distance(proj,c1prev)/Triple.distance(proj,p);	
+					else if(what_to_calc == 4)
+						final_measure = Triple.distance(proj,c1prev)/Triple.distance(c1prev,c1);
+				}
+			}
+			catch(AtomException ae) {}
+            return final_measure;
+		}
+		
+		protected String toStringImpl()
+        { return getLabel(); }
+        
+        public Object getType()
+        { return TYPE_PCCPROJEC; }
+	}
+//}}}	
+	
 //{{{ CLASS: Group
 //##############################################################################
     /** Allows for 1+ measurements to be evaluated in series, returning the first valid result. */
