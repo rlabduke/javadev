@@ -325,10 +325,14 @@ abstract public class Measurement //extends ... implements ...
 		{//this SUPERBLTN will contain some BUILTINs, and also some individual measurements
 			
 			String bppLabel = "base-P perp";
-            Measurement.BasePhosPerp bpp = new Measurement.BasePhosPerp(bppLabel,0);
+            Measurement.BasePhosPerp bpp = new Measurement.BasePhosPerp(bppLabel);
 			bppLabel = "base-P perp -1";
             Measurement.BasePhosPerp bpp_prev = new Measurement.BasePhosPerp(bppLabel,-1);
-
+			bppLabel = "Dist C1'-Pperp Point";
+			Measurement.BasePhosPerp ext_dist = new Measurement.BasePhosPerp(bppLabel,false);
+			bppLabel = "Dist C1'-Pperp Point -1";
+			Measurement.BasePhosPerp ext_dist_prev = new Measurement.BasePhosPerp(bppLabel,-1,false);
+			
 			return new Measurement[]
 			{
 				newBuiltin("N1/9-N1/9"),
@@ -337,9 +341,11 @@ abstract public class Measurement //extends ... implements ...
 				newBuiltin("C1'-C1'-N1/9"),
 				newBuiltin("N1/9-C1'-C1'-P"),
 				newBuiltin("C1'-C1'"),
-				newBuiltin("P-P"),
+				bpp_prev,
+				ext_dist_prev,
 				bpp,
-				bpp_prev
+				ext_dist,
+				newBuiltin("P-P"),
 			};
 		}
 		else if("disulfides".equals(label) || "disulf".equals(label) || "ss".equals(label)) // added 9/21/09 -- DK
@@ -1564,14 +1570,34 @@ abstract public class Measurement //extends ... implements ...
 //{{{ CLASS: BasePhosPerp
 //##############################################################################
 // S.J. 12/09/14 - changed to calculate pperp for current or prev residue, based on value of flag passed, 0 for current, -1 for prev	
+// also changed to calculate either the pperp distance, or the distance of the pperp point from the corresponding C1', based on the another flag passed. true for pperp, false for pperp point C1' distance
     public static class BasePhosPerp extends Measurement
     {
 		int prev_or_current=0; // to keep track if we are calculating pperp for prev residue or current residue
-							   
-        public BasePhosPerp(String label,int flag)
+		boolean calc_pperp = true; // will calc pperp if true, distance of pperp point to C1' if false
+		
+        public BasePhosPerp(String label)
+        { 
+			super(label);
+		}
+		
+		public BasePhosPerp(String label,int flag)
         { 
 			super(label);
 			prev_or_current=flag;// 0 for current residue, -1 for prev residue
+		}
+		
+		public BasePhosPerp(String label,boolean flag2)
+        { 
+			super(label);
+			calc_pperp=flag2;// true for pperp, false for distance of pperp point to C1'
+		}
+		
+		public BasePhosPerp(String label,int flag, boolean flag2)
+        { 
+			super(label);
+			prev_or_current=flag;// 0 for current residue, -1 for prev residue
+			calc_pperp=flag2;
 		}
         
         protected double measureImpl(Model model, ModelState state, Residue res) 
@@ -1616,7 +1642,10 @@ abstract public class Measurement //extends ... implements ...
                     Triple n19_corner = new Triple(n19_c1).unit().mult(dist_n19_corner);
                     Triple corner = new Triple().likeSum(n19, n19_corner);
                     // Measure the final result
-                    pperpDist = Triple.distance(corner, p);
+					if(calc_pperp) //calculate pperp distance
+						pperpDist = Triple.distance(corner, p);
+					else // calculate distance from C1'
+						pperpDist = Triple.distance(corner,c1);
                 }
             }
             catch(AtomException ae) {}

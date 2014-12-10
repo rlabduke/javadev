@@ -350,7 +350,7 @@ public class Parser //extends ... implements ...
         else if(t.accept(BASEPPERP))
         {
             String bppLabel = "base-P perp";
-            Measurement.BasePhosPerp bpp = new Measurement.BasePhosPerp(bppLabel,0); // S.J. - 12/09/14 - last argument added (see the class for details)
+            Measurement.BasePhosPerp bpp = new Measurement.BasePhosPerp(bppLabel); 
             return new Measurement[] {bpp};
         }
         else throw t.syntaxError("Expected measurement type ('distance', 'angle', 'dihedral', etc) ["+t.token()+"]");
