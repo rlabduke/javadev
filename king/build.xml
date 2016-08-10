@@ -18,12 +18,12 @@
     <property file="${resource}/${ant.project.name}/buildnum.props"/>
     <property file="${resource}/${ant.project.name}/version.props"/>
     <!-- Conditional, platform-specific compilation -->
-    <condition property="isMacOSX">
+    <!-- <condition property="isMacOSX">
         <and>
             <os family="mac"/>
             <os family="unix"/>
         </and>
-    </condition>
+    </condition> -->
 </target>
 <!-- }}} -->
 
@@ -70,7 +70,7 @@
     </ant>
     <copy file="../lib/iText/itext-1.02b.jar" tofile="${basedir}/itext.jar" failonerror="false"/>
     <mkdir dir="${build}"/>
-    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" target="1.5" source="1.5">
+    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" target="1.7" source="1.7">
          <include name="**/*.java"/>
          <exclude name="**/old/"/>
          <exclude name="**/Mac*.java"/>
@@ -85,7 +85,7 @@
 
 <!-- Compiles .java files that only work on the Mac -->
 <target name="compile-mac" depends="init,compile" if="isMacOSX">
-    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" target="1.5" source="1.5">
+    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" target="1.7" source="1.7">
          <include name="**/Mac*.java"/>
          <classpath>
             <pathelement location="${build}"/>
@@ -96,7 +96,7 @@
 
 <!-- Compiles .java files that only work with JOGL installed -->
 <target name="compile-jogl" depends="init,compile">
-    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" failonerror="false" target="1.5" source="1.5">
+    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" failonerror="false" target="1.7" source="1.7">
          <include name="**/Jogl*.java"/>
          <include name="**/dive/"/>
          <classpath>
@@ -165,11 +165,11 @@
     <javadoc packagenames="driftwood.*,Jama.*,king.*"
         sourcepath="src:../driftwood/src"
         classpath="../lib:../lib/iText/itext-1.02b.jar:../lib/jogl/jogl.jar"
-        destdir="${dist}/javadocs" access="protected" source="1.5"
+        destdir="${dist}/javadocs" access="protected" source="1.7"
         breakiterator="true" noqualifier="all"
         version="true" use="true" author="true"
         windowtitle="IWD's JavaDocs"
-        link="http://java.sun.com/j2se/1.5.0/docs/api/">
+        link="http://java.sun.com/j2se/1.7.0/docs/api/">
     </javadoc>
 </target>
 
@@ -191,6 +191,39 @@
     <copy file="../extratools/doc/tools-manual.pdf" tofile="${dist}/${ant.project.name}-${version}/doc/extratools-manual.pdf"/>
 </target>
 <!-- }}} -->
+
+<taskdef name="bundleapp"
+         classname="com.oracle.appbundler.AppBundlerTask"
+         classpath="../lib/appbundler/appbundler-1.0.jar" />
+
+<property environment="env" />         
+         
+<!--<target name="mac-app" depends="dist">-->
+<target name="mac-app" >
+    <bundleapp outputdirectory="${dist}"
+        name="KiNG"
+        displayname="Kinemage Next Generation"
+        identifier="edu.duke.biochem.kinemage.king"
+        icon="work/KiNG.icns"
+        mainclassname="king.KingMain">
+        <runtime dir="${env.JAVA_HOME}" />
+        <classpath file="king.jar">
+            <include name="plugins/**" />
+        </classpath>
+    </bundleapp>
+    <!-- do some stupid manual moving of plugin files since bundleapp doesn't seem to be able to copy over the plugin directory -->
+    <mkdir dir="${dist}/KiNG.app/Contents/Java/plugins"/>
+    <move todir="${dist}/KiNG.app/Contents/Java/plugins">
+        <fileset dir="${dist}/KiNG.app/Contents/Java">
+            <include name="**/*.jar"/>
+            <exclude name="**/king.jar"/>
+        </fileset>
+    </move>
+    <!-- move probe and suitename executables to app -->
+    <move todir="${dist}/KiNG.app/Contents/Java">
+        <fileset dir="../lib/rlab/mac"/>
+    </move>
+</target>
 
 <!-- clean, backup {{{ -->
 <!-- Removes products of compilation -->

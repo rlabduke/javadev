@@ -1,0 +1,8 @@
+.DS_Store
+**/build/
+**/dist/
+**/*.jar
+**/resource/**/buildnum.props
+king/resource/king/king_prefs
+king/doc/dot_king_prefs.txt
+king/resource/META-INF/services/king.Plugin
