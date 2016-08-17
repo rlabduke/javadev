@@ -7,6 +7,7 @@
 <property name="resource"   location="resource"/>
 <property name="build"      location="build"/>
 <property name="dist"       location="dist"/>
+<property name="javadev"    location=".."/>
 <!-- Version control: creates timestamp, updates ${buildnum}, loads ${version} -->
 <target name="init">
     <tstamp>
@@ -219,10 +220,20 @@
             <exclude name="**/king.jar"/>
         </fileset>
     </move>
-    <!-- move probe and suitename executables to app -->
-    <move todir="${dist}/KiNG.app/Contents/Java">
+    <!-- copy probe and suitename executables to app -->
+    <!--<copy todir="${dist}/KiNG.app/Contents/Java">
         <fileset dir="../lib/rlab/mac"/>
-    </move>
+    </copy>-->
+    <exec executable="cp">
+        <arg line="${javadev}/lib/rlab/mac/probe ${javadev}/lib/rlab/mac/suitename ${dist}/KiNG.app/Contents/Java"/>
+    </exec>
+    <!-- add lines to Info.plist to enable high-resolution -->
+    <replace file="${dist}/KiNG.app/Contents/Info.plist">
+        <replacetoken><![CDATA[<string>king.KingMain</string>]]></replacetoken>
+        <replacevalue><![CDATA[<string>king.KingMain</string>
+<key>NSHighResolutionCapable</key>
+<true/>]]></replacevalue>
+    </replace>
 </target>
 
 <!-- clean, backup {{{ -->
