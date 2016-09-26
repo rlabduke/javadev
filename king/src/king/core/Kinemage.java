@@ -32,7 +32,7 @@ public class Kinemage extends AGE<Kinemage,KGroup> // implements ...
     public boolean atPerspective        = false;
     public boolean atFlat               = false;
     public boolean atListcolordominant  = false;
-    public boolean atSidedcoloringAlpha = true;  // (ARK Spring2010)
+    public boolean atSidedcoloringAlpha = false;  // (ARK Spring2010)
     public boolean atSidedcoloringBeta  = false; // (ARK Spring2010)
     public double  atLens               = 0.0;
 

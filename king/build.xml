@@ -111,7 +111,7 @@
 
 <!-- dist, dist-src, dist-exe {{{ -->
 <!-- Makes .zip files from the ${dist} directory -->
-<target name="dist" description="Generate the distributions" depends="init,clean,build,dist-src,dist-exe">
+<target name="dist" description="Generate the distributions" depends="init,clean,build,dist-src,dist-exe,mac-app">
     <zip destfile="${dist}/${ant.project.name}.${version}.${DSTAMP_SIX}.src.zip">
         <zipfileset dir="${dist}" includes="${ant.project.name}/"/>
         <zipfileset dir="${dist}" includes="javadocs/"/>
@@ -176,6 +176,10 @@
 
 <!-- Makes the end-user distribution -->
 <target name="dist-exe" depends="init,build">
+    <copy file="${javadev}/chiropraxis/chiropraxis.jar" todir="plugins/" preservelastmodified="true"/>
+    <copy file="${javadev}/extratools/extratools.jar" todir="plugins/" preservelastmodified="true"/>
+    <copy file="${javadev}/rdcvis/rdcvis.jar" todir="plugins/" preservelastmodified="true"/>
+    
     <mkdir dir="${dist}/${ant.project.name}-${version}"/>
     <copy todir="${dist}/${ant.project.name}-${version}" preservelastmodified="true">
         <fileset dir="${basedir}">
@@ -200,7 +204,7 @@
 <property environment="env" />         
          
 <!--<target name="mac-app" depends="dist">-->
-<target name="mac-app" >
+<target name="mac-app">
     <bundleapp outputdirectory="${dist}"
         name="KiNG"
         displayname="Kinemage Next Generation"

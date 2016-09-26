@@ -820,7 +820,7 @@ public class UIMenus implements KMessage.Subscriber
         msgs.add(new JLabel("Created in the Richardson lab at Duke University"));
         msgs.add(new JLabel("http://kinemage.biochem.duke.edu"));
         msgs.add(new JLabel(" "));
-        msgs.add(new JLabel("Copyright (C) 2002-2011"));
+        msgs.add(new JLabel("Copyright (C) 2002-2016"));
         msgs.add(new JLabel("Ian W. Davis, Vincent B. Chen, Daniel A. Keedy"));
         msgs.add(new JLabel("All rights reserved."));
 
