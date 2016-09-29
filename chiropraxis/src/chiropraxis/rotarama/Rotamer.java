@@ -12,6 +12,7 @@ import java.util.*;
 //import javax.swing.*;
 import chiropraxis.sc.SidechainAngles2;
 import driftwood.moldb2.*;
+import driftwood.util.*;
 //}}}
 /**
  * <code>Rotamer</code> is a utility class for
@@ -86,7 +87,10 @@ public class Rotamer //extends ... implements ...
 //{{{ dumpRotamerNames
   public String dumpRotamerNames() {
     String allRotamerNames = "";
-    loadRotamerNames();
+    try {
+      loadRotamerNames();
+    } catch (IOException ie)
+    { ie.printStackTrace(SoftLog.err); }
     Iterator keys = names.keySet().iterator();
     while (keys.hasNext()) {
       String resName = (String) keys.next();
@@ -108,30 +112,31 @@ public class Rotamer //extends ... implements ...
     {
         tables = new HashMap(30);
         NDFloatTable ndft;
-        tables.put("ser", loadTable("rota500/ser.ndft"));
-        tables.put("thr", loadTable("rota500/thr.ndft"));
-        tables.put("cys", loadTable("rota500/cys.ndft"));
-        tables.put("val", loadTable("rota500/val.ndft"));
-        tables.put("pro", loadTable("rota500/pro.ndft"));
+        // updated to rota8000 values 09/27/2016 vbc
+        tables.put("ser", loadTable("rota8000/rota8000-ser.ndft"));
+        tables.put("thr", loadTable("rota8000/rota8000-thr.ndft"));
+        tables.put("cys", loadTable("rota8000/rota8000-cys.ndft"));
+        tables.put("val", loadTable("rota8000/rota8000-val.ndft"));
+        tables.put("pro", loadTable("rota8000/rota8000-pro.ndft"));
         
-        tables.put("leu", loadTable("rota500/leu.ndft"));
-        tables.put("ile", loadTable("rota500/ile.ndft"));
-        tables.put("trp", loadTable("rota500/trp.ndft"));
-        tables.put("asp", loadTable("rota500/asp.ndft"));
-        tables.put("asn", loadTable("rota500/asn.ndft"));
-        tables.put("his", loadTable("rota500/his.ndft"));
-        ndft = loadTable("rota500/phetyr.ndft");
+        tables.put("leu", loadTable("rota8000/rota8000-leu-clean.ndft"));
+        tables.put("ile", loadTable("rota8000/rota8000-ile.ndft"));
+        tables.put("trp", loadTable("rota8000/rota8000-trp.ndft"));
+        tables.put("asp", loadTable("rota8000/rota8000-asp.ndft"));
+        tables.put("asn", loadTable("rota8000/rota8000-asn.ndft"));
+        tables.put("his", loadTable("rota8000/rota8000-his.ndft"));
+        ndft = loadTable("rota8000/rota8000-phetyr.ndft");
         tables.put("phe", ndft);
         tables.put("tyr", ndft);
         
-        ndft = loadTable("rota500/met.ndft");
+        ndft = loadTable("rota8000/rota8000-met.ndft");
         tables.put("met", ndft);
         tables.put("mse", ndft); // seleno-Met
-        tables.put("glu", loadTable("rota500/glu.ndft"));
-        tables.put("gln", loadTable("rota500/gln.ndft"));
+        tables.put("glu", loadTable("rota8000/rota8000-glu.ndft"));
+        tables.put("gln", loadTable("rota8000/rota8000-gln.ndft"));
         
-        tables.put("lys", loadTable("rota500/lys.ndft"));
-        tables.put("arg", loadTable("rota500/arg.ndft"));
+        tables.put("lys", loadTable("rota8000/rota8000-lys.ndft"));
+        tables.put("arg", loadTable("rota8000/rota8000-arg.ndft"));
     }
     
     private NDFloatTable loadTable(String path) throws IOException
@@ -146,8 +151,50 @@ public class Rotamer //extends ... implements ...
 //}}}
 
 //{{{ loadRotamerNames
+  /**
+  * Loads the rotamer names from the "rotamer_names.props" file in resourse/chiropraxis/rotarama/.
+  * This props file is mostly copied from cctbx_project/mmtbx/rotamer/, and contains
+  * large angle ranges for naming all of the rotamers. I parse the file myself since 
+  * the Java Properties can't deal with spaces in the keys and duplicated keys. vbc 09/28/2016
+  */
+  public void loadRotamerNames() throws IOException
+  {
+    this.names = new HashMap();
+    InputStream is = this.getClass().getResourceAsStream("rota8000/rotamer_names.props");
+    if(is == null) throw new IllegalArgumentException("Couldn't find resource in JAR file");
+    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+    String line = null;
+    while ((line = reader.readLine()) != null) {
+      line = line.trim();
+      String[] lineSplit = line.split("=");
+      String rotnameKey = lineSplit[0];
+      String[] rotnameKeySplit = rotnameKey.split(" ");
+      String resName = rotnameKeySplit[0];
+      String rotName = rotnameKeySplit[1];
+      //System.out.println(Arrays.toString(rotnameKeySplit));
+      String rotamerRanges = (lineSplit[1]).trim().replaceAll("^\"|\"$", "");
+      String[] rotRangeArray = rotamerRanges.split(", ");
+      int[] rotRangeInts = new int[rotRangeArray.length];
+      for (int i = 0; i < rotRangeArray.length; i++) {
+        rotRangeInts[i] = Integer.parseInt(rotRangeArray[i]);
+      }
+      //System.out.println(Arrays.toString(rotRangeInts));
+      ArrayList tbl = new ArrayList();
+      if (names.containsKey(resName)) {
+        tbl = (ArrayList)names.get(resName);
+      }
+      tbl.add(new NamedRot(rotName, rotRangeInts));
+      names.put(resName, tbl);
+    }
+    reader.close();
+    is.close();
+  }
+
+//}}}
+
+//{{{ loadRotamerNamesOld
 //##################################################################################################
-    private void loadRotamerNames()
+    private void loadRotamerNamesOld()
     {
         // These bins are often WAY too big -- the point is to partition space first,
         // and use the empirical distributions to decide if it's valid or not.
@@ -158,6 +205,8 @@ public class Rotamer //extends ... implements ...
         // Boundaries were determined by hand by IWD while looking at kins labeled
         // by an automatic hill-climbing algorithm.
         //  name    min1    max1    min2    max2    ...
+        
+        // Old Top500 rotamer bins
         this.names = new HashMap();
         ArrayList tbl;
         

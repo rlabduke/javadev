@@ -1,43 +1,72 @@
-#LyX 1.6.1 created this file. For more info see http://www.lyx.org/
-\lyxformat 345
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
 \begin_document
 \begin_header
+\save_transient_properties true
+\origin unavailable
 \textclass report
 \use_default_options false
+\maintain_unincluded_children false
 \language english
+\language_package default
 \inputencoding auto
-\font_roman times
-\font_sans helvet
-\font_typewriter courier
+\fontencoding global
+\font_roman "times" "default"
+\font_sans "helvet" "default"
+\font_typewriter "courier" "default"
+\font_math "auto" "auto"
 \font_default_family default
+\use_non_tex_fonts false
 \font_sc false
 \font_osf false
-\font_sf_scale 100
-\font_tt_scale 100
-
+\font_sf_scale 100 100
+\font_tt_scale 100 100
 \graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
 \paperfontsize default
 \spacing single
 \use_hyperref false
 \papersize default
 \use_geometry false
-\use_amsmath 1
-\use_esint 0
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 0
+\use_package mathdots 0
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
 \cite_engine basic
+\cite_engine_type default
+\biblio_style plain
 \use_bibtopic false
+\use_indices false
 \paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
-\defskip medskip
+\paragraph_indentation default
 \quotes_language english
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
 \end_header
 
 \begin_body
@@ -134,7 +163,7 @@ Command reference
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0sp">
 <column alignment="center" valignment="top" width="0sp">
 <row>
@@ -305,7 +334,7 @@ With Shift+Ctrl
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0sp">
 <column alignment="center" valignment="top" width="0sp">
 <row>
@@ -420,7 +449,7 @@ Rotate around Y axis only
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0sp">
 <column alignment="center" valignment="top" width="0sp">
 <row>
@@ -666,9 +695,18 @@ The Sidechain Rotation tool is useful for doing interactive refitting of
  Use Ctrl+Click (a.k.a.
  middle-click) to select a sidechain to rotate, then pick from a list of
  predefined rotamers or set the angles by hand using the dials.
- The rotamericity of the current sidechain is monitored in the bottom right
- corner; it indicates how frequently (if ever!) the current conformation
- is found in well-determined structures.
+ The rotamericity of the current sidechain and the closest named rotamer
+ are monitored in the bottom right corner; it indicates how frequently (if
+ ever!) the current conformation is found in well-determined structures.
+ This tool was updated to use the Top8000 
+\begin_inset Quotes eld
+\end_inset
+
+ultimate
+\begin_inset Quotes erd
+\end_inset
+
+ version of the rotamer library in the fall of 2016.
 \end_layout
 
 \begin_layout Standard
@@ -770,7 +808,7 @@ The model manager also tracks the changes made to the model and allows near-unli
 mited undo.
  In addition, it provides access to dynamic visualizations, like Probe dots
  and NOE constraints.
- Using this feature requires that your OS can find Probe -- 
+ Using this feature requires that your OS can find Probe – 
 \emph on
 i.e.
 \emph default
@@ -875,8 +913,8 @@ Revision status
 \end_layout
 
 \begin_layout Standard
-This manual was last updated 1 September 2010 by DAK for Chiropraxis version
- 1.07.
+This manual was last updated 28 September 2016 by VBC for Chiropraxis version
+ 1.11.
 \end_layout
 
 \end_body

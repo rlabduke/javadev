@@ -66,7 +66,7 @@ public class SidechainAngles2 //extends ... implements ...
     {
         // Load all properties from file
         Props props = new Props();
-        InputStream is = this.getClass().getResourceAsStream("angles.props");
+        InputStream is = this.getClass().getResourceAsStream("sidechain_angles_top8000.props");
         if(is == null) throw new IllegalArgumentException("Couldn't find resource in JAR file");
         props.load(is);
         is.close();

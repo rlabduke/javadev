@@ -357,12 +357,16 @@ public class SidechainRotator implements Remodeler, ChangeListener, ListSelectio
         {
             double score = rotamer.evaluate(targetRes, modelman.getMoltenState()) * 100.0;
             String eval;
-            if(score > 20)          eval = "Excellent";
-            else if(score > 10)     eval = "Good";
-            else if(score >  2)     eval = "Fair";
-            else if(score >  1)     eval = "Poor";
+            //if(score > 20)          eval = "Excellent";
+            //else if(score > 10)     eval = "Good";
+            //else if(score >  2)     eval = "Fair";
+            if(score > 2)             eval = "Favored";
+            else if(score >  0.3)     eval = "Allowed";
             else                    eval = "OUTLIER";
-            rotaQuality.setText(eval+" ("+df1.format(score)+"%)");
+            
+            String rotName = rotamer.identify(targetRes, modelman.getMoltenState());
+            if (rotName == null || eval == "OUTLIER") rotName = "OUTLIER";
+            rotaQuality.setText(eval+" ("+df1.format(score)+"%) "+rotName);
         }
         catch(IllegalArgumentException ex)
         {

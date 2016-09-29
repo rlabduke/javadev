@@ -1,43 +1,72 @@
-#LyX 1.6.1 created this file. For more info see http://www.lyx.org/
-\lyxformat 345
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
 \begin_document
 \begin_header
+\save_transient_properties true
+\origin unavailable
 \textclass report
 \use_default_options false
+\maintain_unincluded_children false
 \language english
+\language_package default
 \inputencoding auto
-\font_roman default
-\font_sans default
-\font_typewriter default
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
 \font_default_family default
+\use_non_tex_fonts false
 \font_sc false
 \font_osf false
-\font_sf_scale 100
-\font_tt_scale 100
-
+\font_sf_scale 100 100
+\font_tt_scale 100 100
 \graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
 \paperfontsize default
 \spacing single
 \use_hyperref false
 \papersize default
 \use_geometry false
-\use_amsmath 1
-\use_esint 1
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 0
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
 \cite_engine basic
+\cite_engine_type default
+\biblio_style plain
 \use_bibtopic false
+\use_indices false
 \paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
-\defskip medskip
+\paragraph_indentation default
 \quotes_language english
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
 \end_header
 
 \begin_body
@@ -137,19 +166,19 @@ kinetic image,
 \end_inset
 
  an interactive, three-dimensional illustration.
- Because kinemages contain simple geometric objects --- points, lines, spheres,
+ Because kinemages contain simple geometric objects — points, lines, spheres,
  
 \emph on
 etc.
 
 \emph default
- --- they are suited to a great variety of subjects, from simple sketches
+ — they are suited to a great variety of subjects, from simple sketches
  to sophisticated plots to detailed schematics of 3-D objects.
  Their strength is in 
 \emph on
 selective
 \emph default
- presentation of information --- they were originally intended as an alternative
+ presentation of information — they were originally intended as an alternative
  to flat, static illustrations in scientific journals.
 \end_layout
 
@@ -263,8 +292,7 @@ http://java.sun.com/getjava/index.html
 
 .
  The software is free and available for Windows, Linux, and Solaris computers.
- We recommend getting the newest version that is available (1.6.0 as of this
- writing).
+ We recommend getting the newest version that is available.
 \end_layout
 
 \begin_layout Subsection
@@ -441,7 +469,7 @@ Most kinemages have many different components to them, grouped together
  A protein might have one group for each subunit; or one group for mainchain,
  another for side chains, and yet another for hydrogens.
  Groups and subgroups are given names and can be made visible or hidden
- by the viewer --- you might want to see only one subunit, or only the backbone
+ by the viewer — you might want to see only one subunit, or only the backbone
  (without sidechains and hydrogens cluttering up the view).
 \end_layout
 
@@ -817,7 +845,7 @@ File | Append
 \family default
  will combine the contents of a new file with the contents of the currently
  displayed kinemage.
- Be careful --- if the new file contains multiple kinemages, they'll 
+ Be careful — if the new file contains multiple kinemages, they'll 
 \emph on
 all
 \emph default
@@ -1189,7 +1217,7 @@ regular expression
  A star (*) matches any group of zero or more characters, and a question
  mark (?) matches any single character.
  Notice that the search is treated as a single term, rather than multiple
- words --- the pieces must be in the correct order.
+ words — the pieces must be in the correct order.
  Thus a search for 
 \begin_inset Quotes eld
 \end_inset
@@ -1412,14 +1440,7 @@ info-vis
 
  kinemages, you can examine (for instance) the x-y plane and the y-z plane
  at the same time using this trick.
- It pairs well with the 90-degree rotations plugin (
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "rot90-plugin"
-
-\end_inset
-
-).
+ It pairs well with the 90-degree rotations plugin.
 \end_layout
 
 \begin_layout Subsection
@@ -1471,6 +1492,12 @@ jogl.jar
  classpath in order for JOGL to work.
  If you downloaded a platform-specific version of KiNG, the necessary libraries
  may already be included.
+ 
+\shape italic
+2016 update: 
+\shape default
+With the newer versions of Java, JOGL 1.1.1 doesn't seem to be currently working.
+ We're exploring the possibility of updating to use JOGL 2.0.
 \end_layout
 
 \begin_layout Standard
@@ -1662,7 +1689,7 @@ The
 Tools
 \family default
  menu has a variety of tools and plug-ins for interacting with the kinemage.
- Many of these are highly domain-specific --- tailored to doing structural
+ Many of these are highly domain-specific — tailored to doing structural
  biology, for example.
  Each tool 
 \begin_inset Quotes eld
@@ -1946,7 +1973,7 @@ Command reference
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0sp">
 <column alignment="center" valignment="top" width="0sp">
 <row>
@@ -2061,7 +2088,7 @@ With Shift+Ctrl
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0sp">
 <column alignment="center" valignment="top" width="0sp">
 <row>
@@ -2176,7 +2203,7 @@ Rotate around Y axis only
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0sp">
 <column alignment="center" valignment="top" width="0sp">
 <row>
@@ -3315,8 +3342,8 @@ mailto:vbc3@duke.edu
 \emph on
 Please
 \emph default
-, do not hesistate to report bugs and problems with KiNG --- your input
- can only improve the program.
+, do not hesistate to report bugs and problems with KiNG — your input can
+ only improve the program.
 \end_layout
 
 \begin_layout Chapter
@@ -3329,7 +3356,7 @@ Copyright
 
 \begin_layout Standard
 The KiNG program and all its associated original resources and documentation
- are copyright (C) 2002-2009 by Ian W.
+ are copyright (C) 2002-2016 by Ian W.
  Davis & Vincent B.
  Chen.
  KiNG makes use of the gnu.regexp library, which is copyright (C) by Wes
@@ -3448,7 +3475,7 @@ I owe an enormous debt of gratitude to many, many people for making this
  program possible.
  First and foremost, I thank David and Jane Richardson, who are my bosses
  and mentors, and who developed the kinemage concept, the file format, and
- most of the features found in KiNG --- my contribution was only the Java
+ most of the features found in KiNG — my contribution was only the Java
  implementation.
  Second, I thank Vincent Chen for his ongoing contributions to KiNG; he
  has developed many useful plugins and has made significant contributions
@@ -3465,7 +3492,8 @@ KiNG is free software built on free software.
  I can't hope to acknowledge all the authors of all the software that has
  been used to create KiNG, but I can mention a few of the most prominent:
  Sun Microsystems, the creators of the Java language and libraries; the
- LyX document processor, used for writing the documentation; jEdit, a fantastic
+ \SpecialChar LyX
+ document processor, used for writing the documentation; jEdit, a fantastic
  programmer's text editor written entirely in Java; and the entire Linux
  movement, for providing a real alternative to comercial operating systems.
  I have also taken advantage of a number of excellent free Java libraries,
@@ -3477,7 +3505,7 @@ Revision status
 \end_layout
 
 \begin_layout Standard
-This manual was last updated 29 August 2009 by VBC for KiNG version 2.17.
+This manual was last updated 28 Sept 2016 by VBC for KiNG version 2.23.
 \end_layout
 
 \begin_layout Chapter
@@ -3538,6 +3566,10 @@ Redistributions in binary form must reproduce the above copyright notice,
 \begin_layout Enumerate
 The end-user documentation included with the redistribution, if any, must
  include the following acknowledgment:
+\begin_inset Separator latexpar
+\end_inset
+
+
 \end_layout
 
 \begin_deeper
