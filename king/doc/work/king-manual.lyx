@@ -3305,7 +3305,7 @@ External documentation
 The best resource for learning more about kinemages is the Richardson lab
  website, 
 \begin_inset Flex URL
-status collapsed
+status open
 
 \begin_layout Plain Layout
 
@@ -3325,25 +3325,25 @@ Bug reporting and contact info
 
 \begin_layout Standard
 Ian Davis, the original author of KiNG, has graduated.
- KiNG is currently being maintained by Vincent Chen, who may be reached
- via email at 
-\begin_inset Flex URL
-status open
-
-\begin_layout Plain Layout
-
-mailto:vbc3@duke.edu
-\end_layout
-
-\end_inset
-
-.
+ KiNG is currently being maintained by Vincent Chen.
  
 \emph on
 Please
 \emph default
 , do not hesistate to report bugs and problems with KiNG — your input can
  only improve the program.
+ Reach us at 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+mailto:rlabduke@gmail.com?subject=KiNG issues/questions
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Chapter
