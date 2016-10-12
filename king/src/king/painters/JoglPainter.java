@@ -14,9 +14,9 @@ import java.util.*;
 //import javax.swing.*;
 //import driftwood.*;
 
-import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
-import com.sun.opengl.util.*; // for GLUT
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.glu.*;
+import com.jogamp.opengl.util.gl2.*; // for GLUT
 //}}}
 /**
 * <code>JoglPainter</code> is a hardware-accelerated Painter that uses
@@ -32,7 +32,7 @@ public class JoglPainter implements Painter
 
 //{{{ Variable definitions
 //##############################################################################
-    GL          gl;
+    GL2          gl;
     GLU         glu;
     GLUT        glut;
     Rectangle   clipRgn     = new Rectangle();
@@ -47,7 +47,7 @@ public class JoglPainter implements Painter
     public JoglPainter(GLAutoDrawable drawable)
     {
         super();
-        gl = drawable.getGL();
+        gl = (GL2)drawable.getGL();
         //glu = drawable.getGLU();
         glu = new GLU();
         glut = new GLUT();
@@ -352,7 +352,7 @@ public class JoglPainter implements Painter
             }
         }
         
-        gl.glBegin(GL.GL_POLYGON);
+        gl.glBegin(GL2.GL_POLYGON);
         gl.glVertex2d(xPoints[0], -yPoints[0]);
         gl.glVertex2d(xPoints[1], -yPoints[1]);
         gl.glVertex2d(xPoints[2], -yPoints[2]);
@@ -432,7 +432,7 @@ public class JoglPainter implements Painter
     {
         clipRgn.setBounds(x, y, width, height);
         
-        gl.glMatrixMode(GL.GL_PROJECTION);  
+        gl.glMatrixMode(GL2.GL_PROJECTION);  
         gl.glLoadIdentity(); 
         //glu.gluOrtho2D(0.0, width, -height, 0.0); 
         glu.gluOrtho2D(x, x+width, y-height, y); 
@@ -442,7 +442,7 @@ public class JoglPainter implements Painter
     public void clearCanvas(Color c)
     {
         gl.glClearColor(c.getRed()/255f, c.getGreen()/255f, c.getBlue()/255f, c.getAlpha()/255f);
-        gl.glClear(GL.GL_COLOR_BUFFER_BIT);
+        gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
     }
 //}}}
 

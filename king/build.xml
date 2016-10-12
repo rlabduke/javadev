@@ -19,12 +19,12 @@
     <property file="${resource}/${ant.project.name}/buildnum.props"/>
     <property file="${resource}/${ant.project.name}/version.props"/>
     <!-- Conditional, platform-specific compilation -->
-    <!-- <condition property="isMacOSX">
+    <!--<condition property="isMacOSX">
         <and>
             <os family="mac"/>
             <os family="unix"/>
         </and>
-    </condition> -->
+    </condition>-->
 </target>
 <!-- }}} -->
 
@@ -97,13 +97,14 @@
 
 <!-- Compiles .java files that only work with JOGL installed -->
 <target name="compile-jogl" depends="init,compile">
-    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" failonerror="false" target="1.7" source="1.7">
+    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" failonerror="false" target="1.8" source="1.8">
          <include name="**/Jogl*.java"/>
          <include name="**/dive/"/>
          <classpath>
             <pathelement location="${build}"/>
             <pathelement location="../driftwood/build"/>
-            <pathelement location="../lib/jogl/jogl.jar"/>
+            <pathelement location="../lib/jogl2/jogl-all.jar"/>
+            <pathelement location="../lib/jogl2/gluegen-rt.jar"/>
          </classpath>
     </javac>
 </target>
@@ -127,7 +128,7 @@
         <zipfileset dir="../molikin/dist/" includes="molikin/"/> 
         <zipfileset dir="../lib/" prefix="lib/">
             <include name="iText/*.jar"/>
-            <include name="jogl/*.jar"/>
+            <include name="jogl2/*.jar"/>
         </zipfileset>
     </zip>
     <zip basedir="${dist}"

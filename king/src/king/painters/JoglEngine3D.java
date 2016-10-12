@@ -13,9 +13,9 @@ import java.util.*;
 //import javax.swing.*;
 import driftwood.r3.*;
 
-import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
-import com.sun.opengl.util.*; // for GLUT
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.glu.*;
+import com.jogamp.opengl.util.gl2.*; // for GLUT
 //}}}
 /**
 * <code>JoglEngine3D</code> is a kinemage renderer that uses "real" OpenGL
@@ -54,7 +54,7 @@ public class JoglEngine3D extends Engine
     /** If set, clipping volume always starts very close to the eye, instead of around the screen */
     public boolean      caveClipping = false;
 
-    protected GL        gl;
+    protected GL2    gl;
     protected GLU       glu;
     protected GLUT      glut;
     protected float[]   clearColor;
@@ -90,7 +90,7 @@ public class JoglEngine3D extends Engine
     }
     
     /** Please call this before discarding the Engine object to release OpenGL resources! */
-    public void cleanup(GL gl)
+    public void cleanup(GL2 gl)
     {
         // clean up display lists
         if(ballDL != 0)
@@ -104,7 +104,7 @@ public class JoglEngine3D extends Engine
 //{{{ render
 //##################################################################################################
     /** Renders with the observer at (0, 0, perspDist) -- perfect for viewing the default screen. */
-    public void render(AGE xformable, KView view, Rectangle bounds, GL gl)
+    public void render(AGE xformable, KView view, Rectangle bounds, GL2 gl)
     { render(xformable, view, bounds, gl, new Triple(0, 0, perspDist)); }
 
     /**
@@ -116,7 +116,7 @@ public class JoglEngine3D extends Engine
     * @param eyePosition    location of the observer's eyeball in the arbitrary world frame,
     *   measured in pixels (1/72" for most displays).  Interacts with screen position/orientation.
     */
-    public void render(AGE xformable, KView view, Rectangle bounds, GL gl, Tuple3 eyePosition)
+    public void render(AGE xformable, KView view, Rectangle bounds, GL2 gl, Tuple3 eyePosition)
     {
     	// init GL
         this.gl     = gl;
@@ -183,7 +183,7 @@ public class JoglEngine3D extends Engine
     {
         // Direction is relative to transformed coordinate space in which observer is defined.
         // We don't want the light rotating with the model!
-        gl.glMatrixMode(GL.GL_MODELVIEW);
+        gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glPushMatrix();
         gl.glLoadIdentity();
         // If we've rotated the world for a nonstandard screen position,
@@ -198,32 +198,32 @@ public class JoglEngine3D extends Engine
         // only are affected by ambient lighting components.
         //gl.glEnable(GL.GL_LIGHTING);
         // Correctly scaled normals are essential for lighting!
-        gl.glEnable(GL.GL_NORMALIZE);
-        gl.glEnable(GL.GL_LIGHT0);
+        gl.glEnable(GL2.GL_NORMALIZE);
+        gl.glEnable(GL2.GL_LIGHT0);
         
         float I = 1.0f;        // overal intensity
         float a = 0.3f * I;     // ambient
         float d = 0.8f * I;     // diffuse
         float s = 0.0f * I;     // specular (doesn't seem to work?)
-        gl.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, new float[] {a, a, a, 1}, 0);
-        gl.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, new float[] {d, d, d, 1}, 0);
-        gl.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, new float[] {s, s, s, 1}, 0);
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_AMBIENT, new float[] {a, a, a, 1}, 0);
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, new float[] {d, d, d, 1}, 0);
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, new float[] {s, s, s, 1}, 0);
 
         // Directional light source; vector indicates light direction.
         Triple lv = this.lightingVector;
-        gl.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION,
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION,
             new float[] {-(float)lv.getX(), -(float)lv.getY(), -(float)lv.getZ(), 0}, 0);
-        gl.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, new float[] {0, 0, 0, 1}, 0); // default is ???
-        gl.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_FALSE); // supposedly more efficient
-        gl.glLightModeli(GL.GL_LIGHT_MODEL_TWO_SIDE, GL.GL_TRUE); // will be needed for ribbons!
+        gl.glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, new float[] {0, 0, 0, 1}, 0); // default is ???
+        gl.glLightModeli(GL2.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_FALSE); // supposedly more efficient
+        gl.glLightModeli(GL2.GL_LIGHT_MODEL_TWO_SIDE, GL.GL_TRUE); // will be needed for ribbons!
         
         // Base material
-        gl.glEnable(GL.GL_COLOR_MATERIAL); // color will be taken from color statements
-        gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT_AND_DIFFUSE); // must be enabled to work!
+        gl.glEnable(GL2.GL_COLOR_MATERIAL); // color will be taken from color statements
+        gl.glColorMaterial(GL2.GL_FRONT_AND_BACK, GL2.GL_AMBIENT_AND_DIFFUSE); // must be enabled to work!
         //gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, new float[] {1,0,0,1}, 0);
         //gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, new float[] {1,0,0,1}, 0);
-        gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_SPECULAR, new float[] {1,1,1,1}, 0);
-        gl.glMaterialf(GL.GL_FRONT_AND_BACK, GL.GL_SHININESS, 80f);
+        gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_SPECULAR, new float[] {1,1,1,1}, 0);
+        gl.glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, 80f);
         gl.glPopMatrix();
     }
 //}}}
@@ -348,7 +348,7 @@ in the plane of the screen.
         // Projection matrix
         // Goal is to transform visible points into the cube from (-1,-1,-1) to (+1,+1,+1)
         // Anything outside that cube after applying this matrix gets clipped!
-        gl.glMatrixMode(GL.GL_PROJECTION);  
+        gl.glMatrixMode(GL2.GL_PROJECTION);  
         gl.glLoadIdentity();
         // Calculate the unit vectors that form a local coordinate frame for the screen.
         // We want the rotation that will bring them to match the default screen,
@@ -414,7 +414,7 @@ in the plane of the screen.
         // Transforms are applied to the points in the REVERSE of the order specified.
         // i.e. glMultMatrixd() is a post-multiply operation.
         // It is VERY IMPORTANT that we leave the model-view matrix as the active one!
-        gl.glMatrixMode(GL.GL_MODELVIEW);  
+        gl.glMatrixMode(GL2.GL_MODELVIEW);  
         gl.glLoadIdentity();
         // Move the world like we moved the screen, so we see what was behind it.
         // Remember OpenGL lists elements top-to-bottom, then left-to-right.
@@ -436,12 +436,12 @@ in the plane of the screen.
         gl.glTranslated(-cx, -cy, -cz); // center
         
         // Fog
-        gl.glEnable(GL.GL_FOG);
-        gl.glFogi(GL.GL_FOG_MODE, GL.GL_LINEAR);
-        gl.glFogf(GL.GL_FOG_START, (float) near);
+        gl.glEnable(GL2.GL_FOG);
+        gl.glFogi(GL2.GL_FOG_MODE, GL2.GL_LINEAR);
+        gl.glFogf(GL2.GL_FOG_START, (float) near);
         double farFog = (far - 0.36*near) / (1 - 0.36);
-        gl.glFogf(GL.GL_FOG_END, (float) (farFog));
-        gl.glFogfv(GL.GL_FOG_COLOR, clearColor, 0);
+        gl.glFogf(GL2.GL_FOG_END, (float) (farFog));
+        gl.glFogfv(GL2.GL_FOG_COLOR, clearColor, 0);
         
         return R;
     }
@@ -544,13 +544,13 @@ in the plane of the screen.
         int currWidth = list.getWidth();
         // The +0.5 makes it closer to other KiNG rendering modes (?)
         gl.glLineWidth(currWidth+0.5f);
-        gl.glBegin(GL.GL_LINE_STRIP);
+        gl.glBegin(GL2.GL_LINE_STRIP);
         for(KPoint p : list.getChildren())
         {
             if(p.isBreak())
             {
                 gl.glEnd();
-                gl.glBegin(GL.GL_LINE_STRIP);
+                gl.glBegin(GL2.GL_LINE_STRIP);
             }
             
             KPaint ptColor = p.getDrawingColor(this);
@@ -585,7 +585,7 @@ in the plane of the screen.
         int currWidth = list.getWidth();
         // The +0.5 makes it closer to other KiNG rendering modes (?)
         gl.glPointSize(currWidth+0.5f);
-        gl.glBegin(GL.GL_POINTS);
+        gl.glBegin(GL2.GL_POINTS);
         for(KPoint p : list.getChildren())
         {
             KPaint ptColor = p.getDrawingColor(this);
@@ -661,13 +661,13 @@ in the plane of the screen.
             {
                 for(int i = 0; i <= maxDepth; i++)
                 {
-                    gl.glNewList(ballDL+i, GL.GL_COMPILE);
-                    gl.glEnable(GL.GL_LIGHTING); // lines and points aren't lit
-                    gl.glBegin(GL.GL_TRIANGLES);
+                    gl.glNewList(ballDL+i, GL2.GL_COMPILE);
+                    gl.glEnable(GL2.GL_LIGHTING); // lines and points aren't lit
+                    gl.glBegin(GL2.GL_TRIANGLES);
                     for(int[] face : icosFaces)
                         drawSphereFace(icosVerts[face[0]], icosVerts[face[1]], icosVerts[face[2]], i);
                     gl.glEnd();
-                    gl.glDisable(GL.GL_LIGHTING);
+                    gl.glDisable(GL2.GL_LIGHTING);
                     gl.glEndList();
                 }
             }
@@ -678,12 +678,12 @@ in the plane of the screen.
         // else special case: render it the slow way
         else
         {
-            gl.glEnable(GL.GL_LIGHTING); // lines and points aren't lit
-            gl.glBegin(GL.GL_TRIANGLES);
+            gl.glEnable(GL2.GL_LIGHTING); // lines and points aren't lit
+            gl.glBegin(GL2.GL_TRIANGLES);
             for(int[] face : icosFaces)
                 drawSphereFace(icosVerts[face[0]], icosVerts[face[1]], icosVerts[face[2]], depth);
             gl.glEnd();
-            gl.glDisable(GL.GL_LIGHTING);
+            gl.glDisable(GL2.GL_LIGHTING);
         }
     }
     
@@ -746,8 +746,8 @@ in the plane of the screen.
         KPaint currColor = list.getColor();
         if(currColor.isInvisible()) return;
         setPaint(currColor);
-        gl.glEnable(GL.GL_LIGHTING); // lines and points aren't lit
-        gl.glBegin(GL.GL_TRIANGLE_STRIP);
+        gl.glEnable(GL2.GL_LIGHTING); // lines and points aren't lit
+        gl.glBegin(GL2.GL_TRIANGLE_STRIP);
         KPoint from = null, fromfrom = null;
         boolean flipNormal = false; // to get consistent normals -- not really needed
         for(KPoint p : list.getChildren())
@@ -757,7 +757,7 @@ in the plane of the screen.
                 gl.glEnd();
                 from = fromfrom = null;
                 flipNormal = false;
-                gl.glBegin(GL.GL_TRIANGLE_STRIP);
+                gl.glBegin(GL2.GL_TRIANGLE_STRIP);
             }
             
             KPaint ptColor = p.getDrawingColor(this);
@@ -790,7 +790,7 @@ in the plane of the screen.
             flipNormal = !flipNormal;
         }
         gl.glEnd();
-        gl.glDisable(GL.GL_LIGHTING);
+        gl.glDisable(GL2.GL_LIGHTING);
     }
 //}}}
 

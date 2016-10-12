@@ -19,8 +19,9 @@ import javax.swing.*;
 import driftwood.r3.*;
 import driftwood.util.*;
 
-import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.glu.*;
+import com.jogamp.opengl.awt.*;
 //}}}
 /**
 * <code>JoglCanvas</code> is a wrapper for a Painter that uses
@@ -88,7 +89,8 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
         kMain.getFileDropHandler().handleDropsFor(this);
         
         // Create and listen to an OpenGL canvas
-        GLCapabilities capabilities = new GLCapabilities();
+        GLProfile profile = GLProfile.getDefault();
+        GLCapabilities capabilities = new GLCapabilities(profile);
         capabilities.setDoubleBuffered(true); // usually enabled by default, but to be safe...
         
         int fsaaNumSamples = kMain.getPrefs().getInt("joglNumSamples");
@@ -97,24 +99,37 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
 
         //canvas = GLDrawableFactory.getFactory().createGLCanvas(capabilities);
         canvas = new GLCanvas(capabilities);
+
         canvas.addGLEventListener(this); // calls display(), reshape(), etc.
         canvas.addMouseListener(this); // cursor related; see this.mouseEntered().
         toolbox.listenTo(canvas);
         this.add(canvas, BorderLayout.CENTER);
+        //canvas.setSurfaceScale(new float[] {4.0f, 4.0f}); 
+        float[] result = canvas.getCurrentSurfaceScale(new float[2]);
+        System.out.println("currsurfscale: "+Arrays.toString(result));
+        //canvas.setSurfaceScale(new float[] {4.0f, 4.0f}); 
+        //result = canvas.getNativeSurfaceScale(new float[2]);
+        //System.out.println("nativesurfscale: "+Arrays.toString(result));
 
     }
 //}}}
 
-//{{{ init, display, reshape, displayChanged
+//{{{ init, dispose, display, reshape, displayChanged
 //##############################################################################
     public void init(GLAutoDrawable drawable)
     {}
     
+    public void dispose(GLAutoDrawable drawable)
+    {}
+    
     public void display(GLAutoDrawable drawable)
     {
-        GL gl = drawable.getGL();
+        GL2 gl = (GL2)drawable.getGL();
         Kinemage kin = kMain.getKinemage();
 
+        System.out.println("display() surface height "+canvas.getSurfaceHeight());
+        //canvas.setSurfaceScale(new float[] {4.0f, 4.0f}); 
+        
         if(kin == null)
         {
             // Blank screen
@@ -124,7 +139,10 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
             // KiNG logo and new version availability
             // This is probably a bit slow, but for logo display, we don't really care.
             Graphics2D g2 = setupOverlay();
+            System.out.println("kincanvas dim: "+kMain.getCanvas().getPreferredSize().toString());
             Dimension dim = glSize;
+            //Dimension dim = kMain.getCanvas().getPreferredSize();
+            System.out.println("display() dim: " + dim.toString());
             gl.glRasterPos2d(0, -dim.height); // for getting the logo to display in correct spot
             g2.setColor(Color.black);
             g2.fillRect(0, 0, dim.width, dim.height);
@@ -151,22 +169,27 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
                 SoftLog.err.println(timestamp+" ms ("+(timestamp > 0 ? Long.toString(1000/timestamp) : ">1000")
                     +" FPS) - "+engine.getNumberPainted()+" objects painted");
         }
+
     }
     
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height)
     {
-        GL gl = drawable.getGL();
+        GL2 gl = (GL2)drawable.getGL();
         //GLU glu = drawable.getGLU();
         GLU glu = new GLU();
         
+        System.out.println("reshape width: "+width+" height: "+height);
+        //Dimension dim = kMain.getCanvas().getPreferredSize();
+        //this.glSize.setSize(dim.getWidth(), dim.getHeight());
+        
         this.glSize.setSize(width, height);
         gl.glViewport(0, 0, width, height); // left, right, width, height
-        gl.glMatrixMode(GL.GL_PROJECTION);
+        gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glLoadIdentity();
         glu.gluOrtho2D(0.0, width, -height, 0.0); // left, right, bottom, top
     }
     
-    public void displayChanged(GLAutoDrawable drawable, boolean modeChnaged, boolean deviceChanged)
+    public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged)
     {}
 //}}}
 
@@ -247,6 +270,7 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
     {
         if(overlayImg == null || overlayImg.getWidth() != glSize.width || overlayImg.getHeight() != glSize.height)
         {
+          System.out.println("setupOverlay() glsize: "+glSize.toString());
             overlayImg = new BufferedImage(glSize.width, glSize.height, BufferedImage.TYPE_INT_ARGB);
             int[] data = ((DataBufferInt)overlayImg.getRaster().getDataBuffer()).getData();
             overlayData = ByteBuffer.allocate(4 * data.length);

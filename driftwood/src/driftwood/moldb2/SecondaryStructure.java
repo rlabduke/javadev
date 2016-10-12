@@ -91,6 +91,10 @@ abstract public class SecondaryStructure //extends ... implements ...
         
         public int getIndex()
         { return rangeIndex; }
+        
+        public String toString() {
+          return Integer.toString(initSeqNum) +":"+Integer.toString(endSeqNum)+" = "+type;
+        }
     }
 //}}}
 
@@ -122,7 +126,7 @@ abstract public class SecondaryStructure //extends ... implements ...
         {
             Range rng = (Range) iter.next();
             if(rng.duplicateOf!=null) continue; // (ARK Spring2010)
-	    if(rng.contains(res)) return rng;
+            if(rng.contains(res)) return rng;
         }
         return null; // no entry for that residue
     }
@@ -194,6 +198,17 @@ abstract public class SecondaryStructure //extends ... implements ...
         
     }
 
+//}}}
+
+//{{{ toString
+public String toString() {
+  String outString = "";
+  for (Iterator iter = ranges.iterator(); iter.hasNext(); ) {
+    Range rng = (Range) iter.next();
+    outString = outString+rng.toString()+ "\n";
+  }
+  return outString;
+}
 //}}}
 
 //{{{ empty_code_segment

@@ -60,8 +60,8 @@ class PdbSecondaryStructure extends SecondaryStructure
     {
         Range r = new Range();
         r.type = HELIX;
-        r.chainId = s.substring(19,20);
-        if(!r.chainId.equals(s.substring(31,32)))
+        r.chainId = s.substring(18,20);
+        if(!r.chainId.equals(s.substring(30,32)))
             System.err.println("Mismatched chain IDs: "+s);
         r.initSeqNum = Integer.parseInt(s.substring(21,25).trim());
         r.endSeqNum  = Integer.parseInt(s.substring(33,37).trim());
@@ -76,8 +76,8 @@ class PdbSecondaryStructure extends SecondaryStructure
     {
         Range r = new Range();
         r.type = STRAND;
-        r.chainId = s.substring(21,22);
-        if(!r.chainId.equals(s.substring(32,33)))
+        r.chainId = s.substring(20,22);
+        if(!r.chainId.equals(s.substring(31,33)))
             System.err.println("Mismatched chain IDs: "+s);
         r.initSeqNum = Integer.parseInt(s.substring(22,26).trim());
         r.endSeqNum  = Integer.parseInt(s.substring(33,37).trim());
@@ -96,8 +96,8 @@ class PdbSecondaryStructure extends SecondaryStructure
     {
         Range r = new Range();
         r.type = TURN;
-        r.chainId = s.substring(19,20);
-        if(!r.chainId.equals(s.substring(30,31)))
+        r.chainId = s.substring(18,20);
+        if(!r.chainId.equals(s.substring(29,31)))
             System.err.println("Mismatched chain IDs: "+s);
         r.initSeqNum = Integer.parseInt(s.substring(20,24).trim());
         r.endSeqNum  = Integer.parseInt(s.substring(31,35).trim());
