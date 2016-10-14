@@ -482,14 +482,17 @@ public class RibbonPrinter //extends ... implements ...
 			int kPrev = Math.min(nIntervals*(prevClosest-1), splinepts[4].length);               
 			Triple ptCur = new Triple(splinepts[4][kCur]); 
 			Triple v1Cur = new Triple().likeVector(ptCur,splinepts[3][kCur]);
-			Triple v2Cur = new Triple().likeVector(ptCur,splinepts[3][kCur+1]);
-			Triple crossCur = v1Cur.cross(v2Cur);
-			Triple ptPrev = new Triple(splinepts[4][kPrev]); 
-			Triple v1Prev = new Triple().likeVector(ptPrev,splinepts[3][kPrev]);
-			Triple v2Prev = new Triple().likeVector(ptPrev,splinepts[3][kPrev+1]);
-			Triple crossPrev = v1Prev.cross(v2Prev);
-			
-			dot = crossCur.dot(crossPrev);
+			if (kCur+1 < splinepts[3].length) { // VBC Hack to get 1jj2 at least generating ribbons kins.  Doesn't seem to 
+			  // correctly generate beta sides though.  Error is kCur+1 generates an ArrayIndexOutOfBoundsException in splinepts[3]
+			  Triple v2Cur = new Triple().likeVector(ptCur,splinepts[3][kCur+1]);
+			  Triple crossCur = v1Cur.cross(v2Cur);
+			  Triple ptPrev = new Triple(splinepts[4][kPrev]); 
+			  Triple v1Prev = new Triple().likeVector(ptPrev,splinepts[3][kPrev]);
+			  Triple v2Prev = new Triple().likeVector(ptPrev,splinepts[3][kPrev+1]);
+			  Triple crossPrev = v1Prev.cross(v2Prev);
+			  
+			  dot = crossCur.dot(crossPrev);
+			}
 		}   // end sidedeness, (ARK Spring2010) }}}
 
             	this.setCrayon(normalCrayon);
