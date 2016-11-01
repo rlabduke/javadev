@@ -200,7 +200,7 @@
 
 <taskdef name="bundleapp"
          classname="com.oracle.appbundler.AppBundlerTask"
-         classpath="../lib/appbundler/appbundler-1.0.jar" />
+         classpath="../lib/appbundler/appbundler-1.0ea.jar" />
 
 <property environment="env" />         
          
@@ -208,15 +208,36 @@
 <target name="mac-app">
     <bundleapp outputdirectory="${dist}"
         name="KiNG"
-        displayname="Kinemage Next Generation"
+        displayname="KiNG"
         identifier="edu.duke.biochem.kinemage.king"
+        executableName="king"
         icon="work/KiNG.icns"
         mainclassname="king.KingMain">
         <runtime dir="${env.JAVA_HOME}" />
         <classpath file="king.jar">
             <include name="plugins/**" />
         </classpath>
-    </bundleapp>
+        <bundledocument extensions="pdb,pdb1,ent,pqr"
+          icon="work/mageosX.icns"
+          name="PDB Molecular structure"
+          role="editor"
+          handlerRank="alternate">
+        </bundledocument>
+        <bundledocument contentTypes="edu.duke.biochem.kinemage.kinemage"
+          name="Kinemage file"
+          role="editor"
+          handlerRank="owner">
+        </bundledocument>
+        <typedeclaration
+          identifier="edu.duke.biochem.kinemage.kinemage"
+          description="Kinemage file"
+          icon="work/mageosX.icns"
+          conformsTo="public.text"
+          extensions="kin,kip"
+          mimeTypes="text/plain" />
+          
+        <option value="-Xdock:name=KiNG"/>
+      </bundleapp>
     <!-- do some stupid manual moving of plugin files since bundleapp doesn't seem to be able to copy over the plugin directory -->
     <mkdir dir="${dist}/KiNG.app/Contents/Java/plugins"/>
     <move todir="${dist}/KiNG.app/Contents/Java/plugins">
@@ -232,13 +253,16 @@
     <exec executable="cp">
         <arg line="${javadev}/lib/rlab/mac/probe ${javadev}/lib/rlab/mac/suitename ${dist}/KiNG.app/Contents/Java"/>
     </exec>
-    <!-- add lines to Info.plist to enable high-resolution -->
+    <exec executable="cp">
+        <arg line="${javadev}/lib/jogl2/jogl-all.jar ${javadev}/lib/jogl2/macosx/jogl-all-natives-macosx-universal.jar ${javadev}/lib/jogl2/gluegen-rt.jar ${javadev}/lib/jogl2/macosx/gluegen-rt-natives-macosx-universal.jar ${dist}/KiNG.app/Contents/Java"/>
+    </exec>
+    <!-- add lines to Info.plist to enable high-resolution
     <replace file="${dist}/KiNG.app/Contents/Info.plist">
         <replacetoken><![CDATA[<string>king.KingMain</string>]]></replacetoken>
         <replacevalue><![CDATA[<string>king.KingMain</string>
 <key>NSHighResolutionCapable</key>
 <true/>]]></replacevalue>
-    </replace>
+    </replace>-->
 </target>
 
 <!-- clean, backup {{{ -->

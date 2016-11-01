@@ -104,9 +104,9 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
         canvas.addMouseListener(this); // cursor related; see this.mouseEntered().
         toolbox.listenTo(canvas);
         this.add(canvas, BorderLayout.CENTER);
-        //canvas.setSurfaceScale(new float[] {4.0f, 4.0f}); 
-        float[] result = canvas.getCurrentSurfaceScale(new float[2]);
-        System.out.println("currsurfscale: "+Arrays.toString(result));
+
+        //float[] result = canvas.getCurrentSurfaceScale(new float[2]);
+        //System.out.println("currsurfscale: "+Arrays.toString(result));
         //canvas.setSurfaceScale(new float[] {4.0f, 4.0f}); 
         //result = canvas.getNativeSurfaceScale(new float[2]);
         //System.out.println("nativesurfscale: "+Arrays.toString(result));
@@ -127,9 +127,14 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
         GL2 gl = (GL2)drawable.getGL();
         Kinemage kin = kMain.getKinemage();
 
-        System.out.println("display() surface height "+canvas.getSurfaceHeight());
-        //canvas.setSurfaceScale(new float[] {4.0f, 4.0f}); 
-        
+        Dimension kCanvasDim = kMain.getCanvas().getPreferredSize();
+        Dimension glCanvasDim = glSize;
+        if (!kCanvasDim.equals(glCanvasDim)) {
+          float heightScale = (float)kCanvasDim.getHeight()/(float)glCanvasDim.getHeight();
+          float widthScale = (float)kCanvasDim.getWidth()/(float)glCanvasDim.getWidth();
+          canvas.setSurfaceScale(new float[] {widthScale, heightScale});
+        }
+
         if(kin == null)
         {
             // Blank screen
@@ -139,10 +144,10 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
             // KiNG logo and new version availability
             // This is probably a bit slow, but for logo display, we don't really care.
             Graphics2D g2 = setupOverlay();
-            System.out.println("kincanvas dim: "+kMain.getCanvas().getPreferredSize().toString());
+            //System.out.println("kincanvas dim: "+kMain.getCanvas().getPreferredSize().toString());
             Dimension dim = glSize;
             //Dimension dim = kMain.getCanvas().getPreferredSize();
-            System.out.println("display() dim: " + dim.toString());
+            //System.out.println("display() dim: " + dim.toString());
             gl.glRasterPos2d(0, -dim.height); // for getting the logo to display in correct spot
             g2.setColor(Color.black);
             g2.fillRect(0, 0, dim.width, dim.height);
@@ -178,10 +183,10 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
         //GLU glu = drawable.getGLU();
         GLU glu = new GLU();
         
-        System.out.println("reshape width: "+width+" height: "+height);
+        //System.out.println("reshape width: "+width+" height: "+height);
         //Dimension dim = kMain.getCanvas().getPreferredSize();
         //this.glSize.setSize(dim.getWidth(), dim.getHeight());
-        
+
         this.glSize.setSize(width, height);
         gl.glViewport(0, 0, width, height); // left, right, width, height
         gl.glMatrixMode(GL2.GL_PROJECTION);
@@ -270,7 +275,6 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
     {
         if(overlayImg == null || overlayImg.getWidth() != glSize.width || overlayImg.getHeight() != glSize.height)
         {
-          System.out.println("setupOverlay() glsize: "+glSize.toString());
             overlayImg = new BufferedImage(glSize.width, glSize.height, BufferedImage.TYPE_INT_ARGB);
             int[] data = ((DataBufferInt)overlayImg.getRaster().getDataBuffer()).getData();
             overlayData = ByteBuffer.allocate(4 * data.length);
