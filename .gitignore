@@ -1,7 +1,8 @@
 .DS_Store
 **/build/
 **/dist/
-**/*.jar
+*/*.jar
+*/plugins/*.jar
 **/resource/**/buildnum.props
 king/resource/king/king_prefs
 king/doc/dot_king_prefs.txt
