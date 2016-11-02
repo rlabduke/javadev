@@ -34,6 +34,7 @@ public class KingMain implements WindowListener
         // happening automatically with the release of Java 1.5.
         // This should happen once, before any KingMains are created.
         JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+        ToolTipManager.sharedInstance().setLightWeightPopupEnabled(false);
     }
     
     public static void main(String[] args) { new KingMain(args).Main(); }
