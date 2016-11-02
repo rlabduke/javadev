@@ -1497,22 +1497,23 @@ jogl.jar
 2016 update: 
 \shape default
 With the newer versions of Java, JOGL 1.1.1 doesn't seem to be currently working.
- We're exploring the possibility of updating to use JOGL 2.0.
+ We've updated KiNG to use JOGL 2.3.2; the appropriate platform-specific JOGL
+ jars are included with the platform-specific downloads of KiNG available
+ on the kinemage website.
+ 
 \end_layout
 
 \begin_layout Standard
-This feature has been tested with various combinations of Java 1.4.2 through
- Java 1.6.0 and JOGL 1.1 through JOGL 1.1.1.
- JOGL is still under development, as is this feature, and interacting so
+JOGL is still under development, as is this feature, and interacting so
  directly with the hardware is always risky, so it's possible that OpenGL
  rendering may hang KiNG on your computer.
  You've been warned.
 \end_layout
 
 \begin_layout Standard
-Hopefully, a future version of Java (possibly the 1.6.x series) will use OpenGL
- behind the scenes for all graphics operations, making KiNG much faster
- and making this feature obsolete.
+Hopefully, a future version of Java will use OpenGL behind the scenes for
+ all graphics operations, making KiNG much faster and making this feature
+ obsolete.
  Until then, this is a work-around for large kinemages where performance
  is an issue.
 \end_layout
