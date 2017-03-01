@@ -2,6 +2,7 @@
 //{{{ Package, imports
 package king;
 import king.core.*;
+import king.io.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -61,6 +62,8 @@ public class ViewEditor //extends ... implements ...
         JButton up         = new JButton(new ReflectiveAction("Move up", kMain.prefs.moveUpIcon, this, "onMoveUp"));
         JButton down       = new JButton(new ReflectiveAction("Move down", kMain.prefs.moveDownIcon, this, "onMoveDown"));
         /*JButton*/ close  = new JButton(new ReflectiveAction("Close", null, this, "onClose"));
+        JButton export     = new JButton(new ReflectiveAction("Export", null, this, "onExport"));
+        //JButton importView = new JButton(new ReflectiveAction("Import", null, this, "onImport"));
         
         // Mnemonics: require alt+key to execute
         go.setMnemonic(KeyEvent.VK_G);
@@ -94,7 +97,7 @@ public class ViewEditor //extends ... implements ...
         
         TablePane cp = new TablePane();
         cp.insets(2).hfill(true).weights(0,0);
-        cp.save().weights(1,1).vfill(true).hfill(true).addCell(listScroll, 1, 9).restore();
+        cp.save().weights(1,1).vfill(true).hfill(true).addCell(listScroll, 1, 11).restore();
         cp.addCell(go).newRow();
         cp.addCell(gonext).newRow();
         cp.addCell(goprev).newRow();
@@ -104,6 +107,9 @@ public class ViewEditor //extends ... implements ...
         cp.save().weights(0,1).insets(0).addCell(Box.createVerticalStrut(10)).restore().newRow();
         cp.addCell(up).newRow();
         cp.addCell(down).newRow();
+        cp.save().weights(0,1).insets(0).addCell(Box.createVerticalStrut(10)).restore().newRow();
+        cp.addCell(export).newRow();
+        //cp.addCell(importView).newRow();
         cp.center().hfill(false).addCell(close, 2, 1);
         dialog.setContentPane(cp);
         
@@ -258,6 +264,37 @@ public class ViewEditor //extends ... implements ...
         }
     }
 //}}}
+
+//{{{ onExport
+    // This method is the target of reflection -- DO NOT CHANGE ITS NAME
+    public void onExport(ActionEvent ev)
+    {
+      Kinemage kin = kMain.getKinemage();
+      if(kin == null) return;
+      KView view = (KView)list.getSelectedValue();
+      if(view == null) return;
+      int index = list.getSelectedIndex()+1;
+      
+      JFileChooser c = new JFileChooser();
+      int rVal = c.showSaveDialog(kMain.getTopWindow());
+      if (rVal == JFileChooser.APPROVE_OPTION) {
+        try {
+          KinfileWriter kw = new KinfileWriter();
+          PrintWriter out = new PrintWriter(c.getSelectedFile());
+          kw.setOutWriter(out);
+          kw.writeView(view, index);
+          out.flush();
+          JOptionPane.showMessageDialog(null, view.getName()+" was written!");
+        } catch (FileNotFoundException fe) {
+          System.out.println("Error writing to :"+(c.getSelectedFile()).getName());
+        }
+      }
+      
+     
+    }
+
+//}}}
+
 
 //{{{ editViews
 //##################################################################################################

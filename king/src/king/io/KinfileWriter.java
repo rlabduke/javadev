@@ -41,6 +41,13 @@ public class KinfileWriter //extends ... implements ...
     }
 //}}}
 
+//{{{ setOutWriter
+/* hack to allow exporting of views - VBC*/
+  public void setOutWriter(PrintWriter outWriter) {
+    out = outWriter;
+  }
+//}}}
+
 //{{{ save
 //##################################################################################################
     /** Writes out all the currently open kinemages */
@@ -296,7 +303,7 @@ public class KinfileWriter //extends ... implements ...
 
 //{{{ writeView, writeMaster
 //##################################################################################################
-    void writeView(KView view, int index)
+    public void writeView(KView view, int index)
     {
         out.println("@"+index+"viewid {"+view.getName()+"}");
         out.println("@"+index+"span "+view.getSpan());
