@@ -276,6 +276,8 @@ public class ViewEditor //extends ... implements ...
       int index = list.getSelectedIndex()+1;
       
       JFileChooser c = new JFileChooser();
+      File workingDirectory = new File(System.getProperty("user.dir"));
+      c.setCurrentDirectory(workingDirectory);
       int rVal = c.showSaveDialog(kMain.getTopWindow());
       if (rVal == JFileChooser.APPROVE_OPTION) {
         try {
