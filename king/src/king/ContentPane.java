@@ -46,6 +46,7 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
     JScrollPane buttonScroll    = null;
     JSplitPane  minorSplit      = null; // hold buttons and graphics area
     JSplitPane  majorSplit      = null; // hold minor split and zoom/clip sliders
+    JSlider     zoomSlider      = null;
     
     Map<JCheckBox, AGE> btnMap  = new LinkedHashMap<JCheckBox, AGE>();
 //}}}
@@ -189,6 +190,12 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
     }
 //}}}
 
+//{{{ getZoomSlider
+public JSlider getZoomSlider() {
+  return zoomSlider;
+}
+//}}}
+
 //{{{ resetSplits
 //##################################################################################################
     /** Resizes both splits to their preferred sizes. */
@@ -312,7 +319,7 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
     Component buildBottomArea()
     {
         JLabel zoomLabel = new JLabel("Zoom"); 
-        JSlider zoomSlider = new JSlider(kMain.getCanvas().getZoomModel());
+        zoomSlider = new JSlider(kMain.getCanvas().getZoomModel());
         JLabel clipLabel = new JLabel("Clipping"); 
         JSlider clipSlider = new JSlider(kMain.getCanvas().getClipModel());
         

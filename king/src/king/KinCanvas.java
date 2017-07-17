@@ -476,6 +476,8 @@ public class KinCanvas extends JComponent implements KMessage.Subscriber, Transf
             {
                 double newspan = kinspan / Math.pow(2, (double)zoommodel.getValue() / (double)SLIDER_SCALE);
                 view.setSpan((float)newspan);
+                //System.out.println("setting zoomSlider to "+Double.toString(newspan));
+                kMain.getContentPane().getZoomSlider().setToolTipText(Double.toString(newspan));
             }
         }
         else if(ev.getSource() == clipmodel)
