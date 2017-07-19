@@ -78,6 +78,9 @@ public class PointComparator implements Comparator {
 	    value = getAtomNamePosition(p1name) - getAtomNamePosition(p2name);
 	    if (value < 0)  return -1;
 	    else if (value > 0) return 1;
+	    value = KinUtil.getChainID(p1name).compareTo(KinUtil.getChainID(p2name));
+	    if (value < 0)  return -1;
+	    else if (value > 0) return 1;
 	  }
 	  return 0;
 	    //value = Integer.parseInt(p1name.substring(8)) - Integer.parseInt(p2name.substring(8));
