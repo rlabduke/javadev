@@ -76,7 +76,7 @@ public class PdbExport extends Plugin implements PropertyChangeListener, Runnabl
     KIterator<KPoint> iter = KIterator.allPoints(groupElement);
     for (KPoint point : iter) {
       //System.out.println(point.getName());
-      if (point.getName().length()>9){
+      if (point.getName().length()>11){
         if (point instanceof VectorPoint) {
           VectorPoint currPoint = (VectorPoint) point;
           if ((!currPoint.isBreak())/*&&(currPoint.isOn())*/) {
@@ -116,46 +116,53 @@ public class PdbExport extends Plugin implements PropertyChangeListener, Runnabl
 	    while (kgroupIter.hasNext()) {
 	      KGroup group = kgroupIter.next();
 	      if (group.isDeepestGroup()) {
-	        //System.out.println(group.getName());
-	        HashMap adjacencyMap = buildAdjacencyList(group);
-	        //Set keys = adjacencyMap.keySet();
-	        int i = 1;
-	        PointComparator pc = new PointComparator();
-	        TreeSet keyTree = new TreeSet(pc);
-	        keyTree.addAll(adjacencyMap.keySet());
-	        Iterator iter = keyTree.iterator();
-	        while (iter.hasNext()) {
-	          AbstractPoint point = (AbstractPoint) iter.next();
-	          //System.out.println(point + " POINT ON:" + pointActuallyOn(point));
-	          //if (pointActuallyOn(point)) {
-	          if (pointActuallyOn(point)) {
-	            //System.out.println(point);
-	            //System.out.println(KinUtil.getResNumber(point.getName().toUpperCase()));
-	            out.print("ATOM  ");
-	            out.print(formatStrings(String.valueOf(i), 5) + " ");
-	            //out.print(point.getName().toUpperCase().substring(0, 8) + "  " + point.getName().toUpperCase().substring(8) + "     ");
-	            String atomName = PointComparator.getAtomName(point.getName().toUpperCase());
-	            if (atomName.equals("UNK ")) {
-	              
-	            }
-	            out.print(PointComparator.getAtomName(point.getName().toUpperCase()));
-	            out.print(KinUtil.getAltConf(point.getName().toUpperCase()));
-	            out.print(KinUtil.getResAA(point.getName().toUpperCase()) + " ");
-	            out.print(KinUtil.getChainID(point.getName()));
-	            out.print(formatStrings(String.valueOf(KinUtil.getResNumber(point.getName().toUpperCase())), 4) + "    ");
-	            out.print(formatStrings(df.format(point.getX()), 8));
-	            out.print(formatStrings(df.format(point.getY()), 8));
-	            out.print(formatStrings(df.format(point.getZ()), 8));
-	            out.print(formatStrings(df2.format(KinUtil.getOccupancy(point)), 6));
-	            out.println(formatStrings(df2.format(KinUtil.getBvalue(point.getName().toUpperCase())), 6));
-	            i++;
-	          }
-	        }
+	        out.print(getPdbText(group));
 	      }
 	    }
 	    out.flush();
 	    w.close();
     }
+//}}}
+
+//{{{ getPdbText
+  public String getPdbText(AGE groupElement) {
+    StringBuilder pdbBuilder = new StringBuilder();
+    HashMap adjacencyMap = buildAdjacencyList(groupElement);
+    //Set keys = adjacencyMap.keySet();
+    int i = 1;
+    PointComparator pc = new PointComparator();
+    TreeSet keyTree = new TreeSet(pc);
+    keyTree.addAll(adjacencyMap.keySet());
+    Iterator iter = keyTree.iterator();
+    while (iter.hasNext()) {
+      AbstractPoint point = (AbstractPoint) iter.next();
+      //System.out.println(point + " POINT ON:" + pointActuallyOn(point));
+      //if (pointActuallyOn(point)) {
+      if (pointActuallyOn(point)) {
+        //System.out.println(point);
+        //System.out.println(KinUtil.getResNumber(point.getName().toUpperCase()));
+        pdbBuilder.append("ATOM  ");
+        pdbBuilder.append(formatStrings(String.valueOf(i), 5) + " ");
+        //out.print(point.getName().toUpperCase().substring(0, 8) + "  " + point.getName().toUpperCase().substring(8) + "     ");
+        String atomName = PointComparator.getAtomName(point.getName().toUpperCase());
+        if (atomName.equals("UNK ")) {
+          System.err.println(point+" had an unknown atom name, is this expected?");
+        }
+        pdbBuilder.append(PointComparator.getAtomName(point.getName().toUpperCase()));
+        pdbBuilder.append(KinUtil.getAltConf(point.getName().toUpperCase()));
+        pdbBuilder.append(KinUtil.getResAA(point.getName().toUpperCase()) + " ");
+        pdbBuilder.append(KinUtil.getChainID(point.getName()));
+        pdbBuilder.append(formatStrings(String.valueOf(KinUtil.getResNumber(point.getName().toUpperCase())), 4) + "    ");
+        pdbBuilder.append(formatStrings(df.format(point.getX()), 8));
+        pdbBuilder.append(formatStrings(df.format(point.getY()), 8));
+        pdbBuilder.append(formatStrings(df.format(point.getZ()), 8));
+        pdbBuilder.append(formatStrings(df2.format(KinUtil.getOccupancy(point)), 6));
+        pdbBuilder.append(formatStrings(df2.format(KinUtil.getBvalue(point.getName().toUpperCase())), 6)+"\n");
+        i++;
+      }
+    }
+    return pdbBuilder.toString();
+  }
 //}}}
 
   public boolean pointActuallyOn(AbstractPoint point) {
@@ -210,6 +217,7 @@ public class PdbExport extends Plugin implements PropertyChangeListener, Runnabl
                 try
                 {
                     exportPDB(kMain.getCanvas(), f);
+                    JOptionPane.showMessageDialog(kMain.getTopWindow(), "PDB export completed!");
                 }
                 catch(Exception ex)
                 {
