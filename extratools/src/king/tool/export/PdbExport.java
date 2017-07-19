@@ -40,7 +40,7 @@ public class PdbExport extends Plugin implements PropertyChangeListener, Runnabl
 //##############################################################################
     JFileChooser        chooser;
     SuffixFileFilter    pdbFilter;
-    HashMap adjacencyMap;
+    //HashMap adjacencyMap;
 //}}}
 
 //{{{ Constructor(s)
@@ -69,26 +69,30 @@ public class PdbExport extends Plugin implements PropertyChangeListener, Runnabl
 //}}}
 
   //{{{ buildAdjacencyList
-  public void buildAdjacencyList() {
-    adjacencyMap = new HashMap();
-    Kinemage kin = kMain.getKinemage();
+  public HashMap buildAdjacencyList(AGE groupElement) {
+    HashMap adjacencyMap = new HashMap();
+    //Kinemage kin = kMain.getKinemage();
     
-    KIterator<KPoint> iter = KIterator.allPoints(kin);
+    KIterator<KPoint> iter = KIterator.allPoints(groupElement);
     for (KPoint point : iter) {
-      if (point instanceof VectorPoint) {
-        VectorPoint currPoint = (VectorPoint) point;
-        if ((!currPoint.isBreak())/*&&(currPoint.isOn())*/) {
-          VectorPoint prevPoint = (VectorPoint) currPoint.getPrev();
-          addPoints(prevPoint, currPoint);
-          addPoints(currPoint, prevPoint);
+      //System.out.println(point.getName());
+      if (point.getName().length()>9){
+        if (point instanceof VectorPoint) {
+          VectorPoint currPoint = (VectorPoint) point;
+          if ((!currPoint.isBreak())/*&&(currPoint.isOn())*/) {
+            VectorPoint prevPoint = (VectorPoint) currPoint.getPrev();
+            addPoints(prevPoint, currPoint, adjacencyMap);
+            addPoints(currPoint, prevPoint, adjacencyMap);
+          }
         }
       }
     }
+    return adjacencyMap;
   }
   //}}}
 
   //{{{ addPoints
-  private void addPoints(VectorPoint prev, VectorPoint curr) {
+  private void addPoints(VectorPoint prev, VectorPoint curr, HashMap adjacencyMap) {
     if (adjacencyMap.containsKey(prev)) {
 	    HashSet prevSet = (HashSet) adjacencyMap.get(prev);
 	    prevSet.add(curr);
@@ -107,43 +111,61 @@ public class PdbExport extends Plugin implements PropertyChangeListener, Runnabl
     { 
       Writer w = new FileWriter(outfile);
 	    PrintWriter out = new PrintWriter(new BufferedWriter(w));
-	    buildAdjacencyList();
-	    //Set keys = adjacencyMap.keySet();
-	    int i = 1;
-	    PointComparator pc = new PointComparator();
-	    TreeSet keyTree = new TreeSet(pc);
-	    keyTree.addAll(adjacencyMap.keySet());
-	    Iterator iter = keyTree.iterator();
-	    while (iter.hasNext()) {
-        AbstractPoint point = (AbstractPoint) iter.next();
-        //System.out.println(point + " POINT ON:" + pointActuallyOn(point));
-        //if (pointActuallyOn(point)) {
-        if (point.isOn()) {
-          //System.out.println(point);
-          //System.out.println(KinUtil.getResNumber(point.getName().toUpperCase()));
-          out.print("ATOM  ");
-          out.print(formatStrings(String.valueOf(i), 5) + " ");
-          //out.print(point.getName().toUpperCase().substring(0, 8) + "  " + point.getName().toUpperCase().substring(8) + "     ");
-          String atomName = PointComparator.getAtomName(point.getName().toUpperCase());
-          if (atomName.equals("UNK ")) {
-            
-          }
-          out.print(PointComparator.getAtomName(point.getName().toUpperCase()));
-          out.print(KinUtil.getAltConf(point.getName().toUpperCase()));
-          out.print(KinUtil.getResAA(point.getName().toUpperCase()) + "  ");
-          out.print(formatStrings(String.valueOf(KinUtil.getResNumber(point.getName().toUpperCase())), 4) + "    ");
-          out.print(formatStrings(df.format(point.getX()), 8));
-          out.print(formatStrings(df.format(point.getY()), 8));
-          out.print(formatStrings(df.format(point.getZ()), 8));
-          out.print(formatStrings(df2.format(KinUtil.getOccupancy(point)), 6));
-          out.println(formatStrings(df2.format(KinUtil.getBvalue(point.getName().toUpperCase())), 6));
-          i++;
-        }
+	    Kinemage kin = kMain.getKinemage();
+	    KIterator<KGroup> kgroupIter = KIterator.visibleGroups(kin);
+	    while (kgroupIter.hasNext()) {
+	      KGroup group = kgroupIter.next();
+	      if (group.isDeepestGroup()) {
+	        //System.out.println(group.getName());
+	        HashMap adjacencyMap = buildAdjacencyList(group);
+	        //Set keys = adjacencyMap.keySet();
+	        int i = 1;
+	        PointComparator pc = new PointComparator();
+	        TreeSet keyTree = new TreeSet(pc);
+	        keyTree.addAll(adjacencyMap.keySet());
+	        Iterator iter = keyTree.iterator();
+	        while (iter.hasNext()) {
+	          AbstractPoint point = (AbstractPoint) iter.next();
+	          //System.out.println(point + " POINT ON:" + pointActuallyOn(point));
+	          //if (pointActuallyOn(point)) {
+	          if (pointActuallyOn(point)) {
+	            //System.out.println(point);
+	            //System.out.println(KinUtil.getResNumber(point.getName().toUpperCase()));
+	            out.print("ATOM  ");
+	            out.print(formatStrings(String.valueOf(i), 5) + " ");
+	            //out.print(point.getName().toUpperCase().substring(0, 8) + "  " + point.getName().toUpperCase().substring(8) + "     ");
+	            String atomName = PointComparator.getAtomName(point.getName().toUpperCase());
+	            if (atomName.equals("UNK ")) {
+	              
+	            }
+	            out.print(PointComparator.getAtomName(point.getName().toUpperCase()));
+	            out.print(KinUtil.getAltConf(point.getName().toUpperCase()));
+	            out.print(KinUtil.getResAA(point.getName().toUpperCase()) + " ");
+	            out.print(KinUtil.getChainID(point.getName()));
+	            out.print(formatStrings(String.valueOf(KinUtil.getResNumber(point.getName().toUpperCase())), 4) + "    ");
+	            out.print(formatStrings(df.format(point.getX()), 8));
+	            out.print(formatStrings(df.format(point.getY()), 8));
+	            out.print(formatStrings(df.format(point.getZ()), 8));
+	            out.print(formatStrings(df2.format(KinUtil.getOccupancy(point)), 6));
+	            out.println(formatStrings(df2.format(KinUtil.getBvalue(point.getName().toUpperCase())), 6));
+	            i++;
+	          }
+	        }
+	      }
 	    }
 	    out.flush();
 	    w.close();
     }
 //}}}
+
+  public boolean pointActuallyOn(AbstractPoint point) {
+    AHE element = point;
+    while (element.getDepth() > 0) {
+      if (!element.isOn()) return false;
+      element = element.getParent();
+    }
+    return true;
+  }
 
 //{{{ formatString
   public String formatStrings(String value, int numSpaces) {
@@ -235,14 +257,16 @@ public class PdbExport extends Plugin implements PropertyChangeListener, Runnabl
 //##################################################################################################
     public JMenuItem getToolsMenuItem()
     {
-        return new JMenuItem(new ReflectiveAction(this.toString()+"...", null, this, "onExport"));
+      JMenu exportMenu = new JMenu("PDB file...");
+      exportMenu.add(new JMenuItem(new ReflectiveAction("From visible groups", null, this, "onExport")));
+      return exportMenu;
     }
 
     public JMenuItem getHelpMenuItem()
     { return null; }
     
     public String toString()
-    { return "PDB file"; }
+    { return "PDB file..."; }
 
     // This method is the target of reflection -- DO NOT CHANGE ITS NAME
     public void onExport(ActionEvent ev)

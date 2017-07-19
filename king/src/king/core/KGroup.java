@@ -179,6 +179,19 @@ public class KGroup extends AGE<AGE,AGE> implements Cloneable
   }
   //}}}
 
+  //{{{ isDeepestGroup
+  public boolean isDeepestGroup() {
+    ArrayList children = getChildren();
+    Iterator iter = children.iterator();
+    while (iter.hasNext()) {
+      AGE child = (AGE) iter.next();
+      if (child instanceof KGroup) return false;
+    }
+    return true;
+  }
+  //}}}
+
+  
 //{{{ empty_code_segment
 //##################################################################################################
 //}}}

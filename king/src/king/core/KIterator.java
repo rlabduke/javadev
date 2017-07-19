@@ -226,6 +226,9 @@ public class KIterator<T extends AHE> implements Iterable<T>, Iterator<T>
 
     public static KIterator<KPoint> visiblePoints(AGE top)
     { return new KIterator<KPoint>(top, KIterator.Opts.POINT, KIterator.Opts.VISIBLE_ONLY); }
+    
+    public static KIterator<KGroup> visibleGroups(AGE top) 
+    { return new KIterator<KGroup>(top, KIterator.Opts.GROUP, KIterator.Opts.VISIBLE_ONLY); }
 //}}}
 
 //{{{ empty_code_segment
