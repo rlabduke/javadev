@@ -93,7 +93,7 @@ abstract public class SecondaryStructure //extends ... implements ...
         { return rangeIndex; }
         
         public String toString() {
-          return Integer.toString(initSeqNum) +":"+Integer.toString(endSeqNum)+" = "+type;
+          return ":"+chainId+":"+Integer.toString(initSeqNum) +":"+Integer.toString(endSeqNum)+" = "+type;
         }
     }
 //}}}
@@ -160,42 +160,43 @@ abstract public class SecondaryStructure //extends ... implements ...
     public void consolidateSheets() // (ARK Spring2010)
     {
     	Hashtable uniqueStrands = new Hashtable();
-        
+    	
     	// For each ribbon, record it's predecessor in sheet, and check for duplicates
-        ///this is repeated later in ribbon printer, with strands vector!! fix?!?!?
+    	///this is repeated later in ribbon printer, with strands vector!! fix?!?!?
     	for(Iterator iter = ranges.iterator(); iter.hasNext(); ) 
-        {
-            Range rng = (Range) iter.next();  
-            if(!rng.type.equals(STRAND)) continue; // not a sheet
-            
-            // get unique representation for strand, test if it's been found before
-            Integer key = new Integer(rng.initSeqNum*1000 + (int)rng.chainId.charAt(0)); ////sufficient to make it unique?!?!?
-            if(!uniqueStrands.containsKey(key)) uniqueStrands.put(key, rng);
-	    else rng.duplicateOf = (Range)uniqueStrands.get(key);
-            
-            // now find this strand's previous and next strand
-            for(Iterator iter2 = ranges.iterator(); iter2.hasNext(); ){
-	    	Range rng2 = (Range) iter2.next();  
-	    	if(!rng2.type.equals(STRAND)) continue;
-	    	if(rng2.sheetID.equals(rng.sheetID) && rng2.strand == rng.strand-1){
-            		    rng.previous = rng2;
-            		    rng2.next = rng;
-            		    ///break;
-            	}  
-            }
-        }
-        
-        // now go through and reassign previous/next fields
-        for(Iterator iter = ranges.iterator(); iter.hasNext(); ) 
-        {
-                Range rng = (Range) iter.next();  
-   	        if(!rng.type.equals(STRAND)) continue; // not a sheet
-		if(rng.duplicateOf==null && rng.next!=null && rng.next.duplicateOf!=null)
-			rng.next.duplicateOf.previous = rng;	
-		if(rng.duplicateOf==null && rng.previous!= null && rng.previous.duplicateOf!=null)
-			rng.previous = rng.previous.duplicateOf;	
-        }
-        
+    	{
+    	  Range rng = (Range) iter.next();  
+    	  if(!rng.type.equals(STRAND)) continue; // not a sheet
+    	  
+    	  // get unique representation for strand, test if it's been found before
+    	  String key = Integer.toString(rng.initSeqNum) + rng.chainId; ////sufficient to make it unique?!?!? 
+    	  // Changed from Integer to String key to fix two char chainID bug with multiple chains not getting beta ribbons
+    	  if(!uniqueStrands.containsKey(key)) uniqueStrands.put(key, rng);
+    	  else rng.duplicateOf = (Range)uniqueStrands.get(key);
+    	  
+    	  // now find this strand's previous and next strand
+    	  for(Iterator iter2 = ranges.iterator(); iter2.hasNext(); ){
+    	    Range rng2 = (Range) iter2.next();  
+    	    if(!rng2.type.equals(STRAND)) continue;
+    	    if(rng2.sheetID.equals(rng.sheetID) && rng2.strand == rng.strand-1){
+    	      rng.previous = rng2;
+    	      rng2.next = rng;
+    	      ///break;
+    	    }  
+    	  }
+    	}
+    	
+    	// now go through and reassign previous/next fields
+    	for(Iterator iter = ranges.iterator(); iter.hasNext(); ) 
+    	{
+    	  Range rng = (Range) iter.next();  
+    	  if(!rng.type.equals(STRAND)) continue; // not a sheet
+    	  if(rng.duplicateOf==null && rng.next!=null && rng.next.duplicateOf!=null)
+    	    rng.next.duplicateOf.previous = rng;	
+    	  if(rng.duplicateOf==null && rng.previous!= null && rng.previous.duplicateOf!=null)
+    	    rng.previous = rng.previous.duplicateOf;	
+    	}
+    	
     }
 
 //}}}
