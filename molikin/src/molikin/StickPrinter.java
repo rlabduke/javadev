@@ -168,8 +168,8 @@ public class StickPrinter //extends ... implements ...
             if(!crayon.shouldPrint()) continue;
             
             if(curr.lower != last.higher)
-                out.print("{"+ider.identifyAtom(curr.lower)+modelId+"}P "+curr.lower.format(df)+" ");
-            out.println("{"+ider.identifyAtom(curr.higher)+modelId+"}L "+crayon.getKinString()+" "+curr.higher.format(df));
+                out.print("{"+ider.identifyAtom(curr.lower)+modelId+" ("+curr.lower.getPast80()+")}P "+curr.lower.format(df)+" ");
+            out.println("{"+ider.identifyAtom(curr.higher)+modelId+" ("+curr.higher.getPast80()+")}L "+crayon.getKinString()+" "+curr.higher.format(df));
             last = curr;
         }
     }
