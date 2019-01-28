@@ -537,8 +537,18 @@ public class KinfileIO implements KinfileLoader.Listener, ListSelectionListener
         {
             Writer w = new FileWriter(f);
             KinfileWriter kw = new KinfileWriter();
+            String textWindowText = kMain.getTextWindow().getText();
+            if (textWindowText.length() > 10485760) {
+              if (JOptionPane.NO_OPTION == JOptionPane.showConfirmDialog(kMain.getTopWindow(),
+                "You have a large amount (10 MB+) of text in the text window. Do you wish to save it to file?",
+                "Confirm save", JOptionPane.YES_NO_OPTION))
+              {
+                textWindowText = textWindowText.substring(0, 10485760);
+              }
+            }
+
             kw.save(w,
-                kMain.getTextWindow().getText(),
+                textWindowText,
                 kinsToSave);
             lastSavedFile = f;
             w.close();

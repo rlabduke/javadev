@@ -194,6 +194,7 @@ public class UIText implements MouseListener, KMessage.Subscriber
 
     public void appendText(String txt)
     {
+      if (!txt.equals(textarea.getText())) { // to help with issue of multiplying text
         txt = getText().concat(txt);
         
         // Keep the text window from moving around too much
@@ -201,6 +202,7 @@ public class UIText implements MouseListener, KMessage.Subscriber
         caret = Math.min(caret, txt.length());
         textarea.setText(txt);
         textarea.setCaretPosition(caret);
+      }
     }
 //}}}
 
