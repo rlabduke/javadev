@@ -533,10 +533,10 @@ public class FastaTool extends BasicTool //implements ActionListener
 	    //String output = "";
 	    while (iter.hasNext()) {
         KPoint pt = (KPoint) iter.next();
-        int newResNum = KinUtil.getResNumber(pt.getName());
+        int newResNum = KinPointIdParser.getResNumber(pt.getName());
         if (resNum != newResNum) {
           if (newResNum > resNum + 1) output = output.concat("\n");
-          output = output.concat(AminoAcid.translate(KinUtil.getResName(pt)));
+          output = output.concat(AminoAcid.translate(KinPointIdParser.getResName(pt)));
           //if (newResNum > resNum + 1) output = output.concat("\n");
           resNum = newResNum;
         }

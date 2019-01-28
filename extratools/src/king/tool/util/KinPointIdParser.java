@@ -9,16 +9,15 @@ import java.util.*;
 import java.util.regex.*;
 
 import driftwood.moldb2.AminoAcid;
-import driftwood.util.Strings;
+import driftwood.util.*;
 //}}}
 
-public class KinUtil {
+public class KinPointIdParser {
 
   static Pattern chainResPattern = Pattern.compile("[A-Z][0-9]{4}");
-  static Pattern intPattern = Pattern.compile("[0-9]+");
 
   //{{{ Constructor
-  public KinUtil() {
+  public KinPointIdParser() {
   }
   //}}}
     
@@ -41,7 +40,7 @@ public class KinUtil {
     if (parsed.length > 1) {
 	    if (parsed[1].length() > 3) {
         String parseValue = parsed[1].substring(3);
-        if (isInteger(parseValue)) {
+        if (NumberUtils.isInteger(parseValue)) {
           //System.out.print(parseValue + " ");
           return parseValue;
         }
@@ -51,7 +50,7 @@ public class KinUtil {
     for (int i = 0; i < parsed.length; i++) {
 	    String parseValue = parsed[i];
 	    //System.out.println(parseValue + ", " + i);
-	    if (isInteger(parseValue)) {
+	    if (NumberUtils.isInteger(parseValue)) {
         //if (Integer.parseInt(parseValue)>0) { // resnumbers can be neg!?
           return parseValue;
 		    //}
@@ -64,7 +63,7 @@ public class KinUtil {
 	    if (parsed[i] != null) {
         String parseValue = parsed[i].substring(0, parsed[i].length()-1);
         //System.out.println(parseValue + ", " + i);
-        if (isInteger(parseValue)) {
+        if (NumberUtils.isInteger(parseValue)) {
           //if (Integer.parseInt(parseValue)>0) {
             return parsed[i];
           //}
@@ -113,7 +112,7 @@ public class KinUtil {
     if (parsed.length > 1) {
 	    if (parsed[1].length() > 3) {
         String parseValue = parsed[1].substring(3);
-        if (isInteger(parseValue)) {
+        if (NumberUtils.isInteger(parseValue)) {
           //System.out.print(parseValue + " ");
           return Integer.parseInt(parseValue);
         }
@@ -123,7 +122,7 @@ public class KinUtil {
     for (int i = parsed.length - 1; i > -1; i--) {
 	    String parseValue = parsed[i];
 	    //System.out.println(parseValue + ", " + i);
-	    if (isInteger(parseValue)) {
+	    if (NumberUtils.isInteger(parseValue)) {
         parsedInt = Integer.parseInt(parseValue);
         if (parsedInt>0) {
           return parsedInt;
@@ -137,7 +136,7 @@ public class KinUtil {
 	    if (parsed[i] != null) {
         String parseValue = parsed[i].substring(0, parsed[i].length()-1);
         //System.out.println(parseValue + ", " + i);
-        if (isInteger(parseValue)) {
+        if (NumberUtils.isInteger(parseValue)) {
           parsedInt = Integer.parseInt(parseValue);
           if (parsedInt>0) {
             return parsedInt;
@@ -176,28 +175,7 @@ public class KinUtil {
     }
     return " ";
   }
-  
-  public static boolean isInteger(String s) {
-    //try {
-	  //  Integer.parseInt(s);
-	  //  return true;
-    //} catch (NumberFormatException e) {
-	  //  return false;
-    //} catch (NullPointerException e) {
-	  //  return false;
-    //}
-    Matcher matcher = intPattern.matcher(s);
-    return matcher.matches();
-  }
-  
-  public static boolean isNumeric(String s) {
-    try {
-	    Double.parseDouble(s);
-	    return true;
-    } catch (NumberFormatException e) {
-	    return false;
-    }
-  }
+
   
   public static String getAtomName(KPoint point) {
     String name = point.getName().trim();
@@ -229,21 +207,18 @@ public class KinUtil {
   
   // quick and dirty way of getting residue name.
   public static String getResName(String name) {
-    //String name = point.getName().trim();
-    String[] uncleanParsed = name.split(" ");
-    String[] parsed = new String[uncleanParsed.length];
-    int i2 = 0;
-    String returnString = "";
-    // To clean out the empty strings from the split name.
-    
-    for (int i = 0; i < uncleanParsed.length; i++) {
-	    String unclean = uncleanParsed[i];
-	    if ((!unclean.equals(""))&&(!unclean.equals(" "))) {
-        parsed[i2] = unclean;
-        i2++;
-	    }
+    String resname = AminoAcid.getAAName(name.substring(0,10));
+    if (resname.trim().length() == 4) {
+      resname = resname.substring(1);
     }
-    return parsed[1];
+    if (!resname.equals("UNK")) {
+      return resname;
+    }
+
+    String[] parsed = Strings.explode(name, " ".charAt(0), false, true);
+    resname = parsed[1];
+    resname = String.format("%3s", resname);
+    return resname;
     //while ((returnString.equals("")&&
     
   }

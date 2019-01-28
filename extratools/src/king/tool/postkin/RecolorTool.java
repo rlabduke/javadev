@@ -14,7 +14,7 @@ import java.net.*;
 
 import driftwood.gui.*;
 import driftwood.moldb2.AminoAcid;
-import driftwood.util.SoftLog;
+import driftwood.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 //}}}
@@ -290,7 +290,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 	    highNumField.setText("");
 	}
 	//KList parentList = (KList) p.getParent();
-	Integer resNum = new Integer(KinUtil.getResNumber(p));
+	Integer resNum = new Integer(KinPointIdParser.getResNumber(p));
 	if(lowNumField.getText().equals("")) {
 	    lowNumField.setText(resNum.toString());
 	} else if (highNumField.getText().equals("")) {
@@ -344,7 +344,7 @@ public class RecolorTool extends BasicTool implements ActionListener {
 		JOptionPane.showMessageDialog(pane, "Please click on a point in the structure you want to color before using the number boxes.", "Error",
 					      JOptionPane.ERROR_MESSAGE);
 	    } else {
-		if (KinUtil.isNumeric(lowNumField.getText())&&(KinUtil.isNumeric(highNumField.getText()))&&(textPane == null)) {
+		if (NumberUtils.isNumeric(lowNumField.getText())&&(NumberUtils.isNumeric(highNumField.getText()))&&(textPane == null)) {
 		    int firstNum = Integer.parseInt(lowNumField.getText());
 		    int secondNum = Integer.parseInt(highNumField.getText());
 		    if (firstNum > secondNum) {

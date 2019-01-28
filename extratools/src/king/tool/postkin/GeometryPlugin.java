@@ -10,7 +10,7 @@ import driftwood.r3.*;
 import driftwood.gui.*;
 import driftwood.moldb2.Residue;
 import driftwood.data.*;
-import driftwood.util.SoftLog;
+import driftwood.util.*;
 
 import java.net.*;
 import java.util.*;
@@ -164,7 +164,7 @@ public class GeometryPlugin extends Plugin {
     public void onAnalyzeCurrent(ActionEvent e) {
 	initialize();
 	
-	System.out.println("Analyzing geometry of " + KinUtil.getFirstGroupName(kMain.getKinemage()));
+	System.out.println("Analyzing geometry of " + KinPointIdParser.getFirstGroupName(kMain.getKinemage()));
 	//System.out.println("Analyzing geometry of " + pdbFile);
 	KGroup geomGroup = new KGroup("Geometry");
 	kMain.getKinemage().add(geomGroup);
@@ -222,7 +222,7 @@ public class GeometryPlugin extends Plugin {
         kin.getMasterByName("mainchain").setOn(true);
         kin.getMasterByName("chain A").setOn(true);
         kin.getMasterByName("alta").setOn(true);
-        //System.out.println("Analyzing geometry of " + KinUtil.getFirstGroupName(kMain.getKinemage()));
+        //System.out.println("Analyzing geometry of " + KinPointIdParser.getFirstGroupName(kMain.getKinemage()));
         System.out.println("Analyzing geometry of " + pdbFile);
         KGroup geomGroup = new KGroup("Geometry");
         kMain.getKinemage().add(geomGroup);
@@ -279,7 +279,7 @@ public class GeometryPlugin extends Plugin {
   public void splitKin(Kinemage kin) {
     KIterator<KPoint> pointIter = KIterator.visiblePoints(kin);
     for (KPoint pt : pointIter) {
-      String atomName = KinUtil.getAtomName(pt).toLowerCase();
+      String atomName = KinPointIdParser.getAtomName(pt).toLowerCase();
       ResidueInfo res = makeResidueInfo(pt);
       //System.out.println(res);
       if (atomName.equals("ca")) {
@@ -294,7 +294,7 @@ public class GeometryPlugin extends Plugin {
           VectorPoint nit = (VectorPoint) pt;
           VectorPoint prev = (VectorPoint) nit.getPrev();
           if (prev != null) {
-            String prevAtomName = KinUtil.getAtomName(prev).toLowerCase();
+            String prevAtomName = KinPointIdParser.getAtomName(prev).toLowerCase();
             if (prevAtomName.equals("c")) {
               ResidueInfo prevRes = makeResidueInfo(prev);
               sequenceMap.put(prevRes, res);
@@ -318,12 +318,12 @@ public class GeometryPlugin extends Plugin {
 * Takes a KPoint and makes a ResidueInfo object.
 **/
         public ResidueInfo makeResidueInfo(KPoint pt) {
-	String atomName = KinUtil.getAtomName(pt).toLowerCase();
-	String resName = KinUtil.getResName(pt).toLowerCase();
-	String resNum = KinUtil.getResNumString(pt);
-	String chainID = KinUtil.getChainID(pt);
+	String atomName = KinPointIdParser.getAtomName(pt).toLowerCase();
+	String resName = KinPointIdParser.getResName(pt).toLowerCase();
+	String resNum = KinPointIdParser.getResNumString(pt);
+	String chainID = KinPointIdParser.getChainID(pt);
 	String insCode = " ";
-	if (!KinUtil.isInteger(resNum)) {
+	if (!NumberUtils.isInteger(resNum)) {
 	    int numLength = resNum.length();
 	    if (numLength > 0) {
 		insCode = resNum.substring(numLength - 1);
@@ -348,8 +348,8 @@ public class GeometryPlugin extends Plugin {
 	    if (caMap.containsKey(res)) {
         Integer resNum = Integer.valueOf(res.getSequenceNumber());
         String resSeq = (res.getSequenceNumber() + res.getInsertionCode()).trim();
-        String resNumFull = (res.getSequenceNumber() + res.getInsertionCode()).trim() + ":" + KinUtil.getLastString(((KPoint) caMap.get(res)).getName()) + ":" + res.getChain().trim();
-        String resName = KinUtil.getResName(caMap.get(res));
+        String resNumFull = (res.getSequenceNumber() + res.getInsertionCode()).trim() + ":" + KinPointIdParser.getLastString(((KPoint) caMap.get(res)).getName()) + ":" + res.getChain().trim();
+        String resName = KinPointIdParser.getResName(caMap.get(res));
         //System.out.println(resName);
         calcDist(resNumFull, resName, nitMap.get(res), caMap.get(res));
         calcDist(resNumFull, resName, caMap.get(res), carbMap.get(res));
@@ -380,9 +380,9 @@ public class GeometryPlugin extends Plugin {
         public void calcDist(String key, String resName, KPoint pt1, KPoint pt2) {
 	//System.out.println(pt1 + " " + pt2);
 	if ((pt1 != null)&&(pt2 != null)) {
-	    String atom1 = KinUtil.getAtomName(pt1).toLowerCase();
-	    String atom2 = KinUtil.getAtomName(pt2).toLowerCase();
-	    //String res1 = KinUtil.getResName(pt1).toLowerCase();
+	    String atom1 = KinPointIdParser.getAtomName(pt1).toLowerCase();
+	    String atom2 = KinPointIdParser.getAtomName(pt2).toLowerCase();
+	    //String res1 = KinPointIdParser.getResName(pt1).toLowerCase();
 	    double idealdist;
 	    double sd;
 	    if (resName.equals("pro")) {
@@ -417,10 +417,10 @@ public class GeometryPlugin extends Plugin {
 **/
         public void calcAngle(String key, String resName, KPoint pt1, KPoint pt2, KPoint pt3) {
 	if ((pt1 != null)&&(pt2 != null)&&(pt3 != null)) {
-	    String atom1 = KinUtil.getAtomName(pt1).toLowerCase();
-	    String atom2 = KinUtil.getAtomName(pt2).toLowerCase();
-	    String atom3 = KinUtil.getAtomName(pt3).toLowerCase();
-	    //String res1 = KinUtil.getResName(pt1).toLowerCase();
+	    String atom1 = KinPointIdParser.getAtomName(pt1).toLowerCase();
+	    String atom2 = KinPointIdParser.getAtomName(pt2).toLowerCase();
+	    String atom3 = KinPointIdParser.getAtomName(pt3).toLowerCase();
+	    //String res1 = KinPointIdParser.getResName(pt1).toLowerCase();
 	    double idealAng;
 	    double sd;
 	    if (resName.equals("pro")) {
@@ -480,10 +480,10 @@ public class GeometryPlugin extends Plugin {
 **/
         public void calcPepDihedral(String key, String resName, KPoint pt1, KPoint pt2, KPoint pt3, KPoint pt4) {
 	if ((pt1 != null)&&(pt2 != null)&&(pt3 != null)&&(pt4 != null)) {
-	    String atom1 = KinUtil.getAtomName(pt1).toLowerCase();
-	    String atom2 = KinUtil.getAtomName(pt2).toLowerCase();
-	    String atom3 = KinUtil.getAtomName(pt3).toLowerCase();
-	    String atom4 = KinUtil.getAtomName(pt4).toLowerCase();
+	    String atom1 = KinPointIdParser.getAtomName(pt1).toLowerCase();
+	    String atom2 = KinPointIdParser.getAtomName(pt2).toLowerCase();
+	    String atom3 = KinPointIdParser.getAtomName(pt3).toLowerCase();
+	    String atom4 = KinPointIdParser.getAtomName(pt4).toLowerCase();
 	    Triple trip1 = new Triple(pt1);
 	    Triple trip2 = new Triple(pt2);
 	    Triple trip3 = new Triple(pt3);

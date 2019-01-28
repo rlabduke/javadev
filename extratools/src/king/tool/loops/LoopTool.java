@@ -16,7 +16,7 @@ import java.text.DecimalFormat;
 
 import driftwood.util.*;
 import driftwood.gui.*;
-import king.tool.util.KinUtil;
+import king.tool.util.*;
 //}}}
 
 public class LoopTool extends BasicTool {
@@ -262,7 +262,7 @@ public class LoopTool extends BasicTool {
 
 //{{{ onKeep
   public void onKeep(ActionEvent ev) {
-    if (KinUtil.isNumeric(lowNumField.getText())&&(KinUtil.isNumeric(highNumField.getText()))) {
+    if (NumberUtils.isNumeric(lowNumField.getText())&&(NumberUtils.isNumeric(highNumField.getText()))) {
 	    int firstNum = Integer.parseInt(lowNumField.getText());
 	    int secondNum = Integer.parseInt(highNumField.getText());
 	    if (firstNum > secondNum) {
@@ -365,7 +365,7 @@ public class LoopTool extends BasicTool {
     private void recolor(AGE target, HashSet colorSet, KPaint color) {
     KIterator<KPoint> points = KIterator.allPoints(target);
     for (KPoint pt : points) {
-      int resNum = KinUtil.getResNumber(pt);
+      int resNum = KinPointIdParser.getResNumber(pt);
       if (colorSet.contains(new Integer(resNum))) {
         pt.setColor(color);
       } 
@@ -380,8 +380,8 @@ public class LoopTool extends BasicTool {
     }
     KIterator<KPoint> points = KIterator.allPoints(target);
     for (KPoint pt : points) {
-      int resNum = KinUtil.getResNumber(pt);
-      String ptChain = KinUtil.getChainID(pt).toLowerCase();
+      int resNum = KinPointIdParser.getResNumber(pt);
+      String ptChain = KinPointIdParser.getChainID(pt).toLowerCase();
       if ((!keepSet.contains(new Integer(resNum)))){//||(!chainID.equals(ptChain))) {
           points.remove();
       } else if ((keepSet.contains(new Integer(resNum)))&&(!keepSet.contains(new Integer(resNum-1)))) {
@@ -389,7 +389,7 @@ public class LoopTool extends BasicTool {
           VectorPoint vpoint = (VectorPoint) pt;
           KPoint prev = vpoint.getPrev();
           if (prev instanceof KPoint) {
-            if (!keepSet.contains(new Integer(KinUtil.getResNumber(prev)))) {
+            if (!keepSet.contains(new Integer(KinPointIdParser.getResNumber(prev)))) {
               vpoint.setPrev(null);
             }
           }

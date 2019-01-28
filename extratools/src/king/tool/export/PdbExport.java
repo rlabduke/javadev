@@ -140,7 +140,7 @@ public class PdbExport extends Plugin implements PropertyChangeListener, Runnabl
       //if (pointActuallyOn(point)) {
       if (pointActuallyOn(point)) {
         //System.out.println(point);
-        //System.out.println(KinUtil.getResNumber(point.getName().toUpperCase()));
+        //System.out.println(KinPointIdParser.getResNumber(point.getName().toUpperCase()));
         pdbBuilder.append("ATOM  ");
         pdbBuilder.append(formatStrings(String.valueOf(i), 5) + " ");
         //out.print(point.getName().toUpperCase().substring(0, 8) + "  " + point.getName().toUpperCase().substring(8) + "     ");
@@ -149,15 +149,15 @@ public class PdbExport extends Plugin implements PropertyChangeListener, Runnabl
           System.err.println(point+" had an unknown atom name, is this expected?");
         }
         pdbBuilder.append(PointComparator.getAtomName(point.getName().toUpperCase()));
-        pdbBuilder.append(KinUtil.getAltConf(point.getName().toUpperCase()));
-        pdbBuilder.append(KinUtil.getResAA(point.getName().toUpperCase()) + " ");
-        pdbBuilder.append(KinUtil.getChainID(point.getName()));
-        pdbBuilder.append(formatStrings(String.valueOf(KinUtil.getResNumber(point.getName().toUpperCase())), 4) + "    ");
+        pdbBuilder.append(KinPointIdParser.getAltConf(point.getName().toUpperCase()));
+        pdbBuilder.append(KinPointIdParser.getResName(point.getName().toUpperCase()) + " ");
+        pdbBuilder.append(KinPointIdParser.getChainID(point.getName()).toUpperCase());
+        pdbBuilder.append(formatStrings(String.valueOf(KinPointIdParser.getResNumber(point.getName().toUpperCase())), 4) + "    ");
         pdbBuilder.append(formatStrings(df.format(point.getX()), 8));
         pdbBuilder.append(formatStrings(df.format(point.getY()), 8));
         pdbBuilder.append(formatStrings(df.format(point.getZ()), 8));
-        pdbBuilder.append(formatStrings(df2.format(KinUtil.getOccupancy(point)), 6));
-        pdbBuilder.append(formatStrings(df2.format(KinUtil.getBvalue(point.getName().toUpperCase())), 6)+"\n");
+        pdbBuilder.append(formatStrings(df2.format(KinPointIdParser.getOccupancy(point)), 6));
+        pdbBuilder.append(formatStrings(df2.format(KinPointIdParser.getBvalue(point.getName().toUpperCase())), 6)+"\n");
         i++;
       }
     }

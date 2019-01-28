@@ -66,19 +66,19 @@ public class PointComparator implements Comparator {
 	    AbstractPoint point2 = (AbstractPoint) o2;
 	    String p1name = point1.getName().toUpperCase();
 	    String p2name = point2.getName().toUpperCase();
-	    value = KinUtil.getResNumber(p1name) - KinUtil.getResNumber(p2name);
+	    value = KinPointIdParser.getResNumber(p1name) - KinPointIdParser.getResNumber(p2name);
 	    if (value < 0)  return -1;
 	    else if (value > 0) return 1;
-	    value = KinUtil.getResAA(p1name).compareTo(KinUtil.getResAA(p2name));
+	    value = KinPointIdParser.getResName(p1name).compareTo(KinPointIdParser.getResName(p2name));
 	    if (value < 0)  return -1;
 	    else if (value > 0) return 1;
-	    value = KinUtil.getAltConf(p1name).compareTo(KinUtil.getAltConf(p2name));
+	    value = KinPointIdParser.getAltConf(p1name).compareTo(KinPointIdParser.getAltConf(p2name));
 	    if (value < 0)  return -1;
 	    else if (value > 0) return 1;
 	    value = getAtomNamePosition(p1name) - getAtomNamePosition(p2name);
 	    if (value < 0)  return -1;
 	    else if (value > 0) return 1;
-	    value = KinUtil.getChainID(p1name).compareTo(KinUtil.getChainID(p2name));
+	    value = KinPointIdParser.getChainID(p1name).compareTo(KinPointIdParser.getChainID(p2name));
 	    if (value < 0)  return -1;
 	    else if (value > 0) return 1;
 	  }
@@ -92,13 +92,13 @@ public class PointComparator implements Comparator {
 	  //  value = atomPosition * 10;
     //  
 	  //  
-	  //  value = value + KinUtil.getResAA(p1name).compareTo(KinUtil.getResAA(p2name)) * 10000;
+	  //  value = value + KinPointIdParser.getResAA(p1name).compareTo(KinPointIdParser.getResAA(p2name)) * 10000;
     //  
 	  //  
-	  //  value = value + (KinUtil.getResNumber(p1name) - KinUtil.getResNumber(p2name)) * 1000000000;
+	  //  value = value + (KinPointIdParser.getResNumber(p1name) - KinPointIdParser.getResNumber(p2name)) * 1000000000;
 	  //  //return value;
 	  //  //if (value == 0) {
-    //    System.out.println(p1name+","+ KinUtil.getResNumber(p1name)+","+ KinUtil.getResAA(p1name)+ ", " + p2name +","+ KinUtil.getResNumber(p2name) +","+ KinUtil.getResAA(p2name) + ": " + value);
+    //    System.out.println(p1name+","+ KinPointIdParser.getResNumber(p1name)+","+ KinPointIdParser.getResAA(p1name)+ ", " + p2name +","+ KinPointIdParser.getResNumber(p2name) +","+ KinPointIdParser.getResAA(p2name) + ": " + value);
 	  //  //}
     //}
     ////return value;
@@ -217,7 +217,7 @@ public class PointComparator implements Comparator {
 	    } else if (atom.length() == 2) {
         atom = " " + atom + " ";
 	    } else if (atom.length() == 3) {
-        if (KinUtil.isNumeric(atom.substring(0, 1))) {
+        if (NumberUtils.isNumeric(atom.substring(0, 1))) {
           atom = atom + " ";
         } else {
           atom = " " + atom;
@@ -249,32 +249,6 @@ public class PointComparator implements Comparator {
 
   //{{{ getAtomName
   public static String getAtomName(String name) {
-    /*
-    for (int i = allAtoms.size() - 1; i >= 0; i--) {
-      String atom = ((String) allAtoms.get(i)).trim();
-      if (atom.length() == 1) {
-        atom = " " + atom + " ";
-      } else if (atom.length() == 2) {
-        atom = " " + atom + " ";
-      } else if (atom.length() == 3) {
-        if (KinUtil.isNumeric(atom.substring(0, 1))) {
-          atom = atom + " ";
-        } else {
-          atom = " " + atom;
-        }
-      }
-      //System.out.print(atom + ",");
-      if (name.indexOf(atom)>-1) {
-        //System.out.print(atom + ",");
-        if (atom.length() == 3) {
-          return atom + " ";
-        } else {
-          return atom;
-        }
-      }
-    }
-    return "UNK ";
-    */
     for (int i = allAtoms.size() - 1; i >= 0; i--) {
       String atom = (String) allAtoms.get(i);
       // substring is to prevent silly bug where the wrong atom would be found in 
@@ -292,7 +266,10 @@ public class PointComparator implements Comparator {
         if (name.substring(0,10).indexOf(atom) > -1) return atom; 
       }
     }
-    return "UNK ";
+    
+    // backup method to try to catch atom names for non standard residues
+    String[] parsed = Strings.explode(name, " ".charAt(0), false, true);
+    return String.format("%4s", parsed[0]);
   }
 //}}}    
     

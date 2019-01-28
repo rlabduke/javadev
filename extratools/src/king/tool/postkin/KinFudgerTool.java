@@ -876,7 +876,7 @@ public class KinFudgerTool extends BasicTool {
         System.out.println(point + " POINT ON:" + pointActuallyOn(point));
         if (pointActuallyOn(point)) {
           //System.out.println(point);
-          //System.out.println(KinUtil.getResNumber(point.getName().toUpperCase()));
+          //System.out.println(KinPointIdParser.getResNumber(point.getName().toUpperCase()));
           out.print("ATOM  ");
           out.print(formatStrings(String.valueOf(i), 5) + " ");
           //out.print(point.getName().toUpperCase().substring(0, 8) + "  " + point.getName().toUpperCase().substring(8) + "     ");
@@ -885,14 +885,14 @@ public class KinFudgerTool extends BasicTool {
             
           }
           out.print(PointComparator.getAtomName(point.getName().toUpperCase()));
-          out.print(KinUtil.getAltConf(point.getName().toUpperCase()));
-          out.print(KinUtil.getResAA(point.getName().toUpperCase()) + "  ");
-          out.print(formatStrings(String.valueOf(KinUtil.getResNumber(point.getName().toUpperCase())), 4) + "    ");
+          out.print(KinPointIdParser.getAltConf(point.getName().toUpperCase()));
+          out.print(KinPointIdParser.getResAA(point.getName().toUpperCase()) + "  ");
+          out.print(formatStrings(String.valueOf(KinPointIdParser.getResNumber(point.getName().toUpperCase())), 4) + "    ");
           out.print(formatStrings(df.format(point.getX()), 8));
           out.print(formatStrings(df.format(point.getY()), 8));
           out.print(formatStrings(df.format(point.getZ()), 8));
-          out.print(formatStrings(df2.format(KinUtil.getOccupancy(point)), 6));
-          out.println(formatStrings(df2.format(KinUtil.getBvalue(point.getName().toUpperCase())), 6));
+          out.print(formatStrings(df2.format(KinPointIdParser.getOccupancy(point)), 6));
+          out.println(formatStrings(df2.format(KinPointIdParser.getBvalue(point.getName().toUpperCase())), 6));
           i++;
         }
 	    }

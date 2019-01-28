@@ -142,7 +142,7 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
     //while (iter.hasNext()) {
 	    //KList list = (KList) iter.next();
       KPoint point = list.getChildren().get(0);
-	    Integer resNum = new Integer(KinUtil.getResNumber(point));
+	    Integer resNum = new Integer(KinPointIdParser.getResNumber(point));
 	    if ((resNum.equals(oldresNum))||(resNum.equals(new Integer(oldresNum.intValue() + 1)))) {
         listofLists.add(list);
         ribbonMap.put(list, listofLists);
@@ -180,7 +180,7 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
         //Iterator listIter = splitList.iterator();
         KPoint point = (KPoint) splitList.get(0);
         if (!point.isUnpickable()) { //to not color over black outlines on ribbons
-          Integer resNum = new Integer(KinUtil.getResNumber(point.getName()));
+          Integer resNum = new Integer(KinPointIdParser.getResNumber(point.getName()));
           //System.out.println(resNum);
           ArrayList<ArrayList> listofLists = null;
           if (structMap.containsKey(resNum)) {
@@ -213,11 +213,11 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
     while (iter.hasNext()) {
 	    KPoint point = (KPoint) iter.next();
 	    //oldResNum = getResNumber(point);
-	    if (KinUtil.getResNumber(point.getName()) != oldResNum) {
+	    if (KinPointIdParser.getResNumber(point.getName()) != oldResNum) {
         //list = new KList(bigList.getType());
         list = new ArrayList<KPoint>();
         list.add(point);
-        oldResNum = KinUtil.getResNumber(point.getName());
+        oldResNum = KinPointIdParser.getResNumber(point.getName());
         residueList.add(list);
 	    } else {
         list.add(point);
@@ -234,7 +234,7 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
         but King seems to be fast enough now that this isn't necessary (for ribbons).
       **/
 	//KList parentList = (KList) p.getParent();
-	//Integer resNum = new Integer(KinUtil.getResNumber(p));
+	//Integer resNum = new Integer(KinPointIdParser.getResNumber(p));
 	//return (structMap.containsKey(resNum)&&clickedLists.contains(parentList));
 //  return false;
 //    }
@@ -301,7 +301,7 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
         //ArrayList splitList = (ArrayList) resIter.next();
         if (containsAAName(splitList, aaName)) {
           setPointColors(splitList, color);
-          Integer resNum = new Integer(KinUtil.getResNumber((KPoint)splitList.get(0)));
+          Integer resNum = new Integer(KinPointIdParser.getResNumber((KPoint)splitList.get(0)));
           aaNums.add(resNum);
         }
 	    }
@@ -346,7 +346,7 @@ public class RecolorRibbon extends Recolorator //implements ActionListener
         KPoint point = (KPoint) iter.next();
         //String pointID = point.getName().trim();
         //String aa = pointID.substring(4, 7);
-        String aa = KinUtil.getResName(point);
+        String aa = KinPointIdParser.getResName(point);
         if (aa.length()==4) {
           aa = aa.substring(1);
         }

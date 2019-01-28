@@ -7,6 +7,7 @@ import king.core.*;
 import king.points.*;
 import king.tool.util.*;
 import driftwood.gui.*;
+import driftwood.util.*;
 
 import java.util.*;
 import java.awt.*;
@@ -102,10 +103,10 @@ public class FramerTool extends BasicTool {
 	    if (!includedPoints.contains(p)) {
 		splitKin(parent, caMap, oxyMap);
 	    }
-	    if (KinUtil.isNumeric(lowNumField.getText())&&KinUtil.isNumeric(highNumField.getText())) {
+	    if (NumberUtils.isNumeric(lowNumField.getText())&&NumberUtils.isNumeric(highNumField.getText())) {
 		/*
 		int numPep = Integer.parseInt(lowNumField.getText());
-		int resNum = KinUtil.getResNumber(p);
+		int resNum = KinPointIdParser.getResNumber(p);
 		KPoint ca0 = (KPoint) caMap.get(new Integer(resNum - 1));
 		KPoint ca1 = (KPoint) caMap.get(new Integer(resNum));
 		KPoint caN = (KPoint) caMap.get(new Integer(resNum + numPep));
@@ -151,10 +152,10 @@ public class FramerTool extends BasicTool {
 	        Double bfact = (Double) bfactMap.get(new Integer(lowNum));
 		//System.out.println(bfact);
 		results.add(bfact);
-		//System.out.println(KinUtil.getResNumber(ca0.getName()));
-		//oneNResults.ensureCapacity(KinUtil.getResNumber(ca0.getName()));
-		//oneNResults.add(KinUtil.getResNumber(ca0.getName()), results);
-		oneNResults.put(new Integer(KinUtil.getResNumber(ca0.getName())), results);
+		//System.out.println(KinPointIdParser.getResNumber(ca0.getName()));
+		//oneNResults.ensureCapacity(KinPointIdParser.getResNumber(ca0.getName()));
+		//oneNResults.add(KinPointIdParser.getResNumber(ca0.getName()), results);
+		oneNResults.put(new Integer(KinPointIdParser.getResNumber(ca0.getName())), results);
 		//plotValues(results[0], results[1], results[2], ca0.getName());
 		//plotValues(results[3], results[4], results[5], ca0.getName(), ca0.getColor());
 	    }
@@ -204,10 +205,10 @@ public class FramerTool extends BasicTool {
 	    while (iter.hasNext()) {
 		KPoint pt = (KPoint) iter.next();
 		includedPoints.add(pt);
-		int resNum = KinUtil.getResNumber(pt);
+		int resNum = KinPointIdParser.getResNumber(pt);
 		//System.out.println("resNum = " + resNum);
-		String atomName = KinUtil.getAtomName(pt).toLowerCase();
-		double bVal = KinUtil.getBvalue(pt);
+		String atomName = KinPointIdParser.getAtomName(pt).toLowerCase();
+		double bVal = KinPointIdParser.getBvalue(pt);
 		//System.out.print(resNum + " " + bVal + ",");
 		double maxBval = -10000;
 		if (atomName.equals("ca")) {
@@ -342,7 +343,7 @@ public class FramerTool extends BasicTool {
 		    KList list = (KList) kage;
 		    if (list.getName().equals("mc")) {
 			splitKin(list, caMap, oxyMap);
-			if (KinUtil.isNumeric(lowNumField.getText())&&KinUtil.isNumeric(highNumField.getText())) {
+			if (NumberUtils.isNumeric(lowNumField.getText())&&NumberUtils.isNumeric(highNumField.getText())) {
 			    int lowNum = Integer.parseInt(lowNumField.getText());
 			    int highNum = Integer.parseInt(highNumField.getText());
 			    for (int numPep = lowNum; numPep <= highNum; numPep++) {

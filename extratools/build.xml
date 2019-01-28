@@ -49,7 +49,7 @@
            includes="**/*.java"
            excludes="**/old/"
            debug="on" debuglevel="lines,source"
-           target="1.5" source="1.5">
+           target="1.7" source="1.7">
            <!--compilerarg value="-Xlint:unchecked"/-->
          <classpath>
             <pathelement location="../driftwood/build"/>

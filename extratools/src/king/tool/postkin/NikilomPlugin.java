@@ -42,36 +42,46 @@ public class NikilomPlugin extends Plugin {
 //##############################################################################
     public void savePdb(File f)
     {
-        Iterator groups = kMain.getKinemage().iterator();
-        int groupCount = 0;
-        while(groups.hasNext())
-        {
-            KGroup group = (KGroup) groups.next();
-            if(group.isOn())
-            {
-                groupCount++;
-                try
-                {
-                    FileWriter w = new FileWriter(f, true); // to append (?)
-                    PrintWriter out = new PrintWriter(new BufferedWriter(w));
-                    
-                    out.println("MODEL     "+Strings.forceRight(""+groupCount, 4));
-                    out.print(Kinimol.convertGrouptoPdb(group, group.getName()));
-                    out.println("ENDMDL");
-                    
-                    out.flush();
-                    w.close();
-                }
-                catch(IOException ex)
-                {
-                    System.out.println(ex);
-                    JOptionPane.showMessageDialog(kMain.getTopWindow(),
-                        "An error occurred while saving the file.",
-                        "Sorry!", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        }
+      try
+      {
+        FileWriter w = new FileWriter(f, false); // to not append (?)
+        PrintWriter out = new PrintWriter(new BufferedWriter(w));
+        
+        out.println(getPdbText());
+        
+        out.flush();
+        w.close();
+      }
+      catch(IOException ex)
+      {
+        System.out.println(ex);
+        JOptionPane.showMessageDialog(kMain.getTopWindow(),
+          "An error occurred while saving the file.",
+          "Sorry!", JOptionPane.ERROR_MESSAGE);
+      }
     }
+//}}}
+
+//{{{ getPdbText
+  public String getPdbText() {
+    String pdbText = "";
+    Iterator groups = kMain.getKinemage().iterator();
+    int groupCount = 0;
+    while(groups.hasNext())
+    {
+      KGroup group = (KGroup) groups.next();
+      if(group.isOn())
+      {
+        groupCount++;
+
+        pdbText = pdbText.concat("MODEL     "+Strings.forceRight(""+groupCount, 4)+"\n");
+        pdbText = pdbText.concat(Kinimol.convertGrouptoPdb(group, group.getName()));
+        pdbText = pdbText.concat("ENDMDL\n");
+       
+      }
+    }
+    return pdbText;
+  }
 //}}}
   
 //{{{ onConvert

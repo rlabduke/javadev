@@ -5,7 +5,7 @@ import king.*;
 import king.core.*;
 import king.points.*;
 import king.io.*;
-import king.tool.util.KinUtil;
+import king.tool.util.KinPointIdParser;
 
 import java.awt.event.*;
 import java.util.*;

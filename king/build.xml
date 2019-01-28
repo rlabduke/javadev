@@ -7,6 +7,7 @@
 <property name="resource"   location="resource"/>
 <property name="build"      location="build"/>
 <property name="dist"       location="dist"/>
+<property name="installer"  location="installer"/>
 <property name="javadev"    location=".."/>
 <!-- Version control: creates timestamp, updates ${buildnum}, loads ${version} -->
 <target name="init">
@@ -197,6 +198,30 @@
     <copy file="../extratools/doc/tools-manual.pdf" tofile="${dist}/${ant.project.name}-${version}/doc/extratools-manual.pdf"/>
 </target>
 <!-- }}} -->
+
+<target name="javapackager" depends="init,build">
+    <copy file="${javadev}/chiropraxis/chiropraxis.jar" todir="plugins/" preservelastmodified="true"/>
+    <copy file="${javadev}/extratools/extratools.jar" todir="plugins/" preservelastmodified="true"/>
+    <copy file="${javadev}/rdcvis/rdcvis.jar" todir="plugins/" preservelastmodified="true"/>
+    
+    <mkdir dir="${dist}/${ant.project.name}-${version}"/>
+    <copy todir="${dist}/${ant.project.name}-${version}" preservelastmodified="true">
+        <fileset dir="${basedir}">
+            <include name="*.jar"/>
+            <include name="README*"/>
+            <include name="LICENSE*"/>
+            <include name="plugins/"/>
+            <include name="doc/"/>
+            <exclude name="doc/work/"/>
+        </fileset>
+    </copy>
+    <!-- extra doc files from other top-level projects; some need to be renamed -->
+    <copy file="../chiropraxis/doc/tools-manual.pdf" tofile="${dist}/${ant.project.name}-${version}/doc/chiropraxis-manual.pdf"/>
+    <copy file="../extratools/doc/tools-manual.pdf" tofile="${dist}/${ant.project.name}-${version}/doc/extratools-manual.pdf"/>
+    <exec executable="javapackager">
+        <arg line="-deploy -native -title 'KiNG Title' -name 'KiNG' -appclass king.KingMain -outdir ${installer} -outfile KiNGfile -srcfiles ${dist}/${ant.project.name}-${version}/king.jar -srcdir ${build}"/>
+    </exec>
+</target>
 
 <taskdef name="bundleapp"
          classname="com.oracle.appbundler.AppBundlerTask"

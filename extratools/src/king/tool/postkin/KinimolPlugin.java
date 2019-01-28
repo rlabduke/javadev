@@ -40,7 +40,7 @@ public class KinimolPlugin extends Plugin {
           KIterator<KList> lists = KIterator.allLists(sub);
           for (KList list : lists) {
             KPoint pt = list.getChildren().get(0);
-            String pdbName = KinUtil.getPdbName(pt.getName());
+            String pdbName = KinPointIdParser.getPdbName(pt.getName());
             if (pdbName != null) {
               if (groupMap.containsKey(pdbName)) {
                 KGroup pdbGroup = groupMap.get(pdbName);

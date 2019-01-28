@@ -213,7 +213,7 @@ public class CoCenterTool extends BasicTool {
   public void cocenter(KPoint p, Kinemage kin) {
     long startTime = System.currentTimeMillis();
     setOrigCoords();
-    current = KinUtil.getResNumber(p);
+    current = KinPointIdParser.getResNumber(p);
     String pName = p.getName();
     if (pName.matches("\\([0-9]*\\).*")) {
       pName = pName.substring(pName.indexOf(")")+1, pName.length()).trim();
@@ -373,9 +373,9 @@ public class CoCenterTool extends BasicTool {
     //int highResNum = Integer.MIN_VALUE;
     //while (point == null && points.hasNext()) {
     //  KPoint testPt = points.next();
-    //  String atomName = KinUtil.getAtomName(testPt).toLowerCase();
+    //  String atomName = KinPointIdParser.getAtomName(testPt).toLowerCase();
     //  if (atomName.equals((String)atomsBox.getSelectedItem())) {
-    //    int resNum = KinUtil.getResNumber(testPt);
+    //    int resNum = KinPointIdParser.getResNumber(testPt);
     //    if (resNum == current - 1) {
     //      point = testPt;
     //    } else if (resNum > highResNum) {
@@ -420,9 +420,9 @@ public class CoCenterTool extends BasicTool {
         String paren = getParen(testPt);
         if (!paren.equals("")) testNum = Integer.parseInt(paren);
       } else {
-        String atomName = KinUtil.getAtomName(testPt).toLowerCase();
+        String atomName = KinPointIdParser.getAtomName(testPt).toLowerCase();
         if (atomName.equals((String)atomsBox.getSelectedItem())) {
-          testNum = KinUtil.getResNumber(testPt);
+          testNum = KinPointIdParser.getResNumber(testPt);
         }
       }
       if (testNum != Integer.MIN_VALUE) {
@@ -450,9 +450,9 @@ public class CoCenterTool extends BasicTool {
         String paren = getParen(testPt);
         if (!paren.equals("")) testNum = Integer.parseInt(paren);
       } else {
-        String atomName = KinUtil.getAtomName(testPt).toLowerCase();
+        String atomName = KinPointIdParser.getAtomName(testPt).toLowerCase();
         if (atomName.equals((String)atomsBox.getSelectedItem())) {
-          testNum = KinUtil.getResNumber(testPt);
+          testNum = KinPointIdParser.getResNumber(testPt);
         }
       }
       if (testNum != Integer.MIN_VALUE) {
@@ -503,9 +503,9 @@ public class CoCenterTool extends BasicTool {
         String paren = getParen(testPt);
         if (!paren.equals("")) testNum = Integer.parseInt(paren);
       } else {
-        String atomName = KinUtil.getAtomName(testPt).toLowerCase();
+        String atomName = KinPointIdParser.getAtomName(testPt).toLowerCase();
         if (atomName.equals((String)atomsBox.getSelectedItem())) {
-          testNum = KinUtil.getResNumber(testPt);
+          testNum = KinPointIdParser.getResNumber(testPt);
         }
       }
       if (testNum != Integer.MAX_VALUE) {

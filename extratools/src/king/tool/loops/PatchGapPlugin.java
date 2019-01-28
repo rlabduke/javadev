@@ -95,14 +95,14 @@ public class PatchGapPlugin extends Plugin {
     Kinemage kin = kMain.getKinemage();
     KIterator<KPoint> points = KIterator.allPoints(kin);
     for (KPoint pt : points) {
-      String atomName = KinUtil.getAtomName(pt);
+      String atomName = KinPointIdParser.getAtomName(pt);
       //System.out.println(atomName);
       if (atomName.equals("ca")) {
-        Integer resNum = new Integer(KinUtil.getResNumber(pt));
+        Integer resNum = new Integer(KinPointIdParser.getResNumber(pt));
         caMap.put(resNum, pt);
       }
       if (atomName.equals("o")) {
-        Integer resNum = new Integer(KinUtil.getResNumber(pt));
+        Integer resNum = new Integer(KinPointIdParser.getResNumber(pt));
         coMap.put(resNum, pt);
       }
     }
@@ -394,8 +394,8 @@ public class PatchGapPlugin extends Plugin {
     Kinemage kin = kins.get(0);
     KIterator<KPoint> points = KIterator.allPoints(kin);
     for (KPoint pt : points) {
-      int resNum = KinUtil.getResNumber(pt);
-      //String ptChain = KinUtil.getChainID(pt).toLowerCase();
+      int resNum = KinPointIdParser.getResNumber(pt);
+      //String ptChain = KinPointIdParser.getChainID(pt).toLowerCase();
       if ((!keepSet.contains(new Integer(resNum)))||(!(pt instanceof VectorPoint))){//||(!chainID.equals(ptChain))) {
           points.remove();
       } else {
@@ -411,7 +411,7 @@ public class PatchGapPlugin extends Plugin {
           //vpoint.setName(name + keepSet.first().toString()); //temp fix to pdb export putting loops from same pdb together
           KPoint prev = vpoint.getPrev();
           if (prev instanceof KPoint) {
-            if (!keepSet.contains(new Integer(KinUtil.getResNumber(prev)))) {
+            if (!keepSet.contains(new Integer(KinPointIdParser.getResNumber(prev)))) {
               vpoint.setPrev(null);
             }
           }
@@ -446,8 +446,8 @@ public class PatchGapPlugin extends Plugin {
     int first = keepSet.first().intValue();
     int last = keepSet.last().intValue();
     for (KPoint pt : points) {
-      int resNum = KinUtil.getResNumber(pt);
-      String atomName = KinUtil.getAtomName(pt);
+      int resNum = KinPointIdParser.getResNumber(pt);
+      String atomName = KinPointIdParser.getAtomName(pt);
       if ((atomName.equals("n"))&&(resNum == first)) points.remove();
       if ((atomName.equals("h"))&&(resNum == first)) points.remove();
       if ((atomName.equals("ca"))&&(resNum == first)) pt.setPrev(null);
@@ -463,14 +463,14 @@ public class PatchGapPlugin extends Plugin {
     TreeMap<Integer, KPoint> listcoMap = new TreeMap<Integer, KPoint>();
     KIterator<KPoint> points = KIterator.allPoints(list);
     for (KPoint pt : points) {
-      String atomName = KinUtil.getAtomName(pt);
+      String atomName = KinPointIdParser.getAtomName(pt);
       //System.out.println(atomName);
       if (atomName.equals("ca")) {
-        Integer resNum = new Integer(KinUtil.getResNumber(pt));
+        Integer resNum = new Integer(KinPointIdParser.getResNumber(pt));
         listcaMap.put(resNum, pt);
       }
       if (atomName.equals("o")) {
-        Integer resNum = new Integer(KinUtil.getResNumber(pt));
+        Integer resNum = new Integer(KinPointIdParser.getResNumber(pt));
         listcoMap.put(resNum, pt);
       }
     }
@@ -554,7 +554,7 @@ public class PatchGapPlugin extends Plugin {
       KIterator<KList> lists = KIterator.allLists(sub);
       for (KList list : lists) {
         KPoint pt = list.getChildren().get(0);
-        String pdbName = KinUtil.getPdbName(pt.getName());
+        String pdbName = KinPointIdParser.getPdbName(pt.getName());
         //System.out.println(pdbName);
         if (pdbName != null) {
           if (groupMap.containsKey(pdbName)) {

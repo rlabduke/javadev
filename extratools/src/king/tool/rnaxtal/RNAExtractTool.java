@@ -193,8 +193,8 @@ public class RNAExtractTool extends BasicTool {
 	    Iterator iter = target.iterator();
 	    while (iter.hasNext()) {
 		KPoint pt = (KPoint) iter.next();
-		int resNum = KinUtil.getResNumber(pt);
-		String ptChain = KinUtil.getChainID(pt).toLowerCase();
+		int resNum = KinPointIdParser.getResNumber(pt);
+		String ptChain = KinPointIdParser.getChainID(pt).toLowerCase();
 		if ((!keepSet.contains(new Integer(resNum)))||(!chainID.equals(ptChain))) {
 		    iter.remove();
 		} else if ((keepSet.contains(new Integer(resNum)))&&(!keepSet.contains(new Integer(resNum-1)))) {
@@ -202,7 +202,7 @@ public class RNAExtractTool extends BasicTool {
 			VectorPoint vpoint = (VectorPoint) pt;
 			KPoint prev = vpoint.getPrev();
 			if (prev instanceof KPoint) {
-			    if (!keepSet.contains(new Integer(KinUtil.getResNumber(prev)))) {
+			    if (!keepSet.contains(new Integer(KinPointIdParser.getResNumber(prev)))) {
 				vpoint.setPrev(null);
 			    }
 			}
@@ -225,7 +225,7 @@ public class RNAExtractTool extends BasicTool {
 	    while (iter.hasNext()) {
 		KPoint pt = (KPoint) iter.next();
 		pt.setName(pt.getName() + " " + addOn);
-		//int resNum = KinUtil.getResNumber(pt);
+		//int resNum = KinPointIdParser.getResNumber(pt);
 		//if (colorSet.contains(new Integer(resNum))) {
 		//    pt.setColor(color);
 		//} 

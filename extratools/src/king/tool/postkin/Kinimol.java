@@ -37,18 +37,17 @@ public class Kinimol {
     }
     for (KPoint point : keyTree) {
       String atomName = PointComparator.getAtomName(point.getName().toUpperCase());
-      String aaName = KinUtil.getResAA(point.getName().toUpperCase());
-      if (aaName.length()==3) aaName = " " + aaName;
+      String aaName = KinPointIdParser.getResName(point.getName().toUpperCase());
       pdb = pdb.concat("ATOM  ");
       pdb = pdb.concat(formatStrings(String.valueOf(i), 5) + " ");
       pdb = pdb.concat(atomName);
-      pdb = pdb.concat(aaName + "  ");
-      pdb = pdb.concat(formatStrings(String.valueOf(KinUtil.getResNumber(point.getName().toUpperCase())), 4) + "    ");
+      pdb = pdb.concat(String.format("%4s",aaName) + "  ");
+      pdb = pdb.concat(formatStrings(String.valueOf(KinPointIdParser.getResNumber(point.getName().toUpperCase())), 4) + "    ");
       pdb = pdb.concat(formatStrings(df.format(point.getX()), 8));
       pdb = pdb.concat(formatStrings(df.format(point.getY()), 8));
       pdb = pdb.concat(formatStrings(df.format(point.getZ()), 8));
       pdb = pdb.concat("  1.00");
-      pdb = pdb.concat(formatStrings(dfB.format(KinUtil.getBvalue(point)), 6));
+      pdb = pdb.concat(formatStrings(dfB.format(KinPointIdParser.getBvalue(point)), 6));
       pdb = pdb.concat("                " + pdbName + "\n");
       i++;
     }
@@ -79,9 +78,9 @@ public class Kinimol {
         if (atomName.equals("UNK ")) {
           
         }
-        out.print(KinUtil.getAtomName(point.getName().toUpperCase()) + " ");
-        out.print(KinUtil.getResAA(point.getName().toUpperCase()) + "  ");
-        out.print(formatStrings(String.valueOf(KinUtil.getResNumber(point.getName().toUpperCase())), 4) + "    ");
+        out.print(KinPointIdParser.getAtomName(point.getName().toUpperCase()) + " ");
+        out.print(KinPointIdParser.getResAA(point.getName().toUpperCase()) + "  ");
+        out.print(formatStrings(String.valueOf(KinPointIdParser.getResNumber(point.getName().toUpperCase())), 4) + "    ");
         out.print(formatStrings(df.format(point.getX()), 8));
         out.print(formatStrings(df.format(point.getY()), 8));
         out.print(formatStrings(df.format(point.getZ()), 8));

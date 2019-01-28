@@ -4,7 +4,6 @@ package king.tool.data_analysis;
 import king.*;
 import king.core.*;
 import king.tool.loops.*;
-import king.tool.util.*;
 import driftwood.gui.*;
 
 import javax.swing.*;
@@ -102,7 +101,7 @@ public class HighDimSliderPlugin extends Plugin implements ChangeListener {
   public void onSetSep(ActionEvent ev) {
     for (HighLowSliders slider : sliders) {
       String sepText = sepField.getText();
-      if (KinUtil.isNumeric(sepText)) {
+      if (NumberUtils.isNumeric(sepText)) {
         slider.setSeparator(Integer.parseInt(sepText));
       }
     }

@@ -5,7 +5,7 @@ package king.tool.loops;
 import king.*;
 import king.core.*;
 import king.points.*;
-import king.tool.util.KinUtil;
+import king.tool.util.*;
 import king.tool.postkin.ConnectivityFinder;
 
 import java.util.*;
@@ -220,7 +220,7 @@ public class LoopDockingTool extends BasicTool {
     public void click(int x, int y, KPoint p, MouseEvent ev) {
 	super.click(x, y, p, ev);
 
-	if (KinUtil.isInteger(numResField.getText())) {
+	if (NumberUtils.isInteger(numResField.getText())) {
 	    int numRestoSuper = Integer.parseInt(numResField.getText()) - 1;
 	
 	
@@ -365,10 +365,10 @@ public class LoopDockingTool extends BasicTool {
 	//AbstractPoint startPoint;
 	while (iter.hasNext()) {
 	    AbstractPoint point = (AbstractPoint) iter.next();
-	    int resNum = KinUtil.getResNumber(point.getName().trim());
+	    int resNum = KinPointIdParser.getResNumber(point.getName().trim());
 	    if (searchNum.intValue() == resNum) {
 		//alphaPoints.add(point);
-		String atom = KinUtil.getAtomName(point.getName().trim()).toUpperCase();
+		String atom = KinPointIdParser.getAtomName(point.getName().trim()).toUpperCase();
 		if (atom.equals("CA")) {
 		    return point;
 		}
@@ -382,7 +382,7 @@ public class LoopDockingTool extends BasicTool {
 	int lowNum = 100000;
 	while (iter.hasNext()) {
 	    AbstractPoint point = (AbstractPoint) iter.next();
-	    int resNum = KinUtil.getResNumber(point.getName().trim());
+	    int resNum = KinPointIdParser.getResNumber(point.getName().trim());
 	    if (resNum < lowNum) {
 		lowNum = resNum;
 	    }

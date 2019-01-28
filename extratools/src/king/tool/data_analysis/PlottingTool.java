@@ -5,7 +5,6 @@ import king.*;
 import king.core.*;
 import king.points.*;
 import king.io.*;
-import king.tool.util.KinUtil;
 
 import java.awt.event.*;
 import java.util.*;
@@ -370,7 +369,7 @@ public class PlottingTool extends BasicTool {
     // count number of numeric dimensions
     int numInd = 0;
     for (int i = 0; i < secVal.length; i++) {
-	    if (KinUtil.isNumeric(secVal[i])) {
+	    if (NumberUtils.isNumeric(secVal[i])) {
 	      dimNames.add(firstVal[i]);
 	      numInd++;
 	    }
@@ -396,7 +395,7 @@ public class PlottingTool extends BasicTool {
         //if (color != -1) {
           //System.out.println(value[color]);
           if (value.length == firstVal.length) {
-            if (KinUtil.isNumeric(value[color])) {
+            if (NumberUtils.isNumeric(value[color])) {
               double dColor = Double.parseDouble(value[color]);
               if (minColor > dColor) {
                 minColor = dColor;
@@ -424,7 +423,7 @@ public class PlottingTool extends BasicTool {
 	    int floatInd = 0;
 	    // one pass to see if number of numeric values matches number of dimensions
 	    for (int i = 0; i < value.length; i++) {
-        if (KinUtil.isNumeric(value[i])) {
+        if (NumberUtils.isNumeric(value[i])) {
           floatInd++;
         }
 	    }
@@ -432,7 +431,7 @@ public class PlottingTool extends BasicTool {
 	    if (floatInd == numInd) {
         floatInd = 0;
         for (int i = 0; i < value.length; i++) {
-          if (KinUtil.isNumeric(value[i])) {
+          if (NumberUtils.isNumeric(value[i])) {
             floats[floatInd] = Float.parseFloat(value[i]);
             if (wrapBox.isSelected()) floats[floatInd] = wrapValue(floats[floatInd]);
             updateMinMax(dimMinMax, floatInd, floats[floatInd]);
@@ -525,7 +524,7 @@ public class PlottingTool extends BasicTool {
   //{{{ createBins
   public void createBins(int numInd, ArrayList colors, int color) {
     if (color != -1) {
-	    if (KinUtil.isNumeric(numBinsField.getText())) {
+	    if (NumberUtils.isNumeric(numBinsField.getText())) {
         int numBins = Integer.parseInt(numBinsField.getText());
         Collections.sort(colors);
         int size = colors.size();
@@ -570,13 +569,13 @@ public class PlottingTool extends BasicTool {
 	    if (y == -1) point.setY(0);
 	    if (z == -1) point.setZ(0);
 	    point.useCoordsXYZ(x-1, y-1, z-1); // since the first value is a string identifier, indices are off by 1
-	    if (KinUtil.isNumeric(xMultField.getText())) {
+	    if (NumberUtils.isNumeric(xMultField.getText())) {
         point.setX(point.getX() * Double.parseDouble(xMultField.getText()));
 	    }
-	    if (KinUtil.isNumeric(yMultField.getText())) {
+	    if (NumberUtils.isNumeric(yMultField.getText())) {
         point.setY(point.getY() * Double.parseDouble(yMultField.getText()));
 	    }
-	    if (KinUtil.isNumeric(zMultField.getText())) {
+	    if (NumberUtils.isNumeric(zMultField.getText())) {
         point.setZ(point.getZ() * Double.parseDouble(zMultField.getText()));
 	    }
     }
@@ -646,7 +645,7 @@ public class PlottingTool extends BasicTool {
     //Iterator iter = points.iterator();
     //while (iter.hasNext()) {
       //    AbstractPoint point = (AbstractPoint) iter.next();
-	    if (KinUtil.isNumeric(xMultField.getText()) && KinUtil.isNumeric(yMultField.getText()) && KinUtil.isNumeric(zMultField.getText())) {
+	    if (NumberUtils.isNumeric(xMultField.getText()) && NumberUtils.isNumeric(yMultField.getText()) && NumberUtils.isNumeric(zMultField.getText())) {
         point.setX(point.getX() * Double.parseDouble(xMultField.getText()));
         point.setY(point.getY() * Double.parseDouble(yMultField.getText()));
         point.setZ(point.getZ() * Double.parseDouble(zMultField.getText()));
@@ -695,9 +694,9 @@ public class PlottingTool extends BasicTool {
     
   //  public void onFilter(ActionEvent ev) {
 	//double x, xrange, y, yrange, z, zrange;
-	//if ((KinUtil.isNumeric(xFiltField.getText()))&&(KinUtil.isNumeric(xFiltRange.getText()))&& 
-	//    (KinUtil.isNumeric(yFiltField.getText()))&&(KinUtil.isNumeric(yFiltRange.getText()))&& 
-	//    (KinUtil.isNumeric(zFiltField.getText()))&&(KinUtil.isNumeric(zFiltRange.getText()))) {
+	//if ((NumberUtils.isNumeric(xFiltField.getText()))&&(NumberUtils.isNumeric(xFiltRange.getText()))&& 
+	//    (NumberUtils.isNumeric(yFiltField.getText()))&&(NumberUtils.isNumeric(yFiltRange.getText()))&& 
+	//    (NumberUtils.isNumeric(zFiltField.getText()))&&(NumberUtils.isNumeric(zFiltRange.getText()))) {
 	//	
 	//    x = Double.parseDouble(xFiltField.getText());
 	//    xrange = Double.parseDouble(xFiltRange.getText());

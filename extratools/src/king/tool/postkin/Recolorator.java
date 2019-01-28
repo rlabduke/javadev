@@ -4,7 +4,7 @@ package king.tool.postkin;
 
 import king.*;
 import king.core.*;
-import king.tool.util.KinUtil;
+import king.tool.util.*;
 
 import java.util.*;
 

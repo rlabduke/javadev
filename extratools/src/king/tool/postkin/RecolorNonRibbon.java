@@ -88,7 +88,7 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
 	    //point = (KPoint) iter.next();
 	    //String master = getOldMaster(list);
       //undoColors.put(point, point.getColor());
-	    Integer resNumber = new Integer(KinUtil.getResNumber(point.getName()));
+	    Integer resNumber = new Integer(KinPointIdParser.getResNumber(point.getName()));
 	    ArrayList<KPoint> listofPoints = structMap.get(resNumber);
 	    if (listofPoints == null) {
         listofPoints = new ArrayList<KPoint>();
@@ -106,7 +106,7 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
 //{{{ contains
 //    public boolean contains(KPoint p) {
 //	KList parentList = (KList) p.getParent();
-//	Integer resNum = new Integer(KinUtil.getResNumber(p.getName()));
+//	Integer resNum = new Integer(KinPointIdParser.getResNumber(p.getName()));
 //	return (structMap.containsKey(resNum)&&clickedLists.contains(parentList));
 //    }
 //}}}	
@@ -183,7 +183,7 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
 	    String name = point.getName();
 	    if (name.indexOf(aaName) != -1) {
         point.setColor(color);
-        Integer resNum = new Integer(KinUtil.getResNumber(point.getName()));
+        Integer resNum = new Integer(KinPointIdParser.getResNumber(point.getName()));
         aaNums.add(resNum);
 	    }
     }
@@ -240,7 +240,7 @@ public class RecolorNonRibbon extends Recolorator //implements ActionListener
 	    if (keys.contains(new Integer(i))) {
         ArrayList<KPoint> list = structMap.get(new Integer(i));
         KPoint point = list.get(0);
-        String aa = KinUtil.getResName(point);
+        String aa = KinPointIdParser.getResName(point);
         if (aa.length()==4) {
           aa = aa.substring(1);
         }
