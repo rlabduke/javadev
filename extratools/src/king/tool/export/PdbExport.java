@@ -69,7 +69,7 @@ public class PdbExport extends Plugin implements PropertyChangeListener, Runnabl
 //}}}
 
   //{{{ buildAdjacencyList
-  public HashMap buildAdjacencyList(AGE groupElement) {
+  public static HashMap buildAdjacencyList(AGE groupElement) {
     HashMap adjacencyMap = new HashMap();
     //Kinemage kin = kMain.getKinemage();
     
@@ -92,7 +92,7 @@ public class PdbExport extends Plugin implements PropertyChangeListener, Runnabl
   //}}}
 
   //{{{ addPoints
-  private void addPoints(VectorPoint prev, VectorPoint curr, HashMap adjacencyMap) {
+  private static void addPoints(VectorPoint prev, VectorPoint curr, HashMap adjacencyMap) {
     if (adjacencyMap.containsKey(prev)) {
 	    HashSet prevSet = (HashSet) adjacencyMap.get(prev);
 	    prevSet.add(curr);
@@ -125,7 +125,7 @@ public class PdbExport extends Plugin implements PropertyChangeListener, Runnabl
 //}}}
 
 //{{{ getPdbText
-  public String getPdbText(AGE groupElement) {
+  public static String getPdbText(AGE groupElement) {
     StringBuilder pdbBuilder = new StringBuilder();
     HashMap adjacencyMap = buildAdjacencyList(groupElement);
     //Set keys = adjacencyMap.keySet();
@@ -152,7 +152,8 @@ public class PdbExport extends Plugin implements PropertyChangeListener, Runnabl
         pdbBuilder.append(KinPointIdParser.getAltConf(point.getName().toUpperCase()));
         pdbBuilder.append(KinPointIdParser.getResName(point.getName().toUpperCase()) + " ");
         pdbBuilder.append(KinPointIdParser.getChainID(point.getName()).toUpperCase());
-        pdbBuilder.append(formatStrings(String.valueOf(KinPointIdParser.getResNumber(point.getName().toUpperCase())), 4) + "    ");
+        pdbBuilder.append(formatStrings(String.valueOf(KinPointIdParser.getResNumber(point.getName().toUpperCase())), 4));
+        pdbBuilder.append(KinPointIdParser.getInsertionCode(point.getName().toUpperCase())+ "   ");
         pdbBuilder.append(formatStrings(df.format(point.getX()), 8));
         pdbBuilder.append(formatStrings(df.format(point.getY()), 8));
         pdbBuilder.append(formatStrings(df.format(point.getZ()), 8));
@@ -165,7 +166,7 @@ public class PdbExport extends Plugin implements PropertyChangeListener, Runnabl
   }
 //}}}
 
-  public boolean pointActuallyOn(AbstractPoint point) {
+  public static boolean pointActuallyOn(AbstractPoint point) {
     AHE element = point;
     while (element.getDepth() > 0) {
       if (!element.isOn()) return false;
@@ -175,7 +176,7 @@ public class PdbExport extends Plugin implements PropertyChangeListener, Runnabl
   }
 
 //{{{ formatString
-  public String formatStrings(String value, int numSpaces) {
+  public static String formatStrings(String value, int numSpaces) {
     while (value.length() < numSpaces) {
 	    value = " " + value;
     }

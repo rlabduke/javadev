@@ -66,7 +66,13 @@ public class PointComparator implements Comparator {
 	    AbstractPoint point2 = (AbstractPoint) o2;
 	    String p1name = point1.getName().toUpperCase();
 	    String p2name = point2.getName().toUpperCase();
+	    value = KinPointIdParser.getChainID(p1name).compareTo(KinPointIdParser.getChainID(p2name));
+	    if (value < 0)  return -1;
+	    else if (value > 0) return 1;
 	    value = KinPointIdParser.getResNumber(p1name) - KinPointIdParser.getResNumber(p2name);
+	    if (value < 0)  return -1;
+	    else if (value > 0) return 1;
+	    value = KinPointIdParser.getInsertionCode(p1name).compareTo(KinPointIdParser.getInsertionCode(p2name));
 	    if (value < 0)  return -1;
 	    else if (value > 0) return 1;
 	    value = KinPointIdParser.getResName(p1name).compareTo(KinPointIdParser.getResName(p2name));
@@ -76,9 +82,6 @@ public class PointComparator implements Comparator {
 	    if (value < 0)  return -1;
 	    else if (value > 0) return 1;
 	    value = getAtomNamePosition(p1name) - getAtomNamePosition(p2name);
-	    if (value < 0)  return -1;
-	    else if (value > 0) return 1;
-	    value = KinPointIdParser.getChainID(p1name).compareTo(KinPointIdParser.getChainID(p2name));
 	    if (value < 0)  return -1;
 	    else if (value > 0) return 1;
 	  }
@@ -120,13 +123,14 @@ public class PointComparator implements Comparator {
   */
   public void extractAAs() {
     
-    String[] resources = new String[] {"sc-connect.props", "sc-connect-v23.props"};
+    //String[] resources = new String[] {"sc-connect.props", "sc-connect-v23.props"};
+    String[] resources = new String[] {"sc-connect.props"};
     for(String resource : resources) {
       // Load side chain connectivity database
       Props scProps = new Props();
       try
       {
-        InputStream is = getClass().getResourceAsStream("sc-connect.props");
+        InputStream is = getClass().getResourceAsStream(resource);
         if(is != null)
         {
           scProps.load(is);
@@ -136,10 +140,24 @@ public class PointComparator implements Comparator {
       }
       catch(IOException ex)
       { ex.printStackTrace(SoftLog.err); }
+
       
       // Read heavy atoms and hydrogens separately
       ArrayList heteroAtoms = new ArrayList();
       ArrayList hydrogens = new ArrayList();
+      
+      // Build some specific types first so they turn out in order properly
+      // Some H's still turn up out of order in exported PDB files (e.g. in DNA).  Probably need to make getAtomNamePosition
+      // take residue name in order to specify the H order for specific residues.
+      String[] firstHeteroAtoms = {"aa.mc", "na.mc", "dg.sc", "da.sc", "dt.sc", "dc.sc"};
+      for (String atomType : firstHeteroAtoms) {
+        buildAALists(heteroAtoms, scProps.getString(atomType), "hetero");
+      }
+      String[] firstHyAtoms = {"aa.hy", "na.hy", "dg.hy", "da.hy", "dt.hy", "dc.hy"};
+      for (String atomType : firstHyAtoms) {
+        buildAALists(hydrogens, scProps.getString(atomType), "hy");
+      }
+      
       Set scs = scProps.keySet();
       Iterator iter = (new TreeSet(scs)).iterator();
       while (iter.hasNext()) {
@@ -158,7 +176,6 @@ public class PointComparator implements Comparator {
       else
         allAtomsv23 = heteroAtoms;
     }
-    
   }
   //}}}
     
@@ -257,15 +274,15 @@ public class PointComparator implements Comparator {
         if (name.substring(0,10).indexOf(atom) > -1) return atom; 
       }
     }
-    for (int i = allAtomsv23.size() - 1; i >= 0; i--) {
-      String atom = (String) allAtomsv23.get(i);
-      // substring is to prevent silly bug where the wrong atom would be found in 
-      // the pdbID that is sometimes in the pointIDs.
-      if (name.length() >= 10) { 
-              
-        if (name.substring(0,10).indexOf(atom) > -1) return atom; 
-      }
-    }
+    //for (int i = allAtomsv23.size() - 1; i >= 0; i--) {
+    //  String atom = (String) allAtomsv23.get(i);
+    //  // substring is to prevent silly bug where the wrong atom would be found in 
+    //  // the pdbID that is sometimes in the pointIDs.
+    //  if (name.length() >= 10) { 
+    //          
+    //    if (name.substring(0,10).indexOf(atom) > -1) return atom; 
+    //  }
+    //}
     
     // backup method to try to catch atom names for non standard residues
     String[] parsed = Strings.explode(name, " ".charAt(0), false, true);

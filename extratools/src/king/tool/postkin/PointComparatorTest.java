@@ -44,10 +44,13 @@ public class PointComparatorTest {
     PointComparator pc = new PointComparator();
     assertEquals(pc.compare(n43, n43), 0);
     assertEquals(pc.compare(n43, ca43), -1);
+    assertEquals(pc.compare(n44, cB44), -1);
     assertEquals(pc.compare(ca43, n43), 1);
     assertEquals(pc.compare(n43, n44), -1);
     assertEquals(pc.compare(cB44, cC44), -1);
     assertEquals(pc.compare(ac44, bc44), -1);
+    assert(PointComparator.getAtomName(n43.getName()).length() == 4);
+    assert(PointComparator.getAtomName(bc44.getName()).length() == 4);
   }
   
   public Kinemage getTestKinemage() {

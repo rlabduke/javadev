@@ -7,20 +7,20 @@
 aa.mc = " N  , CA , C  , O  , OXT"
 aa.hy = " N  , H  ; CA , HA ; N  , H1 ; N  , H2 ; N  , H3 ;"
 
-dna.mc = " P  , OP1; P  , OP2; P  , O5', C5', C4', O4'; C4', C3', O3', C3', C2'; O4', C1'; C2', C1', O3'"
-dna.hy = " C5', H5'; C5',H5''; C4', H4'; C3', H3'; O3',HO3'; C2', H2'; C2',H2''; C1', H1'; C8 , H8 ; N1 , H1 ; O5',HO5'; N3 , H3 ; C5 , H5 ; C6 , H6 "
+na.mc = " P  , OP1; P  , OP2; P  , O5', C5', C4', O4'; C4', C3', O3', C3', C2'; C2', O2'; O4', C1'; C2', C1', O3'"
+na.hy = " C5', H5'; C5',H5''; C4', H4'; C3', H3'; C2', H2'; C2',H2''; O2',HO2'; O3',HO3'; C1', H1'; O5',HO5'"
 
-dc.sc = " C1', N1 , C2 , O2 ; C2 , N3 , C4 , N4 ; C4 , C5 , C6 ; N1 , C6 "
-dc.hy = " N4 , H41; N4 , H42"
+dg.sc = " N9 , C8 , N7 , C5 , C6 , O6 ; C6 , N1 , C2 , N2 ; C2 , N3 , C4 ; N9 , C4 ; C5 , C4 "
+dg.hy = " C8 , H8 ; N1 , H1 ; N2 , H21; N2 , H22; O6 , H69"
 
-dt.sc = " C1', N1 , C2 , O2 ; C2 , N3 , C4 , O4 ; C4 , C5 , C7 ; N1 , C6 ; C5 , C6 "
-dt.hy = " C7 , H71; C7 , H72; C7 , H73"
+da.sc = " N9 , C8 , N7 , C5 , C6 , N6 ; C6 , N1 , C2 , N3 , C4 ; N9 , C4 ; C5 , C4 "
+da.hy = " C8 , H8 ; N1 , H11; N6 , H61; N6 , H62"
 
-da.sc = " C1', N9 , C8 , N7 , C5 , C6 , N6 ; C6 , N1 , C2 , N3 , C4 ; N9 , C4 ; C5 , C4 "
-da.hy = " N1 , H11; N6 , H61; N6 , H62"
+dc.sc = " N1 , C2 , O2 ; C2 , N3 , C4 , N4 ; C4 , C5 , C6 ; N1 , C6 "
+dc.hy = " N4 , H41; N4 , H42; C5 , H5 ; C6 , H6 "
 
-dg.sc = " C1', N9 , C8 , N7 , C5 , C6 , O6 ; C6 , N1 , C2 , N2 ; C2 , N3 , C4 ; N9 , C4 ; C5 , C4 "
-dg.hy = " N2 , H21; N2 , H22; O6 , H69"
+dt.sc = " N1 , C2 , O2 ; C2 , N3 , C4 , O4 ; C4 , C5 , C7 ; N1 , C6 ; C5 , C6 "
+dt.hy = " N3 , H3 ; C7 , H71; C7 , H72; C7 , H73; C6 , H6 "
 
 gly.sc = ""
 gly.hy = " CA , HA2; CA , HA3"

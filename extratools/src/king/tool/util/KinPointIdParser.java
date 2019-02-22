@@ -161,6 +161,19 @@ public class KinPointIdParser {
   }
   //}}}
   
+  public static String getInsertionCode(String name) {
+    String[] parsed = Strings.explode(name, " ".charAt(0), false, true);
+    String insertionCode = " ";
+    Pattern resnumInsertionPattern = Pattern.compile("[0-9]{1,4}[A-Za-z]");
+    String usualResNum = parsed[3];
+    Matcher matcher = resnumInsertionPattern.matcher(usualResNum);
+    if (matcher.matches()) {
+      insertionCode = usualResNum.substring(usualResNum.length()-1);
+    }
+    //System.out.println(name+"|"+usualResNum+"|"+insertionCode+"|");
+    return insertionCode;
+  }
+  
   public static String getChainID(KPoint point) {
     String name = point.getName().trim();
     return getChainID(name);
@@ -207,9 +220,10 @@ public class KinPointIdParser {
   
   // quick and dirty way of getting residue name.
   public static String getResName(String name) {
-    String resname = AminoAcid.getAAName(name.substring(0,10));
-    if (resname.trim().length() == 4) {
+    String resname = (AminoAcid.getAAName(name.substring(0,10))).trim();
+    if (resname.length() == 4) {
       resname = resname.substring(1);
+      return resname;
     }
     if (!resname.equals("UNK")) {
       return resname;

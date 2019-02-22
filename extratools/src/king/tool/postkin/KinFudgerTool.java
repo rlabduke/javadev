@@ -143,7 +143,6 @@ public class KinFudgerTool extends BasicTool {
     fudgeGroup.add(fudgeAngle);
     fudgeGroup.add(fudgeDihedral);
     
-    JButton exportButton = new JButton(new ReflectiveAction("Export to pdb", null, this, "onExport"));
     //exportButton.addActionListener(this);
     transformButton = new JButton(new ReflectiveAction("Move highlighted points!", null, this, "onTrans"));
     transformButton.setEnabled(false);
@@ -156,7 +155,6 @@ public class KinFudgerTool extends BasicTool {
     advBox = new JCheckBox ("Advanced options");
     
     TablePane2 tpAdvOpt = new TablePane2();
-    tpAdvOpt.add(exportButton);
     tpAdvOpt.add(dragBox,2,1);
     FoldingBox fbAdvOpt = new FoldingBox(advBox, tpAdvOpt);
     fbAdvOpt.setAutoPack(true);
@@ -809,29 +807,6 @@ public class KinFudgerTool extends BasicTool {
   }
   //}}}
   
-  //{{{ onExport
-  public void onExport(ActionEvent ev) {
-    buildAdjacencyList();
-    JFileChooser saveChooser = new JFileChooser();
-    String currdir = System.getProperty("user.dir");
-    if(currdir != null) {
-	    saveChooser.setCurrentDirectory(new File(currdir));
-    }
-    if (saveChooser.APPROVE_OPTION == saveChooser.showSaveDialog(kMain.getTopWindow())) {
-	    File f = saveChooser.getSelectedFile();
-	    if( !f.exists() ||
-        JOptionPane.showConfirmDialog(kMain.getTopWindow(),
-      "This file exists -- do you want to overwrite it?",
-      "Overwrite file?", JOptionPane.YES_NO_OPTION)
-      == JOptionPane.YES_OPTION )
-      {
-        savePDB(f);
-      }
-    }
-    
-  }
-  //}}}
-  
   //{{{ onTrans
   public void onTrans(ActionEvent ev) {
     //System.out.println("transform button hit");
@@ -859,61 +834,6 @@ public class KinFudgerTool extends BasicTool {
     clear();
   }
   //}}}
-  
-  //{{{ savePDB
-  public void savePDB(File f) {
-    try {
-	    Writer w = new FileWriter(f);
-	    PrintWriter out = new PrintWriter(new BufferedWriter(w));
-	    //Set keys = adjacencyMap.keySet();
-	    int i = 1;
-	    PointComparator pc = new PointComparator();
-	    TreeSet keyTree = new TreeSet(pc);
-	    keyTree.addAll(adjacencyMap.keySet());
-	    Iterator iter = keyTree.iterator();
-	    while (iter.hasNext()) {
-        AbstractPoint point = (AbstractPoint) iter.next();
-        System.out.println(point + " POINT ON:" + pointActuallyOn(point));
-        if (pointActuallyOn(point)) {
-          //System.out.println(point);
-          //System.out.println(KinPointIdParser.getResNumber(point.getName().toUpperCase()));
-          out.print("ATOM  ");
-          out.print(formatStrings(String.valueOf(i), 5) + " ");
-          //out.print(point.getName().toUpperCase().substring(0, 8) + "  " + point.getName().toUpperCase().substring(8) + "     ");
-          String atomName = PointComparator.getAtomName(point.getName().toUpperCase());
-          if (atomName.equals("UNK ")) {
-            
-          }
-          out.print(PointComparator.getAtomName(point.getName().toUpperCase()));
-          out.print(KinPointIdParser.getAltConf(point.getName().toUpperCase()));
-          out.print(KinPointIdParser.getResAA(point.getName().toUpperCase()) + "  ");
-          out.print(formatStrings(String.valueOf(KinPointIdParser.getResNumber(point.getName().toUpperCase())), 4) + "    ");
-          out.print(formatStrings(df.format(point.getX()), 8));
-          out.print(formatStrings(df.format(point.getY()), 8));
-          out.print(formatStrings(df.format(point.getZ()), 8));
-          out.print(formatStrings(df2.format(KinPointIdParser.getOccupancy(point)), 6));
-          out.println(formatStrings(df2.format(KinPointIdParser.getBvalue(point.getName().toUpperCase())), 6));
-          i++;
-        }
-	    }
-	    out.flush();
-	    w.close();
-    } catch (IOException ex) {
-	    JOptionPane.showMessageDialog(kMain.getTopWindow(),
-      "An error occurred while saving the file.",
-      "Sorry!", JOptionPane.ERROR_MESSAGE);
-    }
-  }
-  //}}}
-  
-  public boolean pointActuallyOn(AbstractPoint point) {
-    AHE element = point;
-    while (element.getDepth() > 0) {
-      if (!element.isOn()) return false;
-      element = element.getParent();
-    }
-    return true;
-  }
    
   //{{{ formatString
   public String formatStrings(String value, int numSpaces) {
