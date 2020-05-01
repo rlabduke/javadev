@@ -113,7 +113,7 @@ public class KView implements Serializable, Cloneable
     }
 //}}}
 
-//{{{ get/setName, toString
+//{{{ get/setName, toString, getSafexFileName
 //##################################################################################################
     /** Gets the name of this element */
     public String getName()
@@ -127,6 +127,10 @@ public class KView implements Serializable, Cloneable
     /** Gets the name of this element (same as <code>getName()</code>*/
     public String toString()
     { return getName(); }
+    
+    public String getSafeFileName() {
+      return ID.trim().replaceAll("\\W+", "_");
+    }
 //}}}
 
 //{{{ mmult, normalize, transpose

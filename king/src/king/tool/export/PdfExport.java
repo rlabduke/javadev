@@ -77,7 +77,12 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
     static public void exportPDF(KinCanvas kCanvas, boolean transparentBackground, File outfile)
         throws IOException, DocumentException
     {
-        Dimension   dim = kCanvas.getCanvasSize();
+      exportPDF(kCanvas, transparentBackground, outfile, kCanvas.getCanvasSize());
+    }
+    
+    static public void exportPDF(KinCanvas kCanvas, boolean transparentBackground, File outfile, Dimension dim)
+        throws IOException, DocumentException
+    {
         Document    doc = new Document(PageSize.LETTER, 72, 72, 72, 72); // 1" margins
         PdfWriter   pdf = PdfWriter.getInstance(doc, new FileOutputStream(outfile));
         doc.addCreator("KiNG by Ian W. Davis");

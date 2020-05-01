@@ -3,6 +3,7 @@
 package king;
 import king.core.*;
 import king.io.KinfileParser;
+import king.tool.export.PdfExport;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -12,6 +13,7 @@ import java.lang.reflect.*;
 import java.net.*;
 //import java.text.*;
 import java.util.*;
+
 import javax.swing.*;
 import javax.swing.tree.*;
 import javax.swing.plaf.metal.MetalLookAndFeel;
@@ -19,6 +21,8 @@ import driftwood.util.*;
 import driftwood.isosurface.*;
 import driftwood.gui.*;
 import driftwood.moldb2.*;
+
+import com.lowagie.text.*;
 //}}}
 /**
 * <code>KingMain</code> is the control center of the King program.
@@ -64,6 +68,8 @@ public class KingMain implements WindowListener
     ArrayList<File>     pdbFilesToOpen  = null;
     boolean             doMerge         = true;
     ArrayList<String>   pluginArgs      = null;
+    
+    boolean             doViewExport    = false;
     
     Set<KMessage.Subscriber> subscribers = new LinkedHashSet<KMessage.Subscriber>();
 //}}}
@@ -202,8 +208,9 @@ public class KingMain implements WindowListener
         if(theApplet == null || !isAppletFlat)
             mainWin = new MainWindow(this); // doesn't create GUI yet, but other dlgs may depend on this one (?)
         createComponents(); // actually creates most of the stuff KiNG uses
-
-        if(theApplet == null || !isAppletFlat)
+        
+        if(doViewExport) {
+        } else if(theApplet == null || !isAppletFlat)
         {
             mainWin.setContentPane(contentPane);
             mainWin.setJMenuBar(uiMenus.getMenuBar());
@@ -244,6 +251,8 @@ public class KingMain implements WindowListener
     public void loadFiles()
     {
 
+      PdfExport pdfExportPlugin = null;
+
       if((filesToOpen != null && filesToOpen.size() > 0)||(pdbFilesToOpen != null && pdbFilesToOpen.size() > 0)||(kinFilesToOpen != null && kinFilesToOpen.size() > 0))
         {
           Kinemage kin = null;
@@ -267,11 +276,46 @@ public class KingMain implements WindowListener
           iter = plugins.iterator();
           while (iter.hasNext()) {
             Plugin plug = (Plugin) iter.next();
+            if (plug instanceof PdfExport) {
+              pdfExportPlugin = (PdfExport) plug;
+            }
             plug.loadFileFromCmdline(filesToOpen, pluginArgs);
           }
         }
         
         this.publish(new KMessage(this, KMessage.KING_STARTUP));
+
+        if (doViewExport) {
+          if (kinFilesToOpen.size() == 1 && pdbFilesToOpen.size() == 0) {
+            //this.getStable().changeCurrentKinemage(1);
+            Kinemage viewKin = this.getStable().getKinemage();
+            System.out.println(viewKin);
+            ArrayList<KView> views = new ArrayList(viewKin.getViewList());
+            for (KView view : views) {
+              System.out.println(view);
+              this.setView(view);
+              try {
+                String fixedViewName = view.getSafeFileName();
+                File viewPdf = new File(fixedViewName+".pdf");
+                int i = 0;
+                while(viewPdf.exists()) {
+                  viewPdf = new File(view+Integer.toString(i)+".pdf");
+                  i++;
+                }
+                System.out.println(this.getCanvas());
+                pdfExportPlugin.exportPDF(this.getCanvas(), false, viewPdf, new Dimension(1024, 1024));
+              } catch (IOException ex){
+                System.out.println (ex.toString());
+              } catch (DocumentException de) {
+                System.out.println (de.toString());
+              }
+            }
+            System.exit(0);
+          } else {
+            System.err.println("Only one kinemage file may have views exported to images at a time");
+            System.exit(0);
+          }
+        }
     }
 //}}}
 
@@ -493,6 +537,8 @@ public class KingMain implements WindowListener
                     doMerge = false;
                 } else if(arg.equals("-phenix")) {
                   pluginArgs.add(arg);
+                } else if(arg.equals("-exportviews")) {
+                  doViewExport = true;
                 } else {
                     SoftLog.err.println("*** Unrecognized option: "+arg);
                 }
