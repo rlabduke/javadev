@@ -289,20 +289,17 @@ public class KingMain implements WindowListener
           if (kinFilesToOpen.size() == 1 && pdbFilesToOpen.size() == 0) {
             //this.getStable().changeCurrentKinemage(1);
             Kinemage viewKin = this.getStable().getKinemage();
-            System.out.println(viewKin);
             ArrayList<KView> views = new ArrayList(viewKin.getViewList());
             for (KView view : views) {
-              System.out.println(view);
               this.setView(view);
               try {
                 String fixedViewName = view.getSafeFileName();
                 File viewPdf = new File(fixedViewName+".pdf");
                 int i = 0;
                 while(viewPdf.exists()) {
-                  viewPdf = new File(view+Integer.toString(i)+".pdf");
+                  viewPdf = new File(fixedViewName+Integer.toString(i)+".pdf");
                   i++;
                 }
-                System.out.println(this.getCanvas());
                 pdfExportPlugin.exportPDF(this.getCanvas(), false, viewPdf, new Dimension(1024, 1024));
               } catch (IOException ex){
                 System.out.println (ex.toString());
