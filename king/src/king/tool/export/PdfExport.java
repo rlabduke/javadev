@@ -18,8 +18,10 @@ import javax.swing.event.*;
 import driftwood.gui.*;
 import driftwood.util.SoftLog;
 
-import com.lowagie.text.*;
-import com.lowagie.text.pdf.*;
+import org.apache.pdfbox.pdmodel.*;
+import org.apache.pdfbox.pdmodel.graphics.form.*;
+import org.apache.pdfbox.util.*;
+import de.rototor.pdfbox.graphics2d.*;
 //}}}
 /**
 * <code>PdfExport</code> uses the iText library to export the current graphics
@@ -71,48 +73,60 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
 //{{{ exportPDF
 //##############################################################################
     static public void exportPDF(KinCanvas kCanvas, File outfile)
-        throws IOException, DocumentException
+        throws IOException
     { exportPDF(kCanvas, false, outfile); }
     
     static public void exportPDF(KinCanvas kCanvas, boolean transparentBackground, File outfile)
-        throws IOException, DocumentException
+        throws IOException
     {
       exportPDF(kCanvas, transparentBackground, outfile, kCanvas.getCanvasSize());
     }
     
     static public void exportPDF(KinCanvas kCanvas, boolean transparentBackground, File outfile, Dimension dim)
-        throws IOException, DocumentException
+        throws IOException
     {
-        Document    doc = new Document(PageSize.LETTER, 72, 72, 72, 72); // 1" margins
-        PdfWriter   pdf = PdfWriter.getInstance(doc, new FileOutputStream(outfile));
-        doc.addCreator("KiNG by Ian W. Davis");
-        // add header and footer now, before opening document
-        doc.open();
+        PDDocument    doc = new PDDocument();//PageSize.LETTER, 72, 72, 72, 72); // 1" margins
+        PDPage        page = new PDPage();
+        PDDocumentInformation pdd = doc.getDocumentInformation();
+        pdd.setCreator("KiNG by the Richardsons Lab");
         
-        // Drawing code goes here. We use a template to simplify scaling/placement.
-        PdfContentByte  content     = pdf.getDirectContent();
-        PdfTemplate     template    = content.createTemplate((float)dim.getWidth(), (float)dim.getHeight());
-        Graphics2D      g2          = template.createGraphics((float)dim.getWidth(), (float)dim.getHeight());
+        doc.addPage(page);
+        
+        // Drawing code
+        float w = (float)dim.getWidth();
+        float h = (float)dim.getHeight();
+        PdfBoxGraphics2D pbGraphics2D = new PdfBoxGraphics2D(doc, w, h);
         if(transparentBackground)
             kCanvas.getEngine().setTransparentBackground();
-        kCanvas.paintCanvas(g2, dim, KinCanvas.QUALITY_BEST);
-        g2.dispose();
+        kCanvas.paintCanvas(pbGraphics2D, dim, KinCanvas.QUALITY_BEST);
+        pbGraphics2D.dispose();
         
-        // Post-multiplied transformation matrix:
-        // [ x ]   [ a  b  0 ]   [ x' ]   [ x'/q ]
-        // [ y ] * [ c  d  0 ] = [ y' ] = [ y'/q ]
-        // [ 1 ]   [ e  f  1 ]   [ q  ]   [   1  ]
-        // Top, left, botttom, and right already include margins.
-        // Coordinate system has bottom left corner as (0, 0)
-        double w = doc.right() - doc.left();
-        double h = doc.top() - doc.bottom();
-        float scale = (float)Math.min(w/dim.getWidth(), h/dim.getHeight());
-        // Place image at top left corner of page, respecting margins
-        content.addTemplate(template, scale, 0f, 0f, scale,
-            doc.left(),
-            (float)(doc.top() - scale*dim.getHeight()));
+        // Get the XForm, calculate scaling factor and position.
+        PDFormXObject xform = pbGraphics2D.getXFormObject();
         
-        // Closing the document writes everything to file
+        float page_width = page.getCropBox().getWidth();
+        float page_height = page.getCropBox().getHeight();
+        
+        float scale = (float)Math.min(page_width/w, page_height/h);
+        
+        float x_centered = ( page_width - w * scale ) / 2 + page.getCropBox().getLowerLeftX();
+        float y_centered = ( page_height - h * scale ) / 2 + page.getCropBox().getLowerLeftY();
+        
+        // Build a matrix to scale and place the form
+        Matrix matrix = new Matrix();
+        matrix.scale(scale, scale);
+        matrix.translate(x_centered, y_centered);
+
+        PDPageContentStream contentStream = new PDPageContentStream(doc, page);
+        contentStream.transform(matrix);
+        
+        //Now finally draw the form.
+        contentStream.drawForm(xform);
+		
+        contentStream.close();
+        
+        doc.save(outfile);
+
         doc.close();
     }
 //}}}

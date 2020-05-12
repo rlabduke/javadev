@@ -21,8 +21,6 @@ import driftwood.util.*;
 import driftwood.isosurface.*;
 import driftwood.gui.*;
 import driftwood.moldb2.*;
-
-import com.lowagie.text.*;
 //}}}
 /**
 * <code>KingMain</code> is the control center of the King program.
@@ -303,8 +301,6 @@ public class KingMain implements WindowListener
                 pdfExportPlugin.exportPDF(this.getCanvas(), false, viewPdf, new Dimension(1024, 1024));
               } catch (IOException ex){
                 System.out.println (ex.toString());
-              } catch (DocumentException de) {
-                System.out.println (de.toString());
               }
             }
             System.exit(0);
