@@ -114,9 +114,10 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
         
         // Build a matrix to scale and place the form
         Matrix matrix = new Matrix();
-        matrix.scale(scale, scale);
-        matrix.translate(x_centered, y_centered);
 
+        matrix.translate(x_centered, y_centered);
+        matrix.scale(scale, scale);
+        
         PDPageContentStream contentStream = new PDPageContentStream(doc, page);
         contentStream.transform(matrix);
         
