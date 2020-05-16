@@ -20,6 +20,7 @@ import driftwood.util.SoftLog;
 
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.graphics.form.*;
+import org.apache.pdfbox.pdmodel.font.*;
 import org.apache.pdfbox.util.*;
 import de.rototor.pdfbox.graphics2d.*;
 //}}}
@@ -85,6 +86,12 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
     static public void exportPDF(KinCanvas kCanvas, boolean transparentBackground, File outfile, Dimension dim)
         throws IOException
     {
+      exportPDF(kCanvas, transparentBackground, outfile, dim, "", "");
+    }
+    
+    static public void exportPDF(KinCanvas kCanvas, boolean transparentBackground, File outfile, Dimension dim, String headerText, String footerText)
+        throws IOException
+    {
         PDDocument    doc = new PDDocument();//PageSize.LETTER, 72, 72, 72, 72); // 1" margins
         PDPage        page = new PDPage();
         PDDocumentInformation pdd = doc.getDocumentInformation();
@@ -119,6 +126,19 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
         matrix.scale(scale, scale);
         
         PDPageContentStream contentStream = new PDPageContentStream(doc, page);
+        float headerY = page.getCropBox().getUpperRightY() - 30;
+        float footerY = page.getCropBox().getLowerLeftY() + 30;
+        float textX = page.getCropBox().getLowerLeftX() + 30;
+        contentStream.setFont(PDType1Font.TIMES_ROMAN, 12);
+        contentStream.setLeading(12);
+        contentStream.beginText();
+        contentStream.newLineAtOffset(textX, headerY);
+        contentStream.showText(headerText);
+        contentStream.endText();
+        contentStream.beginText();
+        contentStream.newLineAtOffset(textX, footerY);
+        contentStream.showText(footerText);
+        contentStream.endText();
         contentStream.transform(matrix);
         
         //Now finally draw the form.

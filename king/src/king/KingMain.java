@@ -286,6 +286,7 @@ public class KingMain implements WindowListener
         if (doViewExport) {
           if (kinFilesToOpen.size() == 1 && pdbFilesToOpen.size() == 0) {
             //this.getStable().changeCurrentKinemage(1);
+            String kinFileName = kinFilesToOpen.get(0).getName();
             Kinemage viewKin = this.getStable().getKinemage();
             ArrayList<KView> views = new ArrayList(viewKin.getViewList());
             for (KView view : views) {
@@ -298,7 +299,7 @@ public class KingMain implements WindowListener
                   viewPdf = new File(fixedViewName+Integer.toString(i)+".pdf");
                   i++;
                 }
-                pdfExportPlugin.exportPDF(this.getCanvas(), false, viewPdf, new Dimension(1024, 1024));
+                pdfExportPlugin.exportPDF(this.getCanvas(), false, viewPdf, new Dimension(1024, 1024), viewKin.getName(), kinFileName);
               } catch (IOException ex){
                 System.out.println (ex.toString());
               }
