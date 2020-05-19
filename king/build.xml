@@ -74,7 +74,7 @@
     <copy file="../lib/pdfbox/pdfbox-graphics2d/target/graphics2d-0.26-SNAPSHOT.jar" tofile="${basedir}/pdfbox-graphics2d.jar" failonerror="false"/>
     <copy file="../lib/pdfbox/commons-logging-1.2/commons-logging-1.2.jar" tofile="${basedir}/commons-logging-1.2.jar" failonerror="false"/>
     <mkdir dir="${build}"/>
-    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" target="1.7" source="1.7">
+    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" target="1.8" source="1.8">
          <include name="**/*.java"/>
          <exclude name="**/old/"/>
          <exclude name="**/Mac*.java"/>
@@ -92,7 +92,7 @@
 
 <!-- Compiles .java files that only work on the Mac -->
 <target name="compile-mac" depends="init,compile" if="isMacOSX">
-    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" target="1.7" source="1.7">
+    <javac srcdir="${src}" destdir="${build}" debug="on" debuglevel="lines,source" target="1.8" source="1.8">
          <include name="**/Mac*.java"/>
          <classpath>
             <pathelement location="${build}"/>
@@ -175,11 +175,11 @@
     <javadoc packagenames="driftwood.*,Jama.*,king.*"
         sourcepath="src:../driftwood/src"
         classpath="../lib:../lib/pdfbox/pdfbox-2.0.19.jar:../lib/jogl/jogl.jar"
-        destdir="${dist}/javadocs" access="protected" source="1.7"
+        destdir="${dist}/javadocs" access="protected" source="1.8"
         breakiterator="true" noqualifier="all"
         version="true" use="true" author="true"
         windowtitle="IWD's JavaDocs"
-        link="http://java.sun.com/j2se/1.7.0/docs/api/">
+        link="http://java.sun.com/j2se/1.8.0/docs/api/">
     </javadoc>
 </target>
 
