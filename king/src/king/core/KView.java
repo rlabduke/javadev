@@ -113,7 +113,7 @@ public class KView implements Serializable, Cloneable
     }
 //}}}
 
-//{{{ get/setName, toString, getSafexFileName
+//{{{ get/setName, toString, getSafeFileName
 //##################################################################################################
     /** Gets the name of this element */
     public String getName()
