@@ -289,7 +289,8 @@ public class KingMain implements WindowListener
             String kinFileName = kinFilesToOpen.get(0).getName();
             Kinemage viewKin = this.getStable().getKinemage();
             ArrayList<KView> views = new ArrayList(viewKin.getViewList());
-            for (KView view : views) {
+            for (int view_count = 0; view_count < views.size(); view_count++) {
+              KView view = views.get(view_count);
               this.setView(view);
               try {
                 String fixedViewName = view.getSafeFileName();
@@ -299,7 +300,9 @@ public class KingMain implements WindowListener
                   viewPdf = new File(fixedViewName+Integer.toString(i)+".pdf");
                   i++;
                 }
-                pdfExportPlugin.exportPDF(this.getCanvas(), false, viewPdf, new Dimension(1024, 1024), viewKin.getName(), kinFileName);
+                String currentTime = Times.getCurrentTimeString();
+                System.out.println(currentTime);
+                pdfExportPlugin.exportPDF(this.getCanvas(), false, viewPdf, new Dimension(1024, 1024), viewKin.getName()+" | View #"+(view_count+1)+": "+view, kinFileName+" | "+currentTime);
               } catch (IOException ex){
                 System.out.println (ex.toString());
               }

@@ -21,6 +21,7 @@ import driftwood.util.SoftLog;
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.graphics.form.*;
 import org.apache.pdfbox.pdmodel.font.*;
+import org.apache.pdfbox.pdmodel.common.*;
 import org.apache.pdfbox.util.*;
 import de.rototor.pdfbox.graphics2d.*;
 //}}}
@@ -94,6 +95,14 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
     {
         PDDocument    doc = new PDDocument();//PageSize.LETTER, 72, 72, 72, 72); // 1" margins
         PDPage        page = new PDPage();
+        float letterWidth = page.getCropBox().getWidth();
+        float letterHeight  = page.getCropBox().getHeight();
+        page.setMediaBox(new PDRectangle(letterWidth, letterHeight));
+        page.setTrimBox(new PDRectangle(letterWidth, letterHeight));
+        
+        PDRectangle marginCropBox = new PDRectangle((float)(letterWidth*0.85), (float)(letterHeight*0.85));
+        page.setArtBox(marginCropBox);
+
         PDDocumentInformation pdd = doc.getDocumentInformation();
         pdd.setCreator("KiNG by the Richardsons Lab");
         
@@ -111,13 +120,16 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
         // Get the XForm, calculate scaling factor and position.
         PDFormXObject xform = pbGraphics2D.getXFormObject();
         
-        float page_width = page.getCropBox().getWidth();
-        float page_height = page.getCropBox().getHeight();
+        float page_width = page.getArtBox().getWidth();
+        float page_height = page.getArtBox().getHeight();        
+        
+        System.out.println(page_width);
+        System.out.println(page_height);
         
         float scale = (float)Math.min(page_width/w, page_height/h);
         
-        float x_centered = ( page_width - w * scale ) / 2 + page.getCropBox().getLowerLeftX();
-        float y_centered = ( page_height - h * scale ) / 2 + page.getCropBox().getLowerLeftY();
+        float x_centered = ( letterWidth - w * scale ) / 2 + page.getArtBox().getLowerLeftX();
+        float y_centered = ( letterHeight - h * scale ) / 2 + page.getArtBox().getLowerLeftY();
         
         // Build a matrix to scale and place the form
         Matrix matrix = new Matrix();
@@ -139,6 +151,7 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
         contentStream.newLineAtOffset(textX, footerY);
         contentStream.showText(footerText);
         contentStream.endText();
+        
         contentStream.transform(matrix);
         
         //Now finally draw the form.
