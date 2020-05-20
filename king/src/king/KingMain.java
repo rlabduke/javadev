@@ -287,21 +287,27 @@ public class KingMain implements WindowListener
           if (kinFilesToOpen.size() == 1 && pdbFilesToOpen.size() == 0) {
             //this.getStable().changeCurrentKinemage(1);
             String kinFileName = kinFilesToOpen.get(0).getName();
+            String kinFileNameNoExtension = kinFileName;
+            if(kinFileNameNoExtension != null && kinFileNameNoExtension.contains(".")) kinFileNameNoExtension.substring(0, kinFileNameNoExtension.lastIndexOf('.'));
             Kinemage viewKin = this.getStable().getKinemage();
             ArrayList<KView> views = new ArrayList(viewKin.getViewList());
             for (int view_count = 0; view_count < views.size(); view_count++) {
               KView view = views.get(view_count);
               this.setView(view);
               try {
-                String fixedViewName = view.getSafeFileName();
-                File viewPdf = new File(fixedViewName+".pdf");
-                int i = 0;
-                while(viewPdf.exists()) {
-                  viewPdf = new File(fixedViewName+Integer.toString(i)+".pdf");
-                  i++;
+                File viewPdf = null;
+                if (!doMerge) {
+                  String fixedViewName = view.getSafeFileName();
+                  viewPdf = new File(fixedViewName+".pdf");
+                  int i = 0;
+                  while(viewPdf.exists()) {
+                    viewPdf = new File(fixedViewName+Integer.toString(i)+".pdf");
+                    i++;
+                  }
+                } else {
+                  viewPdf = new File(kinFileNameNoExtension+"Views.pdf");
                 }
                 String currentTime = Times.getCurrentTimeString();
-                System.out.println(currentTime);
                 pdfExportPlugin.exportPDF(this.getCanvas(), false, viewPdf, new Dimension(1024, 1024), viewKin.getName()+" | View #"+(view_count+1)+": "+view, kinFileName+" | "+currentTime);
               } catch (IOException ex){
                 System.out.println (ex.toString());

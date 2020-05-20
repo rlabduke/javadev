@@ -93,14 +93,19 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
     static public void exportPDF(KinCanvas kCanvas, boolean transparentBackground, File outfile, Dimension dim, String headerText, String footerText)
         throws IOException
     {
-        PDDocument    doc = new PDDocument();//PageSize.LETTER, 72, 72, 72, 72); // 1" margins
+        PDDocument doc = null;
+        if (!outfile.exists()) {
+          doc = new PDDocument();
+        } else {
+          doc = PDDocument.load(outfile);
+        }
         PDPage        page = new PDPage();
         float letterWidth = page.getCropBox().getWidth();
         float letterHeight  = page.getCropBox().getHeight();
         page.setMediaBox(new PDRectangle(letterWidth, letterHeight));
         page.setTrimBox(new PDRectangle(letterWidth, letterHeight));
         
-        PDRectangle marginCropBox = new PDRectangle((float)(letterWidth*0.85), (float)(letterHeight*0.85));
+        PDRectangle marginCropBox = new PDRectangle((float)(letterWidth*0.88), (float)(letterHeight*0.88));
         page.setArtBox(marginCropBox);
 
         PDDocumentInformation pdd = doc.getDocumentInformation();
@@ -122,9 +127,6 @@ public class PdfExport extends Plugin implements PropertyChangeListener, Runnabl
         
         float page_width = page.getArtBox().getWidth();
         float page_height = page.getArtBox().getHeight();        
-        
-        System.out.println(page_width);
-        System.out.println(page_height);
         
         float scale = (float)Math.min(page_width/w, page_height/h);
         
