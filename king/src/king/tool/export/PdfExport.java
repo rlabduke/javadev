@@ -26,7 +26,7 @@ import org.apache.pdfbox.util.*;
 import de.rototor.pdfbox.graphics2d.*;
 //}}}
 /**
-* <code>PdfExport</code> uses the iText library to export the current graphics
+* <code>PdfExport</code> uses the PDFBox library to export the current graphics
 * as a (vector) PDF file. The exact image is preserved, including
 * the font on this platform and the rendering quality -- fully WYSIWYG.
 *
