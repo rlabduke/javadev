@@ -186,7 +186,7 @@ public class GradientMinimizer //extends ... implements ...
             if(fb < fa) break;      // good -- we found a smaller point
             else if(b < 1e-20)      // if min is at 0, Brent won't get closer than 1e-10 anyway
             {
-                // Testing |G| / (Ãn) when n = number of variables is due to T. Schlick
+                // Testing |G| / (An) when n = number of variables is due to T. Schlick (there was an unrecognizable character in this comment, replaced with 'A'
                 if(currGMag / Math.sqrt(path.length) < 1e-6*(1+Math.abs(fa)) || currGMag == prevGMag)
                 {
                     hitBottom = true;
