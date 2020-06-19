@@ -15,8 +15,6 @@ import driftwood.r3.*;
 
 import java.util.List;
 
-import com.lowagie.text.*;
-import com.lowagie.text.pdf.*;
 //}}}
 /**
 * <code>RamaKinWriter</code> produces kinemages using the six Top8000-derived 

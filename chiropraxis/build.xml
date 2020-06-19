@@ -49,19 +49,25 @@
     <ant antfile="../molikin/build.xml" inheritAll="false" target="compile">
         <!-- inherited properties go here -->
     </ant>
-    <copy file="../lib/iText/iText-2.1.3.jar" tofile="${basedir}/itext.jar" failonerror="false"/>
+    <copy file="../lib/pdfbox/pdfbox-2.0.19.jar" tofile="${basedir}/pdfbox.jar" failonerror="false"/>
+    <copy file="../lib/pdfbox/fontbox-2.0.19.jar" tofile="${basedir}/fontbox.jar" failonerror="false"/>
+    <copy file="../lib/pdfbox/pdfbox-graphics2d/target/graphics2d-0.26-SNAPSHOT.jar" tofile="${basedir}/pdfbox-graphics2d.jar" failonerror="false"/>
+    <copy file="../lib/pdfbox/commons-logging-1.2/commons-logging-1.2.jar" tofile="${basedir}/commons-logging-1.2.jar" failonerror="false"/>
     <mkdir dir="${build}"/>
     <javac srcdir="${src}"
            destdir="${build}"
            includes="**/*.java"
            excludes="**/old/"
            debug="on" debuglevel="lines,source"
-           target="1.5" source="1.5">
+           target="1.8" source="1.8">
            <!-- <compilerarg value="-Xlint"/> -->
          <classpath>
             <pathelement location="../driftwood/build"/>
             <pathelement location="../king/build"/>
-            <pathelement location="itext.jar"/>             <!-- Required for PDF export -->
+            <pathelement location="pdfbox.jar"/>             <!-- Required for PDF export -->
+            <pathelement location="fontbox.jar"/>
+            <pathelement location="pdfbox-graphics2d.jar"/>
+            <pathelement location="commons-logging-1.2.jar"/>
             <pathelement location="../molikin/build"/>
          </classpath>
     </javac>
@@ -119,6 +125,10 @@
     <delete dir="${build}"/>
     <delete file="${ant.project.name}.jar"/>
     <delete file="itext.jar"/>
+    <delete file="pdfbox.jar"/>
+    <delete file="fontbox.jar"/>
+    <delete file="pdfbox-graphics2d.jar"/>
+    <delete file="commons-logging-1.2.jar"/>
 </target>
 
 <!-- Bundles this code and saves it locally and remotely - simple version control -->

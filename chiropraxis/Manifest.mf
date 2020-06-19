@@ -1,2 +1,2 @@
-Class-Path: itext.jar
+Class-Path: pdfbox.jar fontbox.jar pdfbox-graphics2d.jar commons-logging-1.2.jar
 
