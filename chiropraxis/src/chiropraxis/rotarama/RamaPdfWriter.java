@@ -196,8 +196,8 @@ public class RamaPdfWriter //extends ... implements ...
             //content.addTemplate(stats, scale, 0, 0, scale, 36, 36);
 //            content.addTemplate(stats, scale, 0, 0, scale, 50, 50);
 //            
-//            if(structName != null)  addPageTitle(structName+", all models", content);
-//            else                    addPageTitle("All models", content);
+            if(structName != null)  addPageTitle(structName+", all models", doc, allPlotsPage);
+            else                    addPageTitle("All models", doc, allPlotsPage);
 
         }
         
@@ -247,8 +247,8 @@ public class RamaPdfWriter //extends ... implements ...
             //content.addTemplate(stats, scale, 0, 0, scale, 36, 36);
 //            content.addTemplate(stats, scale, 0, 0, scale, 50, 50);
             
-//            if(structName != null)  addPageTitle(structName+", model "+label, content);
-//            else                    addPageTitle("Model "+label, content);
+            if(structName != null)  addPageTitle(structName+", model "+label, doc, modelPage);
+            else                    addPageTitle("Model "+label, doc, modelPage);
         }
     }
 //}}}
@@ -442,28 +442,27 @@ public class RamaPdfWriter //extends ... implements ...
     /**
     * Centers the given string as a title on the current page.
     */
-//    void addPageTitle(String title, PdfContentByte content)
-//    {
-//        Document doc = content.getPdfDocument();
-//        PdfTemplate canvas = content.createTemplate(doc.getPageSize().getWidth(), doc.getPageSize().getHeight());
-//        Graphics2D g2 = canvas.createGraphics(canvas.getWidth(), canvas.getHeight());
-//        
-//        java.awt.Font font = new java.awt.Font("Serif", java.awt.Font.PLAIN, 10);
-//        FontMetrics metrics = g2.getFontMetrics(font);
-//        g2.setFont(font);
-//        g2.setColor(Color.black);
-//        int width = metrics.stringWidth(title);
-//        int height = metrics.getMaxAscent() + metrics.getMaxDescent();
-//        int x = ((int)canvas.getWidth() - width) / 2;
-//        /*int y = 72 + height/2;*/
-//        int y = 46 + height/2;
-//        g2.drawString(title, x, y);
-//        
-//        g2.dispose();
-//        content.addTemplate(canvas, 0, 0);
-//        
-//        return;
-//    }
+    void addPageTitle(String title, PDDocument doc, PDPage page) throws IOException
+    {
+        float page_width = page.getArtBox().getWidth();
+        float page_height = page.getArtBox().getHeight();     
+        PDPageContentStream contentStream = new PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, false);
+        
+        PDFont font = PDType1Font.TIMES_ROMAN;
+        int fontSize = 10;
+        float titleWidth = font.getStringWidth(title) / 1000 * fontSize;
+        float titleHeight = font.getHeight(title.charAt(0)) / 1000 * fontSize;
+        
+        float x_centered = ( page_width - titleWidth ) / 2 + page.getArtBox().getLowerLeftX();
+        float y = page.getCropBox().getUpperRightY() - (50 + titleHeight/2);
+        contentStream.setFont(font, fontSize);
+        contentStream.beginText();
+        contentStream.newLineAtOffset(x_centered, y);
+        contentStream.showText(title);
+        contentStream.endText();
+        contentStream.close();
+        
+    }
 //}}}
 
 
