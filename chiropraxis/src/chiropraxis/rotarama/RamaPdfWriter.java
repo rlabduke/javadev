@@ -104,11 +104,8 @@ public class RamaPdfWriter //extends ... implements ...
           importedPage = doc.importPage(template);
         }
       }
-
-      System.out.println(doc.getPages().getCount());
             
       doModelByModel(analyses, structName, doc);
-      System.out.println("done models");
       // TODO: doResidueByResidue()
 
       doc.save(out);
@@ -129,7 +126,6 @@ public class RamaPdfWriter //extends ... implements ...
     *   All of them together are rendered as "All models"
     * @param structName a label identifying this structure, or null for none.
     * @param doc        the document being generated
-    * @param template   the six-square Rama page template object
     */
     void doModelByModel(Map analyses, String structName, PDDocument doc) throws IOException
     {
@@ -185,6 +181,10 @@ public class RamaPdfWriter //extends ... implements ...
             ArrayList allRes = new ArrayList();
             for(Iterator iter = analyses.keySet().iterator(); iter.hasNext(); )
                 allRes.addAll((Collection) iter.next());
+              
+            ArrayList statStrings = makeStatisticsStrings(allRes);
+            writeStatsToPage(doc, allPlotsPage, statStrings);
+            
             contentStream.close();
             //PdfTemplate stats = plotStatistics(content, 540, 144, allRes);
             /*PdfTemplate stats = plotStatistics(content, 540, 130, allRes);*/
@@ -320,18 +320,13 @@ public class RamaPdfWriter //extends ... implements ...
     }
 //}}}
 
-
 //{{{ makeStatisticsStrings
 //##############################################################################
     /**
     * Draws textual statistics about the results of a Ramachandran analysis
     * for any collection of RamaEvals.
-    * @param content the PdfContentByte object to create a template from.
-    * @param width the available width to draw in.
-    * @param height the available height to draw in.
     * @param analysis a Collection of Ramalyze.RamaEval objects to be plotted.
-    * @return a PdfTemplate of arbitrary size. The caller is responsible for scaling
-    * it to fit into a width x height area.
+    * @return a ArrayList of summary strings and outliers.
     */
     ArrayList makeStatisticsStrings(Collection analysis)
     {
@@ -375,14 +370,10 @@ public class RamaPdfWriter //extends ... implements ...
 //{{{ writeStatsToPage
 //##############################################################################
     /**
-    * Draws a series of text strings in either a 1- or 2-column layout.
-    * @param content    the PdfContentByte object to create a template from.
-    * @param width      the available width to draw in.
-    * @param height     the available height to draw in.
-    * @param font       the font to do the drawing in.
+    * Writes a series of text strings in column layout at bottom of page.
+    * @param doc        the PDDocument object.
+    * @param page       the PDPage to write text to.
     * @param strings    a Collection of Strings to draw, one per line.
-    * @return a PdfTemplate of arbitrary size. The caller is responsible for scaling
-    * it to fit into a width x height area.
     */
     void writeStatsToPage(PDDocument doc, PDPage page, Collection stringList) throws IOException
     {
@@ -456,7 +447,6 @@ public class RamaPdfWriter //extends ... implements ...
         
     }
 //}}}
-
 
 //{{{ addPlotToPage
 
