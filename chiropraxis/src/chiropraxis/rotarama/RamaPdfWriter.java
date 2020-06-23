@@ -237,7 +237,8 @@ public class RamaPdfWriter //extends ... implements ...
                 62.5f-PLOT_OFFSET, 221.5f-PLOT_OFFSET);
             content.addTemplate(preproTemplates[i], PLOT_SCALE, 0, 0, PLOT_SCALE,
                 345.0f-PLOT_OFFSET, 221.5f-PLOT_OFFSET);*/
-            //PdfTemplate stats = plotStatistics(content, 540, 144, analysis);
+            ArrayList statStrings = makeStatisticsStrings(analysis);
+            writeStatsToPage(doc, modelPage, statStrings);
             /*PdfTemplate stats = plotStatistics(content, 540, 130, analysis);*/
 //            PdfTemplate stats = plotStatistics(content, 80, 100, analysis);
             //float scale = Math.min(540/stats.getWidth(), 144/stats.getHeight());
@@ -320,7 +321,7 @@ public class RamaPdfWriter //extends ... implements ...
 //}}}
 
 
-//{{{ plotStatistics
+//{{{ makeStatisticsStrings
 //##############################################################################
     /**
     * Draws textual statistics about the results of a Ramachandran analysis
@@ -332,43 +333,46 @@ public class RamaPdfWriter //extends ... implements ...
     * @return a PdfTemplate of arbitrary size. The caller is responsible for scaling
     * it to fit into a width x height area.
     */
-//    PdfTemplate plotStatistics(PdfContentByte content, float width, float height, Collection analysis)
-//    {
-//        // Calculate the statistics
-//        int total = 0, favored = 0, allowed = 0, outlier = 0;
-//        for(Iterator iter = analysis.iterator(); iter.hasNext(); )
-//        {
-//            Ramalyze.RamaEval eval = (Ramalyze.RamaEval) iter.next();
-//            if(eval.score == Ramalyze.RamaEval.FAVORED) { total++; favored++; }
-//            else if(eval.score == Ramalyze.RamaEval.ALLOWED) { total++; allowed++; }
-//            else if(eval.score == Ramalyze.RamaEval.OUTLIER) { total++; outlier++; }
-//        }
-//        
-//        // Write out a collection of the strings we want to print.
-//        DecimalFormat df = new DecimalFormat("0.0");
-//        ArrayList strings = new ArrayList();
-//        strings.add(df.format((100.0*favored)/total)+"% ("+favored+"/"+total+") of all residues were in favored (98%) regions.");
-//        strings.add(df.format((100.0*(favored+allowed))/total)+"% ("+(favored+allowed)+"/"+total+") of all residues were in allowed (>99.8%) regions.");
-//        strings.add(""); // blank line
-//        if(outlier == 0) strings.add("There were no outliers.");
-//        else
-//        {
-//            strings.add("There were "+outlier+" outliers (phi, psi):");
-//            for(Iterator iter = analysis.iterator(); iter.hasNext(); )
-//            {
-//                Ramalyze.RamaEval eval = (Ramalyze.RamaEval) iter.next();
-//                if(eval.score == Ramalyze.RamaEval.OUTLIER)
-//                    strings.add("    "+eval.name+" ("+df.format(eval.phi)+", "+df.format(eval.psi)+")");
-//            }
-//        }
-//
-//        java.awt.Font font = new java.awt.Font("Serif", java.awt.Font.PLAIN, 10);
-//        
-//        return layoutColumns(content, width, height, font, strings);
-//    }
+    ArrayList makeStatisticsStrings(Collection analysis)
+    {
+        // Calculate the statistics
+        int total = 0, favored = 0, allowed = 0, outlier = 0;
+        for(Iterator iter = analysis.iterator(); iter.hasNext(); )
+        {
+            Ramalyze.RamaEval eval = (Ramalyze.RamaEval) iter.next();
+            if(eval.score == Ramalyze.RamaEval.FAVORED) { total++; favored++; }
+            else if(eval.score == Ramalyze.RamaEval.ALLOWED) { total++; allowed++; }
+            else if(eval.score == Ramalyze.RamaEval.OUTLIER) { total++; outlier++; }
+        }
+        
+        // Write out a collection of the strings we want to print.
+        DecimalFormat df = new DecimalFormat("0.0");
+        String overloadedInfo = "";
+        if (outlier>64) {
+          overloadedInfo = "This list is truncated, visit MolProbity for full list.";
+        }
+        ArrayList strings = new ArrayList();
+        strings.add(df.format((100.0*favored)/total)+"% ("+favored+"/"+total+") of all residues were in favored (98%) regions.");
+        strings.add(df.format((100.0*(favored+allowed))/total)+"% ("+(favored+allowed)+"/"+total+") of all residues were in allowed (>99.8%) regions.");
+        strings.add(overloadedInfo); // blank line
+
+        if(outlier == 0) strings.add("There were no outliers.");
+        else
+        {
+            strings.add("There were "+outlier+" outliers (phi, psi):");
+            for(Iterator iter = analysis.iterator(); iter.hasNext(); )
+            {
+                Ramalyze.RamaEval eval = (Ramalyze.RamaEval) iter.next();
+                if(eval.score == Ramalyze.RamaEval.OUTLIER)
+                    strings.add("    "+eval.name+" ("+df.format(eval.phi)+", "+df.format(eval.psi)+")");
+            }
+        }
+        
+        return strings;
+    }
 //}}}
 
-//{{{ layoutColumns
+//{{{ writeStatsToPage
 //##############################################################################
     /**
     * Draws a series of text strings in either a 1- or 2-column layout.
@@ -380,61 +384,49 @@ public class RamaPdfWriter //extends ... implements ...
     * @return a PdfTemplate of arbitrary size. The caller is responsible for scaling
     * it to fit into a width x height area.
     */
-//    PdfTemplate layoutColumns(PdfContentByte content, float width, float height,
-//        java.awt.Font font, Collection stringList)
-//    {
-//        ArrayList strings = new ArrayList(stringList); // we need these as a List later
-//        
-//        // Calculate how big all these strings will be, and whether we should use 1 column or 2.
-//        // This template won't actually be used; it's just for FontMetrics info.
-//        PdfTemplate canvas = content.createTemplate(1, 1);
-//        Graphics2D g2 = canvas.createGraphics(canvas.getWidth(), canvas.getHeight());
-//        FontMetrics metrics = g2.getFontMetrics(font);
-//        int lineheight = metrics.getMaxAscent() + metrics.getMaxDescent() + 2;
-//        int height1 = strings.size() * lineheight;
-//        int height2 = (strings.size()+1)/2 * lineheight;
-//        int width1 = 0;
-//        for(Iterator iter = strings.iterator(); iter.hasNext(); )
-//            width1 = Math.max(width1, metrics.stringWidth((String)iter.next()));
-//        int widthL = 0;
-//        List halfL = strings.subList(0, strings.size()/2);
-//        for(Iterator iter = halfL.iterator(); iter.hasNext(); )
-//            widthL = Math.max(widthL, metrics.stringWidth((String)iter.next()));
-//        int widthR = 0;
-//        List halfR = strings.subList(strings.size()/2, strings.size());
-//        for(Iterator iter = halfR.iterator(); iter.hasNext(); )
-//            widthR = Math.max(widthR, metrics.stringWidth((String)iter.next()));
-//        int width2spacer = (int)Math.round(0.2 * (widthL+widthR));
-//        int width2 = widthL + widthR + width2spacer;
-//        g2.dispose();
-//        
-//        if(Math.min(width/width1, height/height1) > Math.min(width/width2, height/height2))
-//        // One column layout
-//        {
-//            canvas = content.createTemplate(width1, height1);
-//            g2 = canvas.createGraphics(canvas.getWidth(), canvas.getHeight());
-//            g2.setFont(font);
-//            int y = metrics.getMaxAscent();
-//            for(Iterator iter = strings.iterator(); iter.hasNext(); y += lineheight)
-//                g2.drawString((String)iter.next(), 0, y);
-//        }
-//        // Two column layout
-//        else
-//        {
-//            canvas = content.createTemplate(width2, height2);
-//            g2 = canvas.createGraphics(canvas.getWidth(), canvas.getHeight());
-//            g2.setFont(font);
-//            int y = metrics.getMaxAscent();
-//            for(Iterator iter = halfL.iterator(); iter.hasNext(); y += lineheight)
-//                g2.drawString((String)iter.next(), 0, y);
-//            y = metrics.getMaxAscent();
-//            for(Iterator iter = halfR.iterator(); iter.hasNext(); y += lineheight)
-//                g2.drawString((String)iter.next(), widthL+width2spacer, y);
-//        }
-//        
-//        g2.dispose();
-//        return canvas;
-//    }
+    void writeStatsToPage(PDDocument doc, PDPage page, Collection stringList) throws IOException
+    {
+        ArrayList strings = new ArrayList(stringList); // we need these as a List later
+        
+        PDPageContentStream contentStream = new PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, false);
+        
+        float lowerLeftX = page.getCropBox().getLowerLeftX();
+        float lowerLeftY = page.getCropBox().getLowerLeftY();
+        float[] columnXs = new float[]{lowerLeftX+30, lowerLeftX+120, lowerLeftX+210, lowerLeftX+300, lowerLeftX+390, lowerLeftX+480};
+        float[] footerYs = new float[]{lowerLeftY+130, lowerLeftY+98, lowerLeftY+130, lowerLeftY+130, lowerLeftY+130, lowerLeftY+130};
+        
+        contentStream.setFont(PDType1Font.TIMES_ROMAN, 6);
+        contentStream.setLeading(8);
+        contentStream.beginText();
+        
+        int stringOutCount = 0;
+        int columnCount = 0;
+        
+        contentStream.newLineAtOffset(columnXs[0], footerYs[0]);
+        
+        Iterator textIter = strings.iterator();
+        while (textIter.hasNext()) {
+          
+          if (stringOutCount == 12 || (columnCount == 1 && stringOutCount == 8)) {
+            columnCount++;
+            if (columnCount < 6) {
+              contentStream.endText();
+              contentStream.beginText();
+              contentStream.newLineAtOffset(columnXs[columnCount], footerYs[columnCount]);
+            } else {
+              break;
+            }
+            stringOutCount = 0;
+          }
+            
+          String textLine = (String) textIter.next();
+          contentStream.showText(textLine);
+          contentStream.newLine();
+          stringOutCount++;
+        }
+        contentStream.endText();
+        contentStream.close();
+    }
 //}}}
 
 //{{{ addPageTitle
@@ -451,7 +443,7 @@ public class RamaPdfWriter //extends ... implements ...
         PDFont font = PDType1Font.TIMES_ROMAN;
         int fontSize = 10;
         float titleWidth = font.getStringWidth(title) / 1000 * fontSize;
-        float titleHeight = font.getHeight(title.charAt(0)) / 1000 * fontSize;
+        float titleHeight = font.getHeight(title.charAt(0)) / 1000 * fontSize; //only accounts for height of the first char due to limitations in pdfbox
         
         float x_centered = ( page_width - titleWidth ) / 2 + page.getArtBox().getLowerLeftX();
         float y = page.getCropBox().getUpperRightY() - (50 + titleHeight/2);
