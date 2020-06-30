@@ -22,7 +22,7 @@ import org.apache.pdfbox.util.*;
 import de.rototor.pdfbox.graphics2d.*;
 //}}}
 /**
-* <code>RamaPdfWriter</code> uses the iText PDF libraries to produce a PDF
+* <code>RamaPdfWriter</code> uses the PDFBox PDF libraries to produce a PDF
 * plot of the six Richardson Ramachandran plots.
 *
 * <p>When run as an application, it just copies its template file to standard out.
@@ -104,6 +104,8 @@ public class RamaPdfWriter //extends ... implements ...
           importedPage = doc.importPage(template);
         }
       }
+      
+      lowerCaseResNames(analyses);
             
       doModelByModel(analyses, structName, doc);
       // TODO: doResidueByResidue()
@@ -115,6 +117,26 @@ public class RamaPdfWriter //extends ... implements ...
 
       doc.close();
     }
+//}}}
+
+//{{{ lowerCaseResidueNames
+  void lowerCaseResNames(Map analyses) {
+    for(Iterator iter = analyses.keySet().iterator(); iter.hasNext(); )
+    {
+      Collection analysis  = (Collection) iter.next();
+      for(Iterator iter2 = analysis.iterator(); iter2.hasNext(); )
+      {
+        Ramalyze.RamaEval eval = (Ramalyze.RamaEval) iter2.next();
+        char[] evalName = eval.name.toCharArray();
+
+        // Modify resNames in array.
+        evalName[evalName.length-1] = Character.toLowerCase(evalName[evalName.length-1]);
+        evalName[evalName.length-2] = Character.toLowerCase(evalName[evalName.length-2]);
+        //evalName[evalName.length-3] = Character.toLowerCase(evalName[evalName.length-3]);
+        eval.name = new String(evalName);
+      }
+    }
+  }
 //}}}
 
 //{{{ doModelByModel
@@ -298,6 +320,7 @@ public class RamaPdfWriter //extends ... implements ...
         Color fontColor     = new Color(0x000000);
         Color normalColor   = new Color(0x333333);
         g.setFont(new java.awt.Font("Serif", java.awt.Font.PLAIN, 10));
+        //HashSet outliersPlottedMap = new HashSet();
         
         for(Iterator iter = analysis.iterator(); iter.hasNext(); )
         {
@@ -309,7 +332,11 @@ public class RamaPdfWriter //extends ... implements ...
                 g.setColor(outColor);
                 g.drawOval((int)eval.phi-3, ((int) -eval.psi)-3, 6, 6);
                 g.setColor(fontColor);
-                g.drawString(eval.name, (int)eval.phi+5, ((int) -eval.psi)+3);
+                //ArrayList phipsi = new ArrayList(Arrays.asList((int)Math.round(eval.phi/100)*100, (int)-Math.round(eval.psi/15)*15));
+                //if (!outliersPlottedMap.contains(phipsi)) {
+                  g.drawString(eval.name, (int)eval.phi+5, ((int) -eval.psi)+3);
+                //  outliersPlottedMap.add(phipsi);
+                //}
             }
             else
             {
@@ -344,7 +371,7 @@ public class RamaPdfWriter //extends ... implements ...
         DecimalFormat df = new DecimalFormat("0.0");
         String overloadedInfo = "";
         if (outlier>64) {
-          overloadedInfo = "This list is truncated, visit MolProbity for full list.";
+          overloadedInfo = "This list is truncated; use the MolProbity multi-chart.html for complete list.";
         }
         ArrayList strings = new ArrayList();
         strings.add(df.format((100.0*favored)/total)+"% ("+favored+"/"+total+") of all residues were in favored (98%) regions.");
@@ -383,7 +410,7 @@ public class RamaPdfWriter //extends ... implements ...
         
         float lowerLeftX = page.getCropBox().getLowerLeftX();
         float lowerLeftY = page.getCropBox().getLowerLeftY();
-        float[] columnXs = new float[]{lowerLeftX+30, lowerLeftX+120, lowerLeftX+210, lowerLeftX+300, lowerLeftX+390, lowerLeftX+480};
+        float[] columnXs = new float[]{lowerLeftX+40, lowerLeftX+130, lowerLeftX+220, lowerLeftX+310, lowerLeftX+400, lowerLeftX+490};
         float[] footerYs = new float[]{lowerLeftY+130, lowerLeftY+98, lowerLeftY+130, lowerLeftY+130, lowerLeftY+130, lowerLeftY+130};
         
         contentStream.setFont(PDType1Font.TIMES_ROMAN, 6);
