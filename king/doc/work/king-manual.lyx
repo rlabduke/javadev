@@ -281,7 +281,7 @@ If you don't have Java, you may have downloaded a copy of KiNG that was
 If you don't have Java and you didn't download the bundled version of KiNG,
  point your web browser to 
 \begin_inset Flex URL
-status collapsed
+status open
 
 \begin_layout Plain Layout
 
@@ -1031,13 +1031,13 @@ http://www.adobe.com
 \end_inset
 
 .
- It does require the (free) iText PDF library from 
+ It does require the (free) Apache PDFBox PDF library from 
 \begin_inset Flex URL
-status collapsed
+status open
 
 \begin_layout Plain Layout
 
-http://www.lowagie.com/iText/
+http://pdfbox.apache.org
 \end_layout
 
 \end_inset
@@ -1453,11 +1453,11 @@ KiNG is capable of using OpenGL rendering commands to take advantage of
  You'll need to have an up-to-date version of Java installed, along with
  the JOGL libraries (
 \begin_inset Flex URL
-status collapsed
+status open
 
 \begin_layout Plain Layout
 
-https://jogl.dev.java.net/
+https://jogamp.org/jogl/www/
 \end_layout
 
 \end_inset
@@ -1500,7 +1500,49 @@ With the newer versions of Java, JOGL 1.1.1 doesn't seem to be currently working
  We've updated KiNG to use JOGL 2.3.2; the appropriate platform-specific JOGL
  jars are included with the platform-specific downloads of KiNG available
  on the kinemage website.
- 
+ 2021 update: OpenGL may not work properly on Windows if you have a high
+ DPI monitor (such as on a Microsoft Surface or newer laptop).
+ If you open up KiNG and the splash screen seems compressed into a corner,
+ try the following fix: 1) Find out where your java.exe is installed (probably
+ in Program Files
+\backslash
+Java).
+ 2) Right click on java.exe and open up Properties.
+ 3) Go to the Compatibility tab.
+ 4) Choose the 
+\begin_inset Quotes eld
+\end_inset
+
+Change high DPI settings
+\begin_inset Quotes erd
+\end_inset
+
+ button.
+ 5) Check the box labeled 
+\begin_inset Quotes eld
+\end_inset
+
+Override high DPI scaling behavior
+\begin_inset Quotes erd
+\end_inset
+
+ and for 
+\begin_inset Quotes eld
+\end_inset
+
+Scaling performed by:
+\begin_inset Quotes erd
+\end_inset
+
+ select 
+\begin_inset Quotes eld
+\end_inset
+
+System
+\begin_inset Quotes erd
+\end_inset
+
+ in the drop down.
 \end_layout
 
 \begin_layout Standard
@@ -2852,7 +2894,7 @@ Launching KiNG
 \begin_layout Standard
 KiNG runs both as a stand-alone application, and as an applet that can be
  included in web pages.
- In any case, KiNG requires a Java Virtual Machine (JVM), version 1.5 or
+ In any case, KiNG requires a Java Virtual Machine (JVM), version 1.8 or
  higher.
  You can get Java from 
 \begin_inset Flex URL
@@ -3357,14 +3399,14 @@ Copyright
 
 \begin_layout Standard
 The KiNG program and all its associated original resources and documentation
- are copyright (C) 2002-2016 by Ian W.
+ are copyright (C) 2002-2021 by Ian W.
  Davis & Vincent B.
  Chen.
  KiNG makes use of the gnu.regexp library, which is copyright (C) by Wes
  Biggs, and of icons copyright (C) by Sun Microsystems provided for use
  with Java programs.
- It is also capable of using the iText library for generating PDF files,
- and the JOGL library for OpenGL rendering.
+ It is also capable of using the Apache PDFBox library for generating PDF
+ files, and the JOGL library for OpenGL rendering.
 \end_layout
 
 \begin_layout Section
@@ -3409,15 +3451,14 @@ http://www.cacas.org/java/gnu/regexp/
 \end_inset
 
 .
- The iText library is dual-licensed under the LGPL and the Mozilla Public
- License (MPL).
- iText is available from 
+ The Apache PDFBox library is licensed under the Apache License 2.0.
+ PDFBox is available from 
 \begin_inset Flex URL
-status collapsed
+status open
 
 \begin_layout Plain Layout
 
-http://www.lowagie.com/iText/
+https://pdfbox.apache.org/
 \end_layout
 
 \end_inset
@@ -3425,11 +3466,11 @@ http://www.lowagie.com/iText/
 .
  JOGL is available under a BSD-style license from 
 \begin_inset Flex URL
-status collapsed
+status open
 
 \begin_layout Plain Layout
 
-https://jogl.dev.java.net/
+https://jogamp.org/jogl/www/
 \end_layout
 
 \end_inset
@@ -3506,7 +3547,7 @@ Revision status
 \end_layout
 
 \begin_layout Standard
-This manual was last updated 28 Sept 2016 by VBC for KiNG version 2.23.
+This manual was last updated 05 Jan 2021 by VBC for KiNG version 2.24.
 \end_layout
 
 \begin_layout Chapter
@@ -3542,7 +3583,7 @@ The KiNG License
 \end_layout
 
 \begin_layout Standard
-Copyright (C) 2002-2009 Ian W.
+Copyright (C) 2002-2021 Ian W.
  Davis & Vincent B.
  Chen.
  All rights reserved.
