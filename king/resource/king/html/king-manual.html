@@ -7,7 +7,7 @@
 <meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)"> 
 <!-- html --> 
 <meta name="src" content="king-manual.tex"> 
-<meta name="date" content="2016-09-29 14:01:00"> 
+<meta name="date" content="2021-01-05 16:08:00"> 
 <link rel="stylesheet" type="text/css" href="king-manual.css"> 
 </head><body 
 >
@@ -17,7 +17,7 @@
 <h2 class="titleHead">The KING manual</h2>
 <div class="author" ></div><br />
 <div class="date" ><span 
-class="ecrm-1200">September 29, 2016</span></div>
+class="ecrm-1200">January 5, 2021</span></div>
 
    </div>
 <!--l. 46--><p class="indent" >   Ian W. Davis
@@ -610,10 +610,10 @@ simplest and best option for almost any use. &#8220;PDF&#8221; stands for Portab
 Format, the successor to PostScript as the standard for vector graphics. You can
 learn more about PDFs at <a 
 href="http://www.adobe.com" class="url" ><span 
-class="ectt-1000">http://www.adobe.com</span></a>. It does require the (free) iText
-PDF library from <a 
-href="http://www.lowagie.com/iText/" class="url" ><span 
-class="ectt-1000">http://www.lowagie.com/iText/</span></a>, which is distributed with
+class="ectt-1000">http://www.adobe.com</span></a>. It does require the (free) Apache
+PDFBox PDF library from <a 
+href="http://pdfbox.apache.org" class="url" ><span 
+class="ectt-1000">http://pdfbox.apache.org</span></a>, which is distributed with
 KiNG.
 <!--l. 402--><p class="indent" >   If for some reason you don&#8217;t want to use PDF export, it is also often possible to
 hijack the print output into a file. For instance, with Macintosh OS X, both
@@ -761,44 +761,51 @@ plugin.
 graphics hardware and get (hopefully) accelerated graphics performance. You&#8217;ll need
 to have an up-to-date version of Java installed, along with the JOGL libraries
 (<a 
-href="https://jogl.dev.java.net/" class="url" ><span 
-class="ectt-1000">https://jogl.dev.java.net/</span></a>). Make sure you get both <span 
-class="ectt-1000">jogl.jar </span>and the native
-library or libraries (they end in <span 
+href="https://jogamp.org/jogl/www/" class="url" ><span 
+class="ectt-1000">https://jogamp.org/jogl/www/</span></a>). Make sure you get both <span 
+class="ectt-1000">jogl.jar </span>and the
+native library or libraries (they end in <span 
 class="ectt-1000">.dll</span>, <span 
 class="ectt-1000">.so</span>, or <span 
 class="ectt-1000">.jnilib</span>). <span 
-class="ecti-1000">2008 update</span>: It is no longer
-necessary to download separate files; everything needed is included in the platform
-specific downloads at the JOGL site. The download includes directions for installing
-JOGL (which discourage dropping the JAR files in the extension directories as
-originally recommended). Essentially, the JOGL JAR and the GLUEGEN_RT JAR
-need to be added to the classpath in order for JOGL to work. If you downloaded a
-platform-specific version of KiNG, the necessary libraries may already be included.
-<span 
-class="ecti-1000">2016 update: </span>With the newer versions of Java, JOGL 1.1.1 doesn&#8217;t seem to be
-currently working. We&#8217;re exploring the possibility of updating to use JOGL
-2.0.
+class="ecti-1000">2008 update</span>: It is no
+longer necessary to download separate files; everything needed is included in the
+platform specific downloads at the JOGL site. The download includes directions for
+installing JOGL (which discourage dropping the JAR files in the extension directories
+as originally recommended). Essentially, the JOGL JAR and the GLUEGEN_RT
+JAR need to be added to the classpath in order for JOGL to work. If you
+downloaded a platform-specific version of KiNG, the necessary libraries may already
+be included. <span 
+class="ecti-1000">2016 update: </span>With the newer versions of Java, JOGL 1.1.1 doesn&#8217;t seem
+to be currently working. We&#8217;ve updated KiNG to use JOGL 2.3.2; the appropriate
+platform-specific JOGL jars are included with the platform-specific downloads of
 
-<!--l. 557--><p class="indent" >   This feature has been tested with various combinations of Java 1.4.2 through Java
-1.6.0 and JOGL 1.1 through JOGL 1.1.1. JOGL is still under development, as is this
-feature, and interacting so directly with the hardware is always risky, so it&#8217;s possible
-that OpenGL rendering may hang KiNG on your computer. You&#8217;ve been
-warned.
-<!--l. 563--><p class="indent" >   Hopefully, a future version of Java (possibly the 1.6.x series) will use OpenGL
-behind the scenes for all graphics operations, making KiNG much faster and making
-this feature obsolete. Until then, this is a work-around for large kinemages where
-performance is an issue.
-<!--l. 568--><p class="noindent" >
+KiNG available on the kinemage website. 2021 update: OpenGL may not work
+properly on Windows if you have a high DPI monitor (such as on a Microsoft
+Surface or newer laptop). If you open up KiNG and the splash screen seems
+compressed into a corner, try the following fix: 1) Find out where your java.exe is
+installed (probably in Program Files\Java). 2) Right click on java.exe and
+open up Properties. 3) Go to the Compatibility tab. 4) Choose the &#8220;Change
+high DPI settings&#8221; button. 5) Check the box labeled &#8220;Override high DPI
+scaling behavior&#8221; and for &#8220;Scaling performed by:&#8221; select &#8220;System&#8221; in the drop
+down.
+<!--l. 567--><p class="indent" >   JOGL is still under development, as is this feature, and interacting so directly
+with the hardware is always risky, so it&#8217;s possible that OpenGL rendering may hang
+KiNG on your computer. You&#8217;ve been warned.
+<!--l. 571--><p class="indent" >   Hopefully, a future version of Java will use OpenGL behind the scenes for all
+graphics operations, making KiNG much faster and making this feature obsolete.
+Until then, this is a work-around for large kinemages where performance is an
+issue.
+<!--l. 576--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">3.4   </span> <a 
  id="x1-420003.4"></a>Master buttons</h3>
-<!--l. 570--><p class="noindent" >Not all the buttons to the right of the graphics control groups and subgroups of
+<!--l. 578--><p class="noindent" >Not all the buttons to the right of the graphics control groups and subgroups of
 points; some are &#8220;masters.&#8221; The master buttons sit below the others, separated by a
 spacer. When activated, a master turns on all the groups it controls; when
 deactivated, it turns them all off. The effects are only momentary; the group can be
 turned on or off directly regardless of the state of the master(s) that control
 it.
-<!--l. 578--><p class="indent" >   A single group can be controlled by multiple masters. Note that the &#8220;off&#8221; state of
+<!--l. 586--><p class="indent" >   A single group can be controlled by multiple masters. Note that the &#8220;off&#8221; state of
 a master is dominant in this case: a master will always turn off the groups it controls,
 but will turn them on only if they are not also controlled by another master that is
 already off. Since the buttons of the individual groups, subgroups, and lists are
@@ -807,7 +814,7 @@ and off in specific patterns.
 
    <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;4</span><br /><a 
  id="x1-430004"></a>Kinemage authoring: Using KiNG to edit a kinemage</h2>
-<!--l. 588--><p class="noindent" >Kinemage files are stored as human-readable, plain-text files. They&#8217;re also designed
+<!--l. 596--><p class="noindent" >Kinemage files are stored as human-readable, plain-text files. They&#8217;re also designed
 to be easily edited by human beings, using a text editor like Notepad (Windows),
 TextEdit (Mac), or vi (Unix). You can also use a word processor like Microsoft Word,
 but you have to be careful to save as plain text (.txt) rather than formatted text
@@ -815,24 +822,24 @@ but you have to be careful to save as plain text (.txt) rather than formatted te
 as a separate document from this manual.
    <h3 class="sectionHead"><span class="titlemark">4.1   </span> <a 
  id="x1-440004.1"></a>Merging kinemages together</h3>
-<!--l. 598--><p class="noindent" >The most basic sort of editing is to combine two kinemages into one. For this, simply
+<!--l. 606--><p class="noindent" >The most basic sort of editing is to combine two kinemages into one. For this, simply
 use the <span 
 class="ectt-1000">File | Append </span>command (see&#x00A0;<a 
 href="#x1-250002.3">2.3<!--tex4ht:ref: appending-a-kinemage --></a> on page&#x00A0;<span class="pageref"><a 
 href="#x1-250002.3">§</a></span>).
-<!--l. 601--><p class="noindent" >
+<!--l. 609--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">4.2   </span> <a 
  id="x1-450004.2"></a>Editing text</h3>
-<!--l. 603--><p class="noindent" >The text of a kinemage is often critical for clarifying and amplifying its meaning. It&#8217;s
+<!--l. 611--><p class="noindent" >The text of a kinemage is often critical for clarifying and amplifying its meaning. It&#8217;s
 analogous to the caption that accompanies a printed figure. You can edit the
 kinemage text in the same window that you use for reading it (just press the <span 
 class="ectt-1000">Show</span>
 <span 
 class="ectt-1000">text </span>button).
-<!--l. 608--><p class="noindent" >
+<!--l. 616--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">4.3   </span> <a 
  id="x1-460004.3"></a>Editing views</h3>
-<!--l. 610--><p class="noindent" >A simple editing tool is <span 
+<!--l. 618--><p class="noindent" >A simple editing tool is <span 
 class="ectt-1000">Views | Save current view</span>, which records the current
 orientation and position of the kinemage as a new view in the <span 
 class="ectt-1000">Views </span>menu. Creating
@@ -841,27 +848,27 @@ informative. You can delete, rename, and rearrange views using <span
 class="ectt-1000">Views | Edit saved</span>
 <span 
 class="ectt-1000">views</span>.
-<!--l. 617--><p class="noindent" >
+<!--l. 625--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">4.4   </span> <a 
  id="x1-470004.4"></a>The hierarchy editor</h3>
-<!--l. 619--><p class="noindent" >One of the goals of KiNG is to enable simple, visual editing of most parts of a
+<!--l. 627--><p class="noindent" >One of the goals of KiNG is to enable simple, visual editing of most parts of a
 kinemage. Many of the editing commands are activated using a tree-like display
 of the hierarchical kinemage structure, which will resemble the layout of
 buttons.
-<!--l. 624--><p class="indent" >   The structure of the kinemage can be rearranged by cutting, copying, and pasting
+<!--l. 632--><p class="indent" >   The structure of the kinemage can be rearranged by cutting, copying, and pasting
 elements; creating new elements and deleting unneeded ones; and reordering elements
 (using the <span 
 class="ectt-1000">Up </span>and <span 
 class="ectt-1000">Down </span>commands). Play with these commands, and their operation
 will soon become obvious. Elements can even be cut out of one kinemage and pasted
 into another!
-<!--l. 631--><p class="indent" >   Also, the properties of individual elements can be adjusted, which allows them to
+<!--l. 639--><p class="indent" >   Also, the properties of individual elements can be adjusted, which allows them to
 be renamed. What other properties are available depends on the level of the
 
 hierarchy (kinemage, group, subgroup, or list). Each element can also be
 toggled on and off, even if it doesn&#8217;t have a button visible in the button
 pane.
-<!--l. 637--><p class="indent" >   Using the hierarchy editor effectively depends on a decent understanding of the
+<!--l. 645--><p class="indent" >   Using the hierarchy editor effectively depends on a decent understanding of the
 kinemage format. If you&#8217;re unfamiliar with kinemages, reading the kinemage format
 reference may be very helpful to you.
 
@@ -869,17 +876,17 @@ reference may be very helpful to you.
  id="x1-480005"></a>The Tools</h2>
    <h3 class="sectionHead"><span class="titlemark">5.1   </span> <a 
  id="x1-490005.1"></a>Understanding the Tools and Plug-ins</h3>
-<!--l. 645--><p class="noindent" >The <span 
+<!--l. 653--><p class="noindent" >The <span 
 class="ectt-1000">Tools </span>menu has a variety of tools and plug-ins for interacting with the
 kinemage. Many of these are highly domain-specific &#8212; tailored to doing structural
 biology, for example. Each tool &#8220;takes over&#8221; the mouse, assigning specific meanings to
 the various kinds of clicks and drags. Normally, the familiar Navigate tool is active,
 so mouse motions result in the sort of rotations, pans, and zooms that most users are
 accustomed to.
-<!--l. 653--><p class="indent" >   Plug-ins, on the other hand, just offer additional functionality that doesn&#8217;t change
+<!--l. 661--><p class="indent" >   Plug-ins, on the other hand, just offer additional functionality that doesn&#8217;t change
 what the mouse does. Because of this, you can have several plug-ins active at once,
 but only one tool.
-<!--l. 657--><p class="indent" >   Some special-purpose tools and plugins have been developed by other people and
+<!--l. 665--><p class="indent" >   Some special-purpose tools and plugins have been developed by other people and
 ship separately from KiNG. Installing these additional tools and plugins for
 KiNG is easy, though. Just take all plugin files that end with <span 
 class="ectt-1000">.jar </span>(<span 
@@ -893,7 +900,7 @@ there already. Then just close KiNG and restart it to load the new tools and
 plugins. Note that these will <span 
 class="ecti-1000">not </span>be available when running KiNG as an
 applet.
-<!--l. 667--><p class="indent" >   The tools menu also has some other options that are related to how mouse clicks
+<!--l. 675--><p class="indent" >   The tools menu also has some other options that are related to how mouse clicks
 and drags are interpretted, which are discussed below. The tools and plugins listed in
 the menu can be rearranged, grouped into submenus, or hidden entirely by using the
 <span 
@@ -901,40 +908,40 @@ class="ectt-1000">Tools | Customize </span>dialog box, which is also accessible 
 class="ectt-1000">Edit | Configure</span>
 <span 
 class="ectt-1000">KiNG</span>.
-<!--l. 674--><p class="noindent" >
+<!--l. 682--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">5.1.1   </span> <a 
  id="x1-500005.1.1"></a>Extra measurements</h4>
-<!--l. 676--><p class="noindent" >In addition to tracking the distance between the last two points, clicking on points to
+<!--l. 684--><p class="noindent" >In addition to tracking the distance between the last two points, clicking on points to
 identify them can track the angle between the last three points and the dihedral
 angle between the last four. When these measurements are active, the <span 
 class="ectt-1000">Markers</span>
 option will display four markers instead of two.
-<!--l. 682--><p class="noindent" >
+<!--l. 690--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">5.1.2   </span> <a 
  id="x1-510005.1.2"></a>XYZ coordinates</h4>
-<!--l. 684--><p class="noindent" >Likewise, KiNG can display the original, unrotated coordinates of the point. This is
+<!--l. 692--><p class="noindent" >Likewise, KiNG can display the original, unrotated coordinates of the point. This is
 sometimes helpful when the kinemage is a graph or plot of some data, and the
 position has some absolute meaning. The display of this information can be enabled
 in the <span 
 class="ectt-1000">Tools </span>menu.
 
-<!--l. 690--><p class="noindent" >
+<!--l. 698--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">5.1.3   </span> <a 
  id="x1-520005.1.3"></a>Pick objects</h4>
-<!--l. 692--><p class="noindent" >Traditionally, one can only &#8220;pick&#8221; points in a kinemage. Enabling this option allows
+<!--l. 700--><p class="noindent" >Traditionally, one can only &#8220;pick&#8221; points in a kinemage. Enabling this option allows
 KiNG to recognize mouse clicks that hit the actual lines drawn between points and
 the surfaces of triangles. In each case, the result is equivalent to clicking on the
 point that determines the attributes (color, line width, etc.) of that graphics
 object.
-<!--l. 698--><p class="noindent" >
+<!--l. 706--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">5.2   </span> <a 
  id="x1-530005.2"></a>Using KiNG with a multi-button mouse</h3>
-<!--l. 700--><p class="noindent" >In KiNG, even a one-button mouse is sufficient to access all of the available functions.
+<!--l. 708--><p class="noindent" >In KiNG, even a one-button mouse is sufficient to access all of the available functions.
 However, it has also been designed to take full advantage of a three-button wheel
 mouse. The primary function of every tool is accessed by clicking or dragging with
 the left (or only) mouse button. This button is referred to as &#8220;Normal&#8221; in the
 command reference charts.
-<!--l. 707--><p class="indent" >   Other functions can be accessed either by holding down keyboard keys at the
+<!--l. 715--><p class="indent" >   Other functions can be accessed either by holding down keyboard keys at the
 same time, or by using one of the other mouse buttons. Holding the Shift key is
 equivalent to using the right mouse button, and holding the Control key (often
 written Ctrl) is equivalent to using the middle mouse button. A few tools
@@ -943,22 +950,22 @@ keys held down. In this case, you can get the same effect when dragging by
 depressing both the left and right mouse button. Because of the difficulty
 of clicking two buttons at once, however, this shortcut does not apply to
 Shift+Ctrl+Click.
-<!--l. 717--><p class="indent" >   At the present time, the Shift and Control keys do not work properly in Java on
+<!--l. 725--><p class="indent" >   At the present time, the Shift and Control keys do not work properly in Java on
 Mac OS X. When using a one-button mouse with OS X, you should use the
 Command key (a.k.a. Open Apple) instead of Shift to get the same effect as the right
 mouse button, and you should use the Option key (a.k.a. Alt) instead of Control to
 get the same effect as the middle mouse button. Hopefully this will be fixed in OS X
 10.4 / Java 1.5.
-<!--l. 725--><p class="indent" >   Some tools also use the up &amp; down arrow keys on the keyboard; these have the
+<!--l. 733--><p class="indent" >   Some tools also use the up &amp; down arrow keys on the keyboard; these have the
 same effect as using the scroll wheel of a wheel mouse. Once again, these
 may be combined with the Shift and/or Control keys to give access to more
 functions. Note that the mouse wheel is never active when running in a Java
 1.3.x virtual machine; Java 1.4 or later is needed to take advantage of this
 control.
-<!--l. 732--><p class="noindent" >
+<!--l. 740--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">5.3   </span> <a 
  id="x1-540005.3"></a>Navigate: Exploring in 3-D</h3>
-<!--l. 734--><p class="noindent" >The Navigate tool encompasses all the usual modes of interacting with a kinemage.
+<!--l. 742--><p class="noindent" >The Navigate tool encompasses all the usual modes of interacting with a kinemage.
 This is the tool that is active when KiNG is launched, and is probably the only tool
 many people will ever use. See&#x00A0;<a 
 href="#x1-100001.4.1">1.4.1<!--tex4ht:ref: basic-interaction --></a> on page&#x00A0;<span class="pageref"><a 
@@ -966,17 +973,17 @@ href="#x1-100001.4.1">§</a></span> for an introduction to using the
 
 Navigate tool to get around a kinemage. There are also a few more advanced modes
 of movement which are described below.
-<!--l. 741--><p class="noindent" >
+<!--l. 749--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">5.3.1   </span> <a 
  id="x1-550005.3.1"></a>Z-rotation (&#8220;pinwheel&#8221;)</h4>
-<!--l. 743--><p class="noindent" >Clicking and dragging (with the left mouse button) near the top of the graphics area
+<!--l. 751--><p class="noindent" >Clicking and dragging (with the left mouse button) near the top of the graphics area
 will cause the kinemage to spin around the Z axis like a pinwheel, rather than the
 more conventional sort of rotation. This is sometimes useful for putting something
 right side up.
-<!--l. 748--><p class="noindent" >
+<!--l. 756--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">5.3.2   </span> <a 
  id="x1-560005.3.2"></a>Translation (&#8220;flatland&#8221;)</h4>
-<!--l. 750--><p class="noindent" >Holding Control while dragging (or dragging with the middle mouse button) allows
+<!--l. 758--><p class="noindent" >Holding Control while dragging (or dragging with the middle mouse button) allows
 one to slide the kinemage around in the plane of the screen. Dragging at the top of
 the screen, as for z-rotation, slides the kinemage in and out of the plane of the screen.
 (Note: enabling perspective in the <span 
@@ -987,13 +994,13 @@ or &#8220;flatland,&#8221; and can be made the default mode of movement by selec
 class="ectt-1000">Tools |</span>
 <span 
 class="ectt-1000">Flatland</span>.
-<!--l. 759--><p class="noindent" >
+<!--l. 767--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">5.3.3   </span> <a 
  id="x1-570005.3.3"></a>Command reference</h4>
-<!--l. 760--><p class="noindent" >
+<!--l. 768--><p class="noindent" >
 <div class="center" 
 >
-<!--l. 760--><p class="noindent" >
+<!--l. 768--><p class="noindent" >
 <div class="tabular"> <table id="TBL-2" class="tabular" 
 cellspacing="0" cellpadding="0" rules="groups" 
 ><colgroup id="TBL-2-1g"><col 
@@ -1028,10 +1035,10 @@ class="hline"><td><hr></td><td><hr></td></tr><tr
  style="vertical-align:baseline;" id="TBL-2-6-"><td  style="white-space:nowrap; text-align:center;" id="TBL-2-6-1"  
 class="td11">              </td></tr></table></div>
 </div>
-<!--l. 781--><p class="noindent" >
+<!--l. 789--><p class="noindent" >
 <div class="center" 
 >
-<!--l. 781--><p class="noindent" >
+<!--l. 789--><p class="noindent" >
 <div class="tabular"> <table id="TBL-3" class="tabular" 
 cellspacing="0" cellpadding="0" rules="groups" 
 ><colgroup id="TBL-3-1g"><col 
@@ -1067,10 +1074,10 @@ class="hline"><td><hr></td><td><hr></td></tr><tr
 class="td11">              </td></tr></table></div>
 </div>
 
-<!--l. 802--><p class="noindent" >
+<!--l. 810--><p class="noindent" >
 <div class="center" 
 >
-<!--l. 802--><p class="noindent" >
+<!--l. 810--><p class="noindent" >
 <div class="tabular"> <table id="TBL-4" class="tabular" 
 cellspacing="0" cellpadding="0" rules="groups" 
 ><colgroup id="TBL-4-1g"><col 
@@ -1105,10 +1112,10 @@ class="hline"><td><hr></td><td><hr></td></tr><tr
  style="vertical-align:baseline;" id="TBL-4-6-"><td  style="white-space:nowrap; text-align:center;" id="TBL-4-6-1"  
 class="td11">              </td></tr></table></div>
 </div>
-<!--l. 823--><p class="noindent" >
+<!--l. 831--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">5.4   </span> <a 
  id="x1-580005.4"></a>Draw New: Reworking the kinemage</h3>
-<!--l. 825--><p class="noindent" >The Draw New tool provides a variety of simple tools for creating new objects in the
+<!--l. 833--><p class="noindent" >The Draw New tool provides a variety of simple tools for creating new objects in the
 kinemage or removing existing ones on a point-by-point basis.
      <dl class="description"><dt class="description">
 <span 
@@ -1254,50 +1261,50 @@ class="description">The Undo button undoes the last drawing action, with a few e
      (mentioned  above).  Undo  depth  is  unlimited,  subject  to  memory
      constraints. Thus, for kinemages that aren&#8217;t too large you can often undo
      all the drawing operations you&#8217;ve performed since loading the kinemage.</dd></dl>
-<!--l. 906--><p class="noindent" >
+<!--l. 914--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">5.5   </span> <a 
  id="x1-590005.5"></a>Electron Density: Visualizing maps</h3>
-<!--l. 908--><p class="noindent" >This plug-in is for viewing electron density maps while exploring kinemages of crystal
+<!--l. 916--><p class="noindent" >This plug-in is for viewing electron density maps while exploring kinemages of crystal
 structures. (If that doesn&#8217;t mean anything to you, then you probably don&#8217;t need this
 plugin.)
-<!--l. 912--><p class="indent" >   Choose <span 
+<!--l. 920--><p class="indent" >   Choose <span 
 class="ectt-1000">Open </span>from the <span 
 class="ectt-1000">Tools </span>menu in order to open a map file. Supported formats
 include X-PLOR (ASCII, not binary), O (DSN6 or Brix), and CCP4 (mode 2, the
 only one in common use).
-<!--l. 916--><p class="indent" >   Each map opens a new control window, which allows adjustment of its extent,
+<!--l. 924--><p class="indent" >   Each map opens a new control window, which allows adjustment of its extent,
 color, and level. The segment of map that is visible at any given time is centered in
 the current view; when the view changes, the portion that is visible will
 automatically be updated.
-<!--l. 921--><p class="indent" >   Any dynamic segment of map can be "captured" as part of a static kinemage; just
+<!--l. 929--><p class="indent" >   Any dynamic segment of map can be "captured" as part of a static kinemage; just
 use the <span 
 class="ectt-1000">Export </span>button to make the currently visible map segment part of the current
 kinemage. When you&#8217;ve finished with a map, be sure to <span 
 class="ectt-1000">Discard </span>it to free up the
 memory it consumed.
-<!--l. 927--><p class="indent" >   If you don&#8217;t have an electron density map for the structure you&#8217;re
+<!--l. 935--><p class="indent" >   If you don&#8217;t have an electron density map for the structure you&#8217;re
 interested in, you can try looking at the Uppsala Electron Density Server
 (<a 
 href="http://fsrv1.bmc.uu.se/eds/" class="url" ><span 
 class="ectt-1000">http://fsrv1.bmc.uu.se/eds/</span></a>). They offer standard maps for many of the
 structures deposited in the Protein Data Bank.
-<!--l. 932--><p class="indent" >   Maps can&#8217;t be loaded from the local filesystem when KiNG is running as an
+<!--l. 940--><p class="indent" >   Maps can&#8217;t be loaded from the local filesystem when KiNG is running as an
 applet due to security restrictions. However, you can use the <span 
 class="ectt-1000">XMAP </span>or <span 
 class="ectt-1000">OMAP</span>
 parameter along with the <span 
 class="ectt-1000">&#x003C;PARAM&#x003E; </span>tag to load a (single) map from a URL. For
 example:
-<!--l. 936--><p class="noindent" >
+<!--l. 944--><p class="noindent" >
 
      <dl class="list1"><dt class="list">
      </dt><dd 
 class="list">
-     <!--l. 936--><p class="noindent" ><span 
+     <!--l. 944--><p class="noindent" ><span 
 class="ectt-1000">&#x003C;PARAM</span><span 
 class="ectt-1000">&#x00A0;name="omap"</span><span 
 class="ectt-1000">&#x00A0;value="http://example.com/electron/density/my-protein.dsn6.gz"&#x003E;</span></dd></dl>
-<!--l. 939--><p class="noindent" >You can also use the <span 
+<!--l. 947--><p class="noindent" >You can also use the <span 
 class="ectt-1000">EDMAPBASE </span>and <span 
 class="ectt-1000">EDMAPLIST </span>parameters to allow the user to select
 and load a map. <span 
@@ -1306,10 +1313,10 @@ document base URL. <span
 class="ectt-1000">EDMAPLIST </span>is a space-separated list of filenames that can be
 loaded from that path. Users can also enter and modify URLs directly, though
 obviously this isn&#8217;t very convenient.
-<!--l. 946--><p class="noindent" >
+<!--l. 954--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">5.6   </span> <a 
  id="x1-600005.6"></a>Update KiNG: Upgrading without the hassle</h3>
-<!--l. 948--><p class="noindent" >The Update KiNG plugin allows you to quickly and easily update KiNG to the latest
+<!--l. 956--><p class="noindent" >The Update KiNG plugin allows you to quickly and easily update KiNG to the latest
 version published on the Kinemage website (kinemage.biochem.duke.edu). After you
 confirm your intentions, KiNG will begin downloading the new version. If the
 download proceeds too slowly, you can cancel with no changes to KiNG. Once
@@ -1317,14 +1324,14 @@ complete, the downloaded version will be unpacked in the same place as your
 current installed version of KiNG, and the existing version will be overwritten.
 You can then quit KiNG and restart to take advantage of new features and
 capabilities.
-<!--l. 957--><p class="indent" >   The Update plugin has been tested on a variety of platforms under a variety of
+<!--l. 965--><p class="indent" >   The Update plugin has been tested on a variety of platforms under a variety of
 conditions, but there is always a chance that it won&#8217;t work quite right on <span 
 class="ecti-1000">your</span>
 computer. The chance is greater if you created a non-standard custom installation
 from the JAR files rather than using the pre-packaged platform-specific installer. If
 KiNG fails to start after the update, you may have to remove it and then download
 and install a clean copy by hand.
-<!--l. 965--><p class="indent" >   There are certain things the automatic updater <span 
+<!--l. 973--><p class="indent" >   There are certain things the automatic updater <span 
 class="ecti-1000">can&#8217;t </span>update, like the bundled
 binary programs (<span 
 class="ectt-1000">probe</span>, <span 
@@ -1334,7 +1341,7 @@ completely and reinstall from scratch.
 
    <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;6</span><br /><a 
  id="x1-610006"></a>Configuring KiNG</h2>
-<!--l. 973--><p class="noindent" >By choosing <span 
+<!--l. 981--><p class="noindent" >By choosing <span 
 class="ectt-1000">Edit | Configure KiNG</span>, one can adjust several aspects of KiNG&#8217;s
 behavior and appearance, such as font sizes, stereo settings, and whether or not
 certain warnings are issued. The configuration dialog also allows for reorganizing
@@ -1347,7 +1354,7 @@ through this file; that is, they cannot be edited from the graphical interface.
 Nonetheless, pressing <span 
 class="ectt-1000">Reset to defaults </span>will restore them to their standard
 values.
-<!--l. 984--><p class="indent" >   Note that due to security restrictions, configurations cannot be saved when KiNG
+<!--l. 992--><p class="indent" >   Note that due to security restrictions, configurations cannot be saved when KiNG
 is running as an applet. However, the web page creator may provide a custom
 configuration file in the same format as the one saved by KiNG the application,
 thereby altering the default behavior for all visitors to the website. If you create a
@@ -1360,31 +1367,31 @@ webpage:
      <dl class="list1"><dt class="list">
      </dt><dd 
 class="list">
-     <!--l. 992--><p class="noindent" ><span 
+     <!--l. 1000--><p class="noindent" ><span 
 class="ectt-1000">&#x003C;param</span><span 
 class="ectt-1000">&#x00A0;name=&#8221;king_prefs&#8221;</span><span 
 class="ectt-1000">&#x00A0;value=&#8221;MyKingPrefs.txt&#8221;&#x003E;</span></dd></dl>
 
    <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;7</span><br /><a 
  id="x1-620007"></a>Launching KiNG</h2>
-<!--l. 998--><p class="noindent" >KiNG runs both as a stand-alone application, and as an applet that can be included
-in web pages. In any case, KiNG requires a Java Virtual Machine (JVM), version 1.5
+<!--l. 1006--><p class="noindent" >KiNG runs both as a stand-alone application, and as an applet that can be included
+in web pages. In any case, KiNG requires a Java Virtual Machine (JVM), version 1.8
 or higher. You can get Java from <a 
 href="http://java.sun.com" class="url" ><span 
 class="ectt-1000">http://java.sun.com</span></a>.
    <h3 class="sectionHead"><span class="titlemark">7.1   </span> <a 
  id="x1-630007.1"></a>Running KiNG as an application</h3>
-<!--l. 1004--><p class="noindent" >How you launch the KiNG application will depend on what operating system
+<!--l. 1012--><p class="noindent" >How you launch the KiNG application will depend on what operating system
 (Windows, Mac OS X, Linux, <span 
 class="ecti-1000">etc</span>.) you&#8217;re using. With Windows and the Mac, you
 can usually just double-click on the <span 
 class="ectt-1000">king.jar </span>file to start KiNG.
-<!--l. 1009--><p class="indent" >   On all operating systems, you can type
-<!--l. 1010--><p class="noindent" >
+<!--l. 1017--><p class="indent" >   On all operating systems, you can type
+<!--l. 1018--><p class="noindent" >
      <dl class="list1"><dt class="list">
      </dt><dd 
 class="list">
-     <!--l. 1010--><p class="noindent" ><span 
+     <!--l. 1018--><p class="noindent" ><span 
 class="ectt-1000">java</span><span 
 class="ectt-1000">&#x00A0;-jar</span><span 
 class="ectt-1000">&#x00A0;king.jar</span><span 
@@ -1394,46 +1401,46 @@ class="ectt-1000">&#x00A0;-single]</span><span
 class="ectt-1000">&#x00A0;[file1</span><span 
 class="ectt-1000">&#x00A0;file2</span><span 
 class="ectt-1000">&#x00A0;...]</span></dd></dl>
-<!--l. 1013--><p class="noindent" >All the files listed on the command line will be merged together into one kinemage,
+<!--l. 1021--><p class="noindent" >All the files listed on the command line will be merged together into one kinemage,
 unless the <span 
 class="ectt-1000">-s </span>flag is included, in which case all the files will be opened as separate
 kinemages.
-<!--l. 1017--><p class="indent" >   As of KiNG 2.16, the files KiNG can read in from the command line include
+<!--l. 1025--><p class="indent" >   As of KiNG 2.16, the files KiNG can read in from the command line include
 kinemages, PDB, mmCIF, and electron density maps. For the structure files,
 QuickKin is used to generate quick-browsing ribbon+stick representations of the
 structures.
-<!--l. 1022--><p class="noindent" >
+<!--l. 1030--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">7.2   </span> <a 
  id="x1-640007.2"></a>Making KiNG an applet in a web page</h3>
-<!--l. 1024--><p class="noindent" >KiNG can also be included as a web page applet. The following HTML code
+<!--l. 1032--><p class="noindent" >KiNG can also be included as a web page applet. The following HTML code
 is a simple example that uses the &#x003C;APPLET&#x003E; tag, which will work with
 browsers using a recent JVM. Older browsers may need &#x003C;OBJECT&#x003E; or
 &#x003C;EMBED&#x003E; tags; more information on this is available from Sun Microsystems,
 Inc.
-<!--l. 1029--><p class="noindent" >
+<!--l. 1037--><p class="noindent" >
      <dl class="list1"><dt class="list">
      </dt><dd 
 class="list">
-     <!--l. 1029--><p class="noindent" ><span 
+     <!--l. 1037--><p class="noindent" ><span 
 class="ectt-1000">&#x003C;applet</span><span 
 class="ectt-1000">&#x00A0;code=&#8221;king/Kinglet.class&#8221;</span><span 
 class="ectt-1000">&#x00A0;archive=&#8221;king.jar&#8221;</span><span 
 class="ectt-1000">&#x00A0;width=300</span><span 
 class="ectt-1000">&#x00A0;height=150&#x003E;</span>
-     <!--l. 1032--><p class="noindent" ><span 
+     <!--l. 1040--><p class="noindent" ><span 
 class="ectt-1000">&#x003C;param</span><span 
 class="ectt-1000">&#x00A0;name=&#8221;kinSource&#8221;</span><span 
 class="ectt-1000">&#x00A0;value=&#8221;some_file_name.kin&#8221;&#x003E;</span>
-     <!--l. 1034--><p class="noindent" ><span 
+     <!--l. 1042--><p class="noindent" ><span 
 class="ectt-1000">&#x003C;/applet&#x003E;</span></dd></dl>
-<!--l. 1036--><p class="noindent" >Just put all the jar files, including king.jar, in the same directory as the HTML file.
+<!--l. 1044--><p class="noindent" >Just put all the jar files, including king.jar, in the same directory as the HTML file.
 Users who visit the page will see a 300x150 KiNG logo in the web page, along with a
 floating KiNG window that looks very much like the stand-alone application.
 However, due to security restrictions imposed by the browser environment, some
 functions (<span 
 class="ecti-1000">e.g.</span>, saving files) will be disabled.
 
-<!--l. 1043--><p class="indent" >   Note that the <span 
+<!--l. 1051--><p class="indent" >   Note that the <span 
 class="ectt-1000">code </span>property really must have the value <span 
 class="ectt-1000">king/Kinglet.class</span>,
 <span 
@@ -1446,66 +1453,66 @@ place <span
 class="ectt-1000">king.jar </span>somewhere else, that path should precede the jar file name in the
 <span 
 class="ectt-1000">archive </span>property instead.
-<!--l. 1050--><p class="indent" >   If you want to include additional jar files for plugins and tools, you need to
+<!--l. 1058--><p class="indent" >   If you want to include additional jar files for plugins and tools, you need to
 list those in the <span 
 class="ectt-1000">archive </span>field, after <span 
 class="ectt-1000">king.jar</span>, separated by commas. For
 example:
-<!--l. 1053--><p class="noindent" >
+<!--l. 1061--><p class="noindent" >
      <dl class="list1"><dt class="list">
      </dt><dd 
 class="list">
-     <!--l. 1053--><p class="noindent" ><span 
+     <!--l. 1061--><p class="noindent" ><span 
 class="ectt-1000">&#x003C;applet</span><span 
 class="ectt-1000">&#x00A0;code=&#8221;king/Kinglet.class&#8221;</span><span 
 class="ectt-1000">&#x00A0;archive=&#8221;king.jar,chiropraxis.jar,extratools.jar&#8221;</span><span 
 class="ectt-1000">&#x00A0;width=300</span><span 
 class="ectt-1000">&#x00A0;height=150&#x003E;</span></dd></dl>
-<!--l. 1056--><p class="noindent" >It is possible to run KiNG in two other applet modes to achieve a slightly different effect.
+<!--l. 1064--><p class="noindent" >It is possible to run KiNG in two other applet modes to achieve a slightly different effect.
 First, the large KiNG logo can be replaced with a small one that serves as a launcher
 button. Thus, loading the main window is defered until the user clicks the button, at
 which time the main window appears and the kinemage is loaded. Below is sample
 HTML for this effect. Note the smaller width and height, to account for the small
 size of the button.
-<!--l. 1063--><p class="noindent" >
+<!--l. 1071--><p class="noindent" >
      <dl class="list1"><dt class="list">
      </dt><dd 
 class="list">
-     <!--l. 1063--><p class="noindent" ><span 
+     <!--l. 1071--><p class="noindent" ><span 
 class="ectt-1000">&#x003C;applet</span><span 
 class="ectt-1000">&#x00A0;code=&#8221;king/Kinglet.class&#8221;</span><span 
 class="ectt-1000">&#x00A0;archive=&#8221;king.jar&#8221;</span><span 
 class="ectt-1000">&#x00A0;width=60</span><span 
 class="ectt-1000">&#x00A0;height=21&#x003E;</span>
-     <!--l. 1066--><p class="noindent" ><span 
+     <!--l. 1074--><p class="noindent" ><span 
 class="ectt-1000">&#x003C;param</span><span 
 class="ectt-1000">&#x00A0;name=&#8221;mode&#8221;</span><span 
 class="ectt-1000">&#x00A0;value=&#8221;launcher&#8221;&#x003E;</span>
-     <!--l. 1068--><p class="noindent" ><span 
+     <!--l. 1076--><p class="noindent" ><span 
 class="ectt-1000">&#x003C;param</span><span 
 class="ectt-1000">&#x00A0;name=&#8221;kinSource&#8221;</span><span 
 class="ectt-1000">&#x00A0;value=&#8221;some_file_name.kin&#8221;&#x003E;</span>
-     <!--l. 1070--><p class="noindent" ><span 
+     <!--l. 1078--><p class="noindent" ><span 
 class="ectt-1000">&#x003C;/applet&#x003E;</span></dd></dl>
-<!--l. 1072--><p class="noindent" >If you would like a custom image for the launcher, specify its URL with the
+<!--l. 1080--><p class="noindent" >If you would like a custom image for the launcher, specify its URL with the
 <span 
 class="ectt-1000">launcherImage </span>parameter. You may need to change the applet width/height to
 match. If no image is specified, the default one will be used.
-<!--l. 1077--><p class="indent" >   Second, the applet can be embedded in the web page (rather than floating in its
+<!--l. 1085--><p class="indent" >   Second, the applet can be embedded in the web page (rather than floating in its
 own window), by placing this line inside the &#x003C;applet&#x003E; tags instead:
-<!--l. 1080--><p class="noindent" >
+<!--l. 1088--><p class="noindent" >
      <dl class="list1"><dt class="list">
      </dt><dd 
 class="list">
-     <!--l. 1080--><p class="noindent" ><span 
+     <!--l. 1088--><p class="noindent" ><span 
 class="ectt-1000">&#x003C;param</span><span 
 class="ectt-1000">&#x00A0;name=&#8221;mode&#8221;</span><span 
 class="ectt-1000">&#x00A0;value=&#8221;flat&#8221;&#x003E;</span></dd></dl>
-<!--l. 1083--><p class="noindent" >One also probably wants to specify a larger width and/or height, possibly as a fraction of
+<!--l. 1091--><p class="noindent" >One also probably wants to specify a larger width and/or height, possibly as a fraction of
 the page size (<span 
 class="ecti-1000">e.g. </span>95%). Be warned that using KiNG this way may not work well in
 some browsers; test your pages thoroughly.
-<!--l. 1088--><p class="indent" >   Normally, a KiNG applet displays only the kinemage specified in its <span 
+<!--l. 1096--><p class="indent" >   Normally, a KiNG applet displays only the kinemage specified in its <span 
 class="ectt-1000">kinSource</span>
 parameter. However, you can also use the <span 
 class="ectt-1000">kinfileBase </span>and <span 
@@ -1518,16 +1525,16 @@ URL. <span
 class="ectt-1000">kinfileList </span>is a space-separated list of filenames that can be loaded from
 that path. Users can also enter and modify URLs directly, though obviously this isn&#8217;t
 very convenient.
-<!--l. 1097--><p class="indent" >   The KiNG applet also supports a <span 
+<!--l. 1105--><p class="indent" >   The KiNG applet also supports a <span 
 class="ectt-1000">kinfileSaveHandler </span>parameter, which is the
 URL of a CGI script that can accept HTTP POST kinemage output. On a properly
 configured webserver, this allows users of the KiNG applet to save their modified
 kinemages directly to the server! However, this is definitely a custom programming
 job on the server side and so is not an option for most &#8220;normal&#8221; uses of the KiNG
 applet.
-<!--l. 1105--><p class="indent" >   Some Tools and Plugins may define their own &#x003C;PARAM&#x003E; tags, which will be
+<!--l. 1113--><p class="indent" >   Some Tools and Plugins may define their own &#x003C;PARAM&#x003E; tags, which will be
 described in their documentation.
-<!--l. 1108--><p class="indent" >   As of KiNG version 2.16, the KiNG applet can read PDB or CIF files as well
+<!--l. 1116--><p class="indent" >   As of KiNG version 2.16, the KiNG applet can read PDB or CIF files as well
 as kinemages. In order to supply a PDB or CIF file for KiNG, instead of
 the <span 
 class="ectt-1000">kinSource </span>parameter, use <span 
@@ -1540,29 +1547,29 @@ file.
  id="x1-650008"></a>Additional resources</h2>
    <h3 class="sectionHead"><span class="titlemark">8.1   </span> <a 
  id="x1-660008.1"></a>Included manuals</h3>
-<!--l. 1118--><p class="noindent" >In addition to this User&#8217;s Guide, KiNG may be accompanied by a guide to the
+<!--l. 1126--><p class="noindent" >In addition to this User&#8217;s Guide, KiNG may be accompanied by a guide to the
 kinemage file format. Kinemage files are simple text files, so that anyone can create
 kinemage illustrations by hand. This is especially important to fields where no
 automated tools for kinemage creation yet exist.
-<!--l. 1124--><p class="noindent" >
+<!--l. 1132--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">8.2   </span> <a 
  id="x1-670008.2"></a>Included kinemages</h3>
-<!--l. 1126--><p class="noindent" >Under the <span 
+<!--l. 1134--><p class="noindent" >Under the <span 
 class="ectt-1000">Help </span>menu, KiNG has several built-in kinemages that demonstrate various
 capabilities of the graphics system. The palette is particularly useful to kinemage
 authors when they are designing color schemes.
-<!--l. 1131--><p class="noindent" >
+<!--l. 1139--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">8.3   </span> <a 
  id="x1-680008.3"></a>External documentation</h3>
-<!--l. 1133--><p class="noindent" >The best resource for learning more about kinemages is the Richardson lab website,
+<!--l. 1141--><p class="noindent" >The best resource for learning more about kinemages is the Richardson lab website,
 <a 
 href="http://kinemage.biochem.duke.edu" class="url" ><span 
 class="ectt-1000">http://kinemage.biochem.duke.edu</span></a>. Many other resources exist; hopefully, they
 will be documented here in the future.
-<!--l. 1137--><p class="noindent" >
+<!--l. 1145--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">8.4   </span> <a 
  id="x1-690008.4"></a>Bug reporting and contact info</h3>
-<!--l. 1139--><p class="noindent" >Ian Davis, the original author of KiNG, has graduated. KiNG is currently being
+<!--l. 1147--><p class="noindent" >Ian Davis, the original author of KiNG, has graduated. KiNG is currently being
 maintained by Vincent Chen. <span 
 class="ecti-1000">Please</span>, do not hesistate to report bugs and
 problems with KiNG &#8212; your input can only improve the program. Reach us at
@@ -1574,16 +1581,16 @@ class="ectt-1000">mailto:rlabduke@gmail.com?subject=KiNGissues/questions</span><
  id="x1-700009"></a>Copyright &amp; acknowledgments</h2>
    <h3 class="sectionHead"><span class="titlemark">9.1   </span> <a 
  id="x1-710009.1"></a>Copyright</h3>
-<!--l. 1148--><p class="noindent" >The KiNG program and all its associated original resources and documentation are
-copyright (C) 2002-2016 by Ian W. Davis &amp; Vincent B. Chen. KiNG makes use of the
+<!--l. 1156--><p class="noindent" >The KiNG program and all its associated original resources and documentation are
+copyright (C) 2002-2021 by Ian W. Davis &amp; Vincent B. Chen. KiNG makes use of the
 gnu.regexp library, which is copyright (C) by Wes Biggs, and of icons copyright (C)
 by Sun Microsystems provided for use with Java programs. It is also capable of using
-the iText library for generating PDF files, and the JOGL library for OpenGL
-rendering.
-<!--l. 1155--><p class="noindent" >
+the Apache PDFBox library for generating PDF files, and the JOGL library for
+OpenGL rendering.
+<!--l. 1164--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">9.2   </span> <a 
  id="x1-720009.2"></a>Licenses</h3>
-<!--l. 1157--><p class="noindent" >KiNG is free software available under the terms of its own BSD-style license (see&#x00A0;<a 
+<!--l. 1166--><p class="noindent" >KiNG is free software available under the terms of its own BSD-style license (see&#x00A0;<a 
 href="#x1-75000A">A<!--tex4ht:ref: KiNG-License --></a>
 on page&#x00A0;<span class="pageref"><a 
 href="#x1-75000A">§</a></span>). The source code and new versions can be downloaded from the
@@ -1591,31 +1598,31 @@ Richardson lab website, <a
 href="http://kinemage.biochem.duke.edu" class="url" ><span 
 class="ectt-1000">http://kinemage.biochem.duke.edu</span></a>. The gnu.regexp
 library is covered by the GNU Lesser General Public License (LGPL). In accordance
-with that license, the full source of the gnu.regexp library is available from its website
-at <a 
+with that license, the full source of the gnu.regexp library is available from its
+website at <a 
 href="http://www.cacas.org/java/gnu/regexp/" class="url" ><span 
-class="ectt-1000">http://www.cacas.org/java/gnu/regexp/</span></a>. The iText library is dual-licensed
-under the LGPL and the Mozilla Public License (MPL). iText is available from
+class="ectt-1000">http://www.cacas.org/java/gnu/regexp/</span></a>. The Apache PDFBox
+library is licensed under the Apache License 2.0. PDFBox is available from
 <a 
-href="http://www.lowagie.com/iText/" class="url" ><span 
-class="ectt-1000">http://www.lowagie.com/iText/</span></a>. JOGL is available under a BSD-style license
+href="https://pdfbox.apache.org/" class="url" ><span 
+class="ectt-1000">https://pdfbox.apache.org/</span></a>. JOGL is available under a BSD-style license
 from <a 
-href="https://jogl.dev.java.net/" class="url" ><span 
-class="ectt-1000">https://jogl.dev.java.net/</span></a>. Many of the icons are the property
+href="https://jogamp.org/jogl/www/" class="url" ><span 
+class="ectt-1000">https://jogamp.org/jogl/www/</span></a>. Many of the icons are the property
 of Sun Microsystems and have their own license; they are available from
 <a 
 href="http://developer.java.sun.com/developer/techDocs/hi/repository/" class="url" ><span 
 class="ectt-1000">http://developer.java.sun.com/developer/techDocs/hi/repository/</span></a>.
-<!--l. 1169--><p class="indent" >   All license documents are provided in the downloaded KiNG bundles and are
+<!--l. 1178--><p class="indent" >   All license documents are provided in the downloaded KiNG bundles and are
 found in the <span 
 class="ectt-1000">doc/ </span>directory. Additionally, the KiNG license appears in the Appendix
 (see&#x00A0;<a 
 href="#x1-75000A">A<!--tex4ht:ref: KiNG-License --></a> on page&#x00A0;<span class="pageref"><a 
 href="#x1-75000A">§</a></span>).
-<!--l. 1173--><p class="noindent" >
+<!--l. 1182--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">9.3   </span> <a 
  id="x1-730009.3"></a>Acknowledgments</h3>
-<!--l. 1175--><p class="noindent" >I owe an enormous debt of gratitude to many, many people for making this
+<!--l. 1184--><p class="noindent" >I owe an enormous debt of gratitude to many, many people for making this
 program possible. First and foremost, I thank David and Jane Richardson, who
 are my bosses and mentors, and who developed the kinemage concept, the
 file format, and most of the features found in KiNG &#8212; my contribution
@@ -1628,7 +1635,7 @@ program. Of course, this work would not have been possible without support
 from the National Institutes of Health and the Howard Hughes Medical
 Institute.
 
-<!--l. 1188--><p class="indent" >   KiNG is free software built on free software. I can&#8217;t hope to acknowledge all the
+<!--l. 1197--><p class="indent" >   KiNG is free software built on free software. I can&#8217;t hope to acknowledge all the
 authors of all the software that has been used to create KiNG, but I can mention a
 few of the most prominent: Sun Microsystems, the creators of the Java language and
 libraries; the LY X document processor, used for writing the documentation; jEdit, a
@@ -1636,10 +1643,10 @@ fantastic programmer&#8217;s text editor written entirely in Java; and the entir
 movement, for providing a real alternative to comercial operating systems. I have also
 taken advantage of a number of excellent free Java libraries, which are described
 above.
-<!--l. 1198--><p class="noindent" >
+<!--l. 1207--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">9.4   </span> <a 
  id="x1-740009.4"></a>Revision status</h3>
-<!--l. 1200--><p class="noindent" >This manual was last updated 28 Sept 2016 by VBC for KiNG version 2.23.
+<!--l. 1209--><p class="noindent" >This manual was last updated 05 Jan 2021 by VBC for KiNG version 2.24.
 
 <a 
  id="x1-74001r70"></a>
@@ -1647,7 +1654,7 @@ above.
  id="x1-75000A"></a>KiNG License</h2>
    <h3 class="sectionHead"><span class="titlemark">A.1   </span> <a 
  id="x1-76000A.1"></a>What this license applies to</h3>
-<!--l. 1214--><p class="noindent" ><span 
+<!--l. 1222--><p class="noindent" ><span 
 class="ecti-1000">This license applies to everything in this project that is the original work of the</span>
 <span 
 class="ecti-1000">copyright holder(s) and contributor(s), including but not limited to the source code,</span>
@@ -1659,11 +1666,11 @@ class="ecti-1000">third-party libraries and resources which are not covered by t
 class="ecti-1000">which are governed by their own license terms. See documentation for more</span>
 <span 
 class="ecti-1000">details.</span>
-<!--l. 1216--><p class="noindent" >
+<!--l. 1224--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">A.2   </span> <a 
  id="x1-77000A.2"></a>The KiNG License</h3>
-<!--l. 1218--><p class="noindent" >Copyright (C) 2002-2009 Ian W. Davis &amp; Vincent B. Chen. All rights reserved.
-<!--l. 1221--><p class="indent" >   Redistribution and use in source and binary forms, with or without modification,
+<!--l. 1226--><p class="noindent" >Copyright (C) 2002-2021 Ian W. Davis &amp; Vincent B. Chen. All rights reserved.
+<!--l. 1229--><p class="indent" >   Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
      <ol  class="enumerate1" >
      <li 
@@ -1678,11 +1685,11 @@ are permitted provided that the following conditions are met:
      <li 
   class="enumerate" id="x1-77006x3">The end-user documentation included with the redistribution, if any, must
      include the following acknowledgment:
-     <!--l. 1234--><p class="noindent" ><span 
+     <!--l. 1242--><p class="noindent" ><span 
 class="ecti-1000">"This product includes software developed in the Richardon lab at Duke</span>
      <span 
 class="ecti-1000">University (http://kinemage.biochem.duke.edu)."</span>
-     <!--l. 1236--><p class="noindent" >Alternately, this acknowledgment may appear in the software itself, if and
+     <!--l. 1244--><p class="noindent" >Alternately, this acknowledgment may appear in the software itself, if and
      wherever such third-party acknowledgments normally appear.
      </li>
      <li 
@@ -1695,7 +1702,7 @@ class="ecti-1000">University (http://kinemage.biochem.duke.edu)."</span>
   class="enumerate" id="x1-77010x5">Products derived from this software may not be called "KiNG", nor may
      "KiNG" appear in their name, without prior written permission.</li></ol>
 
-<!--l. 1247--><p class="noindent" >THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+<!--l. 1255--><p class="noindent" >THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
 PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
@@ -1708,10 +1715,10 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 OF SUCH DAMAGE.
-<!--l. 1259--><p class="noindent" >
+<!--l. 1267--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">A.3   </span> <a 
  id="x1-78000A.3"></a>Where this license came from</h3>
-<!--l. 1261--><p class="noindent" >This license is based on the BSD and Apache licenses. See <a 
+<!--l. 1269--><p class="noindent" >This license is based on the BSD and Apache licenses. See <a 
 href="http://www.opensource.org/" class="url" ><span 
 class="ectt-1000">http://www.opensource.org/</span></a>
 for more details on these and other licenses.  
