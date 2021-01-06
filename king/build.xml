@@ -46,7 +46,7 @@
       <filelist dir="../molikin/resource/META-INF/services/" files="king.Plugin"/>
     </concat>
     <!-- As of 1.5.2, Ant screws up the INDEX by not considering Class-Path -->
-    <jar jarfile="${ant.project.name}.jar" manifest="Manifest.mf" index="false">
+    <jar jarfile="plugins/${ant.project.name}.jar" manifest="Manifest.mf" index="false">
         <fileset dir="${build}"/>
         <fileset dir="${resource}"/>
         <fileset dir="../driftwood/build/">
@@ -206,7 +206,8 @@
 </target>
 <!-- }}} -->
 
-<target name="javapackager" depends="init,build">
+<target name="jpackage" depends="init,build">
+    <delete dir="${dist}"/>
     <copy file="${javadev}/chiropraxis/chiropraxis.jar" todir="plugins/" preservelastmodified="true"/>
     <copy file="${javadev}/extratools/extratools.jar" todir="plugins/" preservelastmodified="true"/>
     <copy file="${javadev}/rdcvis/rdcvis.jar" todir="plugins/" preservelastmodified="true"/>
@@ -225,8 +226,21 @@
     <!-- extra doc files from other top-level projects; some need to be renamed -->
     <copy file="../chiropraxis/doc/tools-manual.pdf" tofile="${dist}/${ant.project.name}-${version}/doc/chiropraxis-manual.pdf"/>
     <copy file="../extratools/doc/tools-manual.pdf" tofile="${dist}/${ant.project.name}-${version}/doc/extratools-manual.pdf"/>
-    <exec executable="javapackager">
-        <arg line="-deploy -native -title 'KiNG Title' -name 'KiNG' -appclass king.KingMain -outdir ${installer} -outfile KiNGfile -srcfiles ${dist}/${ant.project.name}-${version}/king.jar -srcdir ${build}"/>
+    <exec executable="jpackage.exe">
+        <arg line="--input .\plugins\"/>
+        <arg line="--name KiNG"/>
+        <arg value="--verbose"/>
+        <arg line="--app-version ${version}"/>
+        <arg value="--description"/>
+        <arg value="Kinemage next generation viewer"/>
+        <arg line="--icon ${resource}\king\images\KiNG.ico"/>
+        <arg line="--main-jar king.jar"/>
+        <arg value="--win-dir-chooser"/>
+        <arg value="--win-menu"/> 
+        <arg value="--vendor"/>
+        <arg value="Richardson Lab"/>
+        <arg line="--license-file .\LICENSE.txt"/>
+        <arg line="--dest ${dist}/${ant.project.name}-${version}/"/>
     </exec>
 </target>
 
