@@ -206,12 +206,12 @@
 </target>
 <!-- }}} -->
 
-<target name="jpackage" depends="init,build">
+<target name="jpackage-base">
     <delete dir="${dist}"/>
     <copy file="${javadev}/chiropraxis/chiropraxis.jar" todir="plugins/" preservelastmodified="true"/>
     <copy file="${javadev}/extratools/extratools.jar" todir="plugins/" preservelastmodified="true"/>
     <copy file="${javadev}/rdcvis/rdcvis.jar" todir="plugins/" preservelastmodified="true"/>
-    
+
     <mkdir dir="${dist}/${ant.project.name}-${version}"/>
     <copy todir="${dist}/${ant.project.name}-${version}" preservelastmodified="true">
         <fileset dir="${basedir}">
@@ -226,6 +226,17 @@
     <!-- extra doc files from other top-level projects; some need to be renamed -->
     <copy file="../chiropraxis/doc/tools-manual.pdf" tofile="${dist}/${ant.project.name}-${version}/doc/chiropraxis-manual.pdf"/>
     <copy file="../extratools/doc/tools-manual.pdf" tofile="${dist}/${ant.project.name}-${version}/doc/extratools-manual.pdf"/>
+</target>
+
+<target name="jpackage-win" depends="init,build,jpackage-base">
+    <copy todir="plugins/" preservelastmodified="true">
+        <fileset dir="${javadev}/lib/jogl2/win64/">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="${javadev}/lib/jogl2/">
+            <include name="*.jar"/>
+        </fileset>
+    </copy>
     <exec executable="jpackage.exe">
         <arg line="--input .\plugins\"/>
         <arg line="--name KiNG"/>
@@ -240,6 +251,56 @@
         <arg value="--vendor"/>
         <arg value="Richardson Lab"/>
         <arg line="--license-file .\LICENSE.txt"/>
+        <arg line="--dest ${dist}/${ant.project.name}-${version}/"/>
+    </exec>
+</target>
+
+<target name="jpackage-mac" depends="init,build,jpackage-base">
+    <copy todir="plugins/" preservelastmodified="true">
+        <fileset dir="${javadev}/lib/jogl2/macosx/">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="${javadev}/lib/jogl2/">
+            <include name="*.jar"/>
+        </fileset>
+    </copy>
+    <exec executable="jpackage.exe">
+        <arg line="--input plugins/"/>
+        <arg line="--name KiNG"/>
+        <arg value="--verbose"/>
+        <arg line="--app-version ${version}"/>
+        <arg value="--description"/>
+        <arg value="Kinemage next generation viewer"/>
+        <arg line="--icon ${resource}/king/images/KiNG.icns"/>
+        <arg line="--main-jar king.jar"/>
+        <arg value="--vendor"/>
+        <arg value="Richardson Lab"/>
+        <arg line="--license-file ./LICENSE.txt"/>
+        <arg line="--dest ${dist}/${ant.project.name}-${version}/"/>
+    </exec>
+</target>
+
+<target name="jpackage-nix" depends="init,build,jpackage-base">
+    <copy todir="plugins/" preservelastmodified="true">
+        <fileset dir="${javadev}/lib/jogl2/linux64/">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="${javadev}/lib/jogl2/">
+            <include name="*.jar"/>
+        </fileset>
+    </copy>
+    <exec executable="jpackage.exe">
+        <arg line="--input plugins/"/>
+        <arg line="--name KiNG"/>
+        <arg value="--verbose"/>
+        <arg line="--app-version ${version}"/>
+        <arg value="--description"/>
+        <arg value="Kinemage next generation viewer"/>
+        <arg line="--icon ${resource}/king/images/KiNG.icns"/>
+        <arg line="--main-jar king.jar"/>
+        <arg value="--vendor"/>
+        <arg value="Richardson Lab"/>
+        <arg line="--license-file ./LICENSE.txt"/>
         <arg line="--dest ${dist}/${ant.project.name}-${version}/"/>
     </exec>
 </target>
