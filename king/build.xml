@@ -211,14 +211,17 @@
     <copy file="${javadev}/chiropraxis/chiropraxis.jar" todir="plugins/" preservelastmodified="true"/>
     <copy file="${javadev}/extratools/extratools.jar" todir="plugins/" preservelastmodified="true"/>
     <copy file="${javadev}/rdcvis/rdcvis.jar" todir="plugins/" preservelastmodified="true"/>
+    <copy todir="plugins/" preservelastmodified="true">
+        <fileset dir="${basedir}">
+            <include name="*.jar"/>
+        </fileset>
+    </copy>
 
     <mkdir dir="${dist}/${ant.project.name}-${version}"/>
     <copy todir="${dist}/${ant.project.name}-${version}" preservelastmodified="true">
         <fileset dir="${basedir}">
-            <include name="*.jar"/>
             <include name="README*"/>
             <include name="LICENSE*"/>
-            <include name="plugins/"/>
             <include name="doc/"/>
             <exclude name="doc/work/"/>
         </fileset>
@@ -264,7 +267,7 @@
             <include name="*.jar"/>
         </fileset>
     </copy>
-    <exec executable="jpackage.exe">
+    <exec executable="jpackage">
         <arg line="--input plugins/"/>
         <arg line="--name KiNG"/>
         <arg value="--verbose"/>
@@ -289,7 +292,7 @@
             <include name="*.jar"/>
         </fileset>
     </copy>
-    <exec executable="jpackage.exe">
+    <exec executable="jpackage">
         <arg line="--input plugins/"/>
         <arg line="--name KiNG"/>
         <arg value="--verbose"/>
