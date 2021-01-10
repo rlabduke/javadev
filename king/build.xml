@@ -304,6 +304,7 @@
         <arg value="--vendor"/>
         <arg value="Richardson Lab"/>
         <arg line="--license-file ./LICENSE.txt"/>
+        <arg value="--linux-shortcut"/>
         <arg line="--dest ${dist}/${ant.project.name}-${version}/"/>
     </exec>
 </target>
