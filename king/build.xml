@@ -256,6 +256,7 @@
         <arg line="--license-file .\LICENSE.txt"/>
         <arg line="--dest ${dist}/${ant.project.name}-${version}/"/>
     </exec>
+    <zip destfile="${dist}/${ant.project.name}-${version}/king.${version}.${DSTAMP_SIX}.win64.zip" includesfile="${dist}/${ant.project.name}-${version}/KiNG-${version}.exe"  />
 </target>
 
 <target name="jpackage-mac" depends="init,build,jpackage-base">
@@ -281,6 +282,7 @@
         <arg line="--license-file ./LICENSE.txt"/>
         <arg line="--dest ${dist}/${ant.project.name}-${version}/"/>
     </exec>
+    <copy file="${dist}/${ant.project.name}-${version}/KiNG-${version}.dmg" tofile="${dist}/${ant.project.name}-${version}/king.${version}.${DSTAMP_SIX}.macosx.dmg" preservelastmodified="true"/>
 </target>
 
 <target name="jpackage-nix" depends="init,build,jpackage-base">
