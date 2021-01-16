@@ -143,7 +143,7 @@
             <include name="linux64/*.jar"/>
         </zipfileset>
     </zip>
-    <copy todir="plugins/" preservelastmodified="true">
+    <copy todir="plugins/" preservelastmodified="true" flatten="true">
         <fileset dir="${javadev}/lib/jogl2/">
             <include name="*/*.jar"/>
         </fileset>
@@ -154,6 +154,12 @@
     <copy todir="${dist}/${ant.project.name}-${version}" preservelastmodified="true">
         <fileset dir="plugins/">
             <include name="*.jar"/>
+        </fileset>
+    </copy>
+    <copy todir="${dist}/${ant.project.name}-${version}" preservelastmodified="true">
+        <fileset dir="${javadev}/lib/rlab/linux/">
+            <include name="probe"/>
+            <include name="suitename"/>
         </fileset>
     </copy>
     <zip basedir="${dist}"
@@ -257,6 +263,11 @@
         <fileset dir="${javadev}/lib/jogl2/">
             <include name="*.jar"/>
         </fileset>
+        <fileset dir="${javadev}/lib/rlab/win/">
+            <include name="probe.exe"/>
+            <include name="suitename.exe"/>
+            <include name="msvcr71.dll"/>
+        </fileset>
     </copy>
     <exec executable="jpackage.exe">
         <arg line="--input .\plugins\"/>
@@ -284,6 +295,10 @@
         </fileset>
         <fileset dir="${javadev}/lib/jogl2/">
             <include name="*.jar"/>
+        </fileset>
+        <fileset dir="${javadev}/lib/rlab/mac/">
+            <include name="probe"/>
+            <include name="suitename"/>
         </fileset>
     </copy>
     <exec executable="jpackage">
@@ -410,7 +425,7 @@
     <delete file="fontbox.jar"/>
     <delete file="pdfbox-graphics2d.jar"/>
     <delete file="commons-logging-1.2.jar"/>
-    <delete>
+    <delete includeemptydirs="true">
         <fileset dir="plugins/">
             <exclude name="beanking.jar"/>
         </fileset>
