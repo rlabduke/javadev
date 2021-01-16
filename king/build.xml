@@ -118,7 +118,7 @@
 
 <!-- dist, dist-src, dist-exe {{{ -->
 <!-- Makes .zip files from the ${dist} directory -->
-<target name="dist" description="Generate the distributions" depends="init,clean,build,dist-src,dist-exe,mac-app">
+<target name="dist" description="Generate the distributions" depends="init,clean,build,jpackage-base,dist-src">
     <zip destfile="${dist}/${ant.project.name}.${version}.${DSTAMP_SIX}.src.zip">
         <zipfileset dir="${dist}" includes="${ant.project.name}/"/>
         <zipfileset dir="${dist}" includes="javadocs/"/>
@@ -132,16 +132,34 @@
         <zipfileset dir="../chiropraxis/dist/" includes="chiropraxis/"/>
         <zipfileset dir="../extratools/dist/" includes="extratools/"/>
         <zipfileset dir="../molikin/dist/" includes="molikin/"/> 
+        <zipfileset dir="../rdcvis/dist/" includes="rdcvis/"/>
         <zipfileset dir="../lib/" prefix="lib/">
             <include name="pdfbox/*.jar"/>
             <include name="pdfbox/pdfbox-graphics2d/target/graphics2d-0.26-SNAPSHOT.jar"/>
             <include name="pdfbox/commons-logging-1.2/commons-logging-1.2.jar"/>
             <include name="jogl2/*.jar"/>
+            <include name="win64/*.jar"/>
+            <include name="macosx/*.jar"/>
+            <include name="linux64/*.jar"/>
         </zipfileset>
     </zip>
+    <copy todir="plugins/" preservelastmodified="true">
+        <fileset dir="${javadev}/lib/jogl2/">
+            <include name="*/*.jar"/>
+        </fileset>
+        <fileset dir="${javadev}/lib/jogl2/">
+            <include name="*.jar"/>
+        </fileset>
+    </copy>
+    <copy todir="${dist}/${ant.project.name}-${version}" preservelastmodified="true">
+        <fileset dir="plugins/">
+            <include name="*.jar"/>
+        </fileset>
+    </copy>
     <zip basedir="${dist}"
          destfile="${dist}/${ant.project.name}.${version}.${DSTAMP_SIX}.zip"
-         includes="${ant.project.name}-${version}/"/>
+         includes="${ant.project.name}-${version}/">
+    </zip>
 </target>
 
 <!-- Makes the source code distribution -->
@@ -174,7 +192,7 @@
     <mkdir dir="${dist}/javadocs"/>
     <javadoc packagenames="driftwood.*,Jama.*,king.*"
         sourcepath="src:../driftwood/src"
-        classpath="../lib:../lib/pdfbox/pdfbox-2.0.19.jar:../lib/jogl/jogl.jar"
+        classpath="../lib:../lib/pdfbox/pdfbox-2.0.19.jar:../lib/pdfbox/pdfbox-graphics2d/target/graphics2d-0.26-SNAPSHOT.jar:../lib/jogl2/jogl-all.jar"
         destdir="${dist}/javadocs" access="protected" source="1.8"
         breakiterator="true" noqualifier="all"
         version="true" use="true" author="true"
@@ -256,7 +274,7 @@
         <arg line="--license-file .\LICENSE.txt"/>
         <arg line="--dest ${dist}/${ant.project.name}-${version}/"/>
     </exec>
-    <zip destfile="${dist}/${ant.project.name}-${version}/king.${version}.${DSTAMP_SIX}.win64.zip" includesfile="${dist}/${ant.project.name}-${version}/KiNG-${version}.exe"  />
+    <zip destfile="${dist}/king.${version}.${DSTAMP_SIX}.win64.zip" basedir="${dist}/${ant.project.name}-${version}/"/>
 </target>
 
 <target name="jpackage-mac" depends="init,build,jpackage-base">
@@ -392,6 +410,12 @@
     <delete file="fontbox.jar"/>
     <delete file="pdfbox-graphics2d.jar"/>
     <delete file="commons-logging-1.2.jar"/>
+    <delete>
+        <fileset dir="plugins/">
+            <exclude name="beanking.jar"/>
+        </fileset>
+    </delete>
+
 </target>
 
 <!-- Also cleans driftwood -->
