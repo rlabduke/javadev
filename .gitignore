@@ -13,3 +13,13 @@ king/doc/work/king-manual-lyxformat-345.lyx
 king/doc/work/king-manual.html.LyXconv/
 chiropraxis/doc/work/tools-manual.pdf
 king/probe
+king/plugins/linux32/gluegen-rt-natives-linux-i586.jar
+king/plugins/linux32/jogl-all-natives-linux-i586.jar
+king/plugins/linux64/gluegen-rt-natives-linux-amd64.jar
+king/plugins/linux64/jogl-all-natives-linux-amd64.jar
+king/plugins/macosx/gluegen-rt-natives-macosx-universal.jar
+king/plugins/macosx/jogl-all-natives-macosx-universal.jar
+king/plugins/win32/gluegen-rt-natives-windows-i586.jar
+king/plugins/win32/jogl-all-natives-windows-i586.jar
+king/plugins/win64/gluegen-rt-natives-windows-amd64.jar
+king/plugins/win64/jogl-all-natives-windows-amd64.jar
