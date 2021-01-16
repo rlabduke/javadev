@@ -296,11 +296,13 @@
         <fileset dir="${javadev}/lib/jogl2/">
             <include name="*.jar"/>
         </fileset>
-        <fileset dir="${javadev}/lib/rlab/mac/">
-            <include name="probe"/>
-            <include name="suitename"/>
-        </fileset>
     </copy>
+    <exec executable="cp" failonerror="true">
+        <arg line="${javadev}/lib/rlab/mac/probe plugins/"/>
+    </exec>
+    <exec executable="cp" failonerror="true">
+        <arg line="${javadev}/lib/rlab/mac/suitename plugins/"/>
+    </exec>
     <exec executable="jpackage">
         <arg line="--input plugins/"/>
         <arg line="--name KiNG"/>
