@@ -23,3 +23,6 @@ king/plugins/win32/gluegen-rt-natives-windows-i586.jar
 king/plugins/win32/jogl-all-natives-windows-i586.jar
 king/plugins/win64/gluegen-rt-natives-windows-amd64.jar
 king/plugins/win64/jogl-all-natives-windows-amd64.jar
+king/plugins/msvcr71.dll
+king/plugins/probe.exe
+king/plugins/suitename.exe
