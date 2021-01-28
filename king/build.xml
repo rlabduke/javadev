@@ -320,6 +320,33 @@
     <copy file="${dist}/${ant.project.name}-${version}/KiNG-${version}.dmg" tofile="${dist}/${ant.project.name}-${version}/king.${version}.${DSTAMP_SIX}.macosx.dmg" preservelastmodified="true"/>
 </target>
 
+<!-- bug on mojave: jogl doesn't work and crashes the app:
+NSWindow drag regions should only be invalidated on the Main Thread!
+https://groups.google.com/g/jaamsim-users/c/JGqmj9CRXcU/discussion-->
+<target name="jpackage-mac-nojogl" depends="init,build,jpackage-base">
+    <exec executable="cp" failonerror="true">
+        <arg line="${javadev}/lib/rlab/mac/probe plugins/"/>
+    </exec>
+    <exec executable="cp" failonerror="true">
+        <arg line="${javadev}/lib/rlab/mac/suitename plugins/"/>
+    </exec>
+    <exec executable="jpackage">
+        <arg line="--input plugins/"/>
+        <arg line="--name KiNG"/>
+        <arg value="--verbose"/>
+        <arg line="--app-version ${version}"/>
+        <arg value="--description"/>
+        <arg value="Kinemage next generation viewer"/>
+        <arg line="--icon ${resource}/king/images/KiNG.icns"/>
+        <arg line="--main-jar king.jar"/>
+        <arg value="--vendor"/>
+        <arg value="Richardson Lab"/>
+        <arg line="--license-file ./LICENSE.txt"/>
+        <arg line="--dest ${dist}/${ant.project.name}-${version}/"/>
+    </exec>
+    <copy file="${dist}/${ant.project.name}-${version}/KiNG-${version}.dmg" tofile="${dist}/${ant.project.name}-${version}/king.${version}.${DSTAMP_SIX}.macosx.dmg" preservelastmodified="true"/>
+</target>
+
 <target name="jpackage-nix" depends="init,build,jpackage-base">
     <copy todir="plugins/" preservelastmodified="true">
         <fileset dir="${javadev}/lib/jogl2/linux64/">
