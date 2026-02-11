@@ -422,21 +422,32 @@ public class MtzVertexSource extends CrystalVertexSource
         }
 
         // Forward 3D FFT to get real-space density.
-        // The crystallographic convention rho = sum F(h)*exp(-2*pi*i*h.r)
+        // The crystallographic convention rho = (1/V) * sum F(h)*exp(-2*pi*i*h.r)
         // matches the forward FFT sign convention exp(-2*pi*i*k*n/N).
+        // The FFT computes the sum without the 1/V factor, so we normalize afterward.
         ComplexDouble3DFFT fft = new ComplexDouble3DFFT(nx, ny, nz);
         fft.transform(grid, rowspan, slicespan);
 
-        // Extract real parts into the density data array
+        // Compute unit cell volume for normalization:
+        // V = abc * sqrt(1 - cos^2(alpha) - cos^2(beta) - cos^2(gamma) + 2*cos(alpha)*cos(beta)*cos(gamma))
+        double cosA = Math.cos(Math.toRadians(alpha));
+        double cosB = Math.cos(Math.toRadians(beta));
+        double cosG = Math.cos(Math.toRadians(gamma));
+        double volume = aLength * bLength * cLength
+            * Math.sqrt(1.0 - cosA*cosA - cosB*cosB - cosG*cosG + 2.0*cosA*cosB*cosG);
+        SoftLog.err.println("MTZ: Unit cell volume = " + volume + " A^3");
+
+        // Extract real parts into the density data array, normalizing by 1/V
         data = new float[nx * ny * nz];
         double sum = 0, sumSq = 0;
+        double invV = 1.0 / volume;
         for(int i = 0; i < nx; i++)
         {
             for(int j = 0; j < ny; j++)
             {
                 for(int k = 0; k < nz; k++)
                 {
-                    float val = (float) grid[i * slicespan + j * rowspan + 2 * k];
+                    float val = (float)(grid[i * slicespan + j * rowspan + 2 * k] * invV);
                     data[i + j * nx + k * nx * ny] = val;
                     sum += val;
                     sumSq += (double) val * val;
