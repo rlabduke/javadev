@@ -31,6 +31,7 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
     static final String MAPTYPE_O = "O map (DSN6/Brix)";
     static final String MAPTYPE_XPLOR = "XPLOR map (ASCII format)";
     static final String MAPTYPE_CCP4 = "CCP4 map (type 2)";
+    static final String MAPTYPE_MTZ = "MTZ map coefficients";
 //}}}
 
 //{{{ CLASS: MapFileOpen
@@ -63,7 +64,7 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
     JList               urlList         = null;
     JTextField          urlField        = null;
     boolean             urlChooserOK    = false;
-    SuffixFileFilter    omapFilter, xmapFilter, ccp4Filter, mapFilter;
+    SuffixFileFilter    omapFilter, xmapFilter, ccp4Filter, mapFilter, mtzFilter;
 //}}}
 
 //{{{ Constructor(s)
@@ -162,6 +163,10 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
         ccp4Filter.addSuffix(".map");
         ccp4Filter.addSuffix(".map.gz");
         
+        mtzFilter = new SuffixFileFilter("MTZ map coefficients");
+        mtzFilter.addSuffix(".mtz");
+        mtzFilter.addSuffix(".mtz.gz");
+        
         mapFilter = new SuffixFileFilter("All electron density maps");
         mapFilter.addSuffix(".ccp4");
         mapFilter.addSuffix(".ccp4.gz");
@@ -181,6 +186,8 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
         mapFilter.addSuffix(".omap.gz");
         mapFilter.addSuffix(".map");
         mapFilter.addSuffix(".map.gz");
+        mapFilter.addSuffix(".mtz");
+        mapFilter.addSuffix(".mtz.gz");
     }
 //}}}
 
@@ -197,6 +204,7 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
         filechooser.addChoosableFileFilter(omapFilter);
         filechooser.addChoosableFileFilter(xmapFilter);
         filechooser.addChoosableFileFilter(ccp4Filter);
+        filechooser.addChoosableFileFilter(mtzFilter);
         filechooser.setFileFilter(mapFilter);
     }
 //}}}
@@ -345,11 +353,12 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
     
     String askMapFormat(String f) // filename or URL
     {
-        Object[] choices = {MAPTYPE_O, MAPTYPE_XPLOR, MAPTYPE_CCP4};
+        Object[] choices = {MAPTYPE_O, MAPTYPE_XPLOR, MAPTYPE_CCP4, MAPTYPE_MTZ};
         String defaultChoice = MAPTYPE_O;
         if(omapFilter.accept(f))        defaultChoice = MAPTYPE_O;
         else if(xmapFilter.accept(f))   defaultChoice = MAPTYPE_XPLOR;
         else if(ccp4Filter.accept(f))   defaultChoice = MAPTYPE_CCP4;
+        else if(mtzFilter.accept(f))    defaultChoice = MAPTYPE_MTZ;
         
         String choice = (String)JOptionPane.showInputDialog(kMain.getTopWindow(),
             "What format is this map in?",
@@ -397,6 +406,8 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
                 map = new XplorVertexSource(new FileInputStream(f));
             else if(MAPTYPE_CCP4.equals(choice))
                 map = new Ccp4VertexSource(new FileInputStream(f));
+            else if(MAPTYPE_MTZ.equals(choice))
+                map = new MtzVertexSource(new FileInputStream(f));
             else throw new IllegalArgumentException("Map type not specified");
             
             EDMapWindow win = new EDMapWindow(parent, map, f.getName(), phenixColors);
@@ -426,6 +437,7 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
             if(MAPTYPE_O.equals(choice))            map = new OMapVertexSource(is);
             else if(MAPTYPE_XPLOR.equals(choice))   map = new XplorVertexSource(is);
             else if(MAPTYPE_CCP4.equals(choice))    map = new Ccp4VertexSource(is);
+            else if(MAPTYPE_MTZ.equals(choice))     map = new MtzVertexSource(is);
             else throw new IllegalArgumentException("Map type not specified");
             
             EDMapWindow win = new EDMapWindow(parent, map, mapURL.getFile(), false);
