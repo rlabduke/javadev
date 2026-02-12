@@ -104,6 +104,12 @@ jobs:
       contents: write
 
     steps:
+      - name: Delete existing release if re-running
+        run: gh release delete "$GITHUB_REF_NAME" --yes --cleanup-tag=false 2>/dev/null || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
