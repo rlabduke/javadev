@@ -8,7 +8,7 @@ certain third-party libraries and resources which are not covered by
 this license, and which are governed by their own license terms. See
 documentation for more details.
 
-Copyright (C) 2002-2021 Ian W. Davis & Vincent B. Chen. All rights
+Copyright (C) 2002-2026 Ian W. Davis & Vincent B. Chen. All rights
 reserved.
 
 Redistribution and use in source and binary forms, with or without

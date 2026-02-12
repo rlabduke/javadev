@@ -91,6 +91,21 @@ Open PDB in model manager without opening kinemage first?
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
+### 2.25-rc1 ###
+VBC 02/2026
+- Added hardware-accelerated OpenGL rendering via JOGL VBOs and shaders
+  with proper depth buffer sorting (Phase 1: lines, dots, labels, balls)
+- Fixed HiDPI/Retina display issues: picking, line/dot widths, overpaint
+  text scaling, logo sizing, NaN center during translate
+- Measurement lines and markers now render correctly in OpenGL mode
+- Added MTZ reflection file reader for electron density maps
+- Updated startup logo to 2026
+- Cleaned up build.xml: removed legacy targets (AppBundler, InstallAnywhere,
+  no-JOGL Mac workaround), consolidated JOGL 2.6 library paths
+- Added GitHub Actions CI workflow for automated multi-platform installers
+  (macOS, Windows, Linux) triggered on version tags
+- Updated copyright dates to 2026
+
 ### 2.24 ###
 -Fixed up PDB Export tool to be a bit more user friendly and robust.
 -Changed PDF Export to use PDFBox instead of itext, which is no longer freely distributed.

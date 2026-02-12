@@ -531,7 +531,7 @@ public class KingMain implements WindowListener
                   showHelp();
                     System.exit(0);
                 } else if(arg.equals("-version")) {
-                    SoftLog.err.println("KingMain, version "+getPrefs().getString("version")+"\nCopyright (C) 2002-2011 by Ian W. Davis");
+                    SoftLog.err.println("KingMain, version "+getPrefs().getString("version")+"\nCopyright (C) 2002-2026 by Ian W. Davis");
                     System.exit(0);
                 } else if(arg.equals("-m") || arg.equals("-merge")) {
                     doMerge = true;
@@ -578,7 +578,7 @@ public class KingMain implements WindowListener
       try { streamcopy(is, System.out); }
       catch(IOException ex) { ex.printStackTrace(); }
     }
-    System.err.println("Copyright (C) 2002-2011 by IWD, VBC, DAK. All rights reserved.");
+    System.err.println("Copyright (C) 2002-2026 by IWD, VBC, DAK. All rights reserved.");
   }
   
   // Copies src to dst until we hit EOF
