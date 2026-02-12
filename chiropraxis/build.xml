@@ -137,7 +137,9 @@
   <junit printsummary="withOutAndErr" haltonfailure="yes" fork="true">
     <classpath>
       <pathelement location="${build}"/>
+      <pathelement location="${resource}"/>
       <pathelement location="../driftwood/build"/>
+      <pathelement location="../driftwood/resource"/>
       <pathelement location="../king/build"/>
       <pathelement location="../molikin/build"/>
       <pathelement location="../lib/junit/junit-4.13.2.jar"/>
