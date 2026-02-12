@@ -62,7 +62,7 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
     KingMain        kMain;
     Engine2D        engine;
     ToolBox         toolbox;
-    GLCanvas        canvas;
+    GLJPanel        canvas;
     JoglRenderer    renderer;
     Dimension       glSize = new Dimension();
     
@@ -70,6 +70,7 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
     WritableRaster      raster      = null;
     BufferedImage       overlayImg  = null;
     ByteBuffer          overlayData = null;
+    BufferedImage       pendingOverlay = null; // painted after GL via Swing
     Image               logo        = null;
 //}}}
 
@@ -101,22 +102,21 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
         capabilities.setSampleBuffers(fsaaNumSamples > 1); // enables/disables full-scene antialiasing (FSAA)
         capabilities.setNumSamples(fsaaNumSamples); // sets number of samples for FSAA (default is 2)
 
-        //canvas = GLDrawableFactory.getFactory().createGLCanvas(capabilities);
-        try
-        {
-            canvas = new GLCanvas(capabilities);
-        }
-        catch(GLException ex)
-        {
-            // Some Windows drivers reject the default capabilities due to
-            // strict pixel format matching (e.g. alpha/stencil mismatch).
-            // Retry with minimal capabilities.
-            SoftLog.err.println("OpenGL: retrying with basic capabilities: "+ex.getMessage());
-            capabilities = new GLCapabilities(profile);
-            capabilities.setDoubleBuffered(true);
-            capabilities.setDepthBits(24);
-            canvas = new GLCanvas(capabilities);
-        }
+        // GLJPanel (lightweight Swing) instead of GLCanvas (heavyweight AWT)
+        // to avoid Windows WGL pixel format / AWT GraphicsConfiguration mismatch.
+        // Override paintComponent to composite Java2D overlay after GL rendering.
+        canvas = new GLJPanel(capabilities) {
+            @Override
+            protected void paintComponent(Graphics g)
+            {
+                super.paintComponent(g); // renders GL content
+                if(pendingOverlay != null)
+                {
+                    Graphics2D g2 = (Graphics2D)g;
+                    g2.drawImage(pendingOverlay, 0, 0, getWidth(), getHeight(), null);
+                }
+            }
+        };
 
         canvas.addGLEventListener(this); // calls display(), reshape(), etc.
         canvas.addMouseListener(this); // cursor related; see this.mouseEntered().
@@ -162,29 +162,18 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
 
         if(kin == null)
         {
-            // Blank screen
-            //gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-            //gl.glClear(GL.GL_COLOR_BUFFER_BIT);
-
             // KiNG logo and new version availability
-            // Use logical pixel dimensions so the logo appears at the correct
-            // visual size on HiDPI displays, then scale to the physical framebuffer.
+            // Build overlay image; it will be painted by Swing after GL finishes.
             Dimension logicalDim = kCanvasDim;
-            Graphics2D g2 = setupOverlay(logicalDim);
-            gl.glRasterPos2d(0, -glSize.height); // position at bottom-left in physical coords
+            BufferedImage logoImg = new BufferedImage(logicalDim.width, logicalDim.height, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = logoImg.createGraphics();
             g2.setColor(Color.black);
             g2.fillRect(0, 0, logicalDim.width, logicalDim.height);
             if(logo != null) g2.drawImage(logo, (logicalDim.width-logo.getWidth(this))/2, (logicalDim.height-logo.getHeight(this))/2, this);
             if(kMain.getPrefs().newerVersionAvailable())
                 announceNewVersion(g2);
             g2.dispose();
-            // Scale from logical pixels to physical framebuffer pixels
-            float zoomX = (float)glSize.width  / (float)logicalDim.width;
-            float zoomY = (float)glSize.height / (float)logicalDim.height;
-            gl.glPixelZoom(zoomX, zoomY);
-            gl.glDrawPixels(logicalDim.width, logicalDim.height,
-                GL.GL_RGBA, GL.GL_UNSIGNED_BYTE , getOverlayBytes());
-            gl.glPixelZoom(1.0f, 1.0f); // reset
+            pendingOverlay = logoImg;
         }
         else
         {
@@ -221,28 +210,24 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
                 engine.transform(this, view, new Rectangle(kCanvasDim));
 
                 // Toolbox overpaint (point IDs, distances, auger circle, etc.)
-                // Render to a transparent overlay at logical pixel dims using
-                // Java2D (StandardPainter) for proper font scaling on HiDPI,
-                // then composite onto the GL framebuffer with glPixelZoom.
+                // Render to a transparent overlay image using Java2D
+                // (StandardPainter) for proper font scaling. The image is
+                // painted by Swing after GL finishes (see canvas paintComponent).
+                // No Y-flip needed since this is composited via Swing, not glDrawPixels.
                 if(toolbox != null)
                 {
                     Dimension logicalDim = kCanvasDim;
-                    Graphics2D g2 = setupOverlay(logicalDim);
+                    BufferedImage overpaintImg = new BufferedImage(logicalDim.width, logicalDim.height, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g2 = overpaintImg.createGraphics();
                     StandardPainter overlayPainter = new StandardPainter(true);
                     overlayPainter.setGraphics(g2);
                     toolbox.overpaintCanvas(overlayPainter);
                     g2.dispose();
-
-                    gl.glDisable(GL.GL_DEPTH_TEST);
-                    gl.glEnable(GL.GL_BLEND);
-                    gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-                    gl.glRasterPos2d(0, -glSize.height);
-                    float zoomX = (float)glSize.width  / (float)logicalDim.width;
-                    float zoomY = (float)glSize.height / (float)logicalDim.height;
-                    gl.glPixelZoom(zoomX, zoomY);
-                    gl.glDrawPixels(logicalDim.width, logicalDim.height,
-                        GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, getOverlayBytes());
-                    gl.glPixelZoom(1.0f, 1.0f);
+                    pendingOverlay = overpaintImg;
+                }
+                else
+                {
+                    pendingOverlay = null;
                 }
             }
             else
