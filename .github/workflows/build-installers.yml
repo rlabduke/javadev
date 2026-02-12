@@ -86,8 +86,9 @@ jobs:
         shell: bash
 
       - name: Build installer
-        run: ant -Djpackage.version=${{ steps.version.outputs.jpackage_version }} ${{ matrix.ant-target }}
+        run: ant "-Djpackage.version=${{ steps.version.outputs.jpackage_version }}" ${{ matrix.ant-target }}
         working-directory: king
+        shell: bash
 
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
