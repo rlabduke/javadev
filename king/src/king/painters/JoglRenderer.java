@@ -57,6 +57,10 @@ public class JoglRenderer
     int         dotVertCount;
     int         triVertCount;
 
+    // Per-list draw commands: each int[] = {startVertex, vertexCount, width}
+    ArrayList<int[]> lineDrawCmds = new ArrayList<int[]>();
+    ArrayList<int[]> dotDrawCmds  = new ArrayList<int[]>();
+
     // Label data collected during packing (rendered in a separate pass)
     ArrayList<float[]>  labelPositions  = new ArrayList<float[]>();  // {x,y,z}
     ArrayList<String>   labelTexts      = new ArrayList<String>();
@@ -284,25 +288,36 @@ public class JoglRenderer
         Triple lightDir = engine.lightingVector; // default: normalized(-1, 1, 3)
         gl.glUniform3f(uLightDir, (float)lightDir.getX(), (float)lightDir.getY(), (float)lightDir.getZ());
 
-        // --- Draw dots ---
+        // --- Draw dots (per-list widths) ---
         if(dotVertCount > 0)
         {
             gl.glUniform1i(uLighting, 0);
-            uploadAndDrawArrays(gl, vbo[1], dotVerts, dotVertCount, GL2.GL_POINTS, false);
+            uploadVBO(gl, vbo[1], dotVerts, dotVertCount, false);
+            for(int[] cmd : dotDrawCmds)
+            {
+                gl.glPointSize(cmd[2] + 0.5f);
+                gl.glDrawArrays(GL2.GL_POINTS, cmd[0], cmd[1]);
+            }
         }
 
-        // --- Draw lines ---
+        // --- Draw lines (per-list widths) ---
         if(lineVertCount > 0)
         {
             gl.glUniform1i(uLighting, 0);
-            uploadAndDrawArrays(gl, vbo[0], lineVerts, lineVertCount, GL2.GL_LINES, false);
+            uploadVBO(gl, vbo[0], lineVerts, lineVertCount, false);
+            for(int[] cmd : lineDrawCmds)
+            {
+                gl.glLineWidth(cmd[2] + 0.5f);
+                gl.glDrawArrays(GL2.GL_LINES, cmd[0], cmd[1]);
+            }
         }
 
         // --- Draw triangles ---
         if(triVertCount > 0)
         {
             gl.glUniform1i(uLighting, 1);
-            uploadAndDrawArrays(gl, vbo[2], triVerts, triVertCount, GL.GL_TRIANGLES, true);
+            uploadVBO(gl, vbo[2], triVerts, triVertCount, true);
+            gl.glDrawArrays(GL.GL_TRIANGLES, 0, triVertCount);
         }
 
         // --- Draw labels ---
@@ -343,6 +358,8 @@ public class JoglRenderer
         lineVertCount = 0;
         dotVertCount  = 0;
         triVertCount  = 0;
+        lineDrawCmds.clear();
+        dotDrawCmds.clear();
         labelPositions.clear();
         labelTexts.clear();
         labelColors.clear();
@@ -358,11 +375,17 @@ public class JoglRenderer
 
             if(type.equals(KList.VECTOR))
             {
+                int startVert = lineVertCount;
                 packVectorList(list, engine, whiteBg, alpha, listWidth);
+                if(lineVertCount > startVert)
+                    lineDrawCmds.add(new int[]{startVert, lineVertCount - startVert, listWidth});
             }
             else if(type.equals(KList.DOT) || type.equals("mark"))
             {
+                int startVert = dotVertCount;
                 packDotList(list, engine, whiteBg, alpha, listWidth);
+                if(dotVertCount > startVert)
+                    dotDrawCmds.add(new int[]{startVert, dotVertCount - startVert, listWidth});
             }
             else if(type.equals(KList.BALL) || type.equals("sphere"))
             {
@@ -378,13 +401,17 @@ public class JoglRenderer
             }
             else if(type.equals("arrow"))
             {
-                // Render arrows as vectors for now
+                int startVert = lineVertCount;
                 packVectorList(list, engine, whiteBg, alpha, listWidth);
+                if(lineVertCount > startVert)
+                    lineDrawCmds.add(new int[]{startVert, lineVertCount - startVert, listWidth});
             }
             else if(type.equals("ring"))
             {
-                // Render rings as vectors
+                int startVert = lineVertCount;
                 packVectorList(list, engine, whiteBg, alpha, listWidth);
+                if(lineVertCount > startVert)
+                    lineDrawCmds.add(new int[]{startVert, lineVertCount - startVert, listWidth});
             }
         }
     }
@@ -696,18 +723,18 @@ public class JoglRenderer
     }
 //}}}
 
-//{{{ uploadAndDrawArrays
+//{{{ uploadVBO
 //##############################################################################
     /**
-    * Uploads vertex data to a VBO and draws it.
+    * Uploads vertex data to a VBO and sets up vertex attribute pointers.
+    * Caller is responsible for issuing glDrawArrays() calls afterward.
     * @param gl         the GL context
     * @param vboHandle  the VBO handle to use
     * @param buffer     the vertex data buffer
     * @param vertCount  number of vertices
-    * @param mode       GL draw mode (GL_LINES, GL_POINTS, GL_TRIANGLES)
     * @param hasNormals true if vertex format includes normals (10 floats/vert)
     */
-    void uploadAndDrawArrays(GL2 gl, int vboHandle, FloatBuffer buffer, int vertCount, int mode, boolean hasNormals)
+    void uploadVBO(GL2 gl, int vboHandle, FloatBuffer buffer, int vertCount, boolean hasNormals)
     {
         buffer.flip();
         gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboHandle);
@@ -742,8 +769,6 @@ public class JoglRenderer
                 gl.glVertexAttrib3f(aNormal, 0, 0, 1);
             }
         }
-
-        gl.glDrawArrays(mode, 0, vertCount);
     }
 //}}}
 

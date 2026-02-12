@@ -4,6 +4,7 @@ package king;
 import king.core.*;
 import king.painters.JoglPainter;
 import king.painters.JoglRenderer;
+import king.painters.StandardPainter;
 
 import java.awt.*;
 import java.awt.color.ColorSpace;
@@ -181,7 +182,8 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
             if(renderer != null && renderer.isReady())
             {
                 // Set engine state normally done in engine.render()
-                engine.setCanvasSize(bounds.width, bounds.height);
+                // Use logical dims so getCanvasSize() matches mouse events
+                engine.setCanvasSize(kCanvasDim.width, kCanvasDim.height);
                 engine.whiteBackground = kin.atWhitebackground;
                 engine.backgroundMode = engine.whiteBackground ? KPaint.WHITE_COLOR : KPaint.BLACK_COLOR;
                 engine.markerSize = (engine.bigMarkers ? 2 : 1);
@@ -190,14 +192,33 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
                 // VBO-based rendering path
                 renderer.render(kin, view, bounds, gl, engine);
 
-                // Still need to do CPU transform for picking support
-                engine.transform(this, view, bounds);
+                // CPU transform for picking support.
+                // Use logical pixel dims so pick coords match mouse events.
+                engine.transform(this, view, new Rectangle(kCanvasDim));
 
-                // Toolbox overpaint uses JoglPainter (2D overlay)
+                // Toolbox overpaint (point IDs, distances, auger circle, etc.)
+                // Render to a transparent overlay at logical pixel dims using
+                // Java2D (StandardPainter) for proper font scaling on HiDPI,
+                // then composite onto the GL framebuffer with glPixelZoom.
                 if(toolbox != null)
                 {
-                    JoglPainter painter = new JoglPainter(drawable);
-                    toolbox.overpaintCanvas(painter);
+                    Dimension logicalDim = kCanvasDim;
+                    Graphics2D g2 = setupOverlay(logicalDim);
+                    StandardPainter overlayPainter = new StandardPainter(true);
+                    overlayPainter.setGraphics(g2);
+                    toolbox.overpaintCanvas(overlayPainter);
+                    g2.dispose();
+
+                    gl.glDisable(GL.GL_DEPTH_TEST);
+                    gl.glEnable(GL.GL_BLEND);
+                    gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+                    gl.glRasterPos2d(0, -glSize.height);
+                    float zoomX = (float)glSize.width  / (float)logicalDim.width;
+                    float zoomY = (float)glSize.height / (float)logicalDim.height;
+                    gl.glPixelZoom(zoomX, zoomY);
+                    gl.glDrawPixels(logicalDim.width, logicalDim.height,
+                        GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, getOverlayBytes());
+                    gl.glPixelZoom(1.0f, 1.0f);
                 }
             }
             else
