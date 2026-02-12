@@ -96,13 +96,27 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
         GLCapabilities capabilities = new GLCapabilities(profile);
         capabilities.setDoubleBuffered(true); // usually enabled by default, but to be safe...
         capabilities.setDepthBits(24); // hardware depth buffer for VBO renderer
-        
+
         int fsaaNumSamples = kMain.getPrefs().getInt("joglNumSamples");
         capabilities.setSampleBuffers(fsaaNumSamples > 1); // enables/disables full-scene antialiasing (FSAA)
         capabilities.setNumSamples(fsaaNumSamples); // sets number of samples for FSAA (default is 2)
 
         //canvas = GLDrawableFactory.getFactory().createGLCanvas(capabilities);
-        canvas = new GLCanvas(capabilities);
+        try
+        {
+            canvas = new GLCanvas(capabilities);
+        }
+        catch(GLException ex)
+        {
+            // Some Windows drivers reject the default capabilities due to
+            // strict pixel format matching (e.g. alpha/stencil mismatch).
+            // Retry with minimal capabilities.
+            SoftLog.err.println("OpenGL: retrying with basic capabilities: "+ex.getMessage());
+            capabilities = new GLCapabilities(profile);
+            capabilities.setDoubleBuffered(true);
+            capabilities.setDepthBits(24);
+            canvas = new GLCanvas(capabilities);
+        }
 
         canvas.addGLEventListener(this); // calls display(), reshape(), etc.
         canvas.addMouseListener(this); // cursor related; see this.mouseEntered().
