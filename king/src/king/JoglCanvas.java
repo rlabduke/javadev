@@ -3,6 +3,7 @@
 package king;
 import king.core.*;
 import king.painters.JoglPainter;
+import king.painters.JoglRenderer;
 
 import java.awt.*;
 import java.awt.color.ColorSpace;
@@ -57,11 +58,12 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
 
 //{{{ Variable definitions
 //##############################################################################
-    KingMain    kMain;
-    Engine2D    engine;
-    ToolBox     toolbox;
-    GLCanvas    canvas;
-    Dimension   glSize = new Dimension();
+    KingMain        kMain;
+    Engine2D        engine;
+    ToolBox         toolbox;
+    GLCanvas        canvas;
+    JoglRenderer    renderer;
+    Dimension       glSize = new Dimension();
     
     // Variables for doing text with a Graphics2D then overlaying it
     WritableRaster      raster      = null;
@@ -92,6 +94,7 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
         GLProfile profile = GLProfile.getDefault();
         GLCapabilities capabilities = new GLCapabilities(profile);
         capabilities.setDoubleBuffered(true); // usually enabled by default, but to be safe...
+        capabilities.setDepthBits(24); // hardware depth buffer for VBO renderer
         
         int fsaaNumSamples = kMain.getPrefs().getInt("joglNumSamples");
         capabilities.setSampleBuffers(fsaaNumSamples > 1); // enables/disables full-scene antialiasing (FSAA)
@@ -117,10 +120,17 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
 //{{{ init, dispose, display, reshape, displayChanged
 //##############################################################################
     public void init(GLAutoDrawable drawable)
-    {}
-    
+    {
+        GL2 gl = (GL2)drawable.getGL();
+        renderer = new JoglRenderer();
+        renderer.init(gl);
+    }
+
     public void dispose(GLAutoDrawable drawable)
-    {}
+    {
+        GL2 gl = (GL2)drawable.getGL();
+        if(renderer != null) renderer.dispose(gl);
+    }
     
     public void display(GLAutoDrawable drawable)
     {
@@ -140,35 +150,64 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
             // Blank screen
             //gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
             //gl.glClear(GL.GL_COLOR_BUFFER_BIT);
-            
+
             // KiNG logo and new version availability
-            // This is probably a bit slow, but for logo display, we don't really care.
-            Graphics2D g2 = setupOverlay();
-            //System.out.println("kincanvas dim: "+kMain.getCanvas().getPreferredSize().toString());
-            Dimension dim = glSize;
-            //Dimension dim = kMain.getCanvas().getPreferredSize();
-            //System.out.println("display() dim: " + dim.toString());
-            gl.glRasterPos2d(0, -dim.height); // for getting the logo to display in correct spot
+            // Use logical pixel dimensions so the logo appears at the correct
+            // visual size on HiDPI displays, then scale to the physical framebuffer.
+            Dimension logicalDim = kCanvasDim;
+            Graphics2D g2 = setupOverlay(logicalDim);
+            gl.glRasterPos2d(0, -glSize.height); // position at bottom-left in physical coords
             g2.setColor(Color.black);
-            g2.fillRect(0, 0, dim.width, dim.height);
-            if(logo != null) g2.drawImage(logo, (dim.width-logo.getWidth(this))/2, (dim.height-logo.getHeight(this))/2, this);
+            g2.fillRect(0, 0, logicalDim.width, logicalDim.height);
+            if(logo != null) g2.drawImage(logo, (logicalDim.width-logo.getWidth(this))/2, (logicalDim.height-logo.getHeight(this))/2, this);
             if(kMain.getPrefs().newerVersionAvailable())
                 announceNewVersion(g2);
             g2.dispose();
-            // Why *unsigned* bytes?  Who knows.
-            gl.glDrawPixels(dim.width, dim.height,
+            // Scale from logical pixels to physical framebuffer pixels
+            float zoomX = (float)glSize.width  / (float)logicalDim.width;
+            float zoomY = (float)glSize.height / (float)logicalDim.height;
+            gl.glPixelZoom(zoomX, zoomY);
+            gl.glDrawPixels(logicalDim.width, logicalDim.height,
                 GL.GL_RGBA, GL.GL_UNSIGNED_BYTE , getOverlayBytes());
+            gl.glPixelZoom(1.0f, 1.0f); // reset
         }
         else
         {
-            JoglPainter painter = new JoglPainter(drawable);
-            
             long timestamp = System.currentTimeMillis();
             KView view = kMain.getView();
             Rectangle bounds = new Rectangle(this.glSize);
             kMain.getCanvas().syncToKin(engine, kin);
-            engine.render(this, view, bounds, painter);
-            if(toolbox != null) toolbox.overpaintCanvas(painter);
+
+            if(renderer != null && renderer.isReady())
+            {
+                // Set engine state normally done in engine.render()
+                engine.setCanvasSize(bounds.width, bounds.height);
+                engine.whiteBackground = kin.atWhitebackground;
+                engine.backgroundMode = engine.whiteBackground ? KPaint.WHITE_COLOR : KPaint.BLACK_COLOR;
+                engine.markerSize = (engine.bigMarkers ? 2 : 1);
+                engine.labelFont = (engine.bigLabels ? engine.bigFont : engine.smallFont);
+
+                // VBO-based rendering path
+                renderer.render(kin, view, bounds, gl, engine);
+
+                // Still need to do CPU transform for picking support
+                engine.transform(this, view, bounds);
+
+                // Toolbox overpaint uses JoglPainter (2D overlay)
+                if(toolbox != null)
+                {
+                    JoglPainter painter = new JoglPainter(drawable);
+                    toolbox.overpaintCanvas(painter);
+                }
+            }
+            else
+            {
+                // Fallback: original immediate-mode path
+                JoglPainter painter = new JoglPainter(drawable);
+                engine.render(this, view, bounds, painter);
+                if(toolbox != null) toolbox.overpaintCanvas(painter);
+            }
+
             timestamp = System.currentTimeMillis() - timestamp;
             if(kMain.getCanvas().writeFPS)
                 SoftLog.err.println(timestamp+" ms ("+(timestamp > 0 ? Long.toString(1000/timestamp) : ">1000")
@@ -272,29 +311,32 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
 //{{{ FAST - setupOverlay, getOverlayBytes
 //##############################################################################
     Graphics2D setupOverlay()
+    { return setupOverlay(glSize); }
+
+    Graphics2D setupOverlay(Dimension size)
     {
-        if(overlayImg == null || overlayImg.getWidth() != glSize.width || overlayImg.getHeight() != glSize.height)
+        if(overlayImg == null || overlayImg.getWidth() != size.width || overlayImg.getHeight() != size.height)
         {
-            overlayImg = new BufferedImage(glSize.width, glSize.height, BufferedImage.TYPE_INT_ARGB);
+            overlayImg = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
             int[] data = ((DataBufferInt)overlayImg.getRaster().getDataBuffer()).getData();
             overlayData = ByteBuffer.allocate(4 * data.length);
         }
-        
+
         Graphics2D g = overlayImg.createGraphics();
-        
+
         // Wipe out all data currently in image with invisible black.
         // The for loop is MUCH faster -- maybe 10x or more.
         //g.setColor(new Color(0,0,0,0));
         //g.fillRect(0, 0, glSize.width, glSize.height);
         int[] data = ((DataBufferInt)overlayImg.getRaster().getDataBuffer()).getData();
         for(int i = 0; i < data.length; i++) data[i] = 0;
-        
+
         // Compensate for OpenGL Y-axis running the other way 'round
         AffineTransform t = new AffineTransform();
-        t.translate(0, glSize.height);
+        t.translate(0, size.height);
         t.scale(1.0, -1.0);
         g.transform(t);
-        
+
         return g;
     }
     

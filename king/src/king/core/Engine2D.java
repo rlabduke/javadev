@@ -214,6 +214,12 @@ public class Engine2D extends Engine
         return new Dimension(canvasRect.width, canvasRect.height);
     }
 
+    /** Sets the canvas size, for use when bypassing render() (e.g. VBO path). */
+    public void setCanvasSize(int width, int height)
+    {
+        this.canvasRect.setSize(width, height);
+    }
+
     /**
     * Makes the background be rendered as transparent for the next pass ONLY.
     * This is useful for certain export features that don't want a black/white

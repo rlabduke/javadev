@@ -123,7 +123,7 @@ abstract public class Engine //extends ... implements ...
     * @param bounds         the bounds of the area to render to.
     *   Note that this function does not clip g to ensure that it only paints within these bounds!
     */
-    void transform(Transformable xformable, KView view, Rectangle bounds)
+    public void transform(Transformable xformable, KView view, Rectangle bounds)
     {
         ArrayList<KPoint>   zb;     // == zbuffer[i], saves array lookups
         ArrayList<KList>    pnt;    // == parents[i], saves array lookups

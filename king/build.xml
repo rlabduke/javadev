@@ -109,8 +109,8 @@
          <classpath>
             <pathelement location="${build}"/>
             <pathelement location="../driftwood/build"/>
-            <pathelement location="../lib/jogl2/jogl-all.jar"/>
-            <pathelement location="../lib/jogl2/gluegen-rt.jar"/>
+            <pathelement location="../lib/jogl2.6/jogl-all.jar"/>
+            <pathelement location="../lib/jogl2.6/gluegen-rt.jar"/>
          </classpath>
     </javac>
 </target>
