@@ -76,8 +76,17 @@ jobs:
           ant -f extratools/build.xml build
           ant -f rdcvis/build.xml build
 
+      - name: Extract numeric version for jpackage
+        id: version
+        run: |
+          # Strip 'v' prefix and any non-numeric suffix (e.g. v2.25-rc1 -> 2.25)
+          TAG="${GITHUB_REF_NAME#v}"
+          NUMERIC="${TAG%%-*}"
+          echo "jpackage_version=${NUMERIC}" >> "$GITHUB_OUTPUT"
+        shell: bash
+
       - name: Build installer
-        run: ant ${{ matrix.ant-target }}
+        run: ant -Djpackage.version=${{ steps.version.outputs.jpackage_version }} ${{ matrix.ant-target }}
         working-directory: king
 
       - name: Upload installer artifact

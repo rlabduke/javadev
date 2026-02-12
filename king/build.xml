@@ -18,6 +18,8 @@
     </propertyfile>
     <property file="${resource}/${ant.project.name}/buildnum.props"/>
     <property file="${resource}/${ant.project.name}/version.props"/>
+    <!-- jpackage requires numeric-only versions (e.g. 2.25.0), so allow override -->
+    <property name="jpackage.version" value="${version}"/>
     <!-- Conditional, platform-specific compilation -->
     <!--<condition property="isMacOSX">
         <and>
@@ -242,7 +244,7 @@
         <arg line="--input .\plugins\"/>
         <arg line="--name KiNG"/>
         <arg value="--verbose"/>
-        <arg line="--app-version ${version}"/>
+        <arg line="--app-version ${jpackage.version}"/>
         <arg value="--description"/>
         <arg value="Kinemage next generation viewer"/>
         <arg line="--icon ${resource}\king\images\KiNG.ico"/>
@@ -273,7 +275,7 @@
         <arg line="--input plugins/"/>
         <arg line="--name KiNG"/>
         <arg value="--verbose"/>
-        <arg line="--app-version ${version}"/>
+        <arg line="--app-version ${jpackage.version}"/>
         <arg value="--description"/>
         <arg value="Kinemage next generation viewer"/>
         <arg line="--icon ${resource}/king/images/KiNG.icns"/>
@@ -297,7 +299,7 @@
         <arg line="--input plugins/"/>
         <arg line="--name KiNG"/>
         <arg value="--verbose"/>
-        <arg line="--app-version ${version}"/>
+        <arg line="--app-version ${jpackage.version}"/>
         <arg value="--description"/>
         <arg value="Kinemage next generation viewer"/>
         <arg line="--icon ${resource}/king/images/KiNG.icns"/>
