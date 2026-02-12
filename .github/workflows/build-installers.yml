@@ -90,11 +90,18 @@ jobs:
         working-directory: king
         shell: bash
 
+      - name: Collect installer files
+        run: |
+          mkdir -p king/installers
+          find king/dist -maxdepth 2 \( -name '*.dmg' -o -name '*.zip' -o -name '*.exe' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' \) -exec cp {} king/installers/ \;
+          ls -la king/installers/
+        shell: bash
+
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
           name: king-installer-${{ matrix.platform }}
-          path: king/dist/**/*
+          path: king/installers/*
           retention-days: 30
 
   release:
