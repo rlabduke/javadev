@@ -113,7 +113,7 @@ public class KinCanvas extends JComponent implements KMessage.Subscriber, Transf
         
         engine = new Engine2D();
         updatePrefs(engine, props);
-        logo = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("images/king-logo.2021.png"));
+        logo = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("images/king-logo.2026.png"));
         
         toolbox = new ToolBox(kMain, this);
         toolbox.listenTo(this);

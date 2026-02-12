@@ -84,9 +84,9 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
         this.toolbox = toolbox;
         
         // Not guaranteed to load fully before returning -- gives blank screen.
-        this.logo = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("images/king-logo.2021.png"));
+        this.logo = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("images/king-logo.2026.png"));
         // Loads fully before returning:
-        this.logo = new ImageIcon(this.getClass().getResource("images/king-logo.2021.png")).getImage();
+        this.logo = new ImageIcon(this.getClass().getResource("images/king-logo.2026.png")).getImage();
         
         // Java 1.4+ only! - adds support for Drag & Drop to the canvas
         kMain.getFileDropHandler().handleDropsFor(this);
