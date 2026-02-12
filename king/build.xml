@@ -7,7 +7,6 @@
 <property name="resource"   location="resource"/>
 <property name="build"      location="build"/>
 <property name="dist"       location="dist"/>
-<property name="installer"  location="installer"/>
 <property name="javadev"    location=".."/>
 <!-- Version control: creates timestamp, updates ${buildnum}, loads ${version} -->
 <target name="init">
@@ -137,17 +136,11 @@
             <include name="pdfbox/*.jar"/>
             <include name="pdfbox/pdfbox-graphics2d/target/graphics2d-0.26-SNAPSHOT.jar"/>
             <include name="pdfbox/commons-logging-1.2/commons-logging-1.2.jar"/>
-            <include name="jogl2/*.jar"/>
-            <include name="win64/*.jar"/>
-            <include name="macosx/*.jar"/>
-            <include name="linux64/*.jar"/>
+            <include name="jogl2.6/*.jar"/>
         </zipfileset>
     </zip>
     <copy todir="plugins/" preservelastmodified="true" flatten="true">
-        <fileset dir="${javadev}/lib/jogl2/">
-            <include name="*/*.jar"/>
-        </fileset>
-        <fileset dir="${javadev}/lib/jogl2/">
+        <fileset dir="${javadev}/lib/jogl2.6/">
             <include name="*.jar"/>
         </fileset>
     </copy>
@@ -198,7 +191,7 @@
     <mkdir dir="${dist}/javadocs"/>
     <javadoc packagenames="driftwood.*,Jama.*,king.*"
         sourcepath="src:../driftwood/src"
-        classpath="../lib:../lib/pdfbox/pdfbox-2.0.19.jar:../lib/pdfbox/pdfbox-graphics2d/target/graphics2d-0.26-SNAPSHOT.jar:../lib/jogl2/jogl-all.jar"
+        classpath="../lib:../lib/pdfbox/pdfbox-2.0.19.jar:../lib/pdfbox/pdfbox-graphics2d/target/graphics2d-0.26-SNAPSHOT.jar:../lib/jogl2.6/jogl-all.jar"
         destdir="${dist}/javadocs" access="protected" source="1.8"
         breakiterator="true" noqualifier="all"
         version="true" use="true" author="true"
@@ -207,27 +200,6 @@
     </javadoc>
 </target>
 
-<!-- Makes the end-user distribution -->
-<target name="dist-exe" depends="init,build">
-    <copy file="${javadev}/chiropraxis/chiropraxis.jar" todir="plugins/" preservelastmodified="true"/>
-    <copy file="${javadev}/extratools/extratools.jar" todir="plugins/" preservelastmodified="true"/>
-    <copy file="${javadev}/rdcvis/rdcvis.jar" todir="plugins/" preservelastmodified="true"/>
-    
-    <mkdir dir="${dist}/${ant.project.name}-${version}"/>
-    <copy todir="${dist}/${ant.project.name}-${version}" preservelastmodified="true">
-        <fileset dir="${basedir}">
-            <include name="*.jar"/>
-            <include name="README*"/>
-            <include name="LICENSE*"/>
-            <include name="plugins/"/>
-            <include name="doc/"/>
-            <exclude name="doc/work/"/>
-        </fileset>
-    </copy>
-    <!-- extra doc files from other top-level projects; some need to be renamed -->
-    <copy file="../chiropraxis/doc/tools-manual.pdf" tofile="${dist}/${ant.project.name}-${version}/doc/chiropraxis-manual.pdf"/>
-    <copy file="../extratools/doc/tools-manual.pdf" tofile="${dist}/${ant.project.name}-${version}/doc/extratools-manual.pdf"/>
-</target>
 <!-- }}} -->
 
 <target name="jpackage-base">
@@ -257,10 +229,7 @@
 
 <target name="jpackage-win" depends="init,build,jpackage-base">
     <copy todir="plugins/" preservelastmodified="true">
-        <fileset dir="${javadev}/lib/jogl2/win64/">
-            <include name="*.jar"/>
-        </fileset>
-        <fileset dir="${javadev}/lib/jogl2/">
+        <fileset dir="${javadev}/lib/jogl2.6/">
             <include name="*.jar"/>
         </fileset>
         <fileset dir="${javadev}/lib/rlab/win/">
@@ -290,10 +259,7 @@
 
 <target name="jpackage-mac" depends="init,build,jpackage-base">
     <copy todir="plugins/" preservelastmodified="true">
-        <fileset dir="${javadev}/lib/jogl2/macosx/">
-            <include name="*.jar"/>
-        </fileset>
-        <fileset dir="${javadev}/lib/jogl2/">
+        <fileset dir="${javadev}/lib/jogl2.6/">
             <include name="*.jar"/>
         </fileset>
     </copy>
@@ -320,39 +286,10 @@
     <copy file="${dist}/${ant.project.name}-${version}/KiNG-${version}.dmg" tofile="${dist}/${ant.project.name}-${version}/king.${version}.${DSTAMP_SIX}.macosx.dmg" preservelastmodified="true"/>
 </target>
 
-<!-- bug on mojave: jogl doesn't work and crashes the app:
-NSWindow drag regions should only be invalidated on the Main Thread!
-https://groups.google.com/g/jaamsim-users/c/JGqmj9CRXcU/discussion-->
-<target name="jpackage-mac-nojogl" depends="init,build,jpackage-base">
-    <exec executable="cp" failonerror="true">
-        <arg line="${javadev}/lib/rlab/mac/probe plugins/"/>
-    </exec>
-    <exec executable="cp" failonerror="true">
-        <arg line="${javadev}/lib/rlab/mac/suitename plugins/"/>
-    </exec>
-    <exec executable="jpackage">
-        <arg line="--input plugins/"/>
-        <arg line="--name KiNG"/>
-        <arg value="--verbose"/>
-        <arg line="--app-version ${version}"/>
-        <arg value="--description"/>
-        <arg value="Kinemage next generation viewer"/>
-        <arg line="--icon ${resource}/king/images/KiNG.icns"/>
-        <arg line="--main-jar king.jar"/>
-        <arg value="--vendor"/>
-        <arg value="Richardson Lab"/>
-        <arg line="--license-file ./LICENSE.txt"/>
-        <arg line="--dest ${dist}/${ant.project.name}-${version}/"/>
-    </exec>
-    <copy file="${dist}/${ant.project.name}-${version}/KiNG-${version}.dmg" tofile="${dist}/${ant.project.name}-${version}/king.${version}.${DSTAMP_SIX}.macosx.dmg" preservelastmodified="true"/>
-</target>
 
 <target name="jpackage-nix" depends="init,build,jpackage-base">
     <copy todir="plugins/" preservelastmodified="true">
-        <fileset dir="${javadev}/lib/jogl2/linux64/">
-            <include name="*.jar"/>
-        </fileset>
-        <fileset dir="${javadev}/lib/jogl2/">
+        <fileset dir="${javadev}/lib/jogl2.6/">
             <include name="*.jar"/>
         </fileset>
     </copy>
@@ -373,83 +310,13 @@ https://groups.google.com/g/jaamsim-users/c/JGqmj9CRXcU/discussion-->
     </exec>
 </target>
 
-<taskdef name="bundleapp"
-         classname="com.oracle.appbundler.AppBundlerTask"
-         classpath="../lib/appbundler/appbundler-1.0ea.jar" />
-
-<property environment="env" />         
-         
-<!--<target name="mac-app" depends="dist">-->
-<target name="mac-app">
-    <bundleapp outputdirectory="${dist}"
-        name="KiNG"
-        displayname="KiNG"
-        identifier="edu.duke.biochem.kinemage.king"
-        executableName="king"
-        shortversion="${version}"
-        version="${version}.${DSTAMP_SIX}"
-        icon="work/KiNG.icns"
-        mainclassname="king.KingMain">
-        <runtime dir="${env.JAVA_HOME}" />
-        <classpath file="king.jar">
-            <include name="plugins/**" />
-        </classpath>
-        <bundledocument extensions="pdb,pdb1,ent,pqr"
-          icon="work/mageosX.icns"
-          name="PDB Molecular structure"
-          role="editor"
-          handlerRank="alternate">
-        </bundledocument>
-        <bundledocument contentTypes="edu.duke.biochem.kinemage.kinemage"
-          name="Kinemage file"
-          role="editor"
-          handlerRank="owner">
-        </bundledocument>
-        <typedeclaration
-          identifier="edu.duke.biochem.kinemage.kinemage"
-          description="Kinemage file"
-          icon="work/mageosX.icns"
-          conformsTo="public.text"
-          extensions="kin,kip"
-          mimeTypes="text/plain" />
-          
-        <option value="-Xdock:name=KiNG"/>
-      </bundleapp>
-    <!-- do some stupid manual moving of plugin files since bundleapp doesn't seem to be able to copy over the plugin directory -->
-    <mkdir dir="${dist}/KiNG.app/Contents/Java/plugins"/>
-    <move todir="${dist}/KiNG.app/Contents/Java/plugins">
-        <fileset dir="${dist}/KiNG.app/Contents/Java">
-            <include name="**/*.jar"/>
-            <exclude name="**/king.jar"/>
-        </fileset>
-    </move>
-    <!-- copy probe and suitename executables to app -->
-    <!--<copy todir="${dist}/KiNG.app/Contents/Java">
-        <fileset dir="../lib/rlab/mac"/>
-    </copy>-->
-    <exec executable="cp">
-        <arg line="${javadev}/lib/rlab/mac/probe ${javadev}/lib/rlab/mac/suitename ${dist}/KiNG.app/Contents/Java"/>
-    </exec>
-    <exec executable="cp">
-        <arg line="${javadev}/lib/jogl2/jogl-all.jar ${javadev}/lib/jogl2/macosx/jogl-all-natives-macosx-universal.jar ${javadev}/lib/jogl2/gluegen-rt.jar ${javadev}/lib/jogl2/macosx/gluegen-rt-natives-macosx-universal.jar ${dist}/KiNG.app/Contents/Java"/>
-    </exec>
-    <!-- add lines to Info.plist to enable high-resolution
-    <replace file="${dist}/KiNG.app/Contents/Info.plist">
-        <replacetoken><![CDATA[<string>king.KingMain</string>]]></replacetoken>
-        <replacevalue><![CDATA[<string>king.KingMain</string>
-<key>NSHighResolutionCapable</key>
-<true/>]]></replacevalue>
-    </replace>-->
-</target>
 
 <!-- clean, backup {{{ -->
 <!-- Removes products of compilation -->
 <target name="clean" description="Clean up build/ and dist/">
     <delete dir="${dist}"/>
     <delete dir="${build}"/>
-    <delete dir="${basedir}/installer/king/king_Build_Output"/>
     <delete file="${ant.project.name}.jar"/>
-    <delete file="itext.jar"/>
     <delete file="pdfbox.jar"/>
     <delete file="fontbox.jar"/>
     <delete file="pdfbox-graphics2d.jar"/>
@@ -473,18 +340,4 @@ https://groups.google.com/g/jaamsim-users/c/JGqmj9CRXcU/discussion-->
 </target>
 <!-- }}} -->
 
-<!-- deploy-local {{{ -->
-<!-- Deploys the executable on the local system - applies to IWD's machine only  -->
-<target name="deploy-local"  description="Deploy to ~/bin" depends="build">
-    <copy file="${ant.project.name}.jar" todir="/Applications/KiNG.app/Contents/Resources/Java/" overwrite="true" failonerror="false"/>
-    <copy todir="/Applications/KiNG.app/Contents/Resources/Java/plugins/" overwrite="true" failonerror="false">
-        <fileset dir="plugins/"/>
-    </copy>
-</target>
-
-<!-- Deploys the executable on the local MolProbity - applies to IWD's machine only  -->
-<target name="deploy-local-mp"  description="Deploy to local MolProbity 3" depends="build">
-    <copy file="${ant.project.name}.jar" todir="${user.home}/Sites/molprobity3/public_html/" overwrite="true" failonerror="false"/>
-</target>
-<!-- }}} -->
 </project>
