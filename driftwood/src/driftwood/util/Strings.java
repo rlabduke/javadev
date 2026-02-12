@@ -393,8 +393,8 @@ public class Strings //extends ... implements ...
         int len = Math.max(v1.length, v2.length);
         for(int i = 0; i < len; i++)
         {
-            if(i > v1.length)       return -1;
-            else if(i > v2.length)  return 1;
+            if(i >= v1.length)      return -1;
+            else if(i >= v2.length) return 1;
             try
             {
                 int n1 = Integer.parseInt(v1[i]);

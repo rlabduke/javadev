@@ -57,7 +57,7 @@
     <javac srcdir="${src}"
            destdir="${build}"
            includes="**/*.java"
-           excludes="**/old/"
+           excludes="**/old/ **/*Test.java"
            debug="on" debuglevel="lines,source"
            target="1.8" source="1.8">
            <!-- <compilerarg value="-Xlint"/> -->
@@ -117,6 +117,39 @@
     </copy>
 </target>
 <!-- }}} -->
+
+<!-- test {{{ -->
+<target name="test" depends="compile">
+  <javac srcdir="${src}"
+         destdir="${build}"
+         includes="**/*Test.java"
+         debug="on" debuglevel="lines,source"
+         target="1.8" source="1.8">
+    <classpath>
+      <pathelement location="${build}"/>
+      <pathelement location="../driftwood/build"/>
+      <pathelement location="../king/build"/>
+      <pathelement location="../molikin/build"/>
+      <pathelement location="../lib/junit/junit-4.13.2.jar"/>
+      <pathelement location="../lib/junit/hamcrest-core-1.3.jar"/>
+    </classpath>
+  </javac>
+  <junit printsummary="withOutAndErr" haltonfailure="yes" fork="true">
+    <classpath>
+      <pathelement location="${build}"/>
+      <pathelement location="../driftwood/build"/>
+      <pathelement location="../king/build"/>
+      <pathelement location="../molikin/build"/>
+      <pathelement location="../lib/junit/junit-4.13.2.jar"/>
+      <pathelement location="../lib/junit/hamcrest-core-1.3.jar"/>
+    </classpath>
+    <formatter type="brief" usefile="false"/>
+    <batchtest>
+      <fileset dir="src" includes="**/*Test.java"/>
+    </batchtest>
+  </junit>
+</target>
+<!--}}}-->
 
 <!-- clean, backup {{{ -->
 <!-- Removes products of compilation -->
