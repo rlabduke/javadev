@@ -172,7 +172,7 @@ public class Ramalyze //extends ... implements ...
                         eval.type = RamaEval.GLYCINE;
                     else if(res.getName().equals("PRO"))
                     {
-                        if(AminoAcid.isCisPeptide(model, res, ms))
+                        if(AminoAcid.isCloserToCis(model, res, ms))
                             eval.type = RamaEval.CISPRO;
                         else
                             eval.type = RamaEval.TRANSPRO;

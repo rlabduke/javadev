@@ -521,12 +521,17 @@ public class Rotamer //extends ... implements ...
         // assumes input angles have already been wrapped
         public boolean contains(double[] ang)
         {
+          if(ang.length == 1) { //a kludge to try to catch pro rotamers, only having the chi1 angle
+            if(ang[0] < bounds[0] || ang[0] > bounds[1]) return false;
+            return true;
+          } else {
             for(int i = 0; i < bounds.length; i+=2)
             {
                 int ii = i / 2;
                 if(ang[ii] < bounds[i] || ang[ii] > bounds[i+1]) return false;
             }
             return true;
+          }
         }
         
         public String getName()

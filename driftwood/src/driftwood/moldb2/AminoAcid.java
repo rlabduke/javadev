@@ -309,6 +309,37 @@ public class AminoAcid //extends ... implements ...
     }
 //}}}
 
+//{{{ isCloserToCis
+//##################################################################################################
+    /**
+    * Indicates whether this residue is closer to cis than trans peptide bond 
+    * to the preceding residue. Mainly for the Ramalyze analysis to divide
+    * the residues into the proper classifications.
+    * This is true iff there is a previous residue and omega, 
+    * Ca(i-1)-C(i-1)-N(i)-Ca(i), is within 30 degrees of 0.
+    * @throws AtomException if a required Atom or AtomState
+    *   cannot be found in the supplied data.
+    */
+    static public boolean isCloserToCis(Model model, Residue res, ModelState state)
+    {
+        Residue prev = res.getPrev(model);
+        if(prev == null) return false;
+        
+        try
+        {
+            AtomState prevCA, prevC, thisN, thisCA;
+            prevCA = state.get( prev.getAtom(" CA ") );
+            prevC  = state.get( prev.getAtom(" C  ") );
+            thisN  = state.get(  res.getAtom(" N  ") );
+            thisCA = state.get(  res.getAtom(" CA ") );
+            double omega = Triple.dihedral(prevCA, prevC, thisN, thisCA);
+            if(omega > -90 && omega < 90) return true;
+            else return false;
+        }
+        catch(AtomException ex) { return false; }
+    }
+//}}}
+
 //{{{ isBackbone, isAminoAcid
 //##################################################################################################
     /** Returns true if this atom, based on its name, is part of the polypeptide backbone. */

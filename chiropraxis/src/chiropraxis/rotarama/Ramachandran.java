@@ -147,7 +147,7 @@ public class Ramachandran //extends ... implements ...
             score = glyTable.valueAt(phipsi);
         else if(name.equals("PRO"))
         {
-            if(AminoAcid.isCisPeptide(model, res, state))
+            if(AminoAcid.isCloserToCis(model, res, state))
                 score = cisproTable.valueAt(phipsi);
             else
                 score = transproTable.valueAt(phipsi);
@@ -180,7 +180,7 @@ public class Ramachandran //extends ... implements ...
         try
         {
             double score = rawScore(model, res, state);
-            if(resType.equals("PRO") && AminoAcid.isCisPeptide(model, res, state))
+            if(resType.equals("PRO") && AminoAcid.isCloserToCis(model, res, state))
             {
                 return (score < CISPRO_ALLOWED);
             }
