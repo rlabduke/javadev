@@ -192,6 +192,16 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
                 // VBO-based rendering path
                 renderer.render(kin, view, bounds, gl, engine);
 
+                // Render toolbox markers/measures (not in VBOs).
+                // Transform only toolbox in physical pixel coords (matching
+                // GL ortho from renderer), then paint via JoglPainter.
+                if(toolbox != null)
+                {
+                    engine.transform(toolbox, view, new Rectangle(this.glSize));
+                    JoglPainter markerPainter = new JoglPainter(drawable);
+                    engine.paintZBuffer(markerPainter);
+                }
+
                 // CPU transform for picking support.
                 // Use logical pixel dims so pick coords match mouse events.
                 engine.transform(this, view, new Rectangle(kCanvasDim));

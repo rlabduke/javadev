@@ -229,6 +229,47 @@ public class Engine2D extends Engine
     { this.transparentBackground = true; }
 //}}}
 
+//{{{ paintZBuffer
+//##################################################################################################
+    /**
+    * Paints the current zbuffer contents using the given painter.
+    * Used for rendering overlay geometry (markers, measures) that was
+    * transformed via transform() but not painted through the normal
+    * render pipeline (e.g. when the VBO renderer handles main geometry).
+    */
+    public void paintZBuffer(Painter p)
+    {
+        this.painter = p;
+        p.setFont(labelFont);
+
+        for(int i = 0; i <= TOP_LAYER; i++)
+        {
+            // No depth cueing for overlay — render at full brightness
+            colorCue = KPaint.COLOR_LEVELS - 1;
+            widthCue = (KPaint.COLOR_LEVELS - 1) / 2;
+
+            ArrayList<KPoint>   zb  = zbuffer[i];
+            ArrayList<KList>    pnt = parents[i];
+            for(int j = 0, end_j = zb.size(); j < end_j; j++)
+            {
+                KPoint pt = zb.get(j);
+                KList  l  = pnt.get(j);
+                if(l == null)
+                {
+                    pt.paint2D(this);
+                }
+                else
+                {
+                    KList oldPnt = pt.getParent();
+                    pt.setParent(l);
+                    pt.paint2D(this);
+                    pt.setParent(oldPnt);
+                }
+            }
+        }
+    }
+//}}}
+
 //{{{ empty_code_segment
 //##################################################################################################
 //}}}
