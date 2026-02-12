@@ -198,36 +198,69 @@ public class JoglCanvas extends JPanel implements GLEventListener, Transformable
                 // Render toolbox markers/measures (not in VBOs).
                 // Transform only toolbox in physical pixel coords (matching
                 // GL ortho from renderer), then paint via JoglPainter.
+                // Disable depth test so markers are always visible (they are
+                // temporary measurement aids drawn with 2D vertices at z=0).
                 if(toolbox != null)
                 {
+                    gl.glDisable(GL.GL_DEPTH_TEST);
                     engine.transform(toolbox, view, new Rectangle(this.glSize));
                     JoglPainter markerPainter = new JoglPainter(drawable);
                     engine.paintZBuffer(markerPainter);
+                    gl.glEnable(GL.GL_DEPTH_TEST);
                 }
 
                 // CPU transform for picking support.
                 // Use logical pixel dims so pick coords match mouse events.
                 engine.transform(this, view, new Rectangle(kCanvasDim));
 
-                // Toolbox overpaint (point IDs, distances, auger circle, etc.)
-                // Render to a transparent overlay image using Java2D
-                // (StandardPainter) for proper font scaling. The image is
-                // painted by Swing after GL finishes (see canvas paintComponent).
-                // No Y-flip needed since this is composited via Swing, not glDrawPixels.
-                if(toolbox != null)
+                // Build overlay image for labels and toolbox overpaint.
+                // Uses Java2D for proper font scaling on HiDPI displays.
+                // Painted by Swing after GL finishes (see canvas paintComponent).
                 {
                     Dimension logicalDim = kCanvasDim;
-                    BufferedImage overpaintImg = new BufferedImage(logicalDim.width, logicalDim.height, BufferedImage.TYPE_INT_ARGB);
-                    Graphics2D g2 = overpaintImg.createGraphics();
-                    StandardPainter overlayPainter = new StandardPainter(true);
-                    overlayPainter.setGraphics(g2);
-                    toolbox.overpaintCanvas(overlayPainter);
-                    g2.dispose();
-                    pendingOverlay = overpaintImg;
-                }
-                else
-                {
-                    pendingOverlay = null;
+                    boolean hasLabels = !renderer.getScreenLabelTexts().isEmpty();
+                    boolean hasOverpaint = (toolbox != null);
+
+                    if(hasLabels || hasOverpaint)
+                    {
+                        BufferedImage overpaintImg = new BufferedImage(logicalDim.width, logicalDim.height, BufferedImage.TYPE_INT_ARGB);
+                        Graphics2D g2 = overpaintImg.createGraphics();
+                        g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+
+                        // Draw kinemage labels (projected to screen space by renderer)
+                        if(hasLabels)
+                        {
+                            Font labelFont = engine.labelFont;
+                            g2.setFont(labelFont);
+                            // Scale from physical pixel coords to logical pixel coords
+                            float scaleX = (float)logicalDim.width  / (float)glSize.width;
+                            float scaleY = (float)logicalDim.height / (float)glSize.height;
+                            ArrayList<int[]>  positions = renderer.getScreenLabelPositions();
+                            ArrayList<String> texts     = renderer.getScreenLabelTexts();
+                            ArrayList<Color>  colors    = renderer.getScreenLabelColors();
+                            for(int i = 0; i < texts.size(); i++)
+                            {
+                                int[] pos = positions.get(i);
+                                g2.setColor(colors.get(i));
+                                g2.drawString(texts.get(i), (int)(pos[0] * scaleX), (int)(pos[1] * scaleY));
+                            }
+                        }
+
+                        // Draw toolbox overpaint (point IDs, distances, etc.)
+                        if(hasOverpaint)
+                        {
+                            StandardPainter overlayPainter = new StandardPainter(true);
+                            overlayPainter.setGraphics(g2);
+                            toolbox.overpaintCanvas(overlayPainter);
+                        }
+
+                        g2.dispose();
+                        pendingOverlay = overpaintImg;
+                    }
+                    else
+                    {
+                        pendingOverlay = null;
+                    }
                 }
             }
             else

@@ -61,10 +61,14 @@ public class JoglRenderer
     ArrayList<int[]> lineDrawCmds = new ArrayList<int[]>();
     ArrayList<int[]> dotDrawCmds  = new ArrayList<int[]>();
 
-    // Label data collected during packing (rendered in a separate pass)
-    ArrayList<float[]>  labelPositions  = new ArrayList<float[]>();  // {x,y,z}
+    // Label data collected during packing, projected to screen coords for Java2D
+    ArrayList<float[]>  labelPositions  = new ArrayList<float[]>();  // {x,y,z} model space
     ArrayList<String>   labelTexts      = new ArrayList<String>();
     ArrayList<float[]>  labelColors     = new ArrayList<float[]>(); // {r,g,b}
+    // Screen-space label data for Java2D rendering (filled after projection)
+    ArrayList<int[]>    screenLabelPositions = new ArrayList<int[]>(); // {sx, sy}
+    ArrayList<String>   screenLabelTexts     = new ArrayList<String>();
+    ArrayList<Color>    screenLabelColors    = new ArrayList<Color>();
 
     // Reusable matrix arrays (column-major for GL)
     float[] mvpMatrix   = new float[16];
@@ -320,10 +324,10 @@ public class JoglRenderer
             gl.glDrawArrays(GL.GL_TRIANGLES, 0, triVertCount);
         }
 
-        // --- Draw labels ---
+        // --- Project labels to screen space for Java2D rendering ---
         if(!labelPositions.isEmpty())
         {
-            drawLabels(gl);
+            projectLabels(bounds.width, bounds.height);
         }
 
         // Cleanup GL state
@@ -775,42 +779,50 @@ public class JoglRenderer
 //{{{ drawLabels
 //##############################################################################
     /**
-    * Draws text labels using fixed-function GL and GLUT bitmap strings.
-    * Labels are drawn after all 3D geometry with depth test disabled.
+    * Projects labels from model space to screen space for Java2D rendering.
+    * This avoids GLUT bitmap fonts which are fixed-size and tiny on HiDPI.
+    * @param viewportWidth  GL viewport width in physical pixels
+    * @param viewportHeight GL viewport height in physical pixels
     */
-    void drawLabels(GL2 gl)
+    void projectLabels(int viewportWidth, int viewportHeight)
     {
-        // Switch to fixed-function for label drawing
-        gl.glUseProgram(0);
+        screenLabelPositions.clear();
+        screenLabelTexts.clear();
+        screenLabelColors.clear();
 
-        // Load our matrices into the fixed-function pipeline
-        gl.glMatrixMode(GL2.GL_PROJECTION);
-        gl.glLoadIdentity();
-        // We'll use the same MVP by loading projection as identity
-        // and modelview as MVP... or better, load them separately.
-        gl.glLoadMatrixf(mvpMatrix, 0);
-        // Actually, MVP = P * MV, so to split: set projection to P and modelview to MV.
-        // But we built MVP as one matrix. Let's just put MVP in projection and identity in MV.
-        gl.glMatrixMode(GL2.GL_MODELVIEW);
-        gl.glLoadIdentity();
-
-        // Disable depth test so labels are always visible
-        gl.glDisable(GL.GL_DEPTH_TEST);
+        float hw = viewportWidth  / 2.0f;
+        float hh = viewportHeight / 2.0f;
 
         for(int i = 0; i < labelPositions.size(); i++)
         {
             float[] pos = labelPositions.get(i);
             float[] col = labelColors.get(i);
-            String text = labelTexts.get(i);
 
-            gl.glColor3f(col[0], col[1], col[2]);
-            gl.glRasterPos3f(pos[0], pos[1], pos[2]);
-            glut.glutBitmapString(GLUT.BITMAP_HELVETICA_12, text);
+            // Transform by MVP: clip = MVP * pos
+            float cx = mvpMatrix[0]*pos[0] + mvpMatrix[4]*pos[1] + mvpMatrix[8]*pos[2]  + mvpMatrix[12];
+            float cy = mvpMatrix[1]*pos[0] + mvpMatrix[5]*pos[1] + mvpMatrix[9]*pos[2]  + mvpMatrix[13];
+            float cw = mvpMatrix[3]*pos[0] + mvpMatrix[7]*pos[1] + mvpMatrix[11]*pos[2] + mvpMatrix[15];
+
+            if(cw == 0) continue; // degenerate
+
+            // NDC
+            float ndcX = cx / cw;
+            float ndcY = cy / cw;
+
+            // Screen coords (viewport transform, Y-down for Java2D)
+            int sx = (int)((ndcX + 1.0f) * hw);
+            int sy = (int)((1.0f - ndcY) * hh);
+
+            screenLabelPositions.add(new int[]{sx, sy});
+            screenLabelTexts.add(labelTexts.get(i));
+            screenLabelColors.add(new Color(col[0], col[1], col[2]));
         }
-
-        // Re-enable depth test and switch back to shader
-        gl.glEnable(GL.GL_DEPTH_TEST);
     }
+
+    /** Returns the projected screen-space label data for Java2D rendering. */
+    public ArrayList<int[]>  getScreenLabelPositions() { return screenLabelPositions; }
+    public ArrayList<String> getScreenLabelTexts()     { return screenLabelTexts; }
+    public ArrayList<Color>  getScreenLabelColors()    { return screenLabelColors; }
 //}}}
 
 //{{{ ensureLineCapacity, ensureDotCapacity, ensureTriCapacity
