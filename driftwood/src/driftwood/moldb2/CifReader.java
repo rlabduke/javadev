@@ -23,7 +23,7 @@ import driftwood.util.SoftLog;
 * <p>Copyright (C) 2004 by Ian W. Davis. All rights reserved.
 * <br>Begun on Wed Jun 16 14:37:06 EDT 2004
 */
-public class CifReader //extends ... implements ...
+public class CifReader implements StarReader.LoopHandler
 {
 //{{{ Constants
 //}}}
@@ -53,13 +53,24 @@ public class CifReader //extends ... implements ...
     List    authAsymId      = null; // required
     List    pdbModelNum     = null; // NOT required, any string
     String  pdbId         = null;
-    
+
     CoordinateFile coordFile = null;
     Map modelMap = null; // maps model names as Strings to Model objects
     Map states; // a Map<Model, Map<String, ModelState>>
     Map resMap = null; // maps res pseudonames as Strings to Residue objects
     int fakeResNumber = 1; // used for waters, etc. that lack residue numbers
     CheapSet stringCache = new CheapSet(); // a map for intern'ing Strings
+
+    StringBuilder resLookupBuf = new StringBuilder(64); // reused per row to avoid allocation
+
+    // Column indices for streaming atom_site processing (-1 = absent)
+    boolean streamingAtomSite = false;
+    int iGroupPdb = -1, iAtomSiteId = -1, iPdbAtomName = -1, iLabelAtomId = -1;
+    int iTypeSymbol = -1, iLabelAltId = -1, iLabelCompId = -1, iLabelAsymId = -1;
+    int iLabelSeqId = -1, iLabelEntityId = -1, iPdbInsCode = -1;
+    int iCartnX = -1, iCartnY = -1, iCartnZ = -1;
+    int iOccupancy = -1, iBIsoOrEquiv = -1, iUIsoOrEquiv = -1;
+    int iAuthSeqId = -1, iAuthAsymId = -1, iPdbModelNum = -1;
 //}}}
 
 //{{{ Constructor(s)
@@ -67,6 +78,210 @@ public class CifReader //extends ... implements ...
     public CifReader()
     {
         super();
+    }
+//}}}
+
+//{{{ accepts (LoopHandler)
+//##############################################################################
+    /** Returns true if this is the atom_site loop and all required columns are present. */
+    public boolean accepts(List columnNames)
+    {
+        if(!columnNames.contains("_atom_site.label_atom_id"))
+            return false;
+
+        // Map column names to indices
+        iGroupPdb    = columnNames.indexOf("_atom_site.group_PDB");
+        iAtomSiteId  = columnNames.indexOf("_atom_site.id");
+        iPdbAtomName = columnNames.indexOf("_atom_site.pdbx_PDB_atom_name");
+        iLabelAtomId = columnNames.indexOf("_atom_site.label_atom_id");
+        iTypeSymbol  = columnNames.indexOf("_atom_site.type_symbol");
+        iLabelAltId  = columnNames.indexOf("_atom_site.label_alt_id");
+        iLabelCompId = columnNames.indexOf("_atom_site.label_comp_id");
+        iLabelAsymId = columnNames.indexOf("_atom_site.label_asym_id");
+        iLabelSeqId  = columnNames.indexOf("_atom_site.label_seq_id");
+        iLabelEntityId = columnNames.indexOf("_atom_site.label_entity_id");
+        iPdbInsCode  = columnNames.indexOf("_atom_site.pdbx_PDB_ins_code");
+        iCartnX      = columnNames.indexOf("_atom_site.Cartn_x");
+        iCartnY      = columnNames.indexOf("_atom_site.Cartn_y");
+        iCartnZ      = columnNames.indexOf("_atom_site.Cartn_z");
+        iOccupancy   = columnNames.indexOf("_atom_site.occupancy");
+        iBIsoOrEquiv = columnNames.indexOf("_atom_site.B_iso_or_equiv");
+        iUIsoOrEquiv = columnNames.indexOf("_atom_site.U_iso_or_equiv");
+        iAuthSeqId   = columnNames.indexOf("_atom_site.auth_seq_id");
+        iAuthAsymId  = columnNames.indexOf("_atom_site.auth_asym_id");
+        iPdbModelNum = columnNames.indexOf("_atom_site.pdbx_PDB_model_num");
+
+        // Verify required columns are present
+        if(iAtomSiteId < 0 || iLabelAtomId < 0 || iTypeSymbol < 0 ||
+           iLabelAltId < 0 || iLabelCompId < 0 || iLabelAsymId < 0 ||
+           iLabelSeqId < 0 || iLabelEntityId < 0 || iCartnX < 0 ||
+           iCartnY < 0 || iCartnZ < 0 || iAuthSeqId < 0 || iAuthAsymId < 0)
+            return false;
+
+        streamingAtomSite = true;
+        return true;
+    }
+//}}}
+
+//{{{ processRow (LoopHandler)
+//##############################################################################
+    /** Processes one atom_site row during streaming. */
+    public void processRow(String[] row)
+    {
+        String modelName = (iPdbModelNum >= 0) ? row[iPdbModelNum] : "1";
+        String rawLabelSeqId = row[iLabelSeqId];
+
+        // Retry loop handles water/ligand atom-name collisions:
+        // when seqId is "." or "?" we use fakeResNumber, and on collision
+        // we bump it and retry (same as the i-- pattern in the DOM path).
+        while(true)
+        {
+            // Model
+            Model model = (Model) modelMap.get(modelName);
+            if(model == null)
+            {
+                modelName = intern(modelName);
+                model = new Model(modelName);
+                modelMap.put(modelName, model);
+                coordFile.add(model);
+            }
+
+            // Residue
+            String asymId = row[iAuthAsymId];
+            String seqId = row[iAuthSeqId];
+            if(".".equals(seqId) || "?".equals(seqId)) seqId = Integer.toString(fakeResNumber);
+            String compId = toUpperIfNeeded(row[iLabelCompId]);
+
+            resLookupBuf.setLength(0);
+            resLookupBuf.append(model.getName()).append('$').append(asymId)
+                .append('$').append(seqId).append('$').append(compId);
+            String resLookup = resLookupBuf.toString();
+            Residue res = (Residue) resMap.get(resLookup);
+            if(res == null)
+            {
+                String insCode = " ";
+                if(iPdbInsCode >= 0)
+                {
+                    insCode = row[iPdbInsCode];
+                    if(".".equals(insCode) || "?".equals(insCode) || insCode.length() == 0) insCode = " ";
+                }
+                res = new Residue(intern(asymId), "", intern(seqId), intern(insCode), intern(compId));
+                resMap.put(resLookup, res);
+                try { model.add(res); }
+                catch(ResidueException ex) { ex.printStackTrace(); }
+            }
+
+            // Atom name
+            String atomName = getAtomNameFromRow(row);
+
+            // Atom
+            Atom atom = res.getAtom(atomName);
+            if(atom == null)
+            {
+                String elem = null;
+                if(iTypeSymbol >= 0)
+                {
+                    String ts = toUpperIfNeeded(row[iTypeSymbol]);
+                    elem = getElement(ts);
+                    if(elem == null && ts.length() > 2) elem = getElement(ts.substring(0,2));
+                    if(elem == null && ts.length() > 1) elem = getElement(ts.substring(0,1));
+                }
+                if(elem == null) elem = getElement(atomName.substring(0,2));
+                if(elem == null) elem = getElement(atomName.substring(1,2));
+                if(elem == null) elem = "XX";
+
+                boolean isHet = (iGroupPdb >= 0) && "HETATM".equals(row[iGroupPdb]);
+                atom = new Atom(intern(atomName), elem, isHet);
+                try { res.add(atom); }
+                catch(AtomException ex) { ex.printStackTrace(); }
+            }
+
+            // AtomState
+            AtomState as = new AtomState(atom, intern(row[iAtomSiteId]));
+            if(iLabelAltId >= 0)
+            {
+                String altId = row[iLabelAltId];
+                if(".".equals(altId) || "?".equals(altId) || altId.length() == 0) altId = " ";
+                as.setAltConf(intern(altId));
+            }
+            try { as.setX(fastParseDouble(row[iCartnX])); } catch(NumberFormatException ex) {}
+            try { as.setY(fastParseDouble(row[iCartnY])); } catch(NumberFormatException ex) {}
+            try { as.setZ(fastParseDouble(row[iCartnZ])); } catch(NumberFormatException ex) {}
+            if(iOccupancy >= 0)
+            {
+                try { as.setOccupancy(fastParseDouble(row[iOccupancy])); } catch(NumberFormatException ex) {}
+            }
+            if(iBIsoOrEquiv >= 0)
+            {
+                try { as.setTempFactor(fastParseDouble(row[iBIsoOrEquiv])); } catch(NumberFormatException ex) {}
+            }
+            else if(iUIsoOrEquiv >= 0)
+            {
+                try { as.setTempFactor(8 * Math.PI * Math.PI * fastParseDouble(row[iUIsoOrEquiv])); } catch(NumberFormatException ex) {}
+            }
+
+            // ModelState
+            ModelState ms = makeState(model, as.getAltConf());
+
+            // Water/ligand collision check: use label_seq_id (not auth_seq_id)
+            if(ms.hasState(atom) && (".".equals(rawLabelSeqId) || "?".equals(rawLabelSeqId)))
+            {
+                fakeResNumber++;
+                continue; // retry with new fakeResNumber
+            }
+
+            try { ms.add(as); }
+            catch(AtomException ex) {
+                System.err.println(pdbId+" "+model.toString()+" modelstate already contains a state for "+as.toString());
+            }
+            break; // done processing this row
+        }
+    }
+//}}}
+
+//{{{ getAtomNameFromRow
+//##############################################################################
+    /** Constructs a PDB-style 4-char atom name from a streaming row. */
+    private String getAtomNameFromRow(String[] row)
+    {
+        if(iPdbAtomName >= 0)
+        {
+            String atomName = row[iPdbAtomName];
+            if(atomName.length() == 4) return atomName;
+        }
+
+        String atomName = row[iLabelAtomId];
+        int len = atomName.length();
+        if(len < 1) return "    ";
+        else if(len == 1) return " "+atomName+"  ";
+        else if(len == 2)
+        {
+            if(!Character.isLetter(atomName.charAt(0)))
+                return atomName+"  ";
+            else if(!Character.isLetter(atomName.charAt(1)))
+                return " "+atomName+" ";
+            else if(iTypeSymbol >= 0 && row[iTypeSymbol].length() == 1)
+                return " "+atomName+" ";
+            else if(iGroupPdb >= 0 && "HETATM".equals(row[iGroupPdb]))
+                return atomName+"  ";
+            else
+                return " "+atomName+" ";
+        }
+        else if(len == 3)
+        {
+            if(!Character.isLetter(atomName.charAt(0)))
+                return atomName+" ";
+            else if(!Character.isLetter(atomName.charAt(1)))
+                return " "+atomName;
+            else if(iTypeSymbol >= 0 && row[iTypeSymbol].length() == 1)
+                return " "+atomName;
+            else if(iGroupPdb >= 0 && "HETATM".equals(row[iGroupPdb]))
+                return atomName+" ";
+            else
+                return " "+atomName;
+        }
+        else if(len == 4) return atomName;
+        else return atomName.substring(0, 4);
     }
 //}}}
 
@@ -115,8 +330,51 @@ public class CifReader //extends ... implements ...
     {
         try
         {
-            StarFile starFile = new StarReader().parse(new LineNumberReader(r));
-            return read(starFile);
+            // Initialize state for streaming atom_site processing
+            this.coordFile  = new CoordinateFile();
+            this.modelMap   = new HashMap();
+            this.states     = new HashMap();
+            this.resMap     = new HashMap();
+            this.fakeResNumber = 1;
+            this.stringCache.clear();
+            this.streamingAtomSite = false;
+
+            StarReader reader = new StarReader();
+            reader.setLoopHandler(this);
+            StarFile starFile = reader.parse(new LineNumberReader(r));
+
+            if(streamingAtomSite)
+            {
+                // atom_site was processed via streaming — get metadata from DOM
+                Iterator dataBlocks = starFile.getDataBlockNames().iterator();
+                if(dataBlocks.hasNext())
+                {
+                    DataBlock db = starFile.getDataBlock((String)dataBlocks.next());
+                    pdbId = db.getSingleItem("_entry.id");
+                    coordFile.setSecondaryStructure(new CifSecondaryStructure(db));
+                    if(pdbId != null) coordFile.setIdCode(pdbId);
+                }
+
+                // Fill in states for all models
+                for(Iterator iter = coordFile.getModels().iterator(); iter.hasNext(); )
+                {
+                    Model m = (Model) iter.next();
+                    m.setStates((Map) states.get(m));
+                    try { m.fillInStates(false); }
+                    catch(AtomException ex)
+                    {
+                        SoftLog.err.println("Unable to find states for all atoms in model!");
+                        ex.printStackTrace(SoftLog.err);
+                    }
+                }
+
+                return coordFile;
+            }
+            else
+            {
+                // atom_site was not streamed — fall back to DOM-based processing
+                return read(starFile);
+            }
         }
         catch(java.text.ParseException ex)
         {
@@ -316,7 +574,7 @@ public class CifReader //extends ... implements ...
         String seqId = (String) authSeqId.get(i);
         if(".".equals(seqId) || "?".equals(seqId)) seqId = Integer.toString(fakeResNumber);
         // Residue names are case-insensitive, so we convert to uppercase.
-        String compId = ((String) labelCompId.get(i)).toUpperCase();
+        String compId = toUpperIfNeeded((String) labelCompId.get(i));
         
         String resLookup = m.getName()+"$"+asymId+"$"+seqId+"$"+compId;
         Residue r = (Residue) resMap.get(resLookup);
@@ -465,6 +723,80 @@ public class CifReader //extends ... implements ...
     }
 //}}}
 
+//{{{ fastParseDouble
+//##############################################################################
+    /** Pre-computed powers of 10 for fast decimal parsing. */
+    static final double[] POW10 = {1, 10, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10};
+
+    /**
+    * Fast double parser for simple decimal numbers (common in CIF files).
+    * Handles "12.345", "-0.123", "42", etc. in a tight loop with no
+    * exception handling overhead. Falls back to Double.parseDouble for
+    * anything unusual (scientific notation, hex, NaN, etc.).
+    */
+    static double fastParseDouble(String s)
+    {
+        int len = s.length();
+        if(len == 0) return Double.parseDouble(s); // will throw NFE
+
+        int pos = 0;
+        boolean negative = false;
+        char c = s.charAt(0);
+        if(c == '-')      { negative = true; pos++; }
+        else if(c == '+') { pos++; }
+
+        long mantissa = 0;
+        int decimalPos = -1;
+        boolean hasDigit = false;
+
+        for(; pos < len; pos++)
+        {
+            c = s.charAt(pos);
+            if(c >= '0' && c <= '9')
+            {
+                mantissa = mantissa * 10 + (c - '0');
+                hasDigit = true;
+            }
+            else if(c == '.' && decimalPos < 0)
+            {
+                decimalPos = pos;
+            }
+            else
+            {
+                // Scientific notation, special values, etc.
+                return Double.parseDouble(s);
+            }
+        }
+
+        if(!hasDigit) return Double.parseDouble(s); // will throw NFE for "?" or "."
+
+        double result = (double) mantissa;
+        if(decimalPos >= 0)
+        {
+            int decimalPlaces = len - decimalPos - 1;
+            if(decimalPlaces > 0 && decimalPlaces < POW10.length)
+                result /= POW10[decimalPlaces];
+            else if(decimalPlaces > 0)
+                result /= Math.pow(10, decimalPlaces);
+        }
+        return negative ? -result : result;
+    }
+//}}}
+
+//{{{ toUpperCase
+//##############################################################################
+    /** Returns the string in uppercase, reusing the original if already uppercase. */
+    static String toUpperIfNeeded(String s)
+    {
+        for(int i = 0, len = s.length(); i < len; i++)
+        {
+            if(s.charAt(i) != Character.toUpperCase(s.charAt(i)))
+                return s.toUpperCase();
+        }
+        return s; // already uppercase, no allocation needed
+    }
+//}}}
+
 //{{{ buildAtomState
 //##############################################################################
     /** Creates an AtomState object for the specified line */
@@ -481,34 +813,34 @@ public class CifReader //extends ... implements ...
         }
         if(cartnX != null)
         {
-            try { as.setX(Double.parseDouble((String) cartnX.get(i))); }
+            try { as.setX(fastParseDouble((String) cartnX.get(i))); }
             catch(NumberFormatException ex) {}
         }
         if(cartnY != null)
         {
-            try { as.setY(Double.parseDouble((String) cartnY.get(i))); }
+            try { as.setY(fastParseDouble((String) cartnY.get(i))); }
             catch(NumberFormatException ex) {}
         }
         if(cartnZ != null)
         {
-            try { as.setZ(Double.parseDouble((String) cartnZ.get(i))); }
+            try { as.setZ(fastParseDouble((String) cartnZ.get(i))); }
             catch(NumberFormatException ex) {}
         }
         if(occupancy != null)
         {
-            try { as.setOccupancy(Double.parseDouble((String) occupancy.get(i))); }
+            try { as.setOccupancy(fastParseDouble((String) occupancy.get(i))); }
             catch(NumberFormatException ex) {}
         }
-        
-        
+
+
         if(bIsoOrEquiv != null)
         {
-            try { as.setTempFactor(Double.parseDouble((String) bIsoOrEquiv.get(i))); }
+            try { as.setTempFactor(fastParseDouble((String) bIsoOrEquiv.get(i))); }
             catch(NumberFormatException ex) {}
         }
         else if(uIsoOrEquiv != null)
         {
-            try { as.setTempFactor(8 * Math.PI * Math.PI * Double.parseDouble((String) uIsoOrEquiv.get(i))); }
+            try { as.setTempFactor(8 * Math.PI * Math.PI * fastParseDouble((String) uIsoOrEquiv.get(i))); }
             catch(NumberFormatException ex) {}
         }
         

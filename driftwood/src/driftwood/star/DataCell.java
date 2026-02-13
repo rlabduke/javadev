@@ -153,6 +153,13 @@ public class DataCell //extends ... implements ...
         String[] data = (String[]) itemValues.toArray(new String[itemValues.size()]);
         items.put(itemName, new FinalArrayList(data));
     }
+
+    /** Replaces the previous item of the same name, wrapping the array as an immutable list. */
+    public void putItem(String itemName, String[] itemValues)
+    {
+        keys.remove(itemName);
+        items.put(itemName, new FinalArrayList(itemValues));
+    }
     
     /** Inserts the new item after the reference item or at the end of the list. */
     public void putItemAfter(String refItem, String itemName, String itemValue)

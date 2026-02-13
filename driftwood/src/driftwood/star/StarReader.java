@@ -25,12 +25,31 @@ public class StarReader //extends ... implements ...
 //{{{ Constants
 //}}}
 
+//{{{ LoopHandler
+//##############################################################################
+    /**
+    * Optional callback for streaming loop processing.
+    * When a LoopHandler is set and accepts a loop (based on its column names),
+    * rows are delivered one at a time via processRow() instead of being
+    * accumulated into the DOM. This avoids storing millions of strings
+    * for large loops like atom_site.
+    */
+    public interface LoopHandler
+    {
+        /** Return true if this handler wants to stream this loop. */
+        boolean accepts(List columnNames);
+        /** Called once for each complete row. The array is reused between calls. */
+        void processRow(String[] values);
+    }
+//}}}
+
 //{{{ Variable definitions
 //##############################################################################
     LineNumberReader    input   = null;
     StarTokenizer       token   = null;
     StarFile            dom     = null;
     double              percentMemFree;
+    LoopHandler         loopHandler = null;
 //}}}
 
 //{{{ Constructor(s)
@@ -39,6 +58,12 @@ public class StarReader //extends ... implements ...
     {
         super();
         percentMemFree = 0.4;
+    }
+
+    /** Sets a handler for streaming loop processing. */
+    public void setLoopHandler(LoopHandler handler)
+    {
+        this.loopHandler = handler;
     }
 //}}}
 
@@ -173,87 +198,101 @@ public class StarReader //extends ... implements ...
         if(names.size() == 0)
             throw new ParseException("[line "+(input.getLineNumber()+1)+"] "
             +"No data names declared for loop_ (0 columns)", input.getLineNumber()+1);
-            
-        Runtime runtime = Runtime.getRuntime();
-        
-        long maxMemory = runtime.maxMemory();
-        long allocatedMemory = runtime.totalMemory();
-        long freeMemory = runtime.freeMemory();
-        long totalFree = (freeMemory + (maxMemory - allocatedMemory));            
-        
-        //System.out.println((double)totalFree/(double)maxMemory + " " +percentMemFree);
-        
-        List[] values = new List[names.size()];
-        for(int i = 0; i < values.length; i++) values[i] = new ArrayList();
-        
-        int row = 0, col = 0;
-        while(!token.isEOF() && !token.isLoopEnd() && token.isValue()&&((double)totalFree/(double)maxMemory > percentMemFree))
-        {
 
-          //System.out.println(totalFree);
-          
+        int numCols = names.size();
+
+        // Streaming path: if a LoopHandler accepts this loop, deliver rows
+        // one at a time instead of accumulating them into the DOM.
+        if(loopHandler != null && loopHandler.accepts(names))
+        {
+            String[] rowBuffer = new String[numCols];
+            int row = 0, col = 0;
+            while(!token.isEOF() && !token.isLoopEnd() && token.isValue())
+            {
+                rowBuffer[col] = token.getString();
+                token.advance();
+                col++;
+                if(col == numCols)
+                {
+                    loopHandler.processRow(rowBuffer);
+                    col = 0;
+                    row++;
+                }
+            }
+            if(token.isLoopEnd()) token.advance();
+            if(col != 0)
+                throw new ParseException("[line "+(input.getLineNumber()+1)+"] "
+                +"Not enough values to complete row "+(row+1)+" in loop_", input.getLineNumber()+1);
+            if(row == 0)
+                throw new ParseException("[line "+(input.getLineNumber()+1)+"] "
+                +"No data values declared for loop_ (0 rows)", input.getLineNumber()+1);
+            return;
+        }
+
+        // DOM path: accumulate all values into lists.
+        Runtime runtime = Runtime.getRuntime();
+
+        List[] values = new List[numCols];
+        for(int i = 0; i < numCols; i++) values[i] = new ArrayList(4096);
+
+        // Check memory periodically (every 10000 tokens) instead of every token,
+        // to avoid millions of expensive native Runtime calls in the tight loop.
+        boolean memoryOk = true;
+        int row = 0, col = 0, tokenCount = 0;
+        while(!token.isEOF() && !token.isLoopEnd() && token.isValue() && memoryOk)
+        {
             values[col].add(token.getString());
             token.advance();
             col++;
-            if(col % values.length == 0)
+            if(col == numCols)
             {
                 col = 0;
                 row++;
             }
-            allocatedMemory = runtime.totalMemory();
-            freeMemory = runtime.freeMemory();
-            totalFree = (freeMemory + (maxMemory - allocatedMemory));
+            tokenCount++;
+            if(tokenCount % 10000 == 0)
+            {
+                long free = runtime.freeMemory() + (runtime.maxMemory() - runtime.totalMemory());
+                memoryOk = ((double)free / (double)runtime.maxMemory() > percentMemFree);
+            }
         }
-        if (!((double)totalFree/(double)maxMemory > percentMemFree)) {
-          //throw new PartialFileException("Cif file too large, aborting at [line "+(input.getLineNumber()+1)+"] ");
-          //SoftLog.err.println("Cif file too large, aborting read");
+        if (!memoryOk) {
+          // Finish current row so we have complete data
           while (row == 0 || col != 0) {
             values[col].add(token.getString());
             token.advance();
             col++;
-            if(col % values.length == 0)
+            if(col == numCols)
             {
                 col = 0;
                 row++;
             }
           }
+          // Skip remaining tokens in this loop
           while(!token.isEOF() && !token.isLoopEnd() && token.isValue()) {
             token.advance();
           }
-          allocatedMemory = runtime.totalMemory();
-          freeMemory = runtime.freeMemory();
-          totalFree = (freeMemory + (maxMemory - allocatedMemory));
-          percentMemFree = (double)totalFree/(double)maxMemory - 0.04;
-
-          //coordFile.remove(model);
-          //model = null; 
+          long free = runtime.freeMemory() + (runtime.maxMemory() - runtime.totalMemory());
+          percentMemFree = (double)free / (double)runtime.maxMemory() - 0.04;
         }
         // Skip the meaningless stop_ token if any (NMR-STAR)
         if(token.isLoopEnd()) token.advance();
-        
+
         if(col != 0)
         {
-            /* debugging * /
-            for(int j = 0; j < row; j++)
-            {
-                for(int i = 0; i < values.length; i++)
-                    System.err.print(values[i].get(j)+" ");
-                System.err.println();
-            }
-            System.err.println("-----");
-            for(int i = 0; i < col; i++)
-                System.err.println(values[i].get(row));
-            /* debugging */
             throw new ParseException("[line "+(input.getLineNumber()+1)+"] "
             +"Not enough values to complete row "+(row+1)+" in loop_", input.getLineNumber()+1);
         }
         if(row == 0)
             throw new ParseException("[line "+(input.getLineNumber()+1)+"] "
             +"No data values declared for loop_ (0 rows)", input.getLineNumber()+1);
-        
+
         for(int i = 0; i < names.size(); i++)
-            cell.putItem((String)names.get(i), values[i]);
-        //System.out.println("done with loop");
+        {
+            String[] arr = (String[]) values[i].toArray(new String[values[i].size()]);
+            cell.putItem((String)names.get(i), arr);
+            values[i] = null; // release ArrayList for GC
+        }
     }
 //}}}
 
