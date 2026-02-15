@@ -1,5 +1,6 @@
 <!-- (jEdit options) :folding=explicit:collapseFolds=1: -->
-<project name="king" default="dist" basedir=".">
+<project name="king" default="dist" basedir="."
+         xmlns:if="ant:if" xmlns:unless="ant:unless">
 <description>KiNG kinemage viewer</description>
 
 <!-- global properties that we always want defined {{{ -->
@@ -8,6 +9,22 @@
 <property name="build"      location="build"/>
 <property name="dist"       location="dist"/>
 <property name="javadev"    location=".."/>
+<!-- macOS code signing: set these via -D flags or a local properties file.
+     mac.sign.identity  = full codesign identity for native binaries
+     mac.sign.key-user-name = name portion for jpackage (after "Developer ID Application: ")
+     Example: ant -Dmac.sign.identity="Developer ID Application: Your Name (TEAMID)"
+              -Dmac.sign.key-user-name="Your Name (TEAMID)"
+              -Dmac.notarize.apple-id="you@duke.edu"
+              -Dmac.notarize.team-id="TEAMID"
+              -Dmac.notarize.password="@keychain:AC_PASSWORD"
+              jpackage-mac -->
+<property name="mac.sign.identity"          value=""/>
+<property name="mac.sign.key-user-name"     value=""/>
+<property name="mac.notarize.apple-id"      value=""/>
+<property name="mac.notarize.team-id"       value=""/>
+<property name="mac.notarize.password"      value=""/>
+<property name="mac.entitlements"           value="${basedir}/KiNG.entitlements"/>
+<property name="mac.bundle.id"              value="edu.duke.biochem.king"/>
 <!-- Version control: creates timestamp, updates ${buildnum}, loads ${version} -->
 <target name="init">
     <tstamp>
@@ -20,6 +37,13 @@
     <property file="${resource}/${ant.project.name}/version.props"/>
     <!-- jpackage requires numeric-only versions (e.g. 2.25.0), so allow override -->
     <property name="jpackage.version" value="${version}"/>
+    <!-- mac.do.sign is set only when a signing identity has been provided -->
+    <condition property="mac.do.sign">
+        <and>
+            <isset property="mac.sign.identity"/>
+            <not><equals arg1="${mac.sign.identity}" arg2=""/></not>
+        </and>
+    </condition>
     <!-- Conditional, platform-specific compilation -->
     <!--<condition property="isMacOSX">
         <and>
@@ -259,7 +283,14 @@
     <zip destfile="${dist}/king.${version}.${DSTAMP_SIX}.win64.zip" basedir="${dist}/${ant.project.name}-${version}/"/>
 </target>
 
+<!-- jpackage-mac: builds .app bundle in a DMG {{{ -->
+<!-- If mac.sign.identity is provided: builds an unsigned app-image, signs
+     it with codesign (so the signature survives DMG creation), then packages
+     into a DMG.  Without it, builds an unsigned DMG directly.
+     Run notarize-mac afterwards to submit the DMG to Apple. -->
 <target name="jpackage-mac" depends="init,build,jpackage-base">
+    <echo if:set="mac.do.sign" message="Code signing ENABLED (${mac.sign.identity})"/>
+    <echo unless:set="mac.do.sign" message="Code signing disabled (no mac.sign.identity set)"/>
     <copy todir="plugins/" preservelastmodified="true">
         <fileset dir="${javadev}/lib/jogl2.6/">
             <include name="*.jar"/>
@@ -271,7 +302,58 @@
     <exec executable="cp" failonerror="true">
         <arg line="${javadev}/lib/rlab/mac/suitename plugins/"/>
     </exec>
-    <exec executable="jpackage">
+
+    <!-- === SIGNED BUILD: app-image → codesign → DMG === -->
+
+    <!-- Step 1: build unsigned app-image (no DMG yet) -->
+    <exec executable="jpackage" if:set="mac.do.sign" failonerror="true">
+        <arg value="--type"/>
+        <arg value="app-image"/>
+        <arg line="--input plugins/"/>
+        <arg line="--name KiNG"/>
+        <arg value="--verbose"/>
+        <arg line="--app-version ${jpackage.version}"/>
+        <arg value="--description"/>
+        <arg value="Kinemage next generation viewer"/>
+        <arg line="--icon ${resource}/king/images/KiNG.icns"/>
+        <arg line="--main-jar king.jar"/>
+        <arg value="--vendor"/>
+        <arg value="Richardson Lab"/>
+        <arg line="--dest ${dist}/${ant.project.name}-${version}/"/>
+        <arg line="--mac-package-identifier ${mac.bundle.id}"/>
+        <arg line="--mac-package-name KiNG"/>
+    </exec>
+
+    <!-- Step 2: Sign ALL binaries individually for notarization.
+         codesign with deep does not reach inside JAR files and misses
+         nested JRE binaries.  sign-app.sh handles everything:
+         JOGL dylibs inside JARs, JRE dylibs, probe/suitename, launcher,
+         and the overall .app bundle.  Also verifies when done. -->
+    <exec executable="bash" if:set="mac.do.sign" failonerror="true">
+        <arg value="${basedir}/sign-app.sh"/>
+        <arg value="${dist}/${ant.project.name}-${version}/KiNG.app"/>
+        <arg value="${mac.sign.identity}"/>
+        <arg value="${mac.entitlements}"/>
+    </exec>
+
+    <!-- Step 3: create DMG from the signed app-image.
+         hdiutil create -srcfolder hits "Resource busy" on signed .app bundles,
+         so we create an empty DMG, mount it, copy the .app in, unmount,
+         then convert to compressed read-only format. -->
+    <exec executable="bash" if:set="mac.do.sign" failonerror="true">
+        <arg value="-c"/>
+        <arg value="set -e; hdiutil create -size 500m -fs HFS+ -volname KiNG /tmp/KiNG-rw-$$.dmg; hdiutil attach /tmp/KiNG-rw-$$.dmg -mountpoint /tmp/KiNG-mount-$$; cp -Rp '${dist}/${ant.project.name}-${version}/KiNG.app' /tmp/KiNG-mount-$$/KiNG.app; hdiutil detach /tmp/KiNG-mount-$$; hdiutil convert /tmp/KiNG-rw-$$.dmg -format UDZO -o '${dist}/${ant.project.name}-${version}/KiNG-${jpackage.version}.dmg'; rm -f /tmp/KiNG-rw-$$.dmg"/>
+    </exec>
+
+    <!-- Step 4: sign the DMG itself -->
+    <exec executable="codesign" if:set="mac.do.sign" failonerror="true">
+        <arg value="--sign"/>
+        <arg value="${mac.sign.identity}"/>
+        <arg value="${dist}/${ant.project.name}-${version}/KiNG-${jpackage.version}.dmg"/>
+    </exec>
+
+    <!-- === UNSIGNED BUILD: single jpackage step (same as before) === -->
+    <exec executable="jpackage" unless:set="mac.do.sign" failonerror="true">
         <arg line="--input plugins/"/>
         <arg line="--name KiNG"/>
         <arg value="--verbose"/>
@@ -285,8 +367,40 @@
         <arg line="--license-file ./LICENSE.txt"/>
         <arg line="--dest ${dist}/${ant.project.name}-${version}/"/>
     </exec>
+
     <copy file="${dist}/${ant.project.name}-${version}/KiNG-${jpackage.version}.dmg" tofile="${dist}/${ant.project.name}-${version}/king.${version}.${DSTAMP_SIX}.macosx.dmg" preservelastmodified="true"/>
 </target>
+<!-- }}} -->
+
+<!-- notarize-mac: submits the DMG to Apple and staples the ticket {{{ -->
+<!-- Run after jpackage-mac.  Requires mac.notarize.* properties to be set.
+     The password can be an app-specific password stored in Keychain:
+       xcrun notarytool store-credentials "AC_PASSWORD"
+     Then pass -Dmac.notarize.password="@keychain:AC_PASSWORD" -->
+<target name="notarize-mac" depends="init">
+    <property name="dmg.path" value="${dist}/${ant.project.name}-${version}/king.${version}.${DSTAMP_SIX}.macosx.dmg"/>
+    <echo message="Submitting ${dmg.path} for notarization..."/>
+    <exec executable="xcrun" failonerror="true">
+        <arg value="notarytool"/>
+        <arg value="submit"/>
+        <arg value="${dmg.path}"/>
+        <arg value="--apple-id"/>
+        <arg value="${mac.notarize.apple-id}"/>
+        <arg value="--team-id"/>
+        <arg value="${mac.notarize.team-id}"/>
+        <arg value="--password"/>
+        <arg value="${mac.notarize.password}"/>
+        <arg value="--wait"/>
+    </exec>
+    <echo message="Stapling notarization ticket..."/>
+    <exec executable="xcrun" failonerror="true">
+        <arg value="stapler"/>
+        <arg value="staple"/>
+        <arg value="${dmg.path}"/>
+    </exec>
+    <echo message="Done. ${dmg.path} is signed and notarized."/>
+</target>
+<!-- }}} -->
 
 
 <target name="jpackage-nix" depends="init,build,jpackage-base">
