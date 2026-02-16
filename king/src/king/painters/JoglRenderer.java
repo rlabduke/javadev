@@ -525,54 +525,108 @@ public class JoglRenderer
         // Triangle/ribbon lists use strip format: each new point after the first two
         // forms a triangle with the previous two points.
         // Breaks restart the strip.
-        KPoint from = null, fromfrom = null;
-        boolean flipNormal = false;
-        double prevNx = 0, prevNy = 0, prevNz = 1;
+        //
+        // Two-pass approach for smooth normals:
+        // 1. Collect visible points into strips (broken by isBreak())
+        // 2. For each strip, compute face normals, average into vertex normals, emit
+
+        java.util.List<java.util.List<KPoint>> strips = new ArrayList<java.util.List<KPoint>>();
+        java.util.List<KPoint> currentStrip = new ArrayList<KPoint>();
 
         for(KPoint pt : list.getChildren())
         {
             if(pt.isBreak())
             {
-                from = fromfrom = null;
-                flipNormal = false;
+                if(currentStrip.size() >= 3) strips.add(currentStrip);
+                currentStrip = new java.util.ArrayList<KPoint>();
             }
 
             KPaint paint = pt.getDrawingColor(engine);
             if(paint.isInvisible()) continue;
 
-            if(from != null && fromfrom != null)
+            currentStrip.add(pt);
+        }
+        if(currentStrip.size() >= 3) strips.add(currentStrip);
+
+        // Process each strip with smooth normals
+        for(java.util.List<KPoint> strip : strips)
+        {
+            int n = strip.size();
+            int numFaces = n - 2;
+
+            // Compute face normals for all triangles in the strip
+            double[] faceNx = new double[numFaces];
+            double[] faceNy = new double[numFaces];
+            double[] faceNz = new double[numFaces];
+
+            for(int i = 0; i < numFaces; i++)
             {
-                // Compute face normal: cross(fromfrom->from, from->pt)
-                double ax = from.getX() - fromfrom.getX();
-                double ay = from.getY() - fromfrom.getY();
-                double az = from.getZ() - fromfrom.getZ();
-                double bx = pt.getX() - from.getX();
-                double by = pt.getY() - from.getY();
-                double bz = pt.getZ() - from.getZ();
+                KPoint p0 = strip.get(i);
+                KPoint p1 = strip.get(i + 1);
+                KPoint p2 = strip.get(i + 2);
+
+                double ax = p1.getX() - p0.getX();
+                double ay = p1.getY() - p0.getY();
+                double az = p1.getZ() - p0.getZ();
+                double bx = p2.getX() - p1.getX();
+                double by = p2.getY() - p1.getY();
+                double bz = p2.getZ() - p1.getZ();
                 double nx = ay*bz - az*by;
                 double ny = az*bx - ax*bz;
                 double nz = ax*by - ay*bx;
                 double len = Math.sqrt(nx*nx + ny*ny + nz*nz);
                 if(len > 0) { nx /= len; ny /= len; nz /= len; }
 
-                // Alternate triangles need flipped normals for consistent facing
-                if(flipNormal) { nx = -nx; ny = -ny; nz = -nz; }
-                prevNx = nx; prevNy = ny; prevNz = nz;
+                // Flip odd triangles for consistent winding
+                if(i % 2 != 0) { nx = -nx; ny = -ny; nz = -nz; }
 
+                faceNx[i] = nx;
+                faceNy[i] = ny;
+                faceNz[i] = nz;
+            }
+
+            // Compute smooth vertex normals by averaging adjacent face normals.
+            // Vertex v participates in faces max(0, v-2) through min(numFaces-1, v).
+            double[] vertNx = new double[n];
+            double[] vertNy = new double[n];
+            double[] vertNz = new double[n];
+
+            for(int v = 0; v < n; v++)
+            {
+                double snx = 0, sny = 0, snz = 0;
+                int fStart = Math.max(0, v - 2);
+                int fEnd = Math.min(numFaces - 1, v);
+                for(int f = fStart; f <= fEnd; f++)
+                {
+                    snx += faceNx[f];
+                    sny += faceNy[f];
+                    snz += faceNz[f];
+                }
+                double len = Math.sqrt(snx*snx + sny*sny + snz*snz);
+                if(len > 0) { snx /= len; sny /= len; snz /= len; }
+                vertNx[v] = snx;
+                vertNy[v] = sny;
+                vertNz[v] = snz;
+            }
+
+            // Emit triangles with smooth vertex normals
+            for(int i = 0; i < numFaces; i++)
+            {
                 ensureTriCapacity(3);
 
-                // Emit three vertices for this triangle
-                KPoint[] verts = {fromfrom, from, pt};
-                for(KPoint v : verts)
+                int[] idx = {i, i + 1, i + 2};
+                for(int j = 0; j < 3; j++)
                 {
+                    int vi = idx[j];
+                    KPoint v = strip.get(vi);
                     KPaint vp = v.getDrawingColor(engine);
                     Color c = whiteBg ? vp.getWhiteExemplar() : vp.getBlackExemplar();
                     triVerts.put((float)v.getX());
                     triVerts.put((float)v.getY());
                     triVerts.put((float)v.getZ());
-                    triVerts.put((float)nx);
-                    triVerts.put((float)ny);
-                    triVerts.put((float)nz);
+                    triVerts.put((float)vertNx[vi]);
+                    triVerts.put((float)vertNy[vi]);
+                    triVerts.put((float)vertNz[vi]);
                     triVerts.put(c.getRed()   / 255.0f);
                     triVerts.put(c.getGreen() / 255.0f);
                     triVerts.put(c.getBlue()  / 255.0f);
@@ -580,10 +634,6 @@ public class JoglRenderer
                 }
                 triVertCount += 3;
             }
-
-            fromfrom = from;
-            from = pt;
-            flipNormal = !flipNormal;
         }
     }
 //}}}
