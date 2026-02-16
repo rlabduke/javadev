@@ -264,6 +264,11 @@ public class JoglRenderer
         float fogB = whiteBg ? 1.0f : 0.0f;
 
         // --- Pack geometry ---
+        // Clear screen-space labels unconditionally so stale labels from a
+        // previous kinemage don't persist when the new one has no labels.
+        screenLabelPositions.clear();
+        screenLabelTexts.clear();
+        screenLabelColors.clear();
         packGeometry(kin, engine);
 
         // --- GL state setup ---
@@ -369,13 +374,14 @@ public class JoglRenderer
         labelColors.clear();
 
         boolean whiteBg = engine.whiteBackground;
+        boolean thinLines = engine.thinLines;
 
         for(KList list : KIterator.visibleLists(kin))
         {
             String type  = list.getType();
             int listAlpha = list.getAlpha();
             float alpha   = listAlpha / 255.0f;
-            int listWidth = list.getWidth();
+            int listWidth = thinLines ? 1 : list.getWidth();
 
             if(type.equals(KList.VECTOR))
             {
