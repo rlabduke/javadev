@@ -64,6 +64,7 @@ public class GroupEditor implements ChangeListener
     JTextField       liName;
     JCheckBox        liIsOff, liNoButton, liNoHilite;
     JTextField       liWidth, liRadius, liAlpha;
+    JLabel           liWidthLabel, liRadiusLabel;
     JList            liMasters;
     DefaultListModel liMastersModel;
     JButton          liAddMaster, liRemoveMasters, liRibbonFlip;
@@ -288,11 +289,11 @@ public class GroupEditor implements ChangeListener
         liRibbonFlip = new JButton(new ReflectiveAction("Flip Ribbon", null, this, "onRibbonFlip"));	// (ARK Spring2010) 
      
         liWidth     = new JTextField(6);
-        JLabel widthLabel = new JLabel("Line width:");
-        widthLabel.setLabelFor(liWidth);
+        liWidthLabel = new JLabel("Line width:");
+        liWidthLabel.setLabelFor(liWidth);
         liRadius    = new JTextField(6);
-        JLabel radiusLabel = new JLabel("Ball radius:");
-        radiusLabel.setLabelFor(liRadius);
+        liRadiusLabel = new JLabel("Ball radius:");
+        liRadiusLabel.setLabelFor(liRadius);
         liAlpha     = new JTextField(6);
         JLabel alphaLabel = new JLabel("Alpha (0-255):");
         alphaLabel.setLabelFor(liAlpha);
@@ -334,8 +335,8 @@ public class GroupEditor implements ChangeListener
             liPanel.addCell(liNoButton, 2, 1).newRow();
             liPanel.addCell(liNoHilite, 2, 1).newRow();
 	    liPanel.addCell(liRibbonFlip).newRow();  // (ARK Spring2010)
-            liPanel.addCell(widthLabel).addCell(liWidth).newRow();
-            liPanel.addCell(radiusLabel).addCell(liRadius).newRow();
+            liPanel.addCell(liWidthLabel).addCell(liWidth).newRow();
+            liPanel.addCell(liRadiusLabel).addCell(liRadius).newRow();
             liPanel.addCell(alphaLabel).addCell(liAlpha).newRow();
             liPanel.startSubtable();
                 liPanel.addCell(mastersLabel).newRow();
@@ -623,7 +624,22 @@ public class GroupEditor implements ChangeListener
         liPicker.setBackgroundMode(kMain.getCanvas().getEngine().backgroundMode);
         liPicker.setExtras(kMain.getKinemage().getNewPaintMap().values());
         liPicker.setSelection(originalColor);
-        
+
+        // Show/hide fields based on list type
+        String type = list.getType();
+        boolean hasWidth  = type.equals(KList.VECTOR) || type.equals(KList.DOT)
+                         || type.equals(KList.ARROW)  || type.equals(KList.RING);
+        boolean hasRadius = type.equals(KList.BALL) || type.equals(KList.SPHERE)
+                         || type.equals(KList.RING);
+        boolean hasNoHilite = type.equals(KList.BALL);
+        boolean hasRibbonFlip = type.equals(KList.RIBBON);
+        liWidthLabel.setVisible(hasWidth);
+        liWidth.setVisible(hasWidth);
+        liRadiusLabel.setVisible(hasRadius);
+        liRadius.setVisible(hasRadius);
+        liNoHilite.setVisible(hasNoHilite);
+        liRibbonFlip.setVisible(hasRibbonFlip);
+
         // Display dialog box
         liDialog.pack();
         liDialog.getRootPane().setDefaultButton(liOK); // DAK July 26 2009
