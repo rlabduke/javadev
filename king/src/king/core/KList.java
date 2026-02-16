@@ -196,7 +196,7 @@ public class KList extends AGE<KGroup,KPoint> implements Cloneable
     /** Establishes the default width of points held by this list */
     public void setWidth(int w)
     {
-        if(w > 7)       width = 7;
+        if(w > 12)      width = 12;
         else if(w < 1)  width = 1;
         else            width = w;
         fireKinChanged(CHANGE_LIST_PROPERTIES);

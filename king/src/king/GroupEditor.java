@@ -641,7 +641,7 @@ public class GroupEditor implements ChangeListener
             try { list.setWidth(Integer.parseInt(liWidth.getText())); }
             catch(NumberFormatException ex) {}
             if(list.getWidth() < 1) list.setWidth(1);
-            if(list.getWidth() > 7) list.setWidth(7);
+            if(list.getWidth() > 12) list.setWidth(12);
             try { list.setRadius(Float.parseFloat(liRadius.getText())); }
             catch(NumberFormatException ex) {}
             try { list.setAlpha(Integer.parseInt(liAlpha.getText())); }

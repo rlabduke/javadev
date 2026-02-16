@@ -55,7 +55,7 @@ public interface Crayon //extends ... implements ...
     /** Returns one or more aspect flags, without parentheses, or null for none */
     public String getAspects();
     
-    /** Returns a line width between 1 and 7, or 0 for default */
+    /** Returns a line width between 1 and 12, or 0 for default */
     public int getWidth();
 
     /** Returns a ball or sphere radius, or 0 for default */

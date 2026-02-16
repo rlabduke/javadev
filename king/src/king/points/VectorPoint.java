@@ -65,7 +65,7 @@ public class VectorPoint extends AbstractPoint // implements ...
     
     public void setWidth(int w)
     {
-        if(w > 7)       width = 7;
+        if(w > 12)      width = 12;
         else if(w < 0)  width = 0;
         else            width = w;
         fireKinChanged(CHANGE_POINT_PROPERTIES);

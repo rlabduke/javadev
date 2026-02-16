@@ -28,7 +28,7 @@ public class MultiListEditorPlugin extends Plugin
     float RADIUS_MIN = 0.01f;
     float RADIUS_MAX = Float.POSITIVE_INFINITY;
     int   WIDTH_MIN = 1;
-    int   WIDTH_MAX = 7;
+    int   WIDTH_MAX = 12;
     int   ALPHA_MIN = 0;
     int   ALPHA_MAX = 255;
 //}}}

@@ -31,10 +31,10 @@ public class KPalette //extends ... implements ...
     public static final BasicStroke     pen1 = new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
     
     /** The set of various pens for drawing depth-cued lines in different widths. */
-    public static final BasicStroke[][] pens = new BasicStroke[7][KPaint.COLOR_LEVELS];
+    public static final BasicStroke[][] pens = new BasicStroke[12][KPaint.COLOR_LEVELS];
     
     /** The set of line widths used for basic drawing, adjusted by widthScale. */
-    public static final int[][] lineWidths = new int[7][KPaint.COLOR_LEVELS];
+    public static final int[][] lineWidths = new int[12][KPaint.COLOR_LEVELS];
     
     /**
     * This version of line widths emulates MAGE.
@@ -58,7 +58,7 @@ public class KPalette //extends ... implements ...
         }
         
         // All other line thicknesses get depth cueing
-        for(int i = 1; i < 7; i++)
+        for(int i = 1; i < 12; i++)
         {
             for(int j = 0; j < KPaint.COLOR_LEVELS; j++)
             {
@@ -83,7 +83,7 @@ public class KPalette //extends ... implements ...
             widthScale[i] = (float)(1.0 / (1.0 - (i-half)/quot));
         }
         
-        for(int i = 0; i < 7; i++)
+        for(int i = 0; i < 12; i++)
         {
             for(int j = 0; j < KPaint.COLOR_LEVELS; j++)
             {
