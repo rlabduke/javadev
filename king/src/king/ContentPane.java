@@ -158,6 +158,12 @@ public class ContentPane extends JPanel implements KMessage.Subscriber
             majorSplit = null;
             content.add(topArea, BorderLayout.CENTER);
         }
+
+        // If JOGL was loaded at startup, put it in the layout now
+        // (before pack) so the split pane sizes correctly.
+        KinCanvas kc = kMain.getCanvas();
+        if(kc.joglCanvas != null)
+            setGraphicsComponent(kc.joglCanvas);
     }
 //}}}
 
