@@ -167,14 +167,10 @@ public class JoglRenderer
     {
         if(!isReady()) return;
 
-        double width  = bounds.getWidth();
-        double height = bounds.getHeight();
-        double size   = Math.min(width, height);
-
-        // Build matrices from KView
+        // Extract view parameters from KView
         double cx, cy, cz;
         double R11, R12, R13, R21, R22, R23, R31, R32, R33;
-        double zoom, span, clip;
+        double span, clip;
         synchronized(view)
         {
             view.compile();
@@ -193,79 +189,14 @@ public class JoglRenderer
             R32     = view.R32;
             R33     = view.R33;
         }
-        zoom = size / span;
-
-        double perspDist = 5.0 * size;
-        double clipScaling = size / 2.0;
-        double clipFront = clip;
-        double clipBack  = -clip;
-
-        // ModelView: translate(-cx,-cy,-cz) -> rotate -> scale(zoom) -> translate(0,0,-perspDist)
-        // We build the 4x4 in column-major order for GL.
-        //
-        // MV = T(0,0,-perspDist) * R * S(zoom) * T(-cx,-cy,-cz)
-        // Let R' = R * zoom (combine rotate+scale)
-        double r11 = R11*zoom, r12 = R12*zoom, r13 = R13*zoom;
-        double r21 = R21*zoom, r22 = R22*zoom, r23 = R23*zoom;
-        double r31 = R31*zoom, r32 = R32*zoom, r33 = R33*zoom;
-
-        // After R*S*T(-center), the translation part is R'*(-center):
-        double tx = -(r11*cx + r12*cy + r13*cz);
-        double ty = -(r21*cx + r22*cy + r23*cz);
-        double tz = -(r31*cx + r32*cy + r33*cz) - perspDist;
-
-        // Column-major MV matrix
-        mvMatrix[0]  = (float)r11;   mvMatrix[1]  = (float)r21;   mvMatrix[2]  = (float)r31;   mvMatrix[3]  = 0;
-        mvMatrix[4]  = (float)r12;   mvMatrix[5]  = (float)r22;   mvMatrix[6]  = (float)r32;   mvMatrix[7]  = 0;
-        mvMatrix[8]  = (float)r13;   mvMatrix[9]  = (float)r23;   mvMatrix[10] = (float)r33;   mvMatrix[11] = 0;
-        mvMatrix[12] = (float)tx;    mvMatrix[13] = (float)ty;    mvMatrix[14] = (float)tz;    mvMatrix[15] = 1;
-
-        // Projection: perspective frustum or ortho
-        double near = perspDist - clipScaling * clipFront;
-        double far  = perspDist - clipScaling * clipBack;
-        if(near < 1.0) near = 1.0;
-        if(far <= near) far = near + 1.0;
-
-        float[] projMatrix = new float[16];
-        if(engine.usePerspective)
-        {
-            double right  = (width / 2.0)  * (near / perspDist);
-            double top    = (height / 2.0) * (near / perspDist);
-            // glFrustum-style: column-major
-            projMatrix[0]  = (float)(near / right);
-            projMatrix[5]  = (float)(near / top);
-            projMatrix[10] = (float)(-(far + near) / (far - near));
-            projMatrix[11] = -1.0f;
-            projMatrix[14] = (float)(-2.0 * far * near / (far - near));
-            // all other elements are 0
-        }
-        else
-        {
-            double right = width / 2.0;
-            double top   = height / 2.0;
-            // glOrtho-style: column-major
-            projMatrix[0]  = (float)(1.0 / right);
-            projMatrix[5]  = (float)(1.0 / top);
-            projMatrix[10] = (float)(-2.0 / (far - near));
-            projMatrix[14] = (float)(-(far + near) / (far - near));
-            projMatrix[15] = 1.0f;
-        }
-
-        // MVP = Projection * ModelView
-        multiplyMatrix(mvpMatrix, projMatrix, mvMatrix);
-
-        // Fog parameters (in eye space: depth = -eyePos.z = distance from camera)
-        float fogStart = (float) near;
-        float fogEnd   = (float)((far - 0.36 * near) / (1.0 - 0.36));
 
         boolean whiteBg = engine.whiteBackground;
         float fogR = whiteBg ? 1.0f : 0.0f;
         float fogG = whiteBg ? 1.0f : 0.0f;
         float fogB = whiteBg ? 1.0f : 0.0f;
+        Triple lightDir = engine.lightingVector;
 
-        // --- Pack geometry ---
-        // Clear screen-space labels unconditionally so stale labels from a
-        // previous kinemage don't persist when the new one has no labels.
+        // --- Pack geometry (once per frame) ---
         screenLabelPositions.clear();
         screenLabelTexts.clear();
         screenLabelColors.clear();
@@ -273,8 +204,6 @@ public class JoglRenderer
 
         // --- GL state setup ---
         gl.glViewport(bounds.x, bounds.y, bounds.width, bounds.height);
-
-        // Clear with background color
         gl.glClearColor(fogR, fogG, fogB, 1.0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
@@ -282,57 +211,160 @@ public class JoglRenderer
         gl.glDepthFunc(GL.GL_LEQUAL);
         gl.glEnable(GL.GL_BLEND);
         gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-
-        // Use shader program
         gl.glUseProgram(program);
 
-        // Set uniforms
-        gl.glUniformMatrix4fv(uMvp, 1, false, mvpMatrix, 0);
-        gl.glUniformMatrix4fv(uMv,  1, false, mvMatrix,  0);
-        gl.glUniform3f(uFogColor, fogR, fogG, fogB);
-        gl.glUniform1f(uFogStart, fogStart);
-        gl.glUniform1f(uFogEnd,   fogEnd);
+        // --- Upload VBOs once ---
+        boolean hasDots  = dotVertCount > 0;
+        boolean hasLines = lineVertCount > 0;
+        boolean hasTris  = triVertCount > 0;
+        if(hasDots)  uploadVBO(gl, vbo[1], dotVerts,  dotVertCount,  false);
+        if(hasLines) uploadVBO(gl, vbo[0], lineVerts, lineVertCount, false);
+        if(hasTris)  uploadVBO(gl, vbo[2], triVerts,  triVertCount,  true);
 
-        // Light direction (normalized, in eye space)
-        Triple lightDir = engine.lightingVector; // default: normalized(-1, 1, 3)
-        gl.glUniform3f(uLightDir, (float)lightDir.getX(), (float)lightDir.getY(), (float)lightDir.getZ());
-
-        // --- Draw dots (per-list widths) ---
-        if(dotVertCount > 0)
+        // --- Render eye(s): once for mono, twice for stereo ---
+        int numEyes = engine.useStereo ? 2 : 1;
+        for(int eye = 0; eye < numEyes; eye++)
         {
-            gl.glUniform1i(uLighting, 0);
-            uploadVBO(gl, vbo[1], dotVerts, dotVertCount, false);
-            for(int[] cmd : dotDrawCmds)
+            // Viewport and stereo angle for this eye
+            int vx, vy, vw, vh;
+            float stereoAngle = 0;
+            if(engine.useStereo)
             {
-                gl.glPointSize(cmd[2] + 0.5f);
-                gl.glDrawArrays(GL2.GL_POINTS, cmd[0], cmd[1]);
+                int halfwidth = Math.max(0, bounds.width/2 - 10);
+                vw = halfwidth;
+                vh = bounds.height;
+                vy = bounds.y;
+                if(eye == 0) // left
+                {
+                    vx = bounds.x;
+                    if(engine.stereoRotation < 0) stereoAngle = engine.stereoRotation;
+                }
+                else // right
+                {
+                    vx = bounds.x + bounds.width - halfwidth;
+                    if(engine.stereoRotation >= 0) stereoAngle = -engine.stereoRotation;
+                }
             }
-        }
-
-        // --- Draw lines (per-list widths) ---
-        if(lineVertCount > 0)
-        {
-            gl.glUniform1i(uLighting, 0);
-            uploadVBO(gl, vbo[0], lineVerts, lineVertCount, false);
-            for(int[] cmd : lineDrawCmds)
+            else
             {
-                gl.glLineWidth(cmd[2] + 0.5f);
-                gl.glDrawArrays(GL2.GL_LINES, cmd[0], cmd[1]);
+                vx = bounds.x; vy = bounds.y;
+                vw = bounds.width; vh = bounds.height;
             }
-        }
+            gl.glViewport(vx, vy, vw, vh);
 
-        // --- Draw triangles ---
-        if(triVertCount > 0)
-        {
-            gl.glUniform1i(uLighting, 1);
-            uploadVBO(gl, vbo[2], triVerts, triVertCount, true);
-            gl.glDrawArrays(GL.GL_TRIANGLES, 0, triVertCount);
-        }
+            // Apply stereo Y-rotation to the base view rotation.
+            // KView.rotateY pre-multiplies by Ry: R' = Ry * R
+            double sR11 = R11, sR12 = R12, sR13 = R13;
+            double sR21 = R21, sR22 = R22, sR23 = R23;
+            double sR31 = R31, sR32 = R32, sR33 = R33;
+            if(stereoAngle != 0)
+            {
+                double cosA = Math.cos(stereoAngle), sinA = Math.sin(stereoAngle);
+                sR11 = cosA*R11 + sinA*R31;
+                sR12 = cosA*R12 + sinA*R32;
+                sR13 = cosA*R13 + sinA*R33;
+                sR31 = -sinA*R11 + cosA*R31;
+                sR32 = -sinA*R12 + cosA*R32;
+                sR33 = -sinA*R13 + cosA*R33;
+                // R21, R22, R23 unchanged by Y rotation
+            }
 
-        // --- Project labels to screen space for Java2D rendering ---
-        if(!labelPositions.isEmpty())
-        {
-            projectLabels(bounds.width, bounds.height);
+            // Build MV matrix for this eye's viewport
+            double eyeW    = vw;
+            double eyeH    = vh;
+            double eyeSize = Math.min(eyeW, eyeH);
+            double zoom    = eyeSize / span;
+            double perspDist   = 5.0 * eyeSize;
+            double clipScaling = eyeSize / 2.0;
+
+            // MV = T(0,0,-perspDist) * R' * S(zoom) * T(-cx,-cy,-cz)
+            double r11 = sR11*zoom, r12 = sR12*zoom, r13 = sR13*zoom;
+            double r21 = sR21*zoom, r22 = sR22*zoom, r23 = sR23*zoom;
+            double r31 = sR31*zoom, r32 = sR32*zoom, r33 = sR33*zoom;
+            double tx = -(r11*cx + r12*cy + r13*cz);
+            double ty = -(r21*cx + r22*cy + r23*cz);
+            double tz = -(r31*cx + r32*cy + r33*cz) - perspDist;
+
+            mvMatrix[0]  = (float)r11;   mvMatrix[1]  = (float)r21;   mvMatrix[2]  = (float)r31;   mvMatrix[3]  = 0;
+            mvMatrix[4]  = (float)r12;   mvMatrix[5]  = (float)r22;   mvMatrix[6]  = (float)r32;   mvMatrix[7]  = 0;
+            mvMatrix[8]  = (float)r13;   mvMatrix[9]  = (float)r23;   mvMatrix[10] = (float)r33;   mvMatrix[11] = 0;
+            mvMatrix[12] = (float)tx;    mvMatrix[13] = (float)ty;    mvMatrix[14] = (float)tz;    mvMatrix[15] = 1;
+
+            // Projection matrix (perspective or ortho, sized for this eye's viewport)
+            double near = perspDist - clipScaling * clip;
+            double far  = perspDist - clipScaling * (-clip);
+            if(near < 1.0) near = 1.0;
+            if(far <= near) far = near + 1.0;
+
+            float[] projMatrix = new float[16];
+            if(engine.usePerspective)
+            {
+                double right = (eyeW / 2.0) * (near / perspDist);
+                double top   = (eyeH / 2.0) * (near / perspDist);
+                projMatrix[0]  = (float)(near / right);
+                projMatrix[5]  = (float)(near / top);
+                projMatrix[10] = (float)(-(far + near) / (far - near));
+                projMatrix[11] = -1.0f;
+                projMatrix[14] = (float)(-2.0 * far * near / (far - near));
+            }
+            else
+            {
+                double right = eyeW / 2.0;
+                double top   = eyeH / 2.0;
+                projMatrix[0]  = (float)(1.0 / right);
+                projMatrix[5]  = (float)(1.0 / top);
+                projMatrix[10] = (float)(-2.0 / (far - near));
+                projMatrix[14] = (float)(-(far + near) / (far - near));
+                projMatrix[15] = 1.0f;
+            }
+
+            multiplyMatrix(mvpMatrix, projMatrix, mvMatrix);
+
+            // Fog parameters
+            float fogStart = (float) near;
+            float fogEnd   = (float)((far - 0.36 * near) / (1.0 - 0.36));
+
+            // Set uniforms for this eye
+            gl.glUniformMatrix4fv(uMvp, 1, false, mvpMatrix, 0);
+            gl.glUniformMatrix4fv(uMv,  1, false, mvMatrix,  0);
+            gl.glUniform3f(uFogColor, fogR, fogG, fogB);
+            gl.glUniform1f(uFogStart, fogStart);
+            gl.glUniform1f(uFogEnd,   fogEnd);
+            gl.glUniform3f(uLightDir, (float)lightDir.getX(), (float)lightDir.getY(), (float)lightDir.getZ());
+
+            // Draw geometry (VBOs already uploaded, just bind and draw)
+            if(hasDots)
+            {
+                gl.glUniform1i(uLighting, 0);
+                bindVBOForDraw(gl, vbo[1], false);
+                for(int[] cmd : dotDrawCmds)
+                {
+                    gl.glPointSize(cmd[2] + 0.5f);
+                    gl.glDrawArrays(GL2.GL_POINTS, cmd[0], cmd[1]);
+                }
+            }
+            if(hasLines)
+            {
+                gl.glUniform1i(uLighting, 0);
+                bindVBOForDraw(gl, vbo[0], false);
+                for(int[] cmd : lineDrawCmds)
+                {
+                    gl.glLineWidth(cmd[2] + 0.5f);
+                    gl.glDrawArrays(GL2.GL_LINES, cmd[0], cmd[1]);
+                }
+            }
+            if(hasTris)
+            {
+                gl.glUniform1i(uLighting, 1);
+                bindVBOForDraw(gl, vbo[2], true);
+                gl.glDrawArrays(GL.GL_TRIANGLES, 0, triVertCount);
+            }
+
+            // Project labels for this eye (accumulated across eyes)
+            if(!labelPositions.isEmpty())
+            {
+                projectLabels(vw, vh, vx - bounds.x);
+            }
         }
 
         // Cleanup GL state
@@ -344,10 +376,11 @@ public class JoglRenderer
         gl.glDisable(GL.GL_DEPTH_TEST);
         gl.glDisable(GL.GL_BLEND);
 
-        // Restore 2D ortho projection for toolbox overpaint (JoglPainter expects this)
+        // Restore full viewport and 2D ortho for toolbox overpaint (JoglPainter expects this)
+        gl.glViewport(bounds.x, bounds.y, bounds.width, bounds.height);
         gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glLoadIdentity();
-        gl.glOrtho(0.0, width, -height, 0.0, -1.0, 1.0);
+        gl.glOrtho(0.0, bounds.getWidth(), -bounds.getHeight(), 0.0, -1.0, 1.0);
         gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
     }
@@ -799,7 +832,22 @@ public class JoglRenderer
         buffer.flip();
         gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboHandle);
         gl.glBufferData(GL.GL_ARRAY_BUFFER, (long)buffer.limit() * 4, buffer, GL2.GL_STREAM_DRAW);
+        setupVertexAttribs(gl, hasNormals);
+    }
 
+    /**
+    * Binds an already-uploaded VBO and sets up vertex attribute pointers for drawing.
+    * Used for stereo rendering where the same VBO is drawn twice with different matrices.
+    */
+    void bindVBOForDraw(GL2 gl, int vboHandle, boolean hasNormals)
+    {
+        gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboHandle);
+        setupVertexAttribs(gl, hasNormals);
+    }
+
+    /** Sets up vertex attribute pointers for the currently bound VBO. */
+    private void setupVertexAttribs(GL2 gl, boolean hasNormals)
+    {
         if(hasNormals)
         {
             // Stride = 10 floats = 40 bytes
@@ -837,15 +885,13 @@ public class JoglRenderer
     /**
     * Projects labels from model space to screen space for Java2D rendering.
     * This avoids GLUT bitmap fonts which are fixed-size and tiny on HiDPI.
-    * @param viewportWidth  GL viewport width in physical pixels
-    * @param viewportHeight GL viewport height in physical pixels
+    * Results are accumulated (not cleared) so stereo can call this twice.
+    * @param viewportWidth   GL viewport width in physical pixels
+    * @param viewportHeight  GL viewport height in physical pixels
+    * @param viewportOffsetX offset from left edge of the full canvas (0 for mono/left eye)
     */
-    void projectLabels(int viewportWidth, int viewportHeight)
+    void projectLabels(int viewportWidth, int viewportHeight, int viewportOffsetX)
     {
-        screenLabelPositions.clear();
-        screenLabelTexts.clear();
-        screenLabelColors.clear();
-
         float hw = viewportWidth  / 2.0f;
         float hh = viewportHeight / 2.0f;
 
@@ -865,8 +911,8 @@ public class JoglRenderer
             float ndcX = cx / cw;
             float ndcY = cy / cw;
 
-            // Screen coords (viewport transform, Y-down for Java2D)
-            int sx = (int)((ndcX + 1.0f) * hw);
+            // Screen coords (viewport-relative, then offset to full-canvas coords)
+            int sx = viewportOffsetX + (int)((ndcX + 1.0f) * hw);
             int sy = (int)((1.0f - ndcY) * hh);
 
             screenLabelPositions.add(new int[]{sx, sy});
