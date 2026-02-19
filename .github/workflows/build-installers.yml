@@ -12,16 +12,25 @@ jobs:
         include:
           - os: macos-latest
             platform: mac
+            arch: arm64
+            ant-target: jpackage-mac
+            jogl-os: macosx-universal
+            probe-binary: probe
+          - os: macos-15-intel
+            platform: mac
+            arch: x86_64
             ant-target: jpackage-mac
             jogl-os: macosx-universal
             probe-binary: probe
           - os: windows-latest
             platform: win
+            arch: x86_64
             ant-target: jpackage-win
             jogl-os: windows-amd64
             probe-binary: probe.exe
           - os: ubuntu-latest
             platform: linux
+            arch: x86_64
             ant-target: jpackage-nix
             jogl-os: linux-amd64
             probe-binary: probe
@@ -143,10 +152,19 @@ jobs:
           ls -la king/installers/
         shell: bash
 
+      - name: Add architecture to macOS DMG filename
+        if: matrix.platform == 'mac'
+        run: |
+          cd king/installers
+          for f in *.dmg; do
+            mv "$f" "${f/.macosx./.macosx-${{ matrix.arch }}.}"
+          done
+        shell: bash
+
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: king-installer-${{ matrix.platform }}
+          name: king-installer-${{ matrix.platform }}-${{ matrix.arch }}
           path: king/installers/*
           retention-days: 30
 
