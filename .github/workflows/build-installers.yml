@@ -112,7 +112,7 @@ jobs:
             EXTRA_FLAGS="-Dmac.sign.identity=${{ secrets.APPLE_SIGNING_IDENTITY }}"
           fi
           ant "-Djpackage.version=${{ steps.version.outputs.jpackage_version }}" \
-            $EXTRA_FLAGS ${{ matrix.ant-target }}
+            ${EXTRA_FLAGS:+"$EXTRA_FLAGS"} ${{ matrix.ant-target }}
         working-directory: king
         shell: bash
 
