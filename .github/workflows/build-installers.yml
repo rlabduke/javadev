@@ -96,12 +96,14 @@ jobs:
             $(security list-keychains -d user | tr -d '"')
           rm $RUNNER_TEMP/certificate.p12
 
-      - name: Extract numeric version for jpackage
+      - name: Extract version from tag
         id: version
         run: |
-          # Strip 'v' prefix and any non-numeric suffix (e.g. v2.25-rc1 -> 2.25)
+          # Strip 'v' prefix: v2.25-rc6 -> 2.25-rc6
           TAG="${GITHUB_REF_NAME#v}"
+          # Numeric only for jpackage (requires X.Y.Z): 2.25-rc6 -> 2.25
           NUMERIC="${TAG%%-*}"
+          echo "version=${TAG}" >> "$GITHUB_OUTPUT"
           echo "jpackage_version=${NUMERIC}" >> "$GITHUB_OUTPUT"
         shell: bash
 
@@ -111,7 +113,8 @@ jobs:
           if [ "${{ matrix.platform }}" = "mac" ]; then
             EXTRA_FLAGS="-Dmac.sign.identity=${{ secrets.APPLE_SIGNING_IDENTITY }}"
           fi
-          ant "-Djpackage.version=${{ steps.version.outputs.jpackage_version }}" \
+          ant "-Dversion=${{ steps.version.outputs.version }}" \
+            "-Djpackage.version=${{ steps.version.outputs.jpackage_version }}" \
             ${EXTRA_FLAGS:+"$EXTRA_FLAGS"} ${{ matrix.ant-target }}
         working-directory: king
         shell: bash
