@@ -91,20 +91,32 @@ Open PDB in model manager without opening kinemage first?
 ==============================================================================
 ===  CHANGE LOG  =============================================================
 ==============================================================================
-### 2.25-rc1 ###
+### 2.25 ###
 VBC 02/2026
 - Added hardware-accelerated OpenGL rendering via JOGL VBOs and shaders
-  with proper depth buffer sorting (Phase 1: lines, dots, labels, balls)
+  with proper depth buffer sorting for lines, dots, labels, balls,
+  ribbons, and triangles
+- Smooth vertex normals for ribbon and triangle rendering in OpenGL
+- Stereo and crosseye stereo rendering in OpenGL mode
 - Fixed HiDPI/Retina display issues: picking, line/dot widths, overpaint
   text scaling, logo sizing, NaN center during translate
-- Measurement lines and markers now render correctly in OpenGL mode
+- Fixed measurement marker depth and label rendering in OpenGL mode
+- Fixed OpenGL renderer ignoring thinline setting and leaking labels
+  across kinemages
+- Switched to GLJPanel and fixed overlay compositing
+- Show only relevant fields in edit list properties dialog
+- Increased maximum line width from 7 to 12
+- Sped up CifReader with streaming atom_site parsing
 - Added MTZ reflection file reader for electron density maps
-- Updated startup logo to 2026
-- Cleaned up build.xml: removed legacy targets (AppBundler, InstallAnywhere,
-  no-JOGL Mac workaround), consolidated JOGL 2.6 library paths
+- Added macOS code signing and notarization for installer builds
 - Added GitHub Actions CI workflow for automated multi-platform installers
   (macOS, Windows, Linux) triggered on version tags
-- Updated copyright dates to 2026
+- Added JUnit test suite covering math, parser, utility, and integration
+  tests; updated JUnit to 4.13.2
+- Fixed compareVersions bug in Strings utility
+- Cleaned up build.xml: removed legacy targets (AppBundler, InstallAnywhere,
+  no-JOGL Mac workaround), consolidated JOGL 2.6 library paths
+- Updated startup logo and copyright dates to 2026
 
 ### 2.24 ###
 -Fixed up PDB Export tool to be a bit more user friendly and robust.

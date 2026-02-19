@@ -76,6 +76,26 @@ jobs:
           ant -f extratools/build.xml build
           ant -f rdcvis/build.xml build
 
+      - name: Import Apple certificate
+        if: matrix.platform == 'mac'
+        env:
+          CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          echo "$CERTIFICATE_P12" | base64 --decode > $RUNNER_TEMP/certificate.p12
+          security import $RUNNER_TEMP/certificate.p12 \
+            -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: \
+            -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" \
+            $(security list-keychains -d user | tr -d '"')
+          rm $RUNNER_TEMP/certificate.p12
+
       - name: Extract numeric version for jpackage
         id: version
         run: |
@@ -86,9 +106,32 @@ jobs:
         shell: bash
 
       - name: Build installer
-        run: ant "-Djpackage.version=${{ steps.version.outputs.jpackage_version }}" ${{ matrix.ant-target }}
+        run: |
+          EXTRA_FLAGS=""
+          if [ "${{ matrix.platform }}" = "mac" ]; then
+            EXTRA_FLAGS="-Dmac.sign.identity=${{ secrets.APPLE_SIGNING_IDENTITY }}"
+          fi
+          ant "-Djpackage.version=${{ steps.version.outputs.jpackage_version }}" \
+            $EXTRA_FLAGS ${{ matrix.ant-target }}
         working-directory: king
         shell: bash
+
+      - name: Notarize DMG
+        if: matrix.platform == 'mac'
+        run: |
+          DMG=$(find king/dist -name '*.dmg' | head -1)
+          echo "Submitting $DMG for notarization..."
+          xcrun notarytool submit "$DMG" \
+            --apple-id "${{ secrets.APPLE_ID }}" \
+            --team-id "${{ secrets.APPLE_TEAM_ID }}" \
+            --password "${{ secrets.APPLE_APP_PASSWORD }}" \
+            --wait
+          echo "Stapling notarization ticket..."
+          xcrun stapler staple "$DMG"
+
+      - name: Cleanup keychain
+        if: matrix.platform == 'mac' && always()
+        run: security delete-keychain $RUNNER_TEMP/signing.keychain-db 2>/dev/null || true
 
       - name: Collect installer files
         run: |
