@@ -400,19 +400,106 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
             //                                            from cmdline; for more seemless phenix integration
             CrystalVertexSource map;
 
+            // An MTZ can hold several maps (2Fo-Fc, difference, ...) at once,
+            // so it gets its own path that may open more than one window.
+            if(MAPTYPE_MTZ.equals(choice))
+            {
+                openMtzFile(new FileInputStream(f), f.getName(), phenixColors);
+                return;
+            }
+
             if(MAPTYPE_O.equals(choice))
                 map = new OMapVertexSource(new FileInputStream(f));
             else if(MAPTYPE_XPLOR.equals(choice))
                 map = new XplorVertexSource(new FileInputStream(f));
             else if(MAPTYPE_CCP4.equals(choice))
                 map = new Ccp4VertexSource(new FileInputStream(f));
-            else if(MAPTYPE_MTZ.equals(choice))
-                map = new MtzVertexSource(new FileInputStream(f));
             else throw new IllegalArgumentException("Map type not specified");
-            
+
             EDMapWindow win = new EDMapWindow(parent, map, f.getName(), phenixColors);
             kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
         }
+    }
+//}}}
+
+//{{{ openMtzFile, askMtzCoefficients
+//##################################################################################################
+    /**
+    * Opens an MTZ file of map coefficients. Unlike the pre-computed map formats,
+    * one MTZ typically contains coefficients for several maps -- most commonly a
+    * 2Fo-Fc map and an Fo-Fc difference map. The header is read once, the user
+    * picks which of the recognized coefficient sets to compute, and each one gets
+    * its own map window with the appropriate contour presets.
+    */
+    void openMtzFile(InputStream in, String displayName, boolean phenixColors) throws IOException
+    {
+        // Reads the header only; no FFT is computed yet.
+        MtzVertexSource probe = new MtzVertexSource(in, false);
+
+        java.util.List<String[]> chosen = askMtzCoefficients(displayName, probe.getAvailableCoefficients());
+        if(chosen.isEmpty()) return;
+
+        Window topWin = kMain.getTopWindow();
+        Cursor oldCursor = (topWin == null ? null : topWin.getCursor());
+        if(topWin != null) topWin.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        try
+        {
+            for(String[] pair : chosen)
+            {
+                // Each map means another FFT, but the file is only read from disk once.
+                MtzVertexSource m = probe.forCoefficients(pair[0], pair[1]);
+                new EDMapWindow(parent, m, displayName+" "+pair[2], phenixColors, pair[2]);
+            }
+        }
+        finally
+        {
+            if(topWin != null) topWin.setCursor(oldCursor);
+        }
+
+        kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
+    }
+
+    /**
+    * Asks which of the map coefficient sets found in an MTZ file should be opened.
+    * The best set of each kind is checked by default, so the usual Refmac or Phenix
+    * file offers a 2Fo-Fc map and a difference map without any extra clicking.
+    * @return the chosen {F, PHI, kind} triples; empty if the user cancelled
+    */
+    java.util.List<String[]> askMtzCoefficients(String displayName, java.util.List<String[]> available)
+    {
+        ArrayList<String[]> chosen = new ArrayList<String[]>();
+
+        // Nothing to choose between
+        if(available.size() == 1)
+        {
+            chosen.add(available.get(0));
+            return chosen;
+        }
+
+        // Pre-check the highest-priority set of each kind; the list is in priority order,
+        // so variants like 2FOFCWT_fill are offered but not selected.
+        Set<String> kindsSeen = new HashSet<String>();
+        ArrayList<JCheckBox> boxes = new ArrayList<JCheckBox>();
+        TablePane2 cp = new TablePane2();
+        cp.left().insets(1, 4, 1, 4).memorize();
+        cp.addCell(new JLabel("Maps found in "+displayName+":")).newRow();
+        for(String[] pair : available)
+        {
+            JCheckBox box = new JCheckBox(pair[2]+"   ("+pair[0]+" / "+pair[1]+")",
+                kindsSeen.add(pair[2]));
+            boxes.add(box);
+            cp.addCell(box).newRow();
+        }
+
+        int result = JOptionPane.showConfirmDialog(kMain.getTopWindow(), cp,
+            "Choose maps to open", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if(result != JOptionPane.OK_OPTION) return chosen;
+
+        for(int i = 0; i < boxes.size(); i++)
+        {
+            if(boxes.get(i).isSelected()) chosen.add(available.get(i));
+        }
+        return chosen;
     }
 //}}}
 
@@ -434,12 +521,17 @@ public class EDMapPlugin extends Plugin implements ListSelectionListener, KMessa
             InputStream is = new BufferedInputStream(mapURL.openStream());
             
             String choice = askMapFormat(urlField.getText());
+            if(MAPTYPE_MTZ.equals(choice))
+            {
+                openMtzFile(is, mapURL.getFile(), false);
+                return;
+            }
+
             if(MAPTYPE_O.equals(choice))            map = new OMapVertexSource(is);
             else if(MAPTYPE_XPLOR.equals(choice))   map = new XplorVertexSource(is);
             else if(MAPTYPE_CCP4.equals(choice))    map = new Ccp4VertexSource(is);
-            else if(MAPTYPE_MTZ.equals(choice))     map = new MtzVertexSource(is);
             else throw new IllegalArgumentException("Map type not specified");
-            
+
             EDMapWindow win = new EDMapWindow(parent, map, mapURL.getFile(), false);
             kMain.publish(new KMessage(kMain.getKinemage(), AHE.CHANGE_TREE_CONTENTS));
         }

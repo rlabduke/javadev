@@ -84,6 +84,19 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
     */
     public EDMapWindow(ToolBox parent, CrystalVertexSource map, String title, boolean phenixColors)
     {
+        this(parent, map, title, phenixColors, null);
+    }
+
+    /**
+    * Constructor
+    * @param forcedMapType one of MAP_2FOFC, MAP_FOFC, MAP_ANOMALOUS when the caller
+    *        already knows what kind of map this is (e.g. from the MTZ column labels),
+    *        or null to guess it from the file name. Unlike the file name guess, this
+    *        leaves the window title alone.
+    */
+    public EDMapWindow(ToolBox parent, CrystalVertexSource map, String title,
+        boolean phenixColors, String forcedMapType)
+    {
         this.parent     = parent;
         kMain           = parent.kMain;
         kCanvas         = parent.kCanvas;
@@ -103,8 +116,11 @@ public class EDMapWindow implements ChangeListener, ActionListener, Transformabl
         //mc1 = new MarchingCubes(map, map, plotter1, mode);
         //mc2 = new MarchingCubes(map, map, plotter2, mode);
         
-        mapType = parseType(title); //try to figure out what kind of map is being opened
-        
+        // parseType() also rewrites this.title, so only fall back to it when the
+        // caller couldn't tell us the map type outright
+        if(forcedMapType != null) mapType = forcedMapType;
+        else                      mapType = parseType(title);
+
         Window lastEdMapWindow = null;
         for(Window win : kMain.getTopWindow().getOwnedWindows()) {
           // for tiering multiple edens windows: determine which is the most recently opened

@@ -24,16 +24,27 @@ import jnt.FFT.ComplexDouble3DFFT;
 public class MtzVertexSource extends CrystalVertexSource
 {
 //{{{ Constants
-    /** Known F/PHI column pairs, in priority order for auto-detection. */
+    /** Map kinds; these match the type strings understood by king's EDMapWindow. */
+    public static final String KIND_2FOFC     = "2Fo-Fc";
+    public static final String KIND_FOFC      = "Fo-Fc";
+    public static final String KIND_ANOMALOUS = "anomalous";
+
+    /**
+    * Known {F, PHI, kind} column triples, in priority order for auto-detection.
+    * A file may contain several of these; all matches are reported by
+    * getAvailableCoefficients(), and any one of them can be selected.
+    */
     static final String[][] COLUMN_PAIRS = {
-        {"FWT",           "PHWT"},          // Refmac weighted map
-        {"2FOFCWT",       "PH2FOFCWT"},     // Phenix 2Fo-Fc weighted
-        {"2FOFC",         "PH2FOFC"},       // Phenix 2Fo-Fc (older naming)
-        {"DELFWT",        "PHDELWT"},       // Refmac difference map
-        {"FOFCWT",        "PHFOFCWT"},      // Phenix Fo-Fc weighted
-        {"FOFC",          "PHFOFC"},        // Fo-Fc difference (older naming)
-        {"2FOFCWT_fill",  "PH2FOFCWT_fill"},// Phenix filled map
-        {"F_phi.F",       "F_phi.phi"},     // BUSTER
+        {"FWT",           "PHWT",           KIND_2FOFC},    // Refmac weighted map
+        {"2FOFCWT",       "PH2FOFCWT",      KIND_2FOFC},    // Phenix 2Fo-Fc weighted
+        {"2FOFC",         "PH2FOFC",        KIND_2FOFC},    // Phenix 2Fo-Fc (older naming)
+        {"2FOFCWT_fill",  "PH2FOFCWT_fill", KIND_2FOFC},    // Phenix filled map
+        {"F_phi.F",       "F_phi.phi",      KIND_2FOFC},    // BUSTER
+        {"DELFWT",        "PHDELWT",        KIND_FOFC},     // Refmac difference map
+        {"FOFCWT",        "PHFOFCWT",       KIND_FOFC},     // Phenix Fo-Fc weighted
+        {"FOFC",          "PHFOFC",         KIND_FOFC},     // Fo-Fc difference (older naming)
+        {"ANOM",          "PHANOM",         KIND_ANOMALOUS},// Phenix anomalous difference
+        {"DELFAN",        "PHDELAN",        KIND_ANOMALOUS},// Refmac anomalous difference
     };
 //}}}
 
@@ -52,6 +63,13 @@ public class MtzVertexSource extends CrystalVertexSource
     int                 hCol = -1, kCol = -1, lCol = -1;
     int                 fCol = -1, phiCol = -1;
     String              fColName, phiColName;       // names of selected columns
+    String              mapKind;                    // KIND_xxx for the selected columns
+
+    // Requested columns, or null to take the first recognized pair in the file
+    String              wantF = null, wantPhi = null;
+
+    // All recognized {F, PHI, kind} triples present in this file, in priority order
+    List<String[]>      availablePairs = new ArrayList<String[]>();
 
     // Resolution limit
     double              dmin = -1;                  // high-resolution limit in Angstroms
@@ -91,6 +109,26 @@ public class MtzVertexSource extends CrystalVertexSource
     */
     public MtzVertexSource(InputStream in, boolean readData) throws IOException
     {
+        this(in, readData, null, null);
+    }
+
+    /**
+    * Creates a new VertexSource from an MTZ file containing map coefficients,
+    * using a specific pair of map coefficient columns.
+    * @param in the source of MTZ data
+    * @param readData if false, only header info will be read (no FFT computed)
+    * @param fLabel the label of the amplitude column to use, or null to
+    *        take the first recognized pair present in the file
+    * @param phiLabel the label of the phase column to use, or null
+    * @throws IOException if there's an I/O error or premature end of file
+    * @throws IllegalArgumentException if the file format is corrupt or
+    *         the requested map coefficient columns are not found
+    */
+    public MtzVertexSource(InputStream in, boolean readData, String fLabel, String phiLabel) throws IOException
+    {
+        this.wantF = fLabel;
+        this.wantPhi = phiLabel;
+
         // Auto-detect a gzipped input stream
         in = new BufferedInputStream(in);
         in.mark(10);
@@ -113,6 +151,58 @@ public class MtzVertexSource extends CrystalVertexSource
 
         super.init(readData);
     }
+
+    /**
+    * Creates a new VertexSource that reuses an already-buffered MTZ file.
+    * The byte array is shared by reference, not copied.
+    */
+    private MtzVertexSource(byte[] fileBytes, String fLabel, String phiLabel) throws IOException
+    {
+        this.fileBytes = fileBytes;
+        this.wantF = fLabel;
+        this.wantPhi = phiLabel;
+
+        super.init(true);
+    }
+//}}}
+
+//{{{ forCoefficients, getAvailableCoefficients, getFColumnName, getPhiColumnName, getMapKind
+//##############################################################################
+    /**
+    * Computes a second density map from this same MTZ file using a different
+    * pair of map coefficient columns, e.g. the difference map alongside the
+    * 2Fo-Fc map. The file is not re-read from disk; only the FFT is redone.
+    * @param fLabel the label of the amplitude column to use
+    * @param phiLabel the label of the phase column to use
+    * @throws IllegalStateException if this source's file buffer has already been released
+    * @throws IOException if the buffered data is malformed
+    */
+    public MtzVertexSource forCoefficients(String fLabel, String phiLabel) throws IOException
+    {
+        if(fileBytes == null)
+            throw new IllegalStateException("MTZ file buffer has already been released");
+        return new MtzVertexSource(fileBytes, fLabel, phiLabel);
+    }
+
+    /**
+    * Returns the recognized {F, PHI, kind} column triples present in this file,
+    * in priority order, where kind is one of the KIND_xxx constants.
+    * Never empty -- the constructor throws if nothing is recognized.
+    */
+    public List<String[]> getAvailableCoefficients()
+    { return Collections.unmodifiableList(availablePairs); }
+
+    /** Returns the label of the amplitude column this map was computed from. */
+    public String getFColumnName()
+    { return fColName; }
+
+    /** Returns the label of the phase column this map was computed from. */
+    public String getPhiColumnName()
+    { return phiColName; }
+
+    /** Returns the KIND_xxx constant for the columns this map was computed from. */
+    public String getMapKind()
+    { return mapKind; }
 //}}}
 
 //{{{ readHeader
@@ -249,26 +339,20 @@ public class MtzVertexSource extends CrystalVertexSource
         if(hCol < 0 || kCol < 0 || lCol < 0)
             throw new IllegalArgumentException("MTZ file does not contain H, K, L index columns");
 
-        // Auto-detect F/PHI column pair
+        // Find every recognized F/PHI column pair present in this file.
+        // A typical Refmac or Phenix file holds both a 2Fo-Fc and a difference set.
         Map<String, Integer> labelIndex = new HashMap<String, Integer>();
         for(int i = 0; i < colLabels.length; i++)
             labelIndex.put(colLabels[i], i);
 
+        availablePairs.clear();
         for(String[] pair : COLUMN_PAIRS)
         {
-            Integer fi = labelIndex.get(pair[0]);
-            Integer pi = labelIndex.get(pair[1]);
-            if(fi != null && pi != null)
-            {
-                fCol = fi;
-                phiCol = pi;
-                fColName = pair[0];
-                phiColName = pair[1];
-                break;
-            }
+            if(labelIndex.containsKey(pair[0]) && labelIndex.containsKey(pair[1]))
+                availablePairs.add(pair);
         }
 
-        if(fCol < 0 || phiCol < 0)
+        if(availablePairs.isEmpty())
         {
             StringBuilder sb = new StringBuilder();
             sb.append("No recognized map coefficient columns found in MTZ file.\n");
@@ -284,8 +368,28 @@ public class MtzVertexSource extends CrystalVertexSource
             throw new IllegalArgumentException(sb.toString());
         }
 
+        // Select the requested pair, or the highest-priority one present
+        String[] chosen = null;
+        if(wantF != null && wantPhi != null)
+        {
+            for(String[] pair : availablePairs)
+            {
+                if(wantF.equals(pair[0]) && wantPhi.equals(pair[1])) { chosen = pair; break; }
+            }
+            if(chosen == null)
+                throw new IllegalArgumentException("MTZ file does not contain the requested map"
+                    +" coefficient columns "+wantF+"/"+wantPhi);
+        }
+        else chosen = availablePairs.get(0);
+
+        fCol        = labelIndex.get(chosen[0]).intValue();
+        phiCol      = labelIndex.get(chosen[1]).intValue();
+        fColName    = chosen[0];
+        phiColName  = chosen[1];
+        mapKind     = chosen[2];
+
         SoftLog.err.println("MTZ: Using columns " + fColName + "/" + phiColName
-            + " for map coefficients");
+            + " (" + mapKind + ") for map coefficients");
         SoftLog.err.println("MTZ: " + nrefl + " reflections, " + ncol + " columns");
         SoftLog.err.println("MTZ: Cell " + aLength + " " + bLength + " " + cLength
             + " " + alpha + " " + beta + " " + gamma);
@@ -471,6 +575,11 @@ public class MtzVertexSource extends CrystalVertexSource
         sigma = Math.sqrt(sumSq / total - mean * mean);
 
         SoftLog.err.println("MTZ computed: mean = " + mean + "; sigma = " + sigma);
+
+        // Nothing reads the raw file after the FFT, and holding it would pin a full
+        // copy of the MTZ for the life of the map window. Other instances sharing
+        // this array (see forCoefficients) keep their own references.
+        fileBytes = null;
     }
 //}}}
 
