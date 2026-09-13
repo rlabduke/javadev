@@ -5,3 +5,7 @@ The currently most used program is the KiNG visualization software. The main KiN
 Note that several pre-built versions of KiNG are available as "Releases" in this repository. For mac users, your computer may report that the download is "damaged".  This is due to a security setting on the file, in order to get it to run, you may have to run the following command in the Terminal program on the installed King.app (substitute the appropriate path for where you installed the program, usually /Applications/).
 
 sudo xattr -r -d com.apple.quarantine /path/to/KiNG.app
+
+## License
+
+BSD-3-Clause; see [LICENSE](LICENSE). The lib/ directory bundles third-party libraries (for example Jython 2.1) that carry their own licenses.
