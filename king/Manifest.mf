@@ -4,4 +4,5 @@ Class-Path: pdfbox.jar fontbox.jar pdfbox-graphics2d.jar commons-logging-1.2.jar
   jogl-all-natives-windows-amd64.jar gluegen-rt-natives-windows-amd64.jar
   jogl-all-natives-macosx-universal.jar gluegen-rt-natives-macosx-universal.jar
   jogl-all-natives-linux-amd64.jar gluegen-rt-natives-linux-amd64.jar
+  beanking.jar chiropraxis.jar extratools.jar rdcvis.jar
 

@@ -264,7 +264,7 @@
             <include name="msvcr71.dll"/>
         </fileset>
     </copy>
-    <exec executable="jpackage.exe">
+    <exec executable="jpackage.exe" failonerror="true">
         <arg line="--input .\plugins\"/>
         <arg line="--name KiNG"/>
         <arg value="--verbose"/>
@@ -408,8 +408,19 @@
         <fileset dir="${javadev}/lib/jogl2.6/">
             <include name="*.jar"/>
         </fileset>
+        <fileset dir="${javadev}/lib/rlab/linux/">
+            <include name="probe"/>
+            <include name="suitename"/>
+        </fileset>
     </copy>
-    <exec executable="jpackage">
+    <!-- These are tracked in git as mode 644, and <copy> drops the exec bit anyway -->
+    <chmod perm="755">
+        <fileset dir="plugins/">
+            <include name="probe"/>
+            <include name="suitename"/>
+        </fileset>
+    </chmod>
+    <exec executable="jpackage" failonerror="true">
         <arg line="--input plugins/"/>
         <arg line="--name KiNG"/>
         <arg value="--verbose"/>

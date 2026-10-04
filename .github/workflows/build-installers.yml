@@ -69,9 +69,9 @@ jobs:
 
       - name: Download JOGL 2.6 natives
         run: |
-          curl -sL -o lib/jogl2.6/jogl-all-natives-${{ matrix.jogl-os }}.jar \
+          curl -fsSL -o lib/jogl2.6/jogl-all-natives-${{ matrix.jogl-os }}.jar \
             https://repo1.maven.org/maven2/org/jogamp/jogl/jogl-all/2.6.0/jogl-all-2.6.0-natives-${{ matrix.jogl-os }}.jar
-          curl -sL -o lib/jogl2.6/gluegen-rt-natives-${{ matrix.jogl-os }}.jar \
+          curl -fsSL -o lib/jogl2.6/gluegen-rt-natives-${{ matrix.jogl-os }}.jar \
             https://repo1.maven.org/maven2/org/jogamp/gluegen/gluegen-rt/2.6.0/gluegen-rt-2.6.0-natives-${{ matrix.jogl-os }}.jar
         shell: bash
 
@@ -84,6 +84,7 @@ jobs:
           ant -f chiropraxis/build.xml build
           ant -f extratools/build.xml build
           ant -f rdcvis/build.xml build
+        shell: bash
 
       - name: Import Apple certificate
         if: matrix.platform == 'mac'
