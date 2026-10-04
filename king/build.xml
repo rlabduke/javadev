@@ -30,11 +30,21 @@
     <tstamp>
         <format property="DSTAMP_SIX" pattern="yyMMdd"/>
     </tstamp>
+    <!-- Must be tested before version.props is loaded: at this point ${version}
+         is set only if it came from -Dversion (i.e. the git tag, via CI). -->
+    <condition property="version.from.cmdline">
+        <isset property="version"/>
+    </condition>
     <propertyfile file="${resource}/${ant.project.name}/buildnum.props">
         <entry key="buildnum" value="${DSTAMP}.${TSTAMP}"/>
     </propertyfile>
     <property file="${resource}/${ant.project.name}/buildnum.props"/>
     <property file="${resource}/${ant.project.name}/version.props"/>
+    <!-- version.props is jarred verbatim and is what KiNG reports at runtime
+         (Help | About, and the self-update check), so stamp the tag into it. -->
+    <propertyfile file="${resource}/${ant.project.name}/version.props" if:set="version.from.cmdline">
+        <entry key="version" value="${version}"/>
+    </propertyfile>
     <!-- jpackage requires numeric-only versions (e.g. 2.25.0), so allow override -->
     <property name="jpackage.version" value="${version}"/>
     <!-- mac.do.sign is set only when a signing identity has been provided -->

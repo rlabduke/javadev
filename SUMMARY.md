@@ -2,6 +2,10 @@
 
 ## 2026-10-04
 
+The version KiNG reports at runtime now comes from the git tag. `version.props` is
+jarred verbatim and drives Help | About and the self-update check, but nothing wrote
+`-Dversion` into it, so rc9's installers were named rc9 while the app said rc8.
+
 Fixed the plugin jars being absent from the classpath in all jpackage installers, which
 hid every chiropraxis, extratools and rdcvis tool from the menus. jpackage's launcher
 uses `-jar`, so the JVM ignores `app.classpath` in KiNG.cfg and reads only king.jar's
